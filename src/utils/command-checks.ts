@@ -161,42 +161,57 @@ export function createBinaryExistsCheck(
     id,
     description,
     async run({ runCommand }) {
-      const detectors: Array<{
-        command: string;
-        args: string[];
-        validate: (result: CommandRunnerResult) => boolean;
-      }> = [
-        {
-          command: "which",
-          args: [binaryName],
-          validate: (result) => result.exitCode === 0
-        },
-        {
-          command: "where",
-          args: [binaryName],
-          validate: (result) =>
-            result.exitCode === 0 && result.stdout.trim().length > 0
-        },
-        {
-          command: "test",
-          args: ["-f", `/usr/local/bin/${binaryName}`],
-          validate: (result) => result.exitCode === 0
-        },
-        {
-          command: "ls",
-          args: [`/usr/local/bin/${binaryName}`],
-          validate: (result) => result.exitCode === 0
-        }
-      ];
-
-      for (const detector of detectors) {
-        const result = await runCommand(detector.command, detector.args);
-        if (detector.validate(result)) {
-          return;
-        }
-      }
-
-      throw new Error(`${binaryName} CLI binary not found on PATH.`);
+      await checkBinaryExists(binaryName, runCommand);
     }
   };
+}
+
+/**
+ * Checks if a binary exists on the system using multiple detection methods.
+ * Throws an error if the binary is not found.
+ *
+ * @param binaryName - The name of the binary to check for (e.g., "claude", "codex")
+ * @param runCommand - Function to execute shell commands
+ * @throws Error if the binary is not found on PATH
+ */
+export async function checkBinaryExists(
+  binaryName: string,
+  runCommand: CommandRunner
+): Promise<void> {
+  const detectors: Array<{
+    command: string;
+    args: string[];
+    validate: (result: CommandRunnerResult) => boolean;
+  }> = [
+    {
+      command: "which",
+      args: [binaryName],
+      validate: (result) => result.exitCode === 0
+    },
+    {
+      command: "where",
+      args: [binaryName],
+      validate: (result) =>
+        result.exitCode === 0 && result.stdout.trim().length > 0
+    },
+    {
+      command: "test",
+      args: ["-f", `/usr/local/bin/${binaryName}`],
+      validate: (result) => result.exitCode === 0
+    },
+    {
+      command: "ls",
+      args: [`/usr/local/bin/${binaryName}`],
+      validate: (result) => result.exitCode === 0
+    }
+  ];
+
+  for (const detector of detectors) {
+    const result = await runCommand(detector.command, detector.args);
+    if (detector.validate(result)) {
+      return;
+    }
+  }
+
+  throw new Error(`${binaryName} CLI binary not found on PATH.`);
 }

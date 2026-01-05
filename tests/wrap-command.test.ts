@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../src/utils/file-system.js";
+import type { CommandRunnerResult } from "../src/utils/command-checks.js";
 
 function createMemFs(): FileSystem {
   const vol = new Volume();
@@ -73,6 +74,37 @@ describe("wrap command", () => {
     expect(runner.isolatedEnvRunner).toHaveBeenCalledWith(
       expect.objectContaining({
         argv: ["node", "poe-code", "-p", "Say hi"],
+        providerName: "codex"
+      })
+    );
+  });
+
+  it("passes commandRunner to isolatedEnvRunner", async () => {
+    const { createProgram } = await import("../src/cli/program.js");
+    const runner = await import("../src/cli/isolated-env-runner.js");
+
+    const fs = createMemFs();
+    const mockCommandRunner = vi.fn(async (): Promise<CommandRunnerResult> => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {},
+      commandRunner: mockCommandRunner
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "wrap", "codex", "--version"])
+    ).rejects.toThrow("STOP_WRAP");
+
+    expect(runner.isolatedEnvRunner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commandRunner: expect.any(Function),
         providerName: "codex"
       })
     );

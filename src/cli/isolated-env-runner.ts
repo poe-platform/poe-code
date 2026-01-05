@@ -3,6 +3,8 @@ import type { ProviderIsolatedEnv } from "./service-registry.js";
 import type { CliEnvironment } from "./environment.js";
 import { resolveIsolatedEnvDetails } from "./isolated-env.js";
 import type { FileSystem } from "../utils/file-system.js";
+import type { CommandRunner } from "../utils/command-checks.js";
+import { checkBinaryExists } from "../utils/command-checks.js";
 
 export async function isolatedEnvRunner(input: {
   env: CliEnvironment;
@@ -10,6 +12,7 @@ export async function isolatedEnvRunner(input: {
   isolated: ProviderIsolatedEnv;
   argv: string[];
   fs?: FileSystem;
+  commandRunner?: CommandRunner;
 }): Promise<never> {
   const details = resolveIsolatedEnvDetails(
     input.env,
@@ -27,6 +30,16 @@ export async function isolatedEnvRunner(input: {
     throw new Error(
       `${input.providerName} is not configured. Run 'poe-code login' or 'poe-code configure ${input.providerName}'.`
     );
+  }
+
+  if (input.commandRunner) {
+    try {
+      await checkBinaryExists(details.agentBinary, input.commandRunner);
+    } catch {
+      throw new Error(
+        `${input.providerName} binary "${details.agentBinary}" not found. Please ensure it is installed and available on PATH.`
+      );
+    }
   }
 
   const child = spawn(details.agentBinary, args, {

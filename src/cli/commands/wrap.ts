@@ -58,7 +58,8 @@ export function registerWrapCommand(
         fs: container.fs,
         providerName: adapter.name,
         isolated,
-        argv: ["node", "poe-code", ...forwarded]
+        argv: ["node", "poe-code", ...forwarded],
+        commandRunner: container.commandRunner
       });
     });
 }

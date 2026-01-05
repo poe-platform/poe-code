@@ -39,7 +39,8 @@ export function resolveIsolatedTargetDirectory(input: {
   const baseDir = resolveIsolatedBaseDir(input.env, input.providerName);
 
   const homeDir = input.env.homeDir;
-  if (expanded !== homeDir && !expanded.startsWith(`${homeDir}/`)) {
+  const homeDirWithSep = `${homeDir}${path.sep}`;
+  if (expanded !== homeDir && !expanded.startsWith(homeDirWithSep)) {
     throw new Error(
       `Isolated config targets must live under the user's home directory (received "${input.targetDirectory}").`
     );
@@ -51,11 +52,11 @@ export function resolveIsolatedTargetDirectory(input: {
   if (expanded === homeDir) {
     return baseDir;
   }
-  if (!expanded.startsWith(`${homeDir}/`)) {
+  if (!expanded.startsWith(homeDirWithSep)) {
     return expanded;
   }
 
-  const mapped = path.join(baseDir, expanded.slice(homeDir.length + 1));
+  const mapped = path.join(baseDir, expanded.slice(homeDirWithSep.length));
   return stripAgentHome(mapped, baseDir, input.isolated.agentBinary);
 }
 
@@ -172,10 +173,10 @@ function expandHomeShortcut(env: CliEnvironment, input: string): string {
   if (input === "~") {
     return env.homeDir;
   }
-  if (input.startsWith("~/")) {
+  if (input.startsWith("~/") || input.startsWith(`~${path.sep}`)) {
     return path.join(env.homeDir, input.slice(2));
   }
-  if (input.startsWith("~./")) {
+  if (input.startsWith("~./") || input.startsWith(`~.${path.sep}`)) {
     return path.join(env.homeDir, `.${input.slice(3)}`);
   }
   return input;

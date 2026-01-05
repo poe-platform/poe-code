@@ -528,4 +528,48 @@ describe("claude-code service", () => {
     expect(captured.map((entry) => entry.command)).toEqual(["which", "where"]);
     expect(captured[1]).toEqual({ command: "where", args: ["claude"] });
   });
+
+  it("creates required directory structure for conversation storage", async () => {
+    await configureClaude();
+
+    const claudeDir = path.join(home, ".claude");
+    const projectsDir = path.join(claudeDir, "projects");
+    const sessionEnvDir = path.join(claudeDir, "session-env");
+    const todosDir = path.join(claudeDir, "todos");
+    const plansDir = path.join(claudeDir, "plans");
+    const fileHistoryDir = path.join(claudeDir, "file-history");
+    const historyFile = path.join(claudeDir, "history.jsonl");
+
+    const stats = await Promise.all([
+      fs.stat(projectsDir),
+      fs.stat(sessionEnvDir),
+      fs.stat(todosDir),
+      fs.stat(plansDir),
+      fs.stat(fileHistoryDir),
+      fs.stat(historyFile)
+    ]);
+
+    expect(stats[0].isDirectory()).toBe(true);
+    expect(stats[1].isDirectory()).toBe(true);
+    expect(stats[2].isDirectory()).toBe(true);
+    expect(stats[3].isDirectory()).toBe(true);
+    expect(stats[4].isDirectory()).toBe(true);
+    expect(stats[5].isFile()).toBe(true);
+
+    const historyContent = await fs.readFile(historyFile, "utf8");
+    expect(historyContent).toBe("");
+  });
+
+  it("preserves existing history.jsonl content", async () => {
+    const claudeDir = path.join(home, ".claude");
+    const historyFile = path.join(claudeDir, "history.jsonl");
+    await fs.mkdir(claudeDir, { recursive: true });
+    const existingContent = '{"display":"test","timestamp":123456789}\n';
+    await fs.writeFile(historyFile, existingContent, { encoding: "utf8" });
+
+    await configureClaude();
+
+    const historyContent = await fs.readFile(historyFile, "utf8");
+    expect(historyContent).toBe(existingContent);
+  });
 });

@@ -159,6 +159,31 @@ export const claudeCodeService = createProvider<
       ensureDirectory({
         targetDirectory: "~/.claude"
       }),
+      ensureDirectory({
+        targetDirectory: "~/.claude/projects"
+      }),
+      ensureDirectory({
+        targetDirectory: "~/.claude/session-env"
+      }),
+      ensureDirectory({
+        targetDirectory: "~/.claude/todos"
+      }),
+      ensureDirectory({
+        targetDirectory: "~/.claude/plans"
+      }),
+      ensureDirectory({
+        targetDirectory: "~/.claude/file-history"
+      }),
+      {
+        kind: "transformFile",
+        target: { targetDirectory: "~/.claude", targetFile: "history.jsonl" },
+        transform({ content }) {
+          if (content !== null) {
+            return { content, changed: false };
+          }
+          return { content: "", changed: true };
+        }
+      },
       writeTemplateMutation({
         targetDirectory: "~/.claude",
         targetFile: "anthropic_key.sh",

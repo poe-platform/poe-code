@@ -12,7 +12,11 @@ import type {
   CommandRunnerOptions,
   CommandRunnerResult
 } from "../src/utils/command-checks.js";
-import { FRONTIER_MODELS, PROVIDER_NAME } from "../src/cli/constants.js";
+import {
+  DEFAULT_FRONTIER_MODEL,
+  FRONTIER_MODELS,
+  PROVIDER_NAME
+} from "../src/cli/constants.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -225,7 +229,7 @@ describe("spawn command", () => {
         command: "opencode",
         args: [
           "--model",
-          `poe/${FRONTIER_MODELS[0]!}`,
+          `poe/${DEFAULT_FRONTIER_MODEL}`,
           "run",
           "List files"
         ],

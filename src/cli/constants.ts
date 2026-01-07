@@ -1,6 +1,8 @@
 export const FRONTIER_MODELS = [
+  "Claude-Opus-4.5",
   "Claude-Sonnet-4.5",
-  "gpt-5.1-codex"
+  "gpt-5.2",
+  "Gemini-3-Pro"
 ] as const;
 
 export const DEFAULT_FRONTIER_MODEL = "Claude-Sonnet-4.5";

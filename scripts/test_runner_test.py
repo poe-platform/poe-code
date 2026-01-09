@@ -1,5 +1,6 @@
 import os
 import unittest
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -21,7 +22,7 @@ class RunCommandsTest(unittest.TestCase):
       patch("scripts.test_runner.load_local_api_key", return_value="test-key"),
       patch("scripts.test_runner.subprocess.run") as mocked_run,
       patch("builtins.print"),
-      patch.dict(os.environ, {"COLIMA_DOCKER_ARGS": ""}, clear=True),
+      patch.dict(os.environ, {"RUNNER_DOCKER_ARGS": ""}, clear=True),
     ):
       test_runner.run_commands()
 
@@ -34,7 +35,35 @@ class RunCommandsTest(unittest.TestCase):
         [str(fake_runner), reset_cmd, "poe-code login --api-key test-key", *expected_commands],
       )
       self.assertTrue(kwargs["check"])
-      self.assertEqual(kwargs["env"]["COLIMA_DOCKER_ARGS"], "-e POE_CODE_STDERR_LOGS=1")
+      self.assertEqual(
+        kwargs["env"]["RUNNER_DOCKER_ARGS"],
+        "-e POE_CODE_STDERR_LOGS=1 -e POE_API_KEY",
+      )
+      self.assertEqual(
+        kwargs["env"]["COLIMA_DOCKER_ARGS"],
+        "-e POE_CODE_STDERR_LOGS=1 -e POE_API_KEY",
+      )
+      self.assertEqual(kwargs["env"]["POE_API_KEY"], "test-key")
+
+  def test_redacts_api_key_in_failure_message(self) -> None:
+    fake_error = test_runner.subprocess.CalledProcessError(
+      1,
+      [
+        "scripts/colima-runner.sh",
+        "poe-code login --api-key test-key",
+      ],
+    )
+
+    stderr = StringIO()
+    with (
+      patch("scripts.test_runner.run_commands", side_effect=fake_error),
+      patch("sys.stderr", stderr),
+    ):
+      exit_code = test_runner.main()
+
+    self.assertEqual(exit_code, 1)
+    self.assertIn("poe-code login --api-key ***", stderr.getvalue())
+    self.assertNotIn("test-key", stderr.getvalue())
 
 
 if __name__ == "__main__":

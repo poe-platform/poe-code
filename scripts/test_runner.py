@@ -17,7 +17,7 @@ COMMAND_GROUPS: List[List[str]] = [
   [
     "poe-code install claude-code",
     "poe-code configure claude-code --yes",
-    "poe-code test claude-code",
+    "poe-code test claude-code --isolated",
   ],
   [
     "poe-code install claude-code",
@@ -93,16 +93,31 @@ def redact_command(command: str) -> str:
   return command
 
 
+def redact_failed_command(cmd: object) -> str:
+  if isinstance(cmd, str):
+    return redact_command(cmd)
+  if isinstance(cmd, (list, tuple)):
+    redacted: List[str] = []
+    for item in cmd:
+      redacted.append(redact_command(item) if isinstance(item, str) else str(item))
+    return str(redacted)
+  return str(cmd)
+
+
 def run_commands(command_groups: Optional[List[List[str]]] = None) -> None:
   runner = str(colima_runner_path())
   env = os.environ.copy()
-  docker_args = env.get("COLIMA_DOCKER_ARGS", "")
-  extra_arg = "-e POE_CODE_STDERR_LOGS=1"
-  if "POE_CODE_STDERR_LOGS" not in docker_args:
-    docker_args = f"{docker_args} {extra_arg}".strip()
+  api_key = load_local_api_key()
+  env["POE_API_KEY"] = api_key
+
+  docker_args = env.get("RUNNER_DOCKER_ARGS") or env.get("COLIMA_DOCKER_ARGS", "")
+  extra_args = ["-e POE_CODE_STDERR_LOGS=1", "-e POE_API_KEY"]
+  for extra_arg in extra_args:
+    if extra_arg not in docker_args:
+      docker_args = f"{docker_args} {extra_arg}".strip()
+  env["RUNNER_DOCKER_ARGS"] = docker_args
   env["COLIMA_DOCKER_ARGS"] = docker_args
 
-  api_key = load_local_api_key()
   login_cmd = make_login_command(api_key)
   reset_cmd = "rm -rf ~/.poe-code && mkdir -p ~/.poe-code/logs"
 
@@ -120,7 +135,10 @@ def main() -> int:
   try:
     run_commands()
   except subprocess.CalledProcessError as exc:
-    print(f"\nCommand failed with exit code {exc.returncode}: {exc.cmd}", file=sys.stderr)
+    print(
+      f"\nCommand failed with exit code {exc.returncode}: {redact_failed_command(exc.cmd)}",
+      file=sys.stderr,
+    )
     return exc.returncode
   except Exception as exc:  # pragma: no cover - defensive
     print(f"\nUnexpected error: {exc}", file=sys.stderr)

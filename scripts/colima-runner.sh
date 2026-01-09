@@ -5,8 +5,9 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mount_target="${COLIMA_RUNNER_MOUNT:-/workspace}"
 image="${COLIMA_RUNNER_IMAGE:-node:latest}"
-profile="${COLIMA_PROFILE:-default}"
-docker_args_env="${COLIMA_DOCKER_ARGS:-}"
+profile_env="${COLIMA_PROFILE:-}"
+profile="${profile_env:-default}"
+docker_args_env="${RUNNER_DOCKER_ARGS:-${COLIMA_DOCKER_ARGS:-}}"
 export_logs="${COLIMA_RUNNER_EXPORT_LOGS:-1}"
 log_export_dir_host="${COLIMA_RUNNER_LOG_EXPORT_DIR:-${repo_root}/.colima-logs}"
 log_export_mount="${COLIMA_RUNNER_LOG_EXPORT_MOUNT:-/log-export}"
@@ -17,42 +18,112 @@ if [ -n "${docker_args_env}" ]; then
   docker_args_list=(${docker_args_env})
 fi
 
-if ! command -v colima >/dev/null 2>&1; then
-  echo "colima command not found. Install Colima first." >&2
+engine="${CONTAINER_ENGINE:-docker}"
+if ! command -v "${engine}" >/dev/null 2>&1; then
+  if [ "${engine}" = "docker" ] && command -v podman >/dev/null 2>&1; then
+    engine="podman"
+  fi
+fi
+
+if ! command -v "${engine}" >/dev/null 2>&1; then
+  echo "${engine} command not found. Install Docker (or set CONTAINER_ENGINE)." >&2
   exit 1
 fi
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "docker command not found. Install Docker compatible with Colima." >&2
-  exit 1
+docker_context=""
+if [ "${engine}" = "docker" ]; then
+  docker_context="$(docker context show 2>/dev/null || true)"
 fi
 
-colima_args=(start --profile "${profile}" --mount "${repo_root}:${mount_target}:w")
+docker_context_name=""
+host_mount_source="${repo_root}"
+if [[ "${docker_context}" == colima* ]]; then
+  if ! command -v colima >/dev/null 2>&1; then
+    echo "Docker context is 'colima' but colima command not found." >&2
+    exit 1
+  fi
+
+  if [ -z "${profile_env}" ]; then
+    repo_basename="$(basename "${repo_root}")"
+    profile="${repo_basename}-runner"
+  fi
+
+  if [ "${profile}" = "default" ]; then
+    docker_context_name="colima"
+  else
+    docker_context_name="colima-${profile}"
+  fi
+
+  colima_running=false
+  if colima status --profile "${profile}" >/dev/null 2>&1; then
+    colima_running=true
+  fi
+
+  colima_mount_cmd=(start --profile "${profile}" --activate=false --mount "${repo_root}:${mount_target}:w")
+  if [ "${colima_running}" != true ]; then
+    colima "${colima_mount_cmd[@]}"
+  fi
+
+  colima_has_repo_mount() {
+    colima ssh --profile "${profile}" -- test -f "${mount_target}/package.json" >/dev/null 2>&1 && return 0
+    colima ssh --profile "${profile}" -- test -f "${mount_target}/package-lock.json" >/dev/null 2>&1
+  }
+
+  colima_mount_ok=false
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if colima_has_repo_mount; then
+      colima_mount_ok=true
+      break
+    fi
+    sleep 1
+  done
+
+  if [ "${colima_mount_ok}" != true ]; then
+    if [ -z "${profile_env}" ]; then
+      colima stop --profile "${profile}"
+      colima "${colima_mount_cmd[@]}"
+
+      for _ in 1 2 3 4 5 6 7 8 9 10; do
+        if colima_has_repo_mount; then
+          colima_mount_ok=true
+          break
+        fi
+        sleep 1
+      done
+    fi
+  fi
+
+  if [ "${colima_mount_ok}" != true ]; then
+    echo "Colima profile '${profile}' is running without the required mount for ${repo_root}." >&2
+    echo "Restart it with: colima stop --profile '${profile}' && colima ${colima_mount_cmd[*]}" >&2
+    exit 1
+  fi
+
+  host_mount_source="${mount_target}"
+fi
+
 log_export_volume=()
-
 if [ "${export_logs}" = "1" ]; then
   mkdir -p "${log_export_dir_host}"
   log_export_volume=(-v "${log_export_dir_host}:${log_export_mount}:rw")
 fi
 
-colima_running=false
-if colima status --profile "${profile}" >/dev/null 2>&1; then
-  colima_running=true
+tty_flags=()
+if [ -t 0 ] && [ -t 1 ]; then
+  tty_flags=(-it)
 fi
 
-if [ "${colima_running}" = true ]; then
-  if ! colima ssh --profile "${profile}" "test -f '${mount_target}/package.json' || test -f '${mount_target}/package-lock.json'" >/dev/null 2>&1; then
-    echo "Colima profile '${profile}' is running without the required mount. Restarting profile to apply ${repo_root}."
-    colima stop --profile "${profile}"
-    colima_running=false
-  fi
+docker_run_common=("${engine}")
+if [ -n "${docker_context_name}" ] && [ "${engine}" = "docker" ]; then
+  docker_run_common+=(--context "${docker_context_name}")
 fi
 
-if [ "${colima_running}" != true ]; then
-  colima "${colima_args[@]}"
+docker_run_common+=(run --rm)
+if [ "${#tty_flags[@]}" -gt 0 ]; then
+  docker_run_common+=("${tty_flags[@]}")
 fi
 
-docker_run_common=(docker run --rm -it -v "${mount_target}:${mount_target}:rw" -w "${mount_target}")
+docker_run_common+=(-v "${host_mount_source}:${mount_target}:rw" -w "${mount_target}")
 
 if [ "${#log_export_volume[@]}" -gt 0 ]; then
   docker_run_common+=("${log_export_volume[@]}")

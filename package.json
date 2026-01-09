@@ -8,6 +8,7 @@
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run",
+    "check:semver": "node -e \"const semver=require('semver'); const pkg=require('./package.json'); if(!semver.valid(pkg.version)){console.error('Invalid semver version in package.json:', pkg.version); process.exit(1);}\"",
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:workflows",
     "lint:workflows": "(command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)",
     "lint:eslint": "eslint . --ext ts",

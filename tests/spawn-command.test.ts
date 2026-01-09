@@ -78,15 +78,6 @@ describe("spawn command", () => {
   });
 
   async function ensureIsolatedConfig(service: string): Promise<void> {
-    if (service === "claude-code") {
-      await fs.mkdir(`${homeDir}/.poe-code/claude-code`, { recursive: true });
-      await fs.writeFile(
-        `${homeDir}/.poe-code/claude-code/settings.json`,
-        "{}",
-        { encoding: "utf8" }
-      );
-      return;
-    }
     if (service === "codex") {
       await fs.mkdir(`${homeDir}/.poe-code/codex`, { recursive: true });
       await fs.writeFile(
@@ -109,7 +100,6 @@ describe("spawn command", () => {
   }
 
   it("spawns a claude-code agent", async () => {
-    await ensureIsolatedConfig("claude-code");
     const logs: string[] = [];
     const { runner, calls } = createCommandRunnerStub({
       stdout: "Agent output\n",
@@ -119,7 +109,7 @@ describe("spawn command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-test" } },
       commandRunner: runner,
       logger: (message) => {
         logs.push(message);
@@ -149,7 +139,8 @@ describe("spawn command", () => {
         ],
         options: {
           env: {
-            CLAUDE_CONFIG_DIR: `${homeDir}/.poe-code/claude-code`
+            ANTHROPIC_API_KEY: "sk-test",
+            ANTHROPIC_BASE_URL: "https://api.poe.com"
           }
         }
       }
@@ -247,7 +238,6 @@ describe("spawn command", () => {
   });
 
   it("fails when spawn command exits with error", async () => {
-    await ensureIsolatedConfig("claude-code");
     const { runner } = createCommandRunnerStub({
       stdout: "",
       stderr: "spawn failed",
@@ -256,7 +246,7 @@ describe("spawn command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-test" } },
       commandRunner: runner,
       logger: () => {}
     });
@@ -445,7 +435,6 @@ describe("spawn command", () => {
   });
 
   it("runs spawn commands from a custom cwd via -C flag", async () => {
-    await ensureIsolatedConfig("claude-code");
     const customCwd = "/projects/demo";
     const { runner, calls } = createCommandRunnerStub({
       stdout: "Agent output\n",
@@ -455,7 +444,7 @@ describe("spawn command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-test" } },
       commandRunner: runner,
       logger: () => {}
     });
@@ -486,7 +475,8 @@ describe("spawn command", () => {
         options: {
           cwd: customCwd,
           env: {
-            CLAUDE_CONFIG_DIR: `${homeDir}/.poe-code/claude-code`
+            ANTHROPIC_API_KEY: "sk-test",
+            ANTHROPIC_BASE_URL: "https://api.poe.com"
           }
         }
       }

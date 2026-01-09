@@ -41,12 +41,14 @@ export function registerWrapCommand(
         forwarded = agentArgs;
       }
 
-      await ensureIsolatedConfigForService({
-        container,
-        adapter,
-        service,
-        flags
-      });
+      if (isolated.requiresConfig !== false) {
+        await ensureIsolatedConfigForService({
+          container,
+          adapter,
+          service,
+          flags
+        });
+      }
       await applyIsolatedEnvRepairs({
         fs: container.fs,
         env: container.env,

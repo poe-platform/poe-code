@@ -4,11 +4,9 @@ import {
 } from "../utils/command-checks.js";
 import {
   ensureDirectory,
-  chmodMutation,
-  jsonMergeMutation,
   jsonPruneMutation,
-  removeFileMutation,
-  writeTemplateMutation
+  jsonMergeMutation,
+  removeFileMutation
 } from "../services/service-manifest.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
@@ -21,31 +19,6 @@ import type {
   ModelConfigureOptions,
   EmptyProviderOptions
 } from "./spawn-options.js";
-import type { CliEnvironment } from "../cli/environment.js";
-
-function scriptTemplateContext(input: {
-  env: CliEnvironment;
-}): { credentialsPathLiteral: string } {
-  const credentialsPath = input.env.credentialsPath;
-  const homeDir = input.env.homeDir;
-  const defaultSuffix = "/.poe-code/credentials.json";
-  if (credentialsPath === homeDir + defaultSuffix) {
-    return {
-      credentialsPathLiteral: `require('os').homedir() + '${defaultSuffix}'`
-    };
-  }
-  if (credentialsPath.startsWith(homeDir + "/")) {
-    const suffix = credentialsPath.slice(homeDir.length);
-    return {
-      credentialsPathLiteral: `require('os').homedir() + '${escapeSingleQuotes(suffix)}'`
-    };
-  }
-  return { credentialsPathLiteral: `'${escapeSingleQuotes(credentialsPath)}'` };
-}
-
-function escapeSingleQuotes(value: string): string {
-  return value.split("'").join("\\'");
-}
 
 export const CLAUDE_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "claude-code",
@@ -73,13 +46,6 @@ const CLAUDE_SPAWN_DEFAULTS = [
   "--output-format",
   "text"
 ] as const;
-
-function buildClaudeApiKeyHelperCommand(
-  context: Parameters<typeof scriptTemplateContext>[0]
-): string {
-  const { credentialsPathLiteral } = scriptTemplateContext(context);
-  return `node -e "process.stdout.write(String(require(${credentialsPathLiteral}).apiKey || ''))"`;
-}
 
 function buildClaudeArgs(
   prompt: string | undefined,
@@ -110,6 +76,7 @@ export const claudeCodeService = createProvider<
   id: "claude-code",
   summary: "Configure Claude Code to route through Poe.",
   supportsStdinPrompt: true,
+  requiresApiKey: false,
   branding: {
     colors: {
       dark: "#C15F3C",
@@ -128,17 +95,11 @@ export const claudeCodeService = createProvider<
   },
   isolatedEnv: {
     agentBinary: "claude",
-    configProbe: { kind: "isolatedFile", relativePath: "settings.json" },
     env: {
-      CLAUDE_CONFIG_DIR: { kind: "isolatedDir" }
+      ANTHROPIC_API_KEY: { kind: "envVar", name: "POE_API_KEY" },
+      ANTHROPIC_BASE_URL: "https://api.poe.com"
     },
-    repairs: [
-      {
-        kind: "chmod",
-        relativePath: "anthropic_key.sh",
-        mode: 0o700
-      }
-    ]
+    requiresConfig: false
   },
   test(context) {
     return context.runCheck(
@@ -156,51 +117,20 @@ export const claudeCodeService = createProvider<
   },
   manifest: {
     configure: [
-      ensureDirectory({
-        targetDirectory: "~/.claude"
-      }),
-      ensureDirectory({
-        targetDirectory: "~/.claude/projects"
-      }),
-      ensureDirectory({
-        targetDirectory: "~/.claude/session-env"
-      }),
-      ensureDirectory({
-        targetDirectory: "~/.claude/todos"
-      }),
-      ensureDirectory({
-        targetDirectory: "~/.claude/plans"
-      }),
-      ensureDirectory({
-        targetDirectory: "~/.claude/file-history"
-      }),
-      {
-        kind: "transformFile",
-        target: { targetDirectory: "~/.claude", targetFile: "history.jsonl" },
-        transform({ content }) {
-          if (content !== null) {
-            return { content, changed: false };
-          }
-          return { content: "", changed: true };
-        }
-      },
-      writeTemplateMutation({
+      ensureDirectory({ targetDirectory: "~/.claude" }),
+      jsonPruneMutation({
         targetDirectory: "~/.claude",
-        targetFile: "anthropic_key.sh",
-        templateId: "claude-code/anthropic_key.sh.hbs",
-        context: scriptTemplateContext
+        targetFile: "settings.json",
+        shape: () => ({
+          apiKeyHelper: true
+        })
       }),
-      chmodMutation({ target: "~/.claude/anthropic_key.sh", mode: 0o700 }),
       jsonMergeMutation({
         targetDirectory: "~/.claude",
         targetFile: "settings.json",
-        value: ({ env, options }) => ({
-          apiKeyHelper: buildClaudeApiKeyHelperCommand({ env }),
+        value: ({ options }) => ({
           env: {
-            ANTHROPIC_BASE_URL: "https://api.poe.com",
-            ANTHROPIC_DEFAULT_HAIKU_MODEL: CLAUDE_CODE_VARIANTS.haiku,
-            ANTHROPIC_DEFAULT_SONNET_MODEL: CLAUDE_CODE_VARIANTS.sonnet,
-            ANTHROPIC_DEFAULT_OPUS_MODEL: CLAUDE_CODE_VARIANTS.opus
+            ANTHROPIC_BASE_URL: "https://api.poe.com"
           },
           model: options.model
         })

@@ -16,16 +16,10 @@ describe("poe-code command runner", () => {
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-test" } },
       logger: () => {},
       commandRunner: baseRunner
     });
-
-    const baseDir = `${homeDir}/.poe-code/claude-code`;
-    await fs.mkdir(baseDir, { recursive: true });
-    await fs.writeFile(`${baseDir}/settings.json`, "{}", "utf8");
-    await fs.writeFile(`${baseDir}/anthropic_key.sh`, "echo OK\n", "utf8");
-    await fs.chmod(`${baseDir}/anthropic_key.sh`, 0o644);
 
     const result = await container.commandRunner("poe-code", [
       "wrap",
@@ -39,13 +33,11 @@ describe("poe-code command runner", () => {
       ["-p", "Say hi"],
       expect.objectContaining({
         env: expect.objectContaining({
-          CLAUDE_CONFIG_DIR: baseDir
+          ANTHROPIC_API_KEY: "sk-test",
+          ANTHROPIC_BASE_URL: "https://api.poe.com"
         })
       })
     );
-
-    const stat = await fs.stat(`${baseDir}/anthropic_key.sh`);
-    expect(stat.mode & 0o777).toBe(0o700);
 
     expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });
   });

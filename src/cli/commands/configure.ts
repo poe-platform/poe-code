@@ -112,7 +112,7 @@ export async function executeConfigure(
     }
 
     const isolated = adapter.isolatedEnv;
-    if (isolated) {
+    if (isolated && isolated.requiresConfig !== false) {
       const isolatedTracker = createMutationTracker();
       const isolatedLogger = createMutationReporter(resources.logger);
       const isolatedObservers = combineMutationObservers(

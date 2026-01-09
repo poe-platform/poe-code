@@ -18,15 +18,13 @@ export async function isolatedEnvRunner(input: {
   );
   const [, , ...args] = input.argv;
 
-  const hasConfig = await configExists(
-    input.fs,
-    details.configProbePath
-  );
-
-  if (!hasConfig) {
-    throw new Error(
-      `${input.providerName} is not configured. Run 'poe-code login' or 'poe-code configure ${input.providerName}'.`
-    );
+  if (input.isolated.requiresConfig !== false) {
+    const hasConfig = await configExists(input.fs, details.configProbePath!);
+    if (!hasConfig) {
+      throw new Error(
+        `${input.providerName} is not configured. Run 'poe-code login' or 'poe-code configure ${input.providerName}'.`
+      );
+    }
   }
 
   const child = spawn(details.agentBinary, args, {

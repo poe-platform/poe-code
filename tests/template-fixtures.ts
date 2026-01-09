@@ -34,13 +34,6 @@ export const templateFixtures = new Map<string, string>([
     ["openai>=1.0.0", "python-dotenv>=1.0.0"].join("\n")
   ],
   [
-    "claude-code/anthropic_key.sh.hbs",
-    [
-      "#!/bin/bash",
-      'node -e "process.stdout.write(String(require({{{credentialsPathLiteral}}}).apiKey || \'\'))"'
-    ].join("\n")
-  ],
-  [
     "codex/config.toml.hbs",
     [
       'model_provider = "poe"',

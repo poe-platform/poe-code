@@ -61,6 +61,7 @@ export interface ProviderService<
   branding?: ProviderBranding;
   disabled?: boolean;
   supportsStdinPrompt?: boolean;
+  requiresApiKey?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
   isolatedEnv?: ProviderIsolatedEnv;
   install?(context: ProviderContext): Promise<void> | void;
@@ -70,9 +71,10 @@ export interface ProviderService<
 
 export interface ProviderIsolatedEnv {
   agentBinary: string;
-  configProbe: IsolatedEnvPath;
+  configProbe?: IsolatedEnvPath;
   env: Record<string, IsolatedEnvValue>;
   repairs?: IsolatedEnvRepair[];
+  requiresConfig?: boolean;
 }
 
 export type IsolatedEnvRepair =
@@ -92,7 +94,12 @@ export type IsolatedEnvPath =
       relativePath: string;
     };
 
-export type IsolatedEnvValue = string | IsolatedEnvPath;
+export type IsolatedEnvValue = string | IsolatedEnvPath | IsolatedEnvVariable;
+
+export type IsolatedEnvVariable = {
+  kind: "envVar";
+  name: string;
+};
 
 export type ProviderOperation =
   | "install"

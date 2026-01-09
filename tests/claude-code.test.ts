@@ -32,9 +32,6 @@ describe("claude-code service", () => {
   const home = "/home/user";
   const settingsPath = path.join(home, ".claude", "settings.json");
   const keyHelperPath = path.join(home, ".claude", "anthropic_key.sh");
-  const expectedApiKeyHelperCommand =
-    `node -e "process.stdout.write(String(require(require('os').homedir() + '/.poe-code/credentials.json').apiKey || ''))"`;
-  const apiKey = "sk-test";
   let env = createCliEnvironment({
     cwd: home,
     homeDir: home
@@ -93,7 +90,6 @@ describe("claude-code service", () => {
     overrides: Partial<ConfigureOptions> = {}
   ): ConfigureOptions => ({
     env,
-    apiKey,
     model: CLAUDE_MODEL_SONNET,
     ...overrides
   });
@@ -215,34 +211,15 @@ describe("claude-code service", () => {
     const content = await fs.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toEqual({
-      apiKeyHelper: expectedApiKeyHelperCommand,
       env: {
-        ANTHROPIC_BASE_URL: "https://api.poe.com",
-        ANTHROPIC_DEFAULT_HAIKU_MODEL: CLAUDE_MODEL_HAIKU,
-        ANTHROPIC_DEFAULT_SONNET_MODEL: CLAUDE_MODEL_SONNET,
-        ANTHROPIC_DEFAULT_OPUS_MODEL: CLAUDE_MODEL_OPUS
+        ANTHROPIC_BASE_URL: "https://api.poe.com"
       },
       model: CLAUDE_MODEL_SONNET
     });
-    const script = await fs.readFile(keyHelperPath, "utf8");
-    expect(script).toBe(
-      [
-        "#!/bin/bash",
-        'node -e "process.stdout.write(String(require(require(\'os\').homedir() + \'/.poe-code/credentials.json\').apiKey || \'\'))"'
-      ].join("\n")
-    );
+    await expect(fs.readFile(keyHelperPath, "utf8")).rejects.toThrow();
   });
 
-  it("writes apiKeyHelper as an executable command", async () => {
-    await configureClaude();
-
-    const content = await fs.readFile(settingsPath, "utf8");
-    const parsed = JSON.parse(content);
-
-    expect(parsed.apiKeyHelper).toBe(expectedApiKeyHelperCommand);
-  });
-
-  it("merges existing settings json while preserving other keys", async () => {
+  it("removes existing apiKeyHelper during configure", async () => {
     await fs.mkdir(path.dirname(settingsPath), { recursive: true });
     await fs.writeFile(
       settingsPath,
@@ -266,73 +243,13 @@ describe("claude-code service", () => {
     const content = await fs.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toEqual({
-      apiKeyHelper: expectedApiKeyHelperCommand,
       theme: "dark",
       env: {
         ANTHROPIC_BASE_URL: "https://api.poe.com",
-        ANTHROPIC_DEFAULT_HAIKU_MODEL: CLAUDE_MODEL_HAIKU,
-        ANTHROPIC_DEFAULT_SONNET_MODEL: CLAUDE_MODEL_SONNET,
-        ANTHROPIC_DEFAULT_OPUS_MODEL: CLAUDE_MODEL_OPUS,
         CUSTOM: "value"
       },
       model: CLAUDE_MODEL_SONNET
     });
-    const script = await fs.readFile(keyHelperPath, "utf8");
-    expect(script).toBe(
-      [
-        "#!/bin/bash",
-        'node -e "process.stdout.write(String(require(require(\'os\').homedir() + \'/.poe-code/credentials.json\').apiKey || \'\'))"'
-      ].join("\n")
-    );
-  });
-
-  it("recovers when settings json contains invalid content", async () => {
-    const dir = path.dirname(settingsPath);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(settingsPath, "test\n", { encoding: "utf8" });
-
-    await configureClaude();
-
-    const files = await fs.readdir(dir);
-    const backupName = files.find((name) =>
-      name.startsWith("settings.json.invalid-")
-    );
-    expect(backupName).toBeDefined();
-    const backupPath = path.join(dir, backupName as string);
-    const backupContent = await fs.readFile(backupPath, "utf8");
-    expect(backupContent).toBe("test\n");
-
-    const settings = await fs.readFile(settingsPath, "utf8");
-    const parsed = JSON.parse(settings);
-    expect(parsed).toEqual({
-      apiKeyHelper: expectedApiKeyHelperCommand,
-      env: {
-        ANTHROPIC_BASE_URL: "https://api.poe.com",
-        ANTHROPIC_DEFAULT_HAIKU_MODEL: CLAUDE_MODEL_HAIKU,
-        ANTHROPIC_DEFAULT_SONNET_MODEL: CLAUDE_MODEL_SONNET,
-        ANTHROPIC_DEFAULT_OPUS_MODEL: CLAUDE_MODEL_OPUS
-      },
-      model: CLAUDE_MODEL_SONNET
-    });
-    const script = await fs.readFile(keyHelperPath, "utf8");
-    expect(script).toBe(
-      [
-        "#!/bin/bash",
-        'node -e "process.stdout.write(String(require(require(\'os\').homedir() + \'/.poe-code/credentials.json\').apiKey || \'\'))"'
-      ].join("\n")
-    );
-  });
-
-  it("creates settings with custom model value", async () => {
-    await configureClaude({ model: CLAUDE_MODEL_HAIKU });
-
-    const content = await fs.readFile(settingsPath, "utf8");
-    const parsed = JSON.parse(content);
-    expect(parsed.model).toBe(CLAUDE_MODEL_HAIKU);
-    // Environment variables remain the same (not dynamically changed)
-    expect(parsed.env.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe(CLAUDE_MODEL_HAIKU);
-    expect(parsed.env.ANTHROPIC_DEFAULT_SONNET_MODEL).toBe(CLAUDE_MODEL_SONNET);
-    expect(parsed.env.ANTHROPIC_DEFAULT_OPUS_MODEL).toBe(CLAUDE_MODEL_OPUS);
   });
 
   it("spawns the claude CLI with the provided prompt and args", async () => {
@@ -440,7 +357,6 @@ describe("claude-code service", () => {
       JSON.stringify({ apiKey: "sk-test" }),
       { encoding: "utf8" }
     );
-    await configureClaude();
     const runCommand = vi.fn(async (command: string) => ({
       stdout: command === "/bin/sh" ? "sk-test\n" : "CLAUDE_CODE_OK\n",
       stderr: "",
@@ -529,47 +445,13 @@ describe("claude-code service", () => {
     expect(captured[1]).toEqual({ command: "where", args: ["claude"] });
   });
 
-  it("creates required directory structure for conversation storage", async () => {
+  it("creates ~/.claude directory when configuring", async () => {
     await configureClaude();
-
-    const claudeDir = path.join(home, ".claude");
-    const projectsDir = path.join(claudeDir, "projects");
-    const sessionEnvDir = path.join(claudeDir, "session-env");
-    const todosDir = path.join(claudeDir, "todos");
-    const plansDir = path.join(claudeDir, "plans");
-    const fileHistoryDir = path.join(claudeDir, "file-history");
-    const historyFile = path.join(claudeDir, "history.jsonl");
-
-    const stats = await Promise.all([
-      fs.stat(projectsDir),
-      fs.stat(sessionEnvDir),
-      fs.stat(todosDir),
-      fs.stat(plansDir),
-      fs.stat(fileHistoryDir),
-      fs.stat(historyFile)
-    ]);
-
-    expect(stats[0].isDirectory()).toBe(true);
-    expect(stats[1].isDirectory()).toBe(true);
-    expect(stats[2].isDirectory()).toBe(true);
-    expect(stats[3].isDirectory()).toBe(true);
-    expect(stats[4].isDirectory()).toBe(true);
-    expect(stats[5].isFile()).toBe(true);
-
-    const historyContent = await fs.readFile(historyFile, "utf8");
-    expect(historyContent).toBe("");
+    await fs.stat(path.join(home, ".claude"));
   });
 
-  it("preserves existing history.jsonl content", async () => {
-    const claudeDir = path.join(home, ".claude");
-    const historyFile = path.join(claudeDir, "history.jsonl");
-    await fs.mkdir(claudeDir, { recursive: true });
-    const existingContent = '{"display":"test","timestamp":123456789}\n';
-    await fs.writeFile(historyFile, existingContent, { encoding: "utf8" });
-
+  it("does not create history.jsonl when configuring", async () => {
     await configureClaude();
-
-    const historyContent = await fs.readFile(historyFile, "utf8");
-    expect(historyContent).toBe(existingContent);
+    await expect(fs.stat(path.join(home, ".claude", "history.jsonl"))).rejects.toThrow();
   });
 });

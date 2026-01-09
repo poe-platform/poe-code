@@ -44,17 +44,19 @@ export function createPoeCodeCommandRunner(input: {
       adapter.name
     );
 
-    const hasConfig = await isolatedConfigExists(
-      container.fs,
-      details.configProbePath
-    );
-    if (!hasConfig) {
-      await ensureIsolatedConfigForService({
-        container,
-        adapter,
-        service,
-        flags: { dryRun: false, assumeYes: true, verbose: false }
-      });
+    if (adapter.isolatedEnv.requiresConfig !== false) {
+      const hasConfig = await isolatedConfigExists(
+        container.fs,
+        details.configProbePath!
+      );
+      if (!hasConfig) {
+        await ensureIsolatedConfigForService({
+          container,
+          adapter,
+          service,
+          flags: { dryRun: false, assumeYes: true, verbose: false }
+        });
+      }
     }
 
     await applyIsolatedEnvRepairs({

@@ -290,7 +290,12 @@ export function jsonPruneMutation<Options>(config: {
       if (content == null) {
         return { content: null, changed: false };
       }
-      const current = parseJson(content);
+      const targetPath = resolveTargetPath(config, context);
+      const current = await parseJsonWithRecovery({
+        content,
+        fs: context.fs,
+        targetPath
+      });
       const shape = resolveValue(config.shape, context);
       const { changed, result } = pruneJsonByShape(current, shape);
       if (!changed) {

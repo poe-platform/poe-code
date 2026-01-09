@@ -155,15 +155,15 @@ describe("configure command", () => {
     expect(resolveModel).toHaveBeenCalled();
   });
 
-  it("accepts --model option to set default model without prompting", async () => {
+  it("accepts --model option to set a model without prompting", async () => {
     const { container } = createContainer();
-    const customModel = "Claude-Opus-4.5";
+    const customModel = "Custom-Model";
 
     const resolveModel = vi.spyOn(container.options, "resolveModel");
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
 
     const program = createTestProgram();
-    await executeConfigure(program, container, "claude-code", {
+    await executeConfigure(program, container, "opencode", {
       model: customModel
     });
 
@@ -173,9 +173,9 @@ describe("configure command", () => {
       })
     );
 
-    const settingsPath = homeDir + "/.claude/settings.json";
-    const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
-    expect(settings.model).toBe(customModel);
+    const configPath = homeDir + "/.config/opencode/config.json";
+    const settings = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(settings.model).toBe(`poe/${customModel}`);
   });
 
 });

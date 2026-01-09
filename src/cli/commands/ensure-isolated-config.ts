@@ -36,8 +36,14 @@ export async function ensureIsolatedConfigForService(input: {
     `isolated:${service}`
   );
   const providerContext = buildProviderContext(container, adapter, resources);
+  if (isolated.requiresConfig === false) {
+    return;
+  }
   const details = resolveIsolatedEnvDetails(container.env, isolated, adapter.name);
-  const hasConfig = await isolatedConfigExists(container.fs, details.configProbePath);
+  const hasConfig = await isolatedConfigExists(
+    container.fs,
+    details.configProbePath!
+  );
   if (hasConfig) {
     return;
   }
@@ -66,7 +72,10 @@ export async function ensureIsolatedConfigForService(input: {
   });
 
   if (!flags.dryRun) {
-    const refreshed = await isolatedConfigExists(container.fs, details.configProbePath);
+    const refreshed = await isolatedConfigExists(
+      container.fs,
+      details.configProbePath!
+    );
     if (!refreshed) {
       throw new Error(
         `${adapter.label} isolated configuration did not create ${details.configProbePath}.`

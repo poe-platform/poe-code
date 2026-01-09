@@ -3,6 +3,7 @@ import type { CliEnvironment } from "./environment.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type {
   IsolatedEnvPath,
+  IsolatedEnvVariable,
   IsolatedEnvValue,
   ProviderIsolatedEnv
 } from "./service-registry.js";
@@ -10,7 +11,7 @@ import type {
 export interface IsolatedEnvDetails {
   agentBinary: string;
   env: Record<string, string>;
-  configProbePath: string;
+  configProbePath?: string;
 }
 
 export function resolveIsolatedEnvDetails(
@@ -22,10 +23,18 @@ export function resolveIsolatedEnvDetails(
     throw new Error("resolveIsolatedEnvDetails requires providerName.");
   }
   const baseDir = resolveIsolatedBaseDir(env, providerName);
+  const requiresConfig = isolated.requiresConfig !== false;
+  if (requiresConfig && !isolated.configProbe) {
+    throw new Error(
+      `resolveIsolatedEnvDetails requires configProbe when requiresConfig is true (provider "${providerName}").`
+    );
+  }
   return {
     agentBinary: isolated.agentBinary,
     env: resolveIsolatedEnvVars(env, baseDir, isolated.env),
-    configProbePath: resolveIsolatedEnvPath(env, baseDir, isolated.configProbe)
+    configProbePath: isolated.configProbe
+      ? resolveIsolatedEnvPath(env, baseDir, isolated.configProbe)
+      : undefined
   };
 }
 
@@ -84,6 +93,15 @@ function resolveIsolatedEnvValue(
   if (typeof value === "string") {
     return expandHomeShortcut(env, value);
   }
+  if (isEnvVarReference(value)) {
+    const resolved = env.getVariable(value.name);
+    if (typeof resolved !== "string" || resolved.trim().length === 0) {
+      throw new Error(
+        `Missing required environment variable "${value.name}" for isolated wrapper.`
+      );
+    }
+    return resolved;
+  }
   return resolveIsolatedEnvPath(env, baseDir, value);
 }
 
@@ -100,6 +118,10 @@ function resolveIsolatedEnvPath(
     case "isolatedFile":
       return path.join(baseDir, value.relativePath);
   }
+}
+
+function isEnvVarReference(value: IsolatedEnvPath | IsolatedEnvVariable): value is IsolatedEnvVariable {
+  return value.kind === "envVar";
 }
 
 export async function isolatedConfigExists(

@@ -76,7 +76,7 @@ export function registerRemoveCommand(
       );
 
       const isolated = adapter.isolatedEnv;
-      if (isolated) {
+      if (isolated && isolated.requiresConfig !== false) {
         await entry.remove(
           {
             fs: providerContext.command.fs,

@@ -31,18 +31,19 @@ export function registerRemoveCommand(
     });
 }
 
- export async function executeRemove(
+export async function executeRemove(
   program: Command,
   container: CliContainer,
   service: string,
   options: RemoveCommandOptions
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
+  const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(
     container,
     flags,
-    `remove:${service}`
+    `remove:${canonicalService}`
   );
   const providerContext = buildProviderContext(
     container,
@@ -52,18 +53,18 @@ export function registerRemoveCommand(
   const mutationLogger = createMutationReporter(resources.logger);
 
   const payload = await createRemovePayload({
-    service,
+    service: canonicalService,
     container,
     options,
     context: providerContext
   });
 
   const removed = await container.registry.invoke(
-    service,
+    canonicalService,
     "remove",
     async (entry) => {
       if (!entry.remove) {
-        throw new Error(`Service "${service}" does not support remove.`);
+        throw new Error(`Service "${canonicalService}" does not support remove.`);
       }
       const result = await entry.remove(
         {
@@ -105,12 +106,12 @@ export function registerRemoveCommand(
     await removeConfiguredService({
       fs: container.fs,
       filePath: providerContext.env.credentialsPath,
-      service
+      service: canonicalService
     });
   }
 
   const messages = formatRemovalMessages(
-    service,
+    canonicalService,
     adapter.label,
     removed,
     payload

@@ -48,6 +48,7 @@ export interface ProviderService<
 > {
   id: string;
   summary: string;
+  aliases?: string[];
   configure(
     context: ServiceExecutionContext<TConfigure>,
     runOptions?: ServiceRunOptions
@@ -122,35 +123,78 @@ export interface ServiceRegistry {
 }
 
 export function createServiceRegistry(): ServiceRegistry {
-  const adapters = new Map<string, ProviderService>();
+  const canonicalAdapters = new Map<string, ProviderService>();
+  const nameToCanonical = new Map<string, string>();
+
+  const listProviderKeys = (adapter: ProviderService): string[] => {
+    const keys: string[] = [adapter.name];
+    for (const alias of adapter.aliases ?? []) {
+      if (typeof alias !== "string") {
+        continue;
+      }
+      const normalized = alias.trim();
+      if (normalized.length === 0) {
+        continue;
+      }
+      if (!keys.includes(normalized)) {
+        keys.push(normalized);
+      }
+    }
+    return keys;
+  };
 
   const register = (adapter: ProviderService): void => {
-    if (adapters.has(adapter.name)) {
+    if (canonicalAdapters.has(adapter.name)) {
       throw new Error(`Provider "${adapter.name}" is already registered.`);
     }
-    adapters.set(adapter.name, adapter);
+
+    const keys = listProviderKeys(adapter);
+    for (const key of keys) {
+      if (nameToCanonical.has(key)) {
+        throw new Error(`Provider "${key}" is already registered.`);
+      }
+    }
+
+    canonicalAdapters.set(adapter.name, adapter);
+    for (const key of keys) {
+      nameToCanonical.set(key, adapter.name);
+    }
   };
 
   const discover = (candidates: ProviderService[]): void => {
     for (const candidate of candidates) {
-      if (adapters.has(candidate.name)) {
+      if (canonicalAdapters.has(candidate.name)) {
         continue;
       }
-      adapters.set(candidate.name, candidate);
+      const keys = listProviderKeys(candidate);
+      if (keys.some((key) => nameToCanonical.has(key))) {
+        continue;
+      }
+
+      canonicalAdapters.set(candidate.name, candidate);
+      for (const key of keys) {
+        nameToCanonical.set(key, candidate.name);
+      }
     }
   };
 
-  const get = (name: string): ProviderService | undefined => adapters.get(name);
+  const get = (name: string): ProviderService | undefined => {
+    const canonicalName = nameToCanonical.get(name);
+    if (!canonicalName) {
+      return undefined;
+    }
+    return canonicalAdapters.get(canonicalName);
+  };
 
   const require = (name: string): ProviderService => {
-    const adapter = adapters.get(name);
+    const adapter = get(name);
     if (!adapter) {
       throw new Error(`Unknown provider "${name}".`);
     }
     return adapter;
   };
 
-  const list = (): ProviderService[] => Array.from(adapters.values());
+  const list = (): ProviderService[] => Array.from(canonicalAdapters.values());
 
   const invoke = async <T>(
     serviceName: string,

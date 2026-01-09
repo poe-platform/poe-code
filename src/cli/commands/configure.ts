@@ -58,11 +58,12 @@ export async function executeConfigure(
   options: ConfigureCommandOptions
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
+  const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(
     container,
     flags,
-    `configure:${service}`
+    `configure:${canonicalService}`
   );
   const providerContext = buildProviderContext(
     container,
@@ -78,9 +79,9 @@ export async function executeConfigure(
     adapter
   });
 
-  await container.registry.invoke(service, "configure", async (entry) => {
+  await container.registry.invoke(canonicalService, "configure", async (entry) => {
     if (!entry.configure) {
-      throw new Error(`Service "${service}" does not support configure.`);
+      throw new Error(`Service "${canonicalService}" does not support configure.`);
     }
     const tracker = createMutationTracker();
     const mutationLogger = createMutationReporter(resources.logger);
@@ -104,7 +105,7 @@ export async function executeConfigure(
       await saveConfiguredService({
         fs: container.fs,
         filePath: providerContext.env.credentialsPath,
-        service,
+        service: canonicalService,
         metadata: {
           files: tracker.files()
         }
@@ -131,7 +132,7 @@ export async function executeConfigure(
   });
 
   const dryMessage =
-    service === "claude-code"
+    canonicalService === "claude-code"
       ? `${adapter.label} (dry run)`
       : `Dry run: would configure ${adapter.label}.`;
 

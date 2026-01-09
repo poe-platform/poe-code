@@ -72,6 +72,7 @@ export const claudeCodeService = createProvider<
   ProviderSpawnOptions
 >({
   name: "claude-code",
+  aliases: ["claude"],
   label: "Claude Code",
   id: "claude-code",
   summary: "Configure Claude Code to route through Poe.",

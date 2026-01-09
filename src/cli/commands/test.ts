@@ -49,11 +49,12 @@ export async function executeTest(
   options: { isolated?: boolean; stdin?: boolean } = {}
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
+  const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(
     container,
     flags,
-    `test:${service}`
+    `test:${canonicalService}`
   );
   const providerContext = buildProviderContext(
     container,
@@ -73,7 +74,7 @@ export async function executeTest(
     await ensureIsolatedConfigForService({
       container,
       adapter,
-      service,
+      service: canonicalService,
       flags
     });
   }
@@ -94,11 +95,11 @@ export async function executeTest(
     const expectedOutput = "STDIN_OK";
     const prompt = `Output exactly: ${expectedOutput}`;
     const result = (await container.registry.invoke(
-      service,
+      canonicalService,
       "spawn",
       async (entry) => {
         if (!entry.spawn) {
-          throw new Error(`Service "${service}" does not support spawn.`);
+          throw new Error(`Service "${canonicalService}" does not support spawn.`);
         }
         const output = await entry.spawn(providerContext, {
           prompt,
@@ -132,9 +133,9 @@ export async function executeTest(
       );
     }
   } else {
-    await container.registry.invoke(service, "test", async (entry) => {
+    await container.registry.invoke(canonicalService, "test", async (entry) => {
       if (!entry.test) {
-        throw new Error(`Service "${service}" does not support test.`);
+        throw new Error(`Service "${canonicalService}" does not support test.`);
       }
       const activeContext =
         isolatedDetails
@@ -159,7 +160,7 @@ export async function executeTest(
   }
 
   const dryMessage =
-    service === "claude-code"
+    canonicalService === "claude-code"
       ? `${adapter.label} test (dry run)`
       : `Dry run: would test ${adapter.label}.`;
 

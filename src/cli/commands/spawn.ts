@@ -113,9 +113,9 @@ export function registerSpawnCommand(
         useStdin: shouldReadFromStdin
       };
 
-      const customHandler = options.handlers?.[service];
-      if (customHandler) {
-        await customHandler({
+      const directHandler = options.handlers?.[service];
+      if (directHandler) {
+        await directHandler({
           container,
           service,
           options: spawnOptions,
@@ -126,6 +126,19 @@ export function registerSpawnCommand(
       }
 
       const adapter = resolveServiceAdapter(container, service);
+      const canonicalService = adapter.name;
+      const canonicalHandler = options.handlers?.[canonicalService];
+      if (canonicalHandler) {
+        await canonicalHandler({
+          container,
+          service: canonicalService,
+          options: spawnOptions,
+          flags,
+          resources
+        });
+        return;
+      }
+
       if (typeof adapter.spawn !== "function") {
         throw new Error(`${adapter.label} does not support spawn.`);
       }
@@ -157,7 +170,7 @@ export function registerSpawnCommand(
       }
 
       const result = (await container.registry.invoke(
-        service,
+        canonicalService,
         "spawn",
         async (entry) => {
           if (!entry.spawn) {

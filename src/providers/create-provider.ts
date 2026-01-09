@@ -25,6 +25,7 @@ interface CreateProviderOptions<
   SpawnOptions
 > {
   name: string;
+  aliases?: string[];
   label: string;
   id: string;
   summary: string;
@@ -66,6 +67,7 @@ export function createProvider<
     id: options.id,
     summary: options.summary,
     name: options.name,
+    aliases: options.aliases,
     label: options.label,
     branding: options.branding,
     disabled: options.disabled,

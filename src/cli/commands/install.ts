@@ -35,11 +35,12 @@ export async function executeInstall(
   service: string
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
+  const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(
     container,
     flags,
-    `install:${service}`
+    `install:${canonicalService}`
   );
   const providerContext = buildProviderContext(
     container,
@@ -47,15 +48,15 @@ export async function executeInstall(
     resources
   );
 
-  await container.registry.invoke(service, "install", async (entry) => {
+  await container.registry.invoke(canonicalService, "install", async (entry) => {
     if (!entry.install) {
-      throw new Error(`Service "${service}" does not support install.`);
+      throw new Error(`Service "${canonicalService}" does not support install.`);
     }
     await entry.install(providerContext);
   });
 
   const dryMessage =
-    service === "claude-code"
+    canonicalService === "claude-code"
       ? `${adapter.label} install (dry run)`
       : `Dry run: would install ${adapter.label}.`;
 

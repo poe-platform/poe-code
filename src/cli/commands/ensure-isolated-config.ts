@@ -23,7 +23,8 @@ export async function ensureIsolatedConfigForService(input: {
   options?: ConfigureCommandOptions;
   flags: CommandFlags;
 }): Promise<void> {
-  const { container, adapter, service } = input;
+  const { container, adapter } = input;
+  const canonicalService = adapter.name;
   const isolated = adapter.isolatedEnv;
   if (!isolated) {
     return;
@@ -33,7 +34,7 @@ export async function ensureIsolatedConfigForService(input: {
   const resources = createExecutionResources(
     container,
     flags,
-    `isolated:${service}`
+    `isolated:${canonicalService}`
   );
   const providerContext = buildProviderContext(container, adapter, resources);
   if (isolated.requiresConfig === false) {
@@ -56,9 +57,9 @@ export async function ensureIsolatedConfigForService(input: {
     adapter
   });
 
-  await container.registry.invoke(service, "configure", async (entry) => {
+  await container.registry.invoke(canonicalService, "configure", async (entry) => {
     if (!entry.configure) {
-      throw new Error(`Service "${service}" does not support configure.`);
+      throw new Error(`Service "${canonicalService}" does not support configure.`);
     }
     const mutationLogger = createMutationReporter(resources.logger);
     await applyIsolatedConfiguration({

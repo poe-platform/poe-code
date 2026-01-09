@@ -178,4 +178,18 @@ describe("configure command", () => {
     expect(settings.model).toBe(`poe/${customModel}`);
   });
 
+  it("accepts the `claude` alias for Claude Code", async () => {
+    const { container } = createContainer();
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "claude", {});
+
+    const content = JSON.parse(await fs.readFile(credentialsPath, "utf8"));
+    expect(content.configured_services["claude-code"]).toBeDefined();
+    expect(content.configured_services.claude).toBeUndefined();
+  });
+
 });

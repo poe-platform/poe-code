@@ -17,21 +17,23 @@ export function registerWrapCommand(
     .argument("<service>", "Service to wrap")
     .argument("[agentArgs...]", "Arguments forwarded to the agent")
     .action(async (service: string, agentArgs: string[] = []) => {
+      const requestedService = service;
       const flags = resolveCommandFlags(program);
-      const adapter = resolveServiceAdapter(container, service);
+      const adapter = resolveServiceAdapter(container, requestedService);
+      const canonicalService = adapter.name;
       const isolated = adapter.isolatedEnv;
       if (!isolated) {
         throw new Error(
-          `Service "${service}" does not support isolated configuration wrappers.`
+          `Service "${requestedService}" does not support isolated configuration wrappers.`
         );
       }
 
       const argv = process.argv;
       const wrapIndex = argv.indexOf("wrap");
       const serviceIndex =
-        wrapIndex >= 0 && argv[wrapIndex + 1] === service
+        wrapIndex >= 0 && argv[wrapIndex + 1] === requestedService
           ? wrapIndex + 1
-          : argv.indexOf(service);
+          : argv.indexOf(requestedService);
       const startIndex = serviceIndex >= 0 ? serviceIndex + 1 : argv.length;
       let forwarded = argv.slice(startIndex);
       if (forwarded[0] === "--") {
@@ -45,7 +47,7 @@ export function registerWrapCommand(
         await ensureIsolatedConfigForService({
           container,
           adapter,
-          service,
+          service: canonicalService,
           flags
         });
       }

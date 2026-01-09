@@ -106,10 +106,16 @@ describe("spawn command", () => {
       stderr: "",
       exitCode: 0
     });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/credentials.json`,
+      JSON.stringify({ apiKey: "sk-test" }),
+      { encoding: "utf8" }
+    );
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-test" } },
+      env: { cwd, homeDir, variables: {} },
       commandRunner: runner,
       logger: (message) => {
         logs.push(message);
@@ -243,10 +249,16 @@ describe("spawn command", () => {
       stderr: "spawn failed",
       exitCode: 1
     });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/credentials.json`,
+      JSON.stringify({ apiKey: "sk-test" }),
+      { encoding: "utf8" }
+    );
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-test" } },
+      env: { cwd, homeDir, variables: {} },
       commandRunner: runner,
       logger: () => {}
     });
@@ -441,10 +453,16 @@ describe("spawn command", () => {
       stderr: "",
       exitCode: 0
     });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/credentials.json`,
+      JSON.stringify({ apiKey: "sk-test" }),
+      { encoding: "utf8" }
+    );
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-test" } },
+      env: { cwd, homeDir, variables: {} },
       commandRunner: runner,
       logger: () => {}
     });

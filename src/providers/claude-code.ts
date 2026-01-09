@@ -97,7 +97,7 @@ export const claudeCodeService = createProvider<
   isolatedEnv: {
     agentBinary: "claude",
     env: {
-      ANTHROPIC_API_KEY: { kind: "envVar", name: "POE_API_KEY" },
+      ANTHROPIC_API_KEY: { kind: "poeApiKey" },
       ANTHROPIC_BASE_URL: "https://api.poe.com"
     },
     requiresConfig: false

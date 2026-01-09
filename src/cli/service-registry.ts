@@ -95,11 +95,19 @@ export type IsolatedEnvPath =
       relativePath: string;
     };
 
-export type IsolatedEnvValue = string | IsolatedEnvPath | IsolatedEnvVariable;
+export type IsolatedEnvValue =
+  | string
+  | IsolatedEnvPath
+  | IsolatedEnvVariable
+  | IsolatedEnvPoeApiKey;
 
 export type IsolatedEnvVariable = {
   kind: "envVar";
   name: string;
+};
+
+export type IsolatedEnvPoeApiKey = {
+  kind: "poeApiKey";
 };
 
 export type ProviderOperation =

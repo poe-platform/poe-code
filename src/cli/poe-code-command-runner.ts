@@ -38,10 +38,11 @@ export function createPoeCodeCommandRunner(input: {
       return input.baseRunner(command, args, options);
     }
 
-    const details = resolveIsolatedEnvDetails(
+    const details = await resolveIsolatedEnvDetails(
       container.env,
       adapter.isolatedEnv,
-      adapter.name
+      adapter.name,
+      container.fs
     );
 
     if (adapter.isolatedEnv.requiresConfig !== false) {

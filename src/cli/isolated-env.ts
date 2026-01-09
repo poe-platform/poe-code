@@ -3,10 +3,12 @@ import type { CliEnvironment } from "./environment.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type {
   IsolatedEnvPath,
+  IsolatedEnvPoeApiKey,
   IsolatedEnvVariable,
   IsolatedEnvValue,
   ProviderIsolatedEnv
 } from "./service-registry.js";
+import { loadCredentials } from "../services/credentials.js";
 
 export interface IsolatedEnvDetails {
   agentBinary: string;
@@ -14,11 +16,12 @@ export interface IsolatedEnvDetails {
   configProbePath?: string;
 }
 
-export function resolveIsolatedEnvDetails(
+export async function resolveIsolatedEnvDetails(
   env: CliEnvironment,
   isolated: ProviderIsolatedEnv,
-  providerName?: string
-): IsolatedEnvDetails {
+  providerName?: string,
+  fs?: FileSystem
+): Promise<IsolatedEnvDetails> {
   if (!providerName) {
     throw new Error("resolveIsolatedEnvDetails requires providerName.");
   }
@@ -31,7 +34,7 @@ export function resolveIsolatedEnvDetails(
   }
   return {
     agentBinary: isolated.agentBinary,
-    env: resolveIsolatedEnvVars(env, baseDir, isolated.env),
+    env: await resolveIsolatedEnvVars(env, baseDir, isolated.env, fs),
     configProbePath: isolated.configProbe
       ? resolveIsolatedEnvPath(env, baseDir, isolated.configProbe)
       : undefined
@@ -73,23 +76,25 @@ function resolveIsolatedBaseDir(env: CliEnvironment, providerName: string): stri
   return env.resolveHomePath(".poe-code", providerName);
 }
 
-function resolveIsolatedEnvVars(
+async function resolveIsolatedEnvVars(
   env: CliEnvironment,
   baseDir: string,
-  vars: Record<string, IsolatedEnvValue>
-): Record<string, string> {
+  vars: Record<string, IsolatedEnvValue>,
+  fs?: FileSystem
+): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(vars)) {
-    out[key] = resolveIsolatedEnvValue(env, baseDir, value);
+    out[key] = await resolveIsolatedEnvValue(env, baseDir, value, fs);
   }
   return out;
 }
 
-function resolveIsolatedEnvValue(
+async function resolveIsolatedEnvValue(
   env: CliEnvironment,
   baseDir: string,
-  value: IsolatedEnvValue
-): string {
+  value: IsolatedEnvValue,
+  fs?: FileSystem
+): Promise<string> {
   if (typeof value === "string") {
     return expandHomeShortcut(env, value);
   }
@@ -102,7 +107,22 @@ function resolveIsolatedEnvValue(
     }
     return resolved;
   }
-  return resolveIsolatedEnvPath(env, baseDir, value);
+  if (isPoeApiKeyReference(value)) {
+    const resolved = env.getVariable("POE_API_KEY");
+    if (typeof resolved === "string" && resolved.trim().length > 0) {
+      return resolved;
+    }
+    if (!fs) {
+      throw new Error(
+        'Missing Poe API key for isolated wrapper. Set "POE_API_KEY" or run "poe-code login".'
+      );
+    }
+    return await resolvePoeApiKeyFromCredentials({ fs, env });
+  }
+  if (value.kind === "isolatedDir" || value.kind === "isolatedFile") {
+    return resolveIsolatedEnvPath(env, baseDir, value);
+  }
+  throw new Error("Unsupported isolated environment value.");
 }
 
 function resolveIsolatedEnvPath(
@@ -120,8 +140,27 @@ function resolveIsolatedEnvPath(
   }
 }
 
-function isEnvVarReference(value: IsolatedEnvPath | IsolatedEnvVariable): value is IsolatedEnvVariable {
-  return value.kind === "envVar";
+function isEnvVarReference(value: IsolatedEnvValue): value is IsolatedEnvVariable {
+  return typeof value === "object" && value.kind === "envVar";
+}
+
+function isPoeApiKeyReference(value: IsolatedEnvValue): value is IsolatedEnvPoeApiKey {
+  return typeof value === "object" && value.kind === "poeApiKey";
+}
+
+async function resolvePoeApiKeyFromCredentials(input: {
+  fs: FileSystem;
+  env: CliEnvironment;
+}): Promise<string> {
+  const stored =
+    (await loadCredentials({ fs: input.fs, filePath: input.env.credentialsPath })) ??
+    undefined;
+  if (typeof stored !== "string" || stored.trim().length === 0) {
+    throw new Error(
+      'Missing Poe API key for isolated wrapper. Set "POE_API_KEY" or run "poe-code login".'
+    );
+  }
+  return stored;
 }
 
 export async function isolatedConfigExists(

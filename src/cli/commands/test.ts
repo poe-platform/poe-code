@@ -64,7 +64,12 @@ export async function executeTest(
 
   const isolatedDetails =
     options.isolated && adapter.isolatedEnv
-      ? resolveIsolatedEnvDetails(container.env, adapter.isolatedEnv, adapter.name)
+      ? await resolveIsolatedEnvDetails(
+          container.env,
+          adapter.isolatedEnv,
+          adapter.name,
+          container.fs
+        )
       : null;
 
   if (options.isolated && adapter.isolatedEnv) {

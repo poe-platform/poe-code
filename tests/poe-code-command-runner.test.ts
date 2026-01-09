@@ -16,10 +16,17 @@ describe("poe-code command runner", () => {
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-test" } },
+      env: { cwd, homeDir, variables: {} },
       logger: () => {},
       commandRunner: baseRunner
     });
+
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/credentials.json`,
+      JSON.stringify({ apiKey: "sk-test" }),
+      "utf8"
+    );
 
     const result = await container.commandRunner("poe-code", [
       "wrap",

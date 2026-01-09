@@ -40,7 +40,12 @@ export async function ensureIsolatedConfigForService(input: {
   if (isolated.requiresConfig === false) {
     return;
   }
-  const details = resolveIsolatedEnvDetails(container.env, isolated, adapter.name);
+  const details = await resolveIsolatedEnvDetails(
+    container.env,
+    isolated,
+    adapter.name,
+    container.fs
+  );
   const hasConfig = await isolatedConfigExists(
     container.fs,
     details.configProbePath!

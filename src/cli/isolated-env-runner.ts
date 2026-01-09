@@ -11,10 +11,11 @@ export async function isolatedEnvRunner(input: {
   argv: string[];
   fs?: FileSystem;
 }): Promise<never> {
-  const details = resolveIsolatedEnvDetails(
+  const details = await resolveIsolatedEnvDetails(
     input.env,
     input.isolated,
-    input.providerName
+    input.providerName,
+    input.fs
   );
   const [, , ...args] = input.argv;
 

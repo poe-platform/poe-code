@@ -16,14 +16,11 @@ export async function createConfigurePayload(
 ): Promise<unknown> {
   const { container, flags, options, context, adapter } = init;
 
-  const payload: Record<string, unknown> = { env: context.env };
-  if (adapter.requiresApiKey !== false) {
-    const apiKey = await container.options.resolveApiKey({
-      value: options.apiKey,
-      dryRun: flags.dryRun
-    });
-    payload.apiKey = apiKey;
-  }
+  const apiKey = await container.options.resolveApiKey({
+    value: options.apiKey,
+    dryRun: flags.dryRun
+  });
+  const payload: Record<string, unknown> = { env: context.env, apiKey };
 
   const modelPrompt = adapter.configurePrompts?.model;
   if (modelPrompt) {

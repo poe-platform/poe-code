@@ -32,7 +32,6 @@ interface CreateProviderOptions<
   branding?: ProviderBranding;
   disabled?: boolean;
   supportsStdinPrompt?: boolean;
-  requiresApiKey?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
   isolatedEnv?: ProviderIsolatedEnv;
   manifest: ManifestVersionDefinition<ConfigureOptions, RemoveOptions>;
@@ -72,7 +71,6 @@ export function createProvider<
     branding: options.branding,
     disabled: options.disabled,
     supportsStdinPrompt: options.supportsStdinPrompt,
-    requiresApiKey: options.requiresApiKey,
     configurePrompts: options.configurePrompts,
     isolatedEnv: options.isolatedEnv,
     async configure(context, runOptions) {

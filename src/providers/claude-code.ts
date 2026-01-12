@@ -77,7 +77,6 @@ export const claudeCodeService = createProvider<
   id: "claude-code",
   summary: "Configure Claude Code to route through Poe.",
   supportsStdinPrompt: true,
-  requiresApiKey: false,
   branding: {
     colors: {
       dark: "#C15F3C",

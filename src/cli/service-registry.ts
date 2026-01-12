@@ -62,7 +62,6 @@ export interface ProviderService<
   branding?: ProviderBranding;
   disabled?: boolean;
   supportsStdinPrompt?: boolean;
-  requiresApiKey?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
   isolatedEnv?: ProviderIsolatedEnv;
   install?(context: ProviderContext): Promise<void> | void;

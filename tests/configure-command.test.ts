@@ -180,6 +180,7 @@ describe("configure command", () => {
 
   it("accepts the `claude` alias for Claude Code", async () => {
     const { container } = createContainer();
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
     vi.spyOn(container.options, "resolveModel").mockImplementation(
       async ({ defaultValue }) => defaultValue
     );

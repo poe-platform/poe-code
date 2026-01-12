@@ -47,3 +47,7 @@ Providers must be declarative and minimal: you are not allowed to add repeated i
 ## Readme
 
 You are not allowed to add anything to readme without user's permission. Upon feature completion, ask user whether readme should be updated.
+
+## Planning
+
+Planning docs must be in `docs` folder

@@ -135,6 +135,56 @@ describe("test command", () => {
     expect(logs.some((line) => line.includes("Tested Demo Service"))).toBe(true);
   });
 
+  it("passes --model through when running a stdin spawn test", async () => {
+    const container = createContainer();
+
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        supportsStdinPrompt: true,
+        async spawn(context, options) {
+          expect((options as any).useStdin).toBe(true);
+          expect((options as any).model).toBe("demo-model");
+          return context.command.runCommand("demo", ["-"], {
+            stdin: (options as any).prompt
+          });
+        }
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "test",
+      "--stdin",
+      "--model",
+      "demo-model",
+      "demo-service"
+    ]);
+  });
+
+  it("fails when --model is used without --stdin", async () => {
+    const container = createContainer();
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test() {}
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "test", "--model", "demo-model", "demo-service"])
+    ).rejects.toThrow(/--model.*--stdin/i);
+  });
+
   it("fails when --stdin is provided but the provider does not support stdin prompts", async () => {
     const container = createContainer();
     container.registry.register(

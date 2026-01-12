@@ -71,9 +71,14 @@ jobs:
       - name: Test provider
         run: |-
           SERVICE="${{ steps.provider.outputs.service }}"
+          MODEL="${{ steps.provider.outputs.model }}"
           case "$SERVICE" in
             claude-code|codex|opencode)
-              poe-code test "$SERVICE"
+              if [ -n "$MODEL" ]; then
+                poe-code test "$SERVICE" --stdin --model "$MODEL"
+              else
+                poe-code test "$SERVICE" --stdin
+              fi
               ;;
             *)
               echo "::error::Unsupported provider $SERVICE"

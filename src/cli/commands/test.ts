@@ -23,6 +23,7 @@ export function registerTestCommand(
     .command("test")
     .description("Run service health checks.")
     .option("--stdin", "Verify stdin prompt support via spawn")
+    .option("--model <model>", "Model identifier override (requires --stdin)")
     .argument(
       "[service]",
       "Service to test (claude-code | codex | opencode)"
@@ -34,10 +35,15 @@ export function registerTestCommand(
         container,
         service
       );
-      const opts = this.opts<{ isolated?: boolean; stdin?: boolean }>();
+      const opts = this.opts<{
+        isolated?: boolean;
+        stdin?: boolean;
+        model?: string;
+      }>();
       await executeTest(this, container, resolved, {
         isolated: Boolean(opts.isolated),
-        stdin: Boolean(opts.stdin)
+        stdin: Boolean(opts.stdin),
+        model: opts.model
       });
     });
 }
@@ -46,7 +52,7 @@ export async function executeTest(
   program: Command,
   container: CliContainer,
   service: string,
-  options: { isolated?: boolean; stdin?: boolean } = {}
+  options: { isolated?: boolean; stdin?: boolean; model?: string } = {}
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
   const canonicalService = adapter.name;
@@ -54,13 +60,17 @@ export async function executeTest(
   const resources = createExecutionResources(
     container,
     flags,
-    `test:${canonicalService}`
+      `test:${canonicalService}`
   );
   const providerContext = buildProviderContext(
     container,
     adapter,
     resources
   );
+
+  if (options.model && !options.stdin) {
+    throw new Error("The --model option requires --stdin.");
+  }
 
   const isolatedDetails =
     options.isolated && adapter.isolatedEnv
@@ -108,7 +118,8 @@ export async function executeTest(
         }
         const output = await entry.spawn(providerContext, {
           prompt,
-          useStdin: true
+          useStdin: true,
+          model: options.model
         });
         return output as CommandRunnerResult | void;
       }

@@ -16,6 +16,8 @@ import { registerInstallCommand } from "./commands/install.js";
 import { registerRemoveCommand } from "./commands/remove.js";
 import { registerTestCommand } from "./commands/test.js";
 import { registerQueryCommand } from "./commands/query.js";
+import { registerVersionOption } from "./commands/version.js";
+import packageJson from "../../package.json" with { type: "json" };
 
 export function createProgram(dependencies: CliDependencies): Command {
   const container = createCliContainer(dependencies);
@@ -41,6 +43,7 @@ function bootstrapProgram(container: CliContainer): Command {
     .option("--dry-run", "Simulate commands without writing changes.")
     .option("--verbose", "Show verbose logs.");
 
+  registerVersionOption(program, container, packageJson.version);
   registerInstallCommand(program, container);
   registerConfigureCommand(program, container);
   registerSpawnCommand(program, container);

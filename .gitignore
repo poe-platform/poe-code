@@ -26,3 +26,4 @@ test-*/
 .secrets
 # macOS metadata
 .DS_Store
+repos/

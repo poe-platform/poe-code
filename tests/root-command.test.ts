@@ -2,7 +2,6 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../src/cli/program.js";
 import type { FileSystem } from "../src/utils/file-system.js";
-import * as configureModule from "../src/cli/commands/configure.js";
 
 function createMemFs(): FileSystem {
   const vol = new Volume();
@@ -10,22 +9,20 @@ function createMemFs(): FileSystem {
   return createFsFromVolume(vol).promises as unknown as FileSystem;
 }
 
+function stripAnsi(str: string): string {
+  return str.replace(/\x1B\[[0-9;]*m/g, "");
+}
+
 describe("root command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("prompts for a service when invoked without arguments", async () => {
+  it("shows help when invoked without arguments", async () => {
     const fs = createMemFs();
     const prompts = vi.fn().mockResolvedValue({});
 
-    const resolveSpy = vi
-      .spyOn(configureModule, "resolveServiceArgument")
-      .mockResolvedValue("claude-code");
-    const executeSpy = vi
-      .spyOn(configureModule, "executeConfigure")
-      .mockResolvedValue();
-
+    let helpOutput = "";
     const program = createProgram({
       fs,
       prompts,
@@ -36,18 +33,18 @@ describe("root command", () => {
       logger: () => {}
     });
 
+    program.configureOutput({
+      writeOut: (str) => {
+        helpOutput += str;
+      }
+    });
+
     await program.parseAsync(["node", "cli"]);
 
-    expect(resolveSpy).toHaveBeenCalledTimes(1);
-    const [calledProgram] = resolveSpy.mock.calls[0]!;
-    expect(calledProgram).toBe(program);
-
-    expect(executeSpy).toHaveBeenCalledWith(
-      program,
-      expect.anything(),
-      "claude-code",
-      {}
-    );
+    const plainOutput = stripAnsi(helpOutput);
+    expect(plainOutput).toContain("Configure coding agents to use the Poe API");
+    expect(plainOutput).toContain("Usage: poe-code");
+    expect(plainOutput).toContain("Commands:");
   });
 
   it("registers a --verbose flag", () => {

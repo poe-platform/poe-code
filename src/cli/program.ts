@@ -1,14 +1,11 @@
-import { Command } from "commander";
+import { Command, Help } from "commander";
+import chalk from "chalk";
 import {
   createCliContainer,
   type CliContainer,
   type CliDependencies
 } from "./container.js";
-import {
-  registerConfigureCommand,
-  resolveServiceArgument,
-  executeConfigure
-} from "./commands/configure.js";
+import { registerConfigureCommand } from "./commands/configure.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
 import { registerWrapCommand } from "./commands/wrap.js";
 import { registerLoginCommand } from "./commands/login.js";
@@ -18,6 +15,62 @@ import { registerTestCommand } from "./commands/test.js";
 import { registerQueryCommand } from "./commands/query.js";
 import { registerVersionOption } from "./commands/version.js";
 import packageJson from "../../package.json" with { type: "json" };
+
+function formatHelpText(): string {
+  const dim = chalk.dim;
+  const cyan = chalk.cyan;
+  const yellow = chalk.yellow;
+  const green = chalk.green;
+  const bold = chalk.bold;
+
+  const cmd = (name: string, args: string) =>
+    `  ${cyan(name.padEnd(10))}${dim(args)}`;
+  const example = (text: string) => `                                 ${dim(text)}`;
+  const opt = (flag: string, desc: string) =>
+    `  ${yellow(flag.padEnd(27))}${desc}`;
+
+  return [
+    bold("Configure coding agents to use the Poe API."),
+    "",
+    `${bold("Usage:")} ${green("poe-code")} ${dim("<command> [...options]")}`,
+    "",
+    bold("Commands:"),
+    cmd("configure", "[service]") + "            Configure developer tooling for Poe API",
+    example("poe-code configure claude-code"),
+    "",
+    cmd("remove", "<service>") + "            Remove existing Poe API tooling configuration",
+    example("poe-code remove codex"),
+    "",
+    cmd("install", "[service]") + "            Install tooling for a configured service",
+    example("poe-code install opencode"),
+    "",
+    cmd("spawn", "<service> [prompt]") + "   Run a single prompt through a configured service CLI",
+    example("poe-code spawn codex \"Say hello\""),
+    "",
+    cmd("wrap", "<service>") + "            Run an agent CLI with Poe isolated configuration",
+    example("poe-code wrap claude-code --help"),
+    "",
+    cmd("test", "[service]") + "            Run service health checks",
+    example("poe-code test codex"),
+    "",
+    cmd("query", "[prompt]") + "             Query an LLM via Poe API directly",
+    example("poe-code query \"What is 2+2?\""),
+    "",
+    cmd("login", "") + "                          Store a Poe API key for reuse across commands",
+    "",
+    bold("Options:"),
+    opt("-y, --yes", "Accept defaults without prompting"),
+    opt("--dry-run", "Simulate commands without writing changes"),
+    opt("--verbose", "Show verbose logs"),
+    opt("-V, --version", "Output the version number"),
+    opt("-h, --help", "Display help for command"),
+    "",
+    opt("<command> --help", "Print help text for command"),
+    "",
+    `${dim("Learn more about Poe:")}            ${cyan("https://poe.com")}`,
+    `${dim("GitHub:")}                          ${cyan("https://github.com/poe-platform/poe-code")}`
+  ].join("\n");
+}
 
 export function createProgram(dependencies: CliDependencies): Command {
   const container = createCliContainer(dependencies);
@@ -41,7 +94,17 @@ function bootstrapProgram(container: CliContainer): Command {
     .description("Configure Poe API integrations for local developer tooling.")
     .option("-y, --yes", "Accept defaults without prompting.")
     .option("--dry-run", "Simulate commands without writing changes.")
-    .option("--verbose", "Show verbose logs.");
+    .option("--verbose", "Show verbose logs.")
+    .helpOption("-h, --help", "Display help for command")
+    .configureHelp({
+      formatHelp: (cmd, helper) => {
+        if (cmd.name() === "poe-code") {
+          return formatHelpText();
+        }
+        const defaultHelper = new Help();
+        return defaultHelper.formatHelp(cmd, helper);
+      }
+    });
 
   registerVersionOption(program, container, packageJson.version);
   registerInstallCommand(program, container);
@@ -53,9 +116,8 @@ function bootstrapProgram(container: CliContainer): Command {
   registerRemoveCommand(program, container);
   registerLoginCommand(program, container);
 
-  program.action(async () => {
-    const service = await resolveServiceArgument(program, container);
-    await executeConfigure(program, container, service, {});
+  program.action(() => {
+    program.outputHelp();
   });
 
   return program;

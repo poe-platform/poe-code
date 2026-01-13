@@ -53,7 +53,7 @@
     [
       "@semantic-release/github",
       {
-        "successComment": "Issue was resolved by #${nextRelease.gitHead.slice(0, 7)}\\n\\nUpdate poe-code via `npm install -g poe-code@${nextRelease.version}`",
+        "successComment": "Issue was resolved by [#${nextRelease.gitHead.slice(0, 7)}](https://github.com/poe-platform/poe-code/commit/${nextRelease.gitHead})\n\nUpdate poe-code via `npm install -g poe-code@${nextRelease.version}`",
         "successCommentCondition": "<% return !issue.pull_request; %>"
       }
     ]

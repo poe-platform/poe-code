@@ -13,7 +13,7 @@ export const CLAUDE_CODE_VARIANTS = {
   opus: "Claude-Opus-4.5"
 } as const;
 
-export const DEFAULT_CLAUDE_CODE_MODEL = CLAUDE_CODE_VARIANTS.sonnet;
+export const DEFAULT_CLAUDE_CODE_MODEL = CLAUDE_CODE_VARIANTS.opus;
 
 export const CODEX_MODELS = [
   "gpt-5.2",

@@ -50,6 +50,12 @@
         "provenance": true
       }
     ],
-    "@semantic-release/github"
+    [
+      "@semantic-release/github",
+      {
+        "successComment": "Issue was resolved by #${nextRelease.gitHead.slice(0, 7)}\\n\\nUpdate poe-code via `npm install -g poe-code@${nextRelease.version}`",
+        "successCommentCondition": "<% return !issue.pull_request; %>"
+      }
+    ]
   ]
 }

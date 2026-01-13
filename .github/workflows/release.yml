@@ -23,7 +23,13 @@ jobs:
       - run: npm audit signatures
       - run: npm test
       - run: npm run build
+      - name: Generate GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+          private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: npx semantic-release

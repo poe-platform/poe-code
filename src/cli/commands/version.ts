@@ -1,6 +1,7 @@
-import { CommanderError, type Command } from "commander";
+import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { checkForUpdate } from "../../services/version.js";
+import { VersionExit } from "../exit-signals.js";
 
 export function registerVersionOption(
   program: Command,
@@ -13,7 +14,7 @@ export function registerVersionOption(
     const opts = thisCommand.opts();
     if (opts.version) {
       await displayVersion(container, currentVersion);
-      throw new CommanderError(0, "commander.version", "");
+      throw new VersionExit();
     }
   });
 }
@@ -41,6 +42,6 @@ async function displayVersion(
     logger.info(
       `Update available: ${result.currentVersion} -> ${result.latestVersion}`
     );
-    logger.info("Run: npm install -g poe-code");
+    logger.info("Run: npm install -g poe-code@latest");
   }
 }

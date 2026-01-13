@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { CommanderError } from "commander";
 import { createProgram } from "../src/cli/program.js";
 import type { FileSystem } from "../src/utils/file-system.js";
 import type { HttpClient } from "../src/cli/http.js";
+import { SilentError } from "../src/cli/errors.js";
 
 function createMemfs(homeDir: string): FileSystem {
   const volume = new Volume();
@@ -18,11 +18,7 @@ async function parseWithVersionExit(
   try {
     await program.parseAsync(args);
   } catch (error) {
-    if (
-      error instanceof CommanderError &&
-      error.code === "commander.version" &&
-      error.exitCode === 0
-    ) {
+    if (error instanceof SilentError) {
       return;
     }
     throw error;
@@ -84,9 +80,9 @@ describe("version command", () => {
     await parseWithVersionExit(program, ["node", "cli", "--version"]);
 
     expect(logs.some((log) => log.includes("99.0.0"))).toBe(true);
-    expect(logs.some((log) => log.includes("npm install -g poe-code"))).toBe(
-      true
-    );
+    expect(
+      logs.some((log) => log.includes("npm install -g poe-code@latest"))
+    ).toBe(true);
   });
 
   it("does not show update message when version is current", async () => {
@@ -109,7 +105,7 @@ describe("version command", () => {
     await parseWithVersionExit(program, ["node", "cli", "--version"]);
 
     expect(
-      logs.some((log) => log.includes("npm install -g poe-code"))
+      logs.some((log) => log.includes("npm install -g poe-code@latest"))
     ).toBe(false);
   });
 

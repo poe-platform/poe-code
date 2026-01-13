@@ -8,7 +8,7 @@ import promptsLibrary from "prompts";
 import type { Command } from "commander";
 import type { FileSystem } from "../utils/file-system.js";
 import { ErrorLogger } from "./error-logger.js";
-import { CliError } from "./errors.js";
+import { CliError, SilentError } from "./errors.js";
 import type { CliDependencies } from "./program.js";
 import { createPromptRunner } from "./prompt-runner.js";
 
@@ -51,6 +51,9 @@ export function createCliMain(
     try {
       await program.parseAsync(process.argv);
     } catch (error) {
+      if (error instanceof SilentError) {
+        return;
+      }
       if (error instanceof Error) {
         // Log error with full context
         errorLogger.logErrorWithStackTrace(error, "CLI execution", {

@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Command } from "commander";
+import { CommanderError } from "commander";
+import { OperationCancelledError, SilentError } from "../src/cli/errors.js";
+import { VersionExit } from "../src/cli/exit-signals.js";
 
 const logErrorWithStackTrace = vi.fn();
 let capturedOptions: any;
@@ -40,7 +43,7 @@ describe("createCliMain", () => {
       process.env.POE_CODE_STDERR_LOGS = originalEnvValue;
     }
     exitSpy.mockRestore();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it("enables stderr logging for bootstrap errors", async () => {
@@ -64,5 +67,88 @@ describe("createCliMain", () => {
       expect.objectContaining({ component: "main" })
     );
     expect(capturedOptions).toMatchObject({ logToStderr: true });
+  });
+
+  it("does not treat commander version exit as an error", async () => {
+    const parseAsync = vi.fn(async () => {
+      throw new VersionExit();
+    });
+
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync
+    };
+
+    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).resolves.toBeUndefined();
+
+    expect(parseAsync).toHaveBeenCalled();
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
+
+  it("still logs other commander errors even with exitCode 0", async () => {
+    const parseAsync = vi.fn(async () => {
+      throw new CommanderError(0, "commander.other", "boom");
+    });
+
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync
+    };
+
+    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).rejects.toThrow("exit:1");
+
+    expect(logErrorWithStackTrace).toHaveBeenCalledWith(
+      expect.any(Error),
+      "CLI execution",
+      expect.objectContaining({ component: "main" })
+    );
+  });
+
+  it("does not treat silent exits as errors", async () => {
+    class TestExit extends SilentError {
+      constructor() {
+        super("");
+        this.name = "TestExit";
+      }
+    }
+
+    const parseAsync = vi.fn(async () => {
+      throw new TestExit();
+    });
+
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync
+    };
+
+    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).resolves.toBeUndefined();
+
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
+
+  it("does not treat operation cancellation as an error", async () => {
+    const parseAsync = vi.fn(async () => {
+      throw new OperationCancelledError();
+    });
+
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync
+    };
+
+    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).resolves.toBeUndefined();
+
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(exitSpy).not.toHaveBeenCalled();
   });
 });

@@ -25,6 +25,15 @@ export class CliError extends Error {
 }
 
 /**
+ * Error used purely for control flow: exits the CLI silently with code 0.
+ */
+export class SilentError extends CliError {
+  constructor(message = "", options?: { isUserError?: boolean }) {
+    super(message, undefined, { isUserError: options?.isUserError ?? false });
+  }
+}
+
+/**
  * API-related errors (network, HTTP status, API responses)
  */
 export class ApiError extends CliError {
@@ -141,9 +150,9 @@ export class ServiceError extends CliError {
 /**
  * Graceful cancellation triggered by the user (Ctrl+C, escape, etc.)
  */
-export class OperationCancelledError extends CliError {
+export class OperationCancelledError extends SilentError {
   constructor(message = "Operation cancelled.") {
-    super(message, undefined, { isUserError: true });
+    super(message, { isUserError: true });
   }
 }
 

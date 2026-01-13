@@ -31,5 +31,6 @@ jobs:
           private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
       - name: Release
         env:
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: npx semantic-release

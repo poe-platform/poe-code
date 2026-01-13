@@ -115,7 +115,7 @@ export const kimiService = createProvider<
           }
         })
     ],
-    remove: [
+    unconfigure: [
         jsonPruneMutation({
           targetDirectory: "~/.kimi",
           targetFile: "config.json",

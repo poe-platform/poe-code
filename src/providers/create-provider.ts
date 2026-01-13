@@ -14,14 +14,14 @@ import {
   type ServiceInstallDefinition
 } from "../services/service-install.js";
 
-interface ManifestVersionDefinition<ConfigureOptions, RemoveOptions> {
-  configure: ServiceManifestDefinition<ConfigureOptions, RemoveOptions>["configure"];
-  remove?: ServiceManifestDefinition<ConfigureOptions, RemoveOptions>["remove"];
+interface ManifestVersionDefinition<ConfigureOptions, UnconfigureOptions> {
+  configure: ServiceManifestDefinition<ConfigureOptions, UnconfigureOptions>["configure"];
+  unconfigure?: ServiceManifestDefinition<ConfigureOptions, UnconfigureOptions>["unconfigure"];
 }
 
 interface CreateProviderOptions<
   ConfigureOptions,
-  RemoveOptions,
+  UnconfigureOptions,
   SpawnOptions
 > {
   name: string;
@@ -34,33 +34,33 @@ interface CreateProviderOptions<
   supportsStdinPrompt?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
   isolatedEnv?: ProviderIsolatedEnv;
-  manifest: ManifestVersionDefinition<ConfigureOptions, RemoveOptions>;
+  manifest: ManifestVersionDefinition<ConfigureOptions, UnconfigureOptions>;
   install?: ServiceInstallDefinition;
-  test?: ProviderService<ConfigureOptions, RemoveOptions, SpawnOptions>["test"];
+  test?: ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions>["test"];
   spawn?: ProviderService<
     ConfigureOptions,
-    RemoveOptions,
+    UnconfigureOptions,
     SpawnOptions
   >["spawn"];
 }
 
 export function createProvider<
   ConfigureOptions = any,
-  RemoveOptions = ConfigureOptions,
+  UnconfigureOptions = ConfigureOptions,
   SpawnOptions = any
 >(
-  options: CreateProviderOptions<ConfigureOptions, RemoveOptions, SpawnOptions>
-): ProviderService<ConfigureOptions, RemoveOptions, SpawnOptions> {
+  options: CreateProviderOptions<ConfigureOptions, UnconfigureOptions, SpawnOptions>
+): ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions> {
   const manifest = createServiceManifest({
     id: options.id,
     summary: options.summary,
     configure: options.manifest.configure,
-    remove: options.manifest.remove
+    unconfigure: options.manifest.unconfigure
   });
 
   const provider: ProviderService<
     ConfigureOptions,
-    RemoveOptions,
+    UnconfigureOptions,
     SpawnOptions
   > = {
     id: options.id,
@@ -76,8 +76,8 @@ export function createProvider<
     async configure(context, runOptions) {
       await manifest.configure(context, runOptions);
     },
-    async remove(context, runOptions) {
-      return manifest.remove(context, runOptions);
+    async unconfigure(context, runOptions) {
+      return manifest.unconfigure(context, runOptions);
     }
   };
 

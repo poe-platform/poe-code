@@ -136,7 +136,7 @@ export const claudeCodeService = createProvider<
         })
       })
     ],
-    remove: [
+    unconfigure: [
       jsonPruneMutation({
         targetDirectory: "~/.claude",
         targetFile: "settings.json",

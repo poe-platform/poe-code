@@ -6,15 +6,15 @@ import type { ServiceRunOptions } from "../src/services/service-manifest.js";
 
 export function createProviderStub<
   ConfigureOptions = unknown,
-  RemoveOptions = ConfigureOptions,
+  UnconfigureOptions = ConfigureOptions,
   SpawnOptions = unknown
 >(
   overrides: Partial<
-    ProviderService<ConfigureOptions, RemoveOptions, SpawnOptions>
+    ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions>
   > &
-    Pick<ProviderService<ConfigureOptions, RemoveOptions, SpawnOptions>, "name" | "label"> &
+    Pick<ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions>, "name" | "label"> &
     Partial<Pick<ProviderService, "id" | "summary">>
-): ProviderService<ConfigureOptions, RemoveOptions, SpawnOptions> {
+): ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions> {
   const id = overrides.id ?? overrides.name;
   const summary = overrides.summary ?? overrides.label;
 
@@ -23,8 +23,8 @@ export function createProviderStub<
     _runOptions?: ServiceRunOptions
   ): Promise<void> => {};
 
-  const defaultRemove = async (
-    _context: ServiceExecutionContext<RemoveOptions>,
+  const defaultUnconfigure = async (
+    _context: ServiceExecutionContext<UnconfigureOptions>,
     _runOptions?: ServiceRunOptions
   ): Promise<boolean> => false;
 
@@ -33,6 +33,6 @@ export function createProviderStub<
     id,
     summary,
     configure: overrides.configure ?? defaultConfigure,
-    remove: overrides.remove ?? defaultRemove
+    unconfigure: overrides.unconfigure ?? defaultUnconfigure
   };
 }

@@ -25,7 +25,7 @@ export interface SaveConfiguredServiceOptions
   metadata: ConfiguredServiceMetadata;
 }
 
-export interface RemoveConfiguredServiceOptions
+export interface UnconfigureServiceOptions
   extends CredentialsStoreOptions {
   service: string;
 }
@@ -85,8 +85,8 @@ export async function saveConfiguredService(
   await writeCredentialsDocument(fs, filePath, document);
 }
 
-export async function removeConfiguredService(
-  options: RemoveConfiguredServiceOptions
+export async function unconfigureService(
+  options: UnconfigureServiceOptions
 ): Promise<boolean> {
   const { fs, filePath, service } = options;
   const document = await readCredentialsDocument(fs, filePath);

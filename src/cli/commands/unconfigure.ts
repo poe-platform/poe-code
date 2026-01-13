@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import type { ProviderContext } from "../service-registry.js";
-import { removeConfiguredService } from "../../services/credentials.js";
+import { unconfigureService } from "../../services/credentials.js";
 import { createMutationReporter } from "../../services/mutation-events.js";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
 import {
@@ -11,31 +11,31 @@ import {
   resolveServiceAdapter,
 } from "./shared.js";
 
-export interface RemoveCommandOptions {
+export interface UnconfigureCommandOptions {
   configName?: string;
 }
 
-export function registerRemoveCommand(
+export function registerUnconfigureCommand(
   program: Command,
   container: CliContainer
 ): Command {
   return program
-    .command("remove")
+    .command("unconfigure")
     .description("Remove existing Poe API tooling configuration.")
     .argument(
       "<service>",
-      "Service to remove (claude-code | codex | opencode)"
+      "Service to unconfigure (claude-code | codex | opencode)"
     )
-    .action(async (service: string, options: RemoveCommandOptions) => {
-      await executeRemove(program, container, service, options);
+    .action(async (service: string, options: UnconfigureCommandOptions) => {
+      await executeUnconfigure(program, container, service, options);
     });
 }
 
-export async function executeRemove(
+export async function executeUnconfigure(
   program: Command,
   container: CliContainer,
   service: string,
-  options: RemoveCommandOptions
+  options: UnconfigureCommandOptions
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
   const canonicalService = adapter.name;
@@ -43,7 +43,7 @@ export async function executeRemove(
   const resources = createExecutionResources(
     container,
     flags,
-    `remove:${canonicalService}`
+    `unconfigure:${canonicalService}`
   );
   const providerContext = buildProviderContext(
     container,
@@ -52,21 +52,21 @@ export async function executeRemove(
   );
   const mutationLogger = createMutationReporter(resources.logger);
 
-  const payload = await createRemovePayload({
+  const payload = await createUnconfigurePayload({
     service: canonicalService,
     container,
     options,
     context: providerContext
   });
 
-  const removed = await container.registry.invoke(
+  const unconfigured = await container.registry.invoke(
     canonicalService,
-    "remove",
+    "unconfigure",
     async (entry) => {
-      if (!entry.remove) {
-        throw new Error(`Service "${canonicalService}" does not support remove.`);
+      if (!entry.unconfigure) {
+        throw new Error(`Service "${canonicalService}" does not support unconfigure.`);
       }
-      const result = await entry.remove(
+      const result = await entry.unconfigure(
         {
           fs: providerContext.command.fs,
           env: providerContext.env,
@@ -78,7 +78,7 @@ export async function executeRemove(
 
       const isolated = adapter.isolatedEnv;
       if (isolated && isolated.requiresConfig !== false) {
-        await entry.remove(
+        await entry.unconfigure(
           {
             fs: providerContext.command.fs,
             env: providerContext.env,
@@ -103,31 +103,31 @@ export async function executeRemove(
   );
 
   if (!flags.dryRun) {
-    await removeConfiguredService({
+    await unconfigureService({
       fs: container.fs,
       filePath: providerContext.env.credentialsPath,
       service: canonicalService
     });
   }
 
-  const messages = formatRemovalMessages(
+  const messages = formatUnconfigureMessages(
     canonicalService,
     adapter.label,
-    removed,
+    unconfigured,
     payload
   );
 
   resources.context.complete(messages);
 }
 
-interface RemovePayloadInit {
+interface UnconfigurePayloadInit {
   service: string;
   container: CliContainer;
-  options: RemoveCommandOptions;
+  options: UnconfigureCommandOptions;
   context: ProviderContext;
 }
 
-async function createRemovePayload(init: RemovePayloadInit): Promise<unknown> {
+async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<unknown> {
   const { service, context } = init;
   switch (service) {
     case "claude-code":
@@ -141,38 +141,38 @@ async function createRemovePayload(init: RemovePayloadInit): Promise<unknown> {
     }
 }
 
-function formatRemovalMessages(
+function formatUnconfigureMessages(
   service: string,
   label: string,
-  removed: unknown,
+  unconfigured: unknown,
   _payload: unknown
 ): { success: string; dry: string } {
-  const didRemove = typeof removed === "boolean" ? removed : Boolean(removed);
+  const didUnconfigure = typeof unconfigured === "boolean" ? unconfigured : Boolean(unconfigured);
   switch (service) {
     case "claude-code":
       return {
-        success: didRemove
+        success: didUnconfigure
           ? "Removed Claude Code configuration."
           : "No Claude Code configuration found.",
         dry: "Dry run: would remove Claude Code configuration."
       };
     case "codex":
       return {
-        success: didRemove
+        success: didUnconfigure
           ? "Removed Codex configuration."
           : "No Codex configuration found.",
         dry: "Dry run: would remove Codex configuration."
       };
     case "opencode":
       return {
-        success: didRemove
+        success: didUnconfigure
           ? "Removed OpenCode CLI configuration."
           : "No OpenCode CLI configuration found.",
         dry: "Dry run: would remove OpenCode CLI configuration."
       };
     default:
       return {
-        success: didRemove
+        success: didUnconfigure
           ? `Removed ${label} configuration.`
           : `No ${label} configuration found.`,
         dry: `Dry run: would remove ${label} configuration.`

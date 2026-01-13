@@ -82,13 +82,13 @@ describe("kimi service", () => {
     ...overrides
   });
 
-  type RemoveOptions = Parameters<
-    typeof kimiService.kimiService.remove
+  type UnconfigureOptions = Parameters<
+    typeof kimiService.kimiService.unconfigure
   >[0]["options"];
 
-  const buildRemoveOptions = (
-    overrides: Partial<RemoveOptions> = {}
-  ): RemoveOptions => ({
+  const buildUnconfigureOptions = (
+    overrides: Partial<UnconfigureOptions> = {}
+  ): UnconfigureOptions => ({
     env,
     ...overrides
   });
@@ -104,14 +104,14 @@ describe("kimi service", () => {
     });
   }
 
-  async function removeKimi(
-    overrides: Partial<RemoveOptions> = {}
+  async function unconfigureKimi(
+    overrides: Partial<UnconfigureOptions> = {}
   ): Promise<boolean> {
-    return kimiService.kimiService.remove({
+    return kimiService.kimiService.unconfigure({
       fs,
       env,
       command: createTestCommandContext(fs),
-      options: buildRemoveOptions(overrides)
+      options: buildUnconfigureOptions(overrides)
     });
   }
 
@@ -329,7 +329,7 @@ describe("kimi service", () => {
     const before = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(before.providers[PROVIDER_NAME]).toBeDefined();
 
-    const removed = await removeKimi();
+    const removed = await unconfigureKimi();
     expect(removed).toBe(true);
 
     const after = JSON.parse(await fs.readFile(configPath, "utf8"));

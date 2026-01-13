@@ -27,7 +27,7 @@ type CodexConfigureContext = {
   timestamp?: () => string;
 };
 
-type CodexRemoveContext = {
+type CodexUnconfigureContext = {
   env: CliEnvironment;
 };
 
@@ -148,7 +148,7 @@ export function buildCodexExecArgs(
 
 export const codexService = createProvider<
   CodexConfigureContext,
-  CodexRemoveContext,
+  CodexUnconfigureContext,
   ProviderSpawnOptions
 >({
   name: "codex",
@@ -217,7 +217,7 @@ export const codexService = createProvider<
         })
       })
     ],
-    remove: [
+    unconfigure: [
       tomlPruneMutation({
         targetDirectory: "~/.codex",
         targetFile: "config.toml",

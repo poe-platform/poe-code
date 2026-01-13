@@ -4,7 +4,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { createCliContainer } from "../src/cli/container.js";
 import type { FileSystem } from "../src/utils/file-system.js";
 import type { ProviderService } from "../src/cli/service-registry.js";
-import { registerRemoveCommand } from "../src/cli/commands/remove.js";
+import { registerUnconfigureCommand } from "../src/cli/commands/unconfigure.js";
 import { createProviderStub } from "./provider-stub.js";
 import type {
   MutationLogDetails,
@@ -31,12 +31,12 @@ function createBaseProgram(): Command {
   return program;
 }
 
-describe("remove command", () => {
+describe("unconfigure command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("invokes provider remove and reports the result", async () => {
+  it("invokes provider unconfigure and reports the result", async () => {
     const fs = createMemFs();
     const logs: string[] = [];
     const container = createCliContainer({
@@ -48,13 +48,13 @@ describe("remove command", () => {
       }
     });
 
-    const removeSpy = vi.fn();
+    const unconfigureSpy = vi.fn();
 
     const adapter: ProviderService = createProviderStub({
       name: "test-service",
       label: "Test Service",
-      async remove(context) {
-        removeSpy(context.options);
+      async unconfigure(context) {
+        unconfigureSpy(context.options);
         return true;
       }
     });
@@ -62,16 +62,16 @@ describe("remove command", () => {
     container.registry.register(adapter);
 
     const program = createBaseProgram();
-    registerRemoveCommand(program, container);
+    registerUnconfigureCommand(program, container);
 
     await program.parseAsync([
       "node",
       "cli",
-      "remove",
+      "unconfigure",
       "test-service"
     ]);
 
-    expect(removeSpy).toHaveBeenCalledTimes(1);
+    expect(unconfigureSpy).toHaveBeenCalledTimes(1);
     expect(
       logs.some((line) =>
         line.includes("Removed Test Service configuration.")
@@ -106,7 +106,7 @@ describe("remove command", () => {
     const adapter: ProviderService = createProviderStub({
       name: "test-service",
       label: "Test Service",
-      async remove(_context, runOptions) {
+      async unconfigure(_context, runOptions) {
         runOptions?.observers?.onComplete?.(details, outcome);
         return true;
       }
@@ -115,13 +115,13 @@ describe("remove command", () => {
     container.registry.register(adapter);
 
     const program = createBaseProgram();
-    registerRemoveCommand(program, container);
+    registerUnconfigureCommand(program, container);
 
     await program.parseAsync([
       "node",
       "cli",
       "--verbose",
-      "remove",
+      "unconfigure",
       "test-service"
     ]);
 

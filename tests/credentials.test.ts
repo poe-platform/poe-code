@@ -7,7 +7,7 @@ import {
   saveCredentials,
   loadConfiguredServices,
   saveConfiguredService,
-  removeConfiguredService
+  unconfigureService
 } from "../src/services/credentials.js";
 
 function createMemFs(): FileSystem {
@@ -103,7 +103,7 @@ describe("credentials store", () => {
       }
     });
 
-    await removeConfiguredService({
+    await unconfigureService({
       fs,
       filePath: credentialsPath,
       service: "claude-code"

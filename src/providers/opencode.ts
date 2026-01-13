@@ -128,7 +128,7 @@ export const openCodeService = createProvider({
           }
         })
     ],
-    remove: [
+    unconfigure: [
         jsonPruneMutation({
           targetDirectory: "~/.config/opencode",
           targetFile: "config.json",

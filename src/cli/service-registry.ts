@@ -43,7 +43,7 @@ export interface ServiceExecutionContext<Options> {
 
 export interface ProviderService<
   TConfigure = any,
-  TRemove = TConfigure,
+  TUnconfigure = TConfigure,
   TSpawn = any
 > {
   id: string;
@@ -53,8 +53,8 @@ export interface ProviderService<
     context: ServiceExecutionContext<TConfigure>,
     runOptions?: ServiceRunOptions
   ): Promise<void>;
-  remove(
-    context: ServiceExecutionContext<TRemove>,
+  unconfigure(
+    context: ServiceExecutionContext<TUnconfigure>,
     runOptions?: ServiceRunOptions
   ): Promise<boolean>;
   name: string;
@@ -112,7 +112,7 @@ export type IsolatedEnvPoeApiKey = {
 export type ProviderOperation =
   | "install"
   | "configure"
-  | "remove"
+  | "unconfigure"
   | "spawn"
   | "test";
 

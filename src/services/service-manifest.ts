@@ -112,28 +112,28 @@ export type ServiceMutation<Options> =
 
 export interface ServiceManifestDefinition<
   ConfigureOptions,
-  RemoveOptions = ConfigureOptions
+  UnconfigureOptions = ConfigureOptions
 > {
   id: string;
   summary: string;
   configure: ServiceMutation<ConfigureOptions>[];
-  remove?: ServiceMutation<RemoveOptions>[];
+  unconfigure?: ServiceMutation<UnconfigureOptions>[];
 }
 
 export interface ServiceManifest<
   ConfigureOptions,
-  RemoveOptions = ConfigureOptions
+  UnconfigureOptions = ConfigureOptions
 > {
   id: string;
   summary: string;
   configureMutations: ServiceMutation<ConfigureOptions>[];
-  removeMutations?: ServiceMutation<RemoveOptions>[];
+  unconfigureMutations?: ServiceMutation<UnconfigureOptions>[];
   configure(
     context: ServiceExecutionContext<ConfigureOptions>,
     runOptions?: ServiceRunOptions
   ): Promise<void>;
-  remove: (
-    context: ServiceExecutionContext<RemoveOptions>,
+  unconfigure: (
+    context: ServiceExecutionContext<UnconfigureOptions>,
     runOptions?: ServiceRunOptions
   ) => Promise<boolean>;
 }
@@ -476,16 +476,16 @@ export function removeFileMutation<Options>(config: {
 
 export function createServiceManifest<
   ConfigureOptions,
-  RemoveOptions = ConfigureOptions
->(definition: ServiceManifestDefinition<ConfigureOptions, RemoveOptions>): ServiceManifest<ConfigureOptions, RemoveOptions> {
+  UnconfigureOptions = ConfigureOptions
+>(definition: ServiceManifestDefinition<ConfigureOptions, UnconfigureOptions>): ServiceManifest<ConfigureOptions, UnconfigureOptions> {
   const configureMutations = definition.configure;
-  const removeMutations = definition.remove;
+  const unconfigureMutations = definition.unconfigure;
 
   return {
     id: definition.id,
     summary: definition.summary,
     configureMutations,
-    removeMutations,
+    unconfigureMutations,
     async configure(context, runOptions) {
       await runMutations(configureMutations, context, {
         trackChanges: false,
@@ -493,11 +493,11 @@ export function createServiceManifest<
         manifestId: definition.id
       });
     },
-    async remove(context, runOptions) {
-      if (!removeMutations) {
+    async unconfigure(context, runOptions) {
+      if (!unconfigureMutations) {
         return false;
       }
-      return runMutations(removeMutations, context, {
+      return runMutations(unconfigureMutations, context, {
         trackChanges: true,
         observers: runOptions?.observers,
         manifestId: definition.id

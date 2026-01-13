@@ -82,8 +82,8 @@ describe("claude-code service", () => {
     typeof claudeService.claudeCodeService.configure
   >[0]["options"];
 
-  type RemoveOptions = Parameters<
-    typeof claudeService.claudeCodeService.remove
+  type UnconfigureOptions = Parameters<
+    typeof claudeService.claudeCodeService.unconfigure
   >[0]["options"];
 
   const buildConfigureOptions = (
@@ -94,9 +94,9 @@ describe("claude-code service", () => {
     ...overrides
   });
 
-  const buildRemoveOptions = (
-    overrides: Partial<RemoveOptions> = {}
-  ): RemoveOptions => ({
+  const buildUnconfigureOptions = (
+    overrides: Partial<UnconfigureOptions> = {}
+  ): UnconfigureOptions => ({
     env,
     ...overrides
   });
@@ -112,14 +112,14 @@ describe("claude-code service", () => {
     });
   }
 
-  async function removeClaude(
-    overrides: Partial<RemoveOptions> = {}
+  async function unconfigureClaude(
+    overrides: Partial<UnconfigureOptions> = {}
   ): Promise<boolean> {
-    return claudeService.claudeCodeService.remove({
+    return claudeService.claudeCodeService.unconfigure({
       fs,
       env,
       command: createTestCommandContext(fs),
-      options: buildRemoveOptions(overrides)
+      options: buildUnconfigureOptions(overrides)
     });
   }
 
@@ -152,7 +152,7 @@ describe("claude-code service", () => {
       { encoding: "utf8" }
     );
 
-    const removed = await removeClaude();
+    const removed = await unconfigureClaude();
     expect(removed).toBe(true);
 
     const content = await fs.readFile(settingsPath, "utf8");
@@ -193,7 +193,7 @@ describe("claude-code service", () => {
       { encoding: "utf8" }
     );
 
-    const removed = await removeClaude();
+    const removed = await unconfigureClaude();
     expect(removed).toBe(true);
 
     await expect(fs.readFile(settingsPath, "utf8")).rejects.toThrow();
@@ -201,7 +201,7 @@ describe("claude-code service", () => {
   });
 
   it("removeClaudeCode returns false when settings file absent", async () => {
-    const removed = await removeClaude();
+    const removed = await unconfigureClaude();
     expect(removed).toBe(false);
   });
 

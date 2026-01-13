@@ -10,7 +10,7 @@ import { registerSpawnCommand } from "./commands/spawn.js";
 import { registerWrapCommand } from "./commands/wrap.js";
 import { registerLoginCommand } from "./commands/login.js";
 import { registerInstallCommand } from "./commands/install.js";
-import { registerRemoveCommand } from "./commands/remove.js";
+import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
 import { registerQueryCommand } from "./commands/query.js";
 import { registerVersionOption } from "./commands/version.js";
@@ -38,8 +38,8 @@ function formatHelpText(): string {
     cmd("configure", "[service]") + "            Configure developer tooling for Poe API",
     example("poe-code configure claude-code"),
     "",
-    cmd("remove", "<service>") + "            Remove existing Poe API tooling configuration",
-    example("poe-code remove codex"),
+    cmd("unconfigure", "<service>") + "       Remove existing Poe API tooling configuration",
+    example("poe-code unconfigure codex"),
     "",
     cmd("install", "[service]") + "            Install tooling for a configured service",
     example("poe-code install opencode"),
@@ -113,7 +113,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerWrapCommand(program, container);
   registerQueryCommand(program, container);
   registerTestCommand(program, container);
-  registerRemoveCommand(program, container);
+  registerUnconfigureCommand(program, container);
   registerLoginCommand(program, container);
 
   program.action(() => {

@@ -78,8 +78,8 @@ describe("codex service", () => {
     typeof codexService.codexService.configure
   >[0]["options"];
 
-  type RemoveOptions = Parameters<
-    typeof codexService.codexService.remove
+  type UnconfigureOptions = Parameters<
+    typeof codexService.codexService.unconfigure
   >[0]["options"];
 
   const buildConfigureOptions = (
@@ -92,9 +92,9 @@ describe("codex service", () => {
     ...overrides
   });
 
-  const buildRemoveOptions = (
-    overrides: Partial<RemoveOptions> = {}
-  ): RemoveOptions => ({
+  const buildUnconfigureOptions = (
+    overrides: Partial<UnconfigureOptions> = {}
+  ): UnconfigureOptions => ({
     env,
     ...overrides
   });
@@ -110,14 +110,14 @@ describe("codex service", () => {
     });
   }
 
-  async function removeCodex(
-    overrides: Partial<RemoveOptions> = {}
+  async function unconfigureCodex(
+    overrides: Partial<UnconfigureOptions> = {}
   ): Promise<boolean> {
-    return codexService.codexService.remove({
+    return codexService.codexService.unconfigure({
       fs,
       env,
       command: createTestCommandContext(fs),
-      options: buildRemoveOptions(overrides)
+      options: buildUnconfigureOptions(overrides)
     });
   }
 
@@ -155,7 +155,7 @@ describe("codex service", () => {
       "legacy",
       { encoding: "utf8" }
     );
-    const removed = await removeCodex();
+    const removed = await unconfigureCodex();
     expect(removed).toBe(true);
 
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
@@ -166,7 +166,7 @@ describe("codex service", () => {
       timestamp: () => "20240101T000000"
     });
 
-    const removed = await removeCodex();
+    const removed = await unconfigureCodex();
     expect(removed).toBe(true);
 
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
@@ -178,7 +178,7 @@ describe("codex service", () => {
       encoding: "utf8"
     });
 
-    const removed = await removeCodex();
+    const removed = await unconfigureCodex();
     expect(removed).toBe(false);
 
     const content = await fs.readFile(configPath, "utf8");
@@ -208,7 +208,7 @@ describe("codex service", () => {
       { encoding: "utf8" }
     );
 
-    const removed = await removeCodex();
+    const removed = await unconfigureCodex();
     expect(removed).toBe(true);
 
     const content = await fs.readFile(configPath, "utf8");
@@ -237,7 +237,7 @@ describe("codex service", () => {
       { encoding: "utf8" }
     );
 
-    const removed = await removeCodex();
+    const removed = await unconfigureCodex();
     expect(removed).toBe(true);
 
     const content = await fs.readFile(configPath, "utf8");

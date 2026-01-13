@@ -2,6 +2,8 @@
 
 ## Core Principles
 
+NEVER EVER REVERT CHANGES THAT YOU DIDN'T MAKE
+
 - TDD is a MUST (only for code changes, not for configs)
 - SOLID
 - YAGNI, KISS

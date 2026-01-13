@@ -119,9 +119,16 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           AGENT_OUTPUT: ${{ steps.agent_run.outputs.agent_output }}
         run: node scripts/workflows/generate-pr-metadata.cjs
+      - name: Generate GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+          private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ steps.app_token.outputs.token }}
           branch: ${{ steps.provider.outputs.branch }}
           title: ${{ steps.pr_metadata.outputs.title }}
           body: ${{ steps.pr_metadata.outputs.body }}
@@ -129,38 +136,6 @@ jobs:
           labels: ${{ steps.provider.outputs.pr_label }}
           delete-branch: true
         id: create-pull-request
-      - name: Run PR checks
-        id: pr_checks
-        if: steps.create-pull-request.outputs.pull-request-number != ''
-        continue-on-error: true
-        run: npm ci && npm run build && npm test
-      - name: Post check results
-        if: steps.create-pull-request.outputs.pull-request-number != '' &&
-          steps.pr_checks.conclusion != ''
-        uses: actions/github-script@v7
-        env:
-          CHECK_CONCLUSION: ${{ steps.pr_checks.conclusion }}
-          PULL_REQUEST_NUMBER: ${{ steps.create-pull-request.outputs.pull-request-number }}
-        with:
-          script: |-
-            const conclusion = process.env.CHECK_CONCLUSION;
-            const rawNumber = process.env.PULL_REQUEST_NUMBER;
-            const prNumber = Number.parseInt(rawNumber ?? "", 10);
-            if (!Number.isInteger(prNumber)) {
-              return;
-            }
-            const passed = conclusion === "success";
-            const body = passed ? '✅ Checks passed' : '❌ Checks failed';
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body
-            });
-      - name: Fail workflow when checks fail
-        if: steps.create-pull-request.outputs.pull-request-number != '' &&
-          steps.pr_checks.conclusion == 'failure'
-        run: exit 1
       - name: Remove agent label on failure
         if: failure()
         uses: actions/github-script@v7

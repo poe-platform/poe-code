@@ -1,11 +1,20 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import {
+  buildProviderContext,
   createExecutionResources,
-  resolveCommandFlags
+  resolveCommandFlags,
+  applyIsolatedConfiguration
 } from "./shared.js";
-import { saveCredentials } from "../../services/credentials.js";
+import {
+  loadConfiguredServices,
+  saveCredentials
+} from "../../services/credentials.js";
 import { ValidationError } from "../errors.js";
+import {
+  combineMutationObservers,
+  createMutationReporter
+} from "../../services/mutation-events.js";
 
 export interface LoginCommandOptions {
   apiKey?: string;
@@ -31,10 +40,22 @@ export function registerLoginCommand(
         const input = await resolveApiKeyInput(container, options);
         const normalized = container.options.normalizeApiKey(input);
 
+        const configuredServices = await loadConfiguredServices({
+          fs: container.fs,
+          filePath: container.env.credentialsPath
+        });
+
         await saveCredentials({
           fs: resources.context.fs,
           filePath: container.env.credentialsPath,
           apiKey: normalized
+        });
+
+        await reconfigureServices({
+          program,
+          container,
+          apiKey: normalized,
+          configuredServices
         });
 
         resources.context.complete({
@@ -73,4 +94,69 @@ async function resolveApiKeyInput(
   }
 
   return value;
+}
+
+interface ReconfigureServicesInput {
+  program: Command;
+  container: CliContainer;
+  apiKey: string;
+  configuredServices: Record<string, { files: string[] }>;
+}
+
+async function reconfigureServices(
+  input: ReconfigureServicesInput
+): Promise<void> {
+  const { program, container, apiKey, configuredServices } = input;
+  const serviceNames = Object.keys(configuredServices);
+
+  for (const serviceName of serviceNames) {
+    const adapter = container.registry.get(serviceName);
+    if (!adapter) {
+      continue;
+    }
+
+    const flags = resolveCommandFlags(program);
+    const resources = createExecutionResources(
+      container,
+      flags,
+      `login:reconfigure:${serviceName}`
+    );
+    const providerContext = buildProviderContext(container, adapter, resources);
+
+    const payload = {
+      env: container.env,
+      apiKey
+    };
+
+    const mutationLogger = createMutationReporter(resources.logger);
+    const observers = combineMutationObservers(mutationLogger);
+
+    await container.registry.invoke(serviceName, "configure", async (entry) => {
+      if (!entry.configure) {
+        return;
+      }
+
+      await entry.configure(
+        {
+          fs: providerContext.command.fs,
+          env: providerContext.env,
+          command: providerContext.command,
+          options: payload
+        },
+        observers ? { observers } : undefined
+      );
+
+      const isolated = adapter.isolatedEnv;
+      if (isolated && isolated.requiresConfig !== false) {
+        await applyIsolatedConfiguration({
+          adapter: entry,
+          providerContext,
+          payload,
+          isolated,
+          providerName: adapter.name,
+          observers
+        });
+      }
+    });
+  }
 }

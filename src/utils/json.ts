@@ -15,6 +15,9 @@ export function deepMergeJson(
 ): JsonObject {
   const result: JsonObject = { ...target };
   for (const [key, value] of Object.entries(source)) {
+    if (value === undefined) {
+      continue;
+    }
     const existing = result[key];
     if (isJsonObject(existing) && isJsonObject(value)) {
       result[key] = deepMergeJson(existing, value);

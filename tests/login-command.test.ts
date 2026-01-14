@@ -100,6 +100,63 @@ describe("login command", () => {
     expect(descriptor.message).toContain("Poe API key");
   });
 
+  it("reconfigures all previously configured services with new api key", async () => {
+    const volume = new Volume();
+    volume.mkdirSync(homeDir, { recursive: true });
+    volume.mkdirSync(`${homeDir}/.claude`, { recursive: true });
+    volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
+
+    volume.writeFileSync(
+      `${homeDir}/.claude/settings.json`,
+      JSON.stringify({ apiKeyHelper: "echo old-key", model: "claude-3-opus" })
+    );
+    volume.writeFileSync(
+      credentialsPath,
+      JSON.stringify({
+        apiKey: "old-key",
+        configured_services: {
+          "claude-code": { files: [`${homeDir}/.claude/settings.json`] }
+        }
+      })
+    );
+
+    fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+    const commandRunner: CommandRunner = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      commandRunner,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "login",
+      "--api-key",
+      "new-key"
+    ]);
+
+    const settingsRaw = await fs.readFile(
+      `${homeDir}/.claude/settings.json`,
+      "utf8"
+    );
+    const settings = JSON.parse(settingsRaw);
+    expect(settings.apiKeyHelper).toBe("echo new-key");
+    expect(settings.model).toBe("claude-3-opus");
+  });
+
   it("skips writing credentials during dry run", async () => {
     const commandRunner: CommandRunner = vi.fn(async () => ({
       stdout: "",

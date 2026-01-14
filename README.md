@@ -9,10 +9,10 @@
 npm install -g poe-code
 
 # Run your existing agent CLI through Poe (you’ll be prompted for api key on first run).
-poe-codex --help
+poe-claude --help
 ```
 
-Also available: `poe-claude`, `poe-opencode`.
+Also available: `poe-codex`, `poe-opencode`.
 
 ## Make it default
 
@@ -32,10 +32,10 @@ npx poe-code@latest configure opencode
 npx poe-code@latest configure kimi
 ```
 
-### Remove configuration overrides
+### Unconfigure (remove overrides)
 
 ```bash
-npx poe-code@latest remove codex
+npx poe-code@latest unconfigure claude-code
 ```
 
 ## Utilities

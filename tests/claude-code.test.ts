@@ -31,7 +31,6 @@ describe("claude-code service", () => {
   let vol: Volume;
   const home = "/home/user";
   const settingsPath = path.join(home, ".claude", "settings.json");
-  const keyHelperPath = path.join(home, ".claude", "anthropic_key.sh");
   let env = createCliEnvironment({
     cwd: home,
     homeDir: home
@@ -90,6 +89,7 @@ describe("claude-code service", () => {
     overrides: Partial<ConfigureOptions> = {}
   ): ConfigureOptions => ({
     env,
+    apiKey: "sk-test",
     model: CLAUDE_MODEL_SONNET,
     ...overrides
   });
@@ -126,15 +126,10 @@ describe("claude-code service", () => {
   it("removeClaudeCode prunes manifest-managed env keys from settings json", async () => {
     await fs.mkdir(path.dirname(settingsPath), { recursive: true });
     await fs.writeFile(
-      keyHelperPath,
-      "#!/bin/bash\necho existing\n",
-      { encoding: "utf8" }
-    );
-    await fs.writeFile(
       settingsPath,
       JSON.stringify(
         {
-          apiKeyHelper: "./anthropic_key.sh",
+          apiKeyHelper: "echo sk-test",
           theme: "dark",
           env: {
             ANTHROPIC_BASE_URL: "https://api.poe.com",
@@ -164,21 +159,15 @@ describe("claude-code service", () => {
       },
       customField: "should-remain"
     });
-    await expect(fs.readFile(keyHelperPath, "utf8")).rejects.toThrow();
   });
 
   it("removeClaudeCode deletes settings file when only manifest keys remain", async () => {
     await fs.mkdir(path.dirname(settingsPath), { recursive: true });
     await fs.writeFile(
-      keyHelperPath,
-      "#!/bin/bash\necho existing\n",
-      { encoding: "utf8" }
-    );
-    await fs.writeFile(
       settingsPath,
       JSON.stringify(
         {
-          apiKeyHelper: "./anthropic_key.sh",
+          apiKeyHelper: "echo sk-test",
           env: {
             ANTHROPIC_BASE_URL: "https://api.poe.com",
             ANTHROPIC_DEFAULT_HAIKU_MODEL: CLAUDE_MODEL_HAIKU,
@@ -197,7 +186,6 @@ describe("claude-code service", () => {
     expect(removed).toBe(true);
 
     await expect(fs.readFile(settingsPath, "utf8")).rejects.toThrow();
-    await expect(fs.readFile(keyHelperPath, "utf8")).rejects.toThrow();
   });
 
   it("removeClaudeCode returns false when settings file absent", async () => {
@@ -211,12 +199,12 @@ describe("claude-code service", () => {
     const content = await fs.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toEqual({
+      apiKeyHelper: "echo sk-test",
       env: {
         ANTHROPIC_BASE_URL: "https://api.poe.com"
       },
       model: CLAUDE_MODEL_SONNET
     });
-    await expect(fs.readFile(keyHelperPath, "utf8")).rejects.toThrow();
   });
 
   it("removes existing apiKeyHelper during configure", async () => {
@@ -243,6 +231,7 @@ describe("claude-code service", () => {
     const content = await fs.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toEqual({
+      apiKeyHelper: "echo sk-test",
       theme: "dark",
       env: {
         ANTHROPIC_BASE_URL: "https://api.poe.com",

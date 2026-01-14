@@ -5,8 +5,7 @@ import {
 import {
   ensureDirectory,
   jsonPruneMutation,
-  jsonMergeMutation,
-  removeFileMutation
+  jsonMergeMutation
 } from "../services/service-manifest.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
@@ -14,11 +13,20 @@ import {
   DEFAULT_CLAUDE_CODE_MODEL
 } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
+import type { CliEnvironment } from "../cli/environment.js";
 import type {
-  ProviderSpawnOptions,
   ModelConfigureOptions,
-  EmptyProviderOptions
+  ProviderSpawnOptions
 } from "./spawn-options.js";
+
+type ClaudeCodeConfigureContext = ModelConfigureOptions & {
+  env: CliEnvironment;
+  apiKey: string;
+};
+
+type ClaudeCodeUnconfigureContext = {
+  env: CliEnvironment;
+};
 
 export const CLAUDE_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "claude-code",
@@ -67,8 +75,8 @@ function buildClaudeArgs(
 }
 
 export const claudeCodeService = createProvider<
-  ModelConfigureOptions,
-  EmptyProviderOptions,
+  ClaudeCodeConfigureContext,
+  ClaudeCodeUnconfigureContext,
   ProviderSpawnOptions
 >({
   name: "claude-code",
@@ -118,17 +126,11 @@ export const claudeCodeService = createProvider<
   manifest: {
     configure: [
       ensureDirectory({ targetDirectory: "~/.claude" }),
-      jsonPruneMutation({
-        targetDirectory: "~/.claude",
-        targetFile: "settings.json",
-        shape: () => ({
-          apiKeyHelper: true
-        })
-      }),
       jsonMergeMutation({
         targetDirectory: "~/.claude",
         targetFile: "settings.json",
         value: ({ options }) => ({
+          apiKeyHelper: `echo ${options.apiKey}`,
           env: {
             ANTHROPIC_BASE_URL: "https://api.poe.com"
           },
@@ -150,10 +152,6 @@ export const claudeCodeService = createProvider<
           },
           model: true
         })
-      }),
-      removeFileMutation({
-        targetDirectory: "~/.claude",
-        targetFile: "anthropic_key.sh"
       })
     ]
   },

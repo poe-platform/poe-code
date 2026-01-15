@@ -63,6 +63,7 @@ export interface ProviderService<
   disabled?: boolean;
   supportsStdinPrompt?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
+  postConfigureMessages?: string[];
   isolatedEnv?: ProviderIsolatedEnv;
   install?(context: ProviderContext): Promise<void> | void;
   spawn?(context: ProviderContext, options: TSpawn): Promise<unknown>;

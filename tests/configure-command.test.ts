@@ -18,7 +18,10 @@ describe("configure command", () => {
   });
 
   function createContainer(
-    overrides: { commandRunner?: CommandRunner; logger?: LoggerFn } = {}
+    overrides: {
+      commandRunner?: CommandRunner;
+      logger?: LoggerFn;
+    } = {}
   ) {
     const prompts = vi.fn().mockResolvedValue({});
     const commandRunner: CommandRunner =
@@ -191,6 +194,27 @@ describe("configure command", () => {
     const content = JSON.parse(await fs.readFile(credentialsPath, "utf8"));
     expect(content.configured_services["claude-code"]).toBeDefined();
     expect(content.configured_services.claude).toBeUndefined();
+  });
+
+  it("prints a VSCode post-configure hint for Claude Code after configure", async () => {
+    const logs: string[] = [];
+    const { container } = createContainer({
+      logger: (message) => logs.push(message),
+    });
+
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "claude-code", {});
+
+    expect(
+      logs.some((line) =>
+        line.includes("vscode://settings/claudeCode.disableLoginPrompt")
+      )
+    ).toBe(true);
   });
 
 });

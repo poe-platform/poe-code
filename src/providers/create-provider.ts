@@ -33,6 +33,7 @@ interface CreateProviderOptions<
   disabled?: boolean;
   supportsStdinPrompt?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
+  postConfigureMessages?: string[];
   isolatedEnv?: ProviderIsolatedEnv;
   manifest: ManifestVersionDefinition<ConfigureOptions, UnconfigureOptions>;
   install?: ServiceInstallDefinition;
@@ -72,6 +73,7 @@ export function createProvider<
     disabled: options.disabled,
     supportsStdinPrompt: options.supportsStdinPrompt,
     configurePrompts: options.configurePrompts,
+    postConfigureMessages: options.postConfigureMessages,
     isolatedEnv: options.isolatedEnv,
     async configure(context, runOptions) {
       await manifest.configure(context, runOptions);

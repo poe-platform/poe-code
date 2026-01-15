@@ -16,6 +16,7 @@ import {
 } from "../../services/mutation-events.js";
 import type { ServiceMutationObservers } from "../../services/service-manifest.js";
 import { createConfigurePayload } from "./configure-payload.js";
+import type { ProviderService } from "../service-registry.js";
 
 export interface ConfigureCommandOptions {
   apiKey?: string;
@@ -140,6 +141,12 @@ export async function executeConfigure(
     success: `Configured ${adapter.label}.`,
     dry: dryMessage
   });
+
+  if (!flags.dryRun) {
+    for (const message of resolvePostConfigureMessages(adapter)) {
+      resources.logger.info(message);
+    }
+  }
 }
 
 function createMutationTracker(): {
@@ -165,6 +172,10 @@ function createMutationTracker(): {
       return Array.from(targets).sort();
     }
   };
+}
+
+function resolvePostConfigureMessages(provider: ProviderService): string[] {
+  return provider.postConfigureMessages ?? [];
 }
 
 export async function resolveServiceArgument(

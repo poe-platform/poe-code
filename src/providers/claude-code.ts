@@ -101,6 +101,9 @@ export const claudeCodeService = createProvider<
       }))
     }
   },
+  postConfigureMessages: [
+    "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt"
+  ],
   isolatedEnv: {
     agentBinary: "claude",
     env: {

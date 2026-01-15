@@ -43,7 +43,7 @@ export function createLoggerFactory(
     const verbose = context.verbose ?? false;
     const scope = context.scope;
     const formatMessage = (message: string): string =>
-      scope ? `[${scope}] ${message}` : message;
+      scope && verbose ? `[${scope}] ${message}` : message;
 
     const scoped: ScopedLogger = {
       context: { dryRun, verbose, scope: context.scope },

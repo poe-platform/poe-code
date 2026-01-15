@@ -30,5 +30,32 @@ describe("--verbose flag logging behavior", () => {
 
     expect(emitter).toHaveBeenCalledTimes(1);
   });
-});
 
+  it("omits scope prefixes when verbose is disabled", () => {
+    const emitter = vi.fn();
+    const factory = createLoggerFactory(emitter);
+    const logger = factory.create({
+      verbose: false,
+      scope: "configure:claude-code"
+    });
+
+    logger.info("Configured Claude Code.");
+
+    expect(emitter).toHaveBeenCalledWith("Configured Claude Code.");
+  });
+
+  it("includes scope prefixes when verbose is enabled", () => {
+    const emitter = vi.fn();
+    const factory = createLoggerFactory(emitter);
+    const logger = factory.create({
+      verbose: true,
+      scope: "configure:claude-code"
+    });
+
+    logger.info("Configured Claude Code.");
+
+    expect(emitter).toHaveBeenCalledWith(
+      "[configure:claude-code] Configured Claude Code."
+    );
+  });
+});

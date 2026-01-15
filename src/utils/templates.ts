@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
-import handlebars from "handlebars";
+import Mustache from "mustache";
 
 const templateRoot = fileURLToPath(new URL("../templates", import.meta.url));
 
@@ -14,8 +14,7 @@ export async function renderTemplate(
   context: Record<string, unknown>
 ): Promise<string> {
   const source = await loadTemplate(relativePath);
-  const template = handlebars.compile(source);
-  return template(context);
+  return Mustache.render(source, context);
 }
 
 export function setTemplateLoader(loader: TemplateLoader | null): void {

@@ -41,8 +41,6 @@
     "semver": "^7.7.3"
   },
   "devDependencies": {
-    "@semantic-release/exec": "^7.1.0",
-    "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^11.0.6",
     "@semantic-release/npm": "^13.1.2",
     "@types/diff": "^7.0.2",
@@ -52,7 +50,6 @@
     "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
-    "@typescript-eslint/rule-tester": "^8.48.0",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^9.1.0",
     "memfs": "^4.7.3",
@@ -61,8 +58,7 @@
     "tsx": "^4.7.1",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.46.2",
-    "vitest": "^1.6.1",
-    "yaml": "^2.6.0"
+    "vitest": "^1.6.1"
   },
   "repository": {
     "type": "git",

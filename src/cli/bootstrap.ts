@@ -4,6 +4,7 @@ import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
+import chalk from "chalk";
 import promptsLibrary from "prompts";
 import type { Command } from "commander";
 import type { FileSystem } from "../utils/file-system.js";
@@ -63,9 +64,9 @@ export function createCliMain(
 
         // Display user-friendly message
         if (error instanceof CliError && error.isUserError) {
-          console.error(error.message);
+          console.error(chalk.red(error.message));
         } else {
-          console.error(`Error: ${error.message}`);
+          console.error(chalk.red(`Error: ${error.message}`));
           console.error(
             `See logs at ${join(logDir, "errors.log")} for more details.`
           );

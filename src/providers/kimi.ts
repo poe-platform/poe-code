@@ -51,6 +51,7 @@ export const kimiService = createProvider<
 >({
   disabled: false,
   name: "kimi",
+  aliases: ["kimi-cli"],
   label: "Kimi",
   id: "kimi",
   summary: "Configure Kimi CLI to use Poe API",

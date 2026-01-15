@@ -31,6 +31,10 @@ describe("kimi service", () => {
   const configPath = path.join(homeDir, ".kimi", "config.json");
   let env = createCliEnvironment({ cwd: homeDir, homeDir });
 
+  it("advertises kimi-cli as an alias", () => {
+    expect(kimiService.kimiService.aliases).toContain("kimi-cli");
+  });
+
   beforeEach(() => {
     ({ fs, vol } = createMemFs());
     vol.mkdirSync(homeDir, { recursive: true });

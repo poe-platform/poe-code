@@ -1,6 +1,15 @@
 import type { PromptDescriptor, PromptLibrary } from "./prompts.js";
 import type { PromptFn } from "./types.js";
 
+/**
+ * Strips bracketed paste escape sequences from input.
+ * These sequences (\x1b[200~ at start, \x1b[201~ at end) can be included
+ * when pasting in tmux/iTerm2 combinations.
+ */
+function stripBracketedPaste(value: string): string {
+  return value.replace(/\x1b\[200~/g, "").replace(/\x1b\[201~/g, "");
+}
+
 export interface ApiKeyStore {
   read(): Promise<string | null>;
   write(value: string): Promise<void>;
@@ -74,7 +83,8 @@ export function createOptionResolvers(
   };
 
   const normalizeApiKey = (value: string): string => {
-    const trimmed = value.trim();
+    const sanitized = stripBracketedPaste(value);
+    const trimmed = sanitized.trim();
     if (trimmed.length === 0) {
       throw new Error("POE API key cannot be empty.");
     }

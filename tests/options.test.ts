@@ -31,6 +31,50 @@ describe("option resolvers", () => {
     expect(descriptor.message).toContain("Enter your Poe API key");
   });
 
+  it("strips bracketed paste escape sequences from API key", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore
+    });
+
+    // Simulate tmux/iTerm2 bracketed paste: \x1b[200~ at start, \x1b[201~ at end
+    const result = await resolvers.resolveApiKey({
+      value: "\x1b[200~my-api-key-here\x1b[201~",
+      dryRun: false
+    });
+
+    expect(result).toBe("my-api-key-here");
+    expect(apiKeyStore.write).toHaveBeenCalledWith("my-api-key-here");
+  });
+
+  it("strips multiple bracketed paste sequences from API key", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore
+    });
+
+    const result = await resolvers.resolveApiKey({
+      value: "\x1b[200~part1\x1b[201~\x1b[200~part2\x1b[201~",
+      dryRun: false
+    });
+
+    expect(result).toBe("part1part2");
+  });
+
   it("auto-selects the only available model without prompting", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi.fn().mockResolvedValue({});

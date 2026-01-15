@@ -59,7 +59,7 @@ export function createCommandContextFactory(
         },
         flushDryRun() {},
         complete(messages) {
-          options.logger.info(messages.success);
+          options.logger.success(messages.success);
         }
       };
     }

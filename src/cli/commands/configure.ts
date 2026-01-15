@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import chalk from "chalk";
 import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
@@ -143,8 +144,12 @@ export async function executeConfigure(
   });
 
   if (!flags.dryRun) {
-    for (const message of resolvePostConfigureMessages(adapter)) {
-      resources.logger.info(message);
+    const postMessages = resolvePostConfigureMessages(adapter);
+    if (postMessages.length > 0 && !resources.logger.context.verbose) {
+      resources.logger.info("");
+    }
+    for (const message of postMessages) {
+      resources.logger.info(chalk.cyan(message));
     }
   }
 }

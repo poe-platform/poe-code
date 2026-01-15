@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import chalk from "chalk";
 import { executeConfigure } from "../src/cli/commands/configure.js";
 import { createCliContainer } from "../src/cli/container.js";
 import type { FileSystem } from "../src/utils/file-system.js";
@@ -210,11 +211,13 @@ describe("configure command", () => {
     const program = createTestProgram();
     await executeConfigure(program, container, "claude-code", {});
 
-    expect(
-      logs.some((line) =>
-        line.includes("vscode://settings/claudeCode.disableLoginPrompt")
+    expect(logs).toEqual([
+      chalk.green("Configured Claude Code."),
+      "",
+      chalk.cyan(
+        "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt"
       )
-    ).toBe(true);
+    ]);
   });
 
 });

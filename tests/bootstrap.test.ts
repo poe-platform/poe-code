@@ -13,12 +13,12 @@ vi.mock("../src/cli/error-logger.js", async () => {
   );
   return {
     ...actual,
-    ErrorLogger: vi.fn().mockImplementation((options) => {
-      capturedOptions = options;
-      return {
-        logErrorWithStackTrace
-      };
-    })
+    ErrorLogger: class MockErrorLogger {
+      constructor(options: any) {
+        capturedOptions = options;
+      }
+      logErrorWithStackTrace = logErrorWithStackTrace;
+    }
   };
 });
 
@@ -31,9 +31,11 @@ describe("createCliMain", () => {
     logErrorWithStackTrace.mockReset();
     originalEnvValue = process.env.POE_CODE_STDERR_LOGS;
     process.env.POE_CODE_STDERR_LOGS = "1";
-    exitSpy = vi.spyOn(process, "exit").mockImplementation((code?: number) => {
-      throw new Error(`exit:${code ?? "undefined"}`);
-    });
+    exitSpy = vi
+      .spyOn(process, "exit")
+      .mockImplementation((code?: string | number | null) => {
+        throw new Error(`exit:${code ?? "undefined"}`);
+      });
   });
 
   afterEach(() => {

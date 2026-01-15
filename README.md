@@ -51,7 +51,7 @@ npx poe-code@latest spawn codex "Say hello"
 ### Spawn a prompt via stdin
 
 ```bash
-echo "Say hello" | npx poe-code@latest spawn codex --stdin
+echo "Say hello" | npx poe-code@latest spawn codex
 ```
 
 ### Test a configured service

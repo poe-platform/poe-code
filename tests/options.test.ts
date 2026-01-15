@@ -75,6 +75,49 @@ describe("option resolvers", () => {
     expect(result).toBe("part1part2");
   });
 
+  it("strips undefinedndefined suffix from prompts library mangled paste", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore
+    });
+
+    // Real world case: key + "undefinedndefined" from mangled bracketed paste
+    const result = await resolvers.resolveApiKey({
+      value: "vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuoundefinedndefined",
+      dryRun: false
+    });
+
+    expect(result).toBe("vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuo");
+  });
+
+  it("strips trailing ndefined suffix", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore
+    });
+
+    const result = await resolvers.resolveApiKey({
+      value: "my-api-keyndefined",
+      dryRun: false
+    });
+
+    expect(result).toBe("my-api-key");
+  });
+
   it("auto-selects the only available model without prompting", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi.fn().mockResolvedValue({});

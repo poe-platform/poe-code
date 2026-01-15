@@ -2,12 +2,20 @@ import type { PromptDescriptor, PromptLibrary } from "./prompts.js";
 import type { PromptFn } from "./types.js";
 
 /**
- * Strips bracketed paste escape sequences from input.
- * These sequences (\x1b[200~ at start, \x1b[201~ at end) can be included
- * when pasting in tmux/iTerm2 combinations.
+ * Strips bracketed paste artifacts from input.
+ *
+ * When pasting in tmux/iTerm2, terminals send bracketed paste escape sequences
+ * (\x1b[200~ at start, \x1b[201~ at end). The prompts library mishandles these
+ * and produces artifacts like "undefined" or "ndefined" in the output. We strip
+ * both the raw escape sequences and the mangled string artifacts.
  */
 function stripBracketedPaste(value: string): string {
-  return value.replace(/\x1b\[200~/g, "").replace(/\x1b\[201~/g, "");
+  return value
+    .replace(/\x1b\[200~/g, "")
+    .replace(/\x1b\[201~/g, "")
+    .replace(/undefinedndefined$/, "")
+    .replace(/undefined$/, "")
+    .replace(/ndefined$/, "");
 }
 
 export interface ApiKeyStore {

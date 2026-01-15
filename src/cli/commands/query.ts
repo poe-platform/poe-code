@@ -72,26 +72,30 @@ export function registerQueryCommand(
         throw new Error("Poe API key not found. Run 'poe-code login' first.");
       }
 
-      // Dynamic import of openai to avoid top-level import issues
-      const { default: OpenAI } = await import("openai");
-
-      const client = new OpenAI({
-        apiKey,
-        baseURL: "https://api.poe.com/v1"
-      });
-
       const messages: Array<{ role: "system" | "user"; content: string }> = [];
       if (systemPrompt) {
         messages.push({ role: "system", content: systemPrompt });
       }
       messages.push({ role: "user", content: prompt });
 
-      const chat = await client.chat.completions.create({
-        model,
-        messages
+      const res = await fetch("https://api.poe.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ model, messages })
       });
 
-      const response = chat.choices[0]?.message?.content;
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Poe API error (${res.status}): ${errorText}`);
+      }
+
+      const chat = (await res.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+      };
+      const response = chat.choices?.[0]?.message?.content;
       if (!response) {
         throw new Error("No response from LLM");
       }

@@ -4,18 +4,8 @@ import { Readable } from "node:stream";
 import { createProgram } from "../src/cli/program.js";
 import type { FileSystem } from "../src/utils/file-system.js";
 
-const completionMock = vi.fn();
-const openAiCtor = vi.fn(() => ({
-  chat: {
-    completions: {
-      create: completionMock
-    }
-  }
-}));
-
-vi.mock("openai", () => ({
-  default: openAiCtor
-}));
+const fetchMock = vi.fn();
+vi.stubGlobal("fetch", fetchMock);
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -27,8 +17,7 @@ function createMemfs(apiKey?: string): FileSystem {
   if (apiKey) {
     volume.writeFileSync(
       credentialsPath,
-      JSON.stringify({ apiKey }),
-      "utf8"
+      JSON.stringify({ apiKey })
     );
   }
   return createFsFromVolume(volume).promises as unknown as FileSystem;
@@ -54,21 +43,23 @@ function createQueryProgram(options?: {
 
 describe("query command", () => {
   beforeEach(() => {
-    openAiCtor.mockClear();
-    completionMock.mockReset();
+    fetchMock.mockReset();
   });
 
   it("calls Poe API with the provided prompt and prints the response", async () => {
     const fs = createMemfs("secret-key");
     const { program } = createQueryProgram({ fs });
-    completionMock.mockResolvedValue({
-      choices: [
-        {
-          message: {
-            content: "LLM says hi"
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: "LLM says hi"
+            }
           }
-        }
-      ]
+        ]
+      })
     });
 
     const stdoutSpy = vi
@@ -86,17 +77,23 @@ describe("query command", () => {
       "Hello world"
     ]);
 
-    expect(openAiCtor).toHaveBeenCalledWith({
-      apiKey: "secret-key",
-      baseURL: "https://api.poe.com/v1"
-    });
-    expect(completionMock).toHaveBeenCalledWith({
-      model: "custom-model",
-      messages: [
-        { role: "system", content: "stay calm" },
-        { role: "user", content: "Hello world" }
-      ]
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.poe.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer secret-key"
+        },
+        body: JSON.stringify({
+          model: "custom-model",
+          messages: [
+            { role: "system", content: "stay calm" },
+            { role: "user", content: "Hello world" }
+          ]
+        })
+      }
+    );
     expect(stdoutSpy).toHaveBeenCalledWith("LLM says hi");
     expect(stdoutSpy).toHaveBeenCalledWith("\n");
 
@@ -106,31 +103,44 @@ describe("query command", () => {
   it("consumes prompt text from stdin when no argument is provided", async () => {
     const fs = createMemfs("pipe-key");
     const { program } = createQueryProgram({ fs });
-    completionMock.mockResolvedValue({
-      choices: [
-        {
-          message: {
-            content: "stdin response"
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: "stdin response"
+            }
           }
-        }
-      ]
+        ]
+      })
     });
 
     const stdinStream = Readable.from([Buffer.from("Prompt via stdin")]);
     Object.defineProperty(stdinStream, "isTTY", { value: false });
     const stdinSpy = vi
       .spyOn(process, "stdin", "get")
-      .mockReturnValue(stdinStream as NodeJS.ReadStream);
+      .mockReturnValue(stdinStream as unknown as typeof process.stdin);
     const stdoutSpy = vi
       .spyOn(process.stdout, "write")
       .mockImplementation(() => true);
 
     await program.parseAsync(["node", "cli", "query"]);
 
-    expect(completionMock).toHaveBeenCalledWith({
-      model: "Claude-Sonnet-4.5",
-      messages: [{ role: "user", content: "Prompt via stdin" }]
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.poe.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer pipe-key"
+        },
+        body: JSON.stringify({
+          model: "Claude-Sonnet-4.5",
+          messages: [{ role: "user", content: "Prompt via stdin" }]
+        })
+      }
+    );
 
     stdinSpy.mockRestore();
     stdoutSpy.mockRestore();
@@ -151,8 +161,7 @@ describe("query command", () => {
       "Dry run prompt"
     ]);
 
-    expect(openAiCtor).not.toHaveBeenCalled();
-    expect(completionMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(
       logs.some((line) =>
         line.includes(

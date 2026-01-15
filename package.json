@@ -37,7 +37,6 @@
     "commander": "^11.1.0",
     "diff": "^5.2.0",
     "mustache": "^4.2.0",
-    "openai": "^6.9.1",
     "prompts": "^2.4.2",
     "semver": "^7.7.3"
   },

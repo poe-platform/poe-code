@@ -9,6 +9,8 @@ export interface MenuPalette {
   prompt(text: string): string;
   number(value: number): string;
   providerFallback(label: string): string;
+  intro(text: string): string;
+  resolvedSymbol: string;
 }
 
 export interface MenuTheme {
@@ -22,6 +24,8 @@ interface ThemeConfig {
   prompt: (text: string) => string;
   number: (text: string) => string;
   providerFallback: (text: string) => string;
+  intro: (text: string) => string;
+  resolvedSymbol: string;
 }
 
 const DARK_THEME: ThemeConfig = {
@@ -29,7 +33,9 @@ const DARK_THEME: ThemeConfig = {
   divider: chalk.dim,
   prompt: (text) => chalk.cyan(text),
   number: (text) => chalk.cyanBright(text),
-  providerFallback: (text) => text
+  providerFallback: (text) => text,
+  intro: (text) => chalk.bgMagenta.white(` Poe - ${text} `),
+  resolvedSymbol: chalk.magenta("◇")
 };
 
 const LIGHT_THEME: ThemeConfig = {
@@ -37,7 +43,9 @@ const LIGHT_THEME: ThemeConfig = {
   divider: chalk.hex("#666666"),
   prompt: (text) => chalk.hex("#006699").bold(text),
   number: (text) => chalk.hex("#0077cc").bold(text),
-  providerFallback: (text) => text
+  providerFallback: (text) => text,
+  intro: (text) => chalk.bgHex("#a200ff").white(` Poe - ${text} `),
+  resolvedSymbol: chalk.hex("#a200ff")("◇")
 };
 
 const THEMES: Record<MenuThemeName, ThemeConfig> = {
@@ -94,7 +102,9 @@ function buildPalette(config: ThemeConfig): MenuPalette {
     divider: config.divider,
     prompt: config.prompt,
     number: (value) => config.number(`[${value}]`),
-    providerFallback: config.providerFallback
+    providerFallback: config.providerFallback,
+    intro: config.intro,
+    resolvedSymbol: config.resolvedSymbol
   };
 }
 

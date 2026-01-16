@@ -36,6 +36,8 @@ export function registerLoginCommand(
         "login"
       );
 
+      resources.logger.intro("login");
+
       try {
         const input = await resolveApiKeyInput(container, options);
         const normalized = container.options.normalizeApiKey(input);
@@ -62,6 +64,8 @@ export function registerLoginCommand(
           success: `Poe API key stored at ${container.env.credentialsPath}.`,
           dry: `Dry run: would store Poe API key at ${container.env.credentialsPath}.`
         });
+
+        resources.context.finalize();
       } catch (error) {
         if (error instanceof Error) {
           resources.logger.logException(error, "login command", {

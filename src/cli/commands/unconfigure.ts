@@ -45,6 +45,9 @@ export async function executeUnconfigure(
     flags,
     `unconfigure:${canonicalService}`
   );
+
+  resources.logger.intro(`unconfigure ${canonicalService}`);
+
   const providerContext = buildProviderContext(
     container,
     adapter,
@@ -118,6 +121,8 @@ export async function executeUnconfigure(
   );
 
   resources.context.complete(messages);
+
+  resources.context.finalize();
 }
 
 interface UnconfigurePayloadInit {

@@ -1,36 +1,105 @@
 import { describe, it, expect, vi } from "vitest";
 import { createPromptRunner } from "../src/cli/prompt-runner.js";
+import color from "picocolors";
 import { OperationCancelledError } from "../src/cli/errors.js";
 
+const createAdapter = () => ({
+  text: vi.fn(),
+  password: vi.fn(),
+  select: vi.fn(),
+  isCancel: vi.fn(),
+  cancel: vi.fn()
+});
+
 describe("createPromptRunner", () => {
-  it("wraps the prompts implementation", async () => {
-    const promptsMock = vi.fn().mockResolvedValue({ value: true });
-    const runner = createPromptRunner(promptsMock as any);
+  it("forces prompt symbols to use purple instead of green", () => {
+    const adapter = createAdapter();
+    createPromptRunner(adapter);
 
-    const result = await runner([] as any);
-
-    expect(promptsMock).toHaveBeenCalled();
-    expect(result).toEqual({ value: true });
+    expect(color.green).toBe(color.magenta);
   });
 
-  it("throws a user-facing error on cancellation", () => {
-    let capturedOnCancel: (() => void) | undefined;
-    const promptsMock = vi.fn((_questions, options) => {
-      capturedOnCancel = options?.onCancel;
-      return Promise.resolve({});
+  it("uses the adapter for text prompts", async () => {
+    const adapter = createAdapter();
+    adapter.text.mockResolvedValue("hello");
+    adapter.isCancel.mockReturnValue(false);
+    const runner = createPromptRunner(adapter);
+
+    const result = await runner({
+      name: "value",
+      message: "Say hello",
+      type: "text",
+      initial: "hi"
     });
-    const runner = createPromptRunner(promptsMock as any);
 
-    void runner([] as any);
+    expect(adapter.text).toHaveBeenCalledWith({
+      message: "Say hello",
+      initialValue: "hi"
+    });
+    expect(result).toEqual({ value: "hello" });
+  });
 
-    expect(typeof capturedOnCancel).toBe("function");
-    let thrown: unknown;
-    try {
-      capturedOnCancel?.();
-    } catch (error) {
-      thrown = error;
-    }
-    expect(thrown).toBeInstanceOf(OperationCancelledError);
-    expect((thrown as OperationCancelledError).isUserError).toBe(true);
+  it("uses the adapter for password prompts", async () => {
+    const adapter = createAdapter();
+    adapter.password.mockResolvedValue("secret");
+    adapter.isCancel.mockReturnValue(false);
+    const runner = createPromptRunner(adapter);
+
+    const result = await runner({
+      name: "apiKey",
+      message: "Enter key",
+      type: "password"
+    });
+
+    expect(adapter.password).toHaveBeenCalledWith({
+      message: "Enter key"
+    });
+    expect(result).toEqual({ apiKey: "secret" });
+  });
+
+  it("maps select prompts with choices and initial selection", async () => {
+    const adapter = createAdapter();
+    adapter.select.mockResolvedValue("b");
+    adapter.isCancel.mockReturnValue(false);
+    const runner = createPromptRunner(adapter);
+
+    const result = await runner({
+      name: "model",
+      message: "Pick model",
+      type: "select",
+      initial: 1,
+      choices: [
+        { title: "Option A", value: "a" },
+        { title: "Option B", value: "b" }
+      ]
+    });
+
+    expect(adapter.select).toHaveBeenCalledWith({
+      message: "Pick model",
+      options: [
+        { label: "Option A", value: "a" },
+        { label: "Option B", value: "b" }
+      ],
+      initialValue: "b"
+    });
+    expect(result).toEqual({ model: "b" });
+  });
+
+  it("throws a user-facing error on cancellation", async () => {
+    const adapter = createAdapter();
+    const cancelToken = Symbol("cancel");
+    adapter.text.mockResolvedValue(cancelToken);
+    adapter.isCancel.mockReturnValue(true);
+    const runner = createPromptRunner(adapter);
+
+    await expect(
+      runner({
+        name: "value",
+        message: "Say hello",
+        type: "text"
+      })
+    ).rejects.toBeInstanceOf(OperationCancelledError);
+
+    expect(adapter.cancel).toHaveBeenCalledWith("Operation cancelled.");
   });
 });

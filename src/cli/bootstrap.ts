@@ -4,8 +4,8 @@ import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
+import { log } from "@clack/prompts";
 import chalk from "chalk";
-import promptsLibrary from "prompts";
 import type { Command } from "commander";
 import type { FileSystem } from "../utils/file-system.js";
 import { ErrorLogger } from "./error-logger.js";
@@ -21,7 +21,7 @@ export function createCliMain(
   return async function runCli(): Promise<void> {
     const homeDir = homedir();
     const logDir = join(homeDir, ".poe-code", "logs");
-    const promptRunner = createPromptRunner(promptsLibrary);
+    const promptRunner = createPromptRunner();
 
     // Create global error logger for bootstrapping errors
     const shouldLogToStderr =
@@ -43,9 +43,6 @@ export function createCliMain(
         platform: process.platform,
         variables: process.env
       },
-      logger: (message) => {
-        console.log(message);
-      },
       exitOverride: false
     });
 
@@ -64,11 +61,12 @@ export function createCliMain(
 
         // Display user-friendly message
         if (error instanceof CliError && error.isUserError) {
-          console.error(chalk.red(error.message));
+          log.error(error.message);
         } else {
-          console.error(chalk.red(`Error: ${error.message}`));
-          console.error(
-            `See logs at ${join(logDir, "errors.log")} for more details.`
+          log.error(`Error: ${error.message}`);
+          log.message(
+            `See logs at ${join(logDir, "errors.log")} for more details.`,
+            { symbol: chalk.magenta("●") }
           );
         }
 

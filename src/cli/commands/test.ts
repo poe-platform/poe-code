@@ -60,8 +60,11 @@ export async function executeTest(
   const resources = createExecutionResources(
     container,
     flags,
-      `test:${canonicalService}`
+    `test:${canonicalService}`
   );
+
+  resources.logger.intro(`test ${canonicalService}`);
+
   const providerContext = buildProviderContext(
     container,
     adapter,
@@ -184,4 +187,6 @@ export async function executeTest(
     success: `Tested ${adapter.label}.`,
     dry: dryMessage
   });
+
+  resources.context.finalize();
 }

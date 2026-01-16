@@ -42,6 +42,9 @@ export async function executeInstall(
     flags,
     `install:${canonicalService}`
   );
+
+  resources.logger.intro(`install ${canonicalService}`);
+
   const providerContext = buildProviderContext(
     container,
     adapter,
@@ -64,4 +67,6 @@ export async function executeInstall(
     success: `Installed ${adapter.label}.`,
     dry: dryMessage
   });
+
+  resources.context.finalize();
 }

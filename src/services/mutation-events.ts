@@ -9,9 +9,6 @@ export function createMutationReporter(
   logger: ScopedLogger
 ): ServiceMutationObservers {
   return {
-    onStart(details) {
-      logger.verbose(`Starting mutation: ${details.label}`);
-    },
     onComplete(details, outcome) {
       logger.verbose(formatMutationMessage(details, outcome));
     },

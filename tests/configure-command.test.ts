@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import chalk from "chalk";
 import { executeConfigure } from "../src/cli/commands/configure.js";
 import { createCliContainer } from "../src/cli/container.js";
 import type { FileSystem } from "../src/utils/file-system.js";
@@ -212,11 +211,10 @@ describe("configure command", () => {
     await executeConfigure(program, container, "claude-code", {});
 
     expect(logs).toEqual([
-      chalk.green("Configured Claude Code."),
-      "",
-      chalk.cyan(
-        "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt"
-      )
+      "configure claude-code",
+      "Configured Claude Code.",
+      "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt",
+      "Problems? https://github.com/poe-platform/poe-cli/issues"
     ]);
   });
 

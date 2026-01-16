@@ -9,6 +9,7 @@ import type {
   CommandRunnerResult
 } from "../utils/command-checks.js";
 import type { ScopedLogger } from "./logger.js";
+import { FEEDBACK_URL } from "./constants.js";
 
 export interface CommandContextOptions {
   dryRun: boolean;
@@ -31,6 +32,7 @@ export interface CommandContext {
   ): Promise<CommandRunnerResult>;
   flushDryRun(options?: { emitIfEmpty?: boolean }): void;
   complete(messages: CommandContextComplete): void;
+  finalize(): void;
 }
 
 export interface CommandContextFactoryInit {
@@ -60,6 +62,9 @@ export function createCommandContextFactory(
         flushDryRun() {},
         complete(messages) {
           options.logger.success(messages.success);
+        },
+        finalize() {
+          options.logger.feedback("Problems?", FEEDBACK_URL);
         }
       };
     }
@@ -106,6 +111,9 @@ export function createCommandContextFactory(
       complete(messages) {
         options.logger.dryRun(messages.dry);
         flush(true);
+      },
+      finalize() {
+        options.logger.feedback("Problems?", FEEDBACK_URL);
       }
     };
   };

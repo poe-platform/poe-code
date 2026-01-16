@@ -25,6 +25,7 @@ import {
 import { ErrorLogger } from "./error-logger.js";
 import { createDefaultCommandRunner } from "./command-runner.js";
 import type { PromptFn, LoggerFn } from "./types.js";
+import { createMenuTheme } from "./ui/theme.js";
 import type { HttpClient } from "./http.js";
 import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";
@@ -72,9 +73,11 @@ export function createCliContainer(
     variables: dependencies.env.variables
   });
 
-  const loggerFactory = createLoggerFactory(
-    dependencies.logger ?? ((message) => console.log(message))
-  );
+  const menuTheme = createMenuTheme(environment);
+  const loggerFactory = createLoggerFactory(dependencies.logger, {
+    intro: menuTheme.palette.intro,
+    resolvedSymbol: menuTheme.palette.resolvedSymbol
+  });
 
   // Create error logger - use node:fs for sync operations
   const errorLogger = new ErrorLogger({

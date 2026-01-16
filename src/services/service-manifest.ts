@@ -838,17 +838,17 @@ function describeMutationOperation(
   const displayPath = targetPath ?? "target";
   switch (kind) {
     case "ensureDirectory":
-      return `Ensure directory ${displayPath}`;
+      return `Create ${displayPath}`;
     case "createBackup":
-      return `Create backup ${displayPath}`;
+      return `Backup ${displayPath}`;
     case "writeTemplate":
-      return `Write file ${displayPath}`;
+      return `Write ${displayPath}`;
     case "chmod":
-      return `Set permissions ${displayPath}`;
+      return `Set permissions on ${displayPath}`;
     case "removeFile":
-      return `Remove file ${displayPath}`;
+      return `Remove ${displayPath}`;
     case "transformFile":
-      return `Transform file ${displayPath}`;
+      return `Update ${displayPath}`;
     default:
       return "Operation";
   }

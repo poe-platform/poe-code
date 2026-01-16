@@ -59,7 +59,8 @@ export async function ensureIsolatedConfigForService(input: {
     flags: { ...flags, assumeYes: true },
     options: input.options ?? {},
     context: providerContext,
-    adapter
+    adapter,
+    logger: resources.logger
   });
 
   await container.registry.invoke(canonicalService, "configure", async (entry) => {

@@ -5,8 +5,8 @@ import type { PromptFn } from "./types.js";
  * Strips bracketed paste artifacts from input.
  *
  * When pasting in tmux/iTerm2, terminals send bracketed paste escape sequences
- * (\x1b[200~ at start, \x1b[201~ at end). The prompts library mishandles these
- * and produces artifacts like "undefined" or "ndefined" in the output. We strip
+ * (\x1b[200~ at start, \x1b[201~ at end). Some prompt inputs leak these into the
+ * captured value and produce artifacts like "undefined" or "ndefined". We strip
  * both the raw escape sequences and the mangled string artifacts.
  */
 function stripBracketedPaste(value: string): string {
@@ -40,6 +40,7 @@ export interface ResolveModelInput {
   defaultValue: string;
   choices: Array<{ title: string; value: string }>;
   label: string;
+  onResolve?: (label: string, value: string) => void;
 }
 
 export interface ResolveReasoningInput {
@@ -133,15 +134,19 @@ export function createOptionResolvers(
     assumeDefault,
     defaultValue,
     choices,
-    label
+    label,
+    onResolve
   }: ResolveModelInput): Promise<string> => {
     if (value != null) {
+      onResolve?.(label, value);
       return value;
     }
     if (choices.length === 1) {
+      onResolve?.(label, choices[0]!.value);
       return choices[0]!.value;
     }
     if (assumeDefault) {
+      onResolve?.(label, defaultValue);
       return defaultValue;
     }
     const descriptor = init.promptLibrary.model({

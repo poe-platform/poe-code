@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2021",
+    "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
@@ -10,7 +10,7 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "jsx": "react",
-    "types": ["vitest/globals"]
+    "types": ["node", "vitest/globals"]
   },
   "include": ["src", "tests", "vitest.config.ts"]
 }

@@ -1,14 +1,121 @@
-import type prompts from "prompts";
+import {
+  cancel,
+  isCancel,
+  password,
+  select,
+  text
+} from "@clack/prompts";
+import color from "picocolors";
 import { OperationCancelledError } from "./errors.js";
+import type { PromptDescriptor } from "./prompts.js";
 import type { PromptFn } from "./types.js";
 
+export interface PromptAdapter {
+  text: typeof text;
+  password: typeof password;
+  select: typeof select;
+  isCancel: typeof isCancel;
+  cancel: typeof cancel;
+}
+
+let promptColorsPatched = false;
+
+function patchPromptColors(): void {
+  if (promptColorsPatched) {
+    return;
+  }
+  const palette = color as typeof color & {
+    green: typeof color.magenta;
+  };
+  palette.green = palette.magenta;
+  promptColorsPatched = true;
+}
+
+function toInitialValue(value: PromptDescriptor["initial"]): string | undefined {
+  if (value == null) {
+    return undefined;
+  }
+  return String(value);
+}
+
+function resolveSelectInitial(
+  descriptor: PromptDescriptor
+): string | undefined {
+  if (descriptor.initial == null) {
+    return undefined;
+  }
+  if (typeof descriptor.initial === "number") {
+    return descriptor.choices?.[descriptor.initial]?.value;
+  }
+  return descriptor.initial;
+}
+
 export function createPromptRunner(
-  promptsImpl: typeof prompts
+  adapter: PromptAdapter = {
+    text,
+    password,
+    select,
+    isCancel,
+    cancel
+  }
 ): PromptFn {
-  return (questions) =>
-    promptsImpl(questions as any, {
-      onCancel: () => {
-        throw new OperationCancelledError();
+  patchPromptColors();
+  const runPrompt = async (
+    descriptor: PromptDescriptor
+  ): Promise<string | number> => {
+    const type = descriptor.type ?? "text";
+    let result: string | symbol;
+
+    if (type === "password") {
+      result = await adapter.password({
+        message: descriptor.message
+      });
+    } else if (type === "select") {
+      const choices = descriptor.choices ?? [];
+      if (choices.length === 0) {
+        throw new Error(`Missing choices for "${descriptor.name}".`);
       }
-    }) as Promise<Record<string, unknown>>;
+      result = await adapter.select({
+        message: descriptor.message,
+        options: choices.map((choice) => ({
+          label: choice.title,
+          value: choice.value
+        })),
+        initialValue: resolveSelectInitial(descriptor)
+      });
+    } else {
+      result = await adapter.text({
+        message: descriptor.message,
+        initialValue: toInitialValue(descriptor.initial)
+      });
+    }
+
+    if (adapter.isCancel(result)) {
+      adapter.cancel("Operation cancelled.");
+      throw new OperationCancelledError();
+    }
+
+    return result as string;
+  };
+
+  return async (questions) => {
+    const prompts = Array.isArray(questions)
+      ? questions
+      : questions
+      ? [questions]
+      : [];
+    if (prompts.length === 0) {
+      return {};
+    }
+
+    const responses: Record<string, unknown> = {};
+    for (const prompt of prompts) {
+      if (!prompt || typeof prompt !== "object") {
+        throw new Error("Invalid prompt descriptor.");
+      }
+      const descriptor = prompt as PromptDescriptor;
+      responses[descriptor.name] = await runPrompt(descriptor);
+    }
+    return responses;
+  };
 }

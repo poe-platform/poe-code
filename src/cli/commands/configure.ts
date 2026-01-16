@@ -1,5 +1,4 @@
 import type { Command } from "commander";
-import chalk from "chalk";
 import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
@@ -67,6 +66,9 @@ export async function executeConfigure(
     flags,
     `configure:${canonicalService}`
   );
+
+  resources.logger.intro(`configure ${canonicalService}`);
+
   const providerContext = buildProviderContext(
     container,
     adapter,
@@ -78,7 +80,8 @@ export async function executeConfigure(
     flags,
     options,
     context: providerContext,
-    adapter
+    adapter,
+    logger: resources.logger
   });
 
   await container.registry.invoke(canonicalService, "configure", async (entry) => {
@@ -145,13 +148,10 @@ export async function executeConfigure(
 
   if (!flags.dryRun) {
     const postMessages = resolvePostConfigureMessages(adapter);
-    if (postMessages.length > 0 && !resources.logger.context.verbose) {
-      resources.logger.info("");
-    }
-    for (const message of postMessages) {
-      resources.logger.info(chalk.cyan(message));
-    }
+    resources.logger.nextSteps(postMessages);
   }
+
+  resources.context.finalize();
 }
 
 function createMutationTracker(): {

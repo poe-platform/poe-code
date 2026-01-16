@@ -33,3 +33,4 @@ export const DEFAULT_KIMI_MODEL = KIMI_MODELS[0];
 export const DEFAULT_REASONING = "medium";
 export const DEFAULT_QUERY_MODEL = FRONTIER_MODELS[0];
 export const PROVIDER_NAME = "poe";
+export const FEEDBACK_URL = "https://github.com/poe-platform/poe-cli/issues";

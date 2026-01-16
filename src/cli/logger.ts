@@ -1,3 +1,4 @@
+import { intro, log, note, outro } from "@clack/prompts";
 import chalk from "chalk";
 import type { LoggerFn } from "./types.js";
 import type { ErrorLogger, ErrorContext } from "./error-logger.js";
@@ -19,6 +20,10 @@ export interface ScopedLogger {
   logException(error: Error, operation: string, context?: ErrorContext): void;
   dryRun(message: string): void;
   verbose(message: string): void;
+  intro(title: string): void;
+  resolved(label: string, value: string): void;
+  nextSteps(steps: string[]): void;
+  feedback(label: string, url: string): void;
   child(context: Partial<LoggerContext>): ScopedLogger;
 }
 
@@ -29,14 +34,63 @@ export interface LoggerFactory {
   setErrorLogger(errorLogger: ErrorLogger): void;
 }
 
-const defaultEmitter: LoggerFn = (message) => {
-  console.log(message);
-};
+export interface LoggerTheme {
+  intro?: (text: string) => string;
+  resolvedSymbol?: string;
+}
+
+function wrapText(text: string, maxWidth: number): string {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    if (currentLine.length === 0) {
+      currentLine = word;
+    } else if (currentLine.length + 1 + word.length <= maxWidth) {
+      currentLine += " " + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine.length > 0) {
+    lines.push(currentLine);
+  }
+  return lines.join("\n");
+}
 
 export function createLoggerFactory(
-  emitter: LoggerFn = defaultEmitter
+  emitter?: LoggerFn,
+  theme?: LoggerTheme
 ): LoggerFactory {
   let errorLogger: ErrorLogger | undefined;
+
+  const infoSymbol = chalk.magenta("●");
+  const successSymbol = chalk.magenta("◆");
+
+  const emit = (
+    level: "info" | "success" | "warn" | "error",
+    message: string
+  ): void => {
+    if (emitter) {
+      emitter(message);
+      return;
+    }
+    if (level === "success") {
+      log.message(message, { symbol: successSymbol });
+      return;
+    }
+    if (level === "warn") {
+      log.warn(message);
+      return;
+    }
+    if (level === "error") {
+      log.error(message);
+      return;
+    }
+    log.message(message, { symbol: infoSymbol });
+  };
 
   const create = (context: LoggerContext = {}): ScopedLogger => {
     const dryRun = context.dryRun ?? false;
@@ -48,19 +102,19 @@ export function createLoggerFactory(
     const scoped: ScopedLogger = {
       context: { dryRun, verbose, scope: context.scope },
       info(message) {
-        emitter(formatMessage(message));
+        emit("info", formatMessage(message));
       },
       success(message) {
-        emitter(chalk.green(formatMessage(message)));
+        emit("success", message);
       },
       warn(message) {
-        emitter(chalk.yellow(formatMessage(message)));
+        emit("warn", formatMessage(message));
       },
       error(message) {
-        emitter(chalk.red(formatMessage(message)));
+        emit("error", formatMessage(message));
       },
       errorWithStack(error, errorContext) {
-        emitter(chalk.red(formatMessage(error.message)));
+        emit("error", formatMessage(error.message));
 
         if (errorLogger) {
           const fullContext: ErrorContext = {
@@ -75,8 +129,9 @@ export function createLoggerFactory(
         }
       },
       logException(error, operation, errorContext) {
-        emitter(
-          chalk.red(formatMessage(`Error during ${operation}: ${error.message}`))
+        emit(
+          "error",
+          formatMessage(`Error during ${operation}: ${error.message}`)
         );
 
         if (errorLogger) {
@@ -93,13 +148,52 @@ export function createLoggerFactory(
         }
       },
       dryRun(message) {
-        emitter(formatMessage(message));
+        emit("info", formatMessage(message));
       },
       verbose(message) {
         if (!verbose) {
           return;
         }
-        emitter(formatMessage(message));
+        if (emitter) {
+          emitter(formatMessage(message));
+          return;
+        }
+        log.message(formatMessage(message), { symbol: chalk.gray("│") });
+      },
+      intro(title) {
+        if (emitter) {
+          emitter(title);
+          return;
+        }
+        const formatted = theme?.intro ? theme.intro(title) : title;
+        intro(formatted);
+      },
+      resolved(label, value) {
+        if (emitter) {
+          emitter(`${label}: ${value}`);
+          return;
+        }
+        const symbol = theme?.resolvedSymbol ?? chalk.magenta("◇");
+        log.message(`${label}\n   ${value}`, { symbol });
+      },
+      nextSteps(steps) {
+        if (steps.length === 0) {
+          return;
+        }
+        if (emitter) {
+          emitter(steps.join("\n"));
+          return;
+        }
+        const maxWidth = Math.min(process.stdout.columns || 80, 80) - 6;
+        const wrapped = steps.map((step) => wrapText(step, maxWidth)).join("\n");
+        note(wrapped, "Next steps.");
+      },
+      feedback(label, url) {
+        if (emitter) {
+          emitter(`${label} ${url}`);
+          return;
+        }
+        outro(chalk.dim(`${label} ${url}`));
       },
       child(next) {
         return create({
@@ -114,7 +208,7 @@ export function createLoggerFactory(
   };
 
   return {
-    base: emitter,
+    base: emitter ?? ((message) => log.message(message, { symbol: infoSymbol })),
     errorLogger,
     create,
     setErrorLogger(logger: ErrorLogger) {

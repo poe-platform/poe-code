@@ -16,7 +16,7 @@
     "labels:generate": "tsx scripts/generate-labels.ts",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
-    "watch": "tsx watch src/index.ts"
+    "watch:diff": "tsx scripts/watch-diff.ts"
   },
   "bin": {
     "poe-code": "dist/index.js",
@@ -29,7 +29,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=16"
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",

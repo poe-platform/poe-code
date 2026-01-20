@@ -1,5 +1,6 @@
 import { Command, Help } from "commander";
 import chalk from "chalk";
+import { createRequire } from "node:module";
 import {
   createCliContainer,
   type CliContainer,
@@ -14,7 +15,9 @@ import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
 import { registerQueryCommand } from "./commands/query.js";
 import { registerVersionOption } from "./commands/version.js";
-import packageJson from "../../package.json" with { type: "json" };
+
+const require = createRequire(import.meta.url);
+const packageJson = require("../../package.json") as { version: string };
 
 function formatHelpText(): string {
   const dim = chalk.dim;

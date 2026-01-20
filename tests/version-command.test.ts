@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { createRequire } from "node:module";
 import { createProgram } from "../src/cli/program.js";
 import type { FileSystem } from "../src/utils/file-system.js";
 import type { HttpClient } from "../src/cli/http.js";
 import { SilentError } from "../src/cli/errors.js";
+
+const require = createRequire(import.meta.url);
+const packageJson = require("../package.json") as { version: string };
 
 function createMemfs(homeDir: string): FileSystem {
   const volume = new Volume();
@@ -58,6 +62,7 @@ describe("version command", () => {
     await parseWithVersionExit(program, ["node", "cli", "--version"]);
 
     expect(logs.some((log) => log.includes("poe-code"))).toBe(true);
+    expect(logs.some((log) => log.includes(packageJson.version))).toBe(true);
   });
 
   it("shows update available message when newer version exists", async () => {

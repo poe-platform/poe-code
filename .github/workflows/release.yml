@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - beta
   workflow_dispatch:
     inputs:
       release_stable:
@@ -17,11 +18,12 @@ permissions:
 jobs:
   release-beta:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.ref == 'refs/heads/beta'
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -35,26 +37,19 @@ jobs:
         with:
           app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
           private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
-      - name: Sync and release beta
+      - name: Release Beta
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
-          git fetch origin beta:beta 2>/dev/null || git branch beta
-          git checkout beta
-          git rebase main
-          git push origin beta --force-with-lease
-          npx semantic-release
+        run: npx semantic-release
   release-stable:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.release_stable
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -68,15 +63,8 @@ jobs:
         with:
           app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
           private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
-      - name: Merge beta to main and release
+      - name: Release Stable
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
-          git fetch origin beta
-          git merge origin/beta --ff-only
-          git push origin main
-          npx semantic-release
+        run: npx semantic-release

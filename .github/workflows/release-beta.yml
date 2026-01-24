@@ -4,26 +4,33 @@ on:
     branches:
       - main
 permissions:
-  contents: read
+  contents: write
+  issues: write
+  pull-requests: write
   id-token: write
 jobs:
   release-beta:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
       - run: npm clean-install
+      - run: npm audit signatures
       - run: npm test
       - run: npm run build
-      - name: Set beta version
-        run: |
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          BASE_VERSION=$(echo "$CURRENT_VERSION" | sed 's/-.*$//' | sed 's/^0\.0\.0-dev$/0.0.1/')
-          BETA_VERSION="${BASE_VERSION}-beta.${SHORT_SHA}"
-          npm version "$BETA_VERSION" --no-git-tag-version
-      - name: Publish beta
-        run: npm publish --tag beta --provenance --access public
+      - name: Generate GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+          private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+      - name: Release Beta
+        env:
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: npx semantic-release --extends ./.releaserc.beta.json

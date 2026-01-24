@@ -23,13 +23,13 @@ jobs:
         with:
           app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
           private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
-      - name: Merge beta to main
+      - name: Rebase beta onto main and push to main
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
-          git checkout main
-          git merge beta --ff-only
-          git push origin main
+          git fetch origin main
+          git rebase origin/main
+          git push origin beta:main

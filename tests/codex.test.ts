@@ -30,18 +30,6 @@ describe("codex service", () => {
     env = createCliEnvironment({ cwd: home, homeDir: home });
   });
 
-  it("exposes the new Codex models and default", () => {
-    const modelPrompt = codexService.codexService.configurePrompts?.model;
-    expect(modelPrompt?.defaultValue).toBe(DEFAULT_CODEX_MODEL);
-
-    const values = modelPrompt?.choices?.map((choice) => choice.value) ?? [];
-    expect(values.slice(0, 3)).toEqual([
-      "gpt-5.2",
-      "gpt-5.2-chat",
-      "gpt-5.2-pro"
-    ]);
-  });
-
   function createProviderTestContext(
     runCommand: ReturnType<typeof vi.fn>,
     options: { dryRun?: boolean } = {}

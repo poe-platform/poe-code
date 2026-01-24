@@ -16,10 +16,10 @@ export const CLAUDE_CODE_VARIANTS = {
 export const DEFAULT_CLAUDE_CODE_MODEL = CLAUDE_CODE_VARIANTS.opus;
 
 export const CODEX_MODELS = [
+  "GPT-5.2-codex",
   "gpt-5.2",
   "gpt-5.2-chat",
   "gpt-5.2-pro",
-  "gpt-5.1-codex",
   "gpt-5.1",
   "gpt-5.1-codex-mini"
 ] as const;

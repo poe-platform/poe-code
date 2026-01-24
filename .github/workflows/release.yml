@@ -63,6 +63,8 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: npx semantic-release
       - name: Sync beta with main
+        if: always()
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
@@ -71,5 +73,5 @@ jobs:
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
           git fetch origin beta:beta
           git checkout beta
-          git rebase main
+          git rebase main || { echo "Rebase failed, manual sync required"; exit 1; }
           git push origin beta --force-with-lease

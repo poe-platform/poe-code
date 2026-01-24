@@ -10,17 +10,37 @@ permissions:
   pull-requests: write
   id-token: write
 jobs:
-  check-release:
+  release-beta:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[release]')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm clean-install
+      - run: npm audit signatures
+      - run: npm test
+      - run: npm run build
+      - name: Generate GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+          private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+      - name: Create beta branch
+        run: git checkout -b beta
+      - name: Release Beta
+        env:
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: npx semantic-release
+  release:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]')
-    outputs:
-      should_release: ${{ steps.check.outputs.should_release }}
-    steps:
-      - id: check
-        run: echo "should_release=true" >> "$GITHUB_OUTPUT"
-  release:
-    needs: check-release
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:

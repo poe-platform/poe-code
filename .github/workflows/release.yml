@@ -62,3 +62,14 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: npx semantic-release
+      - name: Sync beta with main
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch origin beta:beta
+          git checkout beta
+          git rebase main
+          git push origin beta --force-with-lease

@@ -26,6 +26,4 @@ jobs:
           BETA_VERSION="${BASE_VERSION}-beta.${SHORT_SHA}"
           npm version "$BETA_VERSION" --no-git-tag-version
       - name: Publish beta
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --tag beta --provenance --access public

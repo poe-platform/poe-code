@@ -29,8 +29,10 @@ jobs:
         with:
           app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
           private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+      - name: Create beta branch from current commit
+        run: git checkout -b beta
       - name: Release Beta
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
-        run: npx semantic-release --extends ./.releaserc.beta.json
+        run: npx semantic-release

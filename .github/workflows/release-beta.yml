@@ -29,7 +29,7 @@ jobs:
         with:
           app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
           private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
-      - name: Create beta branch from current commit
+      - name: Create beta branch
         run: git checkout -b beta
       - name: Release Beta
         env:

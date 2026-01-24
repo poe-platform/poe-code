@@ -3,13 +3,23 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 permissions:
   contents: write
   issues: write
   pull-requests: write
   id-token: write
 jobs:
+  check-release:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]')
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+    steps:
+      - id: check
+        run: echo "should_release=true" >> "$GITHUB_OUTPUT"
   release:
+    needs: check-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

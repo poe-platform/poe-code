@@ -33,6 +33,11 @@ Use `npm run lint:workflows`
 - Keep subjects imperative and under 72 characters.
 - Commit specific files that you edited, never blanket git add -A
 
+## Release
+
+- Beta release: Push any commit to main — automatically publishes poe-code@beta
+- Stable release: Include [release] in your commit message (e.g., git commit -m "feat: add feature [release]") — runs semantic-release and publishes to poe-code@latest
+
 ## Configure commands / Providers
 
 Regexes are not allowed. When modifying existing files, you must parse them and deep merge them. If you run into unsupported file e.g. yaml, install parser library.

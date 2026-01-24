@@ -1,0 +1,31 @@
+name: Release Beta
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  release-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm clean-install
+      - run: npm test
+      - run: npm run build
+      - name: Set beta version
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          BASE_VERSION=$(echo "$CURRENT_VERSION" | sed 's/-.*$//' | sed 's/^0\.0\.0-dev$/0.0.1/')
+          BETA_VERSION="${BASE_VERSION}-beta.${SHORT_SHA}"
+          npm version "$BETA_VERSION" --no-git-tag-version
+      - name: Publish beta
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --tag beta --provenance --access public

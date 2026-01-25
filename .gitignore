@@ -27,3 +27,4 @@ test-*/
 # macOS metadata
 .DS_Store
 repos/
+local_scripts/watch-diff.ts

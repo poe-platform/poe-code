@@ -16,7 +16,7 @@
     "labels:generate": "tsx scripts/generate-labels.ts",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
-    "watch:diff": "tsx scripts/watch-diff.ts"
+    "watch:diff": "tsx local_scripts/watch-diff.ts"
   },
   "bin": {
     "poe-code": "dist/index.js",

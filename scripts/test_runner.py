@@ -17,7 +17,7 @@ COMMAND_GROUPS: List[List[str]] = [
   [
     "poe-code install claude-code",
     "poe-code configure claude-code --yes",
-    "poe-code test claude-code --isolated",
+    "poe-code test claude-code",
   ],
   [
     "poe-code install claude-code",

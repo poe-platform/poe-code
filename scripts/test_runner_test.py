@@ -65,6 +65,29 @@ class RunCommandsTest(unittest.TestCase):
     self.assertIn("poe-code login --api-key ***", stderr.getvalue())
     self.assertNotIn("test-key", stderr.getvalue())
 
+  def test_isolated_and_non_isolated_runs_are_separate(self) -> None:
+    providers = ["claude-code", "codex", "opencode"]
+
+    for provider in providers:
+      has_isolated = False
+      has_non_isolated = False
+
+      for group in test_runner.COMMAND_GROUPS:
+        group_has_configure = any(
+          cmd.startswith("poe-code configure ") for cmd in group
+        )
+        for cmd in group:
+          if not cmd.startswith(f"poe-code test {provider}"):
+            continue
+          if "--isolated" in cmd:
+            has_isolated = True
+            self.assertFalse(group_has_configure)
+          else:
+            has_non_isolated = True
+
+      self.assertTrue(has_isolated)
+      self.assertTrue(has_non_isolated)
+
 
 if __name__ == "__main__":
   unittest.main()

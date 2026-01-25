@@ -119,11 +119,10 @@ def run_commands(command_groups: Optional[List[List[str]]] = None) -> None:
   env["COLIMA_DOCKER_ARGS"] = docker_args
 
   login_cmd = make_login_command(api_key)
-  reset_cmd = "rm -rf ~/.poe-code && mkdir -p ~/.poe-code/logs"
 
   groups = command_groups or COMMAND_GROUPS
   for index, commands in enumerate(groups, start=1):
-    commands_with_login = [reset_cmd, login_cmd, *commands]
+    commands_with_login = [login_cmd, *commands]
 
     print(f"\n=== Command group {index} ===", flush=True)
     for command in commands_with_login:

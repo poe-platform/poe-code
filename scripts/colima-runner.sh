@@ -144,7 +144,7 @@ container_commands=(
   "build_dir=\$(mktemp -d)"
   "cleanup_build_dir() { rm -rf \"\${build_dir}\"; }"
   "trap cleanup_build_dir EXIT"
-  "rm -rf /root/.poe-code"
+  "rm -rf /root/* /root/.[!.]* /root/..?*"
   "mkdir -p /root/.poe-code/logs"
   "tar -C \"\${workspace_dir}\" --exclude=node_modules --exclude=.git -cf - . | tar -C \"\${build_dir}\" -xf -"
   "cd \"\${build_dir}\""

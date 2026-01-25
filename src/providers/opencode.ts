@@ -97,7 +97,11 @@ export const openCodeService = createProvider({
           targetDirectory: "~/.config/opencode",
           targetFile: "config.json",
           value: ({ options }) => {
-            const { model } = (options ?? {}) as { model?: string };
+            const { model, env } = (options ?? {}) as {
+              model?: string;
+              env: { poeApiBaseUrl: string };
+            };
+            const baseUrl = env.poeApiBaseUrl;
             return {
               $schema: "https://opencode.ai/config.json",
               model: providerModel(model),
@@ -106,7 +110,7 @@ export const openCodeService = createProvider({
                   npm: "@ai-sdk/openai-compatible",
                   name: "poe.com",
                   options: {
-                    baseURL: "https://api.poe.com/v1"
+                    baseURL: baseUrl
                   },
                   models: FRONTIER_MODEL_RECORD
                 }

@@ -4,6 +4,7 @@ import type { FileSystem } from "../utils/file-system.js";
 import type {
   IsolatedEnvPath,
   IsolatedEnvPoeApiKey,
+  IsolatedEnvPoeBaseUrl,
   IsolatedEnvVariable,
   IsolatedEnvValue,
   ProviderIsolatedEnv
@@ -119,6 +120,9 @@ async function resolveIsolatedEnvValue(
     }
     return await resolvePoeApiKeyFromCredentials({ fs, env });
   }
+  if (isPoeBaseUrlReference(value)) {
+    return env.poeBaseUrl;
+  }
   if (value.kind === "isolatedDir" || value.kind === "isolatedFile") {
     return resolveIsolatedEnvPath(env, baseDir, value);
   }
@@ -146,6 +150,12 @@ function isEnvVarReference(value: IsolatedEnvValue): value is IsolatedEnvVariabl
 
 function isPoeApiKeyReference(value: IsolatedEnvValue): value is IsolatedEnvPoeApiKey {
   return typeof value === "object" && value.kind === "poeApiKey";
+}
+
+function isPoeBaseUrlReference(
+  value: IsolatedEnvValue
+): value is IsolatedEnvPoeBaseUrl {
+  return typeof value === "object" && value.kind === "poeBaseUrl";
 }
 
 async function resolvePoeApiKeyFromCredentials(input: {

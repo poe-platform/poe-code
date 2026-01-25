@@ -99,7 +99,8 @@ export type IsolatedEnvValue =
   | string
   | IsolatedEnvPath
   | IsolatedEnvVariable
-  | IsolatedEnvPoeApiKey;
+  | IsolatedEnvPoeApiKey
+  | IsolatedEnvPoeBaseUrl;
 
 export type IsolatedEnvVariable = {
   kind: "envVar";
@@ -108,6 +109,10 @@ export type IsolatedEnvVariable = {
 
 export type IsolatedEnvPoeApiKey = {
   kind: "poeApiKey";
+};
+
+export type IsolatedEnvPoeBaseUrl = {
+  kind: "poeBaseUrl";
 };
 
 export type ProviderOperation =

@@ -78,14 +78,17 @@ export function registerQueryCommand(
       }
       messages.push({ role: "user", content: prompt });
 
-      const res = await fetch("https://api.poe.com/v1/chat/completions", {
+      const res = await fetch(
+        `${container.env.poeApiBaseUrl}/chat/completions`,
+        {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`
         },
         body: JSON.stringify({ model, messages })
-      });
+        }
+      );
 
       if (!res.ok) {
         const errorText = await res.text();

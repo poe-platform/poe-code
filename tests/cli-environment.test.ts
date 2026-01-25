@@ -31,4 +31,26 @@ describe("CliEnvironment", () => {
     expect(environment.getVariable("SHELL")).toBe("/bin/zsh");
     expect(environment.getVariable("UNKNOWN_VAR")).toBeUndefined();
   });
+
+  it("derives Poe base URLs from POE_BASE_URL with v1", () => {
+    const environment = createCliEnvironment({
+      cwd,
+      homeDir,
+      variables: { POE_BASE_URL: "https://proxy.example.com/v1" }
+    });
+
+    expect(environment.poeApiBaseUrl).toBe("https://proxy.example.com/v1");
+    expect(environment.poeBaseUrl).toBe("https://proxy.example.com");
+  });
+
+  it("adds v1 when POE_BASE_URL is set to a host", () => {
+    const environment = createCliEnvironment({
+      cwd,
+      homeDir,
+      variables: { POE_BASE_URL: "https://proxy.example.com" }
+    });
+
+    expect(environment.poeApiBaseUrl).toBe("https://proxy.example.com/v1");
+    expect(environment.poeBaseUrl).toBe("https://proxy.example.com");
+  });
 });

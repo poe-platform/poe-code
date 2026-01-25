@@ -130,6 +130,21 @@ describe("codex service", () => {
     ).rejects.toThrow();
   });
 
+  it("uses POE_BASE_URL when writing base_url", async () => {
+    env = createCliEnvironment({
+      cwd: home,
+      homeDir: home,
+      variables: { POE_BASE_URL: "https://proxy.example.com/v1" }
+    });
+
+    await configureCodex();
+
+    const doc = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const providers = doc["model_providers"] as Record<string, unknown>;
+    const poe = providers["poe"] as Record<string, unknown>;
+    expect(poe.base_url).toBe("https://proxy.example.com/v1");
+  });
+
   it("removes generated config without restoring backup", async () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(configPath, "original", { encoding: "utf8" });

@@ -32,7 +32,6 @@ type CodexUnconfigureContext = {
 };
 
 const CODEX_PROVIDER_ID = "poe";
-const CODEX_BASE_URL = "https://api.poe.com/v1";
 const CODEX_TOP_LEVEL_FIELDS = [
   "model",
   "model_reasoning_effort"
@@ -56,7 +55,8 @@ export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
 };
 
 function stripCodexConfiguration(
-  document: TomlTable
+  document: TomlTable,
+  baseUrl: string
 ): { changed: boolean; empty: boolean } {
   if (!isTomlTable(document)) {
     return { changed: false, empty: false };
@@ -72,7 +72,10 @@ function stripCodexConfiguration(
   }
 
   const poeConfig = providers[CODEX_PROVIDER_ID];
-  if (!isTomlTable(poeConfig) || !matchesExpectedProviderConfig(poeConfig)) {
+  if (
+    !isTomlTable(poeConfig) ||
+    !matchesExpectedProviderConfig(poeConfig, baseUrl)
+  ) {
     return { changed: false, empty: false };
   }
 
@@ -100,11 +103,14 @@ function stripCodexConfiguration(
   };
 }
 
-function matchesExpectedProviderConfig(table: TomlTable): boolean {
+function matchesExpectedProviderConfig(
+  table: TomlTable,
+  baseUrl: string
+): boolean {
   if (table["name"] !== "poe") {
     return false;
   }
-  if (table["base_url"] !== CODEX_BASE_URL) {
+  if (table["base_url"] !== baseUrl) {
     return false;
   }
   if (table["wire_api"] !== "chat") {
@@ -212,6 +218,7 @@ export const codexService = createProvider<
         templateId: "codex/config.toml.hbs",
         context: ({ options }) => ({
           apiKey: options.apiKey,
+          baseUrl: options.env.poeApiBaseUrl,
           model: options.model,
           reasoningEffort: options.reasoningEffort
         })
@@ -221,8 +228,11 @@ export const codexService = createProvider<
       tomlPruneMutation({
         targetDirectory: "~/.codex",
         targetFile: "config.toml",
-        prune: (document) => {
-          const result = stripCodexConfiguration(document);
+        prune: (document, context) => {
+          const result = stripCodexConfiguration(
+            document,
+            context.options.env.poeApiBaseUrl
+          );
           if (!result.changed) {
             return { changed: false, result: document };
           }

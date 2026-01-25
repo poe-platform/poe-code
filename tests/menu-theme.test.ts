@@ -12,6 +12,8 @@ function createEnv(vars: Record<string, string | undefined>): CliEnvironment {
     platform: "darwin",
     credentialsPath: "/home/test/.poe-code/credentials.json",
     logDir: "/home/test/.poe-code/logs",
+    poeApiBaseUrl: "https://api.poe.com/v1",
+    poeBaseUrl: "https://api.poe.com",
     variables: vars,
     resolveHomePath: (...segments: string[]) => ["/home/test", ...segments].join("/"),
     getVariable: (name: string) => vars[name]

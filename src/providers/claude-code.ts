@@ -108,7 +108,7 @@ export const claudeCodeService = createProvider<
     agentBinary: "claude",
     env: {
       ANTHROPIC_API_KEY: { kind: "poeApiKey" },
-      ANTHROPIC_BASE_URL: "https://api.poe.com"
+      ANTHROPIC_BASE_URL: { kind: "poeBaseUrl" }
     },
     requiresConfig: false
   },
@@ -135,7 +135,7 @@ export const claudeCodeService = createProvider<
         value: ({ options }) => ({
           apiKeyHelper: `echo ${options.apiKey}`,
           env: {
-            ANTHROPIC_BASE_URL: "https://api.poe.com"
+            ANTHROPIC_BASE_URL: options.env.poeBaseUrl
           },
           model: options.model
         })

@@ -91,9 +91,10 @@ export const kimiService = createProvider<
           targetDirectory: "~/.kimi",
           targetFile: "config.json",
           value: ({ options }) => {
-            const { model, apiKey } = (options ?? {}) as {
+            const { model, apiKey, env } = (options ?? {}) as {
               model?: string;
               apiKey?: string;
+              env: { poeApiBaseUrl: string };
             };
             const selectedModel = model ?? DEFAULT_KIMI_MODEL;
             return {
@@ -108,7 +109,7 @@ export const kimiService = createProvider<
               providers: {
                 [PROVIDER_NAME]: {
                   type: "openai_legacy",
-                  base_url: "https://api.poe.com/v1",
+                  base_url: env.poeApiBaseUrl,
                   api_key: apiKey ?? ""
                 }
               }

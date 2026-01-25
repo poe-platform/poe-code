@@ -207,6 +207,26 @@ describe("claude-code service", () => {
     });
   });
 
+  it("uses POE_BASE_URL override for ANTHROPIC_BASE_URL", async () => {
+    env = createCliEnvironment({
+      cwd: home,
+      homeDir: home,
+      variables: { POE_BASE_URL: "https://proxy.example.com/v1" }
+    });
+
+    await configureClaude();
+
+    const content = await fs.readFile(settingsPath, "utf8");
+    const parsed = JSON.parse(content);
+    expect(parsed).toEqual({
+      apiKeyHelper: "echo sk-test",
+      env: {
+        ANTHROPIC_BASE_URL: "https://proxy.example.com"
+      },
+      model: CLAUDE_MODEL_SONNET
+    });
+  });
+
   it("removes existing apiKeyHelper during configure", async () => {
     await fs.mkdir(path.dirname(settingsPath), { recursive: true });
     await fs.writeFile(

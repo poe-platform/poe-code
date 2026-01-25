@@ -42,7 +42,7 @@ export const templateFixtures = new Map<string, string>([
       "",
       "[model_providers.poe]",
       'name = "poe"',
-      'base_url = "https://api.poe.com/v1"',
+      'base_url = "{{{baseUrl}}}"',
       'wire_api = "chat"',
       'experimental_bearer_token = "{{apiKey}}"'
     ].join("\n")

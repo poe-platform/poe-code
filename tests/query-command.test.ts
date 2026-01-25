@@ -26,13 +26,14 @@ function createMemfs(apiKey?: string): FileSystem {
 function createQueryProgram(options?: {
   fs?: FileSystem;
   logs?: string[];
+  variables?: Record<string, string | undefined>;
 }) {
   const logs = options?.logs ?? [];
   const fs = options?.fs ?? createMemfs("test-key");
   const program = createProgram({
     fs,
     prompts: vi.fn(),
-    env: { cwd, homeDir },
+    env: { cwd, homeDir, variables: options?.variables },
     logger: (message) => {
       logs.push(message);
     },
@@ -169,5 +170,48 @@ describe("query command", () => {
         )
       )
     ).toBe(true);
+  });
+
+  it("uses POE_BASE_URL when provided", async () => {
+    const fs = createMemfs("override-key");
+    const { program } = createQueryProgram({
+      fs,
+      variables: { POE_BASE_URL: "https://proxy.example.com/v1" }
+    });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: "override response"
+            }
+          }
+        ]
+      })
+    });
+
+    const stdoutSpy = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "query", "Override test"]);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://proxy.example.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer override-key"
+        },
+        body: JSON.stringify({
+          model: "Claude-Sonnet-4.5",
+          messages: [{ role: "user", content: "Override test" }]
+        })
+      }
+    );
+
+    stdoutSpy.mockRestore();
   });
 });

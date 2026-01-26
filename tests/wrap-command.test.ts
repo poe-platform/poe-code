@@ -42,7 +42,7 @@ describe("wrap command", () => {
     ).rejects.toThrow("STOP_WRAP");
 
     expect(ensure.ensureIsolatedConfigForService).toHaveBeenCalledWith(
-      expect.objectContaining({ service: "codex" })
+      expect.objectContaining({ service: "codex", refresh: true })
     );
 
     expect(runner.isolatedEnvRunner).toHaveBeenCalledWith(

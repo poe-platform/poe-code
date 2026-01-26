@@ -48,7 +48,8 @@ export function registerWrapCommand(
           container,
           adapter,
           service: canonicalService,
-          flags
+          flags,
+          refresh: true
         });
       }
       await applyIsolatedEnvRepairs({

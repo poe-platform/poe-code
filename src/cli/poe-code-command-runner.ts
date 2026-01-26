@@ -55,7 +55,8 @@ export function createPoeCodeCommandRunner(input: {
           container,
           adapter,
           service,
-          flags: { dryRun: false, assumeYes: true, verbose: false }
+          flags: { dryRun: false, assumeYes: true, verbose: false },
+          refresh: true
         });
       }
     }

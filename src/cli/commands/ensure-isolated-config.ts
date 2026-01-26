@@ -22,6 +22,7 @@ export async function ensureIsolatedConfigForService(input: {
   service: string;
   options?: ConfigureCommandOptions;
   flags: CommandFlags;
+  refresh?: boolean;
 }): Promise<void> {
   const { container, adapter } = input;
   const canonicalService = adapter.name;
@@ -31,6 +32,7 @@ export async function ensureIsolatedConfigForService(input: {
   }
 
   const flags = input.flags;
+  const shouldRefresh = input.refresh === true;
   const resources = createExecutionResources(
     container,
     flags,
@@ -50,7 +52,7 @@ export async function ensureIsolatedConfigForService(input: {
     container.fs,
     details.configProbePath!
   );
-  if (hasConfig) {
+  if (hasConfig && !shouldRefresh) {
     return;
   }
 

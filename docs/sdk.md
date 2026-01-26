@@ -1,0 +1,148 @@
+# SDK
+
+## Overview
+
+The SDK exposes programmatic access to `poe-code` functionality, allowing users to spawn provider CLIs from their own code.
+
+```typescript
+import { spawn } from "poe-code"
+
+const result = await spawn("claude-code", {
+  prompt: "Fix the bug in auth.ts",
+  cwd: "/path/to/project",
+  model: "claude-sonnet-4"
+})
+
+console.log(result.stdout)
+```
+
+## Public API
+
+### `spawn(service, options): Promise<SpawnResult>`
+
+Runs a single prompt through a configured service CLI.
+
+**Parameters:**
+- `service: string` - Service identifier (`claude-code`, `codex`, `opencode`)
+- `options: SpawnOptions` - Configuration for the spawn
+
+**SpawnOptions:**
+```typescript
+interface SpawnOptions {
+  prompt: string       // The prompt to send
+  cwd?: string         // Working directory for the service CLI
+  model?: string       // Model identifier override
+  args?: string[]      // Additional arguments forwarded to the CLI
+}
+```
+
+**SpawnResult:**
+```typescript
+interface SpawnResult {
+  stdout: string
+  stderr: string
+  exitCode: number
+}
+```
+
+## Implementation Plan
+
+### Step 1: Extract spawn core logic
+
+Create `src/sdk/spawn.ts` with the core spawn function that:
+- Takes `SpawnOptions` and service name
+- Bootstraps a minimal `CliContainer` internally
+- Resolves the service adapter from registry
+- Invokes the provider's spawn method
+- Returns `SpawnResult`
+
+This function should be independent of Commander.js and CLI flags.
+
+```typescript
+// src/sdk/spawn.ts
+export async function spawn(
+  service: string,
+  options: SpawnOptions
+): Promise<SpawnResult>
+```
+
+### Step 2: Create SDK container factory
+
+Create `src/sdk/container.ts` with a lightweight container initialization:
+- Uses real file system (node:fs)
+- Uses real command runner
+- No prompts needed (non-interactive)
+- Minimal logger (silent by default, configurable)
+
+```typescript
+// src/sdk/container.ts
+export function createSdkContainer(options?: SdkContainerOptions): CliContainer
+```
+
+### Step 3: Refactor CLI spawn command
+
+Update `src/cli/commands/spawn.ts` to use the SDK function internally:
+- CLI command becomes a thin wrapper
+- Handles stdin, flags, logging
+- Delegates core work to `sdk/spawn`
+
+### Step 4: Export from index
+
+Update `src/index.ts` to export SDK functions:
+
+```typescript
+// src/index.ts
+export { spawn } from "./sdk/spawn.js"
+export type { SpawnOptions, SpawnResult } from "./sdk/types.js"
+
+// Existing CLI exports
+export { main, isCliInvocation }
+```
+
+### Step 5: Add SDK types
+
+Create `src/sdk/types.ts` with public type definitions:
+
+```typescript
+// src/sdk/types.ts
+export interface SpawnOptions {
+  prompt: string
+  cwd?: string
+  model?: string
+  args?: string[]
+}
+
+export interface SpawnResult {
+  stdout: string
+  stderr: string
+  exitCode: number
+}
+```
+
+## File Structure
+
+```
+src/
+├── index.ts                    # exports { spawn, main, isCliInvocation }
+├── sdk/
+│   ├── spawn.ts               # spawn() function
+│   ├── container.ts           # SDK container factory
+│   └── types.ts               # Public types (SpawnOptions, SpawnResult)
+├── cli/
+│   └── commands/
+│       └── spawn.ts           # CLI wrapper (uses sdk/spawn internally)
+└── providers/
+    └── spawn-options.ts       # Internal SpawnCommandOptions (unchanged)
+```
+
+## Testing
+
+- Unit tests for `sdk/spawn.ts` using memfs and mocked command runner
+- Integration tests that verify SDK and CLI produce same results
+- Type tests to ensure public types are correctly exported
+
+## Notes
+
+- `SpawnOptions` (SDK public) vs `SpawnCommandOptions` (internal) - SDK type is simpler, no `useStdin`
+- SDK handles container lifecycle internally - users don't need to manage it
+- Errors are thrown as exceptions, not logged to console

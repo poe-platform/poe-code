@@ -1,6 +1,11 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
-import { resolveCommandFlags, resolveServiceAdapter } from "./shared.js";
+import {
+  formatServiceList,
+  listIsolatedServiceIds,
+  resolveCommandFlags,
+  resolveServiceAdapter
+} from "./shared.js";
 import { isolatedEnvRunner } from "../isolated-env-runner.js";
 import { ensureIsolatedConfigForService } from "./ensure-isolated-config.js";
 import { applyIsolatedEnvRepairs } from "../isolated-env.js";
@@ -9,12 +14,15 @@ export function registerWrapCommand(
   program: Command,
   container: CliContainer
 ): Command {
+  const serviceNames = listIsolatedServiceIds(container);
+  const serviceDescription =
+    `Agent to wrap${formatServiceList(serviceNames)}`;
   return program
     .command("wrap")
     .description("Run an agent CLI with Poe isolated configuration.")
     .allowUnknownOption(true)
     .allowExcessArguments(true)
-    .argument("<agent>", "Agent to wrap")
+    .argument("<agent>", serviceDescription)
     .argument("[agentArgs...]", "Arguments forwarded to the agent")
     .action(async (service: string, agentArgs: string[] = []) => {
       const requestedService = service;

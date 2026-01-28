@@ -1,7 +1,13 @@
 import { Buffer } from "node:buffer";
+import { basename, extname } from "node:path";
 import { createTwoFilesPatch } from "diff";
 import chalk from "chalk";
 import type { FileSystem } from "./file-system.js";
+
+const REDACTED_PLACEHOLDER = "<redacted>";
+const JSON_SENSITIVE_KEYS = ["apiKey", "api_key", "apiKeyHelper"];
+const AUTH_SENSITIVE_KEYS = ["key"];
+const TOML_SENSITIVE_KEYS = ["experimental_bearer_token"];
 
 export type DryRunOperation =
   | {
@@ -244,12 +250,17 @@ export function renderUnifiedDiff(
   previousContent: string | null,
   nextContent: string
 ): string[] {
+  const sanitizedPrevious =
+    previousContent == null
+      ? null
+      : redactContentForDiff(targetPath, previousContent);
+  const sanitizedNext = redactContentForDiff(targetPath, nextContent);
   const oldLabel = previousContent == null ? "/dev/null" : targetPath;
   const patch = createTwoFilesPatch(
     oldLabel,
     targetPath,
-    previousContent ?? "",
-    nextContent,
+    sanitizedPrevious ?? "",
+    sanitizedNext,
     "",
     "",
     { context: 3 }
@@ -285,6 +296,115 @@ export function renderUnifiedDiff(
     lines.push(chalk.dim(line));
   }
   return lines;
+}
+
+function redactContentForDiff(targetPath: string, content: string): string {
+  const extension = extname(targetPath).toLowerCase();
+  if (extension === ".json") {
+    return redactJsonContent(content, basename(targetPath).toLowerCase());
+  }
+  if (extension === ".toml") {
+    return redactTomlContent(content);
+  }
+  return content;
+}
+
+function redactJsonContent(content: string, fileName: string): string {
+  const keys = [...JSON_SENSITIVE_KEYS];
+  if (fileName === "auth.json") {
+    keys.push(...AUTH_SENSITIVE_KEYS);
+  }
+  return content
+    .split("\n")
+    .map((line) => redactJsonLine(line, keys))
+    .join("\n");
+}
+
+function redactJsonLine(line: string, keys: string[]): string {
+  let result = line;
+  for (const key of keys) {
+    if (key === "apiKeyHelper") {
+      result = redactJsonStringValue(
+        result,
+        key,
+        redactApiKeyHelperValue
+      );
+      continue;
+    }
+    result = redactJsonStringValue(result, key, () => REDACTED_PLACEHOLDER);
+  }
+  return result;
+}
+
+function redactApiKeyHelperValue(value: string): string {
+  const echoIndex = value.indexOf("echo ");
+  if (echoIndex >= 0) {
+    const prefix = value.slice(0, echoIndex + "echo ".length);
+    return `${prefix}${REDACTED_PLACEHOLDER}`;
+  }
+  return REDACTED_PLACEHOLDER;
+}
+
+function redactJsonStringValue(
+  line: string,
+  key: string,
+  redact: (value: string) => string
+): string {
+  const token = `"${key}"`;
+  const keyIndex = line.indexOf(token);
+  if (keyIndex === -1) {
+    return line;
+  }
+  const colonIndex = line.indexOf(":", keyIndex + token.length);
+  if (colonIndex === -1) {
+    return line;
+  }
+  const valueStart = line.indexOf("\"", colonIndex + 1);
+  if (valueStart === -1) {
+    return line;
+  }
+  const valueEnd = line.indexOf("\"", valueStart + 1);
+  if (valueEnd === -1) {
+    return line;
+  }
+  const currentValue = line.slice(valueStart + 1, valueEnd);
+  const nextValue = redact(currentValue);
+  return `${line.slice(0, valueStart + 1)}${nextValue}${line.slice(valueEnd)}`;
+}
+
+function redactTomlContent(content: string): string {
+  return content
+    .split("\n")
+    .map((line) => redactTomlLine(line))
+    .join("\n");
+}
+
+function redactTomlLine(line: string): string {
+  const trimmed = line.trimStart();
+  for (const key of TOML_SENSITIVE_KEYS) {
+    if (!trimmed.startsWith(key)) {
+      continue;
+    }
+    const nextChar = trimmed.charAt(key.length);
+    if (nextChar && nextChar !== " " && nextChar !== "=") {
+      continue;
+    }
+    const keyIndex = line.indexOf(key);
+    const equalsIndex = line.indexOf("=", keyIndex + key.length);
+    if (equalsIndex === -1) {
+      return line;
+    }
+    const valueStart = line.indexOf("\"", equalsIndex + 1);
+    if (valueStart === -1) {
+      return line;
+    }
+    const valueEnd = line.indexOf("\"", valueStart + 1);
+    if (valueEnd === -1) {
+      return line;
+    }
+    return `${line.slice(0, valueStart + 1)}${REDACTED_PLACEHOLDER}${line.slice(valueEnd)}`;
+  }
+  return line;
 }
 
 async function tryReadText(

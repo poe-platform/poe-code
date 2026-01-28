@@ -41,7 +41,7 @@ describe("renderServiceMenu", () => {
     expect(lines[0]).toContain("D:");
     expect(lines[1]).toContain("H:");
     expect(lines[2]).toContain("D:");
-    expect(lines[3]).toBe("P:Pick a service to configure:");
+    expect(lines[3]).toBe("P:Pick an agent to configure:");
     expect(lines[4]).toBe("N1 Claude Code");
     expect(lines[4]).not.toContain("\u001b[");
     expect(lines[5]).toContain("\u001b[");

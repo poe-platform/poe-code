@@ -214,7 +214,7 @@ describe("configure command", () => {
       "configure claude-code",
       "Configured Claude Code.",
       "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt",
-      "Problems? https://github.com/poe-platform/poe-cli/issues"
+      "Problems? https://github.com/poe-platform/poe-code/issues"
     ]);
   });
 

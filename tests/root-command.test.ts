@@ -45,6 +45,11 @@ describe("root command", () => {
     expect(plainOutput).toContain("Configure coding agents to use the Poe API");
     expect(plainOutput).toContain("Usage: poe-code");
     expect(plainOutput).toContain("Commands:");
+    expect(plainOutput).toContain("[agent]");
+    expect(plainOutput).toContain("<agent>");
+    expect(plainOutput).not.toContain("[service]");
+    expect(plainOutput).not.toContain("<service>");
+    expect(plainOutput).not.toContain("unconfigure<agent>");
   });
 
   it("registers a --verbose flag", () => {

@@ -301,11 +301,11 @@ describe("spawn command", () => {
     ]);
 
     expect(calls).toHaveLength(0);
-    expect(
-      logs.find((line) =>
-        line.includes('Dry run: would spawn Claude Code with prompt "Dry run prompt"')
-      )
-    ).toBeTruthy();
+    const dryRunLog = logs.find((line) =>
+      line.includes("Dry run: would spawn Claude Code.")
+    );
+    expect(dryRunLog).toBeTruthy();
+    expect(dryRunLog).toContain("Prompt:");
   });
 
   it("invokes custom spawn handlers when provided", async () => {

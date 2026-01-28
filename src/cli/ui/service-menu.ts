@@ -4,6 +4,7 @@ import {
   defaultMenuTheme,
   type MenuTheme
 } from "./theme.js";
+import { createCliCopy } from "./design-language.js";
 
 const HEADER_WIDTH = 70;
 
@@ -13,7 +14,7 @@ export interface RenderServiceMenuOptions {
   theme?: MenuTheme;
 }
 
-function formatProviderLabel(
+export function formatServiceLabel(
   service: ProviderService,
   theme: MenuTheme
 ): string {
@@ -37,19 +38,20 @@ export function renderServiceMenu(
 ): string[] {
   const theme = options?.theme ?? defaultMenuTheme;
   const palette = theme.palette;
+  const copy = createCliCopy();
   const border = repeat("=", HEADER_WIDTH);
   const divider = repeat("-", HEADER_WIDTH);
 
   const lines: string[] = [
     palette.divider(border),
-    palette.header("poe-code · Configure coding agents with the Poe API"),
+    palette.header(copy.menuHeader),
     palette.divider(divider),
-    palette.prompt("Pick a service to configure:")
+    palette.prompt(copy.serviceSelection("configure"))
   ];
 
   services.forEach((service, index) => {
     const number = palette.number(index + 1);
-    const label = formatProviderLabel(service, theme);
+    const label = formatServiceLabel(service, theme);
     lines.push(`${number} ${label}`);
   });
 

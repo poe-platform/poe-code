@@ -1,11 +1,14 @@
 import { Command, Help } from "commander";
-import chalk from "chalk";
 import { createRequire } from "node:module";
 import {
   createCliContainer,
   type CliContainer,
   type CliDependencies
 } from "./container.js";
+import {
+  createCliDesignLanguage,
+  type CliDesignLanguage
+} from "./ui/design-language.js";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
 import { registerWrapCommand } from "./commands/wrap.js";
@@ -19,25 +22,22 @@ import { registerVersionOption } from "./commands/version.js";
 const require = createRequire(import.meta.url);
 const packageJson = require("../../package.json") as { version: string };
 
-function formatHelpText(): string {
-  const dim = chalk.dim;
-  const cyan = chalk.cyan;
-  const yellow = chalk.yellow;
-  const green = chalk.green;
-  const bold = chalk.bold;
+function formatHelpText(design: CliDesignLanguage): string {
+  const { text } = design;
 
   const cmd = (name: string, args: string) =>
-    `  ${cyan(name.padEnd(10))}${dim(args)}`;
-  const example = (text: string) => `                                 ${dim(text)}`;
+    `  ${text.command(name.padEnd(10))}${text.argument(args)}`;
+  const example = (value: string) =>
+    `                                 ${text.example(value)}`;
   const opt = (flag: string, desc: string) =>
-    `  ${yellow(flag.padEnd(27))}${desc}`;
+    `  ${text.option(flag.padEnd(27))}${desc}`;
 
   return [
-    bold("Configure coding agents to use the Poe API."),
+    text.heading("Configure coding agents to use the Poe API."),
     "",
-    `${bold("Usage:")} ${green("poe-code")} ${dim("<command> [...options]")}`,
+    `${text.section("Usage:")} ${text.usageCommand("poe-code")} ${text.argument("<command> [...options]")}`,
     "",
-    bold("Commands:"),
+    text.section("Commands:"),
     cmd("configure", "[service]") + "            Configure developer tooling for Poe API",
     example("poe-code configure claude-code"),
     "",
@@ -61,7 +61,7 @@ function formatHelpText(): string {
     "",
     cmd("login", "") + "                          Store a Poe API key for reuse across commands",
     "",
-    bold("Options:"),
+    text.section("Options:"),
     opt("-y, --yes", "Accept defaults without prompting"),
     opt("--dry-run", "Simulate commands without writing changes"),
     opt("--verbose", "Show verbose logs"),
@@ -70,8 +70,8 @@ function formatHelpText(): string {
     "",
     opt("<command> --help", "Print help text for command"),
     "",
-    `${dim("Learn more about Poe:")}            ${cyan("https://poe.com")}`,
-    `${dim("GitHub:")}                          ${cyan("https://github.com/poe-platform/poe-code")}`
+    `${text.muted("Learn more about Poe:")}            ${text.link("https://poe.com")}`,
+    `${text.muted("GitHub:")}                          ${text.link("https://github.com/poe-platform/poe-code")}`
   ].join("\n");
 }
 
@@ -92,6 +92,7 @@ export function createProgram(dependencies: CliDependencies): Command {
 
 function bootstrapProgram(container: CliContainer): Command {
   const program = new Command();
+  const design = createCliDesignLanguage(container.env);
   program
     .name("poe-code")
     .description("Configure Poe API integrations for local developer tooling.")
@@ -102,7 +103,7 @@ function bootstrapProgram(container: CliContainer): Command {
     .configureHelp({
       formatHelp: (cmd, helper) => {
         if (cmd.name() === "poe-code") {
-          return formatHelpText();
+          return formatHelpText(design);
         }
         const defaultHelper = new Help();
         return defaultHelper.formatHelp(cmd, helper);

@@ -11,6 +11,7 @@ export interface MenuPalette {
   providerFallback(label: string): string;
   intro(text: string): string;
   resolvedSymbol: string;
+  errorSymbol: string;
 }
 
 export interface MenuTheme {
@@ -26,6 +27,7 @@ interface ThemeConfig {
   providerFallback: (text: string) => string;
   intro: (text: string) => string;
   resolvedSymbol: string;
+  errorSymbol: string;
 }
 
 const DARK_THEME: ThemeConfig = {
@@ -35,7 +37,8 @@ const DARK_THEME: ThemeConfig = {
   number: (text) => chalk.cyanBright(text),
   providerFallback: (text) => text,
   intro: (text) => chalk.bgMagenta.white(` Poe - ${text} `),
-  resolvedSymbol: chalk.magenta("◇")
+  resolvedSymbol: chalk.magenta("◇"),
+  errorSymbol: chalk.red("■")
 };
 
 const LIGHT_THEME: ThemeConfig = {
@@ -45,7 +48,8 @@ const LIGHT_THEME: ThemeConfig = {
   number: (text) => chalk.hex("#0077cc").bold(text),
   providerFallback: (text) => text,
   intro: (text) => chalk.bgHex("#a200ff").white(` Poe - ${text} `),
-  resolvedSymbol: chalk.hex("#a200ff")("◇")
+  resolvedSymbol: chalk.hex("#a200ff")("◇"),
+  errorSymbol: chalk.hex("#cc0000")("■")
 };
 
 const THEMES: Record<MenuThemeName, ThemeConfig> = {
@@ -104,7 +108,8 @@ function buildPalette(config: ThemeConfig): MenuPalette {
     number: (value) => config.number(`[${value}]`),
     providerFallback: config.providerFallback,
     intro: config.intro,
-    resolvedSymbol: config.resolvedSymbol
+    resolvedSymbol: config.resolvedSymbol,
+    errorSymbol: config.errorSymbol
   };
 }
 

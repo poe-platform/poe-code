@@ -107,6 +107,12 @@ const sections: Section[] = [
         description: "Resolved/completed indicator (hollow diamond)",
         codeSnippet: `design.symbols.resolved  // ◇`,
         demoArgs: `symbol resolved`
+      },
+      {
+        name: "errorResolved",
+        description: "Error with details indicator (red square)",
+        codeSnippet: `design.symbols.errorResolved  // ■`,
+        demoArgs: `symbol errorResolved`
       }
     ]
   },
@@ -167,6 +173,12 @@ const sections: Section[] = [
         description: "Resolved prompt value display",
         codeSnippet: `logger.resolved("API Key", "poe-abc...xyz")`,
         demoArgs: `resolved`
+      },
+      {
+        name: "clack-errorResolved",
+        description: "Error with details display",
+        codeSnippet: `logger.errorResolved("Config Failed", "Missing API key")`,
+        demoArgs: `errorResolved`
       }
     ]
   },

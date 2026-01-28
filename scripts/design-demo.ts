@@ -29,7 +29,8 @@ type DemoType =
   | "menu"
   | "note"
   | "outro"
-  | "resolved";
+  | "resolved"
+  | "errorResolved";
 
 function runTextDemo(style: string, text: string): void {
   const styleFn = design.text[style as keyof typeof design.text];
@@ -114,7 +115,18 @@ function runOutroDemo(): void {
 }
 
 function runResolvedDemo(): void {
-  log.message("API Key\n   poe-abc...xyz", { symbol: design.symbols.resolved });
+  log.message("API Key\n   poe-abc...xyz\n   Expires: 2026-12-31", {
+    symbol: design.symbols.resolved
+  });
+}
+
+function runErrorResolvedDemo(): void {
+  log.message(
+    "Configuration Failed\n   Missing API key\n   Check your .env file or run poe-code login",
+    {
+      symbol: design.symbols.errorResolved
+    }
+  );
 }
 
 function main(): void {
@@ -127,8 +139,9 @@ function main(): void {
       "Types: intro, heading, section, command, argument, option, example,\n"
     );
     process.stderr.write(
-      "       usageCommand, link, muted, symbol, log, diff, menu, note, outro, resolved\n"
+      "       usageCommand, link, muted, symbol, log, diff, menu, note, outro,\n"
     );
+    process.stderr.write("       resolved, errorResolved\n");
     process.exitCode = 1;
     return;
   }
@@ -168,6 +181,9 @@ function main(): void {
       break;
     case "resolved":
       runResolvedDemo();
+      break;
+    case "errorResolved":
+      runErrorResolvedDemo();
       break;
     default:
       process.stderr.write(`Unknown demo type: ${type}\n`);

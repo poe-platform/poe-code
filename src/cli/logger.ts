@@ -16,6 +16,7 @@ export interface ScopedLogger {
   success(message: string): void;
   warn(message: string): void;
   error(message: string): void;
+  errorResolved(label: string, value: string): void;
   errorWithStack(error: Error, context?: ErrorContext): void;
   logException(error: Error, operation: string, context?: ErrorContext): void;
   dryRun(message: string): void;
@@ -37,6 +38,7 @@ export interface LoggerFactory {
 export interface LoggerTheme {
   intro?: (text: string) => string;
   resolvedSymbol?: string;
+  errorSymbol?: string;
 }
 
 function wrapText(text: string, maxWidth: number): string {
@@ -112,6 +114,14 @@ export function createLoggerFactory(
       },
       error(message) {
         emit("error", formatMessage(message));
+      },
+      errorResolved(label, value) {
+        if (emitter) {
+          emitter(`${label}: ${value}`);
+          return;
+        }
+        const symbol = theme?.errorSymbol ?? chalk.red("■");
+        log.message(`${label}\n   ${value}`, { symbol });
       },
       errorWithStack(error, errorContext) {
         emit("error", formatMessage(error.message));

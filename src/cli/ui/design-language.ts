@@ -27,6 +27,7 @@ export interface CliDesignLanguage {
     info: string;
     success: string;
     resolved: string;
+    errorResolved: string;
   };
   copy: CliCopy;
 }
@@ -64,7 +65,8 @@ export function createCliDesignLanguage(
     symbols: {
       info: chalk.magenta("●"),
       success: chalk.magenta("◆"),
-      resolved: theme.palette.resolvedSymbol
+      resolved: theme.palette.resolvedSymbol,
+      errorResolved: theme.palette.errorSymbol
     },
     copy
   };

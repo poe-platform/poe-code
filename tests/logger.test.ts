@@ -91,6 +91,17 @@ describe("createLoggerFactory", () => {
     });
   });
 
+  it("renders errorResolved with label and value using red square symbol", () => {
+    const logger = createLoggerFactory().create();
+
+    logger.errorResolved("Configuration Failed", "Missing API key");
+
+    expect(logMessage).toHaveBeenCalledWith(
+      "Configuration Failed\n   Missing API key",
+      { symbol: chalk.red("■") }
+    );
+  });
+
   it("renders verbose messages without a symbol when verbose is enabled", () => {
     const logger = createLoggerFactory().create({ verbose: true });
 

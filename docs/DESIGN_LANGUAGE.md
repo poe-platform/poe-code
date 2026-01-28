@@ -142,6 +142,16 @@ design.symbols.resolved  // ◇
 
 ![resolved](design-language/resolved.png)
 
+### errorResolved
+
+Error with details indicator (red square)
+
+```typescript
+design.symbols.errorResolved  // ■
+```
+
+![errorResolved](design-language/errorResolved.png)
+
 ## Log Messages
 
 Structured logging with appropriate visual weight.
@@ -229,6 +239,16 @@ logger.resolved("API Key", "poe-abc...xyz")
 ```
 
 ![clack-resolved](design-language/clack-resolved.png)
+
+### clack-errorResolved
+
+Error with details display
+
+```typescript
+logger.errorResolved("Config Failed", "Missing API key")
+```
+
+![clack-errorResolved](design-language/clack-errorResolved.png)
 
 ## Complex Patterns
 

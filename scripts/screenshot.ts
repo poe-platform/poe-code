@@ -4,6 +4,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { Transform } from "node:stream";
+import { Command } from "commander";
 
 export function stripLeadingDashes(value: string): string {
   let cleaned = value;
@@ -37,6 +38,7 @@ export function buildScreenshotOutputPath(args: string[]): string {
     `${buildScreenshotName(args)}.png`
   );
 }
+
 
 type ScreenshotTarget = {
   command: string;
@@ -234,14 +236,23 @@ function waitForExit(
   });
 }
 
-export async function runScreenshot(args: string[]): Promise<void> {
-  const target = resolveScreenshotTarget(args);
+export type ScreenshotOptions = {
+  output?: string;
+  header?: boolean;
+};
+
+export async function runScreenshot(
+  commandArgs: string[],
+  options: ScreenshotOptions
+): Promise<void> {
+  const target = resolveScreenshotTarget(commandArgs);
   const forceTtyPath = fileURLToPath(
     new URL("./force-tty.cjs", import.meta.url)
   );
   const spawnSpec = buildSpawnSpec(target, process.env, forceTtyPath);
-  const outputPath = buildScreenshotOutputPath(target.nameArgs);
-  mkdirSync("screenshots", { recursive: true });
+  const outputPath =
+    options.output ?? buildScreenshotOutputPath(target.nameArgs);
+  mkdirSync(path.dirname(outputPath), { recursive: true });
   ensureBinaryAvailable("freeze", "brew install charmbracelet/tap/freeze");
 
   const commandProcess = spawn(spawnSpec.command, spawnSpec.args, {
@@ -250,7 +261,7 @@ export async function runScreenshot(args: string[]): Promise<void> {
   });
   const freezeProcess = spawn(
     "freeze",
-    ["-o", outputPath, "--window", "--padding", "20"],
+    ["-o", outputPath, "--window", "--padding", "20", "--language", "ansi"],
     { stdio: ["pipe", "inherit", "inherit"] }
   );
 
@@ -262,9 +273,11 @@ export async function runScreenshot(args: string[]): Promise<void> {
     throw new Error("Unable to pipe command output into freeze.");
   }
 
-  freezeProcess.stdin.write(
-    buildCommandHeader(target.displayCommand, target.displayArgs)
-  );
+  if (options.header !== false) {
+    freezeProcess.stdin.write(
+      buildCommandHeader(target.displayCommand, target.displayArgs)
+    );
+  }
   pipeSanitized(commandProcess.stdout, freezeProcess.stdin);
   pipeSanitized(commandProcess.stderr, freezeProcess.stdin);
 
@@ -313,9 +326,20 @@ const isMain =
   typeof entry === "string" &&
   path.resolve(entry) === fileURLToPath(import.meta.url);
 if (isMain) {
-  runScreenshot(process.argv.slice(2)).catch((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`${message}\n`);
-    process.exitCode = 1;
-  });
+  const program = new Command();
+  program
+    .argument("[command...]", "Command to screenshot")
+    .option("-o, --output <path>", "Output file path")
+    .option("--no-header", "Skip command header in output")
+    .helpOption(false)
+    .allowUnknownOption()
+    .allowExcessArguments()
+    .action((commandArgs: string[], options: ScreenshotOptions) => {
+      runScreenshot(commandArgs, options).catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        process.stderr.write(`${message}\n`);
+        process.exitCode = 1;
+      });
+    });
+  program.parse();
 }

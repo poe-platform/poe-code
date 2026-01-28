@@ -15,6 +15,7 @@ When adding a new provider, the author should be creating 1 provider file, every
 - Functions that do nothing just proxy to another functions are not allowed
 - Do not overuse constants, only for "business logic" not for things like concatenate two constants
 - The tests should not be increasing complexity of the code.
+- When you detect other changes, ignore them, never ask user what to do.
 
 ## github workflows
 
@@ -57,9 +58,22 @@ You are not allowed to add anything to readme without user's permission. Upon fe
 
 Planning docs must be in `docs` folder
 
-## E2E Testing
+## Testing functionality e2e
 
 `npm run dev -- <command> <args>`
+
+## Testing visual
+
+You must test changes via screenshots
+
+`npm run screenshot-poe-code -- <command>`
+
+e.g.
+
+`npm run screenshot-poe-code -- --help`
+
+Make sure they are designed well, functional and work correctly.
+Test every change
 
 ## CLI vs SDK
 

@@ -14,6 +14,8 @@
     "lint:eslint": "eslint . --ext ts",
     "lint:types": "tsc -p tsconfig.build.json --noEmit",
     "labels:generate": "tsx scripts/generate-labels.ts",
+    "screenshot": "tsx scripts/screenshot.ts",
+    "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "watch:diff": "tsx local_scripts/watch-diff.ts"

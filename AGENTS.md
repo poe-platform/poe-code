@@ -62,7 +62,7 @@ Planning docs must be in `docs` folder
 
 `npm run dev -- <command> <args>`
 
-## Testing visual
+## Testing visual - use screenshots to see
 
 You must test changes via screenshots
 
@@ -74,7 +74,14 @@ e.g.
 
 Make sure they are designed well, functional and work correctly.
 Test every change
+Don't read the files, just execute, neither tests nor scripts.
+Don't write any screenshot tests
 
 ## CLI vs SDK
 
 When implementing features e.g. new cli args, make sure to keep parity with SDK and expose the same args.
+
+## Other recommendations
+
+- For cli args parsing use `commander` package, don't roll your own
+- When changing the visual language / design languge, make sure to run `npm run generate:design-docs`

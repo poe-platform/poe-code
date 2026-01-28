@@ -6,7 +6,13 @@
 
 poe-code --help
 poe-code login
-poe-code query
+
+## Query
+
+poe-code query [--text]
+poe-code query --image
+poe-code query --audio
+poe-code query --video --params { resolution: "4k" }
 
 ## Agent - default
 

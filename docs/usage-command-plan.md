@@ -2,6 +2,11 @@
 
 Add a `usage` command with two subcommands: `balance` and `list` to query the Poe Usage API.
 
+## Dependencies
+
+- **[console-table-printer](https://www.npmjs.com/package/console-table-printer)** (~52 kB) - Table rendering
+- **[@clack/prompts](https://www.npmjs.com/package/@clack/prompts)** (lightweight, 2.5M weekly downloads) - Interactive pagination prompt
+
 ## API Endpoints
 
 - **Balance**: `GET https://api.poe.com/usage/current_balance`
@@ -15,6 +20,7 @@ Add a `usage` command with two subcommands: `balance` and `list` to query the Po
 
 | File | Action |
 |------|--------|
+| `package.json` | Modify - Add `console-table-printer` and `@clack/prompts` |
 | `tests/usage-command.test.ts` | Create - TDD tests first |
 | `src/cli/commands/usage.ts` | Create - Command implementation |
 | `src/cli/program.ts` | Modify - Register command |
@@ -28,16 +34,14 @@ Follow `query-command.test.ts` pattern with these test cases:
 **Balance:**
 
 - Fetches and displays current balance
-- Outputs JSON when `--json` flag provided
 - Throws error when no API key configured
 - Logs dry run message when `--dry-run`
 
 **List:**
 
-- Fetches and displays usage history
-- Respects `--limit` option
-- Passes `--starting-after` for pagination
-- Outputs JSON when `--json` flag provided
+- Fetches and displays usage history (20 entries per page)
+- Prompts "Load more?" when `has_more` is true (uses cursor internally)
+- Filters results client-side when `--filter` provided (case-insensitive match on model name)
 
 Use `container.httpClient` mock (passed via `createProgram({ httpClient })`).
 
@@ -55,15 +59,12 @@ export function registerUsageCommand(
   usage
     .command("balance")
     .description("Get current point balance.")
-    .option("--json", "Output as JSON")
     .action(async function (this: Command) { ... });
 
   usage
     .command("list")
     .description("Get usage history.")
-    .option("--limit <n>", "Entries to fetch (max 100)", "20")
-    .option("--starting-after <cursor>", "Pagination cursor")
-    .option("--json", "Output as JSON")
+    .option("--filter <text>", "Filter by model name (case-insensitive)")
     .action(async function (this: Command) { ... });
 }
 ```
@@ -87,9 +88,8 @@ registerUsageCommand(program, container);
 
 ## Output Formats
 
-- **Minimal output** for human-readable mode (date, model, cost only)
+- **Table rendering** via `console-table-printer`
 - **Human-readable timestamps** formatted as `YYYY-MM-DD HH:mm`
-- Full JSON response when `--json` is used
 
 **Balance (human):**
 
@@ -97,19 +97,35 @@ registerUsageCommand(program, container);
 Current balance: 1,500 points
 ```
 
-**List (human):**
+**List (human, interactive):**
 
 ```text
 Usage History (20 entries)
 
-DATE              MODEL               COST
-2024-01-15 10:30  Claude-Sonnet-4.5    -50
-2024-01-15 09:15  gpt-5.2              -30
+┌──────────────────┬───────────────────┬───────┐
+│ Date             │ Model             │ Cost  │
+├──────────────────┼───────────────────┼───────┤
+│ 2024-01-15 10:30 │ Claude-Sonnet-4.5 │   -50 │
+│ 2024-01-15 09:15 │ gpt-5.2           │   -30 │
+└──────────────────┴───────────────────┴───────┘
 
-More results available. Use --starting-after=<query_id>
+◆ Load more entries? (y/n)
 ```
 
-**JSON modes:** Output raw API response as-is.
+When user confirms, fetch next page using cursor and append to table.
+
+**List with filter (`--filter claude`):**
+
+```text
+Usage History (2 of 20 entries match "claude")
+
+┌──────────────────┬───────────────────┬───────┐
+│ Date             │ Model             │ Cost  │
+├──────────────────┼───────────────────┼───────┤
+│ 2024-01-15 10:30 │ Claude-Sonnet-4.5 │   -50 │
+│ 2024-01-14 14:22 │ Claude-3-Opus     │  -120 │
+└──────────────────┴───────────────────┴───────┘
+```
 
 ## Commit
 

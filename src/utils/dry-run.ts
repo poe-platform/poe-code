@@ -126,7 +126,12 @@ export function formatDryRunOperations(
   for (const operation of operations) {
     const formatted = formatOperation(operation);
     if (Array.isArray(formatted)) {
-      lines.push(...formatted);
+      if (formatted.length === 0) {
+        continue;
+      }
+      const [first, ...rest] = formatted;
+      const indented = rest.map((line) => `  ${line}`);
+      lines.push([first, ...indented].join("\n"));
     } else {
       lines.push(formatted);
     }
@@ -234,7 +239,7 @@ function renderWriteOperation(
   return lines;
 }
 
-function renderUnifiedDiff(
+export function renderUnifiedDiff(
   targetPath: string,
   previousContent: string | null,
   nextContent: string
@@ -254,8 +259,11 @@ function renderUnifiedDiff(
     .filter((line: string) => line.length > 0);
   const lines: string[] = [];
   for (const line of diffLines) {
+    if (line.startsWith("Index:") || line.startsWith("====")) {
+      continue;
+    }
     if (line.startsWith("---") || line.startsWith("+++")) {
-      lines.push(chalk.dim(line));
+      lines.push(chalk.dim(line.trimEnd()));
       continue;
     }
     if (line.startsWith("@@")) {

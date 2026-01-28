@@ -16,6 +16,7 @@
     "labels:generate": "tsx scripts/generate-labels.ts",
     "screenshot": "tsx scripts/screenshot.ts",
     "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",
+    "generate:design-docs": "tsx scripts/generate-design-docs.ts",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "watch:diff": "tsx local_scripts/watch-diff.ts"

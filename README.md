@@ -80,3 +80,44 @@ npx poe-code@latest install kimi
 
 - `--dry-run` – show every mutation without touching disk.
 - `--yes` – accept defaults for prompts.
+
+## SDK
+
+Use `poe-code` programmatically in your own code:
+
+```typescript
+import { spawn, getPoeApiKey } from "poe-code"
+
+// Get stored API key
+const apiKey = await getPoeApiKey()
+
+// Run a prompt through a provider
+const result = await spawn("claude-code", {
+  prompt: "Fix the bug in auth.ts",
+  cwd: "/path/to/project",
+  model: "claude-sonnet-4"
+})
+
+console.log(result.stdout)
+```
+
+### `spawn(service, options)`
+
+Runs a single prompt through a configured service CLI.
+
+- `service` – Service identifier (`claude-code`, `codex`, `opencode`)
+- `options.prompt` – The prompt to send
+- `options.cwd` – Working directory for the service CLI (optional)
+- `options.model` – Model identifier override (optional)
+- `options.args` – Additional arguments forwarded to the CLI (optional)
+
+Returns `{ stdout, stderr, exitCode }`.
+
+### `getPoeApiKey()`
+
+Reads the Poe API key with the following priority:
+
+1. `POE_API_KEY` environment variable
+2. Credentials file (`~/.poe-code/credentials.json`)
+
+Throws if no credentials found.

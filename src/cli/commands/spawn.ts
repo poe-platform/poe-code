@@ -2,16 +2,14 @@ import path from "node:path";
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import {
-  buildProviderContext,
   createExecutionResources,
   resolveCommandFlags,
   resolveServiceAdapter,
   type CommandFlags,
   type ExecutionResources
-,
 } from "./shared.js";
-import type { CommandRunnerResult } from "../../utils/command-checks.js";
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
+import { spawnCore } from "../../sdk/spawn-core.js";
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -113,6 +111,7 @@ export function registerSpawnCommand(
         useStdin: shouldReadFromStdin
       };
 
+      // Check for custom handlers first
       const directHandler = options.handlers?.[service];
       if (directHandler) {
         await directHandler({
@@ -139,53 +138,18 @@ export function registerSpawnCommand(
         return;
       }
 
-      if (typeof adapter.spawn !== "function") {
-        throw new Error(`${adapter.label} does not support spawn.`);
-      }
-      if (spawnOptions.useStdin && !adapter.supportsStdinPrompt) {
-        throw new Error(
-          `${adapter.label} does not support stdin prompts. Use a different service (e.g. "codex") or pass the prompt as an argument.`
-        );
-      }
+      // Use SDK core spawn implementation
+      const result = await spawnCore(container, service, spawnOptions, {
+        dryRun: flags.dryRun,
+        verbose: flags.verbose
+      });
 
-      const providerContext = buildProviderContext(
-        container,
-        adapter,
-        resources
-      );
-
+      // Handle dry run - spawnCore already logged the message
       if (flags.dryRun) {
-        const extra =
-          spawnOptions.args && spawnOptions.args.length > 0
-            ? ` with args ${JSON.stringify(spawnOptions.args)}`
-            : "";
-        const cwdSuffix = spawnOptions.cwd ? ` from ${spawnOptions.cwd}` : "";
-        const promptDetail = spawnOptions.useStdin
-          ? `(stdin, ${spawnOptions.prompt.length} chars)`
-          : `"${spawnOptions.prompt}"`;
-        resources.logger.dryRun(
-          `Dry run: would spawn ${adapter.label} with prompt ${promptDetail}${extra}${cwdSuffix}.`
-        );
         return;
       }
 
-      const result = (await container.registry.invoke(
-        canonicalService,
-        "spawn",
-        async (entry) => {
-          if (!entry.spawn) {
-            throw new Error(`${adapter.label} does not support spawn.`);
-          }
-          const output = await entry.spawn(providerContext, spawnOptions);
-          return output as CommandRunnerResult | void;
-        }
-      )) as CommandRunnerResult | void;
-
-      if (!result) {
-        resources.logger.info(`${adapter.label} spawn completed.`);
-        return;
-      }
-
+      // Handle result output
       if (result.exitCode !== 0) {
         const detail = result.stderr.trim() || result.stdout.trim();
         const suffix = detail ? `: ${detail}` : "";

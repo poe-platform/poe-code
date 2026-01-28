@@ -49,17 +49,18 @@ function buildClaudeArgs(options: { model: string; mode: SpawnMode; prompt: stri
 ### Codex
 
 ```typescript
-function buildCodexArgs(options: { model: string; mode: SpawnMode; cwd: string; interactive: boolean }): string[] {
-  const config = CODEX_MODE_CONFIG[options.mode];
+function buildCodexArgs(options: { model: string; mode: SpawnMode; cwd: string; prompt: string; interactive: boolean }): string[] {
+  const { sandbox } = CODEX_MODE_CONFIG[options.mode];
 
   if (options.interactive) {
     // Interactive: use `codex` directly, not `codex exec`
+    // -a/--ask-for-approval choices: untrusted, on-failure, on-request, never
     return [
       "-m", options.model,
-      "-s", config.sandbox,
-      "-a", config.approval,
+      "-s", sandbox,
+      "-a", "never",
       "-C", options.cwd,
-      // prompt is passed as final positional arg
+      options.prompt  // prompt as final positional arg
     ];
   }
 
@@ -67,7 +68,7 @@ function buildCodexArgs(options: { model: string; mode: SpawnMode; cwd: string; 
   return [
     "exec",
     "-m", options.model,
-    "-s", config.sandbox,
+    "-s", sandbox,
     "-C", options.cwd,
     "--skip-git-repo-check",
     "--color", "never",
@@ -80,52 +81,57 @@ function buildCodexArgs(options: { model: string; mode: SpawnMode; cwd: string; 
 | Aspect | Interactive | Non-interactive |
 |--------|-------------|-----------------|
 | Command | `codex` | `codex exec` |
-| Approval | `-a never` | N/A |
+| Approval | `-a never` | N/A (exec doesn't support) |
 | JSON output | No | `--json` |
 | Prompt input | Positional arg | stdin (`-`) |
 
 ### OpenCode
 
 ```typescript
-function buildOpenCodeArgs(options: { model: string; mode: SpawnMode; interactive: boolean }): string[] {
+function buildOpenCodeArgs(options: { model: string; prompt: string; interactive: boolean }): string[] {
   if (options.interactive) {
-    // Interactive: standard run without --format
+    // Interactive: use default TUI command
     return [
-      "run",
-      "--model", options.model
+      "-m", options.model
       // Opens TUI, prompt entered interactively
     ];
   }
 
-  // Non-interactive
+  // Non-interactive: use `run` subcommand
   return [
     "run",
     "--format", "json",
-    "--model", options.model
+    "-m", options.model,
+    options.prompt
   ];
 }
 ```
 
-| Flag | Interactive | Non-interactive |
-|------|-------------|-----------------|
+| Aspect | Interactive | Non-interactive |
+|--------|-------------|-----------------|
+| Command | `opencode` | `opencode run` |
 | `--format` | None (TUI) | `json` |
 
 ### Kimi
 
 ```typescript
-function buildKimiArgs(options: { mode: SpawnMode; interactive: boolean }): string[] {
-  const modeArgs = KIMI_MODE_CONFIG[options.mode];
-
+function buildKimiArgs(options: { model: string; prompt: string; cwd: string; interactive: boolean }): string[] {
   if (options.interactive) {
-    // Interactive: no --print, launches TUI shell
-    return [...modeArgs];
+    // Interactive: launches TUI shell
+    return [
+      "-m", options.model,
+      "-w", options.cwd,
+      "-c", options.prompt
+    ];
   }
 
-  // Non-interactive: --print mode
+  // Non-interactive: --print mode (implicitly enables --yolo)
   return [
     "--print",
     "--output-format", "stream-json",
-    ...modeArgs
+    "-m", options.model,
+    "-w", options.cwd,
+    "-c", options.prompt
   ];
 }
 ```
@@ -134,7 +140,7 @@ function buildKimiArgs(options: { mode: SpawnMode; interactive: boolean }): stri
 |------|-------------|-----------------|
 | `--print` | No | Yes |
 | `--output-format` | None | `stream-json` |
-| UI Mode | Shell TUI | Print mode |
+| `--yolo` | Manual | Implicit (via `--print`) |
 
 ## CLI Integration
 

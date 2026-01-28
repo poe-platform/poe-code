@@ -17,60 +17,63 @@ Support different execution modes for spawned agents, controlling sandbox restri
 ```typescript
 export type SpawnMode = "yolo" | "edit" | "read";
 
-const CODEX_MODE_CONFIG: Record<SpawnMode, { sandbox: string; approval: string }> = {
-  yolo: { sandbox: "danger-full-access", approval: "never" },
-  edit: { sandbox: "workspace-write", approval: "never" },
-  read: { sandbox: "read-only", approval: "never" }
+// -s/--sandbox choices: read-only, workspace-write, danger-full-access
+// Note: codex exec doesn't support -a/--ask-for-approval (interactive only)
+const CODEX_MODE_CONFIG: Record<SpawnMode, { sandbox: string }> = {
+  yolo: { sandbox: "danger-full-access" },
+  edit: { sandbox: "workspace-write" },
+  read: { sandbox: "read-only" }
 };
 ```
 
 ## Claude Mode Configuration
 
 ```typescript
+// --permission-mode choices: acceptEdits, bypassPermissions, default, delegate, dontAsk, plan
 const CLAUDE_MODE_CONFIG: Record<SpawnMode, string[]> = {
-  yolo: ["--dangerously-skip-permissions"],
-  edit: ["--permission-mode", "acceptEdits", "--allowedTools", "Read,Write,Edit,Glob,Grep,NotebookEdit,Bash"],
+  yolo: ["--dangerously-skip-permissions"],  // or: ["--permission-mode", "bypassPermissions"]
+  edit: ["--permission-mode", "acceptEdits", "--allowed-tools", "Read,Write,Edit,Glob,Grep,NotebookEdit,Bash"],
   read: ["--permission-mode", "plan"]
 };
 ```
 
 ## OpenCode Mode Configuration
 
-OpenCode uses granular permissions in `opencode.json`. For CLI, use `OPENCODE_PERMISSION` env var or `--config` flag.
+OpenCode is native ACP and doesn't have explicit mode flags. It runs in full-access mode by default.
 
 ```typescript
-const OPENCODE_MODE_CONFIG: Record<SpawnMode, Record<string, string>> = {
-  yolo: { "*": "allow" },
-  edit: { "*": "deny", "read": "allow", "edit": "allow", "glob": "allow", "grep": "allow", "bash": "allow" },
-  read: { "*": "deny", "read": "allow", "glob": "allow", "grep": "allow" }
-};
-```
-
-**CLI command**:
-```bash
-opencode run --format json --model MODEL "PROMPT"
-# With inline permissions:
-OPENCODE_PERMISSION='{"*":"allow"}' opencode run --format json "PROMPT"
-```
-
-## Kimi Mode Configuration
-
-Kimi uses `--yolo` flag for full access. Print mode (`--print`) implicitly enables yolo.
-
-```typescript
-const KIMI_MODE_CONFIG: Record<SpawnMode, string[]> = {
-  yolo: ["--yolo"],
-  edit: [],  // Default behavior with prompts
-  read: []   // No explicit read-only mode, relies on agent behavior
+const OPENCODE_MODE_CONFIG: Record<SpawnMode, string[]> = {
+  yolo: [],  // Default behavior - full access
+  edit: [],  // No granular mode support in CLI
+  read: []   // No read-only mode in CLI
 };
 ```
 
 **CLI command** (non-interactive):
 ```bash
-kimi --print --output-format stream-json --yolo "PROMPT"
-# Or with stdin:
-echo "PROMPT" | kimi --print --output-format stream-json --yolo
+opencode run --format json --model provider/model "PROMPT"
 ```
+
+## Kimi Mode Configuration
+
+Kimi uses `--yolo` / `--yes` / `-y` flag for full access. Print mode (`--print`) implicitly enables yolo.
+
+```typescript
+const KIMI_MODE_CONFIG: Record<SpawnMode, string[]> = {
+  yolo: [],  // --print implicitly enables --yolo
+  edit: [],  // No granular mode support
+  read: []   // No read-only mode
+};
+```
+
+**CLI command** (non-interactive):
+```bash
+kimi --print --output-format stream-json -c "PROMPT"
+# Or with stdin:
+echo "PROMPT" | kimi --print --output-format stream-json --input-format text
+```
+
+Note: `--print` implicitly adds `--yolo`, so no need to specify it separately.
 
 ## CLI Integration
 
@@ -104,11 +107,11 @@ Providers declare supported modes:
 
 ```typescript
 function buildCodexArgs(options: { model: string; mode: SpawnMode; cwd: string }): string[] {
-  const config = CODEX_MODE_CONFIG[options.mode];
+  const { sandbox } = CODEX_MODE_CONFIG[options.mode];
   return [
     "exec",
     "-m", options.model,
-    "-s", config.sandbox,
+    "-s", sandbox,
     "-C", options.cwd,
     "--skip-git-repo-check",
     "--color", "never",
@@ -145,4 +148,4 @@ function buildClaudeArgs(options: { model: string; mode: SpawnMode; prompt: stri
 
 1. ~~Should modes be agent-specific or unified across all agents?~~ → Unified mode names, agent-specific args
 2. ~~How do modes map for Claude Code?~~ → Documented above
-3. Should `edit` mode for Claude include `Bash` in allowedTools?
+3. ~~Should `edit` mode for Claude include `Bash` in allowedTools?~~ → Yes, included

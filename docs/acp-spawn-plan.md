@@ -598,10 +598,10 @@ See:
 
 | Provider | Command | Notes |
 |----------|---------|-------|
-| Claude Code | `claude -p --output-format stream-json --verbose PROMPT` | Prompt as positional arg |
+| Claude Code | `claude -p --output-format stream-json PROMPT` | Prompt as positional arg |
 | Codex | `codex exec --json -` | Reads prompt from stdin |
-| OpenCode | (native) | Speaks ACP directly |
-| Kimi | (native) | Speaks ACP directly |
+| OpenCode | `opencode run --format json PROMPT` | Native ACP, JSON events |
+| Kimi | `kimi --print --output-format stream-json -c PROMPT` | `--print` implies `--yolo` |
 
 ## Benefits
 

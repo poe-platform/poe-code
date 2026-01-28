@@ -1,5 +1,11 @@
 # Unified Spawn via ACP Implementation Plan
 
+## Related Plans
+
+- [spawn-modes-plan.md](./spawn-modes-plan.md) - Execution modes (yolo, edit, read)
+- [spawn-mcp-plan.md](./spawn-mcp-plan.md) - MCP server configuration
+- [spawn-interactive-plan.md](./spawn-interactive-plan.md) - Interactive vs non-interactive mode
+
 ## Goal
 
 Unify spawn across all agents using the Agent Client Protocol (ACP) as the common event format. Agents that don't natively speak ACP get adapters that convert their JSON output to ACP events.
@@ -50,25 +56,84 @@ ACP uses JSON-RPC 2.0 with `session/update` notifications containing `SessionUpd
 
 ### Claude Code JSON Output
 
-**Flags**: `--output-format stream-json`
+**Command** (non-interactive):
+```bash
+claude --model MODEL -p --output-format stream-json --verbose [mcp_args] [mode_args] PROMPT
+```
+Prompt passed as positional arg, outputs NDJSON to stdout.
 
-**Format**: NDJSON
+**Command** (interactive):
+```bash
+claude --model MODEL [mcp_args] [mode_args] PROMPT
+```
 
-**Adapter**: Parse Claude's JSON output and convert to ACP `SessionUpdate` events.
+**Mode Configuration**: See [spawn-modes-plan.md](./spawn-modes-plan.md)
+
+**MCP Config**: See [spawn-mcp-plan.md](./spawn-mcp-plan.md)
+
+**Events** (NDJSON):
+```json
+{"type":"assistant","message":{"content":[{"type":"text","text":"..."}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Read","input":{...}}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"...","content":"..."}]}}
+{"type":"result","num_input_tokens":100,"num_output_tokens":50,"cost_usd":0.003}
+```
+
+**Return Structure**:
+```typescript
+{
+  success: boolean;      // exit code === 0
+  output: string | null; // final text from assistant message
+  events: Event[];       // all parsed events
+  usage: { input_tokens: number; output_tokens: number; cost_usd: number };
+  stderr: string | null; // only on failure
+}
+```
 
 ### Codex JSON Output
 
-**Flags**: `codex exec --json`
+**Command** (non-interactive):
+```bash
+codex exec -m MODEL -s SANDBOX -C CWD --skip-git-repo-check --color never --json [mcp_args] -
+```
+Reads prompt from stdin (`-`), outputs NDJSON to stdout.
 
-**Format**: NDJSON with custom event types
+**Command** (interactive):
+```bash
+codex -m MODEL -s SANDBOX -a APPROVAL -C CWD [mcp_args] PROMPT
+```
 
-**Events** (need mapping to ACP):
+**Mode Configuration**: See [spawn-modes-plan.md](./spawn-modes-plan.md)
+
+**MCP Config**: See [spawn-mcp-plan.md](./spawn-mcp-plan.md)
+
+**Events** (NDJSON):
 ```json
 {"type":"thread.started","thread_id":"..."}
 {"type":"turn.started"}
 {"type":"item.started","item":{"id":"...","type":"command_execution","command":"ls"}}
+{"type":"item.started","item":{"id":"...","type":"file_edit","path":"src/foo.ts"}}
+{"type":"item.started","item":{"id":"...","type":"thinking"}}
+{"type":"item.started","item":{"id":"...","type":"mcp_tool_call","server":"srv","tool":"fn","arguments":{...}}}
 {"type":"item.completed","item":{"id":"...","type":"agent_message","text":"..."}}
-{"type":"turn.completed","usage":{"input_tokens":100,"output_tokens":50}}
+{"type":"item.completed","item":{"id":"...","type":"command_execution"}}
+{"type":"item.completed","item":{"id":"...","type":"file_edit","path":"src/foo.ts"}}
+{"type":"item.completed","item":{"id":"...","type":"mcp_tool_call","server":"srv","tool":"fn","result":"..."}}
+{"type":"item.completed","item":{"id":"...","type":"reasoning","text":"..."}}
+{"type":"turn.completed","usage":{"input_tokens":100,"output_tokens":50,"cached_input_tokens":25}}
+{"type":"turn.failed"}
+```
+
+**Return Structure**:
+```typescript
+{
+  success: boolean;      // exit code === 0
+  output: string | null; // final agent_message text
+  events: Event[];       // all parsed events
+  usage: { input_tokens: number; output_tokens: number; cached_input_tokens?: number };
+  thread_id: string;     // for session resumption
+  stderr: string | null; // only on failure
+}
 ```
 
 ## Event Mapping
@@ -77,23 +142,39 @@ ACP uses JSON-RPC 2.0 with `session/update` notifications containing `SessionUpd
 
 | Codex Event | ACP Event |
 |-------------|-----------|
-| `thread.started` | (session init, no emit) |
+| `thread.started` | (session init, capture `thread_id` for resumption) |
 | `turn.started` | (turn init, no emit) |
-| `item.started` + `type: agent_message` | `agent_message_chunk` |
-| `item.started` + `type: reasoning` | `agent_thought_chunk` |
-| `item.started` + `type: command_execution` | `tool_call` with `kind: "execute"` |
-| `item.started` + `type: file_change` | `tool_call` with `kind: "edit"` |
-| `item.completed` + `type: command_execution` | `tool_call_update` with `status: "completed"` |
+| `item.started` + `type: command_execution` | `tool_call` with `kind: "execute"`, `title: command` |
+| `item.started` + `type: file_edit` | `tool_call` with `kind: "edit"`, `title: path` |
+| `item.started` + `type: thinking` | `tool_call` with `kind: "think"` |
+| `item.started` + `type: mcp_tool_call` | `tool_call` with `kind: "other"`, `title: server.tool` |
 | `item.completed` + `type: agent_message` | `agent_message_chunk` (final text) |
-| `turn.completed` | (session end with usage metadata) |
-| `turn.failed` | `tool_call_update` with `status: "failed"` |
+| `item.completed` + `type: command_execution` | `tool_call_update` with `status: "completed"` |
+| `item.completed` + `type: file_edit` | `tool_call_update` with `status: "completed"` |
+| `item.completed` + `type: mcp_tool_call` | `tool_call_update` with `rawOutput: result` |
+| `item.completed` + `type: reasoning` | `agent_thought_chunk` (reasoning text) |
+| `turn.completed` | (session end, capture `usage` metadata) |
+| `turn.failed` | (session failed) |
 
 ### Claude → ACP Mapping
 
-Claude outputs its own JSON format. The adapter:
-- Parses NDJSON lines from `--output-format stream-json`
-- Maps Claude events to ACP `SessionUpdate` events
-- (Exact mapping TBD - need to document Claude's actual JSON event types)
+| Claude Event | ACP Event |
+|--------------|-----------|
+| `type: "assistant"` + `content[].type: "text"` | `agent_message_chunk` |
+| `type: "assistant"` + `content[].type: "tool_use"` | `tool_call` with `title: name`, `kind` from tool name |
+| `type: "user"` + `content[].type: "tool_result"` | `tool_call_update` with `status: "completed"` |
+| `type: "result"` | (session end, capture `usage` metadata) |
+
+**Tool name → kind mapping**:
+| Tool Name | Kind |
+|-----------|------|
+| `Read` | `read` |
+| `Write`, `Edit`, `NotebookEdit` | `edit` |
+| `Bash` | `execute` |
+| `Glob`, `Grep` | `search` |
+| `Task` (thinking) | `think` |
+| MCP tools | `mcp` |
+| Others | `other` |
 
 ## Provider Configuration
 
@@ -179,7 +260,7 @@ export interface ToolCall {
   sessionUpdate: "tool_call";
   toolCallId: string;
   title: string;
-  kind: "read" | "edit" | "execute" | "search" | "think" | "other";
+  kind: "read" | "edit" | "execute" | "search" | "think" | "mcp" | "other";
   status: "pending" | "in_progress" | "completed" | "failed";
   rawInput?: unknown;
 }
@@ -203,13 +284,60 @@ export interface Plan {
 ### Step 2: Codex Adapter (`src/acp/adapters/codex.ts`)
 
 ```typescript
+import type { SessionUpdate } from "../types.js";
+
+interface CodexResult {
+  success: boolean;
+  output: string | null;
+  usage: { input_tokens: number; output_tokens: number; cached_input_tokens?: number } | null;
+  threadId: string | null;
+}
+
 export async function* adaptCodexToAcp(
   lines: AsyncIterable<string>
 ): AsyncIterable<SessionUpdate> {
   for await (const line of lines) {
+    if (!line.trim()) continue;
     const event = JSON.parse(line);
 
-    if (event.type === "item.started" || event.type === "item.completed") {
+    if (event.type === "item.started") {
+      const item = event.item;
+
+      if (item.type === "command_execution") {
+        yield {
+          sessionUpdate: "tool_call",
+          toolCallId: item.id,
+          title: truncate(item.command, 80),
+          kind: "execute",
+          status: "pending"
+        };
+      } else if (item.type === "file_edit") {
+        yield {
+          sessionUpdate: "tool_call",
+          toolCallId: item.id,
+          title: item.path,
+          kind: "edit",
+          status: "pending"
+        };
+      } else if (item.type === "thinking") {
+        yield {
+          sessionUpdate: "tool_call",
+          toolCallId: item.id,
+          title: "thinking",
+          kind: "think",
+          status: "pending"
+        };
+      } else if (item.type === "mcp_tool_call") {
+        yield {
+          sessionUpdate: "tool_call",
+          toolCallId: item.id,
+          title: `${item.server}.${item.tool}`,
+          kind: "other",
+          status: "pending",
+          rawInput: item.arguments
+        };
+      }
+    } else if (event.type === "item.completed") {
       const item = event.item;
 
       if (item.type === "agent_message") {
@@ -220,55 +348,95 @@ export async function* adaptCodexToAcp(
       } else if (item.type === "reasoning") {
         yield {
           sessionUpdate: "agent_thought_chunk",
-          content: { type: "text", text: item.text ?? "" }
+          content: { type: "text", text: item.text ?? item.content ?? item.summary ?? "" }
         };
       } else if (item.type === "command_execution") {
-        yield event.type === "item.started"
-          ? {
-              sessionUpdate: "tool_call",
-              toolCallId: item.id,
-              title: item.command,
-              kind: "execute",
-              status: "pending"
-            }
-          : {
-              sessionUpdate: "tool_call_update",
-              toolCallId: item.id,
-              status: item.status === "completed" ? "completed" : "failed",
-              rawOutput: item.aggregated_output
-            };
-      } else if (item.type === "file_change") {
-        yield event.type === "item.started"
-          ? {
-              sessionUpdate: "tool_call",
-              toolCallId: item.id,
-              title: `Edit: ${item.changes?.[0]?.path ?? "file"}`,
-              kind: "edit",
-              status: "pending"
-            }
-          : {
-              sessionUpdate: "tool_call_update",
-              toolCallId: item.id,
-              status: "completed"
-            };
+        yield {
+          sessionUpdate: "tool_call_update",
+          toolCallId: item.id,
+          status: "completed"
+        };
+      } else if (item.type === "file_edit") {
+        yield {
+          sessionUpdate: "tool_call_update",
+          toolCallId: item.id,
+          status: "completed"
+        };
+      } else if (item.type === "mcp_tool_call") {
+        yield {
+          sessionUpdate: "tool_call_update",
+          toolCallId: item.id,
+          status: "completed",
+          rawOutput: item.result
+        };
       }
     }
+    // thread.started, turn.started, turn.completed, turn.failed are handled by the runner
   }
+}
+
+function truncate(text: string, maxLength: number): string {
+  return text.length <= maxLength ? text : text.slice(0, maxLength) + "...";
 }
 ```
 
 ### Step 3: Claude Adapter (`src/acp/adapters/claude.ts`)
 
 ```typescript
-// TBD: Need to research Claude's actual --output-format stream-json event types
-// and map them to ACP SessionUpdate events
+import type { SessionUpdate, ToolCall } from "../types.js";
+
+const TOOL_KIND_MAP: Record<string, ToolCall["kind"]> = {
+  Read: "read",
+  Write: "edit",
+  Edit: "edit",
+  NotebookEdit: "edit",
+  Bash: "execute",
+  Glob: "search",
+  Grep: "search",
+  Task: "think",
+};
+
 export async function* adaptClaudeToAcp(
   lines: AsyncIterable<string>
 ): AsyncIterable<SessionUpdate> {
   for await (const line of lines) {
+    if (!line.trim()) continue;
     const event = JSON.parse(line);
-    // Map Claude's event types to ACP format
-    // Implementation depends on Claude's actual JSON output structure
+
+    if (event.type === "assistant") {
+      const content = event.message?.content ?? [];
+      for (const block of content) {
+        if (block.type === "text") {
+          yield {
+            sessionUpdate: "agent_message_chunk",
+            content: { type: "text", text: block.text ?? "" }
+          };
+        } else if (block.type === "tool_use") {
+          const toolName = block.name ?? "unknown";
+          yield {
+            sessionUpdate: "tool_call",
+            toolCallId: block.id ?? crypto.randomUUID(),
+            title: toolName,
+            kind: TOOL_KIND_MAP[toolName] ?? "other",
+            status: "pending",
+            rawInput: block.input
+          };
+        }
+      }
+    } else if (event.type === "user") {
+      const content = event.message?.content ?? [];
+      for (const block of content) {
+        if (block.type === "tool_result") {
+          yield {
+            sessionUpdate: "tool_call_update",
+            toolCallId: block.tool_use_id,
+            status: "completed",
+            rawOutput: block.content
+          };
+        }
+      }
+    }
+    // type: "result" is handled by the runner for usage capture
   }
 }
 ```
@@ -319,18 +487,27 @@ import { adaptClaudeToAcp } from "./adapters/claude.js";
 import { adaptCodexToAcp } from "./adapters/codex.js";
 import { consumeAcpEvents, type AcpClientOptions } from "./client.js";
 
+export interface SpawnResult {
+  success: boolean;
+  output: string | null;
+  exitCode: number;
+  usage: { input_tokens: number; output_tokens: number; cached_input_tokens?: number } | null;
+  threadId: string | null;
+  stderr: string | null;
+}
+
 export async function spawnWithAcp(options: {
   binary: string;
-  args: string[];
+  args: string[];  // args include mode/mcp settings, built by adapter
   env: Record<string, string>;
-  cwd?: string;
+  cwd: string;
   stdin?: string;
   acpAdapter: "claude-code" | "codex" | true;
   clientOptions: AcpClientOptions;
-}): Promise<{ output: string; exitCode: number }> {
+}): Promise<SpawnResult> {
   const child = spawn(options.binary, options.args, {
     stdio: ["pipe", "pipe", "pipe"],
-    env: { ...process.env, ...options.env },
+    env: { ...minimalEnv(), ...options.env },
     cwd: options.cwd
   });
 
@@ -342,23 +519,48 @@ export async function spawnWithAcp(options: {
   // Create line stream from stdout
   const lines = readLines(child.stdout);
 
+  // State captured from meta-events
+  let threadId: string | null = null;
+  let usage: SpawnResult["usage"] = null;
+
   // Pick adapter based on provider
   const events = options.acpAdapter === "claude-code"
     ? adaptClaudeToAcp(lines)
     : options.acpAdapter === "codex"
     ? adaptCodexToAcp(lines)
-    : lines; // Native ACP - parse directly
+    : parseNativeAcp(lines);
 
-  const result = await consumeAcpEvents(
-    options.acpAdapter === true ? parseNativeAcp(lines) : events,
-    options.clientOptions
-  );
+  // Wrap to capture meta-events (thread.started, turn.completed)
+  const wrappedEvents = captureMetaEvents(events, {
+    onThreadStarted: (id) => { threadId = id; },
+    onTurnCompleted: (u) => { usage = u; }
+  });
+
+  const result = await consumeAcpEvents(wrappedEvents, options.clientOptions);
 
   const exitCode = await new Promise<number>((resolve) => {
     child.on("close", (code) => resolve(code ?? 0));
   });
 
-  return { output: result.output, exitCode };
+  const stderr = await readAll(child.stderr);
+
+  return {
+    success: exitCode === 0,
+    output: result.output,
+    exitCode,
+    usage,
+    threadId,
+    stderr: exitCode !== 0 ? stderr : null
+  };
+}
+
+function minimalEnv(): Record<string, string> {
+  const keys = ["PATH", "HOME", "USER", "SHELL", "TMPDIR"];
+  const env: Record<string, string> = {};
+  for (const key of keys) {
+    if (process.env[key]) env[key] = process.env[key]!;
+  }
+  return env;
 }
 ```
 
@@ -386,12 +588,18 @@ if (adapter.acp) {
 }
 ```
 
+## Codex Argument Building
+
+See:
+- [spawn-modes-plan.md](./spawn-modes-plan.md) for mode-specific argument building
+- [spawn-mcp-plan.md](./spawn-mcp-plan.md) for MCP config serialization
+
 ## CLI Args for JSON Output
 
-| Provider | Flag | Notes |
-|----------|------|-------|
-| Claude Code | `--output-format stream-json` | Already ACP-compatible |
-| Codex | `--json` | Custom format, needs adapter |
+| Provider | Command | Notes |
+|----------|---------|-------|
+| Claude Code | `claude -p --output-format stream-json --verbose PROMPT` | Prompt as positional arg |
+| Codex | `codex exec --json -` | Reads prompt from stdin |
 | OpenCode | (native) | Speaks ACP directly |
 | Kimi | (native) | Speaks ACP directly |
 
@@ -454,7 +662,20 @@ if (isConfigured) {
 }
 ```
 
+## Session Resumption
+
+Codex supports session resumption via `thread_id`:
+```bash
+codex resume -C CWD THREAD_ID
+```
+
+The `thread_id` is captured from `thread.started` event and returned in `SpawnResult.threadId`. This enables:
+- Resuming interrupted sessions
+- Continuing multi-turn conversations
+- Debugging failed runs
+
 ## Open Questions
 
-1. **Error handling**: How to surface agent errors through ACP events?
-2. **Usage tracking**: Should we expose token usage from `turn.completed`?
+1. **Error handling**: How to surface agent errors through ACP events? (Currently: stderr is captured and returned on failure)
+2. ~~**Usage tracking**: Should we expose token usage from `turn.completed`?~~ → Yes, exposed in `SpawnResult.usage`
+3. ~~**Interactive mode**: Do we need to support `codex` (interactive) in addition to `codex exec` (non-interactive)?~~ → Yes, see [spawn-interactive-plan.md](./spawn-interactive-plan.md)

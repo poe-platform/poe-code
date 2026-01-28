@@ -60,3 +60,7 @@ Planning docs must be in `docs` folder
 ## E2E Testing
 
 `npm run dev -- <command> <args>`
+
+## CLI vs SDK
+
+When implementing features e.g. new cli args, make sure to keep parity with SDK and expose the same args.

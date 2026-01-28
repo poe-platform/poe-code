@@ -4,7 +4,8 @@ import {
   buildProviderContext,
   createExecutionResources,
   resolveCommandFlags,
-  resolveServiceAdapter
+  resolveServiceAdapter,
+  formatServiceList
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
 
@@ -12,18 +13,25 @@ export function registerInstallCommand(
   program: Command,
   container: CliContainer
 ): Command {
+  const serviceNames = container.registry
+    .list()
+    .filter((service) => typeof service.install === "function")
+    .map((service) => service.name);
+  const serviceDescription =
+    `Agent to install${formatServiceList(serviceNames)}`;
   return program
     .command("install")
-    .description("Install tooling for a configured service.")
+    .description("Install tooling for a configured agent.")
     .argument(
-      "[service]",
-      "Service to install (claude-code | codex | opencode)"
+      "[agent]",
+      serviceDescription
     )
     .action(async (service: string | undefined) => {
       const resolved = await resolveServiceArgument(
         program,
         container,
-        service
+        service,
+        { action: "install" }
       );
       await executeInstall(program, container, resolved);
     });
@@ -53,7 +61,7 @@ export async function executeInstall(
 
   await container.registry.invoke(canonicalService, "install", async (entry) => {
     if (!entry.install) {
-      throw new Error(`Service "${canonicalService}" does not support install.`);
+      throw new Error(`Agent "${canonicalService}" does not support install.`);
     }
     await entry.install(providerContext);
   });

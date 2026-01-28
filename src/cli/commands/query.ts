@@ -18,7 +18,7 @@ export function registerQueryCommand(
 ): void {
   program
     .command("query")
-    .description("Query an LLM via Poe API directly")
+    .description("Query an LLM via Poe API directly.")
     .option("--model <model>", "Model identifier", options.defaultModel ?? DEFAULT_FRONTIER_MODEL)
     .option("--system <prompt>", "System prompt")
     .argument("[prompt]", "User prompt (if not provided, reads from stdin)")

@@ -5,6 +5,7 @@ import {
   createExecutionResources,
   resolveCommandFlags,
   resolveServiceAdapter,
+  formatServiceList,
   type CommandFlags,
   type ExecutionResources
 } from "./shared.js";
@@ -33,27 +34,29 @@ export function registerSpawnCommand(
   container: CliContainer,
   options: RegisterSpawnCommandOptions = {}
 ): void {
-  const defaultServices = ["claude-code", "codex", "opencode"];
-  const serviceList =
-    options.extraServices && options.extraServices.length > 0
-      ? [...defaultServices, ...options.extraServices]
-      : defaultServices;
-  const serviceDescription = `Service to spawn (${serviceList.join(" | ")})`;
+  const spawnServices = container.registry
+    .list()
+    .filter((service) => typeof service.spawn === "function")
+    .map((service) => service.name);
+  const extraServices = options.extraServices ?? [];
+  const serviceList = [...spawnServices, ...extraServices];
+  const serviceDescription =
+    `Agent to spawn${formatServiceList(serviceList)}`;
 
   program
     .command("spawn")
-    .description("Run a single prompt through a configured service CLI.")
-    .option("--model <model>", "Model identifier override passed to the service CLI")
-    .option("-C, --cwd <path>", "Working directory for the service CLI")
+    .description("Run a single prompt through a configured agent CLI.")
+    .option("--model <model>", "Model identifier override passed to the agent CLI")
+    .option("-C, --cwd <path>", "Working directory for the agent CLI")
     .option("--stdin", "Read the prompt from stdin")
     .argument(
-      "<service>",
+      "<agent>",
       serviceDescription
     )
     .argument("[prompt]", "Prompt text to send (or '-' / stdin)")
     .argument(
       "[agentArgs...]",
-      "Additional arguments forwarded to the service CLI"
+      "Additional arguments forwarded to the agent CLI"
     )
     .action(async function (
       this: Command,
@@ -62,11 +65,6 @@ export function registerSpawnCommand(
       agentArgs: string[] = []
     ) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(
-        container,
-        flags,
-        `spawn:${service}`
-      );
       const commandOptions = this.opts<{ model?: string; cwd?: string; stdin?: boolean }>();
       const cwdOverride = resolveSpawnWorkingDirectory(
         container.env.cwd,
@@ -114,6 +112,12 @@ export function registerSpawnCommand(
       // Check for custom handlers first
       const directHandler = options.handlers?.[service];
       if (directHandler) {
+        const resources = createExecutionResources(
+          container,
+          flags,
+          `spawn:${service}`
+        );
+        resources.logger.intro(`spawn ${service}`);
         await directHandler({
           container,
           service,
@@ -121,11 +125,18 @@ export function registerSpawnCommand(
           flags,
           resources
         });
+        resources.context.finalize();
         return;
       }
 
       const adapter = resolveServiceAdapter(container, service);
       const canonicalService = adapter.name;
+      const resources = createExecutionResources(
+        container,
+        flags,
+        `spawn:${canonicalService}`
+      );
+      resources.logger.intro(`spawn ${canonicalService}`);
       const canonicalHandler = options.handlers?.[canonicalService];
       if (canonicalHandler) {
         await canonicalHandler({
@@ -135,17 +146,19 @@ export function registerSpawnCommand(
           flags,
           resources
         });
+        resources.context.finalize();
         return;
       }
 
       // Use SDK core spawn implementation
-      const result = await spawnCore(container, service, spawnOptions, {
+      const result = await spawnCore(container, canonicalService, spawnOptions, {
         dryRun: flags.dryRun,
         verbose: flags.verbose
       });
 
       // Handle dry run - spawnCore already logged the message
       if (flags.dryRun) {
+        resources.context.finalize();
         return;
       }
 
@@ -161,16 +174,19 @@ export function registerSpawnCommand(
       const trimmedStdout = result.stdout.trim();
       if (trimmedStdout) {
         resources.logger.info(trimmedStdout);
+        resources.context.finalize();
         return;
       }
 
       const trimmedStderr = result.stderr.trim();
       if (trimmedStderr) {
         resources.logger.info(trimmedStderr);
+        resources.context.finalize();
         return;
       }
 
       resources.logger.info(`${adapter.label} spawn completed.`);
+      resources.context.finalize();
     });
 }
 

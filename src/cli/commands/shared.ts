@@ -96,9 +96,17 @@ export function resolveServiceAdapter(
 ): ProviderService {
   const adapter = container.registry.get(service);
   if (!adapter) {
-    throw new Error(`Unknown service "${service}".`);
+    throw new Error(`Unknown agent "${service}".`);
   }
   return adapter;
+}
+
+export function formatServiceList(names: string[]): string {
+  const unique = Array.from(new Set(names.filter((name) => name.length > 0)));
+  if (unique.length === 0) {
+    return "";
+  }
+  return ` (${unique.join(" | ")})`;
 }
 
 export async function applyIsolatedConfiguration(input: {

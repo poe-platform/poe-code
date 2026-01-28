@@ -14,7 +14,7 @@ export function registerWrapCommand(
     .description("Run an agent CLI with Poe isolated configuration.")
     .allowUnknownOption(true)
     .allowExcessArguments(true)
-    .argument("<service>", "Service to wrap")
+    .argument("<agent>", "Agent to wrap")
     .argument("[agentArgs...]", "Arguments forwarded to the agent")
     .action(async (service: string, agentArgs: string[] = []) => {
       const requestedService = service;
@@ -24,7 +24,7 @@ export function registerWrapCommand(
       const isolated = adapter.isolatedEnv;
       if (!isolated) {
         throw new Error(
-          `Service "${requestedService}" does not support isolated configuration wrappers.`
+          `Agent "${requestedService}" does not support isolated configuration wrappers.`
         );
       }
 

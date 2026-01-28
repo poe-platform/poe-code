@@ -4,7 +4,8 @@ import {
   buildProviderContext,
   createExecutionResources,
   resolveCommandFlags,
-  resolveServiceAdapter
+  resolveServiceAdapter,
+  formatServiceList
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
 import { resolveIsolatedEnvDetails } from "../isolated-env.js";
@@ -19,21 +20,28 @@ export function registerTestCommand(
   program: Command,
   container: CliContainer
 ): Command {
+  const serviceNames = container.registry
+    .list()
+    .filter((service) => typeof service.test === "function")
+    .map((service) => service.name);
+  const serviceDescription =
+    `Agent to test${formatServiceList(serviceNames)}`;
   return program
     .command("test")
-    .description("Run service health checks.")
+    .description("Run agent health checks.")
     .option("--stdin", "Verify stdin prompt support via spawn")
     .option("--model <model>", "Model identifier override (requires --stdin)")
     .argument(
-      "[service]",
-      "Service to test (claude-code | codex | opencode)"
+      "[agent]",
+      serviceDescription
     )
     .option("--isolated", "Run the health check using isolated configuration.")
     .action(async function (this: Command, service: string | undefined) {
       const resolved = await resolveServiceArgument(
         program,
         container,
-        service
+        service,
+        { action: "test" }
       );
       const opts = this.opts<{
         isolated?: boolean;
@@ -117,7 +125,7 @@ export async function executeTest(
       "spawn",
       async (entry) => {
         if (!entry.spawn) {
-          throw new Error(`Service "${canonicalService}" does not support spawn.`);
+          throw new Error(`Agent "${canonicalService}" does not support spawn.`);
         }
         const output = await entry.spawn(providerContext, {
           prompt,
@@ -154,7 +162,7 @@ export async function executeTest(
   } else {
     await container.registry.invoke(canonicalService, "test", async (entry) => {
       if (!entry.test) {
-        throw new Error(`Service "${canonicalService}" does not support test.`);
+        throw new Error(`Agent "${canonicalService}" does not support test.`);
       }
       const activeContext =
         isolatedDetails

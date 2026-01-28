@@ -8,7 +8,7 @@ export function registerVersionOption(
   container: CliContainer,
   currentVersion: string
 ): void {
-  program.option("-V, --version", "output the version number");
+  program.option("-V, --version", "Output the version number.");
 
   program.hook("preAction", async (thisCommand) => {
     const opts = thisCommand.opts();

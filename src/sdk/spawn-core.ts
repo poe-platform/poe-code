@@ -1,4 +1,5 @@
 import path from "node:path";
+import chalk from "chalk";
 import type { CliContainer } from "../cli/container.js";
 import type { SpawnResult } from "./types.js";
 import {
@@ -80,17 +81,8 @@ export async function spawnCore(
 
   // Handle dry run
   if (flags.dryRun) {
-    const extra =
-      spawnOptions.args && spawnOptions.args.length > 0
-        ? ` with args ${JSON.stringify(spawnOptions.args)}`
-        : "";
-    const cwdSuffix = spawnOptions.cwd ? ` from ${spawnOptions.cwd}` : "";
-    const promptDetail = spawnOptions.useStdin
-      ? `(stdin, ${spawnOptions.prompt.length} chars)`
-      : `"${spawnOptions.prompt}"`;
-    resources.logger.dryRun(
-      `Dry run: would spawn ${adapter.label} with prompt ${promptDetail}${extra}${cwdSuffix}.`
-    );
+    const summary = formatSpawnDryRunMessage(adapter.label, spawnOptions);
+    resources.logger.dryRun(summary);
     return {
       stdout: "",
       stderr: "",
@@ -125,6 +117,45 @@ export async function spawnCore(
     stderr: result.stderr,
     exitCode: result.exitCode
   };
+}
+
+function formatSpawnDryRunMessage(
+  label: string,
+  options: SpawnCommandOptions
+): string {
+  const lines: string[] = [`Dry run: would spawn ${label}.`];
+  const details: string[] = [];
+  const promptDetail = options.useStdin
+    ? `(stdin, ${options.prompt.length} chars)`
+    : formatQuoted(options.prompt);
+  details.push(`${chalk.dim("Prompt:")} ${chalk.cyan(promptDetail)}`);
+
+  if (options.args && options.args.length > 0) {
+    const renderedArgs = options.args.map((arg) => formatSpawnArg(arg)).join(" ");
+    details.push(`${chalk.dim("Args:")} ${chalk.cyan(renderedArgs)}`);
+  }
+
+  if (options.cwd) {
+    details.push(`${chalk.dim("Cwd:")} ${chalk.cyan(options.cwd)}`);
+  }
+
+  if (details.length > 0) {
+    lines.push(...details.map((line) => `  ${line}`));
+  }
+
+  return lines.join("\n");
+}
+
+function formatSpawnArg(arg: string): string {
+  const needsQuotes = arg.includes(" ") || arg.includes("\t");
+  if (!needsQuotes) {
+    return arg;
+  }
+  return `"${arg.split("\"").join("\\\"")}"`;
+}
+
+function formatQuoted(value: string): string {
+  return JSON.stringify(value);
 }
 
 function resolveSpawnWorkingDirectory(

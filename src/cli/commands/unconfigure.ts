@@ -9,6 +9,7 @@ import {
   createExecutionResources,
   resolveCommandFlags,
   resolveServiceAdapter,
+  formatServiceList
 } from "./shared.js";
 
 export interface UnconfigureCommandOptions {
@@ -19,12 +20,15 @@ export function registerUnconfigureCommand(
   program: Command,
   container: CliContainer
 ): Command {
+  const serviceNames = container.registry.list().map((service) => service.name);
+  const serviceDescription =
+    `Agent to unconfigure${formatServiceList(serviceNames)}`;
   return program
     .command("unconfigure")
     .description("Remove existing Poe API tooling configuration.")
     .argument(
-      "<service>",
-      "Service to unconfigure (claude-code | codex | opencode)"
+      "<agent>",
+      serviceDescription
     )
     .action(async (service: string, options: UnconfigureCommandOptions) => {
       await executeUnconfigure(program, container, service, options);
@@ -67,7 +71,7 @@ export async function executeUnconfigure(
     "unconfigure",
     async (entry) => {
       if (!entry.unconfigure) {
-        throw new Error(`Service "${canonicalService}" does not support unconfigure.`);
+        throw new Error(`Agent "${canonicalService}" does not support unconfigure.`);
       }
       const result = await entry.unconfigure(
         {

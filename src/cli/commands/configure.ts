@@ -3,12 +3,13 @@ import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
   createExecutionResources,
+  formatServiceList,
   resolveCommandFlags,
   resolveServiceAdapter,
   applyIsolatedConfiguration
 } from "./shared.js";
-import { renderServiceMenu } from "../ui/service-menu.js";
-import { createMenuTheme } from "../ui/theme.js";
+import { createCliDesignLanguage } from "../ui/design-language.js";
+import { OperationCancelledError } from "../errors.js";
 import { saveConfiguredService } from "../../services/credentials.js";
 import {
   combineMutationObservers,
@@ -28,12 +29,15 @@ export function registerConfigureCommand(
   program: Command,
   container: CliContainer
 ): Command {
+  const serviceNames = container.registry.list().map((service) => service.name);
+  const serviceDescription =
+    `Agent to configure${formatServiceList(serviceNames)}`;
   const configureCommand = program
     .command("configure")
     .description("Configure developer tooling for Poe API.")
     .argument(
-      "[service]",
-      "Service to configure (claude-code | codex | opencode)"
+      "[agent]",
+      serviceDescription
     )
     .option("--api-key <key>", "Poe API key")
     .option("--model <model>", "Model identifier")
@@ -43,7 +47,8 @@ export function registerConfigureCommand(
         const resolved = await resolveServiceArgument(
           program,
           container,
-          service
+          service,
+          { action: "configure" }
         );
         await executeConfigure(program, container, resolved, options);
       }
@@ -86,7 +91,7 @@ export async function executeConfigure(
 
   await container.registry.invoke(canonicalService, "configure", async (entry) => {
     if (!entry.configure) {
-      throw new Error(`Service "${canonicalService}" does not support configure.`);
+      throw new Error(`Agent "${canonicalService}" does not support configure.`);
     }
     const tracker = createMutationTracker();
     const mutationLogger = createMutationReporter(resources.logger);
@@ -186,39 +191,41 @@ function resolvePostConfigureMessages(provider: ProviderService): string[] {
 export async function resolveServiceArgument(
   program: Command,
   container: CliContainer,
-  provided?: string
+  provided?: string,
+  selectionContext?: { action: string }
 ): Promise<string> {
   if (provided) {
     return provided;
   }
   const services = container.registry.list();
+  const action = selectionContext?.action ?? "configure";
   if (services.length === 0) {
-    throw new Error("No services available to configure.");
+    throw new Error(`No agents available to ${action}.`);
   }
   const flags = resolveCommandFlags(program);
-  const logger = container.loggerFactory.create({
+  const selectionLogger = container.loggerFactory.create({
     dryRun: flags.dryRun,
-    verbose: true,
-    scope: "configure"
+    verbose: flags.verbose,
+    scope: action
   });
-  const menuTheme = createMenuTheme(container.env);
-  const menuLines = renderServiceMenu(services, { theme: menuTheme });
-  menuLines.forEach((line) => logger.info(line));
-  const descriptor = container.promptLibrary.serviceSelection();
+  selectionLogger.intro(action);
+  const choices = services.map((service) => ({
+    title: service.label,
+    value: service.name
+  }));
+  const design = createCliDesignLanguage(container.env);
+  const descriptor = container.promptLibrary.serviceSelection({
+    message: design.copy.serviceSelection(action),
+    choices
+  });
   const response = await container.prompts(descriptor);
-  const selection = response[descriptor.name];
-  const normalized =
-    typeof selection === "number"
-      ? selection
-      : typeof selection === "string"
-      ? Number.parseInt(selection, 10)
-      : NaN;
-  if (!Number.isInteger(normalized)) {
-    throw new Error("Invalid service selection.");
+  const selectionValue = response[descriptor.name];
+  if (typeof selectionValue !== "string") {
+    throw new OperationCancelledError();
   }
-  const index = normalized - 1;
-  if (index < 0 || index >= services.length) {
-    throw new Error("Invalid service selection.");
+  const resolved = services.find((service) => service.name === selectionValue);
+  if (!resolved) {
+    throw new Error("Invalid agent selection.");
   }
-  return services[index].name;
+  return resolved.name;
 }

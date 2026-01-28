@@ -17,6 +17,11 @@ export interface ReasoningPromptInput {
   defaultValue: string;
 }
 
+export interface ServiceSelectionInput {
+  message: string;
+  choices: Array<{ title: string; value: string }>;
+}
+
 export interface PromptLibrary {
   loginApiKey(): PromptDescriptor<"apiKey">;
   model(input: ModelPromptInput): PromptDescriptor<"model">;
@@ -24,7 +29,9 @@ export interface PromptLibrary {
     input: ReasoningPromptInput
   ): PromptDescriptor<"reasoningEffort">;
   configName(defaultName: string): PromptDescriptor<"configName">;
-  serviceSelection(): PromptDescriptor<"serviceSelection"> & { type: "number" };
+  serviceSelection(
+    input: ServiceSelectionInput
+  ): PromptDescriptor<"serviceSelection"> & { type: "select" };
   queryPrompt(): PromptDescriptor<"prompt">;
 }
 
@@ -67,13 +74,14 @@ export function createPromptLibrary(): PromptLibrary {
         type: "text",
         initial: defaultName
       }),
-    serviceSelection: () => {
+    serviceSelection: ({ message, choices }) => {
       const descriptor: PromptDescriptor<"serviceSelection"> & {
-        type: "number";
+        type: "select";
       } = {
         name: "serviceSelection",
-        message: "Enter number that you want to configure",
-        type: "number"
+        message,
+        type: "select",
+        choices
       };
       return descriptor;
     },

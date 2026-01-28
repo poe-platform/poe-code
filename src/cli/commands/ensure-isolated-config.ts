@@ -67,7 +67,7 @@ export async function ensureIsolatedConfigForService(input: {
 
   await container.registry.invoke(canonicalService, "configure", async (entry) => {
     if (!entry.configure) {
-      throw new Error(`Service "${canonicalService}" does not support configure.`);
+      throw new Error(`Agent "${canonicalService}" does not support configure.`);
     }
     const mutationLogger = createMutationReporter(resources.logger);
     await applyIsolatedConfiguration({

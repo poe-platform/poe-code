@@ -93,25 +93,25 @@ const sections: Section[] = [
       {
         name: "info",
         description: "Information indicator (magenta dot)",
-        codeSnippet: `design.symbols.info  // ●`,
+        codeSnippet: `logger.info("Configuring claude-code...")`,
         demoArgs: `symbol info`
       },
       {
         name: "success",
         description: "Success indicator (magenta diamond)",
-        codeSnippet: `design.symbols.success  // ◆`,
+        codeSnippet: `logger.success("Configuration complete!")`,
         demoArgs: `symbol success`
       },
       {
         name: "resolved",
         description: "Resolved/completed indicator (hollow diamond)",
-        codeSnippet: `design.symbols.resolved  // ◇`,
+        codeSnippet: `logger.resolved("API Key", "poe-abc...xyz")`,
         demoArgs: `symbol resolved`
       },
       {
         name: "errorResolved",
         description: "Error with details indicator (red square)",
-        codeSnippet: `design.symbols.errorResolved  // ■`,
+        codeSnippet: `logger.errorResolved("Config Failed", "Missing API key")`,
         demoArgs: `symbol errorResolved`
       }
     ]

@@ -117,7 +117,7 @@ Status indicators and visual markers.
 Information indicator (magenta dot)
 
 ```typescript
-design.symbols.info  // ●
+logger.info("Configuring claude-code...")
 ```
 
 ![info](design-language/info.png)
@@ -127,7 +127,7 @@ design.symbols.info  // ●
 Success indicator (magenta diamond)
 
 ```typescript
-design.symbols.success  // ◆
+logger.success("Configuration complete!")
 ```
 
 ![success](design-language/success.png)
@@ -137,7 +137,7 @@ design.symbols.success  // ◆
 Resolved/completed indicator (hollow diamond)
 
 ```typescript
-design.symbols.resolved  // ◇
+logger.resolved("API Key", "poe-abc...xyz")
 ```
 
 ![resolved](design-language/resolved.png)
@@ -147,7 +147,7 @@ design.symbols.resolved  // ◇
 Error with details indicator (red square)
 
 ```typescript
-design.symbols.errorResolved  // ■
+logger.errorResolved("Config Failed", "Missing API key")
 ```
 
 ![errorResolved](design-language/errorResolved.png)

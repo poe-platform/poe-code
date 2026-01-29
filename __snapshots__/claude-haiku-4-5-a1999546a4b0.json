@@ -1,0 +1,21 @@
+{
+  "key": "claude-haiku-4-5-a1999546a4b0",
+  "request": {
+    "model": "Claude-Haiku-4.5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "A simple red circle."
+      }
+    ],
+    "type": "image"
+  },
+  "response": {
+    "content": "# ⭕\n\nHere's a simple red circle for you!"
+  },
+  "metadata": {
+    "recordedAt": "2026-01-28T23:46:02.442Z",
+    "model": "Claude-Haiku-4.5",
+    "type": "image"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "key": "claude-haiku-4-5-67862006bea6",
+  "request": {
+    "model": "Claude-Haiku-4.5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello in one word."
+      }
+    ],
+    "type": "text"
+  },
+  "response": {
+    "content": "Hello."
+  },
+  "metadata": {
+    "recordedAt": "2026-01-28T23:43:49.513Z",
+    "model": "Claude-Haiku-4.5",
+    "type": "text"
+  }
+}

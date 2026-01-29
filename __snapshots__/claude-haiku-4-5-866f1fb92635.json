@@ -1,0 +1,21 @@
+{
+  "key": "claude-haiku-4-5-866f1fb92635",
+  "request": {
+    "model": "Claude-Haiku-4.5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is 2+2? Answer with just the number."
+      }
+    ],
+    "type": "text"
+  },
+  "response": {
+    "content": "4"
+  },
+  "metadata": {
+    "recordedAt": "2026-01-28T23:43:48.515Z",
+    "model": "Claude-Haiku-4.5",
+    "type": "text"
+  }
+}

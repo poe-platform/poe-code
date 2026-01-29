@@ -1,0 +1,24 @@
+{
+  "key": "claude-haiku-4-5-08006e9ec9e1",
+  "request": {
+    "model": "Claude-Haiku-4.5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the capital of France? Answer in one word."
+      }
+    ],
+    "type": "text",
+    "params": {
+      "temperature": "0"
+    }
+  },
+  "response": {
+    "content": "Paris"
+  },
+  "metadata": {
+    "recordedAt": "2026-01-28T23:43:51.126Z",
+    "model": "Claude-Haiku-4.5",
+    "type": "text"
+  }
+}

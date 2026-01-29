@@ -32,7 +32,6 @@ export interface PromptLibrary {
   serviceSelection(
     input: ServiceSelectionInput
   ): PromptDescriptor<"serviceSelection"> & { type: "select" };
-  queryPrompt(): PromptDescriptor<"prompt">;
 }
 
 export function createPromptLibrary(): PromptLibrary {
@@ -84,12 +83,6 @@ export function createPromptLibrary(): PromptLibrary {
         choices
       };
       return descriptor;
-    },
-    queryPrompt: () =>
-      describe({
-        name: "prompt",
-        message: "Prompt",
-        type: "text"
-      })
+    }
   };
 }

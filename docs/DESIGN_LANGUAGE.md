@@ -4,6 +4,38 @@ Visual reference for poe-code CLI design elements.
 
 This document is auto-generated. Run `npm run generate:design-docs` to regenerate.
 
+## Basic Layout
+
+Standard command layout pattern. Note and outro are optional.
+
+### layout-basic
+
+Core layout: intro banner, info messages, resolved prompts, success message
+
+```typescript
+intro(design.text.intro("Configure"));
+log.message("Configuring...", { symbol: design.symbols.info });
+log.message("Provider\n   claude", { symbol: design.symbols.resolved });
+log.message("API Key\n   poe-abc...xyz", { symbol: design.symbols.resolved });
+log.message("Done!", { symbol: design.symbols.success });
+```
+
+![layout-basic](design-language/layout-basic.png)
+
+### layout-expanded
+
+Full layout with note and outro: intro, resolved prompts, success, note box, outro
+
+```typescript
+intro(design.text.intro("configure claude-code"));
+log.message("Claude Code default model\n   Claude-Opus-4.5", { symbol: design.symbols.resolved });
+log.message("Configured Claude Code.", { symbol: design.symbols.success });
+note("If using VSCode...\nvscode://settings/...", "Next steps.");
+outro(chalk.dim("Problems? https://..."));
+```
+
+![layout-expanded](design-language/layout-expanded.png)
+
 ## Text Styles
 
 Core text styling functions for consistent CLI output.
@@ -249,6 +281,32 @@ logger.errorResolved("Config Failed", "Missing API key")
 ```
 
 ![clack-errorResolved](design-language/clack-errorResolved.png)
+
+### spinner-dots
+
+Animated dots spinner for async operations
+
+```typescript
+const s = spinner({ indicator: "dots" });
+s.start("Configuring...");
+await doWork();
+s.stop("Done!");
+```
+
+![spinner-dots](design-language/spinner-dots.png)
+
+### spinner-timer
+
+Timer spinner showing elapsed time
+
+```typescript
+const s = spinner({ indicator: "timer" });
+s.start("Processing...");
+await doWork();
+s.stop("Complete!");
+```
+
+![spinner-timer](design-language/spinner-timer.png)
 
 ## Complex Patterns
 

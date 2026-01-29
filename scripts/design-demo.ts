@@ -4,6 +4,7 @@ import process from "node:process";
 import { intro, log, note, outro } from "@clack/prompts";
 import { createCliDesignLanguage } from "../src/cli/ui/design-language.js";
 import { renderUnifiedDiff } from "../src/utils/dry-run.js";
+import { renderSpinnerFrame, renderSpinnerStopped } from "../src/cli/ui/clack-static.js";
 import type { CliEnvironment } from "../src/cli/environment.js";
 
 const env: CliEnvironment = {
@@ -30,7 +31,10 @@ type DemoType =
   | "note"
   | "outro"
   | "resolved"
-  | "errorResolved";
+  | "errorResolved"
+  | "spinner"
+  | "layout"
+  | "layout-expanded";
 
 function runTextDemo(style: string, text: string): void {
   const styleFn = design.text[style as keyof typeof design.text];
@@ -129,7 +133,47 @@ function runErrorResolvedDemo(): void {
   );
 }
 
-function main(): void {
+function runSpinnerDemo(indicator: "dots" | "timer"): void {
+  const timer = indicator === "timer" ? "2s" : undefined;
+  // Show running state
+  const running = renderSpinnerFrame({
+    message: "Configuring claude-code...",
+    timer: indicator === "timer" ? "1s" : undefined
+  });
+  process.stdout.write(running + "\n");
+  // Show resolved state with subtext
+  const stopped = renderSpinnerStopped({
+    message: "Configuration complete!",
+    timer,
+    subtext: "claude-code is ready to use"
+  });
+  process.stdout.write(stopped + "\n");
+}
+
+function runLayoutDemo(): void {
+  // Basic layout: intro → info messages → resolved prompts → outro
+  intro(design.text.intro("Configure"));
+  log.message("Configuring claude-code...", { symbol: design.symbols.info });
+  log.message("Provider\n   claude", { symbol: design.symbols.resolved });
+  log.message("API Key\n   poe-abc...xyz", { symbol: design.symbols.resolved });
+  outro("Configuration complete.");
+}
+
+function runLayoutExpandedDemo(): void {
+  // Expanded layout: intro → resolved prompts → success → note → outro
+  intro(design.text.intro("configure claude-code"));
+  log.message("Claude Code default model\n   Claude-Opus-4.5", {
+    symbol: design.symbols.resolved
+  });
+  log.message("Configured Claude Code.", { symbol: design.symbols.success });
+  note(
+    "If using VSCode - Open the Disable Login Prompt setting and check the box.\nvscode://settings/claudeCode.disableLoginPrompt",
+    "Next steps."
+  );
+  outro(chalk.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
+}
+
+async function main(): Promise<void> {
   const [type, ...values] = process.argv.slice(2);
   const value = values.join(" ");
 
@@ -141,7 +185,7 @@ function main(): void {
     process.stderr.write(
       "       usageCommand, link, muted, symbol, log, diff, menu, note, outro,\n"
     );
-    process.stderr.write("       resolved, errorResolved\n");
+    process.stderr.write("       resolved, errorResolved, spinner\n");
     process.exitCode = 1;
     return;
   }
@@ -184,6 +228,15 @@ function main(): void {
       break;
     case "errorResolved":
       runErrorResolvedDemo();
+      break;
+    case "spinner":
+      runSpinnerDemo(value as "dots" | "timer");
+      break;
+    case "layout":
+      runLayoutDemo();
+      break;
+    case "layout-expanded":
+      runLayoutExpandedDemo();
       break;
     default:
       process.stderr.write(`Unknown demo type: ${type}\n`);

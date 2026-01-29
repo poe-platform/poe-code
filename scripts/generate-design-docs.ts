@@ -21,6 +21,35 @@ type Section = {
 
 const sections: Section[] = [
   {
+    title: "Basic Layout",
+    description:
+      "Standard command layout pattern. Note and outro are optional.",
+    elements: [
+      {
+        name: "layout-basic",
+        description:
+          "Core layout: intro banner, info messages, resolved prompts, success message",
+        codeSnippet: `intro(design.text.intro("Configure"));
+log.message("Configuring...", { symbol: design.symbols.info });
+log.message("Provider\\n   claude", { symbol: design.symbols.resolved });
+log.message("API Key\\n   poe-abc...xyz", { symbol: design.symbols.resolved });
+log.message("Done!", { symbol: design.symbols.success });`,
+        demoArgs: `layout`
+      },
+      {
+        name: "layout-expanded",
+        description:
+          "Full layout with note and outro: intro, resolved prompts, success, note box, outro",
+        codeSnippet: `intro(design.text.intro("configure claude-code"));
+log.message("Claude Code default model\\n   Claude-Opus-4.5", { symbol: design.symbols.resolved });
+log.message("Configured Claude Code.", { symbol: design.symbols.success });
+note("If using VSCode...\\nvscode://settings/...", "Next steps.");
+outro(chalk.dim("Problems? https://..."));`,
+        demoArgs: `layout-expanded`
+      }
+    ]
+  },
+  {
     title: "Text Styles",
     description: "Core text styling functions for consistent CLI output.",
     elements: [
@@ -179,6 +208,18 @@ const sections: Section[] = [
         description: "Error with details display",
         codeSnippet: `logger.errorResolved("Config Failed", "Missing API key")`,
         demoArgs: `errorResolved`
+      },
+      {
+        name: "spinner-dots",
+        description: "Animated dots spinner for async operations",
+        codeSnippet: `const s = spinner({ indicator: "dots" });\ns.start("Configuring...");\nawait doWork();\ns.stop("Done!");`,
+        demoArgs: `spinner dots`
+      },
+      {
+        name: "spinner-timer",
+        description: "Timer spinner showing elapsed time",
+        codeSnippet: `const s = spinner({ indicator: "timer" });\ns.start("Processing...");\nawait doWork();\ns.stop("Complete!");`,
+        demoArgs: `spinner timer`
       }
     ]
   },

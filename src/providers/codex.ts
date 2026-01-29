@@ -190,6 +190,11 @@ export const codexService = createProvider<
       XDG_CONFIG_HOME: { kind: "isolatedDir" }
     }
   },
+  mcp: {
+    configFile: "~/.codex/config.toml",
+    configKey: "mcp_servers",
+    format: "toml"
+  },
   test(context) {
     return context.runCheck(
       createCommandExpectationCheck({

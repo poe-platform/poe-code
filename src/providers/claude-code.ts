@@ -126,6 +126,10 @@ export const claudeCodeService = createProvider<
       })
     );
   },
+  mcp: {
+    configFile: "~/.claude.json",
+    configKey: "mcpServers"
+  },
   manifest: {
     configure: [
       ensureDirectory({ targetDirectory: "~/.claude" }),

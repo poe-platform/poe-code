@@ -17,6 +17,7 @@ import { registerInstallCommand } from "./commands/install.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
 import { registerGenerateCommand } from "./commands/generate.js";
+import { registerMcpCommand } from "./commands/mcp.js";
 import { registerVersionOption } from "./commands/version.js";
 
 const require = createRequire(import.meta.url);
@@ -64,6 +65,9 @@ function formatHelpText(design: CliDesignLanguage): string {
     example("poe-code generate \"What is 2+2?\""),
     "",
     cmd("login", "") + "                          Store a Poe API key for reuse across commands",
+    "",
+    cmd("mcp", "[subcommand]") + "        MCP server commands",
+    example("poe-code mcp configure claude-code"),
     "",
     text.section("Options:"),
     opt("-y, --yes", "Accept defaults without prompting"),
@@ -221,6 +225,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerTestCommand(program, container);
   registerUnconfigureCommand(program, container);
   registerLoginCommand(program, container);
+  registerMcpCommand(program, container);
 
   program.action(() => {
     program.outputHelp();

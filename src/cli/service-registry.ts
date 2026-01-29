@@ -41,6 +41,16 @@ export interface ServiceExecutionContext<Options> {
   pathMapper?: ServiceManifestPathMapper;
 }
 
+export interface McpContext {
+  env: CliEnvironment;
+  command: CommandContext;
+  logger: ScopedLogger;
+}
+
+export interface McpRunOptions {
+  dryRun?: boolean;
+}
+
 export interface ProviderService<
   TConfigure = any,
   TUnconfigure = TConfigure,
@@ -68,6 +78,8 @@ export interface ProviderService<
   install?(context: ProviderContext): Promise<void> | void;
   spawn?(context: ProviderContext, options: TSpawn): Promise<unknown>;
   test?(context: ProviderContext): Promise<void>;
+  mcpConfigure?(context: McpContext, options?: McpRunOptions): Promise<void>;
+  mcpUnconfigure?(context: McpContext, options?: McpRunOptions): Promise<void>;
 }
 
 export interface ProviderIsolatedEnv {

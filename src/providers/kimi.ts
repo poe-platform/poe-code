@@ -72,6 +72,10 @@ export const kimiService = createProvider<
       }))
     }
   },
+  mcp: {
+    configFile: "~/.kimi/mcp.json",
+    configKey: "mcpServers"
+  },
   test(context) {
     return context.runCheck(
       createCommandExpectationCheck({

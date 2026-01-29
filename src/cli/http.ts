@@ -2,6 +2,7 @@ export interface HttpResponse {
   ok: boolean;
   status: number;
   json(): Promise<unknown>;
+  text?: () => Promise<string>;
 }
 
 export interface HttpClientRequest {

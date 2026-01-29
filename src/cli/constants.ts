@@ -9,7 +9,7 @@ export const DEFAULT_FRONTIER_MODEL = "Claude-Sonnet-4.5";
 
 export const DEFAULT_TEXT_MODEL = "Claude-Sonnet-4.5";
 export const DEFAULT_IMAGE_BOT = "nano-banana-pro";
-export const DEFAULT_AUDIO_BOT = "ElevenLabs-2.5";
+export const DEFAULT_AUDIO_BOT = "ElevenLabs-v3";
 export const DEFAULT_VIDEO_BOT = "veo-3.1";
 
 export const CLAUDE_CODE_VARIANTS = {

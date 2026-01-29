@@ -171,7 +171,7 @@ Generate audio using a Poe audio generation bot. Uses `client.media("audio", ...
 ```typescript
 async function generateAudio(args: { prompt: string; bot_name?: string; params?: Record<string, string> }) {
   const client = getGlobalClient();
-  const model = args.bot_name ?? DEFAULT_AUDIO_BOT;  // "ElevenLabs-2.5"
+  const model = args.bot_name ?? DEFAULT_AUDIO_BOT;  // "ElevenLabs-v3"
   const response = await client.media("audio", {
     model,
     prompt: args.prompt,
@@ -193,7 +193,7 @@ The MCP server reuses these components from the generate command:
 ```typescript
 export const DEFAULT_TEXT_MODEL = "Claude-Sonnet-4.5";
 export const DEFAULT_IMAGE_BOT = "nano-banana-pro";
-export const DEFAULT_AUDIO_BOT = "ElevenLabs-2.5";
+export const DEFAULT_AUDIO_BOT = "ElevenLabs-v3";
 export const DEFAULT_VIDEO_BOT = "veo-3.1";
 ```
 

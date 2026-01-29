@@ -123,7 +123,7 @@ describe("MCP Server Protocol Integration", () => {
         name: "generate_audio",
         arguments: {
           prompt: "Hello world. This is a short audio test.",
-          bot_name: "ElevenLabs"
+          bot_name: "ElevenLabs-v3"
         }
       }) as ToolCallResult;
 

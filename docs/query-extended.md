@@ -50,7 +50,7 @@ poe-code generate [type] [options] <prompt>
 | `text` (default) | `Claude-Sonnet-4.5` | stdout (raw) |
 | `image` | `nano-banana-pro` | `.png` file |
 | `video` | `veo-3.1` | `.mp4` file |
-| `audio` | `ElevenLabs-2.5` | `.mp3` file |
+| `audio` | `ElevenLabs-v3` | `.mp3` file |
 
 ### Common Options
 
@@ -176,7 +176,7 @@ function generateFilename(type: "image" | "video" | "audio", mimeType: string): 
 // src/cli/constants.ts
 export const DEFAULT_TEXT_MODEL = "Claude-Sonnet-4.5";
 export const DEFAULT_IMAGE_BOT = "nano-banana-pro";
-export const DEFAULT_AUDIO_BOT = "ElevenLabs-2.5";
+export const DEFAULT_AUDIO_BOT = "ElevenLabs-v3";
 export const DEFAULT_VIDEO_BOT = "veo-3.1";
 ```
 
@@ -221,7 +221,7 @@ $ poe-code generate image --model Claude-Haiku-4.5 "A sunset"
 | `POE_TEXT_MODEL` | Override default model for text generation | `Claude-Sonnet-4.5` |
 | `POE_IMAGE_MODEL` | Override default model for image generation | `nano-banana-pro` |
 | `POE_VIDEO_MODEL` | Override default model for video generation | `veo-3.1` |
-| `POE_AUDIO_MODEL` | Override default model for audio generation | `ElevenLabs-2.5` |
+| `POE_AUDIO_MODEL` | Override default model for audio generation | `ElevenLabs-v3` |
 
 ### Precedence (highest to lowest)
 
@@ -538,7 +538,7 @@ npm run test-generate -- image -o test.png "A blue circle"
 npm run test-generate -- video "A rocket launching"
 npm run test-generate -- video --param resolution=1080p --param seed=12321 "Ocean waves"
 
-# Audio generation (uses ElevenLabs-2.5 by default)
+# Audio generation (uses ElevenLabs-v3 by default)
 npm run test-generate -- audio "Hello world"
 
 # Override model for a specific call
@@ -628,7 +628,7 @@ export const TEST_MODELS = {
   text: "Claude-Haiku-4.5",    // Cheap, fast
   image: "nano-banana-pro",
   video: "veo-3.1",
-  audio: "ElevenLabs-2.5"
+  audio: "ElevenLabs-v3"
 } as const;
 
 export const TEST_PROMPTS = {

@@ -2,7 +2,7 @@ export const TEST_MODELS = {
   text: "Claude-Haiku-4.5",
   image: "nano-banana-pro",
   video: "veo-3.1",
-  audio: "ElevenLabs"
+  audio: "ElevenLabs-v3"
 } as const;
 
 export const TEST_PROMPTS = {

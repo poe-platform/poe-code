@@ -116,6 +116,22 @@ export function sanitizeOutputChunk(chunk: string): string {
   return result;
 }
 
+const DEFAULT_SCREENSHOT_TIMEOUT_MS = 5000;
+
+export function resolveScreenshotTimeoutMs(
+  env: NodeJS.ProcessEnv
+): number {
+  const raw = env.POE_SCREENSHOT_TIMEOUT_MS;
+  if (typeof raw !== "string" || raw.trim().length === 0) {
+    return DEFAULT_SCREENSHOT_TIMEOUT_MS;
+  }
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_SCREENSHOT_TIMEOUT_MS;
+  }
+  return Math.floor(parsed);
+}
+
 function createSanitizer(): Transform {
   return new Transform({
     transform(chunk, _encoding, callback) {
@@ -149,7 +165,8 @@ export function buildColorEnv(
   const env: NodeJS.ProcessEnv = {
     ...baseEnv,
     FORCE_COLOR: "1",
-    CLICOLOR_FORCE: "1"
+    CLICOLOR_FORCE: "1",
+    POE_NO_SPINNER: "1"
   };
   if (!env.TERM) {
     env.TERM = "xterm-256color";
@@ -287,7 +304,7 @@ export async function runScreenshot(
   });
   const freezeExit = waitForExit(freezeProcess);
 
-  const timeoutMs = 5000;
+  const timeoutMs = resolveScreenshotTimeoutMs(process.env);
   const timeout = createTimeout(timeoutMs, () => {
     if (!commandProcess.killed) {
       commandProcess.kill("SIGTERM");

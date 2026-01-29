@@ -1,7 +1,7 @@
 # Roadmap
 
 - [ ] [Unified Spawn via ACP](docs/acp-spawn-plan.md)
-- [ ] [MCP Server](docs/mcp-server-spec.md)
+- [x] [MCP Server](docs/mcp-server-spec.md)
 - [ ] [Usage Command](docs/usage-command-plan.md)
 - [ ] [Spawn Modes](docs/spawn-modes-plan.md)
 - [ ] [Spawn Interactive](docs/spawn-interactive-plan.md)

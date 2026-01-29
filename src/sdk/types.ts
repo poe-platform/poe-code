@@ -23,3 +23,21 @@ export interface SpawnResult {
   /** Exit code from the CLI process */
   exitCode: number;
 }
+
+export interface GenerateOptions {
+  /** Model identifier override */
+  model?: string;
+  /** Additional parameters passed to the API */
+  params?: Record<string, string>;
+}
+
+export type MediaGenerateOptions = GenerateOptions;
+
+export interface GenerateResult {
+  content: string;
+}
+
+export interface MediaGenerateResult {
+  url: string;
+  mimeType?: string;
+}

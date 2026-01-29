@@ -4,8 +4,16 @@ import { createCliMain, isCliInvocation } from "./cli/bootstrap.js";
 
 // SDK exports
 export { spawn } from "./sdk/spawn.js";
+export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey } from "./sdk/credentials.js";
-export type { SpawnOptions, SpawnResult } from "./sdk/types.js";
+export type {
+  SpawnOptions,
+  SpawnResult,
+  GenerateOptions,
+  MediaGenerateOptions,
+  GenerateResult,
+  MediaGenerateResult
+} from "./sdk/types.js";
 
 const main = createCliMain(createProgram);
 

@@ -1,0 +1,21 @@
+{
+  "key": "claude-3-5-haiku-bdd84815ebe7",
+  "request": {
+    "model": "Claude-3.5-Haiku",
+    "messages": [
+      {
+        "role": "user",
+        "content": "A sunset"
+      }
+    ],
+    "type": "image"
+  },
+  "response": {
+    "content": "I'm sorry, but I cannot generate, create, edit, manipulate or produce images. I can only perceive and analyze existing images. If you would like to describe a sunset or discuss its characteristics, I'd be happy to help with that. Would you like to describe the sunset you're imagining or discuss sunsets in general?"
+  },
+  "metadata": {
+    "recordedAt": "2026-01-29T13:17:10.116Z",
+    "model": "Claude-3.5-Haiku",
+    "type": "image"
+  }
+}

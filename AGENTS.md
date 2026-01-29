@@ -34,6 +34,7 @@ Use `npm run lint:workflows`
 - Follow Conventional Commits (`feat`, `fix`, `chore`, `docs`, `test`, `refactor`).
 - Keep subjects imperative and under 72 characters.
 - Commit specific files that you edited, never blanket git add -A
+- Do not add yourself as co-author, you don't even know if you wrote the code
 
 ## Release
 

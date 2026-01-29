@@ -23,7 +23,9 @@ const homeDir = "/home/test";
 
 function createMemFs(): FileSystem {
   const vol = new Volume();
-  vol.mkdirSync(homeDir, { recursive: true });
+  // Pre-create common directories to avoid slow recursive mkdir
+  vol.mkdirSync(`${homeDir}/.poe-code/codex`, { recursive: true });
+  vol.mkdirSync(`${homeDir}/.poe-code/opencode/.config/opencode`, { recursive: true });
   return createFsFromVolume(vol).promises as unknown as FileSystem;
 }
 
@@ -79,7 +81,6 @@ describe("spawn command", () => {
 
   async function ensureIsolatedConfig(service: string): Promise<void> {
     if (service === "codex") {
-      await fs.mkdir(`${homeDir}/.poe-code/codex`, { recursive: true });
       await fs.writeFile(
         `${homeDir}/.poe-code/codex/config.toml`,
         "",
@@ -88,9 +89,6 @@ describe("spawn command", () => {
       return;
     }
     if (service === "opencode") {
-      await fs.mkdir(`${homeDir}/.poe-code/opencode/.config/opencode`, {
-        recursive: true
-      });
       await fs.writeFile(
         `${homeDir}/.poe-code/opencode/.config/opencode/config.json`,
         "{}",
@@ -106,7 +104,6 @@ describe("spawn command", () => {
       stderr: "",
       exitCode: 0
     });
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
       `${homeDir}/.poe-code/credentials.json`,
       JSON.stringify({ apiKey: "sk-test" }),
@@ -249,7 +246,6 @@ describe("spawn command", () => {
       stderr: "spawn failed",
       exitCode: 1
     });
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
       `${homeDir}/.poe-code/credentials.json`,
       JSON.stringify({ apiKey: "sk-test" }),
@@ -453,7 +449,6 @@ describe("spawn command", () => {
       stderr: "",
       exitCode: 0
     });
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
       `${homeDir}/.poe-code/credentials.json`,
       JSON.stringify({ apiKey: "sk-test" }),
@@ -562,7 +557,6 @@ describe("spawn command", () => {
       logger: () => {}
     });
 
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
       `${homeDir}/.poe-code/credentials.json`,
       JSON.stringify({ apiKey: "sk-test" }),

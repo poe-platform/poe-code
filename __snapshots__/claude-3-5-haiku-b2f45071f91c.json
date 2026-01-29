@@ -1,0 +1,21 @@
+{
+  "key": "claude-3-5-haiku-b2f45071f91c",
+  "request": {
+    "model": "Claude-3.5-Haiku",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: HELLO_WORLD"
+      }
+    ],
+    "type": "text"
+  },
+  "response": {
+    "content": "HELLO_WORLD"
+  },
+  "metadata": {
+    "recordedAt": "2026-01-29T13:17:00.374Z",
+    "model": "Claude-3.5-Haiku",
+    "type": "text"
+  }
+}

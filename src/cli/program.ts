@@ -16,7 +16,7 @@ import { registerLoginCommand } from "./commands/login.js";
 import { registerInstallCommand } from "./commands/install.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
-import { registerQueryCommand } from "./commands/query.js";
+import { registerGenerateCommand } from "./commands/generate.js";
 import { registerVersionOption } from "./commands/version.js";
 
 const require = createRequire(import.meta.url);
@@ -60,8 +60,8 @@ function formatHelpText(design: CliDesignLanguage): string {
     cmd("test", "[agent]") + "            Run agent health checks",
     example("poe-code test codex"),
     "",
-    cmd("query", "[prompt]") + "             Query an LLM via Poe API directly",
-    example("poe-code query \"What is 2+2?\""),
+    cmd("generate", "[type]") + "         Generate text or media via Poe API",
+    example("poe-code generate \"What is 2+2?\""),
     "",
     cmd("login", "") + "                          Store a Poe API key for reuse across commands",
     "",
@@ -217,7 +217,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerConfigureCommand(program, container);
   registerSpawnCommand(program, container);
   registerWrapCommand(program, container);
-  registerQueryCommand(program, container);
+  registerGenerateCommand(program, container);
   registerTestCommand(program, container);
   registerUnconfigureCommand(program, container);
   registerLoginCommand(program, container);

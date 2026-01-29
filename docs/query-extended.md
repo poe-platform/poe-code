@@ -1329,3 +1329,8 @@ jobs:
           POE_SNAPSHOT_MODE: playback
           POE_SNAPSHOT_MISS: error
 ```
+
+## OTHER NOTES
+
+- the snapshot code should not live together with production code, it should be in the test folder ideally
+- you should test the querying well using real api

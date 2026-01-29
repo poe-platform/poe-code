@@ -100,7 +100,8 @@ export function createCliContainer(
       return {
         ok: response.ok,
         status: response.status,
-        json: () => response.json()
+        json: () => response.json(),
+        text: () => response.text()
       };
     });
 

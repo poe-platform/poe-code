@@ -99,7 +99,7 @@ describe("spawnCore", () => {
   });
 
   it("returns SpawnResult with stdout, stderr, exitCode", async () => {
-    const { runner, calls } = createCommandRunnerStub({
+    const { runner } = createCommandRunnerStub({
       stdout: "output text",
       stderr: "error text",
       exitCode: 0

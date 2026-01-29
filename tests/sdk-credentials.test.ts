@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import path from "node:path";
 
 // Mock node:fs/promises and node:os before importing the module
 const homeDir = "/home/test";
-const credentialsPath = path.join(homeDir, ".poe-code", "credentials.json");
 
 vi.mock("node:fs/promises", async () => {
   const vol = new Volume();
@@ -21,16 +19,14 @@ vi.mock("node:os", () => ({
 
 describe("getPoeApiKey", () => {
   let originalEnv: NodeJS.ProcessEnv;
-  let fsPromises: typeof import("node:fs/promises");
 
   beforeEach(async () => {
     originalEnv = { ...process.env };
     delete process.env.POE_API_KEY;
-    
+
     // Reset the mocked fs module
     vi.resetModules();
-    fsPromises = await import("node:fs/promises");
-    
+
     // Clear the volume
     const vol = new Volume();
     vi.doMock("node:fs/promises", () => {

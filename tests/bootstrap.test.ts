@@ -22,6 +22,17 @@ vi.mock("../src/cli/error-logger.js", async () => {
   };
 });
 
+vi.mock("@clack/prompts", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("@clack/prompts");
+  return {
+    ...actual,
+    log: {
+      error: vi.fn(),
+      message: vi.fn()
+    }
+  };
+});
+
 describe("createCliMain", () => {
   let exitSpy: ReturnType<typeof vi.spyOn>;
   let originalEnvValue: string | undefined;

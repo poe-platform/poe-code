@@ -85,6 +85,17 @@ export const openCodeService = createProvider({
       XDG_DATA_HOME: { kind: "isolatedDir", relativePath: ".local/share" }
     }
   },
+  mcp: {
+    configFile: "~/.config/opencode/config.json",
+    configKey: "mcp",
+    value: (ctx): JsonObject => ({
+      "poe-code": {
+        type: "local",
+        command: [ctx.execCommand.command, ...ctx.execCommand.args, ctx.subcommand],
+        enabled: true
+      }
+    })
+  },
   manifest: {
     configure: [
         ensureDirectory({

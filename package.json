@@ -19,7 +19,15 @@
     "generate:design-docs": "tsx scripts/generate-design-docs.ts",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
-    "watch:diff": "tsx local_scripts/watch-diff.ts"
+    "watch:diff": "tsx local_scripts/watch-diff.ts",
+    "test:integration": "vitest run tests/integration/",
+    "test:record": "POE_SNAPSHOT_MODE=record npm run test:integration",
+    "test-generate": "tsx scripts/test-generate.ts",
+    "snapshots": "tsx scripts/snapshots.ts",
+    "snapshots:list": "npm run snapshots -- list",
+    "snapshots:refresh": "npm run snapshots -- refresh",
+    "snapshots:delete": "npm run snapshots -- delete",
+    "snapshots:delete-stale": "npm run snapshots -- delete --stale"
   },
   "bin": {
     "poe-code": "dist/index.js",

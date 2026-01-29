@@ -24,7 +24,8 @@ Use `npm run lint:workflows`
 
 ## Testing file changes
 
-- Tests must not create files - use `memfs` library to test changes in memory
+- Tests must not create files - use `memfs` library to test changes in memory.
+  - Exception is snapshots, snapshots should be created on disk
 - Tests must not query LLM - use abstraction to mock this reliably across all files
 
 ## Commits

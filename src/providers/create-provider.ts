@@ -13,6 +13,15 @@ import {
   runServiceInstall,
   type ServiceInstallDefinition
 } from "../services/service-install.js";
+import {
+  createMcpMutations,
+  createMcpConfigureRunner,
+  createMcpUnconfigureRunner,
+  type McpConfig
+} from "./mcp-config.js";
+
+// Re-export McpValueContext for external use
+export type { McpValueContext } from "./mcp-config.js";
 
 interface ManifestVersionDefinition<ConfigureOptions, UnconfigureOptions> {
   configure: ServiceManifestDefinition<ConfigureOptions, UnconfigureOptions>["configure"];
@@ -36,6 +45,7 @@ interface CreateProviderOptions<
   postConfigureMessages?: string[];
   isolatedEnv?: ProviderIsolatedEnv;
   manifest: ManifestVersionDefinition<ConfigureOptions, UnconfigureOptions>;
+  mcp?: McpConfig;
   install?: ServiceInstallDefinition;
   test?: ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions>["test"];
   spawn?: ProviderService<
@@ -93,6 +103,12 @@ export function createProvider<
 
   if (options.spawn) {
     provider.spawn = options.spawn;
+  }
+
+  if (options.mcp) {
+    const mcpMutations = createMcpMutations(options.mcp);
+    provider.mcpConfigure = createMcpConfigureRunner(options.id, mcpMutations.configure);
+    provider.mcpUnconfigure = createMcpUnconfigureRunner(options.id, mcpMutations.unconfigure);
   }
 
   return provider;

@@ -1,9 +1,17 @@
 name: Release
+# Note: workflow_call is needed because pushes made with GitHub App tokens
+# don't trigger other workflows (to prevent infinite loops). Workflows like
+# bump-version and promote-beta-to-stable must explicitly call this workflow.
 on:
   push:
     branches:
       - main
       - beta
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
 permissions:
   contents: write
   issues: write
@@ -12,7 +20,7 @@ permissions:
 jobs:
   release-beta:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/beta'
+    if: github.ref == 'refs/heads/beta' || inputs.branch == 'beta'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,7 +46,7 @@ jobs:
         run: npx semantic-release
   release-stable:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || inputs.branch == 'main'
     steps:
       - uses: actions/checkout@v4
         with:

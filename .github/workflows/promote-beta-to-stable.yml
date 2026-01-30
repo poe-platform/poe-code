@@ -33,3 +33,9 @@ jobs:
           git fetch origin main
           git rebase origin/main
           git push origin beta:main
+  release:
+    needs: promote
+    uses: ./.github/workflows/release.yml
+    with:
+      branch: main
+    secrets: inherit

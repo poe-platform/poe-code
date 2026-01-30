@@ -1,0 +1,82 @@
+name: Bump Version
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: Version bump type
+        required: true
+        type: choice
+        options:
+          - tiny
+          - minor
+          - major
+      description:
+        description: Optional description for the release
+        required: false
+        type: string
+      target_branch:
+        description: Target branch
+        required: true
+        type: choice
+        options:
+          - beta
+          - main
+permissions:
+  contents: write
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_branch }}
+          fetch-depth: 0
+      - name: Generate GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+          private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+      - name: Create version bump commit
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+
+          BUMP_TYPE="${{ inputs.bump_type }}"
+          DESCRIPTION="${{ inputs.description }}"
+
+          case "$BUMP_TYPE" in
+            tiny)
+              PREFIX="fix"
+              ;;
+            minor)
+              PREFIX="feat"
+              ;;
+            major)
+              PREFIX="feat"
+              ;;
+          esac
+
+          if [ -n "$DESCRIPTION" ]; then
+            COMMIT_MSG="$PREFIX: $DESCRIPTION"
+          else
+            COMMIT_MSG="$PREFIX: release"
+          fi
+
+          if [ "$BUMP_TYPE" = "major" ]; then
+            COMMIT_MSG="$COMMIT_MSG
+
+          BREAKING CHANGE: major version bump"
+          fi
+
+          git commit --allow-empty -m "$COMMIT_MSG"
+          git push origin ${{ inputs.target_branch }}
+  release:
+    needs: bump
+    uses: ./.github/workflows/release.yml
+    with:
+      branch: ${{ inputs.target_branch }}
+    secrets: inherit

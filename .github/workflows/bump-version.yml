@@ -23,6 +23,9 @@ on:
           - main
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
 jobs:
   bump:
     runs-on: ubuntu-latest

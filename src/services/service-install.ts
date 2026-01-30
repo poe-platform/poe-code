@@ -8,12 +8,14 @@ export interface InstallContext {
   isDryRun: boolean;
   runCommand: CommandRunner;
   logger: (message: string) => void;
+  platform: NodeJS.Platform;
 }
 
 export interface InstallCommand {
   id: string;
   command: string;
   args: string[];
+  platforms?: NodeJS.Platform[];
 }
 
 export interface ServiceInstallDefinition {
@@ -54,7 +56,8 @@ export async function runServiceInstall(
     return true;
   }
 
-  for (const step of definition.steps) {
+  const platformSteps = filterStepsByPlatform(definition.steps, context.platform);
+  for (const step of platformSteps) {
     await runInstallStep(step, context);
   }
 
@@ -90,12 +93,22 @@ function quoteIfNeeded(value: string): string {
   return value;
 }
 
+function filterStepsByPlatform(
+  steps: InstallCommand[],
+  platform: NodeJS.Platform
+): InstallCommand[] {
+  return steps.filter(
+    (step) => !step.platforms || step.platforms.includes(platform)
+  );
+}
+
 function logInstallDryRun(
   definition: ServiceInstallDefinition,
   context: InstallContext
 ): void {
   context.logger(`Dry run: would install ${definition.summary}.`);
-  for (const step of definition.steps) {
+  const platformSteps = filterStepsByPlatform(definition.steps, context.platform);
+  for (const step of platformSteps) {
     context.logger(`Dry run: ${describeInstallCommand(step)}`);
   }
 }

@@ -119,7 +119,8 @@ function createInstallRunner(definition: ServiceInstallDefinition) {
     await runServiceInstall(definition, {
       isDryRun: context.logger.context.dryRun,
       runCommand: context.command.runCommand,
-      logger: (message) => context.logger.verbose(message)
+      logger: (message) => context.logger.verbose(message),
+      platform: context.env.platform
     });
   };
 }

@@ -39,12 +39,19 @@ export const CLAUDE_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   ),
   steps: [
     {
-      id: "install-claude-cli-npm",
-      command: "npm",
-      args: ["install", "-g", "@anthropic-ai/claude-code"]
+      id: "install-claude-cli-unix",
+      command: "bash",
+      args: ["-c", "curl -fsSL https://claude.ai/install.sh | bash"],
+      platforms: ["darwin", "linux"]
+    },
+    {
+      id: "install-claude-cli-windows",
+      command: "powershell",
+      args: ["-Command", "irm https://claude.ai/install.ps1 | iex"],
+      platforms: ["win32"]
     }
   ],
-  successMessage: "Installed Claude CLI via npm."
+  successMessage: "Installed Claude CLI."
 };
 
 const CLAUDE_SPAWN_DEFAULTS = [

@@ -31,6 +31,7 @@ export const CODEX_MODELS = [
 export const DEFAULT_CODEX_MODEL = CODEX_MODELS[0];
 
 export const KIMI_MODELS = [
+  "Kimi-K2.5",
   "Kimi-K2-Thinking",
 ] as const;
 export const DEFAULT_KIMI_MODEL = KIMI_MODELS[0];

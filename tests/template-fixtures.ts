@@ -37,7 +37,7 @@ export const templateFixtures = new Map<string, string>([
     "codex/config.toml.hbs",
     [
       'model_provider = "poe"',
-      'model = "{{model}}"',
+      'model = "{{{model}}}"',
       'model_reasoning_effort = "{{reasoningEffort}}"',
       "",
       "[model_providers.poe]",

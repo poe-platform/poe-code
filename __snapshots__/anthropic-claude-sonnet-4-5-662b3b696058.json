@@ -1,7 +1,7 @@
 {
-  "key": "claude-haiku-4-5-08006e9ec9e1",
+  "key": "anthropic-claude-sonnet-4-5-662b3b696058",
   "request": {
-    "model": "Claude-Haiku-4.5",
+    "model": "anthropic/claude-sonnet-4.5",
     "messages": [
       {
         "role": "user",
@@ -17,8 +17,8 @@
     "content": "Paris"
   },
   "metadata": {
-    "recordedAt": "2026-01-29T16:54:06.592Z",
-    "model": "Claude-Haiku-4.5",
+    "recordedAt": "2026-01-30T17:52:49.306Z",
+    "model": "anthropic/claude-sonnet-4.5",
     "type": "text"
   }
 }

@@ -7,7 +7,7 @@ import { parseTomlDocument } from "../src/utils/toml.js";
 import type { ProviderContext } from "../src/cli/service-registry.js";
 import { createCliEnvironment } from "../src/cli/environment.js";
 import { createTestCommandContext } from "./test-command-context.js";
-import { DEFAULT_CODEX_MODEL } from "../src/cli/constants.js";
+import { DEFAULT_CODEX_MODEL, stripModelNamespace } from "../src/cli/constants.js";
 import { createLoggerFactory } from "../src/cli/logger.js";
 
 function createMemFs(): { fs: FileSystem; vol: Volume } {
@@ -116,7 +116,7 @@ describe("codex service", () => {
 
     const content = await fs.readFile(configPath, "utf8");
     expect(content.trim()).toContain(
-      `model = "${DEFAULT_CODEX_MODEL}"`
+      `model = "${stripModelNamespace(DEFAULT_CODEX_MODEL)}"`
     );
     expect(content.trim()).toContain('model_reasoning_effort = "medium"');
     expect(content.trim()).toContain(
@@ -281,7 +281,7 @@ describe("codex service", () => {
 
     const doc = parseTomlDocument(await fs.readFile(configPath, "utf8"));
     expect(doc["model_provider"]).toBe("poe");
-    expect(doc["model"]).toBe(DEFAULT_CODEX_MODEL);
+    expect(doc["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(doc["model_reasoning_effort"]).toBe("medium");
     expect(doc["features"]).toEqual({ foo: true });
 
@@ -385,7 +385,7 @@ describe("codex service", () => {
       codexService.buildCodexExecArgs(
         "Output exactly: CODEX_OK",
         [],
-        DEFAULT_CODEX_MODEL
+        stripModelNamespace(DEFAULT_CODEX_MODEL)
       )
     );
   });
@@ -402,7 +402,7 @@ describe("codex service", () => {
     expect(
       logs.find((line) =>
         line.includes(
-          `codex --model ${DEFAULT_CODEX_MODEL} exec "Output exactly: CODEX_OK"`
+          `codex --model ${stripModelNamespace(DEFAULT_CODEX_MODEL)} exec "Output exactly: CODEX_OK"`
         )
       )
     ).toBeTruthy();

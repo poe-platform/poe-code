@@ -3,6 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../src/cli/program.js";
 import type { FileSystem } from "../src/utils/file-system.js";
 import type { CommandRunner } from "../src/utils/command-checks.js";
+import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace } from "../src/cli/constants.js";
 
 function createMemfs(homeDir: string): FileSystem {
   const volume = new Volume();
@@ -108,7 +109,7 @@ describe("login command", () => {
 
     volume.writeFileSync(
       `${homeDir}/.claude/settings.json`,
-      JSON.stringify({ apiKeyHelper: "echo old-key", model: "claude-3-opus" })
+      JSON.stringify({ apiKeyHelper: "echo old-key", model: "claude-sonnet-4.5" })
     );
     volume.writeFileSync(
       credentialsPath,
@@ -154,7 +155,7 @@ describe("login command", () => {
     );
     const settings = JSON.parse(settingsRaw);
     expect(settings.apiKeyHelper).toBe("echo new-key");
-    expect(settings.model).toBe("claude-3-opus");
+    expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL));
   });
 
   it("skips writing credentials during dry run", async () => {

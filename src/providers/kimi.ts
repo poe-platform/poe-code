@@ -8,7 +8,7 @@ import {
   tomlPruneMutation
 } from "../services/service-manifest.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
-import { KIMI_MODELS, DEFAULT_KIMI_MODEL, PROVIDER_NAME } from "../cli/constants.js";
+import { KIMI_MODELS, DEFAULT_KIMI_MODEL, PROVIDER_NAME, stripModelNamespace } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
 import type { TomlTable } from "../utils/toml.js";
 import type {
@@ -36,8 +36,8 @@ export const KIMI_INSTALL_DEFINITION: ServiceInstallDefinition = {
 };
 
 function providerModel(model: string): string {
-  const prefix = `${PROVIDER_NAME}/`;
-  return model.startsWith(prefix) ? model : `${prefix}${model}`;
+  const stripped = stripModelNamespace(model);
+  return `${PROVIDER_NAME}/${stripped}`;
 }
 
 function buildKimiArgs(prompt: string, extraArgs?: string[]): string[] {
@@ -107,7 +107,7 @@ export const kimiService = createProvider<
             for (const m of KIMI_MODELS) {
               models[providerModel(m)] = {
                 provider: PROVIDER_NAME,
-                model: m,
+                model: stripModelNamespace(m),
                 max_context_size: 256000
               };
             }

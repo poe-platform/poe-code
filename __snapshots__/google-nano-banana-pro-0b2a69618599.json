@@ -1,0 +1,24 @@
+{
+  "key": "google-nano-banana-pro-0b2a69618599",
+  "request": {
+    "model": "google/nano-banana-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "A panoramic mountain landscape."
+      }
+    ],
+    "type": "image",
+    "params": {
+      "aspect_ratio": "16:9"
+    }
+  },
+  "response": {
+    "url": "https://pfst.cf2.poecdn.net/base/image/664ffaa79c84a6824f92b59dd548a773517cab7a4da1b946759f9f8b2654d28f?w=1376&h=768"
+  },
+  "metadata": {
+    "recordedAt": "2026-01-30T17:55:36.508Z",
+    "model": "google/nano-banana-pro",
+    "type": "image"
+  }
+}

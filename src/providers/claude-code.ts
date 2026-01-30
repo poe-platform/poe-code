@@ -10,7 +10,8 @@ import {
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
   CLAUDE_CODE_VARIANTS,
-  DEFAULT_CLAUDE_CODE_MODEL
+  DEFAULT_CLAUDE_CODE_MODEL,
+  stripModelNamespace
 } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
 import type { CliEnvironment } from "../cli/environment.js";
@@ -120,7 +121,7 @@ export const claudeCodeService = createProvider<
         args: buildClaudeArgs(
           "Output exactly: CLAUDE_CODE_OK",
           undefined,
-          DEFAULT_CLAUDE_CODE_MODEL
+          stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL)
         ),
         expectedOutput: "CLAUDE_CODE_OK"
       })
@@ -141,7 +142,7 @@ export const claudeCodeService = createProvider<
           env: {
             ANTHROPIC_BASE_URL: options.env.poeBaseUrl
           },
-          model: options.model
+          model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL)
         })
       })
     ],

@@ -119,7 +119,10 @@ function resolveSdkModel(
   }
   const envKey = MODEL_ENV_KEYS[type];
   const envModel = normalizeEnvModel(process.env[envKey]);
-  return envModel ?? DEFAULT_MODELS[type];
+  if (envModel) {
+    return envModel;
+  }
+  return DEFAULT_MODELS[type];
 }
 
 function normalizeEnvModel(value: string | undefined): string | undefined {

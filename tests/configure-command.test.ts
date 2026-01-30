@@ -85,7 +85,7 @@ describe("configure command", () => {
     expect(content.configured_services.opencode).toEqual({
       files: [
         homeDir + "/.config/opencode/config.json",
-        homeDir + "/.local/share/opencode/auth.json"
+        homeDir + "/.opencode-data/auth.json"
       ]
     });
   });

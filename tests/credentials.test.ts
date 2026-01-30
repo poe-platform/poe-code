@@ -73,7 +73,7 @@ describe("credentials store", () => {
       metadata: {
         files: [
           "/home/user/.config/opencode/config.json",
-          "/home/user/.local/share/opencode/auth.json"
+          "/home/user/.opencode-data/auth.json"
         ]
       }
     });
@@ -87,7 +87,7 @@ describe("credentials store", () => {
       opencode: {
         files: [
           "/home/user/.config/opencode/config.json",
-          "/home/user/.local/share/opencode/auth.json"
+          "/home/user/.opencode-data/auth.json"
         ]
       }
     });

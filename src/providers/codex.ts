@@ -16,7 +16,8 @@ import type { ProviderSpawnOptions } from "./spawn-options.js";
 import {
   CODEX_MODELS,
   DEFAULT_CODEX_MODEL,
-  DEFAULT_REASONING
+  DEFAULT_REASONING,
+  stripModelNamespace
 } from "../cli/constants.js";
 
 type CodexConfigureContext = {
@@ -203,7 +204,7 @@ export const codexService = createProvider<
         args: buildCodexExecArgs(
           "Output exactly: CODEX_OK",
           [],
-          DEFAULT_CODEX_MODEL
+          stripModelNamespace(DEFAULT_CODEX_MODEL)
         ),
         expectedOutput: "CODEX_OK"
       })
@@ -224,7 +225,7 @@ export const codexService = createProvider<
         context: ({ options }) => ({
           apiKey: options.apiKey,
           baseUrl: options.env.poeApiBaseUrl,
-          model: options.model,
+          model: stripModelNamespace(options.model ?? DEFAULT_CODEX_MODEL),
           reasoningEffort: options.reasoningEffort
         })
       })

@@ -1,7 +1,7 @@
 {
-  "key": "claude-haiku-4-5-67862006bea6",
+  "key": "anthropic-claude-sonnet-4-5-bc7a9a2c27a5",
   "request": {
-    "model": "Claude-Haiku-4.5",
+    "model": "anthropic/claude-sonnet-4.5",
     "messages": [
       {
         "role": "user",
@@ -11,11 +11,11 @@
     "type": "text"
   },
   "response": {
-    "content": "Hello."
+    "content": "Hello!"
   },
   "metadata": {
-    "recordedAt": "2026-01-29T16:54:04.844Z",
-    "model": "Claude-Haiku-4.5",
+    "recordedAt": "2026-01-30T17:52:47.311Z",
+    "model": "anthropic/claude-sonnet-4.5",
     "type": "text"
   }
 }

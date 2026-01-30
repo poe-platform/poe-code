@@ -21,15 +21,15 @@ describe("SDK generate", () => {
     };
     setGlobalClient(client);
 
-    const response = await generate("Hello", { model: "Custom" });
+    const response = await generate("Hello", { model: "custom" });
 
     expect(response).toEqual({
-      content: "model:Custom prompt:Hello"
+      content: "model:custom prompt:Hello"
     });
   });
 
   it("uses explicit model option over env var", async () => {
-    process.env.POE_TEXT_MODEL = "Env-Model";
+    process.env.POE_TEXT_MODEL = "env-model";
 
     const client: LlmClient = {
       text: vi.fn(async (request) => ({ content: request.model })),
@@ -37,13 +37,13 @@ describe("SDK generate", () => {
     };
     setGlobalClient(client);
 
-    const response = await generate("Hello", { model: "Option-Model" });
+    const response = await generate("Hello", { model: "option-model" });
 
-    expect(response).toEqual({ content: "Option-Model" });
+    expect(response).toEqual({ content: "option-model" });
   });
 
   it("uses env var when no model option provided", async () => {
-    process.env.POE_TEXT_MODEL = "Env-Model";
+    process.env.POE_TEXT_MODEL = "env-model";
 
     const client: LlmClient = {
       text: vi.fn(async (request) => ({ content: request.model })),
@@ -53,7 +53,7 @@ describe("SDK generate", () => {
 
     const response = await generate("Hello");
 
-    expect(response).toEqual({ content: "Env-Model" });
+    expect(response).toEqual({ content: "env-model" });
   });
 
   it("uses default model when no option or env var", async () => {
@@ -84,19 +84,19 @@ describe("SDK generate", () => {
     setGlobalClient(client);
 
     const image = await generateImage("A sunset", {
-      model: "Image-Model",
+      model: "image-model",
       params: { aspect_ratio: "16:9" }
     });
     const video = await generateVideo("Ocean waves", {
-      model: "Video-Model"
+      model: "video-model"
     });
     const audio = await generateAudio("Hello", {
-      model: "Audio-Model"
+      model: "audio-model"
     });
 
-    expect(image).toEqual({ url: "url:Image-Model", mimeType: "image/png" });
-    expect(video).toEqual({ url: "url:Video-Model", mimeType: "image/png" });
-    expect(audio).toEqual({ url: "url:Audio-Model", mimeType: "image/png" });
+    expect(image).toEqual({ url: "url:image-model", mimeType: "image/png" });
+    expect(video).toEqual({ url: "url:video-model", mimeType: "image/png" });
+    expect(audio).toEqual({ url: "url:audio-model", mimeType: "image/png" });
   });
 
   it("throws when prompt is empty", async () => {

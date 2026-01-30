@@ -5,7 +5,8 @@ import type { FileSystem } from "../src/utils/file-system.js";
 import {
   DEFAULT_KIMI_MODEL,
   KIMI_MODELS,
-  PROVIDER_NAME
+  PROVIDER_NAME,
+  stripModelNamespace
 } from "../src/cli/constants.js";
 import * as kimiService from "../src/providers/kimi.js";
 import { createCliEnvironment } from "../src/cli/environment.js";
@@ -21,7 +22,7 @@ function createMemFs(): { fs: FileSystem; vol: Volume } {
 }
 
 const withProviderPrefix = (model: string): string =>
-  `${PROVIDER_NAME}/${model}`;
+  `${PROVIDER_NAME}/${stripModelNamespace(model)}`;
 
 const DEFAULT_PROVIDER_MODEL = withProviderPrefix(DEFAULT_KIMI_MODEL);
 
@@ -135,7 +136,7 @@ describe("kimi service", () => {
     expect(config.models).toMatchObject({
       [DEFAULT_PROVIDER_MODEL]: {
         provider: PROVIDER_NAME,
-        model: DEFAULT_KIMI_MODEL,
+        model: stripModelNamespace(DEFAULT_KIMI_MODEL),
         max_context_size: 256000
       }
     });
@@ -150,7 +151,7 @@ describe("kimi service", () => {
     const models = config.models as Record<string, unknown>;
     expect(models[withProviderPrefix(alternate)]).toEqual({
       provider: PROVIDER_NAME,
-      model: alternate,
+      model: stripModelNamespace(alternate),
       max_context_size: 256000
     });
   });

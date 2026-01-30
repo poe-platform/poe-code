@@ -23,13 +23,6 @@ function providerModel(model?: string): string {
   return value.startsWith(prefix) ? value : `${prefix}${value}`;
 }
 
-const FRONTIER_MODEL_RECORD = FRONTIER_MODELS.reduce<
-  Record<string, { name: string }>
->((acc, id) => {
-  acc[id] = { name: id };
-  return acc;
-}, {});
-
 export const OPEN_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "opencode",
   summary: "OpenCode CLI",
@@ -101,36 +94,23 @@ export const openCodeService = createProvider({
         ensureDirectory({
           targetDirectory: "~/.config/opencode"
         }),
-        ensureDirectory({
-          targetDirectory: "~/.local/share/opencode"
-        }),
         jsonMergeMutation({
           targetDirectory: "~/.config/opencode",
           targetFile: "config.json",
           value: ({ options }) => {
-            const { model, env } = (options ?? {}) as {
-              model?: string;
-              env: { poeApiBaseUrl: string };
-            };
-            const baseUrl = env.poeApiBaseUrl;
+            const { model } = (options ?? {}) as { model?: string };
             return {
               $schema: "https://opencode.ai/config.json",
               model: providerModel(model),
-              provider: {
-                [PROVIDER_NAME]: {
-                  npm: "@ai-sdk/openai-compatible",
-                  name: "poe.com",
-                  options: {
-                    baseURL: baseUrl
-                  },
-                  models: FRONTIER_MODEL_RECORD
-                }
-              }
+              enabled_providers: [PROVIDER_NAME]
             };
           }
         }),
+        ensureDirectory({
+          targetDirectory: "~/.opencode-data"
+        }),
         jsonMergeMutation({
-          targetDirectory: "~/.local/share/opencode",
+          targetDirectory: "~/.opencode-data",
           targetFile: "auth.json",
           value: ({ options }) => {
             const { apiKey } = (options ?? {}) as { apiKey?: string };
@@ -148,13 +128,11 @@ export const openCodeService = createProvider({
           targetDirectory: "~/.config/opencode",
           targetFile: "config.json",
           shape: (): JsonObject => ({
-            provider: {
-              [PROVIDER_NAME]: true
-            }
+            enabled_providers: true
           })
         }),
         jsonPruneMutation({
-          targetDirectory: "~/.local/share/opencode",
+          targetDirectory: "~/.opencode-data",
           targetFile: "auth.json",
           shape: (): JsonObject => ({
             [PROVIDER_NAME]: true

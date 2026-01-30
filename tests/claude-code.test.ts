@@ -8,7 +8,8 @@ import { createCliEnvironment } from "../src/cli/environment.js";
 import { createTestCommandContext } from "./test-command-context.js";
 import {
   CLAUDE_CODE_VARIANTS,
-  DEFAULT_CLAUDE_CODE_MODEL
+  DEFAULT_CLAUDE_CODE_MODEL,
+  stripModelNamespace
 } from "../src/cli/constants.js";
 import { createLoggerFactory } from "../src/cli/logger.js";
 
@@ -203,7 +204,7 @@ describe("claude-code service", () => {
       env: {
         ANTHROPIC_BASE_URL: "https://api.poe.com"
       },
-      model: CLAUDE_MODEL_SONNET
+      model: stripModelNamespace(CLAUDE_MODEL_SONNET)
     });
   });
 
@@ -223,7 +224,7 @@ describe("claude-code service", () => {
       env: {
         ANTHROPIC_BASE_URL: "https://proxy.example.com"
       },
-      model: CLAUDE_MODEL_SONNET
+      model: stripModelNamespace(CLAUDE_MODEL_SONNET)
     });
   });
 
@@ -257,7 +258,7 @@ describe("claude-code service", () => {
         ANTHROPIC_BASE_URL: "https://api.poe.com",
         CUSTOM: "value"
       },
-      model: CLAUDE_MODEL_SONNET
+      model: stripModelNamespace(CLAUDE_MODEL_SONNET)
     });
   });
 
@@ -379,7 +380,7 @@ describe("claude-code service", () => {
       "-p",
       "Output exactly: CLAUDE_CODE_OK",
       "--model",
-      DEFAULT_CLAUDE_CODE_MODEL,
+      stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL),
       "--allowedTools",
       "Bash,Read",
       "--permission-mode",
@@ -401,7 +402,7 @@ describe("claude-code service", () => {
     expect(
       logs.find((line) =>
         line.includes(
-          `claude -p "Output exactly: CLAUDE_CODE_OK" --model ${DEFAULT_CLAUDE_CODE_MODEL}`
+          `claude -p "Output exactly: CLAUDE_CODE_OK" --model ${stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL)}`
         )
       )
     ).toBeTruthy();

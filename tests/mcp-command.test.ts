@@ -106,13 +106,13 @@ describe("mcp server tools", () => {
     const { generateText } = await import("../src/cli/mcp-server.js");
 
     await generateText({
-      bot_name: "Test-Bot",
+      bot_name: "test-bot",
       message: "Test",
       params: { temperature: "0.5" }
     });
 
     expect(mockClient.text).toHaveBeenCalledWith({
-      model: "Test-Bot",
+      model: "test-bot",
       prompt: "Test",
       params: { temperature: "0.5" }
     });

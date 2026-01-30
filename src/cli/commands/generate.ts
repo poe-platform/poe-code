@@ -350,9 +350,15 @@ function resolveModel(
   options: GenerateCommandOptions,
   variables?: Record<string, string | undefined>
 ): string {
+  if (options.model) {
+    return options.model;
+  }
   const envKey = MODEL_ENV_KEYS[type];
   const envModel = normalizeEnvModel(variables ? variables[envKey] : undefined);
-  return options.model ?? envModel ?? DEFAULT_MODELS[type];
+  if (envModel) {
+    return envModel;
+  }
+  return DEFAULT_MODELS[type];
 }
 
 function normalizeEnvModel(value: string | undefined): string | undefined {

@@ -22,13 +22,6 @@ function createMemFs(): { fs: FileSystem; vol: Volume } {
 const withProviderPrefix = (model: string): string =>
   `${PROVIDER_NAME}/${model}`;
 
-const expectedFrontierModels = FRONTIER_MODELS.reduce<
-  Record<string, { name: string }>
->((acc, id) => {
-  acc[id] = { name: id };
-  return acc;
-}, {});
-
 const DEFAULT_PROVIDER_MODEL = withProviderPrefix(DEFAULT_FRONTIER_MODEL);
 
 describe("opencode service", () => {
@@ -36,13 +29,7 @@ describe("opencode service", () => {
   let vol: Volume;
   const homeDir = "/home/user";
   const configPath = path.join(homeDir, ".config", "opencode", "config.json");
-  const authPath = path.join(
-    homeDir,
-    ".local",
-    "share",
-    "opencode",
-    "auth.json"
-  );
+  const authPath = path.join(homeDir, ".opencode-data", "auth.json");
   let env = createCliEnvironment({ cwd: homeDir, homeDir });
 
   beforeEach(() => {
@@ -114,16 +101,7 @@ describe("opencode service", () => {
     expect(config).toEqual({
       $schema: "https://opencode.ai/config.json",
       model: DEFAULT_PROVIDER_MODEL,
-      provider: {
-        [PROVIDER_NAME]: {
-          npm: "@ai-sdk/openai-compatible",
-          name: "poe.com",
-          options: {
-            baseURL: "https://api.poe.com/v1"
-          },
-          models: expectedFrontierModels
-        }
-      }
+      enabled_providers: [PROVIDER_NAME]
     });
 
     const auth = JSON.parse(await fs.readFile(authPath, "utf8"));
@@ -143,18 +121,14 @@ describe("opencode service", () => {
     expect(config.model).toBe(withProviderPrefix(alternate));
   });
 
-  it("merges with existing config and preserves other providers", async () => {
+  it("merges with existing config and preserves other settings", async () => {
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(
       configPath,
       JSON.stringify(
         {
-          provider: {
-            local: {
-              name: "local",
-              models: ["foo"]
-            }
-          }
+          theme: "dark",
+          customSetting: true
         },
         null,
         2
@@ -164,14 +138,9 @@ describe("opencode service", () => {
     await configureOpenCode();
 
     const config = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(config.provider.local).toEqual({
-      name: "local",
-      models: ["foo"]
-    });
-    expect(config.provider[PROVIDER_NAME]).toMatchObject({
-      npm: "@ai-sdk/openai-compatible",
-      models: expectedFrontierModels
-    });
+    expect(config.theme).toBe("dark");
+    expect(config.customSetting).toBe(true);
+    expect(config.enabled_providers).toEqual([PROVIDER_NAME]);
     expect(config.$schema).toBe("https://opencode.ai/config.json");
   });
 

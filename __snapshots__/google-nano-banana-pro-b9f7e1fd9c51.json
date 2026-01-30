@@ -1,0 +1,21 @@
+{
+  "key": "google-nano-banana-pro-b9f7e1fd9c51",
+  "request": {
+    "model": "google/nano-banana-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "A golden retriever sitting on a red couch."
+      }
+    ],
+    "type": "image"
+  },
+  "response": {
+    "url": "https://pfst.cf2.poecdn.net/base/image/ffd59379c79a7975a771613704ecf8593940f2a35b0f8b90e59646673d1bf059?w=1408&h=768"
+  },
+  "metadata": {
+    "recordedAt": "2026-01-30T17:53:09.895Z",
+    "model": "google/nano-banana-pro",
+    "type": "image"
+  }
+}

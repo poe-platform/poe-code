@@ -3,9 +3,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
-  id-token: write
+  actions: write
 jobs:
   promote:
     runs-on: ubuntu-latest
@@ -33,9 +31,7 @@ jobs:
           git fetch origin main
           git rebase origin/main
           git push origin beta:main
-  release:
-    needs: promote
-    uses: ./.github/workflows/release.yml
-    with:
-      branch: main
-    secrets: inherit
+      - name: Trigger release workflow
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: gh workflow run release.yml -f branch=main

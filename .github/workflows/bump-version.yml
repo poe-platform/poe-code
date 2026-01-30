@@ -23,9 +23,7 @@ on:
           - main
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
-  id-token: write
+  actions: write
 jobs:
   bump:
     runs-on: ubuntu-latest
@@ -77,9 +75,7 @@ jobs:
 
           git commit --allow-empty -m "$COMMIT_MSG"
           git push origin ${{ inputs.target_branch }}
-  release:
-    needs: bump
-    uses: ./.github/workflows/release.yml
-    with:
-      branch: ${{ inputs.target_branch }}
-    secrets: inherit
+      - name: Trigger release workflow
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: gh workflow run release.yml -f branch=${{ inputs.target_branch }}

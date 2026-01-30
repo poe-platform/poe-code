@@ -1,17 +1,21 @@
 name: Release
-# Note: workflow_call is needed because pushes made with GitHub App tokens
+# Note: workflow_dispatch is needed because pushes made with GitHub App tokens
 # don't trigger other workflows (to prevent infinite loops). Workflows like
-# bump-version and promote-beta-to-stable must explicitly call this workflow.
+# bump-version and promote-beta-to-stable use `gh workflow run` to trigger this.
 on:
   push:
     branches:
       - main
       - beta
-  workflow_call:
+  workflow_dispatch:
     inputs:
       branch:
+        description: Target branch to release
         required: true
-        type: string
+        type: choice
+        options:
+          - main
+          - beta
 permissions:
   contents: write
   issues: write
@@ -24,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: beta
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -50,6 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4

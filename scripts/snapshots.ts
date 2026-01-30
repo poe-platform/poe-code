@@ -97,8 +97,31 @@ program
   .command("list")
   .description("List all snapshots")
   .option("--model <model>", "Filter by model name")
-  .action(async (options?: { model?: string }) => {
+  .option("--stale", "List stale snapshots (requires running tests with POE_SNAPSHOT_MODE=playback first)")
+  .action(async (options?: { model?: string; stale?: boolean }) => {
     const snapshotDir = resolveSnapshotDir();
+
+    if (options?.stale) {
+      const accessedKeys = await loadAccessedKeys(snapshotDir);
+      if (!accessedKeys) {
+        console.error("No accessed keys file found. Run tests with POE_SNAPSHOT_MODE=playback first.");
+        process.exitCode = 1;
+        return;
+      }
+
+      const stale = await findStaleSnapshots(fs as unknown as any, snapshotDir, accessedKeys);
+      if (stale.length === 0) {
+        console.log("No stale snapshots found.");
+        return;
+      }
+
+      console.log(`Found ${stale.length} stale snapshot${stale.length === 1 ? "" : "s"}:`);
+      for (const staleKey of stale) {
+        console.log(`  ${staleKey}`);
+      }
+      return;
+    }
+
     const summaries = await listSnapshots(fs as any, snapshotDir, {
       model: options?.model
     });
@@ -150,24 +173,11 @@ program
         return;
       }
 
-      const stale = await findStaleSnapshots(fs as unknown as any, snapshotDir, accessedKeys);
-      if (stale.length === 0) {
+      const pruned = await pruneSnapshots(fs as unknown as any, snapshotDir, accessedKeys);
+      if (pruned.length === 0) {
         console.log("No stale snapshots found.");
         return;
       }
-
-      console.log(`Found ${stale.length} stale snapshot${stale.length === 1 ? "" : "s"}:`);
-      for (const staleKey of stale) {
-        console.log(`  ${staleKey}`);
-      }
-
-      const confirmed = await confirm(`Delete ${stale.length} stale snapshot${stale.length === 1 ? "" : "s"}?`);
-      if (!confirmed) {
-        console.log("Delete cancelled.");
-        return;
-      }
-
-      const pruned = await pruneSnapshots(fs as unknown as any, snapshotDir, accessedKeys);
       console.log(`Deleted ${pruned.length} snapshot${pruned.length === 1 ? "" : "s"}.`);
       return;
     }

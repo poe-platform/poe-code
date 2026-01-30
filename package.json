@@ -27,7 +27,8 @@
     "snapshots:list": "npm run snapshots -- list",
     "snapshots:refresh": "npm run snapshots -- refresh",
     "snapshots:delete": "npm run snapshots -- delete",
-    "snapshots:delete-stale": "npm run snapshots -- delete --stale"
+    "snapshots:list:stale": "npm run snapshots -- list --stale",
+    "snapshots:delete:stale": "npm run snapshots -- delete --stale"
   },
   "bin": {
     "poe-code": "dist/index.js",

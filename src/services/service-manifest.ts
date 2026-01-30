@@ -14,7 +14,8 @@ import {
   parseTomlDocument,
   serializeTomlDocument,
   mergeTomlTables,
-  type TomlTable
+  type TomlTable,
+  type TomlMergeOptions
 } from "../utils/toml.js";
 
 type ValueResolver<Options, Value> =
@@ -318,6 +319,7 @@ export function tomlMergeMutation<Options>(config: {
   targetDirectory?: ValueResolver<Options, string>;
   targetFile?: ValueResolver<Options, string>;
   value: ValueResolver<Options, TomlTable>;
+  pruneByPrefix?: TomlMergeOptions["pruneByPrefix"];
   label?: ValueResolver<Options, string | undefined>;
 }): ServiceMutation<Options> {
   return {
@@ -332,7 +334,10 @@ export function tomlMergeMutation<Options>(config: {
         targetPath
       });
       const desired = resolveValue(config.value, context);
-      const merged = mergeTomlTables(current, desired);
+      const mergeOptions: TomlMergeOptions = config.pruneByPrefix
+        ? { pruneByPrefix: config.pruneByPrefix }
+        : {};
+      const merged = mergeTomlTables(current, desired, mergeOptions);
       const serialized = serializeTomlDocument(merged);
       const previous = content ?? "";
       return {

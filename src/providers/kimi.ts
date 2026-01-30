@@ -4,13 +4,13 @@ import {
 } from "../utils/command-checks.js";
 import {
   ensureDirectory,
-  jsonMergeMutation,
-  jsonPruneMutation
+  tomlMergeMutation,
+  tomlPruneMutation
 } from "../services/service-manifest.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import { KIMI_MODELS, DEFAULT_KIMI_MODEL, PROVIDER_NAME } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
-import type { JsonObject } from "../utils/json.js";
+import type { TomlTable } from "../utils/toml.js";
 import type {
   ProviderSpawnOptions,
   ModelConfigureOptions,
@@ -91,9 +91,10 @@ export const kimiService = createProvider<
         ensureDirectory({
           targetDirectory: "~/.kimi"
         }),
-        jsonMergeMutation({
+        tomlMergeMutation({
           targetDirectory: "~/.kimi",
-          targetFile: "config.json",
+          targetFile: "config.toml",
+          pruneByPrefix: { models: `${PROVIDER_NAME}/` },
           value: ({ options }) => {
             const { model, apiKey, env } = (options ?? {}) as {
               model?: string;
@@ -101,15 +102,20 @@ export const kimiService = createProvider<
               env: { poeApiBaseUrl: string };
             };
             const selectedModel = model ?? DEFAULT_KIMI_MODEL;
+
+            const models: TomlTable = {};
+            for (const m of KIMI_MODELS) {
+              models[providerModel(m)] = {
+                provider: PROVIDER_NAME,
+                model: m,
+                max_context_size: 256000
+              };
+            }
+
             return {
               default_model: providerModel(selectedModel),
-              models: {
-                [providerModel(selectedModel)]: {
-                  provider: PROVIDER_NAME,
-                  model: selectedModel,
-                  max_context_size: 256000
-                }
-              },
+              default_thinking: true,
+              models,
               providers: {
                 [PROVIDER_NAME]: {
                   type: "openai_legacy",
@@ -122,14 +128,27 @@ export const kimiService = createProvider<
         })
     ],
     unconfigure: [
-        jsonPruneMutation({
+        tomlPruneMutation({
           targetDirectory: "~/.kimi",
-          targetFile: "config.json",
-          shape: (): JsonObject => ({
-            providers: {
-              [PROVIDER_NAME]: true
+          targetFile: "config.toml",
+          prune: (document) => {
+            const providers = document.providers as TomlTable | undefined;
+            if (!providers || typeof providers !== "object") {
+              return { changed: false, result: document };
             }
-          })
+            if (!(PROVIDER_NAME in providers)) {
+              return { changed: false, result: document };
+            }
+            const { [PROVIDER_NAME]: ignoredProvider, ...rest } = providers;
+            void ignoredProvider;
+            const updatedProviders = rest as TomlTable;
+            if (Object.keys(updatedProviders).length === 0) {
+              const { providers: ignoredProviders, ...docWithoutProviders } = document;
+              void ignoredProviders;
+              return { changed: true, result: docWithoutProviders };
+            }
+            return { changed: true, result: { ...document, providers: updatedProviders } };
+          }
         })
     ]
   },

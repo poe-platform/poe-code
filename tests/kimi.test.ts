@@ -12,6 +12,7 @@ import { createCliEnvironment } from "../src/cli/environment.js";
 import { createTestCommandContext } from "./test-command-context.js";
 import type { ProviderContext } from "../src/cli/service-registry.js";
 import { createLoggerFactory } from "../src/cli/logger.js";
+import { parseTomlDocument, serializeTomlDocument } from "../src/utils/toml.js";
 
 function createMemFs(): { fs: FileSystem; vol: Volume } {
   const vol = new Volume();
@@ -28,7 +29,7 @@ describe("kimi service", () => {
   let fs: FileSystem;
   let vol: Volume;
   const homeDir = "/home/user";
-  const configPath = path.join(homeDir, ".kimi", "config.json");
+  const configPath = path.join(homeDir, ".kimi", "config.toml");
   let env = createCliEnvironment({ cwd: homeDir, homeDir });
 
   it("advertises kimi-cli as an alias", () => {
@@ -122,22 +123,20 @@ describe("kimi service", () => {
   it("creates the kimi config file with default model", async () => {
     await configureKimi();
 
-    const config = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(config).toEqual({
-      default_model: DEFAULT_PROVIDER_MODEL,
-      models: {
-        [DEFAULT_PROVIDER_MODEL]: {
-          provider: PROVIDER_NAME,
-          model: DEFAULT_KIMI_MODEL,
-          max_context_size: 256000
-        }
-      },
-      providers: {
-        [PROVIDER_NAME]: {
-          type: "openai_legacy",
-          base_url: "https://api.poe.com/v1",
-          api_key: "sk-test"
-        }
+    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    expect(config.default_model).toBe(DEFAULT_PROVIDER_MODEL);
+    expect(config.providers).toMatchObject({
+      [PROVIDER_NAME]: {
+        type: "openai_legacy",
+        base_url: "https://api.poe.com/v1",
+        api_key: "sk-test"
+      }
+    });
+    expect(config.models).toMatchObject({
+      [DEFAULT_PROVIDER_MODEL]: {
+        provider: PROVIDER_NAME,
+        model: DEFAULT_KIMI_MODEL,
+        max_context_size: 256000
       }
     });
   });
@@ -146,9 +145,10 @@ describe("kimi service", () => {
     const alternate = KIMI_MODELS[KIMI_MODELS.length - 1]!;
     await configureKimi({ model: alternate });
 
-    const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
     expect(config.default_model).toBe(withProviderPrefix(alternate));
-    expect(config.models[withProviderPrefix(alternate)]).toEqual({
+    const models = config.models as Record<string, unknown>;
+    expect(models[withProviderPrefix(alternate)]).toEqual({
       provider: PROVIDER_NAME,
       model: alternate,
       max_context_size: 256000
@@ -159,77 +159,113 @@ describe("kimi service", () => {
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(
       configPath,
-      JSON.stringify(
-        {
-          providers: {
-            local: {
-              type: "openai_legacy",
-              base_url: "http://localhost:8080",
-              api_key: "local-key"
-            }
-          },
-          models: {
-            "local/test-model": {
-              provider: "local",
-              model: "test-model",
-              max_context_size: 4096
-            }
+      serializeTomlDocument({
+        providers: {
+          local: {
+            type: "openai_legacy",
+            base_url: "http://localhost:8080",
+            api_key: "local-key"
           }
         },
-        null,
-        2
-      )
+        models: {
+          "local/test-model": {
+            provider: "local",
+            model: "test-model",
+            max_context_size: 4096
+          }
+        }
+      })
     );
 
     await configureKimi();
 
-    const config = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(config.providers.local).toEqual({
+    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const providers = config.providers as Record<string, unknown>;
+    const models = config.models as Record<string, unknown>;
+    expect(providers.local).toEqual({
       type: "openai_legacy",
       base_url: "http://localhost:8080",
       api_key: "local-key"
     });
-    expect(config.providers[PROVIDER_NAME]).toMatchObject({
+    expect(providers[PROVIDER_NAME]).toMatchObject({
       type: "openai_legacy",
       base_url: "https://api.poe.com/v1",
       api_key: "sk-test"
     });
-    expect(config.models["local/test-model"]).toEqual({
+    expect(models["local/test-model"]).toEqual({
       provider: "local",
       model: "test-model",
       max_context_size: 4096
     });
   });
 
-  it("replaces the Poe provider entry while keeping other providers", async () => {
+  it("prunes stale poe models while preserving other provider models", async () => {
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(
       configPath,
-      JSON.stringify(
-        {
-          providers: {
-            poe: {
-              type: "openai_legacy",
-              base_url: "https://api.poe.com/v1",
-              api_key: "old-key"
-            },
-            openai: {
-              type: "openai_legacy",
-              base_url: "https://api.openai.com/v1",
-              api_key: "openai-key"
-            }
+      serializeTomlDocument({
+        default_model: "poe/Old-Model",
+        models: {
+          "poe/Old-Model": {
+            provider: "poe",
+            model: "Old-Model",
+            max_context_size: 128000
+          },
+          "local/test-model": {
+            provider: "local",
+            model: "test-model",
+            max_context_size: 4096
           }
         },
-        null,
-        2
-      )
+        providers: {
+          poe: {
+            type: "openai_legacy",
+            base_url: "https://api.poe.com/v1",
+            api_key: "old-key"
+          }
+        }
+      })
     );
 
     await configureKimi();
 
-    const config = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(config.providers[PROVIDER_NAME].api_key).toBe("sk-test");
-    expect(config.providers.openai).toEqual({
+    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const models = config.models as Record<string, unknown>;
+
+    expect(models["poe/Old-Model"]).toBeUndefined();
+    expect(models["local/test-model"]).toBeDefined();
+
+    for (const m of KIMI_MODELS) {
+      expect(models[withProviderPrefix(m)]).toBeDefined();
+    }
+  });
+
+  it("replaces the Poe provider entry while keeping other providers", async () => {
+    await fs.mkdir(path.dirname(configPath), { recursive: true });
+    await fs.writeFile(
+      configPath,
+      serializeTomlDocument({
+        providers: {
+          poe: {
+            type: "openai_legacy",
+            base_url: "https://api.poe.com/v1",
+            api_key: "old-key"
+          },
+          openai: {
+            type: "openai_legacy",
+            base_url: "https://api.openai.com/v1",
+            api_key: "openai-key"
+          }
+        }
+      })
+    );
+
+    await configureKimi();
+
+    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const providers = config.providers as Record<string, Record<string, unknown>>;
+    expect(providers[PROVIDER_NAME].api_key).toBe("sk-test");
+    expect(providers.openai).toEqual({
       type: "openai_legacy",
       base_url: "https://api.openai.com/v1",
       api_key: "openai-key"
@@ -330,13 +366,15 @@ describe("kimi service", () => {
   it("removes the Poe provider from config on remove", async () => {
     await configureKimi();
 
-    const before = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(before.providers[PROVIDER_NAME]).toBeDefined();
+    const before = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const beforeProviders = before.providers as Record<string, unknown>;
+    expect(beforeProviders[PROVIDER_NAME]).toBeDefined();
 
     const removed = await unconfigureKimi();
     expect(removed).toBe(true);
 
-    const after = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(after.providers?.[PROVIDER_NAME]).toBeUndefined();
+    const after = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const afterProviders = after.providers as Record<string, unknown> | undefined;
+    expect(afterProviders?.[PROVIDER_NAME]).toBeUndefined();
   });
 });

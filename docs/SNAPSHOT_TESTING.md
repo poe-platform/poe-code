@@ -40,6 +40,9 @@ Record and replay LLM API responses for deterministic tests.
 
 4. **Delete stale snapshots** - Remove unused snapshots after refactoring:
 
+Check for sanity
+
    ```bash
-   npm run snapshots:delete-stale
+   npm run snapshots:list:stale - list stale snapshots
+   npm run snapshots:delete:stale - delete stale snapshots (no confirmation)
    ```

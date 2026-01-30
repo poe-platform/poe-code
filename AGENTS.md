@@ -28,6 +28,10 @@ Use `npm run lint:workflows`
   - Exception is snapshots, snapshots should be created on disk
 - Tests must not query LLM - use abstraction to mock this reliably across all files
 
+## Testing LLMs
+
+Use docs/SNAPSHOT_TESTING.md
+
 ## Commits
 
 - Commit every atomic change, once the tests are green - npm run test, npm run lint

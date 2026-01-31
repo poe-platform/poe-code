@@ -7,7 +7,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["tests/**/*.test.ts"],
+    include: [
+      "src/**/*.test.ts",              // Collocated unit tests
+      "tests/integration/**/*.test.ts" // Integration tests
+    ],
     setupFiles: ["tests/setup.ts"]
   }
 });

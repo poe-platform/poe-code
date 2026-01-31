@@ -8,7 +8,8 @@ export default defineConfig({
   resolve: {
     alias: {
       // TODO: Remove when turborepo is added
-      "@poe-code/agent-defs": path.resolve(__dirname, "packages/agent-defs/src/index.ts")
+      "@poe-code/agent-defs": path.resolve(__dirname, "packages/agent-defs/src/index.ts"),
+      "@poe-code/design-system": path.resolve(__dirname, "packages/design-system/src/index.ts")
     }
   },
   test: {

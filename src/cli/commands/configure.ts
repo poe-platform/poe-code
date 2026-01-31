@@ -8,7 +8,7 @@ import {
   resolveServiceAdapter,
   applyIsolatedConfiguration
 } from "./shared.js";
-import { createCliDesignLanguage } from "../ui/design-language.js";
+import { createCliCopy } from "../ui/design-language.js";
 import { OperationCancelledError } from "../errors.js";
 import { saveConfiguredService } from "../../services/credentials.js";
 import {
@@ -213,9 +213,9 @@ export async function resolveServiceArgument(
     title: service.label,
     value: service.name
   }));
-  const design = createCliDesignLanguage(container.env);
+  const copy = createCliCopy();
   const descriptor = container.promptLibrary.serviceSelection({
-    message: design.copy.serviceSelection(action),
+    message: copy.serviceSelection(action),
     choices
   });
   const response = await container.prompts(descriptor);

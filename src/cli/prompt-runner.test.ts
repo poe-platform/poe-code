@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { createPromptRunner } from "./prompt-runner.js";
-import color from "picocolors";
 import { OperationCancelledError } from "./errors.js";
 
 const createAdapter = () => ({
@@ -12,13 +11,6 @@ const createAdapter = () => ({
 });
 
 describe("createPromptRunner", () => {
-  it("forces prompt symbols to use purple instead of green", () => {
-    const adapter = createAdapter();
-    createPromptRunner(adapter);
-
-    expect(color.green).toBe(color.magenta);
-  });
-
   it("uses the adapter for text prompts", async () => {
     const adapter = createAdapter();
     adapter.text.mockResolvedValue("hello");

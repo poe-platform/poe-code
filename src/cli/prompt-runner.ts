@@ -5,7 +5,6 @@ import {
   select,
   text
 } from "@clack/prompts";
-import color from "picocolors";
 import { OperationCancelledError } from "./errors.js";
 import type { PromptDescriptor } from "./prompts.js";
 import type { PromptFn } from "./types.js";
@@ -16,19 +15,6 @@ export interface PromptAdapter {
   select: typeof select;
   isCancel: typeof isCancel;
   cancel: typeof cancel;
-}
-
-let promptColorsPatched = false;
-
-function patchPromptColors(): void {
-  if (promptColorsPatched) {
-    return;
-  }
-  const palette = color as typeof color & {
-    green: typeof color.magenta;
-  };
-  palette.green = palette.magenta;
-  promptColorsPatched = true;
 }
 
 function toInitialValue(value: PromptDescriptor["initial"]): string | undefined {
@@ -59,7 +45,6 @@ export function createPromptRunner(
     cancel
   }
 ): PromptFn {
-  patchPromptColors();
   const runPrompt = async (
     descriptor: PromptDescriptor
   ): Promise<string | number> => {

@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { Command } from "commander";
 import { intro, outro, spinner } from "@clack/prompts";
+import { text } from "@poe-code/design-system";
 import type { CliContainer } from "../container.js";
 import {
   DEFAULT_TEXT_MODEL,
@@ -9,7 +10,6 @@ import {
   DEFAULT_VIDEO_BOT
 } from "../constants.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
-import { createCliDesignLanguage } from "../ui/design-language.js";
 import { getGlobalClient, initializeClient } from "../../services/client-instance.js";
 import type { LlmClient } from "../../services/llm-client.js";
 import { downloadToFile, MediaDownloadError } from "../../services/media-download.js";
@@ -58,8 +58,7 @@ export function registerGenerateCommand(
     .action(async function (this: Command, promptArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "generate");
-      const design = createCliDesignLanguage(container.env);
-      const prompt = ensurePrompt(promptArg, { type: "text", isDefault: true });
+            const prompt = ensurePrompt(promptArg, { type: "text", isDefault: true });
 
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
@@ -72,7 +71,7 @@ export function registerGenerateCommand(
         return;
       }
 
-      intro(design.text.intro("generate"));
+      intro(text.intro("generate"));
       const client = await resolveClient(container);
       const response = await withSpinner({
         message: `Generating with ${model}...`,
@@ -100,8 +99,7 @@ export function registerGenerateCommand(
     .action(async function (this: Command, promptArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "generate");
-      const design = createCliDesignLanguage(container.env);
-      const prompt = ensurePrompt(promptArg, { type: "text", isDefault: false });
+            const prompt = ensurePrompt(promptArg, { type: "text", isDefault: false });
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
       const model = resolveModel("text", opts, container.env.variables);
@@ -113,7 +111,7 @@ export function registerGenerateCommand(
         return;
       }
 
-      intro(design.text.intro("generate text"));
+      intro(text.intro("generate text"));
       const client = await resolveClient(container);
       const response = await withSpinner({
         message: `Generating with ${model}...`,
@@ -154,8 +152,7 @@ function registerMediaSubcommand(
     .action(async function (this: Command, promptArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "generate");
-      const design = createCliDesignLanguage(container.env);
-      const prompt = ensurePrompt(promptArg, { type, isDefault: false });
+            const prompt = ensurePrompt(promptArg, { type, isDefault: false });
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
       const model = resolveModel(type, opts, container.env.variables);
@@ -167,7 +164,7 @@ function registerMediaSubcommand(
         return;
       }
 
-      intro(design.text.intro(`generate ${type}`));
+      intro(text.intro(`generate ${type}`));
       const client = await resolveClient(container);
 
       const saved = await withSpinner({

@@ -7,9 +7,9 @@ import type { ProviderService } from "../service-registry.js";
 import { registerUnconfigureCommand } from "./unconfigure.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
 import type {
-  MutationLogDetails,
-  ServiceMutationOutcome
-} from "../services/service-manifest.js";
+  MutationDetails,
+  MutationOutcome
+} from "@poe-code/config-mutations";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -91,13 +91,13 @@ describe("unconfigure command", () => {
       }
     });
 
-    const details: MutationLogDetails = {
+    const details: MutationDetails = {
       manifestId: "test-service",
       kind: "transformFile",
       label: "Transform file /home/test/.config/opencode/config.json",
       targetPath: "/home/test/.config/opencode/config.json"
     };
-    const outcome: ServiceMutationOutcome = {
+    const outcome: MutationOutcome = {
       changed: true,
       effect: "delete",
       detail: "delete"

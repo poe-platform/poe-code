@@ -1,13 +1,13 @@
 import type { ScopedLogger } from "../cli/logger.js";
 import type {
-  MutationLogDetails,
-  ServiceMutationObservers,
-  ServiceMutationOutcome
-} from "./service-manifest.js";
+  MutationDetails,
+  MutationObservers,
+  MutationOutcome
+} from "@poe-code/config-mutations";
 
 export function createMutationReporter(
   logger: ScopedLogger
-): ServiceMutationObservers {
+): MutationObservers {
   return {
     onComplete(details, outcome) {
       logger.verbose(formatMutationMessage(details, outcome));
@@ -21,10 +21,10 @@ export function createMutationReporter(
 }
 
 export function combineMutationObservers(
-  ...observers: Array<ServiceMutationObservers | undefined>
-): ServiceMutationObservers | undefined {
+  ...observers: Array<MutationObservers | undefined>
+): MutationObservers | undefined {
   const active = observers.filter(
-    (observer): observer is ServiceMutationObservers => observer != null
+    (observer): observer is MutationObservers => observer != null
   );
   if (active.length === 0) {
     return undefined;
@@ -49,14 +49,14 @@ export function combineMutationObservers(
 }
 
 function formatMutationMessage(
-  details: MutationLogDetails,
-  outcome: ServiceMutationOutcome
+  details: MutationDetails,
+  outcome: MutationOutcome
 ): string {
   const status = describeOutcome(outcome);
   return `${details.label}: ${status}`;
 }
 
-function describeOutcome(outcome: ServiceMutationOutcome): string {
+function describeOutcome(outcome: MutationOutcome): string {
   if (outcome.changed) {
     return outcome.detail ?? outcome.effect;
   }

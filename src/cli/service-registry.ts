@@ -7,10 +7,18 @@ import type {
   ModelPromptInput,
   ReasoningPromptInput
 } from "./prompts.js";
-import type {
-  ServiceRunOptions,
-  ServiceManifestPathMapper
-} from "../services/service-manifest.js";
+import type { MutationObservers } from "@poe-code/config-mutations";
+
+export interface ServiceManifestPathMapper {
+  mapTargetDirectory: (input: {
+    targetDirectory: string;
+    env: CliEnvironment;
+  }) => string;
+}
+
+export interface ServiceRunOptions {
+  observers?: MutationObservers;
+}
 
 export interface ProviderColorSet {
   light?: string;

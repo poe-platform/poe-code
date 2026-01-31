@@ -16,7 +16,7 @@ import {
   combineMutationObservers,
   createMutationReporter
 } from "../../services/mutation-events.js";
-import type { ServiceMutationObservers } from "../../services/service-manifest.js";
+import type { MutationObservers } from "@poe-code/config-mutations";
 import { createConfigurePayload } from "./configure-payload.js";
 import type { ProviderService } from "../service-registry.js";
 
@@ -161,11 +161,11 @@ export async function executeConfigure(
 }
 
 function createMutationTracker(): {
-  observers: ServiceMutationObservers;
+  observers: MutationObservers;
   files(): string[];
 } {
   const targets = new Set<string>();
-  const observers: ServiceMutationObservers = {
+  const observers: MutationObservers = {
     onComplete(details, outcome) {
       if (!outcome.changed || !details.targetPath) {
         return;

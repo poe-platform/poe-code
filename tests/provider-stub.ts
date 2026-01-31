@@ -1,8 +1,8 @@
 import type {
   ProviderService,
-  ServiceExecutionContext
+  ServiceExecutionContext,
+  ServiceRunOptions
 } from "../src/cli/service-registry.js";
-import type { ServiceRunOptions } from "../src/services/service-manifest.js";
 
 export function createProviderStub<
   ConfigureOptions = unknown,

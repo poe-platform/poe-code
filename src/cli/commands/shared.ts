@@ -11,7 +11,7 @@ import {
 } from "../context.js";
 import type { ScopedLogger } from "../logger.js";
 import type { CommandCheck } from "../../utils/command-checks.js";
-import type { ServiceMutationObservers } from "../../services/service-manifest.js";
+import type { MutationObservers } from "@poe-code/config-mutations";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
 
 export interface CommandFlags {
@@ -115,7 +115,7 @@ export async function applyIsolatedConfiguration(input: {
   payload: unknown;
   isolated: ProviderIsolatedEnv;
   providerName: string;
-  observers?: ServiceMutationObservers;
+  observers?: MutationObservers;
 }): Promise<void> {
   await input.adapter.configure(
     {

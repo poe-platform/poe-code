@@ -283,9 +283,11 @@ export function runInContainer(commands: string[], options: { verbose?: boolean 
     env.POE_API_KEY = apiKey;
   }
 
+  // In verbose mode, use file descriptor 2 (stderr) directly for real-time output
+  // This bypasses vitest's output buffering
   const result = spawnSync(runConfig.engine, dockerArgs, {
     env,
-    stdio: verbose ? 'inherit' : 'pipe',
+    stdio: verbose ? ['inherit', 2, 2] : 'pipe',
     encoding: 'utf-8',
   });
 

@@ -41,7 +41,7 @@ function providerModel(model: string): string {
 }
 
 function buildKimiArgs(prompt: string, extraArgs?: string[]): string[] {
-  return ["--print", "-p", prompt, ...(extraArgs ?? [])];
+  return ["--quiet", "-p", prompt, ...(extraArgs ?? [])];
 }
 
 export const kimiService = createProvider<
@@ -65,6 +65,14 @@ export const kimiService = createProvider<
   mcp: {
     configFile: "~/.kimi/mcp.json",
     configKey: "mcpServers"
+  },
+  isolatedEnv: {
+    // Use "kimi-cli" to avoid stripAgentHome stripping ".kimi" from paths
+    agentBinary: "kimi-cli",
+    configProbe: { kind: "isolatedFile", relativePath: ".kimi/config.toml" },
+    env: {
+      HOME: { kind: "isolatedDir" }
+    }
   },
   test(context) {
     return context.runCheck(

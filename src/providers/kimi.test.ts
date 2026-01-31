@@ -296,7 +296,7 @@ describe("kimi service", () => {
     });
 
     expect(runCommand).toHaveBeenCalledWith("kimi", [
-      "--print",
+      "--quiet",
       "-p",
       "List all files",
       "--format",
@@ -320,7 +320,7 @@ describe("kimi service", () => {
     await kimiService.kimiService.test?.(context);
 
     expect(runCommand).toHaveBeenCalledWith("kimi", [
-      "--print",
+      "--quiet",
       "-p",
       "Output exactly: KIMI_OK"
     ]);
@@ -337,7 +337,7 @@ describe("kimi service", () => {
     expect(runCommand).not.toHaveBeenCalled();
     expect(
       logs.find((line) =>
-        line.includes('kimi --print -p "Output exactly: KIMI_OK"')
+        line.includes('kimi --quiet -p "Output exactly: KIMI_OK"')
       )
     ).toBeTruthy();
   });

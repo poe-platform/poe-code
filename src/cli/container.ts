@@ -25,7 +25,7 @@ import {
 import { ErrorLogger } from "./error-logger.js";
 import { createDefaultCommandRunner } from "./command-runner.js";
 import type { PromptFn, LoggerFn } from "./types.js";
-import { createMenuTheme } from "./ui/theme.js";
+import { text, symbols } from "@poe-code/design-system";
 import type { HttpClient } from "./http.js";
 import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";
@@ -73,10 +73,9 @@ export function createCliContainer(
     variables: dependencies.env.variables
   });
 
-  const menuTheme = createMenuTheme(environment);
   const loggerFactory = createLoggerFactory(dependencies.logger, {
-    intro: menuTheme.palette.intro,
-    resolvedSymbol: menuTheme.palette.resolvedSymbol
+    intro: text.intro,
+    resolvedSymbol: symbols.resolved
   });
 
   // Create error logger - use node:fs for sync operations

@@ -2,16 +2,8 @@
 import chalk from "chalk";
 import process from "node:process";
 import { intro, log, note, outro } from "@clack/prompts";
-import { createCliDesignLanguage } from "../src/cli/ui/design-language.js";
+import { text, symbols, renderSpinnerFrame, renderSpinnerStopped } from "@poe-code/design-system";
 import { renderUnifiedDiff } from "../src/utils/dry-run.js";
-import { renderSpinnerFrame, renderSpinnerStopped } from "../src/cli/ui/clack-static.js";
-import type { CliEnvironment } from "../src/cli/environment.js";
-
-const env: CliEnvironment = {
-  getVariable: (name: string) => process.env[name]
-};
-
-const design = createCliDesignLanguage(env);
 
 type DemoType =
   | "intro"
@@ -36,10 +28,10 @@ type DemoType =
   | "layout"
   | "layout-expanded";
 
-function runTextDemo(style: string, text: string): void {
-  const styleFn = design.text[style as keyof typeof design.text];
+function runTextDemo(style: string, content: string): void {
+  const styleFn = text[style as keyof typeof text];
   if (typeof styleFn === "function") {
-    log.message(styleFn(text), { symbol: chalk.gray("│") });
+    log.message(styleFn(content), { symbol: chalk.gray("│") });
   } else {
     process.stderr.write(`Unknown style: ${style}\n`);
     process.exitCode = 1;
@@ -47,9 +39,9 @@ function runTextDemo(style: string, text: string): void {
 }
 
 function runSymbolDemo(symbolName: string): void {
-  const symbol = design.symbols[symbolName as keyof typeof design.symbols];
+  const symbol = symbols[symbolName as keyof typeof symbols];
   if (symbol) {
-    log.message(symbolName, { symbol });
+    log.message(symbolName, { symbol: String(symbol) });
   } else {
     process.stderr.write(`Unknown symbol: ${symbolName}\n`);
     process.exitCode = 1;
@@ -59,10 +51,10 @@ function runSymbolDemo(symbolName: string): void {
 function runLogDemo(level: string): void {
   switch (level) {
     case "info":
-      log.message("Configuring claude-code...", { symbol: design.symbols.info });
+      log.message("Configuring claude-code...", { symbol: symbols.info });
       break;
     case "success":
-      log.message("Configuration complete!", { symbol: design.symbols.success });
+      log.message("Configuration complete!", { symbol: symbols.success });
       break;
     case "warn":
       log.warn("API key expires in 7 days");
@@ -91,7 +83,6 @@ function runDiffDemo(): void {
 }
 
 function runMenuDemo(): void {
-  // Simulate Clack select appearance
   const selected = chalk.magenta("●");
   const unselected = chalk.dim("○");
   const bar = chalk.gray("│");
@@ -103,8 +94,8 @@ function runMenuDemo(): void {
   process.stdout.write(`${chalk.gray("└")}\n`);
 }
 
-function runIntroDemo(text: string): void {
-  intro(design.text.intro(text));
+function runIntroDemo(content: string): void {
+  intro(text.intro(content));
 }
 
 function runNoteDemo(): void {
@@ -120,7 +111,7 @@ function runOutroDemo(): void {
 
 function runResolvedDemo(): void {
   log.message("API Key\n   poe-abc...xyz\n   Expires: 2026-12-31", {
-    symbol: design.symbols.resolved
+    symbol: symbols.resolved
   });
 }
 
@@ -128,20 +119,18 @@ function runErrorResolvedDemo(): void {
   log.message(
     "Configuration Failed\n   Missing API key\n   Check your .env file or run poe-code login",
     {
-      symbol: design.symbols.errorResolved
+      symbol: symbols.errorResolved
     }
   );
 }
 
 function runSpinnerDemo(indicator: "dots" | "timer"): void {
   const timer = indicator === "timer" ? "2s" : undefined;
-  // Show running state
   const running = renderSpinnerFrame({
     message: "Configuring claude-code...",
     timer: indicator === "timer" ? "1s" : undefined
   });
   process.stdout.write(running + "\n");
-  // Show resolved state with subtext
   const stopped = renderSpinnerStopped({
     message: "Configuration complete!",
     timer,
@@ -151,21 +140,19 @@ function runSpinnerDemo(indicator: "dots" | "timer"): void {
 }
 
 function runLayoutDemo(): void {
-  // Basic layout: intro → info messages → resolved prompts → outro
-  intro(design.text.intro("Configure"));
-  log.message("Configuring claude-code...", { symbol: design.symbols.info });
-  log.message("Provider\n   claude", { symbol: design.symbols.resolved });
-  log.message("API Key\n   poe-abc...xyz", { symbol: design.symbols.resolved });
+  intro(text.intro("Configure"));
+  log.message("Configuring claude-code...", { symbol: symbols.info });
+  log.message("Provider\n   claude", { symbol: symbols.resolved });
+  log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
   outro("Configuration complete.");
 }
 
 function runLayoutExpandedDemo(): void {
-  // Expanded layout: intro → resolved prompts → success → note → outro
-  intro(design.text.intro("configure claude-code"));
+  intro(text.intro("configure claude-code"));
   log.message("Claude Code default model\n   Claude-Opus-4.5", {
-    symbol: design.symbols.resolved
+    symbol: symbols.resolved
   });
-  log.message("Configured Claude Code.", { symbol: design.symbols.success });
+  log.message("Configured Claude Code.", { symbol: symbols.success });
   note(
     "If using VSCode - Open the Disable Login Prompt setting and check the box.\nvscode://settings/claudeCode.disableLoginPrompt",
     "Next steps."

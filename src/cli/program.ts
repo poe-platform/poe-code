@@ -5,10 +5,7 @@ import {
   type CliContainer,
   type CliDependencies
 } from "./container.js";
-import {
-  createCliDesignLanguage,
-  type CliDesignLanguage
-} from "./ui/design-language.js";
+import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
 import { registerWrapCommand } from "./commands/wrap.js";
@@ -23,9 +20,7 @@ import { registerVersionOption } from "./commands/version.js";
 const require = createRequire(import.meta.url);
 const packageJson = require("../../package.json") as { version: string };
 
-function formatHelpText(design: CliDesignLanguage): string {
-  const { text } = design;
-
+function formatHelpText(): string {
   const commandWidth = 11;
   const cmd = (name: string, args: string) => {
     const padded = name.padEnd(commandWidth);
@@ -85,10 +80,8 @@ function formatHelpText(design: CliDesignLanguage): string {
 
 function formatSubcommandHelp(
   cmd: Command,
-  helper: Help,
-  design: CliDesignLanguage
+  helper: Help
 ): string {
-  const { text } = design;
   const termWidth = helper.padWidth(cmd, helper);
   const itemIndentWidth = 2;
   const itemSeparatorWidth = 2;
@@ -199,7 +192,6 @@ export function createProgram(dependencies: CliDependencies): Command {
 
 function bootstrapProgram(container: CliContainer): Command {
   const program = new Command();
-  const design = createCliDesignLanguage(container.env);
   program
     .name("poe-code")
     .description("Configure Poe API integrations for local developer tooling.")
@@ -210,9 +202,9 @@ function bootstrapProgram(container: CliContainer): Command {
     .configureHelp({
       formatHelp: (cmd, helper) => {
         if (cmd.name() === "poe-code") {
-          return formatHelpText(design);
+          return formatHelpText();
         }
-        return formatSubcommandHelp(cmd, helper, design);
+        return formatSubcommandHelp(cmd, helper);
       }
     });
 

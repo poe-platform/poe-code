@@ -8,8 +8,9 @@ import {
   resolveServiceAdapter,
   applyIsolatedConfiguration
 } from "./shared.js";
-import { createCliCopy } from "../ui/design-language.js";
 import { OperationCancelledError } from "../errors.js";
+
+const serviceSelectionPrompt = (action: string) => `Pick an agent to ${action}:`;
 import { saveConfiguredService } from "../../services/credentials.js";
 import {
   combineMutationObservers,
@@ -213,9 +214,8 @@ export async function resolveServiceArgument(
     title: service.label,
     value: service.name
   }));
-  const copy = createCliCopy();
   const descriptor = container.promptLibrary.serviceSelection({
-    message: copy.serviceSelection(action),
+    message: serviceSelectionPrompt(action),
     choices
   });
   const response = await container.prompts(descriptor);

@@ -33,7 +33,7 @@
     "snapshots:list:stale": "npm run snapshots -- list --stale",
     "snapshots:delete:stale": "npm run snapshots -- delete --stale",
     "e2e": "vitest run --config e2e/vitest.config.ts",
-    "e2e:verbose": "vitest run --config e2e/vitest.config.ts --reporter=verbose",
+    "e2e:verbose": "E2E_VERBOSE=1 vitest run --config e2e/vitest.config.ts --reporter=verbose",
     "e2e:cleanup": "tsx packages/e2e-docker-test-runner/scripts/cleanup.ts",
     "e2e:logs": "tsx packages/e2e-docker-test-runner/scripts/logs.ts",
     "e2e:logs:rotate": "tsx packages/e2e-docker-test-runner/scripts/logs.ts --rotate",

@@ -249,7 +249,7 @@ function screenshotPath(name: string): string {
 
 function runScreenshot(name: string, demoArgs: string): void {
   const outputPath = screenshotPath(name);
-  const cmd = `npm run screenshot -- --no-header -o ${outputPath} tsx scripts/design-demo.ts ${demoArgs}`;
+  const cmd = `npm run screenshot -- --no-header -o ${outputPath} npm run demo -w @poe-code/design-system -- ${demoArgs}`;
   console.log(`Generating: ${name}`);
   execSync(cmd, { stdio: "inherit" });
 }

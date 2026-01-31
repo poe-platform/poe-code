@@ -41,7 +41,7 @@ function providerModel(model: string): string {
 }
 
 function buildKimiArgs(prompt: string, extraArgs?: string[]): string[] {
-  return [prompt, ...(extraArgs ?? [])];
+  return ["--print", "-p", prompt, ...(extraArgs ?? [])];
 }
 
 export const kimiService = createProvider<

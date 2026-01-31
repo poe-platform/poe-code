@@ -161,6 +161,14 @@ export function createBinaryExistsCheck(
     id,
     description,
     async run({ runCommand }) {
+      // Common installation paths for CLI tools
+      const commonPaths = [
+        `/usr/local/bin/${binaryName}`,
+        `/usr/bin/${binaryName}`,
+        `$HOME/.local/bin/${binaryName}`,
+        `$HOME/.claude/local/bin/${binaryName}`
+      ];
+
       const detectors: Array<{
         command: string;
         args: string[];
@@ -177,14 +185,13 @@ export function createBinaryExistsCheck(
           validate: (result) =>
             result.exitCode === 0 && result.stdout.trim().length > 0
         },
+        // Check common installation paths using shell expansion for $HOME
         {
-          command: "test",
-          args: ["-f", `/usr/local/bin/${binaryName}`],
-          validate: (result) => result.exitCode === 0
-        },
-        {
-          command: "ls",
-          args: [`/usr/local/bin/${binaryName}`],
+          command: "sh",
+          args: [
+            "-c",
+            commonPaths.map((p) => `test -f "${p}"`).join(" || ")
+          ],
           validate: (result) => result.exitCode === 0
         }
       ];

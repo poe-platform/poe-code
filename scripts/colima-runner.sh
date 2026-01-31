@@ -4,7 +4,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mount_target="${COLIMA_RUNNER_MOUNT:-/workspace}"
-image="${COLIMA_RUNNER_IMAGE:-node:latest}"
+image="${COLIMA_RUNNER_IMAGE:-node:22}"
 profile_env="${COLIMA_PROFILE:-}"
 profile="${profile_env:-default}"
 docker_args_env="${RUNNER_DOCKER_ARGS:-${COLIMA_DOCKER_ARGS:-}}"
@@ -146,6 +146,8 @@ container_commands=(
   "trap cleanup_build_dir EXIT"
   "rm -rf /root/* /root/.[!.]* /root/..?*"
   "mkdir -p /root/.poe-code/logs"
+  # Add common user binary paths to PATH for tools installed during the session
+  "export PATH=\"\$HOME/.local/bin:\$HOME/.claude/local/bin:\$PATH\""
   "tar -C \"\${workspace_dir}\" --exclude=node_modules --exclude=.git -cf - . | tar -C \"\${build_dir}\" -xf -"
   "cd \"\${build_dir}\""
   "npm install"

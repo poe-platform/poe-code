@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createProgram } from "../src/cli/program.js";
-import type { FileSystem } from "../src/utils/file-system.js";
+import { createProgram } from "../program.js";
+import type { FileSystem } from "../utils/file-system.js";
 
 function createMemFs(): FileSystem {
   const vol = new Volume();

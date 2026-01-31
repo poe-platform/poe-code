@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createProgram } from "../src/cli/program.js";
-import { setGlobalClient } from "../src/services/client-instance.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import type { LlmClient } from "../src/services/llm-client.js";
+import { createProgram } from "../program.js";
+import { setGlobalClient } from "../../services/client-instance.js";
+import type { FileSystem } from "../utils/file-system.js";
+import type { LlmClient } from "../services/llm-client.js";
 import {
   DEFAULT_IMAGE_BOT,
   DEFAULT_VIDEO_BOT,
   DEFAULT_AUDIO_BOT
-} from "../src/cli/constants.js";
+} from "../constants.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -87,7 +87,7 @@ describe("mcp server tools", () => {
   });
 
   it("generate_text uses client.text()", async () => {
-    const { generateText } = await import("../src/cli/mcp-server.js");
+    const { generateText } = await import("../mcp-server.js");
 
     const result = await generateText({
       bot_name: "Claude-Haiku-4.5",
@@ -103,7 +103,7 @@ describe("mcp server tools", () => {
   });
 
   it("generate_text passes params", async () => {
-    const { generateText } = await import("../src/cli/mcp-server.js");
+    const { generateText } = await import("../mcp-server.js");
 
     await generateText({
       bot_name: "test-bot",
@@ -119,7 +119,7 @@ describe("mcp server tools", () => {
   });
 
   it("generate_image uses client.media() with default bot", async () => {
-    const { generateImage } = await import("../src/cli/mcp-server.js");
+    const { generateImage } = await import("../mcp-server.js");
 
     const result = await generateImage({
       prompt: "A sunset"
@@ -142,7 +142,7 @@ describe("mcp server tools", () => {
   });
 
   it("generate_image uses custom bot_name", async () => {
-    const { generateImage } = await import("../src/cli/mcp-server.js");
+    const { generateImage } = await import("../mcp-server.js");
 
     await generateImage({
       prompt: "A cat",
@@ -157,7 +157,7 @@ describe("mcp server tools", () => {
   });
 
   it("generate_video uses client.media() with default bot", async () => {
-    const { generateVideo } = await import("../src/cli/mcp-server.js");
+    const { generateVideo } = await import("../mcp-server.js");
 
     mockClient.media = vi.fn(async () => ({
       url: "https://example.com/video.mp4",
@@ -185,7 +185,7 @@ describe("mcp server tools", () => {
   });
 
   it("generate_audio uses client.media() with default bot", async () => {
-    const { generateAudio } = await import("../src/cli/mcp-server.js");
+    const { generateAudio } = await import("../mcp-server.js");
 
     mockClient.media = vi.fn(async () => ({
       url: "https://example.com/audio.mp3",
@@ -213,7 +213,7 @@ describe("mcp server tools", () => {
   });
 
   it("generate_image throws when no URL is returned", async () => {
-    const { generateImage } = await import("../src/cli/mcp-server.js");
+    const { generateImage } = await import("../mcp-server.js");
 
     mockClient.media = vi.fn(async () => ({
       content: "Error message"

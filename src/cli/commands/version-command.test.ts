@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { createRequire } from "node:module";
-import { createProgram } from "../src/cli/program.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import type { HttpClient } from "../src/cli/http.js";
-import { SilentError } from "../src/cli/errors.js";
+import { createProgram } from "../program.js";
+import type { FileSystem } from "../utils/file-system.js";
+import type { HttpClient } from "../http.js";
+import { SilentError } from "../errors.js";
 
 const require = createRequire(import.meta.url);
-const packageJson = require("../package.json") as { version: string };
+const packageJson = require("../../../package.json") as { version: string };
 
 function createMemfs(homeDir: string): FileSystem {
   const volume = new Volume();

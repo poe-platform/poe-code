@@ -19,7 +19,7 @@ vi.mock("@clack/prompts", () => ({
   outro: outroFn
 }));
 
-import { createLoggerFactory } from "../src/cli/logger.js";
+import { createLoggerFactory } from "./logger.js";
 
 describe("createLoggerFactory", () => {
   beforeEach(() => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createCliEnvironment } from "../src/cli/environment.js";
+import { createCliEnvironment } from "./environment.js";
 
 describe("CliEnvironment", () => {
   const cwd = "/workspace";

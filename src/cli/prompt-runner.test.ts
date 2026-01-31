@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { createPromptRunner } from "../src/cli/prompt-runner.js";
+import { createPromptRunner } from "./prompt-runner.js";
 import color from "picocolors";
-import { OperationCancelledError } from "../src/cli/errors.js";
+import { OperationCancelledError } from "./errors.js";
 
 const createAdapter = () => ({
   text: vi.fn(),

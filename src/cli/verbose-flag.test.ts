@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { createLoggerFactory } from "../src/cli/logger.js";
-import { createMutationReporter } from "../src/services/mutation-events.js";
+import { createLoggerFactory } from "./logger.js";
+import { createMutationReporter } from "../services/mutation-events.js";
 
 describe("--verbose flag logging behavior", () => {
   it("hides mutation completion logs by default", () => {

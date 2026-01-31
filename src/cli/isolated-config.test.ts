@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createCliContainer } from "../src/cli/container.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import { createHomeFs } from "./test-helpers.js";
-import { ensureIsolatedConfigForService } from "../src/cli/commands/ensure-isolated-config.js";
+import { createCliContainer } from "./container.js";
+import type { FileSystem } from "../utils/file-system.js";
+import { createHomeFs } from "../../tests/test-helpers.js";
+import { ensureIsolatedConfigForService } from "./commands/ensure-isolated-config.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

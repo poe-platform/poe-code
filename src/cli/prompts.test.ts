@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createPromptLibrary } from "../src/cli/prompts.js";
+import { createPromptLibrary } from "./prompts.js";
 
 describe("prompt library", () => {
   it("builds a model descriptor with a provider-defined label", () => {

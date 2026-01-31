@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { Command } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
-import { createCliContainer } from "../src/cli/container.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import type { ProviderService } from "../src/cli/service-registry.js";
-import { registerUnconfigureCommand } from "../src/cli/commands/unconfigure.js";
-import { createProviderStub } from "./provider-stub.js";
+import { createCliContainer } from "../container.js";
+import type { FileSystem } from "../utils/file-system.js";
+import type { ProviderService } from "../service-registry.js";
+import { registerUnconfigureCommand } from "./unconfigure.js";
+import { createProviderStub } from "../../../tests/provider-stub.js";
 import type {
   MutationLogDetails,
   ServiceMutationOutcome
-} from "../src/services/service-manifest.js";
+} from "../services/service-manifest.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import type { ProviderService } from "../src/cli/service-registry.js";
+import type { ProviderService } from "./service-registry.js";
 import {
   collectSpawnLabels,
   normalizeColor,
   renderLabelDocument
-} from "../src/tools/label-generator.js";
-import { createProviderStub } from "./provider-stub.js";
+} from "../tools/label-generator.js";
+import { createProviderStub } from "../../tests/provider-stub.js";
 
 describe("label generator", () => {
   it("collects spawn labels and normalizes colors", () => {

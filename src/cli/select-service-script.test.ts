@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "node:fs";
 
-const scriptPath = "../scripts/workflows/select-service.cjs";
+const scriptPath = "../../scripts/workflows/select-service.cjs";
 
 describe("select service workflow script", () => {
   let originalAppend: typeof fs.appendFileSync;

@@ -3,20 +3,20 @@ import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { Command } from "commander";
-import { createProgram } from "../src/cli/program.js";
-import { registerSpawnCommand } from "../src/cli/commands/spawn.js";
-import { createCliContainer, type CliDependencies } from "../src/cli/container.js";
-import type { FileSystem } from "../src/utils/file-system.js";
+import { createProgram } from "../program.js";
+import { registerSpawnCommand } from "./spawn.js";
+import { createCliContainer, type CliDependencies } from "../container.js";
+import type { FileSystem } from "../utils/file-system.js";
 import type {
   CommandRunner,
   CommandRunnerOptions,
   CommandRunnerResult
-} from "../src/utils/command-checks.js";
+} from "../../utils/command-checks.js";
 import {
   DEFAULT_FRONTIER_MODEL,
   FRONTIER_MODELS,
   PROVIDER_NAME
-} from "../src/cli/constants.js";
+} from "../constants.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

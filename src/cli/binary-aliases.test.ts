@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { deriveWrapBinaryAliases } from "../src/cli/binary-aliases.js";
-import type { ProviderService } from "../src/cli/service-registry.js";
+import { deriveWrapBinaryAliases } from "./binary-aliases.js";
+import type { ProviderService } from "./service-registry.js";
 
 function provider(
   name: string,

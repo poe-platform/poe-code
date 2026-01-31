@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
-import { ErrorLogger } from "../src/cli/error-logger.js";
+import { ErrorLogger } from "./error-logger.js";
 
 function createErofsError(message: string): NodeJS.ErrnoException {
   const error = new Error(message) as NodeJS.ErrnoException;

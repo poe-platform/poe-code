@@ -1,20 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import type { FileSystem } from "../src/utils/file-system.js";
+import type { FileSystem } from "../utils/file-system.js";
 
-vi.mock("../src/cli/isolated-env-runner.js", () => ({
+vi.mock("./isolated-env-runner.js", () => ({
   isolatedEnvRunner: vi.fn(async () => {
     throw new Error("STOP_WRAP");
   })
 }));
 
-vi.mock("../src/cli/commands/ensure-isolated-config.js", () => ({
+vi.mock("./commands/ensure-isolated-config.js", () => ({
   ensureIsolatedConfigForService: vi.fn(async () => {})
 }));
 
-import { createProgram } from "../src/cli/program.js";
-import * as runner from "../src/cli/isolated-env-runner.js";
-import * as ensure from "../src/cli/commands/ensure-isolated-config.js";
+import { createProgram } from "./program.js";
+import * as runner from "./isolated-env-runner.js";
+import * as ensure from "./commands/ensure-isolated-config.js";
 
 function createMemFs(): FileSystem {
   const vol = new Volume();

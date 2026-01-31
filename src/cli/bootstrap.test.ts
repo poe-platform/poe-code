@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Command } from "commander";
 import { CommanderError } from "commander";
-import { OperationCancelledError, SilentError } from "../src/cli/errors.js";
-import { VersionExit } from "../src/cli/exit-signals.js";
+import { OperationCancelledError, SilentError } from "./errors.js";
+import { VersionExit } from "./exit-signals.js";
 
 const logErrorWithStackTrace = vi.fn();
 let capturedOptions: any;
 
-vi.mock("../src/cli/error-logger.js", async () => {
+vi.mock("./error-logger.js", async () => {
   const actual = await vi.importActual<Record<string, unknown>>(
-    "../src/cli/error-logger.js"
+    "./error-logger.js"
   );
   return {
     ...actual,
@@ -68,7 +68,7 @@ describe("createCliMain", () => {
       parseAsync
     };
 
-    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -91,7 +91,7 @@ describe("createCliMain", () => {
       parseAsync
     };
 
-    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).resolves.toBeUndefined();
@@ -110,7 +110,7 @@ describe("createCliMain", () => {
       parseAsync
     };
 
-    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -138,7 +138,7 @@ describe("createCliMain", () => {
       parseAsync
     };
 
-    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).resolves.toBeUndefined();
@@ -156,7 +156,7 @@ describe("createCliMain", () => {
       parseAsync
     };
 
-    const { createCliMain } = await import("../src/cli/bootstrap.js");
+    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).resolves.toBeUndefined();

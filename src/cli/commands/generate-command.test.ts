@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createProgram } from "../src/cli/program.js";
-import { setGlobalClient } from "../src/services/client-instance.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import type { LlmClient, LlmRequest } from "../src/services/llm-client.js";
+import { createProgram } from "../program.js";
+import { setGlobalClient } from "../../services/client-instance.js";
+import type { FileSystem } from "../utils/file-system.js";
+import type { LlmClient, LlmRequest } from "../services/llm-client.js";
 import {
   DEFAULT_TEXT_MODEL,
   DEFAULT_IMAGE_BOT,
   DEFAULT_VIDEO_BOT,
   DEFAULT_AUDIO_BOT
-} from "../src/cli/constants.js";
+} from "../constants.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

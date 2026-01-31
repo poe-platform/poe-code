@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { createOptionResolvers } from "../src/cli/options.js";
-import { createPromptLibrary } from "../src/cli/prompts.js";
+import { createOptionResolvers } from "./options.js";
+import { createPromptLibrary } from "./prompts.js";
 
 describe("option resolvers", () => {
   it("uses the login API key prompt when a key is missing", async () => {

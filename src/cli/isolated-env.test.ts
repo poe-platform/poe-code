@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import path from "node:path";
-import { resolveIsolatedTargetDirectory } from "../src/cli/isolated-env.js";
-import { createCliEnvironment } from "../src/cli/environment.js";
-import type { ProviderIsolatedEnv } from "../src/cli/service-registry.js";
+import { resolveIsolatedTargetDirectory } from "./isolated-env.js";
+import { createCliEnvironment } from "./environment.js";
+import type { ProviderIsolatedEnv } from "./service-registry.js";
 
 describe("resolveIsolatedTargetDirectory", () => {
   const mockIsolated: ProviderIsolatedEnv = {

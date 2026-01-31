@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { executeConfigure } from "../src/cli/commands/configure.js";
-import { createCliContainer } from "../src/cli/container.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import type { CommandRunner } from "../src/utils/command-checks.js";
-import { createHomeFs, createTestProgram } from "./test-helpers.js";
-import type { LoggerFn } from "../src/cli/types.js";
+import { executeConfigure } from "./configure.js";
+import { createCliContainer } from "../container.js";
+import type { FileSystem } from "../utils/file-system.js";
+import type { CommandRunner } from "../../utils/command-checks.js";
+import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
+import type { LoggerFn } from "../types.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

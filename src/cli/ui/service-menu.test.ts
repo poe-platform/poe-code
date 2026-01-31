@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { renderServiceMenu } from "../src/cli/ui/service-menu.js";
-import type { MenuTheme } from "../src/cli/ui/theme.js";
-import type { ProviderService } from "../src/cli/service-registry.js";
-import { createProviderStub } from "./provider-stub.js";
+import { renderServiceMenu } from "./service-menu.js";
+import type { MenuTheme } from "./theme.js";
+import type { ProviderService } from "../service-registry.js";
+import { createProviderStub } from "../../../tests/provider-stub.js";
 
 function createAdapter(
   name: string,

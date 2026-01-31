@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createProgram } from "../src/cli/program.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import type { CommandRunner } from "../src/utils/command-checks.js";
-import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace } from "../src/cli/constants.js";
+import { createProgram } from "../program.js";
+import type { FileSystem } from "../utils/file-system.js";
+import type { CommandRunner } from "../../utils/command-checks.js";
+import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace } from "../constants.js";
 
 function createMemfs(homeDir: string): FileSystem {
   const volume = new Volume();

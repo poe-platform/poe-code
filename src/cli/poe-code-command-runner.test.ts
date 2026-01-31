@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { createCliContainer } from "../src/cli/container.js";
-import { createHomeFs } from "./test-helpers.js";
+import { createCliContainer } from "./container.js";
+import { createHomeFs } from "../../tests/test-helpers.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

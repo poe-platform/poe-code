@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   createMenuTheme,
   resolveMenuThemeName
-} from "../src/cli/ui/theme.js";
-import type { CliEnvironment } from "../src/cli/environment.js";
+} from "./theme.js";
+import type { CliEnvironment } from "../environment.js";
 
 function createEnv(vars: Record<string, string | undefined>): CliEnvironment {
   return {

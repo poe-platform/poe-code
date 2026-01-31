@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createCliContainer } from "../src/cli/container.js";
-import type { FileSystem } from "../src/utils/file-system.js";
+import { createCliContainer } from "../cli/container.js";
+import type { FileSystem } from "../utils/file-system.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

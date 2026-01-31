@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderUnifiedDiff } from "../src/utils/dry-run.js";
+import { renderUnifiedDiff } from "./dry-run.js";
 
 describe("dry run diff redaction", () => {
   it("redacts api key values in JSON diffs", () => {

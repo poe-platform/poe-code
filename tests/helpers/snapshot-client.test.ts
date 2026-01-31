@@ -4,7 +4,7 @@ import {
   createSnapshotClient,
   generateSnapshotKey,
   SnapshotMissingError
-} from "./helpers/snapshot-client.js";
+} from "./snapshot-client.js";
 import type { FileSystem } from "../src/utils/file-system.js";
 import type { LlmClient } from "../src/services/llm-client.js";
 

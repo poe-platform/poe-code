@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { generateSnapshotKey } from "./helpers/snapshot-client.js";
-import { listSnapshots, deleteSnapshots, refreshSnapshots, findStaleSnapshots, pruneSnapshots } from "./helpers/snapshot-store.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import type { LlmClient } from "../src/services/llm-client.js";
+import { generateSnapshotKey } from "./snapshot-client.js";
+import { listSnapshots, deleteSnapshots, refreshSnapshots, findStaleSnapshots, pruneSnapshots } from "./snapshot-store.js";
+import type { FileSystem } from "../../src/utils/file-system.js";
+import type { LlmClient } from "../../src/services/llm-client.js";
 
 function createMemfs(): FileSystem {
   const volume = new Volume();

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { createPoeClient } from "../src/services/llm-client.js";
-import type { HttpClient } from "../src/cli/http.js";
+import { createPoeClient } from "./llm-client.js";
+import type { HttpClient } from "../cli/http.js";
 
 const baseUrl = "https://api.poe.com/v1";
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createProgram } from "../src/cli/program.js";
-import type { FileSystem } from "../src/utils/file-system.js";
+import { createProgram } from "../../src/cli/program.js";
+import type { FileSystem } from "../../src/utils/file-system.js";
 
 interface TestContext {
   fs: FileSystem;

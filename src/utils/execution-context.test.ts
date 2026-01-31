@@ -3,7 +3,7 @@ import {
   detectExecutionContext,
   toMcpServerCommand,
   toOpenCodeMcpCommand
-} from "../src/utils/execution-context.js";
+} from "./execution-context.js";
 
 describe("detectExecutionContext", () => {
   const baseEnv: Record<string, string | undefined> = {};

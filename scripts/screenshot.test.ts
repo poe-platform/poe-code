@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveScreenshotTimeoutMs } from "../scripts/screenshot.js";
+import { resolveScreenshotTimeoutMs } from "./screenshot.js";
 
 describe("resolveScreenshotTimeoutMs", () => {
   it("uses default when env is missing or invalid", () => {

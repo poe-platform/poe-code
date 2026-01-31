@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import {
   checkForUpdate,
   type VersionCheckResult
-} from "../src/services/version.js";
-import type { HttpClient } from "../src/cli/http.js";
+} from "./version.js";
+import type { HttpClient } from "../cli/http.js";
 
 function createMockHttpClient(
   response: { ok: boolean; status: number; json: () => Promise<unknown> } | Error

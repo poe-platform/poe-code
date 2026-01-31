@@ -3,8 +3,8 @@ import {
   runServiceInstall,
   type InstallContext,
   type ServiceInstallDefinition
-} from "../src/services/service-install.js";
-import type { CommandCheck } from "../src/utils/command-checks.js";
+} from "./service-install.js";
+import type { CommandCheck } from "../utils/command-checks.js";
 
 function createMockRunner(
   responses: Record<string, { stdout?: string; stderr?: string; exitCode: number }>

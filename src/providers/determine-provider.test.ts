@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "node:fs";
 
-const scriptPath = "../scripts/workflows/determine-provider.ts";
+const scriptPath = "../../scripts/workflows/determine-provider.ts";
 
 describe("determine provider workflow script", () => {
   let writes: string[];

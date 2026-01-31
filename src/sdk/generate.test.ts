@@ -1,8 +1,8 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { generate, generateAudio, generateImage, generateVideo } from "../src/sdk/generate.js";
-import { setGlobalClient } from "../src/services/client-instance.js";
-import type { LlmClient } from "../src/services/llm-client.js";
-import { DEFAULT_TEXT_MODEL } from "../src/cli/constants.js";
+import { generate, generateAudio, generateImage, generateVideo } from "./generate.js";
+import { setGlobalClient } from "../services/client-instance.js";
+import type { LlmClient } from "../services/llm-client.js";
+import { DEFAULT_TEXT_MODEL } from "../cli/constants.js";
 
 const originalEnv = { ...process.env };
 

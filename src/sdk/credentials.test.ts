@@ -48,7 +48,7 @@ describe("getPoeApiKey", () => {
     
     // Re-import to get fresh module
     vi.resetModules();
-    const { getPoeApiKey } = await import("../src/sdk/credentials.js");
+    const { getPoeApiKey } = await import("./credentials.js");
     
     const result = await getPoeApiKey();
     expect(result).toBe("env-api-key-123");
@@ -58,7 +58,7 @@ describe("getPoeApiKey", () => {
     process.env.POE_API_KEY = "  trimmed-key  ";
     
     vi.resetModules();
-    const { getPoeApiKey } = await import("../src/sdk/credentials.js");
+    const { getPoeApiKey } = await import("./credentials.js");
     
     const result = await getPoeApiKey();
     expect(result).toBe("trimmed-key");
@@ -68,7 +68,7 @@ describe("getPoeApiKey", () => {
     delete process.env.POE_API_KEY;
     
     vi.resetModules();
-    const { getPoeApiKey } = await import("../src/sdk/credentials.js");
+    const { getPoeApiKey } = await import("./credentials.js");
     
     await expect(getPoeApiKey()).rejects.toThrow(
       "No API key found. Set POE_API_KEY or run 'poe-code login'."
@@ -79,7 +79,7 @@ describe("getPoeApiKey", () => {
     process.env.POE_API_KEY = "";
     
     vi.resetModules();
-    const { getPoeApiKey } = await import("../src/sdk/credentials.js");
+    const { getPoeApiKey } = await import("./credentials.js");
     
     await expect(getPoeApiKey()).rejects.toThrow(
       "No API key found. Set POE_API_KEY or run 'poe-code login'."
@@ -90,7 +90,7 @@ describe("getPoeApiKey", () => {
     process.env.POE_API_KEY = "   ";
     
     vi.resetModules();
-    const { getPoeApiKey } = await import("../src/sdk/credentials.js");
+    const { getPoeApiKey } = await import("./credentials.js");
     
     await expect(getPoeApiKey()).rejects.toThrow(
       "No API key found. Set POE_API_KEY or run 'poe-code login'."

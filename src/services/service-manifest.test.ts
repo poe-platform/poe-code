@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createCliEnvironment } from "../src/cli/environment.js";
-import type { CommandContext } from "../src/cli/context.js";
-import { createServiceManifest, ensureDirectory } from "../src/services/service-manifest.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import { type CommandRunner } from "../src/utils/command-checks.js";
+import { createCliEnvironment } from "../cli/environment.js";
+import type { CommandContext } from "../cli/context.js";
+import { createServiceManifest, ensureDirectory } from "./service-manifest.js";
+import type { FileSystem } from "../utils/file-system.js";
+import { type CommandRunner } from "../utils/command-checks.js";
 
 function createMemFs(): FileSystem {
   const vol = new Volume();

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   createBinaryExistsCheck,
   createCommandExpectationCheck
-} from "../src/utils/command-checks.js";
+} from "./command-checks.js";
 
 function createRunner(responses: Record<string, { stdout?: string; stderr?: string; exitCode: number }>) {
   return vi.fn(async (command: string, args: string[]) => {

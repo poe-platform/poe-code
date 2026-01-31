@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   DEFAULT_CLAUDE_CODE_MODEL,
   DEFAULT_CODEX_MODEL
-} from "../src/cli/constants.js";
+} from "../cli/constants.js";
 
 const CLAUDE_MODEL_SONNET = DEFAULT_CLAUDE_CODE_MODEL;
 import {
@@ -13,7 +13,7 @@ import {
   ModelStrategyFactory,
   type ModelContext,
   type StrategyConfig,
-} from "../src/services/model-strategy.js";
+} from "./model-strategy.js";
 
 describe("MixedStrategy", () => {
   let strategy: MixedStrategy;

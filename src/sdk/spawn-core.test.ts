@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createCliContainer, type CliDependencies } from "../src/cli/container.js";
-import { spawnCore } from "../src/sdk/spawn-core.js";
-import type { FileSystem } from "../src/utils/file-system.js";
+import { createCliContainer, type CliDependencies } from "../cli/container.js";
+import { spawnCore } from "./spawn-core.js";
+import type { FileSystem } from "../utils/file-system.js";
 import type {
   CommandRunner,
   CommandRunnerOptions,
   CommandRunnerResult
-} from "../src/utils/command-checks.js";
+} from "../utils/command-checks.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

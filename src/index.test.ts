@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { isCliInvocation } from "../src/index.js";
+import { isCliInvocation } from "./index.js";
 
 describe("entrypoint module", () => {
   it("imports CLI program with ESM extension", async () => {

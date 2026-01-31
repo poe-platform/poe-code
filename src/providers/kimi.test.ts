@@ -1,19 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
-import type { FileSystem } from "../src/utils/file-system.js";
+import type { FileSystem } from "../utils/file-system.js";
 import {
   DEFAULT_KIMI_MODEL,
   KIMI_MODELS,
   PROVIDER_NAME,
   stripModelNamespace
-} from "../src/cli/constants.js";
-import * as kimiService from "../src/providers/kimi.js";
-import { createCliEnvironment } from "../src/cli/environment.js";
-import { createTestCommandContext } from "./test-command-context.js";
-import type { ProviderContext } from "../src/cli/service-registry.js";
-import { createLoggerFactory } from "../src/cli/logger.js";
-import { parseTomlDocument, serializeTomlDocument } from "../src/utils/toml.js";
+} from "../cli/constants.js";
+import * as kimiService from "./kimi.js";
+import { createCliEnvironment } from "../cli/environment.js";
+import { createTestCommandContext } from "../../tests/test-command-context.js";
+import type { ProviderContext } from "../cli/service-registry.js";
+import { createLoggerFactory } from "../cli/logger.js";
+import { parseTomlDocument, serializeTomlDocument } from "../utils/toml.js";
 
 function createMemFs(): { fs: FileSystem; vol: Volume } {
   const vol = new Volume();

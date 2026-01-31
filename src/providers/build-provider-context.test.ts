@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { createCliContainer } from "../src/cli/container.js";
+import { createCliContainer } from "../cli/container.js";
 import {
   buildProviderContext,
   createExecutionResources
-} from "../src/cli/commands/shared.js";
-import { createProviderStub } from "./provider-stub.js";
-import type { FileSystem } from "../src/utils/file-system.js";
+} from "../cli/commands/shared.js";
+import { createProviderStub } from "../../tests/provider-stub.js";
+import type { FileSystem } from "../utils/file-system.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

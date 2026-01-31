@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import type { FileSystem } from "../src/utils/file-system.js";
+import type { FileSystem } from "../utils/file-system.js";
 
 // Mock the execution context module
-vi.mock("../src/utils/execution-context.js", () => ({
+vi.mock("../utils/execution-context.js", () => ({
   getCurrentExecutionContext: vi.fn(() => ({
     mode: "npx",
     command: {
@@ -17,8 +17,8 @@ vi.mock("../src/utils/execution-context.js", () => ({
   }))
 }));
 
-import { createProvider, type McpValueContext } from "../src/providers/create-provider.js";
-import { getCurrentExecutionContext } from "../src/utils/execution-context.js";
+import { createProvider, type McpValueContext } from "./create-provider.js";
+import { getCurrentExecutionContext } from "../utils/execution-context.js";
 
 function createMemfs(): FileSystem {
   const volume = new Volume();

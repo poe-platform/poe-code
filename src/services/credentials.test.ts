@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
-import type { FileSystem } from "../src/utils/file-system.js";
+import type { FileSystem } from "../utils/file-system.js";
 import {
   loadCredentials,
   saveCredentials,
   loadConfiguredServices,
   saveConfiguredService,
   unconfigureService
-} from "../src/services/credentials.js";
+} from "./credentials.js";
 
 function createMemFs(): FileSystem {
   const vol = new Volume();

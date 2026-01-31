@@ -3,10 +3,9 @@ import {
   createCommandExpectationCheck
 } from "../utils/command-checks.js";
 import {
-  ensureDirectory,
-  jsonPruneMutation,
-  jsonMergeMutation
-} from "../services/service-manifest.js";
+  configMutation,
+  fileMutation
+} from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
   CLAUDE_CODE_VARIANTS,
@@ -131,24 +130,25 @@ export const claudeCodeService = createProvider<
   },
   manifest: {
     configure: [
-      ensureDirectory({ targetDirectory: "~/.claude" }),
-      jsonMergeMutation({
-        targetDirectory: "~/.claude",
-        targetFile: "settings.json",
-        value: ({ options }) => ({
-          apiKeyHelper: `echo ${options.apiKey}`,
-          env: {
-            ANTHROPIC_BASE_URL: options.env.poeBaseUrl
-          },
-          model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL)
-        })
+      fileMutation.ensureDirectory({ path: "~/.claude" }),
+      configMutation.merge({
+        target: "~/.claude/settings.json",
+        value: (ctx) => {
+          const options = ctx as unknown as ClaudeCodeConfigureContext;
+          return {
+            apiKeyHelper: `echo ${options.apiKey}`,
+            env: {
+              ANTHROPIC_BASE_URL: options.env.poeBaseUrl
+            },
+            model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL)
+          };
+        }
       })
     ],
     unconfigure: [
-      jsonPruneMutation({
-        targetDirectory: "~/.claude",
-        targetFile: "settings.json",
-        shape: () => ({
+      configMutation.prune({
+        target: "~/.claude/settings.json",
+        shape: {
           apiKeyHelper: true,
           env: {
             ANTHROPIC_BASE_URL: true,
@@ -157,7 +157,7 @@ export const claudeCodeService = createProvider<
             ANTHROPIC_DEFAULT_OPUS_MODEL: true
           },
           model: true
-        })
+        }
       })
     ]
   },

@@ -3,10 +3,9 @@ import {
   createCommandExpectationCheck
 } from "../utils/command-checks.js";
 import {
-  ensureDirectory,
-  tomlMergeMutation,
-  tomlPruneMutation
-} from "../services/service-manifest.js";
+  configMutation,
+  fileMutation
+} from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import { KIMI_MODELS, DEFAULT_KIMI_MODEL, PROVIDER_NAME, stripModelNamespace } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
@@ -79,68 +78,64 @@ export const kimiService = createProvider<
   },
   manifest: {
     configure: [
-        ensureDirectory({
-          targetDirectory: "~/.kimi"
-        }),
-        tomlMergeMutation({
-          targetDirectory: "~/.kimi",
-          targetFile: "config.toml",
-          pruneByPrefix: { models: `${PROVIDER_NAME}/` },
-          value: ({ options }) => {
-            const { model, apiKey, env } = (options ?? {}) as {
-              model?: string;
-              apiKey?: string;
-              env: { poeApiBaseUrl: string };
-            };
-            const selectedModel = model ?? DEFAULT_KIMI_MODEL;
+      fileMutation.ensureDirectory({ path: "~/.kimi" }),
+      configMutation.merge({
+        target: "~/.kimi/config.toml",
+        pruneByPrefix: { models: `${PROVIDER_NAME}/` },
+        value: (ctx) => {
+          const { model, apiKey, env } = (ctx ?? {}) as {
+            model?: string;
+            apiKey?: string;
+            env: { poeApiBaseUrl: string };
+          };
+          const selectedModel = model ?? DEFAULT_KIMI_MODEL;
 
-            const models: TomlTable = {};
-            for (const m of KIMI_MODELS) {
-              models[providerModel(m)] = {
-                provider: PROVIDER_NAME,
-                model: stripModelNamespace(m),
-                max_context_size: 256000
-              };
-            }
-
-            return {
-              default_model: providerModel(selectedModel),
-              default_thinking: true,
-              models,
-              providers: {
-                [PROVIDER_NAME]: {
-                  type: "openai_legacy",
-                  base_url: env.poeApiBaseUrl,
-                  api_key: apiKey ?? ""
-                }
-              }
+          const models: TomlTable = {};
+          for (const m of KIMI_MODELS) {
+            models[providerModel(m)] = {
+              provider: PROVIDER_NAME,
+              model: stripModelNamespace(m),
+              max_context_size: 256000
             };
           }
-        })
+
+          return {
+            default_model: providerModel(selectedModel),
+            default_thinking: true,
+            models,
+            providers: {
+              [PROVIDER_NAME]: {
+                type: "openai_legacy",
+                base_url: env.poeApiBaseUrl,
+                api_key: apiKey ?? ""
+              }
+            }
+          };
+        }
+      })
     ],
     unconfigure: [
-        tomlPruneMutation({
-          targetDirectory: "~/.kimi",
-          targetFile: "config.toml",
-          prune: (document) => {
-            const providers = document.providers as TomlTable | undefined;
-            if (!providers || typeof providers !== "object") {
-              return { changed: false, result: document };
-            }
-            if (!(PROVIDER_NAME in providers)) {
-              return { changed: false, result: document };
-            }
-            const { [PROVIDER_NAME]: ignoredProvider, ...rest } = providers;
-            void ignoredProvider;
-            const updatedProviders = rest as TomlTable;
-            if (Object.keys(updatedProviders).length === 0) {
-              const { providers: ignoredProviders, ...docWithoutProviders } = document;
-              void ignoredProviders;
-              return { changed: true, result: docWithoutProviders };
-            }
-            return { changed: true, result: { ...document, providers: updatedProviders } };
+      configMutation.transform({
+        target: "~/.kimi/config.toml",
+        transform: (document) => {
+          const providers = document.providers as TomlTable | undefined;
+          if (!providers || typeof providers !== "object") {
+            return { changed: false, content: document };
           }
-        })
+          if (!(PROVIDER_NAME in providers)) {
+            return { changed: false, content: document };
+          }
+          const { [PROVIDER_NAME]: ignoredProvider, ...rest } = providers;
+          void ignoredProvider;
+          const updatedProviders = rest as TomlTable;
+          if (Object.keys(updatedProviders).length === 0) {
+            const { providers: ignoredProviders, ...docWithoutProviders } = document;
+            void ignoredProviders;
+            return { changed: true, content: docWithoutProviders };
+          }
+          return { changed: true, content: { ...document, providers: updatedProviders } };
+        }
+      })
     ]
   },
   install: KIMI_INSTALL_DEFINITION,

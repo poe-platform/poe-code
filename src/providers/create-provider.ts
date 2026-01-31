@@ -6,9 +6,10 @@ import type {
   ProviderIsolatedEnv
 } from "../cli/service-registry.js";
 import {
-  createServiceManifest,
-  type ServiceManifestDefinition
-} from "../services/service-manifest.js";
+  runMutations,
+  type Mutation,
+  type MutationObservers
+} from "@poe-code/config-mutations";
 import {
   runServiceInstall,
   type ServiceInstallDefinition
@@ -19,13 +20,18 @@ import {
   createMcpUnconfigureRunner,
   type McpConfig
 } from "./mcp-config.js";
+import { loadTemplate } from "../utils/templates.js";
 
 // Re-export McpValueContext for external use
 export type { McpValueContext } from "./mcp-config.js";
 
-interface ManifestVersionDefinition<ConfigureOptions, UnconfigureOptions> {
-  configure: ServiceManifestDefinition<ConfigureOptions, UnconfigureOptions>["configure"];
-  unconfigure?: ServiceManifestDefinition<ConfigureOptions, UnconfigureOptions>["unconfigure"];
+interface ManifestVersionDefinition {
+  configure: Mutation[];
+  unconfigure?: Mutation[];
+}
+
+export interface ServiceRunOptions {
+  observers?: MutationObservers;
 }
 
 interface CreateProviderOptions<
@@ -44,7 +50,7 @@ interface CreateProviderOptions<
   configurePrompts?: ProviderConfigurePrompts;
   postConfigureMessages?: string[];
   isolatedEnv?: ProviderIsolatedEnv;
-  manifest: ManifestVersionDefinition<ConfigureOptions, UnconfigureOptions>;
+  manifest: ManifestVersionDefinition;
   mcp?: McpConfig;
   install?: ServiceInstallDefinition;
   test?: ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions>["test"];
@@ -60,55 +66,66 @@ export function createProvider<
   UnconfigureOptions = ConfigureOptions,
   SpawnOptions = any
 >(
-  options: CreateProviderOptions<ConfigureOptions, UnconfigureOptions, SpawnOptions>
+  opts: CreateProviderOptions<ConfigureOptions, UnconfigureOptions, SpawnOptions>
 ): ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions> {
-  const manifest = createServiceManifest({
-    id: options.id,
-    summary: options.summary,
-    configure: options.manifest.configure,
-    unconfigure: options.manifest.unconfigure
-  });
-
   const provider: ProviderService<
     ConfigureOptions,
     UnconfigureOptions,
     SpawnOptions
   > = {
-    id: options.id,
-    summary: options.summary,
-    name: options.name,
-    aliases: options.aliases,
-    label: options.label,
-    branding: options.branding,
-    disabled: options.disabled,
-    supportsStdinPrompt: options.supportsStdinPrompt,
-    configurePrompts: options.configurePrompts,
-    postConfigureMessages: options.postConfigureMessages,
-    isolatedEnv: options.isolatedEnv,
+    id: opts.id,
+    summary: opts.summary,
+    name: opts.name,
+    aliases: opts.aliases,
+    label: opts.label,
+    branding: opts.branding,
+    disabled: opts.disabled,
+    supportsStdinPrompt: opts.supportsStdinPrompt,
+    configurePrompts: opts.configurePrompts,
+    postConfigureMessages: opts.postConfigureMessages,
+    isolatedEnv: opts.isolatedEnv,
     async configure(context, runOptions) {
-      await manifest.configure(context, runOptions);
+      await runMutations(opts.manifest.configure, {
+        fs: context.fs,
+        homeDir: context.env.homeDir,
+        observers: runOptions?.observers,
+        templates: loadTemplate,
+        pathMapper: context.pathMapper
+      }, context.options as Record<string, unknown>);
+      context.command.flushDryRun({ emitIfEmpty: false });
     },
     async unconfigure(context, runOptions) {
-      return manifest.unconfigure(context, runOptions);
+      if (!opts.manifest.unconfigure) {
+        return false;
+      }
+      const result = await runMutations(opts.manifest.unconfigure, {
+        fs: context.fs,
+        homeDir: context.env.homeDir,
+        observers: runOptions?.observers,
+        templates: loadTemplate,
+        pathMapper: context.pathMapper
+      }, context.options as Record<string, unknown>);
+      context.command.flushDryRun({ emitIfEmpty: false });
+      return result.changed;
     }
   };
 
-  if (options.install) {
-    provider.install = createInstallRunner(options.install);
+  if (opts.install) {
+    provider.install = createInstallRunner(opts.install);
   }
 
-  if (options.test) {
-    provider.test = options.test;
+  if (opts.test) {
+    provider.test = opts.test;
   }
 
-  if (options.spawn) {
-    provider.spawn = options.spawn;
+  if (opts.spawn) {
+    provider.spawn = opts.spawn;
   }
 
-  if (options.mcp) {
-    const mcpMutations = createMcpMutations(options.mcp);
-    provider.mcpConfigure = createMcpConfigureRunner(options.id, mcpMutations.configure);
-    provider.mcpUnconfigure = createMcpUnconfigureRunner(options.id, mcpMutations.unconfigure);
+  if (opts.mcp) {
+    const mcpMutations = createMcpMutations(opts.mcp);
+    provider.mcpConfigure = createMcpConfigureRunner(opts.id, mcpMutations.configure);
+    provider.mcpUnconfigure = createMcpUnconfigureRunner(opts.id, mcpMutations.unconfigure);
   }
 
   return provider;

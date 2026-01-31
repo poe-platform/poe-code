@@ -6,11 +6,10 @@ import {
 import { isTomlTable, type TomlTable } from "../utils/toml.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
-  createBackupMutation,
-  ensureDirectory,
-  tomlTemplateMergeMutation,
-  tomlPruneMutation
-} from "../services/service-manifest.js";
+  configMutation,
+  fileMutation,
+  templateMutation
+} from "@poe-code/config-mutations";
 import { createProvider } from "./create-provider.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
 import {
@@ -204,39 +203,37 @@ export const codexService = createProvider<
   },
   manifest: {
     configure: [
-      ensureDirectory({ targetDirectory: "~/.codex" }),
-      createBackupMutation({
-        targetDirectory: "~/.codex",
-        targetFile: "config.toml",
-        timestamp: ({ options }) => options.timestamp
-      }),
-      tomlTemplateMergeMutation({
-        targetDirectory: "~/.codex",
-        targetFile: "config.toml",
+      fileMutation.ensureDirectory({ path: "~/.codex" }),
+      fileMutation.backup({ target: "~/.codex/config.toml" }),
+      templateMutation.mergeToml({
+        target: "~/.codex/config.toml",
         templateId: "codex/config.toml.hbs",
-        context: ({ options }) => ({
-          apiKey: options.apiKey,
-          baseUrl: options.env.poeApiBaseUrl,
-          model: stripModelNamespace(options.model ?? DEFAULT_CODEX_MODEL),
-          reasoningEffort: options.reasoningEffort
-        })
+        context: (ctx) => {
+          const options = ctx as unknown as CodexConfigureContext;
+          return {
+            apiKey: options.apiKey,
+            baseUrl: options.env.poeApiBaseUrl,
+            model: stripModelNamespace(options.model ?? DEFAULT_CODEX_MODEL),
+            reasoningEffort: options.reasoningEffort
+          };
+        }
       })
     ],
     unconfigure: [
-      tomlPruneMutation({
-        targetDirectory: "~/.codex",
-        targetFile: "config.toml",
-        prune: (document, context) => {
+      configMutation.transform({
+        target: "~/.codex/config.toml",
+        transform: (document, ctx) => {
+          const options = ctx as unknown as CodexUnconfigureContext;
           const result = stripCodexConfiguration(
-            document,
-            context.options.env.poeApiBaseUrl
+            document as TomlTable,
+            options.env.poeApiBaseUrl
           );
           if (!result.changed) {
-            return { changed: false, result: document };
+            return { changed: false, content: document };
           }
           return {
             changed: true,
-            result: result.empty ? null : document
+            content: result.empty ? null : document
           };
         }
       })

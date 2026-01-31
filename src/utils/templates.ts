@@ -21,7 +21,7 @@ export function setTemplateLoader(loader: TemplateLoader | null): void {
   customLoader = loader;
 }
 
-async function loadTemplate(relativePath: string): Promise<string> {
+export async function loadTemplate(relativePath: string): Promise<string> {
   if (customLoader) {
     return customLoader(relativePath);
   }

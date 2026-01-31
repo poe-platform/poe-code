@@ -251,14 +251,15 @@ describe("codex service", () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(configPath, "legacy-config", { encoding: "utf8" });
 
-    await configureCodex({
-      timestamp: () => "20240202T101010"
-    });
+    await configureCodex();
 
-    const backupContent = await fs.readFile(
-      `${configPath}.backup.20240202T101010`,
-      "utf8"
+    // Find backup file by pattern
+    const files = vol.toJSON();
+    const backupFile = Object.keys(files).find((f) =>
+      f.startsWith(`${configPath}.backup-`)
     );
+    expect(backupFile).toBeDefined();
+    const backupContent = await fs.readFile(backupFile!, "utf8");
     expect(backupContent).toBe("legacy-config");
     await expect(
       fs.readFile(path.join(configDir, "auth.json"), "utf8")
@@ -275,9 +276,7 @@ describe("codex service", () => {
       { encoding: "utf8" }
     );
 
-    await configureCodex({
-      timestamp: () => "20240303T030303"
-    });
+    await configureCodex();
 
     const doc = parseTomlDocument(await fs.readFile(configPath, "utf8"));
     expect(doc["model_provider"]).toBe("poe");
@@ -295,10 +294,13 @@ describe("codex service", () => {
       experimental_bearer_token: "sk-test"
     });
 
-    const backupContent = await fs.readFile(
-      `${configPath}.backup.20240303T030303`,
-      "utf8"
+    // Find backup file by pattern
+    const files = vol.toJSON();
+    const backupFile = Object.keys(files).find((f) =>
+      f.startsWith(`${configPath}.backup-`)
     );
+    expect(backupFile).toBeDefined();
+    const backupContent = await fs.readFile(backupFile!, "utf8");
     expect(backupContent.trim()).toContain('model_provider = "legacy"');
     expect(backupContent.trim()).toContain("[features]");
     await expect(

@@ -10,10 +10,9 @@ import {
 } from "../utils/command-checks.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
-  ensureDirectory,
-  jsonMergeMutation,
-  jsonPruneMutation
-} from "../services/service-manifest.js";
+  configMutation,
+  fileMutation
+} from "@poe-code/config-mutations";
 import { createProvider } from "./create-provider.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
 import { openCodeAgent } from "@poe-code/agent-defs";
@@ -83,53 +82,41 @@ export const openCodeService = createProvider({
   },
   manifest: {
     configure: [
-        ensureDirectory({
-          targetDirectory: "~/.config/opencode"
-        }),
-        jsonMergeMutation({
-          targetDirectory: "~/.config/opencode",
-          targetFile: "config.json",
-          value: ({ options }) => {
-            const { model } = (options ?? {}) as { model?: string };
-            return {
-              $schema: "https://opencode.ai/config.json",
-              model: providerModel(model),
-              enabled_providers: [PROVIDER_NAME]
-            };
-          }
-        }),
-        ensureDirectory({
-          targetDirectory: "~/.opencode-data"
-        }),
-        jsonMergeMutation({
-          targetDirectory: "~/.opencode-data",
-          targetFile: "auth.json",
-          value: ({ options }) => {
-            const { apiKey } = (options ?? {}) as { apiKey?: string };
-            return {
-              [PROVIDER_NAME]: {
-                type: "api",
-                key: apiKey ?? ""
-              }
-            };
-          }
-        })
+      fileMutation.ensureDirectory({ path: "~/.config/opencode" }),
+      configMutation.merge({
+        target: "~/.config/opencode/config.json",
+        value: (ctx) => {
+          const { model } = (ctx ?? {}) as { model?: string };
+          return {
+            $schema: "https://opencode.ai/config.json",
+            model: providerModel(model),
+            enabled_providers: [PROVIDER_NAME]
+          };
+        }
+      }),
+      fileMutation.ensureDirectory({ path: "~/.opencode-data" }),
+      configMutation.merge({
+        target: "~/.opencode-data/auth.json",
+        value: (ctx) => {
+          const { apiKey } = (ctx ?? {}) as { apiKey?: string };
+          return {
+            [PROVIDER_NAME]: {
+              type: "api",
+              key: apiKey ?? ""
+            }
+          };
+        }
+      })
     ],
     unconfigure: [
-        jsonPruneMutation({
-          targetDirectory: "~/.config/opencode",
-          targetFile: "config.json",
-          shape: (): JsonObject => ({
-            enabled_providers: true
-          })
-        }),
-        jsonPruneMutation({
-          targetDirectory: "~/.opencode-data",
-          targetFile: "auth.json",
-          shape: (): JsonObject => ({
-            [PROVIDER_NAME]: true
-          })
-        })
+      configMutation.prune({
+        target: "~/.config/opencode/config.json",
+        shape: { enabled_providers: true }
+      }),
+      configMutation.prune({
+        target: "~/.opencode-data/auth.json",
+        shape: { [PROVIDER_NAME]: true }
+      })
     ]
   },
   install: OPEN_CODE_INSTALL_DEFINITION,

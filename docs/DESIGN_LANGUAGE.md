@@ -4,20 +4,66 @@ Visual reference for poe-code CLI design elements.
 
 This document is auto-generated. Run `npm run generate:design-docs` to regenerate.
 
-## Basic Layout
+## Package Overview
 
-Standard command layout pattern. Note and outro are optional.
+The `@poe-code/design-system` package provides consistent visual styling for the poe-code CLI.
+
+```typescript
+// Import components
+import { text, symbols, intro, outro, log } from "@poe-code/design-system";
+
+// Import tokens for advanced customization
+import { brand, dark, light, spacing, typography, widths } from "@poe-code/design-system";
+```
+
+## Design Tokens
+
+Foundational values that ensure consistency:
+
+| Token | Value | Description |
+|-------|-------|-------------|
+| `brand` | `#a200ff` | Primary brand color (Poe purple) |
+| `spacing.sm` | `1` | Small spacing unit |
+| `spacing.md` | `2` | Medium spacing unit |
+| `spacing.lg` | `4` | Large spacing unit |
+| `widths.header` | `60` | Header line width |
+| `widths.helpColumn` | `24` | Help text column width |
+| `widths.maxLine` | `80` | Maximum line width |
+
+## Theme Palettes
+
+The design system supports dark and light themes, auto-detected from environment:
+
+```typescript
+import { getTheme, resolveThemeName } from "@poe-code/design-system";
+
+const themeName = resolveThemeName(); // 'dark' or 'light'
+const palette = getTheme();
+console.log(palette.header('Title'));
+```
+
+**Environment variables checked (in order):**
+- `POE_CODE_THEME` - explicit override ('dark' or 'light')
+- `APPLE_INTERFACE_STYLE` - macOS appearance
+- `VSCODE_COLOR_THEME_KIND` - VS Code theme
+- `COLORFGBG` - terminal color hint
+
+## Layout Patterns
+
+Standard command layout patterns. These show complete UI flows from start to finish.
 
 ### layout-basic
 
 Core layout: intro banner, info messages, resolved prompts, success message
 
 ```typescript
-intro(design.text.intro("Configure"));
-log.message("Configuring...", { symbol: design.symbols.info });
-log.message("Provider\n   claude", { symbol: design.symbols.resolved });
-log.message("API Key\n   poe-abc...xyz", { symbol: design.symbols.resolved });
-log.message("Done!", { symbol: design.symbols.success });
+import { intro, outro, log, symbols } from "@poe-code/design-system";
+
+intro("Configure");
+log.message("Configuring...", { symbol: symbols.info });
+log.message("Provider\n   claude", { symbol: symbols.resolved });
+log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
+outro("Configuration complete.");
 ```
 
 ![layout-basic](design-language/layout-basic.png)
@@ -27,25 +73,28 @@ log.message("Done!", { symbol: design.symbols.success });
 Full layout with note and outro: intro, resolved prompts, success, note box, outro
 
 ```typescript
-intro(design.text.intro("configure claude-code"));
-log.message("Claude Code default model\n   Claude-Opus-4.5", { symbol: design.symbols.resolved });
-log.message("Configured Claude Code.", { symbol: design.symbols.success });
+import { intro, outro, note, log, symbols } from "@poe-code/design-system";
+
+intro("configure claude-code");
+log.message("Claude Code default model\n   Claude-Opus-4.5", { symbol: symbols.resolved });
+log.message("Configured Claude Code.", { symbol: symbols.success });
 note("If using VSCode...\nvscode://settings/...", "Next steps.");
-outro(chalk.dim("Problems? https://..."));
+outro("Problems? https://...");
 ```
 
 ![layout-expanded](design-language/layout-expanded.png)
 
 ## Text Styles
 
-Core text styling functions for consistent CLI output.
+Semantic text styling functions for consistent CLI output. Import from `@poe-code/design-system`.
 
 ### intro
 
 Prominent introductory banners with brand background
 
 ```typescript
-design.text.intro("Configure")
+import { text } from "@poe-code/design-system";
+text.intro("Configure")
 ```
 
 ![intro](design-language/intro.png)
@@ -55,7 +104,8 @@ design.text.intro("Configure")
 Section headings with brand accent color
 
 ```typescript
-design.text.heading("Available Commands")
+import { text } from "@poe-code/design-system";
+text.heading("Available Commands")
 ```
 
 ![heading](design-language/heading.png)
@@ -65,7 +115,8 @@ design.text.heading("Available Commands")
 Bold text for subsection labels
 
 ```typescript
-design.text.section("Options:")
+import { text } from "@poe-code/design-system";
+text.section("Options:")
 ```
 
 ![section](design-language/section.png)
@@ -75,7 +126,8 @@ design.text.section("Options:")
 CLI command names in accent color
 
 ```typescript
-design.text.command("poe-code configure")
+import { text } from "@poe-code/design-system";
+text.command("poe-code configure")
 ```
 
 ![command](design-language/command.png)
@@ -85,7 +137,8 @@ design.text.command("poe-code configure")
 Command arguments (dimmed)
 
 ```typescript
-design.text.argument("<provider>")
+import { text } from "@poe-code/design-system";
+text.argument("<provider>")
 ```
 
 ![argument](design-language/argument.png)
@@ -95,7 +148,8 @@ design.text.argument("<provider>")
 CLI flags and options in yellow
 
 ```typescript
-design.text.option("--dry-run")
+import { text } from "@poe-code/design-system";
+text.option("--dry-run")
 ```
 
 ![option](design-language/option.png)
@@ -105,7 +159,8 @@ design.text.option("--dry-run")
 Example text (dimmed)
 
 ```typescript
-design.text.example("$ poe-code configure claude")
+import { text } from "@poe-code/design-system";
+text.example("$ poe-code configure claude")
 ```
 
 ![example](design-language/example.png)
@@ -115,7 +170,8 @@ design.text.example("$ poe-code configure claude")
 Commands in usage examples (green)
 
 ```typescript
-design.text.usageCommand("npm install -g poe-code")
+import { text } from "@poe-code/design-system";
+text.usageCommand("npm install -g poe-code")
 ```
 
 ![usageCommand](design-language/usageCommand.png)
@@ -125,7 +181,8 @@ design.text.usageCommand("npm install -g poe-code")
 Hyperlinks and references
 
 ```typescript
-design.text.link("https://poe.com")
+import { text } from "@poe-code/design-system";
+text.link("https://poe.com")
 ```
 
 ![link](design-language/link.png)
@@ -135,21 +192,23 @@ design.text.link("https://poe.com")
 De-emphasized text
 
 ```typescript
-design.text.muted("(optional)")
+import { text } from "@poe-code/design-system";
+text.muted("(optional)")
 ```
 
 ![muted](design-language/muted.png)
 
 ## Symbols
 
-Status indicators and visual markers.
+Status indicators and visual markers. Use with `log.message()` for structured output.
 
 ### info
 
 Information indicator (magenta dot)
 
 ```typescript
-logger.info("Configuring claude-code...")
+import { log, symbols } from "@poe-code/design-system";
+log.message("Configuring claude-code...", { symbol: symbols.info });
 ```
 
 ![info](design-language/info.png)
@@ -159,7 +218,8 @@ logger.info("Configuring claude-code...")
 Success indicator (magenta diamond)
 
 ```typescript
-logger.success("Configuration complete!")
+import { log, symbols } from "@poe-code/design-system";
+log.message("Configuration complete!", { symbol: symbols.success });
 ```
 
 ![success](design-language/success.png)
@@ -169,7 +229,8 @@ logger.success("Configuration complete!")
 Resolved/completed indicator (hollow diamond)
 
 ```typescript
-logger.resolved("API Key", "poe-abc...xyz")
+import { log, symbols } from "@poe-code/design-system";
+log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 ```
 
 ![resolved](design-language/resolved.png)
@@ -179,21 +240,23 @@ logger.resolved("API Key", "poe-abc...xyz")
 Error with details indicator (red square)
 
 ```typescript
-logger.errorResolved("Config Failed", "Missing API key")
+import { log, symbols } from "@poe-code/design-system";
+log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved });
 ```
 
 ![errorResolved](design-language/errorResolved.png)
 
 ## Log Messages
 
-Structured logging with appropriate visual weight.
+Structured logging with appropriate visual weight. Import `log` from the prompts module.
 
 ### log-info
 
 Informational messages during operations
 
 ```typescript
-logger.info("Configuring claude-code...")
+import { log, symbols } from "@poe-code/design-system";
+log.message("Configuring claude-code...", { symbol: symbols.info });
 ```
 
 ![log-info](design-language/log-info.png)
@@ -203,7 +266,8 @@ logger.info("Configuring claude-code...")
 Success confirmation messages
 
 ```typescript
-logger.success("Configuration complete!")
+import { log, symbols } from "@poe-code/design-system";
+log.message("Configuration complete!", { symbol: symbols.success });
 ```
 
 ![log-success](design-language/log-success.png)
@@ -213,7 +277,8 @@ logger.success("Configuration complete!")
 Warning messages for non-critical issues
 
 ```typescript
-logger.warn("API key expires in 7 days")
+import { log } from "@poe-code/design-system";
+log.warn("API key expires in 7 days");
 ```
 
 ![log-warn](design-language/log-warn.png)
@@ -223,71 +288,99 @@ logger.warn("API key expires in 7 days")
 Error messages for failures
 
 ```typescript
-logger.error("Failed to write config file")
+import { log } from "@poe-code/design-system";
+log.error("Failed to write config file");
 ```
 
 ![log-error](design-language/log-error.png)
 
-## Clack Containers
+## Prompts
 
-Structural UI elements from @clack/prompts.
+Interactive prompts for user input. Import from `@poe-code/design-system`.
 
-### clack-intro
+### prompt-intro
 
 Command intro banner with animation
 
 ```typescript
-intro(design.text.intro("Configure"))
+import { intro } from "@poe-code/design-system";
+intro("Configure");
 ```
 
-![clack-intro](design-language/clack-intro.png)
+![prompt-intro](design-language/prompt-intro.png)
 
-### clack-note
+### prompt-note
 
 Boxed note for next steps or important info
 
 ```typescript
-note("Run poe-code test", "Next steps.")
+import { note } from "@poe-code/design-system";
+note("Run poe-code test", "Next steps.");
 ```
 
-![clack-note](design-language/clack-note.png)
+![prompt-note](design-language/prompt-note.png)
 
-### clack-outro
+### prompt-outro
 
 Command outro with feedback link
 
 ```typescript
-outro(chalk.dim("Problems? https://..."))
+import { outro } from "@poe-code/design-system";
+outro("Problems? https://...");
 ```
 
-![clack-outro](design-language/clack-outro.png)
+![prompt-outro](design-language/prompt-outro.png)
 
-### clack-resolved
+### prompt-resolved
 
 Resolved prompt value display
 
 ```typescript
-logger.resolved("API Key", "poe-abc...xyz")
+import { log, symbols } from "@poe-code/design-system";
+log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 ```
 
-![clack-resolved](design-language/clack-resolved.png)
+![prompt-resolved](design-language/prompt-resolved.png)
 
-### clack-errorResolved
+### prompt-errorResolved
 
 Error with details display
 
 ```typescript
-logger.errorResolved("Config Failed", "Missing API key")
+import { log, symbols } from "@poe-code/design-system";
+log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved });
 ```
 
-![clack-errorResolved](design-language/clack-errorResolved.png)
+![prompt-errorResolved](design-language/prompt-errorResolved.png)
+
+### menu
+
+Interactive select prompt for choosing options
+
+```typescript
+import { select } from "@poe-code/design-system";
+const choice = await select({
+  message: "Pick an agent:",
+  options: [
+    { value: "claude-code", label: "Claude Code" },
+    { value: "codex", label: "Codex CLI" }
+  ]
+});
+```
+
+![menu](design-language/menu.png)
+
+## Static Rendering
+
+Utilities for rendering UI elements as static strings (for screenshots, tests, or non-interactive output).
 
 ### spinner-dots
 
 Animated dots spinner for async operations
 
 ```typescript
-const s = spinner({ indicator: "dots" });
+import { spinner } from "@poe-code/design-system";
+const s = spinner();
 s.start("Configuring...");
 await doWork();
 s.stop("Done!");
@@ -300,34 +393,26 @@ s.stop("Done!");
 Timer spinner showing elapsed time
 
 ```typescript
-const s = spinner({ indicator: "timer" });
-s.start("Processing...");
-await doWork();
-s.stop("Complete!");
+import { renderSpinnerFrame, renderSpinnerStopped } from "@poe-code/design-system";
+const frame = renderSpinnerFrame({ message: "Processing...", timer: "1s" });
+const stopped = renderSpinnerStopped({ message: "Complete!", timer: "2s" });
 ```
 
 ![spinner-timer](design-language/spinner-timer.png)
-
-## Complex Patterns
-
-Multi-line UI patterns for rich interactions.
 
 ### diff
 
 Unified diff display for file changes (used in --dry-run)
 
 ```typescript
-log.message(diffLines.join("\n"), { symbol: "~" })
+import { log } from "@poe-code/design-system";
+import chalk from "chalk";
+const diffLines = [
+  chalk.gray("--- config.json"),
+  chalk.red('-  "model": "gpt-4",'),
+  chalk.green('+  "model": "claude-sonnet-4",')
+];
+log.message(diffLines.join("\n"), { symbol: chalk.yellow("~") });
 ```
 
 ![diff](design-language/diff.png)
-
-### menu
-
-Interactive select prompt for choosing options
-
-```typescript
-select({ message: "Pick an agent:", options: [...] })
-```
-
-![menu](design-language/menu.png)

@@ -1,39 +1,68 @@
-# Desing QA
+# Design QA
 
-## Use screenshots
+Visual quality assurance checklist for poe-code CLI.
 
-`npm run screenshot-poe-code -- <command>`
+## Screenshots
 
-e.g.
+Generate screenshots of CLI output:
 
-`npm run screenshot-poe-code -- --help`
+```bash
+npm run screenshot-poe-code -- <command>
+```
 
 ## Task
 
-Run each command through screenshot script
-Look at each screenshot
-Make sure that all commands are useful, coherent, great user experience for CLI users
+1. Run each command through the screenshot script
+2. Review each screenshot
+3. Verify all output uses the design system correctly
+4. Ensure great user experience for CLI users
 
-Baseline
+## Design System Usage
 
-## Common issues
+Always import from `@poe-code/design-system`:
 
-Commands not using the design language
-Commands outputting information that is not useful
+```typescript
+import { intro, outro, text, symbols, log } from "@poe-code/design-system";
+```
 
-## Commands to check
+Never import directly from `@clack/prompts` - use the design-system wrappers.
 
-poe-code --help
-poe-code configure
-poe-code configure --help
-poe-code configure claude-code --dry-run --yes --api-key sk-test
-poe-code install --help
-poe-code spawn --help
-poe-code spawn claude "hi" --dry-run
-poe-code wrap --help
-poe-code test --help
-poe-code unconfigure --help
-poe-code unconfigure claude --dry-run --yes
-poe-code query --help
-poe-code login --help
-poe-code login --dry-run --yes --api-key sk-test
+## Common Issues
+
+- Commands not using the design language
+- Direct @clack/prompts imports instead of design-system
+- Hardcoded colors instead of tokens
+- Missing or incorrect symbols
+- Commands outputting information that is not useful
+
+## Commands to Check
+
+```bash
+# Core help
+npm run screenshot-poe-code -- --help
+npm run screenshot-poe-code -- configure --help
+npm run screenshot-poe-code -- install --help
+npm run screenshot-poe-code -- spawn --help
+npm run screenshot-poe-code -- wrap --help
+npm run screenshot-poe-code -- test --help
+npm run screenshot-poe-code -- unconfigure --help
+npm run screenshot-poe-code -- login --help
+npm run screenshot-poe-code -- generate --help
+npm run screenshot-poe-code -- mcp --help
+
+# Dry-run simulations
+npm run screenshot-poe-code -- configure claude-code --dry-run --yes --api-key sk-test
+npm run screenshot-poe-code -- unconfigure claude-code --dry-run --yes
+npm run screenshot-poe-code -- spawn claude "hi" --dry-run
+npm run screenshot-poe-code -- login --dry-run --yes --api-key sk-test
+```
+
+## Regenerate Design Docs
+
+After making visual changes:
+
+```bash
+npm run generate:design-docs
+```
+
+This regenerates [DESIGN_LANGUAGE.md](./DESIGN_LANGUAGE.md) with updated screenshots.

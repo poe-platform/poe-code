@@ -3,8 +3,11 @@
   "version": "0.0.0-dev",
   "description": "CLI tool to configure Poe API for developer workflows.",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-templates.mjs && node scripts/generate-bin-wrappers.mjs",
+    "build": "npm run build --workspaces --if-present && tsc -p tsconfig.build.json && node scripts/copy-templates.mjs && node scripts/generate-bin-wrappers.mjs",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run",

@@ -9,7 +9,8 @@ export default defineConfig({
     environment: "node",
     include: [
       "src/**/*.test.ts",              // Collocated unit tests
-      "tests/integration/**/*.test.ts" // Integration tests
+      "tests/integration/**/*.test.ts", // Integration tests
+      "packages/**/*.test.ts"          // Package tests
     ],
     setupFiles: ["tests/setup.ts"]
   }

@@ -58,6 +58,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@poe-code/freeze-cli": "*",
     "@types/mustache": "^4.2.6",
     "@types/node": "^20.12.7",
     "@types/semver": "^7.7.1",

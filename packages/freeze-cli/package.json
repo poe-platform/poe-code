@@ -1,0 +1,23 @@
+{
+  "name": "@poe-code/freeze-cli",
+  "version": "1.0.0",
+  "description": "npm wrapper for charmbracelet/freeze binary",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "freeze": "bin/freeze"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "postinstall": "test -f dist/download.js && node dist/download.js || true"
+  },
+  "goBinary": {
+    "name": "freeze",
+    "path": "./bin/freeze-bin",
+    "version": "0.2.0",
+    "url": "https://github.com/charmbracelet/freeze/releases/download/v{{version}}/freeze_{{version}}_{{platform}}_{{arch}}.tar.gz"
+  },
+  "dependencies": {
+    "tar": "^7.4.0"
+  }
+}

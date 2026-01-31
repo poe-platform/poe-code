@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -227,17 +227,6 @@ export function createTimeout(
   };
 }
 
-export function ensureBinaryAvailable(
-  binary: string,
-  installHint: string
-): void {
-  const result = spawnSync(binary, ["--version"], { stdio: "ignore" });
-  const error = result.error as NodeJS.ErrnoException | undefined;
-  if (error?.code === "ENOENT") {
-    throw new Error(`${binary} not found. Install with: ${installHint}`);
-  }
-}
-
 function waitForExit(
   child: ReturnType<typeof spawn>
 ): Promise<number> {
@@ -270,7 +259,6 @@ export async function runScreenshot(
   const outputPath =
     options.output ?? buildScreenshotOutputPath(target.nameArgs);
   mkdirSync(path.dirname(outputPath), { recursive: true });
-  ensureBinaryAvailable("freeze", "brew install charmbracelet/tap/freeze");
 
   const commandProcess = spawn(spawnSpec.command, spawnSpec.args, {
     stdio: ["ignore", "pipe", "pipe"],

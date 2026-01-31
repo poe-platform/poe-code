@@ -7,7 +7,7 @@ This document explains how poe-code detects installed CLI binaries (like `claude
 When running `poe-code install <agent>`, the tool needs to verify that the agent's CLI binary was successfully installed. This verification must work across:
 
 - Native macOS/Linux environments
-- Docker containers (via colima-runner.sh)
+- Docker containers (via `@poe-code/e2e-docker-test-runner`)
 - Different installation methods (npm global, curl scripts, etc.)
 
 ### Before: Limited Detection
@@ -60,31 +60,14 @@ const detectors = [
 
 ## Docker/Container Fix
 
-In addition to detection, the container runner needed to ensure binaries are findable after installation.
+In addition to detection, the container runner (`@poe-code/e2e-docker-test-runner`) ensures binaries are findable after installation by extending PATH at container startup:
 
-### Before: PATH not extended
-
-```bash
-container_commands=(
-  # ... setup commands
-  "npm install"
-  "npm run build"
-  # User commands run here, but PATH doesn't include ~/.local/bin
-)
+```typescript
+// In buildContainerScript()
+'export PATH="$HOME/.local/bin:$HOME/.claude/local/bin:$PATH"',
 ```
 
-### After: PATH extended at startup
-
-```bash
-container_commands=(
-  # ... setup commands
-  # Add common user binary paths to PATH for tools installed during the session
-  "export PATH=\"\$HOME/.local/bin:\$HOME/.claude/local/bin:\$PATH\""
-  "npm install"
-  "npm run build"
-  # Now user commands can find binaries in ~/.local/bin
-)
-```
+This ensures that binaries installed to user directories (like `~/.local/bin`) are immediately available to subsequent commands in the same container session.
 
 ## How It Works
 
@@ -98,7 +81,7 @@ container_commands=(
 ## File Locations
 
 - **Binary detection**: `src/utils/command-checks.ts` - `createBinaryExistsCheck()`
-- **Container runner**: `scripts/colima-runner.sh` - PATH extension in container_commands
+- **Container runner**: `packages/e2e-docker-test-runner/src/container.ts` - `buildContainerScript()`
 - **Provider install definitions**: `src/providers/*.ts` - Each provider's `install` property
 
 ## Adding New Installation Paths
@@ -115,8 +98,8 @@ const commonPaths = [
 ];
 ```
 
-And if needed for Docker testing, add to `colima-runner.sh`:
+And if needed for Docker testing, update the PATH export in `buildContainerScript()` in `packages/e2e-docker-test-runner/src/container.ts`:
 
-```bash
-"export PATH=\"\$HOME/.local/bin:\$HOME/.claude/local/bin:\$HOME/.new-tool/bin:\$PATH\""
+```typescript
+'export PATH="$HOME/.local/bin:$HOME/.claude/local/bin:$HOME/.new-tool/bin:$PATH"',
 ```

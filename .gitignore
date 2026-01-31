@@ -36,3 +36,7 @@ local_scripts/watch-diff.ts
 .planning/
 .claude/
 openspec
+
+# E2E test logs
+.e2e-logs/
+.colima-logs/

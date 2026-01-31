@@ -16,6 +16,7 @@ import type {
   ModelConfigureOptions,
   EmptyProviderOptions
 } from "./spawn-options.js";
+import { kimiAgent } from "@poe-code/agent-defs";
 
 export const KIMI_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "kimi",
@@ -49,19 +50,9 @@ export const kimiService = createProvider<
   EmptyProviderOptions,
   ProviderSpawnOptions
 >({
+  ...kimiAgent,
   disabled: false,
-  name: "kimi",
-  aliases: ["kimi-cli"],
-  label: "Kimi",
-  id: "kimi",
-  summary: "Configure Kimi CLI to use Poe API",
   supportsStdinPrompt: false,
-  branding: {
-    colors: {
-      dark: "#7B68EE",
-      light: "#6A5ACD"
-    }
-  },
   configurePrompts: {
     model: {
       label: "Kimi default model",

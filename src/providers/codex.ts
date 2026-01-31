@@ -19,6 +19,7 @@ import {
   DEFAULT_REASONING,
   stripModelNamespace
 } from "../cli/constants.js";
+import { codexAgent } from "@poe-code/agent-defs";
 
 type CodexConfigureContext = {
   env: CliEnvironment;
@@ -158,17 +159,8 @@ export const codexService = createProvider<
   CodexUnconfigureContext,
   ProviderSpawnOptions
 >({
-  name: "codex",
-  label: "Codex",
-  id: "codex",
-  summary: "Configure Codex to use Poe as the model provider.",
+  ...codexAgent,
   supportsStdinPrompt: true,
-  branding: {
-    colors: {
-      dark: "#D5D9DF",
-      light: "#7A7F86"
-    }
-  },
   configurePrompts: {
     model: {
       label: "Codex model",
@@ -184,7 +176,7 @@ export const codexService = createProvider<
     }
   },
   isolatedEnv: {
-    agentBinary: "codex",
+    agentBinary: codexAgent.binaryName,
     configProbe: { kind: "isolatedFile", relativePath: "config.toml" },
     env: {
       CODEX_HOME: { kind: "isolatedDir" },

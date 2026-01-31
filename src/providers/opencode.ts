@@ -16,6 +16,7 @@ import {
 } from "../services/service-manifest.js";
 import { createProvider } from "./create-provider.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
+import { openCodeAgent } from "@poe-code/agent-defs";
 
 function providerModel(model?: string): string {
   const value = model ?? DEFAULT_FRONTIER_MODEL;
@@ -46,17 +47,8 @@ function getModelArgs(model?: string): string[] {
 }
 
 export const openCodeService = createProvider({
-  name: "opencode",
-  label: "OpenCode CLI",
-  id: "opencode",
-  summary: "Configure OpenCode CLI to use the Poe API.",
+  ...openCodeAgent,
   supportsStdinPrompt: false,
-  branding: {
-    colors: {
-      dark: "#4A4F55",
-      light: "#2F3338"
-    }
-  },
   configurePrompts: {
     model: {
       label: "OpenCode model",
@@ -68,7 +60,7 @@ export const openCodeService = createProvider({
     }
   },
   isolatedEnv: {
-    agentBinary: "opencode",
+    agentBinary: openCodeAgent.binaryName,
     configProbe: {
       kind: "isolatedFile",
       relativePath: ".config/opencode/config.json"

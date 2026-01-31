@@ -19,6 +19,7 @@ import type {
   ModelConfigureOptions,
   ProviderSpawnOptions
 } from "./spawn-options.js";
+import { claudeCodeAgent } from "@poe-code/agent-defs";
 
 type ClaudeCodeConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
@@ -87,18 +88,8 @@ export const claudeCodeService = createProvider<
   ClaudeCodeUnconfigureContext,
   ProviderSpawnOptions
 >({
-  name: "claude-code",
-  aliases: ["claude"],
-  label: "Claude Code",
-  id: "claude-code",
-  summary: "Configure Claude Code to route through Poe.",
+  ...claudeCodeAgent,
   supportsStdinPrompt: true,
-  branding: {
-    colors: {
-      dark: "#C15F3C",
-      light: "#C15F3C"
-    }
-  },
   configurePrompts: {
     model: {
       label: "Claude Code default model",
@@ -113,7 +104,7 @@ export const claudeCodeService = createProvider<
     "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt"
   ],
   isolatedEnv: {
-    agentBinary: "claude",
+    agentBinary: claudeCodeAgent.binaryName,
     env: {
       ANTHROPIC_API_KEY: { kind: "poeApiKey" },
       ANTHROPIC_BASE_URL: { kind: "poeBaseUrl" }

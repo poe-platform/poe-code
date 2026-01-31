@@ -245,6 +245,7 @@ export function buildDockerArgs(config: DockerArgsConfig): string[] {
  * All setup and commands run in ONE docker run invocation.
  */
 export function runInContainer(commands: string[], options: { verbose?: boolean } = {}): RunResult {
+  const verbose = options.verbose ?? process.env.E2E_VERBOSE === '1';
   const workspace = workspaceDir ?? process.cwd();
   ensureCacheDirs();
 
@@ -265,6 +266,18 @@ export function runInContainer(commands: string[], options: { verbose?: boolean 
     containerScript,
   });
 
+  if (verbose) {
+    const redactedCommands = commands.map((cmd) =>
+      apiKey ? cmd.replace(apiKey, '***') : cmd
+    );
+    console.error('\n--- Running in container ---');
+    console.error('Commands:');
+    for (const cmd of redactedCommands) {
+      console.error(`  > ${cmd}`);
+    }
+    console.error('---\n');
+  }
+
   const env = { ...process.env };
   if (apiKey) {
     env.POE_API_KEY = apiKey;
@@ -272,7 +285,7 @@ export function runInContainer(commands: string[], options: { verbose?: boolean 
 
   const result = spawnSync(runConfig.engine, dockerArgs, {
     env,
-    stdio: options.verbose ? 'inherit' : 'pipe',
+    stdio: verbose ? 'inherit' : 'pipe',
     encoding: 'utf-8',
   });
 

@@ -12,11 +12,6 @@ export default defineConfig({
     testTimeout: 300000,
     hookTimeout: 300000,
     include: ['*.test.ts'],
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    maxWorkers: 1,
   },
 });

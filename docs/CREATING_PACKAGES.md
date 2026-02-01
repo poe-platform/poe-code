@@ -79,22 +79,7 @@ export type { SomeType } from "./types.js";
 
 Note: Use `.js` extensions in imports (TypeScript resolves these to `.ts` files).
 
-### 5. Add vitest alias
-
-For tests to resolve the package to source (without building first), add an alias in `vitest.config.ts`:
-
-```typescript
-resolve: {
-  alias: {
-    // TODO: Remove when turborepo is added
-    "@poe-code/your-package": path.resolve(__dirname, "packages/your-package/src/index.ts")
-  }
-}
-```
-
-This is a temporary workaround until Turborepo is added to orchestrate build dependencies.
-
-### 6. Link the package
+### 5. Link the package
 
 ```bash
 npm install
@@ -102,7 +87,7 @@ npm install
 
 This creates a symlink at `node_modules/@poe-code/your-package`.
 
-### 7. Import from main code
+### 6. Import from main code
 
 ```typescript
 import { something } from "@poe-code/your-package";
@@ -129,7 +114,6 @@ Run with `npm run test` from root.
 ## Key Points
 
 - **Build for production**: Packages compile via `npm run build --workspaces` during the main build
-- **Vitest alias**: Tests resolve to source via alias in vitest.config.ts (temporary until Turborepo)
 - **Tests in package**: Place `*.test.ts` files alongside source. Excluded from build via tsconfig.
 - **Zero imports from src/**: Packages must not import from the main `src/` directory to avoid circular dependencies.
 

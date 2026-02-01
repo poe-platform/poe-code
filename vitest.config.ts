@@ -1,21 +1,38 @@
 import { defineConfig } from "vitest/config";
 import { loadTestEnv } from "./tests/test-env.js";
 import path from "path";
+import fs from "fs";
 
 loadTestEnv();
 
+function getPackageAliases(): Record<string, string> {
+  const packagesDir = path.resolve(__dirname, "packages");
+  const packages = fs.readdirSync(packagesDir, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name);
+
+  const mainAliases: Record<string, string> = {};
+  const subpathAliases: Record<string, string> = {};
+
+  for (const pkg of packages) {
+    // Main export: @poe-code/<name> -> packages/<name>/src/index.ts
+    mainAliases[`@poe-code/${pkg}`] = path.resolve(packagesDir, pkg, "src/index.ts");
+
+    // Check for /testing subpath export
+    const testingIndexPath = path.resolve(packagesDir, pkg, "src/testing/index.ts");
+    if (fs.existsSync(testingIndexPath)) {
+      subpathAliases[`@poe-code/${pkg}/testing`] = testingIndexPath;
+    }
+  }
+
+  // Subpath aliases must come first for correct resolution
+  return { ...subpathAliases, ...mainAliases };
+}
+
 export default defineConfig({
   resolve: {
-    alias: {
-      // Resolve workspace packages to source for tests (no build required)
-      "@poe-code/agent-defs": path.resolve(__dirname, "packages/agent-defs/src/index.ts"),
-      "@poe-code/agent-mcp-config": path.resolve(__dirname, "packages/agent-mcp-config/src/index.ts"),
-      "@poe-code/design-system": path.resolve(__dirname, "packages/design-system/src/index.ts"),
-      "@poe-code/config-mutations/testing": path.resolve(__dirname, "packages/config-mutations/src/testing/index.ts"),
-      "@poe-code/config-mutations": path.resolve(__dirname, "packages/config-mutations/src/index.ts"),
-      "@poe-code/tiny-file-type": path.resolve(__dirname, "packages/tiny-file-type/src/index.ts"),
-      "@poe-code/tiny-mcp-server": path.resolve(__dirname, "packages/tiny-mcp-server/src/index.ts")
-    }
+    // Resolve workspace packages to source for tests (no build required)
+    alias: getPackageAliases()
   },
   test: {
     globals: true,

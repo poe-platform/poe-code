@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import type { SDKTransport } from "@poe-code/tiny-mcp-server";
 import { createMcpServer } from "../../src/cli/mcp-server.js";
 
 interface ToolCallResult {
@@ -9,26 +10,28 @@ interface ToolCallResult {
 
 describe("MCP Server Protocol Integration", () => {
   let client: Client;
-  let closeTransport: () => Promise<void>;
+  let serverPromise: Promise<void>;
+  let clientTransport: ReturnType<typeof InMemoryTransport.createLinkedPair>[0];
+  let serverTransport: ReturnType<typeof InMemoryTransport.createLinkedPair>[1];
 
   beforeAll(async () => {
     const server = createMcpServer();
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
 
     client = new Client({ name: "test-client", version: "1.0.0" }, {});
 
-    await Promise.all([
-      client.connect(clientTransport),
-      server.connect(serverTransport)
-    ]);
+    // Start server connection (runs in background)
+    serverPromise = server.connectSDK(serverTransport as unknown as SDKTransport);
 
-    closeTransport = async () => {
-      await client.close();
-    };
+    // Connect client
+    await client.connect(clientTransport);
   });
 
   afterAll(async () => {
-    await closeTransport();
+    await client.close();
+    await clientTransport.close();
+    await serverTransport.close();
+    await serverPromise;
   });
 
   describe("tools/list", () => {

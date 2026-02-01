@@ -352,7 +352,7 @@ describe("server protocol handlers", () => {
       const response = transport.getLastResponse();
       expect(response.result.serverInfo.name).toBe("my-server");
       expect(response.result.serverInfo.version).toBe("2.0.0");
-      expect(response.result.capabilities.tools).toEqual({ listChanged: false });
+      expect(response.result.capabilities.tools).toEqual({ listChanged: true });
       expect(response.result.protocolVersion).toBeDefined();
     });
 
@@ -369,7 +369,7 @@ describe("server protocol handlers", () => {
       await connectPromise;
 
       const response = transport.getLastResponse();
-      expect(response.result.capabilities.tools.listChanged).toBe(false);
+      expect(response.result.capabilities.tools.listChanged).toBe(true);
     });
 
     it("returns correct server info", async () => {

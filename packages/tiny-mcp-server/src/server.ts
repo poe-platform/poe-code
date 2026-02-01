@@ -64,7 +64,7 @@ export function createServer(options: ServerOptions): Server {
         protocolVersion: requestedProtocol ?? PROTOCOL_VERSION,
         capabilities: {
           tools: {
-            listChanged: false,
+            listChanged: true,
           },
         },
         serverInfo: {

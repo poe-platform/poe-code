@@ -86,7 +86,19 @@ export function registerMcpCommand(
         fs: container.fs,
         homeDir: container.env.homeDir,
         platform: process.platform as "darwin" | "linux" | "win32",
-        dryRun: flags.dryRun
+        dryRun: flags.dryRun,
+        observers: {
+          onStart: (details) => {
+            if (flags.dryRun) {
+              resources.logger.dryRun(`Would ${details.label.toLowerCase()}`);
+            }
+          },
+          onComplete: (details, outcome) => {
+            if (!flags.dryRun && outcome.changed) {
+              resources.logger.verbose(details.label);
+            }
+          }
+        }
       });
 
       resources.context.complete({
@@ -114,7 +126,19 @@ export function registerMcpCommand(
         fs: container.fs,
         homeDir: container.env.homeDir,
         platform: process.platform as "darwin" | "linux" | "win32",
-        dryRun: flags.dryRun
+        dryRun: flags.dryRun,
+        observers: {
+          onStart: (details) => {
+            if (flags.dryRun) {
+              resources.logger.dryRun(`Would ${details.label.toLowerCase()}`);
+            }
+          },
+          onComplete: (details, outcome) => {
+            if (!flags.dryRun && outcome.changed) {
+              resources.logger.verbose(details.label);
+            }
+          }
+        }
       });
 
       resources.context.complete({

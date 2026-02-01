@@ -21,6 +21,7 @@ import {
   formatErrorResponse,
 } from "./jsonrpc.js";
 import type { TypedSchema } from "./schema.js";
+import { toContentBlocks } from "./content/convert.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
 
@@ -121,9 +122,7 @@ export function createServer(options: ServerOptions): Server {
 
       try {
         const handlerResult = await tool.handler(toolArgs);
-        const result: CallToolResult = handlerResult.content
-          ? { content: handlerResult.content }
-          : { content: [{ type: "text", text: handlerResult.text || "" }] };
+        const result: CallToolResult = { content: toContentBlocks(handlerResult) };
         return { result };
       } catch (err) {
         const errorMessage =

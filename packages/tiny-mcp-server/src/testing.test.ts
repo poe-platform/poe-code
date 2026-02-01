@@ -53,7 +53,7 @@ describe("SDK Client integration", () => {
         "greet",
         "Say hello",
         schema,
-        async (args) => ({ text: `Hello, ${args.name}!` })
+        async (args) => `Hello, ${args.name}!`
       );
 
       testPair = await createTestPair(server);
@@ -82,7 +82,7 @@ describe("SDK Client integration", () => {
           `tool${i}`,
           `Tool number ${i}`,
           schema,
-          async () => ({ text: String(i) })
+          async () => String(i)
         );
       }
 
@@ -102,8 +102,8 @@ describe("SDK Client integration", () => {
       });
 
       const server = createServer({ name: "test", version: "1.0.0" })
-        .tool("tool1", "First", schema1, async () => ({ text: "" }))
-        .tool("tool2", "Second", schema2, async () => ({ text: "" }));
+        .tool("tool1", "First", schema1, async () => "")
+        .tool("tool2", "Second", schema2, async () => "");
 
       testPair = await createTestPair(server);
       const result = await testPair.client.listTools();
@@ -130,7 +130,7 @@ describe("SDK Client integration", () => {
         "greet",
         "Say hello",
         schema,
-        async (args) => ({ text: `Hello, ${args.name}!` })
+        async (args) => `Hello, ${args.name}!`
       );
 
       testPair = await createTestPair(server);
@@ -148,7 +148,7 @@ describe("SDK Client integration", () => {
         "noop",
         "No-op tool",
         schema,
-        async () => ({ text: "done" })
+        async () => "done"
       );
 
       testPair = await createTestPair(server);
@@ -170,9 +170,7 @@ describe("SDK Client integration", () => {
         "complex",
         "Complex args",
         schema,
-        async (args) => ({
-          text: `str=${args.str}, num=${args.num}, bool=${args.bool}`,
-        })
+        async (args) => `str=${args.str}, num=${args.num}, bool=${args.bool}`
       );
 
       testPair = await createTestPair(server);
@@ -195,7 +193,7 @@ describe("SDK Client integration", () => {
         "add",
         "Add numbers",
         schema,
-        async (args) => ({ text: String(args.a + args.b) })
+        async (args) => String(args.a + args.b)
       );
 
       testPair = await createTestPair(server);
@@ -225,7 +223,7 @@ describe("SDK Client integration", () => {
         "echo",
         "Echo text",
         schema,
-        async (args) => ({ text: args.text })
+        async (args) => args.text
       );
 
       testPair = await createTestPair(server);
@@ -261,7 +259,7 @@ describe("SDK Client integration", () => {
         "typed",
         "Typed tool",
         schema,
-        async () => ({ text: "ok" })
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -285,7 +283,7 @@ describe("SDK Client integration", () => {
         "allTypes",
         "All types",
         schema,
-        async () => ({ text: "ok" })
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -308,7 +306,7 @@ describe("SDK Client integration", () => {
         "user",
         "User tool",
         schema,
-        async () => ({ text: "ok" })
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -399,12 +397,10 @@ describe("SDK Client integration", () => {
         "multi",
         "Multiple items",
         schema,
-        async () => ({
-          content: [
-            { type: "text", text: "First" },
-            { type: "text", text: "Second" },
-          ],
-        })
+        async () => [
+          { type: "text", text: "First" } as const,
+          { type: "text", text: "Second" } as const,
+        ]
       );
 
       testPair = await createTestPair(server);
@@ -428,7 +424,7 @@ describe("SDK Client integration", () => {
         "many",
         "Many items",
         schema,
-        async () => ({ content: items })
+        async () => items
       );
 
       testPair = await createTestPair(server);
@@ -449,7 +445,7 @@ describe("SDK Client integration", () => {
         "single",
         "Single text",
         schema,
-        async () => ({ text: "Just one" })
+        async () => "Just one"
       );
 
       testPair = await createTestPair(server);
@@ -472,12 +468,8 @@ describe("SDK Client integration", () => {
       const schema2 = defineSchema({ name: { type: "string" } });
 
       const server = createServer({ name: "test", version: "1.0.0" })
-        .tool("add", "Add numbers", schema1, async (args) => ({
-          text: String(args.a + args.b),
-        }))
-        .tool("greet", "Say hello", schema2, async (args) => ({
-          text: `Hi ${args.name}`,
-        }));
+        .tool("add", "Add numbers", schema1, async (args) => String(args.a + args.b))
+        .tool("greet", "Say hello", schema2, async (args) => `Hi ${args.name}`);
 
       testPair = await createTestPair(server);
 
@@ -503,7 +495,7 @@ describe("SDK Client integration", () => {
         schema,
         async () => {
           callCount++;
-          return { text: String(callCount) };
+          return String(callCount);
         }
       );
 
@@ -535,11 +527,11 @@ describe("SDK Client integration", () => {
       const server = createServer({ name: "test", version: "1.0.0" })
         .tool("tool1", "Tool 1", schema, async () => {
           counters.tool1++;
-          return { text: `tool1: ${counters.tool1}` };
+          return `tool1: ${counters.tool1}`;
         })
         .tool("tool2", "Tool 2", schema, async () => {
           counters.tool2++;
-          return { text: `tool2: ${counters.tool2}` };
+          return `tool2: ${counters.tool2}`;
         });
 
       testPair = await createTestPair(server);
@@ -562,7 +554,7 @@ describe("SDK Client integration", () => {
         schema,
         async () => {
           await new Promise((resolve) => setTimeout(resolve, 50));
-          return { text: "delayed" };
+          return "delayed";
         }
       );
 
@@ -581,7 +573,7 @@ describe("SDK Client integration", () => {
         "sync",
         "Sync",
         schema,
-        () => ({ text: "sync" })
+        () => "sync"
       );
 
       testPair = await createTestPair(server);
@@ -601,7 +593,7 @@ describe("SDK Client integration", () => {
         "empty",
         "Empty",
         schema,
-        async () => ({ text: "" })
+        async () => ""
       );
 
       testPair = await createTestPair(server);
@@ -620,7 +612,7 @@ describe("SDK Client integration", () => {
         "long",
         "Long response",
         schema,
-        async () => ({ text: longText })
+        async () => longText
       );
 
       testPair = await createTestPair(server);
@@ -639,7 +631,7 @@ describe("SDK Client integration", () => {
         longName,
         "Long name tool",
         schema,
-        async () => ({ text: "ok" })
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -659,7 +651,7 @@ describe("SDK Client integration", () => {
         "工具",
         "Unicode tool",
         schema,
-        async () => ({ text: "ok" })
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -704,8 +696,8 @@ describe("removeTool via SDK", () => {
   it("removes tool and reflects in tools/list", async () => {
     const schema = defineSchema({});
     const server = createServer({ name: "test", version: "1.0.0" })
-      .tool("tool1", "First", schema, async () => ({ text: "1" }))
-      .tool("tool2", "Second", schema, async () => ({ text: "2" }));
+      .tool("tool1", "First", schema, async () => "1")
+      .tool("tool2", "Second", schema, async () => "2");
 
     testPair = await createTestPair(server);
 
@@ -726,7 +718,7 @@ describe("removeTool via SDK", () => {
       "test",
       "Test",
       schema,
-      async () => ({ text: "ok" })
+      async () => "ok"
     );
 
     testPair = await createTestPair(server);
@@ -769,9 +761,7 @@ describe("dynamic tool management via SDK", () => {
     expect(before.tools).toHaveLength(0);
 
     // Add tool dynamically
-    server.tool("dynamic", "Dynamic tool", schema, async () => ({
-      text: "dynamic",
-    }));
+    server.tool("dynamic", "Dynamic tool", schema, async () => "dynamic");
 
     // Verify tool is now available
     const after = await testPair.client.listTools();
@@ -786,9 +776,7 @@ describe("dynamic tool management via SDK", () => {
     testPair = await createTestPair(server);
 
     // Add tool dynamically
-    server.tool("echo", "Echo message", schema, async (args) => ({
-      text: args.msg,
-    }));
+    server.tool("echo", "Echo message", schema, async (args) => args.msg);
 
     // Call the dynamically added tool
     const result = await testPair.client.callTool({
@@ -805,7 +793,7 @@ describe("dynamic tool management via SDK", () => {
       "test",
       "Test",
       schema,
-      async () => ({ text: "ok" })
+      async () => "ok"
     );
 
     testPair = await createTestPair(server);

@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import { Readable, Writable } from "stream";
 import { createServer } from "./server.js";
 import { defineSchema } from "./schema.js";
+import { Image } from "./content/image.js";
+import { Audio } from "./content/audio.js";
+import { File } from "./content/file.js";
 
 function createTestTransport() {
   const output: string[] = [];
@@ -64,9 +67,9 @@ describe("createServer", () => {
     it("supports fluent tool chaining", () => {
       const schema = defineSchema({ name: { type: "string" } });
       const server = createServer({ name: "test", version: "1.0.0" })
-        .tool("a", "Tool A", schema, async () => ({ text: "a" }))
-        .tool("b", "Tool B", schema, async () => ({ text: "b" }))
-        .tool("c", "Tool C", schema, async () => ({ text: "c" }));
+        .tool("a", "Tool A", schema, async () => "a")
+        .tool("b", "Tool B", schema, async () => "b")
+        .tool("c", "Tool C", schema, async () => "c");
 
       expect(server).toBeDefined();
     });
@@ -100,8 +103,8 @@ describe("createServer", () => {
       const transport = createTestTransport();
       const schema = defineSchema({});
       const server = createServer({ name: "test", version: "1.0.0" })
-        .tool("tool1", "First", schema, async () => ({ text: "1" }))
-        .tool("tool2", "Second", schema, async () => ({ text: "2" }));
+        .tool("tool1", "First", schema, async () => "1")
+        .tool("tool2", "Second", schema, async () => "2");
 
       const connectPromise = server.connect(transport);
       transport.send(
@@ -138,7 +141,7 @@ describe("createServer", () => {
         "test",
         "Test",
         schema,
-        async () => ({ text: "" })
+        async () => ""
       );
 
       const removed = server.removeTool("test");
@@ -152,7 +155,7 @@ describe("createServer", () => {
         "test",
         "Test",
         schema,
-        async () => ({ text: "ok" })
+        async () => "ok"
       );
 
       const connectPromise = server.connect(transport);
@@ -186,7 +189,7 @@ describe("createServer", () => {
         "test",
         "Test",
         schema,
-        async () => ({ text: "ok" })
+        async () => "ok"
       );
 
       const connectPromise = server.connect(transport);
@@ -240,7 +243,7 @@ describe("createServer", () => {
         "test",
         "Test",
         schema,
-        async () => ({ text: "ok" })
+        async () => "ok"
       );
 
       const connectPromise = server.connect(transport);
@@ -521,7 +524,7 @@ describe("server protocol handlers", () => {
         "greet",
         "Say hello",
         schema,
-        async () => ({ text: "hello" })
+        async () => "hello"
       );
 
       const connectPromise = server.connect(transport);
@@ -561,9 +564,9 @@ describe("server protocol handlers", () => {
       const transport = createTestTransport();
       const schema = defineSchema({});
       const server = createServer({ name: "test", version: "1.0.0" })
-        .tool("tool1", "First tool", schema, async () => ({ text: "1" }))
-        .tool("tool2", "Second tool", schema, async () => ({ text: "2" }))
-        .tool("tool3", "Third tool", schema, async () => ({ text: "3" }));
+        .tool("tool1", "First tool", schema, async () => "1")
+        .tool("tool2", "Second tool", schema, async () => "2")
+        .tool("tool3", "Third tool", schema, async () => "3");
 
       const connectPromise = server.connect(transport);
       transport.send(
@@ -588,7 +591,7 @@ describe("server protocol handlers", () => {
         "test",
         "Test tool",
         schema,
-        async () => ({ text: "" })
+        async () => ""
       );
 
       const connectPromise = server.connect(transport);
@@ -616,7 +619,7 @@ describe("server protocol handlers", () => {
         "greet",
         "Say hello",
         schema,
-        async (args) => ({ text: `Hello, ${args.name}!` })
+        async (args) => `Hello, ${args.name}!`
       );
 
       const connectPromise = server.connect(transport);
@@ -641,9 +644,9 @@ describe("server protocol handlers", () => {
       const transport = createTestTransport();
       const schema = defineSchema({});
       const server = createServer({ name: "test", version: "1.0.0" })
-        .tool("tool1", "First", schema, async () => ({ text: "first" }))
-        .tool("tool2", "Second", schema, async () => ({ text: "second" }))
-        .tool("tool3", "Third", schema, async () => ({ text: "third" }));
+        .tool("tool1", "First", schema, async () => "first")
+        .tool("tool2", "Second", schema, async () => "second")
+        .tool("tool3", "Third", schema, async () => "third");
 
       const connectPromise = server.connect(transport);
       transport.send(
@@ -670,7 +673,7 @@ describe("server protocol handlers", () => {
         "add",
         "Add numbers",
         schema,
-        async (args) => ({ text: String(args.a + args.b) })
+        async (args) => String(args.a + args.b)
       );
 
       const connectPromise = server.connect(transport);
@@ -695,7 +698,7 @@ describe("server protocol handlers", () => {
         "noop",
         "No-op",
         schema,
-        async () => ({ text: "done" })
+        async () => "done"
       );
 
       const connectPromise = server.connect(transport);
@@ -720,7 +723,7 @@ describe("server protocol handlers", () => {
         "noop",
         "No-op",
         schema,
-        async () => ({ text: "done" })
+        async () => "done"
       );
 
       const connectPromise = server.connect(transport);
@@ -1012,12 +1015,10 @@ describe("server with multiple content items", () => {
       "multi",
       "Multiple items",
       schema,
-      async () => ({
-        content: [
-          { type: "text", text: "A" },
-          { type: "text", text: "B" },
-        ],
-      })
+      async () => [
+        { type: "text", text: "A" } as const,
+        { type: "text", text: "B" } as const,
+      ]
     );
 
     const connectPromise = server.connect(transport);
@@ -1048,7 +1049,7 @@ describe("server with multiple content items", () => {
       "many",
       "Many items",
       schema,
-      async () => ({ content: items })
+      async () => items
     );
 
     const connectPromise = server.connect(transport);
@@ -1071,7 +1072,7 @@ describe("server with multiple content items", () => {
       "empty",
       "Empty result",
       schema,
-      async () => ({ text: "" })
+      async () => ""
     );
 
     const connectPromise = server.connect(transport);
@@ -1098,7 +1099,7 @@ describe("async handlers", () => {
       schema,
       async () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
-        return { text: "delayed" };
+        return "delayed";
       }
     );
 
@@ -1124,7 +1125,7 @@ describe("async handlers", () => {
       "sync",
       "Sync response",
       schema,
-      () => ({ text: "sync" })
+      () => "sync"
     );
 
     const connectPromise = server.connect(transport);
@@ -1159,7 +1160,7 @@ describe("transport connection", () => {
       "test",
       "Test",
       schema,
-      async () => ({ text: "ok" })
+      async () => "ok"
     );
 
     const connectPromise = server.connect(transport);
@@ -1217,4 +1218,295 @@ describe("request id handling", () => {
 
     expect(transport.getLastResponse().id).toBe(0);
   });
+});
+
+describe("content helpers integration", () => {
+  describe("string return type", () => {
+    it("handles tool returning plain string", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "greet",
+        "Say hello",
+        schema,
+        async () => "Hello, World!"
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"greet","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content).toEqual([
+        { type: "text", text: "Hello, World!" },
+      ]);
+    });
+  });
+
+  describe("Image helper return type", () => {
+    it("handles tool returning Image instance", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const base64Data = "iVBORw0KGgo=";
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "get-image",
+        "Get image",
+        schema,
+        async () => Image.fromBase64(base64Data, "image/png")
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-image","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content).toEqual([
+        { type: "image", data: base64Data, mimeType: "image/png" },
+      ]);
+    });
+
+    it("handles tool returning Image from bytes", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const pngData = new Uint8Array([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00,
+      ]);
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "get-image",
+        "Get image",
+        schema,
+        async () => Image.fromBytes(pngData)
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-image","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content[0].type).toBe("image");
+      expect(responses[1].result.content[0].mimeType).toBe("image/png");
+    });
+  });
+
+  describe("Audio helper return type", () => {
+    it("handles tool returning Audio instance", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const base64Data = "SUQzBAAAAAA=";
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "get-audio",
+        "Get audio",
+        schema,
+        async () => Audio.fromBase64(base64Data, "audio/mpeg")
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-audio","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content).toEqual([
+        { type: "audio", data: base64Data, mimeType: "audio/mpeg" },
+      ]);
+    });
+  });
+
+  describe("File helper return type", () => {
+    it("handles tool returning File instance (binary)", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const data = new Uint8Array([0x00, 0x01, 0x02, 0x03]);
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "get-file",
+        "Get file",
+        schema,
+        async () => File.fromBytes(data, "video/mp4")
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-file","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content[0].type).toBe("resource");
+      expect(responses[1].result.content[0].resource.mimeType).toBe("video/mp4");
+      expect(responses[1].result.content[0].resource.blob).toBe(
+        Buffer.from(data).toString("base64")
+      );
+    });
+
+    it("handles tool returning File instance (text)", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "get-file",
+        "Get file",
+        schema,
+        async () => File.fromText("Hello, world!", "text/plain")
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-file","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content[0].type).toBe("resource");
+      expect(responses[1].result.content[0].resource.mimeType).toBe("text/plain");
+      expect(responses[1].result.content[0].resource.text).toBe("Hello, world!");
+    });
+  });
+
+  describe("array return type", () => {
+    it("handles tool returning array of strings", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "multi",
+        "Multiple strings",
+        schema,
+        async () => ["First", "Second", "Third"]
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"multi","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content).toEqual([
+        { type: "text", text: "First" },
+        { type: "text", text: "Second" },
+        { type: "text", text: "Third" },
+      ]);
+    });
+
+    it("handles tool returning mixed array with Image", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "mixed",
+        "Mixed content",
+        schema,
+        async () => [
+          "Here is an image:",
+          Image.fromBase64("iVBORw0KGgo=", "image/png"),
+        ]
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"mixed","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content).toHaveLength(2);
+      expect(responses[1].result.content[0]).toEqual({
+        type: "text",
+        text: "Here is an image:",
+      });
+      expect(responses[1].result.content[1]).toEqual({
+        type: "image",
+        data: "iVBORw0KGgo=",
+        mimeType: "image/png",
+      });
+    });
+
+    it("handles tool returning array with Image, Audio, and File", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "all",
+        "All content types",
+        schema,
+        async () => [
+          "Content:",
+          Image.fromBase64("iVBORw0KGgo=", "image/png"),
+          Audio.fromBase64("SUQzBAAAAAA=", "audio/mpeg"),
+          File.fromText("data", "text/plain"),
+        ]
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"all","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content).toHaveLength(4);
+      expect(responses[1].result.content[0].type).toBe("text");
+      expect(responses[1].result.content[1].type).toBe("image");
+      expect(responses[1].result.content[2].type).toBe("audio");
+      expect(responses[1].result.content[3].type).toBe("resource");
+    });
+  });
+
+  describe("raw ContentBlock passthrough", () => {
+    it("handles tool returning raw content block", async () => {
+      const transport = createTestTransport();
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "raw",
+        "Raw content",
+        schema,
+        async () => ({ type: "text", text: "raw block" })
+      );
+
+      const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send(
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"raw","arguments":{}}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const responses = transport.getAllResponses();
+      expect(responses[1].result.content).toEqual([
+        { type: "text", text: "raw block" },
+      ]);
+    });
+  });
+
 });

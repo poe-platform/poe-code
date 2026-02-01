@@ -10,11 +10,30 @@ export type { TypedSchema } from "./schema.js";
 export { createTestPair } from "./testing.js";
 export type { TestPair } from "./testing.js";
 
+// Content helpers
+export {
+  Image,
+  Audio,
+  File,
+  toContentBlocks,
+  fileTypeFromBuffer,
+} from "./content/index.js";
+export type {
+  ImageContent,
+  AudioContent,
+  EmbeddedResource,
+  TextResourceContents,
+  BlobResourceContents,
+  ContentBlock,
+  TextContent,
+  FileTypeResult,
+} from "./content/index.js";
+export type { ToolReturn } from "./content/index.js";
+
 // Types
 export type {
   ServerOptions,
   ToolHandler,
-  ToolHandlerResult,
   ToolDefinition,
   Tool,
   CallToolResult,

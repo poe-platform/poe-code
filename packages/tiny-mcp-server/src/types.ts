@@ -55,10 +55,17 @@ export interface CallToolResult {
   isError?: boolean;
 }
 
-export interface ContentItem {
-  type: "text";
-  text: string;
-}
+// ContentItem is a union of all possible content block types
+export type ContentItem =
+  | { type: "text"; text: string }
+  | { type: "image"; data: string; mimeType: string }
+  | { type: "audio"; data: string; mimeType: string }
+  | {
+      type: "resource";
+      resource:
+        | { uri: string; mimeType: string; text: string }
+        | { uri: string; mimeType: string; blob: string };
+    };
 
 export interface JSONSchema {
   type: "object";
@@ -77,14 +84,23 @@ export interface ServerOptions {
   version: string;
 }
 
+// Import content helper types for tool return type
+import type { Image } from "./content/image.js";
+import type { Audio } from "./content/audio.js";
+import type { File } from "./content/file.js";
+
+// Tool return type - can be string, content helpers, raw blocks, or arrays
+export type ToolReturn =
+  | string
+  | Image
+  | Audio
+  | File
+  | ContentItem
+  | Array<string | Image | Audio | File | ContentItem>;
+
 export type ToolHandler<T = Record<string, unknown>> = (
   args: T
-) => Promise<ToolHandlerResult> | ToolHandlerResult;
-
-export interface ToolHandlerResult {
-  text?: string;
-  content?: ContentItem[];
-}
+) => Promise<ToolReturn> | ToolReturn;
 
 export interface ToolDefinition<T = Record<string, unknown>> {
   name: string;

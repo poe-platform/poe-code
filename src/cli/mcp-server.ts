@@ -116,9 +116,7 @@ interface McpResourceContent {
 
 type McpContent = McpTextContent | McpResourceContent;
 
-interface McpToolResult {
-  content: McpContent[];
-}
+type McpToolResult = McpContent[];
 
 interface GenerateTextArgs {
   bot_name: string;
@@ -139,7 +137,7 @@ export async function generateText(args: GenerateTextArgs): Promise<McpToolResul
     prompt: args.message,
     params: args.params
   });
-  return { content: [{ type: "text", text: response.content ?? "" }] };
+  return [{ type: "text", text: response.content ?? "" }];
 }
 
 export async function generateImage(args: GenerateMediaArgs): Promise<McpToolResult> {
@@ -153,7 +151,7 @@ export async function generateImage(args: GenerateMediaArgs): Promise<McpToolRes
   if (!response.url) {
     throw new Error(`Model "${model}" did not return an image URL`);
   }
-  return { content: toMcpContent(response) };
+  return toMcpContent(response);
 }
 
 export async function generateVideo(args: GenerateMediaArgs): Promise<McpToolResult> {
@@ -167,7 +165,7 @@ export async function generateVideo(args: GenerateMediaArgs): Promise<McpToolRes
   if (!response.url) {
     throw new Error(`Model "${model}" did not return a video URL`);
   }
-  return { content: toMcpContent(response) };
+  return toMcpContent(response);
 }
 
 export async function generateAudio(args: GenerateMediaArgs): Promise<McpToolResult> {
@@ -181,7 +179,7 @@ export async function generateAudio(args: GenerateMediaArgs): Promise<McpToolRes
   if (!response.url) {
     throw new Error(`Model "${model}" did not return an audio URL`);
   }
-  return { content: toMcpContent(response) };
+  return toMcpContent(response);
 }
 
 function toMcpContent(response: LlmResponse): McpContent[] {
@@ -244,14 +242,12 @@ export function createMcpServer(): Server {
           message: args.message,
           params: normalizeParams(args.params)
         });
-        return {
-          content: result.content.map((c) => {
-            if (c.type === "text") {
-              return { type: "text" as const, text: c.text };
-            }
-            return { type: "text" as const, text: `URL: ${c.resource.uri}` };
-          })
-        };
+        return result.map((c: McpContent) => {
+          if (c.type === "text") {
+            return { type: "text" as const, text: c.text };
+          }
+          return { type: "text" as const, text: `URL: ${c.resource.uri}` };
+        });
       }
     )
     .tool(
@@ -264,14 +260,12 @@ export function createMcpServer(): Server {
           bot_name: args.bot_name,
           params: normalizeParams(args.params)
         });
-        return {
-          content: result.content.map((c) => {
-            if (c.type === "text") {
-              return { type: "text" as const, text: c.text };
-            }
-            return { type: "text" as const, text: c.resource.uri };
-          })
-        };
+        return result.map((c: McpContent) => {
+          if (c.type === "text") {
+            return { type: "text" as const, text: c.text };
+          }
+          return { type: "text" as const, text: c.resource.uri };
+        });
       }
     )
     .tool(
@@ -284,14 +278,12 @@ export function createMcpServer(): Server {
           bot_name: args.bot_name,
           params: normalizeParams(args.params)
         });
-        return {
-          content: result.content.map((c) => {
-            if (c.type === "text") {
-              return { type: "text" as const, text: c.text };
-            }
-            return { type: "text" as const, text: c.resource.uri };
-          })
-        };
+        return result.map((c: McpContent) => {
+          if (c.type === "text") {
+            return { type: "text" as const, text: c.text };
+          }
+          return { type: "text" as const, text: c.resource.uri };
+        });
       }
     )
     .tool(
@@ -304,14 +296,12 @@ export function createMcpServer(): Server {
           bot_name: args.bot_name,
           params: normalizeParams(args.params)
         });
-        return {
-          content: result.content.map((c) => {
-            if (c.type === "text") {
-              return { type: "text" as const, text: c.text };
-            }
-            return { type: "text" as const, text: c.resource.uri };
-          })
-        };
+        return result.map((c: McpContent) => {
+          if (c.type === "text") {
+            return { type: "text" as const, text: c.text };
+          }
+          return { type: "text" as const, text: c.resource.uri };
+        });
       }
     );
 }

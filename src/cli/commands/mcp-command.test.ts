@@ -62,7 +62,7 @@ describe("mcp command", () => {
       }
 
       expect(helpOutput).toContain("poe-code");
-      expect(helpOutput).toContain("npx");
+      expect(helpOutput).toContain("mcp");
       expect(helpOutput).toContain("Available Tools");
       expect(helpOutput).toContain("generate_text");
       expect(helpOutput).toContain("generate_image");

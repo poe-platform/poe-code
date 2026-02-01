@@ -8,23 +8,35 @@ import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import {
   supportedAgents,
   configure,
-  unconfigure
+  unconfigure,
+  type McpServerEntry
 } from "@poe-code/agent-mcp-config";
-
-export const MCP_SERVER_CONFIG = {
-  "poe-code": {
-    command: "npx",
-    args: ["--yes", "poe-code", "mcp"]
-  }
-} as const;
+import {
+  getCurrentExecutionContext,
+  toMcpServerCommand
+} from "../../utils/execution-context.js";
 
 const DEFAULT_MCP_AGENT = "claude-code";
 
+function createMcpServerEntry(): McpServerEntry {
+  const context = getCurrentExecutionContext(import.meta.url);
+  const mcpCommand = toMcpServerCommand(context.command, "mcp");
+  return {
+    name: "poe-code",
+    config: {
+      transport: "stdio",
+      command: mcpCommand.command,
+      args: mcpCommand.args
+    }
+  };
+}
+
 function buildHelpText(): string {
+  const server = createMcpServerEntry();
   const lines: string[] = [
     "",
     "Configuration:",
-    JSON.stringify(MCP_SERVER_CONFIG, null, 2),
+    JSON.stringify({ [server.name]: server.config }, null, 2),
     "",
     formatMcpToolsDocs()
   ];
@@ -75,14 +87,7 @@ export function registerMcpCommand(
         return;
       }
 
-      await configure(agent, {
-        name: "poe-code",
-        config: {
-          transport: "stdio",
-          command: MCP_SERVER_CONFIG["poe-code"].command,
-          args: [...MCP_SERVER_CONFIG["poe-code"].args]
-        }
-      }, {
+      await configure(agent, createMcpServerEntry(), {
         fs: container.fs,
         homeDir: container.env.homeDir,
         platform: process.platform as "darwin" | "linux" | "win32",

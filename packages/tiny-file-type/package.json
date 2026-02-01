@@ -1,5 +1,5 @@
 {
-  "name": "@poe-code/tiny-mcp-server",
+  "name": "@poe-code/tiny-file-type",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -16,11 +16,5 @@
   },
   "files": [
     "dist"
-  ],
-  "dependencies": {
-    "@poe-code/tiny-file-type": "*"
-  },
-  "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.3"
-  }
+  ]
 }

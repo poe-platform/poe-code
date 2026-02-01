@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fileTypeFromBuffer } from "./mime.js";
+import { fileTypeFromBuffer } from "./file-type.js";
 
 describe("fileTypeFromBuffer", () => {
   describe("images", () => {

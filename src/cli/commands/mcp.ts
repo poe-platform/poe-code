@@ -5,6 +5,11 @@ import { loadCredentials } from "../../services/credentials.js";
 import { initializeClient } from "../../services/client-instance.js";
 import { runMcpServerWithTransport, formatMcpToolsDocs } from "../mcp-server.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import {
+  supportedAgents,
+  configure,
+  unconfigure
+} from "@poe-code/agent-mcp-config";
 
 export const MCP_SERVER_CONFIG = {
   "poe-code": {
@@ -13,8 +18,7 @@ export const MCP_SERVER_CONFIG = {
   }
 } as const;
 
-const MCP_PROVIDERS = ["claude-code", "codex", "kimi", "opencode"] as const;
-const DEFAULT_MCP_PROVIDER = "claude-code";
+const DEFAULT_MCP_AGENT = "claude-code";
 
 function buildHelpText(): string {
   const lines: string[] = [
@@ -40,107 +44,82 @@ export function registerMcpCommand(
     });
 
   mcp
-    .command("configure [provider]")
+    .command("configure [agent]")
     .description("Configure MCP client to use poe-code")
     .option("-y, --yes", "Skip prompt, use claude-code")
-    .action(async (providerArg, options) => {
+    .action(async (agentArg, options) => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");
 
-      let provider = providerArg;
-      if (!provider) {
+      let agent = agentArg;
+      if (!agent) {
         if (options.yes) {
-          provider = DEFAULT_MCP_PROVIDER;
+          agent = DEFAULT_MCP_AGENT;
         } else {
           const selected = await select({
-            message: "Select MCP provider to configure:",
-            options: MCP_PROVIDERS.map((p) => ({ value: p, label: p }))
+            message: "Select agent to configure:",
+            options: supportedAgents.map((a) => ({ value: a, label: a }))
           });
           if (isCancel(selected)) {
             cancel("Operation cancelled");
             return;
           }
-          provider = selected as string;
+          agent = selected as string;
         }
       }
 
-      resources.logger.intro(`mcp configure ${provider}`);
+      resources.logger.intro(`mcp configure ${agent}`);
 
-      const service = container.registry.get(provider);
-      if (!service) {
-        resources.logger.error(`Unknown provider: ${provider}`);
+      if (!supportedAgents.includes(agent)) {
+        resources.logger.error(`Unknown agent: ${agent}`);
         return;
       }
 
-      if (!service.mcpConfigure) {
-        resources.logger.error(
-          `Provider "${provider}" does not support MCP configuration`
-        );
-        return;
-      }
-
-      const commandContext = container.contextFactory.create({
-        dryRun: flags.dryRun,
-        logger: resources.logger,
-        runner: container.commandRunner
+      await configure(agent, {
+        name: "poe-code",
+        config: {
+          transport: "stdio",
+          command: MCP_SERVER_CONFIG["poe-code"].command,
+          args: [...MCP_SERVER_CONFIG["poe-code"].args]
+        }
+      }, {
+        fs: container.fs,
+        homeDir: container.env.homeDir,
+        platform: process.platform as "darwin" | "linux" | "win32",
+        dryRun: flags.dryRun
       });
 
-      await service.mcpConfigure(
-        {
-          env: container.env,
-          command: commandContext,
-          logger: resources.logger
-        },
-        { dryRun: flags.dryRun }
-      );
-
       resources.context.complete({
-        success: `Configured MCP for ${provider}.`,
-        dry: `Would configure MCP for ${provider}.`
+        success: `Configured MCP for ${agent}.`,
+        dry: `Would configure MCP for ${agent}.`
       });
       resources.context.finalize();
     });
 
   mcp
-    .command("unconfigure <provider>")
+    .command("unconfigure <agent>")
     .description("Remove poe-code from MCP client")
-    .action(async (provider) => {
+    .action(async (agent) => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");
 
-      resources.logger.intro(`mcp unconfigure ${provider}`);
+      resources.logger.intro(`mcp unconfigure ${agent}`);
 
-      const service = container.registry.get(provider);
-      if (!service) {
-        resources.logger.error(`Unknown provider: ${provider}`);
+      if (!supportedAgents.includes(agent)) {
+        resources.logger.error(`Unknown agent: ${agent}`);
         return;
       }
 
-      if (!service.mcpUnconfigure) {
-        resources.logger.error(
-          `Provider "${provider}" does not support MCP unconfiguration`
-        );
-        return;
-      }
-
-      const commandContext = container.contextFactory.create({
-        dryRun: flags.dryRun,
-        logger: resources.logger,
-        runner: container.commandRunner
+      await unconfigure(agent, "poe-code", {
+        fs: container.fs,
+        homeDir: container.env.homeDir,
+        platform: process.platform as "darwin" | "linux" | "win32",
+        dryRun: flags.dryRun
       });
 
-      await service.mcpUnconfigure(
-        {
-          env: container.env,
-          command: commandContext,
-          logger: resources.logger
-        },
-        { dryRun: flags.dryRun }
-      );
-
       resources.context.complete({
-        success: `Removed MCP configuration from ${provider}.`,
-        dry: `Would remove MCP configuration from ${provider}.`
+        success: `Removed MCP configuration from ${agent}.`,
+        dry: `Would remove MCP configuration from ${agent}.`
       });
       resources.context.finalize();
     });

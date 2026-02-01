@@ -13,6 +13,7 @@ export default defineConfig({
       "@poe-code/design-system": path.resolve(__dirname, "packages/design-system/src/index.ts"),
       "@poe-code/config-mutations/testing": path.resolve(__dirname, "packages/config-mutations/src/testing/index.ts"),
       "@poe-code/config-mutations": path.resolve(__dirname, "packages/config-mutations/src/index.ts"),
+      "@poe-code/tiny-file-type": path.resolve(__dirname, "packages/tiny-file-type/src/index.ts"),
       "@poe-code/tiny-mcp-server": path.resolve(__dirname, "packages/tiny-mcp-server/src/index.ts")
     }
   },

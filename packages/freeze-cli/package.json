@@ -14,7 +14,7 @@
   "goBinary": {
     "name": "freeze",
     "path": "./bin/freeze-bin",
-    "version": "0.2.0",
+    "version": "0.2.2",
     "url": "https://github.com/charmbracelet/freeze/releases/download/v{{version}}/freeze_{{version}}_{{platform}}_{{arch}}.tar.gz"
   },
   "dependencies": {

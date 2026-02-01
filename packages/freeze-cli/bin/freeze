@@ -2,9 +2,19 @@
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { ensureFreezeBinary } from '../dist/ensure-binary.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const binary = path.join(__dirname, 'freeze-bin', 'freeze');
+const downloadScript = path.join(__dirname, '..', 'dist', 'download.js');
+
+try {
+  await ensureFreezeBinary(binary, downloadScript);
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`${message}\n`);
+  process.exit(1);
+}
 
 const child = spawn(binary, process.argv.slice(2), { stdio: 'inherit' });
 child.on('exit', (code) => process.exit(code ?? 0));

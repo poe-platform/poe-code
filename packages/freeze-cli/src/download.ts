@@ -9,7 +9,7 @@ import { Readable } from 'stream';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const binDir = path.join(__dirname, '..', 'bin', 'freeze-bin');
 
-const VERSION = '0.2.0';
+const VERSION = '0.2.2';
 
 interface PlatformMapping {
   platform: string;

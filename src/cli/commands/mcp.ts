@@ -26,7 +26,9 @@ import {
 
 const DEFAULT_MCP_AGENT = "claude-code";
 
-function createMcpServerEntry(): McpServerEntry {
+function createMcpServerEntry(
+  profileName = DEFAULT_AGENT
+): McpServerEntry {
   const context = getCurrentExecutionContext(import.meta.url);
   const mcpCommand = toMcpServerCommand(context.command, "mcp");
   return {
@@ -34,13 +36,13 @@ function createMcpServerEntry(): McpServerEntry {
     config: {
       transport: "stdio",
       command: mcpCommand.command,
-      args: mcpCommand.args
+      args: [...mcpCommand.args, "serve", "--agent", profileName]
     }
   };
 }
 
 function buildHelpText(): string {
-  const server = createMcpServerEntry();
+  const server = createMcpServerEntry(DEFAULT_AGENT);
   const lines: string[] = [
     "",
     "Configuration:",
@@ -61,14 +63,8 @@ export function registerMcpCommand(
     .command("mcp")
     .description("MCP server commands")
     .addHelpText("after", buildHelpText())
-    .action(async function () {
-      const profile = getAgentProfile(DEFAULT_AGENT);
-      if (!profile) {
-        throw new ValidationError(
-          `Unknown agent: ${DEFAULT_AGENT}. Available agents: ${Object.keys(MCP_AGENT_PROFILES).join(", ")}`
-        );
-      }
-      await runMcpServer(container, profile);
+    .action(async function (this: Command) {
+      this.help();
     });
 
   mcp
@@ -119,7 +115,7 @@ export function registerMcpCommand(
         return;
       }
 
-      await configure(agent, createMcpServerEntry(), {
+      await configure(agent, createMcpServerEntry(agent), {
         fs: container.fs,
         homeDir: container.env.homeDir,
         platform: process.platform as "darwin" | "linux" | "win32",

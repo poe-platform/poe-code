@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "build": "turbo run build && tsc -p tsconfig.build.json && node scripts/copy-templates.mjs && node scripts/generate-bin-wrappers.mjs",
+    "predev": "turbo run build --filter=@poe-code/agent-mcp-config --filter=@poe-code/tiny-mcp-server --output-logs=none --log-prefix=none --verbosity=0 > /dev/null 2>&1",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run",

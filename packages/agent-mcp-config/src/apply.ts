@@ -49,7 +49,7 @@ export async function configure(
     [
       fileMutation.ensureDirectory({
         path: configDir,
-        label: `Ensure config directory exists for ${agentId}`
+        label: `Ensure directory ${configDir}`
       }),
       // Use transform to replace the server entry entirely (not deep-merge)
       // This ensures old fields like 'args' are removed when switching to array 'command'
@@ -68,7 +68,7 @@ export async function configure(
             content: { ...document, [serversKey]: newServers }
           };
         },
-        label: `Configure MCP server ${server.name} for ${agentId}`
+        label: `Add ${server.name} to ${configPath}`
       })
     ],
     {
@@ -102,7 +102,7 @@ export async function unconfigure(
             [serverName]: {}
           }
         },
-        label: `Remove MCP server ${serverName} from ${agentId}`
+        label: `Remove ${serverName} from ${configPath}`
       })
     ],
     {

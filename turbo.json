@@ -4,6 +4,17 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "lint": {
+      "outputs": []
+    },
+    "lint:types": {
+      "dependsOn": ["^build"],
+      "outputs": []
     }
   }
 }

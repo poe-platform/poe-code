@@ -99,7 +99,7 @@ describe("mcp server tools", () => {
       prompt: "Hello",
       params: undefined
     });
-    expect(result.content).toEqual([{ type: "text", text: "Hello from bot" }]);
+    expect(result).toEqual([{ type: "text", text: "Hello from bot" }]);
   });
 
   it("generate_text passes params", async () => {
@@ -130,7 +130,7 @@ describe("mcp server tools", () => {
       prompt: "A sunset",
       params: undefined
     });
-    expect(result.content).toEqual([
+    expect(result).toEqual([
       {
         type: "resource",
         resource: {
@@ -173,7 +173,7 @@ describe("mcp server tools", () => {
       prompt: "A rocket launch",
       params: undefined
     });
-    expect(result.content).toEqual([
+    expect(result).toEqual([
       {
         type: "resource",
         resource: {
@@ -201,7 +201,7 @@ describe("mcp server tools", () => {
       prompt: "Hello world",
       params: undefined
     });
-    expect(result.content).toEqual([
+    expect(result).toEqual([
       {
         type: "resource",
         resource: {

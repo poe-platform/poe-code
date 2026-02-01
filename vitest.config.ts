@@ -7,7 +7,7 @@ loadTestEnv();
 export default defineConfig({
   resolve: {
     alias: {
-      // TODO: Remove when turborepo is added
+      // Resolve workspace packages to source for tests (no build required)
       "@poe-code/agent-defs": path.resolve(__dirname, "packages/agent-defs/src/index.ts"),
       "@poe-code/agent-mcp-config": path.resolve(__dirname, "packages/agent-mcp-config/src/index.ts"),
       "@poe-code/design-system": path.resolve(__dirname, "packages/design-system/src/index.ts"),

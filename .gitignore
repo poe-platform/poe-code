@@ -40,3 +40,5 @@ openspec
 # E2E test logs
 .e2e-logs/
 .colima-logs/
+.turbo
+*.tsbuildinfo

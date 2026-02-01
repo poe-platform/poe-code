@@ -4,8 +4,13 @@
     "outDir": "dist",
     "rootDir": "src",
     "noEmit": false,
-    "declaration": true
+    "declaration": true,
+    "composite": true
   },
   "include": ["src"],
-  "exclude": ["**/*.test.ts"]
+  "exclude": ["**/*.test.ts"],
+  "references": [
+    { "path": "../config-mutations" },
+    { "path": "../agent-defs" }
+  ]
 }

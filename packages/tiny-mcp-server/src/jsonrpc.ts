@@ -1,9 +1,15 @@
-import type { JSONRPCRequest, JSONRPCResponse, JSONRPCError } from "./types.js";
+import type {
+  JSONRPCRequest,
+  JSONRPCResponse,
+  JSONRPCError,
+  JSONRPCNotification,
+} from "./types.js";
 import { JSON_RPC_ERROR_CODES } from "./types.js";
 
 export interface ParseResult {
   success: true;
-  request: JSONRPCRequest;
+  request: JSONRPCRequest | JSONRPCNotification;
+  isNotification: boolean;
 }
 
 export interface ParseError {
@@ -43,6 +49,7 @@ export function parseMessage(line: string): ParseResult | ParseError {
   }
 
   const obj = parsed as Record<string, unknown>;
+  const hasId = "id" in obj;
   const id = typeof obj.id === "string" || typeof obj.id === "number" ? obj.id : null;
 
   if (obj.jsonrpc !== "2.0") {
@@ -67,11 +74,35 @@ export function parseMessage(line: string): ParseResult | ParseError {
     };
   }
 
+  if (!hasId) {
+    return {
+      success: true,
+      isNotification: true,
+      request: {
+        jsonrpc: "2.0",
+        method: obj.method,
+        params: obj.params as Record<string, unknown> | undefined,
+      },
+    };
+  }
+
+  if (id === null) {
+    return {
+      success: false,
+      error: {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request",
+      },
+      id: null,
+    };
+  }
+
   return {
     success: true,
+    isNotification: false,
     request: {
       jsonrpc: "2.0",
-      id: id as string | number,
+      id,
       method: obj.method,
       params: obj.params as Record<string, unknown> | undefined,
     },

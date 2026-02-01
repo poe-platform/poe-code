@@ -152,7 +152,7 @@ export async function generateImage(
   if (!response.url && !(profile.supportsRichContent && hasBase64)) {
     throw new Error(`Model "${model}" did not return an image URL`);
   }
-  return toMcpContent(response, profile, "image");
+  return await toMcpContent(response, profile, "image");
 }
 
 export async function generateVideo(
@@ -169,7 +169,7 @@ export async function generateVideo(
   if (!response.url) {
     throw new Error(`Model "${model}" did not return a video URL`);
   }
-  return toMcpContent(response, profile, "video");
+  return await toMcpContent(response, profile, "video");
 }
 
 export async function generateAudio(
@@ -187,14 +187,14 @@ export async function generateAudio(
   if (!response.url && !(profile.supportsRichContent && hasBase64)) {
     throw new Error(`Model "${model}" did not return an audio URL`);
   }
-  return toMcpContent(response, profile, "audio");
+  return await toMcpContent(response, profile, "audio");
 }
 
-function toMcpContent(
+async function toMcpContent(
   response: LlmResponse,
   profile: McpAgentProfile,
   mediaType?: "image" | "audio" | "video"
-): ContentBlock[] {
+): Promise<ContentBlock[]> {
   const content: ContentBlock[] = [];
 
   if (response.content) {
@@ -204,13 +204,30 @@ function toMcpContent(
   const data = response.data;
   const mimeType = response.mimeType;
   const hasBase64 = typeof data === "string" && typeof mimeType === "string";
-  if (profile.supportsRichContent && hasBase64 && mediaType) {
-    if (mediaType === "image") {
-      content.push(Image.fromBase64(data, mimeType).toContentBlock());
-    } else if (mediaType === "audio") {
-      content.push(Audio.fromBase64(data, mimeType).toContentBlock());
+  let addedRichMedia = false;
+  if (profile.supportsRichContent && mediaType) {
+    if (hasBase64) {
+      if (mediaType === "image") {
+        content.push(Image.fromBase64(data, mimeType).toContentBlock());
+        addedRichMedia = true;
+      } else if (mediaType === "audio") {
+        content.push(Audio.fromBase64(data, mimeType).toContentBlock());
+        addedRichMedia = true;
+      }
+    } else if (response.url) {
+      if (mediaType === "image") {
+        const image = await Image.fromUrl(response.url);
+        content.push(image.toContentBlock());
+        addedRichMedia = true;
+      } else if (mediaType === "audio") {
+        const audio = await Audio.fromUrl(response.url);
+        content.push(audio.toContentBlock());
+        addedRichMedia = true;
+      }
     }
-  } else if (response.url) {
+  }
+
+  if (!addedRichMedia && response.url) {
     content.push({ type: "text", text: response.url });
   }
 

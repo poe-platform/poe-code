@@ -11,6 +11,18 @@ import {
 } from "../constants.js";
 import { getAgentProfile } from "../mcp-agents.js";
 
+const { configureMock, unconfigureMock } = vi.hoisted(() => ({
+  configureMock: vi.fn(),
+  unconfigureMock: vi.fn()
+}));
+
+vi.mock("@poe-code/agent-mcp-config", () => ({
+  supportedAgents: ["claude-desktop", "claude-code", "codex"],
+  configure: configureMock,
+  unconfigure: unconfigureMock,
+  resolveSupportsRichContent: () => true
+}));
+
 const cwd = "/repo";
 const homeDir = "/home/test";
 
@@ -41,6 +53,8 @@ describe("mcp command", () => {
 
   beforeEach(() => {
     consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    configureMock.mockReset();
+    unconfigureMock.mockReset();
   });
 
   afterEach(() => {
@@ -78,6 +92,21 @@ describe("mcp command", () => {
     await expect(
       program.parseAsync(["node", "cli", "mcp", "serve", "--agent", "unknown"])
     ).rejects.toThrow("Unknown agent");
+  });
+
+  it("configures with serve command and mapped profile", async () => {
+    const { program } = createMcpProgram();
+    await program.parseAsync(["node", "cli", "mcp", "configure", "claude-desktop"]);
+
+    expect(configureMock).toHaveBeenCalledWith(
+      "claude-desktop",
+      expect.objectContaining({
+        config: expect.objectContaining({
+          args: expect.arrayContaining(["mcp", "serve", "--agent", "claude-desktop"])
+        })
+      }),
+      expect.anything()
+    );
   });
 });
 
@@ -234,5 +263,67 @@ describe("mcp server tools", () => {
     expect(result).toEqual([
       { type: "image", data: "BASE64IMAGE", mimeType: "image/png" }
     ]);
+  });
+
+  it("fetches image content from URL when agent supports it", async () => {
+    const { generateImage } = await import("../mcp-server.js");
+    const profile = getAgentProfile("claude-code");
+    if (!profile) throw new Error("Missing claude-code profile in test");
+
+    const pngData = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00
+    ]);
+
+    const mockResponse = {
+      ok: true,
+      arrayBuffer: () => Promise.resolve(pngData.buffer),
+      headers: { get: () => "image/png" }
+    };
+
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse as unknown as Response));
+
+    try {
+      mockClient.media = vi.fn(async () => ({
+        url: "https://example.com/media.png"
+      }));
+
+      const result = await generateImage({ prompt: "A logo" }, profile);
+
+      expect(result).toEqual([
+        { type: "image", data: Buffer.from(pngData).toString("base64"), mimeType: "image/png" }
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("fetches audio content from URL when agent supports it", async () => {
+    const { generateAudio } = await import("../mcp-server.js");
+    const profile = getAgentProfile("claude-code");
+    if (!profile) throw new Error("Missing claude-code profile in test");
+
+    const audioData = new Uint8Array([0x00, 0x01, 0x02, 0x03]);
+    const mockResponse = {
+      ok: true,
+      arrayBuffer: () => Promise.resolve(audioData.buffer),
+      headers: { get: () => "audio/mpeg" }
+    };
+
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse as unknown as Response));
+
+    try {
+      mockClient.media = vi.fn(async () => ({
+        url: "https://example.com/audio.mp3",
+        mimeType: "audio/mpeg"
+      }));
+
+      const result = await generateAudio({ prompt: "Hello world" }, profile);
+
+      expect(result).toEqual([
+        { type: "audio", data: Buffer.from(audioData).toString("base64"), mimeType: "audio/mpeg" }
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

@@ -56,11 +56,15 @@ export function createServer(options: ServerOptions): Server {
 
     if (method === "initialize") {
       initialized = true;
+      const requestedProtocol =
+        typeof params?.protocolVersion === "string"
+          ? params.protocolVersion
+          : null;
       const result: InitializeResult = {
-        protocolVersion: PROTOCOL_VERSION,
+        protocolVersion: requestedProtocol ?? PROTOCOL_VERSION,
         capabilities: {
           tools: {
-            listChanged: true,
+            listChanged: false,
           },
         },
         serverInfo: {
@@ -154,13 +158,19 @@ export function createServer(options: ServerOptions): Server {
       return;
     }
 
-    const { request } = parsed;
+    const { request, isNotification } = parsed;
     const { result, error } = await handleRequest(request.method, request.params);
 
+    if (isNotification) {
+      return;
+    }
+
+    const requestWithId = request as JSONRPCRequest;
+
     if (error) {
-      write(formatErrorResponse(request.id, error) + "\n");
+      write(formatErrorResponse(requestWithId.id, error) + "\n");
     } else if (result !== undefined) {
-      write(formatSuccessResponse(request.id, result) + "\n");
+      write(formatSuccessResponse(requestWithId.id, result) + "\n");
     }
   };
 

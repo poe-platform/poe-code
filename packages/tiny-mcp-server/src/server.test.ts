@@ -29,13 +29,22 @@ function createTestTransport() {
       readable.push(null);
     },
     getLastResponse() {
-      const last = output[output.length - 1];
-      return last ? JSON.parse(last.trim()) : null;
+      for (let i = output.length - 1; i >= 0; i -= 1) {
+        const parsed = JSON.parse(output[i].trim());
+        if ("id" in parsed) {
+          return parsed;
+        }
+      }
+      return null;
     },
     getAllResponses() {
       return output.map((line) => JSON.parse(line.trim()));
     },
   };
+}
+
+function getResponsesWithId(responses: Array<Record<string, unknown>>) {
+  return responses.filter((response) => "id" in response);
 }
 
 describe("createServer", () => {
@@ -123,7 +132,7 @@ describe("createServer", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.tools).toHaveLength(2);
       expect(responses[2].result.tools).toHaveLength(1);
       expect(responses[2].result.tools[0].name).toBe("tool2");
@@ -175,7 +184,7 @@ describe("createServer", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].error.code).toBe(-32602);
       expect(responses[1].error.message).toContain("Tool not found");
     });
@@ -319,7 +328,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses).toHaveLength(3);
       expect(responses[0].id).toBe(1);
       expect(responses[1].id).toBe(2);
@@ -343,7 +352,7 @@ describe("server protocol handlers", () => {
       const response = transport.getLastResponse();
       expect(response.result.serverInfo.name).toBe("my-server");
       expect(response.result.serverInfo.version).toBe("2.0.0");
-      expect(response.result.capabilities.tools).toEqual({ listChanged: true });
+      expect(response.result.capabilities.tools).toEqual({ listChanged: false });
       expect(response.result.protocolVersion).toBeDefined();
     });
 
@@ -360,7 +369,7 @@ describe("server protocol handlers", () => {
       await connectPromise;
 
       const response = transport.getLastResponse();
-      expect(response.result.capabilities.tools.listChanged).toBe(true);
+      expect(response.result.capabilities.tools.listChanged).toBe(false);
     });
 
     it("returns correct server info", async () => {
@@ -417,6 +426,22 @@ describe("server protocol handlers", () => {
       expect(response.error).toBeUndefined();
       expect(response.result.serverInfo).toBeDefined();
     });
+
+    it("echoes requested protocol version when provided", async () => {
+      const transport = createTestTransport();
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      const connectPromise = server.connect(transport);
+      transport.send(
+        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const response = transport.getLastResponse();
+      expect(response.result.protocolVersion).toBe("2025-06-18");
+    });
   });
 
   describe("notifications/initialized", () => {
@@ -436,12 +461,27 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       // Should only have 2 responses (initialize and ping), not 3
       // notifications/initialized is a notification (no id) and returns undefined
       expect(responses).toHaveLength(2);
       expect(responses[0].id).toBe(1);
       expect(responses[1].id).toBe(2);
+    });
+
+    it("does not respond to notifications/initialized", async () => {
+      const transport = createTestTransport();
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      const connectPromise = server.connect(transport);
+      transport.send(
+        '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      expect(transport.output).toHaveLength(0);
     });
 
     it("accepts notifications/initialized before full initialization", async () => {
@@ -458,7 +498,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses).toHaveLength(1);
       expect(responses[0].result).toEqual({});
     });
@@ -510,7 +550,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].error).toBeUndefined();
       expect(responses[1].result.tools).toBeDefined();
     });
@@ -536,7 +576,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       const toolsResponse = responses[1];
       expect(toolsResponse.result.tools).toHaveLength(1);
       expect(toolsResponse.result.tools[0].name).toBe("greet");
@@ -556,7 +596,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.tools).toEqual([]);
     });
 
@@ -577,7 +617,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.tools).toHaveLength(3);
     });
 
@@ -603,7 +643,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       const tool = responses[1].result.tools[0];
       expect(tool.inputSchema.type).toBe("object");
       expect(tool.inputSchema.properties.name.type).toBe("string");
@@ -633,7 +673,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       const callResponse = responses[1];
       expect(callResponse.result.content).toEqual([
         { type: "text", text: "Hello, World!" },
@@ -659,7 +699,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].text).toBe("second");
     });
 
@@ -687,7 +727,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].text).toBe("8");
     });
 
@@ -712,7 +752,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].text).toBe("done");
     });
 
@@ -737,7 +777,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].text).toBe("done");
     });
   });
@@ -766,7 +806,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       const callResponse = responses[1];
       expect(callResponse.result.isError).toBe(true);
       expect(callResponse.result.content[0].text).toContain(
@@ -797,7 +837,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.isError).toBe(true);
       expect(responses[1].result.content[0].text).toContain("Sync error");
     });
@@ -828,7 +868,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.isError).toBe(true);
       expect(responses[1].result.content[0].text).toContain("Rejected");
     });
@@ -856,7 +896,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.isError).toBe(true);
       expect(responses[1].result.content[0].text).toContain("string error");
     });
@@ -876,7 +916,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       const callResponse = responses[1];
       expect(callResponse.error.code).toBe(-32602);
       expect(callResponse.error.message).toContain("Tool not found");
@@ -897,7 +937,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].error.code).toBe(-32602);
     });
   });
@@ -916,7 +956,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       const unknownResponse = responses[1];
       expect(unknownResponse.error.code).toBe(-32601);
       expect(unknownResponse.error.message).toBe("Method not found");
@@ -937,7 +977,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].error.code).toBe(-32601);
       expect(responses[2].error.code).toBe(-32601);
       expect(responses[3].error.code).toBe(-32601);
@@ -999,7 +1039,7 @@ describe("server protocol handlers", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[0].error.code).toBe(-32700);
       expect(responses[1].error.code).toBe(-32600);
       expect(responses[2].result).toEqual({});
@@ -1030,7 +1070,7 @@ describe("server with multiple content items", () => {
 
     await connectPromise;
 
-    const responses = transport.getAllResponses();
+    const responses = getResponsesWithId(transport.getAllResponses());
     const callResponse = responses[1];
     expect(callResponse.result.content).toEqual([
       { type: "text", text: "A" },
@@ -1061,7 +1101,7 @@ describe("server with multiple content items", () => {
 
     await connectPromise;
 
-    const responses = transport.getAllResponses();
+    const responses = getResponsesWithId(transport.getAllResponses());
     expect(responses[1].result.content).toHaveLength(10);
   });
 
@@ -1084,7 +1124,7 @@ describe("server with multiple content items", () => {
 
     await connectPromise;
 
-    const responses = transport.getAllResponses();
+    const responses = getResponsesWithId(transport.getAllResponses());
     expect(responses[1].result.content[0].text).toBe("");
   });
 });
@@ -1114,7 +1154,7 @@ describe("async handlers", () => {
 
     await connectPromise;
 
-    const responses = transport.getAllResponses();
+    const responses = getResponsesWithId(transport.getAllResponses());
     expect(responses[1].result.content[0].text).toBe("delayed");
   });
 
@@ -1137,7 +1177,7 @@ describe("async handlers", () => {
 
     await connectPromise;
 
-    const responses = transport.getAllResponses();
+    const responses = getResponsesWithId(transport.getAllResponses());
     expect(responses[1].result.content[0].text).toBe("sync");
   });
 });
@@ -1174,7 +1214,7 @@ describe("transport connection", () => {
 
     await connectPromise;
 
-    const responses = transport.getAllResponses();
+    const responses = getResponsesWithId(transport.getAllResponses());
     expect(responses).toHaveLength(3);
   });
 });
@@ -1241,7 +1281,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toEqual([
         { type: "text", text: "Hello, World!" },
       ]);
@@ -1269,7 +1309,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toEqual([
         { type: "image", data: base64Data, mimeType: "image/png" },
       ]);
@@ -1297,7 +1337,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].type).toBe("image");
       expect(responses[1].result.content[0].mimeType).toBe("image/png");
     });
@@ -1324,7 +1364,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toEqual([
         { type: "audio", data: base64Data, mimeType: "audio/mpeg" },
       ]);
@@ -1352,7 +1392,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].type).toBe("resource");
       expect(responses[1].result.content[0].resource.mimeType).toBe("video/mp4");
       expect(responses[1].result.content[0].resource.blob).toBe(
@@ -1379,7 +1419,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].type).toBe("resource");
       expect(responses[1].result.content[0].resource.mimeType).toBe("text/plain");
       expect(responses[1].result.content[0].resource.text).toBe("Hello, world!");
@@ -1406,7 +1446,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toEqual([
         { type: "text", text: "First" },
         { type: "text", text: "Second" },
@@ -1436,7 +1476,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toHaveLength(2);
       expect(responses[1].result.content[0]).toEqual({
         type: "text",
@@ -1473,7 +1513,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toHaveLength(4);
       expect(responses[1].result.content[0].type).toBe("text");
       expect(responses[1].result.content[1].type).toBe("image");
@@ -1502,7 +1542,7 @@ describe("content helpers integration", () => {
 
       await connectPromise;
 
-      const responses = transport.getAllResponses();
+      const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toEqual([
         { type: "text", text: "raw block" },
       ]);

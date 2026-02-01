@@ -12,7 +12,7 @@ describe("parseMessage", () => {
       const result = parseMessage('{"jsonrpc":"2.0","id":1,"method":"ping"}');
 
       expect(result.success).toBe(true);
-      if (result.success) {
+      if (result.success && !result.isNotification) {
         expect(result.request.jsonrpc).toBe("2.0");
         expect(result.request.id).toBe(1);
         expect(result.request.method).toBe("ping");
@@ -25,7 +25,7 @@ describe("parseMessage", () => {
       );
 
       expect(result.success).toBe(true);
-      if (result.success) {
+      if (result.success && !result.isNotification) {
         expect(result.request.id).toBe("abc-123");
       }
     });
@@ -65,7 +65,7 @@ describe("parseMessage", () => {
       const result = parseMessage('{"jsonrpc":"2.0","id":0,"method":"test"}');
 
       expect(result.success).toBe(true);
-      if (result.success) {
+      if (result.success && !result.isNotification) {
         expect(result.request.id).toBe(0);
       }
     });
@@ -74,7 +74,7 @@ describe("parseMessage", () => {
       const result = parseMessage('{"jsonrpc":"2.0","id":-1,"method":"test"}');
 
       expect(result.success).toBe(true);
-      if (result.success) {
+      if (result.success && !result.isNotification) {
         expect(result.request.id).toBe(-1);
       }
     });
@@ -85,7 +85,7 @@ describe("parseMessage", () => {
       );
 
       expect(result.success).toBe(true);
-      if (result.success) {
+      if (result.success && !result.isNotification) {
         expect(result.request.id).toBe(9007199254740991);
       }
     });
@@ -94,7 +94,7 @@ describe("parseMessage", () => {
       const result = parseMessage('{"jsonrpc":"2.0","id":"","method":"test"}');
 
       expect(result.success).toBe(true);
-      if (result.success) {
+      if (result.success && !result.isNotification) {
         expect(result.request.id).toBe("");
       }
     });

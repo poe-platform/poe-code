@@ -9,6 +9,7 @@ import {
   DEFAULT_VIDEO_BOT,
   DEFAULT_AUDIO_BOT
 } from "../constants.js";
+import { getAgentProfile } from "../mcp-agents.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -46,8 +47,8 @@ describe("mcp command", () => {
     consoleSpy.mockRestore();
   });
 
-  describe("poe-code mcp --help", () => {
-    it("includes JSON config and tools documentation", async () => {
+  describe("poe-code mcp serve --help", () => {
+    it("includes JSON config, tools documentation, and agent list", async () => {
       const { program } = createMcpProgram();
       let helpOutput = "";
       program.configureOutput({
@@ -56,19 +57,27 @@ describe("mcp command", () => {
       });
 
       try {
-        await program.parseAsync(["node", "cli", "mcp", "--help"]);
+        await program.parseAsync(["node", "cli", "mcp", "serve", "--help"]);
       } catch {
         // Commander exits on --help
       }
 
       expect(helpOutput).toContain("poe-code");
       expect(helpOutput).toContain("mcp");
+      expect(helpOutput).toContain("Available Agents");
       expect(helpOutput).toContain("Available Tools");
       expect(helpOutput).toContain("generate_text");
       expect(helpOutput).toContain("generate_image");
       expect(helpOutput).toContain("generate_video");
       expect(helpOutput).toContain("generate_audio");
     });
+  });
+
+  it("rejects invalid agent names", async () => {
+    const { program } = createMcpProgram();
+    await expect(
+      program.parseAsync(["node", "cli", "mcp", "serve", "--agent", "unknown"])
+    ).rejects.toThrow("Unknown agent");
   });
 });
 
@@ -120,34 +129,30 @@ describe("mcp server tools", () => {
 
   it("generate_image uses client.media() with default bot", async () => {
     const { generateImage } = await import("../mcp-server.js");
+    const profile = getAgentProfile("generic");
+    if (!profile) throw new Error("Missing generic profile in test");
 
     const result = await generateImage({
       prompt: "A sunset"
-    });
+    }, profile);
 
     expect(mockClient.media).toHaveBeenCalledWith("image", {
       model: DEFAULT_IMAGE_BOT,
       prompt: "A sunset",
       params: undefined
     });
-    expect(result).toEqual([
-      {
-        type: "resource",
-        resource: {
-          uri: "https://example.com/media.png",
-          mimeType: "image/png"
-        }
-      }
-    ]);
+    expect(result).toEqual([{ type: "text", text: "https://example.com/media.png" }]);
   });
 
   it("generate_image uses custom bot_name", async () => {
     const { generateImage } = await import("../mcp-server.js");
+    const profile = getAgentProfile("generic");
+    if (!profile) throw new Error("Missing generic profile in test");
 
     await generateImage({
       prompt: "A cat",
       bot_name: "custom-image-bot"
-    });
+    }, profile);
 
     expect(mockClient.media).toHaveBeenCalledWith("image", {
       model: "custom-image-bot",
@@ -158,6 +163,8 @@ describe("mcp server tools", () => {
 
   it("generate_video uses client.media() with default bot", async () => {
     const { generateVideo } = await import("../mcp-server.js");
+    const profile = getAgentProfile("generic");
+    if (!profile) throw new Error("Missing generic profile in test");
 
     mockClient.media = vi.fn(async () => ({
       url: "https://example.com/video.mp4",
@@ -166,26 +173,20 @@ describe("mcp server tools", () => {
 
     const result = await generateVideo({
       prompt: "A rocket launch"
-    });
+    }, profile);
 
     expect(mockClient.media).toHaveBeenCalledWith("video", {
       model: DEFAULT_VIDEO_BOT,
       prompt: "A rocket launch",
       params: undefined
     });
-    expect(result).toEqual([
-      {
-        type: "resource",
-        resource: {
-          uri: "https://example.com/video.mp4",
-          mimeType: "video/mp4"
-        }
-      }
-    ]);
+    expect(result).toEqual([{ type: "text", text: "https://example.com/video.mp4" }]);
   });
 
   it("generate_audio uses client.media() with default bot", async () => {
     const { generateAudio } = await import("../mcp-server.js");
+    const profile = getAgentProfile("generic");
+    if (!profile) throw new Error("Missing generic profile in test");
 
     mockClient.media = vi.fn(async () => ({
       url: "https://example.com/audio.mp3",
@@ -194,33 +195,44 @@ describe("mcp server tools", () => {
 
     const result = await generateAudio({
       prompt: "Hello world"
-    });
+    }, profile);
 
     expect(mockClient.media).toHaveBeenCalledWith("audio", {
       model: DEFAULT_AUDIO_BOT,
       prompt: "Hello world",
       params: undefined
     });
-    expect(result).toEqual([
-      {
-        type: "resource",
-        resource: {
-          uri: "https://example.com/audio.mp3",
-          mimeType: "audio/mp3"
-        }
-      }
-    ]);
+    expect(result).toEqual([{ type: "text", text: "https://example.com/audio.mp3" }]);
   });
 
   it("generate_image throws when no URL is returned", async () => {
     const { generateImage } = await import("../mcp-server.js");
+    const profile = getAgentProfile("generic");
+    if (!profile) throw new Error("Missing generic profile in test");
 
     mockClient.media = vi.fn(async () => ({
       content: "Error message"
     }));
 
-    await expect(generateImage({ prompt: "Test" })).rejects.toThrow(
+    await expect(generateImage({ prompt: "Test" }, profile)).rejects.toThrow(
       `Model "${DEFAULT_IMAGE_BOT}" did not return an image URL`
     );
+  });
+
+  it("returns rich image content when agent supports it", async () => {
+    const { generateImage } = await import("../mcp-server.js");
+    const profile = getAgentProfile("claude-code");
+    if (!profile) throw new Error("Missing claude-code profile in test");
+
+    mockClient.media = vi.fn(async () => ({
+      data: "BASE64IMAGE",
+      mimeType: "image/png"
+    }));
+
+    const result = await generateImage({ prompt: "A logo" }, profile);
+
+    expect(result).toEqual([
+      { type: "image", data: "BASE64IMAGE", mimeType: "image/png" }
+    ]);
   });
 });

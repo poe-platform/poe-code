@@ -1,7 +1,19 @@
-import { createServer, defineSchema, type Server } from "@poe-code/tiny-mcp-server";
+import {
+  createServer,
+  defineSchema,
+  type Server,
+  Image,
+  Audio,
+  type ContentBlock
+} from "@poe-code/tiny-mcp-server";
 import chalk from "chalk";
 import { getGlobalClient } from "../services/client-instance.js";
 import type { LlmResponse } from "../services/llm-client.js";
+import {
+  DEFAULT_AGENT,
+  getAgentProfile,
+  type McpAgentProfile
+} from "./mcp-agents.js";
 import {
   DEFAULT_IMAGE_BOT,
   DEFAULT_VIDEO_BOT,
@@ -101,22 +113,7 @@ export function formatMcpToolsDocs(): string {
   return lines.join("\n");
 }
 
-interface McpTextContent {
-  type: "text";
-  text: string;
-}
-
-interface McpResourceContent {
-  type: "resource";
-  resource: {
-    uri: string;
-    mimeType?: string;
-  };
-}
-
-type McpContent = McpTextContent | McpResourceContent;
-
-type McpToolResult = McpContent[];
+type McpToolResult = ContentBlock[];
 
 interface GenerateTextArgs {
   bot_name: string;
@@ -140,7 +137,10 @@ export async function generateText(args: GenerateTextArgs): Promise<McpToolResul
   return [{ type: "text", text: response.content ?? "" }];
 }
 
-export async function generateImage(args: GenerateMediaArgs): Promise<McpToolResult> {
+export async function generateImage(
+  args: GenerateMediaArgs,
+  profile: McpAgentProfile
+): Promise<McpToolResult> {
   const client = getGlobalClient();
   const model = args.bot_name ?? DEFAULT_IMAGE_BOT;
   const response = await client.media("image", {
@@ -148,13 +148,17 @@ export async function generateImage(args: GenerateMediaArgs): Promise<McpToolRes
     prompt: args.prompt,
     params: args.params
   });
-  if (!response.url) {
+  const hasBase64 = typeof response.data === "string" && typeof response.mimeType === "string";
+  if (!response.url && !(profile.supportsRichContent && hasBase64)) {
     throw new Error(`Model "${model}" did not return an image URL`);
   }
-  return toMcpContent(response);
+  return toMcpContent(response, profile, "image");
 }
 
-export async function generateVideo(args: GenerateMediaArgs): Promise<McpToolResult> {
+export async function generateVideo(
+  args: GenerateMediaArgs,
+  profile: McpAgentProfile
+): Promise<McpToolResult> {
   const client = getGlobalClient();
   const model = args.bot_name ?? DEFAULT_VIDEO_BOT;
   const response = await client.media("video", {
@@ -165,10 +169,13 @@ export async function generateVideo(args: GenerateMediaArgs): Promise<McpToolRes
   if (!response.url) {
     throw new Error(`Model "${model}" did not return a video URL`);
   }
-  return toMcpContent(response);
+  return toMcpContent(response, profile, "video");
 }
 
-export async function generateAudio(args: GenerateMediaArgs): Promise<McpToolResult> {
+export async function generateAudio(
+  args: GenerateMediaArgs,
+  profile: McpAgentProfile
+): Promise<McpToolResult> {
   const client = getGlobalClient();
   const model = args.bot_name ?? DEFAULT_AUDIO_BOT;
   const response = await client.media("audio", {
@@ -176,27 +183,35 @@ export async function generateAudio(args: GenerateMediaArgs): Promise<McpToolRes
     prompt: args.prompt,
     params: args.params
   });
-  if (!response.url) {
+  const hasBase64 = typeof response.data === "string" && typeof response.mimeType === "string";
+  if (!response.url && !(profile.supportsRichContent && hasBase64)) {
     throw new Error(`Model "${model}" did not return an audio URL`);
   }
-  return toMcpContent(response);
+  return toMcpContent(response, profile, "audio");
 }
 
-function toMcpContent(response: LlmResponse): McpContent[] {
-  const content: McpContent[] = [];
+function toMcpContent(
+  response: LlmResponse,
+  profile: McpAgentProfile,
+  mediaType?: "image" | "audio" | "video"
+): ContentBlock[] {
+  const content: ContentBlock[] = [];
 
   if (response.content) {
     content.push({ type: "text", text: response.content });
   }
 
-  if (response.url) {
-    content.push({
-      type: "resource",
-      resource: {
-        uri: response.url,
-        mimeType: response.mimeType
-      }
-    });
+  const data = response.data;
+  const mimeType = response.mimeType;
+  const hasBase64 = typeof data === "string" && typeof mimeType === "string";
+  if (profile.supportsRichContent && hasBase64 && mediaType) {
+    if (mediaType === "image") {
+      content.push(Image.fromBase64(data, mimeType).toContentBlock());
+    } else if (mediaType === "audio") {
+      content.push(Audio.fromBase64(data, mimeType).toContentBlock());
+    }
+  } else if (response.url) {
+    content.push({ type: "text", text: response.url });
   }
 
   return content;
@@ -227,7 +242,8 @@ interface GenerateMediaSchemaType {
   params?: Record<string, unknown>;
 }
 
-export function createMcpServer(): Server {
+export function createMcpServer(profile?: McpAgentProfile): Server {
+  const resolvedProfile = resolveAgentProfile(profile);
   return createServer({
     name: "poe-code",
     version: "1.0.0"
@@ -237,16 +253,10 @@ export function createMcpServer(): Server {
       "Generate text using a Poe bot",
       generateTextSchema,
       async (args: GenerateTextSchemaType) => {
-        const result = await generateText({
+        return generateText({
           bot_name: args.bot_name,
           message: args.message,
           params: normalizeParams(args.params)
-        });
-        return result.map((c: McpContent) => {
-          if (c.type === "text") {
-            return { type: "text" as const, text: c.text };
-          }
-          return { type: "text" as const, text: `URL: ${c.resource.uri}` };
         });
       }
     )
@@ -255,17 +265,11 @@ export function createMcpServer(): Server {
       "Generate an image using a Poe image model",
       generateImageSchema,
       async (args: GenerateMediaSchemaType) => {
-        const result = await generateImage({
+        return generateImage({
           prompt: args.prompt,
           bot_name: args.bot_name,
           params: normalizeParams(args.params)
-        });
-        return result.map((c: McpContent) => {
-          if (c.type === "text") {
-            return { type: "text" as const, text: c.text };
-          }
-          return { type: "text" as const, text: c.resource.uri };
-        });
+        }, resolvedProfile);
       }
     )
     .tool(
@@ -273,17 +277,11 @@ export function createMcpServer(): Server {
       "Generate a video using a Poe video model",
       generateVideoSchema,
       async (args: GenerateMediaSchemaType) => {
-        const result = await generateVideo({
+        return generateVideo({
           prompt: args.prompt,
           bot_name: args.bot_name,
           params: normalizeParams(args.params)
-        });
-        return result.map((c: McpContent) => {
-          if (c.type === "text") {
-            return { type: "text" as const, text: c.text };
-          }
-          return { type: "text" as const, text: c.resource.uri };
-        });
+        }, resolvedProfile);
       }
     )
     .tool(
@@ -291,22 +289,27 @@ export function createMcpServer(): Server {
       "Convert text to audio using a Poe audio model",
       generateAudioSchema,
       async (args: GenerateMediaSchemaType) => {
-        const result = await generateAudio({
+        return generateAudio({
           prompt: args.prompt,
           bot_name: args.bot_name,
           params: normalizeParams(args.params)
-        });
-        return result.map((c: McpContent) => {
-          if (c.type === "text") {
-            return { type: "text" as const, text: c.text };
-          }
-          return { type: "text" as const, text: c.resource.uri };
-        });
+        }, resolvedProfile);
       }
     );
 }
 
-export async function runMcpServerWithTransport(): Promise<void> {
-  const server = createMcpServer();
+export async function runMcpServerWithTransport(profile: McpAgentProfile): Promise<void> {
+  const server = createMcpServer(profile);
   await server.listen();
+}
+
+function resolveAgentProfile(profile?: McpAgentProfile): McpAgentProfile {
+  if (profile) {
+    return profile;
+  }
+  const fallback = getAgentProfile(DEFAULT_AGENT);
+  if (!fallback) {
+    throw new Error(`Unknown agent: ${DEFAULT_AGENT}`);
+  }
+  return fallback;
 }

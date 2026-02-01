@@ -5,6 +5,7 @@ import { loadCredentials } from "../../services/credentials.js";
 import { initializeClient } from "../../services/client-instance.js";
 import { runMcpServerWithTransport, formatMcpToolsDocs } from "../mcp-server.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { ValidationError } from "../errors.js";
 import {
   supportedAgents,
   configure,
@@ -15,6 +16,13 @@ import {
   getCurrentExecutionContext,
   toMcpServerCommand
 } from "../../utils/execution-context.js";
+import {
+  DEFAULT_AGENT,
+  MCP_AGENT_PROFILES,
+  formatAgentsList,
+  getAgentProfile,
+  type McpAgentProfile
+} from "../mcp-agents.js";
 
 const DEFAULT_MCP_AGENT = "claude-code";
 
@@ -38,7 +46,9 @@ function buildHelpText(): string {
     "Configuration:",
     JSON.stringify({ [server.name]: server.config }, null, 2),
     "",
-    formatMcpToolsDocs()
+    formatMcpToolsDocs(),
+    "",
+    formatAgentsList()
   ];
   return lines.join("\n");
 }
@@ -49,10 +59,32 @@ export function registerMcpCommand(
 ): void {
   const mcp = program
     .command("mcp")
-    .description("Run MCP server on stdin/stdout")
+    .description("MCP server commands")
     .addHelpText("after", buildHelpText())
     .action(async function () {
-      await runMcpServer(container);
+      const profile = getAgentProfile(DEFAULT_AGENT);
+      if (!profile) {
+        throw new ValidationError(
+          `Unknown agent: ${DEFAULT_AGENT}. Available agents: ${Object.keys(MCP_AGENT_PROFILES).join(", ")}`
+        );
+      }
+      await runMcpServer(container, profile);
+    });
+
+  mcp
+    .command("serve")
+    .description("Run MCP server on stdin/stdout")
+    .option("--agent <name>", `MCP client profile (default: ${DEFAULT_AGENT})`)
+    .addHelpText("after", buildHelpText())
+    .action(async function (this: Command) {
+      const agent = this.opts<{ agent?: string }>().agent ?? DEFAULT_AGENT;
+      const profile = getAgentProfile(agent);
+      if (!profile) {
+        throw new ValidationError(
+          `Unknown agent: ${agent}. Available agents: ${Object.keys(MCP_AGENT_PROFILES).join(", ")}`
+        );
+      }
+      await runMcpServer(container, profile);
     });
 
   mcp
@@ -154,7 +186,10 @@ export function registerMcpCommand(
     });
 }
 
-async function runMcpServer(container: CliContainer): Promise<void> {
+async function runMcpServer(
+  container: CliContainer,
+  profile: McpAgentProfile
+): Promise<void> {
   const apiKey = await loadCredentials({
     fs: container.fs,
     filePath: container.env.credentialsPath
@@ -171,5 +206,5 @@ async function runMcpServer(container: CliContainer): Promise<void> {
     httpClient: container.httpClient
   });
 
-  await runMcpServerWithTransport();
+  await runMcpServerWithTransport(profile);
 }

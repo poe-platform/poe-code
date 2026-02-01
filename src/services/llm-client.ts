@@ -11,6 +11,7 @@ export interface LlmResponse {
   content?: string;
   url?: string;
   mimeType?: string;
+  data?: string;
 }
 
 export interface LlmClient {
@@ -121,6 +122,14 @@ function extractMediaFromCompletion(data: unknown): LlmResponse {
     if (isRecord(parsed) && typeof parsed.url === "string") {
       return {
         url: parsed.url,
+        mimeType: typeof parsed.mimeType === "string" ? parsed.mimeType : undefined,
+        data: typeof parsed.data === "string" ? parsed.data : undefined
+      };
+    }
+
+    if (isRecord(parsed) && typeof parsed.data === "string") {
+      return {
+        data: parsed.data,
         mimeType: typeof parsed.mimeType === "string" ? parsed.mimeType : undefined
       };
     }

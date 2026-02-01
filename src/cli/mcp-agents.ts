@@ -10,9 +10,21 @@ export const MCP_AGENT_PROFILES: Record<string, McpAgentProfile> = {
     name: "Claude Code",
     supportsRichContent: true
   },
+  "claude-desktop": {
+    name: "Claude Desktop",
+    supportsRichContent: true
+  },
   codex: {
     name: "Codex CLI",
     supportsRichContent: true
+  },
+  opencode: {
+    name: "OpenCode",
+    supportsRichContent: false
+  },
+  kimi: {
+    name: "Kimi",
+    supportsRichContent: false
   },
   cline: {
     name: "Cline",

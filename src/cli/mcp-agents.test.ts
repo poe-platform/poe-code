@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  MCP_AGENT_PROFILES,
-  getAgentProfile
-} from "./mcp-agents.js";
+import { supportedAgents } from "@poe-code/agent-mcp-config";
+import { MCP_AGENT_PROFILES, getAgentProfile } from "./mcp-agents.js";
 
 describe("mcp agent profiles", () => {
   it("includes known agents with rich content support flags", () => {
@@ -10,8 +8,11 @@ describe("mcp agent profiles", () => {
     expect(keys).toEqual(
       expect.arrayContaining([
         "claude-code",
+        "claude-desktop",
         "codex",
         "cline",
+        "kimi",
+        "opencode",
         "roo-code",
         "gemini-cli",
         "librechat",
@@ -27,5 +28,11 @@ describe("mcp agent profiles", () => {
   it("returns undefined for unknown agents", () => {
     expect(getAgentProfile("unknown"))
       .toBeUndefined();
+  });
+
+  it("defines MCP profiles for supported config agents", () => {
+    for (const agent of supportedAgents) {
+      expect(getAgentProfile(agent)).toBeDefined();
+    }
   });
 });

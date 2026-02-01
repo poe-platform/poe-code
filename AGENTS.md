@@ -79,9 +79,8 @@ e.g.
 `npm run screenshot-poe-code -- --help`
 
 Make sure they are designed well, functional and work correctly.
-Test every change
-Don't read the files, just execute, neither tests nor scripts.
-Don't write any screenshot tests
+Test every change using screenshots that might have impact on visual cli
+Don't write any screenshot tests, screenshots are only for adhoc validations
 
 ## CLI vs SDK
 

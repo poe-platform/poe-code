@@ -15,6 +15,9 @@
     "lint:types": {
       "dependsOn": ["^build"],
       "outputs": []
+    },
+    "generate:docs": {
+      "outputs": ["docs/**"]
     }
   }
 }

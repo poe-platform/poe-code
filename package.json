@@ -19,7 +19,7 @@
     "labels:generate": "tsx scripts/generate-labels.ts",
     "screenshot": "tsx scripts/screenshot.ts",
     "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",
-    "generate:design-docs": "npm run generate:docs -w @poe-code/design-system",
+    "generate:design-docs": "turbo run generate:docs --filter=@poe-code/design-system",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "watch:diff": "tsx local_scripts/watch-diff.ts",

@@ -1,4 +1,4 @@
-import { intro, log, note, outro } from "@clack/prompts";
+import { intro, log, note, outro } from "@poe-code/design-system";
 import chalk from "chalk";
 import type { LoggerFn } from "./types.js";
 import type { ErrorLogger, ErrorContext } from "./error-logger.js";

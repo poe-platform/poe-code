@@ -22,8 +22,8 @@ vi.mock("./error-logger.js", async () => {
   };
 });
 
-vi.mock("@clack/prompts", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@clack/prompts");
+vi.mock("@poe-code/design-system", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
   return {
     ...actual,
     log: {

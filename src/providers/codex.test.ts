@@ -3,7 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import type { FileSystem } from "../utils/file-system.js";
 import * as codexService from "./codex.js";
-import { parseTomlDocument } from "../utils/toml.js";
+import { parseToml } from "@poe-code/config-mutations/testing";
 import type { ProviderContext } from "../cli/service-registry.js";
 import { createCliEnvironment } from "../cli/environment.js";
 import { createTestCommandContext } from "../../tests/test-command-context.js";
@@ -139,7 +139,7 @@ describe("codex service", () => {
 
     await configureCodex();
 
-    const doc = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const doc = parseToml(await fs.readFile(configPath, "utf8"));
     const providers = doc["model_providers"] as Record<string, unknown>;
     const poe = providers["poe"] as Record<string, unknown>;
     expect(poe.base_url).toBe("https://proxy.example.com/v1");
@@ -307,7 +307,7 @@ describe("codex service", () => {
 
     await configureCodex();
 
-    const doc = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const doc = parseToml(await fs.readFile(configPath, "utf8"));
     expect(doc["model_provider"]).toBe("poe");
     expect(doc["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(doc["model_reasoning_effort"]).toBe("medium");

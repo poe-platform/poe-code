@@ -8,7 +8,7 @@ const noteFn = vi.hoisted(() => vi.fn());
 const introFn = vi.hoisted(() => vi.fn());
 const outroFn = vi.hoisted(() => vi.fn());
 
-vi.mock("@clack/prompts", () => ({
+vi.mock("@poe-code/design-system", () => ({
   log: {
     message: logMessage,
     warn: logWarn,

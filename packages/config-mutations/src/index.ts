@@ -19,3 +19,4 @@ export type {
   ConfigFormat,
   PathMapper
 } from "./types.js";
+export { isConfigObject } from "./types.js";

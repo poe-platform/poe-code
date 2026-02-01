@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { select, isCancel, cancel } from "@clack/prompts";
+import { select, isCancel, cancel } from "@poe-code/design-system";
 import type { CliContainer } from "../container.js";
 import { loadCredentials } from "../../services/credentials.js";
 import { initializeClient } from "../../services/client-instance.js";

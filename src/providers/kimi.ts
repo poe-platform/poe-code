@@ -4,12 +4,12 @@ import {
 } from "../utils/command-checks.js";
 import {
   configMutation,
-  fileMutation
+  fileMutation,
+  type ConfigObject
 } from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import { KIMI_MODELS, DEFAULT_KIMI_MODEL, PROVIDER_NAME, stripModelNamespace } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
-import type { TomlTable } from "../utils/toml.js";
 import type {
   ProviderSpawnOptions,
   ModelConfigureOptions,
@@ -94,7 +94,7 @@ export const kimiService = createProvider<
           };
           const selectedModel = model ?? DEFAULT_KIMI_MODEL;
 
-          const models: TomlTable = {};
+          const models: ConfigObject = {};
           for (const m of KIMI_MODELS) {
             models[providerModel(m)] = {
               provider: PROVIDER_NAME,
@@ -122,7 +122,7 @@ export const kimiService = createProvider<
       configMutation.transform({
         target: "~/.kimi/config.toml",
         transform: (document) => {
-          const providers = document.providers as TomlTable | undefined;
+          const providers = document.providers as ConfigObject | undefined;
           if (!providers || typeof providers !== "object") {
             return { changed: false, content: document };
           }
@@ -131,7 +131,7 @@ export const kimiService = createProvider<
           }
           const { [PROVIDER_NAME]: ignoredProvider, ...rest } = providers;
           void ignoredProvider;
-          const updatedProviders = rest as TomlTable;
+          const updatedProviders = rest as ConfigObject;
           if (Object.keys(updatedProviders).length === 0) {
             const { providers: ignoredProviders, ...docWithoutProviders } = document;
             void ignoredProviders;

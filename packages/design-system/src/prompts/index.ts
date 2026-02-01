@@ -15,11 +15,11 @@ export function note(message: string, title?: string): void {
   clack.note(message, title);
 }
 
-export type SelectOptions<T extends { value: unknown; label?: string }[]> = Parameters<typeof clack.select<T>>[0];
+export type SelectOptions<Value> = Parameters<typeof clack.select<Value>>[0];
 
-export async function select<T extends { value: unknown; label?: string }[]>(
-  opts: SelectOptions<T>
-): Promise<T[number]["value"] | symbol> {
+export async function select<Value>(
+  opts: SelectOptions<Value>
+): Promise<Value | symbol> {
   return clack.select(opts);
 }
 

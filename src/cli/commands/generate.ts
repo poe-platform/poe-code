@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Command } from "commander";
-import { intro, outro, spinner } from "@clack/prompts";
+import { intro, outro, spinner } from "@poe-code/design-system";
 import { text } from "@poe-code/design-system";
 import type { CliContainer } from "../container.js";
 import {
@@ -82,7 +82,7 @@ export function registerGenerateCommand(
       if (!response.content) {
         throw new ValidationError("No response from LLM");
       }
-      outro();
+      outro("");
     });
 
   generate
@@ -122,7 +122,7 @@ export function registerGenerateCommand(
       if (!response.content) {
         throw new ValidationError("No response from LLM");
       }
-      outro();
+      outro("");
     });
 
   registerMediaSubcommand(generate, program, container, "image");

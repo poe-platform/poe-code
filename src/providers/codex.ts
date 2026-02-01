@@ -3,12 +3,13 @@ import {
   createBinaryExistsCheck,
   createCommandExpectationCheck
 } from "../utils/command-checks.js";
-import { isTomlTable, type TomlTable } from "../utils/toml.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
   configMutation,
   fileMutation,
-  templateMutation
+  templateMutation,
+  type ConfigObject,
+  isConfigObject
 } from "@poe-code/config-mutations";
 import { createProvider } from "./create-provider.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
@@ -52,9 +53,9 @@ export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
 };
 
 function stripCodexConfiguration(
-  document: TomlTable
+  document: ConfigObject
 ): { changed: boolean; empty: boolean } {
-  if (!isTomlTable(document)) {
+  if (!isConfigObject(document)) {
     return { changed: false, empty: false };
   }
 
@@ -63,7 +64,7 @@ function stripCodexConfiguration(
   }
 
   const providers = document["model_providers"];
-  if (!isTomlTable(providers) || !(CODEX_PROVIDER_ID in providers)) {
+  if (!isConfigObject(providers) || !(CODEX_PROVIDER_ID in providers)) {
     return { changed: false, empty: false };
   }
 
@@ -82,8 +83,8 @@ function stripCodexConfiguration(
   };
 }
 
-function isTableEmpty(value: unknown): value is TomlTable {
-  return isTomlTable(value) && Object.keys(value).length === 0;
+function isTableEmpty(value: unknown): value is ConfigObject {
+  return isConfigObject(value) && Object.keys(value).length === 0;
 }
 
 const CODEX_DEFAULT_EXEC_ARGS = [
@@ -165,7 +166,7 @@ export const codexService = createProvider<
       configMutation.transform({
         target: "~/.codex/config.toml",
         transform: (document) => {
-          const result = stripCodexConfiguration(document as TomlTable);
+          const result = stripCodexConfiguration(document as ConfigObject);
           if (!result.changed) {
             return { changed: false, content: document };
           }

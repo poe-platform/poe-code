@@ -3,8 +3,8 @@ import {
   isCancel,
   password,
   select,
-  text
-} from "@clack/prompts";
+  promptText as text
+} from "@poe-code/design-system";
 import { OperationCancelledError } from "./errors.js";
 import type { PromptDescriptor } from "./prompts.js";
 import type { PromptFn } from "./types.js";

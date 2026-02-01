@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
-import { log } from "@clack/prompts";
+import { log } from "@poe-code/design-system";
 import chalk from "chalk";
 import type { Command } from "commander";
 import type { FileSystem } from "../utils/file-system.js";

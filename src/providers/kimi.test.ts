@@ -13,7 +13,10 @@ import { createCliEnvironment } from "../cli/environment.js";
 import { createTestCommandContext } from "../../tests/test-command-context.js";
 import type { ProviderContext } from "../cli/service-registry.js";
 import { createLoggerFactory } from "../cli/logger.js";
-import { parseTomlDocument, serializeTomlDocument } from "../utils/toml.js";
+import {
+  parseToml,
+  serializeToml
+} from "@poe-code/config-mutations/testing";
 
 function createMemFs(): { fs: FileSystem; vol: Volume } {
   const vol = new Volume();
@@ -124,7 +127,7 @@ describe("kimi service", () => {
   it("creates the kimi config file with default model", async () => {
     await configureKimi();
 
-    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const config = parseToml(await fs.readFile(configPath, "utf8"));
     expect(config.default_model).toBe(DEFAULT_PROVIDER_MODEL);
     expect(config.providers).toMatchObject({
       [PROVIDER_NAME]: {
@@ -146,7 +149,7 @@ describe("kimi service", () => {
     const alternate = KIMI_MODELS[KIMI_MODELS.length - 1]!;
     await configureKimi({ model: alternate });
 
-    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const config = parseToml(await fs.readFile(configPath, "utf8"));
     expect(config.default_model).toBe(withProviderPrefix(alternate));
     const models = config.models as Record<string, unknown>;
     expect(models[withProviderPrefix(alternate)]).toEqual({
@@ -160,7 +163,7 @@ describe("kimi service", () => {
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(
       configPath,
-      serializeTomlDocument({
+      serializeToml({
         providers: {
           local: {
             type: "openai_legacy",
@@ -180,7 +183,7 @@ describe("kimi service", () => {
 
     await configureKimi();
 
-    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const config = parseToml(await fs.readFile(configPath, "utf8"));
     const providers = config.providers as Record<string, unknown>;
     const models = config.models as Record<string, unknown>;
     expect(providers.local).toEqual({
@@ -204,7 +207,7 @@ describe("kimi service", () => {
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(
       configPath,
-      serializeTomlDocument({
+      serializeToml({
         default_model: "poe/Old-Model",
         models: {
           "poe/Old-Model": {
@@ -230,7 +233,7 @@ describe("kimi service", () => {
 
     await configureKimi();
 
-    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const config = parseToml(await fs.readFile(configPath, "utf8"));
     const models = config.models as Record<string, unknown>;
 
     expect(models["poe/Old-Model"]).toBeUndefined();
@@ -245,7 +248,7 @@ describe("kimi service", () => {
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(
       configPath,
-      serializeTomlDocument({
+      serializeToml({
         providers: {
           poe: {
             type: "openai_legacy",
@@ -263,7 +266,7 @@ describe("kimi service", () => {
 
     await configureKimi();
 
-    const config = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const config = parseToml(await fs.readFile(configPath, "utf8"));
     const providers = config.providers as Record<string, Record<string, unknown>>;
     expect(providers[PROVIDER_NAME].api_key).toBe("sk-test");
     expect(providers.openai).toEqual({
@@ -371,14 +374,14 @@ describe("kimi service", () => {
   it("removes the Poe provider from config on remove", async () => {
     await configureKimi();
 
-    const before = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const before = parseToml(await fs.readFile(configPath, "utf8"));
     const beforeProviders = before.providers as Record<string, unknown>;
     expect(beforeProviders[PROVIDER_NAME]).toBeDefined();
 
     const removed = await unconfigureKimi();
     expect(removed).toBe(true);
 
-    const after = parseTomlDocument(await fs.readFile(configPath, "utf8"));
+    const after = parseToml(await fs.readFile(configPath, "utf8"));
     const afterProviders = after.providers as Record<string, unknown> | undefined;
     expect(afterProviders?.[PROVIDER_NAME]).toBeUndefined();
   });

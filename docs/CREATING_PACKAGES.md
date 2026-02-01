@@ -33,6 +33,12 @@ mkdir -p packages/your-package/src
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc"
   },
@@ -41,9 +47,11 @@ mkdir -p packages/your-package/src
 ```
 
 Key fields:
+
 - `name`: Use `@poe-code/` prefix for consistency
 - `private`: Set to `true` until ready to publish
 - `main`/`types`: Point to compiled output for production build
+- `exports`: Required for Vite/Vitest ESM module resolution. Without this field, tests will fail with "Failed to resolve entry for package"
 
 ### 3. Create tsconfig.json
 

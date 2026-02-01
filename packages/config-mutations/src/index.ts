@@ -6,6 +6,8 @@ export { runMutations } from "./execution/run-mutations.js";
 
 // Types
 export type {
+  ConfigObject,
+  ConfigValue,
   Mutation,
   MutationContext,
   MutationResult,

@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { jsonFormat } from "./json.js";
+import {
+  jsonFormat,
+  detectIndent,
+  modifyAtPath,
+  mergePreservingComments,
+  removeAtPath
+} from "./json.js";
 
 describe("jsonFormat", () => {
   describe("parse", () => {
@@ -30,6 +36,60 @@ describe("jsonFormat", () => {
 
     it("throws for JSON primitive", () => {
       expect(() => jsonFormat.parse("123")).toThrow("Expected JSON object");
+    });
+
+    it("parses JSON with line comments", () => {
+      const content = `{
+        // This is a comment
+        "key": "value"
+      }`;
+      const result = jsonFormat.parse(content);
+      expect(result).toEqual({ key: "value" });
+    });
+
+    it("parses JSON with block comments", () => {
+      const content = `{
+        /* This is a block comment */
+        "key": "value"
+      }`;
+      const result = jsonFormat.parse(content);
+      expect(result).toEqual({ key: "value" });
+    });
+
+    it("parses JSON with trailing commas", () => {
+      const content = `{
+        "key": "value",
+      }`;
+      const result = jsonFormat.parse(content);
+      expect(result).toEqual({ key: "value" });
+    });
+  });
+
+  describe("detectIndent", () => {
+    it("detects 2-space indentation", () => {
+      const content = `{
+  "key": "value"
+}`;
+      expect(detectIndent(content)).toBe("  ");
+    });
+
+    it("detects 4-space indentation", () => {
+      const content = `{
+    "key": "value"
+}`;
+      expect(detectIndent(content)).toBe("    ");
+    });
+
+    it("detects tab indentation", () => {
+      const content = `{
+\t"key": "value"
+}`;
+      expect(detectIndent(content)).toBe("\t");
+    });
+
+    it("defaults to 2 spaces when no indentation found", () => {
+      const content = `{"key": "value"}`;
+      expect(detectIndent(content)).toBe("  ");
     });
   });
 
@@ -145,5 +205,143 @@ describe("jsonFormat", () => {
       jsonFormat.prune(original, { a: {} });
       expect(original).toEqual({ a: 1, b: 2 });
     });
+  });
+});
+
+describe("modifyAtPath", () => {
+  it("sets a value at a path", () => {
+    const content = `{
+  "existing": "value"
+}`;
+    const result = modifyAtPath(content, ["newKey"], "newValue");
+    expect(jsonFormat.parse(result)).toEqual({
+      existing: "value",
+      newKey: "newValue"
+    });
+  });
+
+  it("sets a nested value", () => {
+    const content = `{
+  "servers": {}
+}`;
+    const result = modifyAtPath(content, ["servers", "my-server"], {
+      command: "npx",
+      args: ["test"]
+    });
+    expect(jsonFormat.parse(result)).toEqual({
+      servers: {
+        "my-server": {
+          command: "npx",
+          args: ["test"]
+        }
+      }
+    });
+  });
+
+  it("preserves comments in JSON", () => {
+    const content = `{
+  // This is a comment that should be preserved
+  "existing": "value"
+}`;
+    const result = modifyAtPath(content, ["newKey"], "newValue");
+    expect(result).toContain("// This is a comment");
+  });
+
+  it("preserves indentation style", () => {
+    const content = `{
+    "existing": "value"
+}`;
+    const result = modifyAtPath(content, ["newKey"], "newValue");
+    expect(result).toContain('    "existing"');
+  });
+
+  it("removes a value when set to undefined", () => {
+    const content = `{
+  "keep": "value",
+  "remove": "this"
+}`;
+    const result = modifyAtPath(content, ["remove"], undefined);
+    expect(jsonFormat.parse(result)).toEqual({ keep: "value" });
+  });
+
+  it("ends with newline", () => {
+    const content = `{"key": "value"}`;
+    const result = modifyAtPath(content, ["newKey"], "newValue");
+    expect(result.endsWith("\n")).toBe(true);
+  });
+});
+
+describe("mergePreservingComments", () => {
+  it("merges patch into content", () => {
+    const content = `{
+  "existing": "value"
+}`;
+    const result = mergePreservingComments(content, { newKey: "newValue" });
+    expect(jsonFormat.parse(result)).toEqual({
+      existing: "value",
+      newKey: "newValue"
+    });
+  });
+
+  it("preserves comments when merging", () => {
+    const content = `{
+  // Important comment
+  "existing": "value"
+}`;
+    const result = mergePreservingComments(content, { newKey: "newValue" });
+    expect(result).toContain("// Important comment");
+  });
+
+  it("handles empty content", () => {
+    const result = mergePreservingComments("", { key: "value" });
+    expect(jsonFormat.parse(result)).toEqual({ key: "value" });
+  });
+
+  it("ignores undefined values in patch", () => {
+    const content = `{
+  "existing": "value"
+}`;
+    const result = mergePreservingComments(content, {
+      newKey: "newValue",
+      ignored: undefined as unknown as string
+    });
+    expect(jsonFormat.parse(result)).toEqual({
+      existing: "value",
+      newKey: "newValue"
+    });
+  });
+});
+
+describe("removeAtPath", () => {
+  it("removes a key at path", () => {
+    const content = `{
+  "keep": "value",
+  "remove": "this"
+}`;
+    const result = removeAtPath(content, ["remove"]);
+    expect(jsonFormat.parse(result)).toEqual({ keep: "value" });
+  });
+
+  it("removes a nested key", () => {
+    const content = `{
+  "servers": {
+    "server1": {},
+    "server2": {}
+  }
+}`;
+    const result = removeAtPath(content, ["servers", "server1"]);
+    expect(jsonFormat.parse(result)).toEqual({
+      servers: { server2: {} }
+    });
+  });
+
+  it("preserves comments when removing", () => {
+    const content = `{
+  // Keep this comment
+  "keep": "value",
+  "remove": "this"
+}`;
+    const result = removeAtPath(content, ["remove"]);
+    expect(result).toContain("// Keep this comment");
   });
 });

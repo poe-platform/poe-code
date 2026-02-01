@@ -103,7 +103,7 @@ export const claudeCodeService = createProvider<
     "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt"
   ],
   isolatedEnv: {
-    agentBinary: claudeCodeAgent.binaryName,
+    agentBinary: claudeCodeAgent.binaryName!,
     env: {
       ANTHROPIC_API_KEY: { kind: "poeApiKey" },
       ANTHROPIC_BASE_URL: { kind: "poeBaseUrl" }
@@ -123,10 +123,6 @@ export const claudeCodeService = createProvider<
         expectedOutput: "CLAUDE_CODE_OK"
       })
     );
-  },
-  mcp: {
-    configFile: "~/.claude.json",
-    configKey: "mcpServers"
   },
   manifest: {
     configure: [

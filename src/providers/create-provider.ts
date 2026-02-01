@@ -3,7 +3,9 @@ import type {
   ProviderContext,
   ProviderBranding,
   ProviderConfigurePrompts,
-  ProviderIsolatedEnv
+  ProviderIsolatedEnv,
+  McpContext,
+  McpRunOptions
 } from "../cli/service-registry.js";
 import {
   runMutations,
@@ -15,15 +17,16 @@ import {
   type ServiceInstallDefinition
 } from "../services/service-install.js";
 import {
-  createMcpMutations,
-  createMcpConfigureRunner,
-  createMcpUnconfigureRunner,
-  type McpConfig
-} from "./mcp-config.js";
+  configure as mcpConfigure,
+  unconfigure as mcpUnconfigure,
+  isSupported as isMcpSupported,
+  type McpServerEntry
+} from "@poe-code/agent-mcp-config";
+import {
+  getCurrentExecutionContext,
+  toMcpServerCommand
+} from "../utils/execution-context.js";
 import { loadTemplate } from "../utils/templates.js";
-
-// Re-export McpValueContext for external use
-export type { McpValueContext } from "./mcp-config.js";
 
 interface ManifestVersionDefinition {
   configure: Mutation[];
@@ -51,7 +54,6 @@ interface CreateProviderOptions<
   postConfigureMessages?: string[];
   isolatedEnv?: ProviderIsolatedEnv;
   manifest: ManifestVersionDefinition;
-  mcp?: McpConfig;
   install?: ServiceInstallDefinition;
   test?: ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions>["test"];
   spawn?: ProviderService<
@@ -59,6 +61,66 @@ interface CreateProviderOptions<
     UnconfigureOptions,
     SpawnOptions
   >["spawn"];
+}
+
+function createMcpServerEntry(): McpServerEntry {
+  const context = getCurrentExecutionContext(import.meta.url);
+  const mcpCommand = toMcpServerCommand(context.command, "mcp");
+  return {
+    name: "poe-code",
+    config: {
+      transport: "stdio",
+      command: mcpCommand.command,
+      args: mcpCommand.args
+    }
+  };
+}
+
+function createMcpConfigureRunner(providerId: string) {
+  return async (context: McpContext, options?: McpRunOptions): Promise<void> => {
+    const server = createMcpServerEntry();
+    await mcpConfigure(providerId, server, {
+      fs: context.command.fs,
+      homeDir: context.env.homeDir,
+      platform: context.env.platform as "darwin" | "linux" | "win32",
+      dryRun: options?.dryRun,
+      observers: {
+        onStart: (details) => {
+          if (options?.dryRun) {
+            context.logger.dryRun(`Would ${details.label.toLowerCase()}`);
+          }
+        },
+        onComplete: (details, outcome) => {
+          if (!options?.dryRun && outcome.changed) {
+            context.logger.verbose(details.label);
+          }
+        }
+      }
+    });
+  };
+}
+
+function createMcpUnconfigureRunner(providerId: string) {
+  return async (context: McpContext, options?: McpRunOptions): Promise<void> => {
+    await mcpUnconfigure(providerId, "poe-code", {
+      fs: context.command.fs,
+      homeDir: context.env.homeDir,
+      platform: context.env.platform as "darwin" | "linux" | "win32",
+      dryRun: options?.dryRun,
+      observers: {
+        onStart: (details) => {
+          if (options?.dryRun) {
+            context.logger.dryRun(`Would ${details.label.toLowerCase()}`);
+          }
+        },
+        onComplete: (details, outcome) => {
+          if (!options?.dryRun && outcome.changed) {
+            context.logger.verbose(details.label);
+          }
+        }
+      }
+    });
+  };
 }
 
 export function createProvider<
@@ -122,10 +184,10 @@ export function createProvider<
     provider.spawn = opts.spawn;
   }
 
-  if (opts.mcp) {
-    const mcpMutations = createMcpMutations(opts.mcp);
-    provider.mcpConfigure = createMcpConfigureRunner(opts.id, mcpMutations.configure);
-    provider.mcpUnconfigure = createMcpUnconfigureRunner(opts.id, mcpMutations.unconfigure);
+  // Auto-attach MCP handlers if the agent is supported
+  if (isMcpSupported(opts.id)) {
+    provider.mcpConfigure = createMcpConfigureRunner(opts.id);
+    provider.mcpUnconfigure = createMcpUnconfigureRunner(opts.id);
   }
 
   return provider;

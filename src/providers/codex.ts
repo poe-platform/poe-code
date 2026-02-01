@@ -175,17 +175,12 @@ export const codexService = createProvider<
     }
   },
   isolatedEnv: {
-    agentBinary: codexAgent.binaryName,
+    agentBinary: codexAgent.binaryName!,
     configProbe: { kind: "isolatedFile", relativePath: "config.toml" },
     env: {
       CODEX_HOME: { kind: "isolatedDir" },
       XDG_CONFIG_HOME: { kind: "isolatedDir" }
     }
-  },
-  mcp: {
-    configFile: "~/.codex/config.toml",
-    configKey: "mcp_servers",
-    format: "toml"
   },
   test(context) {
     return context.runCheck(

@@ -3,7 +3,6 @@ import {
   FRONTIER_MODELS,
   PROVIDER_NAME
 } from "../cli/constants.js";
-import type { JsonObject } from "../utils/json.js";
 import {
   createBinaryExistsCheck,
   createCommandExpectationCheck
@@ -59,7 +58,7 @@ export const openCodeService = createProvider({
     }
   },
   isolatedEnv: {
-    agentBinary: openCodeAgent.binaryName,
+    agentBinary: openCodeAgent.binaryName!,
     configProbe: {
       kind: "isolatedFile",
       relativePath: ".config/opencode/config.json"
@@ -68,17 +67,6 @@ export const openCodeService = createProvider({
       XDG_CONFIG_HOME: { kind: "isolatedDir", relativePath: ".config" },
       XDG_DATA_HOME: { kind: "isolatedDir", relativePath: ".local/share" }
     }
-  },
-  mcp: {
-    configFile: "~/.config/opencode/config.json",
-    configKey: "mcp",
-    value: (ctx): JsonObject => ({
-      "poe-code": {
-        type: "local",
-        command: [ctx.execCommand.command, ...ctx.execCommand.args, ctx.subcommand],
-        enabled: true
-      }
-    })
   },
   manifest: {
     configure: [

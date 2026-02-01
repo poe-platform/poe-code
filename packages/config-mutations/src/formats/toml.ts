@@ -51,6 +51,14 @@ function prune(
 
     const current = result[key];
 
+    // Empty object pattern means "delete this key entirely"
+    if (isConfigObject(pattern) && Object.keys(pattern).length === 0) {
+      delete result[key];
+      changed = true;
+      continue;
+    }
+
+    // Non-empty object pattern with object current: recurse
     if (isConfigObject(pattern) && isConfigObject(current)) {
       const { changed: childChanged, result: childResult } = prune(
         current,

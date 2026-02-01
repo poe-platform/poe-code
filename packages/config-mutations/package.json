@@ -22,6 +22,7 @@
     "dist"
   ],
   "dependencies": {
+    "jsonc-parser": "^3.3.1",
     "mustache": "^4.2.0",
     "smol-toml": "^1.3.0"
   },

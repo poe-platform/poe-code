@@ -4,7 +4,8 @@ export interface AgentDefinition {
   label: string;
   summary: string;
   aliases?: string[];
-  binaryName: string;
+  /** Binary name for CLI agents. Optional for GUI-only apps like Claude Desktop. */
+  binaryName?: string;
   configPath: string;
   branding: {
     colors: {

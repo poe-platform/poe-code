@@ -62,10 +62,6 @@ export const kimiService = createProvider<
       }))
     }
   },
-  mcp: {
-    configFile: "~/.kimi/mcp.json",
-    configKey: "mcpServers"
-  },
   isolatedEnv: {
     // Use "kimi-cli" to avoid stripAgentHome stripping ".kimi" from paths
     agentBinary: "kimi-cli",

@@ -247,6 +247,35 @@ describe("codex service", () => {
     expect(content.trim()).toBe("[features]\nfoo = true");
   });
 
+  it("removes codex configuration with wire_api responses format", async () => {
+    await fs.mkdir(configDir, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      [
+        'model_provider="poe"',
+        `model="${DEFAULT_CODEX_MODEL}"`,
+        'model_reasoning_effort="medium"',
+        "",
+        "[model_providers.poe]",
+        'name="poe"',
+        'base_url="https://api.poe.com/v1"',
+        'wire_api="responses"',
+        'experimental_bearer_token="test-key"',
+        "",
+        "[features]",
+        "bar = true",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const removed = await unconfigureCodex();
+    expect(removed).toBe(true);
+
+    const content = await fs.readFile(configPath, "utf8");
+    expect(content.trim()).toBe("[features]\nbar = true");
+  });
+
   it("creates timestamped backup when overwriting existing config", async () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(configPath, "legacy-config", { encoding: "utf8" });

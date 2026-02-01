@@ -33,10 +33,6 @@ type CodexUnconfigureContext = {
 };
 
 const CODEX_PROVIDER_ID = "poe";
-const CODEX_TOP_LEVEL_FIELDS = [
-  "model",
-  "model_reasoning_effort"
-] as const;
 export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "codex",
   summary: "Codex CLI",
@@ -56,8 +52,7 @@ export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
 };
 
 function stripCodexConfiguration(
-  document: TomlTable,
-  baseUrl: string
+  document: TomlTable
 ): { changed: boolean; empty: boolean } {
   if (!isTomlTable(document)) {
     return { changed: false, empty: false };
@@ -68,30 +63,13 @@ function stripCodexConfiguration(
   }
 
   const providers = document["model_providers"];
-  if (!isTomlTable(providers)) {
+  if (!isTomlTable(providers) || !(CODEX_PROVIDER_ID in providers)) {
     return { changed: false, empty: false };
-  }
-
-  const poeConfig = providers[CODEX_PROVIDER_ID];
-  if (
-    !isTomlTable(poeConfig) ||
-    !matchesExpectedProviderConfig(poeConfig, baseUrl)
-  ) {
-    return { changed: false, empty: false };
-  }
-
-  for (const field of CODEX_TOP_LEVEL_FIELDS) {
-    if (typeof document[field] !== "string") {
-      return { changed: false, empty: false };
-    }
   }
 
   delete document["model_provider"];
-
-  for (const field of CODEX_TOP_LEVEL_FIELDS) {
-    delete document[field];
-  }
-
+  delete document["model"];
+  delete document["model_reasoning_effort"];
   delete providers[CODEX_PROVIDER_ID];
 
   if (isTableEmpty(providers)) {
@@ -102,37 +80,6 @@ function stripCodexConfiguration(
     changed: true,
     empty: isTableEmpty(document)
   };
-}
-
-function matchesExpectedProviderConfig(
-  table: TomlTable,
-  baseUrl: string
-): boolean {
-  if (table["name"] !== "poe") {
-    return false;
-  }
-  if (table["base_url"] !== baseUrl) {
-    return false;
-  }
-  if (table["wire_api"] !== "chat") {
-    return false;
-  }
-
-  const envKey = table["env_key"];
-  if (
-    envKey != null &&
-    envKey !== "OPENAI_API_KEY" &&
-    envKey !== "POE_API_KEY"
-  ) {
-    return false;
-  }
-
-  const bearer = table["experimental_bearer_token"];
-  if (bearer != null && typeof bearer !== "string") {
-    return false;
-  }
-
-  return true;
 }
 
 function isTableEmpty(value: unknown): value is TomlTable {
@@ -217,12 +164,8 @@ export const codexService = createProvider<
     unconfigure: [
       configMutation.transform({
         target: "~/.codex/config.toml",
-        transform: (document, ctx) => {
-          const options = ctx as unknown as CodexUnconfigureContext;
-          const result = stripCodexConfiguration(
-            document as TomlTable,
-            options.env.poeApiBaseUrl
-          );
+        transform: (document) => {
+          const result = stripCodexConfiguration(document as TomlTable);
           if (!result.changed) {
             return { changed: false, content: document };
           }

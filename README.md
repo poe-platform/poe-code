@@ -1,62 +1,73 @@
 ![poe-code banner](docs/banners/claude-opus-4-6.jpg)
 
-# poe-code
+<div align="center">
+  <h1>Poe Code ⚡</h1>
 
-> Configure coding agents to use the Poe API.
+<a href="https://poe.com"><img src="https://img.shields.io/badge/Poe-Sign up-purple?logo=poe&logoColor=white&color=5D5CDE&style=for-the-badge" alt="Discord"></a>
+<a href="https://www.npmjs.com/package/poe-code"><img alt="NPM version" src="https://img.shields.io/npm/v/next.svg?&style=for-the-badge&color=09B16B"></a>
+<a href="https://discord.gg/joinpoe"><img src="https://img.shields.io/badge/Discord-Join-purple?logo=discord&logoColor=white&color=FF44D3&style=for-the-badge" alt="Discord"></a>
 
-## Try it in 1 minute
+</div>
 
+Power your favorite coding agents (Claude Code, Codex, OpenCode, and more) with your Poe subscription—**no need to handle multiple providers/accounts.** Poe Code routes everything through the [Poe API](https://poe.com/api) . 
+
+Use it of a single session (`poe-code wrap claude`) or configure it as your default and use your tools normally. 
+
+
+## Quickstart
+Start a coding session routing all your `claude` calls to Poe
 ```bash
-# Install Poe wrapper binaries.
-npm install -g poe-code
-
-# Run your existing agent CLI through Poe (you’ll be prompted for api key on first run).
-poe-claude --help
+npx poe-code wrap claude
+# Also available: codex, opencode, kimi
 ```
 
-Also available: `poe-codex`, `poe-opencode`.
+or 
 
-## Make it default
-
+## Set it as your default (works with CLIs and desktop apps)
 This updates the provider’s config files so you can use the provider CLI directly.
 
 ```bash
-# Claude Code
-npx poe-code@latest configure claude-code
+# Start the interactive setup
+npx poe-code configure
 
-# Codex
-npx poe-code@latest configure codex
-
-# OpenCode
-npx poe-code@latest configure opencode
-
-# Kimi
-npx poe-code@latest configure kimi
+# Setup a specific agent
+npx poe-code@latest configure codex # (or claude, opencode, kimi)
 ```
+
 
 ### Unconfigure (remove overrides)
 
 ```bash
-npx poe-code@latest unconfigure claude-code
+npx poe-code unconfigure claude
 ```
+
+
+## Quick links 
+-  [Utilities](#utilities)
+-  [Usage and Billing](#usage--billing)
+-  [MCP Server](#poe-mcp-server)
+-  [SDK](#sdk)
+-  [Poe API](https://poe.com/api)
+
+
 
 ## Utilities
 
 Utilities are especially useful for scripting and CI/CD.
 
-### Spawn a one-off prompt
+#### Spawn a one-off prompt
 
 ```bash
 npx poe-code@latest spawn codex "Say hello"
 ```
 
-### Spawn a prompt via stdin
+#### Spawn a prompt via stdin
 
 ```bash
 echo "Say hello" | npx poe-code@latest spawn codex
 ```
 
-### Test a configured service
+#### Test a configured service
 
 ```bash
 npx poe-code@latest test codex

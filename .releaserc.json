@@ -51,7 +51,8 @@
       "@semantic-release/npm",
       {
         "npmPublish": true,
-        "provenance": true
+        "provenance": true,
+        "prepareCmd": "npm run build"
       }
     ],
     [

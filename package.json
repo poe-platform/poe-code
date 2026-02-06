@@ -49,7 +49,8 @@
     "poe-code-configure": "dist/bin.cjs",
     "poe-claude": "dist/bin/poe-claude.js",
     "poe-codex": "dist/bin/poe-codex.js",
-    "poe-opencode": "dist/bin/poe-opencode.js"
+    "poe-opencode": "dist/bin/poe-opencode.js",
+    "tiny-mcp-test-server": "packages/tiny-mcp-test-server/dist/index.js"
   },
   "files": [
     "dist"
@@ -78,6 +79,7 @@
     "@poe-code/e2e-docker-test-runner": "*",
     "@poe-code/freeze-cli": "*",
     "@poe-code/tiny-mcp-server": "*",
+    "@poe-code/tiny-mcp-test-server": "*",
     "@types/mustache": "^4.2.6",
     "@types/node": "^20.12.7",
     "@types/semver": "^7.7.1",

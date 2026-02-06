@@ -21,10 +21,12 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
 function asPlanFs(fs: FileSystem): {
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<Stats>;
+  readFile(path: string, encoding: BufferEncoding): Promise<string>;
 } {
   return {
     readdir: (path) => fs.readdir(path),
-    stat: (path) => fs.stat(path)
+    stat: (path) => fs.stat(path),
+    readFile: (path, encoding) => fs.readFile(path, encoding) as Promise<string>
   };
 }
 
@@ -107,6 +109,53 @@ describe("resolvePlanPath", () => {
           expect.objectContaining({ value: ".agents/tasks/plan-one.yaml" }),
           expect.objectContaining({ value: ".agents/tasks/plan-two.yaml" })
         ])
+      })
+    );
+  });
+
+  it("shows completion stats in the label", async () => {
+    const planWithProgress = `
+version: 1
+project: test
+stories:
+  - id: story-1
+    title: First story
+    status: done
+  - id: story-2
+    title: Second story
+    status: done
+  - id: story-3
+    title: Third story
+    status: in_progress
+  - id: story-4
+    title: Fourth story
+    status: open
+`;
+    const planNoStories = `
+version: 1
+project: empty
+stories: []
+`;
+
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan-progress.yaml": planWithProgress,
+      "/repo/.agents/tasks/plan-empty.yaml": planNoStories
+    });
+
+    clackSelect.mockResolvedValueOnce(".agents/tasks/plan-progress.yaml");
+    clackIsCancel.mockReturnValue(false);
+
+    await resolvePlanPath({
+      cwd: "/repo",
+      fs: asPlanFs(fs)
+    });
+
+    expect(clackSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          { label: ".agents/tasks/plan-empty.yaml (0/0)", value: ".agents/tasks/plan-empty.yaml" },
+          { label: ".agents/tasks/plan-progress.yaml (2/4)", value: ".agents/tasks/plan-progress.yaml" }
+        ]
       })
     );
   });

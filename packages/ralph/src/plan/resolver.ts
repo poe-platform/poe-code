@@ -3,10 +3,18 @@ import type { Stats } from "node:fs";
 import * as fsPromises from "node:fs/promises";
 import { isCancel, select } from "@poe-code/design-system";
 import { isNotFound } from "@poe-code/config-mutations";
+import { parsePlan } from "./parser.js";
 
 export type PlanResolverFileSystem = {
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<Stats>;
+  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+};
+
+type PlanCandidate = {
+  path: string;
+  done: number;
+  total: number;
 };
 
 export type ResolvePlanPathOptions = {
@@ -38,7 +46,7 @@ function isPlanCandidateFile(fileName: string): boolean {
 async function listPlanCandidates(
   fs: PlanResolverFileSystem,
   cwd: string
-): Promise<string[]> {
+): Promise<PlanCandidate[]> {
   const tasksDir = path.join(cwd, ".agents", "tasks");
   let entries: string[];
   try {
@@ -50,7 +58,7 @@ async function listPlanCandidates(
     throw error;
   }
 
-  const candidates: string[] = [];
+  const candidates: PlanCandidate[] = [];
   for (const entry of entries) {
     if (!isPlanCandidateFile(entry)) {
       continue;
@@ -62,17 +70,27 @@ async function listPlanCandidates(
       continue;
     }
 
-    candidates.push(path.relative(cwd, absPath));
+    const relativePath = path.relative(cwd, absPath);
+    const content = await fs.readFile(absPath, "utf8");
+    const plan = parsePlan(content);
+    const done = plan.stories.filter((s) => s.status === "done").length;
+    const total = plan.stories.length;
+
+    candidates.push({ path: relativePath, done, total });
   }
 
-  candidates.sort((a, b) => a.localeCompare(b));
+  candidates.sort((a, b) => a.path.localeCompare(b.path));
   return candidates;
 }
 
 export async function resolvePlanPath(
   options: ResolvePlanPathOptions
 ): Promise<string | null> {
-  const fs = options.fs ?? (fsPromises as unknown as PlanResolverFileSystem);
+  const fs = options.fs ?? {
+    readdir: fsPromises.readdir,
+    stat: fsPromises.stat,
+    readFile: fsPromises.readFile
+  } as PlanResolverFileSystem;
   const cwd = options.cwd;
 
   const provided = options.plan?.trim();
@@ -106,14 +124,14 @@ export async function resolvePlanPath(
     return null;
   }
   if (candidates.length === 1) {
-    return candidates[0]!;
+    return candidates[0]!.path;
   }
 
   const selection = await select({
     message: "Select a plan file to use for this Ralph run",
     options: candidates.map((candidate) => ({
-      label: candidate,
-      value: candidate
+      label: `${candidate.path} (${candidate.done}/${candidate.total})`,
+      value: candidate.path
     }))
   });
 

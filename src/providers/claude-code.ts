@@ -170,7 +170,7 @@ export const claudeCodeService = createProvider<
     const args = buildClaudeArgs(
       shouldUseStdin ? undefined : options.prompt,
       options.args,
-      options.model
+      options.model ? stripModelNamespace(options.model) : undefined
     );
     if (shouldUseStdin) {
       if (options.cwd) {

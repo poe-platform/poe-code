@@ -310,7 +310,7 @@ describe("claude-code service", () => {
       "-p",
       "Test prompt",
       "--model",
-      CLAUDE_MODEL_HAIKU,
+      stripModelNamespace(CLAUDE_MODEL_HAIKU),
       "--allowedTools",
       "Bash,Read",
       "--permission-mode",

@@ -386,7 +386,7 @@ describe("codex service", () => {
       "wrap",
       "codex",
       "--model",
-      override,
+      stripModelNamespace(override),
       "exec",
       "Summarize the diff",
       "--full-auto",

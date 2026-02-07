@@ -184,7 +184,7 @@ export const codexService = createProvider<
     const args = buildCodexExecArgs(
       shouldUseStdin ? "-" : options.prompt,
       options.args,
-      options.model
+      options.model ? stripModelNamespace(options.model) : undefined
     );
     if (shouldUseStdin) {
       if (options.cwd) {

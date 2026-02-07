@@ -11,7 +11,7 @@
 
 Power your favorite coding agents (Claude Code, Codex, OpenCode, and more) with your Poe subscription—**no need to handle multiple providers/accounts.** Poe Code routes everything through the [Poe API](https://poe.com/api) . 
 
-Use it of a single session (`poe-code wrap claude`) or configure it as your default and use your tools normally. 
+Use it on a single session (`poe-code wrap claude`) or configure it as your default and use your tools normally. 
 
 
 ## Quickstart
@@ -24,7 +24,7 @@ npx poe-code wrap claude
 or 
 
 ## Set it as your default (works with CLIs and desktop apps)
-This updates the provider’s config files so you can use the provider CLI directly.
+This updates the provider’s config files and continue using your tools normally. 
 
 ```bash
 # Start the interactive setup

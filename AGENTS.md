@@ -46,6 +46,8 @@ Use docs/SNAPSHOT_TESTING.md
 - Beta release: Push to `beta` branch → publishes `poe-code@beta`
 - Stable release: Push to `main` branch → publishes `poe-code@latest`
 
+Releases are always done on github, not locally
+
 ## Configure commands / Providers
 
 Regexes are not allowed. When modifying existing files, you must parse them and deep merge them. If you run into unsupported file e.g. yaml, install parser library.

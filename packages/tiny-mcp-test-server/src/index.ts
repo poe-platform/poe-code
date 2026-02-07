@@ -60,9 +60,11 @@ export function createTestServer() {
 }
 
 // Only start listening when run directly
+// Handles: direct execution, npm bin symlinks, and dev mode
 const isMain =
   import.meta.url === `file://${process.argv[1]}` ||
-  process.argv[1]?.endsWith("tiny-mcp-test-server/dist/index.js");
+  process.argv[1]?.endsWith("tiny-mcp-test-server/dist/index.js") ||
+  process.argv[1]?.endsWith("tiny-mcp-test-server");
 
 if (isMain) {
   createTestServer().listen();

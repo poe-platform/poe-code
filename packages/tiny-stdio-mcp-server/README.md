@@ -1,0 +1,180 @@
+# tiny-stdio-mcp-server
+
+Minimal [Model Context Protocol](https://modelcontextprotocol.io) server for Node.js. Zero runtime dependencies, type-safe tool definitions, rich content helpers for images/audio/files.
+
+## Install
+
+```sh
+npm install tiny-stdio-mcp-server
+```
+
+## Quick start
+
+```ts
+import { createServer, defineSchema } from "tiny-stdio-mcp-server";
+
+const schema = defineSchema({
+  text: { type: "string", description: "Text to reverse" },
+});
+
+createServer({ name: "my-server", version: "1.0.0" })
+  .tool("reverse", "Reverse a string", schema, ({ text }) => {
+    return text.split("").reverse().join("");
+  })
+  .listen();
+```
+
+Run it:
+
+```sh
+node my-server.js
+```
+
+Any MCP client (Claude Code, Codex, etc.) can connect to it over stdio.
+
+## API
+
+### `createServer(options)`
+
+Creates a new MCP server.
+
+```ts
+const server = createServer({ name: "my-server", version: "1.0.0" });
+```
+
+### `.tool(name, description, schema, handler)`
+
+Register a tool. The handler receives typed args matching the schema and returns a string, content helper, or array of either.
+
+```ts
+const schema = defineSchema({
+  query: { type: "string", description: "Search query" },
+  limit: { type: "number", description: "Max results", optional: true },
+});
+
+server.tool("search", "Search for things", schema, async ({ query, limit }) => {
+  // `query` is string, `limit` is number | undefined
+  return `Found results for: ${query}`;
+});
+```
+
+### `.listen()`
+
+Start listening on stdin/stdout (standard MCP stdio transport).
+
+```ts
+await server.listen();
+```
+
+### `.connect(transport)`
+
+Connect to a custom readable/writable stream pair.
+
+```ts
+await server.connect({ readable: process.stdin, writable: process.stdout });
+```
+
+### `.connectSDK(transport)`
+
+Connect using an SDK-compatible in-memory transport (for testing).
+
+```ts
+await server.connectSDK(sdkTransport);
+```
+
+### `.removeTool(name)` / `.notifyToolsChanged()`
+
+Dynamically add/remove tools at runtime and notify connected clients.
+
+## `defineSchema(definition)`
+
+Type-safe schema builder. Returns a JSON Schema object with inferred TypeScript types.
+
+```ts
+const schema = defineSchema({
+  name: { type: "string", description: "User name" },
+  age: { type: "number", description: "User age", optional: true },
+});
+// Handler receives: { name: string; age?: number }
+```
+
+Supported types: `string`, `number`, `boolean`, `object`, `array`.
+
+## Content helpers
+
+Tool handlers can return rich content beyond plain text.
+
+### Images
+
+```ts
+import { Image } from "tiny-stdio-mcp-server";
+
+server.tool("screenshot", "Take a screenshot", schema, async () => {
+  return Image.fromBase64(base64Data, "image/png");
+  // or: await Image.fromUrl("https://example.com/image.png")
+  // or: Image.fromBytes(uint8Array)
+});
+```
+
+Supported formats: PNG, JPEG, GIF, WebP.
+
+### Audio
+
+```ts
+import { Audio } from "tiny-stdio-mcp-server";
+
+server.tool("speak", "Text to speech", schema, async () => {
+  return Audio.fromBase64(base64Data, "audio/mpeg");
+  // or: await Audio.fromUrl("https://example.com/audio.mp3")
+  // or: Audio.fromBytes(uint8Array, "mp3")
+});
+```
+
+Supported formats: MP3, WAV, OGG, M4A.
+
+### Files
+
+```ts
+import { File } from "tiny-stdio-mcp-server";
+
+server.tool("export", "Export data", schema, async () => {
+  return File.fromText(csvContent, "text/csv");
+  // or: File.fromBytes(uint8Array, "application/pdf")
+  // or: await File.fromUrl("https://example.com/report.pdf")
+});
+```
+
+### Mixed content
+
+Return arrays to send multiple content blocks:
+
+```ts
+server.tool("analyze", "Analyze image", schema, async () => {
+  const image = await Image.fromUrl(url);
+  return [image, "Analysis complete: found 3 objects"];
+});
+```
+
+## Testing
+
+Use `createTestPair` with the official MCP SDK for in-memory testing:
+
+```ts
+import { createTestPair } from "tiny-stdio-mcp-server";
+
+const server = createServer({ name: "test", version: "1.0.0" })
+  .tool("ping", "Ping", defineSchema({}), () => "pong");
+
+const { client, cleanup } = await createTestPair(server);
+
+const result = await client.callTool({ name: "ping", arguments: {} });
+// result.content === [{ type: "text", text: "pong" }]
+
+await cleanup();
+```
+
+Requires `@modelcontextprotocol/sdk` as a dev dependency.
+
+## License
+
+MIT

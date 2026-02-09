@@ -84,6 +84,8 @@ Make sure they are designed well, functional and work correctly.
 Test every change using screenshots that might have impact on visual cli
 Don't write any screenshot tests, screenshots are only for adhoc validations
 
+Do not use libraries like @clack/prompts or chalk directly, otherwise we won't achieve coherent style.
+
 ### E2E Tests
 
 `npm run e2e:verbose`

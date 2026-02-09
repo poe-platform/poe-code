@@ -41,6 +41,12 @@ npx poe-code@latest configure codex # (or claude, opencode, kimi)
 npx poe-code unconfigure claude
 ```
 
+### Logout (remove config + credentials)
+
+```bash
+npx poe-code logout
+```
+
 
 ## Quick links 
 -  [Utilities](#utilities)

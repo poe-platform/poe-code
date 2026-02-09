@@ -9,7 +9,7 @@ export type { RalphPlanOptions, RalphPlanResult } from "./plan/generator.js";
 export { logActivity } from "./log/activity.js";
 export type { ActivityLogFileSystem, LogActivityOptions } from "./log/activity.js";
 export { loadConfig } from "./config/loader.js";
-export type { RalphConfig } from "./config/loader.js";
+export type { RalphConfig, LoadConfigResult, ConfigSource } from "./config/loader.js";
 
 export type { WorktreeOptions };
 

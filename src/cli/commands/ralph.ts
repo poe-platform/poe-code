@@ -317,8 +317,11 @@ export function registerRalphCommand(
 
       let configActivityLogPath: string | undefined;
       try {
-        const config = await loadConfig(container.env.cwd, { fs: container.fs as any });
-        configActivityLogPath = config.activityLogPath;
+        const configResult = await loadConfig(container.env.cwd, {
+          fs: container.fs as any,
+          homeDir: container.env.homeDir
+        });
+        configActivityLogPath = configResult.config.activityLogPath;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         throw new ValidationError(message);
@@ -470,13 +473,17 @@ export function registerRalphCommand(
           );
         }
 
-        let config: Awaited<ReturnType<typeof loadConfig>>;
+        let configResult: Awaited<ReturnType<typeof loadConfig>>;
         try {
-          config = await loadConfig(container.env.cwd, { fs: container.fs as any });
+          configResult = await loadConfig(container.env.cwd, {
+            fs: container.fs as any,
+            homeDir: container.env.homeDir
+          });
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           throw new ValidationError(message);
         }
+        const config = configResult.config;
 
         const maxIterations =
           typeof iterations === "string" ? resolveIterations(iterations) : config.maxIterations ?? 25;
@@ -500,6 +507,9 @@ export function registerRalphCommand(
         ];
         if (noCommit) configLines.push("No-commit: true");
         if (worktree) configLines.push(`Worktree: ${worktree.name ?? "(auto)"}`);
+        for (const source of configResult.sources) {
+          configLines.push(`${source.scope}: ${source.path}`);
+        }
         resources.logger.resolved("Config", configLines.join("\n   "));
 
         let planPath: string | null;

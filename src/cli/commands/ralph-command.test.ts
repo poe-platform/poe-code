@@ -309,6 +309,110 @@ describe("ralph build command", () => {
     );
   });
 
+  it("uses global config when no local config exists", async () => {
+    const fs = createMemFs({
+      "/home/test/.poe-code/ralph/config.yaml": [
+        "agent: claude-code",
+        "maxIterations: 12",
+        ""
+      ].join("\n"),
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    const build = vi.mocked(ralphBuild);
+    expect(build).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        maxIterations: 12
+      })
+    );
+  });
+
+  it("local config overrides global config in ralph build", async () => {
+    const fs = createMemFs({
+      "/home/test/.poe-code/ralph/config.yaml": [
+        "agent: codex",
+        "maxIterations: 12",
+        ""
+      ].join("\n"),
+      "/repo/.agents/poe-code-ralph/config.yaml": [
+        "agent: claude-code",
+        ""
+      ].join("\n"),
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    const build = vi.mocked(ralphBuild);
+    expect(build).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        maxIterations: 12
+      })
+    );
+  });
+
+  it("merges non-overlapping fields from global and local config", async () => {
+    const fs = createMemFs({
+      "/home/test/.poe-code/ralph/config.yaml": [
+        "agent: claude-code",
+        "staleSeconds: 120",
+        ""
+      ].join("\n"),
+      "/repo/.agents/poe-code-ralph/config.yaml": [
+        "maxIterations: 5",
+        "noCommit: true",
+        ""
+      ].join("\n"),
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    const build = vi.mocked(ralphBuild);
+    expect(build).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        staleSeconds: 120,
+        maxIterations: 5,
+        noCommit: true
+      })
+    );
+  });
+
   it("returns early with a helpful message when no plan is found", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
@@ -551,6 +655,38 @@ describe("ralph agent log command", () => {
 
     expect(vi.mocked(logActivity)).toHaveBeenCalledWith(
       "/repo/custom-activity.log",
+      "Started working on US-001",
+      expect.any(Object)
+    );
+  });
+
+  it("uses global config activityLogPath when no local config exists", async () => {
+    const fs = createMemFs({
+      "/home/test/.poe-code/ralph/config.yaml": [
+        "activityLogPath: global-activity.log",
+        ""
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "agent",
+      "log",
+      "Started working on US-001"
+    ]);
+
+    expect(vi.mocked(logActivity)).toHaveBeenCalledWith(
+      "/repo/global-activity.log",
       "Started working on US-001",
       expect.any(Object)
     );

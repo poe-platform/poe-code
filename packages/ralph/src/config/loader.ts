@@ -15,6 +15,16 @@ export type RalphConfig = {
   staleSeconds?: number;
 };
 
+export type ConfigSource = {
+  path: string;
+  scope: "global" | "local";
+};
+
+export type LoadConfigResult = {
+  config: RalphConfig;
+  sources: ConfigSource[];
+};
+
 type ConfigLoaderFileSystem = {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
 };
@@ -58,13 +68,15 @@ function pickOptionalPositiveInt(
   return value;
 }
 
+type SingleConfigResult = {
+  config: RalphConfig;
+  sourcePath: string;
+};
 
-export async function loadConfig(
-  cwd: string,
-  deps?: { fs?: ConfigLoaderFileSystem }
-): Promise<RalphConfig> {
-  const fs = deps?.fs ?? (fsPromises as unknown as ConfigLoaderFileSystem);
-  const configDir = path.join(cwd, ".agents", "poe-code-ralph");
+async function loadSingleConfig(
+  configDir: string,
+  fs: ConfigLoaderFileSystem
+): Promise<SingleConfigResult | null> {
   const yamlPath = path.join(configDir, "config.yaml");
   const jsonPath = path.join(configDir, "config.json");
 
@@ -95,7 +107,7 @@ export async function loadConfig(
   }
 
   if (raw == null || format == null || sourcePath == null) {
-    return {};
+    return null;
   }
 
   let parsed: unknown;
@@ -110,30 +122,67 @@ export async function loadConfig(
     throw new Error(`Invalid Ralph config at ${sourcePath}: expected an object.`);
   }
 
-  const config = parsed as Record<string, unknown>;
-  const result: RalphConfig = {};
+  const rawConfig = parsed as Record<string, unknown>;
+  const config: RalphConfig = {};
 
-  const planPath = pickOptionalString(config, "planPath");
-  if (planPath) result.planPath = planPath;
-  const progressPath = pickOptionalString(config, "progressPath");
-  if (progressPath) result.progressPath = progressPath;
-  const guardrailsPath = pickOptionalString(config, "guardrailsPath");
-  if (guardrailsPath) result.guardrailsPath = guardrailsPath;
-  const errorsLogPath = pickOptionalString(config, "errorsLogPath");
-  if (errorsLogPath) result.errorsLogPath = errorsLogPath;
-  const activityLogPath = pickOptionalString(config, "activityLogPath");
-  if (activityLogPath) result.activityLogPath = activityLogPath;
-  const agent = pickOptionalString(config, "agent");
-  if (agent) result.agent = agent;
+  const planPath = pickOptionalString(rawConfig, "planPath");
+  if (planPath) config.planPath = planPath;
+  const progressPath = pickOptionalString(rawConfig, "progressPath");
+  if (progressPath) config.progressPath = progressPath;
+  const guardrailsPath = pickOptionalString(rawConfig, "guardrailsPath");
+  if (guardrailsPath) config.guardrailsPath = guardrailsPath;
+  const errorsLogPath = pickOptionalString(rawConfig, "errorsLogPath");
+  if (errorsLogPath) config.errorsLogPath = errorsLogPath;
+  const activityLogPath = pickOptionalString(rawConfig, "activityLogPath");
+  if (activityLogPath) config.activityLogPath = activityLogPath;
+  const agent = pickOptionalString(rawConfig, "agent");
+  if (agent) config.agent = agent;
 
-  const maxIterations = pickOptionalPositiveInt(config, "maxIterations", { min: 1 });
-  if (maxIterations != null) result.maxIterations = maxIterations;
-  const staleSeconds = pickOptionalPositiveInt(config, "staleSeconds", { min: 0 });
-  if (staleSeconds != null) result.staleSeconds = staleSeconds;
+  const maxIterations = pickOptionalPositiveInt(rawConfig, "maxIterations", { min: 1 });
+  if (maxIterations != null) config.maxIterations = maxIterations;
+  const staleSeconds = pickOptionalPositiveInt(rawConfig, "staleSeconds", { min: 0 });
+  if (staleSeconds != null) config.staleSeconds = staleSeconds;
 
-  const noCommit = pickOptionalBoolean(config, "noCommit");
-  if (noCommit != null) result.noCommit = noCommit;
+  const noCommit = pickOptionalBoolean(rawConfig, "noCommit");
+  if (noCommit != null) config.noCommit = noCommit;
 
+  return { config, sourcePath };
+}
+
+function mergeConfigs(base: RalphConfig, override: RalphConfig): RalphConfig {
+  const result: RalphConfig = { ...base };
+  for (const key of Object.keys(override) as (keyof RalphConfig)[]) {
+    if (override[key] !== undefined) {
+      (result as Record<string, unknown>)[key] = override[key];
+    }
+  }
   return result;
 }
 
+export async function loadConfig(
+  cwd: string,
+  deps?: { fs?: ConfigLoaderFileSystem; homeDir?: string }
+): Promise<LoadConfigResult> {
+  const fs = deps?.fs ?? (fsPromises as unknown as ConfigLoaderFileSystem);
+  const sources: ConfigSource[] = [];
+
+  let merged: RalphConfig = {};
+
+  if (deps?.homeDir) {
+    const globalDir = path.join(deps.homeDir, ".poe-code", "ralph");
+    const globalResult = await loadSingleConfig(globalDir, fs);
+    if (globalResult) {
+      merged = globalResult.config;
+      sources.push({ path: globalResult.sourcePath, scope: "global" });
+    }
+  }
+
+  const localDir = path.join(cwd, ".agents", "poe-code-ralph");
+  const localResult = await loadSingleConfig(localDir, fs);
+  if (localResult) {
+    merged = mergeConfigs(merged, localResult.config);
+    sources.push({ path: localResult.sourcePath, scope: "local" });
+  }
+
+  return { config: merged, sources };
+}

@@ -85,8 +85,12 @@ export function createCliContainer(
     logToStderr: true
   });
 
-  // Attach error logger to logger factory
-  loggerFactory.setErrorLogger(errorLogger);
+  // Attach error logger to logger factory.
+  // When a custom logger emitter is provided (e.g. tests), skip wiring the
+  // ErrorLogger — the emitter already captures error messages via emit().
+  if (!dependencies.logger) {
+    loggerFactory.setErrorLogger(errorLogger);
+  }
 
   const contextFactory = createCommandContextFactory({
     fs: dependencies.fs

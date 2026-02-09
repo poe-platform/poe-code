@@ -148,8 +148,7 @@ export function createLoggerFactory(
             component: scope
           };
           errorLogger.logError(error, fullContext);
-        } else {
-          // Fallback if error logger not available
+        } else if (!emitter) {
           console.error("Stack trace:", error.stack);
         }
       },
@@ -167,8 +166,7 @@ export function createLoggerFactory(
             component: scope
           };
           errorLogger.logErrorWithStackTrace(error, operation, fullContext);
-        } else {
-          // Fallback if error logger not available
+        } else if (!emitter) {
           console.error("Stack trace:", error.stack);
         }
       },

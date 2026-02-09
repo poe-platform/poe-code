@@ -50,7 +50,11 @@ function install(): string {
 function cleanup(tmpDir: string) {
   try {
     execSync("npm uninstall -g poe-code", { stdio: "pipe" });
-  } catch {}
+  } catch {
+    if (verbose) {
+      console.log("Cleanup warning: npm uninstall failed.");
+    }
+  }
   rmSync(tmpDir, { recursive: true, force: true });
 }
 

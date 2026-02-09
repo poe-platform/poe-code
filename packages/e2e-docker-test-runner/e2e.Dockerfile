@@ -6,19 +6,9 @@ ENV PATH="/root/.local/bin:$PATH"
 
 WORKDIR /build
 
-# Copy package files first (layer caching)
-COPY package.json package-lock.json turbo.json tsconfig.json tsconfig.build.json ./
-COPY packages/ ./packages/
-
-# Install dependencies
-RUN npm ci
-
-# Copy source and scripts
-COPY src/ ./src/
-COPY scripts/ ./scripts/
-
-# Build and install globally
-RUN npm run build && npm install -g .
+# Copy and install the pre-built tarball
+COPY poe-code.tgz ./
+RUN npm install -g ./poe-code.tgz && rm poe-code.tgz
 
 # Pre-install all agents
 RUN poe-code install claude-code && \

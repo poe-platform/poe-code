@@ -1,12 +1,14 @@
 import { execSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, renameSync, unlinkSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Engine } from './types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DOCKERFILE_PATH = join(__dirname, '..', 'e2e.Dockerfile');
+const DOCKERFILE_DIR = join(__dirname, '..');
+const DOCKERFILE_PATH = join(DOCKERFILE_DIR, 'e2e.Dockerfile');
+const TARBALL_NAME = 'poe-code.tgz';
 export const IMAGE_NAME = 'poe-code-e2e';
 
 /**
@@ -129,6 +131,38 @@ export function imageExists(engine: Engine, tag: string, context?: string): bool
 }
 
 /**
+ * Create a tarball of the built poe-code package.
+ * Places it next to the Dockerfile for use as Docker build context.
+ */
+function createTarball(workspaceRoot: string, verbose: boolean): void {
+  if (verbose) {
+    console.error('Creating poe-code tarball...');
+  }
+
+  const packResult = execSync('npm pack --pack-destination ' + DOCKERFILE_DIR, {
+    cwd: workspaceRoot,
+    encoding: 'utf-8',
+    stdio: ['pipe', 'pipe', verbose ? 'inherit' : 'pipe'],
+  });
+
+  const packedFile = packResult.trim().split('\n').pop()!;
+  const packedPath = join(DOCKERFILE_DIR, packedFile);
+  const targetPath = join(DOCKERFILE_DIR, TARBALL_NAME);
+
+  if (packedPath !== targetPath) {
+    renameSync(packedPath, targetPath);
+  }
+}
+
+function cleanupTarball(): void {
+  try {
+    unlinkSync(join(DOCKERFILE_DIR, TARBALL_NAME));
+  } catch {
+    // Ignore if already cleaned up
+  }
+}
+
+/**
  * Build the Docker image
  */
 export function buildImage(
@@ -143,24 +177,30 @@ export function buildImage(
     console.error(`\n--- Building e2e image: ${tag} ---\n`);
   }
 
-  const args: string[] = [];
-  if (options.context && engine === 'docker') {
-    args.push('--context', options.context);
-  }
-  args.push('build', '-t', tag, '-f', DOCKERFILE_PATH, workspaceRoot);
+  try {
+    createTarball(workspaceRoot, verbose);
 
-  const result = spawnSync(engine, args, {
-    stdio: verbose ? 'inherit' : 'pipe',
-    encoding: 'utf-8',
-  });
+    const args: string[] = [];
+    if (options.context && engine === 'docker') {
+      args.push('--context', options.context);
+    }
+    args.push('build', '-t', tag, '-f', DOCKERFILE_PATH, DOCKERFILE_DIR);
 
-  if (result.status !== 0) {
-    const error = result.stderr || 'Unknown error';
-    throw new Error(`Failed to build e2e image: ${error}`);
-  }
+    const result = spawnSync(engine, args, {
+      stdio: verbose ? 'inherit' : 'pipe',
+      encoding: 'utf-8',
+    });
 
-  if (verbose) {
-    console.error(`\n--- Image built successfully: ${tag} ---\n`);
+    if (result.status !== 0) {
+      const error = result.stderr || 'Unknown error';
+      throw new Error(`Failed to build e2e image: ${error}`);
+    }
+
+    if (verbose) {
+      console.error(`\n--- Image built successfully: ${tag} ---\n`);
+    }
+  } finally {
+    cleanupTarball();
   }
 }
 

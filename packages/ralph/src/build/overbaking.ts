@@ -31,7 +31,7 @@ export class OverbakingDetector {
       warned: false
     };
 
-    if (status !== "failure") {
+    if (status === "success") {
       if (existing.consecutiveFailures !== 0 || existing.warned) {
         this.failuresByStoryId.set(storyId, { consecutiveFailures: 0, warned: false });
       }

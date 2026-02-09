@@ -229,10 +229,10 @@ describe("createRalphSimulation", () => {
         plan: {
           stories: [{ id: "US-001", title: "Intermittent story" }]
         },
-        config: { maxFailures: 2, maxIterations: 4 },
+        config: { maxFailures: 3, maxIterations: 5 },
         turns: [
           failTurn("error 1"),
-          incompleteTurn("partial progress"),
+          completeTurn(),
           failTurn("error 2"),
           completeTurn()
         ]
@@ -242,6 +242,118 @@ describe("createRalphSimulation", () => {
 
       expect(overbakeWarnings).toHaveLength(0);
       expect(result.storiesDone).toEqual(["US-001"]);
+    });
+
+    it("counts incomplete toward overbaking threshold", async () => {
+      const sim = createRalphSimulation({
+        plan: {
+          stories: [{ id: "US-001", title: "Stuck story" }]
+        },
+        config: { maxFailures: 3, maxIterations: 5 },
+        turns: [
+          incompleteTurn("no progress 1"),
+          incompleteTurn("no progress 2"),
+          incompleteTurn("no progress 3")
+        ]
+      });
+
+      const { overbakeWarnings } = await sim.run();
+
+      expect(overbakeWarnings).toHaveLength(1);
+      expect(overbakeWarnings[0]).toMatchObject({
+        storyId: "US-001",
+        consecutiveFailures: 3,
+        threshold: 3
+      });
+    });
+
+    it("counts mixed failure and incomplete toward threshold", async () => {
+      const sim = createRalphSimulation({
+        plan: {
+          stories: [{ id: "US-001", title: "Mixed non-success" }]
+        },
+        config: { maxFailures: 3, maxIterations: 5 },
+        turns: [
+          failTurn("error"),
+          incompleteTurn("no progress"),
+          failTurn("error again")
+        ]
+      });
+
+      const { overbakeWarnings } = await sim.run();
+
+      expect(overbakeWarnings).toHaveLength(1);
+      expect(overbakeWarnings[0]).toMatchObject({
+        storyId: "US-001",
+        consecutiveFailures: 3,
+        threshold: 3
+      });
+    });
+
+    it("incomplete does not reset failure streak", async () => {
+      const sim = createRalphSimulation({
+        plan: {
+          stories: [{ id: "US-001", title: "Subtle bug" }]
+        },
+        config: { maxFailures: 2, maxIterations: 3 },
+        turns: [
+          failTurn("crash"),
+          incompleteTurn("still stuck"),
+          failTurn("crash again")
+        ]
+      });
+
+      const { overbakeWarnings } = await sim.run();
+
+      // failure(1) + incomplete(2) triggers overbake at turn 2, not reset
+      expect(overbakeWarnings).toHaveLength(1);
+      expect(overbakeWarnings[0]).toMatchObject({
+        consecutiveFailures: 2
+      });
+    });
+
+    it("skips story on incomplete-triggered overbake", async () => {
+      const sim = createRalphSimulation({
+        plan: {
+          stories: [
+            { id: "US-001", title: "Stuck story" },
+            { id: "US-002", title: "Next story" }
+          ]
+        },
+        config: { maxFailures: 2, maxIterations: 4 },
+        onOverbake: "skip",
+        turns: [
+          incompleteTurn("no progress 1"),
+          incompleteTurn("no progress 2"),
+          completeTurn((prompt) => expect(prompt).toContain("US-002"))
+        ]
+      });
+
+      const { result, overbakeWarnings, getStory } = await sim.run();
+
+      expect(overbakeWarnings).toHaveLength(1);
+      expect(result.storiesDone).toEqual(["US-002"]);
+      expect((await getStory("US-001"))?.status).toBe("open");
+    });
+
+    it("aborts run on incomplete-triggered overbake", async () => {
+      const sim = createRalphSimulation({
+        plan: {
+          stories: [{ id: "US-001", title: "Stuck story" }]
+        },
+        config: { maxFailures: 2, maxIterations: 10 },
+        onOverbake: "abort",
+        turns: [
+          incompleteTurn("no progress 1"),
+          incompleteTurn("no progress 2")
+        ]
+      });
+
+      const { result, overbakeWarnings } = await sim.run();
+
+      expect(overbakeWarnings).toHaveLength(1);
+      expect(result.stopReason).toBe("overbake_abort");
+      expect(result.iterationsCompleted).toBe(2);
     });
 
     it("skips story when onOverbake returns skip", async () => {
@@ -765,6 +877,37 @@ describe("createRalphSimulation", () => {
 
       expect(completedOrder).toEqual(["US-001", "US-002", "US-003"]);
       expect(result.storiesDone).toEqual(["US-001", "US-002", "US-003"]);
+    });
+
+    it("agent stuck in loop: exits 0 but never completes (no registry access)", async () => {
+      // Simulates the exact production bug: agent finds dep already installed,
+      // tries pnpm install to verify, fails with ENOTFOUND, exits 0 without COMPLETE.
+      // Previously this would loop forever because "incomplete" reset the overbake counter.
+      const sim = createRalphSimulation({
+        plan: {
+          stories: [{ id: "US-001", title: "Install ai-sdk-provider-poe" }],
+          qualityGates: ["pnpm install", "pnpm test", "pnpm run lint"]
+        },
+        config: { maxFailures: 3, maxIterations: 30 },
+        onOverbake: "skip",
+        turns: [
+          incompleteTurn("dep already in package.json, pnpm install ENOTFOUND"),
+          incompleteTurn("dep already in package.json, pnpm install ENOTFOUND"),
+          incompleteTurn("dep already in package.json, pnpm install ENOTFOUND")
+        ]
+      });
+
+      const { result, overbakeWarnings } = await sim.run();
+
+      // Overbake triggers after 3 incompletes, story gets skipped, loop stops
+      expect(overbakeWarnings).toHaveLength(1);
+      expect(overbakeWarnings[0]).toMatchObject({
+        storyId: "US-001",
+        consecutiveFailures: 3
+      });
+      expect(result.iterationsCompleted).toBe(3);
+      expect(result.stopReason).toBe("no_actionable_stories");
+      expect(result.storiesDone).toEqual([]);
     });
 
     it("handles flaky story that eventually succeeds", async () => {

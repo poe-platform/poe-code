@@ -398,7 +398,80 @@ describe("buildLoop", () => {
     expect(stderrOutput).toContain("[OVERBAKE]");
   });
 
-  it("does not warn when failures are intermittent", async () => {
+  it("triggers overbaking on repeated incomplete iterations", async () => {
+    const planPath = "/.agents/tasks/plan.json";
+    const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
+    const errorsLogPath = "/.poe-code-ralph/errors.log";
+    const runId = "20260201-221816-14669";
+
+    const fs = createMemFs({
+      [promptPath]: "ID: {{STORY_ID}}\n{{STORY_BLOCK}}\n",
+      [errorsLogPath]: "",
+      [planPath]: JSON.stringify(
+        {
+          version: 1,
+          project: "Test",
+          goals: [],
+          nonGoals: [],
+          qualityGates: [],
+          stories: [
+            {
+              id: "US-001",
+              title: "Already done story",
+              status: "open",
+              dependsOn: [],
+              description: "Dep already installed but agent cannot verify.",
+              acceptanceCriteria: ["Criterion A"]
+            }
+          ]
+        },
+        null,
+        2
+      )
+    });
+
+    // Agent exits 0 but never prints COMPLETE (simulates stuck agent)
+    const spawn = vi.fn(async () => ({
+      stdout: "checked dep, already there, pnpm install failed ENOTFOUND",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    let stderrOutput = "";
+    const stderr = { write: (chunk: string) => (stderrOutput += chunk) };
+
+    const result = await buildLoop({
+      planPath,
+      maxIterations: 10,
+      maxFailures: 3,
+      noCommit: true,
+      agent: "codex",
+      staleSeconds: 0,
+      cwd: "/",
+      deps: {
+        fs,
+        lock: noLock,
+        runId,
+        spawn,
+        stderr,
+        git: {
+          getHead: () => null,
+          getCommitList: () => [],
+          getChangedFiles: () => [],
+          getDirtyFiles: () => []
+        },
+        now: () => new Date("2026-02-02T06:00:00.000Z")
+      }
+    });
+
+    // Overbaking should trigger after 3 consecutive incompletes
+    expect(stderrOutput).toContain("[OVERBAKE]");
+    expect(stderrOutput).toContain("US-001");
+    const errors = await fs.readFile(errorsLogPath, "utf8");
+    expect(errors).toContain("[OVERBAKE]");
+  });
+
+  it("does not warn when non-successes are broken by success", async () => {
     const planPath = "/.agents/tasks/plan.json";
     const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
     const errorsLogPath = "/.poe-code-ralph/errors.log";
@@ -430,10 +503,11 @@ describe("buildLoop", () => {
       )
     });
 
+    // Only success resets the streak; failure→success→failure should not trigger
     const spawn = vi
       .fn()
       .mockResolvedValueOnce({ stdout: "fail 1", stderr: "boom", exitCode: 1 })
-      .mockResolvedValueOnce({ stdout: "not complete", stderr: "", exitCode: 0 })
+      .mockResolvedValueOnce({ stdout: "<promise>COMPLETE</promise>", stderr: "", exitCode: 0 })
       .mockResolvedValueOnce({ stdout: "fail 2", stderr: "boom", exitCode: 1 });
 
     let stderrOutput = "";
@@ -463,7 +537,9 @@ describe("buildLoop", () => {
       }
     });
 
-    expect(result.iterationsCompleted).toBe(3);
+    // Story completes on iter 2 (success), so iter 3 has no actionable stories
+    expect(result.iterationsCompleted).toBe(2);
+    expect(result.stopReason).toBe("no_actionable_stories");
     expect(await fs.readFile(errorsLogPath, "utf8")).not.toContain("[OVERBAKE]");
     expect(stderrOutput).not.toContain("[OVERBAKE]");
   });

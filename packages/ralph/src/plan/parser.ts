@@ -85,7 +85,7 @@ export function parsePlan(yamlContent: string): Plan {
     doc = parse(yamlContent);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Invalid plan YAML: ${message}`);
+    throw new Error(`Invalid plan YAML: ${message}`, { cause: error });
   }
 
   if (!isRecord(doc)) {

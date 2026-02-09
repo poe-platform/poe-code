@@ -103,7 +103,7 @@ export async function loadConfig(
     parsed = format === "yaml" ? YAML.parse(raw) : JSON.parse(raw);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    throw new Error(`Invalid Ralph config ${format.toUpperCase()} at ${sourcePath}: ${detail}`);
+    throw new Error(`Invalid Ralph config ${format.toUpperCase()} at ${sourcePath}: ${detail}`, { cause: error });
   }
 
   if (!isPlainObject(parsed)) {

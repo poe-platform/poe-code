@@ -201,7 +201,7 @@ async function appendToErrorsLog(
   message: string
 ): Promise<void> {
   const next = message.endsWith("\n") ? message : `${message}\n`;
-  let previous = "";
+  let previous: string;
   try {
     previous = await fs.readFile(errorsLogPath, "utf8");
   } catch (error) {
@@ -550,9 +550,9 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
     await fs.mkdir(dirname(renderedPromptPath), { recursive: true });
     await fs.writeFile(renderedPromptPath, prompt, { encoding: "utf8" });
 
-    let status: BuildIterationStatus = "failure";
-    let combinedOutput = "";
-    let stderrForErrorsLog = "";
+    let status: BuildIterationStatus;
+    let combinedOutput: string;
+    let stderrForErrorsLog: string;
     let overbakeAction: "continue" | "skip" | "abort" | null = null;
 
     try {

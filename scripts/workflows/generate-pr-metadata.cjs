@@ -80,7 +80,7 @@ function parseMetadata(payload) {
     console.error("\nExtracted JSON candidate:");
     console.error(jsonCandidate);
     console.error("\nJSON parse error:", error.message);
-    throw new Error(`Failed to parse agent response: ${error.message}`);
+    throw new Error(`Failed to parse agent response: ${error.message}`, { cause: error });
   }
 
   if (!metadata || typeof metadata !== "object") {

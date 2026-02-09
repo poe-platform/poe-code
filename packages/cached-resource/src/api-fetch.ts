@@ -24,7 +24,7 @@ export async function fetchFromApi<T>(
     return (await response.json()) as T;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error(`Request timed out after ${config.fetchTimeout}ms`);
+      throw new Error(`Request timed out after ${config.fetchTimeout}ms`, { cause: error });
     }
     throw error;
   } finally {

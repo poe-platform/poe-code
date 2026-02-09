@@ -137,7 +137,7 @@ async function ensureFileExists(fs: PlanFileSystem, filePath: string): Promise<v
     }
   } catch (error) {
     if (isNotFound(error)) {
-      throw new Error(`Agent did not write the plan file to "${filePath}".`);
+      throw new Error(`Agent did not write the plan file to "${filePath}".`, { cause: error });
     }
     throw error;
   }

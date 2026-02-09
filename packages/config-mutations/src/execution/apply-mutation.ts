@@ -690,7 +690,8 @@ async function applyTemplateMerge(
     templateDoc = format.parse(rendered);
   } catch (error) {
     throw new Error(
-      `Failed to parse rendered template "${mutation.templateId}" as ${formatName.toUpperCase()}: ${error}`
+      `Failed to parse rendered template "${mutation.templateId}" as ${formatName.toUpperCase()}: ${error}`,
+      { cause: error }
     );
   }
 

@@ -108,7 +108,8 @@ export async function resolvePlanPath(
     } catch (error) {
       if (isNotFound(error)) {
         throw new Error(
-          `Plan not found at "${provided}". Provide --plan <path> to an existing plan file.`
+          `Plan not found at "${provided}". Provide --plan <path> to an existing plan file.`,
+          { cause: error }
         );
       }
       throw error;

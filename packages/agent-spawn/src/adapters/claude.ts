@@ -188,7 +188,7 @@ export async function* adaptClaude(
         const kind = toolKindsById.get(item.tool_use_id);
         toolKindsById.delete(item.tool_use_id);
 
-        let path = "";
+        let path: string;
         if (typeof item.content === "string") {
           path = item.content;
         } else {

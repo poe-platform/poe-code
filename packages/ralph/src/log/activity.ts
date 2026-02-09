@@ -59,7 +59,7 @@ export async function logActivity(
   } catch (error) {
     const detail =
       error instanceof Error ? error.message : `Unknown error: ${String(error)}`;
-    throw new Error(`Failed to append activity log entry: ${detail}`);
+    throw new Error(`Failed to append activity log entry: ${detail}`, { cause: error });
   }
 }
 

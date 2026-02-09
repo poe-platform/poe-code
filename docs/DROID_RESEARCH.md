@@ -1,12 +1,11 @@
 # Factory Droid Research Document
 
-> **Note:** The user originally asked about "Druid" but this appears to be **Factory Droid** - an enterprise-grade AI coding agent by Factory.ai.
-
 ## Overview
 
 Factory Droid is an enterprise-grade AI coding agent that operates in your terminal and handles end-to-end development workflows. It's the #1 performing software development agent on Terminal-Bench with a score of 58.75%.
 
 **Key Stats:**
+
 - Droid with Opus (58.8%) beats Claude Code with Opus (43.2%)
 - Droid with GPT-5 (52.5%) beats Codex CLI (42.8%)
 - Model-agnostic design enables cheaper models to outperform expensive ones on competitors
@@ -16,6 +15,7 @@ Factory Droid is an enterprise-grade AI coding agent that operates in your termi
 ## 1. Installation Methods
 
 ### NPM Installation (Global)
+
 ```bash
 npm install -g @factory/cli
 ```
@@ -23,26 +23,31 @@ npm install -g @factory/cli
 ### Shell Script Installation
 
 **macOS/Linux:**
+
 ```bash
 curl -fsSL https://app.factory.ai/cli | sh
 ```
 
 **Homebrew (macOS):**
+
 ```bash
 brew install --cask droid
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 irm https://app.factory.ai/cli/windows | iex
 ```
 
 **Linux Prerequisites:**
+
 ```bash
 sudo apt-get install xdg-utils
 ```
 
 ### Verification
+
 ```bash
 droid --version
 ```
@@ -52,18 +57,22 @@ droid --version
 ## 2. Interactive vs Non-Interactive Modes
 
 ### Interactive Mode (Default)
+
 Simply run `droid` to start an interactive REPL session:
+
 ```bash
 cd /path/to/your/project
 droid
 ```
 
 Launch with an initial prompt:
+
 ```bash
 droid "analyze this codebase and explain the overall architecture"
 ```
 
 **Keyboard Controls:**
+
 | Key | Action |
 |-----|--------|
 | `Enter` | Submit task/question |
@@ -110,6 +119,7 @@ droid exec -s <session-id> "next steps"
 | `--skip-permissions-unsafe` | Bypass all permission checks (sandbox only!) |
 
 **Autonomy Levels:**
+
 - **Default (Read-only):** File viewing, git status, information gathering—no modifications
 - **`--auto low`:** File creation/editing in project directories, formatting
 - **`--auto medium`:** Package installation, git operations (except push), building, network requests
@@ -117,6 +127,7 @@ droid exec -s <session-id> "next steps"
 - **`--skip-permissions-unsafe`:** NO restrictions (use in isolated Docker only)
 
 **Output Formats:**
+
 - `text` - Human-readable for logging
 - `json` - Structured with success/failure, duration, session ID
 - `stream-json` - Real-time JSONL event stream
@@ -129,11 +140,13 @@ droid exec -s <session-id> "next steps"
 Factory supports **Bring Your Own Key (BYOK)** for custom model providers.
 
 ### Configuration Location
+
 ```
 ~/.factory/settings.json
 ```
 
 ### Configuration Format
+
 ```json
 {
   "customModels": [
@@ -162,12 +175,14 @@ Factory supports **Bring Your Own Key (BYOK)** for custom model providers.
 | `generic-chat-completion-api` | OpenAI Chat Completions | OpenRouter, Fireworks, Ollama, vLLM, open-source models |
 
 ### Required Fields
+
 - `model` - Identifier sent to API (e.g., `claude-sonnet`, `gpt-5`, `qwen3:4b`)
 - `baseUrl` - API endpoint URL
 - `apiKey` - Authentication credentials (cannot be empty)
 - `provider` - One of the three types above
 
 ### Optional Fields
+
 - `displayName` - User-friendly label in model selector
 - `maxOutputTokens` - Response length limits
 - `supportsImages` - Image input capability flag
@@ -175,12 +190,15 @@ Factory supports **Bring Your Own Key (BYOK)** for custom model providers.
 - `extraHeaders` - Custom HTTP headers
 
 ### Model Selection
+
 Switch models via `/model` command or CLI flag:
+
 ```bash
 droid exec -m gpt-5.1 "task"
 ```
 
 ### Built-in Models
+
 - `opus` - Claude Opus 4.5 (default)
 - `sonnet` - Claude Sonnet 4.5
 - `haiku` - Claude Haiku 4.5
@@ -192,6 +210,7 @@ droid exec -m gpt-5.1 "task"
 **Important:** Models below 30 billion parameters show significantly lower performance on agentic coding tasks.
 
 ### Cost & Caching
+
 - API keys remain local (not uploaded to Factory servers)
 - Automatic prompt caching for official providers (Anthropic, OpenAI)
 - Track costs via `/cost` command
@@ -203,20 +222,24 @@ droid exec -m gpt-5.1 "task"
 Factory Droid works with any IDE or terminal:
 
 ### VS Code
+
 - Install [Factory Droid Extension](https://marketplace.visualstudio.com/items?itemName=Factory.factory-vscode-extension)
 - Or run `droid` in VS Code integrated terminal
 
 ### JetBrains IDEs
+
 - Install [Factory Droid Plugin](https://plugins.jetbrains.com/plugin/28649-factory-droid)
 - Supports: IntelliJ IDEA, PyCharm, Android Studio, WebStorm, PhpStorm, GoLand
 - Or run `droid` in integrated terminal
 
 ### Vim and Other Editors
+
 - No plugin required
 - Run `droid` from your IDE's integrated terminal
 - Maintains native keyboard shortcuts and debugging tools
 
 ### IDE Auto-Connect Setting
+
 ```json
 {
   "ideAutoConnect": true  // Connect to IDE from any terminal
@@ -228,12 +251,14 @@ Factory Droid works with any IDE or terminal:
 ## 5. MCP (Model Context Protocol) Server Configuration
 
 ### Server Types
+
 1. **HTTP servers** - Remote endpoints for cloud services/APIs (recommended)
 2. **Stdio servers** - Local processes with direct system access
 
 ### Adding MCP Servers
 
 **HTTP Servers:**
+
 ```bash
 droid mcp add <name> <url> --type http [--header "KEY: VALUE"...]
 
@@ -243,6 +268,7 @@ droid mcp add twelvelabs-mcp https://mcp.twelvelabs.io --type http \
 ```
 
 **Stdio Servers:**
+
 ```bash
 droid mcp add <name> "<command>" [--env KEY=VALUE...]
 ```
@@ -255,6 +281,7 @@ droid mcp add <name> "<command>" [--env KEY=VALUE...]
 | Project | `.factory/mcp.json` | Shared with team, committed to repo |
 
 **Configuration Schema:**
+
 ```json
 {
   "linear": {
@@ -274,11 +301,14 @@ droid mcp add <name> "<command>" [--env KEY=VALUE...]
 ```
 
 ### Authentication
+
 - OAuth tokens stored globally in system keyring (not per-project)
 - Authenticate once, available everywhere that server is configured
 
 ### Interactive Management
+
 Use `/mcp` command within droid to:
+
 - Browse 40+ pre-configured servers from registry
 - View connection status and available tools
 - Enable/disable servers
@@ -286,6 +316,7 @@ Use `/mcp` command within droid to:
 - Add/remove servers
 
 ### Remove Servers
+
 ```bash
 droid mcp remove <name>
 ```
@@ -297,6 +328,7 @@ droid mcp remove <name>
 Skills are reusable capabilities that agents invoke **automatically** based on task context.
 
 ### Directory Structure
+
 ```
 # Workspace skills (shared with team)
 <repo>/.factory/skills/<skill-name>/SKILL.md
@@ -306,6 +338,7 @@ Skills are reusable capabilities that agents invoke **automatically** based on t
 ```
 
 ### Skill File Format
+
 ```markdown
 ---
 name: prompt-refiner
@@ -318,11 +351,14 @@ Your skill instructions go here...
 ```
 
 ### Required Frontmatter Fields
+
 - `name` - Identifier for the skill
 - `description` - When to invoke it (helps AI decide automatically)
 
 ### Skill Components
+
 Skills can include:
+
 - `SKILL.md` - Main skill definition
 - Supporting scripts and schemas
 - `references.md` - Links to existing APIs/modules
@@ -330,6 +366,7 @@ Skills can include:
 - `checklists.md` - Validation and rollout procedures
 
 ### Built-in Skill Families
+
 1. Frontend UI implementation
 2. Service integration
 3. Data querying
@@ -340,6 +377,7 @@ Skills can include:
 8. Browser automation
 
 ### Skills vs Slash Commands
+
 - **Skills:** Model-invoked, automatic based on task
 - **Slash Commands:** User-invoked macros (explicit trigger)
 
@@ -350,6 +388,7 @@ Skills can include:
 Custom droids are reusable subagents with their own system prompt, model preference, and tooling policy.
 
 ### Directory Structure
+
 ```
 # Project scope (shared with teammates)
 <repo>/.factory/droids/<name>.md
@@ -359,6 +398,7 @@ Custom droids are reusable subagents with their own system prompt, model prefere
 ```
 
 ### Droid File Format
+
 ```markdown
 ---
 name: code-reviewer
@@ -376,6 +416,7 @@ You are a code reviewer. Focus on:
 ```
 
 ### Configuration Fields
+
 | Field | Purpose |
 |-------|---------|
 | `name` | Identifier (lowercase, digits, hyphens, underscores) |
@@ -385,6 +426,7 @@ You are a code reviewer. Focus on:
 | `tools` | Category string or array |
 
 ### Tool Categories
+
 - `read-only`: `Read`, `LS`, `Grep`, `Glob`
 - `edit`: `Create`, `Edit`, `ApplyPatch`
 - `execute`: `Execute`
@@ -392,16 +434,20 @@ You are a code reviewer. Focus on:
 - `mcp`: Dynamically populated
 
 ### Management
+
 Use `/droids` command to:
+
 - Create new droids through guided wizard
 - View, edit, delete existing droids
 - Import agents from Claude Code (`~/.claude/agents/`)
 - Reload configurations
 
 ### Invocation
+
 ```
 "Use the subagent code-reviewer on this diff."
 ```
+
 Or let Droid invoke them autonomously based on task.
 
 ---
@@ -411,6 +457,7 @@ Or let Droid invoke them autonomously based on task.
 User-invoked macros for repeatable prompts or setup steps.
 
 ### Directory Structure
+
 ```
 # Project commands
 <repo>/.factory/commands/<name>.md
@@ -420,12 +467,14 @@ User-invoked macros for repeatable prompts or setup steps.
 ```
 
 ### Usage
+
 ```
 /review-pr
 /my-custom-command
 ```
 
 ### Built-in Slash Commands
+
 - `/review` - Code review
 - `/settings` - Adjust preferences
 - `/model` - Switch AI models
@@ -443,11 +492,13 @@ User-invoked macros for repeatable prompts or setup steps.
 Hooks are user-defined shell commands that execute at various points in Droid's lifecycle.
 
 ### Configuration Location
+
 ```
 ~/.factory/settings.json
 ```
 
 ### Hook Events
+
 | Event | When it Fires |
 |-------|---------------|
 | `PreToolUse` | Before tool calls (can block) |
@@ -461,6 +512,7 @@ Hooks are user-defined shell commands that execute at various points in Droid's 
 | `SessionEnd` | When sessions end |
 
 ### Configuration Format
+
 ```json
 {
   "hooks": {
@@ -483,6 +535,7 @@ Hooks are user-defined shell commands that execute at various points in Droid's 
 ```
 
 ### Use Cases
+
 - Automatic code formatting (prettier, gofmt)
 - Compliance logging and command tracking
 - Custom notifications during input waiting periods
@@ -490,9 +543,11 @@ Hooks are user-defined shell commands that execute at various points in Droid's 
 - Sensitive file protection
 
 ### Security Warning
+
 Hooks run automatically with your current environment's credentials. Always use absolute paths.
 
 ### Global Toggle
+
 ```json
 {
   "hooksDisabled": true  // Disable all hooks
@@ -506,12 +561,14 @@ Hooks run automatically with your current environment's credentials. Always use 
 AGENTS.md is a Markdown file that provides project context to AI agents.
 
 ### Location Discovery Hierarchy
+
 1. `./AGENTS.md` in current working directory
 2. Nearest parent directory up to repo root
 3. Any `AGENTS.md` in sub-folders
 4. Personal override: `~/.factory/AGENTS.md`
 
 ### Recommended Sections
+
 ```markdown
 # Build & Test
 - Build: `npm run build`
@@ -531,7 +588,9 @@ Folder structure, naming patterns, code style.
 ```
 
 ### Cross-Agent Compatibility
+
 AGENTS.md works with multiple AI tools:
+
 - Factory Droid
 - Cursor
 - Aider
@@ -545,6 +604,7 @@ AGENTS.md works with multiple AI tools:
 ## 11. Settings Reference
 
 ### Settings Location
+
 ```
 ~/.factory/settings.json
 ```
@@ -572,6 +632,7 @@ AGENTS.md works with multiple AI tools:
 | `customModels` | Array | `[]` | BYOK model configs |
 
 ### Example Configuration
+
 ```json
 {
   "model": "opus",
@@ -591,6 +652,7 @@ AGENTS.md works with multiple AI tools:
 ## 12. CLI Reference Summary
 
 ### Core Commands
+
 ```bash
 droid                              # Interactive REPL
 droid "query"                      # REPL with initial prompt
@@ -604,6 +666,7 @@ droid mcp remove <name>            # Remove MCP server
 ```
 
 ### Essential Flags
+
 ```bash
 -f, --file <path>                  # Read prompt from file
 -m, --model <id>                   # Select model
@@ -624,9 +687,10 @@ droid mcp remove <name>            # Remove MCP server
 
 ## 13. GitHub Repository
 
-**Main Repository:** https://github.com/Factory-AI/factory
+**Main Repository:** <https://github.com/Factory-AI/factory>
 
 The repository contains:
+
 - Documentation (`docs/`)
 - Examples (`examples/`)
 - Community builds listing
@@ -635,6 +699,7 @@ The repository contains:
 **Note:** The CLI itself is closed-source; the repository is primarily for documentation and community contributions.
 
 ### Related Repositories
+
 - [droid-factory](https://github.com/iannuttall/droid-factory) - Custom subagents installer
 - [droid-factory-template](https://github.com/julianromli/droid-factory-template) - 112+ specialist droids template
 
@@ -678,6 +743,7 @@ The repository contains:
    - Could allow poe-code users to use same models across agents
 
 ### Installation for Testing
+
 ```bash
 # Install globally
 npm install -g @factory/cli

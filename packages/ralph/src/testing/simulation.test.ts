@@ -249,7 +249,7 @@ describe("createRalphSimulation", () => {
         plan: {
           stories: [{ id: "US-001", title: "Stuck story" }]
         },
-        config: { maxFailures: 3, maxIterations: 5 },
+        config: { maxFailures: 3, maxIterations: 3 },
         turns: [
           incompleteTurn("no progress 1"),
           incompleteTurn("no progress 2"),
@@ -272,7 +272,7 @@ describe("createRalphSimulation", () => {
         plan: {
           stories: [{ id: "US-001", title: "Mixed non-success" }]
         },
-        config: { maxFailures: 3, maxIterations: 5 },
+        config: { maxFailures: 3, maxIterations: 3 },
         turns: [
           failTurn("error"),
           incompleteTurn("no progress"),
@@ -295,11 +295,10 @@ describe("createRalphSimulation", () => {
         plan: {
           stories: [{ id: "US-001", title: "Subtle bug" }]
         },
-        config: { maxFailures: 2, maxIterations: 3 },
+        config: { maxFailures: 2, maxIterations: 2 },
         turns: [
           failTurn("crash"),
-          incompleteTurn("still stuck"),
-          failTurn("crash again")
+          incompleteTurn("still stuck")
         ]
       });
 

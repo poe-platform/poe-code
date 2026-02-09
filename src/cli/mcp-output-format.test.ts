@@ -24,5 +24,21 @@ describe("parseMcpOutputFormatPreferences", () => {
       )
     );
   });
+
+  it("accepts markdown_instructions as a valid output format", () => {
+    expect(parseMcpOutputFormatPreferences("markdown_instructions")).toEqual([
+      "markdown_instructions"
+    ]);
+  });
+
+  it("rejects markdown_instructions when combined with other formats", () => {
+    expect(() =>
+      parseMcpOutputFormatPreferences("markdown_instructions,url")
+    ).toThrowError(
+      new ValidationError(
+        "markdown_instructions output format cannot be combined with other formats. Use markdown_instructions alone or choose a different format combination."
+      )
+    );
+  });
 });
 

@@ -269,7 +269,7 @@ describe("mcp command", () => {
       status: "supported",
       input: "claude-desktop",
       id: "claude-desktop",
-      config: { mcpOutputFormat: "markdown" }
+      config: { mcpOutputFormat: "markdown_instructions" }
     });
     const { program } = createMcpProgram();
     await program.parseAsync(["node", "cli", "mcp", "configure", "claude-desktop"]);
@@ -277,7 +277,7 @@ describe("mcp command", () => {
     expect(configureMock).toHaveBeenCalledTimes(1);
     const [, entry] = configureMock.mock.calls[0] ?? [];
     expect(entry.config.args).toContain("--output-format");
-    expect(entry.config.args).toContain("markdown");
+    expect(entry.config.args).toContain("markdown_instructions");
   });
 
   it("omits --output-format when agent config has no mcpOutputFormat", async () => {
@@ -391,6 +391,37 @@ describe("mcp server tools", () => {
       new Error(
         "markdown output requires a URL for image. Model response did not include a URL."
       )
+    );
+  });
+
+  it("generate_image renders markdown_instructions when requested", async () => {
+    const { generateImage } = await import("../mcp-server.js");
+
+    mockClient.media = vi.fn(async () => ({
+      url: "https://example.com/media.png",
+      mimeType: "image/png"
+    }));
+
+    const result = await generateImage({ prompt: "A sunset" }, ["markdown_instructions"]);
+
+    expect(result).toEqual([
+      {
+        type: "text",
+        text: "Render this image as markdown image tag in the chat\n\nimage_url: https://example.com/media.png"
+      }
+    ]);
+  });
+
+  it("generate_image throws when markdown_instructions output is missing a URL", async () => {
+    const { generateImage } = await import("../mcp-server.js");
+
+    mockClient.media = vi.fn(async () => ({
+      data: "BASE64IMAGE",
+      mimeType: "image/png"
+    }));
+
+    await expect(generateImage({ prompt: "Test" }, ["markdown_instructions"])).rejects.toThrowError(
+      "markdown_instructions output requires a URL for image"
     );
   });
 

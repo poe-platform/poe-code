@@ -246,6 +246,20 @@ async function toPreferredMediaContent(options: {
       return content;
     }
 
+    if (format === "markdown_instructions") {
+      if (!options.response.url) {
+        throw new Error(
+          `markdown_instructions output requires a URL for ${options.mediaType}. Model response did not include a URL.`
+        );
+      }
+
+      content.push({
+        type: "text",
+        text: `Render this image as markdown image tag in the chat\n\nimage_url: ${options.response.url}`
+      });
+      return content;
+    }
+
     if (format === "url") {
       if (options.response.url) {
         content.push({ type: "text", text: options.response.url });

@@ -33,7 +33,7 @@ const agentMcpConfigs: Record<string, AgentMcpConfig> = {
     configKey: "mcpServers",
     format: "json",
     shape: "standard",
-    mcpOutputFormat: "markdown"
+    mcpOutputFormat: "markdown_instructions"
   },
   codex: {
     configFile: "~/.codex/config.toml",

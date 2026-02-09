@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { text } from "@poe-code/design-system";
 import type { CliContainer } from "../container.js";
 import { checkForUpdate } from "../../services/version.js";
 import { VersionExit } from "../exit-signals.js";
@@ -30,7 +31,13 @@ async function displayVersion(
     scope: "version"
   });
 
-  logger.info(`poe-code ${currentVersion}`);
+  logger.intro("version");
+
+  const versionValue =
+    currentVersion === "0.0.0-dev"
+      ? `${currentVersion} ${text.badge("local build")}`
+      : currentVersion;
+  logger.resolved("poe-code", versionValue);
 
   const result = await checkForUpdate({
     currentVersion,
@@ -38,10 +45,9 @@ async function displayVersion(
   });
 
   if (result?.updateAvailable) {
-    logger.info("");
-    logger.info(
+    logger.warn(
       `Update available: ${result.currentVersion} -> ${result.latestVersion}`
     );
-    logger.info("Run: npm install -g poe-code@latest");
+    logger.resolved("Update", `npm install -g poe-code@latest`);
   }
 }

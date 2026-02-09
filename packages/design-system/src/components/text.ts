@@ -39,5 +39,9 @@ export const text = {
   muted(content: string): string {
     const theme = getTheme();
     return theme.muted(content);
+  },
+  badge(content: string): string {
+    const theme = getTheme();
+    return theme.badge(content);
   }
 } as const;

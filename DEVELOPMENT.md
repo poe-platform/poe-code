@@ -4,6 +4,16 @@
 
 - Run `npm run dev -- <command>` to invoke the CLI without rebuilding:
 
+## Install local package
+
+Install a locally-built version globally, mimicking a real npm release:
+
+```bash
+npm run install-local-package
+```
+
+Verify it worked with `poe-code --version` — local builds show a ` local build ` badge.
+
 ## E2E testing
 
 Requires Docker (or Podman) and a valid API key.

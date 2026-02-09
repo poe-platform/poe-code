@@ -15,7 +15,8 @@ export const dark = {
   success: (text: string) => chalk.green(text),
   warning: (text: string) => chalk.yellow(text),
   error: (text: string) => chalk.red(text),
-  info: (text: string) => chalk.magenta(text)
+  info: (text: string) => chalk.magenta(text),
+  badge: (text: string) => chalk.bgYellow.black(` ${text} `)
 };
 
 export const light = {
@@ -31,7 +32,8 @@ export const light = {
   success: (text: string) => chalk.hex("#008800")(text),
   warning: (text: string) => chalk.hex("#cc6600")(text),
   error: (text: string) => chalk.hex("#cc0000")(text),
-  info: (text: string) => chalk.hex("#a200ff")(text)
+  info: (text: string) => chalk.hex("#a200ff")(text),
+  badge: (text: string) => chalk.bgHex("#cc6600").white(` ${text} `)
 };
 
 export type ThemeName = "dark" | "light";

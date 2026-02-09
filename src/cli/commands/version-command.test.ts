@@ -111,6 +111,28 @@ describe("version command", () => {
     ).toBe(false);
   });
 
+  it("shows local build indicator for dev version", async () => {
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ "dist-tags": { latest: "1.0.0" } })
+    }));
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await parseWithVersionExit(program, ["node", "cli", "--version"]);
+
+    expect(logs.some((log) => log.includes("local build"))).toBe(true);
+  });
+
   it("handles update check failure gracefully", async () => {
     const httpClient: HttpClient = vi.fn(async () => {
       throw new Error("Network error");

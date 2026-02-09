@@ -1,7 +1,7 @@
 {
-  "name": "@poe-code/tiny-mcp-server",
-  "version": "0.0.1",
-  "private": true,
+  "name": "tiny-stdio-mcp-server",
+  "version": "0.1.0",
+  "description": "Minimal MCP server over stdio with typed tools and rich content helpers",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,14 +12,27 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "tsc"
   },
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "@poe-code/tiny-file-type": "*"
+  "engines": {
+    "node": ">=18"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-mcp-server"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "stdio",
+    "server"
+  ],
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.25.3"
   }

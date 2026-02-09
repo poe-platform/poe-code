@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createServer, defineSchema } from "@poe-code/tiny-mcp-server";
+import { createServer, defineSchema } from "tiny-stdio-mcp-server";
 
 const caesarCipherSchema = defineSchema({
   text: { type: "string", description: "The text to encrypt" },

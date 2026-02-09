@@ -1,1 +1,1 @@
-export { fileTypeFromBuffer, type FileTypeResult } from "@poe-code/tiny-file-type";
+export { fileTypeFromBuffer, type FileTypeResult } from "./file-type.js";

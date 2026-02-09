@@ -5,7 +5,7 @@ import {
   type ContentBlock,
   Image,
   Audio
-} from "@poe-code/tiny-mcp-server";
+} from "tiny-stdio-mcp-server";
 import chalk from "chalk";
 import { getGlobalClient } from "../services/client-instance.js";
 import type { LlmResponse } from "../services/llm-client.js";

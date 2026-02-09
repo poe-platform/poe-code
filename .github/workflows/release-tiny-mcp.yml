@@ -1,0 +1,34 @@
+name: Release tiny-stdio-mcp-server
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/tiny-mcp-server/**'
+concurrency:
+  group: release-tiny-mcp
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Build
+        working-directory: packages/tiny-mcp-server
+        run: npm run build
+      - name: Auto-bump patch version from npm
+        working-directory: packages/tiny-mcp-server
+        run: |
+          REMOTE=$(npm view tiny-stdio-mcp-server version 2>/dev/null || echo "0.0.0")
+          npm version --no-git-tag-version "$REMOTE"
+          npm version --no-git-tag-version patch
+      - name: Publish
+        working-directory: packages/tiny-mcp-server
+        run: npm publish --provenance --access public

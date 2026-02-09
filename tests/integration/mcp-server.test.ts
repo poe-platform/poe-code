@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import type { SDKTransport } from "@poe-code/tiny-mcp-server";
+import type { SDKTransport } from "tiny-stdio-mcp-server";
 import { createMcpServer } from "../../src/cli/mcp-server.js";
 
 interface ToolCallResult {

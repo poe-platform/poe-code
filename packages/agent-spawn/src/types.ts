@@ -1,9 +1,12 @@
 import type { AdapterType } from "./adapters/index.js";
 
+export type SpawnMode = "yolo" | "edit" | "read";
+
 export interface SpawnOptions {
   prompt: string;
   cwd?: string;
   model?: string;
+  mode?: SpawnMode;
   args?: string[];
   useStdin?: boolean;
   interactive?: boolean;
@@ -55,6 +58,7 @@ export interface CliSpawnConfig {
   adapter: AdapterType;
   promptFlag: string;
   defaultArgs: string[];
+  modes: Record<SpawnMode, string[]>;
   stdinMode?: StdinMode;
   modelFlag?: string;
   interactive?: InteractiveSpawnConfig;

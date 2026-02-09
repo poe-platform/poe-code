@@ -8,20 +8,21 @@ export const claudeCodeSpawnConfig: CliSpawnConfig = {
   promptFlag: "-p",
   modelFlag: "--model",
   defaultArgs: [
-    "--allowedTools",
-    "Bash,Read",
-    "--permission-mode",
-    "acceptEdits",
     "--output-format",
     "stream-json",
     "--verbose"
   ],
+  modes: {
+    yolo: ["--dangerously-skip-permissions"],
+    edit: ["--permission-mode", "acceptEdits", "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep,NotebookEdit"],
+    read: ["--permission-mode", "plan"]
+  },
   stdinMode: {
     omitPrompt: true,
     extraArgs: ["--input-format", "text"]
   },
   interactive: {
-    defaultArgs: ["--allowedTools", "Bash,Read", "--permission-mode", "acceptEdits"]
+    defaultArgs: []
   },
   resumeCommand: (threadId) => ["--resume", threadId]
 };

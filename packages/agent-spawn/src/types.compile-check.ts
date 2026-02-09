@@ -1,4 +1,4 @@
-import type { CliSpawnConfig, SpawnConfig } from "./types.js";
+import type { CliSpawnConfig, SpawnConfig, SpawnMode } from "./types.js";
 import type { SpawnConfig as SpawnConfigFromIndex } from "./index.js";
 import type { AdapterType } from "./adapters/index.js";
 import type {
@@ -91,6 +91,7 @@ type ignoredCliSpawnConfigHasPromptFlag = AssertAssignable<
     adapter: AdapterType;
     promptFlag: string;
     defaultArgs: string[];
+    modes: Record<SpawnMode, string[]>;
   }
 >;
 

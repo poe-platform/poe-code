@@ -70,6 +70,11 @@ export const openCodeSpawnConfig: CliSpawnConfig = {
   promptFlag: "run",
   modelFlag: "--model",
   defaultArgs: ["--format", "json"],
+  modes: {
+    yolo: [],
+    edit: [],
+    read: ["--agent", "plan"]
+  },
   interactive: {
     defaultArgs: [],
     promptFlag: "--prompt"

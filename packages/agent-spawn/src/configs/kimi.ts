@@ -9,6 +9,11 @@ export const kimiSpawnConfig: CliSpawnConfig = {
   adapter: "kimi",
   promptFlag: "-p",
   defaultArgs: ["--print", "--output-format", "stream-json"],
+  modes: {
+    yolo: ["--yolo"],
+    edit: [],
+    read: []
+  },
   stdinMode: {
     omitPrompt: true,
     extraArgs: ["--input-format", "stream-json"]

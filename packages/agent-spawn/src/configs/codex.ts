@@ -7,7 +7,12 @@ export const codexSpawnConfig: CliSpawnConfig = {
   adapter: "codex",
   promptFlag: "exec",
   modelFlag: "--model",
-  defaultArgs: ["--full-auto", "--skip-git-repo-check", "--json"],
+  defaultArgs: ["--skip-git-repo-check", "--json"],
+  modes: {
+    yolo: ["-s", "danger-full-access"],
+    edit: ["-s", "workspace-write"],
+    read: ["-s", "read-only"]
+  },
   stdinMode: {
     omitPrompt: true,
     extraArgs: ["-"]

@@ -14,6 +14,7 @@ export type {
   SpawnConfig,
   SpawnContext,
   SpawnLogger,
+  SpawnMode,
   SpawnOptions,
   SpawnResult,
   SpawnUsage,

@@ -14,11 +14,9 @@ import {
 } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
 import type { CliEnvironment } from "../cli/environment.js";
-import type {
-  ModelConfigureOptions,
-  ProviderSpawnOptions
-} from "./spawn-options.js";
+import type { ModelConfigureOptions } from "./spawn-options.js";
 import { claudeCodeAgent } from "@poe-code/agent-defs";
+import { getSpawnConfig } from "@poe-code/agent-spawn";
 
 type ClaudeCodeConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
@@ -54,38 +52,9 @@ export const CLAUDE_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   successMessage: "Installed Claude CLI."
 };
 
-const CLAUDE_SPAWN_DEFAULTS = [
-  "--allowedTools",
-  "Bash,Read",
-  "--permission-mode",
-  "acceptEdits",
-  "--output-format",
-  "text"
-] as const;
-
-function buildClaudeArgs(
-  prompt: string | undefined,
-  extraArgs?: string[],
-  model?: string
-): string[] {
-  const modelArgs = model ? ["--model", model] : [];
-  if (prompt == null) {
-    return [
-      "-p",
-      "--input-format",
-      "text",
-      ...modelArgs,
-      ...CLAUDE_SPAWN_DEFAULTS,
-      ...(extraArgs ?? [])
-    ];
-  }
-  return ["-p", prompt, ...modelArgs, ...CLAUDE_SPAWN_DEFAULTS, ...(extraArgs ?? [])];
-}
-
 export const claudeCodeService = createProvider<
   ClaudeCodeConfigureContext,
-  ClaudeCodeUnconfigureContext,
-  ProviderSpawnOptions
+  ClaudeCodeUnconfigureContext
 >({
   ...claudeCodeAgent,
   supportsStdinPrompt: true,
@@ -118,15 +87,23 @@ export const claudeCodeService = createProvider<
     }
   },
   test(context) {
+    const config = getSpawnConfig("claude-code");
+    if (!config || config.kind !== "cli") {
+      throw new Error("claude-code spawn config not found");
+    }
     return context.runCheck(
       createCommandExpectationCheck({
         id: "claude-cli-health",
-        command: "claude",
-        args: buildClaudeArgs(
+        command: claudeCodeAgent.binaryName!,
+        args: [
+          config.promptFlag,
           "Output exactly: CLAUDE_CODE_OK",
-          undefined,
-          stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL)
-        ),
+          config.modelFlag!,
+          stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL),
+          "--output-format",
+          "text",
+          ...config.modes.yolo
+        ],
         expectedOutput: "CLAUDE_CODE_OK"
       })
     );
@@ -164,35 +141,5 @@ export const claudeCodeService = createProvider<
       })
     ]
   },
-  install: CLAUDE_CODE_INSTALL_DEFINITION,
-  spawn(context, options) {
-    const shouldUseStdin = Boolean(options.useStdin);
-    const args = buildClaudeArgs(
-      shouldUseStdin ? undefined : options.prompt,
-      options.args,
-      options.model ? stripModelNamespace(options.model) : undefined
-    );
-    if (shouldUseStdin) {
-      if (options.cwd) {
-        return context.command.runCommand(
-          "poe-code",
-          ["wrap", "claude-code", ...args],
-          {
-          cwd: options.cwd,
-          stdin: options.prompt
-          }
-        );
-      }
-      return context.command.runCommand("poe-code", ["wrap", "claude-code", ...args], {
-        stdin: options.prompt
-      });
-    }
-
-    if (options.cwd) {
-      return context.command.runCommand("poe-code", ["wrap", "claude-code", ...args], {
-        cwd: options.cwd
-      });
-    }
-    return context.command.runCommand("poe-code", ["wrap", "claude-code", ...args]);
-  }
+  install: CLAUDE_CODE_INSTALL_DEFINITION
 });

@@ -330,70 +330,6 @@ describe("codex service", () => {
     ).rejects.toThrow();
   });
 
-  it("builds exec args that skip git repo checks", () => {
-    const args = codexService.buildCodexExecArgs("Check the status");
-    expect(args).toContain("--skip-git-repo-check");
-  });
-
-  it("spawns the codex CLI with the provided prompt and args", async () => {
-    const runCommand = vi.fn(async () => ({
-      stdout: "codex-output\n",
-      stderr: "",
-      exitCode: 0
-    }));
-    const providerContext = createProviderTestContext(runCommand).context;
-
-    const result = await codexService.codexService.spawn(
-      providerContext,
-      {
-        prompt: "Describe the codebase",
-        args: ["--output", "json"]
-      }
-    );
-
-    const expectedArgs = codexService.buildCodexExecArgs("Describe the codebase", [
-      "--output",
-      "json"
-    ]);
-
-    expect(runCommand).toHaveBeenCalledWith("poe-code", [
-      "wrap",
-      "codex",
-      ...expectedArgs
-    ]);
-    expect(result).toEqual({
-      stdout: "codex-output\n",
-      stderr: "",
-      exitCode: 0
-    });
-  });
-
-  it("spawns the codex CLI with a custom model", async () => {
-    const runCommand = vi.fn(async () => ({
-      stdout: "codex-output\n",
-      stderr: "",
-      exitCode: 0
-    }));
-    const providerContext = createProviderTestContext(runCommand).context;
-    const override = `${DEFAULT_CODEX_MODEL}-alt`;
-
-    await codexService.codexService.spawn(providerContext, {
-      prompt: "Summarize the diff",
-      model: override
-    });
-
-    expect(runCommand).toHaveBeenCalledWith("poe-code", [
-      "wrap",
-      "codex",
-      "--model",
-      stripModelNamespace(override),
-      "exec",
-      "Summarize the diff",
-      "--full-auto",
-      "--skip-git-repo-check"
-    ]);
-  });
-
   it("runs the Codex CLI health check when invoking the provider test", async () => {
     const runCommand = vi.fn(async () => ({
       stdout: "CODEX_OK\n",
@@ -404,14 +340,14 @@ describe("codex service", () => {
 
     await codexService.codexService.test?.(context);
 
-    expect(runCommand).toHaveBeenCalledWith(
-      "codex",
-      codexService.buildCodexExecArgs(
-        "Output exactly: CODEX_OK",
-        [],
-        stripModelNamespace(DEFAULT_CODEX_MODEL)
-      )
-    );
+    expect(runCommand).toHaveBeenCalledWith("codex", [
+      "--model",
+      stripModelNamespace(DEFAULT_CODEX_MODEL),
+      "exec",
+      "Output exactly: CODEX_OK",
+      "--full-auto",
+      "--skip-git-repo-check"
+    ]);
   });
 
   it("skips the Codex health check during dry runs", async () => {

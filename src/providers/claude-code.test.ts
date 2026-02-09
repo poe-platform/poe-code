@@ -254,104 +254,6 @@ describe("claude-code service", () => {
     });
   });
 
-  it("spawns the claude CLI with the provided prompt and args", async () => {
-    const runCommand = vi.fn(async () => ({
-      stdout: "hello\n",
-      stderr: "",
-      exitCode: 0
-    }));
-    const providerContext = createProviderTestContext(runCommand).context;
-
-    const result = await claudeService.claudeCodeService.spawn(
-      providerContext,
-      {
-        prompt: "Test prompt",
-        args: ["--custom-arg", "value"]
-      }
-    );
-
-    expect(runCommand).toHaveBeenCalledWith("poe-code", [
-      "wrap",
-      "claude-code",
-      "-p",
-      "Test prompt",
-      "--allowedTools",
-      "Bash,Read",
-      "--permission-mode",
-      "acceptEdits",
-      "--output-format",
-      "text",
-      "--custom-arg",
-      "value"
-    ]);
-    expect(result).toEqual({
-      stdout: "hello\n",
-      stderr: "",
-      exitCode: 0
-    });
-  });
-
-  it("spawns the claude CLI with a custom model", async () => {
-    const runCommand = vi.fn(async () => ({
-      stdout: "hello\n",
-      stderr: "",
-      exitCode: 0
-    }));
-    const providerContext = createProviderTestContext(runCommand).context;
-
-    await claudeService.claudeCodeService.spawn(providerContext, {
-      prompt: "Test prompt",
-      model: CLAUDE_MODEL_HAIKU
-    });
-
-    expect(runCommand).toHaveBeenCalledWith("poe-code", [
-      "wrap",
-      "claude-code",
-      "-p",
-      "Test prompt",
-      "--model",
-      stripModelNamespace(CLAUDE_MODEL_HAIKU),
-      "--allowedTools",
-      "Bash,Read",
-      "--permission-mode",
-      "acceptEdits",
-      "--output-format",
-      "text"
-    ]);
-  });
-
-  it("spawns the claude CLI with stdin when requested", async () => {
-    const runCommand = vi.fn(async () => ({
-      stdout: "hello\n",
-      stderr: "",
-      exitCode: 0
-    }));
-    const { context: providerContext } = createProviderTestContext(runCommand);
-
-    await claudeService.claudeCodeService.spawn(providerContext, {
-      prompt: "Test prompt",
-      useStdin: true
-    });
-
-    expect(runCommand).toHaveBeenCalledWith(
-      "poe-code",
-      [
-        "wrap",
-        "claude-code",
-        "-p",
-        "--input-format",
-        "text",
-        "--allowedTools",
-        "Bash,Read",
-        "--permission-mode",
-        "acceptEdits",
-        "--output-format",
-        "text"
-      ],
-      { stdin: "Test prompt" }
-    );
-  });
-
   it("runs the Claude CLI health check when invoking the provider test", async () => {
     await fs.mkdir(path.join(home, ".poe-code"), { recursive: true });
     await fs.writeFile(
@@ -373,12 +275,9 @@ describe("claude-code service", () => {
       "Output exactly: CLAUDE_CODE_OK",
       "--model",
       stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL),
-      "--allowedTools",
-      "Bash,Read",
-      "--permission-mode",
-      "acceptEdits",
       "--output-format",
-      "text"
+      "text",
+      "--dangerously-skip-permissions"
     ]);
   });
 

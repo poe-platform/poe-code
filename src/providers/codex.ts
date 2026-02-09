@@ -12,7 +12,6 @@ import {
   isConfigObject
 } from "@poe-code/config-mutations";
 import { createProvider } from "./create-provider.js";
-import type { ProviderSpawnOptions } from "./spawn-options.js";
 import {
   CODEX_MODELS,
   DEFAULT_CODEX_MODEL,
@@ -20,6 +19,7 @@ import {
   stripModelNamespace
 } from "../cli/constants.js";
 import { codexAgent } from "@poe-code/agent-defs";
+import { getSpawnConfig } from "@poe-code/agent-spawn";
 
 type CodexConfigureContext = {
   env: CliEnvironment;
@@ -87,24 +87,9 @@ function isTableEmpty(value: unknown): value is ConfigObject {
   return isConfigObject(value) && Object.keys(value).length === 0;
 }
 
-const CODEX_DEFAULT_EXEC_ARGS = [
-  "--full-auto",
-  "--skip-git-repo-check"
-] as const;
-
-export function buildCodexExecArgs(
-  prompt: string,
-  extraArgs: string[] = [],
-  model?: string
-): string[] {
-  const modelArgs = model ? ["--model", model] : [];
-  return [...modelArgs, "exec", prompt, ...CODEX_DEFAULT_EXEC_ARGS, ...extraArgs];
-}
-
 export const codexService = createProvider<
   CodexConfigureContext,
-  CodexUnconfigureContext,
-  ProviderSpawnOptions
+  CodexUnconfigureContext
 >({
   ...codexAgent,
   supportsStdinPrompt: true,
@@ -131,15 +116,22 @@ export const codexService = createProvider<
     }
   },
   test(context) {
+    const config = getSpawnConfig("codex");
+    if (!config || config.kind !== "cli") {
+      throw new Error("codex spawn config not found");
+    }
     return context.runCheck(
       createCommandExpectationCheck({
         id: "codex-cli-health",
-        command: "codex",
-        args: buildCodexExecArgs(
+        command: codexAgent.binaryName!,
+        args: [
+          config.modelFlag!,
+          stripModelNamespace(DEFAULT_CODEX_MODEL),
+          config.promptFlag,
           "Output exactly: CODEX_OK",
-          [],
-          stripModelNamespace(DEFAULT_CODEX_MODEL)
-        ),
+          "--full-auto",
+          "--skip-git-repo-check"
+        ],
         expectedOutput: "CODEX_OK"
       })
     );
@@ -178,31 +170,5 @@ export const codexService = createProvider<
       })
     ]
   },
-  install: CODEX_INSTALL_DEFINITION,
-  spawn(context, options) {
-    const shouldUseStdin = Boolean(options.useStdin);
-    const args = buildCodexExecArgs(
-      shouldUseStdin ? "-" : options.prompt,
-      options.args,
-      options.model ? stripModelNamespace(options.model) : undefined
-    );
-    if (shouldUseStdin) {
-      if (options.cwd) {
-        return context.command.runCommand("poe-code", ["wrap", "codex", ...args], {
-          cwd: options.cwd,
-          stdin: options.prompt
-        });
-      }
-      return context.command.runCommand("poe-code", ["wrap", "codex", ...args], {
-        stdin: options.prompt
-      });
-    }
-
-    if (options.cwd) {
-      return context.command.runCommand("poe-code", ["wrap", "codex", ...args], {
-        cwd: options.cwd
-      });
-    }
-    return context.command.runCommand("poe-code", ["wrap", "codex", ...args]);
-  }
+  install: CODEX_INSTALL_DEFINITION
 });

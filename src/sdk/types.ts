@@ -1,3 +1,5 @@
+import type { SpawnMode } from "@poe-code/agent-spawn";
+
 /**
  * Options for spawning a provider CLI.
  */
@@ -8,6 +10,8 @@ export interface SpawnOptions {
   cwd?: string;
   /** Model identifier override */
   model?: string;
+  /** Permission mode: yolo | edit | read (default: yolo) */
+  mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];
   /** Launch the agent in interactive (TUI) mode with inherited stdio */

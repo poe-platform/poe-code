@@ -95,6 +95,7 @@ export function spawn(
           prompt: options.prompt,
           cwd: options.cwd,
           model: options.model,
+          mode: options.mode,
           args: options.args
         });
         return {
@@ -116,6 +117,7 @@ export function spawn(
           prompt: options.prompt,
           cwd: options.cwd,
           model: options.model,
+          mode: options.mode,
           args: options.args,
           useStdin: false
         });
@@ -137,6 +139,7 @@ export function spawn(
           prompt: options.prompt,
           cwd: options.cwd,
           model: options.model,
+          mode: options.mode,
           args: options.args,
           useStdin: false
         });
@@ -149,6 +152,7 @@ export function spawn(
         prompt: options.prompt,
         cwd: options.cwd,
         model: options.model,
+        mode: options.mode,
         args: options.args,
         useStdin: false
       });

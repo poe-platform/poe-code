@@ -108,9 +108,9 @@ describe("spawnCore", () => {
       fs,
       commandRunner: runner
     });
-    await ensureIsolatedConfig("codex");
+    await ensureIsolatedConfig("opencode");
 
-    const result = await spawnCore(container, "codex", {
+    const result = await spawnCore(container, "opencode", {
       prompt: "test prompt"
     });
 
@@ -131,9 +131,9 @@ describe("spawnCore", () => {
       fs,
       commandRunner: runner
     });
-    await ensureIsolatedConfig("codex");
+    await ensureIsolatedConfig("opencode");
 
-    await spawnCore(container, "codex", {
+    await spawnCore(container, "opencode", {
       prompt: "fix the bug",
       args: ["--extra", "arg"]
     });
@@ -147,7 +147,7 @@ describe("spawnCore", () => {
 
   it("handles dry run mode", async () => {
     const { container, logs } = createContainerWithDependencies({ fs });
-    await ensureIsolatedConfig("codex");
+    await ensureIsolatedConfig("opencode");
 
     const result = await spawnCore(
       container,
@@ -174,9 +174,9 @@ describe("spawnCore", () => {
       fs,
       commandRunner: runner
     });
-    await ensureIsolatedConfig("codex");
+    await ensureIsolatedConfig("opencode");
 
-    await spawnCore(container, "codex", {
+    await spawnCore(container, "opencode", {
       prompt: "test",
       cwd: "subdir"
     });
@@ -196,9 +196,9 @@ describe("spawnCore", () => {
       fs,
       commandRunner: runner
     });
-    await ensureIsolatedConfig("codex");
+    await ensureIsolatedConfig("opencode");
 
-    await spawnCore(container, "codex", {
+    await spawnCore(container, "opencode", {
       prompt: "test",
       cwd: "/absolute/path"
     });
@@ -216,7 +216,7 @@ describe("spawnCore", () => {
     const originalGet = container.registry.get.bind(container.registry);
     vi.spyOn(container.registry, "get").mockImplementation((name) => {
       const adapter = originalGet(name);
-      if (adapter && name === "codex") {
+      if (adapter && name === "opencode") {
         return {
           ...adapter,
           spawn: async () => undefined
@@ -224,9 +224,9 @@ describe("spawnCore", () => {
       }
       return adapter;
     });
-    await ensureIsolatedConfig("codex");
+    await ensureIsolatedConfig("opencode");
 
-    const result = await spawnCore(container, "codex", {
+    const result = await spawnCore(container, "opencode", {
       prompt: "test"
     });
 

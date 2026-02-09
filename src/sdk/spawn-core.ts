@@ -7,6 +7,7 @@ import {
   createExecutionResources
 } from "../cli/commands/shared.js";
 import type { SpawnCommandOptions } from "../providers/spawn-options.js";
+import type { SpawnMode } from "@poe-code/agent-spawn";
 import type { CommandRunnerResult } from "../utils/command-checks.js";
 
 export interface SpawnCoreOptions {
@@ -16,6 +17,8 @@ export interface SpawnCoreOptions {
   cwd?: string;
   /** Model identifier override */
   model?: string;
+  /** Permission mode: yolo | edit | read */
+  mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];
   /** Whether prompt was read from stdin */
@@ -48,6 +51,7 @@ export async function spawnCore(
     prompt: options.prompt,
     args: options.args,
     model: options.model,
+    mode: options.mode,
     cwd: cwdOverride,
     useStdin: options.useStdin ?? false
   };
@@ -56,6 +60,25 @@ export async function spawnCore(
   const adapter = container.registry.get(service);
   if (!adapter) {
     throw new Error(`Unknown service "${service}".`);
+  }
+
+  // Create execution resources (logger, context)
+  const commandFlags = { dryRun: flags.dryRun, assumeYes: true, verbose: flags.verbose };
+  const resources = createExecutionResources(
+    container,
+    commandFlags,
+    `spawn:${service}`
+  );
+
+  // Handle dry run
+  if (flags.dryRun) {
+    const summary = formatSpawnDryRunMessage(adapter.label, spawnOptions);
+    resources.logger.dryRun(summary);
+    return {
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    };
   }
 
   if (typeof adapter.spawn !== "function") {
@@ -68,27 +91,8 @@ export async function spawnCore(
     );
   }
 
-  // Create execution resources (logger, context)
-  const commandFlags = { dryRun: flags.dryRun, assumeYes: true, verbose: flags.verbose };
-  const resources = createExecutionResources(
-    container,
-    commandFlags,
-    `spawn:${service}`
-  );
-
   // Build provider context
   const providerContext = buildProviderContext(container, adapter, resources);
-
-  // Handle dry run
-  if (flags.dryRun) {
-    const summary = formatSpawnDryRunMessage(adapter.label, spawnOptions);
-    resources.logger.dryRun(summary);
-    return {
-      stdout: "",
-      stderr: "",
-      exitCode: 0
-    };
-  }
 
   // Invoke spawn through registry
   const result = (await container.registry.invoke(

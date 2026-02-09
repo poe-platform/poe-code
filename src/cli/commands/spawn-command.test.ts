@@ -730,12 +730,13 @@ describe("spawn command", () => {
       })
     }));
 
-    vi.mocked(getSpawnConfig).mockReturnValueOnce({
+    vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex",
       promptFlag: "exec",
-      defaultArgs: []
+      defaultArgs: [],
+      modes: { yolo: [], edit: [], read: [] }
     });
 
     const logs: string[] = [];

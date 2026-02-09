@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
-import { renderAcpStream, spawnInteractive, getSpawnConfig } from "@poe-code/agent-spawn";
+import { renderAcpStream, spawnInteractive, getSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
 import { text } from "@poe-code/design-system";
 import {
@@ -40,7 +40,7 @@ export function registerSpawnCommand(
 ): void {
   const spawnServices = container.registry
     .list()
-    .filter((service) => typeof service.spawn === "function")
+    .filter((service) => typeof service.spawn === "function" || getSpawnConfig(service.name))
     .map((service) => service.name);
   const extraServices = options.extraServices ?? [];
   const serviceList = [...spawnServices, ...extraServices];
@@ -54,6 +54,7 @@ export function registerSpawnCommand(
     .option("-C, --cwd <path>", "Working directory for the agent CLI")
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
+    .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
     .argument(
       "<agent>",
       serviceDescription
@@ -70,7 +71,7 @@ export function registerSpawnCommand(
       agentArgs: string[] = []
     ) {
       const flags = resolveCommandFlags(program);
-      const commandOptions = this.opts<{ model?: string; cwd?: string; stdin?: boolean; interactive?: boolean }>();
+      const commandOptions = this.opts<{ model?: string; cwd?: string; stdin?: boolean; interactive?: boolean; mode?: string }>();
       const cwdOverride = resolveSpawnWorkingDirectory(
         container.env.cwd,
         commandOptions.cwd
@@ -100,6 +101,7 @@ export function registerSpawnCommand(
           prompt: promptText ?? "",
           args: forwardedArgs,
           model: commandOptions.model,
+          mode: commandOptions.mode as SpawnMode | undefined,
           cwd: cwdOverride
         });
         process.exitCode = result.exitCode;
@@ -122,6 +124,7 @@ export function registerSpawnCommand(
         prompt: promptText,
         args: forwardedArgs,
         model: commandOptions.model,
+        mode: commandOptions.mode as SpawnMode | undefined,
         cwd: cwdOverride,
         useStdin: shouldReadFromStdin
       };
@@ -184,6 +187,7 @@ export function registerSpawnCommand(
           prompt: spawnOptions.prompt,
           args: spawnOptions.args,
           model: spawnOptions.model,
+          mode: spawnOptions.mode,
           cwd: spawnOptions.cwd
         });
 

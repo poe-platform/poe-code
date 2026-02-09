@@ -1,4 +1,5 @@
 import type { ProviderService } from "../cli/service-registry.js";
+import { getSpawnConfig } from "@poe-code/agent-spawn";
 
 export interface ServiceLabelInfo {
   service: string;
@@ -12,7 +13,7 @@ export function collectSpawnLabels(
   adapters: ProviderService[]
 ): ServiceLabelInfo[] {
   const spawnable = adapters.filter(
-    (adapter) => typeof adapter.spawn === "function"
+    (adapter) => typeof adapter.spawn === "function" || getSpawnConfig(adapter.name)
   );
   const labels = spawnable.map((adapter) => {
     const colorSource =

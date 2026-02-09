@@ -23,7 +23,6 @@ function createPackageFs(filePaths: string[]): {
 describe("verifyBundledTemplates()", () => {
   it("passes when all required templates exist", async () => {
     const { fs, packageRoot } = createPackageFs([
-      "templates/PROMPT_build.md",
       "templates/references/GUARDRAILS.md",
       "templates/references/CONTEXT_ENGINEERING.md",
       "templates/.poe-code-ralph/progress.md",
@@ -39,7 +38,6 @@ describe("verifyBundledTemplates()", () => {
 
   it("throws with missing template paths", async () => {
     const { fs, packageRoot } = createPackageFs([
-      "templates/PROMPT_build.md",
       "templates/references/GUARDRAILS.md"
     ]);
 

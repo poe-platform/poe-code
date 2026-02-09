@@ -472,8 +472,17 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
   const activityLogPath = absPath(cwd, options.activityLogPath ?? ".poe-code-ralph/activity.log");
   const guardrailsRef = absPath(cwd, ".agents/poe-code-ralph/references/GUARDRAILS.md");
   const contextRef = absPath(cwd, ".agents/poe-code-ralph/references/CONTEXT_ENGINEERING.md");
-  const activityCmd = absPath(cwd, ".agents/poe-code-ralph/log-activity.sh");
+  const activityCmd = "poe-code ralph agent log";
   const promptTemplatePath = absPath(cwd, ".agents/poe-code-ralph/PROMPT_build.md");
+
+  try {
+    await fs.readFile(promptTemplatePath, "utf8");
+  } catch {
+    throw new Error(
+      `PROMPT_build.md not found at ${promptTemplatePath}. Run "poe-code ralph install" to set up Ralph templates.`
+    );
+  }
+
   const runsDir = absPath(cwd, ".poe-code-ralph/runs");
 
   const runId = options.deps?.runId ?? createRunId(nowFn());

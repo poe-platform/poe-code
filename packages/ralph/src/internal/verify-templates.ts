@@ -8,7 +8,6 @@ export type TemplateVerifierFileSystem = {
 };
 
 const requiredTemplatePaths = [
-  "templates/PROMPT_build.md",
   "templates/references/GUARDRAILS.md",
   "templates/references/CONTEXT_ENGINEERING.md",
   "templates/.poe-code-ralph/progress.md",

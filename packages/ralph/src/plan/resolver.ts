@@ -123,9 +123,6 @@ export async function resolvePlanPath(
     );
     return null;
   }
-  if (candidates.length === 1) {
-    return candidates[0]!.path;
-  }
 
   const selection = await select({
     message: "Select a plan file to use for this Ralph run",

@@ -73,10 +73,13 @@ describe("resolvePlanPath", () => {
     expect(log).toHaveBeenCalled();
   });
 
-  it("auto-selects when exactly one plan exists", async () => {
+  it("shows select prompt even when exactly one plan exists", async () => {
     const fs = createMemFs({
       "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: demo\nstories: []\n"
     });
+
+    clackSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    clackIsCancel.mockReturnValue(false);
 
     const result = await resolvePlanPath({
       cwd: "/repo",
@@ -84,7 +87,13 @@ describe("resolvePlanPath", () => {
     });
 
     expect(result).toBe(".agents/tasks/plan.yaml");
-    expect(clackSelect).not.toHaveBeenCalled();
+    expect(clackSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          expect.objectContaining({ value: ".agents/tasks/plan.yaml" })
+        ]
+      })
+    );
   });
 
   it("prompts with a select when multiple plans exist", async () => {

@@ -9,16 +9,16 @@ import {
   MOUNT_TARGET,
   NPM_CACHE_DIR,
   UV_CACHE_DIR,
-  LOCAL_BIN_DIR,
   getWorkspaceDir,
 } from './container.js';
 import { mkdirSync, existsSync } from 'node:fs';
 
 const CONTAINER_LABEL = 'poe-e2e-test-runner=true';
-export const CONTAINER_PATH = '/root/.local/bin:/root/.claude/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
+export const CONTAINER_HOME = '/home/poe';
+export const CONTAINER_PATH = `${CONTAINER_HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`;
 
 function ensureCacheDirs(): void {
-  for (const dir of [NPM_CACHE_DIR, UV_CACHE_DIR, LOCAL_BIN_DIR]) {
+  for (const dir of [NPM_CACHE_DIR, UV_CACHE_DIR]) {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
@@ -34,7 +34,6 @@ export function buildCreateArgs(config: {
   mountSource: string;
   npmCacheDir: string;
   uvCacheDir: string;
-  localBinDir: string;
   apiKey: string | null;
   image: string;
 }): string[] {
@@ -43,9 +42,8 @@ export function buildCreateArgs(config: {
     '--name', config.name,
     '--label', CONTAINER_LABEL,
     '-v', `${config.mountSource}:${MOUNT_TARGET}:rw`,
-    '-v', `${config.npmCacheDir}:/root/.npm:rw`,
-    '-v', `${config.uvCacheDir}:/root/.cache/uv:rw`,
-    '-v', `${config.localBinDir}:/root/.local:rw`,
+    '-v', `${config.npmCacheDir}:${CONTAINER_HOME}/.npm:rw`,
+    '-v', `${config.uvCacheDir}:${CONTAINER_HOME}/.cache/uv:rw`,
     '-w', MOUNT_TARGET,
   ];
 
@@ -81,7 +79,6 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
     mountSource: workspace,
     npmCacheDir: NPM_CACHE_DIR,
     uvCacheDir: UV_CACHE_DIR,
-    localBinDir: LOCAL_BIN_DIR,
     apiKey,
     image,
   });

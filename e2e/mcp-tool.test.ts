@@ -5,7 +5,8 @@ import { join } from 'node:path';
 const repoRoot = join(import.meta.dirname, '..');
 
 // The MCP server command - using the globally installed command
-const MCP_SERVER_COMMAND = 'tiny-mcp-test-server';
+const MCP_SERVER_COMMAND = 'tiny-stdio-mcp-test-server';
+const MCP_SERVER_ARGS = ['serve', 'word-of-the-day'];
 
 interface AgentMcpTestConfig {
   name: string;
@@ -19,27 +20,27 @@ interface AgentMcpTestConfig {
 const agents: AgentMcpTestConfig[] = [
   {
     name: 'claude-code',
-    configPath: '/root/.claude.json',
+    configPath: '/home/poe/.claude.json',
     configKey: 'mcpServers',
     format: 'json',
     // Claude requires explicit tool permission for MCP tools
-    spawnArgs: ['--allowedTools', 'Bash,Read,mcp__tiny-mcp-test-server__word_of_the_day'],
+    spawnArgs: ['--allowedTools', 'Bash,Read,mcp__tiny-stdio-mcp-test-server__word_of_the_day'],
   },
   {
     name: 'codex',
-    configPath: '/root/.codex/config.toml',
+    configPath: '/home/poe/.codex/config.toml',
     configKey: 'mcp_servers',
     format: 'toml',
   },
   {
     name: 'opencode',
-    configPath: '/root/.config/opencode/config.json',
+    configPath: '/home/poe/.config/opencode/config.json',
     configKey: 'mcp',
     format: 'json',
   },
   {
     name: 'kimi',
-    configPath: '/root/.kimi/mcp.json',
+    configPath: '/home/poe/.kimi/mcp.json',
     configKey: 'mcpServers',
     format: 'json',
   },
@@ -48,27 +49,27 @@ const agents: AgentMcpTestConfig[] = [
 function buildMcpServerConfig(format: 'json' | 'toml', configKey: string): string {
   if (format === 'toml') {
     return `
-[${configKey}.tiny-mcp-test-server]
+[${configKey}.tiny-stdio-mcp-test-server]
 command = "${MCP_SERVER_COMMAND}"
-args = []
+args = ["serve", "word-of-the-day"]
 `;
   }
 
   if (configKey === 'mcp') {
     // opencode uses a different shape: type "local" with command as array
     return JSON.stringify({
-      'tiny-mcp-test-server': {
+      'tiny-stdio-mcp-test-server': {
         type: 'local',
-        command: [MCP_SERVER_COMMAND],
+        command: [MCP_SERVER_COMMAND, ...MCP_SERVER_ARGS],
         enabled: true,
       },
     });
   }
 
   return JSON.stringify({
-    'tiny-mcp-test-server': {
+    'tiny-stdio-mcp-test-server': {
       command: MCP_SERVER_COMMAND,
-      args: [],
+      args: MCP_SERVER_ARGS,
     },
   });
 }
@@ -81,7 +82,7 @@ describe.each(agents)('MCP tool integration: $name', ({ name, configPath, config
     const configResult = await container.exec(`poe-code configure ${name} --yes`);
     expect(configResult).toHaveExitCode(0);
 
-    // Step 2: Add tiny-mcp-test-server to agent's MCP config
+    // Step 2: Add tiny-stdio-mcp-test-server to agent's MCP config
     if (format === 'json') {
       // Read existing config, add MCP server
       const existingConfig = await container.fileExists(configPath)

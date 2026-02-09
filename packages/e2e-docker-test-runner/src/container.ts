@@ -12,7 +12,6 @@ export const MOUNT_TARGET = '/workspace';
 export const E2E_CACHE_ROOT = join(homedir(), '.cache', 'poe-e2e');
 export const NPM_CACHE_DIR = join(E2E_CACHE_ROOT, 'root-npm');
 export const UV_CACHE_DIR = join(E2E_CACHE_ROOT, 'root-cache-uv');
-export const LOCAL_BIN_DIR = join(E2E_CACHE_ROOT, 'root-local');
 
 let workspaceDir: string | null = null;
 
@@ -25,7 +24,7 @@ export function getWorkspaceDir(): string | null {
 }
 
 function ensureCacheDirs(): void {
-  for (const dir of [NPM_CACHE_DIR, UV_CACHE_DIR, LOCAL_BIN_DIR]) {
+  for (const dir of [NPM_CACHE_DIR, UV_CACHE_DIR]) {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
@@ -171,13 +170,14 @@ export interface RunResult {
 
 /** Build the shell script that runs inside the container */
 export function buildContainerScript(commands: string[]): string {
+  const home = '/home/poe';
   return [
     'set -e',
-    // Clean up /root state from previous runs (but keep cached dirs)
-    'find /root -mindepth 1 -maxdepth 1 ! -name ".npm" ! -name ".cache" ! -name ".local" -exec rm -rf {} + 2>/dev/null || true',
-    'mkdir -p /root/.poe-code/logs',
+    // Clean up home state from previous runs (but keep cached dirs)
+    `find ${home} -mindepth 1 -maxdepth 1 ! -name ".npm" ! -name ".cache" ! -name ".local" -exec rm -rf {} + 2>/dev/null || true`,
+    `mkdir -p ${home}/.poe-code/logs`,
     // Add paths (uv is pre-installed in image)
-    'export PATH="/root/.local/bin:/root/.claude/local/bin:$PATH"',
+    `export PATH="${home}/.local/bin:$PATH"`,
     // Run commands
     ...commands,
   ].join('; ');
@@ -186,7 +186,6 @@ export function buildContainerScript(commands: string[]): string {
 export interface CacheConfig {
   npmCacheDir: string;
   uvCacheDir: string;
-  localBinDir: string;
 }
 
 export interface DockerArgsConfig {
@@ -210,9 +209,8 @@ export function buildDockerArgs(config: DockerArgsConfig): string[] {
   args.push(
     'run', '--rm',
     '-v', `${config.mountSource}:${MOUNT_TARGET}:rw`,
-    '-v', `${config.cacheConfig.npmCacheDir}:/root/.npm:rw`,
-    '-v', `${config.cacheConfig.uvCacheDir}:/root/.cache/uv:rw`,
-    '-v', `${config.cacheConfig.localBinDir}:/root/.local:rw`,
+    '-v', `${config.cacheConfig.npmCacheDir}:/home/poe/.npm:rw`,
+    '-v', `${config.cacheConfig.uvCacheDir}:/home/poe/.cache/uv:rw`,
     '-w', MOUNT_TARGET,
   );
 
@@ -249,7 +247,6 @@ export function runInContainer(commands: string[], options: { verbose?: boolean 
     cacheConfig: {
       npmCacheDir: NPM_CACHE_DIR,
       uvCacheDir: UV_CACHE_DIR,
-      localBinDir: LOCAL_BIN_DIR,
     },
     apiKey,
     containerScript,

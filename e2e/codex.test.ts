@@ -11,8 +11,8 @@ describe('codex', () => {
     const result = await container.exec('poe-code configure codex --yes');
     expect(result).toHaveExitCode(0);
 
-    await expect(container).toHaveFile('/root/.codex/config.toml');
-    const config = await container.readFile('/root/.codex/config.toml');
+    await expect(container).toHaveFile('/home/poe/.codex/config.toml');
+    const config = await container.readFile('/home/poe/.codex/config.toml');
     expect(config).toContain('model_provider');
     expect(config).toContain('base_url');
 

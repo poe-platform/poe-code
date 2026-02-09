@@ -11,14 +11,14 @@ describe('opencode', () => {
     const result = await container.exec('poe-code configure opencode --yes');
     expect(result).toHaveExitCode(0);
 
-    await expect(container).toHaveFile('/root/.config/opencode/config.json');
-    const raw = await container.readFile('/root/.config/opencode/config.json');
+    await expect(container).toHaveFile('/home/poe/.config/opencode/config.json');
+    const raw = await container.readFile('/home/poe/.config/opencode/config.json');
     const config = JSON.parse(raw);
     expect(config).toHaveProperty('model');
     expect(config).toHaveProperty('enabled_providers');
 
-    await expect(container).toHaveFile('/root/.opencode-data/auth.json');
-    const authRaw = await container.readFile('/root/.opencode-data/auth.json');
+    await expect(container).toHaveFile('/home/poe/.opencode-data/auth.json');
+    const authRaw = await container.readFile('/home/poe/.opencode-data/auth.json');
     const auth = JSON.parse(authRaw);
     expect(auth).toHaveProperty('poe.type');
     expect(auth).toHaveProperty('poe.key');

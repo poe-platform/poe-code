@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { vol } from 'memfs';
-import { buildCreateArgs, buildExecArgs, CONTAINER_PATH } from './persistent-container.js';
+import { buildCreateArgs, buildExecArgs, CONTAINER_PATH, CONTAINER_HOME } from './persistent-container.js';
 import { MOUNT_TARGET } from './container.js';
 import { setResolvedContext } from './context.js';
 
@@ -41,7 +41,6 @@ describe('buildCreateArgs', () => {
     mountSource: '/workspace',
     npmCacheDir: '/cache/npm',
     uvCacheDir: '/cache/uv',
-    localBinDir: '/cache/local',
     apiKey: null as string | null,
     image: 'poe-code-e2e:abc123',
   };
@@ -70,11 +69,10 @@ describe('buildCreateArgs', () => {
     expect(args).toContain(`/workspace:${MOUNT_TARGET}:rw`);
   });
 
-  it('mounts cache directories', () => {
+  it('mounts cache directories to non-root user home', () => {
     const args = buildCreateArgs(baseConfig);
-    expect(args).toContain('/cache/npm:/root/.npm:rw');
-    expect(args).toContain('/cache/uv:/root/.cache/uv:rw');
-    expect(args).toContain('/cache/local:/root/.local:rw');
+    expect(args).toContain(`/cache/npm:${CONTAINER_HOME}/.npm:rw`);
+    expect(args).toContain(`/cache/uv:${CONTAINER_HOME}/.cache/uv:rw`);
   });
 
   it('sets working directory', () => {

@@ -95,14 +95,14 @@ describe('buildContainerScript', () => {
     expect(script).toMatch(/^set -e/);
   });
 
-  it('sets up PATH for uv binaries', () => {
+  it('sets up PATH for uv binaries using non-root home', () => {
     const script = buildContainerScript([]);
-    expect(script).toContain('export PATH="/root/.local/bin');
+    expect(script).toContain('export PATH="/home/poe/.local/bin');
   });
 
-  it('creates poe-code logs directory', () => {
+  it('creates poe-code logs directory in non-root home', () => {
     const script = buildContainerScript([]);
-    expect(script).toContain('mkdir -p /root/.poe-code/logs');
+    expect(script).toContain('mkdir -p /home/poe/.poe-code/logs');
   });
 
   it('appends user commands at the end', () => {
@@ -130,7 +130,6 @@ describe('buildDockerArgs', () => {
     cacheConfig: {
       npmCacheDir: '/cache/npm',
       uvCacheDir: '/cache/uv',
-      localBinDir: '/cache/local',
     },
     apiKey: null,
     containerScript: 'echo test',
@@ -149,11 +148,10 @@ describe('buildDockerArgs', () => {
     expect(args).toContain(`/workspace:${MOUNT_TARGET}:rw`);
   });
 
-  it('mounts cache directories', () => {
+  it('mounts cache directories to non-root user home', () => {
     const args = buildDockerArgs(baseConfig);
-    expect(args).toContain('/cache/npm:/root/.npm:rw');
-    expect(args).toContain('/cache/uv:/root/.cache/uv:rw');
-    expect(args).toContain('/cache/local:/root/.local:rw');
+    expect(args).toContain('/cache/npm:/home/poe/.npm:rw');
+    expect(args).toContain('/cache/uv:/home/poe/.cache/uv:rw');
   });
 
   it('sets working directory', () => {

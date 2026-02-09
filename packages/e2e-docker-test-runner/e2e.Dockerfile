@@ -1,19 +1,28 @@
 FROM node:22
 
-# Install uv for Python tools
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
-ENV PATH="/root/.local/bin:$PATH"
+# Create non-root user
+RUN useradd -m -s /bin/bash poe
 
 WORKDIR /build
 
-# Copy and install the pre-built tarball
+# Copy and install the pre-built tarball globally (needs root)
 COPY poe-code.tgz ./
 RUN npm install -g ./poe-code.tgz && rm poe-code.tgz
 
-# Pre-install all agents
-RUN poe-code install claude-code && \
-    poe-code install codex && \
-    poe-code install kimi && \
+# Install agents that use global npm install (needs root)
+RUN poe-code install codex && \
     poe-code install opencode
+
+# Switch to non-root user
+USER poe
+ENV HOME=/home/poe
+
+# Install uv for Python tools
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
+ENV PATH="/home/poe/.local/bin:$PATH"
+
+# Install agents that install to user home (~/.local/bin)
+RUN poe-code install claude-code && \
+    poe-code install kimi
 
 WORKDIR /workspace

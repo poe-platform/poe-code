@@ -14,8 +14,6 @@ describe("US-017 bundled templates", () => {
 
   it("includes the template files in the workspace", () => {
     const requiredFiles = [
-      path.join("references", "GUARDRAILS.md"),
-      path.join("references", "CONTEXT_ENGINEERING.md"),
       path.join(".poe-code-ralph", "progress.md"),
       path.join(".poe-code-ralph", "guardrails.md"),
       path.join(".poe-code-ralph", "errors.log"),

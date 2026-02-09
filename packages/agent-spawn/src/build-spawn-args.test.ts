@@ -114,4 +114,51 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
+  it("builds stdin args for claude-code when useStdin is true", () => {
+    const result = buildSpawnArgs("claude-code", { prompt: "test", useStdin: true });
+
+    expect(result.args).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      ...claudeCodeSpawnConfig.stdinMode!.extraArgs,
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo
+    ]);
+    expect(result.args).not.toContain("test");
+  });
+
+  it("builds stdin args with model for claude-code", () => {
+    const result = buildSpawnArgs("claude-code", {
+      prompt: "test",
+      useStdin: true,
+      model: "anthropic/claude-opus-4.6"
+    });
+
+    expect(result.args).toContain("--model");
+    expect(result.args).toContain("claude-opus-4.6");
+    expect(result.args).not.toContain("test");
+  });
+
+  it("builds stdin args for codex when useStdin is true", () => {
+    const result = buildSpawnArgs("codex", { prompt: "test", useStdin: true });
+
+    expect(result.args).toEqual([
+      codexSpawnConfig.promptFlag,
+      ...codexSpawnConfig.stdinMode!.extraArgs,
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
+    expect(result.args).not.toContain("test");
+  });
+
+  it("ignores useStdin for agents without stdinMode", () => {
+    const result = buildSpawnArgs("opencode", { prompt: "hello", useStdin: true });
+
+    expect(result.args).toEqual([
+      openCodeSpawnConfig.promptFlag,
+      "hello",
+      ...openCodeSpawnConfig.defaultArgs,
+      ...openCodeSpawnConfig.modes.yolo
+    ]);
+  });
+
 });

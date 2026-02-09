@@ -8,6 +8,7 @@ export interface BuildSpawnArgsOptions {
   model?: string;
   mode?: SpawnMode;
   args?: string[];
+  useStdin?: boolean;
 }
 
 export interface BuildSpawnArgsResult {
@@ -69,7 +70,9 @@ export function buildSpawnArgs(
   options: BuildSpawnArgsOptions
 ): BuildSpawnArgsResult {
   const { binaryName, spawnConfig } = resolveCliConfig(agentId);
-  return { binaryName, args: buildCliArgs(spawnConfig, options) };
+  const stdinMode =
+    options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
+  return { binaryName, args: buildCliArgs(spawnConfig, options, stdinMode) };
 }
 
 export async function spawn(

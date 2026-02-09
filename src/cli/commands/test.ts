@@ -15,6 +15,7 @@ import {
   formatCommandRunnerResult,
   stdoutMatchesExpected
 } from "../../utils/command-checks.js";
+import { spawn as agentSpawn, getSpawnConfig } from "@poe-code/agent-spawn";
 
 export function registerTestCommand(
   program: Command,
@@ -120,21 +121,31 @@ export async function executeTest(
 
     const expectedOutput = "STDIN_OK";
     const prompt = `Output exactly: ${expectedOutput}`;
-    const result = (await container.registry.invoke(
-      canonicalService,
-      "spawn",
-      async (entry) => {
-        if (!entry.spawn) {
-          throw new Error(`Agent "${canonicalService}" does not support spawn.`);
-        }
-        const output = await entry.spawn(providerContext, {
+    const result = await (async (): Promise<CommandRunnerResult | void> => {
+      const spawnConfig = getSpawnConfig(canonicalService);
+      if (spawnConfig) {
+        return agentSpawn(canonicalService, {
           prompt,
           useStdin: true,
           model: options.model
         });
-        return output as CommandRunnerResult | void;
       }
-    )) as CommandRunnerResult | void;
+      return container.registry.invoke(
+        canonicalService,
+        "spawn",
+        async (entry) => {
+          if (!entry.spawn) {
+            throw new Error(`Agent "${canonicalService}" does not support spawn.`);
+          }
+          const output = await entry.spawn(providerContext, {
+            prompt,
+            useStdin: true,
+            model: options.model
+          });
+          return output as CommandRunnerResult | void;
+        }
+      );
+    })();
 
     if (!result) {
       throw new Error(

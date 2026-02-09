@@ -17,12 +17,6 @@ import {
   parseToml,
   serializeToml
 } from "@poe-code/config-mutations/testing";
-import { spawn } from "@poe-code/agent-spawn";
-
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return { ...actual, spawn: vi.fn() };
-});
 
 const withProviderPrefix = (model: string): string =>
   `${PROVIDER_NAME}/${stripModelNamespace(model)}`;
@@ -310,50 +304,40 @@ describe("kimi service", () => {
     });
   });
 
-  it("runs the Kimi health check via spawn when test is invoked", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+  it("runs the Kimi health check via runCommand when test is invoked", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"KIMI_OK"}\n',
       stderr: "",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await kimiService.kimiService.test?.(context);
 
-    expect(spawn).toHaveBeenCalledWith(
+    expect(runCommand).toHaveBeenCalledWith(
       "kimi",
-      expect.objectContaining({
-        prompt: "Output exactly: KIMI_OK",
-        mode: "yolo"
-      }),
-      undefined
+      expect.arrayContaining([
+        "-p", "Output exactly: KIMI_OK"
+      ])
     );
   });
 
   it("skips the Kimi health check during dry runs", async () => {
-    vi.mocked(spawn).mockResolvedValue({
-      stdout: "",
-      stderr: "",
-      exitCode: 0
-    });
-    const { context } = createProviderTestContext(vi.fn(), { dryRun: true });
+    const runCommand = vi.fn();
+    const { context } = createProviderTestContext(runCommand, { dryRun: true });
 
     await kimiService.kimiService.test?.(context);
 
-    expect(spawn).toHaveBeenCalledWith(
-      "kimi",
-      expect.anything(),
-      expect.objectContaining({ dryRun: true })
-    );
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("includes stdout and stderr when the Kimi health check command fails", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: "KIMI_FAIL_STDOUT\n",
       stderr: "KIMI_FAIL_STDERR\n",
       exitCode: 1
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(
       kimiService.kimiService.test?.(context)
@@ -361,12 +345,12 @@ describe("kimi service", () => {
   });
 
   it("includes stdout and stderr when the Kimi health check output is unexpected", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: "MISCONFIG\n",
       stderr: "ALERT\n",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(
       kimiService.kimiService.test?.(context)

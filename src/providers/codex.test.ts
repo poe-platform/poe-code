@@ -8,12 +8,6 @@ import { createCliEnvironment } from "../cli/environment.js";
 import { createTestCommandContext } from "../../tests/test-command-context.js";
 import { DEFAULT_CODEX_MODEL, stripModelNamespace } from "../cli/constants.js";
 import { createLoggerFactory } from "../cli/logger.js";
-import { spawn } from "@poe-code/agent-spawn";
-
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return { ...actual, spawn: vi.fn() };
-});
 
 describe("codex service", () => {
   let fs: FileSystem;
@@ -336,51 +330,40 @@ describe("codex service", () => {
     ).rejects.toThrow();
   });
 
-  it("runs the Codex CLI health check via spawn when invoking the provider test", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+  it("runs the Codex CLI health check via runCommand when invoking the provider test", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"CODEX_OK"}\n',
       stderr: "",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await codexService.codexService.test?.(context);
 
-    expect(spawn).toHaveBeenCalledWith(
+    expect(runCommand).toHaveBeenCalledWith(
       "codex",
-      expect.objectContaining({
-        prompt: "Output exactly: CODEX_OK",
-        model: DEFAULT_CODEX_MODEL,
-        mode: "yolo"
-      }),
-      undefined
+      expect.arrayContaining([
+        "exec", "Output exactly: CODEX_OK"
+      ])
     );
   });
 
   it("skips the Codex health check during dry runs", async () => {
-    vi.mocked(spawn).mockResolvedValue({
-      stdout: "",
-      stderr: "",
-      exitCode: 0
-    });
-    const { context } = createProviderTestContext(vi.fn(), { dryRun: true });
+    const runCommand = vi.fn();
+    const { context } = createProviderTestContext(runCommand, { dryRun: true });
 
     await codexService.codexService.test?.(context);
 
-    expect(spawn).toHaveBeenCalledWith(
-      "codex",
-      expect.anything(),
-      expect.objectContaining({ dryRun: true })
-    );
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("accepts stdout containing the expected marker among other output", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"info":"OpenAI Codex v0.40.0"}\n{"type":"text","text":"CODEX_OK"}\n',
       stderr: "",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(
       codexService.codexService.test?.(context)
@@ -388,12 +371,12 @@ describe("codex service", () => {
   });
 
   it("includes stdout and stderr when the health check command fails", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: "FAIL_STDOUT\n",
       stderr: "FAIL_STDERR\n",
       exitCode: 1
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(codexService.codexService.test?.(context)).rejects.toThrow(
       /FAIL_STDOUT/
@@ -401,12 +384,12 @@ describe("codex service", () => {
   });
 
   it("includes stdout and stderr when the health check output is unexpected", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: "WRONG\n",
       stderr: "WARN\n",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(codexService.codexService.test?.(context)).rejects.toThrow(
       /CODEX_OK/

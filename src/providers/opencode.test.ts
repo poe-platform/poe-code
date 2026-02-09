@@ -12,12 +12,6 @@ import { createTestCommandContext } from "../../tests/test-command-context.js";
 import type { ProviderContext } from "../cli/service-registry.js";
 import { createLoggerFactory } from "../cli/logger.js";
 import { createMockFs } from "@poe-code/config-mutations/testing";
-import { spawn } from "@poe-code/agent-spawn";
-
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return { ...actual, spawn: vi.fn() };
-});
 
 const withProviderPrefix = (model: string): string =>
   `${PROVIDER_NAME}/${model}`;
@@ -255,51 +249,40 @@ describe("opencode service", () => {
     ]);
   });
 
-  it("runs the OpenCode health check via spawn when test is invoked", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+  it("runs the OpenCode health check via runCommand when test is invoked", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"OPEN_CODE_OK"}\n',
       stderr: "",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await opencodeService.openCodeService.test?.(context);
 
-    expect(spawn).toHaveBeenCalledWith(
+    expect(runCommand).toHaveBeenCalledWith(
       "opencode",
-      expect.objectContaining({
-        prompt: "Output exactly: OPEN_CODE_OK",
-        model: DEFAULT_FRONTIER_MODEL,
-        mode: "yolo"
-      }),
-      undefined
+      expect.arrayContaining([
+        "run", "Output exactly: OPEN_CODE_OK"
+      ])
     );
   });
 
   it("skips the OpenCode health check during dry runs", async () => {
-    vi.mocked(spawn).mockResolvedValue({
-      stdout: "",
-      stderr: "",
-      exitCode: 0
-    });
-    const { context } = createProviderTestContext(vi.fn(), { dryRun: true });
+    const runCommand = vi.fn();
+    const { context } = createProviderTestContext(runCommand, { dryRun: true });
 
     await opencodeService.openCodeService.test?.(context);
 
-    expect(spawn).toHaveBeenCalledWith(
-      "opencode",
-      expect.anything(),
-      expect.objectContaining({ dryRun: true })
-    );
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("includes stdout and stderr when the OpenCode health check command fails", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: "OPEN_FAIL_STDOUT\n",
       stderr: "OPEN_FAIL_STDERR\n",
       exitCode: 1
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(
       opencodeService.openCodeService.test?.(context)
@@ -307,12 +290,12 @@ describe("opencode service", () => {
   });
 
   it("includes stdout and stderr when the OpenCode health check output is unexpected", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: "MISCONFIG\n",
       stderr: "ALERT\n",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(
       opencodeService.openCodeService.test?.(context)

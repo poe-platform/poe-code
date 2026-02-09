@@ -1,5 +1,5 @@
 import type { CommandRunner, CommandRunnerResult } from "@poe-code/agent-spawn";
-import { spawn } from "@poe-code/agent-spawn";
+import { buildSpawnArgs } from "@poe-code/agent-spawn";
 
 export type {
   CommandRunner,
@@ -139,21 +139,23 @@ export function createSpawnHealthCheck(
   options: { model?: string; expectedOutput: string }
 ): CommandCheck {
   const prompt = `Output exactly: ${options.expectedOutput}`;
+  const { binaryName, args } = buildSpawnArgs(agentId, {
+    prompt,
+    model: options.model,
+    mode: "yolo"
+  });
   return {
     id: `${agentId}-cli-health`,
     description: `spawn ${agentId} (expecting "${options.expectedOutput}")`,
     async run(context) {
-      const spawnContext = context.isDryRun
-        ? { dryRun: true, logger: context.logDryRun ? { dryRun: context.logDryRun } : undefined }
-        : undefined;
+      if (context.isDryRun) {
+        context.logDryRun?.(
+          `Dry run: ${[binaryName, ...args].join(" ")} (expecting "${options.expectedOutput}")`
+        );
+        return;
+      }
 
-      const result = await spawn(agentId, {
-        prompt,
-        model: options.model,
-        mode: "yolo"
-      }, spawnContext);
-
-      if (context.isDryRun) return;
+      const result = await context.runCommand(binaryName, args);
 
       if (result.exitCode !== 0) {
         throw new Error(

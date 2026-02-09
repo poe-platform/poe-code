@@ -7,17 +7,10 @@ import { createCliEnvironment } from "../cli/environment.js";
 import { createTestCommandContext } from "../../tests/test-command-context.js";
 import {
   CLAUDE_CODE_VARIANTS,
-  DEFAULT_CLAUDE_CODE_MODEL,
   stripModelNamespace
 } from "../cli/constants.js";
 import { createLoggerFactory } from "../cli/logger.js";
 import { createMockFs } from "@poe-code/config-mutations/testing";
-import { spawn } from "@poe-code/agent-spawn";
-
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return { ...actual, spawn: vi.fn() };
-});
 
 const resolveVariantModel = (
   variant: keyof typeof CLAUDE_CODE_VARIANTS
@@ -260,51 +253,41 @@ describe("claude-code service", () => {
     });
   });
 
-  it("runs the Claude CLI health check via spawn when invoking the provider test", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+  it("runs the Claude CLI health check via runCommand when invoking the provider test", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"CLAUDE_CODE_OK"}\n',
       stderr: "",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await claudeService.claudeCodeService.test?.(context);
 
-    expect(spawn).toHaveBeenCalledWith(
-      "claude-code",
-      expect.objectContaining({
-        prompt: "Output exactly: CLAUDE_CODE_OK",
-        model: DEFAULT_CLAUDE_CODE_MODEL,
-        mode: "yolo"
-      }),
-      undefined
+    expect(runCommand).toHaveBeenCalledWith(
+      "claude",
+      expect.arrayContaining([
+        "-p", "Output exactly: CLAUDE_CODE_OK",
+        "--model", expect.stringContaining("claude-opus")
+      ])
     );
   });
 
   it("skips the Claude health check during dry runs", async () => {
-    vi.mocked(spawn).mockResolvedValue({
-      stdout: "",
-      stderr: "",
-      exitCode: 0
-    });
-    const { context } = createProviderTestContext(vi.fn(), { dryRun: true });
+    const runCommand = vi.fn();
+    const { context } = createProviderTestContext(runCommand, { dryRun: true });
 
     await claudeService.claudeCodeService.test?.(context);
 
-    expect(spawn).toHaveBeenCalledWith(
-      "claude-code",
-      expect.anything(),
-      expect.objectContaining({ dryRun: true })
-    );
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("includes stdout and stderr when the Claude health check command fails", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: "FAIL_STDOUT\n",
       stderr: "FAIL_STDERR\n",
       exitCode: 1
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(
       claudeService.claudeCodeService.test?.(context)
@@ -312,12 +295,12 @@ describe("claude-code service", () => {
   });
 
   it("includes stdout and stderr when the Claude health check output is unexpected", async () => {
-    vi.mocked(spawn).mockResolvedValue({
+    const runCommand = vi.fn().mockResolvedValue({
       stdout: "WRONG\n",
       stderr: "WARN\n",
       exitCode: 0
     });
-    const { context } = createProviderTestContext(vi.fn());
+    const { context } = createProviderTestContext(runCommand);
 
     await expect(
       claudeService.claudeCodeService.test?.(context)

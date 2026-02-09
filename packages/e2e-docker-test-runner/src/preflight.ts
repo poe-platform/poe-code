@@ -110,6 +110,11 @@ function checkDaemonRunning(engine: Engine): CheckResult {
       }
     }
 
+    // Try to auto-start Docker Desktop if available (macOS only)
+    if (tryStartDockerDesktop()) {
+      return { name: 'Docker daemon running', passed: true, message: 'Started Docker Desktop' };
+    }
+
     return {
       name: 'Docker daemon running',
       passed: false,
@@ -137,6 +142,37 @@ function tryStartColima(): boolean {
       execSync('colima start', { stdio: 'inherit', timeout: 120000 });
       return true;
     }
+  } catch {
+    return false;
+  }
+}
+
+function tryStartDockerDesktop(): boolean {
+  if (process.platform !== 'darwin') {
+    return false;
+  }
+
+  try {
+    execSync('test -d "/Applications/Docker.app"', { stdio: 'ignore' });
+  } catch {
+    return false;
+  }
+
+  try {
+    console.log(chalk.dim('Starting Docker Desktop...'));
+    execSync('open -a Docker', { stdio: 'ignore' });
+
+    // Poll for daemon readiness (up to 60 seconds)
+    for (let i = 0; i < 30; i++) {
+      try {
+        execSync('docker info', { stdio: 'ignore' });
+        return true;
+      } catch {
+        execSync('sleep 2', { stdio: 'ignore' });
+      }
+    }
+
+    return false;
   } catch {
     return false;
   }

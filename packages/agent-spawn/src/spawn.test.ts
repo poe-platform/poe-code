@@ -253,6 +253,23 @@ describe("spawn", () => {
     ]);
   });
 
+  it("returns early without spawning when dryRun is true", async () => {
+    const spawnMock = vi.mocked(spawnChildProcess);
+    const dryRunMessages: string[] = [];
+
+    const result = await spawn("claude-code", { prompt: "test" }, {
+      dryRun: true,
+      logger: { dryRun: (msg) => dryRunMessages.push(msg) }
+    });
+
+    expect(spawnMock).not.toHaveBeenCalled();
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toBe("");
+    expect(dryRunMessages).toHaveLength(1);
+    expect(dryRunMessages[0]).toContain("claude");
+  });
+
   it("falls back to prompt args when stdin is unsupported", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
       createMockChildProcess({ stdout: "ok\n", exitCode: 0 })

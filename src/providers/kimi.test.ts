@@ -17,6 +17,12 @@ import {
   parseToml,
   serializeToml
 } from "@poe-code/config-mutations/testing";
+import { spawn } from "@poe-code/agent-spawn";
+
+vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
+  return { ...actual, spawn: vi.fn() };
+});
 
 const withProviderPrefix = (model: string): string =>
   `${PROVIDER_NAME}/${stripModelNamespace(model)}`;
@@ -304,49 +310,50 @@ describe("kimi service", () => {
     });
   });
 
-  it("runs the Kimi health check when test is invoked", async () => {
-    const runCommand = vi.fn(async () => ({
-      stdout: "KIMI_OK\n",
+  it("runs the Kimi health check via spawn when test is invoked", async () => {
+    vi.mocked(spawn).mockResolvedValue({
+      stdout: '{"type":"text","text":"KIMI_OK"}\n',
       stderr: "",
       exitCode: 0
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await kimiService.kimiService.test?.(context);
 
-    expect(runCommand).toHaveBeenCalledWith("kimi", [
-      "-p",
-      "Output exactly: KIMI_OK",
-      "--print",
-      "--output-format",
-      "stream-json",
-      "--yolo"
-    ]);
+    expect(spawn).toHaveBeenCalledWith(
+      "kimi",
+      expect.objectContaining({
+        prompt: "Output exactly: KIMI_OK",
+        mode: "yolo"
+      }),
+      undefined
+    );
   });
 
   it("skips the Kimi health check during dry runs", async () => {
-    const runCommand = vi.fn();
-    const { context, logs } = createProviderTestContext(runCommand, {
-      dryRun: true
+    vi.mocked(spawn).mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
     });
+    const { context } = createProviderTestContext(vi.fn(), { dryRun: true });
 
     await kimiService.kimiService.test?.(context);
 
-    expect(runCommand).not.toHaveBeenCalled();
-    expect(
-      logs.find((line) =>
-        line.includes('kimi -p "Output exactly: KIMI_OK"')
-      )
-    ).toBeTruthy();
+    expect(spawn).toHaveBeenCalledWith(
+      "kimi",
+      expect.anything(),
+      expect.objectContaining({ dryRun: true })
+    );
   });
 
   it("includes stdout and stderr when the Kimi health check command fails", async () => {
-    const runCommand = vi.fn(async () => ({
+    vi.mocked(spawn).mockResolvedValue({
       stdout: "KIMI_FAIL_STDOUT\n",
       stderr: "KIMI_FAIL_STDERR\n",
       exitCode: 1
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await expect(
       kimiService.kimiService.test?.(context)
@@ -354,16 +361,16 @@ describe("kimi service", () => {
   });
 
   it("includes stdout and stderr when the Kimi health check output is unexpected", async () => {
-    const runCommand = vi.fn(async () => ({
+    vi.mocked(spawn).mockResolvedValue({
       stdout: "MISCONFIG\n",
       stderr: "ALERT\n",
       exitCode: 0
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await expect(
       kimiService.kimiService.test?.(context)
-    ).rejects.toThrow(/expected "KIMI_OK" but received "MISCONFIG"/i);
+    ).rejects.toThrow(/KIMI_OK/);
   });
 
   it("removes the Poe provider from config on remove", async () => {

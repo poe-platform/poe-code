@@ -1,5 +1,5 @@
 import type { CommandRunner, CommandRunnerResult } from "@poe-code/agent-spawn";
-import { buildSpawnArgs } from "@poe-code/agent-spawn";
+import { spawn } from "@poe-code/agent-spawn";
 
 export type {
   CommandRunner,
@@ -138,17 +138,36 @@ export function createSpawnHealthCheck(
   agentId: string,
   options: { model?: string; expectedOutput: string }
 ): CommandCheck {
-  const { binaryName, args } = buildSpawnArgs(agentId, {
-    prompt: `Output exactly: ${options.expectedOutput}`,
-    model: options.model,
-    mode: "yolo"
-  });
-  return createCommandExpectationCheck({
+  const prompt = `Output exactly: ${options.expectedOutput}`;
+  return {
     id: `${agentId}-cli-health`,
-    command: binaryName,
-    args,
-    expectedOutput: options.expectedOutput
-  });
+    description: `spawn ${agentId} (expecting "${options.expectedOutput}")`,
+    async run(context) {
+      const spawnContext = context.isDryRun
+        ? { dryRun: true, logger: context.logDryRun ? { dryRun: context.logDryRun } : undefined }
+        : undefined;
+
+      const result = await spawn(agentId, {
+        prompt,
+        model: options.model,
+        mode: "yolo"
+      }, spawnContext);
+
+      if (context.isDryRun) return;
+
+      if (result.exitCode !== 0) {
+        throw new Error(
+          `spawn ${agentId} failed with exit code ${result.exitCode}.\n${formatCommandRunnerResult(result)}`
+        );
+      }
+
+      if (!result.stdout.includes(options.expectedOutput)) {
+        throw new Error(
+          `spawn ${agentId}: expected "${options.expectedOutput}" in stdout.\n${formatCommandRunnerResult(result)}`
+        );
+      }
+    }
+  };
 }
 
 /**

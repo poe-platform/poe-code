@@ -4,8 +4,7 @@ import type { FileSystem } from "../utils/file-system.js";
 import {
   DEFAULT_FRONTIER_MODEL,
   FRONTIER_MODELS,
-  PROVIDER_NAME,
-  stripModelNamespace
+  PROVIDER_NAME
 } from "../cli/constants.js";
 import * as opencodeService from "./opencode.js";
 import { createCliEnvironment } from "../cli/environment.js";
@@ -13,6 +12,12 @@ import { createTestCommandContext } from "../../tests/test-command-context.js";
 import type { ProviderContext } from "../cli/service-registry.js";
 import { createLoggerFactory } from "../cli/logger.js";
 import { createMockFs } from "@poe-code/config-mutations/testing";
+import { spawn } from "@poe-code/agent-spawn";
+
+vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
+  return { ...actual, spawn: vi.fn() };
+});
 
 const withProviderPrefix = (model: string): string =>
   `${PROVIDER_NAME}/${model}`;
@@ -250,56 +255,51 @@ describe("opencode service", () => {
     ]);
   });
 
-  // IMPORTANT: The opencode binary health check uses bare model IDs (e.g. "claude-sonnet-4.5").
-  // Namespaced models like "anthropic/claude-sonnet-4.5" cause "model not found" errors.
-  // The health check must pass stripModelNamespace(model) — do NOT change this.
-  // Note: opencode spawn uses "poe/<model>" format via the provider, but the health check
-  // invokes the binary directly and needs the stripped form.
-  it("runs the OpenCode health check when test is invoked", async () => {
-    const runCommand = vi.fn(async () => ({
-      stdout: "OPEN_CODE_OK\n",
+  it("runs the OpenCode health check via spawn when test is invoked", async () => {
+    vi.mocked(spawn).mockResolvedValue({
+      stdout: '{"type":"text","text":"OPEN_CODE_OK"}\n',
       stderr: "",
       exitCode: 0
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await opencodeService.openCodeService.test?.(context);
 
-    expect(runCommand).toHaveBeenCalledWith("opencode", [
-      "run",
-      "Output exactly: OPEN_CODE_OK",
-      "--model",
-      stripModelNamespace(DEFAULT_FRONTIER_MODEL),
-      "--format",
-      "json"
-    ]);
+    expect(spawn).toHaveBeenCalledWith(
+      "opencode",
+      expect.objectContaining({
+        prompt: "Output exactly: OPEN_CODE_OK",
+        model: DEFAULT_FRONTIER_MODEL,
+        mode: "yolo"
+      }),
+      undefined
+    );
   });
 
   it("skips the OpenCode health check during dry runs", async () => {
-    const runCommand = vi.fn();
-    const { context, logs } = createProviderTestContext(runCommand, {
-      dryRun: true
+    vi.mocked(spawn).mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
     });
+    const { context } = createProviderTestContext(vi.fn(), { dryRun: true });
 
     await opencodeService.openCodeService.test?.(context);
 
-    expect(runCommand).not.toHaveBeenCalled();
-    expect(
-      logs.find((line) =>
-        line.includes(
-          `opencode run "Output exactly: OPEN_CODE_OK" --model ${stripModelNamespace(DEFAULT_FRONTIER_MODEL)}`
-        )
-      )
-    ).toBeTruthy();
+    expect(spawn).toHaveBeenCalledWith(
+      "opencode",
+      expect.anything(),
+      expect.objectContaining({ dryRun: true })
+    );
   });
 
   it("includes stdout and stderr when the OpenCode health check command fails", async () => {
-    const runCommand = vi.fn(async () => ({
+    vi.mocked(spawn).mockResolvedValue({
       stdout: "OPEN_FAIL_STDOUT\n",
       stderr: "OPEN_FAIL_STDERR\n",
       exitCode: 1
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await expect(
       opencodeService.openCodeService.test?.(context)
@@ -307,15 +307,15 @@ describe("opencode service", () => {
   });
 
   it("includes stdout and stderr when the OpenCode health check output is unexpected", async () => {
-    const runCommand = vi.fn(async () => ({
+    vi.mocked(spawn).mockResolvedValue({
       stdout: "MISCONFIG\n",
       stderr: "ALERT\n",
       exitCode: 0
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await expect(
       opencodeService.openCodeService.test?.(context)
-    ).rejects.toThrow(/expected "OPEN_CODE_OK" but received "MISCONFIG"/i);
+    ).rejects.toThrow(/OPEN_CODE_OK/);
   });
 });

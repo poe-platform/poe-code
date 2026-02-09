@@ -12,6 +12,12 @@ import {
 } from "../cli/constants.js";
 import { createLoggerFactory } from "../cli/logger.js";
 import { createMockFs } from "@poe-code/config-mutations/testing";
+import { spawn } from "@poe-code/agent-spawn";
+
+vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
+  return { ...actual, spawn: vi.fn() };
+});
 
 const resolveVariantModel = (
   variant: keyof typeof CLAUDE_CODE_VARIANTS
@@ -254,62 +260,51 @@ describe("claude-code service", () => {
     });
   });
 
-  // IMPORTANT: The claude binary only accepts bare model IDs (e.g. "claude-opus-4.6").
-  // Namespaced models like "anthropic/claude-opus-4.6" cause "model not found" errors.
-  // The health check must pass stripModelNamespace(model) — do NOT change this.
-  it("runs the Claude CLI health check when invoking the provider test", async () => {
-    await fs.mkdir(path.join(home, ".poe-code"), { recursive: true });
-    await fs.writeFile(
-      path.join(home, ".poe-code", "credentials.json"),
-      JSON.stringify({ apiKey: "sk-test" }),
-      { encoding: "utf8" }
-    );
-    const runCommand = vi.fn(async (command: string) => ({
-      stdout: command === "/bin/sh" ? "sk-test\n" : "CLAUDE_CODE_OK\n",
+  it("runs the Claude CLI health check via spawn when invoking the provider test", async () => {
+    vi.mocked(spawn).mockResolvedValue({
+      stdout: '{"type":"text","text":"CLAUDE_CODE_OK"}\n',
       stderr: "",
       exitCode: 0
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await claudeService.claudeCodeService.test?.(context);
 
-    expect(runCommand).toHaveBeenCalledWith("claude", [
-      "-p",
-      "Output exactly: CLAUDE_CODE_OK",
-      "--model",
-      stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL),
-      "--output-format",
-      "stream-json",
-      "--verbose",
-      "--dangerously-skip-permissions"
-    ]);
+    expect(spawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({
+        prompt: "Output exactly: CLAUDE_CODE_OK",
+        model: DEFAULT_CLAUDE_CODE_MODEL,
+        mode: "yolo"
+      }),
+      undefined
+    );
   });
 
   it("skips the Claude health check during dry runs", async () => {
-    const runCommand = vi.fn();
-    const { context, logs } = createProviderTestContext(runCommand, {
-      dryRun: true
+    vi.mocked(spawn).mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
     });
+    const { context } = createProviderTestContext(vi.fn(), { dryRun: true });
 
     await claudeService.claudeCodeService.test?.(context);
 
-    expect(runCommand).not.toHaveBeenCalled();
-    expect(
-      logs.find((line) =>
-        line.includes(
-          `claude -p "Output exactly: CLAUDE_CODE_OK" --model ${stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL)}`
-        )
-      )
-    ).toBeTruthy();
+    expect(spawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.anything(),
+      expect.objectContaining({ dryRun: true })
+    );
   });
 
   it("includes stdout and stderr when the Claude health check command fails", async () => {
-    const runCommand = vi.fn(async () => ({
+    vi.mocked(spawn).mockResolvedValue({
       stdout: "FAIL_STDOUT\n",
       stderr: "FAIL_STDERR\n",
       exitCode: 1
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await expect(
       claudeService.claudeCodeService.test?.(context)
@@ -317,16 +312,16 @@ describe("claude-code service", () => {
   });
 
   it("includes stdout and stderr when the Claude health check output is unexpected", async () => {
-    const runCommand = vi.fn(async () => ({
+    vi.mocked(spawn).mockResolvedValue({
       stdout: "WRONG\n",
       stderr: "WARN\n",
       exitCode: 0
-    }));
-    const { context } = createProviderTestContext(runCommand);
+    });
+    const { context } = createProviderTestContext(vi.fn());
 
     await expect(
       claudeService.claudeCodeService.test?.(context)
-    ).rejects.toThrow(/expected "CLAUDE_CODE_OK" but received "WRONG"/i);
+    ).rejects.toThrow(/CLAUDE_CODE_OK/);
   });
 
   it("falls back to Windows path lookup when which is unavailable", async () => {

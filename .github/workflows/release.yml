@@ -52,6 +52,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          HUSKY: "0"
         run: npx semantic-release
   release-stable:
     runs-on: ubuntu-latest
@@ -80,6 +81,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          HUSKY: "0"
         run: npx semantic-release
       - name: Sync beta with main
         if: always()

@@ -9,6 +9,7 @@ export interface AgentMcpConfig {
   configKey: string;
   format: ConfigFormat;
   shape: ShapeName;
+  mcpOutputFormat?: string;
 }
 
 const agentMcpConfigs: Record<string, AgentMcpConfig> = {
@@ -31,7 +32,8 @@ const agentMcpConfigs: Record<string, AgentMcpConfig> = {
     },
     configKey: "mcpServers",
     format: "json",
-    shape: "standard"
+    shape: "standard",
+    mcpOutputFormat: "markdown"
   },
   codex: {
     configFile: "~/.codex/config.toml",

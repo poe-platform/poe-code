@@ -264,6 +264,31 @@ describe("mcp command", () => {
     expect(entry.config.args).not.toContain("--agent");
   });
 
+  it("includes --output-format when agent config has mcpOutputFormat", async () => {
+    resolveAgentSupportMock.mockReturnValue({
+      status: "supported",
+      input: "claude-desktop",
+      id: "claude-desktop",
+      config: { mcpOutputFormat: "markdown" }
+    });
+    const { program } = createMcpProgram();
+    await program.parseAsync(["node", "cli", "mcp", "configure", "claude-desktop"]);
+
+    expect(configureMock).toHaveBeenCalledTimes(1);
+    const [, entry] = configureMock.mock.calls[0] ?? [];
+    expect(entry.config.args).toContain("--output-format");
+    expect(entry.config.args).toContain("markdown");
+  });
+
+  it("omits --output-format when agent config has no mcpOutputFormat", async () => {
+    const { program } = createMcpProgram();
+    await program.parseAsync(["node", "cli", "mcp", "configure", "claude-code"]);
+
+    expect(configureMock).toHaveBeenCalledTimes(1);
+    const [, entry] = configureMock.mock.calls[0] ?? [];
+    expect(entry.config.args).not.toContain("--output-format");
+  });
+
   it("rejects agents that are known but not supported for MCP", async () => {
     resolveAgentSupportMock.mockReturnValue({
       status: "unsupported",

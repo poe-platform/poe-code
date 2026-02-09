@@ -21,15 +21,19 @@ import {
 
 const DEFAULT_MCP_AGENT = "claude-code";
 
-function createMcpServerEntry(): McpServerEntry {
+function createMcpServerEntry(mcpOutputFormat?: string): McpServerEntry {
   const context = getCurrentExecutionContext(import.meta.url);
   const mcpCommand = toMcpServerCommand(context.command, "mcp");
+  const args = [...mcpCommand.args, "serve"];
+  if (mcpOutputFormat) {
+    args.push("--output-format", mcpOutputFormat);
+  }
   return {
     name: "poe-code",
     config: {
       transport: "stdio",
       command: mcpCommand.command,
-      args: [...mcpCommand.args, "serve"]
+      args
     }
   };
 }
@@ -118,7 +122,7 @@ export function registerMcpCommand(
       }
 
       const resolvedAgent = support.id ?? agent;
-      await configure(resolvedAgent, createMcpServerEntry(), {
+      await configure(resolvedAgent, createMcpServerEntry(support.config?.mcpOutputFormat), {
         fs: container.fs,
         homeDir: container.env.homeDir,
         platform: process.platform as "darwin" | "linux" | "win32",

@@ -48,6 +48,8 @@ Use docs/SNAPSHOT_TESTING.md
 
 Releases are always done on github, not locally
 
+See NPM_PUBLISHING.md
+
 ## Configure commands / Providers
 
 Regexes are not allowed. When modifying existing files, you must parse them and deep merge them. If you run into unsupported file e.g. yaml, install parser library.
@@ -55,6 +57,10 @@ Regexes are not allowed. When modifying existing files, you must parse them and 
 The Providers should have as little as possible boilerplate, keep them simple, declarative. They should not know anything about logging, dry run.
 
 Providers must be declarative and minimal: you are not allowed to add repeated information that can be inferred from existing config.
+
+### Testing - test command
+
+The whole point of the test command is to test spawn and not work around it.
 
 ## Readme
 

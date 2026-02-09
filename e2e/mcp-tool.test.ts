@@ -4,9 +4,9 @@ import { join } from 'node:path';
 
 const repoRoot = join(import.meta.dirname, '..');
 
-// The MCP server command - using the globally installed command
-const MCP_SERVER_COMMAND = 'tiny-stdio-mcp-test-server';
-const MCP_SERVER_ARGS = ['serve', 'word-of-the-day'];
+// The MCP server command - using npx to run the published package
+const MCP_SERVER_COMMAND = 'npx';
+const MCP_SERVER_ARGS = ['tiny-stdio-mcp-test-server', 'serve', 'word-of-the-day'];
 
 interface AgentMcpTestConfig {
   name: string;
@@ -51,7 +51,7 @@ function buildMcpServerConfig(format: 'json' | 'toml', configKey: string): strin
     return `
 [${configKey}.tiny-stdio-mcp-test-server]
 command = "${MCP_SERVER_COMMAND}"
-args = ["serve", "word-of-the-day"]
+args = ["tiny-stdio-mcp-test-server", "serve", "word-of-the-day"]
 `;
   }
 

@@ -77,10 +77,17 @@ describe("mcp command", () => {
     it("includes JSON config and tools documentation", async () => {
       const { program } = createMcpProgram();
       let helpOutput = "";
-      program.configureOutput({
+      const outputConfig = {
         writeOut: (str: string) => { helpOutput += str; },
         writeErr: (str: string) => { helpOutput += str; }
-      });
+      };
+      program.configureOutput(outputConfig);
+      for (const cmd of program.commands) {
+        cmd.configureOutput(outputConfig);
+        for (const sub of cmd.commands) {
+          sub.configureOutput(outputConfig);
+        }
+      }
 
       try {
         await program.parseAsync(["node", "cli", "mcp", "serve", "--help"]);

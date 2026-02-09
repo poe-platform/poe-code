@@ -31,14 +31,18 @@ describe("skill command", () => {
       suppressCommanderOutput: true
     });
 
-    program.configureOutput({
+    const outputConfig = {
       writeOut: (str: string) => {
         helpOutput += str;
       },
       writeErr: (str: string) => {
         helpOutput += str;
       }
-    });
+    };
+    program.configureOutput(outputConfig);
+    for (const cmd of program.commands) {
+      cmd.configureOutput(outputConfig);
+    }
 
     try {
       await program.parseAsync(["node", "cli", "skill"]);

@@ -293,7 +293,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
 
-  program.action(function (this: Command) {
+  program.allowExcessArguments().action(function (this: Command) {
     const args = this.args;
     if (args.length > 0) {
       throwCommandNotFound({

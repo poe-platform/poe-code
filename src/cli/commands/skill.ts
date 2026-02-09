@@ -30,6 +30,7 @@ export function registerSkillCommand(
     .command("skill")
     .description("Skill directory commands")
     .addHelpText("after", buildHelpText())
+    .allowExcessArguments()
     .action(function (this: Command) {
       if (this.args.length > 0) {
         throwCommandNotFound({

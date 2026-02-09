@@ -54,6 +54,7 @@ export function registerMcpCommand(
     .command("mcp")
     .description("MCP server commands")
     .addHelpText("after", buildHelpText())
+    .allowExcessArguments()
     .action(function (this: Command) {
       if (this.args.length > 0) {
         throwCommandNotFound({

@@ -24,6 +24,8 @@ const templateImports = {
   skillPlan: () => import("../../templates/ralph/SKILL_plan.md"),
   promptPlan: () => import("../../templates/ralph/PROMPT_plan.md"),
   promptBuild: () => import("../../templates/ralph/PROMPT_build.md"),
+  refGuardrails: () => import("../../templates/ralph/references/GUARDRAILS.md"),
+  refContextEngineering: () => import("../../templates/ralph/references/CONTEXT_ENGINEERING.md"),
   stateProgress: () => import("../../templates/ralph/state/progress.md"),
   stateGuardrails: () => import("../../templates/ralph/state/guardrails.md"),
   stateErrors: () => import("../../templates/ralph/state/errors.log"),
@@ -36,6 +38,8 @@ async function loadRalphTemplates() {
     skillPlan,
     promptPlan,
     promptBuild,
+    refGuardrails,
+    refContextEngineering,
     stateProgress,
     stateGuardrails,
     stateErrors,
@@ -45,6 +49,8 @@ async function loadRalphTemplates() {
     templateImports.skillPlan(),
     templateImports.promptPlan(),
     templateImports.promptBuild(),
+    templateImports.refGuardrails(),
+    templateImports.refContextEngineering(),
     templateImports.stateProgress(),
     templateImports.stateGuardrails(),
     templateImports.stateErrors(),
@@ -55,6 +61,8 @@ async function loadRalphTemplates() {
     skillPlan: skillPlan.default,
     promptPlan: promptPlan.default,
     promptBuild: promptBuild.default,
+    refGuardrails: refGuardrails.default,
+    refContextEngineering: refContextEngineering.default,
     stateProgress: stateProgress.default,
     stateGuardrails: stateGuardrails.default,
     stateErrors: stateErrors.default,
@@ -212,6 +220,16 @@ async function installRalphTemplates(args: {
         targetPath: path.join(cwd, ".agents", "poe-code-ralph", "PROMPT_build.md"),
         displayPath: ".agents/poe-code-ralph/PROMPT_build.md",
         contents: templates.promptBuild
+      },
+      {
+        targetPath: path.join(cwd, ".agents", "poe-code-ralph", "references", "GUARDRAILS.md"),
+        displayPath: ".agents/poe-code-ralph/references/GUARDRAILS.md",
+        contents: templates.refGuardrails
+      },
+      {
+        targetPath: path.join(cwd, ".agents", "poe-code-ralph", "references", "CONTEXT_ENGINEERING.md"),
+        displayPath: ".agents/poe-code-ralph/references/CONTEXT_ENGINEERING.md",
+        contents: templates.refContextEngineering
       }
     ];
 

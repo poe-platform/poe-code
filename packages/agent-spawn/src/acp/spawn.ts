@@ -3,6 +3,7 @@ import { getAdapter } from "../adapters/index.js";
 import type { AcpEvent } from "./types.js";
 import { readLines } from "./line-reader.js";
 import { resolveConfig } from "../configs/resolve-config.js";
+import { stripModelNamespace } from "../model-utils.js";
 import type { SpawnOptions, SpawnResult, SpawnUsage } from "../types.js";
 
 export interface SpawnStreamingOptions extends SpawnOptions {
@@ -53,7 +54,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   }
 
   if (options.model && spawnConfig.modelFlag) {
-    args.push(spawnConfig.modelFlag, options.model);
+    args.push(spawnConfig.modelFlag, stripModelNamespace(options.model));
   }
 
   args.push(...spawnConfig.defaultArgs);

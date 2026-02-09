@@ -1,5 +1,6 @@
 import { spawn as spawnChildProcess } from "node:child_process";
 import { resolveConfig } from "./configs/resolve-config.js";
+import { stripModelNamespace } from "./model-utils.js";
 import type { SpawnOptions, SpawnResult } from "./types.js";
 
 export async function spawnInteractive(
@@ -38,7 +39,7 @@ export async function spawnInteractive(
   }
 
   if (options.model && spawnConfig.modelFlag) {
-    args.push(spawnConfig.modelFlag, options.model);
+    args.push(spawnConfig.modelFlag, stripModelNamespace(options.model));
   }
 
   args.push(...interactive.defaultArgs);

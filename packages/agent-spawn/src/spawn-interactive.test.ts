@@ -146,6 +146,18 @@ describe("spawnInteractive", () => {
     ]);
   });
 
+  it("strips provider namespace from model before passing to CLI", async () => {
+    const spawnMock = vi
+      .mocked(spawnChildProcess)
+      .mockReturnValue(createMockInheritProcess(0));
+
+    await spawnInteractive("claude-code", { prompt: "test", model: "anthropic/claude-opus-4.6" });
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toContain("claude-opus-4.6");
+    expect(args).not.toContain("anthropic/claude-opus-4.6");
+  });
+
   it("spawns with stdio inherit for all streams", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)

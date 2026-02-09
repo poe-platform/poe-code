@@ -1,5 +1,6 @@
 import { spawn as spawnChildProcess } from "node:child_process";
 import { resolveConfig } from "./configs/resolve-config.js";
+import { stripModelNamespace } from "./model-utils.js";
 import type { SpawnContext, SpawnOptions, SpawnResult } from "./types.js";
 
 export async function spawn(
@@ -34,7 +35,7 @@ export async function spawn(
     : [spawnConfig.promptFlag, options.prompt];
 
   if (options.model && spawnConfig.modelFlag) {
-    args.push(spawnConfig.modelFlag, options.model);
+    args.push(spawnConfig.modelFlag, stripModelNamespace(options.model));
   }
 
   args.push(...spawnConfig.defaultArgs);

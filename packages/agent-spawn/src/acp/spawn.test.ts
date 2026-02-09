@@ -166,6 +166,30 @@ describe("acp/spawnStreaming", () => {
     expect(mock.getStdin()).toBe("hello from stdin");
   });
 
+  it("strips provider namespace from model before passing to CLI", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({ type: "system", subtype: "init", session_id: "s1" }),
+      ],
+      exitCode: 0
+    });
+
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { events, done } = spawnStreaming({
+      agentId: "claude-code",
+      prompt: "test",
+      model: "anthropic/claude-opus-4.6"
+    });
+
+    await collect(events);
+    await done;
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toContain("claude-opus-4.6");
+    expect(args).not.toContain("anthropic/claude-opus-4.6");
+  });
+
   it("throws on unknown agentId before spawning", () => {
     const spawnMock = vi.mocked(spawnChildProcess);
     expect(() =>

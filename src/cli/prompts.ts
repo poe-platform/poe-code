@@ -43,7 +43,7 @@ export function createPromptLibrary(): PromptLibrary {
     loginApiKey: () =>
       describe({
         name: "apiKey",
-        message: "Enter your Poe API key (get one at https://poe.com/api_key)",
+        message: "Enter your Poe API key (get one at https://poe.com/api/key)",
         type: "password"
       }),
     model: ({ label, defaultValue, choices }) => {

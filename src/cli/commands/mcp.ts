@@ -92,6 +92,17 @@ export function registerMcpCommand(
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");
 
+      const existingKey = await loadCredentials({
+        fs: container.fs,
+        filePath: container.env.credentialsPath
+      });
+
+      if (!existingKey) {
+        resources.logger.intro("login");
+        await container.options.resolveApiKey({ dryRun: flags.dryRun });
+        resources.logger.success("Logged in.");
+      }
+
       let agent = agentArg;
       if (!agent) {
         if (options.yes) {

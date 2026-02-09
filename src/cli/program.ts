@@ -9,6 +9,7 @@ import { registerConfigureCommand } from "./commands/configure.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
 import { registerWrapCommand } from "./commands/wrap.js";
 import { registerLoginCommand } from "./commands/login.js";
+import { registerLogoutCommand } from "./commands/logout.js";
 import { registerInstallCommand } from "./commands/install.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
@@ -58,6 +59,11 @@ function formatHelpText(input: {
         name: "unconfigure",
         args: "<agent>",
         description: "Remove a previously applied configuration"
+      },
+      {
+        name: "logout",
+        args: "",
+        description: "Remove all configuration and stored credentials"
       },
       {
         name: "spawn",
@@ -287,6 +293,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerTestCommand(program, container);
   registerUnconfigureCommand(program, container);
   registerLoginCommand(program, container);
+  registerLogoutCommand(program, container);
   registerMcpCommand(program, container);
   registerSkillCommand(program, container);
   registerRalphCommand(program, container);

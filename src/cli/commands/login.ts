@@ -61,8 +61,8 @@ export function registerLoginCommand(
         });
 
         resources.context.complete({
-          success: `Poe API key stored at ${container.env.credentialsPath}.`,
-          dry: `Dry run: would store Poe API key at ${container.env.credentialsPath}.`
+          success: "Logged in.",
+          dry: "Dry run: would save API key."
         });
 
         resources.context.finalize();

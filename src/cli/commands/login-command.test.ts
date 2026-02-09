@@ -58,9 +58,7 @@ describe("login command", () => {
     );
     expect(prompts).not.toHaveBeenCalled();
     expect(
-      logs.some((message) =>
-        message.includes(`Poe API key stored at ${credentialsPath}.`)
-      )
+      logs.some((message) => message.includes("Logged in."))
     ).toBe(true);
 
     await expect(fs.stat(`${homeDir}/.claude/settings.json`)).rejects.toBeTruthy();
@@ -192,7 +190,7 @@ describe("login command", () => {
     await expect(fs.readFile(credentialsPath, "utf8")).rejects.toThrow();
     expect(
       logs.some((message) =>
-        message.includes(`Dry run: would store Poe API key at ${credentialsPath}.`)
+        message.includes("Dry run: would save API key.")
       )
     ).toBe(true);
   });

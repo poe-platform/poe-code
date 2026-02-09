@@ -221,6 +221,29 @@ describe("mcp command", () => {
     ).rejects.toThrow("empty");
   });
 
+  it("shows login screen and prompts for API key when credentials are missing for configure", async () => {
+    const volume = new Volume();
+    volume.mkdirSync(homeDir, { recursive: true });
+    volume.mkdirSync(cwd, { recursive: true });
+    const noCredentialsFs = createFsFromVolume(volume).promises as unknown as FileSystem;
+    const logs: string[] = [];
+    const prompts = vi.fn().mockResolvedValue({ apiKey: "test-key" });
+    const program = createProgram({
+      fs: noCredentialsFs,
+      prompts,
+      env: { cwd, homeDir, variables: {} },
+      logger: (message) => { logs.push(message); },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "mcp", "configure", "claude-desktop"]);
+
+    expect(prompts).toHaveBeenCalled();
+    expect(logs.some(m => m.includes("login"))).toBe(true);
+    expect(logs.some(m => m.includes("Logged in"))).toBe(true);
+    expect(configureMock).toHaveBeenCalled();
+  });
+
   it("rejects invalid agent names for configure", async () => {
     resolveAgentSupportMock.mockReturnValue({
       status: "unknown",

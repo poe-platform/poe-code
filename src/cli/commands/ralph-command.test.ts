@@ -77,6 +77,8 @@ describe("ralph build command", () => {
     vi.restoreAllMocks();
     clackSelect.mockReset();
     clackIsCancel.mockReset();
+    designSelect.mockReset();
+    designIsCancel.mockReset();
     vi.mocked(ralphBuild).mockClear();
     vi.mocked(ralphPlan).mockClear();
     vi.mocked(logActivity).mockClear();
@@ -86,6 +88,8 @@ describe("ralph build command", () => {
     const fs = createMemFs({
       "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
     });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -188,6 +192,8 @@ describe("ralph build command", () => {
     const fs = createMemFs({
       "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
     });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -246,6 +252,8 @@ describe("ralph build command", () => {
     const fs = createMemFs({
       "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
     });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),

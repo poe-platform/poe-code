@@ -478,22 +478,6 @@ export function registerRalphCommand(
           throw new ValidationError(message);
         }
 
-        let planPath: string | null;
-        try {
-          planPath = await resolvePlanPath({
-            cwd: container.env.cwd,
-            plan: options.plan ?? config.planPath,
-            fs: container.fs as any
-          });
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          throw new ValidationError(message);
-        }
-
-        if (!planPath) {
-          return;
-        }
-
         const maxIterations =
           typeof iterations === "string" ? resolveIterations(iterations) : config.maxIterations ?? 25;
         const agent = options.agent?.trim() ? options.agent.trim() : config.agent ?? "codex";
@@ -510,11 +494,28 @@ export function registerRalphCommand(
 
         const cwd = container.env.cwd;
 
-        resources.logger.info(`Plan:       ${planPath}`);
         resources.logger.info(`Agent:      ${agent}`);
         resources.logger.info(`Iterations: ${maxIterations}`);
         if (noCommit) resources.logger.info("No-commit:  true");
         if (worktree) resources.logger.info(`Worktree:   ${worktree.name ?? "(auto)"}`);
+
+        let planPath: string | null;
+        try {
+          planPath = await resolvePlanPath({
+            cwd: container.env.cwd,
+            plan: options.plan ?? config.planPath,
+            fs: container.fs as any
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          throw new ValidationError(message);
+        }
+
+        if (!planPath) {
+          return;
+        }
+
+        resources.logger.info(`Plan:       ${planPath}`);
 
         try {
           const planContent = await container.fs.readFile(

@@ -500,7 +500,7 @@ export function registerRalphCommand(
         ];
         if (noCommit) configLines.push("No-commit: true");
         if (worktree) configLines.push(`Worktree: ${worktree.name ?? "(auto)"}`);
-        resources.logger.resolved("Config", configLines.join("\n"));
+        resources.logger.resolved("Config", configLines.join("\n   "));
 
         let planPath: string | null;
         try {

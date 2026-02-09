@@ -74,7 +74,7 @@
     "yaml": "^2.8.2"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@poe-code/agent-spawn": "*",
     "@poe-code/config-mutations": "*",
     "@poe-code/design-system": "*",

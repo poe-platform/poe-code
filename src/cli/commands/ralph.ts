@@ -510,11 +510,13 @@ export function registerRalphCommand(
           return;
         }
 
-        resources.logger.resolved("Agent", agent);
-        resources.logger.resolved("Iterations", String(maxIterations));
-        resources.logger.resolved("Plan", planPath);
-        if (noCommit) resources.logger.resolved("No-commit", "true");
-        if (worktree) resources.logger.resolved("Worktree", worktree.name ?? "(auto)");
+        const configLines = [
+          `Agent: ${agent}`,
+          `Iterations: ${maxIterations}`,
+          `Plan: ${planPath}`
+        ];
+        if (noCommit) configLines.push("No-commit: true");
+        if (worktree) configLines.push(`Worktree: ${worktree.name ?? "(auto)"}`);
 
         try {
           const planContent = await container.fs.readFile(
@@ -526,10 +528,12 @@ export function registerRalphCommand(
           const done = plan.stories.filter((s) => s.status === "done").length;
           const inProgress = plan.stories.filter((s) => s.status === "in_progress").length;
           const open = total - done - inProgress;
-          resources.logger.resolved("Stories", `${done}/${total} done${inProgress ? `, ${inProgress} in progress` : ""}${open ? `, ${open} open` : ""}`);
+          configLines.push(`Stories: ${done}/${total} done${inProgress ? `, ${inProgress} in progress` : ""}${open ? `, ${open} open` : ""}`);
         } catch {
           // Plan file may not be parseable yet
         }
+
+        resources.logger.resolved("Config", configLines.join("\n"));
 
         await ralphBuild({
           planPath,

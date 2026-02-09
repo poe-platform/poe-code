@@ -24,7 +24,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/tiny-mcp-server"
+    "directory": "packages/tiny-stdio-mcp-server"
   },
   "license": "MIT",
   "keywords": [

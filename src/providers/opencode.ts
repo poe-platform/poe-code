@@ -5,7 +5,7 @@ import {
 } from "../cli/constants.js";
 import {
   createBinaryExistsCheck,
-  createCommandExpectationCheck
+  createSpawnHealthCheck
 } from "../utils/command-checks.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
@@ -110,14 +110,8 @@ export const openCodeService = createProvider({
   install: OPEN_CODE_INSTALL_DEFINITION,
   test(context) {
     return context.runCheck(
-      createCommandExpectationCheck({
-        id: "opencode-cli-health",
-        command: "opencode",
-        args: [
-          ...getModelArgs(DEFAULT_FRONTIER_MODEL),
-          "run",
-          "Output exactly: OPEN_CODE_OK"
-        ],
+      createSpawnHealthCheck("opencode", {
+        model: DEFAULT_FRONTIER_MODEL,
         expectedOutput: "OPEN_CODE_OK"
       })
     );

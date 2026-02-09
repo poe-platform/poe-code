@@ -1,7 +1,56 @@
 import { spawn as spawnChildProcess } from "node:child_process";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { stripModelNamespace } from "./model-utils.js";
-import type { SpawnContext, SpawnOptions, SpawnResult } from "./types.js";
+import type { SpawnContext, SpawnMode, SpawnOptions, SpawnResult } from "./types.js";
+
+export interface BuildSpawnArgsOptions {
+  prompt: string;
+  model?: string;
+  mode?: SpawnMode;
+  args?: string[];
+}
+
+export interface BuildSpawnArgsResult {
+  binaryName: string;
+  args: string[];
+}
+
+export function buildSpawnArgs(
+  agentId: string,
+  options: BuildSpawnArgsOptions
+): BuildSpawnArgsResult {
+  const resolved = resolveConfig(agentId);
+  const spawnConfig = resolved.spawnConfig;
+
+  if (!spawnConfig) {
+    throw new Error(`Agent "${resolved.agentId}" has no spawn config.`);
+  }
+
+  if (spawnConfig.kind !== "cli") {
+    throw new Error(`Agent "${resolved.agentId}" does not support CLI spawn.`);
+  }
+
+  if (!resolved.binaryName) {
+    throw new Error(`Agent "${resolved.agentId}" has no binaryName.`);
+  }
+
+  const args: string[] = [spawnConfig.promptFlag, options.prompt];
+
+  if (options.model && spawnConfig.modelFlag) {
+    args.push(spawnConfig.modelFlag, stripModelNamespace(options.model));
+  }
+
+  args.push(...spawnConfig.defaultArgs);
+
+  const mode = options.mode ?? "yolo";
+  args.push(...spawnConfig.modes[mode]);
+
+  if (options.args && options.args.length > 0) {
+    args.push(...options.args);
+  }
+
+  return { binaryName: resolved.binaryName, args };
+}
 
 export async function spawn(
   agentId: string,
@@ -26,28 +75,31 @@ export async function spawn(
   const stdinMode =
     options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
 
-  const args: string[] = stdinMode
-    ? [
-        spawnConfig.promptFlag,
-        ...(stdinMode.omitPrompt ? [] : [options.prompt]),
-        ...stdinMode.extraArgs
-      ]
-    : [spawnConfig.promptFlag, options.prompt];
+  let spawnArgs: string[];
+  if (stdinMode) {
+    spawnArgs = [
+      spawnConfig.promptFlag,
+      ...(stdinMode.omitPrompt ? [] : [options.prompt]),
+      ...stdinMode.extraArgs
+    ];
 
-  if (options.model && spawnConfig.modelFlag) {
-    args.push(spawnConfig.modelFlag, stripModelNamespace(options.model));
+    if (options.model && spawnConfig.modelFlag) {
+      spawnArgs.push(spawnConfig.modelFlag, stripModelNamespace(options.model));
+    }
+
+    spawnArgs.push(...spawnConfig.defaultArgs);
+
+    const mode = options.mode ?? "yolo";
+    spawnArgs.push(...spawnConfig.modes[mode]);
+
+    if (options.args && options.args.length > 0) {
+      spawnArgs.push(...options.args);
+    }
+  } else {
+    spawnArgs = buildSpawnArgs(agentId, options).args;
   }
 
-  args.push(...spawnConfig.defaultArgs);
-
-  const mode = options.mode ?? "yolo";
-  args.push(...spawnConfig.modes[mode]);
-
-  if (options.args && options.args.length > 0) {
-    args.push(...options.args);
-  }
-
-  const child = spawnChildProcess(resolved.binaryName, args, {
+  const child = spawnChildProcess(resolved.binaryName, spawnArgs, {
     cwd: options.cwd,
     stdio: [stdinMode ? "pipe" : "inherit", "pipe", "pipe"]
   });

@@ -22,6 +22,11 @@ export type {
 } from "./types.js";
 
 export { allSpawnConfigs, getSpawnConfig } from "./configs/index.js";
+export {
+  buildSpawnArgs,
+  type BuildSpawnArgsOptions,
+  type BuildSpawnArgsResult
+} from "./spawn.js";
 export { spawn } from "./spawn.js";
 export { spawnInteractive } from "./spawn-interactive.js";
 

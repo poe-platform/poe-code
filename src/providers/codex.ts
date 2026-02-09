@@ -1,7 +1,7 @@
 import type { CliEnvironment } from "../cli/environment.js";
 import {
   createBinaryExistsCheck,
-  createCommandExpectationCheck
+  createSpawnHealthCheck
 } from "../utils/command-checks.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
@@ -19,7 +19,6 @@ import {
   stripModelNamespace
 } from "../cli/constants.js";
 import { codexAgent } from "@poe-code/agent-defs";
-import { getSpawnConfig } from "@poe-code/agent-spawn";
 
 type CodexConfigureContext = {
   env: CliEnvironment;
@@ -116,22 +115,9 @@ export const codexService = createProvider<
     }
   },
   test(context) {
-    const config = getSpawnConfig("codex");
-    if (!config || config.kind !== "cli") {
-      throw new Error("codex spawn config not found");
-    }
     return context.runCheck(
-      createCommandExpectationCheck({
-        id: "codex-cli-health",
-        command: codexAgent.binaryName!,
-        args: [
-          config.modelFlag!,
-          stripModelNamespace(DEFAULT_CODEX_MODEL),
-          config.promptFlag,
-          "Output exactly: CODEX_OK",
-          "--full-auto",
-          "--skip-git-repo-check"
-        ],
+      createSpawnHealthCheck("codex", {
+        model: DEFAULT_CODEX_MODEL,
         expectedOutput: "CODEX_OK"
       })
     );

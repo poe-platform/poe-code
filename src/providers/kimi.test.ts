@@ -315,9 +315,12 @@ describe("kimi service", () => {
     await kimiService.kimiService.test?.(context);
 
     expect(runCommand).toHaveBeenCalledWith("kimi", [
-      "--quiet",
       "-p",
-      "Output exactly: KIMI_OK"
+      "Output exactly: KIMI_OK",
+      "--print",
+      "--output-format",
+      "stream-json",
+      "--yolo"
     ]);
   });
 
@@ -332,7 +335,7 @@ describe("kimi service", () => {
     expect(runCommand).not.toHaveBeenCalled();
     expect(
       logs.find((line) =>
-        line.includes('kimi --quiet -p "Output exactly: KIMI_OK"')
+        line.includes('kimi -p "Output exactly: KIMI_OK"')
       )
     ).toBeTruthy();
   });

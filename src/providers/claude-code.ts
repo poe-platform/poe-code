@@ -1,6 +1,6 @@
 import {
   createBinaryExistsCheck,
-  createCommandExpectationCheck
+  createSpawnHealthCheck
 } from "../utils/command-checks.js";
 import {
   configMutation,
@@ -16,7 +16,6 @@ import { createProvider } from "./create-provider.js";
 import type { CliEnvironment } from "../cli/environment.js";
 import type { ModelConfigureOptions } from "./spawn-options.js";
 import { claudeCodeAgent } from "@poe-code/agent-defs";
-import { getSpawnConfig } from "@poe-code/agent-spawn";
 
 type ClaudeCodeConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
@@ -87,23 +86,9 @@ export const claudeCodeService = createProvider<
     }
   },
   test(context) {
-    const config = getSpawnConfig("claude-code");
-    if (!config || config.kind !== "cli") {
-      throw new Error("claude-code spawn config not found");
-    }
     return context.runCheck(
-      createCommandExpectationCheck({
-        id: "claude-cli-health",
-        command: claudeCodeAgent.binaryName!,
-        args: [
-          config.promptFlag,
-          "Output exactly: CLAUDE_CODE_OK",
-          config.modelFlag!,
-          stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL),
-          "--output-format",
-          "text",
-          ...config.modes.yolo
-        ],
+      createSpawnHealthCheck("claude-code", {
+        model: DEFAULT_CLAUDE_CODE_MODEL,
         expectedOutput: "CLAUDE_CODE_OK"
       })
     );

@@ -1,4 +1,5 @@
 import type { CommandRunner, CommandRunnerResult } from "@poe-code/agent-spawn";
+import { buildSpawnArgs } from "@poe-code/agent-spawn";
 
 export type {
   CommandRunner,
@@ -131,6 +132,23 @@ export interface CommandCheck {
   id: string;
   description?: string;
   run(context: CommandCheckContext): Promise<void>;
+}
+
+export function createSpawnHealthCheck(
+  agentId: string,
+  options: { model?: string; expectedOutput: string }
+): CommandCheck {
+  const { binaryName, args } = buildSpawnArgs(agentId, {
+    prompt: `Output exactly: ${options.expectedOutput}`,
+    model: options.model,
+    mode: "yolo"
+  });
+  return createCommandExpectationCheck({
+    id: `${agentId}-cli-health`,
+    command: binaryName,
+    args,
+    expectedOutput: options.expectedOutput
+  });
 }
 
 /**

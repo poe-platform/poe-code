@@ -1,6 +1,6 @@
 import {
   createBinaryExistsCheck,
-  createCommandExpectationCheck
+  createSpawnHealthCheck
 } from "../utils/command-checks.js";
 import {
   configMutation,
@@ -72,10 +72,7 @@ export const kimiService = createProvider<
   },
   test(context) {
     return context.runCheck(
-      createCommandExpectationCheck({
-        id: "kimi-cli-health",
-        command: "kimi",
-        args: buildKimiArgs("Output exactly: KIMI_OK"),
+      createSpawnHealthCheck("kimi", {
         expectedOutput: "KIMI_OK"
       })
     );

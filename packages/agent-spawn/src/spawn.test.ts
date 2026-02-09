@@ -94,6 +94,7 @@ describe("spawn", () => {
       claudeCodeSpawnConfig.promptFlag,
       "test",
       ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo,
       "--extra",
       "arg"
     ]);
@@ -114,7 +115,8 @@ describe("spawn", () => {
       "hello",
       codexSpawnConfig.modelFlag,
       "o3",
-      ...codexSpawnConfig.defaultArgs
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
     ]);
   });
 
@@ -157,7 +159,8 @@ describe("spawn", () => {
     expect(args).toEqual([
       codexSpawnConfig.promptFlag,
       ...(codexSpawnConfig.stdinMode?.extraArgs ?? []),
-      ...codexSpawnConfig.defaultArgs
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
     ]);
     expect(spawnOptions).toMatchObject({
       cwd,
@@ -182,7 +185,8 @@ describe("spawn", () => {
     expect(args).toEqual([
       claudeCodeSpawnConfig.promptFlag,
       ...(claudeCodeSpawnConfig.stdinMode?.extraArgs ?? []),
-      ...claudeCodeSpawnConfig.defaultArgs
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo
     ]);
     expect(spawnOptions).toMatchObject({
       stdio: ["pipe", "pipe", "pipe"]
@@ -213,6 +217,38 @@ describe("spawn", () => {
     expect(teeStderr).toBe("agent progress");
   });
 
+  it("appends edit mode args when mode is 'edit'", async () => {
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+      createMockChildProcess({ exitCode: 0 })
+    );
+
+    await spawn("claude-code", { prompt: "test", mode: "edit" });
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      "test",
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.edit
+    ]);
+  });
+
+  it("appends read mode args when mode is 'read'", async () => {
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+      createMockChildProcess({ exitCode: 0 })
+    );
+
+    await spawn("claude-code", { prompt: "test", mode: "read" });
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      "test",
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.read
+    ]);
+  });
+
   it("falls back to prompt args when stdin is unsupported", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
       createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
@@ -226,7 +262,8 @@ describe("spawn", () => {
     expect(args).toEqual([
       openCodeSpawnConfig.promptFlag,
       "hello",
-      ...openCodeSpawnConfig.defaultArgs
+      ...openCodeSpawnConfig.defaultArgs,
+      ...openCodeSpawnConfig.modes.yolo
     ]);
     expect(spawnOptions).toMatchObject({
       stdio: ["inherit", "pipe", "pipe"]

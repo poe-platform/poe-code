@@ -115,7 +115,7 @@ describe("acp/spawnStreaming", () => {
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [command, args, spawnOptions] = spawnMock.mock.calls[0];
     expect(command).toBe("opencode");
-    expect(args).toEqual([openCodeSpawnConfig.promptFlag, "hello", ...openCodeSpawnConfig.defaultArgs]);
+    expect(args).toEqual([openCodeSpawnConfig.promptFlag, "hello", ...openCodeSpawnConfig.defaultArgs, ...openCodeSpawnConfig.modes.yolo]);
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
   });
 
@@ -161,6 +161,7 @@ describe("acp/spawnStreaming", () => {
     expect(args).toEqual([
       codexSpawnConfig.promptFlag,
       ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo,
       ...codexSpawnConfig.stdinMode!.extraArgs
     ]);
     expect(mock.getStdin()).toBe("hello from stdin");

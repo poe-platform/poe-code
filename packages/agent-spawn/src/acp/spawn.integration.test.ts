@@ -105,7 +105,8 @@ describe("acp/spawnStreaming integration", () => {
           agentId: "codex",
           adapter: "codex",
           promptFlag: mockAgentScriptPath,
-          defaultArgs: []
+          defaultArgs: [],
+          modes: { yolo: [], edit: [], read: [] }
         }
       };
     });
@@ -145,7 +146,8 @@ describe("acp/spawnStreaming integration", () => {
           agentId: "claude-code",
           adapter: "claude",
           promptFlag: mockAgentScriptPath,
-          defaultArgs: []
+          defaultArgs: [],
+          modes: { yolo: [], edit: [], read: [] }
         }
       };
     });
@@ -183,7 +185,8 @@ describe("acp/spawnStreaming integration", () => {
           agentId: "codex",
           adapter: "codex",
           promptFlag: mockAgentScriptPath,
-          defaultArgs: []
+          defaultArgs: [],
+          modes: { yolo: [], edit: [], read: [] }
         }
       };
     });
@@ -238,7 +241,8 @@ describe("acp/spawnStreaming integration", () => {
           agentId: "codex",
           adapter: "codex",
           promptFlag: mockAgentScriptPath,
-          defaultArgs: []
+          defaultArgs: [],
+          modes: { yolo: [], edit: [], read: [] }
         }
       };
     });

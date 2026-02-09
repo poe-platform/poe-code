@@ -59,6 +59,9 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
 
   args.push(...spawnConfig.defaultArgs);
 
+  const mode = options.mode ?? "yolo";
+  args.push(...spawnConfig.modes[mode]);
+
   if (useStdin) {
     args.push(...spawnConfig.stdinMode!.extraArgs);
   }

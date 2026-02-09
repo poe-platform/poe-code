@@ -40,6 +40,9 @@ export async function spawn(
 
   args.push(...spawnConfig.defaultArgs);
 
+  const mode = options.mode ?? "yolo";
+  args.push(...spawnConfig.modes[mode]);
+
   if (options.args && options.args.length > 0) {
     args.push(...options.args);
   }

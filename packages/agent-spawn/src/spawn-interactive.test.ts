@@ -60,7 +60,8 @@ describe("spawnInteractive", () => {
         agentId: "test-agent",
         adapter: "native",
         promptFlag: "-p",
-        defaultArgs: []
+        defaultArgs: [],
+        modes: { yolo: [], edit: [], read: [] }
       }
     });
 
@@ -82,7 +83,8 @@ describe("spawnInteractive", () => {
     expect(command).toBe("claude");
     expect(args).toEqual([
       "test prompt",
-      ...claudeCodeSpawnConfig.interactive!.defaultArgs
+      ...claudeCodeSpawnConfig.interactive!.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo
     ]);
   });
 
@@ -95,7 +97,7 @@ describe("spawnInteractive", () => {
 
     const [command, args] = spawnMock.mock.calls[0];
     expect(command).toBe("codex");
-    expect(args).toEqual(["test prompt", ...codexSpawnConfig.interactive!.defaultArgs]);
+    expect(args).toEqual(["test prompt", ...codexSpawnConfig.interactive!.defaultArgs, ...codexSpawnConfig.modes.yolo]);
   });
 
   it("builds flag-based prompt args for opencode", async () => {
@@ -110,7 +112,8 @@ describe("spawnInteractive", () => {
     expect(args).toEqual([
       openCodeSpawnConfig.interactive!.promptFlag,
       "test prompt",
-      ...openCodeSpawnConfig.interactive!.defaultArgs
+      ...openCodeSpawnConfig.interactive!.defaultArgs,
+      ...openCodeSpawnConfig.modes.yolo
     ]);
   });
 
@@ -126,7 +129,8 @@ describe("spawnInteractive", () => {
     expect(args).toEqual([
       kimiSpawnConfig.interactive!.promptFlag,
       "test prompt",
-      ...kimiSpawnConfig.interactive!.defaultArgs
+      ...kimiSpawnConfig.interactive!.defaultArgs,
+      ...kimiSpawnConfig.modes.yolo
     ]);
   });
 
@@ -142,7 +146,8 @@ describe("spawnInteractive", () => {
       "test",
       claudeCodeSpawnConfig.modelFlag,
       "sonnet",
-      ...claudeCodeSpawnConfig.interactive!.defaultArgs
+      ...claudeCodeSpawnConfig.interactive!.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo
     ]);
   });
 
@@ -199,7 +204,8 @@ describe("spawnInteractive", () => {
 
     const [, args] = spawnMock.mock.calls[0];
     expect(args).toEqual([
-      ...claudeCodeSpawnConfig.interactive!.defaultArgs
+      ...claudeCodeSpawnConfig.interactive!.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo
     ]);
   });
 
@@ -212,7 +218,8 @@ describe("spawnInteractive", () => {
 
     const [, args] = spawnMock.mock.calls[0];
     expect(args).toEqual([
-      ...openCodeSpawnConfig.interactive!.defaultArgs
+      ...openCodeSpawnConfig.interactive!.defaultArgs,
+      ...openCodeSpawnConfig.modes.yolo
     ]);
     expect(args).not.toContain(openCodeSpawnConfig.interactive!.promptFlag);
   });
@@ -228,6 +235,7 @@ describe("spawnInteractive", () => {
     expect(args).toEqual([
       "test",
       ...codexSpawnConfig.interactive!.defaultArgs,
+      ...codexSpawnConfig.modes.yolo,
       "--extra",
       "flag"
     ]);

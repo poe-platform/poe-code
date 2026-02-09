@@ -325,7 +325,7 @@ describe("buildLoop", () => {
     expect(updated.stories[0]?.status).toBe("open");
   });
 
-  it("logs an overbaking warning after max failures and continues by default", async () => {
+  it("auto-skips story after max failures in non-interactive mode", async () => {
     const planPath = "/.agents/tasks/plan.json";
     const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
     const errorsLogPath = "/.poe-code-ralph/errors.log";
@@ -368,7 +368,7 @@ describe("buildLoop", () => {
 
     const result = await buildLoop({
       planPath,
-      maxIterations: 3,
+      maxIterations: 10,
       maxFailures: 3,
       noCommit: true,
       agent: "codex",
@@ -390,15 +390,16 @@ describe("buildLoop", () => {
       }
     });
 
-    expect(result.iterationsCompleted).toBe(3);
+    // Agent should only be called 3 times (threshold), then story is auto-skipped
     expect(spawn).toHaveBeenCalledTimes(3);
+    expect(result.stopReason).toBe("no_actionable_stories");
 
     const errors = await fs.readFile(errorsLogPath, "utf8");
     expect(errors).toContain("[OVERBAKE]");
     expect(stderrOutput).toContain("[OVERBAKE]");
   });
 
-  it("triggers overbaking on repeated incomplete iterations", async () => {
+  it("auto-skips story after repeated incomplete iterations", async () => {
     const planPath = "/.agents/tasks/plan.json";
     const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
     const errorsLogPath = "/.poe-code-ralph/errors.log";
@@ -464,7 +465,10 @@ describe("buildLoop", () => {
       }
     });
 
-    // Overbaking should trigger after 3 consecutive incompletes
+    // Should stop after 3 attempts, not loop all 10
+    expect(spawn).toHaveBeenCalledTimes(3);
+    expect(result.stopReason).toBe("no_actionable_stories");
+
     expect(stderrOutput).toContain("[OVERBAKE]");
     expect(stderrOutput).toContain("US-001");
     const errors = await fs.readFile(errorsLogPath, "utf8");

@@ -5,7 +5,8 @@ import { lockFile } from "../lock/lock.js";
 import {
   spawnStreaming,
   renderAcpStream,
-  type AcpEvent
+  type AcpEvent,
+  type SpawnMode
 } from "@poe-code/agent-spawn";
 import { isCancel, select as clackSelect } from "@poe-code/design-system";
 import { isNotFound } from "@poe-code/config-mutations";
@@ -47,6 +48,7 @@ type SpawnFn = (
     prompt: string;
     cwd?: string;
     model?: string;
+    mode?: SpawnMode;
     args?: string[];
     useStdin?: boolean;
   }
@@ -54,12 +56,13 @@ type SpawnFn = (
 
 async function defaultStreamingSpawn(
   agentId: string,
-  options: { prompt: string; cwd?: string; useStdin?: boolean }
+  options: { prompt: string; cwd?: string; mode?: SpawnMode; useStdin?: boolean }
 ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   const { events, done } = spawnStreaming({
     agentId,
     prompt: options.prompt,
     cwd: options.cwd,
+    mode: options.mode,
     useStdin: options.useStdin
   });
 
@@ -559,6 +562,7 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
       const result = await spawn(options.agent, {
         prompt,
         cwd,
+        mode: "yolo",
         useStdin: true
       });
 
@@ -607,7 +611,9 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
       });
       stderr.write(warning);
       await appendToErrorsLog(fs, errorsLogPath, warning);
+    }
 
+    if (overbakeEvent.overbaked) {
       if (options.pauseOnOverbake) {
         overbakeAction = await promptOverbake({
           storyId: story.id,
@@ -616,7 +622,7 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
           threshold: overbakeEvent.threshold
         });
       } else {
-        overbakeAction = "continue";
+        overbakeAction = "skip";
       }
 
       if (overbakeAction === "skip") {

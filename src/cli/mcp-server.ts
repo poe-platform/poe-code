@@ -253,9 +253,25 @@ async function toPreferredMediaContent(options: {
         );
       }
 
+      const markdownInstruction = {
+        image: {
+          action: "Render this image as markdown image tag in the chat",
+          urlKey: "image_url"
+        },
+        audio: {
+          action: "Render this audio as markdown link in the chat",
+          urlKey: "audio_url"
+        },
+        video: {
+          action: "Render this video as markdown link in the chat",
+          urlKey: "video_url"
+        }
+      } as const;
+
+      const instruction = markdownInstruction[options.mediaType];
       content.push({
         type: "text",
-        text: `Render this image as markdown image tag in the chat\n\nimage_url: ${options.response.url}`
+        text: `${instruction.action}\n\n${instruction.urlKey}: ${options.response.url}`
       });
       return content;
     }

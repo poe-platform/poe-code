@@ -552,6 +552,26 @@ describe("mcp server tools", () => {
     ]);
   });
 
+  it("generate_video renders markdown_instructions when requested", async () => {
+    const { generateVideo } = await import("../mcp-server.js");
+
+    mockClient.media = vi.fn(async () => ({
+      url: "https://example.com/videos/clip.mp4",
+      mimeType: "video/mp4"
+    }));
+
+    const result = await generateVideo({ prompt: "A rocket launch" }, [
+      "markdown_instructions"
+    ]);
+
+    expect(result).toEqual([
+      {
+        type: "text",
+        text: "Render this video as markdown link in the chat\n\nvideo_url: https://example.com/videos/clip.mp4"
+      }
+    ]);
+  });
+
   it("generate_video throws when markdown output is missing a URL", async () => {
     const { generateVideo } = await import("../mcp-server.js");
 
@@ -600,6 +620,26 @@ describe("mcp server tools", () => {
 
     expect(result).toEqual([
       { type: "text", text: "[audio.mp3](https://example.com/audio/audio.mp3)" }
+    ]);
+  });
+
+  it("generate_audio renders markdown_instructions when requested", async () => {
+    const { generateAudio } = await import("../mcp-server.js");
+
+    mockClient.media = vi.fn(async () => ({
+      url: "https://example.com/audio/audio.mp3",
+      mimeType: "audio/mpeg"
+    }));
+
+    const result = await generateAudio({ prompt: "Hello world" }, [
+      "markdown_instructions"
+    ]);
+
+    expect(result).toEqual([
+      {
+        type: "text",
+        text: "Render this audio as markdown link in the chat\n\naudio_url: https://example.com/audio/audio.mp3"
+      }
     ]);
   });
 

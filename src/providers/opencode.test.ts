@@ -4,7 +4,8 @@ import type { FileSystem } from "../utils/file-system.js";
 import {
   DEFAULT_FRONTIER_MODEL,
   FRONTIER_MODELS,
-  PROVIDER_NAME
+  PROVIDER_NAME,
+  stripModelNamespace
 } from "../cli/constants.js";
 import * as opencodeService from "./opencode.js";
 import { createCliEnvironment } from "../cli/environment.js";
@@ -249,6 +250,11 @@ describe("opencode service", () => {
     ]);
   });
 
+  // IMPORTANT: The opencode binary health check uses bare model IDs (e.g. "claude-sonnet-4.5").
+  // Namespaced models like "anthropic/claude-sonnet-4.5" cause "model not found" errors.
+  // The health check must pass stripModelNamespace(model) — do NOT change this.
+  // Note: opencode spawn uses "poe/<model>" format via the provider, but the health check
+  // invokes the binary directly and needs the stripped form.
   it("runs the OpenCode health check when test is invoked", async () => {
     const runCommand = vi.fn(async () => ({
       stdout: "OPEN_CODE_OK\n",
@@ -260,10 +266,12 @@ describe("opencode service", () => {
     await opencodeService.openCodeService.test?.(context);
 
     expect(runCommand).toHaveBeenCalledWith("opencode", [
-      "--model",
-      DEFAULT_PROVIDER_MODEL,
       "run",
-      "Output exactly: OPEN_CODE_OK"
+      "Output exactly: OPEN_CODE_OK",
+      "--model",
+      stripModelNamespace(DEFAULT_FRONTIER_MODEL),
+      "--format",
+      "json"
     ]);
   });
 
@@ -279,7 +287,7 @@ describe("opencode service", () => {
     expect(
       logs.find((line) =>
         line.includes(
-          `opencode --model ${DEFAULT_PROVIDER_MODEL} run "Output exactly: OPEN_CODE_OK"`
+          `opencode run "Output exactly: OPEN_CODE_OK" --model ${stripModelNamespace(DEFAULT_FRONTIER_MODEL)}`
         )
       )
     ).toBeTruthy();

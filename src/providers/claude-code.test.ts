@@ -254,6 +254,9 @@ describe("claude-code service", () => {
     });
   });
 
+  // IMPORTANT: The claude binary only accepts bare model IDs (e.g. "claude-opus-4.6").
+  // Namespaced models like "anthropic/claude-opus-4.6" cause "model not found" errors.
+  // The health check must pass stripModelNamespace(model) — do NOT change this.
   it("runs the Claude CLI health check when invoking the provider test", async () => {
     await fs.mkdir(path.join(home, ".poe-code"), { recursive: true });
     await fs.writeFile(
@@ -276,7 +279,8 @@ describe("claude-code service", () => {
       "--model",
       stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL),
       "--output-format",
-      "text",
+      "stream-json",
+      "--verbose",
       "--dangerously-skip-permissions"
     ]);
   });

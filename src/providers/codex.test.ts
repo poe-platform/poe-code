@@ -330,6 +330,9 @@ describe("codex service", () => {
     ).rejects.toThrow();
   });
 
+  // IMPORTANT: The codex binary only accepts bare model IDs (e.g. "gpt-5.2-codex").
+  // Namespaced models like "openai/gpt-5.2-codex" cause "model not found" errors.
+  // The health check must pass stripModelNamespace(model) — do NOT change this.
   it("runs the Codex CLI health check when invoking the provider test", async () => {
     const runCommand = vi.fn(async () => ({
       stdout: "CODEX_OK\n",
@@ -341,12 +344,14 @@ describe("codex service", () => {
     await codexService.codexService.test?.(context);
 
     expect(runCommand).toHaveBeenCalledWith("codex", [
-      "--model",
-      stripModelNamespace(DEFAULT_CODEX_MODEL),
       "exec",
       "Output exactly: CODEX_OK",
-      "--full-auto",
-      "--skip-git-repo-check"
+      "--model",
+      stripModelNamespace(DEFAULT_CODEX_MODEL),
+      "--skip-git-repo-check",
+      "--json",
+      "-s",
+      "danger-full-access"
     ]);
   });
 
@@ -362,7 +367,7 @@ describe("codex service", () => {
     expect(
       logs.find((line) =>
         line.includes(
-          `codex --model ${stripModelNamespace(DEFAULT_CODEX_MODEL)} exec "Output exactly: CODEX_OK"`
+          `codex exec "Output exactly: CODEX_OK" --model ${stripModelNamespace(DEFAULT_CODEX_MODEL)}`
         )
       )
     ).toBeTruthy();

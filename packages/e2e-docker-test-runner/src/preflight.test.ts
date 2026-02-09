@@ -47,8 +47,14 @@ describe('runPreflight - Docker Desktop auto-start', () => {
     execSync.mockImplementation((cmd: string) => {
       const cmdStr = String(cmd);
 
+      // Exact match first, then prefix match (command without args)
       if (overrides[cmdStr]) {
         return overrides[cmdStr]();
+      }
+      for (const [key, handler] of Object.entries(overrides)) {
+        if (cmdStr.startsWith(key + ' ')) {
+          return handler();
+        }
       }
 
       // Default: docker info always fails (daemon not running)
@@ -79,7 +85,7 @@ describe('runPreflight - Docker Desktop auto-start', () => {
     const { execSync, runPreflight } = await setup();
 
     let colimaStartAttempts = 0;
-    let colimaStopped = false;
+    let colimaDeleted = false;
     mockExecCommands(execSync, {
       'command -v colima': () => 'ok',
       'colima status': () => {
@@ -92,10 +98,11 @@ describe('runPreflight - Docker Desktop auto-start', () => {
         }
         return '';
       },
-      'colima stop': () => {
-        colimaStopped = true;
+      'colima delete --force': () => {
+        colimaDeleted = true;
         return '';
       },
+      'scutil --dns': () => 'nameserver[0] : 192.168.1.1',
       'docker info': () => {
         if (colimaStartAttempts >= 2) return 'ok';
         throw new Error('Cannot connect to Docker daemon');
@@ -104,7 +111,7 @@ describe('runPreflight - Docker Desktop auto-start', () => {
 
     const result = await runPreflight();
 
-    expect(colimaStopped).toBe(true);
+    expect(colimaDeleted).toBe(true);
     expect(colimaStartAttempts).toBe(2);
     expect(result.passed).toBe(true);
     expect(result.results).toContainEqual(

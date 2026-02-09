@@ -139,11 +139,41 @@ function tryStartColima(): boolean {
     } catch {
       // Not running, try to start
       console.log(chalk.dim('Starting colima...'));
-      execSync('colima start', { stdio: 'inherit', timeout: 120000 });
-      return true;
+      try {
+        execSync('colima start', { stdio: 'inherit', timeout: 120000 });
+        return true;
+      } catch {
+        // Start failed (e.g. stale/corrupted VM), delete and recreate
+        console.log(chalk.dim('Colima start failed, deleting stale instance and retrying...'));
+        try {
+          execSync('colima delete --force', { stdio: 'ignore', timeout: 30000 });
+          const dns = detectHostDns();
+          const dnsArgs = dns.length > 0 ? dns.map((d: string) => `--dns ${d}`).join(' ') : '--dns 8.8.8.8';
+          execSync(`colima start ${dnsArgs}`, { stdio: 'inherit', timeout: 120000 });
+          return true;
+        } catch {
+          return false;
+        }
+      }
     }
   } catch {
     return false;
+  }
+}
+
+function detectHostDns(): string[] {
+  try {
+    const output = execSync('scutil --dns', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
+    const servers: string[] = [];
+    for (const line of output.split('\n')) {
+      const match = line.match(/nameserver\[\d+\]\s*:\s*(\d+\.\d+\.\d+\.\d+)/);
+      if (match && !servers.includes(match[1])) {
+        servers.push(match[1]);
+      }
+    }
+    return servers;
+  } catch {
+    return [];
   }
 }
 

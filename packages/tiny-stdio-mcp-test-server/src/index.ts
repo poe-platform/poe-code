@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { createServer, defineSchema } from "tiny-stdio-mcp-server";
 
 const caesarCipherSchema = defineSchema({
@@ -31,9 +30,38 @@ export function caesarEncrypt(text: string, shift: number): string {
 
 const wordOfTheDaySchema = defineSchema({});
 
+export function createEncryptServer() {
+  return createServer({
+    name: "tiny-stdio-mcp-test-server",
+    version: "0.0.1",
+  }).tool(
+    "caesar_cipher_encrypt",
+    "Encrypts text using the Caesar cipher",
+    caesarCipherSchema,
+    ({ text, shift }) => {
+      const actualShift = shift ?? 3;
+      return caesarEncrypt(text, actualShift);
+    }
+  );
+}
+
+export function createWordOfTheDayServer() {
+  return createServer({
+    name: "tiny-stdio-mcp-test-server",
+    version: "0.0.1",
+  }).tool(
+    "word_of_the_day",
+    "Returns the word of the day",
+    wordOfTheDaySchema,
+    () => {
+      return "Bumfuzzle - to confuse or fluster someone";
+    }
+  );
+}
+
 export function createTestServer() {
   const server = createServer({
-    name: "tiny-mcp-test-server",
+    name: "tiny-stdio-mcp-test-server",
     version: "0.0.1",
   });
 
@@ -57,15 +85,4 @@ export function createTestServer() {
   );
 
   return server;
-}
-
-// Only start listening when run directly
-// Handles: direct execution, npm bin symlinks, and dev mode
-const isMain =
-  import.meta.url === `file://${process.argv[1]}` ||
-  process.argv[1]?.endsWith("tiny-mcp-test-server/dist/index.js") ||
-  process.argv[1]?.endsWith("tiny-mcp-test-server");
-
-if (isMain) {
-  createTestServer().listen();
 }

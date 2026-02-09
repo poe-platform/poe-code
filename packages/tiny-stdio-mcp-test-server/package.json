@@ -1,0 +1,46 @@
+{
+  "name": "tiny-stdio-mcp-test-server",
+  "version": "0.1.0",
+  "description": "Test MCP server with example tools for integration testing",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tiny-stdio-mcp-test-server": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-stdio-mcp-test-server"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "test",
+    "server"
+  ],
+  "dependencies": {
+    "tiny-stdio-mcp-server": "*",
+    "commander": "^14.0.3"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3"
+  }
+}

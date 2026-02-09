@@ -28,7 +28,7 @@ describe("caesarEncrypt", () => {
   });
 });
 
-describe("tiny-mcp-test-server via SDK", () => {
+describe("tiny-stdio-mcp-test-server via SDK", () => {
   let testPair: TestPair | null = null;
 
   afterEach(async () => {
@@ -44,7 +44,7 @@ describe("tiny-mcp-test-server via SDK", () => {
       testPair = await createTestPair(server);
 
       const serverInfo = testPair.client.getServerVersion();
-      expect(serverInfo?.name).toBe("tiny-mcp-test-server");
+      expect(serverInfo?.name).toBe("tiny-stdio-mcp-test-server");
       expect(serverInfo?.version).toBe("0.0.1");
     });
   });

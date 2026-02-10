@@ -382,11 +382,11 @@ describe("usage list command", () => {
     expect(tableOutput).toContain(formatLocalDate(1705310100000000));
     expect(tableOutput).toContain("$0.0015 (-50 points)");
     expect(tableOutput).toContain("$0.0009 (-30 points)");
-    expect(tableOutput).toContain("10 points (500 tokens)");
-    expect(tableOutput).toContain("40 points (800 tokens)");
-    expect(tableOutput).toContain("8 points (300 tokens)");
-    expect(tableOutput).toContain("22 points (400 tokens)");
-    expect(tableOutput).toContain("0 points (100 tokens)");
+    expect(tableOutput).toContain("500");
+    expect(tableOutput).toContain("800");
+    expect(tableOutput).toContain("300");
+    expect(tableOutput).toContain("400");
+    expect(tableOutput).toContain("100");
   });
 
   it("prompts 'Load more?' when API returns has_more=true", async () => {
@@ -919,9 +919,9 @@ describe("usage list table styling", () => {
 
     await program.parseAsync(["node", "cli", "usage", "list"]);
 
-    expect(mutedFn).toHaveBeenCalledWith("10 points (500 tokens)");
-    expect(mutedFn).toHaveBeenCalledWith("40 points (800 tokens)");
-    expect(mutedFn).toHaveBeenCalledWith("5 points (200 tokens)");
+    expect(mutedFn).toHaveBeenCalledWith("500");
+    expect(mutedFn).toHaveBeenCalledWith("800");
+    expect(mutedFn).toHaveBeenCalledWith("200");
   });
 
   it("shows '-' for token columns when breakdown is missing", async () => {

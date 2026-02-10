@@ -122,7 +122,7 @@ export function registerUsageCommand(
         const dateWidth = Math.max(16, dateTitle.length);
         const costTitle = "Cost";
         const costWidth = 24;
-        const tokenWidth = 24;
+        const tokenWidth = 7;
         const tableChrome = 22;
         const modelMaxWidth = Math.max(20, widths.maxLine - dateWidth - costWidth - tokenWidth * 3 - tableChrome);
         const tableColumns = [
@@ -153,15 +153,22 @@ export function registerUsageCommand(
             : entry.bot_name;
           const costText = `$${entry.cost_usd} (${entry.cost_points} points)`;
           const bd = entry.cost_breakdown_in_points;
+          const parseTokens = (s: string | undefined): string => {
+            if (!s) return "-";
+            const start = s.indexOf("(");
+            const end = s.indexOf(" tokens");
+            if (start === -1 || end === -1) return "-";
+            return s.slice(start + 1, end);
+          };
           return {
             Date: theme.muted(formatted),
             Model: theme.accent(modelName),
             Cost: entry.cost_points < 0
               ? theme.error(costText)
               : theme.success(costText),
-            Input: theme.muted(bd?.Input ?? "-"),
-            Output: theme.muted(bd?.Output ?? "-"),
-            Cached: theme.muted(bd?.Cached ?? "-")
+            Input: theme.muted(parseTokens(bd?.Input)),
+            Output: theme.muted(parseTokens(bd?.Output)),
+            Cached: theme.muted(parseTokens(bd?.Cached))
           };
         };
 

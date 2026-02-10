@@ -168,7 +168,7 @@ export function registerUsageCommand(
               : theme.success(costText),
             Input: theme.muted(parseTokens(bd?.Input)),
             Output: theme.muted(parseTokens(bd?.Output)),
-            Cached: theme.muted(parseTokens(bd?.Cached))
+            Cached: theme.muted(parseTokens(bd?.["Cache discount"]))
           };
         };
 

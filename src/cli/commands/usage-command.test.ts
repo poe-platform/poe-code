@@ -337,7 +337,7 @@ describe("usage list command", () => {
         cost_breakdown_in_points: {
           Input: "8 points (300 tokens)",
           Output: "22 points (400 tokens)",
-          Cached: "0 points (100 tokens)",
+          "Cache discount": "-2 points (100 tokens)",
           Total: "30 points"
         }
       }
@@ -901,7 +901,7 @@ describe("usage list table styling", () => {
           cost_breakdown_in_points: {
             Input: "10 points (500 tokens)",
             Output: "40 points (800 tokens)",
-            Cached: "5 points (200 tokens)",
+            "Cache discount": "-5 points (200 tokens)",
             Total: "50 points"
           }
         }]

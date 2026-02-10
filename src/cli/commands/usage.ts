@@ -122,16 +122,16 @@ export function registerUsageCommand(
         const dateWidth = Math.max(16, dateTitle.length);
         const costTitle = "Cost";
         const costWidth = 24;
-        const tokenWidth = 7;
+        const tokenWidth = 10;
         const tableChrome = 22;
         const modelMaxWidth = Math.max(20, widths.maxLine - dateWidth - costWidth - tokenWidth * 3 - tableChrome);
         const tableColumns = [
           { name: "Date", title: dateTitle, alignment: "left" as const, maxLen: dateWidth },
           { name: "Model", title: "Model", alignment: "left" as const, maxLen: modelMaxWidth },
           { name: "Cost", title: costTitle, alignment: "right" as const, maxLen: costWidth },
-          { name: "Input", title: "Input", alignment: "right" as const, maxLen: tokenWidth },
-          { name: "Output", title: "Output", alignment: "right" as const, maxLen: tokenWidth },
-          { name: "Cached", title: "Cached", alignment: "right" as const, maxLen: tokenWidth }
+          { name: "Input", title: "Input tkn", alignment: "right" as const, maxLen: tokenWidth },
+          { name: "Output", title: "Output tkn", alignment: "right" as const, maxLen: tokenWidth },
+          { name: "Cached", title: "Cached tkn", alignment: "right" as const, maxLen: tokenWidth }
         ];
 
         const formatEntry = (entry: {

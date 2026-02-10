@@ -760,9 +760,9 @@ describe("usage list table styling", () => {
     expect(headerFn).toHaveBeenCalledWith(expect.stringContaining("Date ["));
     expect(headerFn).toHaveBeenCalledWith("Model");
     expect(headerFn).toHaveBeenCalledWith("Cost");
-    expect(headerFn).toHaveBeenCalledWith("Input");
-    expect(headerFn).toHaveBeenCalledWith("Output");
-    expect(headerFn).toHaveBeenCalledWith("Cached");
+    expect(headerFn).toHaveBeenCalledWith("Input tkn");
+    expect(headerFn).toHaveBeenCalledWith("Output tkn");
+    expect(headerFn).toHaveBeenCalledWith("Cached tkn");
   });
 
   it("styles date values with theme.muted", async () => {

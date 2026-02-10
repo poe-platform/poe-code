@@ -490,20 +490,48 @@ describe("models command", () => {
     expect(logs.some((m) => m.includes("No models match the given filters."))).toBe(true);
   });
 
-  it("throws error when no API key configured", async () => {
-    const program = createProgram({
-      fs,
-      prompts: vi.fn(),
-      env: { cwd, homeDir },
-      httpClient,
-      logger: (message) => logs.push(message)
+  it("works without API key (no Authorization header)", async () => {
+    const models = [
+      createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
     });
-    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
 
-    await expect(
-      program.parseAsync(["node", "cli", "models"])
-    ).rejects.toThrow();
-    expect(httpClient).not.toHaveBeenCalled();
+    const output = await runModels({ fs, httpClient, logs });
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/v1/models"),
+      expect.objectContaining({
+        method: "GET",
+        headers: {}
+      })
+    );
+    expect(output).toContain("anthropic/claude-sonnet");
+  });
+
+  it("includes Authorization header when API key is available", async () => {
+    fs = createCredentialsVolume("my-key");
+    const models = [
+      createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await runModels({ fs, httpClient, logs });
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/v1/models"),
+      expect.objectContaining({
+        method: "GET",
+        headers: { Authorization: "Bearer my-key" }
+      })
+    );
   });
 
   it("logs dry run message when --dry-run flag is set", async () => {

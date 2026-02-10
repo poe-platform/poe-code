@@ -2,7 +2,7 @@ import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { loadCredentials } from "../../services/credentials.js";
-import { AuthenticationError, ApiError } from "../errors.js";
+import { ApiError } from "../errors.js";
 import { getTheme, renderTable } from "@poe-code/design-system";
 
 interface ModelEntry {
@@ -103,12 +103,6 @@ export function registerModelsCommand(
           filePath: container.env.credentialsPath
         });
 
-        if (!apiKey) {
-          throw new AuthenticationError(
-            "Poe API key not found. Run 'poe-code login' first."
-          );
-        }
-
         if (flags.dryRun) {
           resources.logger.dryRun(
             "Dry run: would fetch models from Poe API."
@@ -116,13 +110,16 @@ export function registerModelsCommand(
           return;
         }
 
+        const headers: Record<string, string> = {};
+        if (apiKey) {
+          headers.Authorization = `Bearer ${apiKey}`;
+        }
+
         const response = await container.httpClient(
           `${container.env.poeBaseUrl}/v1/models`,
           {
             method: "GET",
-            headers: {
-              Authorization: `Bearer ${apiKey}`
-            }
+            headers
           }
         );
 

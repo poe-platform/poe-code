@@ -1,8 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
-import { loadCredentials } from "../../services/credentials.js";
-import { AuthenticationError, ApiError } from "../errors.js";
+import { ApiError } from "../errors.js";
 import { confirm, isCancel, getTheme, widths, typography, renderTable } from "@poe-code/design-system";
 
 async function executeBalance(
@@ -19,16 +18,7 @@ async function executeBalance(
   resources.logger.intro("usage balance");
 
   try {
-    const apiKey = await loadCredentials({
-      fs: container.fs,
-      filePath: container.env.credentialsPath
-    });
-
-    if (!apiKey) {
-      throw new AuthenticationError(
-        "Poe API key not found. Run 'poe-code login' first."
-      );
-    }
+    const apiKey = await container.options.resolveApiKey({ dryRun: flags.dryRun });
 
     if (flags.dryRun) {
       resources.logger.dryRun(
@@ -114,16 +104,7 @@ export function registerUsageCommand(
       resources.logger.intro("usage list");
 
       try {
-        const apiKey = await loadCredentials({
-          fs: container.fs,
-          filePath: container.env.credentialsPath
-        });
-
-        if (!apiKey) {
-          throw new AuthenticationError(
-            "Poe API key not found. Run 'poe-code login' first."
-          );
-        }
+        const apiKey = await container.options.resolveApiKey({ dryRun: flags.dryRun });
 
         if (flags.dryRun) {
           resources.logger.dryRun(

@@ -154,10 +154,16 @@ describe("usage balance command", () => {
     ).toBe(true);
   });
 
-  it("throws error when no API key configured", async () => {
+  it("prompts for API key when not stored and uses it", async () => {
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ current_point_balance: 500 })
+    });
+
     const program = createProgram({
       fs,
-      prompts: vi.fn(),
+      prompts: vi.fn().mockResolvedValue({ apiKey: "prompted-key" }),
       env: { cwd, homeDir },
       httpClient,
       logger: (message) => logs.push(message)
@@ -166,11 +172,16 @@ describe("usage balance command", () => {
     const optsSpy = vi.spyOn(program, "optsWithGlobals");
     optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
 
-    await expect(
-      program.parseAsync(["node", "cli", "usage", "balance"])
-    ).rejects.toThrow();
+    await program.parseAsync(["node", "cli", "usage", "balance"]);
 
-    expect(httpClient).not.toHaveBeenCalled();
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/usage/current_balance"),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer prompted-key"
+        })
+      })
+    );
   });
 
   it("logs dry run message when --dry-run flag is set", async () => {

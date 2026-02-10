@@ -320,12 +320,14 @@ describe("usage list command", () => {
         query_id: "q1",
         creation_time: 1705314600000000,
         bot_name: "Claude-Sonnet-4.5",
+        cost_usd: "0.0015",
         cost_points: -50
       },
       {
         query_id: "q2",
         creation_time: 1705310100000000,
         bot_name: "gpt-5.2",
+        cost_usd: "0.0009",
         cost_points: -30
       }
     ];
@@ -367,16 +369,18 @@ describe("usage list command", () => {
     expect(tableOutput).toContain("gpt-5.2");
     expect(tableOutput).toContain(formatLocalDate(1705314600000000));
     expect(tableOutput).toContain(formatLocalDate(1705310100000000));
+    expect(tableOutput).toContain("$0.0015 (-50 points)");
+    expect(tableOutput).toContain("$0.0009 (-30 points)");
   });
 
   it("prompts 'Load more?' when API returns has_more=true", async () => {
     fs = createCredentialsVolume("test-key");
     const page1Entries = [
-      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 }
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
     ];
     const page2Entries = [
-      { query_id: "entry-3", creation_time: 1705240800000000, bot_name: "Claude-Opus", cost_points: -100 }
+      { query_id: "entry-3", creation_time: 1705240800000000, bot_name: "Claude-Opus", cost_usd: "0.003", cost_points: -100 }
     ];
 
     (httpClient as ReturnType<typeof vi.fn>)
@@ -430,8 +434,8 @@ describe("usage list command", () => {
         has_more: true,
         length: 2,
         data: [
-          { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-          { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 }
+          { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+          { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
         ]
       })
     });
@@ -458,11 +462,11 @@ describe("usage list command", () => {
   it("loads specified number of pages without prompting when --pages is passed", async () => {
     fs = createCredentialsVolume("test-key");
     const page1Entries = [
-      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 }
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
     ];
     const page2Entries = [
-      { query_id: "entry-3", creation_time: 1705240800000000, bot_name: "Claude-Opus", cost_points: -100 }
+      { query_id: "entry-3", creation_time: 1705240800000000, bot_name: "Claude-Opus", cost_usd: "0.003", cost_points: -100 }
     ];
 
     (httpClient as ReturnType<typeof vi.fn>)
@@ -502,8 +506,8 @@ describe("usage list command", () => {
   it("stops after reaching --pages limit", async () => {
     fs = createCredentialsVolume("test-key");
     const page1Entries = [
-      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 }
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
     ];
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -535,9 +539,9 @@ describe("usage list command", () => {
   it("filters results client-side when --filter provided", async () => {
     fs = createCredentialsVolume("test-key");
     const entries = [
-      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 },
-      { query_id: "entry-3", creation_time: 1705240800000000, bot_name: "Claude-Opus", cost_points: -100 }
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 },
+      { query_id: "entry-3", creation_time: 1705240800000000, bot_name: "Claude-Opus", cost_usd: "0.003", cost_points: -100 }
     ];
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -568,8 +572,8 @@ describe("usage list command", () => {
   it("filters case-insensitively on model name", async () => {
     fs = createCredentialsVolume("test-key");
     const entries = [
-      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 }
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
     ];
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -624,8 +628,8 @@ describe("usage list command", () => {
   it("shows 'No entries match \"xyz\".' when filter matches nothing", async () => {
     fs = createCredentialsVolume("test-key");
     const entries = [
-      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 }
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
     ];
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -654,12 +658,12 @@ describe("usage list command", () => {
   it("pagination works with filter applied", async () => {
     fs = createCredentialsVolume("test-key");
     const page1Entries = [
-      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 }
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
     ];
     const page2Entries = [
-      { query_id: "entry-3", creation_time: 1705240800000000, bot_name: "Claude-Opus", cost_points: -100 },
-      { query_id: "entry-4", creation_time: 1705237200000000, bot_name: "gpt-5.2", cost_points: -20 }
+      { query_id: "entry-3", creation_time: 1705240800000000, bot_name: "Claude-Opus", cost_usd: "0.003", cost_points: -100 },
+      { query_id: "entry-4", creation_time: 1705237200000000, bot_name: "gpt-5.2", cost_usd: "0.0006", cost_points: -20 }
     ];
 
     (httpClient as ReturnType<typeof vi.fn>)
@@ -722,7 +726,7 @@ describe("usage list table styling", () => {
       status: 200,
       json: async () => ({
         has_more: false,
-        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 }]
+        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 }]
       })
     });
 
@@ -739,7 +743,7 @@ describe("usage list table styling", () => {
 
     expect(headerFn).toHaveBeenCalledWith(expect.stringContaining("Date ["));
     expect(headerFn).toHaveBeenCalledWith("Model");
-    expect(headerFn).toHaveBeenCalledWith("Cost (compute points)");
+    expect(headerFn).toHaveBeenCalledWith("Cost");
   });
 
   it("styles date values with theme.muted", async () => {
@@ -752,7 +756,7 @@ describe("usage list table styling", () => {
       status: 200,
       json: async () => ({
         has_more: false,
-        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 }]
+        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 }]
       })
     });
 
@@ -781,8 +785,8 @@ describe("usage list table styling", () => {
       json: async () => ({
         has_more: false,
         data: [
-          { query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 },
-          { query_id: "q2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_points: -30 }
+          { query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+          { query_id: "q2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
         ]
       })
     });
@@ -812,7 +816,7 @@ describe("usage list table styling", () => {
       status: 200,
       json: async () => ({
         has_more: false,
-        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 }]
+        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 }]
       })
     });
 
@@ -827,7 +831,7 @@ describe("usage list table styling", () => {
 
     await program.parseAsync(["node", "cli", "usage", "list"]);
 
-    expect(errorFn).toHaveBeenCalledWith("-50");
+    expect(errorFn).toHaveBeenCalledWith("$0.0015 (-50 points)");
   });
 
   it("color-codes zero and positive costs with theme.success", async () => {
@@ -841,8 +845,8 @@ describe("usage list table styling", () => {
       json: async () => ({
         has_more: false,
         data: [
-          { query_id: "q1", creation_time: 1705314600000000, bot_name: "model-a", cost_points: 0 },
-          { query_id: "q2", creation_time: 1705310100000000, bot_name: "model-b", cost_points: 10 }
+          { query_id: "q1", creation_time: 1705314600000000, bot_name: "model-a", cost_usd: "0", cost_points: 0 },
+          { query_id: "q2", creation_time: 1705310100000000, bot_name: "model-b", cost_usd: "0.0003", cost_points: 10 }
         ]
       })
     });
@@ -858,8 +862,8 @@ describe("usage list table styling", () => {
 
     await program.parseAsync(["node", "cli", "usage", "list"]);
 
-    expect(successFn).toHaveBeenCalledWith("0");
-    expect(successFn).toHaveBeenCalledWith("10");
+    expect(successFn).toHaveBeenCalledWith("$0 (0 points)");
+    expect(successFn).toHaveBeenCalledWith("$0.0003 (10 points)");
   });
 
   it("truncates long model names with '…' suffix", async () => {
@@ -870,7 +874,7 @@ describe("usage list table styling", () => {
       status: 200,
       json: async () => ({
         has_more: false,
-        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: longModelName, cost_points: -50 }]
+        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: longModelName, cost_usd: "0.0015", cost_points: -50 }]
       })
     });
 
@@ -900,7 +904,7 @@ describe("usage list table styling", () => {
       status: 200,
       json: async () => ({
         has_more: false,
-        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_points: -50 }]
+        data: [{ query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 }]
       })
     });
 

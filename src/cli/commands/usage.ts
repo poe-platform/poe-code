@@ -120,8 +120,8 @@ export function registerUsageCommand(
           .find((p) => p.type === "timeZoneName")?.value ?? "local";
         const dateTitle = `Date [${tzAbbr}]`;
         const dateWidth = Math.max(16, dateTitle.length);
-        const costTitle = "Cost (compute points)";
-        const costWidth = Math.max(10, costTitle.length);
+        const costTitle = "Cost";
+        const costWidth = 24;
         const tableChrome = 10;
         const modelMaxWidth = widths.maxLine - dateWidth - costWidth - tableChrome;
         const tableColumns = [
@@ -133,6 +133,7 @@ export function registerUsageCommand(
         const formatEntry = (entry: {
           creation_time: number;
           bot_name: string;
+          cost_usd: string;
           cost_points: number;
         }): Record<string, string> => {
           const date = new Date(entry.creation_time / 1000);
@@ -145,12 +146,13 @@ export function registerUsageCommand(
           const modelName = entry.bot_name.length > modelMaxWidth
             ? entry.bot_name.slice(0, modelMaxWidth - 1) + "\u2026"
             : entry.bot_name;
+          const costText = `$${entry.cost_usd} (${entry.cost_points} points)`;
           return {
             Date: theme.muted(formatted),
             Model: theme.accent(modelName),
             Cost: entry.cost_points < 0
-              ? theme.error(String(entry.cost_points))
-              : theme.success(String(entry.cost_points))
+              ? theme.error(costText)
+              : theme.success(costText)
           };
         };
 
@@ -189,6 +191,7 @@ export function registerUsageCommand(
               query_id: string;
               creation_time: number;
               bot_name: string;
+              cost_usd: string;
               cost_points: number;
             }>;
           };

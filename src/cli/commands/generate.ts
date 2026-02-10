@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Command } from "commander";
-import { intro, outro, spinner } from "@poe-code/design-system";
+import { intro, outro, withSpinner } from "@poe-code/design-system";
 import type { CliContainer } from "../container.js";
 import {
   DEFAULT_TEXT_MODEL,
@@ -266,57 +266,6 @@ function collectParam(value: string, previous: string[]): string[] {
   return list;
 }
 
-interface SpinnerOptions<T> {
-  message: string;
-  fn: () => Promise<T>;
-  /** Format the stop message from the result */
-  stopMessage?: (result: T) => string;
-  /** Format subtext to display below the stop message */
-  subtext?: (result: T) => string | undefined;
-}
-
-async function withSpinner<T>(options: SpinnerOptions<T>): Promise<T> {
-  const { message, fn, stopMessage, subtext } = options;
-  const noSpinner = process.env.POE_NO_SPINNER === "1";
-  const isTTY = process.stdout.isTTY;
-
-  if (noSpinner || !isTTY) {
-    const result = await fn();
-    const msg = stopMessage ? stopMessage(result) : undefined;
-    if (msg) {
-      process.stdout.write(`\x1b[32m◆\x1b[0m  ${msg}\n`);
-    }
-    const sub = subtext ? subtext(result) : undefined;
-    if (sub) {
-      const lines = sub.split("\n");
-      for (const line of lines) {
-        process.stdout.write(`\x1b[90m│\x1b[0m     ${line}\n`);
-      }
-    }
-    return result;
-  }
-
-  const s = spinner();
-  s.start(message);
-  try {
-    const result = await fn();
-    const msg = stopMessage ? stopMessage(result) : undefined;
-    s.stop(msg);
-
-    const sub = subtext ? subtext(result) : undefined;
-    if (sub) {
-      const lines = sub.split("\n");
-      for (const line of lines) {
-        process.stdout.write(`\x1b[90m│\x1b[0m     ${line}\n`);
-      }
-    }
-
-    return result;
-  } catch (error) {
-    s.stop("", 1);
-    throw error;
-  }
-}
 
 async function resolveClient(container: CliContainer): Promise<LlmClient> {
   try {

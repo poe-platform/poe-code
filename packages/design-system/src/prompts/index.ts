@@ -81,3 +81,70 @@ export type SpinnerOptions = {
 export function spinner(): SpinnerOptions {
   return clack.spinner();
 }
+
+export interface WithSpinnerOptions<T> {
+  message: string;
+  fn: () => Promise<T>;
+  stopMessage?: (result: T) => string;
+  subtext?: (result: T) => string | undefined;
+}
+
+function formatElapsed(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  if (totalSeconds < 60) {
+    return `${totalSeconds}s`;
+  }
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds}s`;
+}
+
+export async function withSpinner<T>(options: WithSpinnerOptions<T>): Promise<T> {
+  const { message, fn, stopMessage, subtext } = options;
+  const noSpinner = process.env.POE_NO_SPINNER === "1";
+  const isTTY = process.stdout.isTTY;
+
+  if (noSpinner || !isTTY) {
+    const result = await fn();
+    const msg = stopMessage ? stopMessage(result) : undefined;
+    if (msg) {
+      process.stdout.write(`\x1b[32m◆\x1b[0m  ${msg}\n`);
+    }
+    const sub = subtext ? subtext(result) : undefined;
+    if (sub) {
+      for (const line of sub.split("\n")) {
+        process.stdout.write(`\x1b[90m│\x1b[0m     ${line}\n`);
+      }
+    }
+    return result;
+  }
+
+  const s = spinner();
+  const start = Date.now();
+  s.start(message);
+
+  const timer = setInterval(() => {
+    s.message(`${message} [${formatElapsed(Date.now() - start)}]`);
+  }, 1000);
+
+  try {
+    const result = await fn();
+    clearInterval(timer);
+    const elapsed = formatElapsed(Date.now() - start);
+    const msg = stopMessage ? stopMessage(result) : undefined;
+    s.stop(msg ? `${msg} [${elapsed}]` : `Done [${elapsed}]`);
+
+    const sub = subtext ? subtext(result) : undefined;
+    if (sub) {
+      for (const line of sub.split("\n")) {
+        process.stdout.write(`\x1b[90m│\x1b[0m     ${line}\n`);
+      }
+    }
+
+    return result;
+  } catch (error) {
+    clearInterval(timer);
+    s.stop("", 1);
+    throw error;
+  }
+}

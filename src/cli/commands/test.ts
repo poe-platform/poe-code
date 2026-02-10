@@ -16,6 +16,7 @@ import {
   stdoutMatchesExpected
 } from "../../utils/command-checks.js";
 import { spawn as agentSpawn, getSpawnConfig } from "@poe-code/agent-spawn";
+import { withSpinner } from "@poe-code/design-system";
 
 export function registerTestCommand(
   program: Command,
@@ -121,31 +122,35 @@ export async function executeTest(
 
     const expectedOutput = "STDIN_OK";
     const prompt = `Output exactly: ${expectedOutput}`;
-    const result = await (async (): Promise<CommandRunnerResult | void> => {
-      const spawnConfig = getSpawnConfig(canonicalService);
-      if (spawnConfig) {
-        return agentSpawn(canonicalService, {
-          prompt,
-          useStdin: true,
-          model: options.model
-        });
-      }
-      return container.registry.invoke(
-        canonicalService,
-        "spawn",
-        async (entry) => {
-          if (!entry.spawn) {
-            throw new Error(`Agent "${canonicalService}" does not support spawn.`);
-          }
-          const output = await entry.spawn(providerContext, {
+    const result = await withSpinner({
+      message: `Testing ${adapter.label} via stdin...`,
+      fn: async (): Promise<CommandRunnerResult | void> => {
+        const spawnConfig = getSpawnConfig(canonicalService);
+        if (spawnConfig) {
+          return agentSpawn(canonicalService, {
             prompt,
             useStdin: true,
             model: options.model
           });
-          return output as CommandRunnerResult | void;
         }
-      );
-    })();
+        return container.registry.invoke(
+          canonicalService,
+          "spawn",
+          async (entry) => {
+            if (!entry.spawn) {
+              throw new Error(`Agent "${canonicalService}" does not support spawn.`);
+            }
+            const output = await entry.spawn(providerContext, {
+              prompt,
+              useStdin: true,
+              model: options.model
+            });
+            return output as CommandRunnerResult | void;
+          }
+        );
+      },
+      stopMessage: () => `${adapter.label} stdin test`
+    });
 
     if (!result) {
       throw new Error(
@@ -171,32 +176,37 @@ export async function executeTest(
       );
     }
   } else {
-    await container.registry.invoke(canonicalService, "test", async (entry) => {
-      if (!entry.test) {
-        throw new Error(`Agent "${canonicalService}" does not support test.`);
-      }
-      const activeContext =
-        isolatedDetails
-          ? {
-              ...providerContext,
-              runCheck: async (check: CommandCheck) => {
-                await check.run({
-                  isDryRun: providerContext.logger.context.dryRun,
-                  runCommand: (command: string, args: string[]) =>
-                    resources.context.runCommand("poe-code", [
-                      "wrap",
-                      canonicalService,
-                      "--",
-                      ...args
-                    ]),
-                  logDryRun: (message: string) =>
-                    providerContext.logger.dryRun(message)
-                });
-              }
-            }
-          : providerContext;
+    await withSpinner({
+      message: `Testing ${adapter.label}...`,
+      fn: () =>
+        container.registry.invoke(canonicalService, "test", async (entry) => {
+          if (!entry.test) {
+            throw new Error(`Agent "${canonicalService}" does not support test.`);
+          }
+          const activeContext =
+            isolatedDetails
+              ? {
+                  ...providerContext,
+                  runCheck: async (check: CommandCheck) => {
+                    await check.run({
+                      isDryRun: providerContext.logger.context.dryRun,
+                      runCommand: (command: string, args: string[]) =>
+                        resources.context.runCommand("poe-code", [
+                          "wrap",
+                          canonicalService,
+                          "--",
+                          ...args
+                        ]),
+                      logDryRun: (message: string) =>
+                        providerContext.logger.dryRun(message)
+                    });
+                  }
+                }
+              : providerContext;
 
-      await entry.test(activeContext);
+          await entry.test(activeContext);
+        }),
+      stopMessage: () => `${adapter.label} health check`
     });
   }
 

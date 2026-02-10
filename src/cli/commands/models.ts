@@ -3,7 +3,7 @@ import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { loadCredentials } from "../../services/credentials.js";
 import { ApiError } from "../errors.js";
-import { getTheme, renderTable } from "@poe-code/design-system";
+import { getTheme, renderTable, withSpinner } from "@poe-code/design-system";
 
 interface ModelEntry {
   id: string;
@@ -115,28 +115,34 @@ export function registerModelsCommand(
           headers.Authorization = `Bearer ${apiKey}`;
         }
 
-        const response = await container.httpClient(
-          `${container.env.poeBaseUrl}/v1/models`,
-          {
-            method: "GET",
-            headers
-          }
-        );
+        const result = await withSpinner({
+          message: "Fetching models...",
+          fn: async () => {
+            const response = await container.httpClient(
+              `${container.env.poeBaseUrl}/v1/models`,
+              {
+                method: "GET",
+                headers
+              }
+            );
 
-        if (!response.ok) {
-          throw new ApiError(
-            `Failed to fetch models (HTTP ${response.status})`,
-            {
-              httpStatus: response.status,
-              endpoint: "/v1/models"
+            if (!response.ok) {
+              throw new ApiError(
+                `Failed to fetch models (HTTP ${response.status})`,
+                {
+                  httpStatus: response.status,
+                  endpoint: "/v1/models"
+                }
+              );
             }
-          );
-        }
 
-        const result = (await response.json()) as {
-          object: string;
-          data: ModelEntry[];
-        };
+            return (await response.json()) as {
+              object: string;
+              data: ModelEntry[];
+            };
+          },
+          stopMessage: (r) => `${r.data.length} models`
+        });
 
         const allModels = result.data;
 

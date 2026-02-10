@@ -122,7 +122,7 @@ export function registerUsageCommand(
         const dateWidth = Math.max(16, dateTitle.length);
         const costTitle = "Cost";
         const costWidth = 24;
-        const tokenWidth = 7;
+        const tokenWidth = 24;
         const tableChrome = 22;
         const modelMaxWidth = Math.max(20, widths.maxLine - dateWidth - costWidth - tokenWidth * 3 - tableChrome);
         const tableColumns = [
@@ -134,22 +134,12 @@ export function registerUsageCommand(
           { name: "Cached", title: "Cached", alignment: "right" as const, maxLen: tokenWidth }
         ];
 
-        const parseTokenCount = (breakdown: string | undefined): string => {
-          if (!breakdown) return "-";
-          const start = breakdown.indexOf("(");
-          const end = breakdown.indexOf(" tokens");
-          if (start === -1 || end === -1) return "-";
-          return breakdown.slice(start + 1, end);
-        };
-
-        type BreakdownMap = Record<string, string>;
-
         const formatEntry = (entry: {
           creation_time: number;
           bot_name: string;
           cost_usd: string;
           cost_points: number;
-          cost_breakdown_in_points?: BreakdownMap;
+          cost_breakdown_in_points?: Record<string, string>;
         }): Record<string, string> => {
           const date = new Date(entry.creation_time / 1000);
           const year = date.getFullYear();
@@ -169,9 +159,9 @@ export function registerUsageCommand(
             Cost: entry.cost_points < 0
               ? theme.error(costText)
               : theme.success(costText),
-            Input: theme.muted(parseTokenCount(bd?.Input)),
-            Output: theme.muted(parseTokenCount(bd?.Output)),
-            Cached: theme.muted(parseTokenCount(bd?.Cached))
+            Input: theme.muted(bd?.Input ?? "-"),
+            Output: theme.muted(bd?.Output ?? "-"),
+            Cached: theme.muted(bd?.Cached ?? "-")
           };
         };
 

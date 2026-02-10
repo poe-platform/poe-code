@@ -321,14 +321,25 @@ describe("usage list command", () => {
         creation_time: 1705314600000000,
         bot_name: "Claude-Sonnet-4.5",
         cost_usd: "0.0015",
-        cost_points: -50
+        cost_points: -50,
+        cost_breakdown_in_points: {
+          Input: "10 points (500 tokens)",
+          Output: "40 points (800 tokens)",
+          Total: "50 points"
+        }
       },
       {
         query_id: "q2",
         creation_time: 1705310100000000,
         bot_name: "gpt-5.2",
         cost_usd: "0.0009",
-        cost_points: -30
+        cost_points: -30,
+        cost_breakdown_in_points: {
+          Input: "8 points (300 tokens)",
+          Output: "22 points (400 tokens)",
+          Cached: "0 points (100 tokens)",
+          Total: "30 points"
+        }
       }
     ];
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -371,6 +382,11 @@ describe("usage list command", () => {
     expect(tableOutput).toContain(formatLocalDate(1705310100000000));
     expect(tableOutput).toContain("$0.0015 (-50 points)");
     expect(tableOutput).toContain("$0.0009 (-30 points)");
+    expect(tableOutput).toContain("500");
+    expect(tableOutput).toContain("800");
+    expect(tableOutput).toContain("300");
+    expect(tableOutput).toContain("400");
+    expect(tableOutput).toContain("100");
   });
 
   it("prompts 'Load more?' when API returns has_more=true", async () => {
@@ -744,6 +760,9 @@ describe("usage list table styling", () => {
     expect(headerFn).toHaveBeenCalledWith(expect.stringContaining("Date ["));
     expect(headerFn).toHaveBeenCalledWith("Model");
     expect(headerFn).toHaveBeenCalledWith("Cost");
+    expect(headerFn).toHaveBeenCalledWith("Input");
+    expect(headerFn).toHaveBeenCalledWith("Output");
+    expect(headerFn).toHaveBeenCalledWith("Cached");
   });
 
   it("styles date values with theme.muted", async () => {
@@ -864,6 +883,76 @@ describe("usage list table styling", () => {
 
     expect(successFn).toHaveBeenCalledWith("$0 (0 points)");
     expect(successFn).toHaveBeenCalledWith("$0.0003 (10 points)");
+  });
+
+  it("shows token counts from cost_breakdown_in_points with theme.muted", async () => {
+    const mutedFn = vi.fn((t: string) => t);
+    getThemeMock.mockReturnValue({ ...createIdentityTheme(), muted: mutedFn });
+
+    fs = createCredentialsVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        has_more: false,
+        data: [{
+          query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5",
+          cost_usd: "0.0015", cost_points: -50,
+          cost_breakdown_in_points: {
+            Input: "10 points (500 tokens)",
+            Output: "40 points (800 tokens)",
+            Cached: "5 points (200 tokens)",
+            Total: "50 points"
+          }
+        }]
+      })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "list"]);
+
+    expect(mutedFn).toHaveBeenCalledWith("500");
+    expect(mutedFn).toHaveBeenCalledWith("800");
+    expect(mutedFn).toHaveBeenCalledWith("200");
+  });
+
+  it("shows '-' for token columns when breakdown is missing", async () => {
+    const mutedFn = vi.fn((t: string) => t);
+    getThemeMock.mockReturnValue({ ...createIdentityTheme(), muted: mutedFn });
+
+    fs = createCredentialsVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        has_more: false,
+        data: [{
+          query_id: "q1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5",
+          cost_usd: "0.0015", cost_points: -50
+        }]
+      })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "list"]);
+
+    expect(mutedFn).toHaveBeenCalledWith("-");
   });
 
   it("truncates long model names with '…' suffix", async () => {

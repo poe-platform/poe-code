@@ -122,19 +122,34 @@ export function registerUsageCommand(
         const dateWidth = Math.max(16, dateTitle.length);
         const costTitle = "Cost";
         const costWidth = 24;
-        const tableChrome = 10;
-        const modelMaxWidth = widths.maxLine - dateWidth - costWidth - tableChrome;
+        const tokenWidth = 7;
+        const tableChrome = 22;
+        const modelMaxWidth = Math.max(20, widths.maxLine - dateWidth - costWidth - tokenWidth * 3 - tableChrome);
         const tableColumns = [
           { name: "Date", title: dateTitle, alignment: "left" as const, maxLen: dateWidth },
           { name: "Model", title: "Model", alignment: "left" as const, maxLen: modelMaxWidth },
-          { name: "Cost", title: costTitle, alignment: "right" as const, maxLen: costWidth }
+          { name: "Cost", title: costTitle, alignment: "right" as const, maxLen: costWidth },
+          { name: "Input", title: "Input", alignment: "right" as const, maxLen: tokenWidth },
+          { name: "Output", title: "Output", alignment: "right" as const, maxLen: tokenWidth },
+          { name: "Cached", title: "Cached", alignment: "right" as const, maxLen: tokenWidth }
         ];
+
+        const parseTokenCount = (breakdown: string | undefined): string => {
+          if (!breakdown) return "-";
+          const start = breakdown.indexOf("(");
+          const end = breakdown.indexOf(" tokens");
+          if (start === -1 || end === -1) return "-";
+          return breakdown.slice(start + 1, end);
+        };
+
+        type BreakdownMap = Record<string, string>;
 
         const formatEntry = (entry: {
           creation_time: number;
           bot_name: string;
           cost_usd: string;
           cost_points: number;
+          cost_breakdown_in_points?: BreakdownMap;
         }): Record<string, string> => {
           const date = new Date(entry.creation_time / 1000);
           const year = date.getFullYear();
@@ -147,12 +162,16 @@ export function registerUsageCommand(
             ? entry.bot_name.slice(0, modelMaxWidth - 1) + "\u2026"
             : entry.bot_name;
           const costText = `$${entry.cost_usd} (${entry.cost_points} points)`;
+          const bd = entry.cost_breakdown_in_points;
           return {
             Date: theme.muted(formatted),
             Model: theme.accent(modelName),
             Cost: entry.cost_points < 0
               ? theme.error(costText)
-              : theme.success(costText)
+              : theme.success(costText),
+            Input: theme.muted(parseTokenCount(bd?.Input)),
+            Output: theme.muted(parseTokenCount(bd?.Output)),
+            Cached: theme.muted(parseTokenCount(bd?.Cached))
           };
         };
 
@@ -193,6 +212,7 @@ export function registerUsageCommand(
               bot_name: string;
               cost_usd: string;
               cost_points: number;
+              cost_breakdown_in_points?: Record<string, string>;
             }>;
           };
 

@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import {
   createBinaryExistsCheck,
   createCommandExpectationCheck,
-  createSpawnHealthCheck
+  createSpawnHealthCheck,
+  stdoutMatchesExpected
 } from "./command-checks.js";
 
 function createRunner(responses: Record<string, { stdout?: string; stderr?: string; exitCode: number }>) {
@@ -127,6 +128,37 @@ describe("createSpawnHealthCheck", () => {
     expect(logDryRun).toHaveBeenCalledWith(
       expect.stringContaining("DEMO_OK")
     );
+  });
+});
+
+describe("stdoutMatchesExpected", () => {
+  it("matches plain text output", () => {
+    expect(stdoutMatchesExpected("DEMO_OK\n", "DEMO_OK")).toBe(true);
+  });
+
+  it("matches when expected text is one of many plain lines", () => {
+    expect(stdoutMatchesExpected("foo\nDEMO_OK\nbar\n", "DEMO_OK")).toBe(true);
+  });
+
+  it("rejects when no line matches", () => {
+    expect(stdoutMatchesExpected("foo\nbar\n", "DEMO_OK")).toBe(false);
+  });
+
+  it("matches JSON streaming output with result event", () => {
+    const stdout = [
+      '{"type":"system","subtype":"init","session_id":"abc"}',
+      '{"type":"assistant","message":{"content":[{"type":"text","text":"DEMO_OK"}]}}',
+      '{"type":"result","subtype":"success","result":"DEMO_OK"}'
+    ].join("\n");
+    expect(stdoutMatchesExpected(stdout, "DEMO_OK")).toBe(true);
+  });
+
+  it("rejects JSON streaming output when result does not match", () => {
+    const stdout = [
+      '{"type":"system","subtype":"init","session_id":"abc"}',
+      '{"type":"result","subtype":"success","result":"WRONG"}'
+    ].join("\n");
+    expect(stdoutMatchesExpected(stdout, "DEMO_OK")).toBe(false);
   });
 });
 

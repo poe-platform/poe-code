@@ -93,11 +93,28 @@ export function stdoutMatchesExpected(stdout: string, expected: string): boolean
     return true;
   }
 
-  return stdout
+  const lines = stdout
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .some((line) => line === expected);
+    .filter((line) => line.length > 0);
+
+  if (lines.some((line) => line === expected)) {
+    return true;
+  }
+
+  for (const line of lines) {
+    if (line[0] !== "{") continue;
+    try {
+      const parsed = JSON.parse(line) as { type?: string; result?: string };
+      if (parsed.type === "result" && parsed.result === expected) {
+        return true;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return false;
 }
 
 function renderCommandLine(command: string, args: string[]): string {

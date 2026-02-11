@@ -139,10 +139,10 @@ function main() {
   if (MODEL) {
     args.push("--model", MODEL);
   }
+  args.push(prompt);
 
   // Use npx to ensure we use the locally installed version
   const result = spawnSync("npx", ["poe-code", ...args], {
-    input: prompt,
     encoding: "utf8"
   });
 

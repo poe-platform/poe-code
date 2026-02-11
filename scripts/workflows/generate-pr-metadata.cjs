@@ -124,9 +124,7 @@ function main() {
       : null
   ].filter(Boolean);
 
-  const prompt = segments.join("\n\n");
-
-  const systemPrompt = [
+  const instructions = [
     "You generate GitHub pull request metadata.",
     "Analyze the provided issue and git diff to create appropriate PR title and body.",
     "Respond ONLY with valid JSON containing keys 'title' and 'body'.",
@@ -135,7 +133,9 @@ function main() {
     "The body should include a summary section and reference the issue number."
   ].join(" ");
 
-  const args = ["query", "--system", systemPrompt];
+  const prompt = `${instructions}\n\n${segments.join("\n\n")}`;
+
+  const args = ["generate", "text"];
   if (MODEL) {
     args.push("--model", MODEL);
   }
@@ -152,7 +152,7 @@ function main() {
   if (result.status !== 0) {
     const detail = (result.stderr || result.stdout || "").trim();
     const suffix = detail ? `: ${detail}` : "";
-    throw new Error(`poe-code query exited with ${result.status}${suffix}`);
+    throw new Error(`poe-code generate text exited with ${result.status}${suffix}`);
   }
 
   const metadata = parseMetadata((result.stdout || "").trim());

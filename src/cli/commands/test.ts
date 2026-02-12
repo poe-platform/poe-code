@@ -15,7 +15,7 @@ import {
   formatCommandRunnerResult,
   stdoutMatchesExpected
 } from "../../utils/command-checks.js";
-import { spawn as agentSpawn, getSpawnConfig } from "@poe-code/agent-spawn";
+import { spawnStreaming, getSpawnConfig, type AgentMessageEvent } from "@poe-code/agent-spawn";
 import { withSpinner } from "@poe-code/design-system";
 
 export function registerTestCommand(
@@ -127,11 +127,26 @@ export async function executeTest(
       fn: async (): Promise<CommandRunnerResult | void> => {
         const spawnConfig = getSpawnConfig(canonicalService);
         if (spawnConfig) {
-          return agentSpawn(canonicalService, {
+          const streaming = spawnStreaming({
+            agentId: canonicalService,
             prompt,
             useStdin: true,
             model: options.model
           });
+
+          let output = "";
+          for await (const event of streaming.events) {
+            if (event.event === "agent_message") {
+              output += (event as AgentMessageEvent).text;
+            }
+          }
+
+          const spawnResult = await streaming.done;
+          return {
+            stdout: output,
+            stderr: spawnResult.stderr,
+            exitCode: spawnResult.exitCode
+          };
         }
         return container.registry.invoke(
           canonicalService,

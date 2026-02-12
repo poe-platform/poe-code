@@ -1,11 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 
+const e2ePackageSrc = path.resolve(__dirname, '../packages/e2e-docker-test-runner/src');
+
 export default defineConfig({
   resolve: {
     alias: {
-      '@poe-code/e2e-docker-test-runner/matchers': path.resolve(__dirname, '../packages/e2e-docker-test-runner/src/matchers.ts'),
-      '@poe-code/e2e-docker-test-runner': path.resolve(__dirname, '../packages/e2e-docker-test-runner/src/index.ts'),
+      '@poe-code/e2e-docker-test-runner/matchers': path.join(e2ePackageSrc, 'matchers.ts'),
+      '@poe-code/e2e-docker-test-runner': path.join(e2ePackageSrc, 'index.ts'),
     },
   },
   test: {
@@ -15,6 +17,6 @@ export default defineConfig({
     include: ['*.test.ts'],
     maxWorkers: 1,
     globalSetup: './setup.ts',
-    setupFiles: ['@poe-code/e2e-docker-test-runner/matchers'],
+    setupFiles: [path.join(e2ePackageSrc, 'matchers.ts')],
   },
 });

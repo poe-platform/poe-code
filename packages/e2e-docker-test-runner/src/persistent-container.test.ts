@@ -1,8 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { vol } from 'memfs';
+import { EventEmitter } from 'node:events';
+import { PassThrough } from 'node:stream';
 import { buildCreateArgs, buildExecArgs, CONTAINER_PATH, CONTAINER_HOME } from './persistent-container.js';
 import { MOUNT_TARGET } from './container.js';
 import { setResolvedContext } from './context.js';
+
+function createMockChildProcess(exitCode: number, stdoutData: string, stderrData: string) {
+  const child = new EventEmitter() as EventEmitter & { stdout: PassThrough; stderr: PassThrough };
+  child.stdout = new PassThrough();
+  child.stderr = new PassThrough();
+
+  process.nextTick(() => {
+    if (stdoutData) child.stdout.write(Buffer.from(stdoutData));
+    if (stderrData) child.stderr.write(Buffer.from(stderrData));
+    child.stdout.end();
+    child.stderr.end();
+    child.emit('close', exitCode);
+  });
+
+  return child;
+}
 
 vi.mock('node:fs', async () => {
   const memfs = await import('memfs');
@@ -12,6 +30,7 @@ vi.mock('node:fs', async () => {
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
   spawnSync: vi.fn(),
+  spawn: vi.fn(),
 }));
 
 vi.mock('./engine.js', () => ({
@@ -443,6 +462,88 @@ describe('exec', () => {
 
     expect(result.stdout).toBe('');
     expect(result.stderr).toBe('');
+  });
+
+  it('uses async spawn and streams to stderr when E2E_VERBOSE=1', async () => {
+    const originalVerbose = process.env.E2E_VERBOSE;
+    process.env.E2E_VERBOSE = '1';
+
+    try {
+      const { container, mockSpawnSync } = await setupContainerMock()();
+      const { spawn } = await import('node:child_process');
+      const mockSpawn = vi.mocked(spawn);
+
+      const mockChild = createMockChildProcess(0, 'streamed output\n', 'streamed warning\n');
+      mockSpawn.mockReturnValue(mockChild as never);
+
+      const stderrWrites: string[] = [];
+      const origWrite = process.stderr.write;
+      process.stderr.write = ((chunk: Buffer | string) => {
+        stderrWrites.push(chunk.toString());
+        return true;
+      }) as typeof process.stderr.write;
+
+      const result = await container.exec('echo hello');
+
+      process.stderr.write = origWrite;
+
+      // Should NOT call spawnSync for the exec
+      expect(mockSpawnSync).not.toHaveBeenCalled();
+
+      // Should call async spawn
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'docker',
+        ['exec', 'test-container-id', 'sh', '-c', 'echo hello'],
+        { stdio: ['ignore', 'pipe', 'pipe'] }
+      );
+
+      // Output should be captured in result
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toBe('streamed output');
+      expect(result.stderr).toBe('streamed warning');
+
+      // Output should have been streamed to stderr
+      const allStderr = stderrWrites.join('');
+      expect(allStderr).toContain('streamed output');
+      expect(allStderr).toContain('streamed warning');
+    } finally {
+      if (originalVerbose === undefined) {
+        delete process.env.E2E_VERBOSE;
+      } else {
+        process.env.E2E_VERBOSE = originalVerbose;
+      }
+    }
+  });
+
+  it('does not use async spawn when E2E_VERBOSE is not set', async () => {
+    const originalVerbose = process.env.E2E_VERBOSE;
+    delete process.env.E2E_VERBOSE;
+
+    try {
+      const { container, mockSpawnSync } = await setupContainerMock()();
+      const { spawn } = await import('node:child_process');
+      const mockSpawn = vi.mocked(spawn);
+
+      mockSpawnSync.mockReturnValue({
+        status: 0,
+        stdout: 'hello\n',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      });
+
+      await container.exec('echo hello');
+
+      expect(mockSpawnSync).toHaveBeenCalled();
+      expect(mockSpawn).not.toHaveBeenCalled();
+    } finally {
+      if (originalVerbose === undefined) {
+        delete process.env.E2E_VERBOSE;
+      } else {
+        process.env.E2E_VERBOSE = originalVerbose;
+      }
+    }
   });
 });
 

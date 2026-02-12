@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
+import { spawn as spawnAsync, spawnSync } from 'node:child_process';
 import type { Container, ContainerOptions, ExecResult } from './types.js';
 import { detectEngine } from './engine.js';
 import { ensureImage } from './image.js';
@@ -63,6 +63,32 @@ export function buildExecArgs(containerId: string, command: string): string[] {
   return ['exec', containerId, 'sh', '-c', command];
 }
 
+function execStreaming(engine: string, args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawnAsync(engine, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const stdoutChunks: Buffer[] = [];
+    const stderrChunks: Buffer[] = [];
+
+    child.stdout!.on('data', (chunk: Buffer) => {
+      stdoutChunks.push(chunk);
+      process.stderr.write(chunk);
+    });
+    child.stderr!.on('data', (chunk: Buffer) => {
+      stderrChunks.push(chunk);
+      process.stderr.write(chunk);
+    });
+
+    child.on('error', reject);
+    child.on('close', (code) => {
+      resolve({
+        exitCode: code ?? 1,
+        stdout: Buffer.concat(stdoutChunks).toString('utf-8'),
+        stderr: Buffer.concat(stderrChunks).toString('utf-8'),
+      });
+    });
+  });
+}
+
 export async function createContainer(options: ContainerOptions = {}): Promise<Container> {
   const workspace = getWorkspaceDir() ?? process.cwd();
   ensureCacheDirs();
@@ -110,8 +136,16 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
   }
 
   const exec = async (command: string): Promise<ExecResult> => {
+    const verbose = process.env.E2E_VERBOSE === '1';
     const execArgs = buildExecArgs(containerId, command);
-    const result = spawnSync(engine, [...ctxArgs, ...execArgs], {
+    const fullArgs = [...ctxArgs, ...execArgs];
+
+    if (verbose) {
+      const result = await execStreaming(engine, fullArgs);
+      return { exitCode: result.exitCode, stdout: result.stdout.trim(), stderr: result.stderr.trim(), command };
+    }
+
+    const result = spawnSync(engine, fullArgs, {
       encoding: 'utf-8',
       stdio: 'pipe',
     });

@@ -10,12 +10,8 @@ import {
 import { resolveServiceArgument } from "./configure.js";
 import { resolveIsolatedEnvDetails } from "../isolated-env.js";
 import {
-  type CommandCheck,
-  type CommandRunnerResult,
-  formatCommandRunnerResult,
-  stdoutMatchesExpected
+  type CommandCheck
 } from "../../utils/command-checks.js";
-import { spawnStreaming, getSpawnConfig, type AgentMessageEvent } from "@poe-code/agent-spawn";
 import { withSpinner } from "@poe-code/design-system";
 
 export function registerTestCommand(
@@ -31,8 +27,6 @@ export function registerTestCommand(
   return program
     .command("test")
     .description("Run agent health checks.")
-    .option("--stdin", "Verify stdin prompt support via spawn")
-    .option("--model <model>", "Model identifier override (requires --stdin)")
     .argument(
       "[agent]",
       serviceDescription
@@ -47,13 +41,9 @@ export function registerTestCommand(
       );
       const opts = this.opts<{
         isolated?: boolean;
-        stdin?: boolean;
-        model?: string;
       }>();
       await executeTest(this, container, resolved, {
-        isolated: Boolean(opts.isolated),
-        stdin: Boolean(opts.stdin),
-        model: opts.model
+        isolated: Boolean(opts.isolated)
       });
     });
 }
@@ -62,7 +52,7 @@ export async function executeTest(
   program: Command,
   container: CliContainer,
   service: string,
-  options: { isolated?: boolean; stdin?: boolean; model?: string } = {}
+  options: { isolated?: boolean } = {}
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
   const canonicalService = adapter.name;
@@ -80,10 +70,6 @@ export async function executeTest(
     adapter,
     resources
   );
-
-  if (options.model && !options.stdin) {
-    throw new Error("The --model option requires --stdin.");
-  }
 
   const isolatedDetails =
     options.isolated && adapter.isolatedEnv
@@ -107,123 +93,38 @@ export async function executeTest(
     });
   }
 
-  if (options.stdin) {
-    if (!adapter.supportsStdinPrompt) {
-      throw new Error(`${adapter.label} does not support stdin prompts.`);
-    }
-
-    if (flags.dryRun) {
-      resources.context.complete({
-        success: `Tested ${adapter.label}.`,
-        dry: `Dry run: would run a stdin spawn test for ${adapter.label}.`
-      });
-      return;
-    }
-
-    const expectedOutput = "STDIN_OK";
-    const prompt = `Output exactly: ${expectedOutput}`;
-    const result = await withSpinner({
-      message: `Testing ${adapter.label} via stdin...`,
-      fn: async (): Promise<CommandRunnerResult | void> => {
-        const spawnConfig = getSpawnConfig(canonicalService);
-        if (spawnConfig) {
-          const streaming = spawnStreaming({
-            agentId: canonicalService,
-            prompt,
-            useStdin: true,
-            model: options.model
-          });
-
-          let output = "";
-          for await (const event of streaming.events) {
-            if (event.event === "agent_message") {
-              output += (event as AgentMessageEvent).text;
-            }
-          }
-
-          const spawnResult = await streaming.done;
-          return {
-            stdout: output,
-            stderr: spawnResult.stderr,
-            exitCode: spawnResult.exitCode
-          };
+  await withSpinner({
+    message: `Testing ${adapter.label}...`,
+    fn: () =>
+      container.registry.invoke(canonicalService, "test", async (entry) => {
+        if (!entry.test) {
+          throw new Error(`Agent "${canonicalService}" does not support test.`);
         }
-        return container.registry.invoke(
-          canonicalService,
-          "spawn",
-          async (entry) => {
-            if (!entry.spawn) {
-              throw new Error(`Agent "${canonicalService}" does not support spawn.`);
-            }
-            const output = await entry.spawn(providerContext, {
-              prompt,
-              useStdin: true,
-              model: options.model
-            });
-            return output as CommandRunnerResult | void;
-          }
-        );
-      },
-      stopMessage: () => `${adapter.label} stdin test`
-    });
-
-    if (!result) {
-      throw new Error(
-        `Stdin spawn test for ${adapter.label} did not return command output.`
-      );
-    }
-
-    if (result.exitCode !== 0) {
-      throw new Error(
-        [
-          `Stdin spawn test for ${adapter.label} failed with exit code ${result.exitCode}.`,
-          formatCommandRunnerResult(result)
-        ].join("\n")
-      );
-    }
-
-    if (!stdoutMatchesExpected(result.stdout, expectedOutput)) {
-      throw new Error(
-        [
-          `Stdin spawn test for ${adapter.label} failed: expected "${expectedOutput}" but received "${result.stdout.trim()}".`,
-          formatCommandRunnerResult(result)
-        ].join("\n")
-      );
-    }
-  } else {
-    await withSpinner({
-      message: `Testing ${adapter.label}...`,
-      fn: () =>
-        container.registry.invoke(canonicalService, "test", async (entry) => {
-          if (!entry.test) {
-            throw new Error(`Agent "${canonicalService}" does not support test.`);
-          }
-          const activeContext =
-            isolatedDetails
-              ? {
-                  ...providerContext,
-                  runCheck: async (check: CommandCheck) => {
-                    await check.run({
-                      isDryRun: providerContext.logger.context.dryRun,
-                      runCommand: (command: string, args: string[]) =>
-                        resources.context.runCommand("poe-code", [
-                          "wrap",
-                          canonicalService,
-                          "--",
-                          ...args
-                        ]),
-                      logDryRun: (message: string) =>
-                        providerContext.logger.dryRun(message)
-                    });
-                  }
+        const activeContext =
+          isolatedDetails
+            ? {
+                ...providerContext,
+                runCheck: async (check: CommandCheck) => {
+                  await check.run({
+                    isDryRun: providerContext.logger.context.dryRun,
+                    runCommand: (command: string, args: string[]) =>
+                      resources.context.runCommand("poe-code", [
+                        "wrap",
+                        canonicalService,
+                        "--",
+                        ...args
+                      ]),
+                    logDryRun: (message: string) =>
+                      providerContext.logger.dryRun(message)
+                  });
                 }
-              : providerContext;
+              }
+            : providerContext;
 
-          await entry.test(activeContext);
-        }),
-      stopMessage: () => `${adapter.label} health check`
-    });
-  }
+        await entry.test(activeContext);
+      }),
+    stopMessage: () => `${adapter.label} health check`
+  });
 
   const dryMessage =
     canonicalService === "claude-code"

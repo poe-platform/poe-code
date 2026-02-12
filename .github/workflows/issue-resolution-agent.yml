@@ -69,22 +69,7 @@ jobs:
               ;;
           esac
       - name: Test provider
-        run: |-
-          SERVICE="${{ steps.provider.outputs.service }}"
-          MODEL="${{ steps.provider.outputs.model }}"
-          case "$SERVICE" in
-            claude-code|codex|opencode)
-              if [ -n "$MODEL" ]; then
-                poe-code test "$SERVICE" --stdin --model "$MODEL"
-              else
-                poe-code test "$SERVICE" --stdin
-              fi
-              ;;
-            *)
-              echo "::error::Unsupported provider $SERVICE"
-              exit 1
-              ;;
-          esac
+        run: poe-code test "${{ steps.provider.outputs.service }}"
       - name: Configure git author
         run: |
           git config user.name "poe-code-bot"

@@ -69,11 +69,12 @@ function matchesPattern(filePath: string, pattern: string, baseDir: string): boo
   const relativePath = filePath.slice(baseDir.length + 1);
 
   // Convert glob pattern to regex
+  // IMPORTANT: escape dots before expanding {{GLOBSTAR}} → .* to avoid corrupting .*
   const regexPattern = pattern
     .replace(/\*\*/g, '{{GLOBSTAR}}')
     .replace(/\*/g, '[^/]*')
-    .replace(/{{GLOBSTAR}}/g, '.*')
-    .replace(/\./g, '\\.');
+    .replace(/\./g, '\\.')
+    .replace(/{{GLOBSTAR}}/g, '.*');
 
   return new RegExp(`^${regexPattern}$`).test(relativePath);
 }

@@ -11,13 +11,13 @@
 
 Power your favorite coding agents (Claude Code, Codex, OpenCode, and more) with your Poe subscription—**no need to handle multiple providers/accounts.** Poe Code routes everything through the [Poe API](https://poe.com/api) . 
 
-Use it on a single session (`poe-code wrap claude`) or configure it as your default and use your tools normally. 
+Use it on a single session (`npx poe-code@latest wrap claude`) or configure it as your default and use your tools normally. 
 
 
 ## Quickstart
 Start a coding session routing all your `claude` calls to Poe
 ```bash
-npx poe-code wrap claude
+npx poe-code@latest wrap claude
 # Also available: codex, opencode, kimi
 ```
 
@@ -28,7 +28,7 @@ This updates the provider’s config files and continue using your tools normall
 
 ```bash
 # Start the interactive setup
-npx poe-code configure
+npx poe-code@latest configure
 
 # Setup a specific agent
 npx poe-code@latest configure codex # (or claude, opencode, kimi)
@@ -38,13 +38,13 @@ npx poe-code@latest configure codex # (or claude, opencode, kimi)
 ### Unconfigure (remove overrides)
 
 ```bash
-npx poe-code unconfigure claude
+npx poe-code@latest unconfigure claude
 ```
 
 ### Logout (remove config + credentials)
 
 ```bash
-npx poe-code logout
+npx poe-code@latest logout
 ```
 
 

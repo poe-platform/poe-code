@@ -195,6 +195,62 @@ describe("acp/spawnStreaming", () => {
     expect(args).not.toContain("anthropic/claude-opus-4.6");
   });
 
+  it("applies modelTransform for opencode models (bare)", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({
+          type: "text",
+          sessionID: "ses_abc",
+          part: { type: "text", messageID: "msg_1", text: "hi" }
+        }),
+      ],
+      exitCode: 0
+    });
+
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "test",
+      model: "gpt-5.2"
+    });
+
+    await collect(events);
+    await done;
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toContain("poe/gpt-5.2");
+    expect(args).not.toContain("gpt-5.2");
+  });
+
+  it("applies modelTransform for opencode models (namespaced)", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({
+          type: "text",
+          sessionID: "ses_abc",
+          part: { type: "text", messageID: "msg_1", text: "hi" }
+        }),
+      ],
+      exitCode: 0
+    });
+
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "test",
+      model: "openai/gpt-5.2"
+    });
+
+    await collect(events);
+    await done;
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toContain("poe/openai/gpt-5.2");
+    expect(args).not.toContain("openai/gpt-5.2");
+  });
+
   it("throws on unknown agentId before spawning", () => {
     const spawnMock = vi.mocked(spawnChildProcess);
     expect(() =>

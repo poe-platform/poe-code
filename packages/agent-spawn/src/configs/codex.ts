@@ -7,6 +7,7 @@ export const codexSpawnConfig: CliSpawnConfig = {
   adapter: "codex",
   promptFlag: "exec",
   modelFlag: "--model",
+  modelStripProviderPrefix: true,
   defaultArgs: ["--skip-git-repo-check", "--json"],
   modes: {
     yolo: ["-s", "danger-full-access"],

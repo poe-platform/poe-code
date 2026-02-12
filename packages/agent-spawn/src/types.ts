@@ -61,7 +61,17 @@ export interface CliSpawnConfig {
   modes: Record<SpawnMode, string[]>;
   stdinMode?: StdinMode;
   modelFlag?: string;
-  /** Temporary: transform bare model ID before passing to CLI (e.g. dots→hyphens). */
+  /**
+   * Controls whether the provider prefix is stripped from model IDs before passing to the CLI binary.
+   *
+   * When `true`: "anthropic/claude-opus-4.6" → "claude-opus-4.6", "openai/gpt-5.2" → "gpt-5.2"
+   * When `false`: "anthropic/claude-opus-4.6" stays as-is, "openai/gpt-5.2" stays as-is
+   *
+   * Most CLI binaries only accept bare model IDs (e.g. `claude --model claude-opus-4.6`),
+   * so they need `true`. OpenCode routes through poe and needs the full provider path, so it uses `false`.
+   */
+  modelStripProviderPrefix: boolean;
+  /** Transform model ID before passing to CLI. Runs after provider prefix stripping (if enabled). */
   modelTransform?: (model: string) => string;
   interactive?: InteractiveSpawnConfig;
   resumeCommand?: (threadId: string, cwd: string) => string[];

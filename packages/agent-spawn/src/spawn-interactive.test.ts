@@ -60,6 +60,7 @@ describe("spawnInteractive", () => {
         agentId: "test-agent",
         adapter: "native",
         promptFlag: "-p",
+        modelStripProviderPrefix: true,
         defaultArgs: [],
         modes: { yolo: [], edit: [], read: [] }
       }
@@ -151,7 +152,7 @@ describe("spawnInteractive", () => {
     ]);
   });
 
-  it("applies modelTransform from config (opencode dots→hyphens)", async () => {
+  it("applies modelTransform from config (preserves namespace + poe/ prefix)", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
       .mockReturnValue(createMockInheritProcess(0));
@@ -159,7 +160,7 @@ describe("spawnInteractive", () => {
     await spawnInteractive("opencode", { prompt: "test", model: "anthropic/claude-opus-4.6" });
 
     const [, args] = spawnMock.mock.calls[0];
-    expect(args).toContain("claude-opus-4-6");
+    expect(args).toContain("poe/anthropic/claude-opus-4-6");
     expect(args).not.toContain("claude-opus-4.6");
   });
 

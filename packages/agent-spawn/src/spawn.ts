@@ -52,7 +52,9 @@ function buildCliArgs(
     : [config.promptFlag, options.prompt];
 
   if (options.model && config.modelFlag) {
-    let model = stripModelNamespace(options.model);
+    let model = config.modelStripProviderPrefix
+      ? stripModelNamespace(options.model)
+      : options.model;
     if (config.modelTransform) model = config.modelTransform(model);
     args.push(config.modelFlag, model);
   }

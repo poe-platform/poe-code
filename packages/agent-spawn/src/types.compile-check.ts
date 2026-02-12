@@ -90,6 +90,7 @@ type ignoredCliSpawnConfigHasPromptFlag = AssertAssignable<
     agentId: string;
     adapter: AdapterType;
     promptFlag: string;
+    modelStripProviderPrefix: boolean;
     defaultArgs: string[];
     modes: Record<SpawnMode, string[]>;
   }

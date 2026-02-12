@@ -102,23 +102,51 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
-  it("applies modelTransform for opencode claude-opus-4.6 → claude-opus-4-6", () => {
+  it("applies modelTransform for opencode claude-opus-4.6 → poe/anthropic/claude-opus-4-6", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
       model: "anthropic/claude-opus-4.6"
     });
 
-    expect(result.args).toContain("claude-opus-4-6");
+    expect(result.args).toContain("poe/anthropic/claude-opus-4-6");
     expect(result.args).not.toContain("claude-opus-4.6");
   });
 
-  it("does not transform other opencode models", () => {
+  it("preserves provider namespace for opencode models", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
       model: "anthropic/claude-sonnet-4.5"
     });
 
-    expect(result.args).toContain("claude-sonnet-4.5");
+    expect(result.args).toContain("poe/anthropic/claude-sonnet-4.5");
+  });
+
+  it("preserves openai namespace for opencode models", () => {
+    const result = buildSpawnArgs("opencode", {
+      prompt: "hello",
+      model: "openai/gpt-5.2"
+    });
+
+    expect(result.args).toContain("poe/openai/gpt-5.2");
+  });
+
+  it("adds poe/ prefix to bare opencode models", () => {
+    const result = buildSpawnArgs("opencode", {
+      prompt: "hello",
+      model: "gpt-5.2"
+    });
+
+    expect(result.args).toContain("poe/gpt-5.2");
+  });
+
+  it("does not double poe/ prefix for opencode models", () => {
+    const result = buildSpawnArgs("opencode", {
+      prompt: "hello",
+      model: "poe/gpt-5.2"
+    });
+
+    expect(result.args).toContain("poe/gpt-5.2");
+    expect(result.args).not.toContain("poe/poe/gpt-5.2");
   });
 
   it("builds correct args for kimi", () => {

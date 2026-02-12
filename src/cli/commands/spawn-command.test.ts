@@ -735,6 +735,7 @@ describe("spawn command", () => {
       agentId: "codex",
       adapter: "codex",
       promptFlag: "exec",
+      modelStripProviderPrefix: true,
       defaultArgs: [],
       modes: { yolo: [], edit: [], read: [] }
     });

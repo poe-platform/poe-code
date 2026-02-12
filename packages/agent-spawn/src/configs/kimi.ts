@@ -8,6 +8,7 @@ export const kimiSpawnConfig: CliSpawnConfig = {
   // (no `{ event, ... }` field), so it needs the Kimi adapter (not "native").
   adapter: "kimi",
   promptFlag: "-p",
+  modelStripProviderPrefix: true,
   defaultArgs: ["--print", "--output-format", "stream-json"],
   modes: {
     yolo: ["--yolo"],

@@ -7,6 +7,7 @@ export const claudeCodeSpawnConfig: CliSpawnConfig = {
   adapter: "claude",
   promptFlag: "-p",
   modelFlag: "--model",
+  modelStripProviderPrefix: true,
   defaultArgs: [
     "--output-format",
     "stream-json",

@@ -54,7 +54,11 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   }
 
   if (options.model && spawnConfig.modelFlag) {
-    args.push(spawnConfig.modelFlag, stripModelNamespace(options.model));
+    let model = spawnConfig.modelStripProviderPrefix
+      ? stripModelNamespace(options.model)
+      : options.model;
+    if (spawnConfig.modelTransform) model = spawnConfig.modelTransform(model);
+    args.push(spawnConfig.modelFlag, model);
   }
 
   args.push(...spawnConfig.defaultArgs);

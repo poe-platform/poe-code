@@ -151,6 +151,18 @@ describe("spawnInteractive", () => {
     ]);
   });
 
+  it("applies modelTransform from config (opencode dots→hyphens)", async () => {
+    const spawnMock = vi
+      .mocked(spawnChildProcess)
+      .mockReturnValue(createMockInheritProcess(0));
+
+    await spawnInteractive("opencode", { prompt: "test", model: "anthropic/claude-opus-4.6" });
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toContain("claude-opus-4-6");
+    expect(args).not.toContain("claude-opus-4.6");
+  });
+
   // IMPORTANT: CLI binaries (claude, codex, etc.) only accept bare model IDs
   // (e.g. "claude-opus-4.6"), not namespaced ones (e.g. "anthropic/claude-opus-4.6").
   // The namespace MUST be stripped here in agent-spawn before invoking the binary.

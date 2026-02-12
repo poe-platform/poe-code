@@ -69,6 +69,9 @@ export const openCodeSpawnConfig: CliSpawnConfig = {
   adapter: "opencode",
   promptFlag: "run",
   modelFlag: "--model",
+  // TODO: remove once opencode accepts dotted model IDs (e.g. claude-opus-4.6)
+  modelTransform: (model) =>
+    model === "claude-opus-4.6" ? "claude-opus-4-6" : model,
   defaultArgs: ["--format", "json"],
   modes: {
     yolo: [],

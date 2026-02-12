@@ -61,6 +61,8 @@ export interface CliSpawnConfig {
   modes: Record<SpawnMode, string[]>;
   stdinMode?: StdinMode;
   modelFlag?: string;
+  /** Temporary: transform bare model ID before passing to CLI (e.g. dots→hyphens). */
+  modelTransform?: (model: string) => string;
   interactive?: InteractiveSpawnConfig;
   resumeCommand?: (threadId: string, cwd: string) => string[];
 }

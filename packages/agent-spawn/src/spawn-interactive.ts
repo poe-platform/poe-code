@@ -39,7 +39,9 @@ export async function spawnInteractive(
   }
 
   if (options.model && spawnConfig.modelFlag) {
-    args.push(spawnConfig.modelFlag, stripModelNamespace(options.model));
+    let model = stripModelNamespace(options.model);
+    if (spawnConfig.modelTransform) model = spawnConfig.modelTransform(model);
+    args.push(spawnConfig.modelFlag, model);
   }
 
   args.push(...interactive.defaultArgs);

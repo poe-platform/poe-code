@@ -102,6 +102,25 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
+  it("applies modelTransform for opencode claude-opus-4.6 → claude-opus-4-6", () => {
+    const result = buildSpawnArgs("opencode", {
+      prompt: "hello",
+      model: "anthropic/claude-opus-4.6"
+    });
+
+    expect(result.args).toContain("claude-opus-4-6");
+    expect(result.args).not.toContain("claude-opus-4.6");
+  });
+
+  it("does not transform other opencode models", () => {
+    const result = buildSpawnArgs("opencode", {
+      prompt: "hello",
+      model: "anthropic/claude-sonnet-4.5"
+    });
+
+    expect(result.args).toContain("claude-sonnet-4.5");
+  });
+
   it("builds correct args for kimi", () => {
     const result = buildSpawnArgs("kimi", { prompt: "hello" });
 

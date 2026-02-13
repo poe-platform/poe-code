@@ -82,9 +82,9 @@ export const openCodeService = createProvider({
           };
         }
       }),
-      fileMutation.ensureDirectory({ path: "~/.opencode-data" }),
+      fileMutation.ensureDirectory({ path: "~/.local/share/opencode" }),
       configMutation.merge({
-        target: "~/.opencode-data/auth.json",
+        target: "~/.local/share/opencode/auth.json",
         value: (ctx) => {
           const { apiKey } = (ctx ?? {}) as { apiKey?: string };
           return {
@@ -102,7 +102,7 @@ export const openCodeService = createProvider({
         shape: { enabled_providers: true }
       }),
       configMutation.prune({
-        target: "~/.opencode-data/auth.json",
+        target: "~/.local/share/opencode/auth.json",
         shape: { [PROVIDER_NAME]: true }
       })
     ]

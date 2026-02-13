@@ -17,8 +17,8 @@ describe('opencode', () => {
     expect(config).toHaveProperty('model');
     expect(config).toHaveProperty('enabled_providers');
 
-    await expect(container).toHaveFile('/home/poe/.opencode-data/auth.json');
-    const authRaw = await container.readFile('/home/poe/.opencode-data/auth.json');
+    await expect(container).toHaveFile('/home/poe/.local/share/opencode/auth.json');
+    const authRaw = await container.readFile('/home/poe/.local/share/opencode/auth.json');
     const auth = JSON.parse(authRaw);
     expect(auth).toHaveProperty('poe.type');
     expect(auth).toHaveProperty('poe.key');

@@ -22,7 +22,7 @@ describe("opencode service", () => {
   let fs: FileSystem;
   const homeDir = "/home/user";
   const configPath = path.join(homeDir, ".config", "opencode", "config.json");
-  const authPath = path.join(homeDir, ".opencode-data", "auth.json");
+  const authPath = path.join(homeDir, ".local", "share", "opencode", "auth.json");
   let env = createCliEnvironment({ cwd: homeDir, homeDir });
 
   beforeEach(() => {

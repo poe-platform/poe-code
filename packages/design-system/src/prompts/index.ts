@@ -101,6 +101,16 @@ function formatElapsed(ms: number): string {
 
 export async function withSpinner<T>(options: WithSpinnerOptions<T>): Promise<T> {
   const { message, fn, stopMessage, subtext } = options;
+
+  if (resolveOutputFormat() === "json") {
+    const result = await fn();
+    const sub = subtext ? subtext(result) : undefined;
+    if (sub) {
+      process.stdout.write(sub + "\n");
+    }
+    return result;
+  }
+
   const noSpinner = process.env.POE_NO_SPINNER === "1";
   const isTTY = process.stdout.isTTY;
 

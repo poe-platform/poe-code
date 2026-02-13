@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as clack from "@clack/prompts";
 import { withSpinner } from "./index.js";
+import { resetOutputFormatCache, resolveOutputFormat } from "../internal/output-format.js";
 
 vi.mock("@clack/prompts", () => ({
   spinner: vi.fn()
@@ -18,6 +19,7 @@ describe("withSpinner", () => {
     clackSpinner.mockClear();
     stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     process.env.POE_NO_SPINNER = undefined;
+    resetOutputFormatCache();
     Object.defineProperty(process.stdout, "isTTY", {
       value: true,
       writable: true,
@@ -29,6 +31,7 @@ describe("withSpinner", () => {
     vi.useRealTimers();
     stdoutSpy.mockRestore();
     process.env.POE_NO_SPINNER = originalEnv;
+    resetOutputFormatCache();
     Object.defineProperty(process.stdout, "isTTY", {
       value: originalIsTTY,
       writable: true,
@@ -186,5 +189,39 @@ describe("withSpinner", () => {
     });
 
     expect(stop).toHaveBeenCalledWith(expect.stringContaining("Done ["));
+  });
+
+  it("outputs raw subtext without decoration when OUTPUT_FORMAT=json", async () => {
+    resetOutputFormatCache();
+    resolveOutputFormat({ OUTPUT_FORMAT: "json" });
+
+    const result = await withSpinner({
+      message: "Loading...",
+      fn: async () => "raw content",
+      stopMessage: (r) => r,
+      subtext: (r) => r
+    });
+
+    expect(result).toBe("raw content");
+    expect(clackSpinner).not.toHaveBeenCalled();
+
+    const output = stdoutSpy.mock.calls.map((c) => c[0]).join("");
+    expect(output).toBe("raw content\n");
+    expect(output).not.toContain("│");
+    expect(output).not.toContain("\x1b[");
+  });
+
+  it("skips all output when OUTPUT_FORMAT=json and no subtext", async () => {
+    resetOutputFormatCache();
+    resolveOutputFormat({ OUTPUT_FORMAT: "json" });
+
+    const result = await withSpinner({
+      message: "Loading...",
+      fn: async () => "value",
+      stopMessage: (r) => r
+    });
+
+    expect(result).toBe("value");
+    expect(stdoutSpy).not.toHaveBeenCalled();
   });
 });

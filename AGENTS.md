@@ -22,16 +22,6 @@ When adding a new provider, the author should be creating 1 provider file, every
 Do NOT write unit tests for github workflows
 Use `npm run lint:workflows`
 
-## Testing file changes
-
-- Tests must not create files - use `memfs` library to test changes in memory.
-  - Exception is snapshots, snapshots should be created on disk
-- Tests must not query LLM - use abstraction to mock this reliably across all files
-
-## Testing LLMs
-
-Use docs/SNAPSHOT_TESTING.md
-
 ## Commits
 
 - Commit every atomic change, once the tests are green - npm run test, npm run lint
@@ -58,19 +48,27 @@ The Providers should have as little as possible boilerplate, keep them simple, d
 
 Providers must be declarative and minimal: you are not allowed to add repeated information that can be inferred from existing config.
 
+## Testing
+
+### Unit Testing - speed is crucial
+
+Any tests that takes longer shouldn't exist. Either mock slow dependencies or rewrite/remove the test.
+
+### Unit Testing - file changes
+
+- Tests must not create files - use `memfs` library to test changes in memory.
+  - Exception is snapshots, snapshots should be created on disk
+- Tests must not query LLM - use abstraction to mock this reliably across all files
+
+### Unit Testing - LLMs
+
+Use docs/SNAPSHOT_TESTING.md
+
 ### Testing - test command
 
 The whole point of the test command is to test spawn and not work around it.
 
-## Readme
-
-You are not allowed to add anything to readme without user's permission. Upon feature completion, ask user whether readme should be updated.
-
-## Planning
-
-Planning docs must be in `docs` folder
-
-## Testing
+Whenever making changes to agent definitions, use test command quickly verify
 
 ### Spot testing
 
@@ -103,6 +101,14 @@ You must run those when
   - spawn
   - isolated spawn
 - you change the e2e tests
+
+## Readme
+
+You are not allowed to add anything to readme without user's permission. Upon feature completion, ask user whether readme should be updated.
+
+## Planning
+
+Planning docs MUST be in `docs/plans` folder, NO EXCEPTIONS even in planning. ABSOLUTELY NO OTHER PLANNING LOCATIONS!!!!!
 
 ## CLI vs SDK
 

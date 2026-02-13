@@ -142,8 +142,10 @@ function main() {
   args.push(prompt);
 
   // Use npx to ensure we use the locally installed version
+  // OUTPUT_FORMAT=json suppresses design-system UI chrome so stdout is raw text
   const result = spawnSync("npx", ["poe-code", ...args], {
-    encoding: "utf8"
+    encoding: "utf8",
+    env: { ...process.env, OUTPUT_FORMAT: "json" }
   });
 
   if (result.error) {

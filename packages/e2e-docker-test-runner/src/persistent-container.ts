@@ -31,7 +31,6 @@ function generateContainerName(): string {
 
 export function buildCreateArgs(config: {
   name: string;
-  mountSource: string;
   npmCacheDir: string;
   uvCacheDir: string;
   apiKey: string | null;
@@ -41,7 +40,6 @@ export function buildCreateArgs(config: {
     'create',
     '--name', config.name,
     '--label', CONTAINER_LABEL,
-    '-v', `${config.mountSource}:${MOUNT_TARGET}:rw`,
     '-v', `${config.npmCacheDir}:${CONTAINER_HOME}/.npm:rw`,
     '-v', `${config.uvCacheDir}:${CONTAINER_HOME}/.cache/uv:rw`,
     '-w', MOUNT_TARGET,
@@ -102,7 +100,6 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
 
   const createArgs = buildCreateArgs({
     name,
-    mountSource: workspace,
     npmCacheDir: NPM_CACHE_DIR,
     uvCacheDir: UV_CACHE_DIR,
     apiKey,
@@ -135,16 +132,10 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
     throw new Error(`Failed to start container: ${startResult.stderr}`);
   }
 
-  const exec = async (command: string): Promise<ExecResult> => {
-    const verbose = process.env.E2E_VERBOSE === '1';
+  /** Always-quiet exec that never streams output (for internal helpers that may handle secrets) */
+  const execQuiet = async (command: string): Promise<ExecResult> => {
     const execArgs = buildExecArgs(containerId, command);
     const fullArgs = [...ctxArgs, ...execArgs];
-
-    if (verbose) {
-      const result = await execStreaming(engine, fullArgs);
-      return { exitCode: result.exitCode, stdout: result.stdout.trim(), stderr: result.stderr.trim(), command };
-    }
-
     const result = spawnSync(engine, fullArgs, {
       encoding: 'utf-8',
       stdio: 'pipe',
@@ -155,6 +146,18 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
       stderr: (result.stderr ?? '').trim(),
       command,
     };
+  };
+
+  const exec = async (command: string): Promise<ExecResult> => {
+    const verbose = process.env.E2E_VERBOSE === '1';
+    if (!verbose) {
+      return execQuiet(command);
+    }
+
+    const execArgs = buildExecArgs(containerId, command);
+    const fullArgs = [...ctxArgs, ...execArgs];
+    const result = await execStreaming(engine, fullArgs);
+    return { exitCode: result.exitCode, stdout: result.stdout.trim(), stderr: result.stderr.trim(), command };
   };
 
   const execOrThrow = async (command: string): Promise<ExecResult> => {
@@ -182,16 +185,21 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
       if (!apiKey) {
         throw new Error('No API key available. Set POE_API_KEY or POE_CODE_API_KEY environment variable.');
       }
-      await execOrThrow(`poe-code login --api-key '${apiKey}'`);
+      const result = await execQuiet(`poe-code login --api-key '${apiKey}'`);
+      if (result.exitCode !== 0) {
+        throw new Error(
+          `Command failed: "poe-code login" (exit code ${result.exitCode})\n${result.stderr}`
+        );
+      }
     },
 
     async fileExists(filePath: string): Promise<boolean> {
-      const result = await exec(`test -f ${filePath}`);
+      const result = await execQuiet(`test -f ${filePath}`);
       return result.exitCode === 0;
     },
 
     async readFile(filePath: string): Promise<string> {
-      const result = await exec(`cat ${filePath}`);
+      const result = await execQuiet(`cat ${filePath}`);
       if (result.exitCode !== 0) {
         throw new Error(
           `Failed to read file "${filePath}": ${result.stderr}`

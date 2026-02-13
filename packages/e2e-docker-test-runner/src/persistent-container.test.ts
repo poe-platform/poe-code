@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { vol } from 'memfs';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
@@ -57,7 +57,6 @@ vi.mock('node:crypto', async (importOriginal) => {
 describe('buildCreateArgs', () => {
   const baseConfig = {
     name: 'poe-e2e-a1b2c3d4',
-    mountSource: '/workspace',
     npmCacheDir: '/cache/npm',
     uvCacheDir: '/cache/uv',
     apiKey: null as string | null,
@@ -83,9 +82,12 @@ describe('buildCreateArgs', () => {
     expect(args[labelIndex + 1]).toBe('poe-e2e-test-runner=true');
   });
 
-  it('mounts workspace to container', () => {
+  it('does not mount host workspace', () => {
     const args = buildCreateArgs(baseConfig);
-    expect(args).toContain(`/workspace:${MOUNT_TARGET}:rw`);
+    const volumeArgs = args.filter((_, i) => i > 0 && args[i - 1] === '-v');
+    for (const v of volumeArgs) {
+      expect(v).not.toContain(MOUNT_TARGET);
+    }
   });
 
   it('mounts cache directories to non-root user home', () => {
@@ -575,6 +577,38 @@ describe('readFile', () => {
     expect(content).toBe('{"key": "value"}');
   });
 
+  it('does not stream output even when E2E_VERBOSE=1', async () => {
+    const originalVerbose = process.env.E2E_VERBOSE;
+    process.env.E2E_VERBOSE = '1';
+
+    try {
+      const { container, mockSpawnSync } = await setupContainerMock()();
+      const { spawn } = await import('node:child_process');
+      const mockSpawn = vi.mocked(spawn);
+
+      mockSpawnSync.mockReturnValue({
+        status: 0,
+        stdout: '{"key": "secret"}\n',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      });
+
+      await container.readFile('/home/poe/.local/share/opencode/auth.json');
+
+      // Should use spawnSync (quiet), not async spawn (streaming)
+      expect(mockSpawnSync).toHaveBeenCalled();
+      expect(mockSpawn).not.toHaveBeenCalled();
+    } finally {
+      if (originalVerbose === undefined) {
+        delete process.env.E2E_VERBOSE;
+      } else {
+        process.env.E2E_VERBOSE = originalVerbose;
+      }
+    }
+  });
+
   it('throws with clear message if file does not exist', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
@@ -744,7 +778,7 @@ describe('login', () => {
     vi.mocked(getApiKey).mockReturnValue('test-api-key');
   });
 
-  it('calls execOrThrow with poe-code login --api-key command', async () => {
+  it('runs login quietly without streaming', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
     mockSpawnSync.mockReturnValue({
@@ -802,7 +836,7 @@ describe('login', () => {
     );
   });
 
-  it('propagates execOrThrow errors on login failure', async () => {
+  it('throws on login failure without exposing API key', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
     mockSpawnSync.mockReturnValue({
@@ -814,7 +848,7 @@ describe('login', () => {
       signal: null,
     });
 
-    await expect(container.login()).rejects.toThrow('Command failed');
+    await expect(container.login()).rejects.toThrow('Command failed: "poe-code login"');
   });
 });
 

@@ -17,7 +17,7 @@ class StaleAccessedKeysError extends Error {
   constructor(ageMinutes: number) {
     super(
       `Accessed keys file is ${ageMinutes} minutes old (max: 10 minutes).\n` +
-      `Run tests first: POE_SNAPSHOT_MODE=playback npm test`
+        `Run tests first: POE_SNAPSHOT_MODE=playback npm test`
     );
     this.name = "StaleAccessedKeysError";
   }
@@ -28,7 +28,7 @@ function resolveSnapshotDir(): string {
   if (typeof value === "string" && value.trim().length > 0) {
     return value.trim();
   }
-  return "__snapshots__";
+  return ".snapshots";
 }
 
 function resolveApiBaseUrl(): string {
@@ -89,22 +89,25 @@ function isNotFound(error: unknown): boolean {
 
 const program = new Command();
 
-program
-  .name("snapshots")
-  .description("Manage LLM test snapshots");
+program.name("snapshots").description("Manage LLM test snapshots");
 
 program
   .command("list")
   .description("List all snapshots")
   .option("--model <model>", "Filter by model name")
-  .option("--stale", "List stale snapshots (requires running tests with POE_SNAPSHOT_MODE=playback first)")
+  .option(
+    "--stale",
+    "List stale snapshots (requires running tests with POE_SNAPSHOT_MODE=playback first)"
+  )
   .action(async (options?: { model?: string; stale?: boolean }) => {
     const snapshotDir = resolveSnapshotDir();
 
     if (options?.stale) {
       const accessedKeys = await loadAccessedKeys(snapshotDir);
       if (!accessedKeys) {
-        console.error("No accessed keys file found. Run tests with POE_SNAPSHOT_MODE=playback first.");
+        console.error(
+          "No accessed keys file found. Run tests with POE_SNAPSHOT_MODE=playback first."
+        );
         process.exitCode = 1;
         return;
       }
@@ -161,14 +164,19 @@ program
   .command("delete [key]")
   .description("Delete snapshots")
   .option("--model <model>", "Filter by model name")
-  .option("--stale", "Delete stale snapshots (requires running tests with POE_SNAPSHOT_MODE=playback first)")
+  .option(
+    "--stale",
+    "Delete stale snapshots (requires running tests with POE_SNAPSHOT_MODE=playback first)"
+  )
   .action(async (key?: string, options?: { model?: string; stale?: boolean }) => {
     const snapshotDir = resolveSnapshotDir();
 
     if (options?.stale) {
       const accessedKeys = await loadAccessedKeys(snapshotDir);
       if (!accessedKeys) {
-        console.error("No accessed keys file found. Run tests with POE_SNAPSHOT_MODE=playback first.");
+        console.error(
+          "No accessed keys file found. Run tests with POE_SNAPSHOT_MODE=playback first."
+        );
         process.exitCode = 1;
         return;
       }

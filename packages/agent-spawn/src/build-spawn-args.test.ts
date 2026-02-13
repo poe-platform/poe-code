@@ -42,14 +42,25 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
-  it("strips provider namespace from model", () => {
+  it("strips provider namespace and converts dots to hyphens for claude-code model", () => {
     const result = buildSpawnArgs("claude-code", {
       prompt: "test",
       model: "anthropic/claude-opus-4.6"
     });
 
-    expect(result.args).toContain("claude-opus-4.6");
+    expect(result.args).toContain("claude-opus-4-6");
     expect(result.args).not.toContain("anthropic/claude-opus-4.6");
+    expect(result.args).not.toContain("claude-opus-4.6");
+  });
+
+  it("converts dots to hyphens for all claude-code models", () => {
+    const result = buildSpawnArgs("claude-code", {
+      prompt: "test",
+      model: "anthropic/claude-sonnet-4.5"
+    });
+
+    expect(result.args).toContain("claude-sonnet-4-5");
+    expect(result.args).not.toContain("claude-sonnet-4.5");
   });
 
   it("appends mode-specific args for edit mode", () => {
@@ -181,7 +192,7 @@ describe("buildSpawnArgs", () => {
     });
 
     expect(result.args).toContain("--model");
-    expect(result.args).toContain("claude-opus-4.6");
+    expect(result.args).toContain("claude-opus-4-6");
     expect(result.args).not.toContain("test");
   });
 

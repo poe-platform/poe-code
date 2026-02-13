@@ -121,10 +121,10 @@ describe("spawn", () => {
   });
 
   // IMPORTANT: CLI binaries (claude, codex, etc.) only accept bare model IDs
-  // (e.g. "claude-opus-4.6"), not namespaced ones (e.g. "anthropic/claude-opus-4.6").
-  // The namespace MUST be stripped here in agent-spawn before invoking the binary.
+  // (e.g. "claude-opus-4-6"), not namespaced ones (e.g. "anthropic/claude-opus-4.6").
+  // The namespace MUST be stripped and dots converted to hyphens before invoking the binary.
   // Do NOT remove this stripping — it will break all spawns that pass a namespaced model.
-  it("strips provider namespace from model before passing to CLI", async () => {
+  it("strips provider namespace and transforms model before passing to CLI", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
       createMockChildProcess({ exitCode: 0 })
     );
@@ -132,8 +132,9 @@ describe("spawn", () => {
     await spawn("claude-code", { prompt: "test", model: "anthropic/claude-opus-4.6" });
 
     const [, args] = spawnMock.mock.calls[0];
-    expect(args).toContain("claude-opus-4.6");
+    expect(args).toContain("claude-opus-4-6");
     expect(args).not.toContain("anthropic/claude-opus-4.6");
+    expect(args).not.toContain("claude-opus-4.6");
   });
 
   it("passes cwd option to the spawned process", async () => {

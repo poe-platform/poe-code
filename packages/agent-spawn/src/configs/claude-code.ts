@@ -8,6 +8,7 @@ export const claudeCodeSpawnConfig: CliSpawnConfig = {
   promptFlag: "-p",
   modelFlag: "--model",
   modelStripProviderPrefix: true,
+  modelTransform: (model) => model.replaceAll(".", "-"),
   defaultArgs: [
     "--output-format",
     "stream-json",

@@ -9,6 +9,15 @@ vi.mock("node:child_process", () => ({
   spawn: vi.fn()
 }));
 
+vi.mock("@poe-code/design-system", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+  return {
+    ...actual,
+    confirm: vi.fn().mockResolvedValue(true),
+    isCancel: vi.fn().mockReturnValue(false)
+  };
+});
+
 const cwd = "/repo";
 const homeDir = "/home/test";
 

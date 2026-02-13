@@ -3,7 +3,8 @@ import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { renderAcpStream, spawnInteractive, getSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
-import { text } from "@poe-code/design-system";
+import { text, confirm, isCancel } from "@poe-code/design-system";
+import { loadConfiguredServices } from "../../services/credentials.js";
 import {
   createExecutionResources,
   resolveCommandFlags,
@@ -97,6 +98,15 @@ export function registerSpawnCommand(
 
       if (commandOptions.interactive) {
         const adapter = resolveServiceAdapter(container, service);
+        const proceed = await confirmUnconfiguredService(
+          container,
+          adapter.name,
+          adapter.label,
+          flags
+        );
+        if (!proceed) {
+          return;
+        }
         const result = await spawnInteractive(adapter.name, {
           prompt: promptText ?? "",
           args: forwardedArgs,
@@ -183,6 +193,16 @@ export function registerSpawnCommand(
           return;
         }
 
+        const proceed = await confirmUnconfiguredService(
+          container,
+          canonicalService,
+          adapter.label,
+          flags
+        );
+        if (!proceed) {
+          return;
+        }
+
         const { events, result } = spawnSdk(canonicalService, {
           prompt: spawnOptions.prompt,
           args: spawnOptions.args,
@@ -237,6 +257,32 @@ export function registerSpawnCommand(
         resources.context.finalize();
       }
     });
+}
+
+async function confirmUnconfiguredService(
+  container: CliContainer,
+  service: string,
+  label: string,
+  flags: CommandFlags
+): Promise<boolean> {
+  const configuredServices = await loadConfiguredServices({
+    fs: container.fs,
+    filePath: container.env.credentialsPath
+  });
+
+  if (service in configuredServices) {
+    return true;
+  }
+
+  if (flags.assumeYes) {
+    return true;
+  }
+
+  const shouldProceed = await confirm({
+    message: `${label} is not configured via poe. Do you want to proceed?`
+  });
+
+  return !isCancel(shouldProceed) && shouldProceed === true;
 }
 
 function shlexQuote(value: string): string {

@@ -86,6 +86,11 @@ async function resolveApiKeyInput(
     return options.apiKey;
   }
 
+  const envKey = container.env.getVariable("POE_API_KEY");
+  if (envKey && envKey.trim().length > 0) {
+    return envKey;
+  }
+
   const descriptor = container.promptLibrary.loginApiKey();
   const response = await container.prompts(descriptor);
   const value = response[descriptor.name];

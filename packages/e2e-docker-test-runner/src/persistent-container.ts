@@ -185,12 +185,7 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
       if (!apiKey) {
         throw new Error('No API key available. Set POE_API_KEY or POE_CODE_API_KEY environment variable.');
       }
-      const result = await execQuiet(`poe-code login --api-key '${apiKey}'`);
-      if (result.exitCode !== 0) {
-        throw new Error(
-          `Command failed: "poe-code login" (exit code ${result.exitCode})\n${result.stderr}`
-        );
-      }
+      await execOrThrow('poe-code login');
     },
 
     async fileExists(filePath: string): Promise<boolean> {

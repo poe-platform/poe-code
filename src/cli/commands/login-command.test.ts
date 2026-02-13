@@ -68,6 +68,62 @@ describe("login command", () => {
     ).rejects.toBeTruthy();
   });
 
+  it("reads API key from POE_API_KEY env variable when flag not provided", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: { POE_API_KEY: "env-key" } },
+      commandRunner,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "login"]);
+
+    const raw = await fs.readFile(credentialsPath, "utf8");
+    expect(JSON.parse(raw)).toEqual(
+      expect.objectContaining({ apiKey: "env-key" })
+    );
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("prefers --api-key flag over POE_API_KEY env variable", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: { POE_API_KEY: "env-key" } },
+      commandRunner,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "login", "--api-key", "flag-key"]);
+
+    const raw = await fs.readFile(credentialsPath, "utf8");
+    expect(JSON.parse(raw)).toEqual(
+      expect.objectContaining({ apiKey: "flag-key" })
+    );
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
   it("prompts for an api key when flag missing", async () => {
     prompts.mockResolvedValue({ apiKey: "prompt-key" });
     const commandRunner: CommandRunner = vi.fn(async () => ({

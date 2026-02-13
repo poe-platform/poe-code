@@ -778,7 +778,7 @@ describe('login', () => {
     vi.mocked(getApiKey).mockReturnValue('test-api-key');
   });
 
-  it('runs login quietly without streaming', async () => {
+  it('runs login without passing API key on command line', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
     mockSpawnSync.mockReturnValue({
@@ -792,11 +792,16 @@ describe('login', () => {
 
     await container.login();
 
-    expect(mockSpawnSync).toHaveBeenCalledWith(
-      'docker',
-      ['exec', 'test-container-id', 'sh', '-c', "poe-code login --api-key 'test-api-key'"],
-      { encoding: 'utf-8', stdio: 'pipe' }
+    const loginCall = mockSpawnSync.mock.calls.find(
+      (call) => {
+        const args = call[1] as string[];
+        return args.includes('exec') && args.some(a => a.includes('poe-code login'));
+      }
     );
+    expect(loginCall).toBeDefined();
+    const loginCmd = (loginCall![1] as string[]).find(a => a.includes('poe-code login'));
+    expect(loginCmd).toBe('poe-code login');
+    expect(loginCmd).not.toContain('--api-key');
   });
 
   it('throws if no API key is available', async () => {

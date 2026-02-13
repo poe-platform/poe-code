@@ -9,6 +9,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DOCKERFILE_DIR = join(__dirname, '..');
 const DOCKERFILE_PATH = join(DOCKERFILE_DIR, 'e2e.Dockerfile');
 const TARBALL_NAME = 'poe-code.tgz';
+const MCP_SERVER_TARBALL = 'tiny-stdio-mcp-server.tgz';
+const MCP_TEST_SERVER_TARBALL = 'tiny-stdio-mcp-test-server.tgz';
 export const IMAGE_NAME = 'poe-code-e2e';
 
 /**
@@ -132,34 +134,44 @@ export function imageExists(engine: Engine, tag: string, context?: string): bool
 }
 
 /**
- * Create a tarball of the built poe-code package.
- * Places it next to the Dockerfile for use as Docker build context.
+ * Pack a workspace package into a tarball for the Docker build context.
  */
-function createTarball(workspaceRoot: string, verbose: boolean): void {
-  if (verbose) {
-    console.error('Creating poe-code tarball...');
-  }
-
+function packTarball(cwd: string, targetName: string, verbose: boolean): void {
   const packResult = execSync('npm pack --pack-destination ' + DOCKERFILE_DIR, {
-    cwd: workspaceRoot,
+    cwd,
     encoding: 'utf-8',
     stdio: ['pipe', 'pipe', verbose ? 'inherit' : 'pipe'],
   });
 
   const packedFile = packResult.trim().split('\n').pop()!;
   const packedPath = join(DOCKERFILE_DIR, packedFile);
-  const targetPath = join(DOCKERFILE_DIR, TARBALL_NAME);
+  const targetPath = join(DOCKERFILE_DIR, targetName);
 
   if (packedPath !== targetPath) {
     renameSync(packedPath, targetPath);
   }
 }
 
+/**
+ * Create tarballs for the Docker build context.
+ */
+function createTarball(workspaceRoot: string, verbose: boolean): void {
+  if (verbose) {
+    console.error('Creating tarballs...');
+  }
+
+  packTarball(workspaceRoot, TARBALL_NAME, verbose);
+  packTarball(join(workspaceRoot, 'packages/tiny-stdio-mcp-server'), MCP_SERVER_TARBALL, verbose);
+  packTarball(join(workspaceRoot, 'packages/tiny-stdio-mcp-test-server'), MCP_TEST_SERVER_TARBALL, verbose);
+}
+
 function cleanupTarball(): void {
-  try {
-    unlinkSync(join(DOCKERFILE_DIR, TARBALL_NAME));
-  } catch {
-    // Ignore if already cleaned up
+  for (const name of [TARBALL_NAME, MCP_SERVER_TARBALL, MCP_TEST_SERVER_TARBALL]) {
+    try {
+      unlinkSync(join(DOCKERFILE_DIR, name));
+    } catch {
+      // Ignore if already cleaned up
+    }
   }
 }
 

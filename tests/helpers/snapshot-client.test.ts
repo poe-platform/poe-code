@@ -34,7 +34,7 @@ describe("snapshot client", () => {
 
   it("plays back cached snapshots without calling base client", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
     await fs.mkdir(snapshotDir, { recursive: true });
 
     const model = "Test-Model";
@@ -76,7 +76,7 @@ describe("snapshot client", () => {
 
   it("records snapshots when in record mode", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
     await fs.mkdir(snapshotDir, { recursive: true });
 
     const model = "Test-Model";
@@ -107,7 +107,7 @@ describe("snapshot client", () => {
       messages: [{ role: "user", content: prompt }]
     });
     const snapshotPath = `${snapshotDir}/${key}.json`;
-    const saved = JSON.parse(await fs.readFile(snapshotPath, "utf8") as string);
+    const saved = JSON.parse((await fs.readFile(snapshotPath, "utf8")) as string);
 
     expect(saved.response).toEqual(expectedResponse);
     expect(saved.metadata.recordedAt).toBe("2026-01-15T12:00:00.000Z");
@@ -116,7 +116,7 @@ describe("snapshot client", () => {
 
   it("throws on missing snapshots when configured", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
     await fs.mkdir(snapshotDir, { recursive: true });
 
     const baseClient: LlmClient = {
@@ -139,7 +139,7 @@ describe("snapshot client", () => {
 
   it("falls back to base client on miss with passthrough mode", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
     await fs.mkdir(snapshotDir, { recursive: true });
 
     const expectedResponse = { content: "live response" };
@@ -166,7 +166,7 @@ describe("snapshot client", () => {
 
   it("tracks accessed keys during playback", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
     await fs.mkdir(snapshotDir, { recursive: true });
 
     const model = "Test-Model";

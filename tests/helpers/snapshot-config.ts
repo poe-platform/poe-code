@@ -9,7 +9,7 @@ export interface SnapshotConfig {
 export function parseSnapshotConfig(env: Record<string, string | undefined>): SnapshotConfig {
   return {
     mode: parseSnapshotMode(env.POE_SNAPSHOT_MODE),
-    snapshotDir: env.POE_SNAPSHOT_DIR?.trim() || "__snapshots__",
+    snapshotDir: env.POE_SNAPSHOT_DIR?.trim() || ".snapshots",
     onMiss: parseSnapshotMiss(env.POE_SNAPSHOT_MISS) ?? "error"
   };
 }

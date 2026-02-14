@@ -11,7 +11,7 @@ export const TEST_ENV = {
   POE_VIDEO_MODEL: DEFAULT_VIDEO_BOT,
   POE_AUDIO_MODEL: DEFAULT_AUDIO_BOT,
   POE_SNAPSHOT_MODE: "playback",
-  POE_SNAPSHOT_DIR: "__snapshots__",
+  POE_SNAPSHOT_DIR: ".snapshots",
   POE_SNAPSHOT_MISS: "error"
 } as const;
 

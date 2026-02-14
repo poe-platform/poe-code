@@ -1,7 +1,13 @@
 import { describe, it, expect, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { generateSnapshotKey } from "./snapshot-client.js";
-import { listSnapshots, deleteSnapshots, refreshSnapshots, findStaleSnapshots, pruneSnapshots } from "./snapshot-store.js";
+import {
+  listSnapshots,
+  deleteSnapshots,
+  refreshSnapshots,
+  findStaleSnapshots,
+  pruneSnapshots
+} from "./snapshot-store.js";
 import type { FileSystem } from "../../src/utils/file-system.js";
 import type { LlmClient } from "../../src/services/llm-client.js";
 
@@ -46,7 +52,7 @@ async function fileExists(fs: FileSystem, filePath: string): Promise<boolean> {
 describe("snapshot store", () => {
   it("lists snapshots with optional model filter", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
 
     const modelA = "Model-A";
     const modelB = "Model-B";
@@ -58,8 +64,8 @@ describe("snapshot store", () => {
     const filteredB = await listSnapshots(fs, snapshotDir, { model: modelB });
 
     expect(all).toHaveLength(2);
-    expect(all.map(s => s.key)).toContain(keyA);
-    expect(all.map(s => s.key)).toContain(keyB);
+    expect(all.map((s) => s.key)).toContain(keyA);
+    expect(all.map((s) => s.key)).toContain(keyB);
 
     expect(filteredA).toHaveLength(1);
     expect(filteredA[0].key).toBe(keyA);
@@ -72,11 +78,13 @@ describe("snapshot store", () => {
 
   it("deletes snapshots by model", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
 
     const targetModel = "Model-Delete";
     const keepModel = "Model-Keep";
-    const targetKey = await writeSnapshot(fs, snapshotDir, targetModel, "to delete", { content: "target" });
+    const targetKey = await writeSnapshot(fs, snapshotDir, targetModel, "to delete", {
+      content: "target"
+    });
     const keepKey = await writeSnapshot(fs, snapshotDir, keepModel, "to keep", { content: "keep" });
 
     const deleted = await deleteSnapshots(fs, snapshotDir, { model: targetModel });
@@ -88,7 +96,7 @@ describe("snapshot store", () => {
 
   it("deletes single snapshot by key", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
 
     const key1 = await writeSnapshot(fs, snapshotDir, "Model", "prompt 1", { content: "1" });
     const key2 = await writeSnapshot(fs, snapshotDir, "Model", "prompt 2", { content: "2" });
@@ -102,7 +110,7 @@ describe("snapshot store", () => {
 
   it("refreshes snapshots using the provided client", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
 
     const model = "Test-Model";
     const prompt = "test prompt";
@@ -126,7 +134,7 @@ describe("snapshot store", () => {
       params: undefined
     });
 
-    const updated = JSON.parse(await fs.readFile(`${snapshotDir}/${key}.json`, "utf8") as string);
+    const updated = JSON.parse((await fs.readFile(`${snapshotDir}/${key}.json`, "utf8")) as string);
     expect(updated.response).toEqual({ content: "refreshed response" });
     expect(updated.metadata.recordedAt).toBe("2027-01-01T00:00:00.000Z");
   });
@@ -139,10 +147,14 @@ describe("snapshot store", () => {
 
   it("finds stale snapshots not in accessed keys", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
 
-    const usedKey = await writeSnapshot(fs, snapshotDir, "Model-A", "used prompt", { content: "used" });
-    const staleKey = await writeSnapshot(fs, snapshotDir, "Model-B", "stale prompt", { content: "stale" });
+    const usedKey = await writeSnapshot(fs, snapshotDir, "Model-A", "used prompt", {
+      content: "used"
+    });
+    const staleKey = await writeSnapshot(fs, snapshotDir, "Model-B", "stale prompt", {
+      content: "stale"
+    });
 
     const accessedKeys = new Set([usedKey]);
     const stale = await findStaleSnapshots(fs, snapshotDir, accessedKeys);
@@ -153,7 +165,7 @@ describe("snapshot store", () => {
 
   it("returns empty array when all snapshots are accessed", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
 
     const key1 = await writeSnapshot(fs, snapshotDir, "Model", "prompt 1", { content: "1" });
     const key2 = await writeSnapshot(fs, snapshotDir, "Model", "prompt 2", { content: "2" });
@@ -166,7 +178,7 @@ describe("snapshot store", () => {
 
   it("prunes stale snapshots and returns deleted keys", async () => {
     const fs = createMemfs();
-    const snapshotDir = "/__snapshots__";
+    const snapshotDir = "/.snapshots";
 
     const usedKey = await writeSnapshot(fs, snapshotDir, "Model", "used", { content: "used" });
     const staleKey = await writeSnapshot(fs, snapshotDir, "Model", "stale", { content: "stale" });

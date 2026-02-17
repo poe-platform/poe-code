@@ -114,6 +114,8 @@ Planning docs MUST be in `docs/plans` folder, NO EXCEPTIONS even in planning. AB
 
 When implementing features e.g. new cli args, make sure to keep parity with SDK and expose the same args.
 
+The CLI should be using SDK
+
 ## Interactive CLI
 
 The goal is to have interactive CLI using the design_system

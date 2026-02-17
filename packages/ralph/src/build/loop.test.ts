@@ -548,6 +548,201 @@ describe("buildLoop", () => {
     expect(stderrOutput).not.toContain("[OVERBAKE]");
   });
 
+  it("passes model to spawn when provided", async () => {
+    const planPath = "/.agents/tasks/plan.json";
+    const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
+    const errorsLogPath = "/.poe-code-ralph/errors.log";
+    const runId = "20260201-221816-14669";
+
+    const fs = createMemFs({
+      [promptPath]: "ID: {{STORY_ID}}\n{{STORY_BLOCK}}\n",
+      [errorsLogPath]: "",
+      [planPath]: JSON.stringify(
+        {
+          version: 1,
+          project: "Test",
+          goals: [],
+          nonGoals: [],
+          qualityGates: [],
+          stories: [
+            {
+              id: "US-001",
+              title: "Do the thing",
+              status: "open",
+              dependsOn: [],
+              description: "As a user, I want a thing.",
+              acceptanceCriteria: []
+            }
+          ]
+        },
+        null,
+        2
+      )
+    });
+
+    const spawn = vi.fn(async () => ({
+      stdout: "<promise>COMPLETE</promise>",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    await buildLoop({
+      planPath,
+      maxIterations: 1,
+      noCommit: true,
+      agent: "codex",
+      model: "claude-opus-4-6",
+      staleSeconds: 0,
+      cwd: "/",
+      deps: {
+        fs,
+        lock: noLock,
+        runId,
+        spawn,
+        git: {
+          getHead: () => null,
+          getCommitList: () => [],
+          getChangedFiles: () => [],
+          getDirtyFiles: () => []
+        },
+        now: () => new Date("2026-02-02T06:00:00.000Z")
+      }
+    });
+
+    expect(spawn).toHaveBeenCalledWith("codex", expect.objectContaining({ model: "claude-opus-4-6" }));
+  });
+
+  it("writes per-iteration headline to stdout before spawn", async () => {
+    const planPath = "/.agents/tasks/plan.json";
+    const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
+    const errorsLogPath = "/.poe-code-ralph/errors.log";
+    const runId = "20260201-221816-14669";
+
+    const fs = createMemFs({
+      [promptPath]: "ID: {{STORY_ID}}\n{{STORY_BLOCK}}\n",
+      [errorsLogPath]: "",
+      [planPath]: JSON.stringify(
+        {
+          version: 1,
+          project: "Test",
+          goals: [],
+          nonGoals: [],
+          qualityGates: [],
+          stories: [
+            {
+              id: "US-001",
+              title: "Do the thing",
+              status: "open",
+              dependsOn: [],
+              description: "As a user, I want a thing.",
+              acceptanceCriteria: []
+            }
+          ]
+        },
+        null,
+        2
+      )
+    });
+
+    const spawn = vi.fn(async () => ({
+      stdout: "<promise>COMPLETE</promise>",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    let stdoutOutput = "";
+    const stdout = { write: (chunk: string) => (stdoutOutput += chunk) };
+
+    await buildLoop({
+      planPath,
+      maxIterations: 3,
+      noCommit: true,
+      agent: "codex",
+      staleSeconds: 0,
+      cwd: "/",
+      deps: {
+        fs,
+        lock: noLock,
+        runId,
+        spawn,
+        stdout,
+        git: {
+          getHead: () => null,
+          getCommitList: () => [],
+          getChangedFiles: () => [],
+          getDirtyFiles: () => []
+        },
+        now: () => new Date("2026-02-02T06:00:00.000Z")
+      }
+    });
+
+    expect(stdoutOutput).toContain("1/3");
+    expect(stdoutOutput).toContain("Do the thing");
+  });
+
+  it("passes model as undefined to spawn when not provided", async () => {
+    const planPath = "/.agents/tasks/plan.json";
+    const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
+    const errorsLogPath = "/.poe-code-ralph/errors.log";
+    const runId = "20260201-221816-14669";
+
+    const fs = createMemFs({
+      [promptPath]: "ID: {{STORY_ID}}\n{{STORY_BLOCK}}\n",
+      [errorsLogPath]: "",
+      [planPath]: JSON.stringify(
+        {
+          version: 1,
+          project: "Test",
+          goals: [],
+          nonGoals: [],
+          qualityGates: [],
+          stories: [
+            {
+              id: "US-001",
+              title: "Do the thing",
+              status: "open",
+              dependsOn: [],
+              description: "As a user, I want a thing.",
+              acceptanceCriteria: []
+            }
+          ]
+        },
+        null,
+        2
+      )
+    });
+
+    const spawn = vi.fn(async () => ({
+      stdout: "<promise>COMPLETE</promise>",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    await buildLoop({
+      planPath,
+      maxIterations: 1,
+      noCommit: true,
+      agent: "codex",
+      staleSeconds: 0,
+      cwd: "/",
+      deps: {
+        fs,
+        lock: noLock,
+        runId,
+        spawn,
+        git: {
+          getHead: () => null,
+          getCommitList: () => [],
+          getChangedFiles: () => [],
+          getDirtyFiles: () => []
+        },
+        now: () => new Date("2026-02-02T06:00:00.000Z")
+      }
+    });
+
+    expect(spawn).toHaveBeenCalledWith("codex", expect.objectContaining({ model: undefined }));
+  });
+
   it("pauses on overbake and supports continue/skip/abort decisions", async () => {
     const planPath = "/.agents/tasks/plan.json";
     const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";

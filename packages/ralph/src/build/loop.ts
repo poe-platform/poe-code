@@ -133,6 +133,7 @@ export type BuildLoopOptions = {
   pauseOnOverbake?: boolean;
   noCommit: boolean;
   agent: string;
+  model?: string;
   staleSeconds: number;
   cwd: string;
   worktree?: WorktreeOptions;
@@ -553,6 +554,8 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
     await fs.mkdir(dirname(renderedPromptPath), { recursive: true });
     await fs.writeFile(renderedPromptPath, prompt, { encoding: "utf8" });
 
+    stdout.write(`[${i}/${options.maxIterations}] ${story.title}\n`);
+
     let status: BuildIterationStatus;
     let combinedOutput: string;
     let stderrForErrorsLog: string;
@@ -562,6 +565,7 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
       const result = await spawn(options.agent, {
         prompt,
         cwd,
+        model: options.model,
         mode: "yolo",
         useStdin: true
       });

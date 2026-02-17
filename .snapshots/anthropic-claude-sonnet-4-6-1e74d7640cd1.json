@@ -1,0 +1,21 @@
+{
+  "key": "anthropic-claude-sonnet-4-6-1e74d7640cd1",
+  "request": {
+    "model": "anthropic/claude-sonnet-4.6",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is 2+2? Answer with just the number."
+      }
+    ],
+    "type": "text"
+  },
+  "response": {
+    "content": "4"
+  },
+  "metadata": {
+    "recordedAt": "2026-02-17T21:17:30.570Z",
+    "model": "anthropic/claude-sonnet-4.6",
+    "type": "text"
+  }
+}

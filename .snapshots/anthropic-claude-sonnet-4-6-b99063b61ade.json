@@ -1,0 +1,21 @@
+{
+  "key": "anthropic-claude-sonnet-4-6-b99063b61ade",
+  "request": {
+    "model": "anthropic/claude-sonnet-4.6",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello in one word."
+      }
+    ],
+    "type": "text"
+  },
+  "response": {
+    "content": "Hello!"
+  },
+  "metadata": {
+    "recordedAt": "2026-02-17T21:17:32.075Z",
+    "model": "anthropic/claude-sonnet-4.6",
+    "type": "text"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "key": "anthropic-claude-sonnet-4-6-b1a5f14b4736",
+  "request": {
+    "model": "anthropic/claude-sonnet-4.6",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the capital of France? Answer in one word."
+      }
+    ],
+    "type": "text",
+    "params": {
+      "temperature": "0"
+    }
+  },
+  "response": {
+    "content": "Paris"
+  },
+  "metadata": {
+    "recordedAt": "2026-02-17T21:17:33.437Z",
+    "model": "anthropic/claude-sonnet-4.6",
+    "type": "text"
+  }
+}

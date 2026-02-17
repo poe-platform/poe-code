@@ -11,10 +11,10 @@
     "type": "audio"
   },
   "response": {
-    "url": "https://pfst.cf2.poecdn.net/base/audio/ac35ad767cc87e4563310380e33c7849c1462af3d0a32b4cfbb49b7fc2f8b93b"
+    "url": "https://pfst.cf2.poecdn.net/base/audio/bac176d8d4c8f9d39611e7b4ee49e29745283622f5d01dc604936f4124b2fe9e"
   },
   "metadata": {
-    "recordedAt": "2026-01-30T17:54:28.428Z",
+    "recordedAt": "2026-02-17T21:19:10.226Z",
     "model": "elevenlabs/elevenlabs-v3",
     "type": "audio"
   }

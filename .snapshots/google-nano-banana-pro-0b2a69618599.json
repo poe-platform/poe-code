@@ -14,10 +14,10 @@
     }
   },
   "response": {
-    "url": "https://pfst.cf2.poecdn.net/base/image/664ffaa79c84a6824f92b59dd548a773517cab7a4da1b946759f9f8b2654d28f?w=1376&h=768"
+    "url": "https://pfst.cf2.poecdn.net/base/image/bc9cd8885f29cc2bf878d395cae3507bbaa95a83b847072ed872d8f1d4047c07?w=1376&h=768"
   },
   "metadata": {
-    "recordedAt": "2026-01-30T17:55:36.508Z",
+    "recordedAt": "2026-02-17T21:19:36.227Z",
     "model": "google/nano-banana-pro",
     "type": "image"
   }

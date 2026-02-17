@@ -13,6 +13,8 @@ const clackIsCancel = vi.hoisted(() => vi.fn());
 const designSelect = vi.hoisted(() => vi.fn());
 const designIsCancel = vi.hoisted(() => vi.fn());
 const designCancel = vi.hoisted(() => vi.fn());
+const designPromptText = vi.hoisted(() => vi.fn());
+const designConfirm = vi.hoisted(() => vi.fn());
 
 vi.mock("@clack/prompts", () => ({
   select: clackSelect,
@@ -25,7 +27,9 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
     ...actual,
     select: designSelect,
     isCancel: designIsCancel,
-    cancel: designCancel
+    cancel: designCancel,
+    promptText: designPromptText,
+    confirm: designConfirm
   };
 });
 
@@ -79,16 +83,66 @@ describe("ralph build command", () => {
     clackIsCancel.mockReset();
     designSelect.mockReset();
     designIsCancel.mockReset();
+    designPromptText.mockReset();
+    designConfirm.mockReset();
     vi.mocked(ralphBuild).mockClear();
     vi.mocked(ralphPlan).mockClear();
     vi.mocked(logActivity).mockClear();
   });
 
-  it("defaults iterations to 25", async () => {
+  it("computes maxIterations from open story count when no explicit arg and no config", async () => {
     const fs = createMemFs({
-      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+      "/repo/.agents/tasks/plan.yaml": [
+        "version: 1",
+        "project: Demo",
+        "stories:",
+        "  - id: US-001",
+        "    title: Story one",
+        "    status: open",
+        "    dependsOn: []",
+        "    description: d",
+        "    acceptanceCriteria: []",
+        "  - id: US-002",
+        "    title: Story two",
+        "    status: open",
+        "    dependsOn: []",
+        "    description: d",
+        "    acceptanceCriteria: []",
+        "  - id: US-003",
+        "    title: Story three",
+        "    status: done",
+        "    dependsOn: []",
+        "    description: d",
+        "    acceptanceCriteria: []",
+        ""
+      ].join("\n")
     });
     designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    // 2 open stories: Math.max(2*2, 2+10) = Math.max(4, 12) = 12
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ maxIterations: 12 })
+    );
+  });
+
+  it("falls back to 25 when plan is unparseable and no explicit arg/config", async () => {
+    const fs = createMemFs({
+      "/repo/broken-plan.yaml": "this: is: not: valid: yaml: ["
+    });
+    designConfirm.mockResolvedValueOnce(false);
+    designPromptText.mockResolvedValueOnce("broken-plan.yaml");
     designIsCancel.mockReturnValue(false);
     const container = createCliContainer({
       fs,
@@ -101,16 +155,77 @@ describe("ralph build command", () => {
 
     await program.parseAsync(["node", "cli", "ralph", "build"]);
 
-    const build = vi.mocked(ralphBuild);
-    expect(build).toHaveBeenCalledWith(
-      expect.objectContaining({
-        planPath: ".agents/tasks/plan.yaml",
-        maxIterations: 25,
-        agent: "codex",
-        noCommit: false,
-        staleSeconds: 60,
-        cwd
-      })
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ maxIterations: 25 })
+    );
+  });
+
+  it("explicit iterations arg wins over formula and config", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": [
+        "version: 1",
+        "project: Demo",
+        "stories:",
+        "  - id: US-001",
+        "    title: Story one",
+        "    status: open",
+        "    dependsOn: []",
+        "    description: d",
+        "    acceptanceCriteria: []",
+        ""
+      ].join("\n"),
+      "/repo/.agents/poe-code-ralph/config.yaml": "maxIterations: 99\n"
+    });
+    designConfirm.mockResolvedValueOnce(false);
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build", "7", "--plan", ".agents/tasks/plan.yaml"]);
+
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ maxIterations: 7 })
+    );
+  });
+
+  it("config.maxIterations wins over formula when no explicit arg", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": [
+        "version: 1",
+        "project: Demo",
+        "stories:",
+        "  - id: US-001",
+        "    title: Story one",
+        "    status: open",
+        "    dependsOn: []",
+        "    description: d",
+        "    acceptanceCriteria: []",
+        ""
+      ].join("\n"),
+      "/repo/.agents/poe-code-ralph/config.yaml": "maxIterations: 42\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ maxIterations: 42 })
     );
   });
 
@@ -168,6 +283,8 @@ describe("ralph build command", () => {
         ""
       ].join("\n")
     });
+    designConfirm.mockResolvedValueOnce(false);
+    designIsCancel.mockReturnValue(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -194,6 +311,7 @@ describe("ralph build command", () => {
     });
     designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
     designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -248,12 +366,59 @@ describe("ralph build command", () => {
     );
   });
 
+  it("passes --model to ralphBuild", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build", "--model", "claude-opus-4-6"]);
+
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ model: "claude-opus-4-6" })
+    );
+  });
+
+  it("omits model from ralphBuild when --model is not provided", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ model: undefined })
+    );
+  });
+
   it("accepts --max-failures and --pause-on-overbake options", async () => {
     const fs = createMemFs({
       "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
     });
     designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
     designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -288,6 +453,7 @@ describe("ralph build command", () => {
     });
     designSelect.mockResolvedValueOnce(".agents/tasks/plan-two.yaml");
     designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -309,6 +475,29 @@ describe("ralph build command", () => {
     );
   });
 
+  it("does not call text() prompt when plan candidates exist", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan-one.yaml": "version: 1\nproject: One\nstories: []\n",
+      "/repo/.agents/tasks/plan-two.yaml": "version: 1\nproject: Two\nstories: []\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan-one.yaml");
+    designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    expect(designSelect).toHaveBeenCalled();
+    expect(designPromptText).not.toHaveBeenCalled();
+  });
+
   it("uses global config when no local config exists", async () => {
     const fs = createMemFs({
       "/home/test/.poe-code/ralph/config.yaml": [
@@ -320,6 +509,7 @@ describe("ralph build command", () => {
     });
     designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
     designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -355,6 +545,7 @@ describe("ralph build command", () => {
     });
     designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
     designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -391,6 +582,7 @@ describe("ralph build command", () => {
     });
     designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
     designIsCancel.mockReturnValue(false);
+    // noCommit: true is set in config, so no confirm prompt
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -413,7 +605,113 @@ describe("ralph build command", () => {
     );
   });
 
-  it("returns early with a helpful message when no plan is found", async () => {
+  it("auto-selects first plan candidate when --yes is passed", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan-alpha.yaml": "version: 1\nproject: Alpha\nstories: []\n",
+      "/repo/.agents/tasks/plan-beta.yaml": "version: 1\nproject: Beta\nstories: []\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "build"]);
+
+    expect(designSelect).not.toHaveBeenCalled();
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ planPath: ".agents/tasks/plan-alpha.yaml" })
+    );
+  });
+
+  it("prompts for plan path via text() when no plan is found", async () => {
+    const fs = createMemFs({
+      "/repo/my-plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designConfirm.mockResolvedValueOnce(false);
+    designPromptText.mockResolvedValueOnce("my-plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    expect(designPromptText).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining("plan") })
+    );
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ planPath: "my-plan.yaml" })
+    );
+  });
+
+  it("logs run summary after ralphBuild completes", async () => {
+    vi.mocked(ralphBuild).mockResolvedValueOnce({
+      runId: "test",
+      iterationsCompleted: 3,
+      storiesDone: ["US-001", "US-002"],
+      iterations: [],
+      stopReason: "max_iterations"
+    });
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    const logs: string[] = [];
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build", "5"]);
+
+    const summaryLog = logs.find((l) => l.startsWith("Run summary:"));
+    expect(summaryLog).toBeDefined();
+    expect(summaryLog).toContain("3/5");
+    expect(summaryLog).toContain("Stories done: 2");
+    expect(summaryLog).toMatch(/Duration: \d+[ms]/);
+  });
+
+  it("passes process.stdout to ralphBuild deps.stdout", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deps: expect.objectContaining({ stdout: process.stdout })
+      })
+    );
+  });
+
+  it("throws ValidationError when --yes is passed and no plan is found", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
       fs,
@@ -424,12 +722,187 @@ describe("ralph build command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "ralph", "build"])
+    ).rejects.toThrow(/no plan found/i);
+
+    expect(vi.mocked(ralphBuild)).not.toHaveBeenCalled();
+  });
+
+  it("--dry-run does not throw and does not call ralphBuild when no plan is found", async () => {
+    const fs = createMemFs();
+    designConfirm.mockResolvedValueOnce(false);
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "ralph", "build"]);
+
+    expect(vi.mocked(ralphBuild)).not.toHaveBeenCalled();
+  });
+
+  it("--dry-run does not call ralphBuild when a plan is found", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designConfirm.mockResolvedValueOnce(false);
+    designIsCancel.mockReturnValue(false);
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "ralph", "build"]);
+
+    expect(vi.mocked(ralphBuild)).not.toHaveBeenCalled();
+  });
+
+  it("shows confirm() prompt for noCommit when --no-commit not passed and config.noCommit unset", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    designConfirm.mockResolvedValueOnce(true);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
 
     await program.parseAsync(["node", "cli", "ralph", "build"]);
 
+    expect(designConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining("commit") })
+    );
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ noCommit: true })
+    );
+  });
+
+  it("with --yes, noCommit defaults to false without prompting", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "build", "--plan", ".agents/tasks/plan.yaml"]);
+
+    expect(designConfirm).not.toHaveBeenCalled();
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ noCommit: false })
+    );
+  });
+
+  it("explicit --no-commit skips confirm prompt and sets noCommit true", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build", "--plan", ".agents/tasks/plan.yaml", "--no-commit"]);
+
+    expect(designConfirm).not.toHaveBeenCalled();
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ noCommit: true })
+    );
+  });
+
+  it("config.noCommit value skips confirm prompt", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n",
+      "/repo/.agents/poe-code-ralph/config.yaml": "noCommit: false\n"
+    });
+    designSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "build"]);
+
+    expect(designConfirm).not.toHaveBeenCalled();
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ noCommit: false })
+    );
+  });
+
+  it("throws ValidationError when an unknown agent is passed via --agent", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designConfirm.mockResolvedValueOnce(false);
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "ralph", "build", "--plan", ".agents/tasks/plan.yaml", "--agent", "bogus-agent-xyz"])
+    ).rejects.toThrow(/unknown agent/i);
+
     expect(vi.mocked(ralphBuild)).not.toHaveBeenCalled();
-    expect(log).toHaveBeenCalled();
+  });
+
+  it("resolves agent alias to canonical id before passing to ralphBuild", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
+    });
+    designConfirm.mockResolvedValueOnce(false);
+    designIsCancel.mockReturnValue(false);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    // "claude" is an alias for "claude-code"
+    await program.parseAsync(["node", "cli", "ralph", "build", "--plan", ".agents/tasks/plan.yaml", "--agent", "claude"]);
+
+    expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
+      expect.objectContaining({ agent: "claude-code" })
+    );
   });
 });
 

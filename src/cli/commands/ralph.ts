@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Command } from "commander";
-import { select, isCancel, cancel } from "@poe-code/design-system";
+import { select, isCancel, cancel, promptText, confirm } from "@poe-code/design-system";
 import { loadConfig, ralphBuild, logActivity, resolvePlanPath, parsePlan } from "@poe-code/ralph";
 import {
   supportedAgents,
@@ -75,6 +75,7 @@ const DEFAULT_RALPH_AGENT = "claude-code";
 type RalphBuildCommandOptions = {
   plan?: string;
   agent?: string;
+  model?: string;
   commit?: boolean;
   maxFailures?: string;
   pauseOnOverbake?: boolean;
@@ -117,10 +118,14 @@ async function pathExists(
   }
 }
 
-function resolveIterations(value: string | undefined): number {
-  if (value == null) {
-    return 25;
-  }
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.round(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+
+function resolveIterations(value: string): number {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed < 1) {
     throw new ValidationError(
@@ -128,6 +133,10 @@ function resolveIterations(value: string | undefined): number {
     );
   }
   return parsed;
+}
+
+function computeMaxIterations(openCount: number): number {
+  return Math.max(openCount * 2, openCount + 10);
 }
 
 function resolveMaxFailures(value: string | undefined): number {
@@ -454,6 +463,7 @@ export function registerRalphCommand(
     .description("Run the Ralph build loop for the selected plan.")
     .option("--plan <path>", "Path to the plan file")
     .option("--agent <name>", "Agent name to run (default: codex)")
+    .option("--model <model>", "Model override passed to the agent for the entire run")
     .option("--no-commit", "Instruct the agent not to commit changes")
     .option("--max-failures <n>", "Warn after <n> consecutive failures (default 3)")
     .option("--pause-on-overbake", "Pause and prompt when overbaking is detected")
@@ -467,11 +477,6 @@ export function registerRalphCommand(
 
       try {
         resources.logger.intro("ralph build");
-        if (flags.dryRun) {
-          throw new ValidationError(
-            "ralph build does not support --dry-run. Use --no-commit instead."
-          );
-        }
 
         let configResult: Awaited<ReturnType<typeof loadConfig>>;
         try {
@@ -485,10 +490,37 @@ export function registerRalphCommand(
         }
         const config = configResult.config;
 
-        const maxIterations =
-          typeof iterations === "string" ? resolveIterations(iterations) : config.maxIterations ?? 25;
-        const agent = options.agent?.trim() ? options.agent.trim() : config.agent ?? "codex";
-        const noCommit = options.commit === false ? true : config.noCommit ?? false;
+        const explicitIterations =
+          typeof iterations === "string" ? resolveIterations(iterations) : undefined;
+        const rawAgent = options.agent?.trim() ? options.agent.trim() : config.agent ?? "codex";
+        const agentSupport = resolveAgentSupport(rawAgent);
+        if (agentSupport.status === "unknown") {
+          throw new ValidationError(`Unknown agent: ${rawAgent}`);
+        }
+        const agent = agentSupport.id ?? rawAgent;
+
+        let noCommit: boolean;
+        if (options.commit === false) {
+          // --no-commit explicitly passed
+          noCommit = true;
+        } else if (config.noCommit !== undefined) {
+          // config.noCommit is set
+          noCommit = config.noCommit;
+        } else if (flags.assumeYes) {
+          // --yes: default to false without prompting
+          noCommit = false;
+        } else {
+          const answer = await confirm({
+            message: "Should the agent skip committing changes? (--no-commit)",
+            initialValue: false
+          });
+          if (isCancel(answer)) {
+            cancel("Operation cancelled");
+            return;
+          }
+          noCommit = answer as boolean;
+        }
+
         const staleSeconds = config.staleSeconds ?? 60;
         const maxFailures =
           typeof options.maxFailures === "string" ? resolveMaxFailures(options.maxFailures) : undefined;
@@ -501,10 +533,82 @@ export function registerRalphCommand(
 
         const cwd = container.env.cwd;
 
+        let planPath: string | null;
+        if (flags.dryRun && !options.plan && !config.planPath) {
+          planPath = null;
+        } else {
+          try {
+            planPath = await resolvePlanPath({
+              cwd: container.env.cwd,
+              plan: options.plan ?? config.planPath,
+              assumeYes: flags.assumeYes,
+              fs: container.fs as any
+            });
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            throw new ValidationError(message);
+          }
+        }
+
+        let dummyPlanUsed = false;
+        if (!planPath) {
+          if (flags.dryRun) {
+            dummyPlanUsed = true;
+          } else if (flags.assumeYes) {
+            throw new ValidationError(
+              "No plan found. Provide --plan <path> to an existing plan file."
+            );
+          } else {
+            const entered = await promptText({
+              message: "Enter path to plan file:",
+              placeholder: ".agents/tasks/plan.yaml"
+            });
+            if (isCancel(entered)) {
+              cancel("Operation cancelled");
+              return;
+            }
+            planPath = entered as string;
+          }
+        }
+
+        const dummyStories = dummyPlanUsed
+          ? [
+              { id: "US-001", title: "Sample story: scaffold the feature", status: "open" as "open" | "in_progress" | "done" },
+              { id: "US-002", title: "Sample story: implement core logic", status: "in_progress" as "open" | "in_progress" | "done" },
+              { id: "US-003", title: "Sample story: add tests and cleanup", status: "open" as "open" | "in_progress" | "done" }
+            ]
+          : undefined;
+
+        let maxIterations: number;
+        if (explicitIterations !== undefined) {
+          maxIterations = explicitIterations;
+        } else if (config.maxIterations !== undefined) {
+          maxIterations = config.maxIterations;
+        } else if (dummyPlanUsed) {
+          maxIterations = computeMaxIterations(2);
+        } else {
+          try {
+            const planContent = await container.fs.readFile(
+              path.resolve(cwd, planPath!),
+              "utf8"
+            );
+            const plan = parsePlan(planContent);
+            const done = plan.stories.filter((s) => s.status === "done").length;
+            const inProgress = plan.stories.filter((s) => s.status === "in_progress").length;
+            const open = plan.stories.length - done - inProgress;
+            maxIterations = computeMaxIterations(open);
+          } catch {
+            maxIterations = 25;
+          }
+        }
+
+        const model = options.model?.trim() || undefined;
+
         const configLines = [
           `Agent: ${agent}`,
           `Iterations: ${maxIterations}`
         ];
+        if (model) configLines.push(`Model: ${model}`);
         if (noCommit) configLines.push("No-commit: true");
         if (worktree) configLines.push(`Worktree: ${worktree.name ?? "(auto)"}`);
         for (const source of configResult.sources) {
@@ -512,39 +616,38 @@ export function registerRalphCommand(
         }
         resources.logger.resolved("Config", configLines.join("\n   "));
 
-        let planPath: string | null;
-        try {
-          planPath = await resolvePlanPath({
-            cwd: container.env.cwd,
-            plan: options.plan ?? config.planPath,
-            fs: container.fs as any
-          });
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          throw new ValidationError(message);
+        if (dummyPlanUsed) {
+          const stories = dummyStories!;
+          const total = stories.length;
+          const done = stories.filter((s) => s.status === "done").length;
+          const inProgress = stories.filter((s) => s.status === "in_progress").length;
+          const open = total - done - inProgress;
+          resources.logger.resolved("Stories", `${done}/${total} done${inProgress ? `, ${inProgress} in progress` : ""}${open ? `, ${open} open` : ""} (dummy plan)`);
+        } else {
+          try {
+            const planContent = await container.fs.readFile(
+              path.resolve(cwd, planPath!),
+              "utf8"
+            );
+            const plan = parsePlan(planContent);
+            const total = plan.stories.length;
+            const done = plan.stories.filter((s) => s.status === "done").length;
+            const inProgress = plan.stories.filter((s) => s.status === "in_progress").length;
+            const open = total - done - inProgress;
+            resources.logger.resolved("Stories", `${done}/${total} done${inProgress ? `, ${inProgress} in progress` : ""}${open ? `, ${open} open` : ""}`);
+          } catch {
+            // Plan file may not be parseable yet
+          }
         }
 
-        if (!planPath) {
+        if (flags.dryRun) {
+          resources.logger.success("Dry run complete. No agents spawned.");
           return;
         }
 
-        try {
-          const planContent = await container.fs.readFile(
-            path.resolve(cwd, planPath),
-            "utf8"
-          );
-          const plan = parsePlan(planContent);
-          const total = plan.stories.length;
-          const done = plan.stories.filter((s) => s.status === "done").length;
-          const inProgress = plan.stories.filter((s) => s.status === "in_progress").length;
-          const open = total - done - inProgress;
-          resources.logger.resolved("Stories", `${done}/${total} done${inProgress ? `, ${inProgress} in progress` : ""}${open ? `, ${open} open` : ""}`);
-        } catch {
-          // Plan file may not be parseable yet
-        }
-
-        await ralphBuild({
-          planPath,
+        const buildStart = Date.now();
+        const buildResult = await ralphBuild({
+          planPath: planPath!,
           progressPath: config.progressPath,
           guardrailsPath: config.guardrailsPath,
           errorsLogPath: config.errorsLogPath,
@@ -553,12 +656,20 @@ export function registerRalphCommand(
           maxFailures,
           pauseOnOverbake,
           agent,
+          model,
           noCommit,
           staleSeconds,
           cwd,
-          worktree
+          worktree,
+          deps: { stdout: process.stdout }
         });
+        const duration = formatDuration(Date.now() - buildStart);
 
+        resources.logger.resolved("Run summary", [
+          `Iterations: ${buildResult.iterationsCompleted}/${maxIterations}`,
+          `Stories done: ${buildResult.storiesDone.length}`,
+          `Duration: ${duration}`
+        ].join("\n   "));
         resources.logger.success("Ralph run finished.");
       } finally {
         resources.context.finalize();

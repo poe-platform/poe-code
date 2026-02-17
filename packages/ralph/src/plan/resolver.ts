@@ -28,6 +28,10 @@ export type ResolvePlanPathOptions = {
    */
   plan?: string;
   /**
+   * When true, skip interactive prompts and auto-select the first candidate.
+   */
+  assumeYes?: boolean;
+  /**
    * Optional fs adapter for testing.
    */
   fs?: PlanResolverFileSystem;
@@ -119,10 +123,16 @@ export async function resolvePlanPath(
 
   const candidates = await listPlanCandidates(fs, cwd);
   if (candidates.length === 0) {
-    console.log(
-      "No plans found under .agents/tasks/. Provide --plan <path> to an existing plan file."
-    );
+    if (options.assumeYes) {
+      throw new Error(
+        "No plan found under .agents/tasks/. Provide --plan <path> to an existing plan file."
+      );
+    }
     return null;
+  }
+
+  if (options.assumeYes) {
+    return candidates[0]!.path;
   }
 
   const selection = await select({

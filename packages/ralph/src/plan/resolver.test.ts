@@ -57,12 +57,10 @@ describe("resolvePlanPath", () => {
     expect(selectSpy).not.toHaveBeenCalled();
   });
 
-  it("returns null with a message when no plans exist", async () => {
+  it("returns null when no plans exist", async () => {
     const fs = createMemFs({
       "/repo/README.md": "hi"
     });
-
-    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
     const result = await resolvePlanPath({
       cwd: "/repo",
@@ -70,7 +68,16 @@ describe("resolvePlanPath", () => {
     });
 
     expect(result).toBeNull();
-    expect(log).toHaveBeenCalled();
+  });
+
+  it("throws when no plans exist and assumeYes is true", async () => {
+    const fs = createMemFs({
+      "/repo/README.md": "hi"
+    });
+
+    await expect(
+      resolvePlanPath({ cwd: "/repo", assumeYes: true, fs: asPlanFs(fs) })
+    ).rejects.toThrow(/no plan found/i);
   });
 
   it("shows select prompt even when exactly one plan exists", async () => {
@@ -167,6 +174,37 @@ stories: []
         ]
       })
     );
+  });
+
+  it("auto-selects first candidate when assumeYes is true", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan-one.yaml": "version: 1\nproject: one\nstories: []\n",
+      "/repo/.agents/tasks/plan-two.yaml": "version: 1\nproject: two\nstories: []\n"
+    });
+
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      assumeYes: true,
+      fs: asPlanFs(fs)
+    });
+
+    expect(result).toBe(".agents/tasks/plan-one.yaml");
+    expect(clackSelect).not.toHaveBeenCalled();
+  });
+
+  it("auto-selects single candidate without prompting when assumeYes is true", async () => {
+    const fs = createMemFs({
+      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: demo\nstories: []\n"
+    });
+
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      assumeYes: true,
+      fs: asPlanFs(fs)
+    });
+
+    expect(result).toBe(".agents/tasks/plan.yaml");
+    expect(clackSelect).not.toHaveBeenCalled();
   });
 
   it("returns null when the prompt is cancelled", async () => {

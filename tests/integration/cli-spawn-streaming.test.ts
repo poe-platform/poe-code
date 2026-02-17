@@ -4,6 +4,7 @@ import { PassThrough } from "node:stream";
 import { EventEmitter } from "node:events";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../../src/utils/file-system.js";
+import { createProgram } from "../../src/cli/program.js";
 
 vi.mock("node:child_process", () => ({
   spawn: vi.fn()
@@ -80,7 +81,6 @@ describe("CLI spawn streaming integration", () => {
   const originalEnv = { ...process.env };
 
   beforeEach(() => {
-    vi.resetModules();
     vi.clearAllMocks();
     process.env = {
       ...originalEnv,
@@ -115,7 +115,6 @@ describe("CLI spawn streaming integration", () => {
       createMockChildProcess({ stdoutLines: mockStdoutLines }) as any
     );
 
-    const { createProgram } = await import("../../src/cli/program.js");
     const program = createProgram({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),

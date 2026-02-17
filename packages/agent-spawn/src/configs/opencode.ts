@@ -71,8 +71,7 @@ export const openCodeSpawnConfig: CliSpawnConfig = {
   modelFlag: "--model",
   modelStripProviderPrefix: false,
   modelTransform: (model) => {
-    const fixed = model.replace("claude-opus-4.6", "claude-opus-4-6");
-    return fixed.startsWith("poe/") ? fixed : `poe/${fixed}`;
+    return model.startsWith("poe/") ? model : `poe/${model}`;
   },
   defaultArgs: ["--format", "json"],
   modes: {

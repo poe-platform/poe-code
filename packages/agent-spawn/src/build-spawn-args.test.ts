@@ -113,14 +113,13 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
-  it("applies modelTransform for opencode claude-opus-4.6 → poe/anthropic/claude-opus-4-6", () => {
+  it("applies modelTransform for opencode claude-opus-4.6 → poe/anthropic/claude-opus-4.6", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
       model: "anthropic/claude-opus-4.6"
     });
 
-    expect(result.args).toContain("poe/anthropic/claude-opus-4-6");
-    expect(result.args).not.toContain("claude-opus-4.6");
+    expect(result.args).toContain("poe/anthropic/claude-opus-4.6");
   });
 
   it("preserves provider namespace for opencode models", () => {

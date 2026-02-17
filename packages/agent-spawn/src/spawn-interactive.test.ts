@@ -160,8 +160,7 @@ describe("spawnInteractive", () => {
     await spawnInteractive("opencode", { prompt: "test", model: "anthropic/claude-opus-4.6" });
 
     const [, args] = spawnMock.mock.calls[0];
-    expect(args).toContain("poe/anthropic/claude-opus-4-6");
-    expect(args).not.toContain("claude-opus-4.6");
+    expect(args).toContain("poe/anthropic/claude-opus-4.6");
   });
 
   // IMPORTANT: CLI binaries (claude, codex, etc.) only accept bare model IDs

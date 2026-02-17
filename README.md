@@ -1,4 +1,4 @@
-![poe-code banner](docs/banners/claude-opus-4-6.jpg)
+![poe-code banner](docs/banners/claude-sonnet-4-6.jpg)
 
 <div align="center">
   <h1>Poe Code ⚡</h1>
@@ -154,7 +154,7 @@ const apiKey = await getPoeApiKey()
 const result = await spawn("claude-code", {
   prompt: "Fix the bug in auth.ts",
   cwd: "/path/to/project",
-  model: "claude-sonnet-4"
+  model: "claude-sonnet-4-6"
 })
 
 console.log(result.stdout)

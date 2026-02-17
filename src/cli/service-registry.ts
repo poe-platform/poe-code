@@ -39,6 +39,7 @@ export interface ProviderContext {
   env: CliEnvironment;
   command: CommandContext;
   logger: ScopedLogger;
+  model?: string;
   runCheck(check: CommandCheck): Promise<void>;
 }
 

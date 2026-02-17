@@ -32,6 +32,7 @@ export function registerTestCommand(
       serviceDescription
     )
     .option("--isolated", "Run the health check using isolated configuration.")
+    .option("--model <model>", "Model override passed to the agent for the health check")
     .action(async function (this: Command, service: string | undefined) {
       const resolved = await resolveServiceArgument(
         program,
@@ -41,9 +42,11 @@ export function registerTestCommand(
       );
       const opts = this.opts<{
         isolated?: boolean;
+        model?: string;
       }>();
       await executeTest(this, container, resolved, {
-        isolated: Boolean(opts.isolated)
+        isolated: Boolean(opts.isolated),
+        model: opts.model
       });
     });
 }
@@ -52,7 +55,7 @@ export async function executeTest(
   program: Command,
   container: CliContainer,
   service: string,
-  options: { isolated?: boolean } = {}
+  options: { isolated?: boolean; model?: string } = {}
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
   const canonicalService = adapter.name;
@@ -68,7 +71,8 @@ export async function executeTest(
   const providerContext = buildProviderContext(
     container,
     adapter,
-    resources
+    resources,
+    { model: options.model }
   );
 
   const isolatedDetails =

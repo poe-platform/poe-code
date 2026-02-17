@@ -103,4 +103,46 @@ describe("test command", () => {
     ).rejects.toThrow(/health check failed/);
   });
 
+  it("passes --model to provider context", async () => {
+    const container = createContainer();
+    let receivedModel: string | undefined;
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test(context) {
+          receivedModel = context.model;
+        }
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "test", "demo-service", "--model", "claude-opus-4-6"]);
+
+    expect(receivedModel).toBe("claude-opus-4-6");
+  });
+
+  it("model is undefined when --model is not provided", async () => {
+    const container = createContainer();
+    let receivedModel: string | undefined = "sentinel";
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test(context) {
+          receivedModel = context.model;
+        }
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "test", "demo-service"]);
+
+    expect(receivedModel).toBeUndefined();
+  });
+
 });

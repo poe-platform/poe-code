@@ -63,13 +63,15 @@ export function createExecutionResources(
 export function buildProviderContext(
   container: CliContainer,
   adapter: ProviderService,
-  resources: ExecutionResources
+  resources: ExecutionResources,
+  options?: { model?: string }
 ): ProviderContext {
   const runCheck = createCheckRunner(resources);
   return {
     env: container.env,
     command: resources.context,
     logger: resources.logger,
+    model: options?.model,
     runCheck
   };
 }

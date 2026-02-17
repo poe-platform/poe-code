@@ -73,6 +73,7 @@ export const kimiService = createProvider<
   test(context) {
     return context.runCheck(
       createSpawnHealthCheck("kimi", {
+        model: context.model,
         expectedOutput: "KIMI_OK"
       })
     );

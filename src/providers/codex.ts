@@ -117,7 +117,7 @@ export const codexService = createProvider<
   test(context) {
     return context.runCheck(
       createSpawnHealthCheck("codex", {
-        model: DEFAULT_CODEX_MODEL,
+        model: context.model ?? DEFAULT_CODEX_MODEL,
         expectedOutput: "CODEX_OK"
       })
     );

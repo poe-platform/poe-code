@@ -88,7 +88,7 @@ export const claudeCodeService = createProvider<
   test(context) {
     return context.runCheck(
       createSpawnHealthCheck("claude-code", {
-        model: DEFAULT_CLAUDE_CODE_MODEL,
+        model: context.model ?? DEFAULT_CLAUDE_CODE_MODEL,
         expectedOutput: "CLAUDE_CODE_OK"
       })
     );

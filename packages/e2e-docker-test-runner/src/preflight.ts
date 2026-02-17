@@ -2,7 +2,8 @@ import { execSync } from 'node:child_process';
 import chalk from 'chalk';
 import { detectEngine } from './engine.js';
 import { hasApiKey } from './credentials.js';
-import { setResolvedContext, detectRunningContext } from './context.js';
+import { IMAGE_NAME } from './image.js';
+import { setResolvedContext, getResolvedContext, detectRunningContext } from './context.js';
 import type { Engine } from './types.js';
 
 const LABEL = 'poe-e2e-test-runner';
@@ -47,6 +48,16 @@ export async function runPreflight(): Promise<{ passed: boolean; results: CheckR
       name: 'Cleanup',
       passed: true,
       message: `Cleaned up ${cleaned} orphaned container(s)`,
+    });
+  }
+
+  // Prune old e2e images and build cache to prevent disk full errors
+  const pruned = pruneOldImages(engine);
+  if (pruned > 0) {
+    results.push({
+      name: 'Docker prune',
+      passed: true,
+      message: `Removed ${pruned} old e2e image(s) and pruned build cache`,
     });
   }
 
@@ -221,6 +232,41 @@ function checkApiKey(): CheckResult {
       '  - Environment: export POE_API_KEY=<your-key>\n' +
       '  - Or login: poe-code login',
   };
+}
+
+function pruneOldImages(engine: Engine): number {
+  const ctx = engine === 'docker' ? getResolvedContext() : null;
+  const contextArg = ctx ? `--context ${ctx}` : '';
+
+  try {
+    // Find all poe-code-e2e images
+    const output = execSync(
+      `${engine} ${contextArg} images --format "{{.Repository}}:{{.Tag}}" ${IMAGE_NAME}`,
+      { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] }
+    );
+    const images = output.trim().split('\n').filter(Boolean);
+
+    if (images.length <= 1) {
+      return 0;
+    }
+
+    // Remove all old images (the current one will be rebuilt if needed)
+    for (const image of images) {
+      try {
+        execSync(`${engine} ${contextArg} rmi ${image}`, { stdio: 'ignore' });
+      } catch {
+        // Image might be in use, skip
+      }
+    }
+
+    // Prune dangling images and build cache
+    execSync(`${engine} ${contextArg} image prune -f`, { stdio: 'ignore' });
+    execSync(`${engine} ${contextArg} builder prune -f`, { stdio: 'ignore' });
+
+    return images.length;
+  } catch {
+    return 0;
+  }
 }
 
 export async function cleanupOrphans(engine?: Engine, context?: string): Promise<number> {

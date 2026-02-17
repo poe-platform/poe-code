@@ -11,10 +11,15 @@ vi.mock('./engine.js', () => ({
 vi.mock('./context.js', () => ({
   detectRunningContext: vi.fn(),
   setResolvedContext: vi.fn(),
+  getResolvedContext: vi.fn().mockReturnValue(null),
 }));
 
 vi.mock('./credentials.js', () => ({
   hasApiKey: vi.fn(),
+}));
+
+vi.mock('./image.js', () => ({
+  IMAGE_NAME: 'poe-code-e2e',
 }));
 
 describe('runPreflight - Docker Desktop auto-start', () => {

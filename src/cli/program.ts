@@ -7,6 +7,7 @@ import {
 import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
+import { registerResearchCommand } from "./commands/research.js";
 import { registerWrapCommand } from "./commands/wrap.js";
 import { registerLoginCommand } from "./commands/login.js";
 import { registerLogoutCommand } from "./commands/logout.js";
@@ -69,6 +70,11 @@ function formatHelpText(input: {
         name: "spawn",
         args: "<agent> [prompt]",
         description: "Launch a coding agent"
+      },
+      {
+        name: "research",
+        args: "<prompt>",
+        description: "Research a codebase using a coding agent"
       },
       {
         name: "generate",
@@ -288,6 +294,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerInstallCommand(program, container);
   registerConfigureCommand(program, container);
   registerSpawnCommand(program, container);
+  registerResearchCommand(program, container);
   registerWrapCommand(program, container);
   registerGenerateCommand(program, container);
   registerTestCommand(program, container);

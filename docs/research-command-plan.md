@@ -38,7 +38,7 @@ poe-code research --github git@gh:o/r.git "prompt"      # SSH URL
 5. Tee the ACP stream: intercept `agent_message` events to accumulate markdown, yield events through to `renderAcpStream()`
 6. Save output to `~/.poe-code/research/<timestamp>-<slug>.md` with YAML frontmatter
 7. Build resume command from `threadId` when available (most agents support this; omit from frontmatter when not)
-8. Cleanup cloned repo in `finally` block (unless `--keep`)
+8. Cleanup cloned repo in `finally` block — only if we cloned it this run (skip if dir pre-existed). `--keep` also prevents cleanup.
 
 Key internal functions (all in same file, not extracted):
 
@@ -76,8 +76,9 @@ Tests for action handler (mock spawnSdk):
 - Prompt includes research system instructions
 - Output file saved with correct frontmatter
 - `agent_message` events captured in output
-- Cloned repo cleaned up after completion
+- Cloned repo cleaned up after completion (only if freshly cloned this run)
 - Cloned repo preserved with `--keep`
+- Pre-existing clone dir is never deleted
 - Cleanup happens even on spawn failure (try/finally)
 - Model and agentArgs forwarded to spawnSdk
 - Resume command included in frontmatter when threadId present

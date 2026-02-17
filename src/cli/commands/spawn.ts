@@ -2,7 +2,6 @@ import path from "node:path";
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { renderAcpStream, spawnInteractive, getSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
-import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
 import { text, confirm, isCancel } from "@poe-code/design-system";
 import { loadConfiguredServices } from "../../services/credentials.js";
 import {
@@ -10,6 +9,7 @@ import {
   resolveCommandFlags,
   resolveServiceAdapter,
   formatServiceList,
+  buildResumeCommand,
   type CommandFlags,
   type ExecutionResources
 } from "./shared.js";
@@ -236,21 +236,13 @@ export function registerSpawnCommand(
         }
 
         if (final.threadId) {
-          const spawnConfig = getSpawnConfig(canonicalService);
-          if (spawnConfig?.kind === "cli" && spawnConfig.resumeCommand) {
-            const resolvedId = resolveAgentId(canonicalService) ?? canonicalService;
-            const agentDefinition = allAgents.find((agent) => agent.id === resolvedId);
-            const binaryName = agentDefinition?.binaryName;
-            if (binaryName) {
-              const resumeCwd = path.resolve(spawnOptions.cwd ?? process.cwd());
-              const args = spawnConfig.resumeCommand(final.threadId, resumeCwd);
-              const agentCommand = [binaryName, ...args.map(shlexQuote)].join(" ");
-              const needsCdPrefix = !args.includes(resumeCwd);
-              const resumeCommand = needsCdPrefix
-                ? `cd ${shlexQuote(resumeCwd)} && ${agentCommand}`
-                : agentCommand;
-              resources.logger.info(text.muted(`\nResume: ${resumeCommand}`));
-            }
+          const resumeCommand = buildResumeCommand(
+            canonicalService,
+            final.threadId,
+            spawnOptions.cwd ?? process.cwd()
+          );
+          if (resumeCommand) {
+            resources.logger.info(text.muted(`\nResume: ${resumeCommand}`));
           }
         }
       } finally {
@@ -283,64 +275,6 @@ async function confirmUnconfiguredService(
   });
 
   return !isCancel(shouldProceed) && shouldProceed === true;
-}
-
-function shlexQuote(value: string): string {
-  if (value.length === 0) {
-    return "''";
-  }
-
-  let isSafe = true;
-  for (let index = 0; index < value.length; index += 1) {
-    if (!isSafeShellChar(value.charCodeAt(index))) {
-      isSafe = false;
-      break;
-    }
-  }
-
-  if (isSafe) {
-    return value;
-  }
-
-  let output = "'";
-  for (let index = 0; index < value.length; index += 1) {
-    const char = value[index];
-    if (char === "'") {
-      output += `'"'"'`;
-      continue;
-    }
-    output += char;
-  }
-  output += "'";
-  return output;
-}
-
-function isSafeShellChar(code: number): boolean {
-  if (code >= 48 && code <= 57) {
-    return true;
-  }
-  if (code >= 65 && code <= 90) {
-    return true;
-  }
-  if (code >= 97 && code <= 122) {
-    return true;
-  }
-
-  switch (code) {
-    case 95: // _
-    case 64: // @
-    case 37: // %
-    case 43: // +
-    case 61: // =
-    case 58: // :
-    case 44: // ,
-    case 46: // .
-    case 47: // /
-    case 45: // -
-      return true;
-    default:
-      return false;
-  }
 }
 
 function resolveSpawnWorkingDirectory(

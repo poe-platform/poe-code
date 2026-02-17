@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import type {
@@ -13,6 +14,8 @@ import type { ScopedLogger } from "../logger.js";
 import type { CommandCheck } from "../../utils/command-checks.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
+import { getSpawnConfig } from "@poe-code/agent-spawn";
+import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
 
 export interface CommandFlags {
   dryRun: boolean;
@@ -109,6 +112,32 @@ export function formatServiceList(names: string[]): string {
   return ` (${unique.join(" | ")})`;
 }
 
+export function buildResumeCommand(
+  canonicalService: string,
+  threadId: string,
+  cwd: string
+): string | undefined {
+  const spawnConfig = getSpawnConfig(canonicalService);
+  if (spawnConfig?.kind !== "cli" || !spawnConfig.resumeCommand) {
+    return undefined;
+  }
+
+  const resolvedId = resolveAgentId(canonicalService) ?? canonicalService;
+  const agentDefinition = allAgents.find((agent) => agent.id === resolvedId);
+  const binaryName = agentDefinition?.binaryName;
+  if (!binaryName) {
+    return undefined;
+  }
+
+  const resumeCwd = path.resolve(cwd);
+  const args = spawnConfig.resumeCommand(threadId, resumeCwd);
+  const agentCommand = [binaryName, ...args.map(shlexQuote)].join(" ");
+  const needsCdPrefix = !args.includes(resumeCwd);
+  return needsCdPrefix
+    ? `cd ${shlexQuote(resumeCwd)} && ${agentCommand}`
+    : agentCommand;
+}
+
 export async function applyIsolatedConfiguration(input: {
   adapter: ProviderService;
   providerContext: ProviderContext;
@@ -135,4 +164,62 @@ export async function applyIsolatedConfiguration(input: {
     },
     input.observers ? { observers: input.observers } : undefined
   );
+}
+
+function shlexQuote(value: string): string {
+  if (value.length === 0) {
+    return "''";
+  }
+
+  let isSafe = true;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!isSafeShellChar(value.charCodeAt(index))) {
+      isSafe = false;
+      break;
+    }
+  }
+
+  if (isSafe) {
+    return value;
+  }
+
+  let output = "'";
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    if (char === "'") {
+      output += `"'"'"'`;
+      continue;
+    }
+    output += char;
+  }
+  output += "'";
+  return output;
+}
+
+function isSafeShellChar(code: number): boolean {
+  if (code >= 48 && code <= 57) {
+    return true;
+  }
+  if (code >= 65 && code <= 90) {
+    return true;
+  }
+  if (code >= 97 && code <= 122) {
+    return true;
+  }
+
+  switch (code) {
+    case 95: // _
+    case 64: // @
+    case 37: // %
+    case 43: // +
+    case 61: // =
+    case 58: // :
+    case 44: // ,
+    case 46: // .
+    case 47: // /
+    case 45: // -
+      return true;
+    default:
+      return false;
+  }
 }

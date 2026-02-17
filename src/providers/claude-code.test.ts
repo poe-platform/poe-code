@@ -267,7 +267,7 @@ describe("claude-code service", () => {
       "claude",
       expect.arrayContaining([
         "-p", "Output exactly: CLAUDE_CODE_OK",
-        "--model", expect.stringContaining("claude-opus")
+        "--model", expect.stringContaining("claude-4-6")
       ])
     );
   });

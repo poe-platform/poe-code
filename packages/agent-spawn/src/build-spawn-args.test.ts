@@ -56,11 +56,11 @@ describe("buildSpawnArgs", () => {
   it("converts dots to hyphens for all claude-code models", () => {
     const result = buildSpawnArgs("claude-code", {
       prompt: "test",
-      model: "anthropic/claude-sonnet-4.5"
+      model: "anthropic/claude-4.6"
     });
 
-    expect(result.args).toContain("claude-sonnet-4-5");
-    expect(result.args).not.toContain("claude-sonnet-4.5");
+    expect(result.args).toContain("claude-4-6");
+    expect(result.args).not.toContain("claude-4.6");
   });
 
   it("appends mode-specific args for edit mode", () => {
@@ -125,10 +125,10 @@ describe("buildSpawnArgs", () => {
   it("preserves provider namespace for opencode models", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
-      model: "anthropic/claude-sonnet-4.5"
+      model: "anthropic/claude-4.6"
     });
 
-    expect(result.args).toContain("poe/anthropic/claude-sonnet-4.5");
+    expect(result.args).toContain("poe/anthropic/claude-4.6");
   });
 
   it("preserves openai namespace for opencode models", () => {

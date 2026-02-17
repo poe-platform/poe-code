@@ -163,7 +163,7 @@ describe("login command", () => {
 
     volume.writeFileSync(
       `${homeDir}/.claude/settings.json`,
-      JSON.stringify({ apiKeyHelper: "echo old-key", model: "claude-sonnet-4.5" })
+      JSON.stringify({ apiKeyHelper: "echo old-key", model: "claude-4.6" })
     );
     volume.writeFileSync(
       credentialsPath,

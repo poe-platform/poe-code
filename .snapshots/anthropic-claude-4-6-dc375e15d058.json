@@ -1,7 +1,7 @@
 {
-  "key": "anthropic-claude-sonnet-4-5-662b3b696058",
+  "key": "anthropic-claude-4-6-dc375e15d058",
   "request": {
-    "model": "anthropic/claude-sonnet-4.5",
+    "model": "anthropic/claude-4.6",
     "messages": [
       {
         "role": "user",
@@ -18,7 +18,7 @@
   },
   "metadata": {
     "recordedAt": "2026-01-30T17:52:49.306Z",
-    "model": "anthropic/claude-sonnet-4.5",
+    "model": "anthropic/claude-4.6",
     "type": "text"
   }
 }

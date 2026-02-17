@@ -1,28 +1,28 @@
 export const FRONTIER_MODELS = [
   "anthropic/claude-opus-4.6",
-  "anthropic/claude-sonnet-4.5",
+  "anthropic/claude-4.6",
   "openai/gpt-5.2",
   "google/gemini-3-pro"
 ] as const;
 
-export const DEFAULT_FRONTIER_MODEL = "anthropic/claude-sonnet-4.5";
+export const DEFAULT_FRONTIER_MODEL = "anthropic/claude-4.6";
 
-export const DEFAULT_TEXT_MODEL = "anthropic/claude-sonnet-4.5";
+export const DEFAULT_TEXT_MODEL = "anthropic/claude-4.6";
 export const DEFAULT_IMAGE_BOT = "google/nano-banana-pro";
 export const DEFAULT_AUDIO_BOT = "elevenlabs/elevenlabs-v3";
 export const DEFAULT_VIDEO_BOT = "google/veo-3.1";
 
 export const CLAUDE_CODE_VARIANTS = {
   haiku: "anthropic/claude-haiku-4.5",
-  sonnet: "anthropic/claude-sonnet-4.5",
+  sonnet: "anthropic/claude-4.6",
   opus: "anthropic/claude-opus-4.6"
 } as const;
 
-export const DEFAULT_CLAUDE_CODE_MODEL = CLAUDE_CODE_VARIANTS.opus;
+export const DEFAULT_CLAUDE_CODE_MODEL = CLAUDE_CODE_VARIANTS.sonnet;
 
 /**
  * Extracts the model ID from a namespaced model slug (lowercase).
- * e.g., "anthropic/claude-sonnet-4.5" -> "claude-sonnet-4.5"
+ * e.g., "anthropic/claude-4.6" -> "claude-4.6"
  */
 export function stripModelNamespace(model: string): string {
   const slashIndex = model.indexOf("/");

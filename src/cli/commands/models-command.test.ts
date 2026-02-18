@@ -52,6 +52,13 @@ function createCredentialsVolume(apiKey: string): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+interface TestParameter {
+  name: string;
+  schema: { type?: string; enum?: string[]; minimum?: number; maximum?: number };
+  default_value?: unknown;
+  description?: string;
+}
+
 function createModelEntry(overrides: Partial<{
   id: string;
   created: number;
@@ -71,6 +78,7 @@ function createModelEntry(overrides: Partial<{
     output_modalities: string[];
   } | null;
   reasoning: object | null;
+  parameters: TestParameter[];
 }> = {}) {
   return {
     id: overrides.id ?? "test-model",
@@ -84,7 +92,8 @@ function createModelEntry(overrides: Partial<{
     supported_features: overrides.supported_features ?? [],
     pricing: overrides.pricing ?? null,
     architecture: overrides.architecture ?? null,
-    reasoning: overrides.reasoning ?? null
+    reasoning: overrides.reasoning ?? null,
+    parameters: overrides.parameters ?? []
   };
 }
 
@@ -770,5 +779,162 @@ describe("models command", () => {
     expect(output).not.toContain("Reasoning");
     expect(output).not.toContain("tools");
     expect(output).not.toContain("web_search");
+  });
+
+  it("--view parameters shows grouped model headers with parameter rows", async () => {
+    fs = createCredentialsVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "claude-opus-4.6",
+        owned_by: "Anthropic",
+        parameters: [
+          { name: "web_search", schema: { type: "boolean" }, default_value: false, description: "Enable web search." },
+          { name: "output_effort", schema: { enum: ["max", "high", "medium", "low", "none"] }, default_value: "high" }
+        ]
+      }),
+      createModelEntry({
+        id: "gemini-3-flash",
+        owned_by: "Google",
+        parameters: [
+          { name: "thinking_level", schema: { enum: ["minimal", "low", "high"] }, default_value: "low" }
+        ]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+    expect(output).toContain("anthropic/claude-opus-4.6");
+    expect(output).toContain("web_search");
+    expect(output).toContain("boolean");
+    expect(output).toContain("false");
+    expect(output).toContain("output_effort");
+    expect(output).toContain("enum");
+    expect(output).toContain("max, high, medium, low, none");
+    expect(output).toContain("google/gemini-3-flash");
+    expect(output).toContain("thinking_level");
+  });
+
+  it("--view parameters shows number ranges", async () => {
+    fs = createCredentialsVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "test-model",
+        owned_by: "A",
+        parameters: [
+          { name: "temperature", schema: { type: "number", minimum: 0, maximum: 2 }, default_value: 0.7 }
+        ]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+    expect(output).toContain("temperature");
+    expect(output).toContain("number");
+    expect(output).toContain("0.7");
+    expect(output).toContain("0..2");
+  });
+
+  it("--view parameters skips models without parameters", async () => {
+    fs = createCredentialsVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "has-params",
+        owned_by: "A",
+        parameters: [
+          { name: "web_search", schema: { type: "boolean" }, default_value: false }
+        ]
+      }),
+      createModelEntry({
+        id: "no-params",
+        owned_by: "B",
+        parameters: []
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+    expect(output).toContain("a/has-params");
+    expect(output).not.toContain("b/no-params");
+  });
+
+  it("--view parameters shows no-match message when no models have parameters", async () => {
+    fs = createCredentialsVolume("test-key");
+    const models = [
+      createModelEntry({ id: "no-params", owned_by: "A", parameters: [] })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+    expect(logs.some((m) => m.includes("No models with parameters match the given filters."))).toBe(true);
+  });
+
+  it("--view raw outputs models in YAML format", async () => {
+    fs = createCredentialsVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "claude-opus-4.6",
+        owned_by: "Anthropic",
+        context_length: 983040,
+        supported_features: ["tools", "web_search"],
+        parameters: [
+          { name: "output_effort", schema: { enum: ["max", "high"] }, default_value: "high" }
+        ]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--view", "raw"] });
+
+    expect(output).toContain("id: claude-opus-4.6");
+    expect(output).toContain("owned_by: Anthropic");
+    expect(output).toContain("output_effort");
+  });
+
+  it("--view parameters truncates long enum values with ellipsis", async () => {
+    fs = createCredentialsVolume("test-key");
+    const longEnum = Array.from({ length: 50 }, (_, i) => `voice-${String(i).padStart(3, "0")}`);
+    const models = [
+      createModelEntry({
+        id: "tts-model",
+        owned_by: "A",
+        parameters: [
+          { name: "voice", schema: { enum: longEnum }, default_value: "voice-000" }
+        ]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+    expect(output).toContain("...");
+    expect(output).not.toContain("voice-049");
   });
 });

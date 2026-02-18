@@ -1,10 +1,23 @@
 import type { Command } from "commander";
 import parseDuration from "parse-duration";
+import { stringify as yamlStringify } from "yaml";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { loadCredentials } from "../../services/credentials.js";
 import { ApiError } from "../errors.js";
 import { getTheme, renderTable, withSpinner } from "@poe-code/design-system";
+
+interface ModelParameter {
+  name: string;
+  schema: {
+    type?: string;
+    enum?: string[];
+    minimum?: number;
+    maximum?: number;
+  };
+  default_value?: unknown;
+  description?: string;
+}
 
 interface ModelEntry {
   id: string;
@@ -31,6 +44,7 @@ interface ModelEntry {
     required: boolean;
     supports_reasoning_effort: boolean;
   } | null;
+  parameters: ModelParameter[];
 }
 
 function formatTokenCount(tokens: number): string {
@@ -62,6 +76,26 @@ function formatDate(ms: number): string {
   return `${year}-${month}-${day}`;
 }
 
+function formatParameterType(schema: ModelParameter["schema"]): string {
+  if (schema.enum) return "enum";
+  return schema.type ?? "unknown";
+}
+
+const MAX_VALUES_LENGTH = 105;
+
+function formatParameterValues(schema: ModelParameter["schema"]): string {
+  let result = "";
+  if (schema.enum) {
+    result = schema.enum.join(", ");
+  } else if (schema.type === "number" && (schema.minimum != null || schema.maximum != null)) {
+    result = `${schema.minimum ?? ""}..${schema.maximum ?? ""}`;
+  }
+  if (result.length > MAX_VALUES_LENGTH) {
+    return `${result.slice(0, MAX_VALUES_LENGTH - 3)}...`;
+  }
+  return result;
+}
+
 function hasFeature(model: ModelEntry, feature: string): boolean {
   if (feature === "reasoning") return model.reasoning != null;
   return (model.supported_features ?? []).includes(feature);
@@ -81,7 +115,7 @@ export function registerModelsCommand(
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
     .option("--tools", "Show only models with tool support")
     .option("--since <duration>", "Show models added within duration (e.g. 7d, 2w, 3mo)")
-    .option("--view <name>", "Table view: capabilities or pricing", "capabilities")
+    .option("--view <name>", "Table view: capabilities, pricing, parameters, or raw", "capabilities")
     .addHelpText("after", [
       "",
       "Filters:",
@@ -96,11 +130,14 @@ export function registerModelsCommand(
       "Views:",
       "  capabilities  Model features, modalities, and context window (default)",
       "  pricing       Cost per million tokens with cache pricing",
+      "  parameters    Model parameters grouped by model with type and defaults",
+      "  raw           Full model data in YAML format",
       "",
       "Examples:",
       "  $ poe-code models --provider anthropic",
       "  $ poe-code models --feature reasoning --since 3mo",
       "  $ poe-code models --input image --view pricing",
+      "  $ poe-code models --model claude --view parameters",
       "  $ poe-code models --since 2w --output text"
     ].join("\n"))
     .action(async function (this: Command) {
@@ -227,10 +264,45 @@ export function registerModelsCommand(
         filtered.sort((a, b) => b.created - a.created);
 
         const theme = getTheme();
+
+        if (commandOptions.view === "raw") {
+          resources.logger.info(yamlStringify(filtered));
+          return;
+        }
+
         let columns;
         let rows;
 
-        if (commandOptions.view === "pricing") {
+        if (commandOptions.view === "parameters") {
+          const withParams = filtered.filter((m) => m.parameters.length > 0);
+          if (withParams.length === 0) {
+            resources.logger.info("No models with parameters match the given filters.");
+            return;
+          }
+
+          columns = [
+            { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
+            { name: "Parameter", title: "Parameter", alignment: "left" as const, maxLen: 28 },
+            { name: "Type", title: "Type", alignment: "left" as const, maxLen: 9 },
+            { name: "Default", title: "Default", alignment: "left" as const, maxLen: 12 },
+            { name: "Values", title: "Values/Range", alignment: "left" as const, maxLen: 35 }
+          ];
+
+          rows = [];
+          for (const model of withParams) {
+            const modelLabel = theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`);
+            rows.push({ Model: modelLabel, Parameter: "", Type: "", Default: "", Values: "" });
+            for (const param of model.parameters) {
+              rows.push({
+                Model: "",
+                Parameter: param.name,
+                Type: formatParameterType(param.schema),
+                Default: param.default_value != null ? String(param.default_value) : "",
+                Values: formatParameterValues(param.schema)
+              });
+            }
+          }
+        } else if (commandOptions.view === "pricing") {
           columns = [
             { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
             { name: "Context", title: "Context", alignment: "right" as const, maxLen: 9 },

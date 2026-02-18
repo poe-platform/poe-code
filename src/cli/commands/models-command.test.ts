@@ -937,4 +937,27 @@ describe("models command", () => {
     expect(output).toContain("...");
     expect(output).not.toContain("voice-049");
   });
+
+  it("--view parameters truncates long default values", async () => {
+    fs = createCredentialsVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "test-model",
+        owned_by: "A",
+        parameters: [
+          { name: "prompt", schema: { type: "string" }, default_value: "a]".repeat(30) }
+        ]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+    expect(output).toContain("...");
+    expect(output).not.toContain("a]".repeat(30));
+  });
 });

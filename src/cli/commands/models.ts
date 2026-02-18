@@ -81,7 +81,15 @@ function formatParameterType(schema: ModelParameter["schema"]): string {
   return schema.type ?? "unknown";
 }
 
+function truncate(value: string, maxLen: number): string {
+  if (value.length > maxLen) {
+    return `${value.slice(0, maxLen - 3)}...`;
+  }
+  return value;
+}
+
 const MAX_VALUES_LENGTH = 105;
+const MAX_DEFAULT_LENGTH = 36;
 
 function formatParameterValues(schema: ModelParameter["schema"]): string {
   let result = "";
@@ -90,10 +98,12 @@ function formatParameterValues(schema: ModelParameter["schema"]): string {
   } else if (schema.type === "number" && (schema.minimum != null || schema.maximum != null)) {
     result = `${schema.minimum ?? ""}..${schema.maximum ?? ""}`;
   }
-  if (result.length > MAX_VALUES_LENGTH) {
-    return `${result.slice(0, MAX_VALUES_LENGTH - 3)}...`;
-  }
-  return result;
+  return truncate(result, MAX_VALUES_LENGTH);
+}
+
+function formatDefaultValue(value: unknown): string {
+  if (value == null) return "";
+  return truncate(String(value), MAX_DEFAULT_LENGTH);
 }
 
 function hasFeature(model: ModelEntry, feature: string): boolean {
@@ -297,7 +307,7 @@ export function registerModelsCommand(
                 Model: "",
                 Parameter: param.name,
                 Type: formatParameterType(param.schema),
-                Default: param.default_value != null ? String(param.default_value) : "",
+                Default: formatDefaultValue(param.default_value),
                 Values: formatParameterValues(param.schema)
               });
             }

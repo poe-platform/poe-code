@@ -79,6 +79,7 @@ export function registerModelsCommand(
     .option("--feature <name>", "Filter by feature (tools, web_search, reasoning)")
     .option("--input <modalities>", "Filter by input modalities (e.g. text,image)")
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
+    .option("--tools", "Show only models with tool support")
     .option("--since <duration>", "Show models added within duration (e.g. 7d, 2w, 3mo)")
     .option("--view <name>", "Table view: capabilities or pricing", "capabilities")
     .addHelpText("after", [
@@ -89,6 +90,7 @@ export function registerModelsCommand(
       "  --feature    Exact match: tools, web_search, or reasoning",
       "  --input      Comma-separated input modalities: text, image, audio, video",
       "  --output     Comma-separated output modalities: text, image, audio",
+      "  --tools      Shorthand for --feature tools",
       "  --since      Duration: s, m, h, d, w, mo, y (e.g. 7d, 2w, 3mo, 1y)",
       "",
       "Views:",
@@ -114,6 +116,7 @@ export function registerModelsCommand(
         feature?: string;
         input?: string;
         output?: string;
+        tools?: boolean;
         since?: string;
         view: string;
       }>();
@@ -190,6 +193,9 @@ export function registerModelsCommand(
         if (commandOptions.feature) {
           const feature = commandOptions.feature.toLowerCase();
           filtered = filtered.filter((m) => hasFeature(m, feature));
+        }
+        if (commandOptions.tools) {
+          filtered = filtered.filter((m) => hasFeature(m, "tools"));
         }
         if (commandOptions.input) {
           const required = commandOptions.input.toLowerCase().split(",");

@@ -203,6 +203,24 @@ describe("models command", () => {
     expect(output).toContain("openai/gpt-5");
   });
 
+  it("filters by --tools (shorthand for --feature tools)", async () => {
+    fs = createCredentialsVolume("test-key");
+    const models = [
+      createModelEntry({ id: "with-tools", owned_by: "A", supported_features: ["tools"] }),
+      createModelEntry({ id: "no-tools", owned_by: "B", supported_features: ["web_search"] })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--tools"] });
+
+    expect(output).toContain("a/with-tools");
+    expect(output).not.toContain("b/no-tools");
+  });
+
   it("filters by --feature for supported_features", async () => {
     fs = createCredentialsVolume("test-key");
     const models = [

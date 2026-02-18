@@ -23,7 +23,7 @@ npx poe-code@latest wrap claude
 
 or 
 
-## Set it as your default (works with CLIs and desktop apps)
+## Set  it as your default (works with CLIs and desktop apps)
 This updates the provider’s config files and continue using your tools normally. 
 
 ```bash

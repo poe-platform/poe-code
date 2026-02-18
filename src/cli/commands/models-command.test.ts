@@ -666,6 +666,60 @@ describe("models command", () => {
     expect(output).not.toContain("$/MTok");
   });
 
+  it("filters by --since duration (excludes old models)", async () => {
+    fs = createCredentialsVolume("test-key");
+    const now = Date.now();
+    const models = [
+      createModelEntry({ id: "recent", owned_by: "A", created: now - 1000 * 60 * 60 * 24 }),
+      createModelEntry({ id: "old", owned_by: "B", created: now - 1000 * 60 * 60 * 24 * 90 })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--since", "7d"] });
+
+    expect(output).toContain("a/recent");
+    expect(output).not.toContain("b/old");
+  });
+
+  it("filters by --since with long-form duration (e.g. '30 days')", async () => {
+    fs = createCredentialsVolume("test-key");
+    const now = Date.now();
+    const models = [
+      createModelEntry({ id: "recent", owned_by: "A", created: now - 1000 * 60 * 60 * 24 * 10 }),
+      createModelEntry({ id: "old", owned_by: "B", created: now - 1000 * 60 * 60 * 24 * 60 })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--since", "30 days"] });
+
+    expect(output).toContain("a/recent");
+    expect(output).not.toContain("b/old");
+  });
+
+  it("shows no-match message when --since excludes all models", async () => {
+    fs = createCredentialsVolume("test-key");
+    const models = [
+      createModelEntry({ id: "old", owned_by: "A", created: 1600000000000 })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await runModels({ fs, httpClient, logs, args: ["--since", "1d"] });
+
+    expect(logs.some((m) => m.includes("No models match the given filters."))).toBe(true);
+  });
+
   it("--view pricing shows pricing columns without features", async () => {
     fs = createCredentialsVolume("test-key");
     const models = [

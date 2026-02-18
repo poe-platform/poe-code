@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import parseDuration from "parse-duration";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { loadCredentials } from "../../services/credentials.js";
@@ -78,7 +79,16 @@ export function registerModelsCommand(
     .option("--feature <name>", "Filter by feature (tools, web_search, reasoning)")
     .option("--input <modalities>", "Filter by input modalities (e.g. text,image)")
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
+    .option("--since <duration>", "Show models added within duration (e.g. 7d, 2w, 3mo)")
     .option("--view <name>", "Table view: capabilities or pricing", "capabilities")
+    .addHelpText("after", [
+      "",
+      "Examples:",
+      "  $ poe-code models --provider anthropic",
+      "  $ poe-code models --feature reasoning --since 3mo",
+      "  $ poe-code models --input image --view pricing",
+      "  $ poe-code models --since 2w --output text"
+    ].join("\n"))
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(
@@ -92,6 +102,7 @@ export function registerModelsCommand(
         feature?: string;
         input?: string;
         output?: string;
+        since?: string;
         view: string;
       }>();
 
@@ -181,6 +192,13 @@ export function registerModelsCommand(
             const modalities = m.architecture?.output_modalities ?? [];
             return required.every((r) => modalities.includes(r));
           });
+        }
+        if (commandOptions.since) {
+          const duration = parseDuration(commandOptions.since);
+          if (duration != null) {
+            const cutoff = Date.now() - duration;
+            filtered = filtered.filter((m) => m.created >= cutoff);
+          }
         }
 
         if (filtered.length === 0) {

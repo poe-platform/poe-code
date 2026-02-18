@@ -139,12 +139,12 @@ export function registerMcpCommand(
         platform: process.platform as "darwin" | "linux" | "win32",
         dryRun: flags.dryRun,
         observers: {
-          onStart: (details) => {
+          onStart: (details: { label: string }) => {
             if (flags.dryRun) {
               resources.logger.dryRun(`Would ${details.label.toLowerCase()}`);
             }
           },
-          onComplete: (details, outcome) => {
+          onComplete: (details: { label: string }, outcome: { changed: boolean }) => {
             if (!flags.dryRun && outcome.changed) {
               resources.logger.verbose(details.label);
             }
@@ -185,12 +185,12 @@ export function registerMcpCommand(
         platform: process.platform as "darwin" | "linux" | "win32",
         dryRun: flags.dryRun,
         observers: {
-          onStart: (details) => {
+          onStart: (details: { label: string }) => {
             if (flags.dryRun) {
               resources.logger.dryRun(`Would ${details.label.toLowerCase()}`);
             }
           },
-          onComplete: (details, outcome) => {
+          onComplete: (details: { label: string }, outcome: { changed: boolean }) => {
             if (!flags.dryRun && outcome.changed) {
               resources.logger.verbose(details.label);
             }

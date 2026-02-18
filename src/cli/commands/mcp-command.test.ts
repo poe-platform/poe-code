@@ -11,7 +11,11 @@ import {
   DEFAULT_AUDIO_BOT
 } from "../constants.js";
 
-const { configureMock, unconfigureMock, resolveAgentSupportMock } = vi.hoisted(() => ({
+const {
+  configureMock,
+  unconfigureMock,
+  resolveAgentSupportMock
+} = vi.hoisted(() => ({
   configureMock: vi.fn(),
   unconfigureMock: vi.fn(),
   resolveAgentSupportMock: vi.fn()

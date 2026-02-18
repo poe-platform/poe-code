@@ -128,3 +128,5 @@ export const claudeCodeService = createProvider<
   },
   install: CLAUDE_CODE_INSTALL_DEFINITION
 });
+
+export const provider = claudeCodeService;

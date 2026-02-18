@@ -6,6 +6,14 @@ export type {
   ApplyOptions
 } from "./types.js";
 
-export { supportedAgents, isSupported, resolveAgentSupport } from "./configs.js";
+export {
+  supportedAgents,
+  isSupported,
+  resolveAgentSupport
+} from "./configs.js";
 
-export { configure, unconfigure, UnsupportedAgentError } from "./apply.js";
+export {
+  configure,
+  unconfigure,
+  UnsupportedAgentError
+} from "./apply.js";

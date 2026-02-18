@@ -24,6 +24,26 @@ export class UnsupportedAgentError extends Error {
   }
 }
 
+function isConfigObject(value: unknown): value is ConfigObject {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function resolveServerMap(
+  document: ConfigObject,
+  configKey: string
+): ConfigObject {
+  const value = document[configKey];
+  return isConfigObject(value) ? value : {};
+}
+
+function mergeServerMap(
+  document: ConfigObject,
+  configKey: string,
+  servers: ConfigObject
+): ConfigObject {
+  return { ...document, [configKey]: servers };
+}
+
 export async function configure(
   agentId: string,
   server: McpServerEntry,
@@ -57,15 +77,14 @@ export async function configure(
         target: configPath,
         format: config.format,
         transform: (document) => {
-          const serversKey = config.configKey;
-          const servers = (document[serversKey] ?? {}) as ConfigObject;
+          const servers = resolveServerMap(document, config.configKey);
           const newServers = {
             ...servers,
             [server.name]: shaped as unknown as ConfigObject
           };
           return {
             changed: true,
-            content: { ...document, [serversKey]: newServers }
+            content: mergeServerMap(document, config.configKey, newServers)
           };
         },
         label: `Add ${server.name} to ${configPath}`
@@ -91,7 +110,6 @@ export async function unconfigure(
 
   const config = getAgentConfig(agentId)!;
   const configPath = resolveConfigPath(config, options.platform);
-
   await runMutations(
     [
       configMutation.prune({

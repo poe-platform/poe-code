@@ -54,7 +54,7 @@ function formatHelpText(input: {
       {
         name: "configure",
         args: "[agent]",
-        description: "Configure a coding agent (claude-code, codex, opencode)"
+        description: "Configure a coding agent"
       },
       {
         name: "unconfigure",

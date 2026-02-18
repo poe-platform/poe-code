@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { createMockFs } from "@poe-code/config-mutations/testing";
-import { configure, unconfigure, UnsupportedAgentError } from "./apply.js";
+import {
+  configure,
+  unconfigure,
+  UnsupportedAgentError
+} from "./apply.js";
 import type { McpServerEntry, ApplyOptions } from "./types.js";
 
 const HOME_DIR = "/home/test";

@@ -137,17 +137,8 @@ interface UnconfigurePayloadInit {
 }
 
 async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<unknown> {
-  const { service, context } = init;
-  switch (service) {
-    case "claude-code":
-      return { env: context.env };
-    case "codex":
-      return { env: context.env };
-    case "opencode":
-      return { env: context.env };
-    default:
-      return {};
-    }
+  const { context } = init;
+  return { env: context.env };
 }
 
 function formatUnconfigureMessages(

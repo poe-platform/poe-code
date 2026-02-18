@@ -151,3 +151,5 @@ export const kimiService = createProvider<
     return context.command.runCommand("kimi", args);
   }
 });
+
+export const provider = kimiService;

@@ -132,3 +132,5 @@ export const openCodeService = createProvider({
     return context.command.runCommand("poe-code", ["wrap", "opencode", ...args]);
   }
 });
+
+export const provider = openCodeService;

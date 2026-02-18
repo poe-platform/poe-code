@@ -15,7 +15,9 @@ export interface OpencodeShapeOutput {
   enabled: boolean;
 }
 
-export type ShapeOutput = StandardShapeOutput | OpencodeShapeOutput;
+export type ShapeOutput =
+  | StandardShapeOutput
+  | OpencodeShapeOutput;
 
 export type ShapeTransformer = (
   entry: McpServerEntry

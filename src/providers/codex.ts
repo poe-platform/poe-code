@@ -158,3 +158,5 @@ export const codexService = createProvider<
   },
   install: CODEX_INSTALL_DEFINITION
 });
+
+export const provider = codexService;

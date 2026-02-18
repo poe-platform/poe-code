@@ -55,6 +55,38 @@ const stripShebangPlugin = {
   },
 };
 
+function isProviderSourceFile(filename) {
+  if (!filename.endsWith(".ts")) {
+    return false;
+  }
+  if (filename.endsWith(".d.ts")) {
+    return false;
+  }
+  if (filename.endsWith(".test.ts")) {
+    return false;
+  }
+  if (
+    filename === "index.ts" ||
+    filename === "create-provider.ts" ||
+    filename === "spawn-options.ts"
+  ) {
+    return false;
+  }
+  return true;
+}
+
+async function getProviderEntryPoints(root) {
+  const providersDir = path.join(root, "src", "providers");
+  const entries = await readdir(providersDir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    if (!isProviderSourceFile(entry.name)) continue;
+    files.push(path.join(providersDir, entry.name));
+  }
+  return files;
+}
+
 await esbuild.build({
   entryPoints: [path.join(rootDir, "src/index.ts")],
   bundle: true,
@@ -69,6 +101,25 @@ await esbuild.build({
   plugins: [stripShebangPlugin],
   loader: { ".md": "text", ".hbs": "text", ".log": "text" },
 });
+
+const providerEntryPoints = await getProviderEntryPoints(rootDir);
+if (providerEntryPoints.length > 0) {
+  await esbuild.build({
+    entryPoints: providerEntryPoints,
+    bundle: true,
+    platform: "node",
+    target: "node18",
+    format: "esm",
+    outdir: path.join(rootDir, "dist", "providers"),
+    entryNames: "[name]",
+    external: externalDeps,
+    alias: workspaceAliases,
+    banner: undefined,
+    sourcemap: true,
+    plugins: [stripShebangPlugin],
+    loader: { ".md": "text", ".hbs": "text", ".log": "text" },
+  });
+}
 
 // Generate a CJS entry point with a Node.js version gate.
 // Written in ES5 syntax so even ancient Node versions parse it and

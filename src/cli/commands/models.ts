@@ -83,6 +83,18 @@ export function registerModelsCommand(
     .option("--view <name>", "Table view: capabilities or pricing", "capabilities")
     .addHelpText("after", [
       "",
+      "Filters:",
+      "  --provider   Substring match on provider/owner (e.g. anthropic, openai)",
+      "  --model      Substring match on model id (e.g. sonnet, gpt)",
+      "  --feature    Exact match: tools, web_search, or reasoning",
+      "  --input      Comma-separated input modalities: text, image, audio, video",
+      "  --output     Comma-separated output modalities: text, image, audio",
+      "  --since      Duration: s, m, h, d, w, mo, y (e.g. 7d, 2w, 3mo, 1y)",
+      "",
+      "Views:",
+      "  capabilities  Model features, modalities, and context window (default)",
+      "  pricing       Cost per million tokens with cache pricing",
+      "",
       "Examples:",
       "  $ poe-code models --provider anthropic",
       "  $ poe-code models --feature reasoning --since 3mo",

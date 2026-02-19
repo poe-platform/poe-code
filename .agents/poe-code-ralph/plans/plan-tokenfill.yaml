@@ -10,9 +10,12 @@ overview: |
   separate markdown files. Articles are concatenated sequentially and truncated at
   the exact token boundary. The only configurable option is the tokenizer encoding.
 
-  The package lives at `packages/tokenfill/` in this monorepo with both a
-  programmatic API (`tokenfill(tokenCount, options?)`) and a CLI (`tokenfill 2000`).
-  Output is fully deterministic — same token count always produces the same text.
+  This is a standalone public npm package (`tokenfill`) — not part of poe-code.
+  It lives at `packages/tokenfill/` in this monorepo for convenience but has its
+  own identity, no @poe-code scope, and is published independently.
+  It provides both a programmatic API (`tokenfill(tokenCount, options?)`) and a
+  CLI (`tokenfill 2000`). Output is fully deterministic — same token count always
+  produces the same text.
 goals:
   - Zero-config text generation to exact token counts
   - Ship ~2M tokens of built-in corpus as markdown files
@@ -111,7 +114,7 @@ stories:
     dependsOn: []
     description: As a developer, I want the tokenfill package scaffolded so I can start building the library.
     acceptanceCriteria:
-      - Create packages/tokenfill/ with package.json (@poe-code/tokenfill, private, ESM)
+      - Create packages/tokenfill/ with package.json (name "tokenfill", public, ESM)
       - Add tsconfig.json extending root config
       - Add src/index.ts with placeholder export
       - Package builds and lints successfully
@@ -181,3 +184,42 @@ stories:
     acceptanceCriteria:
       - npm run test passes with tokenfill coverage
       - npm run lint passes
+
+  - id: US-007
+    title: Set up npm publishing workflow
+    status: open
+    dependsOn:
+      - US-006
+    description: As a maintainer, I want automated publishing so tokenfill is released on npm when changes merge to main.
+    acceptanceCriteria:
+      - Add .github/workflows/release-tokenfill.yml triggered on push to main with path filter packages/tokenfill/**
+      - Workflow builds the package, auto-bumps patch version from npm, publishes with --provenance --access public
+      - Workflow has id-token write permission for OIDC provenance
+      - First publish done locally via npm publish --access public
+      - Provenance configured on npmjs.com with poe-platform org and release-tokenfill.yml workflow
+
+  - id: US-008
+    title: Exploratory testing — CLI via local install
+    status: open
+    dependsOn:
+      - US-006
+    description: As a developer, I want to install tokenfill locally and test the CLI to verify it works end-to-end.
+    acceptanceCriteria:
+      - Install locally using npm run install-local-package or equivalent
+      - Run tokenfill <count> for various token counts and verify output
+      - Run tokenfill --json and verify structured output
+      - Run tokenfill --tokenizer o200k_base and verify different encoding works
+      - Verify stats line on stderr shows correct token count
+
+  - id: US-009
+    title: Exploratory testing — API via local install
+    status: open
+    dependsOn:
+      - US-006
+    description: As a developer, I want to import tokenfill programmatically and verify the API works as documented.
+    acceptanceCriteria:
+      - Import tokenfill from locally installed package
+      - Call tokenfill(n) and verify result.text and result.actualTokens
+      - Verify determinism — same input produces identical output
+      - Verify different tokenizer option produces different token counts for same text length
+      - Verify error when requesting more tokens than corpus size

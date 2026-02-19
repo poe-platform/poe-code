@@ -1,0 +1,35 @@
+name: Release tokenfill
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/tokenfill/**'
+concurrency:
+  group: release-tokenfill
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build
+        run: npm run build --workspace tokenfill
+      - name: Auto-bump patch version from npm
+        working-directory: packages/tokenfill
+        run: |
+          REMOTE=$(npm view tokenfill version 2>/dev/null || echo "0.0.0")
+          npm version --no-git-tag-version "$REMOTE"
+          npm version --no-git-tag-version patch
+      - name: Publish
+        working-directory: packages/tokenfill
+        run: npm publish --provenance --access public

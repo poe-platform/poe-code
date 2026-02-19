@@ -42,6 +42,23 @@ npm version --no-git-tag-version --allow-same-version "$REMOTE"
 npm version --no-git-tag-version patch
 ```
 
-## 4. Releasing new versions
+## 4. Provenance troubleshooting
+
+If publish fails with an error like:
+
+`E422 ... Error verifying sigstore provenance bundle ... package.json: "repository.url" is "", expected to match "https://github.com/poe-platform/poe-code" from provenance`
+
+Then make sure the package `package.json` includes repository metadata that points to this repo:
+
+```json
+{
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git"
+  }
+}
+```
+
+## 5. Releasing new versions
 
 Just merge your changes to `main`. The workflow auto-bumps the patch version and publishes — no manual version bumps needed.

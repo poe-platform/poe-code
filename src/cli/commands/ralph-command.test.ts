@@ -245,6 +245,8 @@ describe("ralph build command", () => {
         ""
       ].join("\n")
     });
+    designConfirm.mockResolvedValueOnce(true);
+    designIsCancel.mockReturnValue(false);
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -270,6 +272,9 @@ describe("ralph build command", () => {
         activityLogPath: "custom-activity.log",
         cwd
       })
+    );
+    expect(designConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({ initialValue: true })
     );
   });
 
@@ -581,8 +586,8 @@ describe("ralph build command", () => {
       "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
     });
     designSelect.mockResolvedValueOnce(".agents/poe-code-ralph/plans/plan.yaml");
+    designConfirm.mockResolvedValueOnce(true);
     designIsCancel.mockReturnValue(false);
-    // noCommit: true is set in config, so no confirm prompt
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -602,6 +607,9 @@ describe("ralph build command", () => {
         maxIterations: 5,
         noCommit: true
       })
+    );
+    expect(designConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({ initialValue: true })
     );
   });
 
@@ -836,12 +844,13 @@ describe("ralph build command", () => {
     );
   });
 
-  it("config.noCommit value skips confirm prompt", async () => {
+  it("config.noCommit value seeds confirm prompt default", async () => {
     const fs = createMemFs({
       "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: Demo\nstories: []\n",
       "/repo/.agents/poe-code-ralph/config.yaml": "noCommit: false\n"
     });
     designSelect.mockResolvedValueOnce(".agents/poe-code-ralph/plans/plan.yaml");
+    designConfirm.mockResolvedValueOnce(false);
     designIsCancel.mockReturnValue(false);
     const container = createCliContainer({
       fs,
@@ -854,7 +863,9 @@ describe("ralph build command", () => {
 
     await program.parseAsync(["node", "cli", "ralph", "build"]);
 
-    expect(designConfirm).not.toHaveBeenCalled();
+    expect(designConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({ initialValue: false })
+    );
     expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
       expect.objectContaining({ noCommit: false })
     );

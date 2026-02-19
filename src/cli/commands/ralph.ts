@@ -499,26 +499,24 @@ export function registerRalphCommand(
         }
         const agent = agentSupport.id ?? rawAgent;
 
+        const configuredNoCommit = config.noCommit;
         let noCommit: boolean;
         if (options.commit === false) {
           // --no-commit explicitly passed
           noCommit = true;
-        } else if (config.noCommit !== undefined) {
-          // config.noCommit is set
-          noCommit = config.noCommit;
         } else if (flags.assumeYes) {
-          // --yes: default to false without prompting
-          noCommit = false;
+          // --yes accepts configured default, else false
+          noCommit = configuredNoCommit ?? false;
         } else {
           const answer = await confirm({
             message: "Should the agent skip committing changes? (--no-commit)",
-            initialValue: false
+            initialValue: configuredNoCommit ?? false
           });
           if (isCancel(answer)) {
             cancel("Operation cancelled");
             return;
           }
-          noCommit = answer as boolean;
+          noCommit = Boolean(answer);
         }
 
         const staleSeconds = config.staleSeconds ?? 60;

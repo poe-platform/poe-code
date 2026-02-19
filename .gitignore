@@ -39,10 +39,10 @@ local_scripts/watch-diff.ts
 .cursor/
 .opencode/
 .ralphy/
-.agents/ralph/
 .ralph/
 !packages/ralph/templates/.ralph/
-.agents/
+!.agents/
+!.agents/**
 .poe-code-ralph/
 openspec
 

@@ -1,0 +1,189 @@
+version: 1
+project: docker-spawn greenfield
+overview: |
+  Docker runtime code has been removed, so this plan is fully greenfield.
+  We will implement Docker-backed spawn from scratch with a dedicated package
+  (`@poe-code/docker-spawn`) that depends on `@poe-code/agent-spawn`.
+
+  To avoid duplication, `@poe-code/agent-spawn` will provide a launcher injection
+  seam that is reused by non-streaming, streaming, and interactive spawn flows.
+  Docker-specific behavior will live only in `@poe-code/docker-spawn`.
+
+  Image definition will be Dockerfile-only (`packages/docker-spawn/Dockerfile`).
+  A build-image command/tooling flow will build and tag that image.
+goals:
+  - Implement Docker spawn support from scratch with no dependency on removed Docker code
+  - Keep provider config resolution and argument construction in `@poe-code/agent-spawn`
+  - Add launcher injection seam in `@poe-code/agent-spawn` for runtime wrappers
+  - Expose Docker-backed spawn APIs in `@poe-code/docker-spawn` with API parity
+  - Define and build image from package-local Dockerfile only
+nonGoals:
+  - Reintroducing runtime/docker fields in core SDK or CLI spawn option types
+  - Provider-specific Docker branching
+  - YAML-based Docker image configuration
+  - README changes without explicit approval
+qualityGates:
+  - npm run test
+  - npm run lint
+  - npm run e2e:verbose
+  - npm run screenshot-poe-code -- spawn --help
+  - npm run screenshot-poe-code -- docker-spawn build-image --help
+requirements:
+  - name: Greenfield implementation baseline
+    description: |
+      The Docker spawn implementation SHALL be built as a new solution from scratch.
+      It MUST NOT depend on previously removed Docker runtime package code.
+    scenarios:
+      - name: No legacy runtime dependency
+        when: The workspace is inspected for Docker spawn runtime package references
+        then: No dependency on removed package names or files exists
+      - name: New package path
+        when: Docker spawn package is created
+        then: It is implemented under packages/docker-spawn with package name @poe-code/docker-spawn
+
+  - name: Launcher injection seam in agent-spawn
+    description: |
+      `@poe-code/agent-spawn` SHALL expose a launcher injection seam so callers can
+      swap process launch behavior without duplicating provider config and spawn flow logic.
+    scenarios:
+      - name: Host default behavior
+        when: Existing consumers use default `@poe-code/agent-spawn` exports
+        then: Host launcher behavior remains unchanged
+      - name: Custom launcher reuse
+        when: A custom launcher is injected
+        then: spawn, spawnStreaming, and spawnInteractive use the injected launcher contract
+
+  - name: Docker-Spawn API parity
+    description: |
+      `@poe-code/docker-spawn` SHALL expose the same spawn entrypoint contracts as
+      `@poe-code/agent-spawn` while executing processes through Docker.
+    scenarios:
+      - name: Import swap compatibility
+        when: A TypeScript caller switches imports from @poe-code/agent-spawn to @poe-code/docker-spawn
+        then: The same spawn function signatures and result shapes compile
+      - name: Non-duplicated spawn logic
+        when: Docker-Spawn is implemented
+        then: It binds the agent-spawn seam rather than copying provider argument logic
+
+  - name: Docker launcher behavior
+    description: |
+      Docker-Spawn SHALL implement Docker launcher behavior including engine selection,
+      cwd mount, workspace, and controlled environment pass-through.
+    scenarios:
+      - name: Cwd mount and workspace
+        when: Docker-Spawn launches an agent command
+        then: Host cwd is mounted to container workspace and used as the working directory
+      - name: Engine handling
+        when: Docker engine options are resolved
+        then: Docker command arguments are built consistently for supported engine modes
+
+  - name: Dockerfile-only image build definition
+    description: |
+      Docker-Spawn SHALL define its image via packages/docker-spawn/Dockerfile and
+      provide build-image command/tooling that builds and tags that image.
+    scenarios:
+      - name: Build image command
+        when: Build-image workflow is executed
+        then: It builds image from packages/docker-spawn/Dockerfile with expected tag behavior
+      - name: Missing Dockerfile
+        when: Dockerfile is missing or invalid
+        then: Build-image workflow fails with a clear error
+
+  - name: Core API stays clean
+    description: |
+      Core `@poe-code/agent-spawn`, SDK spawn types, and existing spawn CLI options
+      SHALL remain free of docker/runtime-specific public fields in this iteration.
+    scenarios:
+      - name: Type declaration checks
+        when: Type declarations are generated and lint/typecheck runs
+        then: No docker/runtime options are introduced to existing core public option types
+      - name: Spawn help output
+        when: poe-code spawn --help is rendered
+        then: Output does not introduce docker/runtime flags
+stories:
+  - id: US-001
+    title: Establish greenfield baseline and seam contract
+    status: open
+    dependsOn: []
+    description: As a maintainer, I want an explicit greenfield baseline so implementation does not rely on removed Docker code.
+    acceptanceCriteria:
+      - Plan and implementation references treat Docker spawn as new work from scratch
+      - No references to removed docker runtime package remain
+      - Seam contract expectations are documented for implementation and tests
+
+  - id: US-002
+    title: Implement launcher injection seam in agent-spawn
+    status: open
+    dependsOn:
+      - US-001
+    description: As a maintainer, I want a launcher seam in agent-spawn so runtime wrappers can reuse spawn logic without duplication.
+    acceptanceCriteria:
+      - Add ProcessLauncher contract and spawn API seam factory (name may vary)
+      - Default agent-spawn exports preserve host behavior
+      - Non-streaming, streaming, and interactive paths route through seam
+      - Tests verify injected launcher is used across all spawn modes
+
+  - id: US-003
+    title: Scaffold docker-spawn package with API parity checks
+    status: open
+    dependsOn:
+      - US-002
+    description: As a developer, I want a dedicated docker-spawn package so Docker runtime behavior is isolated.
+    acceptanceCriteria:
+      - Create packages/docker-spawn with package name @poe-code/docker-spawn
+      - Declare dependency on @poe-code/agent-spawn
+      - Export spawn, spawnStreaming, and spawnInteractive with type parity
+      - Add compile-time parity check for public exports/signatures
+
+  - id: US-004
+    title: Implement Docker launcher primitives
+    status: open
+    dependsOn:
+      - US-003
+    description: As a maintainer, I want reusable Docker launcher primitives so process execution behavior is deterministic and testable.
+    acceptanceCriteria:
+      - Implement engine detection and engine-aware command arg building
+      - Implement launcher that spawns Docker process with stdio and cwd handling
+      - Implement cwd mount and workspace behavior
+      - Tests cover command composition and launcher error paths
+
+  - id: US-005
+    title: Implement Docker-Spawn wrappers via injected seam
+    status: open
+    dependsOn:
+      - US-003
+      - US-004
+    description: As a user, I want Docker-Spawn APIs to match agent-spawn behavior while executing through Docker launcher.
+    acceptanceCriteria:
+      - Docker-Spawn binds agent-spawn seam with Docker launcher
+      - Non-streaming spawn parity for stdout, stderr, exitCode
+      - Streaming parity for ACP event flow and thread/session propagation
+      - Interactive parity for stdio inheritance and exit behavior
+      - Tests verify no duplicated provider argument logic in Docker-Spawn
+
+  - id: US-006
+    title: Add package Dockerfile and build-image command
+    status: open
+    dependsOn:
+      - US-003
+    description: As a maintainer, I want Docker image build defined in code so Docker-Spawn can be bootstrapped consistently.
+    acceptanceCriteria:
+      - Add packages/docker-spawn/Dockerfile with required runtime dependencies
+      - Add build-image command/tooling for Docker-Spawn image
+      - Define default image tag strategy in code
+      - Tests cover build command args and missing Dockerfile failure
+      - No YAML image config file is introduced
+
+  - id: US-007
+    title: End-to-end validation and visual verification
+    status: open
+    dependsOn:
+      - US-005
+      - US-006
+    description: As a maintainer, I want end-to-end validation so the new greenfield Docker-Spawn implementation is stable.
+    acceptanceCriteria:
+      - npm run test passes with Docker-Spawn coverage
+      - npm run lint passes
+      - npm run e2e:verbose passes for affected spawn scenarios
+      - npm run screenshot-poe-code -- spawn --help is reviewed
+      - npm run screenshot-poe-code -- docker-spawn build-image --help is reviewed

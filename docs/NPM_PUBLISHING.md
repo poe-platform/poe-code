@@ -31,7 +31,8 @@ Required permissions: `id-token: write` (for OIDC provenance).
 For trusted publishing, avoid token-based npm auth in the workflow:
 
 - Do not set `NODE_AUTH_TOKEN` / `NPM_TOKEN` for the publish job.
-- In `actions/setup-node`, set only `node-version` (skip `registry-url`), then run `npm publish --provenance --access public`.
+- Trusted publishing requires `npm >= 11.5.1` and `node >= 22.14.0`.
+- In `actions/setup-node`, set `node-version`, then upgrade npm (example: `npm install --global npm@^11.5.1`) before running `npm publish --provenance --access public`.
 
 For the version alignment step, use `--allow-same-version` so the workflow does not fail on first run after local initial publish:
 

@@ -1,5 +1,5 @@
 import { execSync, spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, readdirSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -36,18 +36,36 @@ const program = new Command()
 
 const verbose = program.opts().verbose as boolean;
 
-function install(): string {
+type InstallContext = {
+  packageDir: string;
+  sdkProjectDir: string;
+};
+
+function install(): InstallContext {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), "poe-smoke-"));
   console.log("Packing and installing globally...");
   execSync(`npm pack --pack-destination "${tmpDir}" --silent`, {
     stdio: "pipe",
   });
   const tgz = readdirSync(tmpDir).find((f) => f.endsWith(".tgz"));
-  execSync(`npm install -g "${path.join(tmpDir, tgz!)}"`, { stdio: "pipe" });
-  return tmpDir;
+  if (!tgz) {
+    throw new Error("Failed to locate packed tarball.");
+  }
+
+  const packagePath = path.join(tmpDir, tgz);
+  execSync(`npm install -g "${packagePath}"`, { stdio: "pipe" });
+
+  const sdkProjectDir = mkdtempSync(path.join(os.tmpdir(), "poe-smoke-sdk-"));
+  execSync("npm init -y", { cwd: sdkProjectDir, stdio: "pipe" });
+  execSync(`npm install "${packagePath}" --silent`, {
+    cwd: sdkProjectDir,
+    stdio: "pipe",
+  });
+
+  return { packageDir: tmpDir, sdkProjectDir };
 }
 
-function cleanup(tmpDir: string) {
+function cleanup(context: InstallContext) {
   try {
     execSync("npm uninstall -g poe-code", { stdio: "pipe" });
   } catch {
@@ -55,7 +73,8 @@ function cleanup(tmpDir: string) {
       console.log("Cleanup warning: npm uninstall failed.");
     }
   }
-  rmSync(tmpDir, { recursive: true, force: true });
+  rmSync(context.packageDir, { recursive: true, force: true });
+  rmSync(context.sdkProjectDir, { recursive: true, force: true });
 }
 
 function run(): boolean {
@@ -90,9 +109,58 @@ function run(): boolean {
   return !failed;
 }
 
-const tmpDir = install();
+function runSdkImportSmoke(sdkProjectDir: string): boolean {
+  const scriptPath = path.join(sdkProjectDir, "sdk-smoke.mjs");
+  writeFileSync(
+    scriptPath,
+    [
+      'import { getPoeApiKey, spawn } from "poe-code";',
+      'if (typeof spawn !== "function") {',
+      '  throw new Error("Expected spawn export to be a function.");',
+      "}",
+      "const key = await getPoeApiKey();",
+      'if (key !== "smoke-test-key") {',
+      "  throw new Error(`Unexpected API key: ${key}`);",
+      "}",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  const label = "poe-code sdk import smoke";
+  const result = spawnSync(process.execPath, [scriptPath], {
+    cwd: sdkProjectDir,
+    encoding: "utf-8",
+    timeout: 30_000,
+    env: {
+      ...process.env,
+      POE_API_KEY: "smoke-test-key",
+    },
+  });
+
+  const output = (result.stdout || "") + (result.stderr || "");
+  const passed = result.status === 0;
+
+  if (passed) {
+    console.log(`  \u2713 ${label}`);
+  } else {
+    console.log(`  \u2717 ${label} (exit ${result.status})`);
+  }
+
+  if (verbose || !passed) {
+    const lines = output.trimEnd().split("\n");
+    for (const line of lines) {
+      console.log(`    \u2502 ${line}`);
+    }
+    console.log();
+  }
+
+  return passed;
+}
+
+const installContext = install();
 try {
-  const ok = run();
+  const ok = run() && runSdkImportSmoke(installContext.sdkProjectDir);
   if (ok) {
     console.log("\nAll smoke tests passed.");
   } else {
@@ -100,5 +168,5 @@ try {
     process.exitCode = 1;
   }
 } finally {
-  cleanup(tmpDir);
+  cleanup(installContext);
 }

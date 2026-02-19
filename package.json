@@ -3,6 +3,8 @@
   "version": "0.0.0-dev",
   "description": "CLI tool to configure Poe API for developer workflows.",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "workspaces": [
     "packages/*"
   ],

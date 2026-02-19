@@ -1,13 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { isCliInvocation } from "./index.js";
+import { getPoeApiKey, isCliInvocation } from "./index.js";
 
 describe("entrypoint module", () => {
-  it("imports CLI program with ESM extension", async () => {
-    const sourcePath = path.join(process.cwd(), "src", "index.ts");
-    const source = await readFile(sourcePath, "utf8");
-    expect(source).toContain('./cli/program.js');
+  it("re-exports getPoeApiKey", async () => {
+    const previous = process.env.POE_API_KEY;
+    process.env.POE_API_KEY = "sdk-test-key";
+
+    try {
+      await expect(getPoeApiKey()).resolves.toBe("sdk-test-key");
+    } finally {
+      if (typeof previous === "string") {
+        process.env.POE_API_KEY = previous;
+      } else {
+        delete process.env.POE_API_KEY;
+      }
+    }
   });
 
   it("detects direct invocation path", () => {

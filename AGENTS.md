@@ -30,6 +30,7 @@ Use `npm run lint:workflows`
 - Commit specific files that you edited, never blanket git add -A
 - Do not add yourself as co-author!
 - Do not commit files that are in gitignore
+- Never use --no-verify on either push or commit. You should figure out the issue.
 
 ## Release
 

@@ -110,7 +110,7 @@ requirements:
 stories:
   - id: US-001
     title: Scaffold tokenfill package
-    status: open
+    status: done
     dependsOn: []
     description: As a developer, I want the tokenfill package scaffolded so I can start building the library.
     acceptanceCriteria:
@@ -118,10 +118,12 @@ stories:
       - Add tsconfig.json extending root config
       - Add src/index.ts with placeholder export
       - Package builds and lints successfully
-
+    startedAt: 2026-02-19T15:58:20.537Z
+    completedAt: 2026-02-19T16:01:22.570Z
+    updatedAt: 2026-02-19T16:01:22.570Z
   - id: US-002
     title: Implement tokenizer wrapper
-    status: open
+    status: done
     dependsOn:
       - US-001
     description: As a developer, I want a thin tokenizer wrapper so I can count and truncate tokens using tiktoken.
@@ -131,10 +133,12 @@ stories:
       - Support switching encoding via option
       - Tests verify token count accuracy for known strings
       - Tests verify truncation returns exact token count
-
+    startedAt: 2026-02-19T16:01:22.870Z
+    completedAt: 2026-02-19T16:08:38.063Z
+    updatedAt: 2026-02-19T16:08:38.063Z
   - id: US-003
     title: Implement core tokenfill API
-    status: open
+    status: done
     dependsOn:
       - US-002
     description: As a developer, I want the tokenfill(tokenCount, options?) function so I can generate text to exact token counts.
@@ -146,10 +150,12 @@ stories:
       - Output is deterministic — same input always produces same output
       - Smaller token counts are prefixes of larger ones
       - Accepts optional tokenizer encoding
-
+    startedAt: 2026-02-19T16:08:38.212Z
+    completedAt: 2026-02-19T16:13:13.812Z
+    updatedAt: 2026-02-19T16:13:13.812Z
   - id: US-004
     title: Generate built-in corpus (~2M tokens)
-    status: open
+    status: done
     dependsOn:
       - US-001
     description: As a developer, I want ~2M tokens of built-in articles so tokenfill works zero-config.
@@ -159,10 +165,12 @@ stories:
       - Total corpus is approximately 2M tokens (cl100k_base)
       - Files are stored in packages/tokenfill/src/corpus/ (or similar)
       - Articles are importable/loadable at runtime
-
+    startedAt: 2026-02-19T16:13:13.924Z
+    completedAt: 2026-02-19T16:22:18.476Z
+    updatedAt: 2026-02-19T16:22:18.476Z
   - id: US-005
     title: Implement CLI
-    status: open
+    status: done
     dependsOn:
       - US-003
     description: As a user, I want a CLI so I can generate text from the terminal.
@@ -172,10 +180,12 @@ stories:
       - --tokenizer flag sets encoding
       - Exit code 0 on success, non-zero on error
       - CLI uses commander for argument parsing
-
+    startedAt: 2026-02-19T16:22:18.586Z
+    completedAt: 2026-02-19T16:28:52.933Z
+    updatedAt: 2026-02-19T16:28:52.933Z
   - id: US-006
     title: Validation and quality gates
-    status: open
+    status: done
     dependsOn:
       - US-003
       - US-004
@@ -184,10 +194,12 @@ stories:
     acceptanceCriteria:
       - npm run test passes with tokenfill coverage
       - npm run lint passes
-
+    startedAt: 2026-02-19T16:28:53.048Z
+    completedAt: 2026-02-19T16:31:18.721Z
+    updatedAt: 2026-02-19T16:31:18.721Z
   - id: US-007
     title: Set up npm publishing workflow
-    status: open
+    status: done
     dependsOn:
       - US-006
     description: As a maintainer, I want automated publishing so tokenfill is released on npm when changes merge to main.
@@ -195,12 +207,14 @@ stories:
       - Add .github/workflows/release-tokenfill.yml triggered on push to main with path filter packages/tokenfill/**
       - Workflow builds the package, auto-bumps patch version from npm, publishes with --provenance --access public
       - Workflow has id-token write permission for OIDC provenance
-      - First publish done locally via npm publish --access public
+      - First publish is done via GitHub workflow by merging to main (no local npm publish step)
       - Provenance configured on npmjs.com with poe-platform org and release-tokenfill.yml workflow
-
+    startedAt: 2026-02-19T16:31:18.848Z
+    completedAt: 2026-02-19T16:37:37.293Z
+    updatedAt: 2026-02-19T16:37:37.293Z
   - id: US-008
     title: Exploratory testing — CLI via local install
-    status: open
+    status: done
     dependsOn:
       - US-006
     description: As a developer, I want to install tokenfill locally and test the CLI to verify it works end-to-end.
@@ -210,10 +224,12 @@ stories:
       - Run tokenfill --json and verify structured output
       - Run tokenfill --tokenizer o200k_base and verify different encoding works
       - Verify stats line on stderr shows correct token count
-
+    startedAt: 2026-02-19T16:37:37.435Z
+    completedAt: 2026-02-19T16:41:44.759Z
+    updatedAt: 2026-02-19T16:41:44.759Z
   - id: US-009
     title: Exploratory testing — API via local install
-    status: open
+    status: done
     dependsOn:
       - US-006
     description: As a developer, I want to import tokenfill programmatically and verify the API works as documented.
@@ -223,3 +239,6 @@ stories:
       - Verify determinism — same input produces identical output
       - Verify different tokenizer option produces different token counts for same text length
       - Verify error when requesting more tokens than corpus size
+    startedAt: 2026-02-19T16:41:44.892Z
+    completedAt: 2026-02-19T16:47:10.699Z
+    updatedAt: 2026-02-19T16:47:10.699Z

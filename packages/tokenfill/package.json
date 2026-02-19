@@ -1,0 +1,27 @@
+{
+  "name": "tokenfill",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tokenfill": "dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc && node ./scripts/copy-corpus.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "commander": "^14.0.3",
+    "tiktoken": "^1.0.22"
+  }
+}

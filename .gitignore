@@ -51,3 +51,4 @@ openspec
 .colima-logs/
 .turbo
 *.tsbuildinfo
+.poe-code-ralph

@@ -1,5 +1,6 @@
 name: Release tokenfill
 on:
+  workflow_dispatch:
   push:
     branches:
       - main

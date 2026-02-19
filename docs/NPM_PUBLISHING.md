@@ -28,6 +28,14 @@ Add a workflow in `.github/workflows/` that triggers on push to `main` with a pa
 
 Required permissions: `id-token: write` (for OIDC provenance).
 
+For the version alignment step, use `--allow-same-version` so the workflow does not fail on first run after local initial publish:
+
+```sh
+REMOTE=$(npm view <package-name> version 2>/dev/null || echo "0.0.0")
+npm version --no-git-tag-version --allow-same-version "$REMOTE"
+npm version --no-git-tag-version patch
+```
+
 ## 4. Releasing new versions
 
 Just merge your changes to `main`. The workflow auto-bumps the patch version and publishes — no manual version bumps needed.

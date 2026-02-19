@@ -28,7 +28,7 @@ jobs:
         working-directory: packages/tokenfill
         run: |
           REMOTE=$(npm view tokenfill version 2>/dev/null || echo "0.0.0")
-          npm version --no-git-tag-version "$REMOTE"
+          npm version --no-git-tag-version --allow-same-version "$REMOTE"
           npm version --no-git-tag-version patch
       - name: Publish
         working-directory: packages/tokenfill

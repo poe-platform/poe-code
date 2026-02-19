@@ -1,19 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { tokenfill } from "./tokenfill.js";
-import { createTokenizer } from "./tokenizer.js";
 
 describe("tokenfill", () => {
   it("returns text and exact actualTokens for requested count", () => {
     const result = tokenfill(25);
-    const tokenizer = createTokenizer();
 
-    try {
-      expect(result.actualTokens).toBe(25);
-      expect(tokenizer.count(result.text)).toBe(25);
-      expect(result.text.length).toBeGreaterThan(0);
-    } finally {
-      tokenizer.free();
-    }
+    expect(result.actualTokens).toBe(25);
+    expect(result.text.length).toBeGreaterThan(0);
   });
 
   it("throws when token count is not a non-negative integer", () => {

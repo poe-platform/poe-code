@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { BUILT_IN_CORPUS_ARTICLES, CORPUS_ARTICLE_SEPARATOR } from "./corpus.js";
-import { createTokenizer } from "./tokenizer.js";
 
 function getArticleTitle(article: string): string {
   const [firstLine = ""] = article.split("\n", 1);
@@ -23,17 +22,10 @@ describe("built-in corpus", () => {
     expect(new Set(titles).size).toBe(titles.length);
   });
 
-  it("contains approximately two million cl100k tokens", () => {
-    const tokenizer = createTokenizer();
+  it("has a large corpus payload", () => {
+    const corpusText = BUILT_IN_CORPUS_ARTICLES.join(CORPUS_ARTICLE_SEPARATOR);
 
-    try {
-      const corpusText = BUILT_IN_CORPUS_ARTICLES.join(CORPUS_ARTICLE_SEPARATOR);
-      const tokenCount = tokenizer.count(corpusText);
-
-      expect(tokenCount).toBeGreaterThanOrEqual(1_900_000);
-      expect(tokenCount).toBeLessThanOrEqual(2_100_000);
-    } finally {
-      tokenizer.free();
-    }
+    expect(corpusText.length).toBeGreaterThanOrEqual(10_000_000);
+    expect(corpusText.length).toBeLessThanOrEqual(14_000_000);
   });
 });

@@ -19,7 +19,8 @@ type PlanCandidate = {
 
 export type ResolvePlanPathOptions = {
   /**
-   * Working directory used to resolve relative paths and locate `.agents/tasks/`.
+   * Working directory used to resolve relative paths and locate
+   * `.agents/poe-code-ralph/plans/`.
    */
   cwd: string;
   /**
@@ -51,10 +52,10 @@ async function listPlanCandidates(
   fs: PlanResolverFileSystem,
   cwd: string
 ): Promise<PlanCandidate[]> {
-  const tasksDir = path.join(cwd, ".agents", "tasks");
+  const plansDir = path.join(cwd, ".agents", "poe-code-ralph", "plans");
   let entries: string[];
   try {
-    entries = await fs.readdir(tasksDir);
+    entries = await fs.readdir(plansDir);
   } catch (error) {
     if (isNotFound(error)) {
       return [];
@@ -68,7 +69,7 @@ async function listPlanCandidates(
       continue;
     }
 
-    const absPath = path.join(tasksDir, entry);
+    const absPath = path.join(plansDir, entry);
     const stats = await fs.stat(absPath);
     if (!stats.isFile()) {
       continue;
@@ -125,7 +126,7 @@ export async function resolvePlanPath(
   if (candidates.length === 0) {
     if (options.assumeYes) {
       throw new Error(
-        "No plan found under .agents/tasks/. Provide --plan <path> to an existing plan file."
+        "No plan found under .agents/poe-code-ralph/plans/. Provide --plan <path> to an existing plan file."
       );
     }
     return null;

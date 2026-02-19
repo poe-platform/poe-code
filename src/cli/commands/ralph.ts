@@ -561,7 +561,7 @@ export function registerRalphCommand(
           } else {
             const entered = await promptText({
               message: "Enter path to plan file:",
-              placeholder: ".agents/tasks/plan.yaml"
+              placeholder: ".agents/poe-code-ralph/plans/plan.yaml"
             });
             if (isCancel(entered)) {
               cancel("Operation cancelled");

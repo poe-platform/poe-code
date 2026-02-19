@@ -281,7 +281,7 @@ export function createRalphSimulation(options: SimulationOptions) {
   const now = options.now ?? new Date("2026-02-02T00:00:00.000Z");
   const runId = options.runId ?? "test-run-001";
 
-  const planPath = "/.agents/tasks/plan.yaml";
+  const planPath = "/.agents/poe-code-ralph/plans/plan.yaml";
   const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
   const progressPath = options.config?.progressPath ?? ".poe-code-ralph/progress.md";
   const guardrailsPath = options.config?.guardrailsPath ?? ".poe-code-ralph/guardrails.md";

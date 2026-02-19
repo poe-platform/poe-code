@@ -43,7 +43,7 @@ describe("resolvePlanPath", () => {
     });
 
     const readdirSpy = vi.spyOn(fs, "readdir");
-    const selectSpy = clackSelect.mockResolvedValueOnce(".agents/tasks/ignored.yaml");
+    const selectSpy = clackSelect.mockResolvedValueOnce(".agents/poe-code-ralph/plans/ignored.yaml");
     clackIsCancel.mockReturnValue(false);
 
     const result = await resolvePlanPath({
@@ -82,10 +82,10 @@ describe("resolvePlanPath", () => {
 
   it("shows select prompt even when exactly one plan exists", async () => {
     const fs = createMemFs({
-      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: demo\nstories: []\n"
+      "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: demo\nstories: []\n"
     });
 
-    clackSelect.mockResolvedValueOnce(".agents/tasks/plan.yaml");
+    clackSelect.mockResolvedValueOnce(".agents/poe-code-ralph/plans/plan.yaml");
     clackIsCancel.mockReturnValue(false);
 
     const result = await resolvePlanPath({
@@ -93,11 +93,11 @@ describe("resolvePlanPath", () => {
       fs: asPlanFs(fs)
     });
 
-    expect(result).toBe(".agents/tasks/plan.yaml");
+    expect(result).toBe(".agents/poe-code-ralph/plans/plan.yaml");
     expect(clackSelect).toHaveBeenCalledWith(
       expect.objectContaining({
         options: [
-          expect.objectContaining({ value: ".agents/tasks/plan.yaml" })
+          expect.objectContaining({ value: ".agents/poe-code-ralph/plans/plan.yaml" })
         ]
       })
     );
@@ -105,11 +105,11 @@ describe("resolvePlanPath", () => {
 
   it("prompts with a select when multiple plans exist", async () => {
     const fs = createMemFs({
-      "/repo/.agents/tasks/plan-one.yaml": "version: 1\nproject: one\nstories: []\n",
-      "/repo/.agents/tasks/plan-two.yaml": "version: 1\nproject: two\nstories: []\n"
+      "/repo/.agents/poe-code-ralph/plans/plan-one.yaml": "version: 1\nproject: one\nstories: []\n",
+      "/repo/.agents/poe-code-ralph/plans/plan-two.yaml": "version: 1\nproject: two\nstories: []\n"
     });
 
-    clackSelect.mockResolvedValueOnce(".agents/tasks/plan-two.yaml");
+    clackSelect.mockResolvedValueOnce(".agents/poe-code-ralph/plans/plan-two.yaml");
     clackIsCancel.mockReturnValue(false);
 
     const result = await resolvePlanPath({
@@ -117,13 +117,13 @@ describe("resolvePlanPath", () => {
       fs: asPlanFs(fs)
     });
 
-    expect(result).toBe(".agents/tasks/plan-two.yaml");
+    expect(result).toBe(".agents/poe-code-ralph/plans/plan-two.yaml");
     expect(clackSelect).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining("plan"),
         options: expect.arrayContaining([
-          expect.objectContaining({ value: ".agents/tasks/plan-one.yaml" }),
-          expect.objectContaining({ value: ".agents/tasks/plan-two.yaml" })
+          expect.objectContaining({ value: ".agents/poe-code-ralph/plans/plan-one.yaml" }),
+          expect.objectContaining({ value: ".agents/poe-code-ralph/plans/plan-two.yaml" })
         ])
       })
     );
@@ -154,11 +154,11 @@ stories: []
 `;
 
     const fs = createMemFs({
-      "/repo/.agents/tasks/plan-progress.yaml": planWithProgress,
-      "/repo/.agents/tasks/plan-empty.yaml": planNoStories
+      "/repo/.agents/poe-code-ralph/plans/plan-progress.yaml": planWithProgress,
+      "/repo/.agents/poe-code-ralph/plans/plan-empty.yaml": planNoStories
     });
 
-    clackSelect.mockResolvedValueOnce(".agents/tasks/plan-progress.yaml");
+    clackSelect.mockResolvedValueOnce(".agents/poe-code-ralph/plans/plan-progress.yaml");
     clackIsCancel.mockReturnValue(false);
 
     await resolvePlanPath({
@@ -169,8 +169,8 @@ stories: []
     expect(clackSelect).toHaveBeenCalledWith(
       expect.objectContaining({
         options: [
-          { label: ".agents/tasks/plan-empty.yaml (0/0)", value: ".agents/tasks/plan-empty.yaml" },
-          { label: ".agents/tasks/plan-progress.yaml (2/4)", value: ".agents/tasks/plan-progress.yaml" }
+          { label: ".agents/poe-code-ralph/plans/plan-empty.yaml (0/0)", value: ".agents/poe-code-ralph/plans/plan-empty.yaml" },
+          { label: ".agents/poe-code-ralph/plans/plan-progress.yaml (2/4)", value: ".agents/poe-code-ralph/plans/plan-progress.yaml" }
         ]
       })
     );
@@ -178,8 +178,8 @@ stories: []
 
   it("auto-selects first candidate when assumeYes is true", async () => {
     const fs = createMemFs({
-      "/repo/.agents/tasks/plan-one.yaml": "version: 1\nproject: one\nstories: []\n",
-      "/repo/.agents/tasks/plan-two.yaml": "version: 1\nproject: two\nstories: []\n"
+      "/repo/.agents/poe-code-ralph/plans/plan-one.yaml": "version: 1\nproject: one\nstories: []\n",
+      "/repo/.agents/poe-code-ralph/plans/plan-two.yaml": "version: 1\nproject: two\nstories: []\n"
     });
 
     const result = await resolvePlanPath({
@@ -188,13 +188,13 @@ stories: []
       fs: asPlanFs(fs)
     });
 
-    expect(result).toBe(".agents/tasks/plan-one.yaml");
+    expect(result).toBe(".agents/poe-code-ralph/plans/plan-one.yaml");
     expect(clackSelect).not.toHaveBeenCalled();
   });
 
   it("auto-selects single candidate without prompting when assumeYes is true", async () => {
     const fs = createMemFs({
-      "/repo/.agents/tasks/plan.yaml": "version: 1\nproject: demo\nstories: []\n"
+      "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: demo\nstories: []\n"
     });
 
     const result = await resolvePlanPath({
@@ -203,14 +203,14 @@ stories: []
       fs: asPlanFs(fs)
     });
 
-    expect(result).toBe(".agents/tasks/plan.yaml");
+    expect(result).toBe(".agents/poe-code-ralph/plans/plan.yaml");
     expect(clackSelect).not.toHaveBeenCalled();
   });
 
   it("returns null when the prompt is cancelled", async () => {
     const fs = createMemFs({
-      "/repo/.agents/tasks/plan-one.yaml": "version: 1\nproject: one\nstories: []\n",
-      "/repo/.agents/tasks/plan-two.yaml": "version: 1\nproject: two\nstories: []\n"
+      "/repo/.agents/poe-code-ralph/plans/plan-one.yaml": "version: 1\nproject: one\nstories: []\n",
+      "/repo/.agents/poe-code-ralph/plans/plan-two.yaml": "version: 1\nproject: two\nstories: []\n"
     });
 
     clackSelect.mockResolvedValueOnce(Symbol.for("cancel"));

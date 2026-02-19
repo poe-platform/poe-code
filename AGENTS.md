@@ -108,7 +108,7 @@ You are not allowed to add anything to readme without user's permission. Upon fe
 
 ## Planning
 
-Planning docs MUST be in `docs/plans` folder, NO EXCEPTIONS even in planning. ABSOLUTELY NO OTHER PLANNING LOCATIONS!!!!!
+Planning docs MUST be in `.agents/poe-code-ralph/plans` folder, NO EXCEPTIONS even in planning. ABSOLUTELY NO OTHER PLANNING LOCATIONS!!!!!
 
 ## CLI vs SDK
 

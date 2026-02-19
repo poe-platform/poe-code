@@ -121,7 +121,12 @@ function toSlug(input: string): string {
 }
 
 function resolveDefaultOutPath(request: string): string {
-  return path.join(".agents", "tasks", `plan-${toSlug(request)}.yaml`);
+  return path.join(
+    ".agents",
+    "poe-code-ralph",
+    "plans",
+    `plan-${toSlug(request)}.yaml`
+  );
 }
 
 function resolveAbsolutePath(cwd: string, candidate: string): string {

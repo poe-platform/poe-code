@@ -11,4 +11,4 @@ Ask the user for a one-sentence description of what they want to build.
 
 ## Output Path
 
-Write the YAML file to `.agents/tasks/plan-<name>.yaml` unless the user specifies a different path.
+Write the YAML file to `.agents/poe-code-ralph/plans/plan-<name>.yaml` unless the user specifies a different path.

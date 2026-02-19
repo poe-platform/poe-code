@@ -9,7 +9,7 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
 }
 
 describe("ralphPlan", () => {
-  it("defaults output to .agents/tasks/plan-<slug>.yaml", async () => {
+  it("defaults output to .agents/poe-code-ralph/plans/plan-<slug>.yaml", async () => {
     const cwd = "/repo";
     const fs = createMemFs();
 
@@ -19,9 +19,9 @@ describe("ralphPlan", () => {
       deps: {
         fs,
         spawn: async (_agent, _options) => {
-          await fs.mkdir("/repo/.agents/tasks", { recursive: true });
+          await fs.mkdir("/repo/.agents/poe-code-ralph/plans", { recursive: true });
           await fs.writeFile(
-            "/repo/.agents/tasks/plan-build-a-todo-app.yaml",
+            "/repo/.agents/poe-code-ralph/plans/plan-build-a-todo-app.yaml",
             "version: 1\nstories: []\n",
             { encoding: "utf8" }
           );
@@ -30,9 +30,9 @@ describe("ralphPlan", () => {
       }
     });
 
-    expect(result.outPath).toBe(".agents/tasks/plan-build-a-todo-app.yaml");
+    expect(result.outPath).toBe(".agents/poe-code-ralph/plans/plan-build-a-todo-app.yaml");
     expect(
-      await fs.readFile("/repo/.agents/tasks/plan-build-a-todo-app.yaml", "utf8")
+      await fs.readFile("/repo/.agents/poe-code-ralph/plans/plan-build-a-todo-app.yaml", "utf8")
     ).toContain("version: 1");
   });
 

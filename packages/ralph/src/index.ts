@@ -31,7 +31,7 @@ export type RalphBuildResult = BuildResult;
  * import { ralphBuild } from "@poe-code/ralph";
  *
  * const result = await ralphBuild({
- *   planPath: ".agents/tasks/plan.yml",
+ *   planPath: ".agents/poe-code-ralph/plans/plan.yml",
  *   maxIterations: 10,
  *   noCommit: false,
  *   agent: "codex",

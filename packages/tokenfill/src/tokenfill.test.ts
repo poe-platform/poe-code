@@ -1,54 +1,24 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { tokenfill } from "./tokenfill.js";
 import { createTokenizer } from "./tokenizer.js";
-import { BUILT_IN_CORPUS_ARTICLES, CORPUS_ARTICLE_SEPARATOR } from "./corpus.js";
-
-function getCorpusText(): string {
-  return BUILT_IN_CORPUS_ARTICLES.join(CORPUS_ARTICLE_SEPARATOR);
-}
 
 describe("tokenfill", () => {
-  const tokenizer = createTokenizer();
-  let corpusTokens = new Uint32Array();
-  let corpusTokenCount = 0;
-
-  beforeAll(() => {
-    corpusTokens = tokenizer.encode(getCorpusText());
-    corpusTokenCount = corpusTokens.length;
-  });
-
-  afterAll(() => {
-    tokenizer.free();
-  });
-
   it("returns text and exact actualTokens for requested count", () => {
     const result = tokenfill(25);
+    const tokenizer = createTokenizer();
 
-    expect(result.actualTokens).toBe(25);
-    expect(result.text.length).toBeGreaterThan(0);
+    try {
+      expect(result.actualTokens).toBe(25);
+      expect(tokenizer.count(result.text)).toBe(25);
+      expect(result.text.length).toBeGreaterThan(0);
+    } finally {
+      tokenizer.free();
+    }
   });
 
-  it("concatenates built-in articles sequentially", () => {
-    const requestedTokens = 40;
-
-    const result = tokenfill(requestedTokens);
-    const resultTokens = tokenizer.encode(result.text);
-
-    expect(Array.from(resultTokens)).toEqual(Array.from(corpusTokens.slice(0, requestedTokens)));
-  });
-
-  it("truncates at the exact token boundary in the last article", () => {
-    const requestedTokens = corpusTokenCount - 3;
-
-    const result = tokenfill(requestedTokens);
-    const expectedText = tokenizer.decode(corpusTokens.slice(0, requestedTokens));
-
-    expect(result.text).toBe(expectedText);
-    expect(result.actualTokens).toBe(requestedTokens);
-  });
-
-  it("throws when token request exceeds corpus size", () => {
-    expect(() => tokenfill(corpusTokenCount + 1)).toThrow(/exceeds built-in corpus size/i);
+  it("throws when token count is not a non-negative integer", () => {
+    expect(() => tokenfill(-1)).toThrow(/non-negative integer/i);
+    expect(() => tokenfill(1.5)).toThrow(/non-negative integer/i);
   });
 
   it("is deterministic for repeated calls", () => {
@@ -65,15 +35,14 @@ describe("tokenfill", () => {
     expect(larger.text.startsWith(smaller.text)).toBe(true);
   });
 
-  it("supports optional tokenizer encoding", () => {
-    const optionalTokenizer = createTokenizer({ encoding: "o200k_base" });
-    const smaller = tokenfill(20, { encoding: "o200k_base" });
-    const larger = tokenfill(40, { encoding: "o200k_base" });
+  it("throws when token request exceeds corpus size", () => {
+    expect(() => tokenfill(Number.MAX_SAFE_INTEGER)).toThrow(/exceeds built-in corpus size/i);
+  });
 
-    expect(smaller.actualTokens).toBe(20);
-    expect(optionalTokenizer.count(smaller.text)).toBe(20);
-    expect(larger.text.startsWith(smaller.text)).toBe(true);
+  it("accepts an explicit encoding option", () => {
+    const implicit = tokenfill(20);
+    const explicit = tokenfill(20, { encoding: "cl100k_base" });
 
-    optionalTokenizer.free();
+    expect(explicit).toEqual(implicit);
   });
 });

@@ -1,6 +1,13 @@
-import { describe, expect, it } from "vitest";
-import { createTokenizer } from "./tokenizer.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { runCli } from "./cli.js";
+import { tokenfill } from "./tokenfill.js";
+
+vi.mock("./tokenfill.js", () => ({
+  tokenfill: vi.fn((count: number, options?: { encoding?: string }) => ({
+    text: `generated(${options?.encoding ?? "cl100k_base"}):${count}`,
+    actualTokens: count
+  }))
+}));
 
 interface CapturedOutput {
   readonly stdout: string;
@@ -42,19 +49,25 @@ function createCapturedOutput(): CapturedOutput {
   };
 }
 
+const tokenfillMock = vi.mocked(tokenfill);
+
 describe("tokenfill CLI", () => {
+  beforeEach(() => {
+    tokenfillMock.mockReset();
+    tokenfillMock.mockImplementation((count: number, options?: { encoding?: string }) => ({
+      text: `generated(${options?.encoding ?? "cl100k_base"}):${count}`,
+      actualTokens: count
+    }));
+  });
+
   it("outputs generated text to stdout and stats to stderr", async () => {
     const output = createCapturedOutput();
     const exitCode = await runCli(["18"], output.io);
-    const tokenizer = createTokenizer();
 
-    try {
-      expect(exitCode).toBe(0);
-      expect(tokenizer.count(output.stdout)).toBe(18);
-      expect(output.stderr).toContain("Generated 18 tokens using cl100k_base");
-    } finally {
-      tokenizer.free();
-    }
+    expect(exitCode).toBe(0);
+    expect(output.stdout).toBe("generated(cl100k_base):18");
+    expect(output.stderr).toContain("Generated 18 tokens using cl100k_base");
+    expect(tokenfillMock).toHaveBeenCalledWith(18, { encoding: "cl100k_base" });
   });
 
   it("outputs structured JSON to stdout with --json", async () => {
@@ -69,8 +82,9 @@ describe("tokenfill CLI", () => {
     expect(payload.stats.requestedTokens).toBe(9);
     expect(payload.stats.actualTokens).toBe(9);
     expect(payload.stats.encoding).toBe("cl100k_base");
-    expect(payload.text.length).toBeGreaterThan(0);
+    expect(payload.text).toBe("generated(cl100k_base):9");
     expect(output.stderr).toBe("");
+    expect(tokenfillMock).toHaveBeenCalledWith(9, { encoding: "cl100k_base" });
   });
 
   it("applies --tokenizer to set the encoding", async () => {
@@ -83,19 +97,19 @@ describe("tokenfill CLI", () => {
       text: string;
       stats: { actualTokens: number; encoding: string };
     };
-    const tokenizer = createTokenizer({ encoding: "o200k_base" });
 
-    try {
-      expect(exitCode).toBe(0);
-      expect(payload.stats.encoding).toBe("o200k_base");
-      expect(payload.stats.actualTokens).toBe(12);
-      expect(tokenizer.count(payload.text)).toBe(12);
-    } finally {
-      tokenizer.free();
-    }
+    expect(exitCode).toBe(0);
+    expect(payload.stats.encoding).toBe("o200k_base");
+    expect(payload.stats.actualTokens).toBe(12);
+    expect(payload.text).toBe("generated(o200k_base):12");
+    expect(tokenfillMock).toHaveBeenCalledWith(12, { encoding: "o200k_base" });
   });
 
   it("returns non-zero and prints to stderr for runtime errors", async () => {
+    tokenfillMock.mockImplementationOnce(() => {
+      throw new Error("exceeds built-in corpus size");
+    });
+
     const output = createCapturedOutput();
     const exitCode = await runCli(["999999999"], output.io);
 

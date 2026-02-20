@@ -171,6 +171,19 @@ Runs a single prompt through a configured service CLI.
 
 Returns `{ stdout, stderr, exitCode }`.
 
+### `spawn.pretty(service, options)`
+
+Same as `spawn()`, but renders the ACP event stream to stdout with colored, formatted output — matching the CLI's visual style.
+
+```typescript
+import { spawn } from "poe-code"
+
+const result = await spawn.pretty("codex", "Fix the bug in auth.ts")
+console.log(result.exitCode)
+```
+
+Returns `Promise<{ stdout, stderr, exitCode }>`.
+
 ### `getPoeApiKey()`
 
 Reads the Poe API key with the following priority:

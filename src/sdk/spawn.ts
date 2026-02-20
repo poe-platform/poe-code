@@ -6,6 +6,7 @@ import {
   spawn as spawnNonStreaming,
   spawnInteractive,
   spawnStreaming,
+  renderAcpStream,
   type AcpEvent
 } from "@poe-code/agent-spawn";
 import type { SpawnOptions, SpawnResult } from "./types.js";
@@ -164,3 +165,24 @@ export function spawn(
 
   return { events, result };
 }
+
+/**
+ * Spawns an agent and renders ACP events to stdout with pretty formatting.
+ *
+ * @example
+ * ```typescript
+ * import { spawn } from "poe-code"
+ *
+ * const result = await spawn.pretty("codex", "Fix the bug in auth.ts")
+ * console.log(result.exitCode)
+ * ```
+ */
+spawn.pretty = async function pretty(
+  service: string,
+  promptOrOptions: string | SpawnOptions,
+  maybeOptions?: Omit<SpawnOptions, "prompt">
+): Promise<SpawnResult> {
+  const { events, result } = spawn(service, promptOrOptions as string, maybeOptions);
+  await renderAcpStream(events);
+  return result;
+};

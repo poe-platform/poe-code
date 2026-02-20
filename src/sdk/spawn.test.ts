@@ -4,7 +4,8 @@ vi.mock("@poe-code/agent-spawn", () => ({
   spawn: vi.fn(),
   spawnStreaming: vi.fn(),
   spawnInteractive: vi.fn(),
-  getSpawnConfig: vi.fn()
+  getSpawnConfig: vi.fn(),
+  renderAcpStream: vi.fn()
 }));
 
 vi.mock("./spawn-core.js", () => ({
@@ -16,7 +17,7 @@ vi.mock("./container.js", () => ({
 }));
 
 import { spawn } from "./spawn.js";
-import { getSpawnConfig, spawn as agentSpawn, spawnStreaming, spawnInteractive } from "@poe-code/agent-spawn";
+import { getSpawnConfig, spawn as agentSpawn, spawnStreaming, spawnInteractive, renderAcpStream } from "@poe-code/agent-spawn";
 import { spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
 
@@ -30,6 +31,8 @@ beforeEach(() => {
   vi.mocked(getSpawnConfig).mockReset();
   vi.mocked(spawnCore).mockReset();
   vi.mocked(createSdkContainer).mockReset();
+  vi.mocked(renderAcpStream).mockReset();
+  vi.mocked(renderAcpStream).mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -232,5 +235,54 @@ describe("SDK spawn()", () => {
 
     expect(received).toEqual([]);
     await expect(result).rejects.toThrow("does not support interactive mode");
+  });
+});
+
+describe("spawn.pretty()", () => {
+  it("renders events and returns the result", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    });
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {
+        yield { event: "agent_message", text: "done" };
+      })(),
+      done: Promise.resolve({ stdout: "out", stderr: "", exitCode: 0, threadId: "t1", sessionId: "t1" })
+    }));
+
+    const result = await spawn.pretty("codex", "test prompt");
+
+    expect(renderAcpStream).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      stdout: "out",
+      stderr: "",
+      exitCode: 0,
+      threadId: "t1",
+      sessionId: "t1"
+    });
+  });
+
+  it("accepts options object overload", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    });
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const result = await spawn.pretty("codex", { prompt: "fix bug", model: "gpt-4" });
+
+    expect(renderAcpStream).toHaveBeenCalledTimes(1);
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: "fix bug", model: "gpt-4" })
+    );
+    expect(result).toEqual({ stdout: "", stderr: "", exitCode: 0 });
   });
 });

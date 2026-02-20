@@ -1,4 +1,4 @@
-![poe-code banner](docs/banners/claude-sonnet-4-6.jpg)
+![poe-code banner](docs/banners/poe-code.jpg)
 
 <div align="center">
   <h1>Poe Code ⚡</h1>
@@ -9,22 +9,24 @@
 
 </div>
 
-Power your favorite coding agents (Claude Code, Codex, OpenCode, and more) with your Poe subscription—**no need to handle multiple providers/accounts.** Poe Code routes everything through the [Poe API](https://poe.com/api) . 
+Power your favorite coding agents (Claude Code, Codex, OpenCode, and more) with your Poe subscription—**no need to handle multiple providers/accounts.** Poe Code routes everything through the [Poe API](https://poe.com/api) .
 
-Use it on a single session (`npx poe-code@latest wrap claude`) or configure it as your default and use your tools normally. 
-
+Use it on a single session (`npx poe-code@latest wrap claude`) or configure it as your default and use your tools normally.
 
 ## Quickstart
+
 Start a coding session routing all your `claude` calls to Poe
+
 ```bash
 npx poe-code@latest wrap claude
 # Also available: codex, opencode, kimi
 ```
 
-or 
+or
 
 ## Set it as your default (works with CLIs and desktop apps)
-This updates the provider’s config files and continue using your tools normally. 
+
+This updates the provider’s config files and continue using your tools normally.
 
 ```bash
 # Start the interactive setup
@@ -33,7 +35,6 @@ npx poe-code@latest configure
 # Setup a specific agent
 npx poe-code@latest configure codex # (or claude, opencode, kimi)
 ```
-
 
 ### Unconfigure (remove overrides)
 
@@ -47,15 +48,13 @@ npx poe-code@latest unconfigure claude
 npx poe-code@latest logout
 ```
 
+## Quick links
 
-## Quick links 
--  [Utilities](#utilities)
--  [Usage and Billing](#usage--billing)
--  [MCP Server](#poe-mcp-server)
--  [SDK](#sdk)
--  [Poe API](https://poe.com/api)
-
-
+- [Utilities](#utilities)
+- [Usage and Billing](#usage--billing)
+- [MCP Server](#poe-mcp-server)
+- [SDK](#sdk)
+- [Poe API](https://poe.com/api)
 
 ## Utilities
 
@@ -145,19 +144,19 @@ npx poe-code@latest mcp unconfigure claude-code
 Use `poe-code` programmatically in your own code:
 
 ```typescript
-import { spawn, getPoeApiKey } from "poe-code"
+import { spawn, getPoeApiKey } from "poe-code";
 
 // Get stored API key
-const apiKey = await getPoeApiKey()
+const apiKey = await getPoeApiKey();
 
 // Run a prompt through a provider
 const result = await spawn("claude-code", {
   prompt: "Fix the bug in auth.ts",
   cwd: "/path/to/project",
   model: "claude-sonnet-4-6"
-})
+});
 
-console.log(result.stdout)
+console.log(result.stdout);
 ```
 
 ### `spawn(service, options)`

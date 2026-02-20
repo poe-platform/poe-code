@@ -5,6 +5,7 @@ import {
   codexAgent,
   openCodeAgent,
   kimiAgent,
+  openClawAgent,
   allAgents,
   resolveAgentId,
   type AgentDefinition
@@ -15,7 +16,8 @@ const expectedAgents: AgentDefinition[] = [
   claudeDesktopAgent,
   codexAgent,
   openCodeAgent,
-  kimiAgent
+  kimiAgent,
+  openClawAgent
 ];
 
 const normalizeKey = (value: string): string => value.toLowerCase();
@@ -27,6 +29,7 @@ describe("agent-defs package", () => {
     expect(codexAgent).toBeDefined();
     expect(openCodeAgent).toBeDefined();
     expect(kimiAgent).toBeDefined();
+    expect(openClawAgent).toBeDefined();
   });
 
   it.each(expectedAgents)("$id has all required fields", (agent) => {

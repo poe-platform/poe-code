@@ -4,6 +4,7 @@ export {
   claudeDesktopAgent,
   codexAgent,
   openCodeAgent,
-  kimiAgent
+  kimiAgent,
+  openClawAgent
 } from "./agents/index.js";
 export { allAgents, resolveAgentId } from "./registry.js";

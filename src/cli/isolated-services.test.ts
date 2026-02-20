@@ -27,6 +27,7 @@ describe("listIsolatedServiceIds", () => {
       "claude-code",
       "codex",
       "kimi",
+      "openclaw",
       "opencode"
     ]);
   });
@@ -55,6 +56,7 @@ describe("listIsolatedServiceIds", () => {
       "claude-code",
       "codex",
       "kimi",
+      "openclaw",
       "opencode",
       "custom-isolated"
     ]);

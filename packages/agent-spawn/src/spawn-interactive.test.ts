@@ -257,4 +257,46 @@ describe("spawnInteractive", () => {
       "flag"
     ]);
   });
+
+  it("serializes MCP servers for interactive spawn when supported", async () => {
+    const spawnMock = vi
+      .mocked(spawnChildProcess)
+      .mockReturnValue(createMockInheritProcess(0));
+
+    await spawnInteractive("codex", {
+      prompt: "test",
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
+    });
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toEqual([
+      "test",
+      ...codexSpawnConfig.interactive!.defaultArgs,
+      "-c",
+      "mcp_servers.test.command=\"tiny-stdio-mcp-test-server\"",
+      "-c",
+      "mcp_servers.test.args=[\"serve\", \"word-of-the-day\"]",
+      ...codexSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("throws clear error for interactive MCP on unsupported agents", async () => {
+    await expect(
+      spawnInteractive("opencode", {
+        prompt: "test",
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server"
+          }
+        }
+      })
+    ).rejects.toThrow(
+      'Agent "opencode" does not support MCP servers at spawn time.\nAgents with spawn-time MCP support: claude-code, codex, kimi'
+    );
+  });
 });

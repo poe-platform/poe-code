@@ -4,116 +4,79 @@ import { join } from 'node:path';
 
 const repoRoot = join(import.meta.dirname, '..');
 
-// The MCP server command - globally installed via poe-code tarball
-const MCP_SERVER_COMMAND = 'tiny-stdio-mcp-test-server';
-const MCP_SERVER_ARGS = ['serve', 'word-of-the-day'];
-
-interface AgentMcpTestConfig {
+interface AgentMcpSpawnTest {
   name: string;
-  configPath: string;
-  configKey: string;
-  format: 'json' | 'toml';
-  /** Extra args to pass to spawn command (e.g., tool permissions) */
+  expectSpawnSuccess: boolean;
   spawnArgs?: string[];
 }
 
-const agents: AgentMcpTestConfig[] = [
+const agents: AgentMcpSpawnTest[] = [
   {
     name: 'claude-code',
-    configPath: '/home/poe/.claude.json',
-    configKey: 'mcpServers',
-    format: 'json',
-    // Claude requires explicit tool permission for MCP tools
+    expectSpawnSuccess: true,
+    // Claude requires explicit tool permission for MCP tools.
     spawnArgs: ['--allowedTools', 'Bash,Read,mcp__tiny-stdio-mcp-test-server__word_of_the_day'],
   },
   {
     name: 'codex',
-    configPath: '/home/poe/.codex/config.toml',
-    configKey: 'mcp_servers',
-    format: 'toml',
+    expectSpawnSuccess: true,
   },
   {
     name: 'opencode',
-    configPath: '/home/poe/.config/opencode/config.json',
-    configKey: 'mcp',
-    format: 'json',
+    expectSpawnSuccess: false,
   },
   {
     name: 'kimi',
-    configPath: '/home/poe/.kimi/mcp.json',
-    configKey: 'mcpServers',
-    format: 'json',
+    expectSpawnSuccess: true,
   },
 ];
 
-function buildMcpServerConfig(format: 'json' | 'toml', configKey: string): string {
-  if (format === 'toml') {
-    return `
-[${configKey}.tiny-stdio-mcp-test-server]
-command = "${MCP_SERVER_COMMAND}"
-args = ["serve", "word-of-the-day"]
-`;
+function shellQuote(value: string): string {
+  let quoted = "'";
+  for (const char of value) {
+    if (char === "'") {
+      quoted += `'"'"'`;
+      continue;
+    }
+    quoted += char;
   }
+  quoted += "'";
+  return quoted;
+}
 
-  if (configKey === 'mcp') {
-    // opencode uses a different shape: type "local" with command as array
-    return JSON.stringify({
-      'tiny-stdio-mcp-test-server': {
-        type: 'local',
-        command: [MCP_SERVER_COMMAND, ...MCP_SERVER_ARGS],
-        enabled: true,
-      },
-    });
-  }
-
+function buildSpawnMcpConfigJson(): string {
   return JSON.stringify({
     'tiny-stdio-mcp-test-server': {
-      command: MCP_SERVER_COMMAND,
-      args: MCP_SERVER_ARGS,
+      command: 'tiny-stdio-mcp-test-server',
+      args: ['serve', 'word-of-the-day'],
     },
   });
 }
 
-describe.each(agents)('MCP tool integration: $name', ({ name, configPath, configKey, format, spawnArgs }) => {
-  const container = useContainer({ workspaceDir: repoRoot, testName: `mcp-${name}` });
+describe.each(agents)('spawn --mcp-config: $name', ({ name, expectSpawnSuccess, spawnArgs }) => {
+  const container = useContainer({ workspaceDir: repoRoot, testName: `spawn-mcp-${name}` });
 
-  it('uses word_of_the_day MCP tool and returns Bumfuzzle', async () => {
-    // Step 1: Configure the agent
+  it('uses tiny MCP server and validates output', async () => {
     const configResult = await container.exec(`poe-code configure ${name} --yes`);
     expect(configResult).toHaveExitCode(0);
 
-    // Step 2: Add tiny-stdio-mcp-test-server to agent's MCP config
-    if (format === 'json') {
-      // Read existing config, add MCP server
-      const existingConfig = await container.fileExists(configPath)
-        ? JSON.parse(await container.readFile(configPath))
-        : {};
+    const prompt = 'Call the word_of_the_day tool and return only the exact tool output.';
+    const mcpConfigArg = shellQuote(buildSpawnMcpConfigJson());
+    const extraArgs = spawnArgs
+      ? ` -- ${spawnArgs.map((arg) => shellQuote(arg)).join(' ')}`
+      : '';
+    const command = `poe-code spawn --mcp-config ${mcpConfigArg} ${name} ${shellQuote(prompt)}${extraArgs}`;
+    const spawnResult = await container.exec(command);
 
-      const mcpConfig = JSON.parse(buildMcpServerConfig(format, configKey));
-      existingConfig[configKey] = {
-        ...existingConfig[configKey],
-        ...mcpConfig,
-      };
-
-      await container.writeFile(configPath, JSON.stringify(existingConfig, null, 2));
-    } else {
-      // For TOML, append the MCP server config
-      const existingConfig = await container.fileExists(configPath)
-        ? await container.readFile(configPath)
-        : '';
-
-      const mcpToml = buildMcpServerConfig(format, configKey);
-      await container.writeFile(configPath, existingConfig + '\n' + mcpToml);
+    if (!expectSpawnSuccess) {
+      expect(spawnResult).toFail();
+      expect(spawnResult).toHaveStderr('does not support MCP servers at spawn time');
+      expect(spawnResult).toHaveStderr('claude-code, codex, kimi');
+      return;
     }
 
-    // Step 3: Spawn the agent with a prompt asking for word of the day
-    const prompt = 'What is the word of the day? Use the word_of_the_day tool to find out. Only respond with the word and its definition.';
-    // Use -- to separate poe-code options from agent-specific args
-    const extraArgs = spawnArgs ? ' -- ' + spawnArgs.map(arg => `"${arg}"`).join(' ') : '';
-    const spawnResult = await container.exec(`poe-code spawn ${name} "${prompt}"${extraArgs}`);
-
-    // Step 4: Verify the response contains Bumfuzzle
-    const output = spawnResult.stdout + spawnResult.stderr;
-    expect(output.toLowerCase()).toContain('bumfuzzle');
+    expect(spawnResult).toHaveExitCode(0);
+    const output = `${spawnResult.stdout}\n${spawnResult.stderr}`.toLowerCase();
+    expect(output).toContain('bumfuzzle');
   });
 });

@@ -14,6 +14,8 @@ export type {
   SpawnConfig,
   SpawnContext,
   SpawnLogger,
+  McpSpawnConfig,
+  McpSpawnServer,
   SpawnMode,
   SpawnOptions,
   SpawnResult,
@@ -21,7 +23,12 @@ export type {
   StdinMode
 } from "./types.js";
 
-export { allSpawnConfigs, getSpawnConfig } from "./configs/index.js";
+export {
+  allSpawnConfigs,
+  getSpawnConfig,
+  listMcpSupportedAgents,
+  supportsMcpAtSpawn
+} from "./configs/index.js";
 export {
   buildSpawnArgs,
   type BuildSpawnArgsOptions,

@@ -3,6 +3,7 @@ import { getAdapter } from "../adapters/index.js";
 import type { AcpEvent } from "./types.js";
 import { readLines } from "./line-reader.js";
 import { resolveConfig } from "../configs/resolve-config.js";
+import { getMcpArgs } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
 import type { SpawnOptions, SpawnResult, SpawnUsage } from "../types.js";
 
@@ -62,6 +63,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   }
 
   args.push(...spawnConfig.defaultArgs);
+  args.push(...getMcpArgs(spawnConfig, options.mcpServers));
 
   const mode = options.mode ?? "yolo";
   args.push(...spawnConfig.modes[mode]);

@@ -27,3 +27,25 @@ export function getSpawnConfig(input: string): SpawnConfig | undefined {
   }
   return lookup.get(resolvedId);
 }
+
+export function supportsMcpAtSpawn(input: string): boolean {
+  const config = getSpawnConfig(input);
+  return (
+    !!config &&
+    config.kind === "cli" &&
+    typeof config.mcpArgs === "function"
+  );
+}
+
+export function listMcpSupportedAgents(): string[] {
+  const supported: string[] = [];
+
+  for (const config of allSpawnConfigs) {
+    if (config.kind !== "cli" || typeof config.mcpArgs !== "function") {
+      continue;
+    }
+    supported.push(config.agentId);
+  }
+
+  return supported;
+}

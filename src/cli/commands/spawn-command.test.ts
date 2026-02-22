@@ -374,6 +374,105 @@ describe("spawn command", () => {
     });
   });
 
+  it("passes --mcp-config to SDK spawn for MCP-capable agents", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const mcpConfig = JSON.stringify({
+      test: {
+        command: "tiny-stdio-mcp-test-server",
+        args: ["serve", "word-of-the-day"],
+        env: { MCP_LOG_LEVEL: "debug" }
+      }
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-config",
+      mcpConfig,
+      "codex",
+      "Use word_of_the_day"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Use word_of_the_day",
+      args: [],
+      model: undefined,
+      cwd: undefined,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+  });
+
+  it("rejects invalid --mcp-config JSON", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--mcp-config",
+        "{nope",
+        "codex",
+        "hello"
+      ])
+    ).rejects.toThrow("--mcp-config");
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects --mcp-config for agents without spawn-time MCP support", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--mcp-config",
+        JSON.stringify({
+          test: {
+            command: "tiny-stdio-mcp-test-server",
+            args: ["serve", "word-of-the-day"]
+          }
+        }),
+        "opencode",
+        "hello"
+      ])
+    ).rejects.toThrow(
+      "does not support MCP servers at spawn time."
+    );
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
   it("runs spawn commands from a custom cwd via -C flag", async () => {
     const customCwd = "/projects/demo";
     const { runner } = createCommandRunnerStub();

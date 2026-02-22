@@ -1,5 +1,15 @@
-import type { CliSpawnConfig, SpawnConfig, SpawnMode } from "./types.js";
+import type {
+  CliSpawnConfig,
+  McpSpawnConfig,
+  McpSpawnServer,
+  SpawnConfig,
+  SpawnMode
+} from "./types.js";
 import type { SpawnConfig as SpawnConfigFromIndex } from "./index.js";
+import type {
+  McpSpawnConfig as McpSpawnConfigFromIndex,
+  McpSpawnServer as McpSpawnServerFromIndex
+} from "./index.js";
 import type { AdapterType } from "./adapters/index.js";
 import type {
   AcpEvent,
@@ -45,6 +55,8 @@ import type {
 type AssertAssignable<To, ignoredFrom extends To> = true;
 
 type ignoredSpawnConfigIsExported = AssertAssignable<SpawnConfig, SpawnConfigFromIndex>;
+type ignoredMcpSpawnConfigIsExported = AssertAssignable<McpSpawnConfig, McpSpawnConfigFromIndex>;
+type ignoredMcpSpawnServerIsExported = AssertAssignable<McpSpawnServer, McpSpawnServerFromIndex>;
 
 type ignoredAcpEventIsExported = AssertAssignable<AcpEventFromAcpTypes, AcpEvent>;
 type ignoredAcpEventMatchesAcpTypes = AssertAssignable<AcpEvent, AcpEventFromAcpTypes>;

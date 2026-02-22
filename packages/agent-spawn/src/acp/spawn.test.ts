@@ -252,6 +252,62 @@ describe("acp/spawnStreaming", () => {
     expect(args).not.toContain("openai/gpt-5.2");
   });
 
+  it("serializes MCP servers for streaming spawn when supported", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({ type: "thread.started", thread_id: "t1" })
+      ],
+      exitCode: 0
+    });
+
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { events, done } = spawnStreaming({
+      agentId: "codex",
+      prompt: "hello",
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+
+    await collect(events);
+    await done;
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toEqual([
+      codexSpawnConfig.promptFlag,
+      "hello",
+      ...codexSpawnConfig.defaultArgs,
+      "-c",
+      "mcp_servers.test.command=\"tiny-stdio-mcp-test-server\"",
+      "-c",
+      "mcp_servers.test.args=[\"serve\", \"word-of-the-day\"]",
+      "-c",
+      "mcp_servers.test.env={\"MCP_LOG_LEVEL\"=\"debug\"}",
+      ...codexSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("throws a clear error when MCP config is passed to unsupported streaming agents", () => {
+    expect(() =>
+      spawnStreaming({
+        agentId: "opencode",
+        prompt: "hello",
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server"
+          }
+        }
+      })
+    ).toThrow(
+      'Agent "opencode" does not support MCP servers at spawn time.\nAgents with spawn-time MCP support: claude-code, codex, kimi'
+    );
+  });
+
   it("throws on unknown agentId before spawning", () => {
     const spawnMock = vi.mocked(spawnChildProcess);
     expect(() =>

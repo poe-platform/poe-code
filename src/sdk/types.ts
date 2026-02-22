@@ -1,4 +1,4 @@
-import type { SpawnMode } from "@poe-code/agent-spawn";
+import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 
 /**
  * Options for spawning a provider CLI.
@@ -14,6 +14,8 @@ export interface SpawnOptions {
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];
+  /** MCP servers passed at spawn time */
+  mcpServers?: McpSpawnConfig;
   /** Launch the agent in interactive (TUI) mode with inherited stdio */
   interactive?: boolean;
 }

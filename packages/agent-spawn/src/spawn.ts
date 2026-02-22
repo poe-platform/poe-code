@@ -1,13 +1,23 @@
 import { spawn as spawnChildProcess } from "node:child_process";
 import { resolveConfig } from "./configs/resolve-config.js";
+import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
-import type { CliSpawnConfig, SpawnContext, SpawnMode, SpawnOptions, SpawnResult, StdinMode } from "./types.js";
+import type {
+  CliSpawnConfig,
+  McpSpawnConfig,
+  SpawnContext,
+  SpawnMode,
+  SpawnOptions,
+  SpawnResult,
+  StdinMode
+} from "./types.js";
 
 export interface BuildSpawnArgsOptions {
   prompt: string;
   model?: string;
   mode?: SpawnMode;
   args?: string[];
+  mcpServers?: McpSpawnConfig;
   useStdin?: boolean;
 }
 
@@ -60,6 +70,7 @@ function buildCliArgs(
   }
 
   args.push(...config.defaultArgs);
+  args.push(...getMcpArgs(config, options.mcpServers));
   args.push(...config.modes[options.mode ?? "yolo"]);
 
   if (options.args && options.args.length > 0) {

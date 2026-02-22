@@ -1,4 +1,5 @@
 import type { CliSpawnConfig } from "../types.js";
+import { serializeJsonMcpArgs } from "./mcp.js";
 
 export const claudeCodeSpawnConfig: CliSpawnConfig = {
   kind: "cli",
@@ -14,6 +15,7 @@ export const claudeCodeSpawnConfig: CliSpawnConfig = {
     "stream-json",
     "--verbose"
   ],
+  mcpArgs: serializeJsonMcpArgs,
   modes: {
     yolo: ["--dangerously-skip-permissions"],
     edit: ["--permission-mode", "acceptEdits", "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep,NotebookEdit"],

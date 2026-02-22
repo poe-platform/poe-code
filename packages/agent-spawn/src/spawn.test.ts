@@ -120,6 +120,53 @@ describe("spawn", () => {
     ]);
   });
 
+  it("serializes codex MCP servers to -c TOML args", async () => {
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+      createMockChildProcess({ exitCode: 0 })
+    );
+
+    await spawn("codex", {
+      prompt: "hello",
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+
+    const [command, args] = spawnMock.mock.calls[0];
+    expect(command).toBe("codex");
+    expect(args).toEqual([
+      codexSpawnConfig.promptFlag,
+      "hello",
+      ...codexSpawnConfig.defaultArgs,
+      "-c",
+      "mcp_servers.test.command=\"tiny-stdio-mcp-test-server\"",
+      "-c",
+      "mcp_servers.test.args=[\"serve\", \"word-of-the-day\"]",
+      "-c",
+      "mcp_servers.test.env={\"MCP_LOG_LEVEL\"=\"debug\"}",
+      ...codexSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("throws a clear error when MCP servers are passed to unsupported agents", async () => {
+    await expect(
+      spawn("opencode", {
+        prompt: "hello",
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server"
+          }
+        }
+      })
+    ).rejects.toThrow(
+      'Agent "opencode" does not support MCP servers at spawn time.\nAgents with spawn-time MCP support: claude-code, codex, kimi'
+    );
+  });
+
   // IMPORTANT: CLI binaries (claude, codex, etc.) only accept bare model IDs
   // (e.g. "claude-opus-4-6"), not namespaced ones (e.g. "anthropic/claude-opus-4.6").
   // The namespace MUST be stripped and dots converted to hyphens before invoking the binary.

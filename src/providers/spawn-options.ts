@@ -1,10 +1,11 @@
-import type { SpawnMode } from "@poe-code/agent-spawn";
+import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 
 export interface SpawnCommandOptions {
   prompt: string;
   args?: string[];
   model?: string;
   mode?: SpawnMode;
+  mcpServers?: McpSpawnConfig;
   cwd?: string;
   useStdin?: boolean;
   interactive?: boolean;

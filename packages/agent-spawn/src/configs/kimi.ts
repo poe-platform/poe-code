@@ -1,4 +1,5 @@
 import type { CliSpawnConfig } from "../types.js";
+import { serializeJsonMcpArgs } from "./mcp.js";
 
 export const kimiSpawnConfig: CliSpawnConfig = {
   kind: "cli",
@@ -10,6 +11,7 @@ export const kimiSpawnConfig: CliSpawnConfig = {
   promptFlag: "-p",
   modelStripProviderPrefix: true,
   defaultArgs: ["--print", "--output-format", "stream-json"],
+  mcpArgs: serializeJsonMcpArgs,
   modes: {
     yolo: ["--yolo"],
     edit: [],

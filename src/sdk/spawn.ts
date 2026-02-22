@@ -97,7 +97,8 @@ export function spawn(
           cwd: options.cwd,
           model: options.model,
           mode: options.mode,
-          args: options.args
+          args: options.args,
+          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
         });
         return {
           stdout: interactiveResult.stdout,
@@ -120,6 +121,7 @@ export function spawn(
           model: options.model,
           mode: options.mode,
           args: options.args,
+          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
           useStdin: false
         });
 
@@ -142,6 +144,7 @@ export function spawn(
           model: options.model,
           mode: options.mode,
           args: options.args,
+          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
           useStdin: false
         });
       }
@@ -155,6 +158,7 @@ export function spawn(
         model: options.model,
         mode: options.mode,
         args: options.args,
+        ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
         useStdin: false
       });
     } catch (error) {

@@ -7,6 +7,8 @@ import {
   getAdapter,
   readLines,
   renderAcpStream,
+  listMcpSupportedAgents,
+  supportsMcpAtSpawn,
   spawn,
   spawnInteractive,
   spawnStreaming
@@ -27,6 +29,8 @@ describe("@poe-code/agent-spawn", () => {
     expect(typeof adaptClaude).toBe("function");
     expect(typeof adaptNative).toBe("function");
     expect(typeof getAdapter).toBe("function");
+    expect(typeof supportsMcpAtSpawn).toBe("function");
+    expect(typeof listMcpSupportedAgents).toBe("function");
   });
 
   it("does not export internal helpers", () => {

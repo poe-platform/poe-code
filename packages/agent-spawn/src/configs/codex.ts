@@ -1,4 +1,5 @@
 import type { CliSpawnConfig } from "../types.js";
+import { serializeCodexMcpArgs } from "./mcp.js";
 
 export const codexSpawnConfig: CliSpawnConfig = {
   kind: "cli",
@@ -9,6 +10,7 @@ export const codexSpawnConfig: CliSpawnConfig = {
   modelFlag: "--model",
   modelStripProviderPrefix: true,
   defaultArgs: ["--skip-git-repo-check", "--json"],
+  mcpArgs: serializeCodexMcpArgs,
   modes: {
     yolo: ["-s", "danger-full-access"],
     edit: ["-s", "workspace-write"],

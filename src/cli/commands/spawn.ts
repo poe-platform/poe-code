@@ -1,7 +1,15 @@
 import path from "node:path";
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
-import { renderAcpStream, spawnInteractive, getSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
+import {
+  renderAcpStream,
+  spawnInteractive,
+  getSpawnConfig,
+  listMcpSupportedAgents,
+  supportsMcpAtSpawn,
+  type McpSpawnConfig,
+  type SpawnMode
+} from "@poe-code/agent-spawn";
 import { text, confirm, isCancel } from "@poe-code/design-system";
 import { loadConfiguredServices } from "../../services/credentials.js";
 import {
@@ -16,7 +24,7 @@ import {
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
-import { OperationCancelledError } from "../errors.js";
+import { OperationCancelledError, ValidationError } from "../errors.js";
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -57,6 +65,10 @@ export function registerSpawnCommand(
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
+    .option(
+      "--mcp-config <json>",
+      "MCP server config JSON: {name: {command, args?, env?}}"
+    )
     .argument(
       "<agent>",
       serviceDescription
@@ -73,7 +85,15 @@ export function registerSpawnCommand(
       agentArgs: string[] = []
     ) {
       const flags = resolveCommandFlags(program);
-      const commandOptions = this.opts<{ model?: string; cwd?: string; stdin?: boolean; interactive?: boolean; mode?: string }>();
+      const commandOptions = this.opts<{
+        model?: string;
+        cwd?: string;
+        stdin?: boolean;
+        interactive?: boolean;
+        mode?: string;
+        mcpConfig?: string;
+      }>();
+      const mcpServers = parseMcpSpawnConfig(commandOptions.mcpConfig);
       const cwdOverride = resolveSpawnWorkingDirectory(
         container.env.cwd,
         commandOptions.cwd
@@ -113,6 +133,7 @@ export function registerSpawnCommand(
           args: forwardedArgs,
           model: commandOptions.model,
           mode: commandOptions.mode as SpawnMode | undefined,
+          ...(mcpServers ? { mcpServers } : {}),
           cwd: cwdOverride
         });
         process.exitCode = result.exitCode;
@@ -136,6 +157,7 @@ export function registerSpawnCommand(
         args: forwardedArgs,
         model: commandOptions.model,
         mode: commandOptions.mode as SpawnMode | undefined,
+        mcpServers,
         cwd: cwdOverride,
         useStdin: shouldReadFromStdin
       };
@@ -185,6 +207,8 @@ export function registerSpawnCommand(
       }
 
       try {
+        assertMcpSpawnSupport(adapter.label, canonicalService, mcpServers);
+
         if (flags.dryRun) {
           // spawnCore already logs the dry run details.
           await spawnCore(container, canonicalService, spawnOptions, {
@@ -209,7 +233,10 @@ export function registerSpawnCommand(
           args: spawnOptions.args,
           model: spawnOptions.model,
           mode: spawnOptions.mode,
-          cwd: spawnOptions.cwd
+          cwd: spawnOptions.cwd,
+          ...(spawnOptions.mcpServers
+            ? { mcpServers: spawnOptions.mcpServers }
+            : {})
         });
 
         await renderAcpStream(events);
@@ -293,4 +320,111 @@ function resolveSpawnWorkingDirectory(
     return candidate;
   }
   return path.resolve(baseDir, candidate);
+}
+
+function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
+  if (!input) {
+    return undefined;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(input);
+  } catch {
+    throw new ValidationError(
+      "--mcp-config must be valid JSON in this shape: {name: {command, args?, env?}}"
+    );
+  }
+
+  if (!isObjectRecord(parsed)) {
+    throw new ValidationError(
+      "--mcp-config must be an object in this shape: {name: {command, args?, env?}}"
+    );
+  }
+
+  const servers: McpSpawnConfig = {};
+  for (const [name, value] of Object.entries(parsed)) {
+    if (!isObjectRecord(value)) {
+      throw new ValidationError(
+        `--mcp-config entry "${name}" must be an object: {command, args?, env?}`
+      );
+    }
+
+    const command = value.command;
+    if (typeof command !== "string" || command.trim().length === 0) {
+      throw new ValidationError(
+        `--mcp-config entry "${name}" must include a non-empty string "command"`
+      );
+    }
+
+    let args: string[] | undefined;
+    if ("args" in value && value.args !== undefined) {
+      if (!Array.isArray(value.args)) {
+        throw new ValidationError(
+          `--mcp-config entry "${name}".args must be an array of strings`
+        );
+      }
+
+      args = [];
+      for (const arg of value.args) {
+        if (typeof arg !== "string") {
+          throw new ValidationError(
+            `--mcp-config entry "${name}".args must be an array of strings`
+          );
+        }
+        args.push(arg);
+      }
+    }
+
+    let env: Record<string, string> | undefined;
+    if ("env" in value && value.env !== undefined) {
+      if (!isObjectRecord(value.env)) {
+        throw new ValidationError(
+          `--mcp-config entry "${name}".env must be an object of string values`
+        );
+      }
+      env = {};
+      for (const [envKey, envValue] of Object.entries(value.env)) {
+        if (typeof envValue !== "string") {
+          throw new ValidationError(
+            `--mcp-config entry "${name}".env must be an object of string values`
+          );
+        }
+        env[envKey] = envValue;
+      }
+    }
+
+    servers[name] = {
+      command,
+      ...(args ? { args } : {}),
+      ...(env ? { env } : {})
+    };
+  }
+
+  return Object.keys(servers).length > 0 ? servers : undefined;
+}
+
+function assertMcpSpawnSupport(
+  label: string,
+  service: string,
+  servers?: McpSpawnConfig
+): void {
+  if (!servers || Object.keys(servers).length === 0) {
+    return;
+  }
+  if (supportsMcpAtSpawn(service)) {
+    return;
+  }
+
+  const supported = listMcpSupportedAgents();
+  throw new ValidationError(
+    `${label} does not support MCP servers at spawn time.\n` +
+      `Agents with spawn-time MCP support: ${supported.join(", ")}`
+  );
+}
+
+function isObjectRecord(
+  value: unknown
+): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

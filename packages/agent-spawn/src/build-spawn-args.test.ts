@@ -218,4 +218,98 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
+  it("adds claude-code MCP config as --mcp-config JSON before mode args", () => {
+    const result = buildSpawnArgs("claude-code", {
+      prompt: "hello",
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+
+    const mcpIndex = result.args.indexOf("--mcp-config");
+    expect(mcpIndex).toBeGreaterThan(-1);
+    expect(JSON.parse(result.args[mcpIndex + 1] ?? "{}")).toEqual({
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+    expect(result.args.slice(mcpIndex + 2)).toEqual([
+      ...claudeCodeSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("adds codex MCP config as repeated -c TOML overrides before mode args", () => {
+    const result = buildSpawnArgs("codex", {
+      prompt: "hello",
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+
+    expect(result.args).toEqual([
+      codexSpawnConfig.promptFlag,
+      "hello",
+      ...codexSpawnConfig.defaultArgs,
+      "-c",
+      "mcp_servers.test.command=\"tiny-stdio-mcp-test-server\"",
+      "-c",
+      "mcp_servers.test.args=[\"serve\", \"word-of-the-day\"]",
+      "-c",
+      "mcp_servers.test.env={\"MCP_LOG_LEVEL\"=\"debug\"}",
+      ...codexSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("adds kimi MCP config as --mcp-config JSON before mode args", () => {
+    const result = buildSpawnArgs("kimi", {
+      prompt: "hello",
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
+    });
+
+    const mcpIndex = result.args.indexOf("--mcp-config");
+    expect(mcpIndex).toBeGreaterThan(-1);
+    expect(JSON.parse(result.args[mcpIndex + 1] ?? "{}")).toEqual({
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
+    });
+    expect(result.args.slice(mcpIndex + 2)).toEqual([...kimiSpawnConfig.modes.yolo]);
+  });
+
+  it("throws a clear error when MCP config is passed to unsupported agents", () => {
+    expect(() =>
+      buildSpawnArgs("opencode", {
+        prompt: "hello",
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server",
+            args: ["serve", "word-of-the-day"]
+          }
+        }
+      })
+    ).toThrow(
+      'Agent "opencode" does not support MCP servers at spawn time.\nAgents with spawn-time MCP support: claude-code, codex, kimi'
+    );
+  });
+
 });

@@ -56,7 +56,14 @@ describe("SDK spawn()", () => {
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0, threadId: "thread_1", sessionId: "thread_1" })
     }));
 
-    const { events, result } = spawn("codex", "test prompt");
+    const { events, result } = spawn("codex", "test prompt", {
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
+    });
 
     const received: unknown[] = [];
     for await (const e of events) {
@@ -73,6 +80,16 @@ describe("SDK spawn()", () => {
     });
 
     expect(spawnStreaming).toHaveBeenCalledTimes(1);
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server",
+            args: ["serve", "word-of-the-day"]
+          }
+        }
+      })
+    );
     expect(agentSpawn).not.toHaveBeenCalled();
     expect(spawnCore).not.toHaveBeenCalled();
   });
@@ -91,7 +108,13 @@ describe("SDK spawn()", () => {
       exitCode: 0
     });
 
-    const { events, result } = spawn("aider", "test prompt");
+    const { events, result } = spawn("aider", "test prompt", {
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server"
+        }
+      }
+    });
 
     const received: unknown[] = [];
     for await (const e of events) {
@@ -107,6 +130,19 @@ describe("SDK spawn()", () => {
 
     expect(spawnStreaming).not.toHaveBeenCalled();
     expect(agentSpawn).toHaveBeenCalledTimes(1);
+    expect(agentSpawn).toHaveBeenCalledWith("aider", {
+      prompt: "test prompt",
+      cwd: undefined,
+      model: undefined,
+      mode: undefined,
+      args: undefined,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server"
+        }
+      },
+      useStdin: false
+    });
     expect(spawnCore).not.toHaveBeenCalled();
     expect(createSdkContainer).not.toHaveBeenCalled();
   });
@@ -120,7 +156,13 @@ describe("SDK spawn()", () => {
       exitCode: 0
     });
 
-    const { events, result } = spawn("codex", "test prompt");
+    const { events, result } = spawn("codex", "test prompt", {
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server"
+        }
+      }
+    });
 
     const received: unknown[] = [];
     for await (const e of events) {
@@ -137,6 +179,17 @@ describe("SDK spawn()", () => {
     expect(spawnStreaming).not.toHaveBeenCalled();
     expect(agentSpawn).not.toHaveBeenCalled();
     expect(spawnCore).toHaveBeenCalledTimes(1);
+    expect(spawnCore).toHaveBeenCalledWith(
+      expect.anything(),
+      "codex",
+      expect.objectContaining({
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server"
+          }
+        }
+      })
+    );
   });
 
   it("calls spawnInteractive and returns empty events when interactive is true", async () => {
@@ -146,7 +199,15 @@ describe("SDK spawn()", () => {
       exitCode: 0
     });
 
-    const { events, result } = spawn("claude-code", "test prompt", { interactive: true });
+    const { events, result } = spawn("claude-code", "test prompt", {
+      interactive: true,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
+    });
 
     const received: unknown[] = [];
     for await (const e of events) {
@@ -165,7 +226,13 @@ describe("SDK spawn()", () => {
       prompt: "test prompt",
       cwd: undefined,
       model: undefined,
-      args: undefined
+      args: undefined,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
     });
     expect(spawnStreaming).not.toHaveBeenCalled();
     expect(agentSpawn).not.toHaveBeenCalled();

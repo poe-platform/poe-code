@@ -7,7 +7,7 @@ import {
   createExecutionResources
 } from "../cli/commands/shared.js";
 import type { SpawnCommandOptions } from "../providers/spawn-options.js";
-import type { SpawnMode } from "@poe-code/agent-spawn";
+import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 import type { CommandRunnerResult } from "../utils/command-checks.js";
 
 export interface SpawnCoreOptions {
@@ -21,6 +21,8 @@ export interface SpawnCoreOptions {
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];
+  /** MCP servers passed at spawn time */
+  mcpServers?: McpSpawnConfig;
   /** Whether prompt was read from stdin */
   useStdin?: boolean;
 }
@@ -52,6 +54,7 @@ export async function spawnCore(
     args: options.args,
     model: options.model,
     mode: options.mode,
+    mcpServers: options.mcpServers,
     cwd: cwdOverride,
     useStdin: options.useStdin ?? false
   };

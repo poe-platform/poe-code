@@ -2,12 +2,21 @@ import type { AdapterType } from "./adapters/index.js";
 
 export type SpawnMode = "yolo" | "edit" | "read";
 
+export interface McpSpawnServer {
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
+
+export type McpSpawnConfig = Record<string, McpSpawnServer>;
+
 export interface SpawnOptions {
   prompt: string;
   cwd?: string;
   model?: string;
   mode?: SpawnMode;
   args?: string[];
+  mcpServers?: McpSpawnConfig;
   useStdin?: boolean;
   interactive?: boolean;
   tee?: {
@@ -73,6 +82,11 @@ export interface CliSpawnConfig {
   modelStripProviderPrefix: boolean;
   /** Transform model ID before passing to CLI. Runs after provider prefix stripping (if enabled). */
   modelTransform?: (model: string) => string;
+  /**
+   * Transforms MCP server config into CLI args for this agent.
+   * Presence of this function declares spawn-time MCP support.
+   */
+  mcpArgs?: (servers: McpSpawnConfig) => string[];
   interactive?: InteractiveSpawnConfig;
   resumeCommand?: (threadId: string, cwd: string) => string[];
 }

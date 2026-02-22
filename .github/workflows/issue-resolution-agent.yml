@@ -72,8 +72,8 @@ jobs:
         run: poe-code test "${{ steps.provider.outputs.service }}"
       - name: Configure git author
         run: |
-          git config user.name "poe-code-bot"
-          git config user.email "bot@poe-code.invalid"
+          git config user.name "Poe Code Agent"
+          git config user.email "developers@poe.com"
       - name: Run issue resolver agent
         id: agent_run
         env:

@@ -66,6 +66,25 @@ export async function confirm(opts: ConfirmOptions): Promise<boolean | symbol> {
   return clack.confirm(opts);
 }
 
+export class PromptCancelledError extends Error {
+  constructor(message = "Operation cancelled.") {
+    super(message);
+    this.name = "PromptCancelledError";
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+  }
+}
+
+export async function confirmOrCancel(opts: ConfirmOptions): Promise<boolean> {
+  const result = await confirm(opts);
+  if (clack.isCancel(result)) {
+    clack.cancel("Operation cancelled.");
+    throw new PromptCancelledError();
+  }
+  return result === true;
+}
+
 export type PasswordOptions = Parameters<typeof clack.password>[0];
 
 export async function password(opts: PasswordOptions): Promise<string | symbol> {

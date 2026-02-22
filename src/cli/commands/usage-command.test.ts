@@ -162,6 +162,10 @@ describe("usage balance command", () => {
       json: async () => ({ current_point_balance: 500 })
     });
 
+    // "prompted-key" fails API key format validation (too short).
+    // Accept the non-standard format so resolveApiKey doesn't loop forever.
+    confirmMock.mockResolvedValueOnce(true);
+
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({ apiKey: "prompted-key" }),

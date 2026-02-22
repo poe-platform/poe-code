@@ -30,6 +30,7 @@ vi.mock("@poe-code/agent-mcp-config", () => ({
 
 const cwd = "/repo";
 const homeDir = "/home/test";
+const VALID_API_KEY = "vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuo";
 
 function createMemfs(): FileSystem {
   const volume = new Volume();
@@ -231,7 +232,7 @@ describe("mcp command", () => {
     volume.mkdirSync(cwd, { recursive: true });
     const noCredentialsFs = createFsFromVolume(volume).promises as unknown as FileSystem;
     const logs: string[] = [];
-    const prompts = vi.fn().mockResolvedValue({ apiKey: "test-key" });
+    const prompts = vi.fn().mockResolvedValue({ apiKey: VALID_API_KEY });
     const program = createProgram({
       fs: noCredentialsFs,
       prompts,

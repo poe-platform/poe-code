@@ -31,7 +31,10 @@ export interface EnsureOptionInput<TName extends string = string> {
 
 export interface ResolveApiKeyInput {
   value?: string;
+  envValue?: string;
   dryRun: boolean;
+  assumeYes?: boolean;
+  allowStored?: boolean;
 }
 
 export interface ResolveModelInput {
@@ -69,6 +72,51 @@ export interface OptionResolverInit {
   prompts: PromptFn;
   promptLibrary: PromptLibrary;
   apiKeyStore: ApiKeyStore;
+  confirm: (message: string) => Promise<boolean>;
+}
+
+function isAlphanumeric(value: string): boolean {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    const isDigit = code >= 48 && code <= 57;
+    const isUpper = code >= 65 && code <= 90;
+    const isLower = code >= 97 && code <= 122;
+    if (!isDigit && !isUpper && !isLower) return false;
+  }
+  return value.length > 0;
+}
+
+function isAlphanumericWithSeparators(value: string): boolean {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    const isDigit = code >= 48 && code <= 57;
+    const isUpper = code >= 65 && code <= 90;
+    const isLower = code >= 97 && code <= 122;
+    const isHyphen = code === 45;
+    const isUnderscore = code === 95;
+    if (!isDigit && !isUpper && !isLower && !isHyphen && !isUnderscore)
+      return false;
+  }
+  return value.length > 0;
+}
+
+const API_KEY_REFERENCE_LENGTH = 43;
+const API_KEY_MIN_LENGTH_RATIO = 0.8;
+const MIN_API_KEY_LENGTH = Math.ceil(
+  API_KEY_REFERENCE_LENGTH * API_KEY_MIN_LENGTH_RATIO
+);
+
+function hasMinimumApiKeyLength(value: string): boolean {
+  return value.length >= MIN_API_KEY_LENGTH;
+}
+
+export function isValidApiKeyFormat(key: string): boolean {
+  if (key.length === 0) return false;
+  if (key.startsWith("sk-poe-")) {
+    const hash = key.slice(7);
+    return hasMinimumApiKeyLength(hash) && isAlphanumeric(hash);
+  }
+  return hasMinimumApiKeyLength(key) && isAlphanumericWithSeparators(key);
 }
 
 export function createOptionResolvers(
@@ -100,33 +148,93 @@ export function createOptionResolvers(
     return trimmed;
   };
 
+  const confirmKeyFormat = async (
+    apiKey: string,
+    assumeYes: boolean
+  ): Promise<boolean> => {
+    if (isValidApiKeyFormat(apiKey)) return true;
+    if (assumeYes) return false;
+    return await init.confirm(
+      "Key doesn't match expected API key format. Use it anyway?"
+    );
+  };
+
   const resolveApiKey = async (
     input: ResolveApiKeyInput
   ): Promise<string> => {
+    const assumeYes = input.assumeYes ?? false;
+    const allowStored = input.allowStored ?? true;
+
     if (input.value != null) {
       const apiKey = normalizeApiKey(input.value);
+      const accepted = await confirmKeyFormat(apiKey, assumeYes);
+      if (!accepted) {
+        throw new Error("API key rejected.");
+      }
       if (!input.dryRun) {
         await init.apiKeyStore.write(apiKey);
       }
       return apiKey;
     }
 
-    const stored = await init.apiKeyStore.read();
-    if (stored) {
-      return normalizeApiKey(stored);
+    const envValue = input.envValue;
+    if (typeof envValue === "string" && envValue.trim().length > 0) {
+      const useEnv = assumeYes ||
+        await init.confirm(
+          "Use API key from POE_API_KEY environment variable?"
+        );
+      if (useEnv) {
+        const apiKey = normalizeApiKey(envValue);
+        const accepted = await confirmKeyFormat(apiKey, assumeYes);
+        if (accepted) {
+          if (!input.dryRun) {
+            await init.apiKeyStore.write(apiKey);
+          }
+          return apiKey;
+        }
+        if (assumeYes) {
+          throw new Error("API key rejected.");
+        }
+        // Fall back to stored credentials or prompt for a key when user
+        // explicitly declined using the environment value.
+      }
     }
 
-    const descriptor = init.promptLibrary.loginApiKey();
-    const response = await init.prompts(descriptor);
-    const result = response[descriptor.name];
-    if (typeof result !== "string") {
-      throw new Error("POE API key is required.");
+    if (allowStored) {
+      const stored = await init.apiKeyStore.read();
+      if (stored) {
+        return normalizeApiKey(stored);
+      }
     }
-    const apiKey = normalizeApiKey(result);
-    if (!input.dryRun) {
-      await init.apiKeyStore.write(apiKey);
+
+    while (true) {
+      const descriptor = init.promptLibrary.loginApiKey();
+      const response = await init.prompts(descriptor);
+      const result = response[descriptor.name];
+      if (typeof result !== "string") {
+        continue;
+      }
+      let apiKey: string;
+      try {
+        apiKey = normalizeApiKey(result);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "POE API key cannot be empty."
+        ) {
+          continue;
+        }
+        throw error;
+      }
+      const accepted = await confirmKeyFormat(apiKey, assumeYes);
+      if (!accepted) {
+        continue;
+      }
+      if (!input.dryRun) {
+        await init.apiKeyStore.write(apiKey);
+      }
+      return apiKey;
     }
-    return apiKey;
   };
 
   const resolveModel = async ({

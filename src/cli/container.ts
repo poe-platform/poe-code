@@ -25,11 +25,18 @@ import {
 import { ErrorLogger } from "./error-logger.js";
 import { runCommand } from "@poe-code/agent-spawn";
 import type { PromptFn, LoggerFn } from "./types.js";
-import { text, symbols } from "@poe-code/design-system";
+import {
+  text,
+  symbols,
+  confirm as dsConfirm,
+  isCancel,
+  cancel as dsCancel
+} from "@poe-code/design-system";
 import type { HttpClient } from "./http.js";
 import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";
 import { createPoeCodeCommandRunner } from "./poe-code-command-runner.js";
+import { OperationCancelledError } from "./errors.js";
 
 export interface CliDependencies {
   fs: FileSystem;
@@ -127,6 +134,14 @@ export function createCliContainer(
           filePath: environment.credentialsPath,
           apiKey: value
         })
+    },
+    confirm: async (message) => {
+      const result = await dsConfirm({ message });
+      if (isCancel(result)) {
+        dsCancel("Operation cancelled.");
+        throw new OperationCancelledError();
+      }
+      return result === true;
     }
   });
 

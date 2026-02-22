@@ -103,7 +103,8 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
           filePath: environment.credentialsPath,
           apiKey: value
         })
-    }
+    },
+    confirm: async () => true
   });
 
   const registry = createServiceRegistry();

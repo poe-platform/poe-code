@@ -6,11 +6,7 @@ import {
   resolveCommandFlags,
   applyIsolatedConfiguration
 } from "./shared.js";
-import {
-  loadConfiguredServices,
-  saveCredentials
-} from "../../services/credentials.js";
-import { ValidationError } from "../errors.js";
+import { loadConfiguredServices } from "../../services/credentials.js";
 import {
   combineMutationObservers,
   createMutationReporter
@@ -39,24 +35,23 @@ export function registerLoginCommand(
       resources.logger.intro("login");
 
       try {
-        const input = await resolveApiKeyInput(container, options);
-        const normalized = container.options.normalizeApiKey(input);
-
         const configuredServices = await loadConfiguredServices({
           fs: container.fs,
           filePath: container.env.credentialsPath
         });
 
-        await saveCredentials({
-          fs: resources.context.fs,
-          filePath: container.env.credentialsPath,
-          apiKey: normalized
+        const apiKey = await container.options.resolveApiKey({
+          value: options.apiKey,
+          envValue: container.env.getVariable("POE_API_KEY"),
+          dryRun: flags.dryRun,
+          assumeYes: flags.assumeYes,
+          allowStored: false
         });
 
         await reconfigureServices({
           program,
           container,
-          apiKey: normalized,
+          apiKey,
           configuredServices
         });
 
@@ -76,33 +71,6 @@ export function registerLoginCommand(
         throw error;
       }
     });
-}
-
-async function resolveApiKeyInput(
-  container: CliContainer,
-  options: LoginCommandOptions
-): Promise<string> {
-  if (options.apiKey) {
-    return options.apiKey;
-  }
-
-  const envKey = container.env.getVariable("POE_API_KEY");
-  if (envKey && envKey.trim().length > 0) {
-    return envKey;
-  }
-
-  const descriptor = container.promptLibrary.loginApiKey();
-  const response = await container.prompts(descriptor);
-  const value = response[descriptor.name];
-
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new ValidationError("POE API key is required.", {
-      operation: "login",
-      field: "apiKey"
-    });
-  }
-
-  return value;
 }
 
 interface ReconfigureServicesInput {

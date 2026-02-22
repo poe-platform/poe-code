@@ -20,7 +20,9 @@ export async function createConfigurePayload(
 
   const apiKey = await container.options.resolveApiKey({
     value: options.apiKey,
-    dryRun: flags.dryRun
+    envValue: container.env.getVariable("POE_API_KEY"),
+    dryRun: flags.dryRun,
+    assumeYes: flags.assumeYes
   });
   const payload: Record<string, unknown> = { env: context.env, apiKey };
 

@@ -157,6 +157,23 @@ export class OperationCancelledError extends SilentError {
 }
 
 /**
+ * Detects silent control-flow exits, including cross-bundle/classloader cases
+ * where instanceof checks may fail.
+ */
+export function isSilentError(error: unknown): boolean {
+  if (error instanceof SilentError) {
+    return true;
+  }
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return (
+    error.name === "SilentError" ||
+    error.name === "OperationCancelledError"
+  );
+}
+
+/**
  * Helper to determine if an error should be shown to users
  */
 export function isUserFacingError(error: unknown): boolean {

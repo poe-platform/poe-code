@@ -164,4 +164,24 @@ describe("createCliMain", () => {
     expect(logErrorWithStackTrace).not.toHaveBeenCalled();
     expect(exitSpy).not.toHaveBeenCalled();
   });
+
+  it("does not treat operation cancellation as an error by name", async () => {
+    const parseAsync = vi.fn(async () => {
+      const error = new Error("Operation cancelled.");
+      error.name = "OperationCancelledError";
+      throw error;
+    });
+
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync
+    };
+
+    const { createCliMain } = await import("./bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).resolves.toBeUndefined();
+
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
 });

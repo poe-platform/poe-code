@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import chalk from "chalk";
+import { SilentError } from "./errors.js";
 
 const logMessage = vi.hoisted(() => vi.fn());
 const logWarn = vi.hoisted(() => vi.fn());
@@ -146,5 +147,28 @@ describe("createLoggerFactory", () => {
     expect(outroFn).toHaveBeenCalledWith(
       chalk.dim("Problems? https://example.com/issues")
     );
+  });
+
+  it("does not log exceptions for silent errors", () => {
+    const logger = createLoggerFactory().create();
+
+    logger.logException(
+      new SilentError("Operation cancelled."),
+      "login command"
+    );
+
+    expect(logError).not.toHaveBeenCalled();
+    expect(logMessage).not.toHaveBeenCalled();
+  });
+
+  it("does not log exceptions for OperationCancelledError by name", () => {
+    const logger = createLoggerFactory().create();
+    const error = new Error("Operation cancelled.");
+    error.name = "OperationCancelledError";
+
+    logger.logException(error, "login command");
+
+    expect(logError).not.toHaveBeenCalled();
+    expect(logMessage).not.toHaveBeenCalled();
   });
 });

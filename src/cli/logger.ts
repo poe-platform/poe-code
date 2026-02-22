@@ -9,6 +9,7 @@ import {
 import chalk from "chalk";
 import type { LoggerFn } from "./types.js";
 import type { ErrorLogger, ErrorContext } from "./error-logger.js";
+import { isSilentError } from "./errors.js";
 
 export interface LoggerContext {
   dryRun?: boolean;
@@ -139,6 +140,9 @@ export function createLoggerFactory(
         log.message(`${label}\n   ${value}`, { symbol });
       },
       errorWithStack(error, errorContext) {
+        if (isSilentError(error)) {
+          return;
+        }
         emit("error", formatMessage(error.message));
 
         if (errorLogger) {
@@ -153,6 +157,9 @@ export function createLoggerFactory(
         }
       },
       logException(error, operation, errorContext) {
+        if (isSilentError(error)) {
+          return;
+        }
         emit(
           "error",
           formatMessage(`Error during ${operation}: ${error.message}`)

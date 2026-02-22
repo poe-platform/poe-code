@@ -9,7 +9,7 @@ import chalk from "chalk";
 import type { Command } from "commander";
 import type { FileSystem } from "../utils/file-system.js";
 import { ErrorLogger } from "./error-logger.js";
-import { CliError, SilentError } from "./errors.js";
+import { CliError, isSilentError } from "./errors.js";
 import type { CliDependencies } from "./program.js";
 import { createPromptRunner } from "./prompt-runner.js";
 
@@ -49,7 +49,7 @@ export function createCliMain(
     try {
       await program.parseAsync(process.argv);
     } catch (error) {
-      if (error instanceof SilentError) {
+      if (isSilentError(error)) {
         return;
       }
       if (error instanceof Error) {

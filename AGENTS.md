@@ -102,6 +102,9 @@ You must run those when
   - spawn
   - isolated spawn
 - you change the e2e tests
+- before you think about completing task.
+  - Are you going to complete task? Make sure to run e2e tests
+  - They tend to fail more often than you would think
 
 ## Readme
 

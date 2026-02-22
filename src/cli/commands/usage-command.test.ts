@@ -3,6 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
+import { OperationCancelledError } from "../errors.js";
 
 const confirmMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
@@ -470,6 +471,44 @@ describe("usage list command", () => {
     optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
 
     await program.parseAsync(["node", "cli", "usage", "list"]);
+
+    expect(httpClient).toHaveBeenCalledTimes(1);
+    expect(confirmMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts pagination when user cancels confirmation", async () => {
+    fs = createCredentialsVolume("test-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        has_more: true,
+        length: 2,
+        data: [
+          { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+          { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
+        ]
+      })
+    });
+
+    confirmMock.mockResolvedValueOnce(Symbol("cancelled"));
+    isCancelMock.mockReturnValue(true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await expect(
+      program.parseAsync(["node", "cli", "usage", "list"])
+    ).rejects.toBeInstanceOf(OperationCancelledError);
 
     expect(httpClient).toHaveBeenCalledTimes(1);
     expect(confirmMock).toHaveBeenCalledTimes(1);

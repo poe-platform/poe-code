@@ -7,6 +7,7 @@ import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
 import { createCliContainer, type CliDependencies } from "../container.js";
 import type { FileSystem } from "../utils/file-system.js";
+import { OperationCancelledError } from "../errors.js";
 import type {
   CommandRunner,
   CommandRunnerOptions,
@@ -133,6 +134,7 @@ describe("spawn command", () => {
     process.env = { ...originalEnv, FORCE_COLOR: "1" };
 
     confirmMock.mockResolvedValue(true);
+    isCancelMock.mockReturnValue(false);
 
     vi.mocked(sdkSpawn).mockImplementation(() => ({
       events: emptyAsyncIterable(),
@@ -1093,6 +1095,33 @@ describe("spawn command", () => {
         "claude-code",
         "hello"
       ]);
+
+      expect(confirmMock).toHaveBeenCalled();
+      expect(sdkSpawn).not.toHaveBeenCalled();
+    });
+
+    it("aborts spawn when confirmation is cancelled", async () => {
+      confirmMock.mockResolvedValueOnce(Symbol("cancelled"));
+      isCancelMock.mockReturnValue(true);
+
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "spawn",
+          "claude-code",
+          "hello"
+        ])
+      ).rejects.toBeInstanceOf(OperationCancelledError);
 
       expect(confirmMock).toHaveBeenCalled();
       expect(sdkSpawn).not.toHaveBeenCalled();

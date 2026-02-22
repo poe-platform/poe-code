@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
-import { ApiError } from "../errors.js";
+import { ApiError, OperationCancelledError } from "../errors.js";
 import { confirm, isCancel, getTheme, widths, typography, renderTable } from "@poe-code/design-system";
 
 async function executeBalance(
@@ -241,7 +241,10 @@ export function registerUsageCommand(
 
           if (maxPages === undefined) {
             const shouldContinue = await confirm({ message: "Load more?" });
-            if (isCancel(shouldContinue) || !shouldContinue) {
+            if (isCancel(shouldContinue)) {
+              throw new OperationCancelledError();
+            }
+            if (!shouldContinue) {
               break;
             }
           }

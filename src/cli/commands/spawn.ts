@@ -16,6 +16,7 @@ import {
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
+import { OperationCancelledError } from "../errors.js";
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -274,7 +275,11 @@ async function confirmUnconfiguredService(
     message: `${label} is not configured via poe. Do you want to proceed?`
   });
 
-  return !isCancel(shouldProceed) && shouldProceed === true;
+  if (isCancel(shouldProceed)) {
+    throw new OperationCancelledError();
+  }
+
+  return shouldProceed === true;
 }
 
 function resolveSpawnWorkingDirectory(

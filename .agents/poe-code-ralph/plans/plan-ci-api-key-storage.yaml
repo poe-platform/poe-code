@@ -11,33 +11,41 @@ overview: |
   Packaging auth separately makes it easy to add OAuth or other auth methods later
   without touching the CLI/SDK core.
 
-  The package implements a hybrid storage strategy (Option 4):
-  1. macOS: OS Keychain via `security` CLI tool (no native modules)
-  2. Fallback: AES-256-GCM encrypted file using Node.js built-in crypto
-  3. POE_AUTH_BACKEND env var to force a specific backend (e.g. force encrypted
-     file on macOS for CI runners)
+  The package implements a storage strategy with two backends:
+  1. Default: AES-256-GCM encrypted file using Node.js built-in crypto (works everywhere)
+  2. Opt-in: macOS Keychain via `security` CLI tool (POE_AUTH_BACKEND=keychain)
+
+  Encrypted file is the default because it works on all platforms with zero
+  surprises — no Keychain popups, no libsecret, no CI failures. Users who want
+  OS-level keychain protection can opt in via POE_AUTH_BACKEND=keychain.
 
   Design decisions:
+  - Encrypted file as default over keychain-first: encrypted file works everywhere
+    with zero surprises. Keychain requires testing on each macOS version, can trigger
+    popups, and fails in CI. Safer default = less support burden.
+  - Keychain as opt-in via POE_AUTH_BACKEND=keychain: users who want real OS vault
+    security can enable it. Env var only, no CLI flag.
   - New `@poe-code/auth` package over inline code: isolates auth concerns, makes
     OAuth extensibility natural, keeps CLI/SDK lean.
   - Shell-based keychain (`security` CLI) over native modules (keytar): keytar is
     deprecated, native modules break esbuild bundling, shell commands are zero-dep.
-  - Hybrid with fallback over keychain-only: headless CI and Linux without
-    libsecret need a working fallback. Encrypted file covers all environments.
-  - POE_AUTH_BACKEND env var: lets users/CI force encrypted file even on macOS
-    (e.g. `POE_AUTH_BACKEND=file`).
   - Machine-derived encryption key via scrypt: no passphrase prompts, tied to the
     machine (hostname + username), meaningless if file is copied elsewhere.
   - Service metadata (configured_services) stays in credentials.json: not sensitive,
     no need to encrypt. Only the API key moves to poe-auth storage.
+  - File permissions 0600 on credentials.enc: defense-in-depth, owner-only access.
+  - macOS Keychain popup warning: when keychain backend is active, first login may
+    trigger a one-time OS approval dialog — warn the user before it happens.
+  - Clear error on decryption failure: if hostname/username changes, show actionable
+    message instead of silently returning null.
 
   Architecture:
     ┌─────────────────────────────────────────┐
     │  @poe-code/auth                         │
     │                                         │
     │  AuthStore (interface)                   │
-    │    ├── KeychainAuthStore (macOS)         │
-    │    └── EncryptedFileAuthStore (fallback) │
+    │    ├── EncryptedFileAuthStore (default)  │
+    │    └── KeychainAuthStore (macOS opt-in)  │
     │                                         │
     │  createAuthStore({ backend, platform })  │
     │    → auto / keychain / file              │
@@ -54,15 +62,17 @@ overview: |
 
 goals:
   - Encrypt API keys at rest — not readable as plaintext in any file
-  - Use OS Keychain on macOS via shell commands (zero native deps)
-  - Encrypted file fallback for CI, headless, and unsupported platforms
-  - POE_AUTH_BACKEND env var to force a specific backend
+  - Encrypted file as default backend (works everywhere, zero surprises)
+  - Opt-in OS Keychain on macOS via POE_AUTH_BACKEND=keychain
+  - POE_AUTH_BACKEND env var to select backend (file default, keychain opt-in)
   - New @poe-code/auth package to encapsulate all credential logic
   - Silent migration from plaintext credentials.json
-  - No UX changes — no prompts, no clicks, no passphrase
+  - Minimal UX changes — warn about Keychain popup, show which backend was used
   - CLI/SDK parity via shared package
   - Testable with dependency injection (no real keychain or filesystem in tests)
   - Extensible for future OAuth support
+  - File permissions 0600 on encrypted credential files
+  - auth status command for debugging auth issues
 
 nonGoals:
   - HSM-grade or hardware-backed key storage
@@ -70,6 +80,7 @@ nonGoals:
   - Windows Credential Manager or Linux Secret Service support (future work)
   - OAuth implementation (future — package structure supports it)
   - Encrypting service metadata (configured_services)
+  - --backend CLI flag (env var only for backend selection)
 
 qualityGates:
   - npm run test
@@ -81,6 +92,8 @@ requirements:
     description: |
       The @poe-code/auth package SHALL expose an AuthStore interface with
       getApiKey, setApiKey, and deleteApiKey methods. All methods are async.
+      The createAuthStore factory SHALL also return the active backend name
+      so callers can display it to the user.
     scenarios:
       - name: Interface contract
         when: A consumer imports AuthStore from @poe-code/auth
@@ -89,6 +102,11 @@ requirements:
             getApiKey(): Promise<string | null>
             setApiKey(apiKey: string): Promise<void>
             deleteApiKey(): Promise<void>
+      - name: Backend name exposed
+        when: createAuthStore is called
+        then: |
+          Returns { store: AuthStore, backend: "keychain" | "file" }
+          so the caller knows which backend is active.
 
   - name: KeychainAuthStore (macOS)
     description: |
@@ -109,49 +127,54 @@ requirements:
         when: deleteApiKey is called on macOS
         then: |
           Executes: security delete-generic-password -s "poe-code" -a "api-key"
-      - name: Keychain command failure
-        when: The security CLI returns a non-zero exit code
-        then: The method falls back to EncryptedFileAuthStore gracefully
+      - name: Keychain command failure on read
+        when: The security CLI returns a non-zero exit code for find-generic-password
+        then: Returns null (entry not found)
+      - name: Keychain command failure on write
+        when: The security CLI returns a non-zero exit code for add-generic-password
+        then: Throws an error (user explicitly opted into keychain, don't silently degrade)
 
-  - name: EncryptedFileAuthStore (fallback)
+  - name: EncryptedFileAuthStore (default)
     description: |
       The system SHALL provide an encrypted file backend using AES-256-GCM.
       The encryption key SHALL be derived from machine-specific data
       (os.hostname + os.userInfo().username) using scrypt with a fixed
       application salt. The encrypted key is stored in
-      ~/.poe-code/credentials.enc.
+      ~/.poe-code/credentials.enc with file permissions 0600.
     scenarios:
       - name: Write encrypts the API key
         when: setApiKey is called with an API key
         then: |
           The file contains base64-encoded (iv + ciphertext + authTag),
-          not readable as plaintext
+          not readable as plaintext. File permissions are set to 0600.
       - name: Read decrypts the API key
         when: getApiKey is called and the encrypted file exists
         then: The original plaintext API key is returned
       - name: Decryption failure returns null
         when: The encrypted file is corrupted or from a different machine
         then: getApiKey returns null (does not throw)
+      - name: File permissions
+        when: setApiKey writes the encrypted file
+        then: File is created with mode 0600 (owner read/write only)
 
   - name: Backend Selection
     description: |
-      createAuthStore SHALL select the backend based on:
-      1. POE_AUTH_BACKEND env var (if set): "keychain" or "file"
-      2. Platform auto-detection: keychain on macOS, file elsewhere
-      When backend is "auto" (default), macOS uses keychain with file fallback.
+      createAuthStore SHALL select the backend based on the POE_AUTH_BACKEND
+      env var. The default is "file" (encrypted file) on all platforms.
+      Keychain is opt-in only via POE_AUTH_BACKEND=keychain.
     scenarios:
-      - name: Auto-detect macOS
-        when: Platform is darwin and POE_AUTH_BACKEND is not set
-        then: KeychainAuthStore is used
-      - name: Auto-detect Linux
-        when: Platform is linux and POE_AUTH_BACKEND is not set
+      - name: Default on any platform
+        when: POE_AUTH_BACKEND is not set
+        then: EncryptedFileAuthStore is used (regardless of platform)
+      - name: Explicit file
+        when: POE_AUTH_BACKEND=file
         then: EncryptedFileAuthStore is used
-      - name: Force file on macOS
-        when: Platform is darwin and POE_AUTH_BACKEND=file
-        then: EncryptedFileAuthStore is used
-      - name: Force keychain on macOS
+      - name: Opt-in keychain on macOS
         when: Platform is darwin and POE_AUTH_BACKEND=keychain
         then: KeychainAuthStore is used
+      - name: Keychain on non-macOS
+        when: Platform is not darwin and POE_AUTH_BACKEND=keychain
+        then: Error with message that keychain backend is only available on macOS
 
   - name: Backward Compatible Migration
     description: |
@@ -159,6 +182,7 @@ requirements:
       the legacy credentials.json for a plaintext apiKey field. If found,
       it SHALL migrate the key to the new store and remove the apiKey
       field from credentials.json (preserving configured_services).
+      Migration failures SHALL log a warning (not fail silently).
     scenarios:
       - name: Migrate plaintext key
         when: Auth store is empty but credentials.json has a plaintext apiKey
@@ -172,6 +196,71 @@ requirements:
       - name: No legacy file
         when: Auth store is empty and credentials.json has no apiKey
         then: getApiKey returns null
+      - name: Migration failure
+        when: Auth store is empty, credentials.json has an apiKey, but migration write fails
+        then: |
+          A warning is logged describing the failure.
+          The plaintext key is still returned (don't block the user).
+          credentials.json is NOT modified (don't lose the key).
+
+  - name: Decryption Failure UX
+    description: |
+      When decryption fails (e.g. hostname/username changed, file copied
+      from another machine), the system SHALL return null but provide a
+      clear, actionable error message when the caller needs a key.
+    scenarios:
+      - name: Hostname changed
+        when: getApiKey fails to decrypt because machine identity changed
+        then: |
+          getApiKey returns null. When resolveApiKey sees null and no other
+          source, it displays: "Stored credentials could not be decrypted
+          (machine identity may have changed). Run 'poe-code login' to
+          re-authenticate."
+
+  - name: macOS Keychain Popup Warning
+    description: |
+      On first login on macOS with the keychain backend, the system SHALL
+      warn the user that macOS may show a Keychain access approval dialog.
+    scenarios:
+      - name: First login on macOS
+        when: User runs "poe-code login" on macOS with keychain backend
+        then: |
+          Before storing the key, a message is shown:
+          "macOS may prompt you to allow Keychain access for poe-code."
+
+  - name: Login Backend Feedback
+    description: |
+      After a successful login, the system SHALL display which storage
+      backend was used, so the user knows where their key is stored.
+    scenarios:
+      - name: Keychain feedback
+        when: Login stores key in macOS Keychain
+        then: Message shows "API key stored in macOS Keychain."
+      - name: Encrypted file feedback
+        when: Login stores key in encrypted file
+        then: Message shows "API key stored (encrypted)."
+
+  - name: Auth Status Command
+    description: |
+      The CLI SHALL provide a "poe-code auth status" command that shows:
+      - Whether the user is logged in
+      - Which storage backend is active
+      - API key validity (by calling the usage/current_balance endpoint)
+    scenarios:
+      - name: Logged in with valid key
+        when: User runs "poe-code auth status" with a valid stored key
+        then: |
+          Shows: logged in, backend name (keychain/file), and current
+          balance from usage endpoint.
+      - name: Logged in with invalid key
+        when: User runs "poe-code auth status" with an expired/invalid key
+        then: |
+          Shows: logged in, backend name, but key validation failed
+          (with HTTP status from usage endpoint).
+      - name: Not logged in
+        when: User runs "poe-code auth status" with no stored key
+        then: |
+          Shows: not logged in. Suggests "poe-code login".
 
   - name: CLI Integration
     description: |
@@ -221,7 +310,7 @@ stories:
     acceptanceCriteria:
       - "Package at packages/auth with @poe-code/auth name"
       - "AuthStore interface: getApiKey, setApiKey, deleteApiKey"
-      - "createAuthStore factory function with platform and backend options"
+      - "createAuthStore factory returns { store, backend } where backend is 'keychain' | 'file'"
       - "Package builds with tsc, exports types"
       - "Registered in root package.json workspaces"
 
@@ -238,6 +327,7 @@ stories:
       - "Encrypts API key with AES-256-GCM, random IV per write"
       - "Derives encryption key from hostname + username via scrypt"
       - "Stores to ~/.poe-code/credentials.enc (configurable path)"
+      - "File permissions set to 0600 on write"
       - "getApiKey returns null on decryption failure (no throw)"
       - "deleteApiKey removes the encrypted file"
       - "Machine identity injectable for testing"
@@ -267,13 +357,14 @@ stories:
       - US-002
       - US-003
     description: |
-      As a CI operator, I want to force the encrypted file backend
-      via POE_AUTH_BACKEND=file, so that macOS CI runners don't
-      prompt for Keychain access.
+      As a user, I want the default backend to be encrypted file
+      (works everywhere), and opt into macOS Keychain via
+      POE_AUTH_BACKEND=keychain when I want OS-level protection.
     acceptanceCriteria:
-      - "POE_AUTH_BACKEND=file forces EncryptedFileAuthStore on any platform"
-      - "POE_AUTH_BACKEND=keychain forces KeychainAuthStore (errors if not macOS)"
-      - "Default (auto): keychain on macOS, file elsewhere"
+      - "Default (no env var): EncryptedFileAuthStore on all platforms"
+      - "POE_AUTH_BACKEND=file explicitly selects EncryptedFileAuthStore"
+      - "POE_AUTH_BACKEND=keychain selects KeychainAuthStore on macOS"
+      - "POE_AUTH_BACKEND=keychain on non-macOS throws a clear error"
       - "createAuthStore reads POE_AUTH_BACKEND from provided env/process.env"
 
   - id: US-005
@@ -290,7 +381,8 @@ stories:
       - "When auth store is empty, checks credentials.json for plaintext apiKey"
       - "If found, writes key to auth store and removes apiKey from credentials.json"
       - "configured_services preserved in credentials.json"
-      - "Migration is transparent — no user-visible output"
+      - "Migration is transparent — no user-visible output on success"
+      - "Migration failure logs a warning and returns the plaintext key anyway"
       - "Migration only runs once (subsequent reads hit auth store directly)"
       - "FileSystem injectable for testing with memfs"
 
@@ -327,11 +419,44 @@ stories:
       - "SDK container uses @poe-code/auth for apiKeyStore"
 
   - id: US-008
-    title: E2E validation
+    title: Login UX — backend feedback and Keychain warning
     status: open
     dependsOn:
       - US-006
-      - US-007
+    description: |
+      As a macOS user, I want to be warned about the Keychain access
+      popup on first login, and told where my key was stored after
+      login succeeds, so I understand what's happening.
+    acceptanceCriteria:
+      - "On macOS with keychain backend, warn before storing: 'macOS may prompt you to allow Keychain access for poe-code.'"
+      - "After successful store in keychain, log: 'API key stored in macOS Keychain.'"
+      - "After successful store in encrypted file, log: 'API key stored (encrypted).'"
+      - "Decryption failure shows actionable message: 'Stored credentials could not be decrypted. Run poe-code login to re-authenticate.'"
+
+  - id: US-009
+    title: Implement poe-code auth status command
+    status: open
+    dependsOn:
+      - US-006
+    description: |
+      As a user, I want "poe-code auth status" to show me whether I'm
+      logged in, which storage backend is active, and whether my key
+      is valid, so I can debug auth issues.
+    acceptanceCriteria:
+      - "Shows logged-in state (yes/no)"
+      - "Shows active backend (macOS Keychain / encrypted file)"
+      - "Validates key by calling usage/current_balance endpoint"
+      - "If valid: shows current point balance"
+      - "If invalid: shows that key validation failed with HTTP status"
+      - "If not logged in: suggests 'poe-code login'"
+      - "Respects --dry-run flag"
+
+  - id: US-010
+    title: E2E validation
+    status: open
+    dependsOn:
+      - US-008
+      - US-009
     description: |
       As a developer, I want to verify the full login/logout/spawn
       flow works end-to-end with encrypted storage, so that we don't
@@ -341,3 +466,4 @@ stories:
       - "Login stores key, spawn reads it, logout clears it"
       - "POE_AUTH_BACKEND=file works in E2E environment"
       - "Migration from plaintext credentials works in E2E"
+      - "auth status command works in E2E"

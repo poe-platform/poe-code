@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import chalk from 'chalk';
 import { detectEngine } from './engine.js';
-import { hasApiKey } from './credentials.js';
+import { resolveApiKey } from './credentials.js';
 import { IMAGE_NAME } from './image.js';
 import { setResolvedContext, getResolvedContext, detectRunningContext } from './context.js';
 import type { Engine } from './types.js';
@@ -220,8 +220,28 @@ function tryStartDockerDesktop(): boolean {
 }
 
 function checkApiKey(): CheckResult {
-  if (hasApiKey()) {
+  const apiKey = resolveApiKey();
+  if (apiKey.key && apiKey.valid) {
     return { name: 'API key available', passed: true };
+  }
+  if (apiKey.key && !apiKey.valid) {
+    const source = apiKey.source ?? 'credentials';
+    const sourceLabel = source === 'credentials'
+      ? '~/.poe-code/credentials.json'
+      : source;
+    const fix = source === 'credentials'
+      ? 'Update your stored key:\n' +
+        '  - Run: poe-code login\n' +
+        '  - Or set: export POE_API_KEY=<your-key>'
+      : `Set a valid key in ${source}:\n` +
+        `  - export ${source}=<your-key>\n` +
+        '  - Or unset the variable to use stored credentials';
+    return {
+      name: 'API key available',
+      passed: false,
+      message: `Invalid API key format in ${sourceLabel}`,
+      fix,
+    };
   }
   return {
     name: 'API key available',

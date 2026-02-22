@@ -795,12 +795,12 @@ describe('login', () => {
     const loginCall = mockSpawnSync.mock.calls.find(
       (call) => {
         const args = call[1] as string[];
-        return args.includes('exec') && args.some(a => a.includes('poe-code login'));
+        return args.includes('exec') && args.some(a => a.includes('poe-code --yes login'));
       }
     );
     expect(loginCall).toBeDefined();
-    const loginCmd = (loginCall![1] as string[]).find(a => a.includes('poe-code login'));
-    expect(loginCmd).toBe('poe-code login');
+    const loginCmd = (loginCall![1] as string[]).find(a => a.includes('poe-code --yes login'));
+    expect(loginCmd).toBe('poe-code --yes login');
     expect(loginCmd).not.toContain('--api-key');
   });
 
@@ -853,7 +853,7 @@ describe('login', () => {
       signal: null,
     });
 
-    await expect(container.login()).rejects.toThrow('Command failed: "poe-code login"');
+    await expect(container.login()).rejects.toThrow('Command failed: "poe-code --yes login"');
   });
 });
 

@@ -99,7 +99,7 @@ await container.execOrThrow('poe-code install codex');
 
 #### `container.login(): Promise<void>`
 
-Run `poe-code login` using the API key from `POE_API_KEY` or `POE_CODE_API_KEY` env var.
+Run `poe-code login` using the API key from `POE_API_KEY`.
 
 Throws if no API key is set.
 
@@ -505,7 +505,7 @@ sudo systemctl start docker
 ### No API key
 
 ```
-Error: No API key available. Set POE_API_KEY or POE_CODE_API_KEY environment variable.
+Error: No API key available. Set POE_API_KEY environment variable.
 ```
 
 Export the API key before running tests:

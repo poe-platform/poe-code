@@ -1,13 +1,9 @@
-import * as fs from "node:fs/promises";
-import * as os from "node:os";
-import * as path from "node:path";
-
-const CREDENTIALS_RELATIVE_PATH = ".poe-code/credentials.json";
+import { createAuthStore } from "@poe-code/auth";
 
 /**
  * Reads the Poe API key with the following priority:
  * 1. `POE_API_KEY` environment variable (if set)
- * 2. Credentials file (`~/.poe-code/credentials.json`)
+ * 2. Auth store (`@poe-code/auth`)
  *
  * @returns The API key
  * @throws Error if no credentials found
@@ -18,22 +14,11 @@ export async function getPoeApiKey(): Promise<string> {
     return envKey.trim();
   }
 
-  const homeDir = os.homedir();
-  const credentialsPath = path.join(homeDir, CREDENTIALS_RELATIVE_PATH);
+  const { store } = createAuthStore();
+  const storedKey = await store.getApiKey();
 
-  try {
-    const content = await fs.readFile(credentialsPath, "utf8");
-    const parsed = JSON.parse(content);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      typeof parsed.apiKey === "string" &&
-      parsed.apiKey.length > 0
-    ) {
-      return parsed.apiKey;
-    }
-  } catch {
-    // File doesn't exist or is invalid
+  if (typeof storedKey === "string" && storedKey.trim().length > 0) {
+    return storedKey.trim();
   }
 
   throw new Error(

@@ -1,6 +1,5 @@
 version: 1
 project: ci-api-key-storage
-
 overview: |
   The CLI currently stores API keys as plaintext JSON in ~/.poe-code/credentials.json.
   Any process or user with read access can see the key — it could be accidentally
@@ -59,7 +58,6 @@ overview: |
    src/cli/           src/sdk/
    container.ts       credentials.ts
    (ApiKeyStore)      (getPoeApiKey)
-
 goals:
   - Encrypt API keys at rest — not readable as plaintext in any file
   - Encrypted file as default backend (works everywhere, zero surprises)
@@ -73,7 +71,6 @@ goals:
   - Extensible for future OAuth support
   - File permissions 0600 on encrypted credential files
   - auth status command for debugging auth issues
-
 nonGoals:
   - HSM-grade or hardware-backed key storage
   - Protection against malware running as the same user with code execution
@@ -81,246 +78,31 @@ nonGoals:
   - OAuth implementation (future — package structure supports it)
   - Encrypting service metadata (configured_services)
   - --backend CLI flag (env var only for backend selection)
-
 qualityGates:
   - npm run test
   - npm run lint
   - npm run e2e:verbose
-
-requirements:
-  - name: AuthStore Interface
-    description: |
-      The @poe-code/auth package SHALL expose an AuthStore interface with
-      getApiKey, setApiKey, and deleteApiKey methods. All methods are async.
-      The createAuthStore factory SHALL also return the active backend name
-      so callers can display it to the user.
-    scenarios:
-      - name: Interface contract
-        when: A consumer imports AuthStore from @poe-code/auth
-        then: |
-          The interface exposes:
-            getApiKey(): Promise<string | null>
-            setApiKey(apiKey: string): Promise<void>
-            deleteApiKey(): Promise<void>
-      - name: Backend name exposed
-        when: createAuthStore is called
-        then: |
-          Returns { store: AuthStore, backend: "keychain" | "file" }
-          so the caller knows which backend is active.
-
-  - name: KeychainAuthStore (macOS)
-    description: |
-      On macOS, the system SHALL store API keys in the OS Keychain using the
-      `security` CLI tool. The service name SHALL be "poe-code" and the
-      account name SHALL be "api-key".
-    scenarios:
-      - name: Store key in Keychain
-        when: setApiKey is called on macOS
-        then: |
-          Executes: security add-generic-password -U -s "poe-code" -a "api-key" -w "<key>"
-      - name: Read key from Keychain
-        when: getApiKey is called on macOS
-        then: |
-          Executes: security find-generic-password -s "poe-code" -a "api-key" -w
-          Returns the key value, or null if not found
-      - name: Delete key from Keychain
-        when: deleteApiKey is called on macOS
-        then: |
-          Executes: security delete-generic-password -s "poe-code" -a "api-key"
-      - name: Keychain command failure on read
-        when: The security CLI returns a non-zero exit code for find-generic-password
-        then: Returns null (entry not found)
-      - name: Keychain command failure on write
-        when: The security CLI returns a non-zero exit code for add-generic-password
-        then: Throws an error (user explicitly opted into keychain, don't silently degrade)
-
-  - name: EncryptedFileAuthStore (default)
-    description: |
-      The system SHALL provide an encrypted file backend using AES-256-GCM.
-      The encryption key SHALL be derived from machine-specific data
-      (os.hostname + os.userInfo().username) using scrypt with a fixed
-      application salt. The encrypted key is stored in
-      ~/.poe-code/credentials.enc with file permissions 0600.
-    scenarios:
-      - name: Write encrypts the API key
-        when: setApiKey is called with an API key
-        then: |
-          The file contains base64-encoded (iv + ciphertext + authTag),
-          not readable as plaintext. File permissions are set to 0600.
-      - name: Read decrypts the API key
-        when: getApiKey is called and the encrypted file exists
-        then: The original plaintext API key is returned
-      - name: Decryption failure returns null
-        when: The encrypted file is corrupted or from a different machine
-        then: getApiKey returns null (does not throw)
-      - name: File permissions
-        when: setApiKey writes the encrypted file
-        then: File is created with mode 0600 (owner read/write only)
-
-  - name: Backend Selection
-    description: |
-      createAuthStore SHALL select the backend based on the POE_AUTH_BACKEND
-      env var. The default is "file" (encrypted file) on all platforms.
-      Keychain is opt-in only via POE_AUTH_BACKEND=keychain.
-    scenarios:
-      - name: Default on any platform
-        when: POE_AUTH_BACKEND is not set
-        then: EncryptedFileAuthStore is used (regardless of platform)
-      - name: Explicit file
-        when: POE_AUTH_BACKEND=file
-        then: EncryptedFileAuthStore is used
-      - name: Opt-in keychain on macOS
-        when: Platform is darwin and POE_AUTH_BACKEND=keychain
-        then: KeychainAuthStore is used
-      - name: Keychain on non-macOS
-        when: Platform is not darwin and POE_AUTH_BACKEND=keychain
-        then: Error with message that keychain backend is only available on macOS
-
-  - name: Backward Compatible Migration
-    description: |
-      When getApiKey finds no key in the auth store, it SHALL check
-      the legacy credentials.json for a plaintext apiKey field. If found,
-      it SHALL migrate the key to the new store and remove the apiKey
-      field from credentials.json (preserving configured_services).
-      Migration failures SHALL log a warning (not fail silently).
-    scenarios:
-      - name: Migrate plaintext key
-        when: Auth store is empty but credentials.json has a plaintext apiKey
-        then: |
-          Key is written to the new auth store.
-          apiKey field is removed from credentials.json.
-          configured_services is preserved.
-      - name: No migration needed
-        when: Auth store already has a key
-        then: credentials.json is not read for API key purposes
-      - name: No legacy file
-        when: Auth store is empty and credentials.json has no apiKey
-        then: getApiKey returns null
-      - name: Migration failure
-        when: Auth store is empty, credentials.json has an apiKey, but migration write fails
-        then: |
-          A warning is logged describing the failure.
-          The plaintext key is still returned (don't block the user).
-          credentials.json is NOT modified (don't lose the key).
-
-  - name: Decryption Failure UX
-    description: |
-      When decryption fails (e.g. hostname/username changed, file copied
-      from another machine), the system SHALL return null but provide a
-      clear, actionable error message when the caller needs a key.
-    scenarios:
-      - name: Hostname changed
-        when: getApiKey fails to decrypt because machine identity changed
-        then: |
-          getApiKey returns null. When resolveApiKey sees null and no other
-          source, it displays: "Stored credentials could not be decrypted
-          (machine identity may have changed). Run 'poe-code login' to
-          re-authenticate."
-
-  - name: macOS Keychain Popup Warning
-    description: |
-      When the keychain backend is active (user opted in via
-      POE_AUTH_BACKEND=keychain), the system SHALL warn the user on
-      first login that macOS may show a Keychain access approval dialog.
-    scenarios:
-      - name: Login with keychain backend
-        when: User runs "poe-code login" with POE_AUTH_BACKEND=keychain on macOS
-        then: |
-          Before storing the key, a message is shown:
-          "macOS may prompt you to allow Keychain access for poe-code."
-      - name: Login with default backend
-        when: User runs "poe-code login" without POE_AUTH_BACKEND (encrypted file)
-        then: No keychain warning is shown
-
-  - name: Login Backend Feedback
-    description: |
-      After a successful login, the system SHALL display which storage
-      backend was used, so the user knows where their key is stored.
-    scenarios:
-      - name: Keychain feedback
-        when: Login stores key in macOS Keychain
-        then: Message shows "API key stored in macOS Keychain."
-      - name: Encrypted file feedback
-        when: Login stores key in encrypted file
-        then: Message shows "API key stored (encrypted)."
-
-  - name: Auth Status Command
-    description: |
-      The CLI SHALL provide a "poe-code auth status" command that shows:
-      - Whether the user is logged in
-      - Which storage backend is active
-      - API key validity (by calling the usage/current_balance endpoint)
-    scenarios:
-      - name: Logged in with valid key
-        when: User runs "poe-code auth status" with a valid stored key
-        then: |
-          Shows: logged in, backend name (keychain/file), and current
-          balance from usage endpoint.
-      - name: Logged in with invalid key
-        when: User runs "poe-code auth status" with an expired/invalid key
-        then: |
-          Shows: logged in, backend name, but key validation failed
-          (with HTTP status from usage endpoint).
-      - name: Not logged in
-        when: User runs "poe-code auth status" with no stored key
-        then: |
-          Shows: not logged in. Suggests "poe-code login".
-
-  - name: CLI Integration
-    description: |
-      The CLI container's apiKeyStore SHALL use @poe-code/auth's
-      createAuthStore. Login writes via the auth store. Logout deletes
-      from both the auth store and legacy credentials.json.
-    scenarios:
-      - name: Login stores via auth package
-        when: User runs "poe-code login"
-        then: API key is stored via @poe-code/auth (keychain or encrypted file)
-      - name: Logout clears all stores
-        when: User runs "poe-code logout"
-        then: |
-          Auth store key is deleted.
-          credentials.json is deleted (same as current behavior).
-
-  - name: SDK Integration
-    description: |
-      The SDK's getPoeApiKey() SHALL use @poe-code/auth to read
-      credentials. POE_API_KEY env var still takes priority.
-    scenarios:
-      - name: SDK reads from auth store
-        when: getPoeApiKey is called without POE_API_KEY set
-        then: Reads from @poe-code/auth store (keychain or encrypted file)
-      - name: Env var overrides auth store
-        when: POE_API_KEY is set
-        then: The environment variable value is used
-
-  - name: Environment Variable Override
-    description: |
-      POE_API_KEY environment variable SHALL continue to take precedence
-      over any stored credentials. No change in resolution priority.
-    scenarios:
-      - name: Env var overrides all stores
-        when: POE_API_KEY is set and auth store has a key
-        then: The environment variable value is used
-
 stories:
   - id: US-001
     title: Create @poe-code/auth package with AuthStore interface
-    status: open
+    status: done
     dependsOn: []
     description: |
       As a developer, I want a new @poe-code/auth workspace package that
       defines the AuthStore interface and exports a factory function,
       so that auth concerns are isolated from the CLI/SDK.
     acceptanceCriteria:
-      - "Package at packages/auth with @poe-code/auth name"
+      - Package at packages/auth with @poe-code/auth name
       - "AuthStore interface: getApiKey, setApiKey, deleteApiKey"
-      - "createAuthStore factory returns { store, backend } where backend is 'keychain' | 'file'"
-      - "Package builds with tsc, exports types"
-      - "Registered in root package.json workspaces"
-
+      - createAuthStore factory returns { store, backend } where backend is 'keychain' | 'file'
+      - Package builds with tsc, exports types
+      - Registered in root package.json workspaces
+    startedAt: 2026-02-23T16:24:00.060Z
+    completedAt: 2026-02-23T16:39:49.421Z
+    updatedAt: 2026-02-23T16:39:49.421Z
   - id: US-002
     title: Implement EncryptedFileAuthStore
-    status: open
+    status: done
     dependsOn:
       - US-001
     description: |
@@ -328,35 +110,39 @@ stories:
       API keys using AES-256-GCM with a machine-derived key, so that
       credentials are encrypted at rest on all platforms.
     acceptanceCriteria:
-      - "Encrypts API key with AES-256-GCM, random IV per write"
-      - "Derives encryption key from hostname + username via scrypt"
-      - "Stores to ~/.poe-code/credentials.enc (configurable path)"
-      - "File permissions set to 0600 on write"
-      - "getApiKey returns null on decryption failure (no throw)"
-      - "deleteApiKey removes the encrypted file"
-      - "Machine identity injectable for testing"
-      - "Zero external dependencies — Node.js crypto only"
-      - "All tests use injected deps (no real fs or os calls)"
-
+      - Encrypts API key with AES-256-GCM, random IV per write
+      - Derives encryption key from hostname + username via scrypt
+      - Stores to ~/.poe-code/credentials.enc (configurable path)
+      - File permissions set to 0600 on write
+      - getApiKey returns null on decryption failure (no throw)
+      - deleteApiKey removes the encrypted file
+      - Machine identity injectable for testing
+      - Zero external dependencies — Node.js crypto only
+      - All tests use injected deps (no real fs or os calls)
+    startedAt: 2026-02-23T16:39:49.557Z
+    completedAt: 2026-02-23T16:49:46.063Z
+    updatedAt: 2026-02-23T16:49:46.063Z
   - id: US-003
     title: Implement KeychainAuthStore (macOS)
-    status: open
+    status: done
     dependsOn:
       - US-001
     description: |
       As a macOS user, I want my API key stored in the OS Keychain
       via the security CLI, so I get real OS-level credential protection.
     acceptanceCriteria:
-      - "Uses security add-generic-password with service=poe-code, account=api-key"
-      - "Uses security find-generic-password to read"
-      - "Uses security delete-generic-password to delete"
-      - "Returns null when keychain entry not found (no throw)"
-      - "Command execution injectable for testing (no real shell calls)"
-      - "Handles security CLI errors gracefully"
-
+      - Uses security add-generic-password with service=poe-code, account=api-key
+      - Uses security find-generic-password to read
+      - Uses security delete-generic-password to delete
+      - Returns null when keychain entry not found (no throw)
+      - Command execution injectable for testing (no real shell calls)
+      - Handles security CLI errors gracefully
+    startedAt: 2026-02-23T16:49:46.252Z
+    completedAt: 2026-02-23T16:58:34.267Z
+    updatedAt: 2026-02-23T16:58:34.267Z
   - id: US-004
     title: Implement backend selection and POE_AUTH_BACKEND env var
-    status: open
+    status: done
     dependsOn:
       - US-002
       - US-003
@@ -366,11 +152,13 @@ stories:
       POE_AUTH_BACKEND=keychain when I want OS-level protection.
     acceptanceCriteria:
       - "Default (no env var): EncryptedFileAuthStore on all platforms"
-      - "POE_AUTH_BACKEND=file explicitly selects EncryptedFileAuthStore"
-      - "POE_AUTH_BACKEND=keychain selects KeychainAuthStore on macOS"
-      - "POE_AUTH_BACKEND=keychain on non-macOS throws a clear error"
-      - "createAuthStore reads POE_AUTH_BACKEND from provided env/process.env"
-
+      - POE_AUTH_BACKEND=file explicitly selects EncryptedFileAuthStore
+      - POE_AUTH_BACKEND=keychain selects KeychainAuthStore on macOS
+      - POE_AUTH_BACKEND=keychain on non-macOS throws a clear error
+      - createAuthStore reads POE_AUTH_BACKEND from provided env/process.env
+    startedAt: 2026-02-23T16:58:34.423Z
+    completedAt: 2026-02-23T17:04:39.274Z
+    updatedAt: 2026-02-23T17:04:39.274Z
   - id: US-005
     title: Implement silent migration from plaintext credentials.json
     status: open
@@ -382,14 +170,14 @@ stories:
       silently migrated to the new auth store on first access, so I
       don't need to re-login.
     acceptanceCriteria:
-      - "When auth store is empty, checks credentials.json for plaintext apiKey"
-      - "If found, writes key to auth store and removes apiKey from credentials.json"
-      - "configured_services preserved in credentials.json"
-      - "Migration is transparent — no user-visible output on success"
-      - "Migration failure logs a warning and returns the plaintext key anyway"
-      - "Migration only runs once (subsequent reads hit auth store directly)"
-      - "FileSystem injectable for testing with memfs"
-
+      - When auth store is empty, checks credentials.json for plaintext apiKey
+      - If found, writes key to auth store and removes apiKey from credentials.json
+      - configured_services preserved in credentials.json
+      - Migration is transparent — no user-visible output on success
+      - Migration failure logs a warning and returns the plaintext key anyway
+      - Migration only runs once (subsequent reads hit auth store directly)
+      - FileSystem injectable for testing with memfs
+    updatedAt: 2026-02-23T17:31:48.947Z
   - id: US-006
     title: Wire @poe-code/auth into CLI container
     status: open
@@ -401,13 +189,12 @@ stories:
       @poe-code/auth, so that login/logout commands use the new
       secure storage transparently.
     acceptanceCriteria:
-      - "apiKeyStore.read delegates to authStore.getApiKey"
-      - "apiKeyStore.write delegates to authStore.setApiKey"
-      - "Login command stores via auth package (no direct credentials.ts for API key)"
-      - "Logout command calls authStore.deleteApiKey AND deleteCredentials"
-      - "No changes to login/logout command signatures or UX"
-      - "isolated-env.ts uses auth store for API key resolution"
-
+      - apiKeyStore.read delegates to authStore.getApiKey
+      - apiKeyStore.write delegates to authStore.setApiKey
+      - Login command stores via auth package (no direct credentials.ts for API key)
+      - Logout command calls authStore.deleteApiKey AND deleteCredentials
+      - No changes to login/logout command signatures or UX
+      - isolated-env.ts uses auth store for API key resolution
   - id: US-007
     title: Update SDK getPoeApiKey to use @poe-code/auth
     status: open
@@ -417,11 +204,11 @@ stories:
       As an SDK user, I want getPoeApiKey() to read from the new
       auth store, so SDK consumers get the same secure storage as CLI.
     acceptanceCriteria:
-      - "getPoeApiKey reads from @poe-code/auth store"
-      - "POE_API_KEY env var still takes priority"
-      - "Falls through to error if neither env var nor store has a key"
-      - "SDK container uses @poe-code/auth for apiKeyStore"
-
+      - getPoeApiKey reads from @poe-code/auth store
+      - POE_API_KEY env var still takes priority
+      - Falls through to error if neither env var nor store has a key
+      - SDK container uses @poe-code/auth for apiKeyStore
+    updatedAt: 2026-02-23T18:30:21.546Z
   - id: US-008
     title: Login UX — backend feedback and Keychain warning
     status: open
@@ -436,7 +223,6 @@ stories:
       - "After successful store in keychain, log: 'API key stored in macOS Keychain.'"
       - "After successful store in encrypted file, log: 'API key stored (encrypted).'"
       - "Decryption failure shows actionable message: 'Stored credentials could not be decrypted. Run poe-code login to re-authenticate.'"
-
   - id: US-009
     title: Implement poe-code auth status command
     status: open
@@ -447,14 +233,13 @@ stories:
       logged in, which storage backend is active, and whether my key
       is valid, so I can debug auth issues.
     acceptanceCriteria:
-      - "Shows logged-in state (yes/no)"
-      - "Shows active backend (macOS Keychain / encrypted file)"
-      - "Validates key by calling usage/current_balance endpoint"
+      - Shows logged-in state (yes/no)
+      - Shows active backend (macOS Keychain / encrypted file)
+      - Validates key by calling usage/current_balance endpoint
       - "If valid: shows current point balance"
       - "If invalid: shows that key validation failed with HTTP status"
       - "If not logged in: suggests 'poe-code login'"
-      - "Respects --dry-run flag"
-
+      - Respects --dry-run flag
   - id: US-010
     title: E2E validation
     status: open
@@ -466,8 +251,8 @@ stories:
       flow works end-to-end with encrypted storage, so that we don't
       ship regressions.
     acceptanceCriteria:
-      - "E2E tests pass with encrypted credential storage"
-      - "Login stores key, spawn reads it, logout clears it"
-      - "POE_AUTH_BACKEND=file works in E2E environment"
-      - "Migration from plaintext credentials works in E2E"
-      - "auth status command works in E2E"
+      - E2E tests pass with encrypted credential storage
+      - Login stores key, spawn reads it, logout clears it
+      - POE_AUTH_BACKEND=file works in E2E environment
+      - Migration from plaintext credentials works in E2E
+      - auth status command works in E2E

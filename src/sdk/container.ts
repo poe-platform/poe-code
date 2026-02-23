@@ -12,11 +12,8 @@ import { ErrorLogger } from "../cli/error-logger.js";
 import { runCommand } from "@poe-code/agent-spawn";
 import { getDefaultProviders } from "../providers/index.js";
 import { createPoeCodeCommandRunner } from "../cli/poe-code-command-runner.js";
-import {
-  loadCredentials,
-  saveCredentials
-} from "../services/credentials.js";
 import * as nodeFsSync from "node:fs";
+import { createAuthStore } from "@poe-code/auth";
 
 export interface SdkContainerOptions {
   /** Working directory (defaults to process.cwd()) */
@@ -81,6 +78,38 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
 
   const contextFactory = createCommandContextFactory({ fs: asyncFs });
 
+  const authFs = {
+    readFile: (filePath: string, encoding: BufferEncoding) =>
+      fs.readFile(filePath, encoding),
+    writeFile: (
+      filePath: string,
+      data: string | NodeJS.ArrayBufferView,
+      options?: { encoding?: BufferEncoding }
+    ) => fs.writeFile(filePath, data, options),
+    mkdir: (
+      directoryPath: string,
+      options?: { recursive?: boolean }
+    ) => fs.mkdir(directoryPath, options).then(() => undefined),
+    unlink: (filePath: string) => fs.unlink(filePath),
+    chmod: (filePath: string, mode: number) => fs.chmod(filePath, mode)
+  };
+
+  const { store: authStore } = createAuthStore({
+    env: variables,
+    platform: process.platform,
+    fileStore: {
+      fs: authFs,
+      getHomeDirectory: () => homeDir
+    },
+    legacyCredentials: {
+      fs: authFs,
+      getHomeDirectory: () => homeDir
+    }
+  });
+
+  const readApiKey = authStore.getApiKey.bind(authStore);
+  const writeApiKey = authStore.setApiKey.bind(authStore);
+
   // No-op prompts for SDK (non-interactive)
   const noopPrompts = async () => {
     throw new Error("SDK does not support interactive prompts");
@@ -92,17 +121,8 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     prompts: noopPrompts,
     promptLibrary,
     apiKeyStore: {
-      read: () =>
-        loadCredentials({
-          fs: asyncFs,
-          filePath: environment.credentialsPath
-        }),
-      write: (value) =>
-        saveCredentials({
-          fs: asyncFs,
-          filePath: environment.credentialsPath,
-          apiKey: value
-        })
+      read: readApiKey,
+      write: writeApiKey
     }
   });
 

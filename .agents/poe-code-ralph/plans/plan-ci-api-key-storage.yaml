@@ -219,14 +219,18 @@ requirements:
 
   - name: macOS Keychain Popup Warning
     description: |
-      On first login on macOS with the keychain backend, the system SHALL
-      warn the user that macOS may show a Keychain access approval dialog.
+      When the keychain backend is active (user opted in via
+      POE_AUTH_BACKEND=keychain), the system SHALL warn the user on
+      first login that macOS may show a Keychain access approval dialog.
     scenarios:
-      - name: First login on macOS
-        when: User runs "poe-code login" on macOS with keychain backend
+      - name: Login with keychain backend
+        when: User runs "poe-code login" with POE_AUTH_BACKEND=keychain on macOS
         then: |
           Before storing the key, a message is shown:
           "macOS may prompt you to allow Keychain access for poe-code."
+      - name: Login with default backend
+        when: User runs "poe-code login" without POE_AUTH_BACKEND (encrypted file)
+        then: No keychain warning is shown
 
   - name: Login Backend Feedback
     description: |

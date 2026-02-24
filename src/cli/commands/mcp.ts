@@ -217,8 +217,7 @@ async function runMcpServer(
   }
 
   await initializeClient({
-    fs: container.fs,
-    configPath: container.env.configPath,
+    apiKey,
     baseUrl: container.env.poeApiBaseUrl,
     httpClient: container.httpClient
   });

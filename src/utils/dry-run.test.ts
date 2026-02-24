@@ -4,7 +4,7 @@ import { renderUnifiedDiff } from "./dry-run.js";
 describe("dry run diff redaction", () => {
   it("redacts api key values in JSON diffs", () => {
     const diff = renderUnifiedDiff(
-      "/home/test/.poe-code/credentials.json",
+      "/home/test/.poe-code/config.json",
       null,
       "{\n  \"apiKey\": \"sk-test\"\n}\n"
     );

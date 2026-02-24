@@ -10,7 +10,7 @@ import { createProviderStub } from "../../../tests/provider-stub.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
-const credentialsPath = `${homeDir}/.poe-code/credentials.json`;
+const configPath = `${homeDir}/.poe-code/config.json`;
 
 function createMemFs(): FileSystem {
   const vol = new Volume();
@@ -34,13 +34,13 @@ describe("logout command", () => {
     vi.restoreAllMocks();
   });
 
-  it("deletes credentials file when no services are configured", async () => {
+  it("deletes config file when no services are configured", async () => {
     const fs = createMemFs();
     const logs: string[] = [];
 
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
-      credentialsPath,
+      configPath,
       JSON.stringify({ apiKey: "test-key" }),
       { encoding: "utf8" }
     );
@@ -60,13 +60,13 @@ describe("logout command", () => {
 
     await program.parseAsync(["node", "cli", "logout"]);
 
-    await expect(fs.readFile(credentialsPath, "utf8")).rejects.toThrow();
+    await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
     expect(
       logs.some((line) => line.includes("Logged out."))
     ).toBe(true);
   });
 
-  it("unconfigures all configured services then deletes credentials", async () => {
+  it("unconfigures all configured services then deletes config", async () => {
     const fs = createMemFs();
     const logs: string[] = [];
     const unconfigureSpy = vi.fn();
@@ -93,7 +93,7 @@ describe("logout command", () => {
 
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
-      credentialsPath,
+      configPath,
       JSON.stringify({
         apiKey: "test-key",
         configured_services: {
@@ -110,7 +110,7 @@ describe("logout command", () => {
     await program.parseAsync(["node", "cli", "logout"]);
 
     expect(unconfigureSpy).toHaveBeenCalledTimes(1);
-    await expect(fs.readFile(credentialsPath, "utf8")).rejects.toThrow();
+    await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
     expect(
       logs.some((line) => line.includes("Logged out."))
     ).toBe(true);
@@ -122,7 +122,7 @@ describe("logout command", () => {
 
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
-      credentialsPath,
+      configPath,
       JSON.stringify({ apiKey: "test-key" }),
       { encoding: "utf8" }
     );
@@ -145,7 +145,7 @@ describe("logout command", () => {
 
     await program.parseAsync(["node", "cli", "--dry-run", "logout"]);
 
-    const raw = await fs.readFile(credentialsPath, "utf8");
+    const raw = await fs.readFile(configPath, "utf8");
     expect(JSON.parse(raw)).toEqual(
       expect.objectContaining({ apiKey: "test-key" })
     );
@@ -154,7 +154,7 @@ describe("logout command", () => {
     ).toBe(true);
   });
 
-  it("handles missing credentials file gracefully", async () => {
+  it("handles missing config file gracefully", async () => {
     const fs = createMemFs();
     const logs: string[] = [];
 

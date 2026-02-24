@@ -422,9 +422,9 @@ describe("research command", () => {
 
   it("uses configured agent when --yes and no agent provided", async () => {
     const fs = createMemFs();
-    const credentialsPath = path.join(homeDir, ".poe-code", "credentials.json");
+    const configPath = path.join(homeDir, ".poe-code", "config.json");
     await fs.writeFile(
-      credentialsPath,
+      configPath,
       JSON.stringify({ configured_services: { codex: { files: [] } } }),
       { encoding: "utf8" }
     );

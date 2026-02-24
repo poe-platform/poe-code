@@ -1,7 +1,7 @@
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../cli/http.js";
 import { AuthenticationError } from "../cli/errors.js";
-import { loadCredentials } from "./credentials.js";
+import { loadConfig } from "./config.js";
 import { createPoeClient } from "./llm-client.js";
 import type { LlmClient } from "./llm-client.js";
 
@@ -24,7 +24,7 @@ export function hasGlobalClient(): boolean {
 
 export async function initializeClient(options: {
   fs: FileSystem;
-  credentialsPath: string;
+  configPath: string;
   baseUrl: string;
   httpClient?: HttpClient;
 }): Promise<void> {
@@ -33,9 +33,9 @@ export async function initializeClient(options: {
     return;
   }
 
-  const apiKey = await loadCredentials({
+  const apiKey = await loadConfig({
     fs: options.fs,
-    filePath: options.credentialsPath
+    filePath: options.configPath
   });
   if (!apiKey) {
     throw new AuthenticationError(

@@ -11,7 +11,7 @@ import {
 import { OperationCancelledError } from "../errors.js";
 
 const serviceSelectionPrompt = (action: string) => `Pick an agent to ${action}:`;
-import { saveConfiguredService } from "../../services/credentials.js";
+import { saveConfiguredService } from "../../services/config.js";
 import {
   combineMutationObservers,
   createMutationReporter
@@ -115,7 +115,7 @@ export async function executeConfigure(
     if (!flags.dryRun) {
       await saveConfiguredService({
         fs: container.fs,
-        filePath: providerContext.env.credentialsPath,
+        filePath: providerContext.env.configPath,
         service: canonicalService,
         metadata: {
           files: tracker.files()

@@ -7,6 +7,7 @@ import { ApiError } from "../errors.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
+const configPath = `${homeDir}/.poe-code/config.json`;
 const credentialsPath = `${homeDir}/.poe-code/credentials.json`;
 
 function createMemfs(): FileSystem {
@@ -15,25 +16,26 @@ function createMemfs(): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
-function createCredentialsVolume(input: {
+function createConfigVolume(input: {
   apiKey?: string;
   configuredServices?: Record<string, { files: string[] }>;
 }): FileSystem {
   const volume = new Volume();
   volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
 
-  const document: Record<string, unknown> = {};
-  if (input.apiKey) {
-    document.apiKey = input.apiKey;
-  }
   if (input.configuredServices) {
-    document.configured_services = input.configuredServices;
+    volume.writeFileSync(
+      configPath,
+      `${JSON.stringify({ configured_services: input.configuredServices }, null, 2)}\n`
+    );
   }
 
-  volume.writeFileSync(
-    credentialsPath,
-    `${JSON.stringify(document, null, 2)}\n`
-  );
+  if (input.apiKey) {
+    volume.writeFileSync(
+      credentialsPath,
+      `${JSON.stringify({ apiKey: input.apiKey }, null, 2)}\n`
+    );
+  }
 
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
@@ -50,7 +52,7 @@ describe("auth command", () => {
   });
 
   it("shows logged-in status, balance, and configured agent", async () => {
-    fs = createCredentialsVolume({
+    fs = createConfigVolume({
       apiKey: "test-key",
       configuredServices: {
         "claude-code": { files: ["/tmp/settings.json"] }
@@ -87,7 +89,7 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Configured agents: claude-code"))).toBe(true);
   });
 
-  it("shows not logged in and no configured agents when no credentials exist", async () => {
+  it("shows not logged in and no configured agents when no config exists", async () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
@@ -105,7 +107,7 @@ describe("auth command", () => {
   });
 
   it("lists configured agents even when not logged in", async () => {
-    fs = createCredentialsVolume({
+    fs = createConfigVolume({
       configuredServices: {
         codex: { files: ["/tmp/config.toml"] }
       }
@@ -128,7 +130,7 @@ describe("auth command", () => {
   });
 
   it("skips balance API call in dry-run mode", async () => {
-    fs = createCredentialsVolume({
+    fs = createConfigVolume({
       apiKey: "test-key"
     });
 
@@ -149,7 +151,7 @@ describe("auth command", () => {
   });
 
   it("throws ApiError when balance request fails", async () => {
-    fs = createCredentialsVolume({
+    fs = createConfigVolume({
       apiKey: "test-key"
     });
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -173,7 +175,7 @@ describe("auth command", () => {
   });
 
   it("lists multiple configured agents", async () => {
-    fs = createCredentialsVolume({
+    fs = createConfigVolume({
       apiKey: "test-key",
       configuredServices: {
         codex: { files: ["/tmp/config.toml"] },
@@ -203,7 +205,7 @@ describe("auth command", () => {
   });
 
   it("runs status when auth is invoked without subcommand", async () => {
-    fs = createCredentialsVolume({
+    fs = createConfigVolume({
       apiKey: "test-key"
     });
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -231,7 +233,7 @@ describe("auth command", () => {
   });
 
   it("shows stored API key with auth api_key", async () => {
-    fs = createCredentialsVolume({
+    fs = createConfigVolume({
       apiKey: "stored-key"
     });
 

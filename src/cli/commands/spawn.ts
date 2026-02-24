@@ -11,7 +11,7 @@ import {
   type SpawnMode
 } from "@poe-code/agent-spawn";
 import { text, confirm, isCancel } from "@poe-code/design-system";
-import { loadConfiguredServices } from "../../services/credentials.js";
+import { loadConfiguredServices } from "../../services/config.js";
 import {
   createExecutionResources,
   resolveCommandFlags,
@@ -287,7 +287,7 @@ async function confirmUnconfiguredService(
 ): Promise<boolean> {
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
-    filePath: container.env.credentialsPath
+    filePath: container.env.configPath
   });
 
   if (service in configuredServices) {

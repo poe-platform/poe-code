@@ -6,7 +6,10 @@ import {
   resolveCommandFlags,
   applyIsolatedConfiguration
 } from "./shared.js";
-import { loadConfiguredServices } from "../../services/credentials.js";
+import {
+  loadConfiguredServices
+} from "../../services/credentials.js";
+import { ValidationError } from "../errors.js";
 import {
   combineMutationObservers,
   createMutationReporter
@@ -25,52 +28,86 @@ export function registerLoginCommand(
     .description("Store a Poe API key for reuse across commands.")
     .option("--api-key <key>", "Poe API key")
     .action(async (options: LoginCommandOptions) => {
-      const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(
-        container,
-        flags,
-        "login"
-      );
-
-      resources.logger.intro("login");
-
-      try {
-        const configuredServices = await loadConfiguredServices({
-          fs: container.fs,
-          filePath: container.env.credentialsPath
-        });
-
-        const apiKey = await container.options.resolveApiKey({
-          value: options.apiKey,
-          envValue: container.env.getVariable("POE_API_KEY"),
-          dryRun: flags.dryRun,
-          assumeYes: flags.assumeYes,
-          allowStored: false
-        });
-
-        await reconfigureServices({
-          program,
-          container,
-          apiKey,
-          configuredServices
-        });
-
-        resources.context.complete({
-          success: "Logged in.",
-          dry: "Dry run: would save API key."
-        });
-
-        resources.context.finalize();
-      } catch (error) {
-        if (error instanceof Error) {
-          resources.logger.logException(error, "login command", {
-            operation: "login",
-            credentialsPath: container.env.credentialsPath
-          });
-        }
-        throw error;
-      }
+      await executeLogin(program, container, options);
     });
+}
+
+export async function executeLogin(
+  program: Command,
+  container: CliContainer,
+  options: LoginCommandOptions
+): Promise<void> {
+  const flags = resolveCommandFlags(program);
+  const resources = createExecutionResources(
+    container,
+    flags,
+    "login"
+  );
+
+  resources.logger.intro("login");
+
+  try {
+    const input = await resolveApiKeyInput(container, options);
+    const normalized = container.options.normalizeApiKey(input);
+
+    const configuredServices = await loadConfiguredServices({
+      fs: container.fs,
+      filePath: container.env.credentialsPath
+    });
+
+    if (!flags.dryRun) {
+      await container.writeApiKey(normalized);
+    }
+
+    await reconfigureServices({
+      program,
+      container,
+      apiKey: normalized,
+      configuredServices
+    });
+
+    resources.context.complete({
+      success: "Logged in.",
+      dry: "Dry run: would save API key."
+    });
+
+    resources.context.finalize();
+  } catch (error) {
+    if (error instanceof Error) {
+      resources.logger.logException(error, "login command", {
+        operation: "login",
+        credentialsPath: container.env.credentialsPath
+      });
+    }
+    throw error;
+  }
+}
+
+async function resolveApiKeyInput(
+  container: CliContainer,
+  options: LoginCommandOptions
+): Promise<string> {
+  if (options.apiKey) {
+    return options.apiKey;
+  }
+
+  const envKey = container.env.getVariable("POE_API_KEY");
+  if (envKey && envKey.trim().length > 0) {
+    return envKey;
+  }
+
+  const descriptor = container.promptLibrary.loginApiKey();
+  const response = await container.prompts(descriptor);
+  const value = response[descriptor.name];
+
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new ValidationError("POE API key is required.", {
+      operation: "login",
+      field: "apiKey"
+    });
+  }
+
+  return value;
 }
 
 interface ReconfigureServicesInput {

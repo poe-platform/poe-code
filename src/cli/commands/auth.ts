@@ -104,12 +104,13 @@ async function executeStatus(
 
     if (configuredAgentNames.length === 0) {
       resources.logger.info("No agents configured.");
-      return;
+    } else {
+      resources.logger.info(
+        `Configured agents: ${configuredAgentNames.join(", ")}`
+      );
     }
 
-    resources.logger.info(
-      `Configured agents: ${configuredAgentNames.join(", ")}`
-    );
+    resources.context.finalize();
   } catch (error) {
     if (error instanceof Error) {
       resources.logger.logException(error, "auth status", {

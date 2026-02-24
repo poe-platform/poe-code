@@ -4,11 +4,29 @@ import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { CommandRunner } from "../../utils/command-checks.js";
 import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace } from "../constants.js";
+import { createAuthStore } from "@poe-code/auth";
 
 function createMemfs(homeDir: string): FileSystem {
   const volume = new Volume();
   volume.mkdirSync(homeDir, { recursive: true });
   return createFsFromVolume(volume).promises as unknown as FileSystem;
+}
+
+function readStoredApiKey(fs: FileSystem, homeDir: string): Promise<string | null> {
+  const authFs = {
+    readFile: (filePath: string, encoding: BufferEncoding) => fs.readFile(filePath, encoding),
+    writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, opts?: { encoding?: BufferEncoding }) =>
+      fs.writeFile(filePath, data, opts),
+    mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
+      fs.mkdir(directoryPath, opts).then(() => undefined),
+    unlink: (filePath: string) => fs.unlink(filePath),
+    chmod: (filePath: string, mode: number) =>
+      fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()
+  };
+  const { store } = createAuthStore({
+    fileStore: { fs: authFs, getHomeDirectory: () => homeDir }
+  });
+  return store.getApiKey();
 }
 
 describe("login command", () => {
@@ -52,10 +70,8 @@ describe("login command", () => {
       "test-key"
     ]);
 
-    const raw = await fs.readFile(credentialsPath, "utf8");
-    expect(JSON.parse(raw)).toEqual(
-      expect.objectContaining({ apiKey: "test-key" })
-    );
+    const storedKey = await readStoredApiKey(fs, homeDir);
+    expect(storedKey).toBe("test-key");
     expect(prompts).not.toHaveBeenCalled();
     expect(
       logs.some((message) => message.includes("Logged in."))
@@ -89,10 +105,8 @@ describe("login command", () => {
 
     await program.parseAsync(["node", "cli", "login"]);
 
-    const raw = await fs.readFile(credentialsPath, "utf8");
-    expect(JSON.parse(raw)).toEqual(
-      expect.objectContaining({ apiKey: "env-key" })
-    );
+    const storedKey = await readStoredApiKey(fs, homeDir);
+    expect(storedKey).toBe("env-key");
     expect(prompts).not.toHaveBeenCalled();
   });
 
@@ -117,10 +131,8 @@ describe("login command", () => {
 
     await program.parseAsync(["node", "cli", "login", "--api-key", "flag-key"]);
 
-    const raw = await fs.readFile(credentialsPath, "utf8");
-    expect(JSON.parse(raw)).toEqual(
-      expect.objectContaining({ apiKey: "flag-key" })
-    );
+    const storedKey = await readStoredApiKey(fs, homeDir);
+    expect(storedKey).toBe("flag-key");
     expect(prompts).not.toHaveBeenCalled();
   });
 
@@ -146,10 +158,8 @@ describe("login command", () => {
 
     await program.parseAsync(["node", "cli", "login"]);
 
-    const stored = await fs.readFile(credentialsPath, "utf8");
-    expect(JSON.parse(stored)).toEqual(
-      expect.objectContaining({ apiKey: "prompt-key" })
-    );
+    const storedKey = await readStoredApiKey(fs, homeDir);
+    expect(storedKey).toBe("prompt-key");
     expect(prompts).toHaveBeenCalledTimes(1);
     const [descriptor] = prompts.mock.calls[0]!;
     expect(descriptor.message).toContain("Poe API key");
@@ -243,7 +253,8 @@ describe("login command", () => {
       "dry-key"
     ]);
 
-    await expect(fs.readFile(credentialsPath, "utf8")).rejects.toThrow();
+    const storedKey = await readStoredApiKey(fs, homeDir);
+    expect(storedKey).toBeNull();
     expect(
       logs.some((message) =>
         message.includes("Dry run: would save API key.")

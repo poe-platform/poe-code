@@ -70,10 +70,12 @@ describe("root command", () => {
     expect(plainOutput).toContain("mcp configure");
     expect(plainOutput).toContain("mcp unconfigure");
     expect(plainOutput).toContain("mcp serve");
+    expect(plainOutput).toContain("login");
     expect(plainOutput).toContain("auth status");
-    expect(plainOutput).toContain("auth api_key");
-    expect(plainOutput).toContain("auth login");
-    expect(plainOutput).toContain("auth logout");
+    expect(plainOutput).not.toContain("auth api_key");
+    expect(plainOutput).not.toContain("auth login");
+    expect(plainOutput).not.toContain("auth logout");
+    expect(plainOutput).not.toContain("research");
     expect(plainOutput).toContain("[agent]");
     expect(plainOutput).toContain("<agent>");
     expect(plainOutput).toContain("skill configure");

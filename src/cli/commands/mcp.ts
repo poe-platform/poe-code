@@ -212,13 +212,13 @@ async function runMcpServer(
 
   const apiKey = await container.readApiKey();
   if (!apiKey) {
-    process.stderr.write("No credentials found. Run 'poe-code login' first.\n");
+    process.stderr.write("No API key found. Run 'poe-code login' first.\n");
     process.exit(1);
   }
 
   await initializeClient({
     fs: container.fs,
-    credentialsPath: container.env.credentialsPath,
+    configPath: container.env.configPath,
     baseUrl: container.env.poeApiBaseUrl,
     httpClient: container.httpClient
   });

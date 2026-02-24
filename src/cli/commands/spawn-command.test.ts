@@ -1112,14 +1112,14 @@ describe("spawn command", () => {
   });
 
   describe("unconfigured service warning", () => {
-    const credentialsPath = `${homeDir}/.poe-code/credentials.json`;
+    const configPath = `${homeDir}/.poe-code/config.json`;
 
     async function writeConfiguredServices(
       fileSystem: FileSystem,
       services: Record<string, { files: string[] }>
     ): Promise<void> {
       await fileSystem.writeFile(
-        credentialsPath,
+        configPath,
         JSON.stringify({ configured_services: services }),
         { encoding: "utf8" }
       );

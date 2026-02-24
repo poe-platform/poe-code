@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import type { ProviderContext } from "../service-registry.js";
-import { unconfigureService } from "../../services/credentials.js";
+import { unconfigureService } from "../../services/config.js";
 import { createMutationReporter } from "../../services/mutation-events.js";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
 import {
@@ -112,7 +112,7 @@ export async function executeUnconfigure(
   if (!flags.dryRun) {
     await unconfigureService({
       fs: container.fs,
-      filePath: providerContext.env.credentialsPath,
+      filePath: providerContext.env.configPath,
       service: canonicalService
     });
   }

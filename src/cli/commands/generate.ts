@@ -274,7 +274,7 @@ async function resolveClient(container: CliContainer): Promise<LlmClient> {
     const apiBaseUrl = resolveApiBaseUrl(container);
     await initializeClient({
       fs: container.fs,
-      credentialsPath: container.env.credentialsPath,
+      configPath: container.env.configPath,
       baseUrl: apiBaseUrl,
       httpClient: container.httpClient
     });

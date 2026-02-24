@@ -5,6 +5,14 @@
 The Poe agent runtime existed as a full sub-system and was later removed as part of beta workspace cleanup.  
 The goal is to restore that runtime as a standalone package, `@poe-code/poe-agent`, and integrate it into the current provider-based architecture without reintroducing interactive flows.
 
+Hard requirement: the restored agent must be ACP compliant.
+
+Execution order is strict:
+
+1. Implement custom ACP-compliant `@poe-code/poe-agent`.
+2. Implement custom ACP client/reporting.
+3. Only then consider other coding agents/clients.
+
 This document captures the recovered architecture from git history and defines how to bring it back in a way that fits the current codebase.
 
 ## Historical removal and source baseline
@@ -61,34 +69,62 @@ The deleted system had five layers:
 1. Command surface
 2. Session/runtime orchestration
 3. Chat + tool-calling engine
-4. Tool execution + worktree/async task execution
+4. Tool execution + worktree execution
 5. Agent registry/config and adapter dispatch
 
 The important architectural property was that sub-agent execution was adapter-driven, not hardcoded at callsites.
 
 ## Runtime flow
 
-The core runtime flow was:
+The target runtime flow is:
 
 1. CLI command (`agent` or spawn handler) resolves model/api key and creates session.
 2. Session constructs:
    - MCP manager
-   - task registry
    - agent registry + agent config manager
    - tool executor
    - chat service
 3. Chat service sends a Poe API chat completion request.
 4. If tool calls are returned, each tool is executed and tool outputs are appended back into conversation history.
-5. If background tasks are spawned, task registry tracks lifecycle and completed summaries are injected into later context.
-6. Final assistant message is returned to CLI caller.
+5. Final assistant message is returned to CLI caller.
 
-That behavior is what must be preserved.
+Explicit target constraint:
+
+- no async/background spawn path
+- no detached task lifecycle methods (`waitForAllTasks`, `drainCompletedTasks`) in restored runtime
+
+## ACP compliance contract
+
+The restored runtime must emit ACP-native updates as the public stream contract.
+
+Protocol references:
+
+- schema: `agentclientprotocol/agent-client-protocol` `schema/schema.json`
+- protocol docs: prompt turn, tool calls, content, plan, session config options
+
+Required output model:
+
+- `sessionUpdate` discriminator, not custom event-only vocabulary
+- ACP tool kinds/statuses (`execute`, `pending|in_progress|completed|failed`)
+- ACP content/tool-call structures
+- `_meta` treated as extensibility space
+
+Transport-only metadata may still exist as extension events, but ACP updates are the primary contract.
+
+Required `sessionUpdate` coverage:
+
+- stable: `user_message_chunk`, `agent_message_chunk`, `agent_thought_chunk`, `tool_call`, `tool_call_update`, `plan`, `available_commands_update`, `current_mode_update`, `config_option_update`
+- unstable (supported when data exists): `session_info_update`, `usage_update`
+
+Scope constraint:
+
+- no rollout to other existing coding agents in this implementation
 
 ## Detailed subsystem decomposition
 
 ### 1) Command surface
 
-`agent.ts` was a one-shot non-streaming command with explicit model/api-key options and deterministic post-run task draining.  
+`agent.ts` was a one-shot non-streaming command with explicit model/api-key options (historically with post-run task draining).  
 `spawn-handlers.ts` provided a custom spawn service handler for the built-in Poe agent path, so `spawn poe-code ...` could reuse the same conversation runtime.
 
 Architectural value:
@@ -99,11 +135,16 @@ Architectural value:
 ### 2) Session orchestration
 
 `agent-session.ts` was the composition root.  
-It assembled all runtime dependencies and returned a stable session contract:
+Historically it assembled all runtime dependencies and returned:
 
 - `sendMessage`
 - `waitForAllTasks`
 - `drainCompletedTasks`
+- `dispose`
+
+Target session contract in restored runtime:
+
+- `sendMessage`
 - `dispose`
 
 Architectural value:
@@ -133,8 +174,7 @@ Architectural value:
 
 - built-ins (`read_file`, `write_file`, `list_files`, `run_command`, `search_web`, `spawn_git_worktree`)
 - managed command handling for known adapters
-- sync and async worktree execution
-- background process spawn and task logging
+- synchronous worktree/tool execution only
 - dynamic tool schema generation from enabled agent config
 
 Architectural value:
@@ -168,8 +208,6 @@ Proposed internal structure:
 - `src/runtime/agent-session.ts`
 - `src/runtime/chat.ts`
 - `src/runtime/tools.ts`
-- `src/runtime/agent-task-registry.ts`
-- `src/runtime/task-runner.ts`
 - `src/runtime/agent-registry.ts`
 - `src/runtime/agent-config-manager.ts`
 - `src/runtime/spawn-poe-agent.ts`
@@ -197,23 +235,42 @@ That means:
 Historical `configure agents` interactive flow should not be restored as interactive behavior.
 If agent toggling is needed, it should be file/flag-driven and scriptable.
 
-## Migration approach
+## Build order
 
-Restoration should happen in this order:
+Implementation order:
 
-1. Port runtime internals from `3e97549^` into `packages/poe-agent`.
-2. Normalize imports and boundaries so package is self-contained.
-3. Enforce non-interactive behavior where historical code relied on prompts.
+1. Port runtime internals from `3e97549^` into `packages/poe-agent`, excluding async background task runtime pieces.
+2. Add ACP-compliant stream layer inside `packages/poe-agent`.
+3. Enforce synchronous-only execution (no detached/background task spawn).
 4. Integrate through new provider file.
-5. Re-add optional one-shot `agent` command if still desired.
-6. Port and adapt tests for runtime parity and current architecture.
+5. Port and adapt tests for runtime parity and ACP conformance.
+6. Build custom ACP client/reporting layer.
+
+## ACP client/reporting deliverable
+
+The ACP client is a concrete build target, not a placeholder.
+
+Required definition:
+
+- package: `packages/poe-acp-client` (`@poe-code/poe-acp-client`)
+- input: ACP stream (`SessionUpdate` + transport extension events)
+- outputs:
+  - structured JSON run report
+  - human-readable summary report
+- minimum report fields:
+  - run id, start/end timestamps, exit status
+  - tool calls (id, kind, status, timings)
+  - token/cost usage aggregates
+  - error list with ACP context
+- storage location: `~/.poe-code/reports/` (timestamped files)
 
 ## Testing posture
 
 Coverage should preserve the old behavior contracts while fitting current test standards:
 
 - unit tests for config manager, tool schema generation, and command runtime logic
-- task registry behavior tests (wait/drain/lifecycle)
+- ACP stream conformance tests (stable + unstable updates)
+- synchronous-only enforcement tests (no detached/background task path)
 - integration tests for `spawn poe-agent`
 - e2e for spawn/configure-adjacent changes before completion
 - visual CLI verification with screenshot tooling for affected command surfaces
@@ -231,12 +288,12 @@ Control: integrate only through provider registration and standard spawn path.
 Risk: interactive behavior leaks back in.  
 Control: explicit non-interactive tests and command-path assertions.
 
-Risk: async task regressions (zombie tasks, missing completion summaries).  
-Control: preserve task registry semantics and port lifecycle-focused tests.
+Risk: async/background spawn path is reintroduced unintentionally.  
+Control: explicit tests and code-level guardrails that reject detached/background execution.
 
 ## Decision
 
-Restore as a package-owned runtime (`@poe-code/poe-agent`) with provider-driven integration, using `3e97549^` as the canonical source snapshot, and enforce non-interactive behavior as a first-class architectural constraint.
+Implement a synchronous, ACP-compliant `@poe-code/poe-agent` first, then implement custom ACP client/reporting, and only after both are complete consider broader rollout to other agents/clients.
 
 ## Deep code-level contract map
 
@@ -303,8 +360,8 @@ Exports:
 Role:
 
 - composition root
-- builds MCP manager, task registry, tool executor, chat service
-- enforces lifecycle (`waitForAllTasks`, `drainCompletedTasks`, `dispose`)
+- builds MCP manager, tool executor, chat service
+- enforces lifecycle (`sendMessage`, `dispose`)
 
 ### `beta/src/services/chat.ts` (392 lines)
 
@@ -339,7 +396,6 @@ Role:
 
 - execution engine for built-in tools + MCP pass-through
 - dynamic worktree spawn orchestration
-- background task process creation and task metadata streaming
 - dynamic tool schema generation using agent config state
 
 Core methods (must remain behaviorally equivalent):
@@ -347,44 +403,9 @@ Core methods (must remain behaviorally equivalent):
 - `executeTool`
 - file tools: `readFile`, `writeFile`, `listFiles`
 - command tools: `runCommand`, `executeManagedCommand`, `executeExternalCommand`
-- worktree: `spawnGitWorktreeTool`, `executeWorktreeSynchronously`, `createBackgroundSpawner`
+- worktree: `spawnGitWorktreeTool`, `executeWorktreeSynchronously`
 - agent gating: `resolveAgent`, `parseWorktreeArgs`
 - schema: `getAvailableTools` with dynamic enum/description
-
-### `beta/src/services/agent-task-registry.ts` (633 lines)
-
-Exports:
-
-- `AgentTask`, `ProgressUpdate`, `FsLike`, `AgentTaskRegistryOptions`
-- `AgentTaskRegistry`
-
-Role:
-
-- persistent task state store and event queue
-- progress file ingestion (`*.progress.jsonl`)
-- completion queue and lifecycle notifications
-- zombie process detection and cleanup
-- retention/archive policy
-
-Task data shape:
-
-- identity: `id`, `toolName`, `args`
-- runtime: `status`, `startTime`, `endTime`, `pid`, `command`
-- artifacts: `logFile`, `progressFile`
-- outcomes: `result`, `error`
-
-### `beta/src/services/task-runner.ts` (209 lines)
-
-Exports:
-
-- `TaskRunnerOptions`
-- `runTask(options)`
-
-Role:
-
-- child-process entrypoint for running registered tasks
-- writes progress + final state through task registry and logger
-- parses `--payload` runner envelope
 
 ### `beta/src/cli/commands/agent.ts` (118 lines)
 
@@ -400,7 +421,7 @@ Role:
 
 - user-facing one-shot command
 - session lifecycle wrapper
-- task wait/drain completion reporting
+- completion reporting
 
 ### `beta/src/cli/spawn-handlers.ts` (63 lines)
 
@@ -436,9 +457,9 @@ These are architecture-level invariants, not implementation trivia.
    - enabled/disabled agent state must affect both schema and execution
    - disabled agent must fail clearly at runtime
 
-3. Stable task lifecycle
-   - register -> update -> completion enqueue -> drain
-   - no silent dropping of failed/terminated tasks
+3. Synchronous execution only
+   - no detached/background spawn path
+   - tool execution completes within turn lifecycle
 
 4. Bounded tool-call iteration
    - chat engine cannot loop indefinitely on recursive tool plans
@@ -455,7 +476,6 @@ These are architecture-level invariants, not implementation trivia.
 CLI agent command
   -> createAgentSession
     -> McpManager.connectAll
-    -> AgentTaskRegistry(init)
     -> AgentConfigManager.loadConfig
     -> DefaultToolExecutor(init)
     -> PoeChatService(init)
@@ -463,8 +483,6 @@ CLI agent command
     -> Poe API chat completion
     -> tool calls? yes -> executor.executeTool(...) loop
     -> final assistant message
-  -> session.waitForAllTasks()
-  -> session.drainCompletedTasks()
   -> session.dispose()
 ```
 
@@ -475,9 +493,7 @@ PoeChatService tool call: spawn_git_worktree
   -> DefaultToolExecutor.spawnGitWorktreeTool
     -> parseWorktreeArgs
     -> resolveAgent (registry + config gate)
-    -> sync path: executeWorktreeSynchronously(...)
-       or
-    -> async path: taskRegistry.registerTask + background runner process
+    -> executeWorktreeSynchronously(...)
 ```
 
 ## Old-to-new file mapping (port blueprint)
@@ -487,14 +503,17 @@ Old source (`3e97549^`) -> New target (`@poe-code/poe-agent`)
 - `beta/src/services/agent-session.ts` -> `packages/poe-agent/src/runtime/agent-session.ts`
 - `beta/src/services/chat.ts` -> `packages/poe-agent/src/runtime/chat.ts`
 - `beta/src/services/tools.ts` -> `packages/poe-agent/src/runtime/tools.ts`
-- `beta/src/services/agent-task-registry.ts` -> `packages/poe-agent/src/runtime/agent-task-registry.ts`
-- `beta/src/services/task-runner.ts` -> `packages/poe-agent/src/runtime/task-runner.ts`
 - `beta/src/services/agent-registry.ts` -> `packages/poe-agent/src/runtime/agent-registry.ts`
 - `beta/src/services/agent-config-manager.ts` -> `packages/poe-agent/src/runtime/agent-config-manager.ts`
 - `beta/src/services/poe-code.ts` -> `packages/poe-agent/src/runtime/spawn-poe-agent.ts`
 - `beta/src/cli/commands/agent.ts` logic -> either:
   - `packages/poe-agent/src/entrypoints/run-agent-command.ts`, or
   - retained as root CLI command delegating into package API
+
+Intentionally not ported in restored target:
+
+- `beta/src/services/agent-task-registry.ts`
+- `beta/src/services/task-runner.ts`
 
 ## Integration boundaries with current code
 
@@ -520,5 +539,6 @@ These are acceptable architecture deltas:
 1. Remove interactive `configure agents` UI behavior.
 2. Keep all execution entrypoints non-interactive.
 3. Rename legacy `poe-code` adapter naming where it improves clarity (`poe-agent` naming), while preserving semantics.
+4. Remove async background task runtime (`agent-task-registry`, `task-runner`) from the restored target.
 
 Everything else should default to parity with `3e97549^` unless a test or architectural constraint forces change.

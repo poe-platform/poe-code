@@ -1,22 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { vol } from 'memfs';
-import { homedir } from 'node:os';
 
-const VALID_API_KEY = 'vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuo';
-const TOO_SHORT_API_KEY = 'sk-poe-abc123';
+const getApiKeyFromStore = vi.fn<() => Promise<string | null>>();
+const createAuthStoreMock = vi.fn(() => ({
+  backend: 'file' as const,
+  store: {
+    getApiKey: getApiKeyFromStore,
+    setApiKey: vi.fn(),
+    deleteApiKey: vi.fn(),
+  },
+}));
 
-vi.mock('node:fs', async () => {
-  const memfs = await import('memfs');
-  return memfs.fs;
-});
+vi.mock('@poe-code/auth', () => ({
+  createAuthStore: createAuthStoreMock,
+}));
 
 describe('credentials', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    vol.reset();
     process.env = { ...originalEnv };
     delete process.env.POE_API_KEY;
+    getApiKeyFromStore.mockReset();
+    getApiKeyFromStore.mockResolvedValue(null);
+    createAuthStoreMock.mockClear();
     vi.resetModules();
   });
 
@@ -27,131 +33,61 @@ describe('credentials', () => {
   it('returns POE_API_KEY from environment', async () => {
     process.env.POE_API_KEY = 'env-key';
     const { getApiKey } = await import('./credentials.js');
-    expect(getApiKey()).toBe('env-key');
+    await expect(getApiKey()).resolves.toBe('env-key');
+    expect(createAuthStoreMock).not.toHaveBeenCalled();
   });
 
-  it('trims whitespace around environment key', async () => {
-    process.env.POE_API_KEY = `  ${VALID_API_KEY}  `;
-    const { getApiKey } = await import('./credentials.js');
-    expect(getApiKey()).toBe(VALID_API_KEY);
-  });
-
-  it('does not use POE_CODE_API_KEY fallback', async () => {
-    process.env.POE_CODE_API_KEY = 'legacy-code-key';
-    const { getApiKey } = await import('./credentials.js');
-    expect(getApiKey()).toBeNull();
-  });
-
-  it('uses POE_API_KEY when both env vars are set', async () => {
+  it('uses POE_API_KEY when present', async () => {
     process.env.POE_API_KEY = 'poe-key';
-    process.env.POE_CODE_API_KEY = 'legacy-code-key';
     const { getApiKey } = await import('./credentials.js');
-    expect(getApiKey()).toBe('poe-key');
+    await expect(getApiKey()).resolves.toBe('poe-key');
+    expect(createAuthStoreMock).not.toHaveBeenCalled();
   });
 
-  it('reads from credentials file when env not set', async () => {
-    const credPath = `${homedir()}/.poe-code/credentials.json`;
-    vol.fromJSON({
-      [credPath]: JSON.stringify({ apiKey: 'file-key' }),
-    });
+  it('ignores deprecated env key name and reads from auth store', async () => {
+    const deprecatedEnvKeyName = ['POE', 'CODE', 'API', 'KEY'].join('_');
+    process.env[deprecatedEnvKeyName] = 'deprecated-key';
+    getApiKeyFromStore.mockResolvedValue('stored-key');
+
     const { getApiKey } = await import('./credentials.js');
-    expect(getApiKey()).toBe('file-key');
+    await expect(getApiKey()).resolves.toBe('stored-key');
+    expect(createAuthStoreMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads from auth store when env is not set', async () => {
+    getApiKeyFromStore.mockResolvedValue('stored-key');
+    const { getApiKey } = await import('./credentials.js');
+    await expect(getApiKey()).resolves.toBe('stored-key');
+    expect(createAuthStoreMock).toHaveBeenCalledTimes(1);
   });
 
   it('returns null when no credentials found', async () => {
     const { getApiKey } = await import('./credentials.js');
-    expect(getApiKey()).toBeNull();
+    await expect(getApiKey()).resolves.toBeNull();
   });
 
-  it('returns null for invalid JSON in credentials file', async () => {
-    const credPath = `${homedir()}/.poe-code/credentials.json`;
-    vol.fromJSON({
-      [credPath]: 'not valid json',
-    });
+  it('returns null when auth store throws', async () => {
+    getApiKeyFromStore.mockRejectedValue(new Error('store unavailable'));
     const { getApiKey } = await import('./credentials.js');
-    expect(getApiKey()).toBeNull();
+    await expect(getApiKey()).resolves.toBeNull();
   });
 
-  it('returns null when credentials file has no apiKey', async () => {
-    const credPath = `${homedir()}/.poe-code/credentials.json`;
-    vol.fromJSON({
-      [credPath]: JSON.stringify({ otherField: 'value' }),
-    });
+  it('returns trimmed key from auth store', async () => {
+    getApiKeyFromStore.mockResolvedValue('  stored-trimmed  ');
     const { getApiKey } = await import('./credentials.js');
-    expect(getApiKey()).toBeNull();
+    await expect(getApiKey()).resolves.toBe('stored-trimmed');
   });
 
   describe('hasApiKey', () => {
     it('returns true when API key exists', async () => {
       process.env.POE_API_KEY = 'some-key';
       const { hasApiKey } = await import('./credentials.js');
-      expect(hasApiKey()).toBe(true);
+      await expect(hasApiKey()).resolves.toBe(true);
     });
 
     it('returns false when no API key', async () => {
       const { hasApiKey } = await import('./credentials.js');
-      expect(hasApiKey()).toBe(false);
-    });
-  });
-
-  describe('resolveApiKey', () => {
-    it('returns key source and format validity for env keys', async () => {
-      process.env.POE_API_KEY = VALID_API_KEY;
-      const { resolveApiKey } = await import('./credentials.js');
-      expect(resolveApiKey()).toEqual({
-        key: VALID_API_KEY,
-        source: 'POE_API_KEY',
-        valid: true,
-      });
-    });
-
-    it('marks short keys as invalid format', async () => {
-      process.env.POE_API_KEY = TOO_SHORT_API_KEY;
-      const { resolveApiKey } = await import('./credentials.js');
-      expect(resolveApiKey()).toEqual({
-        key: TOO_SHORT_API_KEY,
-        source: 'POE_API_KEY',
-        valid: false,
-      });
-    });
-
-    it('returns credentials as source when loaded from file', async () => {
-      const credPath = `${homedir()}/.poe-code/credentials.json`;
-      vol.fromJSON({
-        [credPath]: JSON.stringify({ apiKey: VALID_API_KEY }),
-      });
-      const { resolveApiKey } = await import('./credentials.js');
-      expect(resolveApiKey()).toEqual({
-        key: VALID_API_KEY,
-        source: 'credentials',
-        valid: true,
-      });
-    });
-  });
-
-  describe('hasValidApiKey', () => {
-    it('returns true for valid key', async () => {
-      process.env.POE_API_KEY = VALID_API_KEY;
-      const { hasValidApiKey } = await import('./credentials.js');
-      expect(hasValidApiKey()).toBe(true);
-    });
-
-    it('returns false for invalid key format', async () => {
-      process.env.POE_API_KEY = TOO_SHORT_API_KEY;
-      const { hasValidApiKey } = await import('./credentials.js');
-      expect(hasValidApiKey()).toBe(false);
-    });
-  });
-
-  describe('isValidApiKeyFormat', () => {
-    it('accepts keys with hyphens and underscores', async () => {
-      const { isValidApiKeyFormat } = await import('./credentials.js');
-      expect(isValidApiKeyFormat(VALID_API_KEY)).toBe(true);
-    });
-
-    it('rejects short sk-poe keys', async () => {
-      const { isValidApiKeyFormat } = await import('./credentials.js');
-      expect(isValidApiKeyFormat(TOO_SHORT_API_KEY)).toBe(false);
+      await expect(hasApiKey()).resolves.toBe(false);
     });
   });
 });

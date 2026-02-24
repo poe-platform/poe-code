@@ -11,6 +11,7 @@ import { registerResearchCommand } from "./commands/research.js";
 import { registerWrapCommand } from "./commands/wrap.js";
 import { registerLoginCommand } from "./commands/login.js";
 import { registerLogoutCommand } from "./commands/logout.js";
+import { registerAuthCommand } from "./commands/auth.js";
 import { registerInstallCommand } from "./commands/install.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
@@ -65,6 +66,26 @@ function formatHelpText(input: {
         name: "logout",
         args: "",
         description: "Remove all configuration and stored credentials"
+      },
+      {
+        name: "auth status",
+        args: "",
+        description: "Show login, balance, and configuration status"
+      },
+      {
+        name: "auth api_key",
+        args: "",
+        description: "Display stored API key"
+      },
+      {
+        name: "auth login",
+        args: "",
+        description: "Store a Poe API key"
+      },
+      {
+        name: "auth logout",
+        args: "",
+        description: "Remove all configuration and credentials"
       },
       {
         name: "spawn",
@@ -301,6 +322,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerUnconfigureCommand(program, container);
   registerLoginCommand(program, container);
   registerLogoutCommand(program, container);
+  registerAuthCommand(program, container);
   registerMcpCommand(program, container);
   registerSkillCommand(program, container);
   registerRalphCommand(program, container);

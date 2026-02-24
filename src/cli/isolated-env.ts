@@ -12,7 +12,6 @@ import type {
   ProviderIsolatedEnv
 } from "./service-registry.js";
 import type { CliSettings } from "../utils/cli-settings-merge.js";
-import { loadCredentials } from "../services/credentials.js";
 
 export interface IsolatedEnvDetails {
   agentBinary: string;
@@ -24,7 +23,7 @@ export async function resolveIsolatedEnvDetails(
   env: CliEnvironment,
   isolated: ProviderIsolatedEnv,
   providerName?: string,
-  fs?: FileSystem
+  readApiKey?: () => Promise<string | null>
 ): Promise<IsolatedEnvDetails> {
   if (!providerName) {
     throw new Error("resolveIsolatedEnvDetails requires providerName.");
@@ -38,7 +37,7 @@ export async function resolveIsolatedEnvDetails(
   }
   return {
     agentBinary: isolated.agentBinary,
-    env: await resolveIsolatedEnvVars(env, baseDir, isolated.env, fs),
+    env: await resolveIsolatedEnvVars(env, baseDir, isolated.env, readApiKey),
     configProbePath: isolated.configProbe
       ? resolveIsolatedEnvPath(env, baseDir, isolated.configProbe)
       : undefined
@@ -84,11 +83,11 @@ async function resolveIsolatedEnvVars(
   env: CliEnvironment,
   baseDir: string,
   vars: Record<string, IsolatedEnvValue>,
-  fs?: FileSystem
+  readApiKey?: () => Promise<string | null>
 ): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(vars)) {
-    out[key] = await resolveIsolatedEnvValue(env, baseDir, value, fs);
+    out[key] = await resolveIsolatedEnvValue(env, baseDir, value, readApiKey);
   }
   return out;
 }
@@ -97,7 +96,7 @@ async function resolveIsolatedEnvValue(
   env: CliEnvironment,
   baseDir: string,
   value: IsolatedEnvValue,
-  fs?: FileSystem
+  readApiKey?: () => Promise<string | null>
 ): Promise<string> {
   if (typeof value === "string") {
     return expandHomeShortcut(env, value);
@@ -116,12 +115,12 @@ async function resolveIsolatedEnvValue(
     if (typeof resolved === "string" && resolved.trim().length > 0) {
       return resolved;
     }
-    if (!fs) {
+    if (!readApiKey) {
       throw new Error(
         'Missing Poe API key for isolated wrapper. Set "POE_API_KEY" or run "poe-code login".'
       );
     }
-    return await resolvePoeApiKeyFromCredentials({ fs, env });
+    return await resolvePoeApiKeyFromAuthStore(readApiKey);
   }
   if (isPoeBaseUrlReference(value)) {
     return env.poeBaseUrl;
@@ -161,13 +160,10 @@ function isPoeBaseUrlReference(
   return typeof value === "object" && value.kind === "poeBaseUrl";
 }
 
-async function resolvePoeApiKeyFromCredentials(input: {
-  fs: FileSystem;
-  env: CliEnvironment;
-}): Promise<string> {
-  const stored =
-    (await loadCredentials({ fs: input.fs, filePath: input.env.credentialsPath })) ??
-    undefined;
+async function resolvePoeApiKeyFromAuthStore(
+  readApiKey: () => Promise<string | null>
+): Promise<string> {
+  const stored = await readApiKey();
   if (typeof stored !== "string" || stored.trim().length === 0) {
     throw new Error(
       'Missing Poe API key for isolated wrapper. Set "POE_API_KEY" or run "poe-code login".'
@@ -226,14 +222,14 @@ export async function applyIsolatedEnvRepairs(input: {
 export async function resolveCliSettings(
   cliSettings: IsolatedCliSettings,
   env: CliEnvironment,
-  fs?: FileSystem
+  readApiKey?: () => Promise<string | null>
 ): Promise<CliSettings> {
   const result: CliSettings = { ...cliSettings.values };
 
   // Resolve top-level settings
   if (cliSettings.resolved) {
     for (const [key, value] of Object.entries(cliSettings.resolved)) {
-      result[key] = await resolveCliSettingValue(value, env, fs);
+      result[key] = await resolveCliSettingValue(value, env, readApiKey);
     }
   }
 
@@ -244,7 +240,7 @@ export async function resolveCliSettings(
       if (typeof value === "string") {
         resolvedEnv[key] = value;
       } else {
-        resolvedEnv[key] = await resolveCliSettingValue(value, env, fs);
+        resolvedEnv[key] = await resolveCliSettingValue(value, env, readApiKey);
       }
     }
     result.env = resolvedEnv;
@@ -256,15 +252,15 @@ export async function resolveCliSettings(
 async function resolveCliSettingValue(
   value: IsolatedEnvPoeApiKey | IsolatedEnvPoeBaseUrl,
   env: CliEnvironment,
-  fs?: FileSystem
+  readApiKey?: () => Promise<string | null>
 ): Promise<string> {
   if (isPoeApiKeyReference(value)) {
     const resolved = env.getVariable("POE_API_KEY");
     if (typeof resolved === "string" && resolved.trim().length > 0) {
       return resolved;
     }
-    if (fs) {
-      return await resolvePoeApiKeyFromCredentials({ fs, env });
+    if (readApiKey) {
+      return await resolvePoeApiKeyFromAuthStore(readApiKey);
     }
     throw new Error(
       'Missing Poe API key for CLI settings. Set "POE_API_KEY" or run "poe-code login".'

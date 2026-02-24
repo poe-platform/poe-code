@@ -1,9 +1,6 @@
 import * as nodeFsSync from "node:fs";
 import type { FileSystem } from "../utils/file-system.js";
-import {
-  loadCredentials,
-  saveCredentials
-} from "../services/credentials.js";
+import { createAuthStore } from "@poe-code/auth";
 import { createCliEnvironment } from "./environment.js";
 import {
   createServiceRegistry,
@@ -68,6 +65,8 @@ export interface CliContainer {
   readonly commandRunner: CommandRunner;
   readonly providers: ProviderService[];
   readonly dependencies: CliDependencies;
+  readonly readApiKey: () => Promise<string | null>;
+  readonly writeApiKey: (apiKey: string) => Promise<void>;
 }
 
 export function createCliContainer(
@@ -119,21 +118,47 @@ export function createCliContainer(
 
   const promptLibrary = createPromptLibrary();
 
+  const authFs = {
+    readFile: (filePath: string, encoding: BufferEncoding) =>
+      dependencies.fs.readFile(filePath, encoding),
+    writeFile: (
+      filePath: string,
+      data: string | NodeJS.ArrayBufferView,
+      opts?: { encoding?: BufferEncoding }
+    ) => dependencies.fs.writeFile(filePath, data, opts),
+    mkdir: (
+      directoryPath: string,
+      opts?: { recursive?: boolean }
+    ) => dependencies.fs.mkdir(directoryPath, opts).then(() => undefined),
+    unlink: (filePath: string) => dependencies.fs.unlink(filePath),
+    chmod: (filePath: string, mode: number) =>
+      dependencies.fs.chmod
+        ? dependencies.fs.chmod(filePath, mode)
+        : Promise.resolve()
+  };
+
+  const { store: authStore } = createAuthStore({
+    env: dependencies.env.variables,
+    platform: dependencies.env.platform,
+    fileStore: {
+      fs: authFs,
+      getHomeDirectory: () => dependencies.env.homeDir
+    },
+    legacyCredentials: {
+      fs: authFs,
+      getHomeDirectory: () => dependencies.env.homeDir
+    }
+  });
+
+  const readApiKey = authStore.getApiKey.bind(authStore);
+  const writeApiKey = authStore.setApiKey.bind(authStore);
+
   const options = createOptionResolvers({
     prompts: dependencies.prompts,
     promptLibrary,
     apiKeyStore: {
-      read: () =>
-        loadCredentials({
-          fs: dependencies.fs,
-          filePath: environment.credentialsPath
-        }),
-      write: (value) =>
-        saveCredentials({
-          fs: dependencies.fs,
-          filePath: environment.credentialsPath,
-          apiKey: value
-        })
+      read: readApiKey,
+      write: writeApiKey
     },
     confirm: async (message) => {
       const result = await dsConfirm({ message });
@@ -173,7 +198,9 @@ export function createCliContainer(
     httpClient,
     commandRunner: wrappedRunner,
     providers,
-    dependencies
+    dependencies,
+    readApiKey,
+    writeApiKey
   };
 
   return container;

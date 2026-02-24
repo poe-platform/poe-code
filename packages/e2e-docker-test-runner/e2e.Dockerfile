@@ -10,11 +10,15 @@ COPY poe-code.tgz tiny-stdio-mcp-server.tgz tiny-stdio-mcp-test-server.tgz ./
 RUN npm install -g ./poe-code.tgz && \
     npm install --prefix /opt/mcp-test @modelcontextprotocol/sdk ./tiny-stdio-mcp-server.tgz ./tiny-stdio-mcp-test-server.tgz && \
     ln -sf /opt/mcp-test/node_modules/.bin/tiny-stdio-mcp-test-server /usr/local/bin/tiny-stdio-mcp-test-server && \
-    rm poe-code.tgz tiny-stdio-mcp-server.tgz tiny-stdio-mcp-test-server.tgz
+    mv poe-code.tgz /opt/poe-code.tgz && \
+    rm tiny-stdio-mcp-server.tgz tiny-stdio-mcp-test-server.tgz
 
 # Install agents that use global npm install (needs root)
 RUN poe-code install codex && \
     poe-code install opencode
+
+# Allow the non-root user to manage global npm packages
+RUN chown -R poe:poe /usr/local/lib/node_modules /usr/local/bin
 
 # Switch to non-root user
 USER poe

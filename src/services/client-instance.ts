@@ -1,7 +1,4 @@
-import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../cli/http.js";
-import { AuthenticationError } from "../cli/errors.js";
-import { loadConfig } from "./config.js";
 import { createPoeClient } from "./llm-client.js";
 import type { LlmClient } from "./llm-client.js";
 
@@ -23,28 +20,16 @@ export function hasGlobalClient(): boolean {
 }
 
 export async function initializeClient(options: {
-  fs: FileSystem;
-  configPath: string;
+  apiKey: string;
   baseUrl: string;
   httpClient?: HttpClient;
 }): Promise<void> {
-  // Don't reinitialize if a client is already set (e.g., in tests)
   if (globalClient !== null) {
     return;
   }
 
-  const apiKey = await loadConfig({
-    fs: options.fs,
-    filePath: options.configPath
-  });
-  if (!apiKey) {
-    throw new AuthenticationError(
-      "Poe API key not found. Run 'poe-code login' first."
-    );
-  }
-
   const client = createPoeClient({
-    apiKey,
+    apiKey: options.apiKey,
     baseUrl: options.baseUrl,
     httpClient: options.httpClient
   });

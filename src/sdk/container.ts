@@ -176,7 +176,9 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
         platform: process.platform,
         variables
       }
-    }
+    },
+    readApiKey,
+    writeApiKey
   };
 
   return container;

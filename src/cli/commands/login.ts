@@ -7,8 +7,7 @@ import {
   applyIsolatedConfiguration
 } from "./shared.js";
 import {
-  loadConfiguredServices,
-  saveCredentials
+  loadConfiguredServices
 } from "../../services/credentials.js";
 import { ValidationError } from "../errors.js";
 import {
@@ -47,11 +46,9 @@ export function registerLoginCommand(
           filePath: container.env.credentialsPath
         });
 
-        await saveCredentials({
-          fs: resources.context.fs,
-          filePath: container.env.credentialsPath,
-          apiKey: normalized
-        });
+        if (!flags.dryRun) {
+          await container.writeApiKey(normalized);
+        }
 
         await reconfigureServices({
           program,

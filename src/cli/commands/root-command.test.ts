@@ -70,6 +70,10 @@ describe("root command", () => {
     expect(plainOutput).toContain("mcp configure");
     expect(plainOutput).toContain("mcp unconfigure");
     expect(plainOutput).toContain("mcp serve");
+    expect(plainOutput).toContain("auth status");
+    expect(plainOutput).toContain("auth api_key");
+    expect(plainOutput).toContain("auth login");
+    expect(plainOutput).toContain("auth logout");
     expect(plainOutput).toContain("[agent]");
     expect(plainOutput).toContain("<agent>");
     expect(plainOutput).toContain("skill configure");
@@ -79,7 +83,6 @@ describe("root command", () => {
     expect(plainOutput).not.toContain('poe-code spawn codex "Say hello"');
     expect(plainOutput).not.toContain("wrap");
     expect(plainOutput).not.toContain("test");
-    expect(plainOutput).not.toContain("login");
     expect(plainOutput).not.toContain("Options:");
     expect(plainOutput).not.toContain("[service]");
     expect(plainOutput).not.toContain("<service>");

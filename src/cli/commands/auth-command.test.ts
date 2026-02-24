@@ -232,6 +232,48 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Current balance: 321 points"))).toBe(true);
   });
 
+  it("shows feedback outro after status output", async () => {
+    fs = createConfigVolume({
+      apiKey: "test-key",
+      configuredServices: {
+        "claude-code": { files: ["/tmp/settings.json"] }
+      }
+    });
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ current_point_balance: 1500 })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "auth", "status"]);
+
+    expect(logs.some((m) => m.includes("Problems?"))).toBe(true);
+  });
+
+  it("shows feedback outro when no agents configured", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "auth", "status"]);
+
+    expect(logs.some((m) => m.includes("Problems?"))).toBe(true);
+  });
+
   it("shows stored API key with auth api_key", async () => {
     fs = createConfigVolume({
       apiKey: "stored-key"

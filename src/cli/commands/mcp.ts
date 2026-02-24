@@ -1,7 +1,6 @@
 import type { Command } from "commander";
 import { select, isCancel, cancel } from "@poe-code/design-system";
 import type { CliContainer } from "../container.js";
-import { loadCredentials } from "../../services/credentials.js";
 import { initializeClient } from "../../services/client-instance.js";
 import { runMcpServerWithTransport, formatMcpToolsDocs } from "../mcp-server.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
@@ -92,10 +91,7 @@ export function registerMcpCommand(
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");
 
-      const existingKey = await loadCredentials({
-        fs: container.fs,
-        filePath: container.env.credentialsPath
-      });
+      const existingKey = await container.readApiKey();
 
       if (!existingKey) {
         resources.logger.intro("login");
@@ -214,10 +210,7 @@ async function runMcpServer(
     options.outputFormat
   );
 
-  const apiKey = await loadCredentials({
-    fs: container.fs,
-    filePath: container.env.credentialsPath
-  });
+  const apiKey = await container.readApiKey();
   if (!apiKey) {
     process.stderr.write("No credentials found. Run 'poe-code login' first.\n");
     process.exit(1);

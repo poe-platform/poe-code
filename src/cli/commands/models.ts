@@ -3,7 +3,6 @@ import parseDuration from "parse-duration";
 import { stringify as yamlStringify } from "yaml";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
-import { loadCredentials } from "../../services/credentials.js";
 import { ApiError } from "../errors.js";
 import { getTheme, renderTable, withSpinner } from "@poe-code/design-system";
 
@@ -171,10 +170,7 @@ export function registerModelsCommand(
       resources.logger.intro("models");
 
       try {
-        const apiKey = await loadCredentials({
-          fs: container.fs,
-          filePath: container.env.credentialsPath
-        });
+        const apiKey = await container.readApiKey();
 
         if (flags.dryRun) {
           resources.logger.dryRun(

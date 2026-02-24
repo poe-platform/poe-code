@@ -69,6 +69,7 @@ export function registerWrapCommand(
       await isolatedEnvRunner({
         env: container.env,
         fs: container.fs,
+        readApiKey: container.readApiKey,
         providerName: adapter.name,
         isolated,
         argv: ["node", "poe-code", ...forwarded]

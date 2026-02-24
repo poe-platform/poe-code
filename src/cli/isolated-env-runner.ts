@@ -12,12 +12,13 @@ export async function isolatedEnvRunner(input: {
   isolated: ProviderIsolatedEnv;
   argv: string[];
   fs?: FileSystem;
+  readApiKey?: () => Promise<string | null>;
 }): Promise<never> {
   const details = await resolveIsolatedEnvDetails(
     input.env,
     input.isolated,
     input.providerName,
-    input.fs
+    input.readApiKey
   );
   let args = input.argv.slice(2);
 
@@ -35,7 +36,7 @@ export async function isolatedEnvRunner(input: {
     const resolvedSettings = await resolveCliSettings(
       input.isolated.cliSettings,
       input.env,
-      input.fs
+      input.readApiKey
     );
     args = buildArgsWithMergedSettings(args, resolvedSettings);
   }

@@ -44,7 +44,7 @@ export function createPoeCodeCommandRunner(input: {
       container.env,
       adapter.isolatedEnv,
       adapter.name,
-      container.fs
+      container.readApiKey
     );
 
     if (adapter.isolatedEnv.requiresConfig !== false) {
@@ -80,7 +80,7 @@ export function createPoeCodeCommandRunner(input: {
       const resolvedSettings = await resolveCliSettings(
         adapter.isolatedEnv.cliSettings,
         container.env,
-        container.fs
+        container.readApiKey
       );
       forwarded = buildArgsWithMergedSettings(forwarded, resolvedSettings);
     }

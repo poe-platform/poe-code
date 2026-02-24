@@ -81,7 +81,7 @@ export async function executeTest(
           container.env,
           adapter.isolatedEnv,
           adapter.name,
-          container.fs
+          container.readApiKey
         )
       : null;
 

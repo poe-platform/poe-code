@@ -46,7 +46,7 @@ export async function ensureIsolatedConfigForService(input: {
     container.env,
     isolated,
     adapter.name,
-    container.fs
+    container.readApiKey
   );
   const hasConfig = await isolatedConfigExists(
     container.fs,

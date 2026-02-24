@@ -481,7 +481,7 @@ describe("usage list command", () => {
   });
 
   it("aborts pagination when user cancels confirmation", async () => {
-    fs = createCredentialsVolume("test-key");
+    fs = createConfigVolume("test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,

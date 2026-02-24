@@ -70,6 +70,7 @@ function stripCodexConfiguration(
   delete document["model_provider"];
   delete document["model"];
   delete document["model_reasoning_effort"];
+  delete document["model_verbosity"];
   delete providers[CODEX_PROVIDER_ID];
 
   if (isTableEmpty(providers)) {

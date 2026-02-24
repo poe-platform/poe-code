@@ -8,11 +8,12 @@ function readJsonFile<T>(filePath: string): T {
   return JSON.parse(raw) as T;
 }
 
-function compileWithVirtualNodeModules(args: {
+function resolveModuleWithVirtualNodeModules(args: {
   entryPath: string;
   entrySource: string;
+  moduleName: string;
   packageJson: unknown;
-}): ts.Diagnostic[] {
+}): ts.ResolvedModuleFull | undefined {
   const workspaceRoot = "/project";
   const entryFullPath = path.posix.join(workspaceRoot, args.entryPath);
   const packageRoot = path.posix.join(
@@ -39,46 +40,47 @@ function compileWithVirtualNodeModules(args: {
   const memfs = createFsFromVolume(vol);
 
   const compilerOptions: ts.CompilerOptions = {
-    target: ts.ScriptTarget.ES2022,
-    module: ts.ModuleKind.NodeNext,
+    module: ts.ModuleKind.Node16,
     moduleResolution: ts.ModuleResolutionKind.NodeNext,
-    strict: true,
-    skipLibCheck: true,
-    noEmit: true,
-    types: []
+    resolvePackageJsonExports: true
   };
 
-  const host = ts.createCompilerHost(compilerOptions, true);
-
-  host.getCurrentDirectory = () => workspaceRoot;
-  host.fileExists = filePath =>
-    memfs.existsSync(filePath) || ts.sys.fileExists(filePath);
-  host.readFile = filePath =>
-    memfs.existsSync(filePath)
-      ? (memfs.readFileSync(filePath, "utf8") as string)
-      : ts.sys.readFile(filePath);
-  host.directoryExists = dirPath => {
-    try {
-      return memfs.statSync(dirPath).isDirectory();
-    } catch {
-      return ts.sys.directoryExists(dirPath);
-    }
+  const host: ts.ModuleResolutionHost = {
+    getCurrentDirectory: () => workspaceRoot,
+    fileExists: filePath =>
+      memfs.existsSync(filePath) || ts.sys.fileExists(filePath),
+    readFile: filePath =>
+      memfs.existsSync(filePath)
+        ? (memfs.readFileSync(filePath, "utf8") as string)
+        : ts.sys.readFile(filePath),
+    directoryExists: dirPath => {
+      try {
+        return memfs.statSync(dirPath).isDirectory();
+      } catch {
+        return ts.sys.directoryExists(dirPath);
+      }
+    },
+    getDirectories: dirPath => {
+      try {
+        return memfs
+          .readdirSync(dirPath, { withFileTypes: true })
+          .filter(d => d.isDirectory())
+          .map(d => d.name);
+      } catch {
+        return ts.sys.getDirectories(dirPath);
+      }
+    },
+    realpath: p => p
   };
-  host.getDirectories = dirPath => {
-    try {
-      return memfs
-        .readdirSync(dirPath, { withFileTypes: true })
-        .filter(d => d.isDirectory())
-        .map(d => d.name);
-    } catch {
-      return ts.sys.getDirectories(dirPath);
-    }
-  };
-  host.realpath = p => p;
-  host.writeFile = () => {};
 
-  const program = ts.createProgram([entryFullPath], compilerOptions, host);
-  return ts.getPreEmitDiagnostics(program);
+  const resolution = ts.resolveModuleName(
+    args.moduleName,
+    entryFullPath,
+    compilerOptions,
+    host
+  );
+
+  return resolution.resolvedModule;
 }
 
 describe("US-001 ralph package scaffold", () => {
@@ -113,26 +115,30 @@ describe("US-001 ralph package scaffold", () => {
   it("prevents TypeScript from importing non-exported internals", () => {
     const pkg = readJsonFile<Record<string, unknown>>(ralphPackageJsonPath);
 
-    const diagnostics = compileWithVirtualNodeModules({
+    const resolvedModule = resolveModuleWithVirtualNodeModules({
       entryPath: "src/entry.ts",
       entrySource:
-        "import { secret } from '@poe-code/ralph/internal/secret'; void secret;",
+        "import { secret } from '@poe-code/ralph/internal/secret';",
+      moduleName: "@poe-code/ralph/internal/secret",
       packageJson: pkg
     });
 
-    const moduleNotFound = diagnostics.find(d => d.code === 2307);
-    expect(moduleNotFound).toBeDefined();
+    expect(resolvedModule).toBeUndefined();
   });
 
   it("allows TypeScript to import the public entrypoint", () => {
     const pkg = readJsonFile<Record<string, unknown>>(ralphPackageJsonPath);
 
-    const diagnostics = compileWithVirtualNodeModules({
+    const resolvedModule = resolveModuleWithVirtualNodeModules({
       entryPath: "src/entry.ts",
       entrySource: "import '@poe-code/ralph';",
+      moduleName: "@poe-code/ralph",
       packageJson: pkg
     });
 
-    expect(diagnostics).toEqual([]);
+    expect(resolvedModule).toBeDefined();
+    expect(resolvedModule?.resolvedFileName).toBe(
+      "/project/node_modules/@poe-code/ralph/dist/index.d.ts"
+    );
   });
 });

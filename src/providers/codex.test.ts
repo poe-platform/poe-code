@@ -112,6 +112,7 @@ describe("codex service", () => {
       `model = "${stripModelNamespace(DEFAULT_CODEX_MODEL)}"`
     );
     expect(content.trim()).toContain('model_reasoning_effort = "medium"');
+    expect(content.trim()).toContain('model_verbosity = "medium"');
     expect(content.trim()).toContain(
       'experimental_bearer_token = "sk-test"'
     );
@@ -189,6 +190,7 @@ describe("codex service", () => {
         'model_provider="poe"',
         `model="${DEFAULT_CODEX_MODEL}"`,
         'model_reasoning_effort="medium"',
+        'model_verbosity="medium"',
         "",
         "[model_providers.poe]",
         'name="poe"',
@@ -304,6 +306,7 @@ describe("codex service", () => {
     expect(doc["model_provider"]).toBe("poe");
     expect(doc["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(doc["model_reasoning_effort"]).toBe("medium");
+    expect(doc["model_verbosity"]).toBe("medium");
     expect(doc["features"]).toEqual({ foo: true });
 
     const providers = doc["model_providers"] as Record<string, unknown>;

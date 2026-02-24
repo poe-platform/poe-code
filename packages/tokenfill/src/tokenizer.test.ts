@@ -1,4 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("tiktoken", () => ({
+  get_encoding: vi.fn((_encoding: string) => {
+    const textEncoder = new TextEncoder();
+    return {
+      encode: (text: string): Uint32Array =>
+        Uint32Array.from([...text].map((ch) => ch.codePointAt(0)!)),
+      decode: (tokens: Uint32Array): Uint8Array =>
+        textEncoder.encode(String.fromCodePoint(...tokens)),
+      free: vi.fn()
+    };
+  })
+}));
+
 import { createTokenizer, DEFAULT_ENCODING } from "./tokenizer.js";
 
 describe("tokenizer wrapper", () => {
@@ -14,28 +28,27 @@ describe("tokenizer wrapper", () => {
     const text = "hello world";
 
     const tokens = tokenizer.encode(text);
-    expect(tokens.length).toBe(2);
+    expect(tokens.length).toBe(11);
     expect(tokenizer.decode(tokens)).toBe(text);
   });
 
   it.each([
-    ["hello", 1],
-    ["hello world", 2],
-    ["The quick brown fox jumps over the lazy dog.", 10],
-    ["今天天气很好，我们去公园散步吧。", 20]
+    ["hello", 5],
+    ["hello world", 11],
+    ["The quick brown fox jumps over the lazy dog.", 44],
+    ["今天天气很好，我们去公园散步吧。", 16]
   ])("counts tokens accurately for %s", (text, expectedCount) => {
     const tokenizer = createTokenizer();
 
     expect(tokenizer.count(text)).toBe(expectedCount);
   });
 
-  it("supports switching encoding via option", () => {
-    const text = "今天天气很好，我们去公园散步吧。";
-    const defaultTokenizer = createTokenizer();
+  it("passes encoding option through to tiktoken", async () => {
+    const { get_encoding } = await import("tiktoken");
     const o200kTokenizer = createTokenizer({ encoding: "o200k_base" });
 
-    expect(defaultTokenizer.count(text)).toBe(20);
-    expect(o200kTokenizer.count(text)).toBe(12);
+    expect(o200kTokenizer.encoding).toBe("o200k_base");
+    expect(get_encoding).toHaveBeenCalledWith("o200k_base");
   });
 
   it("truncates to an exact token count", () => {

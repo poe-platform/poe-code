@@ -1,4 +1,28 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("./corpus.js", () => ({
+  BUILT_IN_CORPUS_ARTICLES: [
+    "# Mock Article\n\nThe quick brown fox jumps over the lazy dog. ".repeat(5)
+  ],
+  CORPUS_ARTICLE_SEPARATOR: "\n\n"
+}));
+
+vi.mock("./tokenizer.js", () => ({
+  createTokenizer: (options?: { encoding?: string }) => ({
+    encoding: options?.encoding ?? "cl100k_base",
+    encode: (text: string): Uint32Array =>
+      Uint32Array.from([...text].map((ch) => ch.codePointAt(0)!)),
+    decode: (tokens: Uint32Array | number[]): string => {
+      const arr = tokens instanceof Uint32Array ? tokens : Uint32Array.from(tokens);
+      return String.fromCodePoint(...arr);
+    },
+    count: (text: string): number => [...text].length,
+    truncate: (text: string, count: number): string =>
+      [...text].length <= count ? text : [...text].slice(0, count).join(""),
+    free: () => {}
+  })
+}));
+
 import { tokenfill } from "./tokenfill.js";
 
 describe("tokenfill", () => {

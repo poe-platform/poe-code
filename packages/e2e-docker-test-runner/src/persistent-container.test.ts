@@ -43,7 +43,7 @@ vi.mock('./image.js', () => ({
 }));
 
 vi.mock('./credentials.js', () => ({
-  getApiKey: vi.fn(() => 'test-api-key'),
+  getApiKey: vi.fn(async () => 'test-api-key'),
 }));
 
 vi.mock('node:crypto', async (importOriginal) => {
@@ -775,7 +775,7 @@ describe('login', () => {
     vi.clearAllMocks();
     vol.reset();
     const { getApiKey } = await import('./credentials.js');
-    vi.mocked(getApiKey).mockReturnValue('test-api-key');
+    vi.mocked(getApiKey).mockResolvedValue('test-api-key');
   });
 
   it('runs login without passing API key on command line', async () => {
@@ -806,7 +806,7 @@ describe('login', () => {
 
   it('throws if no API key is available', async () => {
     const { getApiKey } = await import('./credentials.js');
-    vi.mocked(getApiKey).mockReturnValue(null);
+    vi.mocked(getApiKey).mockResolvedValue(null);
 
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);

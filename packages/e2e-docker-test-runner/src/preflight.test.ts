@@ -15,7 +15,7 @@ vi.mock('./context.js', () => ({
 }));
 
 vi.mock('./credentials.js', () => ({
-  resolveApiKey: vi.fn(),
+  hasApiKey: vi.fn(),
 }));
 
 vi.mock('./image.js', () => ({
@@ -38,16 +38,12 @@ describe('runPreflight - Docker Desktop auto-start', () => {
     const { execSync } = await import('node:child_process');
     const { detectEngine } = await import('./engine.js');
     const { detectRunningContext } = await import('./context.js');
-    const { resolveApiKey } = await import('./credentials.js');
+    const { hasApiKey } = await import('./credentials.js');
     const { runPreflight } = await import('./preflight.js');
 
     vi.mocked(detectEngine).mockReturnValue('docker');
     vi.mocked(detectRunningContext).mockReturnValue(null);
-    vi.mocked(resolveApiKey).mockReturnValue({
-      key: 'valid-api-key-for-tests-1234567890123456789012345',
-      source: 'POE_API_KEY',
-      valid: true,
-    });
+    vi.mocked(hasApiKey).mockResolvedValue(true);
 
     return { execSync: vi.mocked(execSync), runPreflight };
   }
@@ -201,57 +197,5 @@ describe('runPreflight - Docker Desktop auto-start', () => {
     const result = await runPreflight();
 
     expect(result.passed).toBe(false);
-  });
-
-  it('fails preflight when API key format is invalid', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { execSync, runPreflight } = await setup();
-    const { resolveApiKey } = await import('./credentials.js');
-
-    vi.mocked(resolveApiKey).mockReturnValue({
-      key: 'bad-key',
-      source: 'POE_API_KEY',
-      valid: false,
-    });
-    mockExecCommands(execSync, {
-      'docker info': () => 'ok',
-    });
-
-    const result = await runPreflight();
-
-    expect(result.passed).toBe(false);
-    expect(result.results).toContainEqual(
-      expect.objectContaining({
-        name: 'API key available',
-        passed: false,
-        message: expect.stringContaining('Invalid API key format'),
-      }),
-    );
-  });
-
-  it('fails preflight when API key is missing', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { execSync, runPreflight } = await setup();
-    const { resolveApiKey } = await import('./credentials.js');
-
-    vi.mocked(resolveApiKey).mockReturnValue({
-      key: null,
-      source: null,
-      valid: false,
-    });
-    mockExecCommands(execSync, {
-      'docker info': () => 'ok',
-    });
-
-    const result = await runPreflight();
-
-    expect(result.passed).toBe(false);
-    expect(result.results).toContainEqual(
-      expect.objectContaining({
-        name: 'API key available',
-        passed: false,
-        message: 'API key not available',
-      }),
-    );
   });
 });

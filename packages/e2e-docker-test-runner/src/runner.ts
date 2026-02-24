@@ -87,16 +87,14 @@ function findRepoRoot(): string {
   return join(__dirname, '..', '..', '..');
 }
 
-function redactApiKey(text: string): string {
-  const apiKey = getApiKey();
+function redactApiKey(text: string, apiKey: string | null): string {
   if (apiKey) {
     return text.replace(new RegExp(apiKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '***');
   }
   return text;
 }
 
-function makeLoginCommand(): string {
-  const apiKey = getApiKey();
+function makeLoginCommand(apiKey: string | null): string {
   if (!apiKey) {
     throw new Error('No API key available. Set POE_API_KEY or run poe-code login.');
   }
@@ -139,10 +137,8 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<numb
   setWorkspaceDir(repoRoot);
   mkdirSync(logDir, { recursive: true });
 
-  // Check API key
-  try {
-    getApiKey();
-  } catch {
+  const apiKey = await getApiKey();
+  if (!apiKey) {
     console.log(chalk.red('No API key available. Set POE_API_KEY or run poe-code login.'));
     return 1;
   }
@@ -169,21 +165,21 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<numb
     const index = i + 1;
 
     // Add login command at the start
-    const commands = [makeLoginCommand(), ...group.commands];
+    const commands = [makeLoginCommand(apiKey), ...group.commands];
 
     if (verbose) {
       console.log(chalk.bold(`\n=== [${index}/${total}] ${group.name} ===`));
       for (const cmd of commands) {
-        console.log(chalk.dim(`>>> ${redactApiKey(cmd)}`));
+        console.log(chalk.dim(`>>> ${redactApiKey(cmd, apiKey)}`));
       }
     } else {
       process.stdout.write(`  [${index}/${total}] ${group.name}... `);
     }
 
-    const result = runInContainer(commands, { verbose });
+    const result = await runInContainer(commands, { verbose });
 
     const logPath = join(logDir, `${group.name.replace(/[^a-z0-9-]/gi, '-')}.log`);
-    writeFileSync(logPath, redactApiKey(result.stdout + '\n' + result.stderr));
+    writeFileSync(logPath, redactApiKey(result.stdout + '\n' + result.stderr, apiKey));
 
     if (result.exitCode === 0) {
       passed++;

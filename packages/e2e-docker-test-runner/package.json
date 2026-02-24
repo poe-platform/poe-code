@@ -23,6 +23,7 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
+    "@poe-code/auth": "*",
     "chalk": "^5.3.0"
   },
   "devDependencies": {

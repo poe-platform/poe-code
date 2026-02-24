@@ -228,13 +228,16 @@ export function buildDockerArgs(config: DockerArgsConfig): string[] {
  * Run commands in a fresh container.
  * All setup and commands run in ONE docker run invocation.
  */
-export function runInContainer(commands: string[], options: { verbose?: boolean } = {}): RunResult {
+export async function runInContainer(
+  commands: string[],
+  options: { verbose?: boolean } = {}
+): Promise<RunResult> {
   const verbose = options.verbose ?? process.env.E2E_VERBOSE === '1';
   const workspace = workspaceDir ?? process.cwd();
   ensureCacheDirs();
 
   const runConfig = setupRunConfig(workspace);
-  const apiKey = getApiKey();
+  const apiKey = await getApiKey();
   const containerScript = buildContainerScript(commands);
 
   // Build or reuse cached image

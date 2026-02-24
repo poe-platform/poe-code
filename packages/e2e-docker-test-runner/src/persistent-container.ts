@@ -95,7 +95,7 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
   const context = getResolvedContext();
   const ctxArgs = buildContextArgs(engine, context);
   const image = options.image ?? ensureImage(engine, workspace, { context: context ?? undefined });
-  const apiKey = getApiKey();
+  const apiKey = await getApiKey();
   const name = generateContainerName();
 
   const createArgs = buildCreateArgs({

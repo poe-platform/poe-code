@@ -3,37 +3,37 @@ import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import type { FileSystem } from "../utils/file-system.js";
 import {
-  loadCredentials,
-  saveCredentials,
+  loadConfig,
+  saveConfig,
   loadConfiguredServices,
   saveConfiguredService,
   unconfigureService
-} from "./credentials.js";
+} from "./config.js";
 
 function createMemFs(): FileSystem {
   const vol = new Volume();
   return createFsFromVolume(vol).promises as unknown as FileSystem;
 }
 
-describe("credentials store", () => {
-  const credentialsPath = "/home/user/.poe-code/credentials.json";
+describe("config store", () => {
+  const configPath = "/home/user/.poe-code/config.json";
   let fs: FileSystem;
 
   beforeEach(async () => {
     fs = createMemFs();
-    await fs.mkdir(path.dirname(credentialsPath), { recursive: true });
+    await fs.mkdir(path.dirname(configPath), { recursive: true });
   });
 
   it("returns stored api key when file is valid json", async () => {
-    await saveCredentials({
+    await saveConfig({
       fs,
-      filePath: credentialsPath,
+      filePath: configPath,
       apiKey: "test-key"
     });
 
-    const apiKey = await loadCredentials({
+    const apiKey = await loadConfig({
       fs,
-      filePath: credentialsPath
+      filePath: configPath
     });
 
     expect(apiKey).toBe("test-key");
@@ -48,18 +48,18 @@ describe("credentials store", () => {
         }
       }
     };
-    await fs.writeFile(credentialsPath, JSON.stringify(initial, null, 2), {
+    await fs.writeFile(configPath, JSON.stringify(initial, null, 2), {
       encoding: "utf8"
     });
 
-    await saveCredentials({
+    await saveConfig({
       fs,
-      filePath: credentialsPath,
+      filePath: configPath,
       apiKey: "updated"
     });
 
     const updated = JSON.parse(
-      await fs.readFile(credentialsPath, "utf8")
+      await fs.readFile(configPath, "utf8")
     );
     expect(updated.apiKey).toBe("updated");
     expect(updated.configured_services).toEqual(initial.configured_services);
@@ -68,7 +68,7 @@ describe("credentials store", () => {
   it("stores configured service metadata and returns it on load", async () => {
     await saveConfiguredService({
       fs,
-      filePath: credentialsPath,
+      filePath: configPath,
       service: "opencode",
       metadata: {
         files: [
@@ -80,7 +80,7 @@ describe("credentials store", () => {
 
     const services = await loadConfiguredServices({
       fs,
-      filePath: credentialsPath
+      filePath: configPath
     });
 
     expect(services).toEqual({
@@ -96,7 +96,7 @@ describe("credentials store", () => {
   it("removes configured service metadata", async () => {
     await saveConfiguredService({
       fs,
-      filePath: credentialsPath,
+      filePath: configPath,
       service: "claude-code",
       metadata: {
         files: ["/home/user/.claude/settings.json"]
@@ -105,39 +105,61 @@ describe("credentials store", () => {
 
     await unconfigureService({
       fs,
-      filePath: credentialsPath,
+      filePath: configPath,
       service: "claude-code"
     });
 
     const services = await loadConfiguredServices({
       fs,
-      filePath: credentialsPath
+      filePath: configPath
     });
     expect(services).toEqual({});
   });
 
-  it("backs up and resets invalid json content", async () => {
-    await fs.writeFile(credentialsPath, "test\n", { encoding: "utf8" });
+  it("migrates legacy credentials.json to config.json on first read", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    const data = {
+      configured_services: {
+        codex: { files: ["/home/user/.codex/config.toml"] }
+      }
+    };
+    await fs.writeFile(legacyPath, JSON.stringify(data, null, 2), {
+      encoding: "utf8"
+    });
 
-    const apiKey = await loadCredentials({
+    const services = await loadConfiguredServices({
       fs,
-      filePath: credentialsPath
+      filePath: configPath
+    });
+
+    expect(services).toEqual(data.configured_services);
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBeDefined();
+    await expect(fs.readFile(legacyPath, "utf8")).rejects.toThrow();
+  });
+
+  it("backs up and resets invalid json content", async () => {
+    await fs.writeFile(configPath, "test\n", { encoding: "utf8" });
+
+    const apiKey = await loadConfig({
+      fs,
+      filePath: configPath
     });
 
     expect(apiKey).toBeNull();
 
-    const credentialsDir = path.dirname(credentialsPath);
-    const entries = await fs.readdir(credentialsDir);
+    const configDir = path.dirname(configPath);
+    const entries = await fs.readdir(configDir);
     const backupName = entries.find((entry) =>
-      entry.startsWith("credentials.json.invalid-")
+      entry.startsWith("config.json.invalid-")
     );
     expect(backupName).toBeDefined();
 
-    const backupPath = path.join(credentialsDir, backupName as string);
+    const backupPath = path.join(configDir, backupName as string);
     const backupContent = await fs.readFile(backupPath, "utf8");
     expect(backupContent).toBe("test\n");
 
-    const rewritten = await fs.readFile(credentialsPath, "utf8");
+    const rewritten = await fs.readFile(configPath, "utf8");
     expect(JSON.parse(rewritten)).toEqual({});
   });
 });

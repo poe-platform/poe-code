@@ -8,7 +8,7 @@ import {
 } from "./shared.js";
 import {
   loadConfiguredServices
-} from "../../services/credentials.js";
+} from "../../services/config.js";
 import { ValidationError } from "../errors.js";
 import {
   combineMutationObservers,
@@ -52,7 +52,7 @@ export async function executeLogin(
 
     const configuredServices = await loadConfiguredServices({
       fs: container.fs,
-      filePath: container.env.credentialsPath
+      filePath: container.env.configPath
     });
 
     if (!flags.dryRun) {
@@ -76,7 +76,7 @@ export async function executeLogin(
     if (error instanceof Error) {
       resources.logger.logException(error, "login command", {
         operation: "login",
-        credentialsPath: container.env.credentialsPath
+        configPath: container.env.configPath
       });
     }
     throw error;

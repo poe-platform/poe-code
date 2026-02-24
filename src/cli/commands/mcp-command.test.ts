@@ -226,15 +226,15 @@ describe("mcp command", () => {
     ).rejects.toThrow("empty");
   });
 
-  it("shows login screen and prompts for API key when credentials are missing for configure", async () => {
+  it("shows login screen and prompts for API key when config is missing for configure", async () => {
     const volume = new Volume();
     volume.mkdirSync(homeDir, { recursive: true });
     volume.mkdirSync(cwd, { recursive: true });
-    const noCredentialsFs = createFsFromVolume(volume).promises as unknown as FileSystem;
+    const noConfigFs = createFsFromVolume(volume).promises as unknown as FileSystem;
     const logs: string[] = [];
     const prompts = vi.fn().mockResolvedValue({ apiKey: VALID_API_KEY });
     const program = createProgram({
-      fs: noCredentialsFs,
+      fs: noConfigFs,
       prompts,
       env: { cwd, homeDir, variables: {} },
       logger: (message) => { logs.push(message); },

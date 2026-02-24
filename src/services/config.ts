@@ -2,12 +2,12 @@ import path from "node:path";
 import { isNotFound } from "@poe-code/config-mutations";
 import type { FileSystem } from "../utils/file-system.js";
 
-export interface CredentialsStoreOptions {
+export interface ConfigStoreOptions {
   fs: FileSystem;
   filePath: string;
 }
 
-export interface SaveCredentialsOptions extends CredentialsStoreOptions {
+export interface SaveConfigOptions extends ConfigStoreOptions {
   apiKey: string;
 }
 
@@ -15,43 +15,43 @@ export interface ConfiguredServiceMetadata {
   files: string[];
 }
 
-interface CredentialsDocument {
+interface ConfigDocument {
   apiKey?: string;
   configured_services?: Record<string, ConfiguredServiceMetadata>;
 }
 
 export interface SaveConfiguredServiceOptions
-  extends CredentialsStoreOptions {
+  extends ConfigStoreOptions {
   service: string;
   metadata: ConfiguredServiceMetadata;
 }
 
 export interface UnconfigureServiceOptions
-  extends CredentialsStoreOptions {
+  extends ConfigStoreOptions {
   service: string;
 }
 
-export async function saveCredentials(
-  options: SaveCredentialsOptions
+export async function saveConfig(
+  options: SaveConfigOptions
 ): Promise<void> {
   const { fs, filePath, apiKey } = options;
-  const document = await readCredentialsDocument(fs, filePath);
+  const document = await readConfigDocument(fs, filePath);
   document.apiKey = apiKey;
-  await writeCredentialsDocument(fs, filePath, document);
+  await writeConfigDocument(fs, filePath, document);
 }
 
-export async function loadCredentials(
-  options: CredentialsStoreOptions
+export async function loadConfig(
+  options: ConfigStoreOptions
 ): Promise<string | null> {
   const { fs, filePath } = options;
-  const document = await readCredentialsDocument(fs, filePath);
+  const document = await readConfigDocument(fs, filePath);
   return typeof document.apiKey === "string" && document.apiKey.length > 0
     ? document.apiKey
     : null;
 }
 
-export async function deleteCredentials(
-  options: CredentialsStoreOptions
+export async function deleteConfig(
+  options: ConfigStoreOptions
 ): Promise<boolean> {
   const { fs, filePath } = options;
   try {
@@ -66,10 +66,10 @@ export async function deleteCredentials(
 }
 
 export async function loadConfiguredServices(
-  options: CredentialsStoreOptions
+  options: ConfigStoreOptions
 ): Promise<Record<string, ConfiguredServiceMetadata>> {
   const { fs, filePath } = options;
-  const document = await readCredentialsDocument(fs, filePath);
+  const document = await readConfigDocument(fs, filePath);
   return { ...(document.configured_services ?? {}) };
 }
 
@@ -77,20 +77,20 @@ export async function saveConfiguredService(
   options: SaveConfiguredServiceOptions
 ): Promise<void> {
   const { fs, filePath, service, metadata } = options;
-  const document = await readCredentialsDocument(fs, filePath);
+  const document = await readConfigDocument(fs, filePath);
   const normalized = normalizeConfiguredServiceMetadata(metadata);
   document.configured_services = {
     ...(document.configured_services ?? {}),
     [service]: normalized
   };
-  await writeCredentialsDocument(fs, filePath, document);
+  await writeConfigDocument(fs, filePath, document);
 }
 
 export async function unconfigureService(
   options: UnconfigureServiceOptions
 ): Promise<boolean> {
   const { fs, filePath, service } = options;
-  const document = await readCredentialsDocument(fs, filePath);
+  const document = await readConfigDocument(fs, filePath);
   const services = document.configured_services;
   if (!services || !(service in services)) {
     return false;
@@ -99,7 +99,7 @@ export async function unconfigureService(
   if (Object.keys(services).length === 0) {
     delete document.configured_services;
   }
-  await writeCredentialsDocument(fs, filePath, document);
+  await writeConfigDocument(fs, filePath, document);
   return true;
 }
 
@@ -122,43 +122,59 @@ function normalizeConfiguredServiceMetadata(
   };
 }
 
-async function readCredentialsDocument(
+async function readConfigDocument(
   fs: FileSystem,
   filePath: string
-): Promise<CredentialsDocument> {
+): Promise<ConfigDocument> {
   try {
     const raw = await fs.readFile(filePath, "utf8");
-    return await parseCredentialsDocument(fs, filePath, raw);
+    return await parseConfigDocument(fs, filePath, raw);
   } catch (error) {
     if (isNotFound(error)) {
-      return {};
+      return migrateLegacyCredentialsFile(fs, filePath);
     }
     throw error;
   }
 }
 
-async function parseCredentialsDocument(
+async function migrateLegacyCredentialsFile(
+  fs: FileSystem,
+  configPath: string
+): Promise<ConfigDocument> {
+  const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+  try {
+    const raw = await fs.readFile(legacyPath, "utf8");
+    const document = await parseConfigDocument(fs, legacyPath, raw);
+    await writeConfigDocument(fs, configPath, document);
+    await fs.unlink(legacyPath);
+    return document;
+  } catch {
+    return {};
+  }
+}
+
+async function parseConfigDocument(
   fs: FileSystem,
   filePath: string,
   raw: string
-): Promise<CredentialsDocument> {
+): Promise<ConfigDocument> {
   try {
     const parsed = JSON.parse(raw);
-    return normalizeCredentialsDocument(parsed);
+    return normalizeConfigDocument(parsed);
   } catch (error) {
     if (error instanceof SyntaxError) {
-      await recoverInvalidCredentials(fs, filePath, raw);
+      await recoverInvalidConfig(fs, filePath, raw);
       return {};
     }
     throw error;
   }
 }
 
-function normalizeCredentialsDocument(value: unknown): CredentialsDocument {
+function normalizeConfigDocument(value: unknown): ConfigDocument {
   if (!isRecord(value)) {
     return {};
   }
-  const document: CredentialsDocument = {};
+  const document: ConfigDocument = {};
   if (typeof value.apiKey === "string" && value.apiKey.length > 0) {
     document.apiKey = value.apiKey;
   }
@@ -188,13 +204,13 @@ function normalizeConfiguredServices(
   return entries;
 }
 
-async function writeCredentialsDocument(
+async function writeConfigDocument(
   fs: FileSystem,
   filePath: string,
-  document: CredentialsDocument
+  document: ConfigDocument
 ): Promise<void> {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  const payload: CredentialsDocument = {};
+  const payload: ConfigDocument = {};
   if (document.apiKey) {
     payload.apiKey = document.apiKey;
   }
@@ -206,7 +222,7 @@ async function writeCredentialsDocument(
   });
 }
 
-async function recoverInvalidCredentials(
+async function recoverInvalidConfig(
   fs: FileSystem,
   filePath: string,
   content: string

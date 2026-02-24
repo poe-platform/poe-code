@@ -8,7 +8,7 @@ import type { LoggerFn } from "../types.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
-const credentialsPath = homeDir + "/.poe-code/credentials.json";
+const configPath = homeDir + "/.poe-code/config.json";
 
 describe("configure command", () => {
   let fs: FileSystem;
@@ -81,7 +81,7 @@ describe("configure command", () => {
     const program = createTestProgram();
     await executeConfigure(program, container, "opencode", {});
 
-    const content = JSON.parse(await fs.readFile(credentialsPath, "utf8"));
+    const content = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(content.configured_services.opencode).toEqual({
       files: [
         homeDir + "/.config/opencode/config.json",
@@ -103,7 +103,7 @@ describe("configure command", () => {
     const program = createTestProgram(["node", "cli", "--dry-run"]);
     await executeConfigure(program, container, "opencode", {});
 
-    await expect(fs.readFile(credentialsPath, "utf8")).rejects.toThrow();
+    await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
   });
 
   it("uses provider-defined prompt metadata for configure flows", async () => {
@@ -191,7 +191,7 @@ describe("configure command", () => {
     const program = createTestProgram();
     await executeConfigure(program, container, "claude", {});
 
-    const content = JSON.parse(await fs.readFile(credentialsPath, "utf8"));
+    const content = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(content.configured_services["claude-code"]).toBeDefined();
     expect(content.configured_services.claude).toBeUndefined();
   });

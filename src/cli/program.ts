@@ -65,7 +65,7 @@ function formatHelpText(input: {
       {
         name: "logout",
         args: "",
-        description: "Remove all configuration and stored credentials"
+        description: "Remove all configuration"
       },
       {
         name: "auth status",

@@ -32,7 +32,7 @@ function readStoredApiKey(fs: FileSystem, homeDir: string): Promise<string | nul
 describe("login command", () => {
   const cwd = "/repo";
   const homeDir = "/home/test";
-  const credentialsPath = `${homeDir}/.poe-code/credentials.json`;
+  const configPath = `${homeDir}/.poe-code/config.json`;
   let fs: FileSystem;
   let logs: string[];
   let prompts: ReturnType<typeof vi.fn>;
@@ -176,7 +176,7 @@ describe("login command", () => {
       JSON.stringify({ apiKeyHelper: "echo old-key", model: "claude-sonnet-4.6" })
     );
     volume.writeFileSync(
-      credentialsPath,
+      configPath,
       JSON.stringify({
         apiKey: "old-key",
         configured_services: {
@@ -222,7 +222,7 @@ describe("login command", () => {
     expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL));
   });
 
-  it("skips writing credentials during dry run", async () => {
+  it("skips writing config during dry run", async () => {
     const commandRunner: CommandRunner = vi.fn(async () => ({
       stdout: "",
       stderr: "",

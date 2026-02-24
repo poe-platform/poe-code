@@ -5,7 +5,7 @@ import {
   getSpawnConfig,
   type SpawnMode
 } from "@poe-code/agent-spawn";
-import { loadConfiguredServices } from "../../services/credentials.js";
+import { loadConfiguredServices } from "../../services/config.js";
 import { research } from "../../sdk/research.js";
 import { OperationCancelledError } from "../errors.js";
 import {
@@ -159,7 +159,7 @@ async function resolveResearchAgent(input: {
   if (input.flags.assumeYes) {
     const configured = await loadConfiguredServices({
       fs: input.container.fs,
-      filePath: input.container.env.credentialsPath
+      filePath: input.container.env.configPath
     });
 
     const configuredService = spawnable.find(

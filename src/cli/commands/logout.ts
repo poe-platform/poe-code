@@ -1,9 +1,9 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import {
-  deleteCredentials,
+  deleteConfig,
   loadConfiguredServices
-} from "../../services/credentials.js";
+} from "../../services/config.js";
 import {
   createExecutionResources,
   resolveCommandFlags
@@ -16,7 +16,7 @@ export function registerLogoutCommand(
 ): void {
   program
     .command("logout")
-    .description("Remove all Poe API configuration and stored credentials.")
+    .description("Remove all Poe API configuration.")
     .action(async () => {
       await executeLogout(program, container);
     });
@@ -37,7 +37,7 @@ export async function executeLogout(
 
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
-    filePath: container.env.credentialsPath
+    filePath: container.env.configPath
   });
 
   for (const serviceName of Object.keys(configuredServices)) {
@@ -51,20 +51,20 @@ export async function executeLogout(
   if (flags.dryRun) {
     resources.context.complete({
       success: "Logged out.",
-      dry: `Dry run: would delete credentials at ${container.env.credentialsPath}.`
+      dry: `Dry run: would delete config at ${container.env.configPath}.`
     });
     resources.context.finalize();
     return;
   }
 
-  const deleted = await deleteCredentials({
+  const deleted = await deleteConfig({
     fs: container.fs,
-    filePath: container.env.credentialsPath
+    filePath: container.env.configPath
   });
 
   resources.context.complete({
     success: deleted ? "Logged out." : "Already logged out.",
-    dry: `Dry run: would delete credentials at ${container.env.credentialsPath}.`
+    dry: `Dry run: would delete config at ${container.env.configPath}.`
   });
 
   resources.context.finalize();

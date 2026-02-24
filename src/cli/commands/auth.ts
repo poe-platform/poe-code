@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { ApiError } from "../errors.js";
-import { loadConfiguredServices } from "../../services/credentials.js";
+import { loadConfiguredServices } from "../../services/config.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout } from "./logout.js";
@@ -97,7 +97,7 @@ async function executeStatus(
 
     const configuredServices = await loadConfiguredServices({
       fs: container.fs,
-      filePath: container.env.credentialsPath
+      filePath: container.env.configPath
     });
 
     const configuredAgentNames = Object.keys(configuredServices).sort();

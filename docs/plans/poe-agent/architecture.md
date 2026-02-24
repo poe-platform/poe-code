@@ -120,6 +120,26 @@ Scope constraint:
 
 - no rollout to other existing coding agents in this implementation
 
+## Reusable ACP layer
+
+ACP normalization/parsing is a shared concern and must not live inside a single provider runtime.
+
+Shared package:
+
+- `packages/poe-acp-client`
+- npm name: `@poe-code/poe-acp-client`
+
+Required responsibilities:
+
+1. ACP schema-aligned TypeScript types (stable + unstable session updates)
+2. JSON-RPC helpers for `session/update` notifications
+3. Stream helper functions for extracting message/thought/usage/thread metadata
+4. Legacy event-to-ACP mapper for adapters that still emit internal event vocabularies
+
+Integration rule:
+
+- every streamed provider surface must pass through this package and emit ACP `sessionUpdate` events as the public stream contract.
+
 ## Detailed subsystem decomposition
 
 ### 1) Command surface

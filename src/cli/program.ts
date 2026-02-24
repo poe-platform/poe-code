@@ -63,6 +63,11 @@ function formatHelpText(input: {
         description: "Remove a previously applied configuration"
       },
       {
+        name: "login",
+        args: "",
+        description: "Store a Poe API key"
+      },
+      {
         name: "logout",
         args: "",
         description: "Remove all configuration"
@@ -73,29 +78,9 @@ function formatHelpText(input: {
         description: "Show login, balance, and configuration status"
       },
       {
-        name: "auth api_key",
-        args: "",
-        description: "Display stored API key"
-      },
-      {
-        name: "auth login",
-        args: "",
-        description: "Store a Poe API key"
-      },
-      {
-        name: "auth logout",
-        args: "",
-        description: "Remove all configuration and credentials"
-      },
-      {
         name: "spawn",
         args: "<agent> [prompt]",
         description: "Launch a coding agent"
-      },
-      {
-        name: "research",
-        args: "<prompt>",
-        description: "Research a codebase using a coding agent"
       },
       {
         name: "generate",

@@ -1,0 +1,14 @@
+{
+  "name": "tiny-mcp-client",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "tiny-stdio-mcp-server": "*"
+  }
+}

@@ -72,6 +72,8 @@ describe("root command", () => {
     expect(plainOutput).toContain("mcp serve");
     expect(plainOutput).toContain("login");
     expect(plainOutput).toContain("auth status");
+    expect(plainOutput).toContain("agent");
+    expect(plainOutput).toContain("Run a one-shot Poe agent prompt");
     expect(plainOutput).not.toContain("auth api_key");
     expect(plainOutput).not.toContain("auth login");
     expect(plainOutput).not.toContain("auth logout");

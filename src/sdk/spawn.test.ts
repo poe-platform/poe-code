@@ -1,11 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+const spawnPoeAgentWithAcpMock = vi.hoisted(() => vi.fn());
+
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: vi.fn(),
   spawnStreaming: vi.fn(),
   spawnInteractive: vi.fn(),
   getSpawnConfig: vi.fn(),
   renderAcpStream: vi.fn()
+}));
+
+vi.mock("../providers/poe-agent.js", () => ({
+  spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock
 }));
 
 vi.mock("./spawn-core.js", () => ({
@@ -20,6 +26,7 @@ import { spawn } from "./spawn.js";
 import { getSpawnConfig, spawn as agentSpawn, spawnStreaming, spawnInteractive, renderAcpStream } from "@poe-code/agent-spawn";
 import { spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
+import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
 
 const originalEnv = { ...process.env };
 
@@ -32,6 +39,7 @@ beforeEach(() => {
   vi.mocked(spawnCore).mockReset();
   vi.mocked(createSdkContainer).mockReset();
   vi.mocked(renderAcpStream).mockReset();
+  vi.mocked(spawnPoeAgentWithAcp).mockReset();
   vi.mocked(renderAcpStream).mockResolvedValue(undefined);
 });
 
@@ -286,6 +294,51 @@ describe("SDK spawn()", () => {
 
     expect(spawnInteractive).not.toHaveBeenCalled();
     expect(spawnStreaming).toHaveBeenCalledTimes(1);
+  });
+
+  it("streams events via AcpClient for poe-agent provider", async () => {
+    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
+      events: (async function* () {
+        yield { event: "agent_message", text: "from poe-agent" } as const;
+      })(),
+      done: Promise.resolve({
+        stdout: "from poe-agent\n",
+        stderr: "",
+        exitCode: 0,
+        threadId: "poe-agent-session-1",
+        sessionId: "poe-agent-session-1"
+      })
+    });
+
+    const { events, result } = spawn("poe-agent", "test prompt", {
+      cwd: "/workspace/project",
+      model: "anthropic/claude-opus-4.6"
+    });
+
+    const received: unknown[] = [];
+    for await (const event of events) {
+      received.push(event);
+    }
+
+    expect(received).toEqual([{ event: "agent_message", text: "from poe-agent" }]);
+    await expect(result).resolves.toEqual({
+      stdout: "from poe-agent\n",
+      stderr: "",
+      exitCode: 0,
+      threadId: "poe-agent-session-1",
+      sessionId: "poe-agent-session-1"
+    });
+
+    expect(spawnPoeAgentWithAcp).toHaveBeenCalledTimes(1);
+    expect(spawnPoeAgentWithAcp).toHaveBeenCalledWith({
+      prompt: "test prompt",
+      cwd: "/workspace/project",
+      model: "anthropic/claude-opus-4.6"
+    });
+    expect(spawnStreaming).not.toHaveBeenCalled();
+    expect(agentSpawn).not.toHaveBeenCalled();
+    expect(spawnCore).not.toHaveBeenCalled();
+    expect(createSdkContainer).not.toHaveBeenCalled();
   });
 
   it("propagates errors from spawnInteractive", async () => {

@@ -6,6 +6,7 @@ import {
 } from "./container.js";
 import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
+import { registerAgentCommand } from "./commands/agent.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
 import { registerResearchCommand } from "./commands/research.js";
 import { registerWrapCommand } from "./commands/wrap.js";
@@ -76,6 +77,11 @@ function formatHelpText(input: {
         name: "auth status",
         args: "",
         description: "Show login, balance, and configuration status"
+      },
+      {
+        name: "agent",
+        args: "<prompt>",
+        description: "Run a one-shot Poe agent prompt"
       },
       {
         name: "spawn",
@@ -299,6 +305,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerVersionOption(program, container, packageJson.version);
   registerInstallCommand(program, container);
   registerConfigureCommand(program, container);
+  registerAgentCommand(program, container);
   registerSpawnCommand(program, container);
   registerResearchCommand(program, container);
   registerWrapCommand(program, container);

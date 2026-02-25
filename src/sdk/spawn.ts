@@ -10,6 +10,7 @@ import {
   type AcpEvent
 } from "@poe-code/agent-spawn";
 import type { SpawnOptions, SpawnResult } from "./types.js";
+import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
 
 /**
  * Spawns an agent with optional streaming.
@@ -104,6 +105,24 @@ export function spawn(
           stdout: interactiveResult.stdout,
           stderr: interactiveResult.stderr,
           exitCode: interactiveResult.exitCode
+        };
+      }
+
+      if (service === "poe-agent") {
+        const { events: innerEvents, done } = spawnPoeAgentWithAcp({
+          prompt: options.prompt,
+          cwd: options.cwd,
+          model: options.model
+        });
+
+        resolveEventsOnce(innerEvents);
+        const final = await done;
+        return {
+          stdout: final.stdout,
+          stderr: final.stderr,
+          exitCode: final.exitCode,
+          threadId: final.threadId,
+          sessionId: final.sessionId ?? final.threadId
         };
       }
 

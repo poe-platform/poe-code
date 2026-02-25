@@ -1,0 +1,2343 @@
+version: 1
+project: tiny-mcp-client
+
+overview: |
+  Build a fully MCP-spec-compliant client package (protocol version 2025-03-26) at
+  packages/tiny-mcp-client/. The client supports all MCP features: tools, resources,
+  prompts, completions, logging, roots, sampling, cancellation, progress, and ping.
+  Transports: stdio (child process) and Streamable HTTP (POST + SSE).
+
+  Zero runtime dependencies — only Node.js built-ins. Test servers are created via
+  @modelcontextprotocol/sdk (devDependency) so we can cross-check spec compliance
+  end-to-end.
+
+  Architecture: McpClient → JsonRpcMessageLayer → McpTransport (stdio | http).
+  The JSON-RPC layer is adapted from poe-acp-client/src/jsonrpc-message-layer.ts.
+  The transport interface is { readable, writable, closed, dispose() }.
+
+goals:
+  - "100% MCP spec compliance for protocol version 2025-03-26"
+  - "Zero runtime dependencies"
+  - "Full TDD — every feature has tests before or alongside implementation"
+  - "Cross-validated against MCP SDK servers (not just our own tiny server)"
+  - "Support stdio and Streamable HTTP transports"
+  - "Clean, minimal API surface"
+
+nonGoals:
+  - "Backwards compatibility with 2024-11-05 HTTP+SSE transport"
+  - "Elicitation support (added in 2025-06-18, not in 2025-03-26)"
+  - "Custom transport plugins — users compose their own via McpTransport interface"
+  - "CLI binary — this is a library package only"
+
+qualityGates:
+  - npm run test
+  - npm run lint
+  - npm run lint:types
+
+requirements:
+  - id: R-001
+    title: JSON-RPC 2.0 message parsing
+    description: >
+      The client SHALL parse JSON-RPC 2.0 request, response, and notification messages
+      from newline-delimited UTF-8 streams per the JSON-RPC 2.0 specification.
+    scenarios:
+      - name: Parse valid request
+        when: 'A line contains {"jsonrpc":"2.0","id":1,"method":"ping"}'
+        then: Parsed as request with id=1, method="ping"
+      - name: Parse valid notification
+        when: 'A line contains {"jsonrpc":"2.0","method":"notifications/initialized"}'
+        then: Parsed as notification (no id)
+      - name: Parse valid success response
+        when: 'A line contains {"jsonrpc":"2.0","id":1,"result":{"tools":[]}}'
+        then: Parsed as success response with id=1
+      - name: Parse valid error response
+        when: 'A line contains {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}'
+        then: Parsed as error response
+      - name: Reject malformed JSON
+        when: A line contains invalid JSON
+        then: Returns parse error (-32700)
+      - name: Reject non-object payload
+        when: A line contains a JSON array or primitive
+        then: Returns invalid request error (-32600)
+
+  - id: R-002
+    title: JSON-RPC request/response correlation
+    description: >
+      The client SHALL correlate outgoing requests with incoming responses using
+      auto-incrementing integer IDs. IDs MUST NOT be null per MCP spec.
+    scenarios:
+      - name: Auto-increment IDs
+        when: Two requests are sent sequentially
+        then: First gets id=1, second gets id=2
+      - name: Correlate response to request
+        when: Response with id=1 arrives
+        then: The promise for request id=1 resolves with the result
+      - name: Reject on error response
+        when: Error response with id=1 arrives
+        then: The promise for request id=1 rejects with McpError
+
+  - id: R-003
+    title: JSON-RPC request timeouts
+    description: >
+      The client SHALL reject pending requests after a configurable timeout.
+    scenarios:
+      - name: Default timeout
+        when: No response arrives within default timeout (30s)
+        then: The request promise rejects with timeout error
+      - name: Custom timeout
+        when: Request sent with custom timeoutMs and no response arrives
+        then: Rejects after the custom timeout
+
+  - id: R-004
+    title: MCP initialize handshake
+    description: >
+      The client SHALL perform the MCP initialize handshake: send initialize request,
+      receive response, send initialized notification.
+    scenarios:
+      - name: Successful initialization
+        when: connect() is called with a transport
+        then: Sends initialize with protocolVersion, capabilities, clientInfo; receives InitializeResult; sends notifications/initialized
+      - name: State transitions
+        when: connect() progresses
+        then: State goes disconnected → initializing → ready
+      - name: Store server info
+        when: Server responds with capabilities and serverInfo
+        then: serverCapabilities, serverInfo, and instructions are stored
+
+  - id: R-005
+    title: Protocol version negotiation
+    description: >
+      The client SHALL send protocol version "2025-03-26" and handle version negotiation.
+    scenarios:
+      - name: Same version
+        when: Server responds with "2025-03-26"
+        then: Connection succeeds
+      - name: Different version
+        when: Server responds with unsupported version
+        then: Connection fails with version mismatch error
+
+  - id: R-006
+    title: Capability negotiation
+    description: >
+      The client SHALL exchange capabilities during initialization and enforce
+      capability gating on feature methods.
+    scenarios:
+      - name: Tools gated
+        when: listTools() called but server has no tools capability
+        then: Throws error "Server does not support tools"
+      - name: Resources gated
+        when: listResources() called but server has no resources capability
+        then: Throws error "Server does not support resources"
+      - name: Subscribe gated
+        when: subscribe() called but resources.subscribe is not true
+        then: Throws error "Server does not support resource subscriptions"
+
+  - id: R-007
+    title: Tools list
+    description: >
+      The client SHALL discover available tools via tools/list with cursor-based pagination.
+    scenarios:
+      - name: List all tools
+        when: listTools() called
+        then: "Returns { tools: Tool[], nextCursor?: string }"
+      - name: Paginated list
+        when: "listTools({ cursor }) called with cursor from previous response"
+        then: Returns next page of tools
+
+  - id: R-008
+    title: Tools call
+    description: >
+      The client SHALL invoke tools via tools/call and return typed results.
+    scenarios:
+      - name: Successful call
+        when: "callTool({ name, arguments }) called"
+        then: "Returns { content: ContentItem[], isError?: boolean }"
+      - name: Tool error
+        when: "Tool returns isError: true"
+        then: Result has isError=true with error content
+      - name: Unknown tool
+        when: "Tool name doesn't exist on server"
+        then: Returns JSON-RPC error
+
+  - id: R-009
+    title: Tools changed notification
+    description: >
+      The client SHALL handle notifications/tools/list_changed.
+    scenarios:
+      - name: Notification received
+        when: Server sends tools/list_changed notification
+        then: onToolsChanged callback fires
+
+  - id: R-010
+    title: Resources list
+    description: >
+      The client SHALL discover available resources via resources/list with pagination.
+    scenarios:
+      - name: List resources
+        when: listResources() called
+        then: "Returns { resources: Resource[], nextCursor?: string }"
+      - name: Resource has all fields
+        when: Server returns resource with uri, name, description, mimeType, size
+        then: All fields are present in returned Resource object
+
+  - id: R-011
+    title: Resources read
+    description: >
+      The client SHALL read resource contents via resources/read.
+    scenarios:
+      - name: Read text resource
+        when: readResource(uri) called for text resource
+        then: "Returns { contents: [{ uri, mimeType, text }] }"
+      - name: Read binary resource
+        when: readResource(uri) called for binary resource
+        then: "Returns { contents: [{ uri, mimeType, blob }] }"
+      - name: Resource not found
+        when: readResource(uri) called for nonexistent URI
+        then: Returns JSON-RPC error code -32002
+
+  - id: R-012
+    title: Resource templates
+    description: >
+      The client SHALL discover resource templates via resources/templates/list.
+    scenarios:
+      - name: List templates
+        when: listResourceTemplates() called
+        then: "Returns { resourceTemplates: ResourceTemplate[], nextCursor?: string }"
+
+  - id: R-013
+    title: Resource subscriptions
+    description: >
+      The client SHALL subscribe/unsubscribe to resource updates and receive notifications.
+    scenarios:
+      - name: Subscribe
+        when: "subscribe(uri) called"
+        then: "Sends resources/subscribe with uri"
+      - name: Unsubscribe
+        when: "unsubscribe(uri) called"
+        then: "Sends resources/unsubscribe with uri"
+      - name: Resource updated
+        when: Server sends notifications/resources/updated with uri
+        then: onResourceUpdated(uri) callback fires
+
+  - id: R-014
+    title: Prompts list
+    description: >
+      The client SHALL discover prompts via prompts/list with pagination.
+    scenarios:
+      - name: List prompts
+        when: listPrompts() called
+        then: "Returns { prompts: Prompt[], nextCursor?: string }"
+
+  - id: R-015
+    title: Prompts get
+    description: >
+      The client SHALL retrieve prompt content via prompts/get.
+    scenarios:
+      - name: Get prompt without arguments
+        when: getPrompt("name") called
+        then: "Returns { description?, messages: PromptMessage[] }"
+      - name: Get prompt with arguments
+        when: 'getPrompt("name", { code: "..." }) called'
+        then: Returns expanded prompt with argument values substituted
+
+  - id: R-016
+    title: Completions
+    description: >
+      The client SHALL request argument completions via completion/complete.
+    scenarios:
+      - name: Complete prompt argument
+        when: "complete with ref/prompt and argument name/value"
+        then: "Returns { completion: { values, hasMore?, total? } }"
+      - name: Complete resource argument
+        when: "complete with ref/resource and argument name/value"
+        then: Returns completion values
+
+  - id: R-017
+    title: Logging
+    description: >
+      The client SHALL set log level and receive log message notifications.
+    scenarios:
+      - name: Set level
+        when: setLogLevel("info") called
+        then: Sends logging/setLevel request with level
+      - name: Receive log message
+        when: Server sends notifications/message
+        then: "onLog callback fires with { level, logger?, data }"
+
+  - id: R-018
+    title: Roots
+    description: >
+      The client SHALL respond to roots/list requests and send roots/list_changed notifications.
+    scenarios:
+      - name: Respond to roots/list
+        when: Server sends roots/list request
+        then: "Client responds with { roots } from onRootsList handler"
+      - name: Send roots changed
+        when: sendRootsChanged() called
+        then: Sends notifications/roots/list_changed
+
+  - id: R-019
+    title: Sampling
+    description: >
+      The client SHALL handle server-initiated sampling/createMessage requests.
+    scenarios:
+      - name: Forward to handler
+        when: Server sends sampling/createMessage
+        then: onSamplingRequest handler receives params and result is returned
+      - name: No handler
+        when: Server sends sampling/createMessage but no handler registered
+        then: Returns JSON-RPC error
+
+  - id: R-020
+    title: Cancellation
+    description: >
+      The client SHALL support cancelling in-flight requests via notifications/cancelled.
+    scenarios:
+      - name: Cancel outgoing request
+        when: cancel(requestId, reason?) called
+        then: Sends notifications/cancelled with requestId and optional reason
+      - name: AbortSignal support
+        when: callTool called with AbortSignal that aborts
+        then: Cancellation notification sent and promise rejects
+      - name: Cancel after completion
+        when: cancel called for already-completed request
+        then: Notification sent but no error (fire-and-forget)
+
+  - id: R-021
+    title: Progress
+    description: >
+      The client SHALL receive progress notifications and dispatch them.
+    scenarios:
+      - name: Receive progress
+        when: Server sends notifications/progress with progressToken
+        then: "onProgress callback fires with { progressToken, progress, total?, message? }"
+      - name: Progress token in request
+        when: callTool called with _meta.progressToken
+        then: Token is included in the request params._meta
+
+  - id: R-022
+    title: Ping
+    description: >
+      The client SHALL send and respond to ping requests.
+    scenarios:
+      - name: Client ping
+        when: ping() called
+        then: Sends ping request and resolves on empty response
+      - name: Server ping
+        when: Server sends ping request
+        then: Client responds with empty object
+
+  - id: R-023
+    title: Stdio transport
+    description: >
+      The client SHALL communicate with MCP servers over stdio by spawning a child process.
+    scenarios:
+      - name: Spawn process
+        when: StdioTransport created with command and args
+        then: Child process spawned with stdin/stdout/stderr piped
+      - name: Readable/writable
+        when: Transport created
+        then: readable is child stdout, writable is child stdin
+      - name: Dispose
+        when: dispose() called
+        then: stdin closed, process killed, closed promise resolves
+
+  - id: R-024
+    title: Streamable HTTP transport
+    description: >
+      The client SHALL communicate with MCP servers over Streamable HTTP with SSE.
+    scenarios:
+      - name: POST request
+        when: JSON-RPC message written to transport
+        then: HTTP POST sent to endpoint with Accept header listing application/json and text/event-stream
+      - name: SSE response
+        when: Server responds with text/event-stream
+        then: SSE events parsed and JSON-RPC messages appear on readable
+      - name: JSON response
+        when: Server responds with application/json
+        then: Single JSON-RPC message appears on readable
+      - name: Session ID tracking
+        when: Server returns Mcp-Session-Id in initialize response
+        then: All subsequent requests include Mcp-Session-Id header
+      - name: GET SSE stream
+        when: Server supports server-initiated messages
+        then: Client opens GET SSE stream for notifications
+      - name: Session termination
+        when: Client calls close()
+        then: HTTP DELETE sent with session ID
+
+  - id: R-025
+    title: Batch message receiving
+    description: >
+      The client SHALL support receiving JSON-RPC batch messages (arrays).
+    scenarios:
+      - name: Receive batch
+        when: Server sends JSON array of messages
+        then: Each message in the array is processed individually
+
+  - id: R-026
+    title: Graceful shutdown
+    description: >
+      The client SHALL cleanly shut down on close().
+    scenarios:
+      - name: Close rejects pending
+        when: close() called with pending requests
+        then: All pending requests reject with close error
+      - name: State transition
+        when: close() called
+        then: State transitions to closed
+      - name: Stdio shutdown
+        when: close() on stdio transport
+        then: stdin closed, SIGTERM sent, SIGKILL after timeout
+
+  - id: R-027
+    title: Error handling
+    description: >
+      The client SHALL properly handle JSON-RPC errors, McpError, and transport errors.
+    scenarios:
+      - name: JSON-RPC error codes
+        when: Server returns standard error code
+        then: McpError thrown with correct code and message
+      - name: Transport error
+        when: Child process crashes
+        then: All pending requests reject, state transitions to closed
+      - name: Connection lost
+        when: Transport closes unexpectedly
+        then: Pending requests rejected, onClose callback fires
+
+stories:
+  # ═══════════════════════════════════════════
+  # EPIC 1: Package Setup
+  # ═══════════════════════════════════════════
+
+  - id: US-001
+    title: Create package.json with zero runtime deps
+    status: open
+    dependsOn: []
+    description: >
+      As a developer, I want the tiny-mcp-client package scaffolded with package.json,
+      tsconfig.json, and correct workspace config so I can start development.
+    acceptanceCriteria:
+      - "package.json has name 'tiny-mcp-client', version '0.1.0', type 'module'"
+      - "No runtime dependencies — only devDependencies"
+      - "devDependencies include @modelcontextprotocol/sdk and tiny-stdio-mcp-server"
+      - "tsconfig.json extends root, outDir dist, rootDir src, excludes *.test.ts"
+      - "Package added to root workspaces in root package.json"
+      - "npm install succeeds"
+
+  - id: US-002
+    title: Create index.ts entry point with placeholder exports
+    status: open
+    dependsOn: [US-001]
+    description: >
+      As a developer, I want the index.ts wired up so the package compiles.
+    acceptanceCriteria:
+      - "src/index.ts exists with placeholder comment"
+      - "tsc compiles successfully"
+
+  # ═══════════════════════════════════════════
+  # EPIC 2: JSON-RPC Types & McpError
+  # ═══════════════════════════════════════════
+
+  - id: US-003
+    title: Define JSON-RPC 2.0 base types
+    status: open
+    dependsOn: [US-002]
+    description: >
+      As a developer, I want JSON-RPC types so the message layer has type-safe structures.
+    acceptanceCriteria:
+      - "RequestId type is number | string (no null — MCP spec)"
+      - "JsonRpcRequest with jsonrpc, id, method, optional params"
+      - "JsonRpcNotification with jsonrpc, method, optional params (no id)"
+      - "JsonRpcSuccessResponse with jsonrpc, id, result"
+      - "JsonRpcErrorResponse with jsonrpc, id, error"
+      - "JsonRpcResponse union of success | error"
+      - "JsonRpcErrorObject with code, message, optional data"
+      - "Types compile with strict mode"
+
+  - id: US-004
+    title: Implement McpError class
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want an McpError class for structured error handling.
+    acceptanceCriteria:
+      - "McpError extends Error with code (number) and optional data"
+      - "name property is 'McpError'"
+      - "instanceof McpError works correctly"
+      - "McpError without data does not have data property"
+      - "Test: construct with code, message, data — verify all properties"
+      - "Test: construct without data — verify data is undefined"
+      - "Test: instanceof check passes"
+
+  - id: US-005
+    title: Define JSON-RPC error code constants
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want standard JSON-RPC error codes as named exports.
+    acceptanceCriteria:
+      - "ERROR_PARSE = -32700"
+      - "ERROR_INVALID_REQUEST = -32600"
+      - "ERROR_METHOD_NOT_FOUND = -32601"
+      - "ERROR_INVALID_PARAMS = -32602"
+      - "ERROR_INTERNAL = -32603"
+      - "Test: each constant has correct numeric value"
+
+  # ═══════════════════════════════════════════
+  # EPIC 3: JSON-RPC Message Parsing
+  # ═══════════════════════════════════════════
+
+  - id: US-006
+    title: Implement parseJsonRpcMessage function
+    status: open
+    dependsOn: [US-004, US-005]
+    description: >
+      As a developer, I want a function that parses a JSON string into a typed
+      JSON-RPC message (request, notification, response, or invalid).
+    acceptanceCriteria:
+      - "Returns discriminated union with type: request, notification, response, or invalid"
+      - "Request: has method + id → type='request'"
+      - "Notification: has method, no id → type='notification'"
+      - "Response: has id + result or error, no method → type='response'"
+      - "Invalid: returns error object with code and id"
+
+  - id: US-007
+    title: "Test parseJsonRpcMessage — valid messages"
+    status: open
+    dependsOn: [US-006]
+    description: >
+      As a developer, I want tests proving correct parsing of all valid message types.
+    acceptanceCriteria:
+      - "Test: parse request with numeric id"
+      - "Test: parse request with string id"
+      - "Test: parse request with params"
+      - "Test: parse request without params"
+      - "Test: parse notification with params"
+      - "Test: parse notification without params"
+      - "Test: parse success response"
+      - "Test: parse error response with data"
+      - "Test: parse error response without data"
+
+  - id: US-008
+    title: "Test parseJsonRpcMessage — invalid messages"
+    status: open
+    dependsOn: [US-006]
+    description: >
+      As a developer, I want tests proving correct rejection of invalid messages.
+    acceptanceCriteria:
+      - "Test: malformed JSON returns parse error (-32700)"
+      - "Test: non-object (array) returns invalid request (-32600)"
+      - "Test: non-object (string) returns invalid request (-32600)"
+      - "Test: missing jsonrpc field returns invalid request"
+      - "Test: wrong jsonrpc value returns invalid request"
+      - "Test: non-string method returns invalid request"
+      - "Test: response with both result and error returns invalid request"
+      - "Test: response with neither result nor error returns invalid request"
+
+  - id: US-009
+    title: Implement serializeJsonRpcMessage function
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want a function that serializes a JSON-RPC message to a
+      newline-delimited string.
+    acceptanceCriteria:
+      - "Returns JSON.stringify(message) + '\\n'"
+      - "Test: serialized output ends with newline"
+      - "Test: round-trip parse(serialize(msg)) produces equivalent message"
+
+  - id: US-010
+    title: Implement readLines async generator
+    status: open
+    dependsOn: [US-002]
+    description: >
+      As a developer, I want an async generator that reads newline-delimited lines
+      from a Readable stream, handling partial chunks and CR+LF.
+    acceptanceCriteria:
+      - "Yields complete lines from stream"
+      - "Handles chunks that split across line boundaries"
+      - "Handles CR+LF line endings (strips CR)"
+      - "Yields remaining buffer content when stream closes"
+      - "Test: single chunk with multiple lines"
+      - "Test: line split across two chunks"
+      - "Test: CR+LF line endings"
+      - "Test: empty lines skipped or yielded correctly"
+
+  # ═══════════════════════════════════════════
+  # EPIC 4: JSON-RPC Message Layer
+  # ═══════════════════════════════════════════
+
+  - id: US-011
+    title: Implement JsonRpcMessageLayer constructor
+    status: open
+    dependsOn: [US-006, US-009, US-010]
+    description: >
+      As a developer, I want a JsonRpcMessageLayer class that takes input/output
+      streams and a timeout, starts consuming lines from input.
+    acceptanceCriteria:
+      - "Constructor takes input (Readable), output (Writable), and optional requestTimeoutMs"
+      - "Starts consuming input lines immediately"
+      - "Default requestTimeoutMs is 30000"
+      - "Validates requestTimeoutMs is non-negative finite number"
+
+  - id: US-012
+    title: Implement sendRequest method
+    status: open
+    dependsOn: [US-011]
+    description: >
+      As a developer, I want sendRequest that writes a JSON-RPC request and returns
+      a promise that resolves when the response arrives.
+    acceptanceCriteria:
+      - "Auto-increments integer request IDs starting at 1"
+      - "Writes serialized request to output stream"
+      - "Returns promise that resolves with result on success"
+      - "Test: sendRequest writes request with id=1 to output"
+      - "Test: second sendRequest gets id=2"
+
+  - id: US-013
+    title: Implement request/response correlation
+    status: open
+    dependsOn: [US-012]
+    description: >
+      As a developer, I want incoming responses to resolve the correct pending request.
+    acceptanceCriteria:
+      - "Success response resolves promise with result value"
+      - "Error response rejects promise with McpError"
+      - "McpError has correct code, message, and data from response"
+      - "Test: send request, write response to input, promise resolves"
+      - "Test: send request, write error response, promise rejects with McpError"
+      - "Test: two concurrent requests, responses in reverse order, correct correlation"
+
+  - id: US-014
+    title: Implement request timeout
+    status: open
+    dependsOn: [US-012]
+    description: >
+      As a developer, I want requests to timeout after the configured duration.
+    acceptanceCriteria:
+      - "Promise rejects with timeout error after requestTimeoutMs"
+      - "Timeout error message includes method name and timeout duration"
+      - "Pending request count decrements on timeout"
+      - "Test: send request, advance time past timeout, promise rejects"
+      - "Test: per-request timeout override via options.timeoutMs"
+
+  - id: US-015
+    title: Implement sendNotification method
+    status: open
+    dependsOn: [US-011]
+    description: >
+      As a developer, I want sendNotification that writes a notification (no id, no response).
+    acceptanceCriteria:
+      - "Writes JSON-RPC notification without id field"
+      - "Does not create pending request entry"
+      - "Test: notification written to output has no id"
+      - "Test: notification with params includes params"
+      - "Test: notification without params omits params"
+
+  - id: US-016
+    title: Implement onRequest handler registration
+    status: open
+    dependsOn: [US-011]
+    description: >
+      As a developer, I want to register handlers for incoming requests and have
+      responses sent automatically.
+    acceptanceCriteria:
+      - "onRequest(method, handler) registers handler for method"
+      - "When request arrives, handler is called with (params, context)"
+      - "Handler return value is sent as success response"
+      - "Handler throw is sent as error response"
+      - "Test: register handler, send request on input, verify response on output"
+      - "Test: handler throws — error response written"
+
+  - id: US-017
+    title: Implement onNotification handler registration
+    status: open
+    dependsOn: [US-011]
+    description: >
+      As a developer, I want to register handlers for incoming notifications.
+    acceptanceCriteria:
+      - "onNotification(method, handler) registers handler"
+      - "When notification arrives, handler called with (params, context)"
+      - "No response sent for notifications"
+      - "Missing handler for notification is silently ignored"
+      - "Test: register handler, send notification on input, handler called"
+      - "Test: notification for unregistered method — no error"
+
+  - id: US-018
+    title: Implement method-not-found for unregistered requests
+    status: open
+    dependsOn: [US-016]
+    description: >
+      As a developer, I want unregistered request methods to return method-not-found error.
+    acceptanceCriteria:
+      - "Request for unregistered method returns error code -32601"
+      - "Error message includes the method name"
+      - "Test: send request for unknown method, verify error response"
+
+  - id: US-019
+    title: Implement parse/invalid-request error responses
+    status: open
+    dependsOn: [US-011]
+    description: >
+      As a developer, I want malformed input lines to produce proper error responses.
+    acceptanceCriteria:
+      - "Malformed JSON → error response with code -32700 (parse error)"
+      - "Invalid JSON-RPC structure → error response with code -32600"
+      - "Error response id is extracted from the malformed message when possible"
+      - "Test: write malformed JSON to input, verify parse error response"
+      - "Test: write invalid JSON-RPC to input, verify invalid request response"
+
+  - id: US-020
+    title: Implement dispose method
+    status: open
+    dependsOn: [US-012]
+    description: >
+      As a developer, I want dispose() to reject all pending requests and stop processing.
+    acceptanceCriteria:
+      - "All pending requests rejected with provided error or default"
+      - "Timeouts cleared for all pending requests"
+      - "Subsequent sendRequest throws"
+      - "Subsequent sendNotification throws"
+      - "Idempotent — multiple dispose calls are safe"
+      - "Test: dispose rejects all pending requests"
+      - "Test: sendRequest after dispose throws"
+
+  - id: US-021
+    title: Input stream close triggers dispose
+    status: open
+    dependsOn: [US-020]
+    description: >
+      As a developer, I want the layer to auto-dispose when the input stream closes.
+    acceptanceCriteria:
+      - "When input stream ends, layer disposes automatically"
+      - "All pending requests rejected with 'stream closed' error"
+      - "Test: close input stream, verify pending requests rejected"
+
+  - id: US-022
+    title: "Test CR+LF and empty line handling in message layer"
+    status: open
+    dependsOn: [US-011]
+    description: >
+      As a developer, I want the layer to handle edge cases in line parsing.
+    acceptanceCriteria:
+      - "Test: CR+LF delimited messages are parsed correctly"
+      - "Test: empty lines are ignored (not parsed as invalid)"
+      - "Test: message split across multiple stream chunks works"
+
+  # ═══════════════════════════════════════════
+  # EPIC 5: Transport Interface
+  # ═══════════════════════════════════════════
+
+  - id: US-023
+    title: Define McpTransport interface
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want a transport interface that both stdio and HTTP implement.
+    acceptanceCriteria:
+      - "McpTransport has readable (Readable), writable (Writable)"
+      - "McpTransport has closed (Promise<McpTransportClosedEvent>)"
+      - "McpTransport has dispose(reason?: Error): void"
+      - "McpTransportClosedEvent has reason (Error)"
+
+  # ═══════════════════════════════════════════
+  # EPIC 6: Stdio Transport
+  # ═══════════════════════════════════════════
+
+  - id: US-024
+    title: Implement StdioTransport constructor
+    status: open
+    dependsOn: [US-023]
+    description: >
+      As a developer, I want StdioTransport that spawns a child process for MCP communication.
+    acceptanceCriteria:
+      - "Constructor takes { command, args?, cwd?, env?, spawn? }"
+      - "Spawns child process with stdio: ['pipe', 'pipe', 'pipe']"
+      - "readable is child.stdout, writable is child.stdin"
+      - "spawn function is injectable for testing"
+
+  - id: US-025
+    title: "Test StdioTransport spawns process correctly"
+    status: open
+    dependsOn: [US-024]
+    description: >
+      As a developer, I want tests verifying process spawning behavior.
+    acceptanceCriteria:
+      - "Test: mock spawn called with correct command and args"
+      - "Test: cwd and env passed through to spawn"
+      - "Test: readable/writable point to child stdout/stdin"
+      - "Test: custom spawn function is used when provided"
+
+  - id: US-026
+    title: Implement stderr capture
+    status: open
+    dependsOn: [US-024]
+    description: >
+      As a developer, I want StdioTransport to capture stderr output.
+    acceptanceCriteria:
+      - "getStderrOutput() returns concatenated stderr chunks"
+      - "Test: write to mock stderr, verify getStderrOutput returns it"
+
+  - id: US-027
+    title: Implement closed promise
+    status: open
+    dependsOn: [US-024]
+    description: >
+      As a developer, I want the closed promise to resolve when the process exits.
+    acceptanceCriteria:
+      - "Resolves with { reason, code?, signal? } on process exit"
+      - "Resolves on process error event"
+      - "Test: process exits with code 0 — closed resolves"
+      - "Test: process exits with signal SIGTERM — closed resolves with signal"
+      - "Test: process emits error — closed resolves with error reason"
+
+  - id: US-028
+    title: Implement dispose method for StdioTransport
+    status: open
+    dependsOn: [US-024]
+    description: >
+      As a developer, I want dispose to cleanly shut down the child process.
+    acceptanceCriteria:
+      - "Ends stdin stream"
+      - "Sends SIGTERM if process still running"
+      - "closed promise resolves after dispose"
+      - "Idempotent — multiple dispose calls are safe"
+      - "Test: dispose ends stdin and kills process"
+      - "Test: double dispose does not throw"
+
+  - id: US-029
+    title: "Test StdioTransport full round-trip with real process"
+    status: open
+    dependsOn: [US-028]
+    description: >
+      As a developer, I want a smoke test that uses StdioTransport with a real MCP server process.
+    acceptanceCriteria:
+      - "Test: spawn tiny-stdio-mcp-test-server via StdioTransport"
+      - "Test: write initialize request to stdin, read response from stdout"
+      - "Test: dispose kills the process, closed resolves"
+
+  # ═══════════════════════════════════════════
+  # EPIC 7: MCP Protocol Types
+  # ═══════════════════════════════════════════
+
+  - id: US-030
+    title: Define MCP lifecycle types
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want MCP lifecycle types for initialization.
+    acceptanceCriteria:
+      - "Implementation type with name, version"
+      - "ClientCapabilities with roots?, sampling?, experimental?"
+      - "ServerCapabilities with prompts?, resources?, tools?, logging?, completions?, experimental?"
+      - "InitializeParams with protocolVersion, capabilities, clientInfo"
+      - "InitializeResult with protocolVersion, capabilities, serverInfo, instructions?"
+
+  - id: US-031
+    title: Define MCP tool types
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want tool-related MCP types.
+    acceptanceCriteria:
+      - "Tool with name, description?, inputSchema, annotations?"
+      - "ToolAnnotations with title?, readOnlyHint?, destructiveHint?, idempotentHint?, openWorldHint?"
+      - "CallToolParams with name, arguments?"
+      - "CallToolResult with content (ContentItem[]), isError?"
+      - "ContentItem union: TextContent | ImageContent | AudioContent | EmbeddedResource"
+      - "TextContent with type='text', text"
+      - "ImageContent with type='image', data, mimeType"
+      - "AudioContent with type='audio', data, mimeType"
+      - "EmbeddedResource with type='resource', resource (ResourceContents)"
+
+  - id: US-032
+    title: Define MCP resource types
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want resource-related MCP types.
+    acceptanceCriteria:
+      - "Resource with uri, name, description?, mimeType?, size?"
+      - "ResourceTemplate with uriTemplate, name, description?, mimeType?"
+      - "ResourceContents union: text variant | blob variant, both with uri, mimeType?"
+      - "PaginatedParams with cursor?"
+      - "PaginatedResult with nextCursor?"
+
+  - id: US-033
+    title: Define MCP prompt types
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want prompt-related MCP types.
+    acceptanceCriteria:
+      - "Prompt with name, description?, arguments?"
+      - "PromptArgument with name, description?, required?"
+      - "PromptMessage with role ('user' | 'assistant'), content (ContentItem)"
+      - "GetPromptResult with description?, messages"
+
+  - id: US-034
+    title: Define MCP utility types (logging, roots, sampling, progress, completion)
+    status: open
+    dependsOn: [US-003]
+    description: >
+      As a developer, I want all remaining MCP types.
+    acceptanceCriteria:
+      - "Root with uri, name?"
+      - "LogLevel union of 8 syslog levels"
+      - "LogMessage with level, logger?, data"
+      - "ProgressParams with progressToken, progress, total?, message?"
+      - "CreateMessageParams with messages, modelPreferences?, systemPrompt?, includeContext?, temperature?, maxTokens, stopSequences?, metadata?"
+      - "SamplingMessage with role, content"
+      - "ModelPreferences with hints?, costPriority?, speedPriority?, intelligencePriority?"
+      - "CreateMessageResult with model, content, role, stopReason"
+      - "CompleteParams with ref (prompt | resource ref), argument { name, value }"
+      - "CompleteResult with completion { values, hasMore?, total? }"
+
+  # ═══════════════════════════════════════════
+  # EPIC 8: Testing Infrastructure
+  # ═══════════════════════════════════════════
+
+  - id: US-035
+    title: Implement createInMemoryTransportPair
+    status: open
+    dependsOn: [US-023]
+    description: >
+      As a developer, I want a helper that creates cross-wired PassThrough streams
+      for in-memory client/server testing without real processes.
+    acceptanceCriteria:
+      - "Returns clientTransport (McpTransport) and serverTransport (readable + writable)"
+      - "Client writes → server reads; server writes → client reads"
+      - "dispose() on client transport ends both streams"
+      - "Test: write on clientTransport.writable appears on serverTransport.readable"
+      - "Test: write on serverTransport.writable appears on clientTransport.readable"
+
+  - id: US-036
+    title: Implement SdkTransportAdapter
+    status: open
+    dependsOn: [US-023]
+    description: >
+      As a developer, I want an adapter that bridges @modelcontextprotocol/sdk's
+      InMemoryTransport to our McpTransport interface so we can test against SDK servers.
+    acceptanceCriteria:
+      - "Takes one side of InMemoryTransport.createLinkedPair()"
+      - "Implements McpTransport (readable, writable, closed, dispose)"
+      - "Messages sent via SDK transport appear as lines on readable"
+      - "Lines written to writable are delivered via SDK transport.onmessage"
+      - "Test: bidirectional message passing through adapter"
+
+  - id: US-037
+    title: Implement createSdkTestPair helper
+    status: open
+    dependsOn: [US-036]
+    description: >
+      As a developer, I want a helper that connects our McpClient to an
+      @modelcontextprotocol/sdk Server via InMemoryTransport + adapter.
+    acceptanceCriteria:
+      - "Takes an SDK Server instance"
+      - "Creates InMemoryTransport pair"
+      - "Connects server to one end, creates McpTransport adapter for other end"
+      - "Returns client (McpClient) and cleanup function"
+      - "Cleanup closes client and server transport"
+
+  - id: US-038
+    title: Implement createTestPair for tiny-stdio-mcp-server
+    status: open
+    dependsOn: [US-035]
+    description: >
+      As a developer, I want a helper that connects our McpClient to a
+      tiny-stdio-mcp-server Server via PassThrough streams.
+    acceptanceCriteria:
+      - "Takes a tiny-stdio-mcp-server Server instance"
+      - "Uses createInMemoryTransportPair for cross-wired streams"
+      - "Calls server.connect(serverTransport)"
+      - "Calls client.connect(clientTransport)"
+      - "Returns client (McpClient) and cleanup"
+      - "Test: createTestPair with createTestServer() succeeds"
+
+  # ═══════════════════════════════════════════
+  # EPIC 9: Mock Test Servers (MCP SDK)
+  # ═══════════════════════════════════════════
+
+  - id: US-039
+    title: Create mock echo tool server
+    status: open
+    dependsOn: [US-037]
+    description: >
+      As a developer, I want a mock MCP server (using SDK) with a simple echo tool.
+    acceptanceCriteria:
+      - "Server has 'echo' tool that returns its input as text"
+      - "Tool schema has 'message' (string, required)"
+      - "Created using @modelcontextprotocol/sdk Server"
+      - "Test: server responds to tools/list with echo tool"
+      - "Test: server responds to tools/call with echoed message"
+
+  - id: US-040
+    title: Create mock multi-tool server with varied schemas
+    status: open
+    dependsOn: [US-039]
+    description: >
+      As a developer, I want a mock server with multiple tools with different schemas.
+    acceptanceCriteria:
+      - "Server has 'add' tool (a: number, b: number) → text result"
+      - "Server has 'greet' tool (name: string, formal?: boolean) → text result"
+      - "Server has 'fail' tool that returns isError: true"
+      - "Test: tools/list returns all 3 tools with correct schemas"
+      - "Test: each tool callable with correct arguments"
+
+  - id: US-041
+    title: Create mock paginated tools server
+    status: open
+    dependsOn: [US-039]
+    description: >
+      As a developer, I want a mock server that returns tools across multiple pages.
+    acceptanceCriteria:
+      - "Server has 20 tools, returns 5 per page via cursor pagination"
+      - "First page has nextCursor, last page has no nextCursor"
+      - "Test: iterate all pages, collect all 20 tools"
+
+  - id: US-042
+    title: Create mock resource server
+    status: open
+    dependsOn: [US-037]
+    description: >
+      As a developer, I want a mock server with static text and binary resources.
+    acceptanceCriteria:
+      - "Server declares resources capability"
+      - "Has text resource 'file:///readme.txt' with text content"
+      - "Has binary resource 'file:///image.png' with blob content"
+      - "Has resource template 'file:///{path}'"
+      - "Test: resources/list returns both resources"
+      - "Test: resources/read returns correct text content"
+      - "Test: resources/read returns correct blob content"
+      - "Test: resources/templates/list returns template"
+
+  - id: US-043
+    title: Create mock subscribable resource server
+    status: open
+    dependsOn: [US-042]
+    description: >
+      As a developer, I want a mock server that supports resource subscriptions.
+    acceptanceCriteria:
+      - 'Server declares resources: { subscribe: true, listChanged: true }'
+      - "Accepts resources/subscribe requests"
+      - "Can trigger notifications/resources/updated for subscribed URIs"
+      - "Can trigger notifications/resources/list_changed"
+      - "Test: subscribe, trigger update, verify notification received"
+
+  - id: US-044
+    title: Create mock prompt server
+    status: open
+    dependsOn: [US-037]
+    description: >
+      As a developer, I want a mock server with prompt templates.
+    acceptanceCriteria:
+      - "Server declares prompts capability"
+      - "Has 'code_review' prompt with 'code' required argument"
+      - "Has 'summarize' prompt with no arguments"
+      - "prompts/get returns PromptMessage[] with argument substitution"
+      - "Test: prompts/list returns both prompts"
+      - "Test: prompts/get with arguments returns expanded messages"
+
+  - id: US-045
+    title: Create mock completion server
+    status: open
+    dependsOn: [US-037]
+    description: >
+      As a developer, I want a mock server that supports argument completion.
+    acceptanceCriteria:
+      - "Server declares completions capability"
+      - "completion/complete for prompt ref returns matching values"
+      - "Returns hasMore and total when applicable"
+      - "Test: complete with partial value returns filtered suggestions"
+
+  - id: US-046
+    title: Create mock logging server
+    status: open
+    dependsOn: [US-037]
+    description: >
+      As a developer, I want a mock server that sends log messages.
+    acceptanceCriteria:
+      - "Server declares logging capability"
+      - "Accepts logging/setLevel requests"
+      - "Sends notifications/message at various levels"
+      - "Has a tool that triggers log messages when called"
+      - "Test: set level, call tool, verify log messages received"
+
+  - id: US-047
+    title: Create mock progress server
+    status: open
+    dependsOn: [US-037]
+    description: >
+      As a developer, I want a mock server that sends progress notifications during tool calls.
+    acceptanceCriteria:
+      - "Server has 'slow_task' tool that sends progress updates"
+      - "Progress includes progressToken, progress, total, message"
+      - "Sends 3+ progress updates before final result"
+      - "Test: call tool with progressToken, verify progress notifications received"
+
+  - id: US-048
+    title: Create mock sampling server
+    status: open
+    dependsOn: [US-037]
+    description: >
+      As a developer, I want a mock server that sends sampling/createMessage requests to client.
+    acceptanceCriteria:
+      - "Server has a tool that triggers a sampling request to the client"
+      - "Sampling request includes messages, maxTokens, modelPreferences"
+      - "Server uses client's sampling response in its tool result"
+      - "Test: call tool, client receives sampling request, responds, tool completes"
+
+  - id: US-049
+    title: Create mock roots server
+    status: open
+    dependsOn: [US-037]
+    description: >
+      As a developer, I want a mock server that requests roots from the client.
+    acceptanceCriteria:
+      - "Server sends roots/list request during a tool call"
+      - "Server uses returned roots in its tool result"
+      - "Test: call tool, client receives roots/list, responds with roots, tool completes"
+
+  - id: US-050
+    title: Create mock slow tool server for cancellation testing
+    status: open
+    dependsOn: [US-039]
+    description: >
+      As a developer, I want a mock server with a tool that takes a long time.
+    acceptanceCriteria:
+      - "Server has 'slow' tool that delays response by configurable duration"
+      - "Server handles notifications/cancelled and stops processing"
+      - "Test: call tool, cancel, verify cancellation handled"
+
+  - id: US-051
+    title: Create mock error server
+    status: open
+    dependsOn: [US-039]
+    description: >
+      As a developer, I want a mock server that returns various error types.
+    acceptanceCriteria:
+      - "Has tool that returns JSON-RPC error (invalid params)"
+      - "Has tool that returns isError: true content"
+      - "Has tool that triggers internal error"
+      - "Test: each error type returned correctly"
+
+  - id: US-052
+    title: Create mock full-featured server
+    status: open
+    dependsOn: [US-039, US-042, US-044, US-045, US-046]
+    description: >
+      As a developer, I want a mock server that declares ALL capabilities.
+    acceptanceCriteria:
+      - "Server declares tools, resources, prompts, logging, completions"
+      - "Has at least one tool, resource, and prompt"
+      - "Test: initialize and verify all capabilities reported"
+
+  # ═══════════════════════════════════════════
+  # EPIC 10: Client Core & Lifecycle
+  # ═══════════════════════════════════════════
+
+  - id: US-053
+    title: Implement McpClient constructor
+    status: open
+    dependsOn: [US-011, US-023, US-030]
+    description: >
+      As a developer, I want the McpClient class with constructor accepting options.
+    acceptanceCriteria:
+      - "Constructor takes McpClientOptions { clientInfo, capabilities?, onToolsChanged?, onResourcesChanged?, onResourceUpdated?, onPromptsChanged?, onLog?, onProgress?, onSamplingRequest?, onRootsList? }"
+      - "Initial state is 'disconnected'"
+      - "serverCapabilities is null before connect"
+      - "serverInfo is null before connect"
+
+  - id: US-054
+    title: "Implement connect() — send initialize request"
+    status: open
+    dependsOn: [US-053]
+    description: >
+      As a developer, I want connect() to send the initialize request.
+    acceptanceCriteria:
+      - "connect(transport) creates JsonRpcMessageLayer from transport streams"
+      - "Sends initialize request with protocolVersion='2025-03-26'"
+      - "Sends clientInfo and capabilities from options"
+      - "State transitions to 'initializing'"
+      - "Test: verify initialize request written to transport"
+
+  - id: US-055
+    title: "Implement connect() — handle initialize response"
+    status: open
+    dependsOn: [US-054]
+    description: >
+      As a developer, I want connect() to process the server's initialize response.
+    acceptanceCriteria:
+      - "Stores serverCapabilities from response"
+      - "Stores serverInfo from response"
+      - "Stores instructions from response (if present)"
+      - "Test: connect resolves with InitializeResult"
+      - "Test: serverCapabilities accessible after connect"
+
+  - id: US-056
+    title: "Implement connect() — send initialized notification"
+    status: open
+    dependsOn: [US-055]
+    description: >
+      As a developer, I want connect() to send the initialized notification after response.
+    acceptanceCriteria:
+      - "Sends notifications/initialized after storing response"
+      - "State transitions to 'ready'"
+      - "Test: initialized notification appears after initialize response"
+
+  - id: US-057
+    title: "Implement connect() — version negotiation"
+    status: open
+    dependsOn: [US-055]
+    description: >
+      As a developer, I want connect() to validate protocol version compatibility.
+    acceptanceCriteria:
+      - "If server returns same version, success"
+      - "If server returns different version, reject with McpError"
+      - "Test: server responds with matching version — success"
+      - "Test: server responds with different version — error"
+
+  - id: US-058
+    title: "Implement connect() — register notification handlers"
+    status: open
+    dependsOn: [US-056]
+    description: >
+      As a developer, I want connect() to register handlers for all server notifications.
+    acceptanceCriteria:
+      - "Registers handler for notifications/tools/list_changed"
+      - "Registers handler for notifications/resources/list_changed"
+      - "Registers handler for notifications/resources/updated"
+      - "Registers handler for notifications/prompts/list_changed"
+      - "Registers handler for notifications/message (logging)"
+      - "Registers handler for notifications/progress"
+      - "Registers handler for notifications/cancelled"
+
+  - id: US-059
+    title: "Implement connect() — register request handlers"
+    status: open
+    dependsOn: [US-056]
+    description: >
+      As a developer, I want connect() to register handlers for server-initiated requests.
+    acceptanceCriteria:
+      - "Registers handler for ping"
+      - "Registers handler for sampling/createMessage (if onSamplingRequest provided)"
+      - "Registers handler for roots/list (if onRootsList provided)"
+
+  - id: US-060
+    title: Implement close() method
+    status: open
+    dependsOn: [US-054]
+    description: >
+      As a developer, I want close() to gracefully shut down.
+    acceptanceCriteria:
+      - "Disposes JsonRpcMessageLayer (rejects pending requests)"
+      - "Disposes transport"
+      - "State transitions to 'closed'"
+      - "Test: close with pending requests — all rejected"
+      - "Test: state is 'closed' after close"
+
+  - id: US-061
+    title: Implement state getter and guard
+    status: open
+    dependsOn: [US-053]
+    description: >
+      As a developer, I want state management with guards against invalid operations.
+    acceptanceCriteria:
+      - "state getter returns current state"
+      - "Calling methods on disconnected client throws"
+      - "Calling methods on closed client throws"
+      - "Calling connect on already-connected client throws"
+      - "Test: method call before connect throws"
+      - "Test: connect twice throws"
+      - "Test: method call after close throws"
+
+  - id: US-062
+    title: Implement capability gating
+    status: open
+    dependsOn: [US-055]
+    description: >
+      As a developer, I want methods to check server capabilities before sending requests.
+    acceptanceCriteria:
+      - "listTools throws if server has no tools capability"
+      - "listResources throws if server has no resources capability"
+      - "subscribe throws if resources.subscribe is not true"
+      - "listPrompts throws if server has no prompts capability"
+      - "complete throws if server has no completions capability"
+      - "setLogLevel throws if server has no logging capability"
+      - "Test: each gated method throws with descriptive message"
+
+  - id: US-063
+    title: "Test client capabilities advertised correctly"
+    status: open
+    dependsOn: [US-054]
+    description: >
+      As a developer, I want the client to advertise capabilities based on provided handlers.
+    acceptanceCriteria:
+      - "Test: client with onSamplingRequest advertises sampling:{} capability"
+      - "Test: client with onRootsList advertises roots:{} capability"
+      - "Test: client with onRootsList + listChanged=true advertises roots with listChanged"
+      - "Test: client without handlers does not advertise sampling or roots"
+
+  # ═══════════════════════════════════════════
+  # EPIC 11: Ping
+  # ═══════════════════════════════════════════
+
+  - id: US-064
+    title: Implement ping() method
+    status: open
+    dependsOn: [US-054]
+    description: >
+      As a developer, I want ping() to send a ping request and resolve on response.
+    acceptanceCriteria:
+      - "Sends JSON-RPC request with method 'ping'"
+      - "Resolves when empty response received"
+      - "Test: ping sends request and resolves"
+
+  - id: US-065
+    title: Implement server ping handler
+    status: open
+    dependsOn: [US-059]
+    description: >
+      As a developer, I want the client to respond to server-initiated pings.
+    acceptanceCriteria:
+      - "Registered handler responds with empty object {}"
+      - "Test: send ping request from server, verify empty response"
+
+  - id: US-066
+    title: Test ping timeout
+    status: open
+    dependsOn: [US-064]
+    description: >
+      As a developer, I want ping to respect timeout settings.
+    acceptanceCriteria:
+      - "Test: ping with no response rejects after timeout"
+
+  - id: US-067
+    title: Integration test — ping round-trip with SDK server
+    status: open
+    dependsOn: [US-064, US-039]
+    description: >
+      As a developer, I want to verify ping works against a real SDK server.
+    acceptanceCriteria:
+      - "Test: connect to mock echo server, call ping(), succeeds"
+
+  # ═══════════════════════════════════════════
+  # EPIC 12: Tools
+  # ═══════════════════════════════════════════
+
+  - id: US-068
+    title: Implement listTools()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want listTools to discover server tools.
+    acceptanceCriteria:
+      - "Sends tools/list request"
+      - "Returns tools array and optional nextCursor"
+      - "Supports optional cursor parameter for pagination"
+      - "Test: listTools against mock, returns tools array"
+
+  - id: US-069
+    title: Implement callTool()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want callTool to invoke a server tool.
+    acceptanceCriteria:
+      - "Sends tools/call request with name and arguments"
+      - "Returns content array and optional isError boolean"
+      - "Test: callTool with arguments returns expected result"
+
+  - id: US-070
+    title: Test listTools pagination
+    status: open
+    dependsOn: [US-068, US-041]
+    description: >
+      As a developer, I want to verify pagination works for tools.
+    acceptanceCriteria:
+      - "Test: call listTools() without cursor, get first page with nextCursor"
+      - "Test: call listTools({ cursor }) with nextCursor, get next page"
+      - "Test: iterate all pages, collect all tools"
+
+  - id: US-071
+    title: Test callTool with text content
+    status: open
+    dependsOn: [US-069, US-039]
+    description: >
+      As a developer, I want to verify tool results with text content.
+    acceptanceCriteria:
+      - "Test: echo tool returns text content array"
+      - "Test: add tool returns text content with sum"
+
+  - id: US-072
+    title: Test callTool with error results
+    status: open
+    dependsOn: [US-069, US-051]
+    description: >
+      As a developer, I want to verify error handling in tool calls.
+    acceptanceCriteria:
+      - "Test: tool with isError: true returns result with isError flag"
+      - "Test: calling unknown tool name returns JSON-RPC error"
+      - "Test: JSON-RPC error has correct code and message"
+
+  - id: US-073
+    title: Implement onToolsChanged notification
+    status: open
+    dependsOn: [US-058]
+    description: >
+      As a developer, I want tools/list_changed notifications to trigger callback.
+    acceptanceCriteria:
+      - "When server sends notifications/tools/list_changed"
+      - "onToolsChanged callback fires"
+      - "Test: trigger notification, verify callback called"
+
+  - id: US-074
+    title: Integration test — tools with tiny-stdio-mcp-test-server
+    status: open
+    dependsOn: [US-068, US-069, US-038]
+    description: >
+      As a developer, I want to verify tools work against the real tiny-stdio-mcp-test-server.
+    acceptanceCriteria:
+      - "Test: createTestPair with createTestServer, list tools, verify caesar_cipher_encrypt and word_of_the_day"
+      - "Test: callTool caesar_cipher_encrypt with text='hello' returns 'khoor'"
+      - "Test: callTool word_of_the_day returns expected text"
+
+  - id: US-075
+    title: Integration test — tools with SDK multi-tool server
+    status: open
+    dependsOn: [US-068, US-069, US-040]
+    description: >
+      As a developer, I want to verify tools work against SDK server with multiple tools.
+    acceptanceCriteria:
+      - "Test: list tools, verify add, greet, fail tools"
+      - "Test: call add(2,3) returns '5'"
+      - "Test: call greet('world') returns greeting"
+      - "Test: call fail returns isError: true"
+
+  # ═══════════════════════════════════════════
+  # EPIC 13: Resources
+  # ═══════════════════════════════════════════
+
+  - id: US-076
+    title: Implement listResources()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want listResources to discover server resources.
+    acceptanceCriteria:
+      - "Sends resources/list request"
+      - "Returns resources array and optional nextCursor"
+      - "Supports cursor pagination"
+      - "Test: returns resources with uri, name, description, mimeType, size"
+
+  - id: US-077
+    title: Implement readResource()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want readResource to fetch resource contents.
+    acceptanceCriteria:
+      - "Sends resources/read with uri"
+      - "Returns contents array of ResourceContents"
+      - "Test: read text resource, verify text content"
+      - "Test: read binary resource, verify blob content"
+
+  - id: US-078
+    title: Implement listResourceTemplates()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want to discover resource templates.
+    acceptanceCriteria:
+      - "Sends resources/templates/list request"
+      - "Returns { resourceTemplates: ResourceTemplate[], nextCursor?: string }"
+      - "Test: returns templates with uriTemplate, name"
+
+  - id: US-079
+    title: Implement subscribe() and unsubscribe()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want to subscribe/unsubscribe to resource updates.
+    acceptanceCriteria:
+      - "subscribe(uri) sends resources/subscribe with uri"
+      - "unsubscribe(uri) sends resources/unsubscribe with uri"
+      - "Both check resources.subscribe capability"
+      - "Test: subscribe sends correct request"
+      - "Test: unsubscribe sends correct request"
+      - "Test: subscribe without capability throws"
+
+  - id: US-080
+    title: Implement resource notification callbacks
+    status: open
+    dependsOn: [US-058]
+    description: >
+      As a developer, I want resource change notifications to fire callbacks.
+    acceptanceCriteria:
+      - "notifications/resources/list_changed → onResourcesChanged()"
+      - "notifications/resources/updated → onResourceUpdated(uri)"
+      - "Test: list_changed triggers onResourcesChanged"
+      - "Test: updated triggers onResourceUpdated with correct uri"
+
+  - id: US-081
+    title: Test readResource error handling
+    status: open
+    dependsOn: [US-077, US-042]
+    description: >
+      As a developer, I want proper errors for resource read failures.
+    acceptanceCriteria:
+      - "Test: read nonexistent URI returns JSON-RPC error"
+      - "Test: McpError has correct code (-32002 or similar)"
+
+  - id: US-082
+    title: Integration test — resources with SDK server
+    status: open
+    dependsOn: [US-076, US-077, US-078, US-042]
+    description: >
+      As a developer, I want to verify full resource flow against SDK server.
+    acceptanceCriteria:
+      - "Test: list resources, read text resource, verify content"
+      - "Test: list resources, read binary resource, verify blob"
+      - "Test: list resource templates, verify uriTemplate"
+
+  - id: US-083
+    title: Integration test — resource subscriptions with SDK server
+    status: open
+    dependsOn: [US-079, US-080, US-043]
+    description: >
+      As a developer, I want to verify subscription flow against SDK server.
+    acceptanceCriteria:
+      - "Test: subscribe to resource, trigger update, verify notification received"
+      - "Test: unsubscribe, trigger update, verify no notification"
+
+  # ═══════════════════════════════════════════
+  # EPIC 14: Prompts
+  # ═══════════════════════════════════════════
+
+  - id: US-084
+    title: Implement listPrompts()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want listPrompts to discover server prompts.
+    acceptanceCriteria:
+      - "Sends prompts/list request"
+      - "Returns { prompts: Prompt[], nextCursor?: string }"
+      - "Test: returns prompts with name, description, arguments"
+
+  - id: US-085
+    title: Implement getPrompt()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want getPrompt to retrieve expanded prompt content.
+    acceptanceCriteria:
+      - "Sends prompts/get with name and optional arguments"
+      - "Returns { description?, messages: PromptMessage[] }"
+      - "Test: getPrompt without args returns messages"
+      - "Test: getPrompt with args returns expanded messages"
+
+  - id: US-086
+    title: Test getPrompt content types
+    status: open
+    dependsOn: [US-085, US-044]
+    description: >
+      As a developer, I want to verify all content types in prompt messages.
+    acceptanceCriteria:
+      - "Test: prompt with text content returns TextContent"
+      - "Test: prompt with image content returns ImageContent"
+      - "Test: prompt with embedded resource returns EmbeddedResource"
+      - "Test: prompt with user and assistant roles"
+
+  - id: US-087
+    title: Test getPrompt error handling
+    status: open
+    dependsOn: [US-085]
+    description: >
+      As a developer, I want proper errors for invalid prompt requests.
+    acceptanceCriteria:
+      - "Test: nonexistent prompt name returns -32602 error"
+      - "Test: missing required argument returns -32602 error"
+
+  - id: US-088
+    title: Implement onPromptsChanged notification
+    status: open
+    dependsOn: [US-058]
+    description: >
+      As a developer, I want prompts/list_changed to fire callback.
+    acceptanceCriteria:
+      - "notifications/prompts/list_changed → onPromptsChanged()"
+      - "Test: trigger notification, verify callback called"
+
+  - id: US-089
+    title: Integration test — prompts with SDK server
+    status: open
+    dependsOn: [US-084, US-085, US-044]
+    description: >
+      As a developer, I want to verify full prompt flow against SDK server.
+    acceptanceCriteria:
+      - "Test: list prompts, get code_review with args, verify messages"
+      - "Test: list prompts, get summarize without args, verify messages"
+
+  # ═══════════════════════════════════════════
+  # EPIC 15: Completions
+  # ═══════════════════════════════════════════
+
+  - id: US-090
+    title: Implement complete()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want complete() to request argument completions.
+    acceptanceCriteria:
+      - "Sends completion/complete with ref and argument"
+      - "Returns { completion: { values, hasMore?, total? } }"
+      - "Test: complete with prompt ref returns values"
+
+  - id: US-091
+    title: Test complete with resource ref
+    status: open
+    dependsOn: [US-090, US-045]
+    description: >
+      As a developer, I want completion to work with resource references.
+    acceptanceCriteria:
+      - "Test: complete with ref/resource returns values"
+
+  - id: US-092
+    title: Test complete hasMore and total
+    status: open
+    dependsOn: [US-090, US-045]
+    description: >
+      As a developer, I want to verify hasMore and total fields.
+    acceptanceCriteria:
+      - "Test: completion result includes hasMore=true and total count"
+      - "Test: values array is limited to max 100 items"
+
+  - id: US-093
+    title: Test complete capability gating
+    status: open
+    dependsOn: [US-090]
+    description: >
+      As a developer, I want complete to throw when server lacks completions capability.
+    acceptanceCriteria:
+      - "Test: complete without completions capability throws"
+
+  - id: US-094
+    title: Integration test — completions with SDK server
+    status: open
+    dependsOn: [US-090, US-045]
+    description: >
+      As a developer, I want to verify completion flow against SDK server.
+    acceptanceCriteria:
+      - "Test: complete prompt argument, verify suggestions returned"
+
+  # ═══════════════════════════════════════════
+  # EPIC 16: Logging
+  # ═══════════════════════════════════════════
+
+  - id: US-095
+    title: Implement setLogLevel()
+    status: open
+    dependsOn: [US-062]
+    description: >
+      As a developer, I want setLogLevel to configure server logging.
+    acceptanceCriteria:
+      - "Sends logging/setLevel with level parameter"
+      - "Resolves on success response"
+      - "Test: setLogLevel('info') sends correct request"
+
+  - id: US-096
+    title: Implement onLog notification callback
+    status: open
+    dependsOn: [US-058]
+    description: >
+      As a developer, I want log message notifications to fire callback.
+    acceptanceCriteria:
+      - "notifications/message → onLog({ level, logger?, data })"
+      - "Test: receive debug log, verify callback with level='debug'"
+      - "Test: receive error log with logger and structured data"
+
+  - id: US-097
+    title: Test all 8 log levels
+    status: open
+    dependsOn: [US-096, US-046]
+    description: >
+      As a developer, I want all syslog levels to be handled.
+    acceptanceCriteria:
+      - "Test: debug, info, notice, warning, error, critical, alert, emergency"
+      - "All dispatch correctly to onLog"
+
+  - id: US-098
+    title: Test logging capability gating
+    status: open
+    dependsOn: [US-095]
+    description: >
+      As a developer, I want setLogLevel to throw without capability.
+    acceptanceCriteria:
+      - "Test: setLogLevel without logging capability throws"
+
+  - id: US-099
+    title: Integration test — logging with SDK server
+    status: open
+    dependsOn: [US-095, US-096, US-046]
+    description: >
+      As a developer, I want to verify logging flow against SDK server.
+    acceptanceCriteria:
+      - "Test: set level, trigger logs, verify callbacks fire for appropriate levels"
+
+  # ═══════════════════════════════════════════
+  # EPIC 17: Roots
+  # ═══════════════════════════════════════════
+
+  - id: US-100
+    title: Implement roots/list request handler
+    status: open
+    dependsOn: [US-059]
+    description: >
+      As a developer, I want the client to respond to server roots/list requests.
+    acceptanceCriteria:
+      - "When server sends roots/list, calls onRootsList handler"
+      - "Returns { roots } from handler result"
+      - "Test: server requests roots, client responds with root list"
+
+  - id: US-101
+    title: Test roots/list without handler
+    status: open
+    dependsOn: [US-100]
+    description: >
+      As a developer, I want graceful handling when no roots handler is set.
+    acceptanceCriteria:
+      - "Test: roots/list without handler returns empty roots array or method-not-found"
+
+  - id: US-102
+    title: Implement sendRootsChanged()
+    status: open
+    dependsOn: [US-054]
+    description: >
+      As a developer, I want to notify the server when roots change.
+    acceptanceCriteria:
+      - "Sends notifications/roots/list_changed"
+      - "Test: sendRootsChanged writes notification to transport"
+
+  - id: US-103
+    title: Test roots capability advertisement
+    status: open
+    dependsOn: [US-063]
+    description: >
+      As a developer, I want roots capability correctly advertised.
+    acceptanceCriteria:
+      - "Test: client with onRootsList advertises roots capability"
+      - "Test: client without onRootsList does not advertise roots"
+
+  - id: US-104
+    title: Integration test — roots with SDK server
+    status: open
+    dependsOn: [US-100, US-102, US-049]
+    description: >
+      As a developer, I want to verify roots flow against SDK server.
+    acceptanceCriteria:
+      - "Test: server requests roots during tool call, client provides roots"
+      - "Test: sendRootsChanged, server re-requests roots"
+
+  # ═══════════════════════════════════════════
+  # EPIC 18: Sampling
+  # ═══════════════════════════════════════════
+
+  - id: US-105
+    title: Implement sampling/createMessage handler
+    status: open
+    dependsOn: [US-059]
+    description: >
+      As a developer, I want the client to handle sampling requests from server.
+    acceptanceCriteria:
+      - "When server sends sampling/createMessage, calls onSamplingRequest"
+      - "Handler receives CreateMessageParams"
+      - "Returns CreateMessageResult with model, content, role, stopReason"
+      - "Test: server sends sampling request, handler called with params"
+
+  - id: US-106
+    title: Test sampling without handler
+    status: open
+    dependsOn: [US-105]
+    description: >
+      As a developer, I want proper error when no sampling handler is registered.
+    acceptanceCriteria:
+      - "Test: sampling request without handler returns JSON-RPC error"
+
+  - id: US-107
+    title: Test sampling with model preferences
+    status: open
+    dependsOn: [US-105, US-048]
+    description: >
+      As a developer, I want sampling params to include all optional fields.
+    acceptanceCriteria:
+      - "Test: sampling request with modelPreferences, systemPrompt, maxTokens"
+      - "Test: handler receives all fields correctly"
+
+  - id: US-108
+    title: Test sampling capability advertisement
+    status: open
+    dependsOn: [US-063]
+    description: >
+      As a developer, I want sampling capability correctly advertised.
+    acceptanceCriteria:
+      - "Test: client with onSamplingRequest advertises sampling:{}"
+      - "Test: client without onSamplingRequest does not advertise sampling"
+
+  - id: US-109
+    title: Integration test — sampling with SDK server
+    status: open
+    dependsOn: [US-105, US-048]
+    description: >
+      As a developer, I want to verify sampling round-trip against SDK server.
+    acceptanceCriteria:
+      - "Test: server tool triggers sampling, client responds, tool completes with sampling result"
+
+  # ═══════════════════════════════════════════
+  # EPIC 19: Cancellation
+  # ═══════════════════════════════════════════
+
+  - id: US-110
+    title: Implement cancel() method
+    status: open
+    dependsOn: [US-054]
+    description: >
+      As a developer, I want cancel() to send cancellation notifications.
+    acceptanceCriteria:
+      - "Sends notifications/cancelled with requestId"
+      - "Includes optional reason string"
+      - "Test: cancel(1, 'user cancelled') sends correct notification"
+
+  - id: US-111
+    title: Test cancel without reason
+    status: open
+    dependsOn: [US-110]
+    description: >
+      As a developer, I want cancel to work without a reason.
+    acceptanceCriteria:
+      - "Test: cancel(1) sends notification without reason field"
+
+  - id: US-112
+    title: Implement AbortSignal support in callTool
+    status: open
+    dependsOn: [US-069, US-110]
+    description: >
+      As a developer, I want callTool to accept an AbortSignal for cancellation.
+    acceptanceCriteria:
+      - "callTool accepts optional signal: AbortSignal in options"
+      - "When signal aborts, sends notifications/cancelled for the request ID"
+      - "Promise rejects with abort reason"
+      - "Test: call with signal, abort, verify cancellation sent and promise rejects"
+
+  - id: US-113
+    title: Test AbortSignal after completion
+    status: open
+    dependsOn: [US-112]
+    description: >
+      As a developer, I want abort after completion to be a no-op.
+    acceptanceCriteria:
+      - "Test: complete tool call, then abort signal, no error or notification"
+      - "AbortSignal listener cleaned up after completion"
+
+  - id: US-114
+    title: Implement handling of server-sent cancellation
+    status: open
+    dependsOn: [US-058]
+    description: >
+      As a developer, I want the client to handle server cancelling its own requests.
+    acceptanceCriteria:
+      - "When server sends notifications/cancelled for a server-initiated request"
+      - "Client stops processing that request"
+      - "Test: server sends cancellation, client handles gracefully"
+
+  - id: US-115
+    title: Test cancellation race conditions
+    status: open
+    dependsOn: [US-110]
+    description: >
+      As a developer, I want cancellation to handle race conditions.
+    acceptanceCriteria:
+      - "Test: cancel for already-completed request — no error"
+      - "Test: cancel for unknown request ID — no error (fire-and-forget)"
+      - "Test: response arrives after cancel — ignored by client"
+
+  - id: US-116
+    title: Integration test — cancellation with slow server
+    status: open
+    dependsOn: [US-112, US-050]
+    description: >
+      As a developer, I want to verify cancellation against slow mock server.
+    acceptanceCriteria:
+      - "Test: call slow tool, cancel, verify server received cancellation"
+      - "Test: tool call rejects after cancellation"
+
+  # ═══════════════════════════════════════════
+  # EPIC 20: Progress
+  # ═══════════════════════════════════════════
+
+  - id: US-117
+    title: Implement onProgress notification callback
+    status: open
+    dependsOn: [US-058]
+    description: >
+      As a developer, I want progress notifications to fire callback.
+    acceptanceCriteria:
+      - "notifications/progress → onProgress({ progressToken, progress, total?, message? })"
+      - "Test: progress notification dispatched to callback"
+
+  - id: US-118
+    title: Implement _meta.progressToken in requests
+    status: open
+    dependsOn: [US-069]
+    description: >
+      As a developer, I want to attach progressToken to request _meta.
+    acceptanceCriteria:
+      - "callTool accepts optional progressToken in options"
+      - "Token included in params._meta.progressToken"
+      - "Test: callTool with progressToken, verify _meta in request"
+
+  - id: US-119
+    title: Test progress with total and message
+    status: open
+    dependsOn: [US-117, US-047]
+    description: >
+      As a developer, I want all progress fields handled correctly.
+    acceptanceCriteria:
+      - "Test: progress with total=100, progress=50, message='...' dispatched"
+      - "Test: progress without total dispatched (total is optional)"
+      - "Test: multiple progress notifications in sequence"
+
+  - id: US-120
+    title: Test progress without callback
+    status: open
+    dependsOn: [US-117]
+    description: >
+      As a developer, I want progress notifications silently ignored without handler.
+    acceptanceCriteria:
+      - "Test: progress notification with no onProgress — no error"
+
+  - id: US-121
+    title: Integration test — progress with SDK server
+    status: open
+    dependsOn: [US-117, US-118, US-047]
+    description: >
+      As a developer, I want to verify progress flow against SDK server.
+    acceptanceCriteria:
+      - "Test: call tool with progressToken, receive progress updates, then result"
+      - "Test: progress values are increasing"
+
+  # ═══════════════════════════════════════════
+  # EPIC 21: SSE Parser
+  # ═══════════════════════════════════════════
+
+  - id: US-122
+    title: Implement SSE parser
+    status: open
+    dependsOn: [US-002]
+    description: >
+      As a developer, I want an SSE parser that extracts data fields from Server-Sent Events.
+    acceptanceCriteria:
+      - "Parses 'event: message\\ndata: {...}\\n\\n' format"
+      - "Handles multi-line data fields (concatenated with newlines)"
+      - "Ignores comment lines (starting with ':')"
+      - "Ignores non-message event types"
+      - "Extracts event id fields for resumability"
+      - "Handles partial chunks across stream boundaries"
+
+  - id: US-123
+    title: Test SSE parser — single event
+    status: open
+    dependsOn: [US-122]
+    description: >
+      As a developer, I want basic SSE parsing tests.
+    acceptanceCriteria:
+      - "Test: 'event: message\\ndata: {\"jsonrpc\":\"2.0\"}\\n\\n' → one JSON string"
+      - "Test: event without 'event:' field defaults to message"
+      - "Test: data-only event extracted correctly"
+
+  - id: US-124
+    title: Test SSE parser — multiple events and edge cases
+    status: open
+    dependsOn: [US-122]
+    description: >
+      As a developer, I want edge case SSE tests.
+    acceptanceCriteria:
+      - "Test: two events in sequence parsed independently"
+      - "Test: comment lines (': keepalive') ignored"
+      - "Test: empty lines between events handled"
+      - "Test: multi-line data concatenated with newlines"
+      - "Test: event split across stream chunks"
+      - "Test: event with id field extracts lastEventId"
+
+  # ═══════════════════════════════════════════
+  # EPIC 22: Streamable HTTP Transport
+  # ═══════════════════════════════════════════
+
+  - id: US-125
+    title: Implement HttpTransport constructor
+    status: open
+    dependsOn: [US-023, US-122]
+    description: >
+      As a developer, I want HttpTransport that communicates via Streamable HTTP.
+    acceptanceCriteria:
+      - "Constructor takes { url, headers?, fetch? }"
+      - "fetch function is injectable for testing"
+      - "Implements McpTransport interface (readable, writable, closed, dispose)"
+
+  - id: US-126
+    title: Implement outgoing message → HTTP POST
+    status: open
+    dependsOn: [US-125]
+    description: >
+      As a developer, I want each JSON-RPC message written to writable to trigger an HTTP POST.
+    acceptanceCriteria:
+      - "Each line written to writable becomes a POST body"
+      - "POST includes Accept: application/json, text/event-stream"
+      - "POST includes Content-Type: application/json"
+      - "Test: write message to writable, verify fetch called with correct body and headers"
+
+  - id: US-127
+    title: Implement SSE response parsing
+    status: open
+    dependsOn: [US-126]
+    description: >
+      As a developer, I want SSE responses parsed into JSON-RPC messages on readable.
+    acceptanceCriteria:
+      - "When POST response has Content-Type: text/event-stream"
+      - "SSE events parsed, data fields pushed as lines to readable"
+      - "Test: mock fetch returns SSE stream, verify JSON-RPC messages on readable"
+
+  - id: US-128
+    title: Implement JSON response handling
+    status: open
+    dependsOn: [US-126]
+    description: >
+      As a developer, I want non-SSE JSON responses handled correctly.
+    acceptanceCriteria:
+      - "When POST response has Content-Type: application/json"
+      - "Response body pushed as single line to readable"
+      - "Test: mock fetch returns JSON response, verify message on readable"
+
+  - id: US-129
+    title: Implement 202 Accepted handling for notifications/responses
+    status: open
+    dependsOn: [US-126]
+    description: >
+      As a developer, I want 202 responses for notifications handled correctly.
+    acceptanceCriteria:
+      - "When sending notification/response, server returns 202 with no body"
+      - "No message pushed to readable (expected behavior)"
+      - "Test: send notification, mock 202 response, no error"
+
+  - id: US-130
+    title: Implement Mcp-Session-Id tracking
+    status: open
+    dependsOn: [US-126]
+    description: >
+      As a developer, I want session ID from server tracked and sent in subsequent requests.
+    acceptanceCriteria:
+      - "Extract Mcp-Session-Id from response headers on initialize"
+      - "Include Mcp-Session-Id in all subsequent requests"
+      - "Test: first response has session ID, subsequent requests include it"
+
+  - id: US-131
+    title: Implement GET SSE stream for server-initiated messages
+    status: open
+    dependsOn: [US-125]
+    description: >
+      As a developer, I want the client to open a GET SSE stream for server push.
+    acceptanceCriteria:
+      - "After initialization, opens GET to MCP endpoint with Accept: text/event-stream"
+      - "SSE events from GET stream pushed to readable"
+      - "Handles 405 Method Not Allowed gracefully (no GET support)"
+      - "Test: mock GET SSE stream, verify server-initiated messages received"
+
+  - id: US-132
+    title: Implement session termination on close
+    status: open
+    dependsOn: [US-130]
+    description: >
+      As a developer, I want close() to send DELETE with session ID.
+    acceptanceCriteria:
+      - "On close, sends HTTP DELETE to endpoint with Mcp-Session-Id"
+      - "Handles 405 gracefully (server doesn't support DELETE)"
+      - "Test: close sends DELETE with session ID"
+
+  - id: US-133
+    title: Implement session expiration handling
+    status: open
+    dependsOn: [US-130]
+    description: >
+      As a developer, I want 404 responses to trigger re-initialization.
+    acceptanceCriteria:
+      - "When 404 received for request with session ID"
+      - "Transport fires error/close event"
+      - "Client can reconnect with new session"
+      - "Test: mock 404 response, verify transport closes"
+
+  - id: US-134
+    title: Implement HTTP transport dispose
+    status: open
+    dependsOn: [US-125]
+    description: >
+      As a developer, I want dispose to abort all pending fetches.
+    acceptanceCriteria:
+      - "Aborts all in-flight fetch requests"
+      - "Closes GET SSE stream if open"
+      - "closed promise resolves"
+      - "Test: dispose with pending fetch, verify aborted"
+
+  - id: US-135
+    title: Test HTTP transport error handling
+    status: open
+    dependsOn: [US-126]
+    description: >
+      As a developer, I want HTTP errors handled gracefully.
+    acceptanceCriteria:
+      - "Test: fetch network error → transport error"
+      - "Test: HTTP 400 Bad Request → error with body"
+      - "Test: HTTP 500 Internal Server Error → transport error"
+
+  - id: US-136
+    title: Implement Last-Event-ID for resumability
+    status: open
+    dependsOn: [US-131]
+    description: >
+      As a developer, I want the GET stream to support resumability.
+    acceptanceCriteria:
+      - "Track last received SSE event ID"
+      - "On reconnect GET, include Last-Event-ID header"
+      - "Test: SSE events with IDs tracked, reconnect includes Last-Event-ID"
+
+  - id: US-137
+    title: Integration test — HTTP transport end-to-end
+    status: open
+    dependsOn: [US-126, US-127, US-130]
+    description: >
+      As a developer, I want a full HTTP transport integration test.
+    acceptanceCriteria:
+      - "Test: mock HTTP server (using mock fetch), initialize, list tools, call tool"
+      - "Test: session ID tracked correctly across requests"
+      - "Test: close sends DELETE"
+
+  # ═══════════════════════════════════════════
+  # EPIC 23: Batch Messages
+  # ═══════════════════════════════════════════
+
+  - id: US-138
+    title: Implement batch message receiving
+    status: open
+    dependsOn: [US-011]
+    description: >
+      As a developer, I want the client to handle JSON-RPC batch messages (arrays).
+    acceptanceCriteria:
+      - "When input line is a JSON array, each element processed individually"
+      - "Responses, requests, and notifications in batch all handled"
+      - "Test: receive batch of 3 messages, all processed"
+
+  - id: US-139
+    title: Test batch with mixed message types
+    status: open
+    dependsOn: [US-138]
+    description: >
+      As a developer, I want batches containing mixed types to work.
+    acceptanceCriteria:
+      - "Test: batch containing response + notification, both handled"
+      - "Test: batch containing request + notification, both dispatched"
+      - "Test: empty batch array ignored"
+
+  # ═══════════════════════════════════════════
+  # EPIC 24: Error Edge Cases
+  # ═══════════════════════════════════════════
+
+  - id: US-140
+    title: Test transport error during request
+    status: open
+    dependsOn: [US-060]
+    description: >
+      As a developer, I want transport errors to reject pending requests.
+    acceptanceCriteria:
+      - "Test: transport closes unexpectedly, all pending requests reject"
+      - "Test: state transitions to 'closed'"
+
+  - id: US-141
+    title: Test process crash recovery
+    status: open
+    dependsOn: [US-028, US-060]
+    description: >
+      As a developer, I want clean handling when server process crashes.
+    acceptanceCriteria:
+      - "Test: StdioTransport process exits with code 1"
+      - "Test: closed promise resolves with error reason"
+      - "Test: pending requests reject with process exit error"
+      - "Test: stderr output captured and available"
+
+  - id: US-142
+    title: Test concurrent requests
+    status: open
+    dependsOn: [US-013]
+    description: >
+      As a developer, I want multiple concurrent requests to work correctly.
+    acceptanceCriteria:
+      - "Test: send 10 requests concurrently, each gets unique ID"
+      - "Test: responses arrive out of order, correct correlation"
+      - "Test: no interference between concurrent requests"
+
+  - id: US-143
+    title: Test oversized message handling
+    status: open
+    dependsOn: [US-011]
+    description: >
+      As a developer, I want large messages handled without truncation.
+    acceptanceCriteria:
+      - "Test: send request with large params object (100KB JSON)"
+      - "Test: receive large response"
+      - "Test: no truncation or corruption"
+
+  - id: US-144
+    title: Test rapid connect/disconnect cycles
+    status: open
+    dependsOn: [US-054, US-060]
+    description: >
+      As a developer, I want rapid lifecycle operations to be safe.
+    acceptanceCriteria:
+      - "Test: connect, close, connect again with new transport"
+      - "Test: close immediately after connect (before handshake completes)"
+
+  # ═══════════════════════════════════════════
+  # EPIC 25: End-to-End Integration
+  # ═══════════════════════════════════════════
+
+  - id: US-145
+    title: E2E — full lifecycle with tiny-stdio-mcp-test-server
+    status: open
+    dependsOn: [US-074]
+    description: >
+      As a developer, I want a full lifecycle test with the real test server.
+    acceptanceCriteria:
+      - "Test: connect, list tools, call each tool, verify results, close"
+      - "Test: server info name and version are correct"
+
+  - id: US-146
+    title: E2E — full lifecycle with SDK full-featured server
+    status: open
+    dependsOn: [US-052]
+    description: >
+      As a developer, I want a full lifecycle test with all capabilities.
+    acceptanceCriteria:
+      - "Test: connect, verify all capabilities, list tools, list resources, list prompts"
+      - "Test: call tool, read resource, get prompt, complete"
+      - "Test: close cleanly"
+
+  - id: US-147
+    title: E2E — resource subscription flow
+    status: open
+    dependsOn: [US-083]
+    description: >
+      As a developer, I want complete subscription lifecycle test.
+    acceptanceCriteria:
+      - "Test: list resources, subscribe, trigger update, read updated, unsubscribe"
+      - "Test: verify all notifications received in order"
+
+  - id: US-148
+    title: E2E — sampling round-trip
+    status: open
+    dependsOn: [US-109]
+    description: >
+      As a developer, I want complete sampling flow test.
+    acceptanceCriteria:
+      - "Test: tool triggers sampling, client handles, result used in tool output"
+      - "Test: model preferences and systemPrompt forwarded correctly"
+
+  - id: US-149
+    title: E2E — progress during tool call
+    status: open
+    dependsOn: [US-121]
+    description: >
+      As a developer, I want complete progress reporting test.
+    acceptanceCriteria:
+      - "Test: call slow tool with progressToken, collect all progress notifications"
+      - "Test: progress values are monotonically increasing"
+      - "Test: final result arrives after last progress notification"
+
+  - id: US-150
+    title: E2E — cancellation of slow tool
+    status: open
+    dependsOn: [US-116]
+    description: >
+      As a developer, I want complete cancellation flow test.
+    acceptanceCriteria:
+      - "Test: start slow tool, cancel via AbortSignal, verify server received cancellation"
+      - "Test: tool call promise rejects after cancellation"
+
+  - id: US-151
+    title: E2E — logging flow
+    status: open
+    dependsOn: [US-099]
+    description: >
+      As a developer, I want complete logging flow test.
+    acceptanceCriteria:
+      - "Test: set level to info, trigger action, verify info+ logs received"
+      - "Test: set level to error, verify only error+ logs received"
+
+  - id: US-152
+    title: E2E — roots flow
+    status: open
+    dependsOn: [US-104]
+    description: >
+      As a developer, I want complete roots flow test.
+    acceptanceCriteria:
+      - "Test: server queries roots, client provides them, server uses in response"
+      - "Test: roots changed notification, server re-queries"
+
+  # ═══════════════════════════════════════════
+  # EPIC 26: Package Finalization
+  # ═══════════════════════════════════════════
+
+  - id: US-153
+    title: Wire index.ts re-exports
+    status: open
+    dependsOn:
+      - US-020
+      - US-028
+      - US-034
+      - US-060
+      - US-122
+      - US-134
+      - US-138
+    description: >
+      As a developer, I want index.ts to re-export the full public API.
+    acceptanceCriteria:
+      - "Exports McpClient class and McpClientOptions type"
+      - "Exports StdioTransport, HttpTransport"
+      - "Exports McpTransport interface and McpTransportClosedEvent"
+      - "Exports all MCP types (Tool, Resource, Prompt, etc.)"
+      - "Exports McpError and error code constants"
+      - "Exports JsonRpcMessageLayer (for advanced usage)"
+      - "Exports testing utilities (createTestPair, createInMemoryTransportPair, createSdkTestPair)"
+      - "Does NOT export internal helpers"
+
+  - id: US-154
+    title: Verify package builds and types check
+    status: open
+    dependsOn: [US-153]
+    description: >
+      As a developer, I want the package to compile cleanly.
+    acceptanceCriteria:
+      - "npm run build succeeds (turbo builds all packages)"
+      - "npm run lint:types succeeds"
+      - "dist/ contains .js and .d.ts files"
+      - "No circular dependencies"
+
+  - id: US-155
+    title: Verify all tests pass
+    status: open
+    dependsOn: [US-154]
+    description: >
+      As a developer, I want all tests green.
+    acceptanceCriteria:
+      - "npm run test passes with all tiny-mcp-client tests green"
+      - "npm run lint passes"
+      - "No test takes longer than 5 seconds"
+      - "No flaky tests"

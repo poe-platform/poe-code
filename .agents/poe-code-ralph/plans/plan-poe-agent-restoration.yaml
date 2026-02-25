@@ -1,6 +1,5 @@
 version: 1
 project: poe-agent-restoration
-
 overview: |
   Restore the Poe agent runtime as a standalone package @poe-code/poe-agent
   and build a companion @poe-code/poe-acp-client package for ACP stream
@@ -21,7 +20,6 @@ overview: |
   into the provider auto-discovery system for the spawn path.
 
   Execution order: poe-agent first, then poe-acp-client.
-
 goals:
   - Restore a synchronous, ACP-compliant Poe agent runtime as @poe-code/poe-agent
   - Build a reusable ACP client/reporting package as @poe-code/poe-acp-client
@@ -30,7 +28,6 @@ goals:
   - Use @poe-code/auth for API key resolution
   - Use @poe-code/agent-spawn ACP types as the event vocabulary
   - Full test coverage (TDD) for all new code
-
 nonGoals:
   - MCP support (deferred)
   - Worktree spawning and agent registry (deferred)
@@ -38,187 +35,13 @@ nonGoals:
   - Interactive configure-agents UI
   - Model strategy system
   - Rolling out ACP to other existing agents/providers
-
 qualityGates:
   - npm run test
   - npm run lint
-
-requirements:
-  - name: Chat engine with bounded tool loop
-    description: |
-      The PoeChatService MUST maintain conversation history and execute
-      an iterative tool-call loop against the Poe API. The loop MUST
-      be bounded to a maximum number of iterations to prevent infinite recursion.
-    scenarios:
-      - name: Simple message without tools
-        when: sendMessage is called and API returns text-only response
-        then: Returns assistant message content, no tool execution
-      - name: Tool call iteration
-        when: API returns tool_calls in response
-        then: Each tool is executed via ToolExecutor, results appended to history, API called again
-      - name: Max iteration bound
-        when: Tool calls exceed the maximum iteration limit (100)
-        then: Loop terminates with the last assistant message
-      - name: Tool callback notification
-        when: A tool call is executed
-        then: The registered ToolCallCallback is invoked with tool name, args, and result
-
-  - name: Tool executor with path security
-    description: |
-      The DefaultToolExecutor MUST dispatch tool calls to built-in
-      implementations. File operations MUST be restricted to allowed paths.
-      Built-in tools are read_file, write_file, list_files, run_command,
-      and search_web.
-    scenarios:
-      - name: Read file within allowed path
-        when: 'executeTool("read_file", path within allowed directory) is called'
-        then: File content is returned
-      - name: Read file outside allowed path
-        when: 'executeTool("read_file", path outside allowed directory) is called'
-        then: Error is returned indicating path is not allowed
-      - name: Write file
-        when: 'executeTool("write_file", path and content) is called'
-        then: File is written within allowed path
-      - name: Run command
-        when: 'executeTool("run_command", command string) is called'
-        then: Command is executed in cwd and stdout/stderr returned
-      - name: Unknown tool
-        when: 'executeTool("nonexistent_tool", args) is called'
-        then: Error is returned indicating unknown tool
-
-  - name: Agent session lifecycle
-    description: |
-      createAgentSession MUST compose all runtime dependencies and return
-      a session with sendMessage and dispose methods. API key MUST be
-      resolved through @poe-code/auth. System prompt MUST be loaded from
-      the bundled prompt file.
-    scenarios:
-      - name: Create and send message
-        when: createAgentSession is called and session.sendMessage invoked
-        then: System prompt is injected, message sent to chat service, response returned
-      - name: Dispose cleans up
-        when: session.dispose() is called
-        then: Resources are released
-      - name: API key from auth store
-        when: createAgentSession is called without explicit apiKey
-        then: API key is resolved via @poe-code/auth
-      - name: Missing API key everywhere
-        when: No API key in args and auth store is empty
-        then: Throws error with descriptive message
-      - name: No async task methods
-        when: Session object is inspected
-        then: No waitForAllTasks or drainCompletedTasks methods exist
-
-  - name: System prompt bundled with package
-    description: |
-      The system prompt MUST be recovered from git history (3e97549^)
-      and bundled with the @poe-code/poe-agent package. It MUST be
-      loaded at session creation time.
-    scenarios:
-      - name: Prompt file exists in package
-        when: Package is built
-        then: System prompt file is included in package output
-      - name: Prompt loaded at session start
-        when: createAgentSession is called
-        then: System prompt is injected as the first system message in conversation history
-
-  - name: Non-interactive determinism
-    description: |
-      The runtime MUST NOT prompt for user input at any point. Missing
-      required inputs MUST produce clear error messages, not fallback prompts.
-    scenarios:
-      - name: Missing API key
-        when: Agent is invoked with no API key and empty auth store
-        then: Throws error with descriptive message
-      - name: All inputs from args/env/auth
-        when: Agent is invoked normally
-        then: No interactive prompts are triggered
-
-  - name: ACP stream emission
-    description: |
-      The runtime MUST emit ACP-native sessionUpdate events as its public
-      stream contract using types from @poe-code/agent-spawn.
-    scenarios:
-      - name: Message chunk emission
-        when: Chat service receives assistant text from API
-        then: agent_message_chunk sessionUpdate is emitted
-      - name: Tool call emission
-        when: Chat service processes a tool call
-        then: tool_call sessionUpdate emitted with pending status, then tool_call_update with in_progress/completed/failed
-
-  - name: Tool schema generation
-    description: |
-      getAvailableTools MUST generate OpenAI-compatible tool schemas
-      for the five built-in tools.
-    scenarios:
-      - name: All built-in tools listed
-        when: getAvailableTools is called
-        then: Returns schemas for read_file, write_file, list_files, run_command, search_web
-
-  - name: CLI agent command
-    description: |
-      The `poe-code agent <prompt>` command MUST be the primary entry
-      point. It accepts --model and --api-key options. It creates a
-      session, sends the prompt, prints the result, and disposes.
-    scenarios:
-      - name: One-shot execution
-        when: poe-code agent is run with a prompt argument
-        then: Session is created, prompt sent, response printed, session disposed
-      - name: Model override
-        when: poe-code agent --model custom-model "prompt" is run
-        then: Chat service uses the specified model
-      - name: API key override
-        when: poe-code agent --api-key KEY "prompt" is run
-        then: Session uses the provided API key instead of auth store
-      - name: Dry run
-        when: poe-code agent --dry-run "prompt" is run
-        then: No API call is made, command details are printed
-
-  - name: Provider auto-discovery integration
-    description: |
-      A provider file at src/providers/poe-agent.ts MUST export a provider
-      created with createProvider(). It MUST be picked up by auto-discovery
-      so that `poe-code spawn poe-agent` also works.
-    scenarios:
-      - name: Provider discovered
-        when: loadProviders() is called
-        then: poe-agent provider appears in the list
-      - name: Spawn delegates to package
-        when: poe-code spawn poe-agent "prompt" is run
-        then: Execution delegates to @poe-code/poe-agent runtime
-
-  - name: ACP client types and helpers
-    description: |
-      @poe-code/poe-acp-client MUST provide ACP schema-aligned TypeScript
-      types covering all stable and unstable sessionUpdate discriminators,
-      plus JSON-RPC helpers for session/update notifications.
-    scenarios:
-      - name: All stable update types defined
-        when: Types are imported from poe-acp-client
-        then: user_message_chunk, agent_message_chunk, agent_thought_chunk, tool_call, tool_call_update, plan, available_commands_update, current_mode_update, config_option_update are available
-      - name: JSON-RPC notification helper
-        when: formatSessionUpdate(update) is called
-        then: Returns valid JSON-RPC notification string with method "session/update"
-
-  - name: Run report generation
-    description: |
-      @poe-code/poe-acp-client MUST generate structured JSON and
-      human-readable run reports from ACP event streams.
-    scenarios:
-      - name: JSON report fields
-        when: A run completes and report is generated
-        then: Report contains runId, startTime, endTime, exitStatus, toolCalls array, usage aggregates, errors array
-      - name: Report storage
-        when: Report is generated
-        then: Saved to ~/.poe-code/reports/ with timestamped filename
-      - name: Human-readable summary
-        when: Summary is generated
-        then: Contains run duration, tool count, token usage, and error count
-
 stories:
   - id: US-001
     title: Scaffold @poe-code/poe-agent package
-    status: open
+    status: done
     dependsOn: []
     description: |
       As a developer, I want the poe-agent package scaffolded with
@@ -230,10 +53,12 @@ stories:
       - packages/poe-agent/src/index.ts exists as entry point
       - Package is recognized as workspace member (npm install succeeds)
       - npm run build succeeds with new package
-
+    startedAt: 2026-02-24T04:35:34.573Z
+    completedAt: 2026-02-24T04:39:56.004Z
+    updatedAt: 2026-02-24T04:39:56.004Z
   - id: US-002
     title: Restore and bundle system prompt
-    status: open
+    status: done
     dependsOn:
       - US-001
     description: |
@@ -245,10 +70,12 @@ stories:
       - Prompt is importable/readable at runtime
       - Build includes the prompt file in output
       - All tests pass via npm run test
-
+    startedAt: 2026-02-24T04:39:56.221Z
+    completedAt: 2026-02-24T04:46:01.383Z
+    updatedAt: 2026-02-24T04:46:01.383Z
   - id: US-003
     title: Implement chat engine (PoeChatService)
-    status: open
+    status: done
     dependsOn:
       - US-001
     description: |
@@ -262,10 +89,12 @@ stories:
       - ToolCallCallback support for lifecycle events
       - Unit tests with mocked fetch covering tool loop, bounds, callbacks
       - All tests pass via npm run test
-
+    startedAt: 2026-02-24T04:46:01.509Z
+    completedAt: 2026-02-24T04:54:27.548Z
+    updatedAt: 2026-02-24T04:54:27.548Z
   - id: US-004
     title: Implement tool executor with built-in tools
-    status: open
+    status: done
     dependsOn:
       - US-003
     description: |
@@ -279,10 +108,12 @@ stories:
       - getAvailableTools generates OpenAI-compatible schemas for all 5 tools
       - Unit tests with memfs and mocked dependencies
       - All tests pass via npm run test
-
+    startedAt: 2026-02-24T04:54:27.680Z
+    completedAt: 2026-02-24T05:04:40.794Z
+    updatedAt: 2026-02-24T05:04:40.794Z
   - id: US-005
     title: Implement agent session with auth integration
-    status: open
+    status: done
     dependsOn:
       - US-002
       - US-003
@@ -301,10 +132,12 @@ stories:
       - dispose releases resources
       - Unit tests with mocked subsystems and mocked auth
       - All tests pass via npm run test
-
+    startedAt: 2026-02-24T05:04:40.997Z
+    completedAt: 2026-02-24T05:13:20.377Z
+    updatedAt: 2026-02-24T05:13:20.377Z
   - id: US-006
     title: Add ACP stream emission layer
-    status: open
+    status: done
     dependsOn:
       - US-005
     description: |
@@ -318,10 +151,12 @@ stories:
       - tool_call_update emitted with in_progress then completed/failed
       - ACP stream conformance tests
       - All tests pass via npm run test
-
+    startedAt: 2026-02-24T05:13:20.497Z
+    completedAt: 2026-02-24T05:21:24.343Z
+    updatedAt: 2026-02-24T05:21:24.343Z
   - id: US-007
     title: Register poe-code agent CLI command
-    status: open
+    status: done
     dependsOn:
       - US-005
     description: |
@@ -336,10 +171,12 @@ stories:
       - CLI command test with mocked session
       - Screenshot verification of command output
       - All tests pass via npm run test
-
+    startedAt: 2026-02-24T05:34:23.280Z
+    completedAt: 2026-02-24T05:40:25.584Z
+    updatedAt: 2026-02-24T05:40:25.584Z
   - id: US-008
     title: Create poe-agent provider for auto-discovery
-    status: open
+    status: done
     dependsOn:
       - US-005
     description: |
@@ -354,10 +191,12 @@ stories:
       - Provider test file with verification
       - All tests pass via npm run test
       - E2E tests pass via npm run e2e:verbose
-
+    startedAt: 2026-02-24T06:02:53.952Z
+    completedAt: 2026-02-24T06:08:05.102Z
+    updatedAt: 2026-02-24T06:08:05.102Z
   - id: US-009
     title: Scaffold @poe-code/poe-acp-client package
-    status: open
+    status: done
     dependsOn: []
     description: |
       As a developer, I want the poe-acp-client package scaffolded with
@@ -368,10 +207,12 @@ stories:
       - packages/poe-acp-client/src/index.ts exists as entry point
       - Package is recognized as workspace member
       - npm run build succeeds with new package
-
+    startedAt: 2026-02-24T06:08:05.242Z
+    completedAt: 2026-02-24T06:11:46.054Z
+    updatedAt: 2026-02-24T06:11:46.054Z
   - id: US-010
     title: ACP types and JSON-RPC helpers
-    status: open
+    status: done
     dependsOn:
       - US-009
     description: |
@@ -384,10 +225,12 @@ stories:
       - parseSessionUpdate helper for incoming notifications
       - Unit tests for all types and helpers
       - All tests pass via npm run test
-
+    startedAt: 2026-02-24T06:11:46.168Z
+    completedAt: 2026-02-24T06:23:27.838Z
+    updatedAt: 2026-02-24T06:23:27.838Z
   - id: US-011
     title: Stream helpers and legacy event mapper
-    status: open
+    status: done
     dependsOn:
       - US-010
     description: |
@@ -401,10 +244,12 @@ stories:
       - Legacy event-to-ACP mapper for internal event vocabularies
       - Unit tests for each helper
       - All tests pass via npm run test
-
+    startedAt: 2026-02-24T06:23:27.960Z
+    completedAt: 2026-02-24T06:31:21.433Z
+    updatedAt: 2026-02-24T06:31:21.433Z
   - id: US-012
     title: Run report generation and storage
-    status: open
+    status: done
     dependsOn:
       - US-011
     description: |
@@ -417,3 +262,6 @@ stories:
       - Reports saved to ~/.poe-code/reports/ with timestamped filenames
       - Unit tests with memfs for file operations
       - All tests pass via npm run test
+    startedAt: 2026-02-24T06:31:21.545Z
+    completedAt: 2026-02-24T06:37:52.009Z
+    updatedAt: 2026-02-24T06:37:52.009Z

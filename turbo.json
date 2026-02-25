@@ -5,9 +5,9 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "test": {
+    "//#test:unit": {
       "dependsOn": ["^build"],
-      "cache": false
+      "inputs": ["src/**", "tests/**", "packages/**/*.test.ts", "package.json", "tsconfig.json", "vitest.config.ts"]
     },
     "lint": {
       "outputs": []

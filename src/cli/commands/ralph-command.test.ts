@@ -236,7 +236,7 @@ describe("ralph build command", () => {
         "planPath: custom-plan.yaml",
         "agent: claude-code",
         "maxIterations: 7",
-        "noCommit: true",
+        "commit: true",
         "staleSeconds: 120",
         "progressPath: custom-progress.md",
         "guardrailsPath: custom-guardrails.md",
@@ -264,7 +264,7 @@ describe("ralph build command", () => {
         planPath: "custom-plan.yaml",
         maxIterations: 7,
         agent: "claude-code",
-        noCommit: true,
+        commit: true,
         staleSeconds: 120,
         progressPath: "custom-progress.md",
         guardrailsPath: "custom-guardrails.md",
@@ -366,7 +366,7 @@ describe("ralph build command", () => {
       expect.objectContaining({
         planPath: "custom-plan.yaml",
         agent: "claude-code",
-        noCommit: true
+        commit: false
       })
     );
   });
@@ -580,7 +580,7 @@ describe("ralph build command", () => {
       ].join("\n"),
       "/repo/.agents/poe-code-ralph/config.yaml": [
         "maxIterations: 5",
-        "noCommit: true",
+        "commit: true",
         ""
       ].join("\n"),
       "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
@@ -605,7 +605,7 @@ describe("ralph build command", () => {
         agent: "claude-code",
         staleSeconds: 120,
         maxIterations: 5,
-        noCommit: true
+        commit: true
       })
     );
     expect(designConfirm).toHaveBeenCalledWith(
@@ -776,7 +776,7 @@ describe("ralph build command", () => {
     expect(vi.mocked(ralphBuild)).not.toHaveBeenCalled();
   });
 
-  it("shows confirm() prompt for noCommit when --no-commit not passed and config.noCommit unset", async () => {
+  it("shows confirm() prompt for commit when --no-commit not passed and config.commit unset", async () => {
     const fs = createMemFs({
       "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
     });
@@ -798,11 +798,11 @@ describe("ralph build command", () => {
       expect.objectContaining({ message: expect.stringContaining("commit") })
     );
     expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
-      expect.objectContaining({ noCommit: true })
+      expect.objectContaining({ commit: true })
     );
   });
 
-  it("with --yes, noCommit defaults to false without prompting", async () => {
+  it("with --yes, commit defaults to true without prompting", async () => {
     const fs = createMemFs({
       "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
     });
@@ -819,11 +819,11 @@ describe("ralph build command", () => {
 
     expect(designConfirm).not.toHaveBeenCalled();
     expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
-      expect.objectContaining({ noCommit: false })
+      expect.objectContaining({ commit: true })
     );
   });
 
-  it("explicit --no-commit skips confirm prompt and sets noCommit true", async () => {
+  it("explicit --no-commit skips confirm prompt and sets commit false", async () => {
     const fs = createMemFs({
       "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"
     });
@@ -840,14 +840,14 @@ describe("ralph build command", () => {
 
     expect(designConfirm).not.toHaveBeenCalled();
     expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
-      expect.objectContaining({ noCommit: true })
+      expect.objectContaining({ commit: false })
     );
   });
 
-  it("config.noCommit value seeds confirm prompt default", async () => {
+  it("config.commit value seeds confirm prompt default", async () => {
     const fs = createMemFs({
       "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: Demo\nstories: []\n",
-      "/repo/.agents/poe-code-ralph/config.yaml": "noCommit: false\n"
+      "/repo/.agents/poe-code-ralph/config.yaml": "commit: false\n"
     });
     designSelect.mockResolvedValueOnce(".agents/poe-code-ralph/plans/plan.yaml");
     designConfirm.mockResolvedValueOnce(false);
@@ -867,7 +867,7 @@ describe("ralph build command", () => {
       expect.objectContaining({ initialValue: false })
     );
     expect(vi.mocked(ralphBuild)).toHaveBeenCalledWith(
-      expect.objectContaining({ noCommit: false })
+      expect.objectContaining({ commit: false })
     );
   });
 

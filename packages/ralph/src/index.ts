@@ -33,7 +33,7 @@ export type RalphBuildResult = BuildResult;
  * const result = await ralphBuild({
  *   planPath: ".agents/poe-code-ralph/plans/plan.yml",
  *   maxIterations: 10,
- *   noCommit: false,
+ *   commit: true,
  *   agent: "codex",
  *   staleSeconds: 60
  * });

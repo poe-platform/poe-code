@@ -85,7 +85,7 @@ export type SimulationOptions = {
       | "maxIterations"
       | "maxFailures"
       | "pauseOnOverbake"
-      | "noCommit"
+      | "commit"
       | "agent"
       | "staleSeconds"
       | "progressPath"
@@ -186,7 +186,7 @@ const DEFAULT_PROMPT_TEMPLATE = [
   "Errors: {{ERRORS_LOG_PATH}}",
   "Activity: {{ACTIVITY_LOG_PATH}}",
   "",
-  "No-commit: {{NO_COMMIT}}",
+  "Commit: {{COMMIT}}",
   "Run: {{RUN_ID}} Iteration: {{ITERATION}}",
   "",
   "Quality Gates:",
@@ -406,7 +406,7 @@ export function createRalphSimulation(options: SimulationOptions) {
         maxIterations,
         maxFailures: options.config?.maxFailures,
         pauseOnOverbake: options.config?.pauseOnOverbake ?? true,
-        noCommit: options.config?.noCommit ?? true,
+        commit: options.config?.commit ?? false,
         agent: options.config?.agent ?? "test-agent",
         staleSeconds: options.config?.staleSeconds ?? 0,
         cwd: "/",

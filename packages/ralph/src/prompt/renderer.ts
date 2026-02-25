@@ -12,7 +12,7 @@ export type PromptVariableName =
   | "GUARDRAILS_REF"
   | "CONTEXT_REF"
   | "ACTIVITY_CMD"
-  | "NO_COMMIT"
+  | "COMMIT"
   | "RUN_ID"
   | "ITERATION"
   | "RUN_LOG_PATH"

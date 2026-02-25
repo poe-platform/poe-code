@@ -61,7 +61,7 @@ poe-code ralph install [--agent <name>] [--local|--global] [--force]
 poe-code ralph plan "Build a CSV to JSON converter" --out .poe-code-ralph/plan.yml
 
 # Run the build loop
-poe-code ralph build [iterations] --plan <path> --agent <name> [--no-commit] [--pause-on-overbake]
+poe-code ralph build [iterations] --plan <path> --agent <name> [--[no-]commit] [--pause-on-overbake]
 
 # Log activity (used by agents)
 poe-code ralph agent log "Started work on US-001"

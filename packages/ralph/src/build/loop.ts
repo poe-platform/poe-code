@@ -131,7 +131,7 @@ export type BuildLoopOptions = {
   maxIterations: number;
   maxFailures?: number;
   pauseOnOverbake?: boolean;
-  noCommit: boolean;
+  commit: boolean;
   agent: string;
   model?: string;
   staleSeconds: number;
@@ -540,7 +540,7 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
       GUARDRAILS_REF: guardrailsRef,
       CONTEXT_REF: contextRef,
       ACTIVITY_CMD: activityCmd,
-      NO_COMMIT: options.noCommit,
+      COMMIT: options.commit,
       RUN_ID: runId,
       ITERATION: i,
       RUN_LOG_PATH: logPath,

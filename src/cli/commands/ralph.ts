@@ -464,6 +464,7 @@ export function registerRalphCommand(
     .option("--plan <path>", "Path to the plan file")
     .option("--agent <name>", "Agent name to run (default: codex)")
     .option("--model <model>", "Model override passed to the agent for the entire run")
+    .option("--commit", "Instruct the agent to commit changes")
     .option("--no-commit", "Instruct the agent not to commit changes")
     .option("--max-failures <n>", "Warn after <n> consecutive failures (default 3)")
     .option("--pause-on-overbake", "Pause and prompt when overbaking is detected")
@@ -499,24 +500,24 @@ export function registerRalphCommand(
         }
         const agent = agentSupport.id ?? rawAgent;
 
-        const configuredNoCommit = config.noCommit;
-        let noCommit: boolean;
-        if (options.commit === false) {
-          // --no-commit explicitly passed
-          noCommit = true;
+        const configuredCommit = config.commit;
+        let commit: boolean;
+        if (options.commit !== undefined) {
+          // --commit or --no-commit explicitly passed
+          commit = options.commit;
         } else if (flags.assumeYes) {
-          // --yes accepts configured default, else false
-          noCommit = configuredNoCommit ?? false;
+          // --yes accepts configured default, else true
+          commit = configuredCommit ?? true;
         } else {
           const answer = await confirm({
-            message: "Should the agent skip committing changes? (--no-commit)",
-            initialValue: configuredNoCommit ?? false
+            message: "Should the agent commit changes? (--commit)",
+            initialValue: configuredCommit ?? true
           });
           if (isCancel(answer)) {
             cancel("Operation cancelled");
             return;
           }
-          noCommit = Boolean(answer);
+          commit = Boolean(answer);
         }
 
         const staleSeconds = config.staleSeconds ?? 60;
@@ -607,7 +608,7 @@ export function registerRalphCommand(
           `Iterations: ${maxIterations}`
         ];
         if (model) configLines.push(`Model: ${model}`);
-        if (noCommit) configLines.push("No-commit: true");
+        if (!commit) configLines.push("Commit: false");
         if (worktree) configLines.push(`Worktree: ${worktree.name ?? "(auto)"}`);
         for (const source of configResult.sources) {
           configLines.push(`${source.scope}: ${source.path}`);
@@ -655,7 +656,7 @@ export function registerRalphCommand(
           pauseOnOverbake,
           agent,
           model,
-          noCommit,
+          commit,
           staleSeconds,
           cwd,
           worktree,

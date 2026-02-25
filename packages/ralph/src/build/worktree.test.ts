@@ -148,7 +148,7 @@ describe("buildLoop with worktree", () => {
     const result = await buildLoop({
       planPath: ".agents/tasks/plan-build-worktree.yaml",
       maxIterations: 3,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -232,7 +232,7 @@ describe("buildLoop with worktree", () => {
     await buildLoop({
       planPath: ".agents/tasks/plan-build-worktree.yaml",
       maxIterations: 3,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -286,7 +286,7 @@ describe("buildLoop with worktree", () => {
     const result = await buildLoop({
       planPath: ".agents/tasks/plan-build-worktree.yaml",
       maxIterations: 1,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -338,7 +338,7 @@ describe("buildLoop with worktree", () => {
     const result = await buildLoop({
       planPath: ".agents/tasks/plan-build-worktree.yaml",
       maxIterations: 3,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -388,7 +388,7 @@ describe("buildLoop with worktree", () => {
     const result = await buildLoop({
       planPath: ".agents/tasks/plan-feature-x.yml",
       maxIterations: 3,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -474,7 +474,7 @@ describe("buildLoop with worktree", () => {
     const result = await buildLoop({
       planPath: ".agents/tasks/plan-done.yaml",
       maxIterations: 5,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -613,7 +613,7 @@ describe("buildLoop with worktree", () => {
     const result = await buildLoop({
       planPath: ".agents/tasks/plan-resume.yaml",
       maxIterations: 5,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -700,7 +700,7 @@ describe("buildLoop with worktree", () => {
     const result = await buildLoop({
       planPath: ".agents/tasks/plan-build-worktree.yaml",
       maxIterations: 3,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -753,7 +753,7 @@ describe("buildLoop with worktree", () => {
     const result = await buildLoop({
       planPath: ".agents/tasks/plan.yaml",
       maxIterations: 3,
-      noCommit: true,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",

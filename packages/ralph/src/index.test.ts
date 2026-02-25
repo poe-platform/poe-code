@@ -29,7 +29,7 @@ describe("Ralph SDK public exports", () => {
     const options: RalphBuildOptions = {
       planPath: ".agents/tasks/plan-ralph-typescript.json",
       maxIterations: 1,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 60
     };
@@ -52,7 +52,7 @@ describe("Ralph SDK public exports", () => {
     const options: RalphBuildOptions = {
       planPath: ".agents/tasks/plan.yaml",
       maxIterations: 5,
-      noCommit: false,
+      commit: false,
       agent: "codex",
       staleSeconds: 60,
       worktree

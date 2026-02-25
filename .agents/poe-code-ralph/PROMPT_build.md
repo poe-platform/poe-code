@@ -12,7 +12,7 @@ You are an autonomous coding agent. Your task is to complete the work for exactl
 - Errors Log: {{ERRORS_LOG_PATH}}
 - Activity Log: {{ACTIVITY_LOG_PATH}}
 - Activity Logger: {{ACTIVITY_CMD}}
-- No-commit: {{NO_COMMIT}}
+- Commit: {{COMMIT}}
 - Repo Root: {{REPO_ROOT}}
 - Run ID: {{RUN_ID}}
 - Iteration: {{ITERATION}}
@@ -79,7 +79,7 @@ Run: {{RUN_ID}} (iteration {{ITERATION}})
 Run log: {{RUN_LOG_PATH}}
 Run summary: {{RUN_META_PATH}}
 - Guardrails reviewed: yes
-- No-commit run: {{NO_COMMIT}}
+- Commit: {{COMMIT}}
 - Commit: <hash> <subject> (or `none` + reason)
 - Verification:
   - Command: <exact command> -> PASS/FAIL

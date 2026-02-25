@@ -15,7 +15,7 @@ describe("loadConfig", () => {
       "/repo/.agents/poe-code-ralph/config.yaml": [
         "agent: claude-code",
         "maxIterations: 7",
-        "noCommit: true",
+        "commit: true",
         "staleSeconds: 120",
         "planPath: .agents/tasks/plan.yaml",
         "progressPath: .poe-code-ralph/progress.md",
@@ -36,7 +36,7 @@ describe("loadConfig", () => {
       activityLogPath: ".poe-code-ralph/activity.log",
       agent: "claude-code",
       maxIterations: 7,
-      noCommit: true,
+      commit: true,
       staleSeconds: 120
     });
     expect(result.sources).toEqual([
@@ -50,7 +50,7 @@ describe("loadConfig", () => {
       "/repo/.agents/poe-code-ralph/config.json": JSON.stringify({
         agent: "codex",
         maxIterations: 3,
-        noCommit: false,
+        commit: false,
         staleSeconds: 0
       })
     });
@@ -59,7 +59,7 @@ describe("loadConfig", () => {
     expect(result.config).toEqual({
       agent: "codex",
       maxIterations: 3,
-      noCommit: false,
+      commit: false,
       staleSeconds: 0
     });
     expect(result.sources).toEqual([
@@ -134,7 +134,7 @@ describe("loadConfig", () => {
       ].join("\n"),
       "/repo/.agents/poe-code-ralph/config.yaml": [
         "maxIterations: 5",
-        "noCommit: true",
+        "commit: true",
         ""
       ].join("\n")
     });
@@ -144,7 +144,7 @@ describe("loadConfig", () => {
       agent: "claude-code",
       staleSeconds: 120,
       maxIterations: 5,
-      noCommit: true
+      commit: true
     });
   });
 

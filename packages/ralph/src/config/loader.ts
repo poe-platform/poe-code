@@ -11,7 +11,7 @@ export type RalphConfig = {
   activityLogPath?: string;
   agent?: string;
   maxIterations?: number;
-  noCommit?: boolean;
+  commit?: boolean;
   staleSeconds?: number;
 };
 
@@ -143,8 +143,8 @@ async function loadSingleConfig(
   const staleSeconds = pickOptionalPositiveInt(rawConfig, "staleSeconds", { min: 0 });
   if (staleSeconds != null) config.staleSeconds = staleSeconds;
 
-  const noCommit = pickOptionalBoolean(rawConfig, "noCommit");
-  if (noCommit != null) config.noCommit = noCommit;
+  const commit = pickOptionalBoolean(rawConfig, "commit");
+  if (commit != null) config.commit = commit;
 
   return { config, sourcePath };
 }

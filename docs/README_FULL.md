@@ -828,7 +828,7 @@ poe-code ralph build [iterations]
 | `--plan <path>` | Prompts | Path to the YAML plan file. |
 | `--agent <name>` | `codex` | Agent to use for building. |
 | `--model <model>` | Agent default | Model override for the entire run. |
-| `--no-commit` | `false` | Instruct the agent not to commit changes. |
+| `--[no-]commit` | `true` | Whether the agent should commit changes. |
 | `--max-failures <n>` | `3` | Warn after n consecutive failures. |
 | `--pause-on-overbake` | `false` | Pause and prompt when overbaking is detected. |
 | `--worktree` | `false` | Run in an isolated git worktree. |

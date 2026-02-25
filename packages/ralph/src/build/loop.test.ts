@@ -23,7 +23,7 @@ describe("buildLoop", () => {
         "# Test Prompt",
         "ID: {{STORY_ID}}",
         "{{STORY_BLOCK}}",
-        "No-commit: {{NO_COMMIT}}",
+        "Commit: {{COMMIT}}",
         "Run: {{RUN_ID}} Iter: {{ITERATION}}",
         "Gates:",
         "{{QUALITY_GATES}}",
@@ -67,7 +67,7 @@ describe("buildLoop", () => {
     const result = await buildLoop({
       planPath,
       maxIterations: 3,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -92,7 +92,7 @@ describe("buildLoop", () => {
     expect(capturedPrompt).toContain("ID: US-001");
     expect(capturedPrompt).toContain("### US-001: Do the thing");
     expect(capturedPrompt).toContain("- [ ] Criterion A");
-    expect(capturedPrompt).toContain("No-commit: true");
+    expect(capturedPrompt).toContain("Commit: true");
     expect(capturedPrompt).toContain("Run: 20260201-221816-14669 Iter: 1");
     expect(capturedPrompt).toContain("npm run test");
 
@@ -159,7 +159,7 @@ describe("buildLoop", () => {
       errorsLogPath: "custom/errors.log",
       activityLogPath: "custom/activity.log",
       maxIterations: 1,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -230,7 +230,7 @@ describe("buildLoop", () => {
     const result = await buildLoop({
       planPath,
       maxIterations: 1,
-      noCommit: false,
+      commit: false,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -301,7 +301,7 @@ describe("buildLoop", () => {
     const result = await buildLoop({
       planPath,
       maxIterations: 1,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -370,7 +370,7 @@ describe("buildLoop", () => {
       planPath,
       maxIterations: 10,
       maxFailures: 3,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -445,7 +445,7 @@ describe("buildLoop", () => {
       planPath,
       maxIterations: 10,
       maxFailures: 3,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -521,7 +521,7 @@ describe("buildLoop", () => {
       planPath,
       maxIterations: 3,
       maxFailures: 2,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -589,7 +589,7 @@ describe("buildLoop", () => {
     await buildLoop({
       planPath,
       maxIterations: 1,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       model: "claude-opus-4-6",
       staleSeconds: 0,
@@ -656,7 +656,7 @@ describe("buildLoop", () => {
     await buildLoop({
       planPath,
       maxIterations: 3,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -721,7 +721,7 @@ describe("buildLoop", () => {
     await buildLoop({
       planPath,
       maxIterations: 1,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -797,7 +797,7 @@ describe("buildLoop", () => {
       maxIterations: 4,
       maxFailures: 3,
       pauseOnOverbake: true,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",
@@ -859,7 +859,7 @@ describe("buildLoop", () => {
       maxIterations: 10,
       maxFailures: 3,
       pauseOnOverbake: true,
-      noCommit: true,
+      commit: true,
       agent: "codex",
       staleSeconds: 0,
       cwd: "/",

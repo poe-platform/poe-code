@@ -1,8 +1,15 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
+import path from "node:path";
 import { PassThrough } from "node:stream";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StdioTransport, readLines, type StdioSpawn } from "./internal.js";
+
+const testServerCli = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../tiny-stdio-mcp-test-server/dist/cli.js"
+);
 
 const streamsForCleanup: PassThrough[] = [];
 
@@ -310,8 +317,8 @@ describe("StdioTransport dispose", () => {
 describe("StdioTransport real process smoke test", () => {
   it("spawns tiny-stdio-mcp-test-server and round-trips initialize over stdio", async () => {
     const transport = new StdioTransport({
-      command: "tiny-stdio-mcp-test-server",
-      args: ["serve", "word-of-the-day"],
+      command: process.execPath,
+      args: [testServerCli, "serve", "word-of-the-day"],
     });
 
     try {

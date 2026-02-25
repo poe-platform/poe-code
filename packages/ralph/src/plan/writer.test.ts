@@ -71,6 +71,77 @@ stories:
     expect(nextYaml).toContain("status: done");
   });
 
+  it("preserves unknown top-level fields through a round-trip", async () => {
+    const path = "/agents/tasks/plan.yaml";
+    const initial = `
+version: 1
+project: Extras
+requirements:
+  - Must support Node 20
+customField: hello
+goals:
+  - Goal 1
+nonGoals: []
+qualityGates:
+  - npm run test
+stories:
+  - id: US-001
+    title: Example
+    status: open
+    dependsOn: []
+    acceptanceCriteria:
+      - Criterion 1
+`;
+
+    const prd = parsePlan(initial);
+    prd.stories[0]!.status = "done";
+
+    const fs = createMemFs({
+      [path]: initial
+    });
+
+    await writePlan(path, prd, { fs, lock: createInMemoryLock() });
+
+    const nextYaml = await fs.readFile(path, "utf8");
+    expect(nextYaml).toContain("requirements:");
+    expect(nextYaml).toContain("Must support Node 20");
+    expect(nextYaml).toContain("customField: hello");
+    expect(nextYaml).toContain("status: done");
+  });
+
+  it("preserves unknown story-level fields through a round-trip", async () => {
+    const path = "/agents/tasks/plan.yaml";
+    const initial = `
+version: 1
+project: Story Extras
+stories:
+  - id: US-001
+    title: Story with extras
+    status: open
+    dependsOn: []
+    acceptanceCriteria:
+      - Criterion 1
+    requirements:
+      - Requirement A
+    notes: Some notes
+`;
+
+    const prd = parsePlan(initial);
+    prd.stories[0]!.status = "done";
+
+    const fs = createMemFs({
+      [path]: initial
+    });
+
+    await writePlan(path, prd, { fs, lock: createInMemoryLock() });
+
+    const nextYaml = await fs.readFile(path, "utf8");
+    expect(nextYaml).toContain("requirements:");
+    expect(nextYaml).toContain("Requirement A");
+    expect(nextYaml).toContain("notes: Some notes");
+    expect(nextYaml).toContain("status: done");
+  });
+
   it("does not corrupt the YAML when multiple writes happen concurrently", async () => {
     const path = "/agents/tasks/plan.yaml";
     const fs = createMemFs({

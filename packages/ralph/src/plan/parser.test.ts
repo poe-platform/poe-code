@@ -70,5 +70,46 @@ stories:
   it("throws a descriptive error for invalid YAML", () => {
     expect(() => parsePlan("version: [")).toThrow(/Invalid plan YAML/i);
   });
+
+  it("captures unknown top-level fields in _extra", () => {
+    const yaml = `
+version: 1
+project: Extra fields
+requirements:
+  - Must support Node 20
+  - Must use TypeScript
+customField: hello
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd._extra).toEqual({
+      requirements: ["Must support Node 20", "Must use TypeScript"],
+      customField: "hello"
+    });
+  });
+
+  it("captures unknown story-level fields in story _extra", () => {
+    const yaml = `
+version: 1
+project: Story extras
+stories:
+  - id: US-001
+    title: Story with extras
+    status: open
+    dependsOn: []
+    acceptanceCriteria:
+      - Criterion 1
+    requirements:
+      - Requirement A
+    notes: Some implementation notes
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd.stories[0]!._extra).toEqual({
+      requirements: ["Requirement A"],
+      notes: "Some implementation notes"
+    });
+  });
 });
 

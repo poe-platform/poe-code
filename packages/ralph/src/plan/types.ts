@@ -10,6 +10,7 @@ export type Story = {
   startedAt?: string;
   completedAt?: string;
   updatedAt?: string;
+  _extra?: Record<string, unknown>;
 };
 
 export type Plan = {
@@ -20,5 +21,6 @@ export type Plan = {
   nonGoals: string[];
   qualityGates: string[];
   stories: Story[];
+  _extra?: Record<string, unknown>;
 };
 

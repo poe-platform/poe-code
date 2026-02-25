@@ -47,6 +47,10 @@ function serializeStory(story: Story): Record<string, unknown> {
     ordered.updatedAt = story.updatedAt;
   }
 
+  if (story._extra) {
+    Object.assign(ordered, story._extra);
+  }
+
   return ordered;
 }
 
@@ -63,6 +67,11 @@ function serializePlan(prd: Plan): string {
   ordered.goals = prd.goals;
   ordered.nonGoals = prd.nonGoals;
   ordered.qualityGates = prd.qualityGates;
+
+  if (prd._extra) {
+    Object.assign(ordered, prd._extra);
+  }
+
   ordered.stories = prd.stories.map(serializeStory);
 
   const yaml = stringify(ordered, { lineWidth: 0 });

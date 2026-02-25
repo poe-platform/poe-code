@@ -60,10 +60,27 @@ function normalizeStatus(value: unknown): StoryStatus {
   );
 }
 
+const KNOWN_STORY_KEYS = new Set([
+  "id", "title", "status", "dependsOn", "description",
+  "acceptanceCriteria", "startedAt", "completedAt", "updatedAt"
+]);
+
+function collectExtra(record: Record<string, unknown>, knownKeys: Set<string>): Record<string, unknown> | undefined {
+  const extra: Record<string, unknown> = {};
+  let hasExtra = false;
+  for (const key of Object.keys(record)) {
+    if (!knownKeys.has(key)) {
+      extra[key] = record[key];
+      hasExtra = true;
+    }
+  }
+  return hasExtra ? extra : undefined;
+}
+
 function parseStory(value: unknown, index: number): Story {
   if (!isRecord(value)) throw new Error(`Invalid stories[${index}]: expected object`);
 
-  return {
+  const story: Story = {
     id: asRequiredString(value.id, `stories[${index}].id`),
     title: asRequiredString(value.title, `stories[${index}].title`),
     status: normalizeStatus(value.status),
@@ -77,6 +94,11 @@ function parseStory(value: unknown, index: number): Story {
     completedAt: asIsoString(value.completedAt, `stories[${index}].completedAt`),
     updatedAt: asIsoString(value.updatedAt, `stories[${index}].updatedAt`)
   };
+
+  const extra = collectExtra(value, KNOWN_STORY_KEYS);
+  if (extra) story._extra = extra;
+
+  return story;
 }
 
 export function parsePlan(yamlContent: string): Plan {
@@ -98,7 +120,11 @@ export function parsePlan(yamlContent: string): Plan {
     throw new Error("Invalid stories: expected array");
   }
 
-  return {
+  const KNOWN_PLAN_KEYS = new Set([
+    "version", "project", "overview", "goals", "nonGoals", "qualityGates", "stories"
+  ]);
+
+  const plan: Plan = {
     version: asNumber(doc.version, "version"),
     project: asRequiredString(doc.project, "project"),
     overview: asOptionalString(doc.overview, "overview"),
@@ -107,5 +133,10 @@ export function parsePlan(yamlContent: string): Plan {
     qualityGates: asStringArray(doc.qualityGates, "qualityGates"),
     stories: stories.map((s, i) => parseStory(s, i))
   };
+
+  const extra = collectExtra(doc, KNOWN_PLAN_KEYS);
+  if (extra) plan._extra = extra;
+
+  return plan;
 }
 

@@ -20,6 +20,9 @@ export type PromptVariableName =
   | "STORY_ID"
   | "STORY_TITLE"
   | "STORY_BLOCK"
+  | "REQUIREMENT_ID"
+  | "REQUIREMENT_TITLE"
+  | "REQUIREMENT_BLOCK"
   | "QUALITY_GATES";
 
 export type PromptVariableValue = string | number | boolean | string[];

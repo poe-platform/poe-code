@@ -1,5 +1,5 @@
 import { parse } from "yaml";
-import type { Plan, Story, StoryStatus } from "./types.js";
+import type { Plan, Requirement, RequirementScenario, RequirementStatus, Story, StoryStatus } from "./types.js";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -65,6 +65,59 @@ const KNOWN_STORY_KEYS = new Set([
   "acceptanceCriteria", "startedAt", "completedAt", "updatedAt"
 ]);
 
+const KNOWN_REQUIREMENT_KEYS = new Set([
+  "id", "title", "description", "scenarios", "status", "verifiedAt"
+]);
+
+function normalizeRequirementStatus(value: unknown): RequirementStatus {
+  if (value === undefined || value === null) return "pending";
+  if (typeof value !== "string") throw new Error("Invalid requirement status: expected string");
+
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return "pending";
+  if (normalized === "pending") return "pending";
+  if (normalized === "verifying") return "verifying";
+  if (normalized === "passed") return "passed";
+  if (normalized === "failed") return "failed";
+
+  throw new Error(
+    `Invalid requirement status "${value}". Expected one of: pending, verifying, passed, failed`
+  );
+}
+
+function parseScenario(value: unknown, index: number, reqIndex: number): RequirementScenario {
+  if (!isRecord(value)) throw new Error(`Invalid requirements[${reqIndex}].scenarios[${index}]: expected object`);
+  return {
+    name: asRequiredString(value.name, `requirements[${reqIndex}].scenarios[${index}].name`),
+    when: asRequiredString(value.when, `requirements[${reqIndex}].scenarios[${index}].when`),
+    then: asRequiredString(value.then, `requirements[${reqIndex}].scenarios[${index}].then`)
+  };
+}
+
+function parseRequirement(value: unknown, index: number): Requirement {
+  if (!isRecord(value)) throw new Error(`Invalid requirements[${index}]: expected object`);
+
+  const scenariosValue = value.scenarios;
+  const scenarios = scenariosValue === undefined || scenariosValue === null ? [] : scenariosValue;
+  if (!Array.isArray(scenarios)) {
+    throw new Error(`Invalid requirements[${index}].scenarios: expected array`);
+  }
+
+  const req: Requirement = {
+    id: asRequiredString(value.id, `requirements[${index}].id`),
+    title: asRequiredString(value.title, `requirements[${index}].title`),
+    description: asOptionalString(value.description, `requirements[${index}].description`),
+    scenarios: scenarios.map((s, i) => parseScenario(s, i, index)),
+    status: normalizeRequirementStatus(value.status),
+    verifiedAt: asIsoString(value.verifiedAt, `requirements[${index}].verifiedAt`)
+  };
+
+  const extra = collectExtra(value as Record<string, unknown>, KNOWN_REQUIREMENT_KEYS);
+  if (extra) req._extra = extra;
+
+  return req;
+}
+
 function collectExtra(record: Record<string, unknown>, knownKeys: Set<string>): Record<string, unknown> | undefined {
   const extra: Record<string, unknown> = {};
   let hasExtra = false;
@@ -120,8 +173,14 @@ export function parsePlan(yamlContent: string): Plan {
     throw new Error("Invalid stories: expected array");
   }
 
+  const requirementsValue = doc.requirements;
+  const requirements = requirementsValue === undefined || requirementsValue === null ? [] : requirementsValue;
+  if (!Array.isArray(requirements)) {
+    throw new Error("Invalid requirements: expected array");
+  }
+
   const KNOWN_PLAN_KEYS = new Set([
-    "version", "project", "overview", "goals", "nonGoals", "qualityGates", "stories"
+    "version", "project", "overview", "goals", "nonGoals", "qualityGates", "requirements", "stories"
   ]);
 
   const plan: Plan = {
@@ -131,6 +190,7 @@ export function parsePlan(yamlContent: string): Plan {
     goals: asStringArray(doc.goals, "goals"),
     nonGoals: asStringArray(doc.nonGoals, "nonGoals"),
     qualityGates: asStringArray(doc.qualityGates, "qualityGates"),
+    requirements: requirements.map((r, i) => parseRequirement(r, i)),
     stories: stories.map((s, i) => parseStory(s, i))
   };
 

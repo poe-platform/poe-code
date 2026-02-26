@@ -35,6 +35,7 @@ stories:
       goals: ["Goal 1"],
       nonGoals: ["Non-goal 1"],
       qualityGates: ["npm run test", "npm run lint"],
+      requirements: [],
       stories: [
         {
           id: "US-001",
@@ -75,18 +76,133 @@ stories:
     const yaml = `
 version: 1
 project: Extra fields
-requirements:
-  - Must support Node 20
-  - Must use TypeScript
 customField: hello
+anotherField: world
 stories: []
 `;
 
     const prd = parsePlan(yaml);
     expect(prd._extra).toEqual({
-      requirements: ["Must support Node 20", "Must use TypeScript"],
-      customField: "hello"
+      customField: "hello",
+      anotherField: "world"
     });
+  });
+
+  it("parses structured requirements with scenarios", () => {
+    const yaml = `
+version: 1
+project: Req test
+requirements:
+  - id: R-001
+    title: Tool namespacing
+    description: |
+      Tools SHALL be namespaced.
+    scenarios:
+      - name: Basic
+        when: namespace("srv", "tool") is called
+        then: Returns "mcp__srv__tool"
+      - name: Special chars
+        when: namespace("srv", "v2.0") is called
+        then: Returns "mcp__srv__v2.0"
+  - id: R-002
+    title: Conversion
+    scenarios:
+      - name: Full conversion
+        when: convert is called
+        then: Returns converted object
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd.requirements).toEqual([
+      {
+        id: "R-001",
+        title: "Tool namespacing",
+        description: "Tools SHALL be namespaced.\n",
+        scenarios: [
+          { name: "Basic", when: 'namespace("srv", "tool") is called', then: 'Returns "mcp__srv__tool"' },
+          { name: "Special chars", when: 'namespace("srv", "v2.0") is called', then: 'Returns "mcp__srv__v2.0"' }
+        ],
+        status: "pending",
+        verifiedAt: undefined
+      },
+      {
+        id: "R-002",
+        title: "Conversion",
+        description: undefined,
+        scenarios: [
+          { name: "Full conversion", when: "convert is called", then: "Returns converted object" }
+        ],
+        status: "pending",
+        verifiedAt: undefined
+      }
+    ]);
+  });
+
+  it("normalizes missing or null requirement status to pending", () => {
+    const yaml = `
+version: 1
+project: Req status
+requirements:
+  - id: R-001
+    title: No status
+    scenarios: []
+  - id: R-002
+    title: Null status
+    status: null
+    scenarios: []
+  - id: R-003
+    title: Passed
+    status: passed
+    scenarios: []
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd.requirements.map(r => r.status)).toEqual(["pending", "pending", "passed"]);
+  });
+
+  it("defaults missing requirements to empty array", () => {
+    const yaml = `
+version: 1
+project: No reqs
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd.requirements).toEqual([]);
+  });
+
+  it("captures unknown requirement-level fields in requirement _extra", () => {
+    const yaml = `
+version: 1
+project: Req extras
+requirements:
+  - id: R-001
+    title: With extras
+    scenarios: []
+    customNote: important
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd.requirements[0]!._extra).toEqual({ customNote: "important" });
+  });
+
+  it("requirements field no longer goes to plan _extra", () => {
+    const yaml = `
+version: 1
+project: Req not extra
+requirements:
+  - id: R-001
+    title: Req
+    scenarios: []
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd._extra).toBeUndefined();
+    expect(prd.requirements).toHaveLength(1);
   });
 
   it("captures unknown story-level fields in story _extra", () => {

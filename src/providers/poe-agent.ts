@@ -1,5 +1,9 @@
 import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
-import type { AcpEvent, SessionUpdate as LegacySessionUpdate } from "@poe-code/agent-spawn";
+import type {
+  AcpEvent,
+  McpSpawnConfig,
+  SessionUpdate as LegacySessionUpdate
+} from "@poe-code/agent-spawn";
 import {
   AcpClient,
   generateRunReportFromSessionUpdateStream,
@@ -37,6 +41,8 @@ interface PoeAgentLifecycleOptions {
   prompt: string;
   model: string;
   cwd: string;
+  mcpServers?: McpSpawnConfig;
+  baseUrl?: string;
   onEvent?: (event: AcpEvent) => void;
 }
 
@@ -125,6 +131,37 @@ function createToolRenderState(): ToolRenderState {
     toolCallKinds: new Map<string, string>(),
     toolCallTitles: new Map<string, string>(),
   };
+}
+
+function toAgentSessionMcpServers(servers: McpSpawnConfig): Record<
+  string,
+  {
+    transport: "stdio";
+    command: string;
+    args?: string[];
+    env?: Record<string, string>;
+  }
+> | undefined {
+  const mappedServers: Record<
+    string,
+    {
+      transport: "stdio";
+      command: string;
+      args?: string[];
+      env?: Record<string, string>;
+    }
+  > = {};
+
+  for (const [name, server] of Object.entries(servers)) {
+    mappedServers[name] = {
+      transport: "stdio",
+      command: server.command,
+      ...(server.args && server.args.length > 0 ? { args: [...server.args] } : {}),
+      ...(server.env && Object.keys(server.env).length > 0 ? { env: { ...server.env } } : {}),
+    };
+  }
+
+  return Object.keys(mappedServers).length > 0 ? mappedServers : undefined;
 }
 
 function toErrorMessage(value: unknown): string {
@@ -423,6 +460,8 @@ function emitEvent(
 function createInMemoryAcpTransport(options: {
   model: string;
   cwd: string;
+  mcpServers?: McpSpawnConfig;
+  baseUrl?: string;
 }): InMemoryAcpTransport {
   const sessions = new Map<string, AgentSessionRuntime>();
   const notificationHandlers = new Map<string, Array<(params: unknown, context: { method: string }) => void | Promise<void>>>();
@@ -437,6 +476,9 @@ function createInMemoryAcpTransport(options: {
   const closedPromise = new Promise<AcpTransportClosedEvent>((resolve) => {
     resolveClosed = resolve;
   });
+  const sessionMcpServers = options.mcpServers
+    ? toAgentSessionMcpServers(options.mcpServers)
+    : undefined;
 
   const closeTransport = (reason: Error): void => {
     if (closed) {
@@ -482,6 +524,8 @@ function createInMemoryAcpTransport(options: {
         const session = await createAgentSession({
           model: options.model,
           cwd: request.cwd || options.cwd,
+          ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+          ...(sessionMcpServers ? { mcpServers: sessionMcpServers } : {}),
         });
         const sessionId = `poe-agent-session-${sessionCounter + 1}`;
         sessionCounter += 1;
@@ -572,6 +616,8 @@ async function runPoeAgentAcpLifecycle(
   const transport = createInMemoryAcpTransport({
     model: options.model,
     cwd: options.cwd,
+    baseUrl: options.baseUrl,
+    mcpServers: options.mcpServers,
   });
 
   const client = new AcpClient({ transport });
@@ -629,6 +675,8 @@ export function spawnPoeAgentWithAcp(options: {
   prompt: string;
   model?: string;
   cwd?: string;
+  mcpServers?: McpSpawnConfig;
+  baseUrl?: string;
 }): { events: AsyncIterable<AcpEvent>; done: Promise<PoeAgentSpawnResult> } {
   const queue = createEventQueue<AcpEvent>();
   const model = options.model ?? DEFAULT_FRONTIER_MODEL;
@@ -638,6 +686,8 @@ export function spawnPoeAgentWithAcp(options: {
     prompt: options.prompt,
     model,
     cwd,
+    baseUrl: options.baseUrl,
+    mcpServers: options.mcpServers,
     onEvent: (event) => {
       queue.push(event);
     },
@@ -661,6 +711,7 @@ export const poeAgentService = createProvider<
   label: "Poe Agent",
   summary: "Run one-shot prompts with the built-in Poe agent runtime.",
   supportsStdinPrompt: true,
+  supportsMcpSpawn: true,
   manifest: {
     configure: []
   },
@@ -669,6 +720,8 @@ export const poeAgentService = createProvider<
       prompt: options.prompt,
       model: options.model ?? DEFAULT_FRONTIER_MODEL,
       cwd: options.cwd ?? context.env.cwd,
+      baseUrl: context.env.poeApiBaseUrl,
+      mcpServers: options.mcpServers,
     });
 
     return {

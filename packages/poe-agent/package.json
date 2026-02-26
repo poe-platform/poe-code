@@ -12,11 +12,15 @@
     }
   },
   "scripts": {
-    "build": "tsc && cp src/SYSTEM_PROMPT.md dist/SYSTEM_PROMPT.md"
+    "build": "tsc"
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",
-    "@poe-code/auth": "*"
+    "@poe-code/auth": "*",
+    "tiny-mcp-client": "*"
+  },
+  "devDependencies": {
+    "tiny-stdio-mcp-test-server": "*"
   },
   "files": [
     "dist"

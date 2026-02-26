@@ -8,8 +8,12 @@ import {
   PoeChatService,
   type ChatMessage,
   type PoeChatServiceOptions,
+  type Tool,
   type ToolCallLifecycleEvent,
+  type ToolExecutor,
 } from "./chat.js";
+import { HttpTransport, McpClient, StdioTransport } from "tiny-mcp-client";
+import { McpToolExecutor, type McpServerDefinition } from "./mcp-tool-executor.js";
 import { loadSystemPrompt } from "./system-prompt.js";
 import { DefaultToolExecutor } from "./tool-executor.js";
 
@@ -30,6 +34,7 @@ export interface CreateAgentSessionOptions {
   apiKey?: string;
   cwd?: string;
   allowedPaths?: string[];
+  mcpServers?: Record<string, McpServerDefinition>;
   baseUrl?: string;
   fetch?: PoeChatServiceOptions["fetch"];
   maxToolCallIterations?: number;
@@ -50,7 +55,47 @@ export async function createAgentSession(
     cwd: options.cwd,
     allowedPaths: options.allowedPaths,
   });
-  const tools = toolExecutor.getAvailableTools();
+  const builtInTools = toolExecutor.getAvailableTools();
+  const builtInToolNames = new Set(builtInTools.map(tool => tool.function.name));
+
+  let tools: Tool[] = builtInTools;
+  let chatToolExecutor: ToolExecutor = toolExecutor;
+  let mcpToolExecutor: McpToolExecutor | undefined;
+
+  if (options.mcpServers !== undefined) {
+    const createdMcpToolExecutor = new McpToolExecutor();
+    mcpToolExecutor = createdMcpToolExecutor;
+
+    try {
+      for (const [serverName, serverDefinition] of Object.entries(options.mcpServers)) {
+        const mcpClient = new McpClient({
+          clientInfo: {
+            name: "poe-agent",
+            version: "0.0.1",
+          },
+        });
+        const transport = createMcpTransport(serverDefinition);
+
+        await mcpClient.connect(transport);
+        await createdMcpToolExecutor.addServer(serverName, mcpClient);
+      }
+    } catch (error) {
+      await createdMcpToolExecutor.dispose();
+      throw error;
+    }
+
+    const mcpTools = createdMcpToolExecutor.getAvailableTools();
+    tools = [...builtInTools, ...mcpTools];
+    chatToolExecutor = {
+      executeTool(name: string, args: Record<string, unknown>): Promise<string> {
+        if (builtInToolNames.has(name)) {
+          return toolExecutor.executeTool(name, args);
+        }
+
+        return createdMcpToolExecutor.executeTool(name, args);
+      },
+    };
+  }
 
   let currentOnSessionUpdate: SessionUpdateCallback | undefined;
 
@@ -60,7 +105,7 @@ export async function createAgentSession(
     baseUrl: options.baseUrl,
     fetch: options.fetch,
     systemPrompt,
-    toolExecutor,
+    toolExecutor: chatToolExecutor,
     maxToolCallIterations: options.maxToolCallIterations,
     onToolCall: event => {
       if (!currentOnSessionUpdate) return;
@@ -107,11 +152,36 @@ export async function createAgentSession(
       chatService.clearConversationHistory();
 
       const disposableToolExecutor = toolExecutor as unknown as Partial<Disposable>;
+      const disposePromises: Array<Promise<void>> = [];
+
       if (typeof disposableToolExecutor.dispose === "function") {
-        await disposableToolExecutor.dispose();
+        disposePromises.push(Promise.resolve(disposableToolExecutor.dispose()));
+      }
+
+      if (mcpToolExecutor) {
+        disposePromises.push(mcpToolExecutor.dispose());
+      }
+
+      if (disposePromises.length > 0) {
+        await Promise.all(disposePromises);
       }
     },
   };
+}
+
+function createMcpTransport(server: McpServerDefinition): StdioTransport | HttpTransport {
+  if (server.transport === "stdio") {
+    return new StdioTransport({
+      command: server.command,
+      args: server.args,
+      env: server.env,
+    });
+  }
+
+  return new HttpTransport({
+    url: server.url,
+    headers: server.headers,
+  });
 }
 
 async function resolveApiKey(explicitApiKey: string | undefined): Promise<string> {

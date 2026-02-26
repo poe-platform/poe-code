@@ -14,11 +14,14 @@ vi.mock("@poe-code/poe-agent", () => ({
   createAgentSession: createAgentSessionMock
 }));
 
-function createProviderContext(): ProviderContext {
+function createProviderContext(
+  variables?: Record<string, string | undefined>,
+): ProviderContext {
   return {
     env: createCliEnvironment({
       cwd: "/repo",
-      homeDir: "/home/test"
+      homeDir: "/home/test",
+      variables: variables ?? {},
     }),
     command: {} as ProviderContext["command"],
     logger: {} as ProviderContext["logger"],
@@ -82,6 +85,7 @@ describe("poe-agent provider", () => {
     expect(poeAgentProvider.summary).toBe(
       "Run one-shot prompts with the built-in Poe agent runtime."
     );
+    expect(poeAgentProvider.supportsMcpSpawn).toBe(true);
   });
 
   it("delegates spawn to createAgentSession", async () => {
@@ -93,12 +97,28 @@ describe("poe-agent provider", () => {
     const result = await poeAgentProvider.spawn?.(context, {
       prompt: "Summarize this diff",
       model: "anthropic/claude-opus-4.6",
-      cwd: "/workspace/project"
+      cwd: "/workspace/project",
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
     });
 
     expect(createAgentSessionMock).toHaveBeenCalledWith({
       model: "anthropic/claude-opus-4.6",
-      cwd: "/workspace/project"
+      cwd: "/workspace/project",
+      baseUrl: "https://api.poe.com/v1",
+      mcpServers: {
+        test: {
+          transport: "stdio",
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
     });
     expect(initializeSpy).toHaveBeenCalledTimes(1);
     expect(newSessionSpy).toHaveBeenCalledTimes(1);
@@ -141,7 +161,24 @@ describe("poe-agent provider", () => {
 
     expect(createAgentSessionMock).toHaveBeenCalledWith({
       model: DEFAULT_FRONTIER_MODEL,
-      cwd: "/repo"
+      cwd: "/repo",
+      baseUrl: "https://api.poe.com/v1",
+    });
+  });
+
+  it("forwards POE_BASE_URL override to createAgentSession", async () => {
+    const context = createProviderContext({
+      POE_BASE_URL: "http://proxy.example.com",
+    });
+
+    await poeAgentProvider.spawn?.(context, {
+      prompt: "Explain this function",
+    });
+
+    expect(createAgentSessionMock).toHaveBeenCalledWith({
+      model: DEFAULT_FRONTIER_MODEL,
+      cwd: "/repo",
+      baseUrl: "http://proxy.example.com/v1",
     });
   });
 

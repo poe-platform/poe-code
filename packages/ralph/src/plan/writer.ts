@@ -2,7 +2,7 @@ import { dirname } from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { lockFile } from "../lock/lock.js";
 import { stringify } from "yaml";
-import type { Plan, Story } from "./types.js";
+import type { Plan, Requirement, RequirementScenario, Story } from "./types.js";
 
 type PlanWriterFileSystem = {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
@@ -54,6 +54,38 @@ function serializeStory(story: Story): Record<string, unknown> {
   return ordered;
 }
 
+function serializeScenario(scenario: RequirementScenario): Record<string, unknown> {
+  return {
+    name: scenario.name,
+    when: scenario.when,
+    then: scenario.then
+  };
+}
+
+function serializeRequirement(req: Requirement): Record<string, unknown> {
+  const ordered: Record<string, unknown> = {
+    id: req.id,
+    title: req.title
+  };
+
+  if (req.description !== undefined) {
+    ordered.description = req.description;
+  }
+
+  ordered.scenarios = req.scenarios.map(serializeScenario);
+  ordered.status = req.status;
+
+  if (req.verifiedAt !== undefined) {
+    ordered.verifiedAt = req.verifiedAt;
+  }
+
+  if (req._extra) {
+    Object.assign(ordered, req._extra);
+  }
+
+  return ordered;
+}
+
 function serializePlan(prd: Plan): string {
   const ordered: Record<string, unknown> = {
     version: prd.version,
@@ -67,6 +99,10 @@ function serializePlan(prd: Plan): string {
   ordered.goals = prd.goals;
   ordered.nonGoals = prd.nonGoals;
   ordered.qualityGates = prd.qualityGates;
+
+  if (prd.requirements.length > 0) {
+    ordered.requirements = prd.requirements.map(serializeRequirement);
+  }
 
   if (prd._extra) {
     Object.assign(ordered, prd._extra);

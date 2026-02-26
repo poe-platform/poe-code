@@ -76,9 +76,8 @@ stories:
     const initial = `
 version: 1
 project: Extras
-requirements:
-  - Must support Node 20
 customField: hello
+anotherField: world
 goals:
   - Goal 1
 nonGoals: []
@@ -103,9 +102,8 @@ stories:
     await writePlan(path, prd, { fs, lock: createInMemoryLock() });
 
     const nextYaml = await fs.readFile(path, "utf8");
-    expect(nextYaml).toContain("requirements:");
-    expect(nextYaml).toContain("Must support Node 20");
     expect(nextYaml).toContain("customField: hello");
+    expect(nextYaml).toContain("anotherField: world");
     expect(nextYaml).toContain("status: done");
   });
 
@@ -142,6 +140,86 @@ stories:
     expect(nextYaml).toContain("status: done");
   });
 
+  it("serializes requirements between qualityGates and stories", async () => {
+    const path = "/agents/tasks/plan.yaml";
+    const initial = `
+version: 1
+project: Req serialization
+qualityGates:
+  - npm run test
+requirements:
+  - id: R-001
+    title: Namespacing
+    description: Tools SHALL be namespaced.
+    scenarios:
+      - name: Basic
+        when: namespace is called
+        then: Returns namespaced name
+stories:
+  - id: US-001
+    title: Example
+    status: open
+    dependsOn: []
+    acceptanceCriteria: []
+`;
+
+    const prd = parsePlan(initial);
+    prd.requirements[0]!.status = "passed";
+    prd.requirements[0]!.verifiedAt = "2026-02-25T00:00:00.000Z";
+
+    const fs = createMemFs({ [path]: initial });
+    await writePlan(path, prd, { fs, lock: createInMemoryLock() });
+
+    const nextYaml = await fs.readFile(path, "utf8");
+    expect(nextYaml.indexOf("qualityGates:")).toBeLessThan(nextYaml.indexOf("requirements:"));
+    expect(nextYaml.indexOf("requirements:")).toBeLessThan(nextYaml.indexOf("stories:"));
+    expect(nextYaml).toContain("status: passed");
+    expect(nextYaml).toContain("verifiedAt: ");
+  });
+
+  it("omits requirements section when empty", async () => {
+    const path = "/agents/tasks/plan.yaml";
+    const initial = `
+version: 1
+project: No reqs
+stories:
+  - id: US-001
+    title: Example
+    status: open
+    dependsOn: []
+    acceptanceCriteria: []
+`;
+
+    const prd = parsePlan(initial);
+    const fs = createMemFs({ [path]: initial });
+    await writePlan(path, prd, { fs, lock: createInMemoryLock() });
+
+    const nextYaml = await fs.readFile(path, "utf8");
+    expect(nextYaml).not.toContain("requirements:");
+  });
+
+  it("round-trips requirements with _extra fields preserved", async () => {
+    const path = "/agents/tasks/plan.yaml";
+    const initial = `
+version: 1
+project: Req extras
+requirements:
+  - id: R-001
+    title: Req
+    scenarios: []
+    customNote: important
+stories: []
+`;
+
+    const prd = parsePlan(initial);
+    const fs = createMemFs({ [path]: initial });
+    await writePlan(path, prd, { fs, lock: createInMemoryLock() });
+
+    const nextYaml = await fs.readFile(path, "utf8");
+    const reparsed = parsePlan(nextYaml);
+    expect(reparsed.requirements[0]!._extra).toEqual({ customNote: "important" });
+  });
+
   it("does not corrupt the YAML when multiple writes happen concurrently", async () => {
     const path = "/agents/tasks/plan.yaml";
     const fs = createMemFs({
@@ -158,6 +236,7 @@ stories:
         goals: [],
         nonGoals: [],
         qualityGates: [],
+        requirements: [],
         stories: []
       };
       return writePlan(path, prd, { fs, lock });

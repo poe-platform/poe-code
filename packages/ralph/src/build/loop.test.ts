@@ -3,6 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../../../../src/utils/file-system.js";
 import { parsePlan } from "../plan/parser.js";
 import { buildLoop } from "./loop.js";
+import { createRalphSimulation, completeTurn } from "../testing/simulation.js";
 
 function createMemFs(files: Record<string, string> = {}): FileSystem {
   const vol = Volume.fromJSON(files, "/");
@@ -883,5 +884,164 @@ describe("buildLoop", () => {
     expect(abortPrompt).toHaveBeenCalledTimes(1);
     expect(abortSpawn).toHaveBeenCalledTimes(3);
     expect(abortResult.stopReason).toBe("overbake_abort");
+  });
+
+  it("runs verification phase after all stories complete", async () => {
+    const sim = createRalphSimulation({
+      plan: {
+        stories: [{ id: "US-001", title: "Build feature" }],
+        requirements: [
+          {
+            id: "R-001",
+            title: "Namespacing",
+            scenarios: [{ name: "Basic", when: "namespace is called", then: "returns namespaced" }]
+          }
+        ]
+      },
+      turns: [
+        completeTurn(), // US-001 completes
+        completeTurn((prompt) => {
+          expect(prompt).toContain("R-001");
+          expect(prompt).toContain("Namespacing");
+        }) // R-001 verification passes
+      ]
+    });
+
+    const { result, getRequirement } = await sim.run();
+    expect(result.storiesDone).toEqual(["US-001"]);
+    expect(result.stopReason).toBe("all_verified");
+
+    const req = await getRequirement("R-001");
+    expect(req?.status).toBe("passed");
+    expect(req?.verifiedAt).toBeTruthy();
+  });
+
+  it("skips verification when plan has no requirements", async () => {
+    const sim = createRalphSimulation({
+      plan: {
+        stories: [{ id: "US-001", title: "Build feature" }]
+      },
+      turns: [completeTurn()]
+    });
+
+    const { result } = await sim.run();
+    expect(result.storiesDone).toEqual(["US-001"]);
+    expect(result.stopReason).toBe("no_actionable_stories");
+  });
+
+  it("resets requirement to pending on verification failure", async () => {
+    const sim = createRalphSimulation({
+      plan: {
+        stories: [{ id: "US-001", title: "Build feature" }],
+        requirements: [
+          { id: "R-001", title: "Namespacing", scenarios: [] }
+        ]
+      },
+      config: { maxIterations: 3 },
+      turns: [
+        completeTurn(), // US-001 completes
+        { output: { stdout: "not done", exitCode: 0 } } // R-001 incomplete
+      ]
+    });
+
+    const { result, getRequirement } = await sim.run();
+    expect(result.storiesDone).toEqual(["US-001"]);
+
+    const req = await getRequirement("R-001");
+    expect(req?.status).toBe("pending");
+  });
+
+  it("stops verification after overbaking threshold", async () => {
+    const sim = createRalphSimulation({
+      plan: {
+        stories: [{ id: "US-001", title: "Build feature" }],
+        requirements: [
+          { id: "R-001", title: "Namespacing", scenarios: [] }
+        ]
+      },
+      config: { maxIterations: 10, maxFailures: 2, pauseOnOverbake: false },
+      turns: [
+        completeTurn(), // US-001 completes
+        { output: { stdout: "fail", stderr: "boom", exitCode: 1 } }, // R-001 fail 1
+        { output: { stdout: "fail", stderr: "boom", exitCode: 1 } } // R-001 fail 2 → overbake skip
+      ]
+    });
+
+    const { result } = await sim.run();
+    // Overbake skips R-001, then no more requirements → loop ends
+    expect(result.iterationsCompleted).toBe(3);
+    expect(result.storiesDone).toEqual(["US-001"]);
+  });
+
+  it("verifies multiple requirements sequentially", async () => {
+    const sim = createRalphSimulation({
+      plan: {
+        stories: [{ id: "US-001", title: "Build feature" }],
+        requirements: [
+          { id: "R-001", title: "First req", scenarios: [] },
+          { id: "R-002", title: "Second req", scenarios: [] }
+        ]
+      },
+      turns: [
+        completeTurn(), // US-001 completes
+        completeTurn((prompt) => expect(prompt).toContain("R-001")),
+        completeTurn((prompt) => expect(prompt).toContain("R-002"))
+      ]
+    });
+
+    const { result, getRequirement } = await sim.run();
+    expect(result.stopReason).toBe("all_verified");
+    expect((await getRequirement("R-001"))?.status).toBe("passed");
+    expect((await getRequirement("R-002"))?.status).toBe("passed");
+  });
+
+  it("verification prompt contains scenario details", async () => {
+    const sim = createRalphSimulation({
+      plan: {
+        stories: [{ id: "US-001", title: "Build feature" }],
+        requirements: [
+          {
+            id: "R-001",
+            title: "Namespacing",
+            description: "Tools SHALL be namespaced.",
+            scenarios: [
+              { name: "Basic", when: "namespace is called", then: "returns namespaced" }
+            ]
+          }
+        ]
+      },
+      turns: [
+        completeTurn(),
+        completeTurn((prompt) => {
+          expect(prompt).toContain("Namespacing");
+          expect(prompt).toContain("Tools SHALL be namespaced.");
+          expect(prompt).toContain("**Basic**");
+          expect(prompt).toContain("When: namespace is called");
+          expect(prompt).toContain("Then: returns namespaced");
+        })
+      ]
+    });
+
+    await sim.run();
+  });
+
+  it("shares iteration budget between stories and verification", async () => {
+    const sim = createRalphSimulation({
+      plan: {
+        stories: [{ id: "US-001", title: "Build feature" }],
+        requirements: [
+          { id: "R-001", title: "Namespacing", scenarios: [] }
+        ]
+      },
+      config: { maxIterations: 1 },
+      turns: [completeTurn()] // US-001 uses the only iteration
+    });
+
+    const { result, getRequirement } = await sim.run();
+    expect(result.storiesDone).toEqual(["US-001"]);
+    expect(result.stopReason).toBe("max_iterations");
+
+    const req = await getRequirement("R-001");
+    expect(req?.status).toBe("pending");
   });
 });

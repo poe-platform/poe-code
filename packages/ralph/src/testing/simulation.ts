@@ -4,7 +4,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { stringify } from "yaml";
 import { buildLoop, type BuildLoopOptions, type BuildResult } from "../build/loop.js";
 import { parsePlan } from "../plan/parser.js";
-import type { Plan, Story } from "../plan/types.js";
+import type { Plan, Requirement, Story } from "../plan/types.js";
 
 type SimulationFileSystem = {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
@@ -53,8 +53,11 @@ export type TurnSpec = {
 
 export type PartialStory = Partial<Story> & { id: string; title: string };
 
-export type PartialPlan = Partial<Omit<Plan, "stories">> & {
+export type PartialRequirement = Partial<Requirement> & { id: string; title: string };
+
+export type PartialPlan = Partial<Omit<Plan, "stories" | "requirements">> & {
   stories: PartialStory[];
+  requirements?: PartialRequirement[];
 };
 
 export type OverbakeResponse = "continue" | "skip" | "abort";
@@ -162,6 +165,11 @@ export type SimulationResult = {
   getStory: (storyId: string) => Promise<Story | undefined>;
 
   /**
+   * Get requirement by ID from the final PRD state.
+   */
+  getRequirement: (requirementId: string) => Promise<Requirement | undefined>;
+
+  /**
    * Read the run log for a specific iteration.
    */
   readRunLog: (iteration: number) => Promise<string>;
@@ -194,6 +202,28 @@ const DEFAULT_PROMPT_TEMPLATE = [
   ""
 ].join("\n");
 
+const DEFAULT_VERIFY_TEMPLATE = [
+  "# Verify Prompt",
+  "",
+  "Requirement: {{REQUIREMENT_ID}}",
+  "Title: {{REQUIREMENT_TITLE}}",
+  "",
+  "{{REQUIREMENT_BLOCK}}",
+  "",
+  "PRD: {{PLAN_PATH}}",
+  "Progress: {{PROGRESS_PATH}}",
+  "Guardrails: {{GUARDRAILS_PATH}}",
+  "Errors: {{ERRORS_LOG_PATH}}",
+  "Activity: {{ACTIVITY_LOG_PATH}}",
+  "",
+  "Commit: {{COMMIT}}",
+  "Run: {{RUN_ID}} Iteration: {{ITERATION}}",
+  "",
+  "Quality Gates:",
+  "{{QUALITY_GATES}}",
+  ""
+].join("\n");
+
 function normalizePlan(partial: PartialPlan): Plan {
   return {
     version: partial.version ?? 1,
@@ -202,6 +232,14 @@ function normalizePlan(partial: PartialPlan): Plan {
     goals: partial.goals ?? [],
     nonGoals: partial.nonGoals ?? [],
     qualityGates: partial.qualityGates ?? [],
+    requirements: (partial.requirements ?? []).map((r) => ({
+      id: r.id,
+      title: r.title,
+      description: r.description,
+      scenarios: r.scenarios ?? [],
+      status: r.status ?? "pending",
+      verifiedAt: r.verifiedAt
+    })),
     stories: partial.stories.map((s) => ({
       id: s.id,
       title: s.title,
@@ -283,6 +321,7 @@ export function createRalphSimulation(options: SimulationOptions) {
 
   const planPath = "/.agents/poe-code-ralph/plans/plan.yaml";
   const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
+  const verifyPromptPath = "/.agents/poe-code-ralph/PROMPT_verify.md";
   const progressPath = options.config?.progressPath ?? ".poe-code-ralph/progress.md";
   const guardrailsPath = options.config?.guardrailsPath ?? ".poe-code-ralph/guardrails.md";
   const errorsLogPath = options.config?.errorsLogPath ?? ".poe-code-ralph/errors.log";
@@ -291,6 +330,7 @@ export function createRalphSimulation(options: SimulationOptions) {
   const initialFiles: Record<string, string> = {
     [planPath]: stringify(prd),
     [promptPath]: promptTemplate,
+    [verifyPromptPath]: DEFAULT_VERIFY_TEMPLATE,
     [`/${progressPath}`]: "# Progress\n",
     [`/${guardrailsPath}`]: "# Guardrails\n",
     [`/${errorsLogPath}`]: "",
@@ -440,6 +480,11 @@ export function createRalphSimulation(options: SimulationOptions) {
         return prdData.stories.find((s) => s.id === storyId);
       };
 
+      const getRequirement = async (requirementId: string) => {
+        const prdData = await readPlan();
+        return prdData.requirements.find((r) => r.id === requirementId);
+      };
+
       const readRunLog = (iteration: number) =>
         readFile(`/.poe-code-ralph/runs/run-${runId}-iter-${iteration}.log`);
 
@@ -454,6 +499,7 @@ export function createRalphSimulation(options: SimulationOptions) {
         readFile,
         readPlan,
         getStory,
+        getRequirement,
         readRunLog,
         readRunMeta
       };

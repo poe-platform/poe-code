@@ -11,7 +11,8 @@ const requiredTemplatePaths = [
   "templates/.poe-code-ralph/progress.md",
   "templates/.poe-code-ralph/guardrails.md",
   "templates/.poe-code-ralph/errors.log",
-  "templates/.poe-code-ralph/activity.log"
+  "templates/.poe-code-ralph/activity.log",
+  "templates/PROMPT_verify.md"
 ];
 
 

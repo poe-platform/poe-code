@@ -1,6 +1,6 @@
 import { buildLoop, type BuildLoopOptions, type BuildResult, type WorktreeOptions } from "./build/loop.js";
 
-export type { Plan, Story } from "./plan/types.js";
+export type { Plan, Story, Requirement, RequirementStatus, RequirementScenario } from "./plan/types.js";
 export { parsePlan } from "./plan/parser.js";
 export { resolvePlanPath } from "./plan/resolver.js";
 export type { ResolvePlanPathOptions } from "./plan/resolver.js";

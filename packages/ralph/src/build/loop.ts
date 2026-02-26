@@ -21,10 +21,13 @@ import { getChangedFiles, getCommitList, getDirtyFiles, getHead } from "../git/u
 import { parsePlan } from "../plan/parser.js";
 import { writePlan } from "../plan/writer.js";
 import { renderPrompt } from "../prompt/renderer.js";
+import { resolveTemplate } from "../prompt/resolver.js";
 import { selectStory } from "../story/selector.js";
 import { updateStoryStatus } from "../story/updater.js";
+import { selectRequirement } from "../requirement/selector.js";
+import { updateRequirementStatus } from "../requirement/updater.js";
 import { writeRunMeta } from "../run/metadata.js";
-import type { Story } from "../plan/types.js";
+import type { Requirement, Story } from "../plan/types.js";
 import { OverbakingDetector } from "./overbaking.js";
 
 type LockRelease = () => Promise<void>;
@@ -113,7 +116,7 @@ export type BuildResult = {
   iterationsCompleted: number;
   storiesDone: string[];
   iterations: BuildIterationResult[];
-  stopReason: "no_actionable_stories" | "max_iterations" | "overbake_abort";
+  stopReason: "no_actionable_stories" | "max_iterations" | "overbake_abort" | "all_verified";
   worktreeBranch?: string;
 };
 
@@ -322,6 +325,57 @@ async function selectStoryFromFile(
   }
 }
 
+function formatRequirementBlock(req: Requirement): string {
+  const description = req.description?.trim() ? req.description.trim() : "(none)";
+  const scenarios =
+    req.scenarios.length === 0
+      ? "- (none)"
+      : req.scenarios
+          .map((s) => `- **${s.name}**\n  When: ${s.when}\n  Then: ${s.then}`)
+          .join("\n");
+
+  return [
+    `### ${req.id}: ${req.title}`,
+    `Status: ${req.status}`,
+    "",
+    "Description:",
+    description,
+    "",
+    "Scenarios:",
+    scenarios,
+    ""
+  ].join("\n");
+}
+
+async function selectRequirementFromFile(
+  planPath: string,
+  options: {
+    fs: BuildLoopFileSystem;
+    lock: LockFn;
+    now: Date;
+    ignoreRequirementIds?: ReadonlySet<string>;
+  }
+): Promise<{ requirement: Requirement; qualityGates: string[] } | null> {
+  const release = await options.lock(planPath);
+  try {
+    const raw = await options.fs.readFile(planPath, "utf8");
+    const plan = parsePlan(raw);
+    const selected = selectRequirement(plan, { ignoreIds: options.ignoreRequirementIds });
+    if (!selected) return null;
+
+    selected.status = "verifying";
+
+    await writePlan(planPath, plan, {
+      fs: options.fs,
+      lock: async () => async () => {}
+    });
+
+    return { requirement: selected, qualityGates: plan.qualityGates };
+  } finally {
+    await release();
+  }
+}
+
 function formatOverbakeWarning(args: {
   storyId: string;
   storyTitle: string;
@@ -510,13 +564,7 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
     });
 
     if (!selection) {
-      return finalizeWorktreeResult({
-        runId,
-        iterationsCompleted: iterations.length,
-        storiesDone,
-        iterations,
-        stopReason: "no_actionable_stories"
-      });
+      break;
     }
 
     const story = selection.story;
@@ -715,14 +763,279 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
         stopReason: "overbake_abort"
       });
     }
+
   }
+
+  // Story loop ended — either no actionable stories or max iterations reached.
+  // Check if we ran out of iterations (last iteration was used by a story).
+  if (iterations.length >= options.maxIterations) {
+    return finalizeWorktreeResult({
+      runId,
+      iterationsCompleted: iterations.length,
+      storiesDone,
+      iterations,
+      stopReason: "max_iterations"
+    });
+  }
+
+  // All stories done — check for requirements to verify.
+  const verifyTemplate = await resolveTemplate("PROMPT_verify.md", {
+    fs,
+    cwd,
+    bundledDir: absPath(cwd, ".agents/poe-code-ralph")
+  });
+
+  if (!verifyTemplate) {
+    return finalizeWorktreeResult({
+      runId,
+      iterationsCompleted: iterations.length,
+      storiesDone,
+      iterations,
+      stopReason: "no_actionable_stories"
+    });
+  }
+
+  // Check if there are any pending requirements
+  const currentPlan = parsePlan(await fs.readFile(planPath, "utf8"));
+  const hasPendingRequirements = currentPlan.requirements.some((r) => r.status !== "passed");
+
+  if (!hasPendingRequirements) {
+    return finalizeWorktreeResult({
+      runId,
+      iterationsCompleted: iterations.length,
+      storiesDone,
+      iterations,
+      stopReason: "no_actionable_stories"
+    });
+  }
+
+  // Verification loop
+  const skippedRequirementIds = new Set<string>();
+
+  for (let vi = iterations.length + 1; vi <= options.maxIterations; vi++) {
+    const iterationStart = nowFn();
+    const headBefore = git.getHead(cwd);
+
+    const reqSelection = await selectRequirementFromFile(planPath, {
+      fs,
+      lock,
+      now: iterationStart,
+      ignoreRequirementIds: skippedRequirementIds
+    });
+
+    if (!reqSelection) {
+      return finalizeWorktreeResult({
+        runId,
+        iterationsCompleted: iterations.length,
+        storiesDone,
+        iterations,
+        stopReason: "all_verified"
+      });
+    }
+
+    const req = reqSelection.requirement;
+    const reqBlock = formatRequirementBlock(req);
+
+    const logPath = resolvePath(runsDir, `run-${runId}-iter-${vi}.log`);
+    const metaPath = resolvePath(runsDir, `run-${runId}-iter-${vi}.md`);
+    const renderedPromptPath = resolvePath(
+      absPath(cwd, ".poe-code-ralph/.tmp"),
+      `prompt-verify-${runId}-iter-${vi}.md`
+    );
+
+    const prompt = renderPrompt(verifyTemplate, {
+      PLAN_PATH: planPath,
+      PROGRESS_PATH: progressPath,
+      REPO_ROOT: cwd,
+      GUARDRAILS_PATH: guardrailsPath,
+      ERRORS_LOG_PATH: errorsLogPath,
+      ACTIVITY_LOG_PATH: activityLogPath,
+      GUARDRAILS_REF: guardrailsRef,
+      CONTEXT_REF: contextRef,
+      ACTIVITY_CMD: activityCmd,
+      COMMIT: options.commit,
+      RUN_ID: runId,
+      ITERATION: vi,
+      RUN_LOG_PATH: logPath,
+      RUN_META_PATH: metaPath,
+      REQUIREMENT_ID: req.id,
+      REQUIREMENT_TITLE: req.title,
+      REQUIREMENT_BLOCK: reqBlock,
+      QUALITY_GATES: formatQualityGates(reqSelection.qualityGates)
+    });
+
+    await fs.mkdir(dirname(renderedPromptPath), { recursive: true });
+    await fs.writeFile(renderedPromptPath, prompt, { encoding: "utf8" });
+
+    stdout.write(`[${vi}/${options.maxIterations}] Verify: ${req.title}\n`);
+
+    let status: BuildIterationStatus;
+    let combinedOutput: string;
+    let stderrForErrorsLog: string;
+
+    try {
+      const result = await spawn(options.agent, {
+        prompt,
+        cwd,
+        model: options.model,
+        mode: "yolo",
+        useStdin: true
+      });
+
+      const agentStdout = result.stdout ?? "";
+      const agentStderr = result.stderr ?? "";
+      stderrForErrorsLog = agentStderr;
+
+      combinedOutput = [
+        agentStdout ? `# stdout\n${agentStdout}` : "",
+        agentStderr ? `# stderr\n${agentStderr}` : ""
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      if (result.exitCode !== 0) {
+        status = "failure";
+      } else if (detectCompletion(agentStdout)) {
+        status = "success";
+      } else {
+        status = "incomplete";
+      }
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : `Unknown error: ${String(error)}`;
+      combinedOutput = `Agent execution error: ${detail}`;
+      stderrForErrorsLog = combinedOutput;
+      status = "failure";
+    }
+
+    await fs.mkdir(dirname(logPath), { recursive: true });
+    await fs.writeFile(logPath, combinedOutput, { encoding: "utf8" });
+
+    if (status === "failure" && stderrForErrorsLog.trim().length > 0) {
+      await appendToErrorsLog(fs, errorsLogPath, stderrForErrorsLog);
+    }
+
+    const overbakeEvent = overbaking.record(req.id, status);
+    let overbakeAction: "continue" | "skip" | "abort" | null = null;
+    if (overbakeEvent.shouldWarn) {
+      const warning = formatOverbakeWarning({
+        storyId: req.id,
+        storyTitle: req.title,
+        consecutiveFailures: overbakeEvent.consecutiveFailures,
+        threshold: overbakeEvent.threshold
+      });
+      stderr.write(warning);
+      await appendToErrorsLog(fs, errorsLogPath, warning);
+    }
+
+    if (overbakeEvent.overbaked) {
+      if (options.pauseOnOverbake) {
+        overbakeAction = await promptOverbake({
+          storyId: req.id,
+          storyTitle: req.title,
+          consecutiveFailures: overbakeEvent.consecutiveFailures,
+          threshold: overbakeEvent.threshold
+        });
+      } else {
+        overbakeAction = "skip";
+      }
+
+      if (overbakeAction === "skip") {
+        skippedRequirementIds.add(req.id);
+      }
+    }
+
+    const iterationEnd = nowFn();
+    const durationSeconds = Math.max(
+      0,
+      Math.round((iterationEnd.getTime() - iterationStart.getTime()) / 1000)
+    );
+
+    if (status === "success") {
+      await updateRequirementStatus(planPath, req.id, "passed", {
+        fs,
+        lock,
+        now: iterationEnd
+      });
+    } else {
+      await updateRequirementStatus(planPath, req.id, "pending", {
+        fs,
+        lock,
+        now: iterationEnd
+      });
+    }
+
+    const headAfter = git.getHead(cwd);
+    const dirtyFiles = git.getDirtyFiles(cwd);
+    const commits =
+      headBefore && headAfter && headBefore !== headAfter
+        ? git.getCommitList(cwd, headBefore, headAfter)
+        : [];
+    const changedFiles =
+      headBefore && headAfter && headBefore !== headAfter
+        ? git.getChangedFiles(cwd, headBefore, headAfter)
+        : [];
+
+    await writeRunMeta(
+      metaPath,
+      {
+        runId,
+        iteration: vi,
+        mode: "verify",
+        storyId: req.id,
+        storyTitle: req.title,
+        started: formatTimestamp(iterationStart),
+        ended: formatTimestamp(iterationEnd),
+        duration: `${durationSeconds}s`,
+        status,
+        logPath,
+        overbaking: {
+          maxFailures: overbakeEvent.threshold,
+          consecutiveFailures: overbakeEvent.consecutiveFailures,
+          triggered: overbakeEvent.overbaked,
+          action: overbakeAction ?? undefined
+        },
+        git: {
+          headBefore,
+          headAfter,
+          commits,
+          changedFiles,
+          dirtyFiles
+        }
+      },
+      { fs }
+    );
+
+    iterations.push({
+      iteration: vi,
+      storyId: req.id,
+      storyTitle: req.title,
+      status,
+      logPath,
+      metaPath
+    });
+
+    if (overbakeAction === "abort") {
+      return finalizeWorktreeResult({
+        runId,
+        iterationsCompleted: iterations.length,
+        storiesDone,
+        iterations,
+        stopReason: "overbake_abort"
+      });
+    }
+  }
+
+  // Check if all requirements are now passed
+  const finalPlan = parsePlan(await fs.readFile(planPath, "utf8"));
+  const allPassed = finalPlan.requirements.every((r) => r.status === "passed");
 
   return finalizeWorktreeResult({
     runId,
     iterationsCompleted: iterations.length,
     storiesDone,
     iterations,
-    stopReason: "max_iterations"
+    stopReason: allPassed ? "all_verified" : "max_iterations"
   });
 
   async function finalizeWorktreeResult(result: BuildResult): Promise<BuildResult> {

@@ -8,9 +8,23 @@ import type { Engine } from './types.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DOCKERFILE_DIR = join(__dirname, '..');
 const DOCKERFILE_PATH = join(DOCKERFILE_DIR, 'e2e.Dockerfile');
-const TARBALL_NAME = 'poe-code.tgz';
-const MCP_SERVER_TARBALL = 'tiny-stdio-mcp-server.tgz';
-const MCP_TEST_SERVER_TARBALL = 'tiny-stdio-mcp-test-server.tgz';
+interface BuildTarball {
+  name: string;
+  packageDir: string;
+}
+
+export const BUILD_TARBALLS: ReadonlyArray<BuildTarball> = [
+  { name: 'poe-code.tgz', packageDir: '.' },
+  { name: 'e2e-docker-test-runner.tgz', packageDir: 'packages/e2e-docker-test-runner' },
+  { name: 'auth.tgz', packageDir: 'packages/auth' },
+  { name: 'agent-defs.tgz', packageDir: 'packages/agent-defs' },
+  { name: 'design-system.tgz', packageDir: 'packages/design-system' },
+  { name: 'agent-spawn.tgz', packageDir: 'packages/agent-spawn' },
+  { name: 'tiny-mcp-client.tgz', packageDir: 'packages/tiny-mcp-client' },
+  { name: 'poe-agent.tgz', packageDir: 'packages/poe-agent' },
+  { name: 'tiny-stdio-mcp-server.tgz', packageDir: 'packages/tiny-stdio-mcp-server' },
+  { name: 'tiny-stdio-mcp-test-server.tgz', packageDir: 'packages/tiny-stdio-mcp-test-server' },
+];
 export const IMAGE_NAME = 'poe-code-e2e';
 
 /**
@@ -160,15 +174,18 @@ function createTarball(workspaceRoot: string, verbose: boolean): void {
     console.error('Creating tarballs...');
   }
 
-  packTarball(workspaceRoot, TARBALL_NAME, verbose);
-  packTarball(join(workspaceRoot, 'packages/tiny-stdio-mcp-server'), MCP_SERVER_TARBALL, verbose);
-  packTarball(join(workspaceRoot, 'packages/tiny-stdio-mcp-test-server'), MCP_TEST_SERVER_TARBALL, verbose);
+  for (const tarball of BUILD_TARBALLS) {
+    const cwd = tarball.packageDir === '.'
+      ? workspaceRoot
+      : join(workspaceRoot, tarball.packageDir);
+    packTarball(cwd, tarball.name, verbose);
+  }
 }
 
 function cleanupTarball(): void {
-  for (const name of [TARBALL_NAME, MCP_SERVER_TARBALL, MCP_TEST_SERVER_TARBALL]) {
+  for (const tarball of BUILD_TARBALLS) {
     try {
-      unlinkSync(join(DOCKERFILE_DIR, name));
+      unlinkSync(join(DOCKERFILE_DIR, tarball.name));
     } catch {
       // Ignore if already cleaned up
     }

@@ -1,0 +1,1292 @@
+import { createHash } from 'node:crypto';
+import http, { createServer, type IncomingMessage, type Server } from 'node:http';
+import https from 'node:https';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { vol } from 'memfs';
+
+vi.mock('node:fs/promises', async () => {
+  const { fs } = await import('memfs');
+  return fs.promises;
+});
+
+import { startProxyServer } from './proxy-server.js';
+import type { CapturedExchange } from './proxy-types.js';
+import './matchers.js';
+
+interface DummyApiRequest {
+  method: string;
+  path: string;
+  headers: Record<string, string | string[] | undefined>;
+  body: unknown;
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object';
+}
+
+function isCapturedExchange(value: unknown): value is CapturedExchange {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+  if (typeof value.timestamp !== 'string') {
+    return false;
+  }
+  if (typeof value.route !== 'string') {
+    return false;
+  }
+  if (!isObjectRecord(value.request) || !isObjectRecord(value.response)) {
+    return false;
+  }
+  if (typeof value.request.method !== 'string') {
+    return false;
+  }
+  if (typeof value.request.path !== 'string') {
+    return false;
+  }
+  if (!isObjectRecord(value.request.headers)) {
+    return false;
+  }
+  if (typeof value.response.status !== 'number') {
+    return false;
+  }
+
+  return 'body' in value.request && 'body' in value.response;
+}
+
+function sanitizeModelName(model: string): string {
+  const lower = model.toLowerCase();
+  let result = '';
+  for (const char of lower) {
+    const code = char.charCodeAt(0);
+    const isAlpha = code >= 97 && code <= 122;
+    const isDigit = code >= 48 && code <= 57;
+    if (isAlpha || isDigit || char === '-') {
+      result += char;
+      continue;
+    }
+
+    result += '-';
+  }
+
+  return result;
+}
+
+function generateSnapshotKey(request: {
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+}): string {
+  const normalized = JSON.stringify({
+    model: request.model,
+    messages: request.messages,
+  });
+  const hash = createHash('sha256').update(normalized).digest('hex').slice(0, 12);
+  return `${sanitizeModelName(request.model)}-${hash}`;
+}
+
+function mergeHeaders(initHeaders?: HeadersInit): Record<string, string> {
+  if (!initHeaders) {
+    return {};
+  }
+
+  if (initHeaders instanceof Headers) {
+    return Object.fromEntries(initHeaders.entries());
+  }
+
+  if (Array.isArray(initHeaders)) {
+    return Object.fromEntries(initHeaders);
+  }
+
+  return Object.fromEntries(
+    Object.entries(initHeaders).map(([key, value]) => [key, String(value)]),
+  );
+}
+
+async function makeNetworkFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const sourceUrl =
+    input instanceof Request ? input.url : input instanceof URL ? input.toString() : input;
+  const url = new URL(sourceUrl);
+  const client = url.protocol === 'https:' ? https : http;
+  const port = url.port.length > 0 ? Number(url.port) : url.protocol === 'https:' ? 443 : 80;
+  const method = init?.method ?? (input instanceof Request ? input.method : 'GET');
+
+  const baseHeaders = input instanceof Request ? mergeHeaders(input.headers) : {};
+  const headers = { ...baseHeaders, ...mergeHeaders(init?.headers) };
+  const body =
+    init?.body === undefined
+      ? undefined
+      : typeof init.body === 'string'
+        ? init.body
+        : await new Response(init.body).text();
+
+  return await new Promise<Response>((resolve, reject) => {
+    const request = client.request(
+      {
+        method,
+        hostname: url.hostname,
+        port,
+        path: `${url.pathname}${url.search}`,
+        headers,
+      },
+      (response) => {
+        const chunks: Buffer[] = [];
+        response.on('data', (chunk) => {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        });
+        response.on('end', () => {
+          resolve(
+            new Response(Buffer.concat(chunks), {
+              status: response.statusCode ?? 500,
+              headers: response.headers as HeadersInit,
+            }),
+          );
+        });
+      },
+    );
+
+    request.on('error', reject);
+    if (body) {
+      request.write(body);
+    }
+    request.end();
+  });
+}
+
+function readBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Uint8Array[] = [];
+    req.on('data', (chunk) => {
+      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    });
+    req.on('end', () => {
+      resolve(Buffer.concat(chunks).toString('utf8'));
+    });
+    req.on('error', reject);
+  });
+}
+
+function parseBody(body: string): unknown {
+  if (body.trim() === '') {
+    return '';
+  }
+
+  try {
+    return JSON.parse(body);
+  } catch {
+    return body;
+  }
+}
+
+async function listen(server: Server, port = 0): Promise<number> {
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      resolve();
+    });
+  });
+
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Failed to determine server port');
+  }
+
+  return address.port;
+}
+
+async function close(server: Server): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
+async function startDummyApi(port: number) {
+  let lastRequest: DummyApiRequest | null = null;
+  const server = createServer(async (req, res) => {
+    const requestBody = parseBody(await readBody(req));
+    const requestPath = new URL(req.url ?? '/', 'http://localhost').pathname;
+
+    lastRequest = {
+      method: req.method ?? 'GET',
+      path: requestPath,
+      headers: req.headers,
+      body: requestBody,
+    };
+
+    const messageContent =
+      isObjectRecord(requestBody) &&
+      Array.isArray(requestBody.messages) &&
+      requestBody.messages.length > 0 &&
+      isObjectRecord(requestBody.messages[requestBody.messages.length - 1]) &&
+      typeof requestBody.messages[requestBody.messages.length - 1].content === 'string'
+        ? requestBody.messages[requestBody.messages.length - 1].content
+        : 'empty';
+    const model = isObjectRecord(requestBody) && typeof requestBody.model === 'string'
+      ? requestBody.model
+      : 'dummy-model';
+
+    res.statusCode = 200;
+    res.setHeader('content-type', 'application/json');
+    res.end(
+      JSON.stringify({
+        id: `chatcmpl-dummy-${Date.now()}`,
+        object: 'chat.completion',
+        created: Math.floor(Date.now() / 1000),
+        model,
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: `Echo: ${messageContent}`,
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }),
+    );
+  });
+
+  const boundPort = await listen(server, port);
+
+  return {
+    url: `http://127.0.0.1:${boundPort}`,
+    getLastRequest: () => lastRequest,
+    close: async () => {
+      await close(server);
+    },
+  };
+}
+
+async function findAvailablePort(): Promise<number> {
+  const probe = createServer();
+  const port = await listen(probe);
+  await close(probe);
+  return port;
+}
+
+describe('startDummyApi', () => {
+  const closeHandles: Array<() => Promise<void>> = [];
+
+  beforeEach(() => {
+    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+  });
+
+  afterEach(async () => {
+    while (closeHandles.length > 0) {
+      const closeHandle = closeHandles.pop();
+      if (closeHandle) {
+        await closeHandle();
+      }
+    }
+  });
+
+  it('starts on the specified port and returns lifecycle handles', async () => {
+    const port = await findAvailablePort();
+    const dummyApi = await startDummyApi(port);
+    closeHandles.push(dummyApi.close);
+
+    expect(dummyApi.url).toBe(`http://127.0.0.1:${port}`);
+    expect(dummyApi.close).toEqual(expect.any(Function));
+  });
+
+  it('echoes the last message content in ChatCompletionResponse format', async () => {
+    const dummyApi = await startDummyApi(0);
+    closeHandles.push(dummyApi.close);
+
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [
+        { role: 'system', content: 'system prompt' },
+        { role: 'user', content: 'hello from test' },
+      ],
+    };
+
+    const response = await fetch(`${dummyApi.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      id: expect.any(String),
+      object: 'chat.completion',
+      created: expect.any(Number),
+      model: 'Claude-Sonnet-4.5',
+      choices: [
+        {
+          index: 0,
+          message: { role: 'assistant', content: 'Echo: hello from test' },
+          finish_reason: 'stop',
+        },
+      ],
+    });
+  });
+});
+
+describe('startProxyServer playback mode with onMiss passthrough', () => {
+  const captureFile = '/tmp/proxy-capture.jsonl';
+  const closeHandles: Array<() => Promise<void>> = [];
+
+  beforeEach(() => {
+    vol.reset();
+    vol.mkdirSync('/tmp', { recursive: true });
+    closeHandles.length = 0;
+    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+  });
+
+  afterEach(async () => {
+    while (closeHandles.length > 0) {
+      const closeHandle = closeHandles.pop();
+      if (closeHandle) {
+        await closeHandle();
+      }
+    }
+  });
+
+  it('forwards requests to route.target and returns the upstream response', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [{ path: '/v1', target: upstream.url, mode: 'playback' }],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'dummy-model',
+      messages: [{ role: 'user', content: 'hello proxy' }],
+    };
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      object: 'chat.completion',
+      model: 'dummy-model',
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: 'Echo: hello proxy',
+          },
+        },
+      ],
+    });
+  });
+
+  it('captures request/response bodies, path, and timestamp as JSONL', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [{ path: '/v1', target: upstream.url, mode: 'playback' }],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'dummy-model',
+      messages: [{ role: 'user', content: 'capture this exchange' }],
+    };
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const responseBody = await response.json();
+    const captureContent = vol.readFileSync(captureFile, 'utf8') as string;
+    const lines = captureContent.trim().split('\n');
+    const captured = JSON.parse(lines[0]) as unknown;
+
+    expect(lines).toHaveLength(1);
+    expect(isCapturedExchange(captured)).toBe(true);
+    if (!isCapturedExchange(captured)) {
+      return;
+    }
+
+    expect(captured.request.path).toBe('/v1/chat/completions');
+    expect(captured).toHaveRequestBody(payload);
+    expect(captured).toHaveResponseBody(responseBody as Record<string, unknown>);
+    expect(Number.isNaN(Date.parse(captured.timestamp))).toBe(false);
+  });
+
+  it('writes one parseable JSONL line per exchange for multiple requests', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [{ path: '/v1', target: upstream.url, mode: 'playback' }],
+    });
+    closeHandles.push(proxy.close);
+
+    const payloads = [
+      {
+        model: 'dummy-model',
+        messages: [{ role: 'user', content: 'first request' }],
+      },
+      {
+        model: 'dummy-model',
+        messages: [{ role: 'user', content: 'second request' }],
+      },
+      {
+        model: 'dummy-model',
+        messages: [{ role: 'user', content: 'third request' }],
+      },
+    ];
+    const responseBodies: unknown[] = [];
+
+    for (const payload of payloads) {
+      const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      responseBodies.push(await response.json());
+    }
+
+    const captureContent = vol.readFileSync(captureFile, 'utf8') as string;
+    const lines = captureContent.trim().split('\n');
+
+    expect(lines).toHaveLength(3);
+
+    for (const [index, line] of lines.entries()) {
+      const captured = JSON.parse(line) as unknown;
+      expect(isCapturedExchange(captured)).toBe(true);
+      if (!isCapturedExchange(captured)) {
+        continue;
+      }
+
+      expect(Number.isNaN(Date.parse(captured.timestamp))).toBe(false);
+      expect(new Date(captured.timestamp).toISOString()).toBe(captured.timestamp);
+      expect(captured.request.body).toEqual(payloads[index]);
+      expect(typeof captured.request.body).toBe('object');
+      expect(captured.response.body).toEqual(responseBodies[index]);
+      expect(typeof captured.response.body).toBe('object');
+    }
+  });
+
+  it('preserves Authorization and Content-Type headers when forwarding', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [{ path: '/v1', target: upstream.url, mode: 'playback' }],
+    });
+    closeHandles.push(proxy.close);
+
+    await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer test-token',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'dummy-model',
+        messages: [{ role: 'user', content: 'check headers' }],
+      }),
+    });
+
+    const request = upstream.getLastRequest();
+    expect(request?.headers.authorization).toBe('Bearer test-token');
+    expect(request?.headers['content-type']).toBe('application/json');
+  });
+
+  it('uses the first matching route when multiple route prefixes match', async () => {
+    const firstUpstream = await startDummyApi(0);
+    const secondUpstream = await startDummyApi(0);
+    closeHandles.push(firstUpstream.close, secondUpstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [
+        { path: '/v1/chat', target: firstUpstream.url, mode: 'playback' },
+        { path: '/v1', target: secondUpstream.url, mode: 'playback' },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'dummy-model',
+      messages: [{ role: 'user', content: 'first match wins' }],
+    };
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(200);
+    expect(firstUpstream.getLastRequest()?.path).toBe('/v1/chat/completions');
+    expect(secondUpstream.getLastRequest()).toBeNull();
+  });
+
+  it('matches routes by path prefix', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [{ path: '/v1/chat', target: upstream.url, mode: 'playback' }],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'dummy-model',
+      messages: [{ role: 'user', content: 'prefix match' }],
+    };
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(200);
+    expect(upstream.getLastRequest()?.path).toBe('/v1/chat/completions');
+  });
+
+  it('does not match routes with non-prefix paths', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [
+        {
+          path: '/v1/chat/completions',
+          target: upstream.url,
+          mode: 'playback',
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await fetch(`${proxy.url}/v1/models`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'dummy-model', messages: [] }),
+    });
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: 'No matching proxy route for /v1/models',
+    });
+    expect(upstream.getLastRequest()).toBeNull();
+  });
+
+  it('returns 502 when no route matches the request path', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [{ path: '/v1', target: upstream.url, mode: 'playback' }],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await fetch(`${proxy.url}/unmatched/path`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'dummy-model', messages: [] }),
+    });
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: 'No matching proxy route for /unmatched/path',
+    });
+  });
+});
+
+describe('startProxyServer record mode', () => {
+  const captureFile = '/tmp/proxy-capture.jsonl';
+  const snapshotDir = '/tmp/proxy-snapshots';
+  const closeHandles: Array<() => Promise<void>> = [];
+
+  beforeEach(() => {
+    vol.reset();
+    vol.mkdirSync('/tmp', { recursive: true });
+    closeHandles.length = 0;
+    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+  });
+
+  afterEach(async () => {
+    while (closeHandles.length > 0) {
+      const closeHandle = closeHandles.pop();
+      if (closeHandle) {
+        await closeHandle();
+      }
+    }
+  });
+
+  it('forwards to upstream and saves snapshot with expected key and payload', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        { path: '/v1', target: upstream.url, mode: 'record', snapshotDir },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'record this exchange' }],
+    };
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const responseBody = await response.json();
+
+    const upstreamRequest = upstream.getLastRequest();
+    expect(upstreamRequest?.path).toBe('/v1/chat/completions');
+    expect(upstreamRequest?.body).toEqual(payload);
+    expect(response.status).toBe(200);
+    expect(responseBody).toMatchObject({
+      object: 'chat.completion',
+      model: payload.model,
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: 'Echo: record this exchange',
+          },
+        },
+      ],
+    });
+
+    const key = generateSnapshotKey(payload);
+    const expectedHash = createHash('sha256')
+      .update(
+        JSON.stringify({
+          model: payload.model,
+          messages: payload.messages,
+        }),
+      )
+      .digest('hex')
+      .slice(0, 12);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+
+    expect(key.endsWith(`-${expectedHash}`)).toBe(true);
+    expect(vol.existsSync(snapshotPath)).toBe(true);
+
+    const snapshotRaw = vol.readFileSync(snapshotPath, 'utf8') as string;
+    const snapshot = JSON.parse(snapshotRaw);
+    expect(snapshot).toEqual({
+      key,
+      request: payload,
+      response: responseBody,
+      metadata: {
+        recordedAt: expect.any(String),
+      },
+    });
+    expect(Number.isNaN(Date.parse(snapshot.metadata.recordedAt))).toBe(false);
+  });
+
+  it('uses the generated snapshot key as the file name', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        { path: '/v1', target: upstream.url, mode: 'record', snapshotDir },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'same payload, deterministic key' }],
+    };
+
+    await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const expectedKey = generateSnapshotKey(payload);
+    const snapshotFiles = vol.readdirSync(snapshotDir) as string[];
+
+    expect(snapshotFiles).toContain(`${expectedKey}.json`);
+  });
+
+  it('writes snapshot contents with key, request, response, and metadata.recordedAt', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        { path: '/v1', target: upstream.url, mode: 'record', snapshotDir },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'inspect snapshot payload' }],
+    };
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const responseBody = await response.json();
+
+    const key = generateSnapshotKey(payload);
+    const snapshotRaw = vol.readFileSync(join(snapshotDir, `${key}.json`), 'utf8') as string;
+    const snapshot = JSON.parse(snapshotRaw);
+
+    expect(snapshot.key).toBe(key);
+    expect(snapshot.request).toEqual(payload);
+    expect(snapshot.response).toEqual(responseBody);
+    expect(snapshot.metadata.recordedAt).toEqual(expect.any(String));
+    expect(Number.isNaN(Date.parse(snapshot.metadata.recordedAt))).toBe(false);
+  });
+
+  it('overwrites the same snapshot when recording the same request body twice', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        { path: '/v1', target: upstream.url, mode: 'record', snapshotDir },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'idempotent snapshot key' }],
+    };
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+
+    await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    vol.writeFileSync(
+      snapshotPath,
+      JSON.stringify({
+        key,
+        request: payload,
+        response: { manuallyOverwritten: true },
+        metadata: { recordedAt: '2000-01-01T00:00:00.000Z' },
+      }),
+    );
+
+    const secondResponse = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const secondResponseBody = await secondResponse.json();
+    const snapshotRaw = vol.readFileSync(snapshotPath, 'utf8') as string;
+    const snapshot = JSON.parse(snapshotRaw);
+    const snapshotFiles = vol.readdirSync(snapshotDir) as string[];
+
+    expect(snapshotFiles).toEqual([`${key}.json`]);
+    expect(snapshot.response).toEqual(secondResponseBody);
+    expect(snapshot.response.manuallyOverwritten).toBeUndefined();
+  });
+});
+
+describe('startProxyServer playback mode', () => {
+  const captureFile = '/tmp/proxy-capture.jsonl';
+  const snapshotDir = '/tmp/proxy-snapshots';
+  const closeHandles: Array<() => Promise<void>> = [];
+
+  beforeEach(() => {
+    vol.reset();
+    vol.mkdirSync('/tmp', { recursive: true });
+    closeHandles.length = 0;
+    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+  });
+
+  afterEach(async () => {
+    while (closeHandles.length > 0) {
+      const closeHandle = closeHandles.pop();
+      if (closeHandle) {
+        await closeHandle();
+      }
+    }
+  });
+
+  it('returns snapshot response without contacting upstream', async () => {
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'playback request' }],
+    };
+    const expectedBody = {
+      id: 'snapshot-chatcmpl-1',
+      choices: [{ message: { role: 'assistant', content: 'served from snapshot' } }],
+    };
+    const key = generateSnapshotKey(payload);
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(
+      join(snapshotDir, `${key}.json`),
+      JSON.stringify({
+        key,
+        request: payload,
+        response: expectedBody,
+        metadata: { recordedAt: '2026-02-26T00:00:00.000Z' },
+      }),
+    );
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        {
+          path: '/v1',
+          target: 'http://127.0.0.1:1',
+          mode: 'playback',
+          snapshotDir,
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(expectedBody);
+  });
+
+  it('returns 404 with key-specific error when snapshot is missing', async () => {
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'missing snapshot' }],
+    };
+    const key = generateSnapshotKey(payload);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        {
+          path: '/v1',
+          target: 'http://127.0.0.1:1',
+          mode: 'playback',
+          snapshotDir,
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({
+      error: `Snapshot not found for key ${key}`,
+    });
+  });
+
+  it('captures exchange in JSONL while serving from snapshot', async () => {
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'capture playback exchange' }],
+    };
+    const expectedBody = {
+      id: 'snapshot-chatcmpl-2',
+      choices: [{ message: { role: 'assistant', content: 'captured in playback' } }],
+    };
+    const key = generateSnapshotKey(payload);
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(
+      join(snapshotDir, `${key}.json`),
+      JSON.stringify({
+        key,
+        request: payload,
+        response: expectedBody,
+        metadata: { recordedAt: '2026-02-26T00:00:00.000Z' },
+      }),
+    );
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        {
+          path: '/v1',
+          target: 'http://127.0.0.1:1',
+          mode: 'playback',
+          snapshotDir,
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const responseBody = await response.json();
+
+    const captureContent = vol.readFileSync(captureFile, 'utf8') as string;
+    const lines = captureContent.trim().split('\n');
+    const captured = JSON.parse(lines[0]);
+
+    expect(response.status).toBe(200);
+    expect(responseBody).toEqual(expectedBody);
+    expect(lines).toHaveLength(1);
+    expect(captured.request.path).toBe('/v1/chat/completions');
+    expect(captured.request.body).toEqual(payload);
+    expect(captured.response.status).toBe(200);
+    expect(captured.response.body).toEqual(responseBody);
+    expect(Number.isNaN(Date.parse(captured.timestamp))).toBe(false);
+  });
+
+  it('uses the same key for same model and messages', async () => {
+    const basePayload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'deterministic key' }],
+    };
+    const payloadWithTemperature = {
+      ...basePayload,
+      temperature: 0.1,
+    };
+    const payloadWithStream = {
+      ...basePayload,
+      stream: true,
+    };
+    const expectedKey = generateSnapshotKey(basePayload);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        {
+          path: '/v1',
+          target: 'http://127.0.0.1:1',
+          mode: 'playback',
+          snapshotDir,
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const firstResponse = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payloadWithTemperature),
+    });
+    const secondResponse = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payloadWithStream),
+    });
+
+    expect(firstResponse.status).toBe(404);
+    expect(secondResponse.status).toBe(404);
+    await expect(firstResponse.json()).resolves.toEqual({
+      error: `Snapshot not found for key ${expectedKey}`,
+    });
+    await expect(secondResponse.json()).resolves.toEqual({
+      error: `Snapshot not found for key ${expectedKey}`,
+    });
+  });
+
+  it('uses different keys when messages differ', async () => {
+    const firstPayload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'first deterministic message' }],
+    };
+    const secondPayload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'second deterministic message' }],
+    };
+    const firstKey = generateSnapshotKey(firstPayload);
+    const secondKey = generateSnapshotKey(secondPayload);
+
+    expect(firstKey).not.toBe(secondKey);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        {
+          path: '/v1',
+          target: 'http://127.0.0.1:1',
+          mode: 'playback',
+          snapshotDir,
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const firstResponse = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(firstPayload),
+    });
+    const secondResponse = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(secondPayload),
+    });
+
+    expect(firstResponse.status).toBe(404);
+    expect(secondResponse.status).toBe(404);
+    await expect(firstResponse.json()).resolves.toEqual({
+      error: `Snapshot not found for key ${firstKey}`,
+    });
+    await expect(secondResponse.json()).resolves.toEqual({
+      error: `Snapshot not found for key ${secondKey}`,
+    });
+  });
+});
+
+describe('startProxyServer playback mode with onMiss warn', () => {
+  const captureFile = '/tmp/proxy-capture.jsonl';
+  const snapshotDir = '/tmp/proxy-snapshots';
+  const closeHandles: Array<() => Promise<void>> = [];
+
+  beforeEach(() => {
+    vol.reset();
+    vol.mkdirSync('/tmp', { recursive: true });
+    closeHandles.length = 0;
+    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+  });
+
+  afterEach(async () => {
+    while (closeHandles.length > 0) {
+      const closeHandle = closeHandles.pop();
+      if (closeHandle) {
+        await closeHandle();
+      }
+    }
+  });
+
+  it('forwards to upstream on miss and logs warning', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'warn',
+      routes: [
+        { path: '/v1', target: upstream.url, mode: 'playback', snapshotDir },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'dummy-model',
+      messages: [{ role: 'user', content: 'warn on miss' }],
+    };
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      choices: [{ message: { content: 'Echo: warn on miss' } }],
+    });
+  });
+
+  it('does not save snapshot on miss', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'warn',
+      routes: [
+        { path: '/v1', target: upstream.url, mode: 'playback', snapshotDir },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'dummy-model',
+      messages: [{ role: 'user', content: 'no save on warn' }],
+    };
+
+    await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(vol.existsSync(snapshotDir)).toBe(false);
+  });
+});
+
+describe('startProxyServer playback mode with onMiss record', () => {
+  const captureFile = '/tmp/proxy-capture.jsonl';
+  const snapshotDir = '/tmp/proxy-snapshots';
+  const closeHandles: Array<() => Promise<void>> = [];
+
+  beforeEach(() => {
+    vol.reset();
+    vol.mkdirSync('/tmp', { recursive: true });
+    closeHandles.length = 0;
+    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+  });
+
+  afterEach(async () => {
+    while (closeHandles.length > 0) {
+      const closeHandle = closeHandles.pop();
+      if (closeHandle) {
+        await closeHandle();
+      }
+    }
+  });
+
+  it('forwards to upstream and saves snapshot on miss', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'record',
+      routes: [
+        { path: '/v1', target: upstream.url, mode: 'playback', snapshotDir },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'record on miss' }],
+    };
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      choices: [{ message: { content: 'Echo: record on miss' } }],
+    });
+
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+    expect(vol.existsSync(snapshotPath)).toBe(true);
+
+    const snapshot = JSON.parse(vol.readFileSync(snapshotPath, 'utf8') as string);
+    expect(snapshot.key).toBe(key);
+    expect(snapshot.request).toEqual(payload);
+    expect(snapshot.metadata.recordedAt).toEqual(expect.any(String));
+  });
+
+  it('serves from snapshot on hit without contacting upstream', async () => {
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'already cached' }],
+    };
+    const expectedBody = { choices: [{ message: { content: 'from cache' } }] };
+    const key = generateSnapshotKey(payload);
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(
+      join(snapshotDir, `${key}.json`),
+      JSON.stringify({
+        key,
+        request: payload,
+        response: expectedBody,
+        metadata: { recordedAt: '2026-02-26T00:00:00.000Z' },
+      }),
+    );
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'record',
+      routes: [
+        {
+          path: '/v1',
+          target: 'http://127.0.0.1:1',
+          mode: 'playback',
+          snapshotDir,
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(expectedBody);
+  });
+});

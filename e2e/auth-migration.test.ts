@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createContainer, setWorkspaceDir } from '@poe-code/e2e-docker-test-runner';
+import { createContainer } from '@poe-code/e2e-docker-test-runner';
 import type { Container } from '@poe-code/e2e-docker-test-runner';
-import { join } from 'node:path';
 
-const repoRoot = join(import.meta.dirname, '..');
 const CREDENTIALS_JSON = '/home/poe/.poe-code/credentials.json';
 const CREDENTIALS_ENC = '/home/poe/.poe-code/credentials.enc';
 
@@ -11,7 +9,6 @@ describe('auth migration', () => {
   let container: Container;
 
   beforeEach(async () => {
-    setWorkspaceDir(repoRoot);
     container = await createContainer({ testName: 'auth-migration' });
     // No auto-login — tests control which version performs the login
   });

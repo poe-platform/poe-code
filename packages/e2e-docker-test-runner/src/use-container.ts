@@ -1,24 +1,29 @@
-import { beforeEach, afterEach } from 'vitest';
+import { beforeEach, afterEach, expect } from 'vitest';
 import { createContainer } from './persistent-container.js';
 import { setWorkspaceDir } from './container.js';
 import type { Container } from './types.js';
 
 export interface UseContainerOptions {
-  workspaceDir: string;
-  testName?: string;
+  testName: string;
+  workspaceDir?: string;
 }
 
 export function useContainer(options: UseContainerOptions): Container {
   let current: Container | null = null;
 
   beforeEach(async () => {
-    setWorkspaceDir(options.workspaceDir);
-    current = await createContainer({ testName: options.testName });
+    setWorkspaceDir(options.workspaceDir ?? process.cwd());
+    current = await createContainer({
+      testName: options.testName,
+    });
     await current.login();
   });
 
   afterEach(async () => {
-    await current?.destroy();
+    if (current) {
+      await expect(current).toHaveHealthyProxy();
+      await current.destroy();
+    }
     current = null;
   });
 

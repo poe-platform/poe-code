@@ -1,11 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { useContainer } from '@poe-code/e2e-docker-test-runner';
-import { join } from 'node:path';
-
-const repoRoot = join(import.meta.dirname, '..');
 
 describe('claude-code', () => {
-  const container = useContainer({ workspaceDir: repoRoot, testName: 'claude-code' });
+  const container = useContainer({ testName: 'claude-code' });
 
   it('configure and test', async () => {
     const result = await container.exec('poe-code configure claude-code --yes');

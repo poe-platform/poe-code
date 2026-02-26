@@ -207,7 +207,12 @@ export function registerSpawnCommand(
       }
 
       try {
-        assertMcpSpawnSupport(adapter.label, canonicalService, mcpServers);
+        assertMcpSpawnSupport(
+          adapter.label,
+          canonicalService,
+          adapter.supportsMcpSpawn === true,
+          mcpServers,
+        );
 
         if (flags.dryRun) {
           // spawnCore already logs the dry run details.
@@ -407,12 +412,13 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
 function assertMcpSpawnSupport(
   label: string,
   service: string,
+  providerSupportsMcpSpawn: boolean,
   servers?: McpSpawnConfig
 ): void {
   if (!servers || Object.keys(servers).length === 0) {
     return;
   }
-  if (supportsMcpAtSpawn(service)) {
+  if (supportsMcpAtSpawn(service) || providerSupportsMcpSpawn) {
     return;
   }
 

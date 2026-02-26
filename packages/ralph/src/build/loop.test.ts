@@ -1025,6 +1025,72 @@ describe("buildLoop", () => {
     await sim.run();
   });
 
+  it("returns totalDurationMs in BuildResult", async () => {
+    const planPath = "/.agents/tasks/plan.json";
+    const promptPath = "/.agents/poe-code-ralph/PROMPT_build.md";
+    const runId = "20260201-221816-14669";
+
+    const fs = createMemFs({
+      [promptPath]: "ID: {{STORY_ID}}\n{{STORY_BLOCK}}\n",
+      "/.poe-code-ralph/errors.log": "",
+      [planPath]: JSON.stringify(
+        {
+          version: 1,
+          project: "Test",
+          stories: [
+            {
+              id: "US-001",
+              title: "Do the thing",
+              status: "open",
+              dependsOn: [],
+              description: "d",
+              acceptanceCriteria: []
+            }
+          ]
+        },
+        null,
+        2
+      )
+    });
+
+    let callCount = 0;
+    const now = () => {
+      callCount++;
+      // First call is loop start (t=0), subsequent calls advance by 5s each
+      return new Date(Date.UTC(2026, 1, 2, 6, 0, 0) + (callCount - 1) * 5000);
+    };
+
+    const spawn = vi.fn(async () => ({
+      stdout: "<promise>COMPLETE</promise>",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    const result = await buildLoop({
+      planPath,
+      maxIterations: 1,
+      commit: true,
+      agent: "codex",
+      staleSeconds: 0,
+      cwd: "/",
+      deps: {
+        fs,
+        lock: noLock,
+        runId,
+        spawn,
+        git: {
+          getHead: () => null,
+          getCommitList: () => [],
+          getChangedFiles: () => [],
+          getDirtyFiles: () => []
+        },
+        now
+      }
+    });
+
+    expect(result.totalDurationMs).toBeGreaterThan(0);
+  });
+
   it("shares iteration budget between stories and verification", async () => {
     const sim = createRalphSimulation({
       plan: {

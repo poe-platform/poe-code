@@ -416,6 +416,46 @@ describe("spawn command", () => {
     });
   });
 
+  it("passes --mcp-config to SDK spawn for poe-agent", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const mcpConfig = JSON.stringify({
+      test: {
+        command: "tiny-stdio-mcp-test-server",
+        args: ["serve", "word-of-the-day"]
+      }
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-config",
+      mcpConfig,
+      "poe-agent",
+      "Use word_of_the_day"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("poe-agent", {
+      prompt: "Use word_of_the_day",
+      args: [],
+      model: undefined,
+      cwd: undefined,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
+    });
+  });
+
   it("rejects invalid --mcp-config JSON", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

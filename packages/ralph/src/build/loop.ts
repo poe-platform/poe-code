@@ -117,6 +117,7 @@ export type BuildResult = {
   storiesDone: string[];
   iterations: BuildIterationResult[];
   stopReason: "no_actionable_stories" | "max_iterations" | "overbake_abort" | "all_verified";
+  totalDurationMs: number;
   worktreeBranch?: string;
 };
 
@@ -545,6 +546,7 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
 
   const runId = options.deps?.runId ?? createRunId(nowFn());
 
+  const loopStartTime = nowFn();
   const overbaking = new OverbakingDetector({ threshold: options.maxFailures });
   const skippedStoryIds = new Set<string>();
 
@@ -1038,9 +1040,12 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
     stopReason: allPassed ? "all_verified" : "max_iterations"
   });
 
-  async function finalizeWorktreeResult(result: BuildResult): Promise<BuildResult> {
+  async function finalizeWorktreeResult(result: Omit<BuildResult, "totalDurationMs">): Promise<BuildResult> {
+    const totalDurationMs = Math.max(0, nowFn().getTime() - loopStartTime.getTime());
+    const fullResult: BuildResult = { ...result, totalDurationMs };
+
     if (!options.worktree?.enabled || !worktreeName) {
-      return result;
+      return fullResult;
     }
 
     const worktreeDeps: WorktreeDeps = options.deps?.worktree ?? {
@@ -1059,7 +1064,7 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
       fs: worktreeDeps.fs
     });
 
-    result.worktreeBranch = worktreeBranch;
+    fullResult.worktreeBranch = worktreeBranch;
 
     if (worktreeBranch) {
       const mergeHint = [
@@ -1072,6 +1077,6 @@ export async function buildLoop(options: BuildLoopOptions): Promise<BuildResult>
       stdout.write(mergeHint);
     }
 
-    return result;
+    return fullResult;
   }
 }

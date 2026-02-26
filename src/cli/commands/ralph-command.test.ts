@@ -42,7 +42,8 @@ vi.mock("@poe-code/ralph", async () => {
       iterationsCompleted: 0,
       storiesDone: [],
       iterations: [],
-      stopReason: "max_iterations"
+      stopReason: "max_iterations",
+      totalDurationMs: 0
     }),
     ralphPlan: vi.fn().mockResolvedValue({
       outPath: ".agents/poe-code-ralph/plans/plan-demo.yaml"
@@ -667,7 +668,8 @@ describe("ralph build command", () => {
       iterationsCompleted: 3,
       storiesDone: ["US-001", "US-002"],
       iterations: [],
-      stopReason: "max_iterations"
+      stopReason: "max_iterations",
+      totalDurationMs: 65000
     });
     const fs = createMemFs({
       "/repo/.agents/poe-code-ralph/plans/plan.yaml": "version: 1\nproject: Demo\nstories: []\n"

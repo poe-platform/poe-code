@@ -644,7 +644,6 @@ export function registerRalphCommand(
           return;
         }
 
-        const buildStart = Date.now();
         const buildResult = await ralphBuild({
           planPath: planPath!,
           progressPath: config.progressPath,
@@ -662,12 +661,10 @@ export function registerRalphCommand(
           worktree,
           deps: { stdout: process.stdout }
         });
-        const duration = formatDuration(Date.now() - buildStart);
-
         resources.logger.resolved("Run summary", [
           `Iterations: ${buildResult.iterationsCompleted}/${maxIterations}`,
           `Stories done: ${buildResult.storiesDone.length}`,
-          `Duration: ${duration}`
+          `Duration: ${formatDuration(buildResult.totalDurationMs)}`
         ].join("\n   "));
         resources.logger.success("Ralph run finished.");
       } finally {

@@ -109,10 +109,17 @@ export function spawn(
       }
 
       if (service === "poe-agent") {
+        const poeBaseUrl =
+          typeof process.env.POE_BASE_URL === "string"
+            ? process.env.POE_BASE_URL.trim() || undefined
+            : undefined;
+
         const { events: innerEvents, done } = spawnPoeAgentWithAcp({
           prompt: options.prompt,
           cwd: options.cwd,
-          model: options.model
+          model: options.model,
+          ...(poeBaseUrl ? { baseUrl: poeBaseUrl } : {}),
+          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
         });
 
         resolveEventsOnce(innerEvents);

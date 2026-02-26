@@ -341,6 +341,83 @@ describe("SDK spawn()", () => {
     expect(createSdkContainer).not.toHaveBeenCalled();
   });
 
+  it("forwards mcpServers to poe-agent ACP runtime", async () => {
+    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "from poe-agent\n",
+        stderr: "",
+        exitCode: 0,
+        threadId: "poe-agent-session-2",
+        sessionId: "poe-agent-session-2"
+      })
+    });
+
+    const { result } = spawn("poe-agent", "test prompt", {
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+
+    await expect(result).resolves.toEqual({
+      stdout: "from poe-agent\n",
+      stderr: "",
+      exitCode: 0,
+      threadId: "poe-agent-session-2",
+      sessionId: "poe-agent-session-2"
+    });
+
+    expect(spawnPoeAgentWithAcp).toHaveBeenCalledTimes(1);
+    expect(spawnPoeAgentWithAcp).toHaveBeenCalledWith({
+      prompt: "test prompt",
+      cwd: undefined,
+      model: undefined,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+  });
+
+  it("forwards POE_BASE_URL to poe-agent ACP runtime", async () => {
+    process.env.POE_BASE_URL = "http://proxy.example.com/v1";
+
+    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "from poe-agent\n",
+        stderr: "",
+        exitCode: 0,
+        threadId: "poe-agent-session-3",
+        sessionId: "poe-agent-session-3"
+      })
+    });
+
+    const { result } = spawn("poe-agent", "test prompt");
+
+    await expect(result).resolves.toEqual({
+      stdout: "from poe-agent\n",
+      stderr: "",
+      exitCode: 0,
+      threadId: "poe-agent-session-3",
+      sessionId: "poe-agent-session-3"
+    });
+
+    expect(spawnPoeAgentWithAcp).toHaveBeenCalledWith({
+      prompt: "test prompt",
+      cwd: undefined,
+      model: undefined,
+      baseUrl: "http://proxy.example.com/v1"
+    });
+  });
+
   it("propagates errors from spawnInteractive", async () => {
     vi.mocked(spawnInteractive).mockRejectedValue(
       new Error('Agent "unknown" does not support interactive mode.')

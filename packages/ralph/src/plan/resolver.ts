@@ -77,7 +77,13 @@ async function listPlanCandidates(
 
     const relativePath = path.relative(cwd, absPath);
     const content = await fs.readFile(absPath, "utf8");
-    const plan = parsePlan(content);
+    let plan;
+    try {
+      plan = parsePlan(content);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Invalid plan "${relativePath}": ${message}`, { cause: error });
+    }
     const done = plan.stories.filter((s) => s.status === "done").length;
     const total = plan.stories.length;
 

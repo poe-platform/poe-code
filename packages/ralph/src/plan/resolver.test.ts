@@ -207,6 +207,25 @@ stories: []
     expect(clackSelect).not.toHaveBeenCalled();
   });
 
+  it("includes the file path when a plan fails to parse", async () => {
+    const corruptedPlan = `
+version: 1
+project: broken
+requirements:
+  - title: No ID requirement
+    scenarios: []
+stories: []
+`;
+
+    const fs = createMemFs({
+      "/repo/.agents/poe-code-ralph/plans/plan-broken.yaml": corruptedPlan
+    });
+
+    await expect(
+      resolvePlanPath({ cwd: "/repo", assumeYes: true, fs: asPlanFs(fs) })
+    ).rejects.toThrow(/plan-broken\.yaml/);
+  });
+
   it("returns null when the prompt is cancelled", async () => {
     const fs = createMemFs({
       "/repo/.agents/poe-code-ralph/plans/plan-one.yaml": "version: 1\nproject: one\nstories: []\n",

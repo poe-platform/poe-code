@@ -3,7 +3,7 @@ import { vol } from 'memfs';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import { buildCreateArgs, buildExecArgs, CONTAINER_PATH, CONTAINER_HOME } from './persistent-container.js';
-import { MOUNT_TARGET } from './container.js';
+import { MOUNT_TARGET, setWorkspaceDir } from './container.js';
 import { setResolvedContext } from './context.js';
 
 function createMockChildProcess(exitCode: number, stdoutData: string, stderrData: string) {
@@ -60,6 +60,7 @@ describe('buildCreateArgs', () => {
     npmCacheDir: '/cache/npm',
     uvCacheDir: '/cache/uv',
     apiKey: null as string | null,
+    proxyBaseUrl: null as string | null,
     image: 'poe-code-e2e:abc123',
   };
 
@@ -120,6 +121,15 @@ describe('buildCreateArgs', () => {
   it('does not add env vars when apiKey is null', () => {
     const args = buildCreateArgs(baseConfig);
     expect(args).not.toContain('POE_API_KEY');
+  });
+
+  it('adds POE_BASE_URL when proxy is enabled', () => {
+    const args = buildCreateArgs({
+      ...baseConfig,
+      proxyBaseUrl: 'http://localhost:3456',
+    });
+    expect(args).toContain('-e');
+    expect(args).toContain('POE_BASE_URL=http://localhost:3456');
   });
 
   it('always sets PATH env for local bins and uv', () => {
@@ -200,6 +210,7 @@ describe('createContainer', () => {
     expect(createArgs).toContain('--name');
     expect(createArgs).toContain('--label');
     expect(createArgs).toContain('poe-e2e-test-runner=true');
+    expect(createArgs).not.toContain('POE_BASE_URL=http://localhost:3456');
 
     // Container name matches poe-e2e-<uuid-short> pattern
     const nameIndex = createArgs.indexOf('--name');
@@ -212,6 +223,425 @@ describe('createContainer', () => {
     expect(startCall).toBeDefined();
     expect(startCall![0]).toBe('docker');
     expect((startCall![1] as string[])[1]).toBe('abc123containerid');
+
+    const proxyStartCall = mockSpawnSync.mock.calls.find((call) => {
+      const argsArr = call[1] as string[];
+      const command = argsArr[argsArr.length - 1];
+      return (
+        argsArr.includes('exec') &&
+        typeof command === 'string' &&
+        command.includes('proxy-server --port 3456')
+      );
+    });
+    expect(proxyStartCall).toBeUndefined();
+  });
+
+  it('throws requests() guidance when fixtures directory does not exist', async () => {
+    const { spawnSync } = await import('node:child_process');
+    const mockSpawnSync = vi.mocked(spawnSync);
+
+    mockSpawnSync.mockImplementation((_cmd, args) => {
+      const argsArr = args as string[];
+      if (argsArr[0] === 'create') {
+        return {
+          status: 0,
+          stdout: 'plain-container\n',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+      return {
+        status: 0,
+        stdout: '',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      };
+    });
+
+    const { createContainer } = await import('./persistent-container.js');
+    const container = await createContainer({ image: 'poe-code-e2e:abc123' });
+
+    await expect(container.requests()).rejects.toThrow(
+      'requests() requires .snapshots/<testName> directory to exist'
+    );
+  });
+
+  it('throws writeSnapshots() guidance when fixtures directory does not exist', async () => {
+    const { spawnSync } = await import('node:child_process');
+    const mockSpawnSync = vi.mocked(spawnSync);
+
+    mockSpawnSync.mockImplementation((_cmd, args) => {
+      const argsArr = args as string[];
+      if (argsArr[0] === 'create') {
+        return {
+          status: 0,
+          stdout: 'plain-container\n',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+      return {
+        status: 0,
+        stdout: '',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      };
+    });
+
+    const { createContainer } = await import('./persistent-container.js');
+    const container = await createContainer({ image: 'poe-code-e2e:abc123' });
+
+    await expect(container.writeSnapshots([{ key: 'x', response: { ok: true } }])).rejects.toThrow(
+      'writeSnapshots() requires .snapshots/<testName> directory to exist'
+    );
+  });
+
+  it('starts proxy lifecycle when fixtures directory exists', async () => {
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
+    vol.writeFileSync(
+      '/workspace/repo/.snapshots/proxy/example.json',
+      JSON.stringify({ key: 'example', response: { id: 'res' } }, null, 2)
+    );
+
+    const { spawnSync } = await import('node:child_process');
+    const mockSpawnSync = vi.mocked(spawnSync);
+    let healthChecks = 0;
+
+    mockSpawnSync.mockImplementation((_cmd, args, options) => {
+      const argsArr = args as string[];
+      const command = argsArr[argsArr.length - 1] ?? '';
+
+      if (argsArr.includes('create')) {
+        return {
+          status: 0,
+          stdout: 'proxy-container\n',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      if (
+        argsArr.includes('exec') &&
+        typeof command === 'string' &&
+        command.includes('fetch("http://127.0.0.1:3456/__health__")')
+      ) {
+        healthChecks += 1;
+        if (healthChecks === 1) {
+          return {
+            status: 1,
+            stdout: '',
+            stderr: 'connect failed',
+            pid: 1,
+            output: [],
+            signal: null,
+          };
+        }
+        return {
+          status: 0,
+          stdout: '',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      if (
+        argsArr.includes('cp') &&
+        options &&
+        typeof options === 'object' &&
+        'encoding' in options
+      ) {
+        return {
+          status: 0,
+          stdout: '',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      if (
+        argsArr.includes('exec') &&
+        typeof command === 'string' &&
+        command === 'cat /tmp/proxy-capture.jsonl'
+      ) {
+        return {
+          status: 0,
+          stdout: [
+            JSON.stringify({
+              timestamp: '2026-01-01T00:00:00.000Z',
+              route: '/v1/chat/completions',
+              request: { method: 'POST', path: '/v1/chat/completions', headers: {}, body: { model: 'x' } },
+              response: { status: 200, body: { id: 'r1' } },
+            }),
+            JSON.stringify({
+              timestamp: '2026-01-01T00:00:01.000Z',
+              route: '/v1/chat/completions',
+              request: { method: 'POST', path: '/v1/chat/completions', headers: {}, body: { model: 'y' } },
+              response: { status: 200, body: { id: 'r2' } },
+            }),
+          ].join('\n'),
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      return {
+        status: 0,
+        stdout: '',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      };
+    });
+
+    const { createContainer } = await import('./persistent-container.js');
+    const container = await createContainer({
+      image: 'poe-code-e2e:abc123',
+      testName: 'proxy',
+    });
+
+    expect(container.id).toBe('proxy-container');
+    expect(healthChecks).toBe(2);
+
+    const createCall = mockSpawnSync.mock.calls.find(
+      (call) => (call[1] as string[]).includes('create')
+    );
+    expect(createCall).toBeDefined();
+    expect(createCall![1]).toContain('POE_BASE_URL=http://localhost:3456');
+
+    const cpCall = mockSpawnSync.mock.calls.find(
+      (call) => {
+        const argsArr = call[1] as string[];
+        return (
+          argsArr.includes('cp') &&
+          argsArr.includes('/workspace/repo/.snapshots/proxy/.') &&
+          argsArr.includes('proxy-container:/tmp/proxy-snapshots/')
+        );
+      }
+    );
+    expect(cpCall).toBeDefined();
+
+    const startProxyCall = mockSpawnSync.mock.calls.find(
+      (call) => {
+        const argsArr = call[1] as string[];
+        const command = argsArr[argsArr.length - 1];
+        return (
+          argsArr.includes('exec') &&
+          typeof command === 'string' &&
+          command.includes('nohup') &&
+          command.includes('proxy-server --port 3456') &&
+          command.includes('/v1/chat/completions=playback:/tmp/proxy-snapshots/')
+        );
+      }
+    );
+    expect(startProxyCall).toBeDefined();
+
+    const requests = await container.requests();
+    expect(requests.length).toBe(2);
+
+    await container.writeSnapshots([{ key: 'new-key', response: { id: 'new' } }]);
+    const writeSnapshotCall = mockSpawnSync.mock.calls.find(
+      (call) => {
+        const argsArr = call[1] as string[];
+        return (
+          argsArr.includes('exec') &&
+          argsArr.includes('-i') &&
+          argsArr.includes('proxy-container') &&
+          argsArr.includes('cat > /tmp/proxy-snapshots/new-key.json')
+        );
+      }
+    );
+    expect(writeSnapshotCall).toBeDefined();
+  });
+
+  it('waits for slow proxy startup before failing health checks', async () => {
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
+
+    const { spawnSync } = await import('node:child_process');
+    const mockSpawnSync = vi.mocked(spawnSync);
+    const setTimeoutSpy = vi
+      .spyOn(globalThis, 'setTimeout')
+      .mockImplementation((callback: Parameters<typeof setTimeout>[0]) => {
+        if (typeof callback === 'function') {
+          callback();
+        }
+        return 0 as unknown as ReturnType<typeof setTimeout>;
+      });
+
+    let healthChecks = 0;
+    mockSpawnSync.mockImplementation((_cmd, args) => {
+      const argsArr = args as string[];
+      const command = argsArr[argsArr.length - 1] ?? '';
+
+      if (
+        argsArr.includes('exec') &&
+        typeof command === 'string' &&
+        command.includes('fetch("http://127.0.0.1:3456/__health__")')
+      ) {
+        healthChecks += 1;
+        return {
+          status: healthChecks < 60 ? 1 : 0,
+          stdout: '',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      if (argsArr.includes('create')) {
+        return {
+          status: 0,
+          stdout: 'slow-proxy-container\n',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      return {
+        status: 0,
+        stdout: '',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      };
+    });
+
+    try {
+      const { createContainer } = await import('./persistent-container.js');
+      const container = await createContainer({
+        image: 'poe-code-e2e:abc123',
+        testName: 'proxy',
+      });
+      expect(container.id).toBe('slow-proxy-container');
+      expect(healthChecks).toBe(60);
+    } finally {
+      setTimeoutSpy.mockRestore();
+    }
+  });
+
+  it('uses POE_SNAPSHOT_MODE when provided', async () => {
+    const originalProxyMode = process.env.POE_SNAPSHOT_MODE;
+    process.env.POE_SNAPSHOT_MODE = 'record';
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
+
+    try {
+      const { spawnSync } = await import('node:child_process');
+      const mockSpawnSync = vi.mocked(spawnSync);
+
+      mockSpawnSync.mockImplementation((_cmd, args) => {
+        const argsArr = args as string[];
+        if (argsArr.includes('create')) {
+          return {
+            status: 0,
+            stdout: 'proxy-container\n',
+            stderr: '',
+            pid: 1,
+            output: [],
+            signal: null,
+          };
+        }
+        return {
+          status: 0,
+          stdout: '',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      });
+
+      const { createContainer } = await import('./persistent-container.js');
+      await createContainer({
+        image: 'poe-code-e2e:abc123',
+        testName: 'proxy',
+      });
+
+      const startProxyCall = mockSpawnSync.mock.calls.find(
+        (call) => {
+          const argsArr = call[1] as string[];
+          const command = argsArr[argsArr.length - 1];
+          return (
+            argsArr.includes('exec') &&
+            typeof command === 'string' &&
+            command.includes('nohup') &&
+            command.includes('proxy-server --port 3456') &&
+            command.includes('/v1/chat/completions=record:/tmp/proxy-snapshots/') &&
+            command.includes('--miss error')
+          );
+        }
+      );
+      expect(startProxyCall).toBeDefined();
+    } finally {
+      if (originalProxyMode === undefined) {
+        delete process.env.POE_SNAPSHOT_MODE;
+      } else {
+        process.env.POE_SNAPSHOT_MODE = originalProxyMode;
+      }
+    }
+  });
+
+  it('does not evaluate POE_SNAPSHOT_MODE without fixtures directory', async () => {
+    const originalProxyMode = process.env.POE_SNAPSHOT_MODE;
+    process.env.POE_SNAPSHOT_MODE = 'invalid-mode';
+
+    try {
+      const { spawnSync } = await import('node:child_process');
+      const mockSpawnSync = vi.mocked(spawnSync);
+
+      mockSpawnSync.mockImplementation((_cmd, args) => {
+        const argsArr = args as string[];
+        if (argsArr.includes('create')) {
+          return {
+            status: 0,
+            stdout: 'plain-container\n',
+            stderr: '',
+            pid: 1,
+            output: [],
+            signal: null,
+          };
+        }
+        return {
+          status: 0,
+          stdout: '',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      });
+
+      const { createContainer } = await import('./persistent-container.js');
+      await expect(createContainer({ image: 'poe-code-e2e:abc123' })).resolves.toBeDefined();
+    } finally {
+      if (originalProxyMode === undefined) {
+        delete process.env.POE_SNAPSHOT_MODE;
+      } else {
+        process.env.POE_SNAPSHOT_MODE = originalProxyMode;
+      }
+    }
   });
 
   it('throws when docker create fails', async () => {

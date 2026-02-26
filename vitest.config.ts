@@ -56,6 +56,7 @@ export default defineConfig({
     environment: "node",
     include: [
       "src/**/*.test.ts",              // Collocated unit tests
+      "tests/helpers/**/*.test.ts",    // Test helper tests
       "tests/integration/**/*.test.ts", // Integration tests
       "packages/**/*.test.ts",         // Package tests
       "scripts/screenshot.test.ts"     // Script tests (explicit)

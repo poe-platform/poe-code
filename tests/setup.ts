@@ -4,7 +4,7 @@ import { setGlobalClient } from "../src/services/client-instance.js";
 import type { LlmClient } from "../src/services/llm-client.js";
 import type { FileSystem } from "../src/utils/file-system.js";
 import { createSnapshotClient, type SnapshotClient } from "./helpers/snapshot-client.js";
-import { parseSnapshotConfig } from "./helpers/snapshot-config.js";
+import { parseSnapshotConfig, SNAPSHOT_DIR } from "./helpers/snapshot-config.js";
 import { createNodeHttpClient } from "./helpers/http-client.js";
 import { createPoeClient } from "../src/services/llm-client.js";
 import { getPoeApiKey } from "../src/sdk/credentials.js";
@@ -42,7 +42,7 @@ beforeAll(async () => {
   const baseClient = await resolveSnapshotBaseClient(config.mode, config.onMiss);
   snapshotClient = createSnapshotClient(baseClient, {
     mode: config.mode,
-    snapshotDir: config.snapshotDir,
+    snapshotDir: SNAPSHOT_DIR,
     onMiss: config.onMiss,
     fs: fsAdapter
   });

@@ -4,11 +4,23 @@ Record and replay LLM API responses for deterministic tests.
 
 ## Environment Variables
 
-| Variable            | Values                         | Default      | Description                             |
-| ------------------- | ------------------------------ | ------------ | --------------------------------------- |
-| `POE_SNAPSHOT_MODE` | `record`, `playback`           | `playback`   | Record new or replay existing snapshots |
-| `POE_SNAPSHOT_DIR`  | path                           | `.snapshots` | Snapshot storage directory              |
-| `POE_SNAPSHOT_MISS` | `error`, `warn`, `passthrough` | `error`      | Behavior when snapshot missing          |
+| Variable            | Values                         | Default    | Description                             |
+| ------------------- | ------------------------------ | ---------- | --------------------------------------- |
+| `POE_SNAPSHOT_MODE` | `record`, `playback`           | `playback` | Record new or replay existing snapshots |
+| `POE_SNAPSHOT_MISS` | `error`, `warn`, `passthrough`, `record` | `error`    | Behavior when snapshot missing          |
+
+### `POE_SNAPSHOT_MISS` Behaviors
+
+| Value         | Action on miss                              |
+| ------------- | ------------------------------------------- |
+| `error`       | Fail the test (default)                     |
+| `warn`        | Log warning, forward to upstream            |
+| `passthrough` | Silently forward to upstream                |
+| `record`      | Forward to upstream and save new snapshot   |
+
+The `record` miss behavior enables hybrid mode: existing snapshots play back, missing ones are recorded on-the-fly. This is useful when adding new tests to an existing suite.
+
+Snapshots are stored in the `.snapshots` directory.
 
 ## Usage
 
@@ -46,3 +58,16 @@ Check for sanity
 npm run snapshots:list:stale - list stale snapshots
 npm run snapshots:delete:stale - delete stale snapshots (no confirmation)
 ```
+
+## E2E Proxy Snapshots
+
+E2E tests use the same `POE_SNAPSHOT_MODE` and `POE_SNAPSHOT_MISS` env vars. The proxy server intercepts HTTP requests inside Docker containers and replays recorded snapshots.
+
+E2E snapshots are stored in `.snapshots/<testName>/` directories (e.g. `.snapshots/poe-agent-mcp/`).
+
+| Task                    | Command                                                |
+| ----------------------- | ------------------------------------------------------ |
+| Run e2e (playback)      | `npm run e2e:verbose`                                  |
+| Record all e2e fixtures | `POE_SNAPSHOT_MODE=record npm run e2e:verbose`         |
+| Record missing only     | `POE_SNAPSHOT_MISS=record npm run e2e:verbose`         |
+| Record specific test    | `POE_SNAPSHOT_MODE=record npm run e2e:verbose -- e2e/my.test.ts` |

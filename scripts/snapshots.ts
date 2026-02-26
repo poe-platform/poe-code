@@ -10,6 +10,7 @@ import {
   findStaleSnapshots,
   pruneSnapshots
 } from "../tests/helpers/snapshot-store.js";
+import { SNAPSHOT_DIR } from "../tests/helpers/snapshot-config.js";
 
 const MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes
 
@@ -21,14 +22,6 @@ class StaleAccessedKeysError extends Error {
     );
     this.name = "StaleAccessedKeysError";
   }
-}
-
-function resolveSnapshotDir(): string {
-  const value = process.env.POE_SNAPSHOT_DIR;
-  if (typeof value === "string" && value.trim().length > 0) {
-    return value.trim();
-  }
-  return ".snapshots";
 }
 
 function resolveApiBaseUrl(): string {
@@ -100,7 +93,7 @@ program
     "List stale snapshots (requires running tests with POE_SNAPSHOT_MODE=playback first)"
   )
   .action(async (options?: { model?: string; stale?: boolean }) => {
-    const snapshotDir = resolveSnapshotDir();
+    const snapshotDir = SNAPSHOT_DIR;
 
     if (options?.stale) {
       const accessedKeys = await loadAccessedKeys(snapshotDir);
@@ -146,7 +139,7 @@ program
   .description("Re-record snapshots from API")
   .option("--model <model>", "Filter by model name")
   .action(async (key?: string, options?: { model?: string }) => {
-    const snapshotDir = resolveSnapshotDir();
+    const snapshotDir = SNAPSHOT_DIR;
     const apiKey = await getPoeApiKey();
     const baseUrl = resolveApiBaseUrl();
     const client = createPoeClient({ apiKey, baseUrl });
@@ -169,7 +162,7 @@ program
     "Delete stale snapshots (requires running tests with POE_SNAPSHOT_MODE=playback first)"
   )
   .action(async (key?: string, options?: { model?: string; stale?: boolean }) => {
-    const snapshotDir = resolveSnapshotDir();
+    const snapshotDir = SNAPSHOT_DIR;
 
     if (options?.stale) {
       const accessedKeys = await loadAccessedKeys(snapshotDir);

@@ -9,7 +9,7 @@ import type {
 } from "../../src/services/llm-client.js";
 
 export type SnapshotMode = "record" | "playback";
-export type SnapshotMissBehavior = "error" | "warn" | "passthrough";
+export type SnapshotMissBehavior = "error" | "warn" | "passthrough" | "record";
 
 export interface SnapshotOptions {
   mode: SnapshotMode;
@@ -149,7 +149,22 @@ async function handleMiss(
   if (options.onMiss === "warn") {
     console.warn(`Snapshot not found for ${key}; falling back to live call.`);
   }
-  return dispatchRequest(baseClient, type, request);
+  const response = await dispatchRequest(baseClient, type, request);
+  if (options.onMiss === "record") {
+    const snapshotRequest = buildSnapshotRequest(type, request);
+    const snapshotPath = join(options.snapshotDir, `${key}.json`);
+    await saveSnapshot(options.fs, snapshotPath, {
+      key,
+      request: snapshotRequest,
+      response,
+      metadata: {
+        recordedAt: (options.now ?? (() => new Date()))().toISOString(),
+        model: request.model,
+        type
+      }
+    });
+  }
+  return response;
 }
 
 async function dispatchRequest(

@@ -137,6 +137,46 @@ describe("snapshot client", () => {
     expect(baseClient.text).not.toHaveBeenCalled();
   });
 
+  it("records snapshot on miss with record miss behavior", async () => {
+    const fs = createMemfs();
+    const snapshotDir = "/.snapshots";
+    await fs.mkdir(snapshotDir, { recursive: true });
+
+    const model = "Test-Model";
+    const prompt = "not cached yet";
+    const expectedResponse = { content: "live response" };
+
+    const baseClient: LlmClient = {
+      text: vi.fn(async () => expectedResponse),
+      media: vi.fn(async () => ({ url: "live" }))
+    };
+
+    const fixedDate = new Date("2026-02-01T10:00:00.000Z");
+    const client = createSnapshotClient(baseClient, {
+      mode: "playback",
+      snapshotDir,
+      onMiss: "record",
+      fs,
+      now: () => fixedDate
+    });
+
+    const response = await client.text({ model, prompt });
+
+    expect(response).toEqual(expectedResponse);
+    expect(baseClient.text).toHaveBeenCalled();
+
+    const key = generateSnapshotKey({
+      model,
+      messages: [{ role: "user", content: prompt }]
+    });
+    const snapshotPath = `${snapshotDir}/${key}.json`;
+    const saved = JSON.parse((await fs.readFile(snapshotPath, "utf8")) as string);
+
+    expect(saved.key).toBe(key);
+    expect(saved.response).toEqual(expectedResponse);
+    expect(saved.metadata.recordedAt).toBe("2026-02-01T10:00:00.000Z");
+  });
+
   it("falls back to base client on miss with passthrough mode", async () => {
     const fs = createMemfs();
     const snapshotDir = "/.snapshots";

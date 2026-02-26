@@ -2,24 +2,43 @@
 
 ## Overview
 
-Add a `poe-code chore <name>` command that runs predefined, prompt-driven maintenance tasks through a configured agent. Each chore is a self-contained markdown prompt file executed via the existing spawn infrastructure.
+Add a `poe-code chore <name>` command that runs predefined, prompt-driven maintenance tasks through a configured agent. The system follows a pipeline architecture: **prompt library → source → map(agent executor)**.
+
+Key motivator: automate fixes for dependabot/security vulnerabilities surfaced on `git push`.
 
 ## Design Principle
 
 - Chores are declarative: one `.md` prompt file per chore, everything else derived
+- Pipeline: source command discovers items, each item spawns its own agent
 - Reuse spawn/agent infrastructure for execution (agent, model, interactive flags)
 - No branching logic per chore type in core code — chores are discovered automatically
+- GitHub-native state management — no local state files
 - SDK parity with CLI
+
+## Architecture
+
+```
+┌─────────────┐    ┌──────────┐    ┌──────────────┐
+│ Prompt       │    │ Source   │    │ Agent        │
+│ Library      │───▶│ Command  │───▶│ Executor     │
+│ (discovery)  │    │ (JSON[]) │    │ (per item)   │
+└─────────────┘    └──────────┘    └──────────────┘
+packages/chores/   sh -c "source"   src/sdk/chore.ts
+```
+
+**Two chore modes:**
+
+- **Simple** (no `source`): single agent spawn with the full prompt body
+- **Sourced** (with `source`): shell command returns JSON array, each item spawns its own agent with a mustache-rendered prompt
 
 ## Command Usage
 
 ### `poe-code chore <name>`
 
 ```bash
+poe-code chore fix-vulnerabilities
 poe-code chore update-dependencies
-poe-code chore update-documentation
 poe-code chore github-issue-check
-poe-code chore github-pull-request-check
 ```
 
 ### Standard Agent Options
@@ -27,18 +46,37 @@ poe-code chore github-pull-request-check
 All chores accept the same agent params as spawn:
 
 ```bash
-poe-code chore update-dependencies --agent claude --model Claude-Sonnet-4.5
-poe-code chore update-dependencies -i              # interactive mode
-poe-code chore update-dependencies --yes            # accept defaults
+poe-code chore fix-vulnerabilities --agent claude --model Claude-Sonnet-4.5
+poe-code chore fix-vulnerabilities -i              # interactive mode
+poe-code chore fix-vulnerabilities --yes           # accept defaults
 ```
-
-### `poe-code chore --help`
-
-Lists available chores with descriptions (extracted from prompt frontmatter).
 
 ### `poe-code chore list`
 
-Lists all available chores in a table.
+Lists all available chores in a table (built-in + project-local).
+
+### `poe-code chore enable <name>`
+
+Enables a chore by creating its GitHub Actions workflow file:
+
+```bash
+poe-code chore enable fix-vulnerabilities          # creates .github/workflows/chore-fix-vulnerabilities.yml
+poe-code chore enable fix-vulnerabilities --copy   # also copies prompt to .poe-code/chores/ for customization
+```
+
+**Flow:**
+
+1. Loads chore definition (built-in or project-local)
+2. Generates `.github/workflows/chore-<name>.yml` with cron from `schedule` frontmatter
+3. If `--copy`: also copies the `.md` prompt file into `<cwd>/.poe-code/chores/`
+
+### `poe-code chore disable <name>`
+
+Disables a chore by deleting its workflow file:
+
+```bash
+poe-code chore disable fix-vulnerabilities   # deletes .github/workflows/chore-fix-vulnerabilities.yml
+```
 
 ## Chore Prompt Format
 
@@ -46,79 +84,83 @@ Each chore is a markdown file with YAML frontmatter:
 
 ```markdown
 ---
-name: update-dependencies
-description: Update project dependencies to latest versions
+name: fix-vulnerabilities
+description: Fix dependabot security vulnerabilities
+source: gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] | select(.state=="open")]'
+schedule: '0 6 * * 1'
 ---
 
-# Update Dependencies
+# Fix: {{dependency.package.name}}
 
-You are a maintenance agent. Your task is to update all project dependencies.
+Severity: {{security_advisory.severity}}
+Summary: {{security_advisory.summary}}
 
-1. Check for outdated dependencies
-2. Update them one at a time
-3. Run tests after each update
-4. Commit each successful update
+1. Update {{dependency.package.name}} to the patched version
+2. Run tests to verify nothing breaks
+3. Commit with: fix(deps): upgrade {{dependency.package.name}}
 ```
+
+### Frontmatter fields
+
+- `name` (required): chore identifier
+- `description` (required): human-readable summary
+- `source` (optional): shell command whose stdout is parsed as JSON array
+- `schedule` (optional): cron expression for GitHub Action generation
+- Prompt body: mustache template rendered per source item (or used as-is for simple chores)
 
 ## Built-in Chores
 
 ### `update-dependencies`
 
-Updates project dependencies to latest versions.
+Simple chore. Updates project dependencies to latest versions.
 
 ### `update-documentation`
 
-Reviews code changes since last documentation update and refreshes docs.
+Simple chore. Reviews code changes since last documentation update and refreshes docs.
 
 ### `github-issue-check`
 
-Triages open GitHub issues:
-- Tracks already-checked issues (local state file `.poe-code/chore-state/github-issue-check.json`)
-- Assesses severity and alerts issue creator
-- Optionally proposes resolutions
-- Uses `gh` CLI for GitHub API access
+Sourced chore. Source: `gh issue list` filtered to exclude `poe-triaged` label.
+Agent triages each issue and adds `poe-triaged` label when done.
 
 ### `github-pull-request-check`
 
-Reviews open pull requests:
-- Tracks already-reviewed PRs (local state file `.poe-code/chore-state/github-pull-request-check.json`)
-- Performs code review
-- Posts review comments via `gh` CLI
+Sourced chore. Source: `gh pr list` filtered to unreviewed PRs.
+Agent reviews each PR and posts review comments.
 
-## State Management (GitHub Chores)
+### `fix-vulnerabilities`
 
-GitHub-related chores need to track what has already been processed to avoid re-checking. State is stored per-project:
+Sourced chore. Source: `gh api` dependabot alerts filtered to open.
+Agent fixes each vulnerability — update dep, run tests, commit.
 
-```
-.poe-code/chore-state/
-  github-issue-check.json
-  github-pull-request-check.json
-```
+## State Management
 
-```typescript
-interface ChoreState {
-  lastRun: string;           // ISO timestamp
-  processedIds: number[];    // issue/PR numbers already checked
-}
-```
+GitHub-native — no local state files. Each chore uses platform state:
 
-The prompt instructs the agent to read/write this state file. The chore infrastructure itself does not manage state — the agent does, guided by the prompt.
+- **Issues**: agent adds `poe-triaged` label → source filters `select(... | index("poe-triaged") | not)`
+- **PRs**: agent posts review → source filters unreviewed PRs
+- **Vulnerabilities**: fix auto-closes the alert → source only returns open alerts
 
 ## Chore Discovery
 
-Chores are discovered from a built-in directory:
+Priority order (later overrides by name):
+
+1. **Built-in**: `packages/chores/src/prompts/*.md` — ships with poe-code
+2. **Project-local**: `<cwd>/.poe-code/chores/*.md` — copied via `chore enable --copy` or user-created
 
 ```
 packages/chores/
-  prompts/
-    update-dependencies.md
-    update-documentation.md
-    github-issue-check.md
-    github-pull-request-check.md
   src/
+    prompts/
+      update-dependencies.md
+      update-documentation.md
+      github-issue-check.md
+      github-pull-request-check.md
+      fix-vulnerabilities.md
     index.ts                  # exports chore registry
-    discover.ts               # reads prompts dir, parses frontmatter
-    types.ts                  # ChoreDefinition, ChoreState types
+    discover.ts               # reads prompts dir, parses frontmatter, merges layers
+    frontmatter.ts            # YAML frontmatter parser
+    types.ts                  # ChoreDefinition type
 ```
 
 ### Chore Registry
@@ -127,103 +169,142 @@ packages/chores/
 interface ChoreDefinition {
   name: string;
   description: string;
-  prompt: string;             // full markdown body
+  prompt: string;             // full markdown body (mustache template)
+  source?: string;            // shell command returning JSON array
+  schedule?: string;          // cron expression
 }
 
-function discoverChores(): ChoreDefinition[]
+function discoverChores(builtInDir, projectDir?): Promise<ChoreDefinition[]>
+function loadChore(name, dirs): Promise<ChoreDefinition>
 ```
 
-Frontmatter is parsed with `gray-matter` (already common in the ecosystem).
+Frontmatter parsed with a simple custom parser (no `gray-matter` dependency — promoted from existing test code in `agent-skill-config`).
 
-## Implementation Architecture
+## Execution Flow
 
-### CLI Command
+### Simple chore (no source)
+
+1. Discover chore, match by name
+2. Resolve agent + model
+3. Spawn agent with raw prompt body
+
+### Sourced chore
+
+1. Discover chore, match by name
+2. Resolve agent + model
+3. Run source command: `commandRunner("sh", ["-c", source])`
+4. Parse stdout as JSON array
+5. For each item: `mustache.render(template, item)` → spawn agent
+6. Collect results
 
 ```typescript
-// src/cli/commands/chore.ts
-export function registerChoreCommand(
-  program: Command,
-  container: CliContainer
-): void {
-  const chore = program
-    .command("chore")
-    .description("Run maintenance chores via an agent")
-    .argument("<name>", "Chore to run")
-    .option("--agent <agent>", "Agent to use")
-    .option("--model <model>", "Model override")
-    .option("-i, --interactive", "Interactive mode")
-    .action(async function (name, options) {
-      // 1. Discover chores, find by name
-      // 2. Resolve agent (prompt or --agent)
-      // 3. Spawn agent with chore prompt
-    });
+// Pseudocode for src/sdk/chore.ts
+async function runChore(container, options) {
+  const definition = await loadChore(options.name, {
+    builtIn: promptsDirUrl,
+    projectLocal: path.join(container.env.cwd, ".poe-code/chores")
+  });
 
-  chore
-    .command("list")
-    .description("List available chores")
-    .action(async () => {
-      // List all discovered chores in a table
-    });
+  if (!definition.source) {
+    return spawnSdk(options.agent, { prompt: definition.prompt });
+  }
+
+  const { stdout } = await commandRunner("sh", ["-c", definition.source]);
+  const items = JSON.parse(stdout);
+
+  const results = [];
+  for (const item of items) {
+    const prompt = mustache.render(definition.prompt, item);
+    const { result } = spawnSdk(options.agent, { prompt });
+    results.push(await result);
+  }
+  return results;
 }
 ```
 
-### Execution Flow
+## Workflow Generation (`chore enable`)
 
-1. Discover available chores from `packages/chores/prompts/`
-2. Match requested chore by name
-3. Resolve agent + model (same option resolution as spawn)
-4. Spawn agent with the chore's prompt content as the prompt text
-5. Agent executes autonomously guided by the prompt
+Each `chore enable <name>` creates a dedicated workflow file at `.github/workflows/chore-<name>.yml`:
+
+```yaml
+# Auto-generated by poe-code chore enable fix-vulnerabilities
+name: 'Chore: fix-vulnerabilities'
+on:
+  schedule:
+    - cron: '0 6 * * 1'    # from frontmatter schedule field
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: read
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx poe-code chore fix-vulnerabilities --yes --agent claude
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+```
+
+One workflow file per chore. The `schedule` frontmatter field drives the cron expression. `chore disable <name>` deletes the corresponding workflow file.
+
+If `--copy` is passed with `chore enable`, the `.md` prompt is also copied to `.poe-code/chores/` for customization.
 
 ## SDK Integration
 
 ```typescript
-// sdk/chore.ts
+// src/sdk/chore.ts
 export interface ChoreOptions {
   name: string;
   agent: string;
   model?: string;
+  mode?: SpawnMode;
+  cwd?: string;
 }
 
-export async function runChore(options: ChoreOptions): Promise<void>
+export async function runChore(
+  container: CliContainer,
+  options: ChoreOptions
+): Promise<{ results: SpawnResult[] }>
 ```
 
 ## Files to Create/Modify
 
 | File | Action |
 |------|--------|
-| `packages/chores/` | New package — prompts + discovery |
-| `packages/chores/prompts/update-dependencies.md` | Prompt file |
-| `packages/chores/prompts/update-documentation.md` | Prompt file |
-| `packages/chores/prompts/github-issue-check.md` | Prompt file |
-| `packages/chores/prompts/github-pull-request-check.md` | Prompt file |
-| `packages/chores/src/index.ts` | Chore registry exports |
-| `packages/chores/src/discover.ts` | Prompt discovery + frontmatter parsing |
-| `packages/chores/src/types.ts` | Types |
-| `src/cli/commands/chore.ts` | CLI command |
+| `packages/chores/package.json` | New package `@poe-code/chores` |
+| `packages/chores/tsconfig.json` | Extends root |
+| `packages/chores/src/types.ts` | ChoreDefinition type |
+| `packages/chores/src/frontmatter.ts` | YAML frontmatter parser |
+| `packages/chores/src/frontmatter.test.ts` | Frontmatter unit tests |
+| `packages/chores/src/discover.ts` | Discovery + merge layers |
+| `packages/chores/src/discover.test.ts` | Discovery tests |
+| `packages/chores/src/index.ts` | Public exports |
+| `packages/chores/src/prompts/*.md` | 5 built-in chore prompts |
+| `packages/chores/src/prompts/prompts.test.ts` | Validate all prompts |
+| `src/sdk/chore.ts` | SDK executor (source → map → spawn) |
+| `src/cli/commands/chore.ts` | CLI command (run, list, enable, disable) |
+| `src/cli/commands/chore.test.ts` | CLI tests |
 | `src/cli/program.ts` | Register `registerChoreCommand()` |
-| `src/sdk/chore.ts` | SDK function |
-| `tests/chore-command.test.ts` | Unit tests |
-| `tests/chore-discover.test.ts` | Discovery tests |
+| `src/index.ts` | Export SDK `runChore()` |
 
 ## Implementation Steps
 
-1. Create `packages/chores` package with types and discovery
-2. Write the 4 built-in chore prompt files
-3. Implement `chore` CLI command with agent/model/interactive options
-4. Register command in `program.ts`
-5. Add SDK `runChore()` function
-6. Tests (memfs for discovery, snapshot for prompt parsing)
+1. Create `packages/chores` package with frontmatter parser (TDD)
+2. Add types and discovery with two-layer merge (TDD)
+3. Write 5 built-in chore prompt files + validation tests
+4. Implement SDK executor with source → map → spawn pipeline
+5. Implement CLI `chore` command (run + list + enable + disable subcommands)
+6. Register command in `program.ts`, export from SDK
+7. Screenshots + E2E tests
 
 ## Testing Strategy
 
-- Discovery tests: use memfs to simulate prompt directory, verify frontmatter parsing
-- CLI tests: verify option resolution, chore name matching, error on unknown chore
-- No LLM calls in tests — mock spawn at the boundary
-- Screenshot test: `npm run screenshot-poe-code -- chore --help` and `chore list`
-
-## Open Questions
-
-1. Should users be able to add custom chores from a project-local directory (e.g. `.poe-code/chores/`)?
-2. Should `github-issue-check` state be committed to repo or gitignored?
-3. Should chores support a `--dry-run` mode that shows the prompt without executing?
+- **Frontmatter**: pure function tests, no mocking
+- **Discovery**: mock `node:fs/promises` via `vi.mock`
+- **Executor**: mock `spawnSdk` and `commandRunner` at boundary
+- **CLI**: mock `@poe-code/chores` and `../../sdk/spawn.js`
+- **Prompts**: validate all built-in prompts have valid frontmatter
+- **Visual**: `npm run screenshot-poe-code -- chore --help`, `chore list`, `chore enable --help`
+- **No LLM calls in tests**

@@ -28,7 +28,6 @@ overview: |
     Agent → http://localhost:3456/v1/chat/completions → proxy → [snapshot or upstream API]
                                                           |
                                                           └→ /tmp/proxy-capture.jsonl
-
 goals:
   - Integrate tiny-mcp-client into poe-agent with MCP tool namespacing
   - Full TDD for all new code (~64 test cases total)
@@ -37,18 +36,15 @@ goals:
   - Custom vitest matchers with rich failure messages for proxy assertions
   - CapturedRequests exploration API for debugging e2e tests
   - Docker e2e test validating full MCP integration end-to-end
-
 nonGoals:
   - HTTP transport for MCP (stdio only in e2e, HTTP is supported but not tested e2e)
   - Dynamic tool refresh (tools/list_changed notification handling)
   - MCP resource or prompt support in poe-agent
   - Proxy authentication or TLS
   - Proxy WebSocket support
-
 qualityGates:
   - npm run test
   - npm run lint
-
 requirements:
   - id: R-001
     title: MCP tool name namespacing
@@ -62,7 +58,7 @@ requirements:
       - name: Special characters preserved
         when: namespaceMcpToolName("server", "my-tool_v2.0") is called
         then: Returns "mcp__server__my-tool_v2.0"
-
+    status: pending
   - id: R-002
     title: MCP tool to OpenAI format conversion
     description: |
@@ -81,7 +77,7 @@ requirements:
       - name: Missing required omitted
         when: MCP tool inputSchema has no required array
         then: Converted tool parameters has no required field
-
+    status: pending
   - id: R-003
     title: callTool result to string conversion
     description: |
@@ -98,10 +94,10 @@ requirements:
         when: Result has content [{ type "audio", mimeType "audio/wav", data "..." }]
         then: 'Returns "[audio: audio/wav]"'
       - name: EmbeddedResource with text
-        when: 'Result has content [{ type "resource", resource { uri "file:///x", text "content" } }]'
-        then: 'Returns "content"'
+        when: Result has content [{ type "resource", resource { uri "file:///x", text "content" } }]
+        then: Returns "content"
       - name: EmbeddedResource with blob
-        when: 'Result has content [{ type "resource", resource { uri "file:///x", blob "base64..." } }]'
+        when: Result has content [{ type "resource", resource { uri "file:///x", blob "base64..." } }]
         then: 'Returns "[blob: file:///x]"'
       - name: Multiple items joined with newline
         when: Result has content [{ type "text", text "line1" }, { type "text", text "line2" }]
@@ -115,7 +111,7 @@ requirements:
       - name: Error result throws
         when: Result has content [{ type "text", text "something broke" }] and isError true
         then: Throws Error with message "something broke"
-
+    status: pending
   - id: R-004
     title: McpToolExecutor tool discovery
     description: |
@@ -137,7 +133,7 @@ requirements:
       - name: Multiple servers combined
         when: addServer("a", ...) then addServer("b", ...)
         then: getAvailableTools returns tools from both servers
-
+    status: pending
   - id: R-005
     title: McpToolExecutor tool execution
     description: |
@@ -171,7 +167,7 @@ requirements:
       - name: Interleaved calls to different servers
         when: executeTool("mcp__a__tool1") then executeTool("mcp__b__tool2")
         then: Both succeed, each routes to correct client
-
+    status: pending
   - id: R-006
     title: McpToolExecutor lifecycle
     description: |
@@ -186,7 +182,7 @@ requirements:
       - name: Calling disposed executor
         when: executeTool called after dispose()
         then: Throws or underlying client is closed
-
+    status: pending
   - id: R-007
     title: Agent session MCP wiring
     description: |
@@ -208,7 +204,7 @@ requirements:
       - name: MCP connect failure cleanup
         when: Second MCP server fails to connect
         then: Already-connected servers are cleaned up before throwing
-
+    status: pending
   - id: R-008
     title: MCP type exports
     description: |
@@ -218,7 +214,7 @@ requirements:
       - name: Types importable
         when: Consumer imports { McpServerDefinition } from "@poe-code/poe-agent"
         then: Type is available
-
+    status: pending
   - id: R-009
     title: Integration test — built-in file tools on memfs
     description: |
@@ -237,7 +233,7 @@ requirements:
       - name: edit_file str_replace modifies file
         when: LLM calls edit_file(str_replace) on existing file
         then: File content updated in memfs
-
+    status: pending
   - id: R-010
     title: Integration test — MCP tools with scripted fetch
     description: |
@@ -268,7 +264,7 @@ requirements:
       - name: Session rejects after dispose
         when: session.sendMessage() called after dispose
         then: Throws "Agent session is already disposed."
-
+    status: pending
   - id: R-011
     title: Proxy types
     description: |
@@ -280,7 +276,7 @@ requirements:
       - name: CapturedExchange has required fields
         when: CapturedExchange is parsed from JSONL
         then: Has timestamp, route, request { method, path, headers, body }, response { status, body }
-
+    status: pending
   - id: R-012
     title: Proxy server — passthrough mode
     description: |
@@ -299,7 +295,7 @@ requirements:
       - name: No route match returns 502
         when: Request path does not match any route
         then: Returns 502 with body { error "No matching proxy route for <path>" }
-
+    status: pending
   - id: R-013
     title: Proxy server — record mode
     description: |
@@ -318,7 +314,7 @@ requirements:
       - name: Idempotent recording
         when: Same request body sent twice
         then: Same snapshot file is overwritten (same key)
-
+    status: pending
   - id: R-014
     title: Proxy server — playback mode
     description: |
@@ -337,7 +333,7 @@ requirements:
       - name: Key generation is deterministic
         when: Same { model, messages } sent twice
         then: Same key is computed both times
-
+    status: pending
   - id: R-015
     title: Proxy capture file format
     description: |
@@ -358,7 +354,7 @@ requirements:
       - name: Response body is parsed JSON
         when: Exchange is read
         then: response.body is the parsed JSON object from upstream/snapshot
-
+    status: pending
   - id: R-016
     title: Proxy route matching
     description: |
@@ -373,7 +369,7 @@ requirements:
       - name: Non-matching path
         when: Route path "/v1/chat/completions" and request path "/v1/models"
         then: Route does not match
-
+    status: pending
   - id: R-017
     title: Proxy CLI entry point
     description: |
@@ -381,12 +377,12 @@ requirements:
       for use inside Docker containers.
     scenarios:
       - name: Start with inline flags
-        when: "proxy-server --port 3456 --capture /tmp/capture.jsonl --route '/v1/chat/completions=playback:/tmp/snapshots'"
+        when: proxy-server --port 3456 --capture /tmp/capture.jsonl --route '/v1/chat/completions=playback:/tmp/snapshots'
         then: Proxy starts on port 3456 with specified route
       - name: Start with config file
         when: proxy-server --config /tmp/proxy-config.json
         then: Proxy starts with config from file
-
+    status: pending
   - id: R-018
     title: useContainer proxy integration
     description: |
@@ -396,7 +392,7 @@ requirements:
     scenarios:
       - name: snapshotDir triggers proxy
         when: useContainer({ snapshotDir "e2e/fixtures/test" }) is called
-        then: 'Proxy starts in container, POE_BASE_URL=http://localhost:3456 set'
+        then: Proxy starts in container, POE_BASE_URL=http://localhost:3456 set
       - name: No snapshotDir — no proxy
         when: useContainer({}) called without snapshotDir
         then: No proxy, no POE_BASE_URL override, existing behavior unchanged
@@ -415,7 +411,7 @@ requirements:
       - name: POE_BASE_URL flows through configure
         when: Container has POE_BASE_URL set and poe-code configure is run
         then: Agent config files point at proxy URL automatically
-
+    status: pending
   - id: R-019
     title: CapturedRequests exploration API
     description: |
@@ -466,7 +462,7 @@ requirements:
       - name: debugAt returns full JSON
         when: requests.debugAt(0) called
         then: Returns JSON.stringify of the exchange with 2-space indent
-
+    status: pending
   - id: R-020
     title: Proxy vitest matchers — toHaveRequestBody
     description: |
@@ -480,7 +476,7 @@ requirements:
         when: Exchange has model "Claude-Haiku-4.5" but expected "Claude-Sonnet-4.5"
         then: |
           Failure shows: "expected request body to match\n\nDiff:\n- Expected\n+ Received\n  Object {\n-   \"model\": \"Claude-Sonnet-4.5\",\n+   \"model\": \"Claude-Haiku-4.5\",\n  }\n\nFull exchange:\n  Route: /v1/chat/completions\n  POST /v1/chat/completions → 200\n  ..."
-
+    status: pending
   - id: R-021
     title: Proxy vitest matchers — toHaveResponseBody
     description: |
@@ -493,7 +489,7 @@ requirements:
       - name: Fails with diff and context
         when: Response body does not match
         then: Failure shows diff and formatExchangeContext output
-
+    status: pending
   - id: R-022
     title: Proxy vitest matchers — toContainRequest
     description: |
@@ -507,7 +503,7 @@ requirements:
         when: No exchange matches criteria
         then: |
           Failure shows: "expected at least one exchange matching {path: \"/v1/chat/completions\", body containing: {\"model\":\"Claude-Sonnet-4.5\"}}, but none found\n\nAll captured exchanges (2):\n  [0] POST /v1/chat/completions → 200 (model: Claude-Haiku-4.5, tools: 7)\n  [1] POST /v1/chat/completions → 200 (model: Claude-Haiku-4.5, tools: 7)"
-
+    status: pending
   - id: R-023
     title: Proxy vitest matchers — toHaveToolInRequest
     description: |
@@ -521,7 +517,7 @@ requirements:
         when: Expected tool not in request
         then: |
           Failure shows: "expected request to contain tool \"mcp__test-server__word_of_the_day\"\n  Tools present: [read_file, edit_file, list_files, run_command, search_web]\n  Route: ..."
-
+    status: pending
   - id: R-024
     title: Proxy vitest matchers — toHaveToolCall
     description: |
@@ -535,7 +531,7 @@ requirements:
         when: Expected tool_call not in response
         then: |
           Failure shows: "expected response to have tool_call \"mcp__test-server__word_of_the_day\"\n  tool_calls present: [read_file]\n  Route: ..."
-
+    status: pending
   - id: R-025
     title: Proxy vitest matchers — toHaveToolResult
     description: |
@@ -559,7 +555,7 @@ requirements:
         when: Tool message exists but content does not match
         then: |
           Failure shows: "expected tool result for \"tool\" to match <matcher>\n  Actual content: \"actual content\"\n\nFull exchange:\n  ..."
-
+    status: pending
   - id: R-026
     title: formatExchangeContext helper
     description: |
@@ -575,7 +571,7 @@ requirements:
       - name: Message content truncated at 60 chars
         when: Message content is longer than 60 characters
         then: Message preview truncated with "..."
-
+    status: pending
   - id: R-027
     title: Docker e2e test for poe-agent + MCP
     description: |
@@ -594,12 +590,11 @@ requirements:
       - name: Tool result fed back to LLM
         when: Second request is examined
         then: Contains tool result message for mcp__test-server__word_of_the_day with "Bumfuzzle"
-
+    status: pending
 stories:
-  # ── Step 1: Dependencies ──────────────────────────────────────────────
   - id: US-001
     title: Add tiny-mcp-client dependency to poe-agent
-    status: open
+    status: done
     dependsOn: []
     description: |
       As a developer, I want tiny-mcp-client added as a dependency and
@@ -610,11 +605,12 @@ stories:
       - packages/poe-agent/package.json has "tiny-stdio-mcp-test-server" in devDependencies
       - npm install succeeds
       - npm run build succeeds
-
-  # ── Step 2: Pure conversion functions ─────────────────────────────────
+    startedAt: 2026-02-26T04:10:01.093Z
+    completedAt: 2026-02-26T04:12:38.838Z
+    updatedAt: 2026-02-26T04:12:38.838Z
   - id: US-002
     title: Add MCP type definitions (McpServerDefinition types)
-    status: open
+    status: done
     dependsOn:
       - US-001
     description: |
@@ -626,10 +622,12 @@ stories:
       - McpHttpServerDefinition has transport "http", url, optional headers
       - McpServerDefinition is the union of both
       - Types are exported from the file
-
+    startedAt: 2026-02-26T04:12:39.007Z
+    completedAt: 2026-02-26T04:16:25.623Z
+    updatedAt: 2026-02-26T04:16:25.623Z
   - id: US-003
     title: Implement namespaceMcpToolName with tests
-    status: open
+    status: done
     dependsOn:
       - US-002
     description: |
@@ -639,10 +637,12 @@ stories:
       - namespaceMcpToolName("my-server", "my-tool") returns "mcp__my-server__my-tool"
       - namespaceMcpToolName("server", "my-tool_v2.0") returns "mcp__server__my-tool_v2.0"
       - Tests written first (TDD), all pass
-
+    startedAt: 2026-02-26T04:16:25.749Z
+    completedAt: 2026-02-26T04:24:29.259Z
+    updatedAt: 2026-02-26T04:24:29.259Z
   - id: US-004
     title: Implement mcpToolToOpenAiTool with tests
-    status: open
+    status: done
     dependsOn:
       - US-003
     description: |
@@ -655,10 +655,12 @@ stories:
       - Missing required is omitted from output
       - Namespaces the tool name via namespaceMcpToolName
       - Tests for all 4 scenarios (full, missing desc, missing props, missing required)
-
+    startedAt: 2026-02-26T04:24:29.499Z
+    completedAt: 2026-02-26T04:28:12.117Z
+    updatedAt: 2026-02-26T04:28:12.117Z
   - id: US-005
     title: Implement callToolResultToString with tests
-    status: open
+    status: done
     dependsOn:
       - US-002
     description: |
@@ -675,11 +677,12 @@ stories:
       - Empty content [] → ""
       - isError true → throws Error with extracted text
       - 9 test cases, all TDD
-
-  # ── Step 3: McpToolExecutor class ─────────────────────────────────────
+    startedAt: 2026-02-26T04:28:12.300Z
+    completedAt: 2026-02-26T04:33:31.752Z
+    updatedAt: 2026-02-26T04:33:31.752Z
   - id: US-006
     title: Implement McpToolExecutor.addServer with tests
-    status: open
+    status: done
     dependsOn:
       - US-004
       - US-005
@@ -694,10 +697,12 @@ stories:
       - Test for server with zero tools — no error, empty tools
       - Test for paginated tool list — both pages discovered
       - Test for duplicate tool names across servers — no collision
-
+    startedAt: 2026-02-26T04:33:31.910Z
+    completedAt: 2026-02-26T04:37:54.804Z
+    updatedAt: 2026-02-26T04:37:54.804Z
   - id: US-007
     title: Implement McpToolExecutor.getAvailableTools with tests
-    status: open
+    status: done
     dependsOn:
       - US-006
     description: |
@@ -707,10 +712,12 @@ stories:
       - Returns Tool[] with all discovered tools
       - After addServer for 2 servers, returns tools from both
       - Tools have correct namespaced names in function.name
-
+    startedAt: 2026-02-26T04:37:54.958Z
+    completedAt: 2026-02-26T04:40:43.647Z
+    updatedAt: 2026-02-26T04:40:43.647Z
   - id: US-008
     title: Implement McpToolExecutor.executeTool with tests
-    status: open
+    status: done
     dependsOn:
       - US-007
     description: |
@@ -718,7 +725,7 @@ stories:
       correct MCP client and return string results.
     acceptanceCriteria:
       - Looks up client by namespaced name in toolToClient map
-      - 'Calls client.callTool({ name: originalName, arguments: args })'
+      - "Calls client.callTool({ name: originalName, arguments: args })"
       - Converts result via callToolResultToString
       - executeTool("mcp__test-server__caesar_cipher_encrypt", { text "hello" }) returns cipher result
       - executeTool("mcp__test-server__word_of_the_day", {}) returns string with "Bumfuzzle"
@@ -728,10 +735,12 @@ stories:
       - executeTool with tool returning error throws
       - executeTool with empty result returns ""
       - Interleaved calls to different servers route correctly
-
+    startedAt: 2026-02-26T04:40:43.771Z
+    completedAt: 2026-02-26T04:44:08.769Z
+    updatedAt: 2026-02-26T04:44:08.769Z
   - id: US-009
     title: Implement McpToolExecutor.dispose with tests
-    status: open
+    status: done
     dependsOn:
       - US-008
     description: |
@@ -741,11 +750,12 @@ stories:
       - dispose() closes all clients (client.state === "closed")
       - With 2 clients, both are closed even if first throws
       - Calling executeTool after dispose throws or client is closed
-
-  # ── Step 4: Agent session wiring ──────────────────────────────────────
+    startedAt: 2026-02-26T04:44:08.901Z
+    completedAt: 2026-02-26T04:50:02.835Z
+    updatedAt: 2026-02-26T04:50:02.835Z
   - id: US-010
     title: Add mcpServers option to CreateAgentSessionOptions
-    status: open
+    status: done
     dependsOn:
       - US-009
     description: |
@@ -754,10 +764,12 @@ stories:
     acceptanceCriteria:
       - mcpServers field added to CreateAgentSessionOptions interface
       - Field is optional (existing code unaffected)
-
+    startedAt: 2026-02-26T04:50:02.992Z
+    completedAt: 2026-02-26T04:56:57.978Z
+    updatedAt: 2026-02-26T04:56:57.978Z
   - id: US-011
     title: Wire McpToolExecutor into createAgentSession with tests
-    status: open
+    status: done
     dependsOn:
       - US-010
     description: |
@@ -772,11 +784,12 @@ stories:
       - MCP connect failure cleans up already-connected servers
       - Tests mock McpToolExecutor via vi.mock (same pattern as DefaultToolExecutor)
       - createMcpTransport helper creates StdioTransport for "stdio" and HttpTransport for "http"
-
-  # ── Step 5: Exports ──────────────────────────────────────────────────
+    startedAt: 2026-02-26T04:56:58.309Z
+    completedAt: 2026-02-26T05:04:30.886Z
+    updatedAt: 2026-02-26T05:04:30.886Z
   - id: US-012
     title: Export MCP types from poe-agent public API
-    status: open
+    status: done
     dependsOn:
       - US-011
     description: |
@@ -786,11 +799,12 @@ stories:
       - Types are re-exported with "export type" from index.ts
       - npm run build succeeds
       - npm run lint passes
-
-  # ── Step 6: Integration tests ─────────────────────────────────────────
+    startedAt: 2026-02-26T05:04:31.067Z
+    completedAt: 2026-02-26T05:06:57.285Z
+    updatedAt: 2026-02-26T05:06:57.285Z
   - id: US-013
     title: Create scripted fetch mock helper for integration tests
-    status: open
+    status: done
     dependsOn:
       - US-011
     description: |
@@ -801,10 +815,12 @@ stories:
       - Returns vi.fn() that serves responses in order
       - Throws "No more scripted responses" when queue exhausted
       - Response has correct status 200, Content-Type, choices array with finish_reason
-
+    startedAt: 2026-02-26T05:06:57.417Z
+    completedAt: 2026-02-26T05:12:13.954Z
+    updatedAt: 2026-02-26T05:12:13.954Z
   - id: US-014
     title: Integration test — read_file on memfs
-    status: open
+    status: done
     dependsOn:
       - US-013
     description: |
@@ -815,24 +831,28 @@ stories:
       - Scripted fetch returns tool_call for read_file, then final answer
       - result.content equals the final answer text
       - Second fetch call messages include tool result with "Hello from memfs!"
-
+    startedAt: 2026-02-26T05:12:14.168Z
+    completedAt: 2026-02-26T05:17:24.746Z
+    updatedAt: 2026-02-26T05:17:24.746Z
   - id: US-015
     title: Integration test — edit_file create + read_file on memfs
-    status: open
+    status: done
     dependsOn:
       - US-013
     description: |
       As a developer, I want a test validating multi-tool sequence: LLM calls
       edit_file to create, then read_file to verify, on memfs.
     acceptanceCriteria:
-      - 'Scripted fetch: 3 rounds (edit_file create, read_file, final answer)'
+      - "Scripted fetch: 3 rounds (edit_file create, read_file, final answer)"
       - File actually created in memfs volume
       - Third fetch call messages include both tool results
       - vol.readFileSync confirms created content
-
+    startedAt: 2026-02-26T05:17:24.889Z
+    completedAt: 2026-02-26T05:20:19.745Z
+    updatedAt: 2026-02-26T05:20:19.745Z
   - id: US-016
     title: Integration test — list_files on memfs
-    status: open
+    status: done
     dependsOn:
       - US-013
     description: |
@@ -843,10 +863,12 @@ stories:
       - LLM calls list_files(".")
       - Tool result message contains a.txt, b.txt, sub
       - result.content contains "a.txt"
-
+    startedAt: 2026-02-26T05:20:19.849Z
+    completedAt: 2026-02-26T05:22:45.602Z
+    updatedAt: 2026-02-26T05:22:45.602Z
   - id: US-017
     title: Integration test — edit_file str_replace on memfs
-    status: open
+    status: done
     dependsOn:
       - US-013
     description: |
@@ -857,10 +879,12 @@ stories:
       - LLM calls edit_file(str_replace, old_str, new_str)
       - File content updated in memfs volume
       - Tool result message confirms edit
-
+    startedAt: 2026-02-26T05:22:45.727Z
+    completedAt: 2026-02-26T05:25:11.351Z
+    updatedAt: 2026-02-26T05:25:11.351Z
   - id: US-018
     title: Integration test — MCP tool only session
-    status: open
+    status: done
     dependsOn:
       - US-013
     description: |
@@ -871,10 +895,12 @@ stories:
       - LLM calls mcp__test-server__caesar_cipher_encrypt
       - Result contains encrypted text
       - Fetch request body includes namespaced tool definition
-
+    startedAt: 2026-02-26T05:25:11.503Z
+    completedAt: 2026-02-26T05:28:20.846Z
+    updatedAt: 2026-02-26T05:28:20.846Z
   - id: US-019
     title: Integration test — built-in + MCP tools together
-    status: open
+    status: done
     dependsOn:
       - US-018
     description: |
@@ -885,10 +911,12 @@ stories:
       - Both tool results fed back to LLM
       - First fetch call tools array includes both built-in and namespaced MCP tools
       - Final answer references both results
-
+    startedAt: 2026-02-26T05:28:21.019Z
+    completedAt: 2026-02-26T05:33:37.296Z
+    updatedAt: 2026-02-26T05:33:37.296Z
   - id: US-020
     title: Integration test — MCP tool schema in API request
-    status: open
+    status: done
     dependsOn:
       - US-018
     description: |
@@ -899,10 +927,12 @@ stories:
       - mcp__test-server__caesar_cipher_encrypt has correct parameters.properties (text string, shift integer)
       - parameters.required includes ["text"]
       - type is "function"
-
+    startedAt: 2026-02-26T05:33:37.431Z
+    completedAt: 2026-02-26T05:37:03.906Z
+    updatedAt: 2026-02-26T05:37:03.906Z
   - id: US-021
     title: Integration test — unknown tool error propagation
-    status: open
+    status: done
     dependsOn:
       - US-013
     description: |
@@ -912,10 +942,12 @@ stories:
       - LLM calls "nonexistent_tool"
       - Second fetch request messages include tool result with content containing "Error"
       - LLM recovers with text response
-
+    startedAt: 2026-02-26T05:37:04.058Z
+    completedAt: 2026-02-26T05:42:16.437Z
+    updatedAt: 2026-02-26T05:42:16.437Z
   - id: US-022
     title: Integration test — MCP tool error (isError) propagation
-    status: open
+    status: done
     dependsOn:
       - US-018
     description: |
@@ -926,10 +958,12 @@ stories:
       - 'Error fed back as "Error: ..." tool message'
       - LLM receives the error in next request's messages
       - LLM recovers with text response
-
+    startedAt: 2026-02-26T05:42:16.565Z
+    completedAt: 2026-02-26T05:47:53.117Z
+    updatedAt: 2026-02-26T05:47:53.117Z
   - id: US-023
     title: Integration test — parallel tool_calls
-    status: open
+    status: done
     dependsOn:
       - US-019
     description: |
@@ -940,10 +974,12 @@ stories:
       - Both tools executed (read_file from memfs, word_of_the_day from MCP)
       - Next fetch request messages include both tool result messages
       - Both results have correct content
-
+    startedAt: 2026-02-26T05:47:53.249Z
+    completedAt: 2026-02-26T05:51:25.835Z
+    updatedAt: 2026-02-26T05:51:25.835Z
   - id: US-024
     title: Integration test — dispose closes MCP clients
-    status: open
+    status: done
     dependsOn:
       - US-018
     description: |
@@ -952,10 +988,12 @@ stories:
     acceptanceCriteria:
       - After session.dispose(), MCP client is in closed state
       - Calling session.sendMessage() after dispose throws "Agent session is already disposed."
-
+    startedAt: 2026-02-26T05:51:25.953Z
+    completedAt: 2026-02-26T05:56:47.068Z
+    updatedAt: 2026-02-26T05:56:47.068Z
   - id: US-025
     title: Integration test — multi-turn file mutation (read, edit, re-read)
-    status: open
+    status: done
     dependsOn:
       - US-015
     description: |
@@ -967,11 +1005,12 @@ stories:
       - LLM calls read_file("config.txt") → gets "port=8080"
       - All three tool results appear in fetch request bodies
       - memfs volume reflects the edit
-
-  # ── Step 7a: Proxy types ──────────────────────────────────────────────
+    startedAt: 2026-02-26T05:56:47.238Z
+    completedAt: 2026-02-26T06:00:19.227Z
+    updatedAt: 2026-02-26T06:00:19.227Z
   - id: US-026
     title: Define proxy types (ProxyRoute, ProxyConfig, CapturedExchange)
-    status: open
+    status: done
     dependsOn: []
     description: |
       As a developer, I want ProxyRoute, ProxyConfig, and CapturedExchange types
@@ -981,11 +1020,12 @@ stories:
       - ProxyConfig has port, routes, captureFile
       - CapturedExchange has timestamp, route, request { method, path, headers, body }, response { status, body }
       - Types exported from the file
-
-  # ── Step 7b: Proxy server ─────────────────────────────────────────────
+    startedAt: 2026-02-26T06:00:19.374Z
+    completedAt: 2026-02-26T06:03:42.438Z
+    updatedAt: 2026-02-26T06:03:42.438Z
   - id: US-027
     title: Implement proxy server passthrough mode with tests
-    status: open
+    status: done
     dependsOn:
       - US-026
     description: |
@@ -1000,10 +1040,12 @@ stories:
       - Test — captures exchange with correct request body, response body, path, timestamp
       - Test — preserves Authorization and Content-Type headers
       - Test — returns 502 { error "No matching proxy route for <path>" } on no match
-
+    startedAt: 2026-02-26T06:03:42.570Z
+    completedAt: 2026-02-26T06:12:28.842Z
+    updatedAt: 2026-02-26T06:12:28.842Z
   - id: US-028
     title: Implement proxy server record mode with tests
-    status: open
+    status: done
     dependsOn:
       - US-027
     description: |
@@ -1017,10 +1059,12 @@ stories:
       - Test — snapshot file name matches generated key
       - Test — snapshot file contains request and response
       - Test — idempotent recording (same body → same key → overwrite)
-
+    startedAt: 2026-02-26T06:12:28.979Z
+    completedAt: 2026-02-26T06:18:26.823Z
+    updatedAt: 2026-02-26T06:18:26.823Z
   - id: US-029
     title: Implement proxy server playback mode with tests
-    status: open
+    status: done
     dependsOn:
       - US-028
     description: |
@@ -1034,11 +1078,13 @@ stories:
       - Test — returns snapshot without upstream (dummy API not started)
       - Test — returns 404 with descriptive error on missing snapshot
       - Test — captures exchange even in playback
-      - 'Test — deterministic key: same { model, messages } → same key'
-
+      - "Test — deterministic key: same { model, messages } → same key"
+    startedAt: 2026-02-26T06:18:26.974Z
+    completedAt: 2026-02-26T06:24:59.356Z
+    updatedAt: 2026-02-26T06:24:59.356Z
   - id: US-030
     title: Implement proxy capture file JSONL format with tests
-    status: open
+    status: done
     dependsOn:
       - US-027
     description: |
@@ -1053,10 +1099,12 @@ stories:
       - Test — 3 requests → 3 JSONL lines
       - Test — each line valid CapturedExchange
       - Test — timestamp format
-
+    startedAt: 2026-02-26T06:24:59.496Z
+    completedAt: 2026-02-26T06:30:28.720Z
+    updatedAt: 2026-02-26T06:30:28.720Z
   - id: US-031
     title: Implement proxy route matching with tests
-    status: open
+    status: done
     dependsOn:
       - US-027
     description: |
@@ -1067,11 +1115,12 @@ stories:
       - Prefix match ("/v1/chat" matches "/v1/chat/completions")
       - Non-matching path ("/v1/chat/completions" does NOT match "/v1/models")
       - Test for each scenario
-
-  # ── Step 7c: Proxy CLI ────────────────────────────────────────────────
+    startedAt: 2026-02-26T06:30:28.867Z
+    completedAt: 2026-02-26T06:35:58.884Z
+    updatedAt: 2026-02-26T06:35:58.884Z
   - id: US-032
     title: Implement proxy CLI entry point
-    status: open
+    status: done
     dependsOn:
       - US-029
     description: |
@@ -1080,14 +1129,15 @@ stories:
     acceptanceCriteria:
       - Accepts --port, --capture, --route flags
       - Accepts --config <path> for JSON config
-      - 'Route flag format: ''/path=mode:/snapshotDir'''
+      - "Route flag format: '/path=mode:/snapshotDir'"
       - Binary added to package.json bin field
       - Starts proxy server with parsed config
-
-  # ── Step 7d: useContainer integration ─────────────────────────────────
+    startedAt: 2026-02-26T06:35:59.030Z
+    completedAt: 2026-02-26T07:00:11.461Z
+    updatedAt: 2026-02-26T07:00:11.461Z
   - id: US-033
     title: Add snapshotDir option to UseContainerOptions
-    status: open
+    status: done
     dependsOn:
       - US-032
     description: |
@@ -1097,10 +1147,12 @@ stories:
       - snapshotDir field added to UseContainerOptions interface
       - Field is optional (no snapshotDir = existing behavior unchanged)
       - Type is string (path relative to repo root)
-
+    startedAt: 2026-02-26T07:00:11.655Z
+    completedAt: 2026-02-26T07:09:22.627Z
+    updatedAt: 2026-02-26T07:09:22.627Z
   - id: US-034
     title: Extend Container interface with requests() and writeSnapshots()
-    status: open
+    status: done
     dependsOn:
       - US-033
     description: |
@@ -1110,10 +1162,12 @@ stories:
       - requests() returns Promise<CapturedRequests>
       - writeSnapshots(snapshots) returns Promise<void>
       - Types added to Container interface in types.ts
-
+    startedAt: 2026-02-26T07:09:22.835Z
+    completedAt: 2026-02-26T07:16:50.303Z
+    updatedAt: 2026-02-26T07:16:50.303Z
   - id: US-035
     title: Integrate proxy into createContainer lifecycle
-    status: open
+    status: done
     dependsOn:
       - US-034
     description: |
@@ -1130,11 +1184,12 @@ stories:
       - container.writeSnapshots() writes files to /tmp/proxy-snapshots/
       - POE_BASE_URL flows through configure → agent config files automatically
       - No snapshotDir — no proxy, no POE_BASE_URL, fully unchanged behavior
-
-  # ── Step 7e: CapturedRequests exploration API ─────────────────────────
+    startedAt: 2026-02-26T07:16:50.445Z
+    completedAt: 2026-02-26T07:30:19.843Z
+    updatedAt: 2026-02-26T07:30:19.843Z
   - id: US-036
     title: Implement CapturedRequests class with tests
-    status: open
+    status: done
     dependsOn:
       - US-026
     description: |
@@ -1156,11 +1211,12 @@ stories:
       - summary() returns human-readable multi-line string with index, method, path, status, model, counts
       - debugAt(index) returns JSON.stringify with 2-space indent
       - Tests for every method and edge case (14+ tests)
-
-  # ── Step 7f: Vitest matchers ──────────────────────────────────────────
+    startedAt: 2026-02-26T07:30:20.000Z
+    completedAt: 2026-02-26T07:35:38.445Z
+    updatedAt: 2026-02-26T07:35:38.445Z
   - id: US-037
     title: Implement formatExchangeContext helper with tests
-    status: open
+    status: done
     dependsOn:
       - US-026
     description: |
@@ -1174,10 +1230,12 @@ stories:
       - Message content truncated at 60 chars with "..."
       - Tool names included as comma-separated list with count
       - Tool messages show name tag when present
-
+    startedAt: 2026-02-26T07:35:38.597Z
+    completedAt: 2026-02-26T07:39:28.577Z
+    updatedAt: 2026-02-26T07:39:28.577Z
   - id: US-038
     title: Implement formatExchangeList helper with tests
-    status: open
+    status: done
     dependsOn:
       - US-026
     description: |
@@ -1187,10 +1245,12 @@ stories:
       - Empty array returns "  (no captured exchanges)"
       - 'Each exchange shown as "[i] METHOD path → status (model: X, tools: N)"'
       - One line per exchange
-
+    startedAt: 2026-02-26T07:39:28.706Z
+    completedAt: 2026-02-26T07:42:55.861Z
+    updatedAt: 2026-02-26T07:42:55.861Z
   - id: US-039
     title: Implement toHaveRequestBody matcher with tests
-    status: open
+    status: done
     dependsOn:
       - US-037
     description: |
@@ -1202,10 +1262,12 @@ stories:
       - Failure message format includes "expected request body to match", diff section, "Full exchange:" section
       - Negated form shows "expected request body not to match"
       - Type declaration added to vitest Assertion interface
-
+    startedAt: 2026-02-26T07:42:55.988Z
+    completedAt: 2026-02-26T07:47:51.399Z
+    updatedAt: 2026-02-26T07:47:51.399Z
   - id: US-040
     title: Implement toHaveResponseBody matcher with tests
-    status: open
+    status: done
     dependsOn:
       - US-037
     description: |
@@ -1215,10 +1277,12 @@ stories:
       - Passes when response body matches expected partial
       - Fails with diff and formatExchangeContext
       - Type declaration added to vitest Assertion interface
-
+    startedAt: 2026-02-26T07:47:51.506Z
+    completedAt: 2026-02-26T07:50:40.541Z
+    updatedAt: 2026-02-26T07:50:40.541Z
   - id: US-041
     title: Implement toContainRequest matcher with tests
-    status: open
+    status: done
     dependsOn:
       - US-038
     description: |
@@ -1231,10 +1295,12 @@ stories:
       - 'Failure message format: "expected at least one exchange matching {criteria}, but none found\n\nAll captured exchanges (N):\n..."'
       - Negated form shows "expected no exchange matching {criteria}"
       - Type declaration added to vitest Assertion interface
-
+    startedAt: 2026-02-26T07:50:40.694Z
+    completedAt: 2026-02-26T07:54:20.210Z
+    updatedAt: 2026-02-26T07:54:20.210Z
   - id: US-042
     title: Implement toHaveToolInRequest matcher with tests
-    status: open
+    status: done
     dependsOn:
       - US-037
     description: |
@@ -1245,10 +1311,12 @@ stories:
       - Fails showing expected tool name, actual tools list, and formatExchangeContext
       - 'Failure message format: "expected request to contain tool \"X\"\n  Tools present: [a, b, c]\n  Route: ..."'
       - Type declaration added to vitest Assertion interface
-
+    startedAt: 2026-02-26T07:54:20.325Z
+    completedAt: 2026-02-26T07:58:23.978Z
+    updatedAt: 2026-02-26T07:58:23.978Z
   - id: US-043
     title: Implement toHaveToolCall matcher with tests
-    status: open
+    status: done
     dependsOn:
       - US-037
     description: |
@@ -1259,10 +1327,12 @@ stories:
       - Fails showing expected name, actual tool_call names, and formatExchangeContext
       - 'Failure message format: "expected response to have tool_call \"X\"\n  tool_calls present: [a, b]\n  Route: ..."'
       - Type declaration added to vitest Assertion interface
-
+    startedAt: 2026-02-26T07:58:24.127Z
+    completedAt: 2026-02-26T08:01:34.831Z
+    updatedAt: 2026-02-26T08:01:34.831Z
   - id: US-044
     title: Implement toHaveToolResult matcher with tests
-    status: open
+    status: done
     dependsOn:
       - US-037
     description: |
@@ -1278,11 +1348,12 @@ stories:
       - 'Failure message for content mismatch: "expected tool result for \"X\" to match <matcher>\n  Actual content: \"actual\"\n\nFull exchange:\n  ..."'
       - Tool message content preview truncated at 80 chars
       - Type declaration added to vitest Assertion interface
-
-  # ── Step 7g: Proxy server tests ───────────────────────────────────────
+    startedAt: 2026-02-26T08:01:34.997Z
+    completedAt: 2026-02-26T08:08:15.284Z
+    updatedAt: 2026-02-26T08:08:15.284Z
   - id: US-045
     title: Implement dummy upstream API for proxy tests
-    status: open
+    status: done
     dependsOn:
       - US-027
     description: |
@@ -1293,10 +1364,12 @@ stories:
       - 'Echoes last message content as "Echo: <content>"'
       - Returns valid ChatCompletionResponse format
       - Returns { url, close() } for lifecycle management
-
+    startedAt: 2026-02-26T08:08:15.410Z
+    completedAt: 2026-02-26T08:13:31.989Z
+    updatedAt: 2026-02-26T08:13:31.989Z
   - id: US-046
     title: Proxy test — passthrough forwards and captures
-    status: open
+    status: done
     dependsOn:
       - US-045
     description: |
@@ -1308,10 +1381,12 @@ stories:
       - Capture file has 1 JSONL line
       - CapturedExchange has correct request body and response body
       - Uses toHaveRequestBody and toHaveResponseBody matchers
-
+    startedAt: 2026-02-26T08:13:32.150Z
+    completedAt: 2026-02-26T08:16:59.073Z
+    updatedAt: 2026-02-26T08:16:59.073Z
   - id: US-047
     title: Proxy test — passthrough preserves headers
-    status: open
+    status: done
     dependsOn:
       - US-045
     description: |
@@ -1320,10 +1395,12 @@ stories:
     acceptanceCriteria:
       - Dummy API receives Authorization header
       - Dummy API receives Content-Type header
-
+    startedAt: 2026-02-26T08:16:59.205Z
+    completedAt: 2026-02-26T08:19:21.200Z
+    updatedAt: 2026-02-26T08:19:21.200Z
   - id: US-048
     title: Proxy test — no route match returns 502
-    status: open
+    status: done
     dependsOn:
       - US-027
     description: |
@@ -1331,10 +1408,12 @@ stories:
     acceptanceCriteria:
       - Request to non-matching path returns 502
       - Response body is { error "No matching proxy route for /unmatched/path" }
-
+    startedAt: 2026-02-26T08:19:21.314Z
+    completedAt: 2026-02-26T08:22:15.266Z
+    updatedAt: 2026-02-26T08:22:15.266Z
   - id: US-049
     title: Proxy test — record forwards and saves snapshot
-    status: open
+    status: done
     dependsOn:
       - US-045
     description: |
@@ -1345,10 +1424,12 @@ stories:
       - Snapshot file created at <snapshotDir>/<key>.json
       - Snapshot contains { key, request, response, metadata }
       - Key matches SHA256({ model, messages }) truncated
-
+    startedAt: 2026-02-26T08:22:15.416Z
+    completedAt: 2026-02-26T08:25:46.622Z
+    updatedAt: 2026-02-26T08:25:46.622Z
   - id: US-050
     title: Proxy test — record idempotent
-    status: open
+    status: done
     dependsOn:
       - US-049
     description: |
@@ -1357,10 +1438,12 @@ stories:
     acceptanceCriteria:
       - Same request body sent twice
       - Same snapshot file (same key) overwritten
-
+    startedAt: 2026-02-26T08:25:46.756Z
+    completedAt: 2026-02-26T08:28:25.587Z
+    updatedAt: 2026-02-26T08:28:25.587Z
   - id: US-051
     title: Proxy test — playback serves snapshot
-    status: open
+    status: done
     dependsOn:
       - US-029
     description: |
@@ -1371,10 +1454,12 @@ stories:
       - Send request matching that key
       - Response matches snapshot response
       - No dummy API started (not needed)
-
+    startedAt: 2026-02-26T08:28:25.716Z
+    completedAt: 2026-02-26T08:30:32.921Z
+    updatedAt: 2026-02-26T08:30:32.921Z
   - id: US-052
     title: Proxy test — playback missing snapshot returns 404
-    status: open
+    status: done
     dependsOn:
       - US-029
     description: |
@@ -1383,10 +1468,12 @@ stories:
       - Request with no matching snapshot
       - Returns 404 { error "Snapshot not found for key <key>" }
       - Error includes the computed key for debugging
-
+    startedAt: 2026-02-26T08:30:33.105Z
+    completedAt: 2026-02-26T08:32:46.180Z
+    updatedAt: 2026-02-26T08:32:46.180Z
   - id: US-053
     title: Proxy test — playback still captures JSONL
-    status: open
+    status: done
     dependsOn:
       - US-051
     description: |
@@ -1395,10 +1482,12 @@ stories:
     acceptanceCriteria:
       - Playback response served
       - Capture file has JSONL line for the exchange
-
+    startedAt: 2026-02-26T08:32:46.329Z
+    completedAt: 2026-02-26T08:36:09.318Z
+    updatedAt: 2026-02-26T08:36:09.318Z
   - id: US-054
     title: Proxy test — deterministic key generation
-    status: open
+    status: done
     dependsOn:
       - US-029
     description: |
@@ -1406,10 +1495,12 @@ stories:
     acceptanceCriteria:
       - Same { model, messages } produces same key both times
       - Different messages produces different key
-
+    startedAt: 2026-02-26T08:36:09.452Z
+    completedAt: 2026-02-26T08:38:43.070Z
+    updatedAt: 2026-02-26T08:38:43.070Z
   - id: US-055
     title: Proxy test — multiple requests produce multiple JSONL lines
-    status: open
+    status: done
     dependsOn:
       - US-046
     description: |
@@ -1419,10 +1510,12 @@ stories:
       - 3 requests sent
       - Capture file has 3 lines
       - Each line valid JSON parseable as CapturedExchange
-
+    startedAt: 2026-02-26T08:38:43.200Z
+    completedAt: 2026-02-26T08:41:22.509Z
+    updatedAt: 2026-02-26T08:41:22.509Z
   - id: US-056
     title: Proxy test — route prefix matching
-    status: open
+    status: done
     dependsOn:
       - US-031
     description: |
@@ -1431,11 +1524,12 @@ stories:
       - Route "/v1/chat" matches request "/v1/chat/completions"
       - Route "/v1/chat/completions" does NOT match "/v1/models"
       - First matching route wins when routes overlap
-
-  # ── Step 8: Docker e2e test ───────────────────────────────────────────
+    startedAt: 2026-02-26T08:41:22.676Z
+    completedAt: 2026-02-26T08:43:28.368Z
+    updatedAt: 2026-02-26T08:43:28.368Z
   - id: US-057
     title: Create e2e fixture snapshot files for poe-agent MCP test
-    status: open
+    status: done
     dependsOn:
       - US-035
     description: |
@@ -1446,10 +1540,12 @@ stories:
       - Snapshot files for 2-turn conversation (tool_call + final answer)
       - First snapshot has tool_call for mcp__test-server__word_of_the_day
       - Second snapshot has final answer containing "Bumfuzzle"
-
+    startedAt: 2026-02-26T08:43:28.557Z
+    completedAt: 2026-02-26T08:48:48.591Z
+    updatedAt: 2026-02-26T08:48:48.591Z
   - id: US-058
     title: Update Docker image for proxy and poe-agent
-    status: open
+    status: done
     dependsOn:
       - US-032
     description: |
@@ -1459,10 +1555,12 @@ stories:
       - e2e.Dockerfile includes poe-agent as importable package
       - proxy-server binary built and available on container PATH
       - Existing e2e tests still pass (no regression)
-
+    startedAt: 2026-02-26T09:06:56.705Z
+    completedAt: 2026-02-26T09:18:43.014Z
+    updatedAt: 2026-02-26T09:18:43.014Z
   - id: US-059
     title: Implement Docker e2e test for poe-agent + MCP
-    status: open
+    status: done
     dependsOn:
       - US-057
       - US-058
@@ -1480,11 +1578,12 @@ stories:
       - First request has toHaveToolInRequest("mcp__test-server__caesar_cipher_encrypt")
       - First request has toHaveToolInRequest("read_file")
       - Second request has toHaveToolResult("mcp__test-server__word_of_the_day", "Bumfuzzle")
-
-  # ── Step 9: Additional edge case tests ────────────────────────────────
+    startedAt: 2026-02-26T09:58:35.995Z
+    completedAt: 2026-02-26T10:19:39.000Z
+    updatedAt: 2026-02-26T10:19:39.000Z
   - id: US-060
     title: Additional McpToolExecutor tests — zero tools server
-    status: open
+    status: done
     dependsOn:
       - US-006
     description: |
@@ -1492,10 +1591,12 @@ stories:
     acceptanceCriteria:
       - addServer succeeds without error
       - getAvailableTools returns empty array for that server
-
+    startedAt: 2026-02-26T10:19:39.200Z
+    completedAt: 2026-02-26T10:22:38.410Z
+    updatedAt: 2026-02-26T10:22:38.410Z
   - id: US-061
     title: Additional McpToolExecutor tests — paginated tool list
-    status: open
+    status: done
     dependsOn:
       - US-006
     description: |
@@ -1503,10 +1604,12 @@ stories:
     acceptanceCriteria:
       - Server returns { tools [tool1], nextCursor "page2" } then { tools [tool2] }
       - Both tools appear in getAvailableTools
-
+    startedAt: 2026-02-26T10:22:38.570Z
+    completedAt: 2026-02-26T10:25:25.767Z
+    updatedAt: 2026-02-26T10:25:25.767Z
   - id: US-062
     title: Additional McpToolExecutor tests — duplicate tool names across servers
-    status: open
+    status: done
     dependsOn:
       - US-006
     description: |
@@ -1516,10 +1619,12 @@ stories:
       - Both servers expose "encrypt"
       - Namespaced as mcp__server-a__encrypt and mcp__server-b__encrypt
       - Both discoverable and executable independently
-
+    startedAt: 2026-02-26T10:25:25.938Z
+    completedAt: 2026-02-26T10:28:37.604Z
+    updatedAt: 2026-02-26T10:28:37.604Z
   - id: US-063
     title: Additional McpToolExecutor tests — tool name with special characters
-    status: open
+    status: done
     dependsOn:
       - US-008
     description: |
@@ -1528,20 +1633,24 @@ stories:
       - Tool named "my-tool_v2.0" is registered
       - executeTool("mcp__server__my-tool_v2.0", {}) routes correctly
       - Round-trip through callTool works
-
+    startedAt: 2026-02-26T10:28:37.783Z
+    completedAt: 2026-02-26T10:30:59.426Z
+    updatedAt: 2026-02-26T10:30:59.426Z
   - id: US-064
     title: Additional McpToolExecutor tests — disposed executor throws
-    status: open
+    status: done
     dependsOn:
       - US-009
     description: |
       As a developer, I want a test verifying executeTool after dispose throws.
     acceptanceCriteria:
       - After dispose(), executeTool throws or client is closed
-
+    startedAt: 2026-02-26T10:30:59.586Z
+    completedAt: 2026-02-26T10:33:36.334Z
+    updatedAt: 2026-02-26T10:33:36.334Z
   - id: US-065
     title: Additional McpToolExecutor tests — dispose with failing client
-    status: open
+    status: done
     dependsOn:
       - US-009
     description: |
@@ -1551,10 +1660,12 @@ stories:
       - Two clients, first throws on close
       - Second client still closed
       - dispose() does not throw
-
+    startedAt: 2026-02-26T10:33:36.488Z
+    completedAt: 2026-02-26T10:35:43.168Z
+    updatedAt: 2026-02-26T10:35:43.168Z
   - id: US-066
     title: Export proxy utilities from e2e-docker-test-runner
-    status: open
+    status: done
     dependsOn:
       - US-036
       - US-044
@@ -1566,11 +1677,12 @@ stories:
       - CapturedExchange type exported
       - Proxy matchers registered (side-effect import)
       - All exports accessible from @poe-code/e2e-docker-test-runner
-
-  # ── Step 10: Exploratory validation ──────────────────────────────────
+    startedAt: 2026-02-26T10:35:43.320Z
+    completedAt: 2026-02-26T10:39:13.383Z
+    updatedAt: 2026-02-26T10:39:13.383Z
   - id: US-067
     title: Explore — MCP tool discovery via poe-agent SDK
-    status: open
+    status: done
     dependsOn:
       - US-012
     description: |
@@ -1581,24 +1693,28 @@ stories:
       - Run npm run dev with poe-agent and --mcp-config pointing at tiny-stdio-mcp-test-server
       - Use screenshot or log output to confirm merged tool list includes mcp__test-server__word_of_the_day alongside built-in tools
       - Verify tool count matches expected (5 built-in + 2 MCP = 7)
-
+    startedAt: 2026-02-26T10:39:13.543Z
+    completedAt: 2026-02-26T10:45:04.955Z
+    updatedAt: 2026-02-26T10:45:04.955Z
   - id: US-068
     title: Explore — MCP tool call round-trip via CLI spawn
-    status: open
+    status: done
     dependsOn:
       - US-067
     description: |
       As a developer, I want to verify the full CLI spawn path for poe-agent
       with MCP by running poe-code spawn with a real prompt and inspecting output.
     acceptanceCriteria:
-      - 'Run: npm run dev -- spawn --mcp-config ''{"test-server":{"command":"tiny-stdio-mcp-test-server","args":["serve","word-of-the-day"]}}'' poe-agent "What is the word of the day?"'
+      - "Run: npm run dev -- spawn --mcp-config '{\"test-server\":{\"command\":\"tiny-stdio-mcp-test-server\",\"args\":[\"serve\",\"word-of-the-day\"]}}' poe-agent \"What is the word of the day?\""
       - Output contains "bumfuzzle" (case insensitive)
       - Exit code 0
       - No error messages in stderr
-
+    startedAt: 2026-02-26T10:45:05.119Z
+    completedAt: 2026-02-26T10:47:05.098Z
+    updatedAt: 2026-02-26T10:47:05.098Z
   - id: US-069
     title: Explore — proxy playback mode serves canned responses
-    status: open
+    status: done
     dependsOn:
       - US-035
     description: |
@@ -1607,13 +1723,15 @@ stories:
       request, and checking the response matches the snapshot.
     acceptanceCriteria:
       - Start proxy-server locally with a hand-written snapshot file
-      - 'curl -X POST http://localhost:3456/v1/chat/completions with a matching request body'
+      - curl -X POST http://localhost:3456/v1/chat/completions with a matching request body
       - Response matches the snapshot file content
       - Capture JSONL file contains the exchange
-
+    startedAt: 2026-02-26T10:47:05.250Z
+    completedAt: 2026-02-26T10:50:14.413Z
+    updatedAt: 2026-02-26T10:50:14.413Z
   - id: US-070
     title: Explore — proxy record mode captures real API responses
-    status: open
+    status: done
     dependsOn:
       - US-069
     description: |
@@ -1626,10 +1744,12 @@ stories:
       - Verify snapshot file was created with correct key
       - Restart proxy in playback mode (no API key)
       - Same request returns the recorded snapshot
-
+    startedAt: 2026-02-26T10:50:14.568Z
+    completedAt: 2026-02-26T10:55:46.314Z
+    updatedAt: 2026-02-26T10:55:46.314Z
   - id: US-071
     title: Explore — useContainer with snapshotDir in Docker e2e
-    status: open
+    status: done
     dependsOn:
       - US-059
     description: |
@@ -1642,10 +1762,12 @@ stories:
       - Container logs show POE_BASE_URL is set
       - Test passes with captured requests assertions
       - No proxy-related errors in stderr
-
+    startedAt: 2026-02-26T10:55:46.517Z
+    completedAt: 2026-02-26T10:59:15.633Z
+    updatedAt: 2026-02-26T10:59:15.633Z
   - id: US-072
     title: Explore — CapturedRequests filtering and exploration
-    status: open
+    status: done
     dependsOn:
       - US-071
     description: |
@@ -1658,10 +1780,12 @@ stories:
       - Verify requests.toolNamesAt(0) returns the expected tool list
       - Verify requests.withToolCalls() filters to only tool_call responses
       - Verify requests.toolResultAt(1, "mcp__test-server__word_of_the_day") returns content with "Bumfuzzle"
-
+    startedAt: 2026-02-26T10:59:15.766Z
+    completedAt: 2026-02-26T11:02:25.838Z
+    updatedAt: 2026-02-26T11:02:25.838Z
   - id: US-073
     title: Explore — proxy matcher failure messages are helpful
-    status: open
+    status: done
     dependsOn:
       - US-072
     description: |
@@ -1675,10 +1799,12 @@ stories:
       - Failure message shows all actual tool names present
       - Failure message shows full exchange context (route, method, path, model, messages)
       - Remove the failing assertion after verification
-
+    startedAt: 2026-02-26T11:02:26.026Z
+    completedAt: 2026-02-26T11:05:08.446Z
+    updatedAt: 2026-02-26T11:05:08.446Z
   - id: US-074
     title: Explore — existing e2e tests unaffected by proxy changes
-    status: open
+    status: done
     dependsOn:
       - US-035
     description: |
@@ -1690,10 +1816,12 @@ stories:
       - All existing tests pass (no regressions)
       - No proxy startup or POE_BASE_URL override in tests without snapshotDir
       - Test timing is not significantly degraded
-
+    startedAt: 2026-02-26T11:05:08.585Z
+    completedAt: 2026-02-26T11:09:06.950Z
+    updatedAt: 2026-02-26T11:09:06.950Z
   - id: US-075
     title: Explore — poe-agent session dispose cleans up MCP processes
-    status: open
+    status: done
     dependsOn:
       - US-067
     description: |
@@ -1705,10 +1833,12 @@ stories:
       - Call session.dispose()
       - Verify the child process is no longer running (ps check)
       - No zombie processes left behind
-
+    startedAt: 2026-02-26T11:09:07.118Z
+    completedAt: 2026-02-26T11:13:06.492Z
+    updatedAt: 2026-02-26T11:13:06.492Z
   - id: US-076
     title: Explore — McpServerDefinition types work in SDK consumers
-    status: open
+    status: done
     dependsOn:
       - US-012
     description: |
@@ -1721,3 +1851,6 @@ stories:
       - npx tsc --noEmit confirms no type errors
       - Types provide proper autocomplete (transport discriminator narrows fields)
       - Delete the temporary file after verification
+    startedAt: 2026-02-26T11:13:06.607Z
+    completedAt: 2026-02-26T11:15:45.104Z
+    updatedAt: 2026-02-26T11:15:45.104Z

@@ -2154,7 +2154,6 @@ stripModelNamespace("openai/gpt-5.2")              // → "gpt-5.2"
 | `POE_AUDIO_MODEL` | `elevenlabs/elevenlabs-v3` | Override default audio generation model. |
 | `POE_CODE_STDERR_LOGS` | — | Set to `1` or `true` to enable stderr logging for bootstrap errors. |
 | `POE_SNAPSHOT_MODE` | `playback` | Testing: `record` to record LLM responses, `playback` to replay. |
-| `POE_SNAPSHOT_DIR` | `.snapshots` | Testing: directory for snapshot storage. |
 | `POE_SNAPSHOT_MISS` | `error` | Testing: behavior on missing snapshot: `error`, `warn`, `passthrough`. |
 
 ---

@@ -173,6 +173,51 @@ stories: []
     expect(prd.requirements).toEqual([]);
   });
 
+  it("auto-generates requirement id from index when missing", () => {
+    const yaml = `
+version: 1
+project: Optional id
+requirements:
+  - title: No id requirement
+    scenarios: []
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd.requirements[0]!.id).toBe("R-001");
+  });
+
+  it("auto-generates requirement title when missing", () => {
+    const yaml = `
+version: 1
+project: Optional title
+requirements:
+  - id: R-042
+    scenarios: []
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd.requirements[0]!.title).toBe("Requirement R-042");
+  });
+
+  it("auto-generates both id and title when both missing", () => {
+    const yaml = `
+version: 1
+project: Minimal req
+requirements:
+  - scenarios: []
+  - scenarios: []
+stories: []
+`;
+
+    const prd = parsePlan(yaml);
+    expect(prd.requirements[0]!.id).toBe("R-001");
+    expect(prd.requirements[0]!.title).toBe("Requirement R-001");
+    expect(prd.requirements[1]!.id).toBe("R-002");
+    expect(prd.requirements[1]!.title).toBe("Requirement R-002");
+  });
+
   it("captures unknown requirement-level fields in requirement _extra", () => {
     const yaml = `
 version: 1

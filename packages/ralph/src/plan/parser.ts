@@ -103,9 +103,10 @@ function parseRequirement(value: unknown, index: number): Requirement {
     throw new Error(`Invalid requirements[${index}].scenarios: expected array`);
   }
 
+  const id = asOptionalString(value.id, `requirements[${index}].id`) ?? `R-${String(index + 1).padStart(3, "0")}`;
   const req: Requirement = {
-    id: asRequiredString(value.id, `requirements[${index}].id`),
-    title: asRequiredString(value.title, `requirements[${index}].title`),
+    id,
+    title: asOptionalString(value.title, `requirements[${index}].title`) ?? `Requirement ${id}`,
     description: asOptionalString(value.description, `requirements[${index}].description`),
     scenarios: scenarios.map((s, i) => parseScenario(s, i, index)),
     status: normalizeRequirementStatus(value.status),

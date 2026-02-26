@@ -207,23 +207,30 @@ stories: []
     expect(clackSelect).not.toHaveBeenCalled();
   });
 
-  it("includes the file path when a plan fails to parse", async () => {
-    const corruptedPlan = `
+  it("discovers plans with optional requirement fields", async () => {
+    const planWithOptionalFields = `
 version: 1
-project: broken
+project: optional-fields
 requirements:
   - title: No ID requirement
     scenarios: []
-stories: []
+stories:
+  - id: US-001
+    title: A story
+    status: open
 `;
 
     const fs = createMemFs({
-      "/repo/.agents/poe-code-ralph/plans/plan-broken.yaml": corruptedPlan
+      "/repo/.agents/poe-code-ralph/plans/plan-optional.yaml": planWithOptionalFields
     });
 
-    await expect(
-      resolvePlanPath({ cwd: "/repo", assumeYes: true, fs: asPlanFs(fs) })
-    ).rejects.toThrow(/plan-broken\.yaml/);
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      assumeYes: true,
+      fs: asPlanFs(fs)
+    });
+
+    expect(result).toBe(".agents/poe-code-ralph/plans/plan-optional.yaml");
   });
 
   it("returns null when the prompt is cancelled", async () => {

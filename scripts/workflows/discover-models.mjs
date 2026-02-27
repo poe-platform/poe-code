@@ -451,7 +451,9 @@ async function fetchProjectId(fetchFn, token, owner, number, warn) {
       }
     }
   `;
-  const payload = await githubGraphql(fetchFn, token, query, { owner, number }, warn);
+  const payload = await githubGraphql(fetchFn, token, query, { owner, number }, warn, {
+    suppressErrors: isProjectV2NotFoundErrors
+  });
   return payload?.data?.organization?.projectV2?.id ?? null;
 }
 
@@ -474,7 +476,33 @@ async function addIssueToProject(fetchFn, token, projectId, issueNodeId, warn) {
   }, warn);
 }
 
-async function githubGraphql(fetchFn, token, query, variables, warn) {
+function isProjectV2NotFoundErrors(errors) {
+  if (!Array.isArray(errors) || errors.length === 0) {
+    return false;
+  }
+
+  for (const error of errors) {
+    if (!error || typeof error !== "object") {
+      return false;
+    }
+    if (error.type !== "NOT_FOUND") {
+      return false;
+    }
+    if (!Array.isArray(error.path)) {
+      return false;
+    }
+    if (error.path.length !== 2) {
+      return false;
+    }
+    if (error.path[0] !== "organization" || error.path[1] !== "projectV2") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function githubGraphql(fetchFn, token, query, variables, warn, options = {}) {
   const response = await fetchFn("https://api.github.com/graphql", {
     method: "POST",
     headers: githubHeaders(token),
@@ -488,17 +516,28 @@ async function githubGraphql(fetchFn, token, query, variables, warn) {
   }
   const payload = await response.json();
   if (payload.errors) {
+    if (options.suppressErrors?.(payload.errors)) {
+      return null;
+    }
     warn(`GraphQL request returned errors: ${JSON.stringify(payload.errors)}`);
     return null;
   }
   return payload;
 }
 
+function execModelsRaw(exec, args) {
+  return exec("poe-code", args, {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      OUTPUT_FORMAT: "json"
+    }
+  });
+}
+
 function loadModelCatalog(exec, warn) {
   try {
-    const raw = exec("poe-code", ["models", "--view", "raw"], {
-      encoding: "utf8"
-    });
+    const raw = execModelsRaw(exec, ["models", "--view", "raw"]);
     const parsed = yamlParse(raw);
     if (!Array.isArray(parsed)) {
       return [];
@@ -529,9 +568,7 @@ async function resolveModelMetadata(modelId, modelLookup, exec, warn) {
   }
 
   try {
-    const raw = exec("poe-code", ["models", "--model", modelId, "--view", "raw"], {
-      encoding: "utf8"
-    });
+    const raw = execModelsRaw(exec, ["models", "--model", modelId, "--view", "raw"]);
     const parsed = yamlParse(raw);
     const first = Array.isArray(parsed) ? parsed[0] : null;
     if (!first || typeof first !== "object") {

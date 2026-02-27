@@ -389,6 +389,38 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     });
   });
 
+  it('strips content-encoding and transfer-encoding from upstream response', async () => {
+    const gzipServer = createServer((_req, res) => {
+      res.statusCode = 200;
+      res.setHeader('content-type', 'application/json');
+      res.setHeader('content-encoding', 'gzip');
+      res.setHeader('transfer-encoding', 'chunked');
+      res.end(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }));
+    });
+    const gzipPort = await listen(gzipServer);
+    closeHandles.push(async () => { await close(gzipServer); });
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [{ path: '/v1', target: `http://127.0.0.1:${gzipPort}`, mode: 'playback' }],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'test', messages: [{ role: 'user', content: 'hi' }] }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-encoding')).toBeNull();
+    expect(response.headers.get('transfer-encoding')).toBeNull();
+    const body = await response.json();
+    expect(body).toEqual({ choices: [{ message: { content: 'ok' } }] });
+  });
+
   it('captures request/response bodies, path, and timestamp as JSONL', async () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);

@@ -165,6 +165,21 @@ function toUpstreamHeaders(headers: Record<string, string>): Record<string, stri
   return nextHeaders;
 }
 
+function writeUpstreamResponse(
+  response: ServerResponse,
+  upstream: { status: number; raw: string; headers: Headers },
+): void {
+  response.statusCode = upstream.status;
+  for (const [name, value] of upstream.headers.entries()) {
+    const lower = name.toLowerCase();
+    if (lower === 'content-encoding' || lower === 'transfer-encoding') {
+      continue;
+    }
+    response.setHeader(name, value);
+  }
+  response.end(upstream.raw);
+}
+
 function matchRoute(routes: ProxyRoute[], path: string): ProxyRoute | undefined {
   return routes.find((route) => path.startsWith(route.path));
 }
@@ -288,11 +303,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
         };
         await appendFile(config.captureFile, `${JSON.stringify(exchange)}\n`);
 
-        response.statusCode = upstream.status;
-        for (const [name, value] of upstream.headers.entries()) {
-          response.setHeader(name, value);
-        }
-        response.end(upstream.raw);
+        writeUpstreamResponse(response, upstream);
         return;
       }
 
@@ -309,11 +320,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
         };
         await appendFile(config.captureFile, `${JSON.stringify(exchange)}\n`);
 
-        response.statusCode = upstream.status;
-        for (const [name, value] of upstream.headers.entries()) {
-          response.setHeader(name, value);
-        }
-        response.end(upstream.raw);
+        writeUpstreamResponse(response, upstream);
         return;
       }
 

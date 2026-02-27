@@ -23,6 +23,7 @@ import { registerVersionOption } from "./commands/version.js";
 import { registerRalphCommand } from "./commands/ralph.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerModelsCommand } from "./commands/models.js";
+import { registerDefaultModelCommand } from "./commands/default-model.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -127,6 +128,16 @@ function formatHelpText(input: {
         name: "usage list",
         args: "",
         description: "Display usage history"
+      },
+      {
+        name: "default-model set",
+        args: "",
+        description: "Set the default model for a tool or globally"
+      },
+      {
+        name: "default-model show",
+        args: "",
+        description: "Show all configured default models"
       }
     ];
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
@@ -320,6 +331,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerRalphCommand(program, container);
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
+  registerDefaultModelCommand(program, container);
 
   program.allowExcessArguments().action(function (this: Command) {
     const args = this.args;

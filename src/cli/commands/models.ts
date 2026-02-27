@@ -118,7 +118,8 @@ export function registerModelsCommand(
     .command("models")
     .description("List available Poe API models.")
     .option("--provider <name>", "Filter by provider name")
-    .option("--model <name>", "Filter by model id")
+    .option("--model <name>", "Filter by exact model id")
+    .option("--search <term>", "Search model id and provider name")
     .option("--feature <name>", "Filter by feature (tools, web_search, reasoning)")
     .option("--input <modalities>", "Filter by input modalities (e.g. text,image)")
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
@@ -129,7 +130,8 @@ export function registerModelsCommand(
       "",
       "Filters:",
       "  --provider   Substring match on provider/owner (e.g. anthropic, openai)",
-      "  --model      Substring match on model id (e.g. sonnet, gpt)",
+      "  --model      Exact model id match (case-insensitive, e.g. gpt-5.2-codex)",
+      "  --search     Substring match on model id and provider (e.g. sonnet, openai)",
       "  --feature    Exact match: tools, web_search, or reasoning",
       "  --input      Comma-separated input modalities: text, image, audio, video",
       "  --output     Comma-separated output modalities: text, image, audio",
@@ -146,7 +148,8 @@ export function registerModelsCommand(
       "  $ poe-code models --provider anthropic",
       "  $ poe-code models --feature reasoning --since 3mo",
       "  $ poe-code models --input image --view pricing",
-      "  $ poe-code models --model claude --view parameters",
+      "  $ poe-code models --search claude --view parameters",
+      "  $ poe-code models --model claude-opus-4.6 --view raw",
       "  $ poe-code models --since 2w --output text"
     ].join("\n"))
     .action(async function (this: Command) {
@@ -159,6 +162,7 @@ export function registerModelsCommand(
       const commandOptions = this.opts<{
         provider?: string;
         model?: string;
+        search?: string;
         feature?: string;
         input?: string;
         output?: string;
@@ -230,7 +234,14 @@ export function registerModelsCommand(
         if (commandOptions.model) {
           const term = commandOptions.model.toLowerCase();
           filtered = filtered.filter((m) =>
-            m.id.toLowerCase().includes(term)
+            m.id.toLowerCase() === term
+          );
+        }
+        if (commandOptions.search) {
+          const term = commandOptions.search.toLowerCase();
+          filtered = filtered.filter((m) =>
+            m.id.toLowerCase().includes(term) ||
+            m.owned_by.toLowerCase().includes(term)
           );
         }
         if (commandOptions.feature) {

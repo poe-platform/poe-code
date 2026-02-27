@@ -194,7 +194,25 @@ describe("models command", () => {
     expect(output).not.toContain("openai/gpt-5");
   });
 
-  it("filters by --model (case-insensitive)", async () => {
+  it("filters by --model exact match (case-insensitive)", async () => {
+    fs = createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "gpt-5", owned_by: "OpenAI" }),
+      createModelEntry({ id: "gpt-5-mini", owned_by: "OpenAI" })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--model", "GpT-5"] });
+
+    expect(output).toContain("openai/gpt-5");
+    expect(output).not.toContain("openai/gpt-5-mini");
+  });
+
+  it("filters by --search using substring match on model id and provider", async () => {
     fs = createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" }),
@@ -206,10 +224,14 @@ describe("models command", () => {
       json: async () => ({ object: "list", data: models })
     });
 
-    const output = await runModels({ fs, httpClient, logs, args: ["--model", "GPT"] });
+    const byProvider = await runModels({ fs, httpClient, logs, args: ["--search", "throp"] });
+    expect(byProvider).toContain("anthropic/claude-sonnet");
+    expect(byProvider).not.toContain("openai/gpt-5");
 
-    expect(output).not.toContain("anthropic/claude-sonnet");
-    expect(output).toContain("openai/gpt-5");
+    logs = [];
+    const byModel = await runModels({ fs, httpClient, logs, args: ["--search", "gpt"] });
+    expect(byModel).toContain("openai/gpt-5");
+    expect(byModel).not.toContain("anthropic/claude-sonnet");
   });
 
   it("filters by --tools (shorthand for --feature tools)", async () => {

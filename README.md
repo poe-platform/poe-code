@@ -72,6 +72,21 @@ npx poe-code@latest spawn codex "Say hello"
 echo "Say hello" | npx poe-code@latest spawn codex
 ```
 
+#### Set a default model
+
+```bash
+# Set global default model
+npx poe-code@latest default-model set --model anthropic/claude-sonnet-4.6
+
+# Set default model for a specific tool
+npx poe-code@latest default-model set --tool codex --model anthropic/claude-sonnet-4.6
+
+# Show all configured default models
+npx poe-code@latest default-model show
+```
+
+When no model is specified in a spawn or wrap call, the tool-specific default is used, falling back to the global default.
+
 #### Test a configured service
 
 ```bash

@@ -162,17 +162,47 @@ jobs:
             core.setOutput("branch", preferredBranch);
             core.setOutput("pr_number", "");
 
+      - name: Generate PR metadata
+        if: steps.auth.outputs.allowed == 'true' && (steps.target.outputs.mode != 'pr' || steps.target.outputs.same_repo != 'true')
+        id: generated_pr_metadata
+        continue-on-error: true
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node scripts/workflows/generate-pr-metadata.cjs
+
+      - name: Resolve PR metadata
+        if: steps.auth.outputs.allowed == 'true' && (steps.target.outputs.mode != 'pr' || steps.target.outputs.same_repo != 'true')
+        id: pr_metadata
+        uses: actions/github-script@v7
+        env:
+          GENERATED_TITLE: ${{ steps.generated_pr_metadata.outputs.title }}
+          GENERATED_BODY: ${{ steps.generated_pr_metadata.outputs.body }}
+        with:
+          script: |
+            const issueNumber = context.payload.issue.number;
+            const commenter = context.payload.comment?.user?.login ?? "unknown";
+            const defaultTitle = `fix: resolve issue #${issueNumber}`;
+            const defaultBody = [
+              `Resolves #${issueNumber}`,
+              "",
+              `Triggered by comment from @${commenter}.`
+            ].join("\n");
+
+            const title = (process.env.GENERATED_TITLE ?? "").trim() || defaultTitle;
+            const body = (process.env.GENERATED_BODY ?? "").trim() || defaultBody;
+            core.setOutput("title", title);
+            core.setOutput("body", body);
+
       - name: Create pull request if changes exist
         if: steps.auth.outputs.allowed == 'true' && (steps.target.outputs.mode != 'pr' || steps.target.outputs.same_repo != 'true')
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.app_token.outputs.token }}
           branch: ${{ steps.issue_branch.outputs.branch }}
-          title: "fix: resolve issue #${{ github.event.issue.number }}"
-          body: |
-            Resolves #${{ github.event.issue.number }}
-
-            Triggered by comment from @${{ github.event.comment.user.login }}.
+          title: ${{ steps.pr_metadata.outputs.title }}
+          body: ${{ steps.pr_metadata.outputs.body }}
           commit-message: "fix: resolve issue #${{ github.event.issue.number }}"
           delete-branch: true
 

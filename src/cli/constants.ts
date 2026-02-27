@@ -32,6 +32,7 @@ export function stripModelNamespace(model: string): string {
 }
 
 export const CODEX_MODELS = [
+  "anthropic/claude-sonnet-4.6",
   "openai/gpt-5.3-codex",
   "openai/gpt-5.2-codex",
   "openai/gpt-5.2",

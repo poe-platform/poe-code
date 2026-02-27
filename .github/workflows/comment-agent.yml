@@ -64,6 +64,20 @@ jobs:
             core.setOutput("head_ref", pr.data.head.ref);
             core.setOutput("same_repo", String(headRepo === currentRepo));
 
+      - name: Mark issue in progress
+        if: steps.auth.outputs.allowed == 'true' && steps.target.outputs.mode == 'issue'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.app_token.outputs.token }}
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              labels: ["in progress"]
+            });
+
       - name: Checkout PR head branch (same repo)
         if: steps.auth.outputs.allowed == 'true' && steps.target.outputs.mode == 'pr' && steps.target.outputs.same_repo == 'true'
         uses: actions/checkout@v4
@@ -209,6 +223,26 @@ jobs:
       - name: Push commits to existing PR branch
         if: steps.auth.outputs.allowed == 'true' && steps.target.outputs.mode == 'pr' && steps.target.outputs.same_repo == 'true'
         run: git push origin "HEAD:${{ steps.target.outputs.head_ref }}"
+
+      - name: Clear issue in progress
+        if: always() && steps.auth.outputs.allowed == 'true' && steps.target.outputs.mode == 'issue'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.app_token.outputs.token }}
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                name: "in progress"
+              });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
 
       - name: React with thumbs up on success
         if: success() && steps.auth.outputs.allowed == 'true'

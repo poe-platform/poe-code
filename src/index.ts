@@ -6,6 +6,11 @@ import { pathToFileURL } from "node:url";
 export { spawn } from "./sdk/spawn.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey } from "./sdk/credentials.js";
+export {
+  setDefaultModel,
+  getDefaultModels,
+  resolveDefaultModel
+} from "./sdk/default-model.js";
 export type {
   SpawnOptions,
   SpawnResult,
@@ -14,6 +19,7 @@ export type {
   GenerateResult,
   MediaGenerateResult
 } from "./sdk/types.js";
+export type { DefaultModelsConfig } from "./sdk/default-model.js";
 
 async function main(): Promise<void> {
   const [{ createProgram }, { createCliMain }] = await Promise.all([

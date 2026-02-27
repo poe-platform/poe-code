@@ -133,13 +133,58 @@ jobs:
           script: |
             const { readFileSync } = require("node:fs");
             const path = process.env.AGENT_OUTPUT_FILE;
-            const output = path ? readFileSync(path, "utf8").trim() : "";
-            const body = output || "_No output from agent._";
+            const rawOutput = path ? readFileSync(path, "utf8") : "";
+
+            function stripAnsi(value) {
+              return value
+                .replace(/\u001B\][^\u0007]*(?:\u0007|\u001B\\)/g, "")
+                .replace(/\u001B\[[0-?]*[ -/]*[@-~]/g, "")
+                .replace(/\u001B[@-_]/g, "");
+            }
+
+            function sanitizeOutput(value) {
+              return stripAnsi(value)
+                .replace(/\r\n/g, "\n")
+                .replace(/[\u0000-\u0008\u000B-\u001A\u001C-\u001F\u007F]/g, "")
+                .trim();
+            }
+
+            function escapeHtml(value) {
+              return value
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;");
+            }
+
+            const output = sanitizeOutput(rawOutput);
+            const previewLine = output.split("\n").find((line) => line.trim()) || "";
+            const preview = previewLine.length > 120
+              ? `${previewLine.slice(0, 117)}...`
+              : previewLine;
+            const summaryText = preview ? `Agent output: ${preview}` : "Show full output";
+            const summary = escapeHtml(summaryText);
+            const fence = output.includes("```") ? "````" : "```";
+
+            const body = output
+              ? [
+                  "**Agent response:**",
+                  "",
+                  "<details>",
+                  `<summary>${summary}</summary>`,
+                  "",
+                  `${fence}text`,
+                  output,
+                  fence,
+                  "</details>"
+                ].join("\n")
+              : "**Agent response:**\n\n_No output from agent._";
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
-              body: `**Agent response:**\n\n${body}`
+              body
             });
 
       - name: Create pull request if changes exist

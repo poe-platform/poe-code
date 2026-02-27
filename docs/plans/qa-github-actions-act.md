@@ -26,7 +26,7 @@ act -l
 
 - Scans `.github/workflows/`, parses YAML, prints job table
 - Validates all workflow files are parseable
-- **Expected:** 10 files, 12 jobs
+- **Expected:** Workflow list includes `model-discovery.yml` and all workflows parse successfully
 
 ### TC-2: Dry-run PR checks workflow
 
@@ -93,6 +93,25 @@ act -W .github/workflows/pr-checks.yml -j test
 - Runs npm ci → build → test → smoke inside container
 - No secrets needed for pr-checks
 - **Expected:** Build and tests pass. Catches dep/Node/script issues before pushing.
+
+### TC-8: Dry-run model-discovery workflow
+
+```bash
+act schedule -W .github/workflows/model-discovery.yml -e .github/act-events/model-discovery.json -n
+```
+
+- Loads fixture with `schedule` trigger
+- Walks jobs: `discover` and conditional `resolve`
+- **Expected:** All steps dry-run successfully
+
+### TC-9: Dry-run model-discovery with workflow_dispatch
+
+```bash
+act workflow_dispatch -W .github/workflows/model-discovery.yml -n
+```
+
+- Validates manual trigger path
+- **Expected:** `discover` dry-runs; `resolve` behavior follows fixture outputs
 
 ## Smoke Test (manual)
 

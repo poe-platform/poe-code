@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Volume, createFsFromVolume } from "memfs";
 import { McpClient, createTestPair } from "tiny-mcp-client";
 import { createTestServer } from "tiny-stdio-mcp-test-server";
@@ -7,6 +9,11 @@ import type { ChatMessage } from "./chat.js";
 import { PoeChatService } from "./chat.js";
 import { McpToolExecutor } from "./mcp-tool-executor.js";
 import { DefaultToolExecutor, type ToolExecutorFileSystem } from "./tool-executor.js";
+
+const testServerCliPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../tiny-stdio-mcp-test-server/dist/cli.js",
+);
 
 function createScriptedFetch(
   responses: Array<{ message: ChatMessage }>,
@@ -1056,8 +1063,8 @@ describe("integration: agent session disposal with MCP", () => {
         mcpServers: {
           "test-server": {
             transport: "stdio",
-            command: "tiny-stdio-mcp-test-server",
-            args: ["serve", "word-of-the-day"],
+            command: process.execPath,
+            args: [testServerCliPath, "serve", "word-of-the-day"],
           },
         },
       });

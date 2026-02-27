@@ -64,73 +64,13 @@ jobs:
 
       - name: Build prompt and spawn agent
         if: steps.auth.outputs.allowed == 'true'
-        id: agent
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          set -o pipefail
           PROMPT=$(node scripts/workflows/build-issue-prompt.cjs)
-          OUTPUT_FILE="$RUNNER_TEMP/agent-output-issue-${{ github.event.issue.number }}.txt"
-          poe-code spawn claude-code "$PROMPT" | tee "$OUTPUT_FILE"
-          echo "output_file=$OUTPUT_FILE" >> "$GITHUB_OUTPUT"
-
-      - name: Post agent response
-        if: steps.auth.outputs.allowed == 'true'
-        uses: actions/github-script@v7
-        env:
-          AGENT_OUTPUT_FILE: ${{ steps.agent.outputs.output_file }}
-        with:
-          script: |
-            const { readFileSync } = require("node:fs");
-            const path = process.env.AGENT_OUTPUT_FILE;
-            const rawOutput = path ? readFileSync(path, "utf8") : "";
-
-            function stripAnsi(value) {
-              return value
-                .replace(/\u001B\][^\u0007]*(?:\u0007|\u001B\\)/g, "")
-                .replace(/\u001B\[[0-?]*[ -/]*[@-~]/g, "")
-                .replace(/\u001B[@-_]/g, "");
-            }
-
-            function sanitizeOutput(value) {
-              return stripAnsi(value)
-                .replace(/\r\n/g, "\n")
-                .replace(/[\u0000-\u0008\u000B-\u001A\u001C-\u001F\u007F]/g, "")
-                .trim();
-            }
-
-            function encodeBranchPath(branchName) {
-              return branchName.split("/").map((part) => encodeURIComponent(part)).join("/");
-            }
-
-            const output = sanitizeOutput(rawOutput);
-            const fence = output.includes("```") ? "````" : "```";
-            const branchName = `agent/auto-resolve/issue-${context.payload.issue.number}`;
-            const branchUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/tree/${encodeBranchPath(branchName)}`;
-            const branchLine = `Branch: [\`${branchName}\`](${branchUrl})`;
-
-            const body = output
-              ? [
-                  branchLine,
-                  "",
-                  "<details>",
-                  "<summary>Agent response:</summary>",
-                  "",
-                  `${fence}text`,
-                  output,
-                  fence,
-                  "</details>"
-                ].join("\n")
-              : `${branchLine}\n\n_No output from agent._`;
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.issue.number,
-              body
-            });
+          poe-code spawn claude-code "$PROMPT"
 
       - name: Create pull request if changes exist
         if: steps.auth.outputs.allowed == 'true'

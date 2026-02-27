@@ -72,12 +72,53 @@ jobs:
           PROMPT=$(node scripts/workflows/build-issue-prompt.cjs)
           poe-code spawn claude-code "$PROMPT"
 
+      - name: Resolve issue PR branch
+        if: steps.auth.outputs.allowed == 'true'
+        id: issue_branch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.app_token.outputs.token }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = context.payload.issue.number;
+            const issueKey = `issue-${issueNumber}`;
+            const preferredBranch = `agent/${issueKey}`;
+            const candidateBranches = [
+              preferredBranch,
+              `agent/comment/${issueKey}`,
+              `agent/auto-resolve/${issueKey}`
+            ];
+
+            for (const branch of candidateBranches) {
+              const response = await github.rest.pulls.list({
+                owner,
+                repo,
+                state: "open",
+                head: `${owner}:${branch}`,
+                per_page: 1
+              });
+              const pr = response.data[0];
+              if (!pr) {
+                continue;
+              }
+
+              core.info(`Reusing open PR #${pr.number} (${branch})`);
+              core.setOutput("branch", branch);
+              core.setOutput("pr_number", String(pr.number));
+              return;
+            }
+
+            core.info(`No open PR found for issue #${issueNumber}; using ${preferredBranch}`);
+            core.setOutput("branch", preferredBranch);
+            core.setOutput("pr_number", "");
+
       - name: Create pull request if changes exist
         if: steps.auth.outputs.allowed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.app_token.outputs.token }}
-          branch: agent/issue-${{ github.event.issue.number }}
+          branch: ${{ steps.issue_branch.outputs.branch }}
           title: "fix: resolve issue #${{ github.event.issue.number }}"
           body: |
             Resolves #${{ github.event.issue.number }}

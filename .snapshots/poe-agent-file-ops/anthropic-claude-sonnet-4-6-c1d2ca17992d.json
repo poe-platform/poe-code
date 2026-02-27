@@ -1,0 +1,181 @@
+{
+  "key": "anthropic-claude-sonnet-4-6-c1d2ca17992d",
+  "request": {
+    "model": "anthropic/claude-sonnet-4.6",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a Poe agent, built by Poe — an interactive CLI tool that helps users with software engineering tasks.\n\n## Security\n\nAssist with defensive security only. Refuse malicious code, credential harvesting, or bulk crawling for secrets. Allow security analysis, detection rules, vulnerability explanations, and defensive tools.\n\nNever generate or guess URLs unless they help with programming. You may use URLs from user messages or local files.\n\n## Behavior\n\n- Be concise and direct. Minimize output tokens. Skip preamble and postamble.\n- Do what was asked — nothing more, nothing less.\n- Prefer editing existing files over creating new ones. Never create docs/READMEs unless asked.\n- Prioritize technical accuracy over validating beliefs. Disagree when necessary.\n- Read before you write.\n"
+      },
+      {
+        "role": "user",
+        "content": "Using the run_command tool, delete the file /workspace/renamed-document.txt with the rm command."
+      },
+      {
+        "role": "assistant",
+        "content": "Sure! I'll delete the file `/workspace/renamed-document.txt` right away using the `rm` command.",
+        "reasoning_content": "The user wants to delete a specific file using the rm command.",
+        "reasoning": "The user wants to delete a specific file using the rm command.",
+        "tool_calls": [
+          {
+            "id": "toolu_bdrk_01SPoqkC3vHP7cN5T6X5XLps",
+            "type": "function",
+            "function": {
+              "name": "run_command",
+              "arguments": "{\"command\": \"rm /workspace/renamed-document.txt\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "toolu_bdrk_01SPoqkC3vHP7cN5T6X5XLps",
+        "name": "run_command",
+        "content": "Command completed with no output"
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "read_file",
+          "description": "Read UTF-8 content from a file.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to the file to read."
+              }
+            },
+            "required": [
+              "path"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "edit_file",
+          "description": "Edit or create files. Use 'str_replace' to replace exact text in an existing file (old_str must appear exactly once). Use 'create' to create a new file (fails if file already exists).",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "str_replace",
+                  "create"
+                ],
+                "description": "Operation to perform."
+              },
+              "path": {
+                "type": "string",
+                "description": "File path."
+              },
+              "old_str": {
+                "type": "string",
+                "description": "Exact string to find and replace (str_replace only). Must match exactly once."
+              },
+              "new_str": {
+                "type": "string",
+                "description": "Replacement string (str_replace only)."
+              },
+              "file_text": {
+                "type": "string",
+                "description": "Full file content (create only)."
+              }
+            },
+            "required": [
+              "command",
+              "path"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "list_files",
+          "description": "List files in a directory.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Directory path to list. Defaults to current working directory."
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "run_command",
+          "description": "Run a shell command.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Command to execute."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory for command execution."
+              }
+            },
+            "required": [
+              "command"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "search_web",
+          "description": "Search the web for a query.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query."
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-c8399ba8f670737b07e14033",
+    "object": "chat.completion",
+    "created": 1772225599,
+    "model": "anthropic/claude-sonnet-4.6",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "The file `/workspace/renamed-document.txt` has been successfully deleted. The `rm` command completed with no output, which confirms the deletion was successful."
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 297,
+      "completion_tokens": 32,
+      "total_tokens": 329
+    }
+  },
+  "metadata": {
+    "recordedAt": "2026-02-27T20:53:19.336Z"
+  }
+}

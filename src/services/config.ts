@@ -15,9 +15,18 @@ export interface ConfiguredServiceMetadata {
   files: string[];
 }
 
+/**
+ * Default model configuration keyed by tool name, endpoint path, or "global".
+ * - "global": fallback for all tools with no specific default
+ * - "<tool-name>" (e.g. "codex"): default for a specific tool
+ * - "<endpoint>" (e.g. "/v1/responses"): default for a specific API endpoint
+ */
+export type DefaultModelsConfig = Record<string, string>;
+
 interface ConfigDocument {
   apiKey?: string;
   configured_services?: Record<string, ConfiguredServiceMetadata>;
+  default_models?: DefaultModelsConfig;
 }
 
 export interface SaveConfiguredServiceOptions
@@ -29,6 +38,17 @@ export interface SaveConfiguredServiceOptions
 export interface UnconfigureServiceOptions
   extends ConfigStoreOptions {
   service: string;
+}
+
+export interface SaveDefaultModelOptions extends ConfigStoreOptions {
+  /** Key identifying the scope: "global", a tool name, or an endpoint path */
+  key: string;
+  model: string;
+}
+
+export interface ResolveDefaultModelOptions extends ConfigStoreOptions {
+  /** Tool name or endpoint to check for a specific default before falling back to "global" */
+  key: string;
 }
 
 export async function saveConfig(
@@ -101,6 +121,37 @@ export async function unconfigureService(
   }
   await writeConfigDocument(fs, filePath, document);
   return true;
+}
+
+export async function saveDefaultModel(
+  options: SaveDefaultModelOptions
+): Promise<void> {
+  const { fs, filePath, key, model } = options;
+  const document = await readConfigDocument(fs, filePath);
+  document.default_models = {
+    ...(document.default_models ?? {}),
+    [key]: model
+  };
+  await writeConfigDocument(fs, filePath, document);
+}
+
+export async function loadDefaultModels(
+  options: ConfigStoreOptions
+): Promise<DefaultModelsConfig> {
+  const { fs, filePath } = options;
+  const document = await readConfigDocument(fs, filePath);
+  return { ...(document.default_models ?? {}) };
+}
+
+/**
+ * Resolves the configured default model for a given key.
+ * Lookup order: key-specific → "global" → null
+ */
+export async function resolveDefaultModel(
+  options: ResolveDefaultModelOptions
+): Promise<string | null> {
+  const defaults = await loadDefaultModels(options);
+  return defaults[options.key] ?? defaults["global"] ?? null;
 }
 
 function normalizeConfiguredServiceMetadata(
@@ -182,7 +233,24 @@ function normalizeConfigDocument(value: unknown): ConfigDocument {
   if (Object.keys(services).length > 0) {
     document.configured_services = services;
   }
+  const defaultModels = normalizeDefaultModels(value.default_models);
+  if (Object.keys(defaultModels).length > 0) {
+    document.default_models = defaultModels;
+  }
   return document;
+}
+
+function normalizeDefaultModels(value: unknown): DefaultModelsConfig {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const result: DefaultModelsConfig = {};
+  for (const [key, model] of Object.entries(value)) {
+    if (typeof model === "string" && model.length > 0 && key.length > 0) {
+      result[key] = model;
+    }
+  }
+  return result;
 }
 
 function normalizeConfiguredServices(
@@ -216,6 +284,9 @@ async function writeConfigDocument(
   }
   if (document.configured_services) {
     payload.configured_services = document.configured_services;
+  }
+  if (document.default_models && Object.keys(document.default_models).length > 0) {
+    payload.default_models = document.default_models;
   }
   await fs.writeFile(filePath, `${JSON.stringify(payload, null, 2)}\n`, {
     encoding: "utf8"

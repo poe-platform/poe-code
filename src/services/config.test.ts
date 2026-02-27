@@ -7,7 +7,10 @@ import {
   saveConfig,
   loadConfiguredServices,
   saveConfiguredService,
-  unconfigureService
+  unconfigureService,
+  saveDefaultModel,
+  loadDefaultModels,
+  resolveDefaultModel
 } from "./config.js";
 
 function createMemFs(): FileSystem {
@@ -161,5 +164,86 @@ describe("config store", () => {
 
     const rewritten = await fs.readFile(configPath, "utf8");
     expect(JSON.parse(rewritten)).toEqual({});
+  });
+});
+
+describe("default model store", () => {
+  const configPath = "/home/user/.poe-code/config.json";
+  let fs: FileSystem;
+
+  beforeEach(async () => {
+    fs = createMemFs();
+    await fs.mkdir(path.dirname(configPath), { recursive: true });
+  });
+
+  it("saves and loads a global default model", async () => {
+    await saveDefaultModel({
+      fs,
+      filePath: configPath,
+      key: "global",
+      model: "anthropic/claude-sonnet-4.6"
+    });
+
+    const defaults = await loadDefaultModels({ fs, filePath: configPath });
+    expect(defaults).toEqual({ global: "anthropic/claude-sonnet-4.6" });
+  });
+
+  it("saves and loads a tool-specific default model", async () => {
+    await saveDefaultModel({
+      fs,
+      filePath: configPath,
+      key: "codex",
+      model: "openai/gpt-5.2-codex"
+    });
+
+    const defaults = await loadDefaultModels({ fs, filePath: configPath });
+    expect(defaults).toEqual({ codex: "openai/gpt-5.2-codex" });
+  });
+
+  it("returns empty object when no default models are configured", async () => {
+    const defaults = await loadDefaultModels({ fs, filePath: configPath });
+    expect(defaults).toEqual({});
+  });
+
+  it("resolves tool-specific default before global", async () => {
+    await saveDefaultModel({ fs, filePath: configPath, key: "global", model: "anthropic/claude-sonnet-4.6" });
+    await saveDefaultModel({ fs, filePath: configPath, key: "codex", model: "openai/gpt-5.2-codex" });
+
+    const model = await resolveDefaultModel({ fs, filePath: configPath, key: "codex" });
+    expect(model).toBe("openai/gpt-5.2-codex");
+  });
+
+  it("falls back to global default when no tool-specific default exists", async () => {
+    await saveDefaultModel({ fs, filePath: configPath, key: "global", model: "anthropic/claude-sonnet-4.6" });
+
+    const model = await resolveDefaultModel({ fs, filePath: configPath, key: "codex" });
+    expect(model).toBe("anthropic/claude-sonnet-4.6");
+  });
+
+  it("returns null when no defaults are configured", async () => {
+    const model = await resolveDefaultModel({ fs, filePath: configPath, key: "codex" });
+    expect(model).toBeNull();
+  });
+
+  it("preserves api key and configured services when saving default model", async () => {
+    await saveDefaultModel({
+      fs,
+      filePath: configPath,
+      key: "global",
+      model: "anthropic/claude-sonnet-4.6"
+    });
+    await saveConfig({ fs, filePath: configPath, apiKey: "sk-test" });
+
+    const updated = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(updated.apiKey).toBe("sk-test");
+    expect(updated.default_models).toEqual({ global: "anthropic/claude-sonnet-4.6" });
+  });
+
+  it("overwrites an existing default for the same key", async () => {
+    await saveDefaultModel({ fs, filePath: configPath, key: "codex", model: "openai/gpt-5.2-codex" });
+    await saveDefaultModel({ fs, filePath: configPath, key: "codex", model: "openai/gpt-5.3-codex" });
+
+    const defaults = await loadDefaultModels({ fs, filePath: configPath });
+    expect(defaults.codex).toBe("openai/gpt-5.3-codex");
   });
 });

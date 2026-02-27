@@ -11,6 +11,7 @@ import {
 } from "@poe-code/agent-spawn";
 import type { SpawnOptions, SpawnResult } from "./types.js";
 import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
+import { resolveDefaultModel } from "./default-model.js";
 
 /**
  * Spawns an agent with optional streaming.
@@ -91,15 +92,24 @@ export function spawn(
     try {
       await getPoeApiKey();
 
-      if (options.interactive) {
+      // Apply configured default model when no model was explicitly specified
+      let resolvedOptions = options;
+      if (resolvedOptions.model == null) {
+        const configuredDefault = await resolveDefaultModel(service);
+        if (configuredDefault != null) {
+          resolvedOptions = { ...resolvedOptions, model: configuredDefault };
+        }
+      }
+
+      if (resolvedOptions.interactive) {
         resolveEventsOnce(emptyEvents);
         const interactiveResult = await spawnInteractive(service, {
-          prompt: options.prompt,
-          cwd: options.cwd,
-          model: options.model,
-          mode: options.mode,
-          args: options.args,
-          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
+          prompt: resolvedOptions.prompt,
+          cwd: resolvedOptions.cwd,
+          model: resolvedOptions.model,
+          mode: resolvedOptions.mode,
+          args: resolvedOptions.args,
+          ...(resolvedOptions.mcpServers ? { mcpServers: resolvedOptions.mcpServers } : {})
         });
         return {
           stdout: interactiveResult.stdout,
@@ -115,11 +125,11 @@ export function spawn(
             : undefined;
 
         const { events: innerEvents, done } = spawnPoeAgentWithAcp({
-          prompt: options.prompt,
-          cwd: options.cwd,
-          model: options.model,
+          prompt: resolvedOptions.prompt,
+          cwd: resolvedOptions.cwd,
+          model: resolvedOptions.model,
           ...(poeBaseUrl ? { baseUrl: poeBaseUrl } : {}),
-          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
+          ...(resolvedOptions.mcpServers ? { mcpServers: resolvedOptions.mcpServers } : {})
         });
 
         resolveEventsOnce(innerEvents);
@@ -142,12 +152,12 @@ export function spawn(
       if (supportsStreaming) {
         const { events: innerEvents, done } = spawnStreaming({
           agentId: service,
-          prompt: options.prompt,
-          cwd: options.cwd,
-          model: options.model,
-          mode: options.mode,
-          args: options.args,
-          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
+          prompt: resolvedOptions.prompt,
+          cwd: resolvedOptions.cwd,
+          model: resolvedOptions.model,
+          mode: resolvedOptions.mode,
+          args: resolvedOptions.args,
+          ...(resolvedOptions.mcpServers ? { mcpServers: resolvedOptions.mcpServers } : {}),
           useStdin: false
         });
 
@@ -165,26 +175,26 @@ export function spawn(
       if (spawnConfig && spawnConfig.kind === "cli") {
         resolveEventsOnce(emptyEvents);
         return spawnNonStreaming(service, {
-          prompt: options.prompt,
-          cwd: options.cwd,
-          model: options.model,
-          mode: options.mode,
-          args: options.args,
-          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
+          prompt: resolvedOptions.prompt,
+          cwd: resolvedOptions.cwd,
+          model: resolvedOptions.model,
+          mode: resolvedOptions.mode,
+          args: resolvedOptions.args,
+          ...(resolvedOptions.mcpServers ? { mcpServers: resolvedOptions.mcpServers } : {}),
           useStdin: false
         });
       }
 
       resolveEventsOnce(emptyEvents);
 
-      const container = createSdkContainer({ cwd: options.cwd });
+      const container = createSdkContainer({ cwd: resolvedOptions.cwd });
       return spawnCore(container, service, {
-        prompt: options.prompt,
-        cwd: options.cwd,
-        model: options.model,
-        mode: options.mode,
-        args: options.args,
-        ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
+        prompt: resolvedOptions.prompt,
+        cwd: resolvedOptions.cwd,
+        model: resolvedOptions.model,
+        mode: resolvedOptions.mode,
+        args: resolvedOptions.args,
+        ...(resolvedOptions.mcpServers ? { mcpServers: resolvedOptions.mcpServers } : {}),
         useStdin: false
       });
     } catch (error) {

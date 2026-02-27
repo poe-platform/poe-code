@@ -304,6 +304,16 @@ describe('createContainer', () => {
     );
   });
 
+  it('throws when useSnapshots is true without testName', async () => {
+    const { createContainer } = await import('./persistent-container.js');
+    await expect(
+      createContainer({
+        image: 'poe-code-e2e:abc123',
+        useSnapshots: true,
+      })
+    ).rejects.toThrow('useSnapshots requires testName');
+  });
+
   it('starts proxy lifecycle when fixtures directory exists', async () => {
     setWorkspaceDir('/workspace/repo');
     vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
@@ -415,6 +425,7 @@ describe('createContainer', () => {
     const container = await createContainer({
       image: 'poe-code-e2e:abc123',
       testName: 'proxy',
+      useSnapshots: true,
     });
 
     expect(container.id).toBe('proxy-container');
@@ -469,6 +480,60 @@ describe('createContainer', () => {
       }
     );
     expect(writeSnapshotCall).toBeDefined();
+  });
+
+  it('does not start proxy when useSnapshots is false even if fixtures directory exists', async () => {
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
+
+    const { spawnSync } = await import('node:child_process');
+    const mockSpawnSync = vi.mocked(spawnSync);
+
+    mockSpawnSync.mockImplementation((_cmd, args) => {
+      const argsArr = args as string[];
+      if (argsArr.includes('create')) {
+        return {
+          status: 0,
+          stdout: 'plain-container\n',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+      return {
+        status: 0,
+        stdout: '',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      };
+    });
+
+    const { createContainer } = await import('./persistent-container.js');
+    await createContainer({
+      image: 'poe-code-e2e:abc123',
+      testName: 'proxy',
+      useSnapshots: false,
+    });
+
+    const createCall = mockSpawnSync.mock.calls.find(
+      (call) => (call[1] as string[]).includes('create')
+    );
+    expect(createCall).toBeDefined();
+    expect(createCall![1]).not.toContain('POE_BASE_URL=http://localhost:3456');
+
+    const startProxyCall = mockSpawnSync.mock.calls.find((call) => {
+      const argsArr = call[1] as string[];
+      const command = argsArr[argsArr.length - 1];
+      return (
+        argsArr.includes('exec') &&
+        typeof command === 'string' &&
+        command.includes('proxy-server --port 3456')
+      );
+    });
+    expect(startProxyCall).toBeUndefined();
   });
 
   it('waits for slow proxy startup before failing health checks', async () => {
@@ -533,6 +598,7 @@ describe('createContainer', () => {
       const container = await createContainer({
         image: 'poe-code-e2e:abc123',
         testName: 'proxy',
+        useSnapshots: true,
       });
       expect(container.id).toBe('slow-proxy-container');
       expect(healthChecks).toBe(60);
@@ -577,6 +643,7 @@ describe('createContainer', () => {
       await createContainer({
         image: 'poe-code-e2e:abc123',
         testName: 'proxy',
+        useSnapshots: true,
       });
 
       const startProxyCall = mockSpawnSync.mock.calls.find(
@@ -683,6 +750,7 @@ describe('createContainer', () => {
       await createContainer({
         image: 'poe-code-e2e:abc123',
         testName: 'new-test',
+        useSnapshots: true,
       });
 
       expect(existsSync('/workspace/repo/.snapshots/new-test')).toBe(true);
@@ -736,6 +804,7 @@ describe('createContainer', () => {
       await createContainer({
         image: 'poe-code-e2e:abc123',
         testName: 'missing-test',
+        useSnapshots: true,
       });
 
       expect(existsSync('/workspace/repo/.snapshots/missing-test')).toBe(false);

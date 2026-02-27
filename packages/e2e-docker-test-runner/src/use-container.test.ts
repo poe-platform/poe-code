@@ -39,6 +39,7 @@ describe('useContainer', () => {
     expectTypeOf<UseContainerOptions>().toEqualTypeOf<{
       testName: string;
       workspaceDir?: string;
+      useSnapshots?: boolean;
     }>();
   });
 
@@ -55,6 +56,7 @@ describe('useContainer', () => {
     const container = useContainer({
       testName: 'my-agent',
       workspaceDir: '/test',
+      useSnapshots: true,
     });
 
     it('sets workspace dir', () => {
@@ -64,6 +66,7 @@ describe('useContainer', () => {
     it('creates container with testName', () => {
       expect(createContainer).toHaveBeenCalledWith({
         testName: 'my-agent',
+        useSnapshots: true,
       });
     });
 
@@ -104,6 +107,19 @@ describe('useContainer', () => {
 
     it('creates a fresh container for each test', () => {
       expect(vi.mocked(createContainer)).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('lifecycle with defaults', () => {
+    useContainer({
+      testName: 'default-agent',
+    });
+
+    it('creates container with snapshots disabled by default', () => {
+      expect(createContainer).toHaveBeenCalledWith({
+        testName: 'default-agent',
+        useSnapshots: false,
+      });
     });
   });
 });

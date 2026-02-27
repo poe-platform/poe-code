@@ -201,17 +201,25 @@ function execStreaming(engine: string, args: string[]): Promise<{ exitCode: numb
 export const E2E_FIXTURES_DIR = '.snapshots';
 
 export async function createContainer(options: ContainerOptions = {}): Promise<Container> {
+  const useSnapshots = options.useSnapshots ?? false;
+  if (useSnapshots && !options.testName) {
+    throw new Error('useSnapshots requires testName');
+  }
+
   const workspace = getWorkspaceDir() ?? process.cwd();
   ensureCacheDirs();
-  const snapshotDir = options.testName ? `${E2E_FIXTURES_DIR}/${options.testName}` : undefined;
+  const snapshotDir = useSnapshots && options.testName
+    ? `${E2E_FIXTURES_DIR}/${options.testName}`
+    : undefined;
   const hostSnapshotDir = snapshotDir ? resolve(workspace, snapshotDir) : null;
-  const wantRecording =
+  const wantRecording = useSnapshots && (
     process.env.POE_SNAPSHOT_MODE === 'record' ||
-    process.env.POE_SNAPSHOT_MISS === 'record';
+    process.env.POE_SNAPSHOT_MISS === 'record'
+  );
   if (hostSnapshotDir !== null && !existsSync(hostSnapshotDir) && wantRecording) {
     mkdirSync(hostSnapshotDir, { recursive: true });
   }
-  const proxyEnabled = hostSnapshotDir !== null && existsSync(hostSnapshotDir);
+  const proxyEnabled = useSnapshots && hostSnapshotDir !== null && existsSync(hostSnapshotDir);
   const snapshotMode = proxyEnabled
     ? resolveSnapshotMode(process.env.POE_SNAPSHOT_MODE)
     : 'playback';

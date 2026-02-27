@@ -6,6 +6,7 @@ import type { Container } from './types.js';
 export interface UseContainerOptions {
   testName: string;
   workspaceDir?: string;
+  useSnapshots?: boolean;
 }
 
 export function useContainer(options: UseContainerOptions): Container {
@@ -15,6 +16,7 @@ export function useContainer(options: UseContainerOptions): Container {
     setWorkspaceDir(options.workspaceDir ?? process.cwd());
     current = await createContainer({
       testName: options.testName,
+      useSnapshots: options.useSnapshots ?? false,
     });
     await current.login();
   });

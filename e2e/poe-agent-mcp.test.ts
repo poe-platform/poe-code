@@ -9,7 +9,7 @@ const mcpConfig = shellQuote(JSON.stringify({
 }));
 
 describe('poe-agent spawn --mcp-config', () => {
-  const container = useContainer({ testName: 'poe-agent-mcp' });
+  const container = useContainer({ testName: 'poe-agent-mcp', useSnapshots: true });
 
   it('runs poe-agent with MCP tools and captures tool exchange', async () => {
     const configureResult = await container.exec('poe-code configure poe-agent --yes');

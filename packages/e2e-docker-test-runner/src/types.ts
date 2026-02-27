@@ -10,6 +10,7 @@ export interface ExecResult {
 export interface ContainerOptions {
   image?: string;
   testName?: string;
+  useSnapshots?: boolean;
 }
 
 export interface CapturedRequests {

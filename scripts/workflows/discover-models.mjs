@@ -45,7 +45,9 @@ const SOURCE_EXTENSIONS = new Set([
   ".tsx"
 ]);
 
-export function collectEvents(changelogFeed, renameFeed) {
+export function collectEvents(changelogFeed, renameFeed, options = {}) {
+  const referenceDate = options.referenceDate ?? new Date();
+  const startOfWeek = startOfCurrentWeekUtc(referenceDate);
   const added = [];
   const removed = [];
   const renamed = [];
@@ -54,6 +56,10 @@ export function collectEvents(changelogFeed, renameFeed) {
   const renamedSeen = new Set();
 
   for (const entry of asArray(changelogFeed)) {
+    if (!isEntryFromCurrentWeek(entry, startOfWeek)) {
+      continue;
+    }
+
     for (const value of asArray(entry?.added)) {
       const modelId = normalizeModelId(value);
       if (!modelId || addedSeen.has(modelId)) {
@@ -74,6 +80,10 @@ export function collectEvents(changelogFeed, renameFeed) {
   }
 
   for (const entry of asArray(renameFeed)) {
+    if (!isEntryFromCurrentWeek(entry, startOfWeek)) {
+      continue;
+    }
+
     for (const candidate of asArray(entry?.renamed)) {
       const from = normalizeModelId(candidate?.from);
       const to = normalizeModelId(candidate?.to);
@@ -303,6 +313,25 @@ function normalizeModelId(value) {
     return "";
   }
   return value.trim().toLowerCase();
+}
+
+function startOfCurrentWeekUtc(referenceDate) {
+  const utcDate = new Date(referenceDate);
+  utcDate.setUTCHours(0, 0, 0, 0);
+  const offset = (utcDate.getUTCDay() + 6) % 7;
+  utcDate.setUTCDate(utcDate.getUTCDate() - offset);
+  return utcDate;
+}
+
+function isEntryFromCurrentWeek(entry, startOfWeek) {
+  if (!entry || typeof entry !== "object" || typeof entry.date !== "string") {
+    return false;
+  }
+  const parsed = new Date(entry.date);
+  if (Number.isNaN(parsed.getTime())) {
+    return false;
+  }
+  return parsed >= startOfWeek;
 }
 
 function readRequiredEnv(env, key) {

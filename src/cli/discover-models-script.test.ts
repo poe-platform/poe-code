@@ -6,27 +6,40 @@ const scriptUrl = new URL(
 ).href;
 
 describe("discover models workflow script", () => {
-  it("collects normalized model events from both feeds", async () => {
+  it("collects normalized model events from this week only", async () => {
     const { collectEvents } = await import(scriptUrl);
     const events = collectEvents(
       [
         {
+          date: "2026-02-20T23:59:00+00:00",
+          added: ["Old-Model"],
+          removed: ["Old-Removed"]
+        },
+        {
+          date: "2026-02-23T00:00:00+00:00",
           added: ["GPT-5.2-Codex", "gpt-5.2-codex", "Claude-Opus-4.6"],
           removed: ["Legacy-Model"]
         },
         {
+          date: "2026-02-27T10:00:00+00:00",
           added: ["New-One"],
           removed: ["legacy-model"]
         }
       ],
       [
         {
+          date: "2026-02-21T10:00:00+00:00",
+          renamed: [{ from: "Old-Rename", to: "New-Rename" }]
+        },
+        {
+          date: "2026-02-27T11:00:00+00:00",
           renamed: [
             { from: "Old-Name", to: "New-Name" },
             { from: "old-name", to: "new-name" }
           ]
         }
-      ]
+      ],
+      { referenceDate: new Date("2026-02-27T12:00:00+00:00") }
     );
 
     expect(events.added).toEqual(["gpt-5.2-codex", "claude-opus-4.6", "new-one"]);

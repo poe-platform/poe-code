@@ -1,0 +1,22 @@
+{
+  "action": "opened",
+  "issue": {
+    "number": 100,
+    "title": "Auto-resolve external user test issue",
+    "body": "This issue should be blocked by the eligibility gate.",
+    "state": "open",
+    "user": {
+      "login": "external-user",
+      "type": "User"
+    },
+    "labels": [],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "poe-platform/poe-code",
+    "name": "poe-code",
+    "owner": {
+      "login": "poe-platform"
+    }
+  }
+}

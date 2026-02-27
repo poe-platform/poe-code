@@ -1,0 +1,34 @@
+{
+  "action": "created",
+  "comment": {
+    "id": 1004,
+    "body": "Please address the review feedback and update tests",
+    "user": {
+      "login": "eligible-org-member",
+      "type": "User"
+    }
+  },
+  "issue": {
+    "number": 55,
+    "title": "Improve auth retry flow",
+    "body": "PR discussion thread",
+    "state": "open",
+    "user": {
+      "login": "external-contributor",
+      "type": "User"
+    },
+    "pull_request": {
+      "url": "https://api.github.com/repos/poe-platform/poe-code/pulls/55",
+      "html_url": "https://github.com/poe-platform/poe-code/pull/55"
+    },
+    "labels": [],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "poe-platform/poe-code",
+    "name": "poe-code",
+    "owner": {
+      "login": "poe-platform"
+    }
+  }
+}

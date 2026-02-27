@@ -1,0 +1,34 @@
+{
+  "action": "created",
+  "comment": {
+    "id": 1005,
+    "body": "Please apply this change on the PR branch",
+    "user": {
+      "login": "eligible-org-member",
+      "type": "User"
+    }
+  },
+  "issue": {
+    "number": 56,
+    "title": "Fork PR conversation",
+    "body": "PR thread from fork",
+    "state": "open",
+    "user": {
+      "login": "external-contributor",
+      "type": "User"
+    },
+    "pull_request": {
+      "url": "https://api.github.com/repos/poe-platform/poe-code/pulls/56",
+      "html_url": "https://github.com/poe-platform/poe-code/pull/56"
+    },
+    "labels": [],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "poe-platform/poe-code",
+    "name": "poe-code",
+    "owner": {
+      "login": "poe-platform"
+    }
+  }
+}

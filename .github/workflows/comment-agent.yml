@@ -1,0 +1,185 @@
+name: Comment Agent
+on:
+  issue_comment:
+    types:
+      - created
+
+concurrency:
+  group: agent-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  agent:
+    name: Handle Comment
+    if: >-
+      github.event.issue.state == 'open' &&
+      github.event.comment.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+          private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Check eligible user
+        id: auth
+        env:
+          USERNAME: ${{ github.event.comment.user.login }}
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/workflows/check-eligible-user.cjs
+
+      - name: Resolve comment target
+        if: steps.auth.outputs.allowed == 'true'
+        id: target
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isPrConversation = Boolean(context.payload.issue.pull_request);
+            if (!isPrConversation) {
+              core.setOutput("mode", "issue");
+              core.setOutput("same_repo", "false");
+              return;
+            }
+
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.issue.number
+            });
+            const headRepo = pr.data.head?.repo?.full_name ?? "";
+            const currentRepo = `${context.repo.owner}/${context.repo.repo}`;
+
+            core.setOutput("mode", "pr");
+            core.setOutput("head_ref", pr.data.head.ref);
+            core.setOutput("same_repo", String(headRepo === currentRepo));
+
+      - name: Checkout PR head branch (same repo)
+        if: steps.auth.outputs.allowed == 'true' && steps.target.outputs.mode == 'pr' && steps.target.outputs.same_repo == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.target.outputs.head_ref }}
+
+      - name: React with eyes
+        if: steps.auth.outputs.allowed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: "eyes"
+            });
+
+      - name: Setup Node.js
+        if: steps.auth.outputs.allowed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install and build
+        if: steps.auth.outputs.allowed == 'true'
+        run: npm ci && npm run build && npm install -g .
+
+      - name: Configure agent
+        if: steps.auth.outputs.allowed == 'true'
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+        run: |
+          poe-code login --api-key "${POE_API_KEY}"
+          poe-code install claude-code --yes
+          poe-code configure claude-code --yes
+
+      - name: Configure git author
+        if: steps.auth.outputs.allowed == 'true'
+        run: |
+          git config user.name "Poe Code Agent"
+          git config user.email "developers@poe.com"
+
+      - name: Build prompt and spawn agent
+        if: steps.auth.outputs.allowed == 'true'
+        id: agent
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -o pipefail
+          PROMPT=$(node scripts/workflows/build-comment-prompt.cjs)
+          OUTPUT_FILE="$RUNNER_TEMP/agent-output-comment-${{ github.event.issue.number }}.txt"
+          poe-code spawn claude-code "$PROMPT" | tee "$OUTPUT_FILE"
+          echo "output_file=$OUTPUT_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Post agent response
+        if: steps.auth.outputs.allowed == 'true'
+        uses: actions/github-script@v7
+        env:
+          AGENT_OUTPUT_FILE: ${{ steps.agent.outputs.output_file }}
+        with:
+          script: |
+            const { readFileSync } = require("node:fs");
+            const path = process.env.AGENT_OUTPUT_FILE;
+            const output = path ? readFileSync(path, "utf8").trim() : "";
+            const body = output || "_No output from agent._";
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: `**Agent response:**\n\n${body}`
+            });
+
+      - name: Create pull request if changes exist
+        if: steps.auth.outputs.allowed == 'true' && (steps.target.outputs.mode != 'pr' || steps.target.outputs.same_repo != 'true')
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ steps.app_token.outputs.token }}
+          branch: agent/comment/issue-${{ github.event.issue.number }}
+          title: "fix: resolve issue #${{ github.event.issue.number }}"
+          body: |
+            Resolves #${{ github.event.issue.number }}
+
+            Triggered by comment from @${{ github.event.comment.user.login }}.
+          commit-message: "fix: resolve issue #${{ github.event.issue.number }}"
+          delete-branch: true
+
+      - name: Push commits to existing PR branch
+        if: steps.auth.outputs.allowed == 'true' && steps.target.outputs.mode == 'pr' && steps.target.outputs.same_repo == 'true'
+        run: git push origin "HEAD:${{ steps.target.outputs.head_ref }}"
+
+      - name: React with thumbs up on success
+        if: success() && steps.auth.outputs.allowed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: "+1"
+            });
+
+      - name: React with thumbs down on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: "-1"
+            });

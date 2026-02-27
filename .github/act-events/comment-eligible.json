@@ -1,0 +1,30 @@
+{
+  "action": "created",
+  "comment": {
+    "id": 1001,
+    "body": "Please fix the flaky test in auth.spec.ts",
+    "user": {
+      "login": "eligible-org-member",
+      "type": "User"
+    }
+  },
+  "issue": {
+    "number": 42,
+    "title": "Auth test is flaky",
+    "body": "The auth test fails intermittently.",
+    "state": "open",
+    "user": {
+      "login": "external-contributor",
+      "type": "User"
+    },
+    "labels": [],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "poe-platform/poe-code",
+    "name": "poe-code",
+    "owner": {
+      "login": "poe-platform"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "action": "opened",
+  "issue": {
+    "number": 99,
+    "title": "Auto-resolve test issue",
+    "body": "This issue should be auto-resolved by the agent.",
+    "state": "open",
+    "user": {
+      "login": "eligible-org-member",
+      "type": "User"
+    },
+    "labels": [],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "poe-platform/poe-code",
+    "name": "poe-code",
+    "owner": {
+      "login": "poe-platform"
+    }
+  }
+}

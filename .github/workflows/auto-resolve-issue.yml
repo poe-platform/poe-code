@@ -101,36 +101,29 @@ jobs:
                 .trim();
             }
 
-            function escapeHtml(value) {
-              return value
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;");
+            function encodeBranchPath(branchName) {
+              return branchName.split("/").map((part) => encodeURIComponent(part)).join("/");
             }
 
             const output = sanitizeOutput(rawOutput);
-            const previewLine = output.split("\n").find((line) => line.trim()) || "";
-            const preview = previewLine.length > 120
-              ? `${previewLine.slice(0, 117)}...`
-              : previewLine;
-            const summaryText = preview ? `Agent output: ${preview}` : "Show full output";
-            const summary = escapeHtml(summaryText);
             const fence = output.includes("```") ? "````" : "```";
+            const branchName = `agent/auto-resolve/issue-${context.payload.issue.number}`;
+            const branchUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/tree/${encodeBranchPath(branchName)}`;
+            const branchLine = `Branch: [\`${branchName}\`](${branchUrl})`;
 
             const body = output
               ? [
-                  "**Agent response:**",
+                  branchLine,
                   "",
                   "<details>",
-                  `<summary>${summary}</summary>`,
+                  "<summary>Agent response:</summary>",
                   "",
                   `${fence}text`,
                   output,
                   fence,
                   "</details>"
                 ].join("\n")
-              : "**Agent response:**\n\n_No output from agent._";
+              : `${branchLine}\n\n_No output from agent._`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,

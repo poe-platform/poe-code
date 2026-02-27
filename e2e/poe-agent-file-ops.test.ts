@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { useContainer, shellQuote } from '@poe-code/e2e-docker-test-runner';
 
-const FILE_PATH = '/tmp/test-document.txt';
-const RENAMED_PATH = '/tmp/renamed-document.txt';
+const FILE_PATH = '/workspace/test-document.txt';
+const RENAMED_PATH = '/workspace/renamed-document.txt';
 
 const ORIGINAL_CONTENT = [
   'The Art of Software Testing',
@@ -56,7 +56,7 @@ describe('poe-agent file operations', () => {
 
     const editedContent = await container.readFile(FILE_PATH);
     expect(editedContent).toContain(REPLACEMENT_PARAGRAPH);
-    expect(editedContent).not.toContain('test-driven development');
+    expect(editedContent).not.toContain(oldParagraph);
     expect(editedContent).toContain('The Art of Software Testing');
 
     // Step 3: Rename file

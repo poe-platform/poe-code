@@ -644,6 +644,115 @@ describe('createContainer', () => {
     }
   });
 
+  it('auto-creates snapshot directory when POE_SNAPSHOT_MISS=record', async () => {
+    const originalMiss = process.env.POE_SNAPSHOT_MISS;
+    process.env.POE_SNAPSHOT_MISS = 'record';
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo/.snapshots', { recursive: true });
+
+    try {
+      const { spawnSync } = await import('node:child_process');
+      const mockSpawnSync = vi.mocked(spawnSync);
+
+      mockSpawnSync.mockImplementation((_cmd, args) => {
+        const argsArr = args as string[];
+        if (argsArr.includes('create')) {
+          return {
+            status: 0,
+            stdout: 'auto-dir-container\n',
+            stderr: '',
+            pid: 1,
+            output: [],
+            signal: null,
+          };
+        }
+        return {
+          status: 0,
+          stdout: '',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      });
+
+      const { existsSync } = await import('node:fs');
+      expect(existsSync('/workspace/repo/.snapshots/new-test')).toBe(false);
+
+      const { createContainer } = await import('./persistent-container.js');
+      await createContainer({
+        image: 'poe-code-e2e:abc123',
+        testName: 'new-test',
+      });
+
+      expect(existsSync('/workspace/repo/.snapshots/new-test')).toBe(true);
+    } finally {
+      if (originalMiss === undefined) {
+        delete process.env.POE_SNAPSHOT_MISS;
+      } else {
+        process.env.POE_SNAPSHOT_MISS = originalMiss;
+      }
+    }
+  });
+
+  it('does not auto-create snapshot directory without recording env vars', async () => {
+    const originalMiss = process.env.POE_SNAPSHOT_MISS;
+    const originalMode = process.env.POE_SNAPSHOT_MODE;
+    delete process.env.POE_SNAPSHOT_MISS;
+    delete process.env.POE_SNAPSHOT_MODE;
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo/.snapshots', { recursive: true });
+
+    try {
+      const { spawnSync } = await import('node:child_process');
+      const mockSpawnSync = vi.mocked(spawnSync);
+
+      mockSpawnSync.mockImplementation((_cmd, args) => {
+        const argsArr = args as string[];
+        if (argsArr.includes('create')) {
+          return {
+            status: 0,
+            stdout: 'no-auto-container\n',
+            stderr: '',
+            pid: 1,
+            output: [],
+            signal: null,
+          };
+        }
+        return {
+          status: 0,
+          stdout: '',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      });
+
+      const { existsSync } = await import('node:fs');
+      expect(existsSync('/workspace/repo/.snapshots/missing-test')).toBe(false);
+
+      const { createContainer } = await import('./persistent-container.js');
+      await createContainer({
+        image: 'poe-code-e2e:abc123',
+        testName: 'missing-test',
+      });
+
+      expect(existsSync('/workspace/repo/.snapshots/missing-test')).toBe(false);
+    } finally {
+      if (originalMiss === undefined) {
+        delete process.env.POE_SNAPSHOT_MISS;
+      } else {
+        process.env.POE_SNAPSHOT_MISS = originalMiss;
+      }
+      if (originalMode === undefined) {
+        delete process.env.POE_SNAPSHOT_MODE;
+      } else {
+        process.env.POE_SNAPSHOT_MODE = originalMode;
+      }
+    }
+  });
+
   it('throws when docker create fails', async () => {
     const { spawnSync } = await import('node:child_process');
     vi.mocked(spawnSync).mockReturnValue({

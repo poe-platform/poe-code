@@ -1,0 +1,20 @@
+{
+  "action": "opened",
+  "issue": {
+    "number": 1,
+    "title": "Test issue for local act run",
+    "body": "This is a test issue body for local workflow testing.",
+    "user": {
+      "login": "test-user"
+    },
+    "labels": [],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "anthropics/poe-setup-scripts",
+    "name": "poe-setup-scripts",
+    "owner": {
+      "login": "anthropics"
+    }
+  }
+}

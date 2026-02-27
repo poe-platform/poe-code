@@ -1,0 +1,27 @@
+{
+  "action": "labeled",
+  "label": {
+    "name": "agent:claude"
+  },
+  "issue": {
+    "number": 1,
+    "title": "Test issue with agent label",
+    "body": "This issue should trigger the agent resolution workflow.",
+    "user": {
+      "login": "test-user"
+    },
+    "labels": [
+      {
+        "name": "agent:claude"
+      }
+    ],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "anthropics/poe-setup-scripts",
+    "name": "poe-setup-scripts",
+    "owner": {
+      "login": "anthropics"
+    }
+  }
+}

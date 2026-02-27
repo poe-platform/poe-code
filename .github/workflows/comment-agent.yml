@@ -126,7 +126,7 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.app_token.outputs.token }}
-          branch: agent/comment/issue-${{ github.event.issue.number }}
+          branch: agent/issue-${{ github.event.issue.number }}
           title: "fix: resolve issue #${{ github.event.issue.number }}"
           body: |
             Resolves #${{ github.event.issue.number }}

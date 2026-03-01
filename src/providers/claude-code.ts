@@ -20,6 +20,7 @@ import { claudeCodeAgent } from "@poe-code/agent-defs";
 type ClaudeCodeConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
   apiKey: string;
+  direct?: boolean;
 };
 
 type ClaudeCodeUnconfigureContext = {
@@ -100,12 +101,18 @@ export const claudeCodeService = createProvider<
         target: "~/.claude/settings.json",
         value: (ctx) => {
           const options = ctx as unknown as ClaudeCodeConfigureContext;
-          return {
+          const base = {
             apiKeyHelper: `echo ${options.apiKey}`,
+            model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL)
+          };
+          if (options.direct) {
+            return base;
+          }
+          return {
+            ...base,
             env: {
               ANTHROPIC_BASE_URL: options.env.poeBaseUrl
-            },
-            model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL)
+            }
           };
         }
       })

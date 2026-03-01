@@ -24,6 +24,7 @@ export interface ConfigureCommandOptions {
   apiKey?: string;
   model?: string;
   reasoningEffort?: string;
+  direct?: boolean;
 }
 
 export function registerConfigureCommand(
@@ -43,6 +44,7 @@ export function registerConfigureCommand(
     .option("--api-key <key>", "Poe API key")
     .option("--model <model>", "Model identifier")
     .option("--reasoning-effort <level>", "Reasoning effort level")
+    .option("--direct", "Configure Claude Code for direct Anthropic API use")
     .action(
       async (service: string | undefined, options: ConfigureCommandOptions) => {
         const resolved = await resolveServiceArgument(

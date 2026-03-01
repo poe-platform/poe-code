@@ -337,4 +337,31 @@ describe("claude-code service", () => {
     await configureClaude();
     await expect(fs.stat(path.join(home, ".claude", "history.jsonl"))).rejects.toThrow();
   });
+
+  it("direct mode omits ANTHROPIC_BASE_URL from settings.json", async () => {
+    await configureClaude({ direct: true, apiKey: "sk-ant-test" });
+
+    const content = await fs.readFile(settingsPath, "utf8");
+    const parsed = JSON.parse(content);
+    expect(parsed).toEqual({
+      apiKeyHelper: "echo sk-ant-test",
+      model: stripModelNamespace(CLAUDE_MODEL_SONNET)
+    });
+  });
+
+  it("direct mode preserves existing unrelated settings", async () => {
+    await fs.mkdir(path.dirname(settingsPath), { recursive: true });
+    await fs.writeFile(
+      settingsPath,
+      JSON.stringify({ theme: "dark" }, null, 2),
+      { encoding: "utf8" }
+    );
+
+    await configureClaude({ direct: true, apiKey: "sk-ant-test" });
+
+    const content = await fs.readFile(settingsPath, "utf8");
+    const parsed = JSON.parse(content);
+    expect(parsed.theme).toBe("dark");
+    expect(parsed.env).toBeUndefined();
+  });
 });

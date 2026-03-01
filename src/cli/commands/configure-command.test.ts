@@ -5,6 +5,10 @@ import type { FileSystem } from "../utils/file-system.js";
 import type { CommandRunner } from "../../utils/command-checks.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import type { LoggerFn } from "../types.js";
+import {
+  DEFAULT_CLAUDE_CODE_MODEL,
+  stripModelNamespace
+} from "../constants.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -216,6 +220,44 @@ describe("configure command", () => {
       "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt",
       "Problems? https://github.com/poe-platform/poe-code/issues"
     ]);
+  });
+
+  it("--direct skips resolveApiKey and does not store key to credentials", async () => {
+    const { container } = createContainer();
+    const resolveApiKey = vi.spyOn(container.options, "resolveApiKey");
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "claude-code", {
+      direct: true,
+      apiKey: "sk-ant-x"
+    });
+
+    expect(resolveApiKey).not.toHaveBeenCalled();
+
+    const credentials = JSON.parse(await fs.readFile(credentialsPath, "utf8"));
+    expect(credentials.apiKey).toBeUndefined();
+
+    const settingsPath = homeDir + "/.claude/settings.json";
+    const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
+    expect(settings.env?.ANTHROPIC_BASE_URL).toBeUndefined();
+    expect(settings.apiKeyHelper).toBe("echo sk-ant-x");
+  });
+
+  it("--direct skips model prompt", async () => {
+    const { container } = createContainer();
+    const resolveModel = vi.spyOn(container.options, "resolveModel");
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "claude-code", {
+      direct: true,
+      apiKey: "sk-ant-x"
+    });
+
+    expect(resolveModel).not.toHaveBeenCalled();
+
+    const settingsPath = homeDir + "/.claude/settings.json";
+    const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
+    expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL));
   });
 
 });

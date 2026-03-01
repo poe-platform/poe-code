@@ -24,6 +24,7 @@ export interface ServiceSelectionInput {
 
 export interface PromptLibrary {
   loginApiKey(): PromptDescriptor<"apiKey">;
+  directApiKey(): PromptDescriptor<"apiKey">;
   model(input: ModelPromptInput): PromptDescriptor<"model">;
   reasoningEffort(
     input: ReasoningPromptInput
@@ -44,6 +45,13 @@ export function createPromptLibrary(): PromptLibrary {
       describe({
         name: "apiKey",
         message: "Enter your Poe API key - get one at https://poe.com/api/keys",
+        type: "password"
+      }),
+    directApiKey: () =>
+      describe({
+        name: "apiKey",
+        message:
+          "Enter your Anthropic API key - get one at https://console.anthropic.com/keys",
         type: "password"
       }),
     model: ({ label, defaultValue, choices }) => {

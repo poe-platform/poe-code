@@ -18,6 +18,10 @@ export async function createConfigurePayload(
 ): Promise<unknown> {
   const { container, flags, options, context, adapter, logger } = init;
 
+  if (options.direct) {
+    return createDirectPayload(init);
+  }
+
   const apiKey = await container.options.resolveApiKey({
     value: options.apiKey,
     envValue: container.env.getVariable("POE_API_KEY"),
@@ -47,6 +51,34 @@ export async function createConfigurePayload(
       label: reasoningPrompt.label
     });
     payload.reasoningEffort = reasoningEffort;
+  }
+
+  return payload;
+}
+
+async function createDirectPayload(
+  init: ConfigurePayloadInit
+): Promise<unknown> {
+  const { container, options, context, adapter } = init;
+
+  let apiKey: string;
+  if (options.apiKey) {
+    apiKey = container.options.normalizeApiKey(options.apiKey);
+  } else {
+    const descriptor = container.promptLibrary.directApiKey();
+    const response = await container.prompts(descriptor);
+    const result = response[descriptor.name];
+    if (typeof result !== "string") {
+      throw new Error("Anthropic API key is required.");
+    }
+    apiKey = container.options.normalizeApiKey(result);
+  }
+
+  const payload: Record<string, unknown> = { env: context.env, apiKey, direct: true };
+
+  const modelPrompt = adapter.configurePrompts?.model;
+  if (modelPrompt) {
+    payload.model = options.model ?? modelPrompt.defaultValue;
   }
 
   return payload;

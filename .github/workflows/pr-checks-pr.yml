@@ -22,7 +22,12 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: npm run e2e:verbose
+      - run: |
+          if [ -z "$POE_API_KEY" ]; then
+            echo "POE_API_KEY not available — skipping e2e (fork PR)"
+            exit 0
+          fi
+          npm run e2e:verbose
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
         timeout-minutes: 15

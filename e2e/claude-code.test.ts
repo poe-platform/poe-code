@@ -22,6 +22,4 @@ describe('claude-code', () => {
     const result = await container.exec('poe-code test claude-code --isolated');
     expect(result).toSucceedWith('Tested Claude Code.');
   });
-
-
 });

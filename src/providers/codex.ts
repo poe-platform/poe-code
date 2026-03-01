@@ -33,6 +33,17 @@ type CodexUnconfigureContext = {
 };
 
 const CODEX_PROVIDER_ID = "poe";
+
+const PROFILE_KEYWORDS = ["opus", "sonnet", "haiku", "codex", "pro"] as const;
+
+export function deriveCodexProfileName(model: string): string {
+  const stripped = stripModelNamespace(model);
+  const parts = stripped.split(/[-_.]/);
+  for (const keyword of PROFILE_KEYWORDS) {
+    if (parts.includes(keyword)) return keyword;
+  }
+  return stripped;
+}
 export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "codex",
   summary: "Codex CLI",
@@ -58,27 +69,44 @@ function stripCodexConfiguration(
     return { changed: false, empty: false };
   }
 
-  if (document["model_provider"] !== CODEX_PROVIDER_ID) {
-    return { changed: false, empty: false };
+  let changed = false;
+
+  // Handle flat (legacy) config: top-level model_provider = "poe"
+  if (document["model_provider"] === CODEX_PROVIDER_ID) {
+    delete document["model_provider"];
+    delete document["model"];
+    delete document["model_reasoning_effort"];
+    delete document["model_verbosity"];
+    changed = true;
   }
 
+  // Handle profile-based config
+  const profiles = document["profiles"];
+  if (isConfigObject(profiles)) {
+    for (const name of Object.keys(profiles)) {
+      const profile = profiles[name];
+      if (isConfigObject(profile) && profile["model_provider"] === CODEX_PROVIDER_ID) {
+        delete profiles[name];
+        changed = true;
+      }
+    }
+    if (isTableEmpty(profiles)) {
+      delete document["profiles"];
+    }
+  }
+
+  // Clean up model_providers.poe
   const providers = document["model_providers"];
-  if (!isConfigObject(providers) || !(CODEX_PROVIDER_ID in providers)) {
-    return { changed: false, empty: false };
-  }
-
-  delete document["model_provider"];
-  delete document["model"];
-  delete document["model_reasoning_effort"];
-  delete document["model_verbosity"];
-  delete providers[CODEX_PROVIDER_ID];
-
-  if (isTableEmpty(providers)) {
-    delete document["model_providers"];
+  if (isConfigObject(providers) && CODEX_PROVIDER_ID in providers) {
+    delete providers[CODEX_PROVIDER_ID];
+    if (isTableEmpty(providers)) {
+      delete document["model_providers"];
+    }
+    changed = true;
   }
 
   return {
-    changed: true,
+    changed,
     empty: isTableEmpty(document)
   };
 }
@@ -132,11 +160,13 @@ export const codexService = createProvider<
         templateId: "codex/config.toml.hbs",
         context: (ctx) => {
           const options = ctx as unknown as CodexConfigureContext;
+          const model = options.model ?? DEFAULT_CODEX_MODEL;
           return {
             apiKey: options.apiKey,
             baseUrl: options.env.poeApiBaseUrl,
-            model: stripModelNamespace(options.model ?? DEFAULT_CODEX_MODEL),
-            reasoningEffort: options.reasoningEffort
+            model: stripModelNamespace(model),
+            reasoningEffort: options.reasoningEffort,
+            profileName: deriveCodexProfileName(model)
           };
         }
       })

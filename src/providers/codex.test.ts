@@ -108,6 +108,8 @@ describe("codex service", () => {
     });
 
     const doc = parseToml(await fs.readFile(configPath, "utf8"));
+    expect(doc["model_provider"]).toBe("poe");
+
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
     const codexProfile = profiles["codex"];
     expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
@@ -349,8 +351,8 @@ describe("codex service", () => {
     await configureCodex();
 
     const doc = parseToml(await fs.readFile(configPath, "utf8"));
-    // Old top-level model_provider is preserved (merge only adds, doesn't remove)
-    expect(doc["model_provider"]).toBe("legacy");
+    // Top-level model_provider is overwritten by template merge
+    expect(doc["model_provider"]).toBe("poe");
     expect(doc["features"]).toEqual({ foo: true });
 
     // Profile is added

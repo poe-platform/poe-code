@@ -23,6 +23,7 @@ import { registerVersionOption } from "./commands/version.js";
 import { registerRalphCommand } from "./commands/ralph.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerModelsCommand } from "./commands/models.js";
+import { registerDoctorCommand } from "./commands/doctor.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -127,6 +128,11 @@ function formatHelpText(input: {
         name: "usage list",
         args: "",
         description: "Display usage history"
+      },
+      {
+        name: "doctor",
+        args: "[agent]",
+        description: "Validate Poe configuration and connectivity"
       }
     ];
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
@@ -320,6 +326,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerRalphCommand(program, container);
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
+  registerDoctorCommand(program, container);
 
   program.allowExcessArguments().action(function (this: Command) {
     const args = this.args;

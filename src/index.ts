@@ -14,6 +14,14 @@ export type {
   GenerateResult,
   MediaGenerateResult
 } from "./sdk/types.js";
+export { collectChecks, runChecks } from "./sdk/doctor/index.js";
+export type {
+  DoctorCheck,
+  DoctorContext,
+  DoctorResult,
+  CheckResult,
+  DoctorOptions
+} from "./sdk/doctor/types.js";
 
 async function main(): Promise<void> {
   const [{ createProgram }, { createCliMain }] = await Promise.all([

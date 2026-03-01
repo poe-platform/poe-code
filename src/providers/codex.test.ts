@@ -102,26 +102,42 @@ describe("codex service", () => {
     });
   }
 
-  it("writes codex config from template", async () => {
+  it("writes codex config as profile from template", async () => {
     await configureCodex({
       timestamp: () => "20240101T000000"
     });
 
-    const content = await fs.readFile(configPath, "utf8");
-    expect(content.trim()).toContain(
-      `model = "${stripModelNamespace(DEFAULT_CODEX_MODEL)}"`
-    );
-    expect(content.trim()).toContain('model_reasoning_effort = "medium"');
-    expect(content.trim()).toContain('model_verbosity = "medium"');
-    expect(content.trim()).toContain(
-      'experimental_bearer_token = "sk-test"'
-    );
+    const doc = parseToml(await fs.readFile(configPath, "utf8"));
+    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
+    const codexProfile = profiles["codex"];
+    expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
+    expect(codexProfile["model_provider"]).toBe("poe");
+    expect(codexProfile["model_reasoning_effort"]).toBe("medium");
+    expect(codexProfile["model_verbosity"]).toBe("medium");
+
+    const providers = doc["model_providers"] as Record<string, Record<string, unknown>>;
+    expect(providers["poe"]["experimental_bearer_token"]).toBe("sk-test");
+
     await expect(fs.readFile(path.join(configDir, "auth.json"), "utf8")).rejects
       .toThrow();
 
     await expect(
       fs.readFile(`${configPath}.backup.20240101T000000`, "utf8")
     ).rejects.toThrow();
+  });
+
+  it("writes opus model as opus profile", async () => {
+    await configureCodex({
+      model: "anthropic/claude-opus-4.6",
+      reasoningEffort: "high"
+    });
+
+    const doc = parseToml(await fs.readFile(configPath, "utf8"));
+    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
+    const opusProfile = profiles["opus"];
+    expect(opusProfile["model"]).toBe("claude-opus-4.6");
+    expect(opusProfile["model_provider"]).toBe("poe");
+    expect(opusProfile["model_reasoning_effort"]).toBe("high");
   });
 
   it("uses POE_BASE_URL when writing base_url", async () => {
@@ -271,6 +287,36 @@ describe("codex service", () => {
     expect(content.trim()).toBe("[features]\nbar = true");
   });
 
+  it("removes profile-based poe configuration", async () => {
+    await fs.mkdir(configDir, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      [
+        "[profiles.opus]",
+        'model = "claude-opus-4.6"',
+        'model_provider = "poe"',
+        'model_reasoning_effort = "high"',
+        "",
+        "[model_providers.poe]",
+        'name = "poe"',
+        'base_url = "https://api.poe.com/v1"',
+        'wire_api = "responses"',
+        'experimental_bearer_token = "test-key"',
+        "",
+        "[features]",
+        "bar = true",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const removed = await unconfigureCodex();
+    expect(removed).toBe(true);
+
+    const content = await fs.readFile(configPath, "utf8");
+    expect(content.trim()).toBe("[features]\nbar = true");
+  });
+
   it("creates timestamped backup when overwriting existing config", async () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(configPath, "legacy-config", { encoding: "utf8" });
@@ -303,11 +349,17 @@ describe("codex service", () => {
     await configureCodex();
 
     const doc = parseToml(await fs.readFile(configPath, "utf8"));
-    expect(doc["model_provider"]).toBe("poe");
-    expect(doc["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
-    expect(doc["model_reasoning_effort"]).toBe("medium");
-    expect(doc["model_verbosity"]).toBe("medium");
+    // Old top-level model_provider is preserved (merge only adds, doesn't remove)
+    expect(doc["model_provider"]).toBe("legacy");
     expect(doc["features"]).toEqual({ foo: true });
+
+    // Profile is added
+    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
+    const codexProfile = profiles["codex"];
+    expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
+    expect(codexProfile["model_provider"]).toBe("poe");
+    expect(codexProfile["model_reasoning_effort"]).toBe("medium");
+    expect(codexProfile["model_verbosity"]).toBe("medium");
 
     const providers = doc["model_providers"] as Record<string, unknown>;
     expect(providers).toBeDefined();

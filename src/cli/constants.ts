@@ -38,7 +38,8 @@ export const CODEX_MODELS = [
   "openai/gpt-5.2-chat",
   "openai/gpt-5.2-pro",
   "openai/gpt-5.1",
-  "openai/gpt-5.1-codex-mini"
+  "openai/gpt-5.1-codex-mini",
+  "anthropic/claude-opus-4.6"
 ] as const;
 export const DEFAULT_CODEX_MODEL = CODEX_MODELS[0];
 

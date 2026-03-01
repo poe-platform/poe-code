@@ -239,7 +239,7 @@ describe("configure command", () => {
 
     const settingsPath = homeDir + "/.claude/settings.json";
     const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
-    expect(settings.env?.ANTHROPIC_BASE_URL).toBeUndefined();
+    expect(settings.env?.ANTHROPIC_BASE_URL).toBe("https://api.anthropic.com");
     expect(settings.apiKeyHelper).toBe("echo sk-ant-x");
   });
 

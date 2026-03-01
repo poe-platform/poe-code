@@ -338,15 +338,37 @@ describe("claude-code service", () => {
     await expect(fs.stat(path.join(home, ".claude", "history.jsonl"))).rejects.toThrow();
   });
 
-  it("direct mode omits ANTHROPIC_BASE_URL from settings.json", async () => {
+  it("direct mode sets ANTHROPIC_BASE_URL to official Anthropic API", async () => {
     await configureClaude({ direct: true, apiKey: "sk-ant-test" });
 
     const content = await fs.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toEqual({
       apiKeyHelper: "echo sk-ant-test",
+      env: {
+        ANTHROPIC_BASE_URL: "https://api.anthropic.com"
+      },
       model: stripModelNamespace(CLAUDE_MODEL_SONNET)
     });
+  });
+
+  it("direct mode removes ANTHROPIC_AUTH_TOKEN if present", async () => {
+    await fs.mkdir(path.dirname(settingsPath), { recursive: true });
+    await fs.writeFile(
+      settingsPath,
+      JSON.stringify({
+        env: { ANTHROPIC_AUTH_TOKEN: "old-token", CUSTOM: "keep" }
+      }, null, 2),
+      { encoding: "utf8" }
+    );
+
+    await configureClaude({ direct: true, apiKey: "sk-ant-test" });
+
+    const content = await fs.readFile(settingsPath, "utf8");
+    const parsed = JSON.parse(content);
+    expect(parsed.env.ANTHROPIC_AUTH_TOKEN).toBeUndefined();
+    expect(parsed.env.CUSTOM).toBe("keep");
+    expect(parsed.env.ANTHROPIC_BASE_URL).toBe("https://api.anthropic.com");
   });
 
   it("direct mode preserves existing unrelated settings", async () => {
@@ -362,6 +384,7 @@ describe("claude-code service", () => {
     const content = await fs.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed.theme).toBe("dark");
-    expect(parsed.env).toBeUndefined();
+    expect(parsed.env.ANTHROPIC_BASE_URL).toBe("https://api.anthropic.com");
+    expect(parsed.env.ANTHROPIC_AUTH_TOKEN).toBeUndefined();
   });
 });

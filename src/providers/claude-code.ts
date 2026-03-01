@@ -101,20 +101,22 @@ export const claudeCodeService = createProvider<
         target: "~/.claude/settings.json",
         value: (ctx) => {
           const options = ctx as unknown as ClaudeCodeConfigureContext;
-          const base = {
+          return {
             apiKeyHelper: `echo ${options.apiKey}`,
+            env: {
+              ANTHROPIC_BASE_URL: options.direct
+                ? "https://api.anthropic.com"
+                : options.env.poeBaseUrl
+            },
             model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL)
           };
-          if (options.direct) {
-            return base;
-          }
-          return {
-            ...base,
-            env: {
-              ANTHROPIC_BASE_URL: options.env.poeBaseUrl
-            }
-          };
         }
+      }),
+      configMutation.prune({
+        target: "~/.claude/settings.json",
+        shape: { env: { ANTHROPIC_AUTH_TOKEN: true } },
+        onlyIf: (_, ctx) =>
+          (ctx as unknown as ClaudeCodeConfigureContext).direct === true
       })
     ],
     unconfigure: [
@@ -124,6 +126,7 @@ export const claudeCodeService = createProvider<
           apiKeyHelper: true,
           env: {
             ANTHROPIC_BASE_URL: true,
+            ANTHROPIC_AUTH_TOKEN: true,
             ANTHROPIC_DEFAULT_HAIKU_MODEL: true,
             ANTHROPIC_DEFAULT_SONNET_MODEL: true,
             ANTHROPIC_DEFAULT_OPUS_MODEL: true

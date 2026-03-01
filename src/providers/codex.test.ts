@@ -142,6 +142,20 @@ describe("codex service", () => {
     expect(opusProfile["model_reasoning_effort"]).toBe("high");
   });
 
+  it("replaces stale profile when reconfiguring with a different model", async () => {
+    await configureCodex({ model: DEFAULT_CODEX_MODEL });
+
+    await configureCodex({
+      model: "anthropic/claude-opus-4.6",
+      reasoningEffort: "high"
+    });
+
+    const doc = parseToml(await fs.readFile(configPath, "utf8"));
+    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
+    expect(profiles["opus"]).toBeDefined();
+    expect(profiles["codex"]).toBeUndefined();
+  });
+
   it("uses POE_BASE_URL when writing base_url", async () => {
     env = createCliEnvironment({
       cwd: home,

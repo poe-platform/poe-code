@@ -44,6 +44,7 @@ export function deriveCodexProfileName(model: string): string {
   }
   return stripped;
 }
+
 export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "codex",
   summary: "Codex CLI",
@@ -155,6 +156,13 @@ export const codexService = createProvider<
     configure: [
       fileMutation.ensureDirectory({ path: "~/.codex" }),
       fileMutation.backup({ target: "~/.codex/config.toml" }),
+      configMutation.transform({
+        target: "~/.codex/config.toml",
+        transform: (document) => {
+          const result = stripCodexConfiguration(document as ConfigObject);
+          return { changed: result.changed, content: result.empty ? null : document };
+        }
+      }),
       templateMutation.mergeToml({
         target: "~/.codex/config.toml",
         templateId: "codex/config.toml.hbs",

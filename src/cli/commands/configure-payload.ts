@@ -59,11 +59,23 @@ export async function createConfigurePayload(
 async function createDirectPayload(
   init: ConfigurePayloadInit
 ): Promise<unknown> {
-  const { container, options, context, adapter } = init;
+  const { container, flags, options, context, adapter } = init;
+
+  if (!adapter.supportsDirect) {
+    throw new Error(
+      `Provider "${adapter.name}" does not support --direct mode.`
+    );
+  }
+
+  if (flags.assumeYes && !options.apiKey) {
+    throw new Error(
+      "--api-key is required in direct mode when --yes is set."
+    );
+  }
 
   let apiKey: string;
   if (options.apiKey) {
-    apiKey = container.options.normalizeApiKey(options.apiKey);
+    apiKey = normalizeAnthropicKey(options.apiKey, container.options.normalizeApiKey);
   } else {
     const descriptor = container.promptLibrary.directApiKey();
     const response = await container.prompts(descriptor);
@@ -71,7 +83,7 @@ async function createDirectPayload(
     if (typeof result !== "string") {
       throw new Error("Anthropic API key is required.");
     }
-    apiKey = container.options.normalizeApiKey(result);
+    apiKey = normalizeAnthropicKey(result, container.options.normalizeApiKey);
   }
 
   const payload: Record<string, unknown> = { env: context.env, apiKey, direct: true };
@@ -82,4 +94,15 @@ async function createDirectPayload(
   }
 
   return payload;
+}
+
+function normalizeAnthropicKey(
+  value: string,
+  normalize: (v: string) => string
+): string {
+  try {
+    return normalize(value);
+  } catch {
+    throw new Error("Anthropic API key cannot be empty.");
+  }
 }

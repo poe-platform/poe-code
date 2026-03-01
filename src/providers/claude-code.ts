@@ -58,6 +58,7 @@ export const claudeCodeService = createProvider<
 >({
   ...claudeCodeAgent,
   supportsStdinPrompt: true,
+  supportsDirect: true,
   configurePrompts: {
     model: {
       label: "Claude Code default model",

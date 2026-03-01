@@ -234,8 +234,8 @@ describe("configure command", () => {
 
     expect(resolveApiKey).not.toHaveBeenCalled();
 
-    const credentials = JSON.parse(await fs.readFile(credentialsPath, "utf8"));
-    expect(credentials.apiKey).toBeUndefined();
+    const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(config.apiKey).toBeUndefined();
 
     const settingsPath = homeDir + "/.claude/settings.json";
     const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
@@ -260,4 +260,37 @@ describe("configure command", () => {
     expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL));
   });
 
+  it("--direct throws an Anthropic-specific error when key is empty", async () => {
+    const { container } = createContainer();
+
+    const program = createTestProgram();
+    await expect(
+      executeConfigure(program, container, "claude-code", {
+        direct: true,
+        apiKey: "   "
+      })
+    ).rejects.toThrow("Anthropic API key cannot be empty");
+  });
+
+  it("--direct throws when used with a provider that does not support it", async () => {
+    const { container } = createContainer();
+
+    const program = createTestProgram();
+    await expect(
+      executeConfigure(program, container, "codex", {
+        direct: true,
+        apiKey: "sk-ant-x"
+      })
+    ).rejects.toThrow(/does not support.*direct/i);
+  });
+
+  it("--direct with --yes and no --api-key throws rather than prompting", async () => {
+    const { container } = createContainer();
+
+    const program = createTestProgram(["node", "cli", "--yes"]);
+    await expect(
+      executeConfigure(program, container, "claude-code", { direct: true })
+    ).rejects.toThrow(/--api-key.*required/i);
+  });
 });
+

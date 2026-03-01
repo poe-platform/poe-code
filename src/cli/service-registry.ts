@@ -73,6 +73,7 @@ export interface ProviderService<
   disabled?: boolean;
   supportsStdinPrompt?: boolean;
   supportsMcpSpawn?: boolean;
+  supportsDirect?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
   postConfigureMessages?: string[];
   isolatedEnv?: ProviderIsolatedEnv;

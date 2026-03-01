@@ -9,7 +9,7 @@ on:
 jobs:
   review:
     name: Cross-check Pull Request
-    if: ${{ false }}
+    if: ${{ vars.ENABLE_PR_REVIEWER == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

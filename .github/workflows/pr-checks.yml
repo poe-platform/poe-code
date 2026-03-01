@@ -19,6 +19,8 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
       - run: npm run build
       - run: npm test -- --force
       - run: npm run smoke

@@ -3,7 +3,7 @@ import type { ProviderService } from "../../cli/service-registry.js";
 import type { ConfiguredServiceMetadata } from "../../services/config.js";
 import { systemChecks } from "./checks/system.js";
 import { authChecks } from "./checks/auth.js";
-import { binaryCheck, configProbeCheck, modelConfiguredCheck } from "./checks/agent.js";
+import { binaryCheck, configProbeCheck, serviceConfiguredCheck } from "./checks/agent.js";
 
 export function collectChecks(
   providers: ProviderService[],
@@ -32,7 +32,7 @@ export function collectChecks(
     }
 
     if (provider.configurePrompts?.model) {
-      checks.push(modelConfiguredCheck(category, provider.name));
+      checks.push(serviceConfiguredCheck(category, provider.name));
     }
   }
 

@@ -8,6 +8,7 @@ import {
 import { loadConfiguredServices } from "../../services/config.js";
 import { collectChecks, runChecks } from "../../sdk/doctor/index.js";
 import type { DoctorResult, CheckResult } from "../../sdk/doctor/types.js";
+import type { ScopedLogger } from "../logger.js";
 
 export type DoctorCommandOptions = Record<string, never>;
 
@@ -102,7 +103,7 @@ function formatCategory(category: string): string {
 }
 
 function logCheckResult(
-  logger: { success(msg: string): void; warn(msg: string): void; error(msg: string): void; info(msg: string): void },
+  logger: ScopedLogger,
   description: string,
   result: CheckResult
 ): void {

@@ -6,7 +6,7 @@ import type { ProviderService } from "../../../cli/service-registry.js";
 import {
   binaryCheck,
   configProbeCheck,
-  modelConfiguredCheck
+  serviceConfiguredCheck
 } from "./agent.js";
 
 const homeDir = "/home/test";
@@ -138,7 +138,7 @@ describe("agent checks", () => {
     });
   });
 
-  describe("modelConfiguredCheck", () => {
+  describe("serviceConfiguredCheck", () => {
     it("passes when model metadata exists in config", async () => {
       await fs.mkdir(homeDir + "/.poe-code", { recursive: true });
       await fs.writeFile(
@@ -150,7 +150,7 @@ describe("agent checks", () => {
         })
       );
       const ctx = createContext(fs);
-      const check = modelConfiguredCheck("agent:codex", "codex");
+      const check = serviceConfiguredCheck("agent:codex", "codex");
       const result = await check.run(ctx);
       expect(result.status).toBe("pass");
     });
@@ -159,7 +159,7 @@ describe("agent checks", () => {
       await fs.mkdir(homeDir + "/.poe-code", { recursive: true });
       await fs.writeFile(configPath, JSON.stringify({}));
       const ctx = createContext(fs);
-      const check = modelConfiguredCheck("agent:codex", "codex");
+      const check = serviceConfiguredCheck("agent:codex", "codex");
       const result = await check.run(ctx);
       expect(result.status).toBe("fail");
       expect(result.fix).toContain("poe-code configure codex");
@@ -167,7 +167,7 @@ describe("agent checks", () => {
 
     it("skips when config file does not exist", async () => {
       const ctx = createContext(fs);
-      const check = modelConfiguredCheck("agent:codex", "codex");
+      const check = serviceConfiguredCheck("agent:codex", "codex");
       const result = await check.run(ctx);
       expect(result.status).toBe("skip");
     });

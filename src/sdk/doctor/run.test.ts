@@ -15,7 +15,7 @@ function createCheck(
   };
 }
 
-const stubContext = {} as DoctorContext;
+const stubContext = { previousResults: new Map() } as DoctorContext;
 
 describe("runChecks", () => {
   it("runs all checks and returns results", async () => {

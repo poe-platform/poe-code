@@ -81,14 +81,14 @@ export function configProbeCheck(
   };
 }
 
-export function modelConfiguredCheck(
+export function serviceConfiguredCheck(
   category: string,
   providerName: string
 ): DoctorCheck {
   return {
-    id: `agent.${providerName}.model`,
+    id: `agent.${providerName}.configured`,
     category,
-    description: `${providerName} model configured`,
+    description: `${providerName} configured`,
     async run(ctx: DoctorContext): Promise<CheckResult> {
       try {
         const raw = await ctx.fs.readFile(ctx.env.configPath, "utf8");

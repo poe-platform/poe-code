@@ -68,7 +68,7 @@ describe("collectChecks", () => {
     expect(ids).not.toContain("agent.claude-code.config-probe");
   });
 
-  it("adds model check when provider has configurePrompts.model", () => {
+  it("adds configured check when provider has configurePrompts.model", () => {
     const provider = createProvider({
       name: "codex",
       configurePrompts: {
@@ -81,7 +81,7 @@ describe("collectChecks", () => {
     });
     const checks = collectChecks([provider], { codex: { files: [] } });
     const ids = checks.map((c) => c.id);
-    expect(ids).toContain("agent.codex.model");
+    expect(ids).toContain("agent.codex.configured");
   });
 
   it("skips unconfigured providers", () => {

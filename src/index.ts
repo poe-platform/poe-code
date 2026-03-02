@@ -14,14 +14,16 @@ export type {
   GenerateResult,
   MediaGenerateResult
 } from "./sdk/types.js";
-export { pipeline } from "./sdk/pipeline/index.js";
+export { runPipeline } from "./sdk/pipeline/index.js";
+export { parsePipeline } from "./sdk/pipeline/index.js";
 export type {
   PipelineDefinition,
   PipelineStep,
   PipelineResult,
   PipelineStepResult,
-  PipelineSummary
-} from "./sdk/pipeline/types.js";
+  PipelineSummary,
+  RunPipelineOptions
+} from "./sdk/pipeline/index.js";
 
 async function main(): Promise<void> {
   const [{ createProgram }, { createCliMain }] = await Promise.all([

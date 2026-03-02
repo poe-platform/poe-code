@@ -128,6 +128,16 @@ function formatHelpText(input: {
         name: "usage list",
         args: "",
         description: "Display usage history"
+      },
+      {
+        name: "pipeline run",
+        args: "<file>",
+        description: "Run a multi-step agent pipeline"
+      },
+      {
+        name: "pipeline validate",
+        args: "<file>",
+        description: "Validate a pipeline YAML file"
       }
     ];
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));

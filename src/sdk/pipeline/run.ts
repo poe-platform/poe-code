@@ -6,7 +6,6 @@ import { renderAcpStream } from "@poe-code/agent-spawn";
 import { spawn } from "../spawn.js";
 import type { SpawnOptions } from "../types.js";
 import { interpolate } from "./interpolate.js";
-import { validatePipeline } from "./validate.js";
 import {
   isParallelGroup,
   type PipelineDefinition,
@@ -16,14 +15,13 @@ import {
 } from "./types.js";
 
 export interface RunPipelineOptions {
-  cwd: string;
+  cwd?: string;
 }
 
 export async function runPipeline(
   pipeline: PipelineDefinition,
-  options: RunPipelineOptions
+  options: RunPipelineOptions = {}
 ): Promise<PipelineResult> {
-  validatePipeline(pipeline);
 
   const stepResults: Record<string, PipelineStepResult> = {};
   const totalSteps = countSteps(pipeline);
@@ -84,14 +82,14 @@ async function runStep(
     throw new Error(`Step "${step.name}" has no agent`);
   }
 
+  const cwd = step.cwd ?? options.cwd ?? process.cwd();
   const prompt = interpolate(step.prompt, completedSteps, {
     name: pipeline.name,
-    cwd: options.cwd
+    cwd
   });
 
   const mode = step.mode ?? pipeline.defaults?.mode ?? "yolo";
   const model = step.model ?? pipeline.defaults?.model;
-  const cwd = step.cwd ?? options.cwd;
 
   const spawnOptions: SpawnOptions = {
     prompt,

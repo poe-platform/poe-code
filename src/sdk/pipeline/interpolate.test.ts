@@ -94,4 +94,13 @@ describe("interpolate", () => {
     );
     expect(result).toBe("hello and again hello");
   });
+
+  it("leaves unresolved step references unchanged", () => {
+    const result = interpolate(
+      "Ref: {{steps.missing.output}}",
+      {},
+      { name: "test", cwd: "/project" }
+    );
+    expect(result).toBe("Ref: {{steps.missing.output}}");
+  });
 });

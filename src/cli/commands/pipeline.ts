@@ -1,9 +1,10 @@
 import path from "node:path";
-import { readFile } from "node:fs/promises";
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
+import { text } from "@poe-code/design-system";
 import {
-  resolveCommandFlags
+  resolveCommandFlags,
+  createExecutionResources
 } from "./shared.js";
 import { parsePipeline } from "../../sdk/pipeline/parse.js";
 import { validatePipeline } from "../../sdk/pipeline/validate.js";
@@ -13,7 +14,7 @@ import type { PipelineDefinition } from "../../sdk/pipeline/types.js";
 
 export function registerPipelineCommand(
   program: Command,
-  _container: CliContainer
+  container: CliContainer
 ): void {
   const pipelineCmd = program
     .command("pipeline")
@@ -29,9 +30,8 @@ export function registerPipelineCommand(
       const commandOptions = this.opts<{ cwd?: string }>();
 
       const filePath = path.resolve(file);
-      const yamlContent = await readFile(filePath, "utf8");
+      const yamlContent = await container.fs.readFile(filePath, "utf8");
       const pipeline = parsePipeline(yamlContent);
-      validatePipeline(pipeline);
 
       const cwd = commandOptions.cwd
         ? path.resolve(commandOptions.cwd)
@@ -42,41 +42,59 @@ export function registerPipelineCommand(
         return;
       }
 
+      const resources = createExecutionResources(
+        container,
+        flags,
+        "pipeline"
+      );
+      resources.logger.intro(`pipeline ${pipeline.name}`);
+
       const result = await runPipeline(pipeline, { cwd });
 
       if (result.summary.success) {
         const duration = formatDuration(result.summary.totalDuration);
-        console.log(
-          `\nPipeline completed: ${result.summary.completedSteps} steps (${duration})`
+        resources.logger.info(
+          `Pipeline completed: ${result.summary.completedSteps} steps (${duration})`
         );
       } else {
         const duration = formatDuration(result.summary.totalDuration);
-        console.error(
-          `\nPipeline aborted (${result.summary.completedSteps}/${result.summary.totalSteps} steps completed, ${duration})`
+        resources.logger.info(
+          `Pipeline aborted (${result.summary.completedSteps}/${result.summary.totalSteps} steps completed, ${duration})`
         );
         process.exitCode = 1;
       }
+
+      resources.context.finalize();
     });
 
   pipelineCmd
     .command("validate")
     .description("Validate a pipeline YAML file without running it.")
     .argument("<file>", "Path to pipeline YAML file")
-    .action(async function (_this: Command, file: string) {
+    .action(async function (this: Command, file: string) {
       const filePath = path.resolve(file);
-      const yamlContent = await readFile(filePath, "utf8");
+      const yamlContent = await container.fs.readFile(filePath, "utf8");
       const pipeline = parsePipeline(yamlContent);
       validatePipeline(pipeline);
-      console.log(`Pipeline "${pipeline.name}" is valid.`);
+
+      const resources = createExecutionResources(
+        container,
+        resolveCommandFlags(program),
+        "pipeline"
+      );
+      resources.logger.info(`Pipeline "${pipeline.name}" is valid.`);
+      resources.context.finalize();
     });
 }
 
 function renderDryRun(pipeline: PipelineDefinition): void {
-  console.log(`Pipeline: ${pipeline.name}`);
+  const lines: string[] = [
+    text.heading(`Pipeline: ${pipeline.name}`)
+  ];
   if (pipeline.description) {
-    console.log(`  ${pipeline.description}`);
+    lines.push(`  ${pipeline.description}`);
   }
-  console.log("");
+  lines.push("");
 
   let stepIndex = 1;
   for (const entry of pipeline.steps) {
@@ -88,15 +106,17 @@ function renderDryRun(pipeline: PipelineDefinition): void {
           return `${s.name} (${agent} · ${mode})`;
         })
         .join("  +  ");
-      console.log(`  ${stepIndex}. [parallel] ${names}`);
+      lines.push(`  ${stepIndex}. ${text.muted("[parallel]")} ${names}`);
       stepIndex += entry.parallel.length;
     } else {
       const agent = entry.agent ?? pipeline.defaults?.agent ?? "?";
       const mode = entry.mode ?? pipeline.defaults?.mode ?? "yolo";
-      console.log(`  ${stepIndex}. ${entry.name} (${agent} · ${mode})`);
+      lines.push(`  ${stepIndex}. ${text.command(entry.name)} ${text.muted(`(${agent} · ${mode})`)}`);
       stepIndex += 1;
     }
   }
+
+  process.stdout.write(lines.join("\n") + "\n");
 }
 
 function formatDuration(ms: number): string {

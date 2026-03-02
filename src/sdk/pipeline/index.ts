@@ -13,17 +13,3 @@ export type {
   PipelineSummary
 } from "./types.js";
 export { isParallelGroup } from "./types.js";
-
-import { runPipeline } from "./run.js";
-import type { PipelineDefinition, PipelineResult } from "./types.js";
-
-export const pipeline = {
-  async run(
-    definition: PipelineDefinition,
-    options?: { cwd?: string }
-  ): Promise<PipelineResult> {
-    return runPipeline(definition, {
-      cwd: options?.cwd ?? process.cwd()
-    });
-  }
-};

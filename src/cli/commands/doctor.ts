@@ -56,7 +56,10 @@ export async function executeDoctor(
   });
 
   const providers = container.registry.list();
-  const checks = collectChecks(providers, configuredServices, agentArg);
+  const checks = collectChecks(providers, configuredServices, agentArg, {
+    homeDir: container.env.homeDir,
+    platform: container.env.platform
+  });
 
   const result = await runChecks(checks, {
     fs: container.fs,
@@ -98,6 +101,9 @@ function formatCategory(category: string): string {
   if (category === "auth") return "Authentication";
   if (category.startsWith("agent:")) {
     return `Agent: ${category.slice("agent:".length)}`;
+  }
+  if (category.startsWith("mcp:")) {
+    return `MCP: ${category.slice("mcp:".length)}`;
   }
   return category;
 }

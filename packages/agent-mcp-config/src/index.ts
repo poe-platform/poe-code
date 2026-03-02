@@ -6,10 +6,12 @@ export type {
   ApplyOptions
 } from "./types.js";
 
+export type { AgentMcpConfig } from "./configs.js";
 export {
   supportedAgents,
   isSupported,
-  resolveAgentSupport
+  resolveAgentSupport,
+  resolveConfigPath
 } from "./configs.js";
 
 export {

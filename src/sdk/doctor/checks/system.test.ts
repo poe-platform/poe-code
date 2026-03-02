@@ -41,7 +41,7 @@ describe("system checks", () => {
   });
 
   describe("system.home-dir", () => {
-    it("passes when .poe-code directory exists and is writable", async () => {
+    it("passes when .poe-code directory exists", async () => {
       await fs.mkdir(poeCodeDir, { recursive: true });
       const ctx = createContext(fs);
       const checks = systemChecks();

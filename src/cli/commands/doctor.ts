@@ -56,6 +56,14 @@ export async function executeDoctor(
   });
 
   const providers = container.registry.list();
+
+  if (agentArg && !providers.some((p) => p.name === agentArg)) {
+    const names = providers.map((p) => p.name).join(", ");
+    resources.logger.warn(
+      `Unknown agent "${agentArg}". Available agents: ${names}`
+    );
+  }
+
   const checks = collectChecks(providers, configuredServices, agentArg, {
     homeDir: container.env.homeDir,
     platform: container.env.platform

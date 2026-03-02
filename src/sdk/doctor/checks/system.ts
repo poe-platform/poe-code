@@ -6,7 +6,7 @@ function homeDirCheck(): DoctorCheck {
   return {
     id: "system.home-dir",
     category: "system",
-    description: "Home directory writable",
+    description: "Home directory exists",
     async run(ctx: DoctorContext): Promise<CheckResult> {
       const poeCodeDir = path.join(ctx.env.homeDir, ".poe-code");
       try {

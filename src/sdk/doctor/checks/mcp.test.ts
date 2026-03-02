@@ -2,16 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createHomeFs } from "../../../../tests/test-helpers.js";
 import type { FileSystem } from "../../../utils/file-system.js";
 import type { DoctorContext } from "../types.js";
-import { mcpConfigValidCheck, mcpCommandExistsCheck } from "./mcp.js";
+import { mcpConfigValidCheck } from "./mcp.js";
 
 const homeDir = "/home/test";
 
-function createContext(
-  fs: FileSystem,
-  overrides: {
-    commandRunner?: (...args: any[]) => Promise<any>;
-  } = {}
-): DoctorContext {
+function createContext(fs: FileSystem): DoctorContext {
   return {
     fs,
     env: {
@@ -27,9 +22,7 @@ function createContext(
         [homeDir, ...segments].join("/"),
       getVariable: () => undefined
     },
-    runCommand:
-      overrides.commandRunner ??
-      vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 })),
+    runCommand: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 })),
     httpClient: vi.fn(),
     readApiKey: vi.fn(async () => null),
     verbose: false,
@@ -90,28 +83,33 @@ describe("MCP checks", () => {
       const result = await check.run(ctx);
       expect(result.status).toBe("warn");
     });
-  });
 
-  describe("mcpCommandExistsCheck", () => {
-    it("passes when MCP command binary is found", async () => {
-      const commandRunner = vi.fn(async (cmd: string) => {
-        if (cmd === "which") {
-          return { stdout: "/usr/local/bin/npx\n", stderr: "", exitCode: 0 };
-        }
-        return { stdout: "", stderr: "", exitCode: 1 };
-      });
-      const ctx = createContext(fs, { commandRunner });
-      const check = mcpCommandExistsCheck("claude-code", "poe-code", "npx");
+    it("passes when TOML config is valid and has config key", async () => {
+      const configPath = homeDir + "/config.toml";
+      await fs.writeFile(
+        configPath,
+        '[mcp_servers.poe-code]\ncommand = "npx"\nargs = ["--yes", "poe-code", "mcp", "serve"]\n'
+      );
+      const ctx = createContext(fs);
+      const check = mcpConfigValidCheck("codex", configPath, "toml", "mcp_servers");
       const result = await check.run(ctx);
       expect(result.status).toBe("pass");
     });
 
-    it("warns when MCP command binary is not found", async () => {
-      const commandRunner = vi.fn(
-        async () => ({ stdout: "", stderr: "", exitCode: 1 })
-      );
-      const ctx = createContext(fs, { commandRunner });
-      const check = mcpCommandExistsCheck("claude-code", "poe-code", "npx");
+    it("fails when TOML config has invalid syntax", async () => {
+      const configPath = homeDir + "/config.toml";
+      await fs.writeFile(configPath, "[invalid\nbroken = ");
+      const ctx = createContext(fs);
+      const check = mcpConfigValidCheck("codex", configPath, "toml", "mcp_servers");
+      const result = await check.run(ctx);
+      expect(result.status).toBe("fail");
+    });
+
+    it("warns when TOML config has no config key", async () => {
+      const configPath = homeDir + "/config.toml";
+      await fs.writeFile(configPath, '[other]\nfoo = "bar"\n');
+      const ctx = createContext(fs);
+      const check = mcpConfigValidCheck("codex", configPath, "toml", "mcp_servers");
       const result = await check.run(ctx);
       expect(result.status).toBe("warn");
     });

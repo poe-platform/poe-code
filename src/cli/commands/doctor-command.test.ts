@@ -124,6 +124,22 @@ describe("doctor command", () => {
     expect(result.summary.fail).toBeGreaterThan(0);
   });
 
+  it("warns when agent argument does not match any provider", async () => {
+    const messages: string[] = [];
+    await fs.mkdir(homeDir + "/.poe-code", { recursive: true });
+    await fs.writeFile(configPath, JSON.stringify({ apiKey: "sk-test" }));
+    const { container } = createContainer({
+      logger: (msg) => messages.push(msg)
+    });
+    vi.spyOn(container, "readApiKey").mockResolvedValue("sk-test");
+
+    const program = createTestProgram();
+    await executeDoctor(program, container, "nonexistent-agent", {});
+
+    const hasWarning = messages.some((m) => m.includes("nonexistent-agent"));
+    expect(hasWarning).toBe(true);
+  });
+
   it("respects dry-run mode", async () => {
     const messages: string[] = [];
     await fs.mkdir(homeDir + "/.poe-code", { recursive: true });

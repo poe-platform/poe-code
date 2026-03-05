@@ -2,7 +2,7 @@ export const FRONTIER_MODELS = [
   "anthropic/claude-opus-4.6",
   "anthropic/claude-sonnet-4.6",
   "openai/gpt-5.3-codex",
-  "openai/gpt-5.2",
+  "openai/gpt-5.4",
   "google/gemini-3-pro"
 ] as const;
 

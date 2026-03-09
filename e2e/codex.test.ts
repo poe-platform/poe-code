@@ -11,7 +11,7 @@ describe('codex', () => {
     await expect(container).toHaveFile('/home/poe/.codex/config.toml');
     const config = await container.readFile('/home/poe/.codex/config.toml');
     expect(config).toContain('model_provider');
-    expect(config).toContain('model = "gpt-5.3-codex"');
+    expect(config).toContain('model = "gpt-5.4"');
     expect(config).toContain('model_verbosity = "medium"');
     expect(config).toContain('base_url');
 

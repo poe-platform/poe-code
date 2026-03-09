@@ -32,7 +32,9 @@ export function stripModelNamespace(model: string): string {
 }
 
 export const CODEX_MODELS = [
+  "openai/gpt-5.4",
   "openai/gpt-5.3-codex",
+  "openai/gpt-5.3-codex-spark",
   "openai/gpt-5.2-codex",
   "openai/gpt-5.2",
   "openai/gpt-5.2-chat",

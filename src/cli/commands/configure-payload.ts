@@ -1,6 +1,10 @@
 import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
-import type { ProviderContext, ProviderService } from "../service-registry.js";
+import type {
+  ProviderConfigurePayload,
+  ProviderContext,
+  ProviderService
+} from "../service-registry.js";
 import type { CommandFlags } from "./shared.js";
 import type { ConfigureCommandOptions } from "./configure.js";
 
@@ -15,8 +19,18 @@ interface ConfigurePayloadInit {
 
 export async function createConfigurePayload(
   init: ConfigurePayloadInit
-): Promise<unknown> {
+): Promise<ProviderConfigurePayload> {
   const { container, flags, options, context, adapter, logger } = init;
+
+  if (adapter.buildConfigurePayload) {
+    return await adapter.buildConfigurePayload({
+      container,
+      flags,
+      options,
+      context,
+      logger
+    });
+  }
 
   const apiKey = await container.options.resolveApiKey({
     value: options.apiKey,
@@ -49,5 +63,7 @@ export async function createConfigurePayload(
     payload.reasoningEffort = reasoningEffort;
   }
 
-  return payload;
+  return {
+    options: payload
+  };
 }

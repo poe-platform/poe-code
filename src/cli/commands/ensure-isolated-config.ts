@@ -73,7 +73,7 @@ export async function ensureIsolatedConfigForService(input: {
     await applyIsolatedConfiguration({
       adapter: entry,
       providerContext,
-      payload,
+      payload: payload.options,
       isolated,
       providerName: adapter.name,
       observers: mutationLogger

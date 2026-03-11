@@ -103,7 +103,7 @@ export async function executeConfigure(
         fs: providerContext.command.fs,
         env: providerContext.env,
         command: providerContext.command,
-        options: payload
+        options: payload.options
       },
       observers
         ? {
@@ -112,13 +112,14 @@ export async function executeConfigure(
         : undefined
     );
 
+    let managedFiles = mergeManagedFiles(payload.files, tracker.files());
     if (!flags.dryRun) {
       await saveConfiguredService({
         fs: container.fs,
         filePath: providerContext.env.configPath,
         service: canonicalService,
         metadata: {
-          files: tracker.files()
+          files: managedFiles
         }
       });
     }
@@ -131,13 +132,41 @@ export async function executeConfigure(
         isolatedTracker.observers,
         isolatedLogger
       );
-      await applyIsolatedConfiguration({
-        adapter: entry,
-        providerContext,
-        payload,
-        isolated,
-        providerName: adapter.name,
-        observers: isolatedObservers
+      let isolatedError: unknown;
+      try {
+        await applyIsolatedConfiguration({
+          adapter: entry,
+          providerContext,
+          payload: payload.options,
+          isolated,
+          providerName: adapter.name,
+          observers: isolatedObservers
+        });
+      } catch (error) {
+        isolatedError = error;
+      }
+      managedFiles = mergeManagedFiles(managedFiles, isolatedTracker.files());
+      if (!flags.dryRun) {
+        await saveConfiguredService({
+          fs: container.fs,
+          filePath: providerContext.env.configPath,
+          service: canonicalService,
+          metadata: {
+            files: managedFiles
+          }
+        });
+      }
+      if (isolatedError) {
+        throw isolatedError;
+      }
+    }
+
+    if (!flags.dryRun) {
+      await payload.afterConfigure?.({
+        container,
+        flags,
+        context: providerContext,
+        logger: resources.logger
       });
     }
   });
@@ -183,6 +212,24 @@ function createMutationTracker(): {
       return Array.from(targets).sort();
     }
   };
+}
+
+function mergeManagedFiles(
+  providerFiles: string[] | undefined,
+  mutationFiles: string[]
+): string[] {
+  const files = new Set<string>();
+  for (const entry of providerFiles ?? []) {
+    if (entry.length > 0) {
+      files.add(entry);
+    }
+  }
+  for (const entry of mutationFiles) {
+    if (entry.length > 0) {
+      files.add(entry);
+    }
+  }
+  return Array.from(files).sort();
 }
 
 function resolvePostConfigureMessages(provider: ProviderService): string[] {

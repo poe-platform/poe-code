@@ -862,7 +862,7 @@ describe("createRalphSimulation", () => {
             fileChanges: { "src/ui/UserList.tsx": "export const UserList = () => <div/>;" },
             output: { stdout: "<promise>COMPLETE</promise>" }
           }
-        ].map((turn, i) => ({
+        ].map((turn) => ({
           ...turn,
           assertPrompt: async (p: string, ctx: any) => {
             await turn.assertPrompt?.(p, ctx);

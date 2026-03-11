@@ -9,7 +9,15 @@ on:
 jobs:
   review:
     name: Cross-check Pull Request
-    if: ${{ false }}
+    if: >-
+      vars.ENABLE_PR_REVIEWER == 'true' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event.pull_request.draft == false &&
+          github.event.pull_request.state == 'open'
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read

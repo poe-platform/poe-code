@@ -59,6 +59,11 @@ interface CreateProviderOptions<
   postConfigureMessages?: string[];
   isolatedEnv?: ProviderIsolatedEnv;
   manifest: ManifestVersionDefinition;
+  buildConfigurePayload?: ProviderService<
+    ConfigureOptions,
+    UnconfigureOptions,
+    SpawnOptions
+  >["buildConfigurePayload"];
   install?: ServiceInstallDefinition;
   test?: ProviderService<ConfigureOptions, UnconfigureOptions, SpawnOptions>["test"];
   spawn?: ProviderService<
@@ -92,6 +97,7 @@ export function createProvider<
     configurePrompts: opts.configurePrompts,
     postConfigureMessages: opts.postConfigureMessages,
     isolatedEnv: opts.isolatedEnv,
+    buildConfigurePayload: opts.buildConfigurePayload,
     async configure(context, runOptions) {
       await runMutations(opts.manifest.configure, {
         fs: context.fs,

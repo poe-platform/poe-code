@@ -1,4 +1,5 @@
 import type { CliEnvironment } from "./environment.js";
+import type { CliContainer } from "./container.js";
 import type { CommandContext } from "./context.js";
 import type { ScopedLogger } from "./logger.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -43,6 +44,35 @@ export interface ProviderContext {
   runCheck(check: CommandCheck): Promise<void>;
 }
 
+export interface ProviderCommandFlags {
+  dryRun: boolean;
+  assumeYes: boolean;
+  verbose: boolean;
+}
+
+export interface ProviderBuildConfigurePayloadInit<TCommandOptions = unknown> {
+  container: CliContainer;
+  flags: ProviderCommandFlags;
+  options: TCommandOptions;
+  context: ProviderContext;
+  logger: ScopedLogger;
+}
+
+export interface ProviderAfterConfigureInit {
+  container: CliContainer;
+  flags: ProviderCommandFlags;
+  context: ProviderContext;
+  logger: ScopedLogger;
+}
+
+export interface ProviderConfigurePayload<TConfigure = unknown> {
+  options: TConfigure;
+  files?: string[];
+  afterConfigure?(
+    init: ProviderAfterConfigureInit
+  ): Promise<void> | void;
+}
+
 export interface ServiceExecutionContext<Options> {
   fs: FileSystem;
   env: CliEnvironment;
@@ -76,6 +106,9 @@ export interface ProviderService<
   configurePrompts?: ProviderConfigurePrompts;
   postConfigureMessages?: string[];
   isolatedEnv?: ProviderIsolatedEnv;
+  buildConfigurePayload?(
+    init: ProviderBuildConfigurePayloadInit
+  ): Promise<ProviderConfigurePayload<TConfigure>>;
   install?(context: ProviderContext): Promise<void> | void;
   spawn?(context: ProviderContext, options: TSpawn): Promise<unknown>;
   test?(context: ProviderContext): Promise<void>;

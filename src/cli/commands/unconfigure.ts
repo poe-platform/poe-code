@@ -63,7 +63,8 @@ export async function executeUnconfigure(
     service: canonicalService,
     container,
     options,
-    context: providerContext
+    context: providerContext,
+    dryRun: flags.dryRun
   });
 
   const unconfigured = await container.registry.invoke(
@@ -134,48 +135,75 @@ interface UnconfigurePayloadInit {
   container: CliContainer;
   options: UnconfigureCommandOptions;
   context: ProviderContext;
+  dryRun: boolean;
 }
 
 async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<unknown> {
   const { context } = init;
-  return { env: context.env };
+  return { env: context.env, dryRun: init.dryRun };
 }
 
 function formatUnconfigureMessages(
   service: string,
   label: string,
   unconfigured: unknown,
-  _payload: unknown
+  payload: unknown
 ): { success: string; dry: string } {
   const didUnconfigure = typeof unconfigured === "boolean" ? unconfigured : Boolean(unconfigured);
+  const dry = resolveDryUnconfigureMessage(label, didUnconfigure, payload);
   switch (service) {
     case "claude-code":
       return {
         success: didUnconfigure
           ? "Removed Claude Code configuration."
           : "No Claude Code configuration found.",
-        dry: "Dry run: would remove Claude Code configuration."
+        dry: resolveDryUnconfigureMessage("Claude Code", didUnconfigure, payload)
       };
     case "codex":
       return {
         success: didUnconfigure
           ? "Removed Codex configuration."
           : "No Codex configuration found.",
-        dry: "Dry run: would remove Codex configuration."
+        dry: resolveDryUnconfigureMessage("Codex", didUnconfigure, payload)
       };
     case "opencode":
       return {
         success: didUnconfigure
           ? "Removed OpenCode CLI configuration."
           : "No OpenCode CLI configuration found.",
-        dry: "Dry run: would remove OpenCode CLI configuration."
+        dry: resolveDryUnconfigureMessage(
+          "OpenCode CLI",
+          didUnconfigure,
+          payload
+        )
       };
     default:
       return {
         success: didUnconfigure
           ? `Removed ${label} configuration.`
           : `No ${label} configuration found.`,
-        dry: `Dry run: would remove ${label} configuration.`
+        dry
       };
   }
+}
+
+function resolveDryUnconfigureMessage(
+  label: string,
+  didUnconfigure: boolean,
+  payload: unknown
+): string {
+  if (didUnconfigure) {
+    return `Dry run: would remove ${label} configuration.`;
+  }
+  if (hasDryRunFlag(payload)) {
+    return `Dry run: no ${label} configuration found.`;
+  }
+  return `Dry run: would remove ${label} configuration.`;
+}
+
+function hasDryRunFlag(payload: unknown): boolean {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return false;
+  }
+  return (payload as { dryRun?: unknown }).dryRun === true;
 }

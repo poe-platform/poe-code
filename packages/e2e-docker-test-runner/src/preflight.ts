@@ -8,11 +8,16 @@ import type { Engine } from './types.js';
 
 const LABEL = 'poe-e2e-test-runner';
 
-interface CheckResult {
+/**
+ * @property critical - When omitted or undefined, defaults to true (critical).
+ *                      Set to false for checks that should not block test execution.
+ */
+export interface CheckResult {
   name: string;
   passed: boolean;
   message?: string;
   fix?: string;
+  critical?: boolean;
 }
 
 export async function runPreflight(): Promise<{ passed: boolean; results: CheckResult[] }> {
@@ -34,12 +39,9 @@ export async function runPreflight(): Promise<{ passed: boolean; results: CheckR
     return { passed: false, results };
   }
 
-  // Check 3: API key available
+  // Check 3: API key available (non-critical — external dependency)
   const apiKeyCheck = await checkApiKey();
   results.push(apiKeyCheck);
-  if (!apiKeyCheck.passed) {
-    return { passed: false, results };
-  }
 
   // Cleanup orphan containers
   const cleaned = await cleanupOrphans(engine);
@@ -61,7 +63,8 @@ export async function runPreflight(): Promise<{ passed: boolean; results: CheckR
     });
   }
 
-  return { passed: true, results };
+  const passed = results.every(r => r.passed);
+  return { passed, results };
 }
 
 function checkEngineInstalled(): CheckResult {
@@ -226,6 +229,7 @@ async function checkApiKey(): Promise<CheckResult> {
   return {
     name: 'API key available',
     passed: false,
+    critical: false,
     message: 'API key not available',
     fix:
       'Set an API key:\n' +
@@ -302,6 +306,10 @@ export async function cleanupOrphans(engine?: Engine, context?: string): Promise
   } catch {
     return 0;
   }
+}
+
+export function hasCriticalFailure(results: CheckResult[]): boolean {
+  return results.some(r => !r.passed && r.critical !== false);
 }
 
 export function formatPreflightResults(results: CheckResult[]): string {

@@ -199,3 +199,98 @@ describe('runPreflight - Docker Desktop auto-start', () => {
     expect(result.passed).toBe(false);
   });
 });
+
+describe('runPreflight - soft failure on missing API key', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.resetModules();
+  });
+
+  async function setup() {
+    const { execSync } = await import('node:child_process');
+    const { detectEngine } = await import('./engine.js');
+    const { detectRunningContext } = await import('./context.js');
+    const { hasApiKey } = await import('./credentials.js');
+    const { runPreflight, hasCriticalFailure } = await import('./preflight.js');
+
+    vi.mocked(detectEngine).mockReturnValue('docker');
+    vi.mocked(detectRunningContext).mockReturnValue(null);
+
+    vi.mocked(execSync).mockImplementation((cmd: string) => {
+      const cmdStr = String(cmd);
+      if (cmdStr.includes('docker info')) return Buffer.from('ok');
+      if (cmdStr.includes('ps -aq')) return Buffer.from('');
+      if (cmdStr.includes('images --format')) return Buffer.from('');
+      return Buffer.from('');
+    });
+
+    return { hasApiKey: vi.mocked(hasApiKey), execSync: vi.mocked(execSync), runPreflight, hasCriticalFailure };
+  }
+
+  it('marks API key failure as non-critical', async () => {
+    const { hasApiKey, runPreflight } = await setup();
+    hasApiKey.mockResolvedValue(false);
+
+    const { passed, results } = await runPreflight();
+
+    expect(passed).toBe(false);
+    const apiKeyResult = results.find(r => r.name === 'API key available');
+    expect(apiKeyResult).toBeDefined();
+    expect(apiKeyResult!.passed).toBe(false);
+    expect(apiKeyResult!.critical).toBe(false);
+  });
+
+  it('marks Docker checks as critical by default', async () => {
+    const { hasApiKey, runPreflight } = await setup();
+    hasApiKey.mockResolvedValue(true);
+
+    const { results } = await runPreflight();
+
+    const dockerCheck = results.find(r => r.name === 'Docker installed');
+    expect(dockerCheck).toBeDefined();
+    expect(dockerCheck!.critical).not.toBe(false);
+  });
+
+  it('continues to cleanup even when API key is missing', async () => {
+    const { hasApiKey, execSync, runPreflight } = await setup();
+    hasApiKey.mockResolvedValue(false);
+
+    await runPreflight();
+
+    expect(execSync).toHaveBeenCalledWith(
+      expect.stringContaining('ps -aq'),
+      expect.anything(),
+    );
+  });
+
+  it('hasCriticalFailure returns false when only non-critical checks fail', async () => {
+    const { hasApiKey, runPreflight, hasCriticalFailure } = await setup();
+    hasApiKey.mockResolvedValue(false);
+
+    const { results } = await runPreflight();
+
+    expect(hasCriticalFailure(results)).toBe(false);
+  });
+
+  it('hasCriticalFailure returns true when a critical check fails', async () => {
+    const { hasCriticalFailure } = await setup();
+
+    expect(hasCriticalFailure([
+      { name: 'Docker installed', passed: false },
+    ])).toBe(true);
+  });
+
+  it('hasCriticalFailure returns true for explicit critical: true', async () => {
+    const { hasCriticalFailure } = await setup();
+
+    expect(hasCriticalFailure([
+      { name: 'Docker installed', passed: false, critical: true },
+    ])).toBe(true);
+  });
+
+  it('hasCriticalFailure returns false for empty array', async () => {
+    const { hasCriticalFailure } = await setup();
+
+    expect(hasCriticalFailure([])).toBe(false);
+  });
+});

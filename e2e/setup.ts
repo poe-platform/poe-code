@@ -1,10 +1,14 @@
-import { runPreflight, formatPreflightResults } from '@poe-code/e2e-docker-test-runner';
+import { runPreflight, formatPreflightResults, hasCriticalFailure } from '@poe-code/e2e-docker-test-runner';
 
 export async function setup(): Promise<void> {
   const { passed, results } = await runPreflight();
   console.error(formatPreflightResults(results));
 
   if (!passed) {
-    throw new Error('Preflight checks failed');
+    if (hasCriticalFailure(results)) {
+      throw new Error('Preflight checks failed');
+    }
+    console.error('\nSkipping e2e tests: non-critical preflight checks failed.\n');
+    process.exit(0);
   }
 }

@@ -263,6 +263,78 @@ describe("discover models workflow script", () => {
     ]);
   });
 
+  it("renders resolver context that asks whether model mentions need updating", async () => {
+    const { renderIssueBody } = await import(scriptUrl);
+
+    const addedBody = renderIssueBody({
+      eventType: "added",
+      modelId: "gpt-5.3-codex",
+      metadata: {
+        id: "gpt-5.3-codex",
+        owned_by: "openai",
+        created: 1700000000000
+      },
+      triage: {
+        exactMentions: [],
+        predecessorMentions: ["src/providers/openai.ts:12 (gpt-5.2-codex)"]
+      },
+      needsChanges: true
+    });
+    expect(addedBody).toContain("## Resolver Context");
+    expect(addedBody).toContain(
+      "A new Poe model was added: `gpt-5.3-codex`."
+    );
+    expect(addedBody).toContain(
+      "Does any existing model mention need updating because of this addition?"
+    );
+    expect(addedBody).toContain(
+      "If yes, make the update."
+    );
+
+    const removedBody = renderIssueBody({
+      eventType: "removed",
+      modelId: "legacy-model",
+      metadata: null,
+      triage: {
+        exactMentions: ["src/providers/legacy.ts:3 (legacy-model)"],
+        predecessorMentions: []
+      },
+      needsChanges: true
+    });
+    expect(removedBody).toContain(
+      "A Poe model was removed: `legacy-model`."
+    );
+    expect(removedBody).toContain(
+      "Does any mention of this removed model need to be removed or replaced?"
+    );
+    expect(removedBody).toContain(
+      "If yes, make the update."
+    );
+
+    const renamedBody = renderIssueBody({
+      eventType: "renamed",
+      modelId: "new-name",
+      previousModelId: "old-name",
+      metadata: {
+        id: "new-name",
+        owned_by: "openai",
+        created: 1700000000001
+      },
+      triage: {
+        exactMentions: ["src/providers/openai.ts:7 (old-name)"],
+        predecessorMentions: []
+      },
+      needsChanges: true
+    });
+    expect(renamedBody).toContain("The Poe model `old-name` was renamed to `new-name`.");
+    expect(renamedBody).toContain(
+      "Does any model mention need updating from `old-name` to `new-name`?"
+    );
+    expect(renamedBody).toContain(
+      "If yes, make the update."
+    );
+  });
+
   it("decides actionability based on event type evidence", async () => {
     const { shouldOpenIssue } = await import(scriptUrl);
 
@@ -276,6 +348,12 @@ describe("discover models workflow script", () => {
       shouldOpenIssue("added", {
         exactMentions: ["src/a.ts:1"],
         predecessorMentions: []
+      })
+    ).toBe(false);
+    expect(
+      shouldOpenIssue("added", {
+        exactMentions: [],
+        predecessorMentions: ["src/a.ts:2"]
       })
     ).toBe(true);
 

@@ -151,6 +151,11 @@ export function shouldOpenIssue(eventType, triage) {
   if (eventType === "removed") {
     return triage.exactMentions.length > 0;
   }
+  if (eventType === "added") {
+    return (
+      triage.exactMentions.length === 0 && triage.predecessorMentions.length > 0
+    );
+  }
   return (
     triage.exactMentions.length > 0 || triage.predecessorMentions.length > 0
   );
@@ -275,7 +280,8 @@ export async function runDiscovery(options = {}) {
       labels: buildIssueLabels("renamed-model", needsChanges),
       body: renderIssueBody({
         eventType: "renamed",
-        modelId: `${event.from} -> ${event.to}`,
+        modelId: event.to,
+        previousModelId: event.from,
         metadata,
         triage,
         needsChanges
@@ -824,7 +830,38 @@ async function closeIssue(fetchFn, token, owner, repo, issueNumber) {
   }
 }
 
-function renderIssueBody({ eventType, modelId, metadata, triage, needsChanges }) {
+function renderResolverContext(eventType, modelId, previousModelId) {
+  if (eventType === "added") {
+    return [
+      `A new Poe model was added: \`${modelId}\`.`,
+      "Does any existing model mention need updating because of this addition?",
+      `If yes, make the update. Update only the references that should now point to \`${modelId}\`.`
+    ];
+  }
+
+  if (eventType === "removed") {
+    return [
+      `A Poe model was removed: \`${modelId}\`.`,
+      "Does any mention of this removed model need to be removed or replaced?",
+      `If yes, make the update. Update only the references that still depend on \`${modelId}\`.`
+    ];
+  }
+
+  return [
+    `The Poe model \`${previousModelId}\` was renamed to \`${modelId}\`.`,
+    `Does any model mention need updating from \`${previousModelId}\` to \`${modelId}\`?`,
+    `If yes, make the update. Update only the references that should now use \`${modelId}\`.`
+  ];
+}
+
+export function renderIssueBody({
+  eventType,
+  modelId,
+  previousModelId = null,
+  metadata,
+  triage,
+  needsChanges
+}) {
   const decision = needsChanges
     ? "Changes appear to be required in `src/`."
     : "No matching references found in `src/`; closed as tracking-only.";
@@ -841,7 +878,12 @@ function renderIssueBody({ eventType, modelId, metadata, triage, needsChanges })
     "## Event",
     "",
     `- type: ${eventType}`,
+    ...(previousModelId ? [`- previous_model: ${previousModelId}`] : []),
     `- model: ${modelId}`,
+    "",
+    "## Resolver Context",
+    "",
+    ...renderResolverContext(eventType, modelId, previousModelId),
     "",
     "## Metadata",
     "",

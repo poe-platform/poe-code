@@ -111,7 +111,9 @@ describe("codex service", () => {
     expect(doc["model_provider"]).toBe("poe");
 
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const codexProfile = profiles["codex"];
+    const defaultProfileName =
+      codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
+    const codexProfile = profiles[defaultProfileName];
     expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(codexProfile["model_provider"]).toBe("poe");
     expect(codexProfile["model_reasoning_effort"]).toBe("medium");
@@ -152,8 +154,10 @@ describe("codex service", () => {
 
     const doc = parseToml(await fs.readFile(configPath, "utf8"));
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
+    const defaultProfileName =
+      codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
     expect(profiles["opus"]).toBeDefined();
-    expect(profiles["codex"]).toBeUndefined();
+    expect(profiles[defaultProfileName]).toBeUndefined();
   });
 
   it("uses POE_BASE_URL when writing base_url", async () => {
@@ -371,7 +375,9 @@ describe("codex service", () => {
 
     // Profile is added
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const codexProfile = profiles["codex"];
+    const defaultProfileName =
+      codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
+    const codexProfile = profiles[defaultProfileName];
     expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(codexProfile["model_provider"]).toBe("poe");
     expect(codexProfile["model_reasoning_effort"]).toBe("medium");

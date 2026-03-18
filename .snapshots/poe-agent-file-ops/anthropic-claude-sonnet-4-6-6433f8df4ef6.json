@@ -1,0 +1,160 @@
+{
+  "key": "anthropic-claude-sonnet-4-6-6433f8df4ef6",
+  "request": {
+    "model": "anthropic/claude-sonnet-4.6",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a Poe agent, built by Poe — an interactive CLI tool that helps users with software engineering tasks.\n\n## Security\n\nAssist with defensive security only. Refuse malicious code, credential harvesting, or bulk crawling for secrets. Allow security analysis, detection rules, vulnerability explanations, and defensive tools.\n\nNever generate or guess URLs unless they help with programming. You may use URLs from user messages or local files.\n\n## Behavior\n\n- Be concise and direct. Minimize output tokens. Skip preamble and postamble.\n- Do what was asked — nothing more, nothing less.\n- Prefer editing existing files over creating new ones. Never create docs/READMEs unless asked.\n- Prioritize technical accuracy over validating beliefs. Disagree when necessary.\n- Read before you write.\n"
+      },
+      {
+        "role": "user",
+        "content": "Using the edit_file tool with command \"create\", create the file /workspace/test-document.txt with this exact content:\n\nThe Art of Software Testing\n\nSoftware testing is a critical discipline that ensures the quality and reliability\nof applications. It involves systematically verifying that software behaves as\nexpected under various conditions, catching defects before they reach end users.\nWithout rigorous testing, even the most elegantly written code can harbor subtle\nbugs that surface only in production environments.\n\nTesting methodologies range from unit tests, which verify individual components in\nisolation, to integration tests that ensure different parts of a system work together\nharmoniously. Each level of testing serves a unique purpose in the overall quality\nassurance strategy, forming what is commonly known as the testing pyramid.\n\nThe practice of test-driven development has gained widespread adoption in modern\nsoftware engineering. By writing tests before implementation, developers create a\nclear specification of desired behavior and build confidence in their code through\ncontinuous verification. This approach naturally leads to modular, well-structured\ncode that is easier to maintain and extend over time."
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "read_file",
+          "description": "Read UTF-8 content from a file.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to the file to read."
+              }
+            },
+            "required": [
+              "path"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "edit_file",
+          "description": "Edit or create files. Use 'str_replace' to replace exact text in an existing file (old_str must appear exactly once). Use 'create' to create a new file (fails if file already exists).",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "str_replace",
+                  "create"
+                ],
+                "description": "Operation to perform."
+              },
+              "path": {
+                "type": "string",
+                "description": "File path."
+              },
+              "old_str": {
+                "type": "string",
+                "description": "Exact string to find and replace (str_replace only). Must match exactly once."
+              },
+              "new_str": {
+                "type": "string",
+                "description": "Replacement string (str_replace only)."
+              },
+              "file_text": {
+                "type": "string",
+                "description": "Full file content (create only)."
+              }
+            },
+            "required": [
+              "command",
+              "path"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "list_files",
+          "description": "List files in a directory.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Directory path to list. Defaults to current working directory."
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "run_command",
+          "description": "Run a shell command.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Command to execute."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory for command execution."
+              }
+            },
+            "required": [
+              "command"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "search_web",
+          "description": "Search the web for a query.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query."
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "response": {
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "",
+          "tool_calls": [
+            {
+              "id": "call-create-file",
+              "type": "function",
+              "function": {
+                "name": "edit_file",
+                "arguments": "{\"command\":\"create\",\"path\":\"/workspace/test-document.txt\",\"file_text\":\"The Art of Software Testing\\n\\nSoftware testing is a critical discipline that ensures the quality and reliability\\nof applications. It involves systematically verifying that software behaves as\\nexpected under various conditions, catching defects before they reach end users.\\nWithout rigorous testing, even the most elegantly written code can harbor subtle\\nbugs that surface only in production environments.\\n\\nTesting methodologies range from unit tests, which verify individual components in\\nisolation, to integration tests that ensure different parts of a system work together\\nharmoniously. Each level of testing serves a unique purpose in the overall quality\\nassurance strategy, forming what is commonly known as the testing pyramid.\\n\\nThe practice of test-driven development has gained widespread adoption in modern\\nsoftware engineering. By writing tests before implementation, developers create a\\nclear specification of desired behavior and build confidence in their code through\\ncontinuous verification. This approach naturally leads to modular, well-structured\\ncode that is easier to maintain and extend over time.\"}"
+              }
+            }
+          ]
+        },
+        "finish_reason": "tool_calls"
+      }
+    ]
+  },
+  "metadata": {
+    "recordedAt": "2026-03-18T13:10:00.000Z"
+  }
+}

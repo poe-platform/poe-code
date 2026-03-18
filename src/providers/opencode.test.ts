@@ -2,9 +2,12 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import path from "node:path";
 import type { FileSystem } from "../utils/file-system.js";
 import {
+  CLAUDE_CODE_VARIANTS,
+  CODEX_MODELS,
   DEFAULT_FRONTIER_MODEL,
   FRONTIER_MODELS,
-  PROVIDER_NAME
+  PROVIDER_NAME,
+  stripModelNamespace
 } from "../cli/constants.js";
 import * as opencodeService from "./opencode.js";
 import { createCliEnvironment } from "../cli/environment.js";
@@ -17,6 +20,12 @@ const withProviderPrefix = (model: string): string =>
   `${PROVIDER_NAME}/${model}`;
 
 const DEFAULT_PROVIDER_MODEL = withProviderPrefix(DEFAULT_FRONTIER_MODEL);
+const EXPECTED_PROVIDER_MODELS = Object.fromEntries(
+  [...new Set([...FRONTIER_MODELS, ...CODEX_MODELS, CLAUDE_CODE_VARIANTS.haiku])].map((model) => [
+    model,
+    { id: stripModelNamespace(model) }
+  ])
+);
 
 describe("opencode service", () => {
   let fs: FileSystem;
@@ -93,7 +102,15 @@ describe("opencode service", () => {
     expect(config).toEqual({
       $schema: "https://opencode.ai/config.json",
       model: DEFAULT_PROVIDER_MODEL,
-      enabled_providers: [PROVIDER_NAME]
+      enabled_providers: [PROVIDER_NAME],
+      provider: {
+        [PROVIDER_NAME]: {
+          models: EXPECTED_PROVIDER_MODELS,
+          options: {
+            baseURL: "https://api.poe.com/v1"
+          }
+        }
+      }
     });
 
     const auth = JSON.parse(await fs.readFile(authPath, "utf8"));
@@ -111,6 +128,26 @@ describe("opencode service", () => {
 
     const config = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(config.model).toBe(withProviderPrefix(alternate));
+  });
+
+  it("uses POE_BASE_URL when writing provider.options.baseURL", async () => {
+    env = createCliEnvironment({
+      cwd: homeDir,
+      homeDir,
+      variables: { POE_BASE_URL: "https://proxy.example.com/v1" }
+    });
+
+    await configureOpenCode();
+
+    const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(config.provider).toEqual({
+      [PROVIDER_NAME]: {
+        models: EXPECTED_PROVIDER_MODELS,
+        options: {
+          baseURL: "https://proxy.example.com/v1"
+        }
+      }
+    });
   });
 
   it("merges with existing config and preserves other settings", async () => {
@@ -134,6 +171,14 @@ describe("opencode service", () => {
     expect(config.customSetting).toBe(true);
     expect(config.enabled_providers).toEqual([PROVIDER_NAME]);
     expect(config.$schema).toBe("https://opencode.ai/config.json");
+    expect(config.provider).toEqual({
+      [PROVIDER_NAME]: {
+        models: EXPECTED_PROVIDER_MODELS,
+        options: {
+          baseURL: "https://api.poe.com/v1"
+        }
+      }
+    });
   });
 
   it("replaces the Poe auth entry while keeping other providers", async () => {

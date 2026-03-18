@@ -1,7 +1,10 @@
 import {
+  CLAUDE_CODE_VARIANTS,
+  CODEX_MODELS,
   DEFAULT_FRONTIER_MODEL,
   FRONTIER_MODELS,
-  PROVIDER_NAME
+  PROVIDER_NAME,
+  stripModelNamespace
 } from "../cli/constants.js";
 import {
   createBinaryExistsCheck,
@@ -21,6 +24,15 @@ function providerModel(model?: string): string {
   const prefix = `${PROVIDER_NAME}/`;
   return value.startsWith(prefix) ? value : `${prefix}${value}`;
 }
+
+// OpenCode resolves the config model by key, but Poe's OpenAI-compatible API
+// expects bare bot IDs rather than our namespaced internal model IDs.
+const PROVIDER_MODEL_ALIASES = Object.fromEntries(
+  [...new Set([...FRONTIER_MODELS, ...CODEX_MODELS, CLAUDE_CODE_VARIANTS.haiku])].map((model) => [
+    model,
+    { id: stripModelNamespace(model) }
+  ])
+);
 
 export const OPEN_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "opencode",
@@ -74,11 +86,22 @@ export const openCodeService = createProvider({
       configMutation.merge({
         target: "~/.config/opencode/config.json",
         value: (ctx) => {
-          const { model } = (ctx ?? {}) as { model?: string };
+          const { env, model } = (ctx ?? {}) as {
+            env?: { poeApiBaseUrl?: string };
+            model?: string;
+          };
           return {
             $schema: "https://opencode.ai/config.json",
             model: providerModel(model),
-            enabled_providers: [PROVIDER_NAME]
+            enabled_providers: [PROVIDER_NAME],
+            provider: {
+              [PROVIDER_NAME]: {
+                models: PROVIDER_MODEL_ALIASES,
+                options: {
+                  baseURL: env?.poeApiBaseUrl ?? "https://api.poe.com/v1"
+                }
+              }
+            }
           };
         }
       }),

@@ -33,7 +33,7 @@ const REPLACEMENT_PARAGRAPH = [
 ].join('\n');
 
 describe('poe-agent file operations', () => {
-  const container = useContainer({ testName: 'poe-agent-file-ops' });
+  const container = useContainer({ testName: 'poe-agent-file-ops', useSnapshots: true });
 
   it('creates, edits, renames, and deletes a file', async () => {
     const configResult = await container.exec('poe-code configure poe-agent --yes');

@@ -3,19 +3,15 @@
 const { env, stderr } = process;
 
 async function main() {
-  const repo = env.GITHUB_REPOSITORY;
-  const token = env.GITHUB_TOKEN;
-  const issueNumber = Number.parseInt(env.ISSUE_NUMBER ?? "", 10);
+  const repo = readEnv("GITHUB_REPOSITORY");
+  const token = readEnv("GITHUB_TOKEN");
+  const issueNumber = Number.parseInt(readEnv("ISSUE_NUMBER"), 10);
 
-  if (!repo || !token || !Number.isInteger(issueNumber)) {
-    fail("GITHUB_REPOSITORY, GITHUB_TOKEN, and ISSUE_NUMBER are required.");
+  if (!Number.isInteger(issueNumber)) {
+    fail("ISSUE_NUMBER must be an integer.");
   }
 
-  const [owner, repoName] = repo.split("/");
-  if (!owner || !repoName) {
-    fail(`Invalid GITHUB_REPOSITORY value: ${repo}`);
-  }
-
+  const [owner, repoName] = splitRepository(repo);
   const issue = await fetchIssue(owner, repoName, issueNumber, token);
   const comments = await fetchAllComments(
     owner,
@@ -24,9 +20,26 @@ async function main() {
     token
   );
 
+  process.stdout.write(buildPrompt({ issueNumber, issue, comments }));
+}
+
+function buildPrompt({ issueNumber, issue, comments }) {
   const lines = [];
   lines.push(`You are resolving GitHub issue #${issueNumber}: ${issue.title}.`);
-  lines.push("Implement the required changes and commit them.");
+
+  const modelDiscoveryInstruction = buildModelDiscoveryInstruction(issue.title ?? "");
+  if (modelDiscoveryInstruction.length > 0) {
+    lines.push(
+      "This is a model discovery issue triggered by a Poe model changelog event."
+    );
+    lines.push(...modelDiscoveryInstruction);
+    lines.push(
+      "If updates are needed, implement the minimal required changes and commit them."
+    );
+    lines.push("If no updates are needed, leave the worktree unchanged.");
+  } else {
+    lines.push("Implement the required changes and commit them.");
+  }
 
   const conversation = [
     {
@@ -47,15 +60,79 @@ async function main() {
     lines.push("");
     lines.push("Conversation:");
     for (const entry of conversation) {
-      lines.push(
-        `@${entry.author} (${formatDate(entry.created_at)}):`
-      );
-      lines.push(entry.body.trim() ? entry.body.trim() : "_No content provided._");
+      lines.push(`@${entry.author} (${formatDate(entry.created_at)}):`);
+      lines.push(formatBody(entry.body));
       lines.push("");
     }
   }
 
-  process.stdout.write(lines.join("\n").trim() + "\n");
+  return lines.join("\n").trim() + "\n";
+}
+
+function buildModelDiscoveryInstruction(title) {
+  if (typeof title !== "string") {
+    return [];
+  }
+
+  const trimmed = title.trim();
+  const lower = trimmed.toLowerCase();
+
+  if (lower.startsWith("new model:")) {
+    const modelId = trimmed.slice("new model:".length).trim();
+    if (!modelId) {
+      return [];
+    }
+    return [
+      `The Poe model changelog says a new model was added: \`${modelId}\`.`,
+      "Determine whether any existing model mentions in this repository need updating because of this addition, and make the update if needed."
+    ];
+  }
+
+  if (lower.startsWith("removed model:")) {
+    const modelId = trimmed.slice("removed model:".length).trim();
+    if (!modelId) {
+      return [];
+    }
+    return [
+      `The Poe model changelog says a model was removed: \`${modelId}\`.`,
+      "Determine whether any mentions of this removed model in this repository need to be removed or replaced, and make the update if needed."
+    ];
+  }
+
+  if (lower.startsWith("renamed model:")) {
+    const rawRename = trimmed.slice("renamed model:".length).trim();
+    const separatorIndex = rawRename.indexOf("->");
+    if (separatorIndex <= 0) {
+      return [];
+    }
+    const from = rawRename.slice(0, separatorIndex).trim();
+    const to = rawRename.slice(separatorIndex + 2).trim();
+    if (!from || !to) {
+      return [];
+    }
+    return [
+      `The Poe model \`${from}\` was renamed to \`${to}\`.`,
+      "Determine whether any model mentions in this repository need updating because of this rename, and make the update if needed."
+    ];
+  }
+
+  return [];
+}
+
+function readEnv(name) {
+  const value = env[name];
+  if (!value) {
+    fail(`Missing ${name} environment variable.`);
+  }
+  return value;
+}
+
+function splitRepository(value) {
+  const parts = value.split("/");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+    fail(`Invalid GITHUB_REPOSITORY value: ${value}`);
+  }
+  return parts;
 }
 
 async function fetchIssue(owner, repo, number, token) {
@@ -132,11 +209,23 @@ function formatDate(value) {
   }
 }
 
+function formatBody(value) {
+  return value.trim() ? value.trim() : "_No content provided._";
+}
+
 function fail(message) {
   stderr.write(`${message}\n`);
   process.exit(1);
 }
 
-main().catch((error) => {
-  fail(error instanceof Error ? error.message : String(error));
-});
+module.exports = {
+  main,
+  buildPrompt,
+  buildModelDiscoveryInstruction
+};
+
+if (require.main === module) {
+  main().catch((error) => {
+    fail(error instanceof Error ? error.message : String(error));
+  });
+}

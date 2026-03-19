@@ -1,6 +1,4 @@
 import type { Command } from "commander";
-import { exec } from "node:child_process";
-import readline from "node:readline";
 import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
@@ -11,16 +9,10 @@ import {
 import {
   loadConfiguredServices
 } from "../../services/config.js";
-import { ValidationError } from "../errors.js";
 import {
   combineMutationObservers,
   createMutationReporter
 } from "../../services/mutation-events.js";
-import { createOAuthClient } from "@poe-code/auth";
-import {
-  text,
-  log
-} from "@poe-code/design-system";
 
 export interface LoginCommandOptions {
   apiKey?: string;
@@ -54,22 +46,23 @@ export async function executeLogin(
   resources.logger.intro("login");
 
   try {
-    const input = await resolveApiKeyInput(container, options);
-    const normalized = container.options.normalizeApiKey(input);
+    const apiKey = await container.options.resolveApiKey({
+      value: options.apiKey,
+      envValue: container.env.getVariable("POE_API_KEY"),
+      dryRun: flags.dryRun,
+      assumeYes: flags.assumeYes,
+      allowStored: false
+    });
 
     const configuredServices = await loadConfiguredServices({
       fs: container.fs,
       filePath: container.env.configPath
     });
 
-    if (!flags.dryRun) {
-      await container.writeApiKey(normalized);
-    }
-
     await reconfigureServices({
       program,
       container,
-      apiKey: normalized,
+      apiKey,
       configuredServices
     });
 
@@ -88,90 +81,6 @@ export async function executeLogin(
     }
     throw error;
   }
-}
-
-async function resolveApiKeyInput(
-  container: CliContainer,
-  options: LoginCommandOptions
-): Promise<string> {
-  if (options.apiKey) {
-    return options.apiKey;
-  }
-
-  const envKey = container.env.getVariable("POE_API_KEY");
-  if (envKey && envKey.trim().length > 0) {
-    return envKey;
-  }
-
-  if (container.env.getVariable("POE_CODE_OAUTH_LOGIN") === "1") {
-    return resolveApiKeyViaOAuth();
-  }
-
-  const descriptor = container.promptLibrary.loginApiKey();
-  const response = await container.prompts(descriptor);
-  const value = response[descriptor.name];
-
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new ValidationError("POE API key is required.", {
-      operation: "login",
-      field: "apiKey"
-    });
-  }
-
-  return value;
-}
-
-async function resolveApiKeyViaOAuth(): Promise<string> {
-  const rl = readline.createInterface({
-    input: process.stdin
-  });
-
-  try {
-    const client = createOAuthClient({
-      clientId: "client_f520ee4d8ca84a13ba876a8731d264d0",
-      authorizationEndpoint: "https://poe.com/oauth/authorize",
-      tokenEndpoint: "https://api.poe.com/token",
-      openBrowser: (url) =>
-        openInBrowser(url).catch(() => {
-          log.warn("Could not open browser automatically.");
-        }),
-      readLine: () =>
-        new Promise<string>((resolve) => {
-          rl.once("line", (line) => resolve(line));
-        })
-    });
-
-    const authorization = await client.authorize();
-
-    log.message(`${text.muted("Authorize at")} ${text.link(authorization.authorizationUrl)}`);
-    log.message(text.muted("Waiting for authorization. You can also paste the redirect URL here:"))
-
-    const result = await authorization.waitForResult();
-
-    return result.apiKey;
-  } finally {
-    rl.close();
-  }
-}
-
-function openInBrowser(url: string): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    const platform = process.platform;
-    const command =
-      platform === "darwin"
-        ? `open "${url}"`
-        : platform === "win32"
-          ? `start "" "${url}"`
-          : `xdg-open "${url}"`;
-
-    exec(command, (error) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
 }
 
 interface ReconfigureServicesInput {

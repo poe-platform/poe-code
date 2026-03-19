@@ -34,6 +34,7 @@ import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";
 import { createPoeCodeCommandRunner } from "./poe-code-command-runner.js";
 import { OperationCancelledError } from "./errors.js";
+import { resolveApiKeyViaOAuth } from "./oauth-login.js";
 
 export interface CliDependencies {
   fs: FileSystem;
@@ -153,6 +154,9 @@ export function createCliContainer(
   const readApiKey = authStore.getApiKey.bind(authStore);
   const writeApiKey = authStore.setApiKey.bind(authStore);
 
+  const oauthEnabled =
+    (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN === "1";
+
   const options = createOptionResolvers({
     prompts: dependencies.prompts,
     promptLibrary,
@@ -167,7 +171,8 @@ export function createCliContainer(
         throw new OperationCancelledError();
       }
       return result === true;
-    }
+    },
+    loginViaOAuth: oauthEnabled ? resolveApiKeyViaOAuth : undefined
   });
 
   const registry = createServiceRegistry();

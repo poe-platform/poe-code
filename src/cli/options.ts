@@ -73,6 +73,7 @@ export interface OptionResolverInit {
   promptLibrary: PromptLibrary;
   apiKeyStore: ApiKeyStore;
   confirm: (message: string) => Promise<boolean>;
+  loginViaOAuth?: () => Promise<string>;
 }
 
 function isAlphanumeric(value: string): boolean {
@@ -205,6 +206,15 @@ export function createOptionResolvers(
       if (stored) {
         return normalizeApiKey(stored);
       }
+    }
+
+    if (init.loginViaOAuth) {
+      const apiKey = await init.loginViaOAuth();
+      const normalized = normalizeApiKey(apiKey);
+      if (!input.dryRun) {
+        await init.apiKeyStore.write(normalized);
+      }
+      return normalized;
     }
 
     while (true) {

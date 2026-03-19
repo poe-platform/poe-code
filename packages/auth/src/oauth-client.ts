@@ -75,6 +75,7 @@ async function startAuthorization(
         fetchFn
       });
     } finally {
+      server.closeAllConnections?.();
       server.close();
     }
   };

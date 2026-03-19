@@ -6,6 +6,30 @@ import type { CommandRunner } from "../../utils/command-checks.js";
 import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace } from "../constants.js";
 import { createAuthStore } from "@poe-code/auth";
 
+vi.mock("@poe-code/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/auth")>();
+  return {
+    ...actual,
+    createOAuthClient: vi.fn(() => ({
+      authorize: vi.fn(async () => ({
+        authorizationUrl: "https://poe.com/authorize?test=1",
+        waitForResult: vi.fn(async () => ({
+          apiKey: "oauth-key-from-browser",
+          expiresIn: 3600
+        }))
+      }))
+    }))
+  };
+});
+
+vi.mock("@poe-code/design-system", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+  return {
+    ...actual,
+    log: { ...actual.log, message: vi.fn() }
+  };
+});
+
 function createMemfs(homeDir: string): FileSystem {
   const volume = new Volume();
   volume.mkdirSync(homeDir, { recursive: true });
@@ -220,6 +244,60 @@ describe("login command", () => {
     const settings = JSON.parse(settingsRaw);
     expect(settings.apiKeyHelper).toBe("echo new-key");
     expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL));
+  });
+
+  it("uses OAuth flow when POE_CODE_OAUTH_LOGIN=1", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "1" } },
+      commandRunner,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "login"]);
+
+    const storedKey = await readStoredApiKey(fs, homeDir);
+    expect(storedKey).toBe("oauth-key-from-browser");
+    expect(prompts).not.toHaveBeenCalled();
+    expect(
+      logs.some((message) => message.includes("Logged in."))
+    ).toBe(true);
+  });
+
+  it("prefers --api-key flag over OAuth flow", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "1" } },
+      commandRunner,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "login", "--api-key", "manual-key"]);
+
+    const storedKey = await readStoredApiKey(fs, homeDir);
+    expect(storedKey).toBe("manual-key");
   });
 
   it("skips writing config during dry run", async () => {

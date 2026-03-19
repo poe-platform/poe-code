@@ -8,7 +8,7 @@ function createTestConfig(
 ): OAuthClientConfig {
   return {
     clientId: "test-client-id",
-    authorizationEndpoint: "https://poe.com/authorize",
+    authorizationEndpoint: "https://poe.com/oauth/authorize",
     tokenEndpoint: "https://api.poe.com/token",
     openBrowser: vi.fn(async () => {}),
     createServer: vi.fn(),
@@ -83,7 +83,7 @@ describe("OAuthClient", () => {
 
     const url = new URL(authorization.authorizationUrl);
     expect(url.origin).toBe("https://poe.com");
-    expect(url.pathname).toBe("/authorize");
+    expect(url.pathname).toBe("/oauth/authorize");
     expect(url.searchParams.get("response_type")).toBe("code");
     expect(url.searchParams.get("client_id")).toBe("test-client-id");
     expect(url.searchParams.get("scope")).toBe("apikey:create");

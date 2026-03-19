@@ -129,7 +129,7 @@ async function resolveApiKeyViaOAuth(): Promise<string> {
   try {
     const client = createOAuthClient({
       clientId: "client_f520ee4d8ca84a13ba876a8731d264d0",
-      authorizationEndpoint: "https://poe.com/authorize",
+      authorizationEndpoint: "https://poe.com/oauth/authorize",
       tokenEndpoint: "https://api.poe.com/token",
       openBrowser: (url) =>
         openInBrowser(url).catch(() => {

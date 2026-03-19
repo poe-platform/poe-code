@@ -236,7 +236,7 @@ describe("mcp command", () => {
     const program = createProgram({
       fs: noConfigFs,
       prompts,
-      env: { cwd, homeDir, variables: {} },
+      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "0" } },
       logger: (message) => { logs.push(message); },
       suppressCommanderOutput: true
     });

@@ -169,7 +169,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({ apiKey: "prompted-key" }),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "0" } },
       httpClient,
       logger: (message) => logs.push(message)
     });

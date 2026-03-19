@@ -150,7 +150,7 @@ describe("login command", () => {
     expect(prompts).not.toHaveBeenCalled();
   });
 
-  it("prompts for an api key when flag missing", async () => {
+  it("prompts for an api key when flag missing and OAuth disabled", async () => {
     prompts.mockResolvedValue({ apiKey: PROMPT_KEY });
     const commandRunner: CommandRunner = vi.fn(async () => ({
       stdout: "",
@@ -160,7 +160,7 @@ describe("login command", () => {
     const program = createProgram({
       fs,
       prompts,
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "0" } },
       commandRunner,
       logger: (message) => {
         logs.push(message);
@@ -236,7 +236,7 @@ describe("login command", () => {
     expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL));
   });
 
-  it("uses OAuth flow when POE_CODE_OAUTH_LOGIN=1", async () => {
+  it("uses OAuth flow by default", async () => {
     const commandRunner: CommandRunner = vi.fn(async () => ({
       stdout: "",
       stderr: "",
@@ -245,7 +245,7 @@ describe("login command", () => {
     const program = createProgram({
       fs,
       prompts,
-      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "1" } },
+      env: { cwd, homeDir, variables: {} },
       commandRunner,
       logger: (message) => {
         logs.push(message);
@@ -274,7 +274,7 @@ describe("login command", () => {
     const program = createProgram({
       fs,
       prompts,
-      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "1" } },
+      env: { cwd, homeDir, variables: {} },
       commandRunner,
       logger: (message) => {
         logs.push(message);

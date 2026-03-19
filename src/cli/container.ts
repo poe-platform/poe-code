@@ -155,7 +155,7 @@ export function createCliContainer(
   const writeApiKey = authStore.setApiKey.bind(authStore);
 
   const oauthEnabled =
-    (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN === "1";
+    (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN !== "0";
 
   const options = createOptionResolvers({
     prompts: dependencies.prompts,

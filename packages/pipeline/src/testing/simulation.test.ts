@@ -25,6 +25,14 @@ describe("createPipelineSimulation", () => {
     const plan = await readPlan();
 
     expect(result.stopReason).toBe("completed");
+    expect(result.metrics).toEqual({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 0
+    });
     expect(prompts).toEqual(["Fix the timeout regression"]);
     expect(runs[0]?.mode).toBe("yolo");
     expect(plan.tasks[0]?.status).toBe("done");
@@ -65,6 +73,14 @@ describe("createPipelineSimulation", () => {
     const task = (await readPlan()).tasks[0];
 
     expect(result.stopReason).toBe("completed");
+    expect(result.metrics).toEqual({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 0,
+      tasksFailed: 0,
+      stepsCompleted: 3
+    });
     expect(prompts).toEqual([
       "Implement auth-hardening",
       "Test auth-hardening",
@@ -115,6 +131,14 @@ describe("createPipelineSimulation", () => {
     const task = (await readPlan()).tasks[0];
 
     expect(result.stopReason).toBe("failed");
+    expect(result.metrics).toEqual({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 0,
+      tasksFailed: 1,
+      stepsCompleted: 1
+    });
     expect(result.lastStepName).toBe("test");
     expect(runs).toHaveLength(2);
     expect(prompts).toEqual([
@@ -239,6 +263,14 @@ describe("createPipelineSimulation", () => {
     const plan = await readPlan();
 
     expect(result.stopReason).toBe("max_runs");
+    expect(result.metrics).toEqual({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 2,
+      tasksFailed: 0,
+      stepsCompleted: 0
+    });
     expect(plan.tasks.map((task) => task.status)).toEqual(["done", "done", "open"]);
   });
 

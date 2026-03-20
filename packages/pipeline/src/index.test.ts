@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type {
+  AgentRunUsage,
   AgentRunInput,
   AgentRunResult,
+  PipelineMetrics,
   PipelinePlan,
   PipelineRunOptions,
   PipelineRunResult,
@@ -37,7 +39,23 @@ describe("@poe-code/pipeline public exports", () => {
     const result: AgentRunResult = {
       stdout: "",
       stderr: "",
-      exitCode: 0
+      exitCode: 0,
+      usage: {
+        inputTokens: 10,
+        outputTokens: 5
+      }
+    };
+    const metrics: PipelineMetrics = {
+      totalInputTokens: 10,
+      totalOutputTokens: 5,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 0
+    };
+    const usage: AgentRunUsage = {
+      inputTokens: 10,
+      outputTokens: 5
     };
     const options: PipelineRunOptions = {
       agent: "codex",
@@ -54,5 +72,7 @@ describe("@poe-code/pipeline public exports", () => {
     void result;
     void options;
     void runResult;
+    void metrics;
+    void usage;
   });
 });

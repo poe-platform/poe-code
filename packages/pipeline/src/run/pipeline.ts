@@ -13,6 +13,7 @@ import type {
   AgentRunResult,
   PipelineFileStat,
   PipelineFileSystem,
+  PipelineMetrics,
   PipelinePlan,
   PipelineRunOptions,
   PipelineRunResult,
@@ -77,6 +78,14 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   if (!runAgent) {
     throw new Error("runPipeline requires a runAgent implementation.");
   }
+  const metrics: PipelineMetrics = {
+    totalInputTokens: 0,
+    totalOutputTokens: 0,
+    totalCachedTokens: 0,
+    tasksCompleted: 0,
+    tasksFailed: 0,
+    stepsCompleted: 0
+  };
 
   const planPath = await resolvePlanPath({
     cwd: options.cwd,
@@ -93,7 +102,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       stopReason: "cancelled",
       planPath: "",
       runsCompleted: 0,
-      totalDurationMs: 0
+      totalDurationMs: 0,
+      metrics
     };
   }
 
@@ -170,7 +180,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           stopReason: runsCompleted === 0 ? "nothing_to_run" : "completed",
           planPath,
           runsCompleted,
-          totalDurationMs: Date.now() - pipelineStartTime
+          totalDurationMs: Date.now() - pipelineStartTime,
+          metrics
         };
       }
 
@@ -180,6 +191,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           planPath,
           runsCompleted,
           totalDurationMs: Date.now() - pipelineStartTime,
+          metrics,
           lastTaskId: selection.task.id,
           ...(selection.stepName ? { lastStepName: selection.stepName } : {})
         };
@@ -224,6 +236,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
             planPath,
             runsCompleted,
             totalDurationMs: Date.now() - pipelineStartTime,
+            metrics,
             lastTaskId: selection.task.id,
             ...(selection.stepName ? { lastStepName: selection.stepName } : {})
           };
@@ -233,6 +246,20 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       const taskDurationMs = Date.now() - taskStartTime;
       const success = result.exitCode === 0;
+      if (result.usage) {
+        metrics.totalInputTokens += result.usage.inputTokens;
+        metrics.totalOutputTokens += result.usage.outputTokens;
+        metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
+      }
+      if (success) {
+        if (selection.stepName) {
+          metrics.stepsCompleted += 1;
+        } else {
+          metrics.tasksCompleted += 1;
+        }
+      } else {
+        metrics.tasksFailed += 1;
+      }
 
       await writeTaskStatus({
         fs,
@@ -259,7 +286,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       options.onTaskComplete?.({
         ...taskProgress,
         durationMs: taskDurationMs,
-        success
+        success,
+        ...(result.usage ? { usage: result.usage } : {})
       });
 
       if (!success) {
@@ -268,6 +296,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           planPath,
           runsCompleted,
           totalDurationMs: Date.now() - pipelineStartTime,
+          metrics,
           lastTaskId: selection.task.id,
           ...(selection.stepName ? { lastStepName: selection.stepName } : {})
         };
@@ -281,6 +310,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     stopReason: "max_runs",
     planPath,
     runsCompleted,
-    totalDurationMs: Date.now() - pipelineStartTime
+    totalDurationMs: Date.now() - pipelineStartTime,
+    metrics
   };
 }

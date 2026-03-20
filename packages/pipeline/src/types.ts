@@ -54,12 +54,28 @@ export interface AgentRunInput {
   signal?: AbortSignal;
 }
 
+export interface AgentRunUsage {
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens?: number;
+}
+
 export interface AgentRunResult {
   stdout: string;
   stderr: string;
   exitCode: number;
   threadId?: string;
   sessionId?: string;
+  usage?: AgentRunUsage;
+}
+
+export interface PipelineMetrics {
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalCachedTokens: number;
+  tasksCompleted: number;
+  tasksFailed: number;
+  stepsCompleted: number;
 }
 
 export type ExecutionSelection =
@@ -111,7 +127,11 @@ export interface PipelineRunOptions {
   promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
   onPlanResolved?: (summary: PlanSummary) => void;
   onTaskStart?: (progress: TaskProgress) => void;
-  onTaskComplete?: (progress: TaskProgress & { durationMs: number; success: boolean }) => void;
+  onTaskComplete?: (progress: TaskProgress & {
+    durationMs: number;
+    success: boolean;
+    usage?: AgentRunUsage;
+  }) => void;
   onPlanReloadError?: (error: Error) => void;
   signal?: AbortSignal;
 }
@@ -121,6 +141,7 @@ export interface PipelineRunResult {
   planPath: string;
   runsCompleted: number;
   totalDurationMs: number;
+  metrics: PipelineMetrics;
   lastTaskId?: string;
   lastStepName?: string;
 }

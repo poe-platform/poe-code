@@ -1,9 +1,11 @@
 export type {
+  AgentRunUsage,
   AgentRunInput,
   AgentRunResult,
   ExecutionSelection,
   PipelineConfig,
   PipelineFileSystem,
+  PipelineMetrics,
   PipelinePlan,
   PipelineRunOptions,
   PipelineRunResult,

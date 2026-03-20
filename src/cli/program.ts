@@ -335,7 +335,6 @@ function bootstrapProgram(container: CliContainer): Command {
   registerPipelineCommand(program, container);
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
-  registerPipelineCommand(program, container);
 
   program.allowExcessArguments().action(function (this: Command) {
     const args = this.args;

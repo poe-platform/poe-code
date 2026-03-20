@@ -1,6 +1,5 @@
 import { createAuthStore } from "@poe-code/auth";
 import type { CreateAgentSessionOptions } from "./agent-session.js";
-import { loadSystemPrompt } from "./system-prompt.js";
 import { runAcpCore, type AcpModel, type AcpModelRequestMessage } from "./runtime/acp-core.js";
 import {
   AgentHost,
@@ -221,8 +220,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
 
       const modelName = resolveModelName(this.#config.model, options.acpModel);
       assertNotAborted(runContext.abortController.signal);
-      const baseSystemPrompt = options.baseSystemPrompt ?? (await loadSystemPrompt());
-      assertNotAborted(runContext.abortController.signal);
+      const baseSystemPrompt = options.baseSystemPrompt;
       const model =
         options.acpModel ??
         (await createPoeAcpModel({
@@ -270,7 +268,7 @@ export function agent(): AgentBuilder {
 type PreparedRun = {
   runContext: RunContext;
   model: AcpModel;
-  baseSystemPrompt: string;
+  baseSystemPrompt?: string;
   createSpawnSession: AgentHostOptions["createSpawnSession"];
 };
 

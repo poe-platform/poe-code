@@ -5,7 +5,6 @@ import type {
 } from "@poe-code/agent-spawn";
 import { HttpTransport, McpClient, StdioTransport, type Tool as McpTool } from "tiny-mcp-client";
 import { agent, type AgentBuilder, type AgentRunOptions } from "./agent.js";
-import type { ChatMessage } from "./chat.js";
 import {
   callToolResultToString,
   namespaceMcpToolName,
@@ -17,6 +16,8 @@ import systemPromptPlugin from "./plugins/poe-agent-plugin-system-prompt.js";
 import webPlugin from "./plugins/poe-agent-plugin-web.js";
 import type { AgentPlugin } from "./runtime/plugin-types.js";
 import type { AcpEvent, RunResult, Tool } from "./runtime/types.js";
+
+type ChatMessage = { role: string; content: string };
 
 export interface AgentSession {
   sendMessage(prompt: string, options?: AgentSessionSendMessageOptions): Promise<ChatMessage>;

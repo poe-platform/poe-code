@@ -23,6 +23,7 @@ import { registerVersionOption } from "./commands/version.js";
 import { registerRalphCommand } from "./commands/ralph.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerModelsCommand } from "./commands/models.js";
+import { registerPipelineCommand } from "./commands/pipeline.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -117,6 +118,16 @@ function formatHelpText(input: {
         name: "skill unconfigure",
         args: "[agent]",
         description: "Remove agent skills configuration"
+      },
+      {
+        name: "pipeline install",
+        args: "[agent]",
+        description: "Install pipeline skill into agent configuration"
+      },
+      {
+        name: "pipeline run",
+        args: "",
+        description: "Run a fixed-step task pipeline plan"
       },
       {
         name: "usage",
@@ -320,6 +331,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerRalphCommand(program, container);
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
+  registerPipelineCommand(program, container);
 
   program.allowExcessArguments().action(function (this: Command) {
     const args = this.args;

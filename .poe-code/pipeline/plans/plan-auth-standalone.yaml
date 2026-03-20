@@ -45,7 +45,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: api-key-validation
     title: Extract API key validation into auth package
@@ -69,9 +69,9 @@ tasks:
 
       Commit: `refactor(auth): extract API key validation into auth package`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: check-auth

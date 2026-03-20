@@ -128,6 +128,59 @@ describe("createPipelineSimulation", () => {
     });
   });
 
+  it("archives the plan file after all tasks complete", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix it",
+            status: "open"
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { result, fs } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+
+    const archiveEntries = await fs.readdir(
+      "/repo/.poe-code/pipeline/plans/archive"
+    );
+    expect(archiveEntries).toContain("plan.yaml");
+
+    const originalEntries = await fs.readdir(
+      "/repo/.poe-code/pipeline/plans"
+    );
+    expect(originalEntries).not.toContain("plan.yaml");
+  });
+
+  it("does not archive when plan was already complete (nothing_to_run)", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "done-task",
+            title: "Already done",
+            prompt: "Nothing to do",
+            status: "done"
+          }
+        ]
+      },
+      turns: []
+    });
+
+    const { result, fs } = await sim.run();
+
+    expect(result.stopReason).toBe("nothing_to_run");
+
+    const entries = await fs.readdir("/repo/.poe-code/pipeline/plans");
+    expect(entries).toContain("plan.yaml");
+  });
+
   it("honors maxRuns and leaves remaining tasks open", async () => {
     const sim = createPipelineSimulation({
       plan: {

@@ -100,7 +100,8 @@ function createSimulationFs(
     },
     mkdir: (filePath, mkdirOptions) =>
       rawFs.mkdir(filePath, mkdirOptions) as Promise<void>,
-    rmdir: (filePath) => rawFs.rmdir(filePath) as Promise<void>
+    rmdir: (filePath) => rawFs.rmdir(filePath) as Promise<void>,
+    rename: (oldPath, newPath) => rawFs.rename(oldPath, newPath) as Promise<void>
   };
 
   return { fs, planPath };
@@ -164,16 +165,26 @@ export function createPipelineSimulation(options: SimulationOptions): {
       const runs: SimulationRun[] = [];
 
       const readPlan = async (): Promise<PipelinePlan> => {
-        const content = await fs.readFile(planPath, "utf8");
         const availableSteps = {
           ...(options.globalSteps ?? {}),
           ...(options.projectSteps ?? {})
         };
-        return parsePlan(content, {
-          ...(Object.keys(availableSteps).length > 0
-            ? { availableSteps }
-            : {})
-        });
+        const parseOpts = Object.keys(availableSteps).length > 0
+          ? { availableSteps }
+          : {};
+
+        try {
+          const content = await fs.readFile(planPath, "utf8");
+          return parsePlan(content, parseOpts);
+        } catch {
+          const archivePath = path.join(
+            path.dirname(planPath),
+            "archive",
+            path.basename(planPath)
+          );
+          const content = await fs.readFile(archivePath, "utf8");
+          return parsePlan(content, parseOpts);
+        }
       };
 
       const readFile = async (filePath: string): Promise<string> =>

@@ -1,3 +1,4 @@
+import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
 import { lockFile } from "../lock/lock.js";
@@ -34,7 +35,8 @@ function createDefaultFs(): PipelineFileSystem {
     mkdir: async (filePath, options) => {
       await fsPromises.mkdir(filePath, options);
     },
-    rmdir: fsPromises.rmdir
+    rmdir: fsPromises.rmdir,
+    rename: fsPromises.rename
   };
 }
 
@@ -54,6 +56,17 @@ function resolveMode(
     throw new Error(`Missing step definition for "${stepName}".`);
   }
   return step.mode;
+}
+
+async function archivePlan(
+  fs: PipelineFileSystem,
+  absolutePlanPath: string
+): Promise<void> {
+  const dir = path.dirname(absolutePlanPath);
+  const archiveDir = path.join(dir, "archive");
+  const archivePath = path.join(archiveDir, path.basename(absolutePlanPath));
+  await fs.mkdir(archiveDir, { recursive: true });
+  await fs.rename(absolutePlanPath, archivePath);
 }
 
 export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
@@ -127,6 +140,9 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       const selection = selectNextExecution(plan, options.task);
 
       if (selection.kind === "completed") {
+        if (runsCompleted > 0) {
+          await archivePlan(fs, absolutePlanPath);
+        }
         return {
           stopReason: runsCompleted === 0 ? "nothing_to_run" : "completed",
           planPath,

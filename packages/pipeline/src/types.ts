@@ -40,6 +40,7 @@ export interface PipelineFileSystem {
   stat(path: string): Promise<PipelineFileStat>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rmdir(path: string): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
 }
 
 export interface AgentRunInput {

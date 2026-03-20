@@ -9,6 +9,9 @@ export {
   createAgentSession,
   type AgentSession,
   type CreateAgentSessionOptions,
+  type McpHttpServerDefinition,
+  type McpServerDefinition,
+  type McpStdioServerDefinition,
 } from "./agent-session.js";
 export type {
   AgentPlugin,
@@ -23,8 +26,3 @@ export type {
   Tool,
   ToolContext,
 } from "./runtime/types.js";
-export type {
-  McpHttpServerDefinition,
-  McpServerDefinition,
-  McpStdioServerDefinition,
-} from "./mcp-tool-executor.js";

@@ -1,5 +1,5 @@
 import type { CreateAgentSessionOptions } from "./agent-session.js";
-import type { McpServerDefinition } from "./mcp-tool-executor.js";
+import type { McpServerDefinition } from "./agent-session.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
 

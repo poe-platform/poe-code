@@ -7,7 +7,7 @@ import type {
   McpHttpServerDefinition as InternalMcpHttpServerDefinition,
   McpServerDefinition as InternalMcpServerDefinition,
   McpStdioServerDefinition as InternalMcpStdioServerDefinition,
-} from "./mcp-tool-executor.js";
+} from "./agent-session.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
 

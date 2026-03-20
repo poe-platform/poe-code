@@ -109,7 +109,34 @@ export function spawn(
         return {
           stdout: interactiveResult.stdout,
           stderr: interactiveResult.stderr,
-          exitCode: interactiveResult.exitCode
+          exitCode: interactiveResult.exitCode,
+          ...(interactiveResult.usage ? { usage: interactiveResult.usage } : {})
+        };
+      }
+
+      if (service === "poe-agent") {
+        const poeBaseUrl =
+          typeof process.env.POE_BASE_URL === "string"
+            ? process.env.POE_BASE_URL.trim() || undefined
+            : undefined;
+
+        const { events: innerEvents, done } = spawnPoeAgentWithAcp({
+          prompt: options.prompt,
+          cwd: options.cwd,
+          model: options.model,
+          ...(poeBaseUrl ? { baseUrl: poeBaseUrl } : {}),
+          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
+        });
+
+        resolveEventsOnce(innerEvents);
+        const final = await done;
+        return {
+          stdout: final.stdout,
+          stderr: final.stderr,
+          exitCode: final.exitCode,
+          threadId: final.threadId,
+          sessionId: final.sessionId ?? final.threadId,
+          ...(final.usage ? { usage: final.usage } : {})
         };
       }
 
@@ -168,7 +195,8 @@ export function spawn(
           stderr: final.stderr,
           exitCode: final.exitCode,
           ...(threadId ? { threadId } : {}),
-          ...(sessionId ? { sessionId } : {})
+          ...(sessionId ? { sessionId } : {}),
+          ...(final.usage ? { usage: final.usage } : {})
         };
       }
 

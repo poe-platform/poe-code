@@ -23,6 +23,15 @@ export interface SpawnOptions {
 }
 
 /**
+ * Token usage reported by a provider CLI spawn.
+ */
+export interface SpawnUsage {
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens?: number;
+}
+
+/**
  * Result from spawning a provider CLI.
  */
 export interface SpawnResult {
@@ -36,6 +45,8 @@ export interface SpawnResult {
   threadId?: string;
   /** Backward-compatible alias for threadId */
   sessionId?: string;
+  /** Token usage from providers that report usage */
+  usage?: SpawnUsage;
 }
 
 export interface GenerateOptions {

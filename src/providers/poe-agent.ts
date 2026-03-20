@@ -2,6 +2,7 @@ import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
 import type {
   AcpEvent,
   McpSpawnConfig,
+  SpawnUsage,
   SessionUpdate as LegacySessionUpdate
 } from "@poe-code/agent-spawn";
 import {
@@ -51,6 +52,7 @@ interface PoeAgentSpawnResult {
   exitCode: number;
   threadId?: string;
   sessionId?: string;
+  usage?: SpawnUsage;
 }
 
 interface ToolRenderState {

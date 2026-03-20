@@ -9,6 +9,7 @@ export { generate, generateImage, generateVideo, generateAudio } from "./sdk/gen
 export { getPoeApiKey } from "./sdk/credentials.js";
 export type {
   SpawnOptions,
+  SpawnUsage,
   SpawnResult,
   GenerateOptions,
   MediaGenerateOptions,

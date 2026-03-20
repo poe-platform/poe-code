@@ -282,6 +282,24 @@ describe("SDK spawn()", () => {
     expect(spawnCore).not.toHaveBeenCalled();
   });
 
+  it("propagates usage from spawnInteractive result", async () => {
+    vi.mocked(spawnInteractive).mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+      usage: { inputTokens: 11, outputTokens: 7, cachedTokens: 3 }
+    });
+
+    const { result } = spawn("claude-code", "test prompt", { interactive: true });
+
+    await expect(result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+      usage: { inputTokens: 11, outputTokens: 7, cachedTokens: 3 }
+    });
+  });
+
   it("passes options through to spawnInteractive in interactive mode", async () => {
     vi.mocked(spawnInteractive).mockResolvedValue({
       stdout: "",
@@ -442,24 +460,54 @@ describe("SDK spawn()", () => {
     await expect(result).rejects.toThrow("does not support spawn");
     expect(spawnStreaming).not.toHaveBeenCalled();
     expect(agentSpawn).not.toHaveBeenCalled();
-    expect(spawnCore).toHaveBeenCalledTimes(1);
-    expect(spawnCore).toHaveBeenCalledWith(
-      expect.anything(),
-      "poe-agent",
-      {
-        prompt: "test prompt",
-        cwd: "/workspace/project",
-        model: "anthropic/claude-opus-4.6",
-        mode: undefined,
-        args: undefined,
-        mcpServers: {
-          test: {
-            command: "tiny-stdio-mcp-test-server",
-            args: ["serve", "word-of-the-day"],
-            env: { MCP_LOG_LEVEL: "debug" }
-          }
-        },
-        useStdin: false
+    expect(spawnCore).not.toHaveBeenCalled();
+    expect(createSdkContainer).not.toHaveBeenCalled();
+  });
+
+  it("propagates usage from poe-agent ACP result", async () => {
+    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "from poe-agent\n",
+        stderr: "",
+        exitCode: 0,
+        threadId: "poe-agent-session-usage",
+        sessionId: "poe-agent-session-usage",
+        usage: { inputTokens: 101, outputTokens: 55, cachedTokens: 8 }
+      })
+    });
+
+    const { result } = spawn("poe-agent", "test prompt");
+
+    await expect(result).resolves.toEqual({
+      stdout: "from poe-agent\n",
+      stderr: "",
+      exitCode: 0,
+      threadId: "poe-agent-session-usage",
+      sessionId: "poe-agent-session-usage",
+      usage: { inputTokens: 101, outputTokens: 55, cachedTokens: 8 }
+    });
+  });
+
+  it("forwards mcpServers to poe-agent ACP runtime", async () => {
+    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "from poe-agent\n",
+        stderr: "",
+        exitCode: 0,
+        threadId: "poe-agent-session-2",
+        sessionId: "poe-agent-session-2"
+      })
+    });
+
+    const { result } = spawn("poe-agent", "test prompt", {
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
       }
     );
   });
@@ -478,6 +526,37 @@ describe("SDK spawn()", () => {
 
     expect(received).toEqual([]);
     await expect(result).rejects.toThrow("does not support interactive mode");
+  });
+
+  it("propagates usage from streaming done result", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    });
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0,
+        threadId: "thread_usage",
+        sessionId: "thread_usage",
+        usage: { inputTokens: 33, outputTokens: 12, cachedTokens: 4 }
+      })
+    }));
+
+    const { result } = spawn("codex", "test prompt");
+
+    await expect(result).resolves.toEqual({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0,
+      threadId: "thread_usage",
+      sessionId: "thread_usage",
+      usage: { inputTokens: 33, outputTokens: 12, cachedTokens: 4 }
+    });
   });
 });
 

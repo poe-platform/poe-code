@@ -27,6 +27,11 @@ import {
   type PlanSummary,
   type TaskProgress
 } from "../../sdk/pipeline.js";
+import {
+  loadResolvedSteps,
+  parsePlan,
+  resolveAbsolutePlanPath
+} from "@poe-code/pipeline";
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
@@ -328,6 +333,55 @@ export function registerPipelineCommand(
 
         resources.logger.resolved("Run summary", summary);
         resources.logger.success("Pipeline run finished.");
+      } finally {
+        resources.context.finalize();
+      }
+    });
+
+  pipeline
+    .command("validate")
+    .description("Validate a pipeline plan YAML file without running it.")
+    .argument("<file>", "Path to the pipeline plan YAML file")
+    .action(async function (this: Command, file: string) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(
+        container,
+        flags,
+        "pipeline:validate"
+      );
+
+      try {
+        resources.logger.intro("pipeline validate");
+
+        const absolutePath = resolveAbsolutePlanPath(
+          file,
+          container.env.cwd,
+          container.env.homeDir
+        );
+
+        const content = await container.fs.readFile(absolutePath, "utf8");
+
+        const steps = await loadResolvedSteps({
+          cwd: container.env.cwd,
+          homeDir: container.env.homeDir,
+          fs: container.fs
+        });
+
+        const hasSteps = Object.keys(steps).length > 0;
+        const plan = parsePlan(content, hasSteps ? { availableSteps: steps } : {});
+
+        const total = plan.tasks.length;
+        const done = plan.tasks.filter((t) => {
+          if (typeof t.status === "string") return t.status === "done";
+          return Object.values(t.status).every((s) => s === "done");
+        }).length;
+
+        resources.logger.resolved("Plan", file);
+        resources.logger.resolved("Tasks", `${total} tasks (${done} done)`);
+        if (hasSteps) {
+          resources.logger.resolved("Steps", Object.keys(steps).join(", "));
+        }
+        resources.logger.success("Plan is valid.");
       } finally {
         resources.context.finalize();
       }

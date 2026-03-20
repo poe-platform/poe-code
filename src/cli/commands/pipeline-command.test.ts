@@ -145,6 +145,95 @@ describe("pipeline run command", () => {
   });
 });
 
+describe("pipeline validate command", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("validates a plan file and reports success", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
+      [
+        "tasks:",
+        "  - id: one",
+        "    title: Task one",
+        "    prompt: Do the thing",
+        "    status: open",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "validate",
+        ".poe-code/pipeline/plans/plan-demo.yaml"
+      ])
+    ).resolves.not.toThrow();
+  });
+
+  it("validates step references against steps.yaml", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/steps.yaml",
+      [
+        "steps:",
+        "  implement:",
+        "    instruction: Implement {{id}}",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan-bad.yaml",
+      [
+        "tasks:",
+        "  - id: one",
+        "    title: Task one",
+        "    prompt: Do the thing",
+        "    status:",
+        "      nonexistent: open",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "validate",
+        ".poe-code/pipeline/plans/plan-bad.yaml"
+      ])
+    ).rejects.toThrow(/unknown step/i);
+  });
+});
+
 describe("pipeline install command", () => {
   afterEach(() => {
     vi.clearAllMocks();

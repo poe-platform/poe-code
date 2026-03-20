@@ -859,7 +859,7 @@ tasks:
 
       All tests pass. `npm run test && npm run lint && npm run e2e:verbose`.
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 18: Plugin Examples (Reference Implementations)
@@ -915,8 +915,8 @@ tasks:
       ```
       Unit test using `memfs`: mock run calling two tools; assert two JSONL records written.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: example-plugins-stateful
     title: "Example plugins: max-iterations abort and scratchpad"
@@ -965,5 +965,5 @@ tasks:
       Unit test: call `write_note` then `read_note`, verify value roundtrips.
       Also verify two plugin instances produce independent scratchpads.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done

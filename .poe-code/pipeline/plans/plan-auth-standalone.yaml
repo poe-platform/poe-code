@@ -116,7 +116,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: login-fn
     title: Add login() — high-level OAuth + manual key login
@@ -156,9 +156,9 @@ tasks:
 
       Commit: `feat(auth): add login()`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: logout-fn

@@ -1,11 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
+const sessionCaptureMock = vi.hoisted(() => vi.fn());
+const usageCaptureMock = vi.hoisted(() => vi.fn());
+const spawnLogMock = vi.hoisted(() => vi.fn());
+
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: vi.fn(),
   spawnStreaming: vi.fn(),
   spawnInteractive: vi.fn(),
   getSpawnConfig: vi.fn(),
-  renderAcpStream: vi.fn()
+  renderAcpStream: vi.fn(),
+  applyMiddlewares: applyMiddlewaresMock,
+  sessionCapture: sessionCaptureMock,
+  usageCapture: usageCaptureMock,
+  spawnLog: spawnLogMock
 }));
 
 vi.mock("./spawn-core.js", () => ({
@@ -17,7 +26,17 @@ vi.mock("./container.js", () => ({
 }));
 
 import { spawn } from "./spawn.js";
-import { getSpawnConfig, spawn as agentSpawn, spawnStreaming, spawnInteractive, renderAcpStream } from "@poe-code/agent-spawn";
+import {
+  getSpawnConfig,
+  spawn as agentSpawn,
+  spawnStreaming,
+  spawnInteractive,
+  renderAcpStream,
+  applyMiddlewares,
+  sessionCapture,
+  usageCapture,
+  spawnLog
+} from "@poe-code/agent-spawn";
 import { spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
 
@@ -32,6 +51,7 @@ beforeEach(() => {
   vi.mocked(spawnCore).mockReset();
   vi.mocked(createSdkContainer).mockReset();
   vi.mocked(renderAcpStream).mockReset();
+  vi.mocked(applyMiddlewares).mockReset();
   vi.mocked(renderAcpStream).mockResolvedValue(undefined);
 });
 
@@ -309,6 +329,89 @@ describe("SDK spawn()", () => {
 
     expect(spawnInteractive).not.toHaveBeenCalled();
     expect(spawnStreaming).toHaveBeenCalledTimes(1);
+  });
+
+  it("composes ACP middlewares in SDK streaming path", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    });
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {
+        yield { event: "agent_message", text: "raw" };
+      })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+      ctx.threadId = "thread_via_middleware";
+      ctx.sessionId = "thread_via_middleware";
+      ctx.eventStream = (async function* () {
+        yield { event: "agent_message", text: "from middleware" };
+      })();
+    });
+
+    const { events, result } = spawn("codex", "test prompt");
+
+    const received: unknown[] = [];
+    for await (const event of events) {
+      received.push(event);
+    }
+
+    expect(received).toEqual([{ event: "agent_message", text: "from middleware" }]);
+    await expect(result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+      threadId: "thread_via_middleware",
+      sessionId: "thread_via_middleware"
+    });
+
+    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
+    const [middlewares, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
+    expect(middlewares).toEqual([sessionCapture, usageCapture, spawnLog]);
+    expect(ctx).toEqual(
+      expect.objectContaining({
+        sessionId: expect.any(String),
+        agent: "codex",
+        events: [],
+        usage: { inputTokens: 0, outputTokens: 0 },
+        prompt: "test prompt",
+        model: undefined,
+        mode: undefined,
+        cwd: undefined,
+        startedAt: expect.any(Date)
+      })
+    );
+  });
+
+  it("resolves events and rejects result when middleware composition fails", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    });
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {
+        yield { event: "agent_message", text: "raw event" };
+      })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    vi.mocked(applyMiddlewares).mockRejectedValue(new Error("middleware failed"));
+
+    const { events, result } = spawn("codex", "test prompt");
+
+    const received: unknown[] = [];
+    for await (const event of events) {
+      received.push(event);
+    }
+
+    expect(received).toEqual([]);
+    await expect(result).rejects.toThrow("middleware failed");
   });
 
   it("propagates provider spawn errors for poe-agent and returns empty events", async () => {

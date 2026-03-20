@@ -41,6 +41,18 @@ export { renderAcpEvent, renderAcpStream } from "./acp/renderer.js";
 export type { SpawnStreamingOptions, SpawnStreamingResult } from "./acp/spawn.js";
 export { spawnStreaming } from "./acp/spawn.js";
 export { readLines } from "./acp/line-reader.js";
+export {
+  applyMiddlewares
+} from "./acp/middleware.js";
+export type {
+  AcpMiddleware,
+  SessionResult,
+  SessionToolCall,
+  SpawnContext as AcpSpawnContext
+} from "./acp/middleware.js";
+export { sessionCapture } from "./acp/middlewares/session-capture.js";
+export { usageCapture } from "./acp/middlewares/usage-capture.js";
+export { spawnLog } from "./acp/middlewares/spawn-log.js";
 
 export type {
   AcpEvent,

@@ -54,6 +54,11 @@ export function resolveLogDir(homeDir: string): string {
   return path.join(homeDir, ".poe-code", "logs");
 }
 
+export function resolveSpawnLogDir(homeDir: string): string {
+  const dir = path.join(homeDir, ".poe-code", "spawn-logs");
+  return dir.endsWith(path.sep) ? dir : `${dir}${path.sep}`;
+}
+
 const DEFAULT_POE_API_BASE_URL = "https://api.poe.com/v1";
 
 function resolvePoeBaseUrls(variables: Record<string, string | undefined>): {

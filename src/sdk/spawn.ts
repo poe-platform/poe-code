@@ -7,6 +7,11 @@ import {
   spawnInteractive,
   spawnStreaming,
   renderAcpStream,
+  applyMiddlewares,
+  sessionCapture,
+  usageCapture,
+  spawnLog,
+  type AcpSpawnContext,
   type AcpEvent
 } from "@poe-code/agent-spawn";
 import type { SpawnOptions, SpawnResult } from "./types.js";
@@ -115,7 +120,7 @@ export function spawn(
         typeof (spawnConfig as { adapter?: unknown }).adapter === "string";
 
       if (supportsStreaming) {
-        const { events: innerEvents, done } = spawnStreaming({
+        const { events: rawEvents, done } = spawnStreaming({
           agentId: service,
           prompt: options.prompt,
           cwd: options.cwd,
@@ -127,14 +132,43 @@ export function spawn(
           useStdin: false
         });
 
-        resolveEventsOnce(innerEvents);
+        const middlewareContext: AcpSpawnContext = {
+          sessionId: "unknown",
+          agent: service,
+          events: [],
+          usage: {
+            inputTokens: 0,
+            outputTokens: 0
+          },
+          eventStream: rawEvents,
+          prompt: options.prompt,
+          model: options.model,
+          mode: options.mode,
+          cwd: options.cwd,
+          startedAt: new Date()
+        };
+
+        await applyMiddlewares(
+          [sessionCapture, usageCapture, spawnLog],
+          middlewareContext
+        );
+
+        resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
+        const threadId = middlewareContext.threadId ?? final.threadId;
+        const sessionId =
+          (middlewareContext.sessionId !== "unknown"
+            ? middlewareContext.sessionId
+            : undefined) ??
+          final.sessionId ??
+          threadId;
+
         return {
           stdout: final.stdout,
           stderr: final.stderr,
           exitCode: final.exitCode,
-          threadId: final.threadId,
-          sessionId: final.sessionId ?? final.threadId
+          ...(threadId ? { threadId } : {}),
+          ...(sessionId ? { sessionId } : {})
         };
       }
 

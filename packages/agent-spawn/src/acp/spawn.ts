@@ -5,7 +5,7 @@ import { readLines } from "./line-reader.js";
 import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
-import type { SpawnOptions, SpawnResult, SpawnUsage } from "../types.js";
+import type { SpawnOptions, SpawnResult } from "../types.js";
 
 function createAbortError(): Error {
   const error = new Error("Agent spawn aborted");
@@ -24,18 +24,6 @@ export interface SpawnStreamingResult {
 
 function isAcpEvent(value: unknown): value is AcpEvent {
   return !!value && typeof value === "object" && "event" in value;
-}
-
-function captureUsage(event: AcpEvent): SpawnUsage | undefined {
-  if (event.event !== "usage") return;
-  const usage = event as Partial<SpawnUsage>;
-
-  const inputTokens = typeof usage.inputTokens === "number" ? usage.inputTokens : 0;
-  const outputTokens = typeof usage.outputTokens === "number" ? usage.outputTokens : 0;
-  const cachedTokens = typeof usage.cachedTokens === "number" ? usage.cachedTokens : undefined;
-  const costUsd = typeof usage.costUsd === "number" ? usage.costUsd : undefined;
-
-  return { inputTokens, outputTokens, cachedTokens, costUsd };
 }
 
 export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingResult {
@@ -113,20 +101,6 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   const events: AsyncIterable<AcpEvent> = (async function* () {
     for await (const output of adapter(readLines(child.stdout))) {
       if (!isAcpEvent(output)) continue;
-
-      if (output.event === "session_start") {
-        const maybeThreadId = (output as { threadId?: unknown }).threadId;
-        if (typeof maybeThreadId === "string" && maybeThreadId.length > 0) {
-          result.threadId = maybeThreadId;
-          result.sessionId = maybeThreadId;
-        }
-      }
-
-      const maybeUsage = captureUsage(output);
-      if (maybeUsage) {
-        result.usage = maybeUsage;
-      }
-
       yield output;
     }
   })();

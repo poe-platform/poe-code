@@ -4,6 +4,7 @@ import { PassThrough } from "node:stream";
 import { spawn as spawnChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
 
 import { spawnStreaming } from "./spawn.js";
+import * as adapterModule from "../adapters/index.js";
 import { codexSpawnConfig } from "../configs/codex.js";
 import { openCodeSpawnConfig } from "../configs/opencode.js";
 
@@ -22,6 +23,7 @@ interface MockChildProcessOptions {
   stderr?: string;
   exitCode?: number;
   autoClose?: boolean;
+  error?: Error;
 }
 
 function createMockChildProcess(
@@ -55,6 +57,7 @@ function createMockChildProcess(
   const exitCode = options.exitCode ?? 0;
   const lines = options.stdoutLines ?? [];
   const errorOutput = options.stderr ?? "";
+  const error = options.error;
 
   if (options.autoClose !== false) {
     queueMicrotask(() => {
@@ -67,6 +70,11 @@ function createMockChildProcess(
         stderr.write(errorOutput, "utf8");
       }
       stderr.end();
+
+      if (error) {
+        child.emit("error", error);
+        return;
+      }
 
       child.emit("close", exitCode, null);
     });
@@ -112,12 +120,10 @@ describe("acp/spawnStreaming", () => {
       { event: "usage", inputTokens: 1, outputTokens: 2, cachedTokens: 3 }
     ]);
 
-    await expect(done).resolves.toMatchObject({
-      exitCode: 0,
-      threadId: "ses_abc",
-      sessionId: "ses_abc",
-      usage: { inputTokens: 1, outputTokens: 2, cachedTokens: 3 },
-      stderr: "warn\n"
+    await expect(done).resolves.toEqual({
+      stdout: "",
+      stderr: "warn\n",
+      exitCode: 0
     });
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
@@ -125,6 +131,96 @@ describe("acp/spawnStreaming", () => {
     expect(command).toBe("opencode");
     expect(args).toEqual([openCodeSpawnConfig.promptFlag, "hello", ...openCodeSpawnConfig.defaultArgs, ...openCodeSpawnConfig.modes.yolo]);
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
+  });
+
+  it("passes through multiple usage events without accumulating into done", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({
+          type: "text",
+          sessionID: "ses_agg",
+          part: { type: "text", messageID: "msg_1", text: "hi" }
+        }),
+        JSON.stringify({
+          type: "step_finish",
+          sessionID: "ses_agg",
+          part: { tokens: { input: 1, output: 2, cache: { read: 3, write: 0 } } }
+        }),
+        JSON.stringify({
+          type: "step_finish",
+          sessionID: "ses_agg",
+          part: { tokens: { input: 4, output: 5, cache: { read: 6, write: 0 } } }
+        })
+      ],
+      exitCode: 0
+    });
+
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "hello"
+    });
+
+    await expect(collect(events)).resolves.toEqual([
+      { event: "session_start", threadId: "ses_agg" },
+      { event: "agent_message", text: "hi" },
+      { event: "usage", inputTokens: 1, outputTokens: 2, cachedTokens: 3 },
+      { event: "usage", inputTokens: 4, outputTokens: 5, cachedTokens: 6 }
+    ]);
+
+    const final = await done;
+    expect(final).toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    expect(final.threadId).toBeUndefined();
+    expect(final.sessionId).toBeUndefined();
+    expect(final.usage).toBeUndefined();
+  });
+
+  it("ignores non-ACP adapter outputs and yields only raw ACP events", async () => {
+    const mock = createMockChildProcess({ exitCode: 0 });
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const getAdapterMock = vi.spyOn(adapterModule, "getAdapter").mockReturnValue(
+      async function* () {
+        yield { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "ignore me" } };
+        yield { event: "agent_message", text: "raw event" };
+      }
+    );
+    try {
+      const { events, done } = spawnStreaming({
+        agentId: "codex",
+        prompt: "hello"
+      });
+
+      await expect(collect(events)).resolves.toEqual([{ event: "agent_message", text: "raw event" }]);
+      await expect(done).resolves.toEqual({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      });
+
+      expect(spawnMock).toHaveBeenCalledTimes(1);
+      expect(getAdapterMock).toHaveBeenCalledWith("codex");
+    } finally {
+      getAdapterMock.mockRestore();
+    }
+  });
+
+  it("rejects done when child process emits error", async () => {
+    const mock = createMockChildProcess({ error: new Error("spawn failed") });
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "hello"
+    });
+
+    const doneRejection = expect(done).rejects.toThrow("spawn failed");
+    await expect(collect(events)).resolves.toEqual([]);
+    await doneRejection;
   });
 
   it("writes prompt to stdin when useStdin is true and stdinMode is available", async () => {
@@ -157,11 +253,10 @@ describe("acp/spawnStreaming", () => {
       { event: "usage", inputTokens: 1, outputTokens: 2, cachedTokens: 0 }
     ]);
 
-    await expect(done).resolves.toMatchObject({
-      exitCode: 0,
-      threadId: "t1",
-      sessionId: "t1",
-      usage: { inputTokens: 1, outputTokens: 2, cachedTokens: 0 }
+    await expect(done).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
     });
 
     expect(spawnMock).toHaveBeenCalledTimes(1);

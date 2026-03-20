@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createCliEnvironment } from "./environment.js";
+import { createCliEnvironment, resolveSpawnLogDir } from "./environment.js";
 
 describe("CliEnvironment", () => {
   const cwd = "/workspace";
@@ -52,5 +52,17 @@ describe("CliEnvironment", () => {
 
     expect(environment.poeApiBaseUrl).toBe("https://proxy.example.com/v1");
     expect(environment.poeBaseUrl).toBe("https://proxy.example.com");
+  });
+
+  it("computes the default spawn logs directory inside the poe-code folder", () => {
+    expect(resolveSpawnLogDir(homeDir)).toBe("/home/user/.poe-code/spawn-logs/");
+  });
+
+  it("normalizes a trailing slash in home directory for spawn logs directory", () => {
+    expect(resolveSpawnLogDir("/home/user/")).toBe("/home/user/.poe-code/spawn-logs/");
+  });
+
+  it("supports root home directory for spawn logs directory", () => {
+    expect(resolveSpawnLogDir("/")).toBe("/.poe-code/spawn-logs/");
   });
 });

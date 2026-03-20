@@ -72,7 +72,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: check-auth
     title: Add checkAuth() — server-side key verification
@@ -113,9 +113,9 @@ tasks:
 
       Commit: `feat(auth): add checkAuth()`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: login-fn

@@ -16,7 +16,7 @@ export type {
   PlanSummary
 } from "./types.js";
 export { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
-export { resolvePlanPath } from "./plan/discovery.js";
+export { resolveAbsolutePlanPath, resolvePlanPath } from "./plan/discovery.js";
 export { parsePlan } from "./plan/parser.js";
 export { readPlanFile, writeTaskStatus } from "./plan/writer.js";
 export { buildExecutionPrompt, selectNextExecution } from "./run/runner.js";

@@ -163,4 +163,62 @@ describe("resolvePlanPath", () => {
       })
     ).rejects.toThrow(/no plan found/i);
   });
+
+  it("discovers plans from global ~/.poe-code/pipeline/plans/", async () => {
+    const select = vi.fn().mockResolvedValue("~/.poe-code/pipeline/plans/plan-global.yaml");
+
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/plans/plan-global.yaml": "tasks: []\n"
+      }),
+      selectPlan: select
+    });
+
+    expect(select).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          { label: "~/.poe-code/pipeline/plans/plan-global.yaml (0/0)", value: "~/.poe-code/pipeline/plans/plan-global.yaml" }
+        ]
+      })
+    );
+    expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.yaml");
+  });
+
+  it("merges project and global plans, project first", async () => {
+    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-local.yaml");
+
+    await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/plans/plan-local.yaml": "tasks: []\n",
+        "/home/test/.poe-code/pipeline/plans/plan-global.yaml": "tasks: []\n"
+      }),
+      selectPlan: select
+    });
+
+    expect(select).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          { label: ".poe-code/pipeline/plans/plan-local.yaml (0/0)", value: ".poe-code/pipeline/plans/plan-local.yaml" },
+          { label: "~/.poe-code/pipeline/plans/plan-global.yaml (0/0)", value: "~/.poe-code/pipeline/plans/plan-global.yaml" }
+        ]
+      })
+    );
+  });
+
+  it("auto-selects from global plans with --yes when no project plans exist", async () => {
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      assumeYes: true,
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/plans/plan-global.yaml": "tasks: []\n"
+      })
+    });
+
+    expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.yaml");
+  });
 });

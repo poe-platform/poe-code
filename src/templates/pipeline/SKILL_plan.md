@@ -9,7 +9,13 @@ Ask the user for a one-sentence description of what they want to build.
 
 ## Goal
 
-Write a YAML pipeline plan for `.poe-code/pipeline/plans/plan-<name>.yaml`
+Write a YAML pipeline plan. Before writing, determine where to place it:
+
+1. If `.poe-code/pipeline/steps.yaml` exists in the **project** → write to `.poe-code/pipeline/plans/plan-<name>.yaml`
+2. Otherwise, if `~/.poe-code/pipeline/steps.yaml` exists → write to `~/.poe-code/pipeline/plans/plan-<name>.yaml`
+3. If neither exists, use stepless tasks and write to `.poe-code/pipeline/plans/plan-<name>.yaml`
+
+Read the steps file from whichever location you found it.
 
 ## Rules
 
@@ -17,7 +23,7 @@ Write a YAML pipeline plan for `.poe-code/pipeline/plans/plan-<name>.yaml`
 - Do not create tasks that depend on hidden state from previous tasks.
 - Use short kebab-case ids.
 - Keep titles concise and descriptive.
-- The available steps come from `.poe-code/pipeline/steps.yaml`, and that file is meant to be edited by the user. Use the current step names instead of inventing hardcoded ones.
+- The available steps come from the `steps.yaml` file you found (project or global). Use the current step names instead of inventing hardcoded ones.
 - If no step configuration is present, use stepless tasks with scalar `status: open`.
 - If step configuration is present, start every configured step status at `open`.
 
@@ -50,4 +56,4 @@ tasks:
 
 ## Notes
 
-- If the repository already has `.poe-code/pipeline/steps.yaml`, match its uncommented step names and order.
+- Check `.poe-code/pipeline/steps.yaml` first, then `~/.poe-code/pipeline/steps.yaml`. Match the uncommented step names and order from whichever file you find.

@@ -1,8 +1,7 @@
-import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
 import { lockFile } from "../lock/lock.js";
-import { resolvePlanPath } from "../plan/discovery.js";
+import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";
 import {
@@ -83,9 +82,11 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     };
   }
 
-  const absolutePlanPath = path.isAbsolute(planPath)
-    ? planPath
-    : path.resolve(options.cwd, planPath);
+  const absolutePlanPath = resolveAbsolutePlanPath(
+    planPath,
+    options.cwd,
+    options.homeDir
+  );
   if (options.onPlanResolved) {
     const content = await fs.readFile(absolutePlanPath, "utf8");
     const plan = parsePlan(content);

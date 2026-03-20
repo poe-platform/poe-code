@@ -75,11 +75,11 @@ async function ensurePlanExists(
   }
 }
 
-async function listPlanCandidates(
+async function scanPlansDir(
   fs: DiscoveryFs,
-  cwd: string
+  plansDir: string,
+  displayPrefix: string
 ): Promise<PlanCandidate[]> {
-  const plansDir = path.join(cwd, ".poe-code", "pipeline", "plans");
   let entries: string[];
   try {
     entries = await fs.readdir(plansDir);
@@ -102,13 +102,41 @@ async function listPlanCandidates(
       continue;
     }
 
-    const relativePath = path.relative(cwd, absolutePath);
+    const displayPath = path.join(displayPrefix, entry);
     const content = await fs.readFile(absolutePath, "utf8");
-    candidates.push(countCompletedTasks(relativePath, content));
+    candidates.push(countCompletedTasks(displayPath, content));
   }
 
+  return candidates;
+}
+
+async function listPlanCandidates(
+  fs: DiscoveryFs,
+  cwd: string,
+  homeDir: string
+): Promise<PlanCandidate[]> {
+  const projectDir = path.join(cwd, ".poe-code", "pipeline", "plans");
+  const globalDir = path.join(homeDir, ".poe-code", "pipeline", "plans");
+
+  const [projectCandidates, globalCandidates] = await Promise.all([
+    scanPlansDir(fs, projectDir, ".poe-code/pipeline/plans"),
+    scanPlansDir(fs, globalDir, "~/.poe-code/pipeline/plans")
+  ]);
+
+  const candidates = [...projectCandidates, ...globalCandidates];
   candidates.sort((left, right) => left.path.localeCompare(right.path));
   return candidates;
+}
+
+export function resolveAbsolutePlanPath(
+  planPath: string,
+  cwd: string,
+  homeDir: string
+): string {
+  if (planPath.startsWith("~/")) {
+    return path.join(homeDir, planPath.slice(2));
+  }
+  return path.isAbsolute(planPath) ? planPath : path.resolve(cwd, planPath);
 }
 
 export async function resolvePlanPath(options: {
@@ -142,7 +170,7 @@ export async function resolvePlanPath(options: {
     return config.planPath;
   }
 
-  const candidates = await listPlanCandidates(fs, options.cwd);
+  const candidates = await listPlanCandidates(fs, options.cwd, options.homeDir);
 
   if (candidates.length >= 1) {
     if (options.assumeYes) {
@@ -162,7 +190,7 @@ export async function resolvePlanPath(options: {
 
   if (options.assumeYes) {
     throw new Error(
-      "No plan found under .poe-code/pipeline/plans/. Provide --plan <path> to an existing plan file."
+      "No plan found under .poe-code/pipeline/plans/ or ~/.poe-code/pipeline/plans/. Provide --plan <path> to an existing plan file."
     );
   }
 

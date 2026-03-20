@@ -46,4 +46,28 @@ describe("logout", () => {
     expect(createAuthStoreMock).toHaveBeenCalledTimes(1);
     expect(deleteApiKeyMock).toHaveBeenCalledTimes(1);
   });
+
+  it("creates a fresh auth store for each logout call", async () => {
+    const { logout } = await loadLogout();
+
+    await expect(logout()).resolves.toBeUndefined();
+    await expect(logout()).resolves.toBeUndefined();
+
+    expect(createAuthStoreMock).toHaveBeenCalledTimes(2);
+    expect(deleteApiKeyMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects when creating the auth store fails", async () => {
+    const { logout } = await loadLogout();
+    const error = new Error("store unavailable");
+
+    createAuthStoreMock.mockImplementationOnce(() => {
+      throw error;
+    });
+
+    await expect(logout()).rejects.toThrow("store unavailable");
+
+    expect(createAuthStoreMock).toHaveBeenCalledTimes(1);
+    expect(deleteApiKeyMock).not.toHaveBeenCalled();
+  });
 });

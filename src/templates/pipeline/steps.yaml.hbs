@@ -2,6 +2,7 @@
 # Leave it comment-only to keep the default no-step behavior.
 # Uncomment and change the example below when you want stepped tasks.
 # Add `mode` only when you want to override the default `yolo`.
+# Add `agent` and/or `model` to override the pipeline-level defaults per step.
 #
 # steps:
 #   implement:
@@ -10,6 +11,8 @@
 #
 #       Implement
 #       {{prompt}}
+#     # agent: codex
+#     # model: o3
 #
 #   refactor:
 #     instruction: |

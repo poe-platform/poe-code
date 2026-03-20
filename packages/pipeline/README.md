@@ -121,12 +121,15 @@ steps:
       {{id}}: {{title}}
       {{prompt}}
       Follow TDD. Add or update focused tests first, then implement.
+    agent: codex
+    model: o3
 
   security_review:
     mode: read
     instruction: |
       {{id}}: {{title}}
       Review changed code for auth, injection, secrets, and validation issues.
+    agent: claude-code
 ```
 
 Supported placeholders:
@@ -137,6 +140,8 @@ Supported placeholders:
 - `{{plan_path}}`
 
 If `mode` is omitted, it defaults to `yolo`.
+
+Each step can optionally override the pipeline-level `agent` and `model`. When set, the step runs with the specified agent/model instead of the one passed to `pipeline run --agent`.
 
 `steps.yaml` is intentionally editable. The scaffolded file is comment-only guidance, so leaving it untouched preserves the default no-step behavior. Uncomment or replace the example steps to opt into stepped execution, then make plans reference those step names exactly.
 
@@ -186,11 +191,17 @@ The spawn stack supports abort propagation for:
 When no explicit plan path is provided, resolution is:
 
 1. `~/.poe-code/pipeline/config.yaml` and `.poe-code/pipeline/config.yaml` via `planPath`
-2. scan `.poe-code/pipeline/plans/` for `plan*.yaml` and `plan*.yml`
+2. scan both `.poe-code/pipeline/plans/` and `~/.poe-code/pipeline/plans/` for `plan*.yaml` and `plan*.yml`
 3. if one plan exists, use it
-4. if multiple exist, prompt with completion stats
+4. if multiple exist, prompt with completion stats (project plans listed first)
 5. if none exist, prompt for a path in interactive mode
 6. if none exist and `assumeYes` is true, fail
+
+## Plan Archiving
+
+When all tasks in a plan complete successfully, the plan file is automatically moved to a `plans/archive/` subdirectory. Archived plans do not appear in the plan selection list.
+
+Plans that were already fully complete when the pipeline starts (`nothing_to_run`) are not archived.
 
 ## Package API
 
@@ -261,7 +272,6 @@ import {
 const sim = createPipelineSimulation({
   projectSteps: {
     implement: {
-      mode: "edit",
       mode: "yolo",
       instruction: "Implement {{id}}"
     }

@@ -31,8 +31,7 @@ export async function runPipeline(
         prompt: input.prompt,
         cwd: input.cwd,
         model: input.model,
-        mode: input.mode,
-        signal: input.signal
+        mode: input.mode
       });
       await renderAcpStream(events);
       return result;

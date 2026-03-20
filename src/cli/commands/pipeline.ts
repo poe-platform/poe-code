@@ -23,7 +23,9 @@ import {
 } from "./shared.js";
 import {
   runPipeline as sdkRunPipeline,
-  type PipelineRunOptions
+  type PipelineRunOptions,
+  type PlanSummary,
+  type TaskProgress
 } from "../../sdk/pipeline.js";
 
 function formatDuration(ms: number): string {
@@ -242,7 +244,7 @@ export function registerPipelineCommand(
             ? { maxRuns: resolveMaxRuns(options.maxRuns) }
             : {}),
           assumeYes: flags.assumeYes,
-          onPlanResolved(summary) {
+          onPlanResolved(summary: PlanSummary) {
             const configLines = [`Agent: ${agent}`];
             if (options.model) configLines.push(`Model: ${options.model}`);
             configLines.push(`Plan: ${summary.planPath}`);
@@ -275,13 +277,13 @@ export function registerPipelineCommand(
               ? value.trim()
               : null;
           },
-          onTaskStart(progress) {
+          onTaskStart(progress: TaskProgress) {
             const step = progress.stepName ? ` (${progress.stepName})` : "";
             resources.logger.info(
               `Task ${progress.index}/${progress.total}: ${progress.taskId}${step}`
             );
           },
-          onTaskComplete(progress) {
+          onTaskComplete(progress: TaskProgress & { durationMs: number; success: boolean }) {
             const duration = formatDuration(progress.durationMs);
             const status = progress.success ? "done" : "failed";
             resources.logger.info(

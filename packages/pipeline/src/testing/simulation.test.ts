@@ -31,11 +31,106 @@ describe("createPipelineSimulation", () => {
       totalCachedTokens: 0,
       tasksCompleted: 1,
       tasksFailed: 0,
-      stepsCompleted: 0
+      stepsCompleted: 1
     });
     expect(prompts).toEqual(["Fix the timeout regression"]);
     expect(runs[0]?.mode).toBe("yolo");
     expect(plan.tasks[0]?.status).toBe("done");
+  });
+
+  it("accumulates usage metrics for a single task run", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "open"
+          }
+        ]
+      },
+      turns: [
+        {
+          output: {
+            stdout: "",
+            exitCode: 0,
+            usage: {
+              inputTokens: 120,
+              outputTokens: 45,
+              cachedTokens: 30
+            }
+          }
+        }
+      ]
+    });
+
+    const { result } = await sim.run();
+
+    expect(result.metrics).toEqual({
+      totalInputTokens: 120,
+      totalOutputTokens: 45,
+      totalCachedTokens: 30,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 1
+    });
+  });
+
+  it("forwards usage to onTaskComplete when available", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "open"
+          }
+        ]
+      },
+      turns: [
+        {
+          output: {
+            stdout: "",
+            exitCode: 0,
+            usage: {
+              inputTokens: 9,
+              outputTokens: 4
+            }
+          }
+        }
+      ]
+    });
+
+    const { taskCompletions } = await sim.run();
+
+    expect(taskCompletions).toHaveLength(1);
+    expect(taskCompletions[0]?.usage).toEqual({
+      inputTokens: 9,
+      outputTokens: 4
+    });
+  });
+
+  it("does not include usage in onTaskComplete when unavailable", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "open"
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { taskCompletions } = await sim.run();
+
+    expect(taskCompletions).toHaveLength(1);
+    expect(taskCompletions[0]?.usage).toBeUndefined();
   });
 
   it("runs stepped tasks in order and marks each step done", async () => {
@@ -77,7 +172,7 @@ describe("createPipelineSimulation", () => {
       totalInputTokens: 0,
       totalOutputTokens: 0,
       totalCachedTokens: 0,
-      tasksCompleted: 0,
+      tasksCompleted: 3,
       tasksFailed: 0,
       stepsCompleted: 3
     });
@@ -91,6 +186,77 @@ describe("createPipelineSimulation", () => {
       implement: "done",
       test: "done",
       commit: "done"
+    });
+  });
+
+  it("aggregates usage across multi-step runs with missing usage entries", async () => {
+    const sim = createPipelineSimulation({
+      projectSteps: {
+        implement: {
+          instruction: "Implement {{id}}"
+        },
+        test: {
+          mode: "read",
+          instruction: "Test {{id}}"
+        },
+        commit: {
+          instruction: "Commit {{id}}"
+        }
+      },
+      plan: {
+        tasks: [
+          {
+            id: "auth-hardening",
+            title: "Harden auth",
+            prompt: "Improve auth validation",
+            status: {
+              implement: "open",
+              test: "open",
+              commit: "open"
+            }
+          }
+        ]
+      },
+      turns: [
+        {
+          output: {
+            stdout: "",
+            exitCode: 0,
+            usage: {
+              inputTokens: 50,
+              outputTokens: 20,
+              cachedTokens: 7
+            }
+          }
+        },
+        {
+          output: {
+            stdout: "",
+            exitCode: 0
+          }
+        },
+        {
+          output: {
+            stdout: "",
+            exitCode: 0,
+            usage: {
+              inputTokens: 15,
+              outputTokens: 5
+            }
+          }
+        }
+      ]
+    });
+
+    const { result } = await sim.run();
+
+    expect(result.metrics).toEqual({
+      totalInputTokens: 65,
+      totalOutputTokens: 25,
+      totalCachedTokens: 7,
+      tasksCompleted: 3,
+      tasksFailed: 0,
+      stepsCompleted: 3
     });
   });
 
@@ -135,9 +301,9 @@ describe("createPipelineSimulation", () => {
       totalInputTokens: 0,
       totalOutputTokens: 0,
       totalCachedTokens: 0,
-      tasksCompleted: 0,
+      tasksCompleted: 1,
       tasksFailed: 1,
-      stepsCompleted: 1
+      stepsCompleted: 2
     });
     expect(result.lastStepName).toBe("test");
     expect(runs).toHaveLength(2);
@@ -150,6 +316,55 @@ describe("createPipelineSimulation", () => {
       test: "failed",
       commit: "open"
     });
+  });
+
+  it("counts usage and failed metrics for non-zero exits", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "open"
+          }
+        ]
+      },
+      turns: [
+        {
+          output: {
+            stdout: "",
+            stderr: "failed",
+            exitCode: 1,
+            usage: {
+              inputTokens: 11,
+              outputTokens: 6,
+              cachedTokens: 2
+            }
+          }
+        }
+      ]
+    });
+
+    const { result, taskCompletions, readPlan } = await sim.run();
+
+    expect(result.stopReason).toBe("failed");
+    expect(result.metrics).toEqual({
+      totalInputTokens: 11,
+      totalOutputTokens: 6,
+      totalCachedTokens: 2,
+      tasksCompleted: 0,
+      tasksFailed: 1,
+      stepsCompleted: 1
+    });
+    expect(taskCompletions).toHaveLength(1);
+    expect(taskCompletions[0]?.success).toBe(false);
+    expect(taskCompletions[0]?.usage).toEqual({
+      inputTokens: 11,
+      outputTokens: 6,
+      cachedTokens: 2
+    });
+    expect((await readPlan()).tasks[0]?.status).toBe("failed");
   });
 
   it("archives the plan file after all tasks complete", async () => {
@@ -269,7 +484,7 @@ describe("createPipelineSimulation", () => {
       totalCachedTokens: 0,
       tasksCompleted: 2,
       tasksFailed: 0,
-      stepsCompleted: 0
+      stepsCompleted: 2
     });
     expect(plan.tasks.map((task) => task.status)).toEqual(["done", "done", "open"]);
   });

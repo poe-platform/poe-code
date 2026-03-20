@@ -209,7 +209,7 @@ tasks:
 
       Commit message: `feat: propagate token usage through SDK spawn`
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 3: Pipeline types and metrics aggregation
@@ -250,7 +250,7 @@ tasks:
 
       Reference: `docs/plans/pipeline-metrics-tracking.md` Phase 3.
     status:
-      implement: open
+      implement: done
 
   - id: pipeline-metrics-accumulation
     title: Accumulate metrics in runPipeline
@@ -276,8 +276,8 @@ tasks:
 
       Reference: `docs/plans/pipeline-metrics-tracking.md` Phase 3.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: commit-pipeline-metrics
     title: Commit pipeline metrics types and accumulation

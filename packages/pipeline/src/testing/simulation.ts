@@ -6,8 +6,10 @@ import { runPipeline } from "../run/pipeline.js";
 import type {
   AgentRunInput,
   AgentRunResult,
+  AgentRunUsage,
   PipelineFileSystem,
   PipelinePlan,
+  PipelineRunOptions,
   PipelineRunResult,
   PipelineTask,
   ResolvedStepDefinitions
@@ -26,6 +28,7 @@ type TurnOutput = {
   stdout: string;
   stderr?: string;
   exitCode?: number;
+  usage?: AgentRunUsage;
 };
 
 export type TurnSpec = {
@@ -47,11 +50,14 @@ export type SimulationOptions = {
 };
 
 export type SimulationRun = AgentRunInput;
+export type SimulationTaskCompletion =
+  Parameters<NonNullable<PipelineRunOptions["onTaskComplete"]>>[0];
 
 export type SimulationResult = {
   result: PipelineRunResult;
   prompts: string[];
   runs: SimulationRun[];
+  taskCompletions: SimulationTaskCompletion[];
   fs: SimulationFs;
   readFile: (filePath: string) => Promise<string>;
   readPlan: () => Promise<PipelinePlan>;
@@ -123,7 +129,8 @@ function normalizeAgentResult(output: TurnOutput): AgentRunResult {
   return {
     stdout: output.stdout,
     stderr: output.stderr ?? "",
-    exitCode: output.exitCode ?? 0
+    exitCode: output.exitCode ?? 0,
+    ...(output.usage ? { usage: output.usage } : {})
   };
 }
 
@@ -164,6 +171,7 @@ export function createPipelineSimulation(options: SimulationOptions): {
       const turns = [...options.turns];
       const prompts: string[] = [];
       const runs: SimulationRun[] = [];
+      const taskCompletions: SimulationTaskCompletion[] = [];
 
       const readPlan = async (): Promise<PipelinePlan> => {
         const availableSteps = {
@@ -204,6 +212,9 @@ export function createPipelineSimulation(options: SimulationOptions): {
         maxRuns: options.config?.maxRuns,
         onPlanReloadError: options.onPlanReloadError,
         fs,
+        onTaskComplete: (progress) => {
+          taskCompletions.push(progress);
+        },
         runAgent: async (input) => {
           const turn = turns.shift();
           if (!turn) {
@@ -234,6 +245,7 @@ export function createPipelineSimulation(options: SimulationOptions): {
         result,
         prompts,
         runs,
+        taskCompletions,
         fs,
         readFile,
         readPlan,

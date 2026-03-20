@@ -251,12 +251,9 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         metrics.totalOutputTokens += result.usage.outputTokens;
         metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
       }
+      metrics.stepsCompleted += 1;
       if (success) {
-        if (selection.stepName) {
-          metrics.stepsCompleted += 1;
-        } else {
-          metrics.tasksCompleted += 1;
-        }
+        metrics.tasksCompleted += 1;
       } else {
         metrics.tasksFailed += 1;
       }

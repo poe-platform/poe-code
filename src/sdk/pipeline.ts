@@ -7,9 +7,11 @@ import { renderAcpStream } from "@poe-code/agent-spawn";
 import { spawn as sdkSpawn } from "./spawn.js";
 
 export type {
+  AgentRunUsage,
   AgentRunInput,
   AgentRunResult,
   PipelineConfig,
+  PipelineMetrics,
   PipelinePlan,
   PipelineStatus,
   PipelineTask,

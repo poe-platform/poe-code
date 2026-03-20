@@ -12,7 +12,16 @@ vi.mock("../../sdk/pipeline.js", () => ({
   runPipeline: vi.fn().mockResolvedValue({
     stopReason: "completed",
     planPath: ".poe-code/pipeline/plans/plan.yaml",
-    runsCompleted: 1
+    runsCompleted: 1,
+    totalDurationMs: 1_000,
+    metrics: {
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 1
+    }
   })
 }));
 
@@ -142,6 +151,74 @@ describe("pipeline run command", () => {
         "0"
       ])
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("shows usage in task completion and metrics in summary", async () => {
+    const logs: string[] = [];
+    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      options.onTaskComplete?.({
+        taskId: "task-1",
+        taskTitle: "Task 1",
+        stepName: "implement",
+        index: 1,
+        total: 1,
+        durationMs: 2_500,
+        success: true,
+        usage: {
+          inputTokens: 1_234,
+          outputTokens: 567
+        }
+      });
+      return {
+        stopReason: "completed",
+        planPath: ".poe-code/pipeline/plans/plan.yaml",
+        runsCompleted: 1,
+        totalDurationMs: 3_000,
+        metrics: {
+          totalInputTokens: 5_000,
+          totalOutputTokens: 2_000,
+          totalCachedTokens: 1_000,
+          tasksCompleted: 1,
+          tasksFailed: 0,
+          stepsCompleted: 1
+        }
+      };
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--agent",
+      "codex"
+    ]);
+
+    expect(
+      logs.some((message) =>
+        message.includes("Task task-1 done in 3s (tokens: 1234 in / 567 out)")
+      )
+    ).toBe(true);
+    expect(
+      logs.some((message) =>
+        message.includes("Total tokens: 5000 input, 2000 output, 1000 cached")
+      )
+    ).toBe(true);
+    expect(
+      logs.some((message) =>
+        message.includes("tasksCompleted: 1, tasksFailed: 0, stepsCompleted: 1")
+      )
+    ).toBe(true);
   });
 });
 

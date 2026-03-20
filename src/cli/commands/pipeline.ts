@@ -23,6 +23,7 @@ import {
 } from "./shared.js";
 import {
   runPipeline as sdkRunPipeline,
+  type AgentRunUsage,
   type PipelineRunOptions,
   type PlanSummary,
   type TaskProgress
@@ -291,17 +292,27 @@ export function registerPipelineCommand(
               `Task ${progress.index}/${progress.total}: ${progress.taskId}${step}`
             );
           },
-          onTaskComplete(progress: TaskProgress & { durationMs: number; success: boolean }) {
+          onTaskComplete(progress: TaskProgress & {
+            durationMs: number;
+            success: boolean;
+            usage?: AgentRunUsage;
+          }) {
             const duration = formatDuration(progress.durationMs);
             const status = progress.success ? "done" : "failed";
+            const usage = progress.usage
+              ? ` (tokens: ${progress.usage.inputTokens} in / ${progress.usage.outputTokens} out)`
+              : "";
             resources.logger.info(
-              `Task ${progress.taskId} ${status} in ${duration}`
+              `Task ${progress.taskId} ${status} in ${duration}${usage}`
             );
           }
         });
 
+        const metrics = result.metrics;
         const summary = [
-          `Tasks: ${result.runsCompleted}/${result.runsCompleted + (result.stopReason === "completed" || result.stopReason === "nothing_to_run" ? 0 : 1)}`,
+          `Runs: ${result.runsCompleted}`,
+          `tasksCompleted: ${metrics.tasksCompleted}, tasksFailed: ${metrics.tasksFailed}, stepsCompleted: ${metrics.stepsCompleted}`,
+          `Total tokens: ${metrics.totalInputTokens} input, ${metrics.totalOutputTokens} output, ${metrics.totalCachedTokens} cached`,
           `Duration: ${formatDuration(result.totalDurationMs)}`
         ].join("\n   ");
 
@@ -323,6 +334,7 @@ export function registerPipelineCommand(
 
         if (result.stopReason === "nothing_to_run") {
           resources.logger.info("Nothing to run.");
+          resources.logger.resolved("Run summary", summary);
           return;
         }
 

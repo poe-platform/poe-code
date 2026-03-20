@@ -28,7 +28,6 @@
   - [models](#models)
   - [mcp](#mcp)
   - [skill](#skill)
-  - [ralph](#ralph)
 - [SDK Reference](#sdk-reference)
   - [spawn()](#spawn-sdk)
   - [spawn.pretty()](#spawnpretty)
@@ -65,7 +64,6 @@
 - [Models and Constants](#models-and-constants)
 - [Environment Variables](#environment-variables)
 - [Research Command](#research-command-details)
-- [Ralph Build System](#ralph-build-system)
 - [Skill System](#skill-system)
 - [Binary Wrappers](#binary-wrappers)
 - [LLM Client Internals](#llm-client-internals)
@@ -800,111 +798,6 @@ poe-code skill configure claude-code --local
 poe-code skill unconfigure claude-code --global
 poe-code skill unconfigure claude-code --local --force
 ```
-
----
-
-### ralph
-
-Ralph is a build loop system that iterates on a plan file using an AI agent. It reads a YAML plan, picks stories to work on, spawns an agent for each, and tracks progress.
-
-#### `ralph build`
-
-Run the Ralph build loop.
-
-```bash
-poe-code ralph build [iterations]
-```
-
-**Arguments:**
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `iterations` | Auto-calculated | Max iterations. Auto: `max(open*2, open+10)` where `open` = number of open stories. |
-
-**Options:**
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--plan <path>` | Prompts | Path to the YAML plan file. |
-| `--agent <name>` | `codex` | Agent to use for building. |
-| `--model <model>` | Agent default | Model override for the entire run. |
-| `--[no-]commit` | `true` | Whether the agent should commit changes. |
-| `--max-failures <n>` | `3` | Warn after n consecutive failures. |
-| `--pause-on-overbake` | `false` | Pause and prompt when overbaking is detected. |
-| `--worktree` | `false` | Run in an isolated git worktree. |
-| `--worktree-name <name>` | Derived from plan | Name for the worktree. |
-
-**Examples:**
-
-```bash
-# Run with defaults
-poe-code ralph build --plan .agents/poe-code-ralph/plans/my-plan.yaml
-
-# Specify agent and iterations
-poe-code ralph build 10 --plan plan.yaml --agent claude-code
-
-# With worktree isolation
-poe-code ralph build --plan plan.yaml --worktree
-
-# No commits (agent won't commit)
-poe-code ralph build --plan plan.yaml --no-commit
-
-# Pause on overbaking (too many iterations on one story)
-poe-code ralph build --plan plan.yaml --pause-on-overbake
-```
-
-#### `ralph install`
-
-Install Ralph templates and the `/plan` skill.
-
-```bash
-poe-code ralph install
-```
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--force` | Overwrite existing files. |
-| `--agent <name>` | Agent to install skills for. |
-| `--local` | Local scope. |
-| `--global` | Global scope. |
-
-#### `ralph agent log`
-
-Append a message to the Ralph activity log.
-
-```bash
-poe-code ralph agent log <message>
-```
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--activity-log <path>` | Custom activity log path. |
-
-#### `ralph agent validate-plan`
-
-Validate the structure of a Ralph plan YAML file.
-
-```bash
-poe-code ralph agent validate-plan --plan <path>
-```
-
-#### `ralph worktree merge`
-
-Merge a Ralph worktree back into the main branch.
-
-```bash
-poe-code ralph worktree merge <name>
-```
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--agent <name>` | Agent for the merge operation. |
 
 ---
 
@@ -2175,61 +2068,6 @@ The `research` command is a specialized spawn that defaults to `read` mode. Key 
 
 ---
 
-## Ralph Build System
-
-Ralph is a build loop that automates iterative development using AI agents and a YAML plan file.
-
-### Plan File Format
-
-Plan files are YAML files in `.agents/poe-code-ralph/plans/`:
-
-```yaml
-name: Feature Name
-stories:
-  - id: story-1
-    title: Implement user login
-    status: open        # open | in_progress | done
-    description: |
-      Detailed description of what needs to be done.
-    acceptance_criteria:
-      - Users can log in with email/password
-      - Invalid credentials show error message
-  - id: story-2
-    title: Add unit tests
-    status: open
-    depends_on: [story-1]
-```
-
-### Build Loop
-
-The `ralph build` command:
-
-1. Reads the plan YAML
-2. Counts open/in-progress stories
-3. Auto-calculates iterations: `max(open*2, open+10)` if not specified
-4. For each iteration:
-   - Picks the next story to work on
-   - Spawns the agent with the story as the prompt
-   - Tracks progress and failures
-5. Reports summary: iterations completed, stories done, duration
-
-### Worktree Support
-
-Run Ralph in an isolated git worktree to avoid interfering with your main branch:
-
-```bash
-poe-code ralph build --plan plan.yaml --worktree --worktree-name feature-x
-```
-
-### Ralph Templates
-
-Installed via `ralph install`:
-- Prompt templates in `.agents/poe-code-ralph/`
-- State files in `.poe-code-ralph/`
-- `/plan` skill for agents
-
----
-
 ## Skill System
 
 Skills are agent-specific prompt templates/directories that extend agent capabilities.
@@ -2360,7 +2198,6 @@ poe-setup-scripts/
 │   │       ├── logout.ts
 │   │       ├── mcp.ts
 │   │       ├── skill.ts
-│   │       ├── ralph.ts
 │   │       ├── usage.ts
 │   │       ├── models.ts
 │   │       ├── version.ts
@@ -2398,7 +2235,6 @@ poe-setup-scripts/
 │   ├── agent-skill-config/         # Skill configuration
 │   ├── config-mutations/           # Declarative file mutation DSL
 │   ├── design-system/              # CLI UI components and themes
-│   ├── ralph/                      # Ralph build loop implementation
 │   ├── worktree/                   # Git worktree utilities
 │   ├── tiny-stdio-mcp-server/      # MCP server framework
 │   ├── tiny-stdio-mcp-test-server/ # MCP test server
@@ -2435,7 +2271,7 @@ poe-setup-scripts/
 | `models` | — | List available models |
 | `mcp` | `serve`, `configure`, `unconfigure` | MCP server management |
 | `skill` | `configure`, `unconfigure` | Agent skill management |
-| `ralph` | `build`, `install`, `agent log`, `agent validate-plan`, `worktree merge` | Build loop system |
+
 
 ### SDK Exports Summary
 

@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Unified Spawn via ACP (PRD: .agents/poe-code-ralph/plans/prd-acp-spawn-adapters.json)
+- [ ] Unified Spawn via ACP
 - [x] [MCP Server](docs/mcp-server-spec.md)
 - [ ] [Usage Command](docs/usage-command-plan.md)
 - [ ] [Spawn Modes](docs/spawn-modes-plan.md)

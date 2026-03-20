@@ -4,7 +4,7 @@ import type { WorktreeFileSystem, ExecFn } from "./types.js";
 import { removeWorktree } from "./remove.js";
 import { addWorktreeEntry, readRegistry } from "./registry.js";
 
-const REGISTRY = "/repo/.poe-code-ralph/worktrees.yaml";
+const REGISTRY = "/repo/.poe-code/worktrees.yaml";
 
 function createMemFs(
   files: Record<string, string> = {}
@@ -23,7 +23,7 @@ describe("removeWorktree", () => {
     const exec = createMockExec();
     await addWorktreeEntry(REGISTRY, {
       name: "wt",
-      path: "/repo/.poe-code-ralph/worktrees/wt",
+      path: "/repo/.poe-code/worktrees/wt",
       branch: "poe-code/wt",
       baseBranch: "main",
       createdAt: "2026-01-01T00:00:00.000Z",
@@ -35,7 +35,7 @@ describe("removeWorktree", () => {
     await removeWorktree({ cwd: "/repo", name: "wt", registryFile: REGISTRY, deps: { fs, exec } });
 
     expect(exec).toHaveBeenCalledWith(
-      "git worktree remove /repo/.poe-code-ralph/worktrees/wt",
+      "git worktree remove /repo/.poe-code/worktrees/wt",
       { cwd: "/repo" }
     );
   });
@@ -45,7 +45,7 @@ describe("removeWorktree", () => {
     const exec = createMockExec();
     await addWorktreeEntry(REGISTRY, {
       name: "wt",
-      path: "/repo/.poe-code-ralph/worktrees/wt",
+      path: "/repo/.poe-code/worktrees/wt",
       branch: "poe-code/wt",
       baseBranch: "main",
       createdAt: "2026-01-01T00:00:00.000Z",
@@ -65,7 +65,7 @@ describe("removeWorktree", () => {
     const exec = createMockExec();
     await addWorktreeEntry(REGISTRY, {
       name: "wt",
-      path: "/repo/.poe-code-ralph/worktrees/wt",
+      path: "/repo/.poe-code/worktrees/wt",
       branch: "poe-code/wt",
       baseBranch: "main",
       createdAt: "2026-01-01T00:00:00.000Z",
@@ -93,7 +93,7 @@ describe("removeWorktree", () => {
     const exec = createMockExec();
     await addWorktreeEntry(REGISTRY, {
       name: "wt",
-      path: "/repo/.poe-code-ralph/worktrees/wt",
+      path: "/repo/.poe-code/worktrees/wt",
       branch: "poe-code/wt",
       baseBranch: "main",
       createdAt: "2026-01-01T00:00:00.000Z",

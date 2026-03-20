@@ -4,8 +4,8 @@ import type { WorktreeFileSystem, ExecFn } from "./types.js";
 import { createWorktree } from "./create.js";
 import { readRegistry } from "./registry.js";
 
-const REGISTRY = "/repo/.poe-code-ralph/worktrees.yaml";
-const WORKTREE_DIR = "/repo/.poe-code-ralph/worktrees";
+const REGISTRY = "/repo/.poe-code/worktrees.yaml";
+const WORKTREE_DIR = "/repo/.poe-code/worktrees";
 
 function createMemFs(
   files: Record<string, string> = {}
@@ -27,7 +27,7 @@ describe("createWorktree", () => {
       cwd: "/repo",
       name: "my-feature",
       baseBranch: "main",
-      source: "ralph-build",
+      source: "build",
       agent: "codex",
       registryFile: REGISTRY,
       worktreeDir: WORKTREE_DIR,
@@ -48,7 +48,7 @@ describe("createWorktree", () => {
       cwd: "/repo",
       name: "my-feature",
       baseBranch: "main",
-      source: "ralph-build",
+      source: "build",
       agent: "codex",
       registryFile: REGISTRY,
       worktreeDir: WORKTREE_DIR,
@@ -105,7 +105,7 @@ describe("createWorktree", () => {
       cwd: "/repo",
       name: "my-feature",
       baseBranch: "main",
-      source: "ralph-build",
+      source: "build",
       agent: "codex",
       registryFile: REGISTRY,
       worktreeDir: WORKTREE_DIR,
@@ -120,7 +120,7 @@ describe("createWorktree", () => {
       cwd: "/repo",
       name: "my-feature",
       baseBranch: "main",
-      source: "ralph-build",
+      source: "build",
       agent: "codex",
       registryFile: REGISTRY,
       worktreeDir: WORKTREE_DIR,
@@ -153,7 +153,7 @@ describe("createWorktree", () => {
       cwd: "/repo",
       name: "fresh-feature",
       baseBranch: "main",
-      source: "ralph-build",
+      source: "build",
       agent: "codex",
       registryFile: REGISTRY,
       worktreeDir: WORKTREE_DIR,

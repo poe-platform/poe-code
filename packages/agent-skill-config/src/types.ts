@@ -11,7 +11,7 @@ export interface ApplyOptions {
 }
 
 export interface SkillFile {
-  /** Skill folder name (e.g., "poe-code-ralph-plan") */
+  /** Skill folder name */
   name: string;
   /** Content to write to SKILL.md */
   content: string;

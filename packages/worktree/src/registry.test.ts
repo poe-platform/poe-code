@@ -10,7 +10,7 @@ import {
   updateWorktreeStatus
 } from "./registry.js";
 
-const REGISTRY = "/repo/.poe-code-ralph/worktrees.yaml";
+const REGISTRY = "/repo/.poe-code/worktrees.yaml";
 
 function createMemFs(
   files: Record<string, string> = {}
@@ -22,11 +22,11 @@ function createMemFs(
 function makeEntry(overrides: Partial<Worktree> = {}): Worktree {
   return {
     name: "test-worktree",
-    path: "/repo/.poe-code-ralph/worktrees/test-worktree",
+    path: "/repo/.poe-code/worktrees/test-worktree",
     branch: "poe-code/test-worktree",
     baseBranch: "main",
     createdAt: "2026-01-01T00:00:00.000Z",
-    source: "ralph-build",
+    source: "build",
     agent: "codex",
     status: "active",
     ...overrides
@@ -43,7 +43,7 @@ describe("readRegistry", () => {
   it("parses existing registry YAML", async () => {
     const fs = createMemFs({
       [REGISTRY]:
-        "worktrees:\n  - name: foo\n    path: /repo/.poe-code-ralph/worktrees/foo\n    branch: poe-code/foo\n    baseBranch: main\n    createdAt: '2026-01-01T00:00:00.000Z'\n    source: test\n    agent: codex\n    status: active\n"
+        "worktrees:\n  - name: foo\n    path: /repo/.poe-code/worktrees/foo\n    branch: poe-code/foo\n    baseBranch: main\n    createdAt: '2026-01-01T00:00:00.000Z'\n    source: test\n    agent: codex\n    status: active\n"
     });
     const registry = await readRegistry(REGISTRY, fs);
     expect(registry.worktrees).toHaveLength(1);

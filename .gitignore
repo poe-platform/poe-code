@@ -39,12 +39,8 @@ local_scripts/watch-diff.ts
 .codex/
 .cursor/
 .opencode/
-.ralphy/
-.ralph/
-!packages/ralph/templates/.ralph/
 !.agents/
 !.agents/**
-.poe-code-ralph/
 openspec
 
 # E2E test logs
@@ -52,4 +48,3 @@ openspec
 .colima-logs/
 .turbo
 *.tsbuildinfo
-.poe-code-ralph

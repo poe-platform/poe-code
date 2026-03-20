@@ -4,7 +4,7 @@ import type { WorktreeFileSystem, ExecFn } from "./types.js";
 import { listWorktrees } from "./list.js";
 import { addWorktreeEntry } from "./registry.js";
 
-const REGISTRY = "/repo/.poe-code-ralph/worktrees.yaml";
+const REGISTRY = "/repo/.poe-code/worktrees.yaml";
 
 function createMemFs(
   files: Record<string, string> = {}
@@ -29,7 +29,7 @@ describe("listWorktrees", () => {
     const fs = createMemFs();
     await addWorktreeEntry(REGISTRY, {
       name: "exists",
-      path: "/repo/.poe-code-ralph/worktrees/exists",
+      path: "/repo/.poe-code/worktrees/exists",
       branch: "poe-code/exists",
       baseBranch: "main",
       createdAt: "2026-01-01T00:00:00.000Z",
@@ -39,7 +39,7 @@ describe("listWorktrees", () => {
     }, fs);
     await addWorktreeEntry(REGISTRY, {
       name: "gone",
-      path: "/repo/.poe-code-ralph/worktrees/gone",
+      path: "/repo/.poe-code/worktrees/gone",
       branch: "poe-code/gone",
       baseBranch: "main",
       createdAt: "2026-01-01T00:00:00.000Z",
@@ -54,7 +54,7 @@ describe("listWorktrees", () => {
         "HEAD abc123",
         "branch refs/heads/main",
         "",
-        "worktree /repo/.poe-code-ralph/worktrees/exists",
+        "worktree /repo/.poe-code/worktrees/exists",
         "HEAD def456",
         "branch refs/heads/poe-code/exists",
         ""

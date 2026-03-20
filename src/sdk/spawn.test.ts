@@ -447,6 +447,7 @@ describe("SDK spawn()", () => {
     expect(applyMiddlewares).toHaveBeenCalledTimes(1);
     const [middlewares, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
     expect(middlewares).toEqual([sessionCapture, usageCapture, spawnLog]);
+    expect(ctx.logDir).toBeUndefined();
     expect(ctx).toEqual(
       expect.objectContaining({
         sessionId: expect.any(String),
@@ -460,6 +461,54 @@ describe("SDK spawn()", () => {
         startedAt: expect.any(Date)
       })
     );
+  });
+
+  it("forwards logDir to middleware context in SDK streaming path", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    });
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt", {
+      logDir: "/repo/.poe-code/pipeline/plans/logs/task-1-implement.jsonl"
+    });
+
+    await result;
+
+    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
+    const [, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
+    expect(ctx.logDir).toBe(
+      "/repo/.poe-code/pipeline/plans/logs/task-1-implement.jsonl"
+    );
+  });
+
+  it("forwards an explicitly empty logDir to middleware context", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    });
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt", {
+      logDir: ""
+    });
+
+    await result;
+
+    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
+    const [, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
+    expect(ctx.logDir).toBe("");
   });
 
   it("resolves events and rejects result when middleware composition fails", async () => {

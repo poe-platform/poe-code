@@ -16,6 +16,8 @@ export interface SpawnOptions {
   args?: string[];
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
+  /** Directory override for ACP JSONL spawn logs */
+  logDir?: string;
   /** Launch the agent in interactive (TUI) mode with inherited stdio */
   interactive?: boolean;
   /** Abort signal used to terminate the spawned agent */

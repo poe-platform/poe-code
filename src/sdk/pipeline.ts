@@ -30,6 +30,7 @@ export async function runPipeline(
       const { events, result } = sdkSpawn(input.agent, {
         prompt: input.prompt,
         cwd: input.cwd,
+        logDir: input.logDir,
         model: input.model,
         mode: input.mode
       });

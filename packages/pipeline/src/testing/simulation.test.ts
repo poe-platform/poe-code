@@ -133,6 +133,84 @@ describe("createPipelineSimulation", () => {
     expect(taskCompletions[0]?.usage).toBeUndefined();
   });
 
+  it("passes configured logDir to each agent run", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "open"
+          },
+          {
+            id: "slow-fix",
+            title: "Slow fix",
+            prompt: "Fix another regression",
+            status: "open"
+          }
+        ]
+      },
+      config: {
+        logDir: "/repo/.poe-code/pipeline/plans/logs/quick-fix-yolo.jsonl"
+      },
+      turns: [successTurn(), successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs).toHaveLength(2);
+    expect(runs.map((run) => run.logDir)).toEqual([
+      "/repo/.poe-code/pipeline/plans/logs/quick-fix-yolo.jsonl",
+      "/repo/.poe-code/pipeline/plans/logs/quick-fix-yolo.jsonl"
+    ]);
+  });
+
+  it("forwards an explicitly empty logDir value", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "open"
+          }
+        ]
+      },
+      config: {
+        logDir: ""
+      },
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs).toHaveLength(1);
+    expect(runs[0]?.logDir).toBe("");
+  });
+
+  it("leaves logDir undefined when not configured", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "open"
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs).toHaveLength(1);
+    expect(runs[0]?.logDir).toBeUndefined();
+  });
+
   it("runs stepped tasks in order and marks each step done", async () => {
     const sim = createPipelineSimulation({
       projectSteps: {

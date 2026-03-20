@@ -226,6 +226,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           prompt,
           mode,
           cwd: options.cwd,
+          logDir: options.logDir,
           ...(model ? { model } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });

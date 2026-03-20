@@ -45,6 +45,7 @@ export type SimulationOptions = {
   files?: Record<string, string>;
   config?: {
     maxRuns?: number;
+    logDir?: string;
   };
   onPlanReloadError?: (error: Error) => void;
 };
@@ -210,6 +211,7 @@ export function createPipelineSimulation(options: SimulationOptions): {
         homeDir: "/home/test",
         plan: ".poe-code/pipeline/plans/plan.yaml",
         maxRuns: options.config?.maxRuns,
+        logDir: options.config?.logDir,
         onPlanReloadError: options.onPlanReloadError,
         fs,
         onTaskComplete: (progress) => {

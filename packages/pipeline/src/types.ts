@@ -50,6 +50,7 @@ export interface AgentRunInput {
   prompt: string;
   mode: StepMode;
   cwd: string;
+  logDir?: string;
   model?: string;
   signal?: AbortSignal;
 }
@@ -113,6 +114,7 @@ export interface PipelineRunOptions {
   agent: string;
   cwd: string;
   homeDir: string;
+  logDir?: string;
   model?: string;
   plan?: string;
   task?: string;

@@ -162,6 +162,7 @@ export function spawn(
         const middlewareContext: AcpSpawnContext = {
           sessionId: "unknown",
           agent: service,
+          logDir: options.logDir,
           events: [],
           usage: {
             inputTokens: 0,

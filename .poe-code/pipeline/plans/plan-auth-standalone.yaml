@@ -184,7 +184,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: get-token-fn
     title: Add getToken()
@@ -206,9 +206,9 @@ tasks:
 
       Commit: `feat(auth): add getToken()`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: cli-commands

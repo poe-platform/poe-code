@@ -293,7 +293,7 @@ tasks:
 
       All tests pass. `npm run test && npm run lint`.
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 9–10: ACP Core Model Loop and Agent Host
@@ -335,9 +335,9 @@ tasks:
       ```
       Exactly one terminal event. Stream ends after terminal. Consumable via `for await...of`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: agent-host
     title: Implement AgentHost with direct execution, fork, and spawn
@@ -376,9 +376,9 @@ tasks:
 
       Reference: `src/providers/poe-agent.ts` for the existing in-memory transport pattern.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: commit-acp-core
     title: Commit ACP core, agent host, fork, and spawn

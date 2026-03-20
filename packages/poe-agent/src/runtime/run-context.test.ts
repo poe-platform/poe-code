@@ -34,6 +34,15 @@ describe("RunContext", () => {
     expect(context.getChildRunCount()).toBe(0);
   });
 
+  it("removes rejected child runs when they settle", async () => {
+    const context = createRunContext();
+    const childRun = context.trackChildRun(Promise.reject(new Error("child failed")));
+
+    expect(context.getChildRunCount()).toBe(1);
+    await expect(childRun).rejects.toThrow("child failed");
+    expect(context.getChildRunCount()).toBe(0);
+  });
+
   it("disposes hooks in reverse registration order", async () => {
     const context = createRunContext();
     const callOrder: string[] = [];

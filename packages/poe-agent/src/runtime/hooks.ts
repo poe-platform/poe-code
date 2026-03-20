@@ -118,6 +118,13 @@ export class HookRegistry {
         return undefined;
     }
   }
+
+  copyFrom(registry: HookRegistry): void {
+    this.#preToolUse.push(...registry.#preToolUse);
+    this.#postToolUse.push(...registry.#postToolUse);
+    this.#preIteration.push(...registry.#preIteration);
+    this.#postIteration.push(...registry.#postIteration);
+  }
 }
 
 export type CreatePreToolUseHookContextOptions = {

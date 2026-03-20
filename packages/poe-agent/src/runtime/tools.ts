@@ -136,4 +136,10 @@ export class ToolRegistry {
     const normalizedActiveSkills = normalizeActiveSkills(activeSkills);
     return this.getAll().filter(tool => isToolVisibleToModel(tool, normalizedActiveSkills));
   }
+
+  copyFrom(registry: ToolRegistry): void {
+    for (const tool of registry.#tools.values()) {
+      this.#tools.set(tool.name, tool);
+    }
+  }
 }

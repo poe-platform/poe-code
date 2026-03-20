@@ -29,4 +29,8 @@ export class PromptRegistry {
 
     return context;
   }
+
+  copyFrom(registry: PromptRegistry): void {
+    this.#transforms.push(...registry.#transforms);
+  }
 }

@@ -57,9 +57,14 @@ export class RunContext {
 
   trackChildRun<T>(childRun: Promise<T>): Promise<T> {
     this.childRuns.add(childRun);
-    void childRun.finally(() => {
-      this.childRuns.delete(childRun);
-    });
+    void childRun.then(
+      () => {
+        this.childRuns.delete(childRun);
+      },
+      () => {
+        this.childRuns.delete(childRun);
+      },
+    );
 
     return childRun;
   }

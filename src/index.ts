@@ -57,3 +57,4 @@ if (isCliInvocation(process.argv, import.meta.url)) {
 
 // CLI exports
 export { main, isCliInvocation };
+export { poeAgentMain } from "./cli/poe-agent-main.js";

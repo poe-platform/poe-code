@@ -58,6 +58,7 @@
     "poe-claude": "dist/bin/poe-claude.js",
     "poe-codex": "dist/bin/poe-codex.js",
     "poe-opencode": "dist/bin/poe-opencode.js",
+    "poe-agent": "dist/bin/poe-agent.js",
     "tiny-stdio-mcp-test-server": "packages/tiny-stdio-mcp-test-server/dist/cli.js"
   },
   "files": [

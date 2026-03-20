@@ -18,8 +18,6 @@ export function stripBracketedPaste(input: string): string {
 }
 
 function isAlphanumeric(value: string): boolean {
-  if (value.length === 0) return false;
-
   for (let i = 0; i < value.length; i++) {
     const code = value.charCodeAt(i);
     const isDigit = code >= 48 && code <= 57;
@@ -33,8 +31,6 @@ function isAlphanumeric(value: string): boolean {
 }
 
 function isAlphanumericWithSeparators(value: string): boolean {
-  if (value.length === 0) return false;
-
   for (let i = 0; i < value.length; i++) {
     const code = value.charCodeAt(i);
     const isDigit = code >= 48 && code <= 57;
@@ -59,14 +55,14 @@ function hasMinimumApiKeyLength(value: string): boolean {
 }
 
 export function isValidApiKeyFormat(key: string): boolean {
-  if (!hasMinimumApiKeyLength(key)) return false;
+  if (key.length === 0) return false;
 
   if (key.startsWith(API_KEY_PREFIX)) {
     const hash = key.slice(API_KEY_PREFIX.length);
-    return isAlphanumeric(hash);
+    return hasMinimumApiKeyLength(hash) && isAlphanumeric(hash);
   }
 
-  return isAlphanumericWithSeparators(key);
+  return hasMinimumApiKeyLength(key) && isAlphanumericWithSeparators(key);
 }
 
 export function normalizeApiKey(raw: string): string {

@@ -112,6 +112,7 @@ export interface PipelineRunOptions {
   onPlanResolved?: (summary: PlanSummary) => void;
   onTaskStart?: (progress: TaskProgress) => void;
   onTaskComplete?: (progress: TaskProgress & { durationMs: number; success: boolean }) => void;
+  onPlanReloadError?: (error: Error) => void;
   signal?: AbortSignal;
 }
 

@@ -13,8 +13,10 @@ import type {
   AgentRunResult,
   PipelineFileStat,
   PipelineFileSystem,
+  PipelinePlan,
   PipelineRunOptions,
   PipelineRunResult,
+  ResolvedStepDefinitions,
   StepMode
 } from "../types.js";
 import { assertNotAborted } from "../utils.js";
@@ -123,19 +125,40 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
   const maxRuns = options.maxRuns ?? Number.POSITIVE_INFINITY;
   let runsCompleted = 0;
+  let lastGoodPlan: PipelinePlan | undefined;
+  let lastGoodSteps: ResolvedStepDefinitions | undefined;
   const pipelineStartTime = Date.now();
 
   while (runsCompleted < maxRuns) {
     assertNotAborted(options.signal);
     const release = await lockFile(absolutePlanPath, { fs });
     try {
-      const steps = await loadResolvedSteps({
-        cwd: options.cwd,
-        homeDir: options.homeDir,
-        fs
-      });
-      const content = await fs.readFile(absolutePlanPath, "utf8");
-      const plan = parsePlan(content, { availableSteps: steps });
+      let steps: ResolvedStepDefinitions;
+      let plan: PipelinePlan;
+
+      try {
+        steps = await loadResolvedSteps({
+          cwd: options.cwd,
+          homeDir: options.homeDir,
+          fs
+        });
+        const content = await fs.readFile(absolutePlanPath, "utf8");
+        plan = parsePlan(content, { availableSteps: steps });
+        lastGoodPlan = plan;
+        lastGoodSteps = steps;
+      } catch (reloadError) {
+        if (!lastGoodPlan || !lastGoodSteps) {
+          throw reloadError;
+        }
+        options.onPlanReloadError?.(
+          reloadError instanceof Error
+            ? reloadError
+            : new Error(String(reloadError))
+        );
+        plan = lastGoodPlan;
+        steps = lastGoodSteps;
+      }
+
       const totalTasks = plan.tasks.length;
       const selection = selectNextExecution(plan, options.task);
 
@@ -218,6 +241,19 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         ...(selection.stepName ? { stepName: selection.stepName } : {}),
         status: success ? "done" : "failed"
       });
+
+      if (lastGoodPlan) {
+        const cachedTask = lastGoodPlan.tasks.find((t) => t.id === selection.task.id);
+        if (cachedTask) {
+          const newStatus = success ? "done" : "failed";
+          if (selection.stepName && typeof cachedTask.status === "object") {
+            cachedTask.status[selection.stepName] = newStatus;
+          } else {
+            cachedTask.status = newStatus;
+          }
+        }
+      }
+
       runsCompleted += 1;
 
       options.onTaskComplete?.({

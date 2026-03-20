@@ -43,6 +43,7 @@ export type SimulationOptions = {
   config?: {
     maxRuns?: number;
   };
+  onPlanReloadError?: (error: Error) => void;
 };
 
 export type SimulationRun = AgentRunInput;
@@ -201,6 +202,7 @@ export function createPipelineSimulation(options: SimulationOptions): {
         homeDir: "/home/test",
         plan: ".poe-code/pipeline/plans/plan.yaml",
         maxRuns: options.config?.maxRuns,
+        onPlanReloadError: options.onPlanReloadError,
         fs,
         runAgent: async (input) => {
           const turn = turns.shift();

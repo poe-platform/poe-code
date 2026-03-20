@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createPipelineSimulation,
   failTurn,
@@ -240,5 +240,37 @@ describe("createPipelineSimulation", () => {
 
     expect(result.stopReason).toBe("max_runs");
     expect(plan.tasks.map((task) => task.status)).toEqual(["done", "done", "open"]);
+  });
+
+  it("continues with last good plan when steps.yaml is corrupted mid-run", async () => {
+    const onReloadError = vi.fn();
+
+    const sim = createPipelineSimulation({
+      projectSteps: {
+        implement: { mode: "yolo", instruction: "Implement {{id}}" }
+      },
+      plan: {
+        tasks: [
+          { id: "one", title: "One", prompt: "One", status: { implement: "open" } },
+          { id: "two", title: "Two", prompt: "Two", status: { implement: "open" } }
+        ]
+      },
+      onPlanReloadError: onReloadError,
+      turns: [
+        {
+          output: { stdout: "", exitCode: 0 },
+          fileChanges: {
+            ".poe-code/pipeline/steps.yaml": "this is: [invalid yaml"
+          }
+        },
+        successTurn()
+      ]
+    });
+
+    const { result } = await sim.run();
+
+    expect(onReloadError).toHaveBeenCalled();
+    expect(result.stopReason).toBe("completed");
+    expect(result.runsCompleted).toBe(2);
   });
 });

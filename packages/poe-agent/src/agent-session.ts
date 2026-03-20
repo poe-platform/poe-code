@@ -1,21 +1,22 @@
-import { createAuthStore } from "@poe-code/auth";
 import type {
   SessionUpdate,
   ToolCall as AcpToolCall,
   ToolCallUpdate as AcpToolCallUpdate,
 } from "@poe-code/agent-spawn";
+import { HttpTransport, McpClient, StdioTransport, type Tool as McpTool } from "tiny-mcp-client";
+import { agent, type AgentBuilder, type AgentRunOptions } from "./agent.js";
+import type { ChatMessage } from "./chat.js";
 import {
-  PoeChatService,
-  type ChatMessage,
-  type PoeChatServiceOptions,
-  type Tool,
-  type ToolCallLifecycleEvent,
-  type ToolExecutor,
-} from "./chat.js";
-import { HttpTransport, McpClient, StdioTransport } from "tiny-mcp-client";
-import { McpToolExecutor, type McpServerDefinition } from "./mcp-tool-executor.js";
-import { loadSystemPrompt } from "./system-prompt.js";
-import { DefaultToolExecutor } from "./tool-executor.js";
+  callToolResultToString,
+  namespaceMcpToolName,
+  type McpServerDefinition,
+} from "./mcp-tool-executor.js";
+import filesPlugin from "./plugins/poe-agent-plugin-files.js";
+import shellPlugin from "./plugins/poe-agent-plugin-shell.js";
+import systemPromptPlugin from "./plugins/poe-agent-plugin-system-prompt.js";
+import webPlugin from "./plugins/poe-agent-plugin-web.js";
+import type { AgentPlugin } from "./runtime/plugin-types.js";
+import type { AcpEvent, RunResult, Tool } from "./runtime/types.js";
 
 export interface AgentSession {
   sendMessage(prompt: string, options?: AgentSessionSendMessageOptions): Promise<ChatMessage>;
@@ -36,135 +37,129 @@ export interface CreateAgentSessionOptions {
   allowedPaths?: string[];
   mcpServers?: Record<string, McpServerDefinition>;
   baseUrl?: string;
-  fetch?: PoeChatServiceOptions["fetch"];
+  fetch?: AgentRunOptions["fetch"];
   maxToolCallIterations?: number;
 }
 
-type Disposable = {
-  dispose(): Promise<void> | void;
+type LegacyAcpRunOptions = AgentRunOptions & {
+  __legacyAutoHandleTools: true;
 };
 
 export async function createAgentSession(
   options: CreateAgentSessionOptions = {},
 ): Promise<AgentSession> {
-  const model = resolveRequiredModel(options.model);
-  const apiKey = await resolveApiKey(options.apiKey);
-  const systemPrompt = await loadSystemPrompt();
+  const builder = agent()
+    .model(resolveRequiredModel(options.model))
+    .use(systemPromptPlugin())
+    .use(fileTools(options))
+    .use(shellTools(options))
+    .use(webTools())
+    .use(mcpPluginFromOptions(options));
 
-  const toolExecutor = new DefaultToolExecutor({
+  return adaptAcpToLegacySession(builder, options);
+}
+
+function fileTools(options: CreateAgentSessionOptions): AgentPlugin {
+  return filesPlugin({
     cwd: options.cwd,
     allowedPaths: options.allowedPaths,
   });
-  const builtInTools = toolExecutor.getAvailableTools();
-  const builtInToolNames = new Set(builtInTools.map(tool => tool.function.name));
+}
 
-  let tools: Tool[] = builtInTools;
-  let chatToolExecutor: ToolExecutor = toolExecutor;
-  let mcpToolExecutor: McpToolExecutor | undefined;
-
-  if (options.mcpServers !== undefined) {
-    const createdMcpToolExecutor = new McpToolExecutor();
-    mcpToolExecutor = createdMcpToolExecutor;
-
-    try {
-      for (const [serverName, serverDefinition] of Object.entries(options.mcpServers)) {
-        const mcpClient = new McpClient({
-          clientInfo: {
-            name: "poe-agent",
-            version: "0.0.1",
-          },
-        });
-        const transport = createMcpTransport(serverDefinition);
-
-        await mcpClient.connect(transport);
-        await createdMcpToolExecutor.addServer(serverName, mcpClient);
-      }
-    } catch (error) {
-      await createdMcpToolExecutor.dispose();
-      throw error;
-    }
-
-    const mcpTools = createdMcpToolExecutor.getAvailableTools();
-    tools = [...builtInTools, ...mcpTools];
-    chatToolExecutor = {
-      executeTool(name: string, args: Record<string, unknown>): Promise<string> {
-        if (builtInToolNames.has(name)) {
-          return toolExecutor.executeTool(name, args);
-        }
-
-        return createdMcpToolExecutor.executeTool(name, args);
-      },
-    };
-  }
-
-  let currentOnSessionUpdate: SessionUpdateCallback | undefined;
-
-  const chatService = new PoeChatService({
-    apiKey,
-    model,
-    baseUrl: options.baseUrl,
-    fetch: options.fetch,
-    systemPrompt,
-    toolExecutor: chatToolExecutor,
-    maxToolCallIterations: options.maxToolCallIterations,
-    onToolCall: event => {
-      if (!currentOnSessionUpdate) return;
-      for (const update of mapToolLifecycleEventToSessionUpdates(event)) {
-        currentOnSessionUpdate(update);
-      }
-    },
+function shellTools(options: CreateAgentSessionOptions): AgentPlugin {
+  return shellPlugin({
+    cwd: options.cwd,
+    allowedPaths: options.allowedPaths,
   });
+}
 
-  let disposed = false;
+function webTools(): AgentPlugin {
+  return webPlugin();
+}
+
+function mcpPluginFromOptions(options: CreateAgentSessionOptions): AgentPlugin {
+  const servers = options.mcpServers ? Object.entries(options.mcpServers) : [];
+  const connectedClients = new Set<McpClient>();
 
   return {
-    async sendMessage(prompt: string, sendOptions?: AgentSessionSendMessageOptions): Promise<ChatMessage> {
-      if (disposed) {
-        throw new Error("Agent session is already disposed.");
-      }
-
-      currentOnSessionUpdate = sendOptions?.onSessionUpdate;
-
-      const response = await chatService.sendMessage(prompt, {
-        tools,
-        signal: sendOptions?.signal,
-      });
-
-      if (currentOnSessionUpdate && response.role === "assistant" && response.content.length > 0) {
-        currentOnSessionUpdate({
-          sessionUpdate: "agent_message_chunk",
-          content: {
-            type: "text",
-            text: response.content,
-          },
-        });
-      }
-
-      return response;
-    },
-
-    async dispose(): Promise<void> {
-      if (disposed) {
+    name: "poe-agent-plugin-mcp",
+    async setup(api) {
+      if (servers.length === 0) {
         return;
       }
 
-      disposed = true;
-      chatService.clearConversationHistory();
+      const initializedClients: McpClient[] = [];
 
-      const disposableToolExecutor = toolExecutor as unknown as Partial<Disposable>;
-      const disposePromises: Array<Promise<void>> = [];
+      try {
+        for (const [serverName, definition] of servers) {
+          const client = new McpClient({
+            clientInfo: {
+              name: "poe-agent",
+              version: "0.0.1",
+            },
+          });
 
-      if (typeof disposableToolExecutor.dispose === "function") {
-        disposePromises.push(Promise.resolve(disposableToolExecutor.dispose()));
+          await client.connect(createMcpTransport(definition));
+          initializedClients.push(client);
+          connectedClients.add(client);
+
+          await registerMcpTools(api.addTool.bind(api), serverName, client);
+        }
+      } catch (error) {
+        await closeMcpClients(initializedClients);
+
+        for (const client of initializedClients) {
+          connectedClients.delete(client);
+        }
+
+        throw error;
       }
+    },
+    async dispose() {
+      const clients = Array.from(connectedClients);
+      connectedClients.clear();
+      await closeMcpClients(clients);
+    },
+  };
+}
 
-      if (mcpToolExecutor) {
-        disposePromises.push(mcpToolExecutor.dispose());
-      }
+async function registerMcpTools(
+  addTool: (tool: Tool) => void,
+  serverName: string,
+  client: McpClient,
+): Promise<void> {
+  let cursor: string | undefined;
 
-      if (disposePromises.length > 0) {
-        await Promise.all(disposePromises);
-      }
+  while (true) {
+    const page = cursor === undefined ? await client.listTools() : await client.listTools({ cursor });
+
+    for (const mcpTool of page.tools) {
+      addTool(mcpToolToRuntimeTool(serverName, mcpTool, client));
+    }
+
+    if (page.nextCursor === undefined) {
+      return;
+    }
+
+    cursor = page.nextCursor;
+  }
+}
+
+function mcpToolToRuntimeTool(serverName: string, mcpTool: McpTool, client: McpClient): Tool {
+  return {
+    name: namespaceMcpToolName(serverName, mcpTool.name),
+    description: mcpTool.description,
+    inputSchema: mcpTool.inputSchema,
+    async call(args, ctx) {
+      const result = await client.callTool(
+        {
+          name: mcpTool.name,
+          arguments: toMcpArguments(args),
+        },
+        { signal: ctx.signal },
+      );
+
+      return callToolResultToString(result);
     },
   };
 }
@@ -184,19 +179,184 @@ function createMcpTransport(server: McpServerDefinition): StdioTransport | HttpT
   });
 }
 
-async function resolveApiKey(explicitApiKey: string | undefined): Promise<string> {
-  const normalizedExplicitApiKey = normalizeNonEmptyString(explicitApiKey);
-  if (normalizedExplicitApiKey) {
-    return normalizedExplicitApiKey;
+function toMcpArguments(args: unknown): Record<string, unknown> | undefined {
+  if (typeof args !== "object" || args === null || Array.isArray(args)) {
+    return undefined;
   }
 
-  const { store } = createAuthStore();
-  const storedApiKey = normalizeNonEmptyString(await store.getApiKey());
-  if (storedApiKey) {
-    return storedApiKey;
+  return args as Record<string, unknown>;
+}
+
+async function closeMcpClients(clients: McpClient[]): Promise<void> {
+  await Promise.allSettled(clients.map(async client => {
+    await client.close?.();
+  }));
+}
+
+function adaptAcpToLegacySession(
+  builder: AgentBuilder,
+  options: CreateAgentSessionOptions,
+): AgentSession {
+  let disposed = false;
+  let previousRun: RunResult | undefined;
+
+  return {
+    async sendMessage(prompt: string, sendOptions: AgentSessionSendMessageOptions = {}): Promise<ChatMessage> {
+      if (disposed) {
+        throw new Error("Agent session is already disposed.");
+      }
+
+      const onSessionUpdate = sendOptions.onSessionUpdate;
+      let assistantContent = "";
+      let emittedAssistantChunk = false;
+      let completed: RunResult | undefined;
+      let failed: Error | undefined;
+
+      const runOptions: LegacyAcpRunOptions = {
+        signal: sendOptions.signal,
+        resume: previousRun,
+        apiKey: options.apiKey,
+        baseUrl: options.baseUrl,
+        fetch: options.fetch,
+        cwd: options.cwd,
+        maxIterations: options.maxToolCallIterations,
+        __legacyAutoHandleTools: true,
+      };
+
+      const acpSession = await builder.acp(prompt, runOptions);
+
+      try {
+        for await (const event of acpSession.events) {
+          handleEvent(event, onSessionUpdate, chunk => {
+            if (chunk.length > 0) {
+              emittedAssistantChunk = true;
+              assistantContent += chunk;
+            }
+          });
+
+          if (event.type === "session.complete") {
+            completed = event.result;
+            assistantContent = event.result.output;
+            continue;
+          }
+
+          if (event.type === "session.error") {
+            failed = event.error;
+          }
+        }
+      } finally {
+        await acpSession.dispose();
+      }
+
+      if (failed) {
+        throw failed;
+      }
+
+      if (!completed) {
+        throw new Error("Run ended without a terminal event.");
+      }
+
+      previousRun = completed;
+
+      if (onSessionUpdate && !emittedAssistantChunk && assistantContent.length > 0) {
+        onSessionUpdate({
+          sessionUpdate: "agent_message_chunk",
+          content: {
+            type: "text",
+            text: assistantContent,
+          },
+        });
+      }
+
+      return {
+        role: "assistant",
+        content: assistantContent,
+      };
+    },
+
+    async dispose(): Promise<void> {
+      disposed = true;
+      previousRun = undefined;
+    },
+  };
+}
+
+function handleEvent(
+  event: AcpEvent,
+  onSessionUpdate: SessionUpdateCallback | undefined,
+  onMessageDelta: (chunk: string) => void,
+): void {
+  if (event.type === "tool.intent") {
+    if (!onSessionUpdate) {
+      return;
+    }
+
+    const toolCall: AcpToolCall = {
+      sessionUpdate: "tool_call",
+      toolCallId: event.intentId,
+      title: event.tool,
+      kind: "execute",
+      status: "pending",
+      rawInput: event.args,
+    };
+
+    const inProgressUpdate: AcpToolCallUpdate = {
+      sessionUpdate: "tool_call_update",
+      toolCallId: event.intentId,
+      kind: "execute",
+      status: "in_progress",
+    };
+
+    onSessionUpdate(toolCall);
+    onSessionUpdate(inProgressUpdate);
+    return;
   }
 
-  throw new Error("Missing Poe API key. Provide apiKey or run 'poe-code login'.");
+  if (event.type === "tool.result") {
+    if (!onSessionUpdate) {
+      return;
+    }
+
+    onSessionUpdate({
+      sessionUpdate: "tool_call_update",
+      toolCallId: event.intentId,
+      kind: "execute",
+      status: "completed",
+      rawOutput: event.result,
+    });
+    return;
+  }
+
+  if (event.type === "tool.error") {
+    if (!onSessionUpdate) {
+      return;
+    }
+
+    onSessionUpdate({
+      sessionUpdate: "tool_call_update",
+      toolCallId: event.intentId,
+      kind: "execute",
+      status: "failed",
+      rawOutput: event.error,
+    });
+    return;
+  }
+
+  if (event.type === "message.delta") {
+    onMessageDelta(event.content);
+
+    if (!onSessionUpdate || event.content.length === 0) {
+      return;
+    }
+
+    onSessionUpdate({
+      sessionUpdate: "agent_message_chunk",
+      content: {
+        type: "text",
+        text: event.content,
+      },
+    });
+  }
 }
 
 function resolveRequiredModel(model: string | undefined): string {
@@ -215,42 +375,4 @@ function normalizeNonEmptyString(value: string | null | undefined): string | und
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function mapToolLifecycleEventToSessionUpdates(event: ToolCallLifecycleEvent): SessionUpdate[] {
-  if (event.phase === "started") {
-    const toolCall: AcpToolCall = {
-      sessionUpdate: "tool_call",
-      toolCallId: event.toolCallId,
-      title: event.toolName,
-      kind: "execute",
-      status: "pending",
-      rawInput: event.args,
-    };
-    const inProgressUpdate: AcpToolCallUpdate = {
-      sessionUpdate: "tool_call_update",
-      toolCallId: event.toolCallId,
-      kind: "execute",
-      status: "in_progress",
-    };
-
-    return [toolCall, inProgressUpdate];
-  }
-
-  const terminalUpdate: AcpToolCallUpdate = {
-    sessionUpdate: "tool_call_update",
-    toolCallId: event.toolCallId,
-    kind: "execute",
-    status: event.phase === "completed" ? "completed" : "failed",
-  };
-
-  if (event.phase === "completed" && event.result !== undefined) {
-    terminalUpdate.rawOutput = event.result;
-  }
-
-  if (event.phase === "failed" && event.error !== undefined) {
-    terminalUpdate.rawOutput = event.error;
-  }
-
-  return [terminalUpdate];
 }

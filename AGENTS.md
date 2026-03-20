@@ -17,6 +17,10 @@ When adding a new provider, the author should be creating 1 provider file, every
 - The tests should not be increasing complexity of the code.
 - When you detect other changes, ignore them, never ask user what to do.
 
+## Packages
+
+Prefer adding code to specific packages e.g. `agent-spawn`. The core should be lightweight and only wire packages and expose public apis, sdk, cli, no real logic.
+
 ## github workflows
 
 Do NOT write unit tests for github workflows
@@ -93,22 +97,11 @@ Do not use libraries like @clack/prompts or chalk directly, otherwise we won't a
 
 ### E2E Tests
 
-`npm run e2e:verbose`
-
-You must run those when
-
-- you change something about
-  - configure
-  - spawn
-  - isolated spawn
-- you change the e2e tests
-- before you think about completing task.
-  - Are you going to complete task? Make sure to run e2e tests
-  - They tend to fail more often than you would think
+Use judgement when to run these `npm run e2e:verbose`
 
 ## Readme
 
-You are not allowed to add anything to readme without user's permission. Upon feature completion, ask user whether readme should be updated.
+Keep the readme up to date but you are not allowed to add anything to readme without user's permission.
 
 ## Planning
 

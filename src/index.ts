@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 
 // SDK exports
 export { spawn } from "./sdk/spawn.js";
+export { runPipeline } from "./sdk/pipeline.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey } from "./sdk/credentials.js";
 export type {
@@ -14,6 +15,10 @@ export type {
   GenerateResult,
   MediaGenerateResult
 } from "./sdk/types.js";
+export type {
+  PipelineRunOptions,
+  PipelineRunResult
+} from "./sdk/pipeline.js";
 
 async function main(): Promise<void> {
   const [{ createProgram }, { createCliMain }] = await Promise.all([

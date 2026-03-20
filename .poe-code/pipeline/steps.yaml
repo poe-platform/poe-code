@@ -10,15 +10,15 @@ steps:
       Original task:
       {{prompt}}
 
-      Refactor and improve the code
+      Refactor and simplify the code if you can, don't sweat it though.
 
   test:
     instruction: |
       Original task:
       {{prompt}}
 
-      Be a user and test all edge cases, fix bugs
+      Be a user and test all edge cases, fix bugs if needed
 
   commit:
     instruction: |
-      Commit changes
+      Commit all changes

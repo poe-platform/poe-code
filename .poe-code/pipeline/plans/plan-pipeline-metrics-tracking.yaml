@@ -375,7 +375,7 @@ tasks:
 
       Commit message: `test(pipeline): add usage support to simulation harness`
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 6: SDK re-exports + CLI display
@@ -405,8 +405,8 @@ tasks:
 
       Reference: `docs/plans/pipeline-metrics-tracking.md` Phase 6.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: commit-sdk-cli-metrics
     title: Commit SDK re-exports and CLI metrics display

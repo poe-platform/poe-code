@@ -18,6 +18,8 @@ export interface SpawnOptions {
   mcpServers?: McpSpawnConfig;
   /** Launch the agent in interactive (TUI) mode with inherited stdio */
   interactive?: boolean;
+  /** Abort signal used to terminate the spawned agent */
+  signal?: AbortSignal;
 }
 
 /**

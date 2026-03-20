@@ -98,6 +98,7 @@ export function spawn(
           cwd: options.cwd,
           model: options.model,
           mode: options.mode,
+          signal: options.signal,
           args: options.args,
           ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
         });
@@ -118,6 +119,7 @@ export function spawn(
           prompt: options.prompt,
           cwd: options.cwd,
           model: options.model,
+          signal: options.signal,
           ...(poeBaseUrl ? { baseUrl: poeBaseUrl } : {}),
           ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
         });
@@ -147,6 +149,7 @@ export function spawn(
           model: options.model,
           mode: options.mode,
           args: options.args,
+          signal: options.signal,
           ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
           useStdin: false
         });
@@ -170,6 +173,7 @@ export function spawn(
           model: options.model,
           mode: options.mode,
           args: options.args,
+          signal: options.signal,
           ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
           useStdin: false
         });

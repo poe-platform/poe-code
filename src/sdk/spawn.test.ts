@@ -155,6 +155,29 @@ describe("SDK spawn()", () => {
     expect(createSdkContainer).not.toHaveBeenCalled();
   });
 
+  it("forwards signal to spawnStreaming when supported", async () => {
+    const signal = new AbortController().signal;
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    });
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt", { signal });
+    await result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal
+      })
+    );
+  });
+
   it("falls back to non-streaming and returns empty events when unsupported", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
     vi.mocked(createSdkContainer).mockReturnValue({} as any);

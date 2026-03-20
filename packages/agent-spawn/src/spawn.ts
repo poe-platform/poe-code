@@ -12,6 +12,12 @@ import type {
   StdinMode
 } from "./types.js";
 
+function createAbortError(): Error {
+  const error = new Error("Agent spawn aborted");
+  error.name = "AbortError";
+  return error;
+}
+
 export interface BuildSpawnArgsOptions {
   prompt: string;
   model?: string;
@@ -95,6 +101,10 @@ export async function spawn(
   options: SpawnOptions,
   context?: SpawnContext
 ): Promise<SpawnResult> {
+  if (options.signal?.aborted) {
+    throw createAbortError();
+  }
+
   const { agentId: resolvedId, binaryName, spawnConfig } = resolveCliConfig(agentId);
 
   const stdinMode =
@@ -132,6 +142,18 @@ export async function spawn(
   return new Promise<SpawnResult>((resolve, reject) => {
     let stdout = "";
     let stderr = "";
+    let aborted = false;
+
+    const onAbort = () => {
+      aborted = true;
+      child.kill("SIGTERM");
+    };
+
+    options.signal?.addEventListener("abort", onAbort, { once: true });
+
+    const cleanup = () => {
+      options.signal?.removeEventListener("abort", onAbort);
+    };
 
     stdoutStream.setEncoding("utf8");
     stdoutStream.on("data", (chunk) => {
@@ -146,10 +168,20 @@ export async function spawn(
     });
 
     child.on("error", (error) => {
+      cleanup();
+      if (aborted) {
+        reject(createAbortError());
+        return;
+      }
       reject(error);
     });
 
     child.on("close", (code) => {
+      cleanup();
+      if (aborted) {
+        reject(createAbortError());
+        return;
+      }
       resolve({
         stdout,
         stderr,

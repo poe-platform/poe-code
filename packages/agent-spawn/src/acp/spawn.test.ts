@@ -21,6 +21,7 @@ interface MockChildProcessOptions {
   stdoutLines?: string[];
   stderr?: string;
   exitCode?: number;
+  autoClose?: boolean;
 }
 
 function createMockChildProcess(
@@ -41,28 +42,35 @@ function createMockChildProcess(
     stdin: PassThrough;
     stdout: PassThrough;
     stderr: PassThrough;
+    kill: (signal?: NodeJS.Signals | number) => boolean;
   };
   childStreams.stdin = stdin;
   childStreams.stdout = stdout;
   childStreams.stderr = stderr;
+  childStreams.kill = () => {
+    child.emit("close", 1, "SIGTERM");
+    return true;
+  };
 
   const exitCode = options.exitCode ?? 0;
   const lines = options.stdoutLines ?? [];
   const errorOutput = options.stderr ?? "";
 
-  queueMicrotask(() => {
-    for (const line of lines) {
-      stdout.write(`${line}\n`, "utf8");
-    }
-    stdout.end();
+  if (options.autoClose !== false) {
+    queueMicrotask(() => {
+      for (const line of lines) {
+        stdout.write(`${line}\n`, "utf8");
+      }
+      stdout.end();
 
-    if (errorOutput) {
-      stderr.write(errorOutput, "utf8");
-    }
-    stderr.end();
+      if (errorOutput) {
+        stderr.write(errorOutput, "utf8");
+      }
+      stderr.end();
 
-    child.emit("close", exitCode, null);
-  });
+      child.emit("close", exitCode, null);
+    });
+  }
 
   return { child, stdin, getStdin: () => stdinBuffer };
 }
@@ -328,5 +336,25 @@ describe("acp/spawnStreaming", () => {
       })
     ).toThrow('Agent "claude-desktop" has no spawn config.');
     expect(spawnMock).not.toHaveBeenCalled();
+  });
+
+  it("kills the child and rejects with AbortError when the signal aborts", async () => {
+    const controller = new AbortController();
+    const mock = createMockChildProcess({ autoClose: false });
+    const killSpy = vi.spyOn(mock.child, "kill");
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { done } = spawnStreaming({
+      agentId: "codex",
+      prompt: "hello",
+      signal: controller.signal
+    });
+
+    controller.abort();
+
+    await expect(done).rejects.toMatchObject({
+      name: "AbortError"
+    });
+    expect(killSpy).toHaveBeenCalledWith("SIGTERM");
   });
 });

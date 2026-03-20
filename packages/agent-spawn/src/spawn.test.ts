@@ -15,6 +15,7 @@ interface MockChildProcessOptions {
   stdout?: string;
   stderr?: string;
   exitCode?: number;
+  autoClose?: boolean;
 }
 
 function createMockChildProcess(
@@ -28,10 +29,15 @@ function createMockChildProcess(
     stdin: PassThrough;
     stdout: PassThrough;
     stderr: PassThrough;
+    kill: (signal?: NodeJS.Signals | number) => boolean;
   };
   childStreams.stdin = stdin;
   childStreams.stdout = stdout;
   childStreams.stderr = stderr;
+  childStreams.kill = () => {
+    child.emit("close", 1, "SIGTERM");
+    return true;
+  };
 
   let capturedStdin = "";
   stdin.setEncoding("utf8");
@@ -44,17 +50,19 @@ function createMockChildProcess(
   const output = options.stdout ?? "";
   const errorOutput = options.stderr ?? "";
 
-  queueMicrotask(() => {
-    if (output) {
-      stdout.write(output, "utf8");
-    }
-    stdout.end();
-    if (errorOutput) {
-      stderr.write(errorOutput, "utf8");
-    }
-    stderr.end();
-    child.emit("close", exitCode, null);
-  });
+  if (options.autoClose !== false) {
+    queueMicrotask(() => {
+      if (output) {
+        stdout.write(output, "utf8");
+      }
+      stdout.end();
+      if (errorOutput) {
+        stderr.write(errorOutput, "utf8");
+      }
+      stderr.end();
+      child.emit("close", exitCode, null);
+    });
+  }
 
   return child;
 }
@@ -267,6 +275,25 @@ describe("spawn", () => {
     expect(result.stderr).toBe("agent progress");
     expect(teeStdout).toBe("agent output");
     expect(teeStderr).toBe("agent progress");
+  });
+
+  it("kills the child and rejects with AbortError when the signal aborts", async () => {
+    const controller = new AbortController();
+    const child = createMockChildProcess({ autoClose: false });
+    const killSpy = vi.spyOn(child, "kill");
+    vi.mocked(spawnChildProcess).mockReturnValue(child);
+
+    const resultPromise = spawn("codex", {
+      prompt: "hello",
+      signal: controller.signal
+    });
+
+    controller.abort();
+
+    await expect(resultPromise).rejects.toMatchObject({
+      name: "AbortError"
+    });
+    expect(killSpy).toHaveBeenCalledWith("SIGTERM");
   });
 
   it("appends edit mode args when mode is 'edit'", async () => {

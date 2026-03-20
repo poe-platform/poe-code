@@ -7,6 +7,12 @@ import { getMcpArgs } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
 import type { SpawnOptions, SpawnResult, SpawnUsage } from "../types.js";
 
+function createAbortError(): Error {
+  const error = new Error("Agent spawn aborted");
+  error.name = "AbortError";
+  return error;
+}
+
 export interface SpawnStreamingOptions extends SpawnOptions {
   agentId: string;
 }
@@ -33,6 +39,10 @@ function captureUsage(event: AcpEvent): SpawnUsage | undefined {
 }
 
 export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingResult {
+  if (options.signal?.aborted) {
+    throw createAbortError();
+  }
+
   const { agentId, binaryName, spawnConfig } = resolveConfig(options.agentId);
 
   if (spawnConfig === undefined) {
@@ -80,6 +90,12 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     cwd: options.cwd,
     stdio: ["pipe", "pipe", "pipe"]
   });
+  let aborted = false;
+  const onAbort = () => {
+    aborted = true;
+    child.kill("SIGTERM");
+  };
+  options.signal?.addEventListener("abort", onAbort, { once: true });
 
   const result: SpawnResult = { stdout: "", stderr: "", exitCode: 1 };
   child.stderr.setEncoding("utf8");
@@ -117,10 +133,20 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
 
   const done = new Promise<SpawnResult>((resolve, reject) => {
     child.on("error", (error) => {
+      options.signal?.removeEventListener("abort", onAbort);
+      if (aborted) {
+        reject(createAbortError());
+        return;
+      }
       reject(error);
     });
 
     child.on("close", (code) => {
+      options.signal?.removeEventListener("abort", onAbort);
+      if (aborted) {
+        reject(createAbortError());
+        return;
+      }
       result.exitCode = code ?? 1;
       resolve(result);
     });

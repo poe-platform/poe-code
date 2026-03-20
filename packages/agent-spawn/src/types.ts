@@ -19,6 +19,7 @@ export interface SpawnOptions {
   mcpServers?: McpSpawnConfig;
   useStdin?: boolean;
   interactive?: boolean;
+  signal?: AbortSignal;
   tee?: {
     stdout?: { write(chunk: string): void };
     stderr?: { write(chunk: string): void };

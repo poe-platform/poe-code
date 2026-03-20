@@ -4,6 +4,7 @@ import { createPromptLibrary } from "./prompts.js";
 
 const VALID_API_KEY = "vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuo";
 const VALID_SK_POE_API_KEY = "sk-poe-vnlaoHCddCx7eAGLgdH4iSg1MYPsg0JnTRPF1qMuo";
+const VALID_SK_POE_API_KEY_WITH_HYPHENS = "sk-poe--jX3djLqPsg0JnTRPF1qMuovnlaoHCddCx7eAGL";
 const TOO_SHORT_SK_POE_API_KEY = "sk-poe-abc123";
 
 describe("option resolvers", () => {
@@ -558,6 +559,10 @@ describe("option resolvers", () => {
 describe("isValidApiKeyFormat", () => {
   it("accepts sk-poe- prefixed keys", () => {
     expect(isValidApiKeyFormat(VALID_SK_POE_API_KEY)).toBe(true);
+  });
+
+  it("accepts sk-poe- keys with hyphens and underscores in hash", () => {
+    expect(isValidApiKeyFormat(VALID_SK_POE_API_KEY_WITH_HYPHENS)).toBe(true);
   });
 
   it("accepts legacy alphanumeric hash keys", () => {

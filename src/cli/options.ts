@@ -115,7 +115,7 @@ export function isValidApiKeyFormat(key: string): boolean {
   if (key.length === 0) return false;
   if (key.startsWith("sk-poe-")) {
     const hash = key.slice(7);
-    return hasMinimumApiKeyLength(hash) && isAlphanumeric(hash);
+    return hasMinimumApiKeyLength(hash) && isAlphanumericWithSeparators(hash);
   }
   return hasMinimumApiKeyLength(key) && isAlphanumericWithSeparators(key);
 }

@@ -4,6 +4,8 @@ export type StepMode = "yolo" | "edit" | "read";
 export interface StepDefinition {
   mode: StepMode;
   instruction: string;
+  agent?: string;
+  model?: string;
 }
 
 export type ResolvedStepDefinitions = Record<string, StepDefinition>;

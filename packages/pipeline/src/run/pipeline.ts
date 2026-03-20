@@ -180,14 +180,18 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       const mode = resolveMode(selection.stepName, steps);
 
       const taskStartTime = Date.now();
+      const stepDef = selection.stepName ? steps[selection.stepName] : undefined;
+      const agent = stepDef?.agent ?? options.agent;
+      const model = stepDef?.model ?? options.model;
+
       let result: AgentRunResult;
       try {
         result = await runAgent({
-          agent: options.agent,
+          agent,
           prompt,
           mode,
           cwd: options.cwd,
-          ...(options.model ? { model: options.model } : {}),
+          ...(model ? { model } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });
       } catch (error) {

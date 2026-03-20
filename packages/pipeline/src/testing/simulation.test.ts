@@ -181,6 +181,45 @@ describe("createPipelineSimulation", () => {
     expect(entries).toContain("plan.yaml");
   });
 
+  it("uses per-step agent and model overrides", async () => {
+    const sim = createPipelineSimulation({
+      projectSteps: {
+        implement: {
+          mode: "yolo",
+          instruction: "Implement {{id}}",
+          agent: "codex",
+          model: "o3"
+        },
+        review: {
+          mode: "read",
+          instruction: "Review {{id}}",
+          agent: "claude-code"
+        }
+      },
+      plan: {
+        tasks: [
+          {
+            id: "feat",
+            title: "Feature",
+            prompt: "Add feature",
+            status: {
+              implement: "open",
+              review: "open"
+            }
+          }
+        ]
+      },
+      turns: [successTurn(), successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs[0]?.agent).toBe("codex");
+    expect(runs[0]?.model).toBe("o3");
+    expect(runs[1]?.agent).toBe("claude-code");
+    expect(runs[1]?.model).toBeUndefined();
+  });
+
   it("honors maxRuns and leaves remaining tasks open", async () => {
     const sim = createPipelineSimulation({
       plan: {

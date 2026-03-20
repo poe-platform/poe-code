@@ -141,6 +141,46 @@ describe("loadResolvedSteps", () => {
       })
     ).rejects.toThrow(/missing instruction/i);
   });
+
+  it("parses per-step agent and model overrides", async () => {
+    const steps = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps.yaml": [
+          "steps:",
+          "  implement:",
+          "    instruction: Implement",
+          "    agent: codex",
+          "    model: o3",
+          "  review:",
+          "    instruction: Review",
+          "    agent: claude-code",
+          "  commit:",
+          "    instruction: Commit",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(steps).toEqual({
+      implement: {
+        mode: "yolo",
+        instruction: "Implement",
+        agent: "codex",
+        model: "o3"
+      },
+      review: {
+        mode: "yolo",
+        instruction: "Review",
+        agent: "claude-code"
+      },
+      commit: {
+        mode: "yolo",
+        instruction: "Commit"
+      }
+    });
+  });
 });
 
 describe("loadPipelineConfig", () => {

@@ -58,7 +58,13 @@ function parseStepConfigDocument(
 
     const step: StepDefinition = {
       mode: asStepMode(value.mode),
-      instruction
+      instruction,
+      ...(typeof value.agent === "string" && value.agent.length > 0
+        ? { agent: value.agent }
+        : {}),
+      ...(typeof value.model === "string" && value.model.length > 0
+        ? { model: value.model }
+        : {})
     };
     steps[stepName] = step;
   }

@@ -2,22 +2,27 @@ export function stripBracketedPaste(input: string): string {
   let value = input.split("\u001b[200~").join("");
   value = value.split("\u001b[201~").join("");
 
-  if (value.endsWith("undefinedndefined")) {
-    return value.slice(0, -"undefinedndefined".length);
+  const trailingWhitespace = value.match(/\s*$/)?.[0] ?? "";
+  const withoutTrailingWhitespace = value.slice(0, value.length - trailingWhitespace.length);
+
+  if (withoutTrailingWhitespace.endsWith("undefinedndefined")) {
+    return withoutTrailingWhitespace.slice(0, -"undefinedndefined".length) + trailingWhitespace;
   }
 
-  if (value.endsWith("undefined")) {
-    return value.slice(0, -"undefined".length);
+  if (withoutTrailingWhitespace.endsWith("undefined")) {
+    return withoutTrailingWhitespace.slice(0, -"undefined".length) + trailingWhitespace;
   }
 
-  if (value.endsWith("ndefined")) {
-    return value.slice(0, -"ndefined".length);
+  if (withoutTrailingWhitespace.endsWith("ndefined")) {
+    return withoutTrailingWhitespace.slice(0, -"ndefined".length) + trailingWhitespace;
   }
 
   return value;
 }
 
 function isAlphanumeric(value: string): boolean {
+  if (value.length === 0) return false;
+
   for (let i = 0; i < value.length; i++) {
     const code = value.charCodeAt(i);
     const isDigit = code >= 48 && code <= 57;
@@ -31,6 +36,8 @@ function isAlphanumeric(value: string): boolean {
 }
 
 function isAlphanumericWithSeparators(value: string): boolean {
+  let hasAlphanumericCharacter = false;
+
   for (let i = 0; i < value.length; i++) {
     const code = value.charCodeAt(i);
     const isDigit = code >= 48 && code <= 57;
@@ -42,9 +49,13 @@ function isAlphanumericWithSeparators(value: string): boolean {
     if (!isDigit && !isUpper && !isLower && !isHyphen && !isUnderscore) {
       return false;
     }
+
+    if (isDigit || isUpper || isLower) {
+      hasAlphanumericCharacter = true;
+    }
   }
 
-  return true;
+  return hasAlphanumericCharacter;
 }
 
 const API_KEY_PREFIX = "sk-poe-";
@@ -59,10 +70,14 @@ export function isValidApiKeyFormat(key: string): boolean {
 
   if (key.startsWith(API_KEY_PREFIX)) {
     const hash = key.slice(API_KEY_PREFIX.length);
-    return hasMinimumApiKeyLength(hash) && isAlphanumeric(hash);
+    if (!hasMinimumApiKeyLength(hash)) return false;
+    if (isAlphanumeric(hash)) return true;
+    return isAlphanumericWithSeparators(hash);
   }
 
-  return hasMinimumApiKeyLength(key) && isAlphanumericWithSeparators(key);
+  if (!hasMinimumApiKeyLength(key)) return false;
+  if (isAlphanumeric(key)) return true;
+  return isAlphanumericWithSeparators(key);
 }
 
 export function normalizeApiKey(raw: string): string {

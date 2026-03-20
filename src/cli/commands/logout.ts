@@ -57,6 +57,8 @@ export async function executeLogout(
     return;
   }
 
+  await container.deleteApiKey();
+
   const deleted = await deleteConfig({
     fs: container.fs,
     filePath: container.env.configPath

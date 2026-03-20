@@ -109,6 +109,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
 
   const readApiKey = authStore.getApiKey.bind(authStore);
   const writeApiKey = authStore.setApiKey.bind(authStore);
+  const deleteApiKey = authStore.deleteApiKey.bind(authStore);
 
   // No-op prompts for SDK (non-interactive)
   const noopPrompts = async () => {
@@ -179,7 +180,8 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
       }
     },
     readApiKey,
-    writeApiKey
+    writeApiKey,
+    deleteApiKey
   };
 
   return container;

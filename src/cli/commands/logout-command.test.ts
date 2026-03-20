@@ -7,6 +7,7 @@ import type { ProviderService } from "../service-registry.js";
 import { registerLogoutCommand } from "./logout.js";
 import { registerUnconfigureCommand } from "./unconfigure.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
+import { createAuthStore } from "@poe-code/auth";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -16,6 +17,23 @@ function createMemFs(): FileSystem {
   const vol = new Volume();
   vol.mkdirSync(homeDir, { recursive: true });
   return createFsFromVolume(vol).promises as unknown as FileSystem;
+}
+
+function readStoredApiKey(fs: FileSystem): Promise<string | null> {
+  const authFs = {
+    readFile: (filePath: string, encoding: BufferEncoding) => fs.readFile(filePath, encoding),
+    writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, opts?: { encoding?: BufferEncoding }) =>
+      fs.writeFile(filePath, data, opts),
+    mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
+      fs.mkdir(directoryPath, opts).then(() => undefined),
+    unlink: (filePath: string) => fs.unlink(filePath),
+    chmod: (filePath: string, mode: number) =>
+      fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()
+  };
+  const { store } = createAuthStore({
+    fileStore: { fs: authFs, getHomeDirectory: () => homeDir }
+  });
+  return store.getApiKey();
 }
 
 function createBaseProgram(): Command {
@@ -152,6 +170,31 @@ describe("logout command", () => {
     expect(
       logs.some((line) => line.includes("Dry run:"))
     ).toBe(true);
+  });
+
+  it("deletes stored API key during logout", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await container.writeApiKey("sk-poe-TestKeyForLogoutDeletion1234567890abcdefg");
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    const storedKey = await readStoredApiKey(fs);
+    expect(storedKey).toBeNull();
   });
 
   it("handles missing config file gracefully", async () => {

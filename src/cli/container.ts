@@ -68,6 +68,7 @@ export interface CliContainer {
   readonly dependencies: CliDependencies;
   readonly readApiKey: () => Promise<string | null>;
   readonly writeApiKey: (apiKey: string) => Promise<void>;
+  readonly deleteApiKey: () => Promise<void>;
 }
 
 export function createCliContainer(
@@ -153,6 +154,7 @@ export function createCliContainer(
 
   const readApiKey = authStore.getApiKey.bind(authStore);
   const writeApiKey = authStore.setApiKey.bind(authStore);
+  const deleteApiKey = authStore.deleteApiKey.bind(authStore);
 
   const oauthEnabled =
     (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN !== "0";
@@ -205,7 +207,8 @@ export function createCliContainer(
     providers,
     dependencies,
     readApiKey,
-    writeApiKey
+    writeApiKey,
+    deleteApiKey
   };
 
   return container;

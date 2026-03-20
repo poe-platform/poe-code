@@ -3,19 +3,12 @@ import type {
   ToolCall as AcpToolCall,
   ToolCallUpdate as AcpToolCallUpdate,
 } from "@poe-code/agent-spawn";
-import { HttpTransport, McpClient, StdioTransport, type Tool as McpTool } from "tiny-mcp-client";
-import { agent, type AgentBuilder, type AgentRunOptions } from "./agent.js";
-import {
-  callToolResultToString,
-  namespaceMcpToolName,
-  type McpServerDefinition,
-} from "./mcp-tool-executor.js";
+import { agent, normalizeNonEmptyString, type AgentBuilder, type AgentRunOptions } from "./agent.js";
 import filesPlugin from "./plugins/poe-agent-plugin-files.js";
 import shellPlugin from "./plugins/poe-agent-plugin-shell.js";
 import systemPromptPlugin from "./plugins/poe-agent-plugin-system-prompt.js";
 import webPlugin from "./plugins/poe-agent-plugin-web.js";
-import type { AgentPlugin } from "./runtime/plugin-types.js";
-import type { AcpEvent, RunResult, Tool } from "./runtime/types.js";
+import type { AcpEvent, RunResult } from "./runtime/types.js";
 
 type ChatMessage = { role: string; content: string };
 
@@ -30,6 +23,21 @@ export interface AgentSessionSendMessageOptions {
 }
 
 export type SessionUpdateCallback = (update: SessionUpdate) => void;
+
+export interface McpStdioServerDefinition {
+  transport: "stdio";
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
+
+export interface McpHttpServerDefinition {
+  transport: "http";
+  url: string;
+  headers?: Record<string, string>;
+}
+
+export type McpServerDefinition = McpStdioServerDefinition | McpHttpServerDefinition;
 
 export interface CreateAgentSessionOptions {
   model?: string;
@@ -49,149 +57,34 @@ type LegacyAcpRunOptions = AgentRunOptions & {
 export async function createAgentSession(
   options: CreateAgentSessionOptions = {},
 ): Promise<AgentSession> {
-  const builder = agent()
-    .model(resolveRequiredModel(options.model))
-    .use(systemPromptPlugin())
-    .use(fileTools(options))
-    .use(shellTools(options))
-    .use(webTools())
-    .use(mcpPluginFromOptions(options));
-
-  return adaptAcpToLegacySession(builder, options);
-}
-
-function fileTools(options: CreateAgentSessionOptions): AgentPlugin {
-  return filesPlugin({
-    cwd: options.cwd,
-    allowedPaths: options.allowedPaths,
-  });
-}
-
-function shellTools(options: CreateAgentSessionOptions): AgentPlugin {
-  return shellPlugin({
-    cwd: options.cwd,
-    allowedPaths: options.allowedPaths,
-  });
-}
-
-function webTools(): AgentPlugin {
-  return webPlugin();
-}
-
-function mcpPluginFromOptions(options: CreateAgentSessionOptions): AgentPlugin {
-  const servers = options.mcpServers ? Object.entries(options.mcpServers) : [];
-  const connectedClients = new Set<McpClient>();
-
-  return {
-    name: "poe-agent-plugin-mcp",
-    async setup(api) {
-      if (servers.length === 0) {
-        return;
-      }
-
-      const initializedClients: McpClient[] = [];
-
-      try {
-        for (const [serverName, definition] of servers) {
-          const client = new McpClient({
-            clientInfo: {
-              name: "poe-agent",
-              version: "0.0.1",
-            },
-          });
-
-          await client.connect(createMcpTransport(definition));
-          initializedClients.push(client);
-          connectedClients.add(client);
-
-          await registerMcpTools(api.addTool.bind(api), serverName, client);
-        }
-      } catch (error) {
-        await closeMcpClients(initializedClients);
-
-        for (const client of initializedClients) {
-          connectedClients.delete(client);
-        }
-
-        throw error;
-      }
-    },
-    async dispose() {
-      const clients = Array.from(connectedClients);
-      connectedClients.clear();
-      await closeMcpClients(clients);
-    },
-  };
-}
-
-async function registerMcpTools(
-  addTool: (tool: Tool) => void,
-  serverName: string,
-  client: McpClient,
-): Promise<void> {
-  let cursor: string | undefined;
-
-  while (true) {
-    const page = cursor === undefined ? await client.listTools() : await client.listTools({ cursor });
-
-    for (const mcpTool of page.tools) {
-      addTool(mcpToolToRuntimeTool(serverName, mcpTool, client));
-    }
-
-    if (page.nextCursor === undefined) {
-      return;
-    }
-
-    cursor = page.nextCursor;
+  const model = normalizeNonEmptyString(options.model);
+  if (!model) {
+    throw new Error("Missing model. Provide a non-empty model to createAgentSession.");
   }
-}
 
-function mcpToolToRuntimeTool(serverName: string, mcpTool: McpTool, client: McpClient): Tool {
-  return {
-    name: namespaceMcpToolName(serverName, mcpTool.name),
-    description: mcpTool.description,
-    inputSchema: mcpTool.inputSchema,
-    async call(args, ctx) {
-      const result = await client.callTool(
-        {
-          name: mcpTool.name,
-          arguments: toMcpArguments(args),
-        },
-        { signal: ctx.signal },
+  let builder = agent()
+    .model(model)
+    .use(systemPromptPlugin())
+    .use(filesPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }))
+    .use(shellPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }))
+    .use(webPlugin());
+
+  for (const [name, definition] of Object.entries(options.mcpServers ?? {})) {
+    if (definition.transport !== "stdio") {
+      throw new Error(
+        `Unsupported MCP transport "${definition.transport}" for server "${name}". Only "stdio" is supported.`,
       );
+    }
 
-      return callToolResultToString(result);
-    },
-  };
-}
-
-function createMcpTransport(server: McpServerDefinition): StdioTransport | HttpTransport {
-  if (server.transport === "stdio") {
-    return new StdioTransport({
-      command: server.command,
-      args: server.args,
-      env: server.env,
+    builder = builder.mcp({
+      name,
+      command: definition.command,
+      args: definition.args,
+      env: definition.env,
     });
   }
 
-  return new HttpTransport({
-    url: server.url,
-    headers: server.headers,
-  });
-}
-
-function toMcpArguments(args: unknown): Record<string, unknown> | undefined {
-  if (typeof args !== "object" || args === null || Array.isArray(args)) {
-    return undefined;
-  }
-
-  return args as Record<string, unknown>;
-}
-
-async function closeMcpClients(clients: McpClient[]): Promise<void> {
-  await Promise.allSettled(clients.map(async client => {
-    await client.close?.();
-  }));
+  return adaptAcpToLegacySession(builder, options);
 }
 
 function adaptAcpToLegacySession(
@@ -358,22 +251,4 @@ function handleEvent(
       },
     });
   }
-}
-
-function resolveRequiredModel(model: string | undefined): string {
-  const normalizedModel = normalizeNonEmptyString(model);
-  if (normalizedModel) {
-    return normalizedModel;
-  }
-
-  throw new Error("Missing model. Provide a non-empty model to createAgentSession.");
-}
-
-function normalizeNonEmptyString(value: string | null | undefined): string | undefined {
-  if (typeof value !== "string") {
-    return undefined;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
 }

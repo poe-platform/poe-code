@@ -141,3 +141,4 @@ function resourceToString(resource: ResourceContents): string {
 
   return `[blob: ${resource.uri}]`;
 }
+

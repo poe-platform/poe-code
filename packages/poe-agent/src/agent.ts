@@ -572,7 +572,7 @@ function injectResumeMessages(
   }
 }
 
-function normalizeNonEmptyString(value: string | null | undefined): string | undefined {
+export function normalizeNonEmptyString(value: string | null | undefined): string | undefined {
   if (typeof value !== "string") {
     return undefined;
   }

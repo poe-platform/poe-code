@@ -1,4 +1,5 @@
 import type { AgentPlugin } from "../runtime/plugin-types.js";
+import { getRequiredString } from "./plugin-args.js";
 
 type FetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 type SearchWebFn = (query: string) => Promise<string>;
@@ -46,24 +47,6 @@ const webPlugin = (options: WebPluginOptions = {}): AgentPlugin => {
   };
 };
 
-function getRequiredString(args: unknown, key: string, allowEmptyString = false): string {
-  if (!isObjectRecord(args)) {
-    throw new Error(`Tool argument "${key}" must be a string`);
-  }
-
-  const value = args[key];
-
-  if (typeof value !== "string") {
-    throw new Error(`Tool argument "${key}" must be a string`);
-  }
-
-  if (!allowEmptyString && value.trim().length === 0) {
-    throw new Error(`Tool argument "${key}" must not be empty`);
-  }
-
-  return value;
-}
-
 async function defaultSearchWeb(query: string, fetchFn: FetchFn): Promise<string> {
   const url = new URL("https://api.duckduckgo.com/");
   url.searchParams.set("q", query);
@@ -107,10 +90,6 @@ async function defaultSearchWeb(query: string, fetchFn: FetchFn): Promise<string
   }
 
   return lines.join("\n");
-}
-
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export default webPlugin;

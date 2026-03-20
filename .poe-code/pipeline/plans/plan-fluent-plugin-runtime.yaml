@@ -391,7 +391,7 @@ tasks:
 
       All tests pass. `npm run test && npm run lint`.
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 11–12: Immutable Builder and Execution Modes
@@ -440,9 +440,9 @@ tasks:
       **`.stream(prompt, options?)`** — same AgentHost, yields `AcpEvent` as `AsyncIterable`
       instead of collecting internally.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: execution-modes
     title: Implement .acp() execution mode, resume support, and abort propagation
@@ -477,9 +477,9 @@ tasks:
       On abort: model loop stops, in-flight tools receive signal, disposal hooks run in
       reverse, run rejects with `AbortError`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: commit-builder-and-modes
     title: Commit builder, execution modes, resume, and cancellation

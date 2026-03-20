@@ -10,7 +10,13 @@ const mcpClientListToolsMock = vi.hoisted(
   () => vi.fn<(params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>>(),
 );
 const mcpClientCallToolMock = vi.hoisted(
-  () => vi.fn<(params: { name: string; arguments?: Record<string, unknown> }) => Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }>>(),
+  () =>
+    vi.fn<
+      (
+        params: { name: string; arguments?: Record<string, unknown> },
+        options?: { signal?: AbortSignal },
+      ) => Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }>
+    >(),
 );
 const mcpClientCloseMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
 
@@ -33,8 +39,11 @@ vi.mock("tiny-mcp-client", () => ({
       return mcpClientListToolsMock(params);
     }
 
-    async callTool(params: { name: string; arguments?: Record<string, unknown> }): Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }> {
-      return mcpClientCallToolMock(params);
+    async callTool(
+      params: { name: string; arguments?: Record<string, unknown> },
+      options?: { signal?: AbortSignal },
+    ): Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }> {
+      return mcpClientCallToolMock(params, options);
     }
 
     async close(): Promise<void> {
@@ -140,15 +149,21 @@ describe("PluginApiImpl", () => {
     expect(context.tools.get("repo.search")?.visibility).toBe("skill");
     expect(context.tools.get("repo.status")?.visibility).toBe("skill");
 
-    const invocation = context.tools.get("repo.search")?.invoke({ query: "errors" }, createToolContext());
+    const toolContext = createToolContext();
+    const invocation = context.tools.get("repo.search")?.invoke({ query: "errors" }, toolContext);
     await expect(invocation?.next()).resolves.toEqual({
       done: true,
       value: "mcp-result",
     });
-    expect(mcpClientCallToolMock).toHaveBeenCalledWith({
-      name: "search",
-      arguments: { query: "errors" },
-    });
+    expect(mcpClientCallToolMock).toHaveBeenCalledWith(
+      {
+        name: "search",
+        arguments: { query: "errors" },
+      },
+      {
+        signal: toolContext.signal,
+      },
+    );
 
     await context.dispose();
     expect(mcpClientCloseMock).toHaveBeenCalledTimes(1);
@@ -173,5 +188,58 @@ describe("PluginApiImpl", () => {
 
     expect(mcpClientCloseMock).toHaveBeenCalledTimes(1);
     expect(mcpClientListToolsMock).not.toHaveBeenCalled();
+  });
+
+  it("passes tool context signal to MCP callTool", async () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+    const signalController = new AbortController();
+
+    mcpClientListToolsMock.mockResolvedValueOnce({
+      tools: [
+        {
+          name: "search",
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: { type: "string" },
+            },
+          },
+        },
+      ],
+    });
+    mcpClientCallToolMock.mockResolvedValue({
+      content: [{ type: "text", text: "ok" }],
+    });
+
+    api.addMcp({
+      name: "repo",
+      command: "node",
+      args: ["server.js"],
+    });
+    await api.flushSetup();
+
+    const invocation = context.tools.get("repo.search")?.invoke(
+      { query: "errors" },
+      {
+        fork: async () => ({ output: "", messages: [] }),
+        spawn: async () => ({ output: "", messages: [] }),
+        signal: signalController.signal,
+      },
+    );
+    await expect(invocation?.next()).resolves.toEqual({
+      done: true,
+      value: "ok",
+    });
+
+    expect(mcpClientCallToolMock).toHaveBeenCalledWith(
+      {
+        name: "search",
+        arguments: { query: "errors" },
+      },
+      {
+        signal: signalController.signal,
+      },
+    );
   });
 });

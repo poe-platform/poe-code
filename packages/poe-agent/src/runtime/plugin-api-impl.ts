@@ -6,6 +6,7 @@ import {
   type ResourceContents,
   type Tool as McpTool,
 } from "tiny-mcp-client";
+import { AbortError } from "./hooks.js";
 import type { McpServerConfig, PluginApi } from "./plugin-types.js";
 import type { Tool } from "./types.js";
 import type { RunContext } from "./run-context.js";
@@ -23,7 +24,10 @@ type PaginatedTools = {
 type McpToolClient = {
   connect(transport: StdioTransport): Promise<unknown>;
   listTools(params?: { cursor?: string }): Promise<PaginatedTools>;
-  callTool(params: { name: string; arguments?: Record<string, unknown> }): Promise<CallToolResult>;
+  callTool(
+    params: { name: string; arguments?: Record<string, unknown> },
+    options?: { signal?: AbortSignal },
+  ): Promise<CallToolResult>;
   close?(): Promise<void>;
 };
 
@@ -61,11 +65,13 @@ export class PluginApiImpl implements PluginApi {
     this.#runContext.registerDisposeHook(async () => {
       await client.close?.();
     });
+    assertNotAborted(this.#runContext.abortController.signal);
     await client.connect(transport);
 
     let cursor: string | undefined;
 
     while (true) {
+      assertNotAborted(this.#runContext.abortController.signal);
       const page =
         cursor === undefined ? await client.listTools() : await client.listTools({ cursor });
 
@@ -87,16 +93,24 @@ export class PluginApiImpl implements PluginApi {
       description: mcpTool.description,
       inputSchema: mcpTool.inputSchema,
       visibility: config.visibility ?? "model",
-      call: async args => {
+      call: async (args, ctx) => {
         const result = await client.callTool({
           name: mcpTool.name,
           arguments: toMcpArguments(args),
-        });
+        }, { signal: ctx.signal });
 
         return callToolResultToString(result);
       },
     };
   }
+}
+
+function assertNotAborted(signal: AbortSignal): void {
+  if (!signal.aborted) {
+    return;
+  }
+
+  throw new AbortError("Run aborted.", signal.reason);
 }
 
 function toMcpArguments(args: unknown): Record<string, unknown> | undefined {

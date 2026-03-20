@@ -211,24 +211,54 @@ export class AgentHost implements AcpHost {
   async #consumeToolInvocation(
     invocation: AsyncGenerator<ToolEvent, unknown, void>,
   ): Promise<unknown> {
-    while (true) {
-      const next = await invocation.next();
-      if (next.done) {
-        return next.value;
+    const signal = this.#runContext.abortController.signal;
+    let closed = false;
+    const closeInvocation = async (): Promise<void> => {
+      if (closed) {
+        return;
       }
 
-      if (next.value.type === "message.delta") {
+      closed = true;
+
+      try {
+        await invocation.return(undefined);
+      } catch {
+        return;
+      }
+    };
+
+    const onAbort = (): void => {
+      void closeInvocation();
+    };
+
+    if (signal.aborted) {
+      onAbort();
+    } else {
+      signal.addEventListener("abort", onAbort, { once: true });
+    }
+
+    try {
+      while (true) {
+        const next = await invocation.next();
+        if (next.done) {
+          return next.value;
+        }
+
+        if (next.value.type === "message.delta") {
+          this.#emit?.({
+            type: "message.delta",
+            content: next.value.content,
+          });
+          continue;
+        }
+
         this.#emit?.({
-          type: "message.delta",
-          content: next.value.content,
+          type: "progress",
+          message: next.value.message,
         });
-        continue;
       }
-
-      this.#emit?.({
-        type: "progress",
-        message: next.value.message,
-      });
+    } finally {
+      signal.removeEventListener("abort", onAbort);
     }
   }
 

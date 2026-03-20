@@ -167,6 +167,74 @@ describe("AgentHost.handle", () => {
     });
     expect(emitted).toEqual([{ type: "progress", message: "started" }]);
   });
+
+  it("calls async generator return() when aborted during tool execution", async () => {
+    const runContext = createRunContext();
+    let settleNext:
+      | ((value: IteratorResult<{ type: "progress"; message: string }, string>) => void)
+      | undefined;
+    const pendingNext = new Promise<IteratorResult<{ type: "progress"; message: string }, string>>(resolve => {
+      settleNext = resolve;
+    });
+
+    const invocation = {
+      next: vi
+        .fn<() => Promise<IteratorResult<{ type: "progress"; message: string }, string>>>()
+        .mockResolvedValueOnce({
+          done: false,
+          value: { type: "progress", message: "started" },
+        })
+        .mockReturnValueOnce(pendingNext),
+      return: vi.fn(async () => {
+        settleNext?.({
+          done: true,
+          value: "aborted",
+        });
+        return {
+          done: true,
+          value: "aborted",
+        };
+      }),
+      throw: vi.fn(async (error: unknown) => {
+        throw error;
+      }),
+      [Symbol.asyncIterator]() {
+        return invocation;
+      },
+    };
+
+    runContext.tools.register({
+      name: "streaming",
+      call: () => invocation,
+    });
+
+    const host = new AgentHost({
+      runContext,
+      model: createNeverModel(),
+      createSpawnSession: () => {
+        throw new Error("spawn not configured");
+      },
+    });
+
+    const handlePromise = host.handle({
+      intentId: "intent-5",
+      tool: "streaming",
+      args: {},
+    });
+
+    await vi.waitFor(() => {
+      expect(invocation.next).toHaveBeenCalledTimes(2);
+    });
+
+    runContext.abortController.abort(new Error("stop"));
+
+    const result = await handlePromise;
+    expect(result).toEqual({
+      status: "success",
+      result: "aborted",
+    });
+    expect(invocation.return).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("AgentHost.fork", () => {

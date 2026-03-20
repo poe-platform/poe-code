@@ -30,6 +30,7 @@ type DemoType =
   | "spinner"
   | "layout"
   | "layout-expanded"
+  | "table"
   | "table-markdown";
 
 function runTextDemo(style: string, content: string): void {
@@ -157,6 +158,25 @@ function runLayoutDemo(): void {
   outro("Configuration complete.");
 }
 
+function runTableDemo(): void {
+  setOutputFormat("terminal");
+  const theme = getTheme();
+  const output = renderTable({
+    theme,
+    columns: [
+      { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
+      { name: "Context", title: "Context", alignment: "right", maxLen: 9 },
+      { name: "Price", title: "$/MTok In/Out", alignment: "right", maxLen: 15 },
+    ],
+    rows: [
+      { Model: "anthropic/claude-sonnet-4", Context: "200K", Price: "$3.00/$15.00" },
+      { Model: "openai/gpt-4o", Context: "128K", Price: "$2.50/$10.00" },
+      { Model: "google/gemini-2.0-flash", Context: "1M", Price: "$0.10/$0.40" },
+    ],
+  });
+  process.stdout.write(output + "\n");
+}
+
 function runTableMarkdownDemo(): void {
   setOutputFormat("markdown");
   const theme = getTheme();
@@ -253,6 +273,9 @@ async function main(): Promise<void> {
       break;
     case "layout-expanded":
       runLayoutExpandedDemo();
+      break;
+    case "table":
+      runTableDemo();
       break;
     case "table-markdown":
       runTableMarkdownDemo();

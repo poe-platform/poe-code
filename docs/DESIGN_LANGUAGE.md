@@ -400,17 +400,14 @@ const stopped = renderSpinnerStopped({ message: "Complete!", timer: "2s" });
 
 ![spinner-timer](design-language/spinner-timer.png)
 
-### table-markdown
+### table
 
-Table rendered as markdown for piping, copying, or non-terminal output
+Styled terminal table with themed borders and column alignment
 
 ```typescript
-import { renderTable, getTheme, resetOutputFormatCache, resolveOutputFormat } from "@poe-code/design-system";
+import { renderTable, getTheme } from "@poe-code/design-system";
 
-resetOutputFormatCache();
-resolveOutputFormat({ OUTPUT_FORMAT: "markdown" });
-
-const md = renderTable({
+const output = renderTable({
   theme: getTheme(),
   columns: [
     { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
@@ -422,7 +419,7 @@ const md = renderTable({
 });
 ```
 
-![table-markdown](design-language/table-markdown.png)
+![table](design-language/table.png)
 
 ### diff
 

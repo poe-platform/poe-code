@@ -311,14 +311,11 @@ const stopped = renderSpinnerStopped({ message: "Complete!", timer: "2s" });`,
         demoArgs: `spinner timer`
       },
       {
-        name: "table-markdown",
-        description: "Table rendered as markdown for piping, copying, or non-terminal output",
-        codeSnippet: `import { renderTable, getTheme, resetOutputFormatCache, resolveOutputFormat } from "@poe-code/design-system";
+        name: "table",
+        description: "Styled terminal table with themed borders and column alignment",
+        codeSnippet: `import { renderTable, getTheme } from "@poe-code/design-system";
 
-resetOutputFormatCache();
-resolveOutputFormat({ OUTPUT_FORMAT: "markdown" });
-
-const md = renderTable({
+const output = renderTable({
   theme: getTheme(),
   columns: [
     { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
@@ -328,7 +325,7 @@ const md = renderTable({
     { Model: "anthropic/claude-sonnet-4", Context: "200K" },
   ],
 });`,
-        demoArgs: `table-markdown`
+        demoArgs: `table`
       },
       {
         name: "diff",

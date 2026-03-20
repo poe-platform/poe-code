@@ -1,6 +1,8 @@
 export { createAuthStore } from "./create-auth-store.js";
+export { checkAuth } from "./check-auth.js";
 export { isValidApiKeyFormat, normalizeApiKey, stripBracketedPaste } from "./api-key-validation.js";
 export { createOAuthClient } from "./oauth-client.js";
+export type { AuthIdentity } from "./check-auth.js";
 export type {
   OAuthClient,
   OAuthClientConfig,

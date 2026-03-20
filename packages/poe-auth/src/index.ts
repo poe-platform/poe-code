@@ -1,6 +1,12 @@
 export { createAuthStore } from "./create-auth-store.js";
+export { isValidApiKeyFormat, normalizeApiKey, stripBracketedPaste } from "./api-key-validation.js";
 export { createOAuthClient } from "./oauth-client.js";
-export type { OAuthClient, OAuthClientConfig, OAuthResult, OAuthAuthorization } from "./oauth-client.js";
+export type {
+  OAuthClient,
+  OAuthClientConfig,
+  OAuthResult,
+  OAuthAuthorization
+} from "./oauth-client.js";
 export { EncryptedFileAuthStore } from "./encrypted-file-auth-store.js";
 export { KeychainAuthStore } from "./keychain-auth-store.js";
 export type {

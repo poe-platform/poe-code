@@ -16,6 +16,11 @@ const agentMock = vi.hoisted(() => vi.fn());
 
 vi.mock("./agent.js", () => ({
   agent: agentMock,
+  normalizeNonEmptyString: (value: string | null | undefined) => {
+    if (typeof value !== "string") return undefined;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  },
 }));
 
 vi.mock("./plugins/poe-agent-plugin-system-prompt.js", () => ({
@@ -121,13 +126,12 @@ describe("createAgentSession", () => {
       allowedPaths: ["/workspace/project"],
     });
     expect(webPluginMock).toHaveBeenCalledTimes(1);
-    expect(useMock).toHaveBeenCalledTimes(5);
+    expect(useMock).toHaveBeenCalledTimes(4);
     expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
       "system-prompt",
       "file-tools",
       "shell-tools",
       "web-tools",
-      "poe-agent-plugin-mcp",
     ]);
 
     expect(Object.keys(session).sort()).toEqual(["dispose", "sendMessage"]);

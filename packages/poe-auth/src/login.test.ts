@@ -98,4 +98,37 @@ describe("login", () => {
     expect(createAuthStoreMock).not.toHaveBeenCalled();
     expect(setApiKeyMock).not.toHaveBeenCalled();
   });
+
+  it("rethrows waitForResult errors without storing a key", async () => {
+    const { login } = await loadLogin();
+    const error = new Error("token exchange failed");
+    const waitForResult = vi.fn<() => Promise<{ apiKey: string }>>().mockRejectedValue(error);
+
+    authorizeMock.mockResolvedValue({ waitForResult });
+
+    await expect(login()).rejects.toThrow("token exchange failed");
+
+    expect(createOAuthClientMock).toHaveBeenCalledTimes(1);
+    expect(authorizeMock).toHaveBeenCalledTimes(1);
+    expect(waitForResult).toHaveBeenCalledTimes(1);
+    expect(createAuthStoreMock).not.toHaveBeenCalled();
+    expect(setApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("throws when OAuth returns an invalid api key", async () => {
+    const { login } = await loadLogin();
+    const waitForResult = vi.fn<() => Promise<{ apiKey: string }>>().mockResolvedValue({
+      apiKey: "invalid-oauth-key"
+    });
+
+    authorizeMock.mockResolvedValue({ waitForResult });
+
+    await expect(login()).rejects.toThrow("POE API key format is invalid.");
+
+    expect(createOAuthClientMock).toHaveBeenCalledTimes(1);
+    expect(authorizeMock).toHaveBeenCalledTimes(1);
+    expect(waitForResult).toHaveBeenCalledTimes(1);
+    expect(createAuthStoreMock).not.toHaveBeenCalled();
+    expect(setApiKeyMock).not.toHaveBeenCalled();
+  });
 });

@@ -12,13 +12,7 @@ export async function login(options: LoginOptions = {}): Promise<string> {
   const apiKey = options.apiKey;
 
   if (typeof apiKey === "string") {
-    if (!isValidApiKeyFormat(apiKey)) {
-      throw new Error("POE API key format is invalid.");
-    }
-
-    await createAuthStore().store.setApiKey(apiKey);
-
-    return apiKey;
+    return await storeApiKey(apiKey);
   }
 
   const authorization = await createOAuthClient({
@@ -30,7 +24,15 @@ export async function login(options: LoginOptions = {}): Promise<string> {
   }).authorize();
   const result = await authorization.waitForResult();
 
-  await createAuthStore().store.setApiKey(result.apiKey);
+  return await storeApiKey(result.apiKey);
+}
 
-  return result.apiKey;
+async function storeApiKey(apiKey: string): Promise<string> {
+  if (!isValidApiKeyFormat(apiKey)) {
+    throw new Error("POE API key format is invalid.");
+  }
+
+  await createAuthStore().store.setApiKey(apiKey);
+
+  return apiKey;
 }

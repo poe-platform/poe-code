@@ -76,17 +76,6 @@ export interface OptionResolverInit {
   loginViaOAuth?: () => Promise<string>;
 }
 
-function isAlphanumeric(value: string): boolean {
-  for (let i = 0; i < value.length; i++) {
-    const code = value.charCodeAt(i);
-    const isDigit = code >= 48 && code <= 57;
-    const isUpper = code >= 65 && code <= 90;
-    const isLower = code >= 97 && code <= 122;
-    if (!isDigit && !isUpper && !isLower) return false;
-  }
-  return value.length > 0;
-}
-
 function isAlphanumericWithSeparators(value: string): boolean {
   for (let i = 0; i < value.length; i++) {
     const code = value.charCodeAt(i);

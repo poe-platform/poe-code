@@ -119,7 +119,6 @@ export function spawn(
           prompt: options.prompt,
           cwd: options.cwd,
           model: options.model,
-          signal: options.signal,
           ...(poeBaseUrl ? { baseUrl: poeBaseUrl } : {}),
           ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
         });

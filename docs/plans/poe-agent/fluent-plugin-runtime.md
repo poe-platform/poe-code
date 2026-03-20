@@ -59,45 +59,55 @@ case bolted onto the runtime.
 
 ```ts
 const result = await agent()
-  .use(delegate())
+  .use(spawn())
   .run("Investigate the regression");
 ```
 
-The `delegate` plugin registers a tool that calls into the core's fork
-mechanism. The tool is a plugin; the fork operation is core.
+The `spawn` plugin registers a tool that calls into the core's spawn
+mechanism. The tool is a plugin; the spawn operation is core.
 
 ```ts
-const delegate = (): AgentPlugin => ({
-  name: "delegate",
-  setup(api) {
-    api.addTool({
-      name: "delegate",
-      async call({ task }, ctx) {
-        return ctx.fork(task);
+const spawn = (): AgentPlugin => ({
+  name: "spawn",
+  tools: [
+    {
+      name: "spawn",
+      description: "Spawn a fresh sub-agent to handle a sub-task",
+      inputSchema: {
+        type: "object",
+        properties: { task: { type: "string" } },
+        required: ["task"],
       },
-    });
-  },
+      async call(args, ctx) {
+        return ctx.spawn((args as { task: string }).task);
+      },
+    },
+  ],
 });
+export default spawn;
 ```
 
-`ctx.fork(prompt)` is a core runtime method available to all tools, not a
-plugin capability. It clones the live run context and starts a new turn.
+`ctx.spawn(prompt)` starts a fresh independent agent via `AcpClient`. For
+in-process targets (another poe-agent session) it uses an injected in-memory
+transport; for external agents (Claude Code, Codex, etc.) it uses the
+process-based transport — same `AcpClient` API either way, back-channels
+(permissions, fs, terminal) included. `ctx.fork(prompt)` clones the live run
+context instead. Spawning uses `spawn` — a clean sub-agent, not a context clone.
 
-### Hidden MCP exposed through skills
+### MCP server as a plain plugin
 
 ```ts
 const base = agent()
-  .use(mcp({ defaultVisibility: "skill" }))
-  .use(githubMcp())
-  .use(filesystemMcp());
+  .mcp({ name: "github", command: "uvx", args: ["mcp-server-github"] })
+  .mcp({ name: "fs", command: "uvx", args: ["mcp-server-filesystem", "/"] });
 
-await base.run("Investigate this repo", {
-  skills: ["github-research"],
-});
+await base.run("Investigate this repo");
 ```
 
-MCP tools should exist in the runtime even when they are hidden from the model.
-Skills decide which hidden tools become visible for a given run.
+`.mcp(config)` is a first-class builder method — shorthand for registering MCP
+servers without writing a plugin. Same config shape as `McpSpawnServer` in
+`agent-spawn`, plus an optional `visibility` field. For more control (hooks,
+capability provision), a plugin can call `api.addMcp()` in `setup()` instead.
 
 ### Third-party plugins as npm packages
 
@@ -261,14 +271,24 @@ separate.
 The builder should be immutable:
 
 ```ts
-agent().use(memory()).use(web())
+agent()
+  .use(memory())
+  .use(web())
+  .mcp({ name: "github", command: "uvx", args: ["mcp-server-github"] })
+  .mcp({ name: "fs", command: "uvx", args: ["mcp-server-filesystem", "/"] })
 ```
 
 Each call returns a new builder with a new config snapshot.
 
+`.mcp(config)` accepts a `McpServerConfig` — same shape as `McpSpawnServer` from
+`agent-spawn`, plus optional `visibility`. Shorthand for registering MCP servers
+without writing a plugin. The runtime creates a `StdioTransport` internally,
+connects, discovers tools, and disposes at run end.
+
 Enforcement rules:
 
 - `.use()` defensively clones plugin config at registration time
+- `.mcp()` stores the plain config; transport is created fresh per `.run()`
 - plugin factories are called fresh per `.run()`, not once at builder time
 - `setup()` receives a `PluginApi` scoped to the run, never to the builder
 - the builder itself holds only serializable config; closures and mutable
@@ -305,53 +325,26 @@ Plugins may contribute:
 Low-level escape hatches can still exist later, but the runtime should optimize
 for plugins first.
 
-### 3. Capabilities, not plugin-to-plugin calls
+### 3. Plugins are isolated — state lives in closures
 
-Plugins should not reach into each other directly.
-
-Bad:
-
-```ts
-forkPlugin.run(...)
-memoryPlugin.save(...)
-```
-
-Good:
+Plugins do not reach into each other directly. Shared state is managed via
+closures — each plugin factory call creates its own isolated instance.
 
 ```ts
-const memory = api.require(MemoryCapability);
-const mcp = api.require(McpCapability);
+const scratchpad = (): AgentPlugin => {
+  const notes = new Map<string, string>();  // isolated per instance
+  return {
+    name: "scratchpad",
+    tools: [
+      { name: "write_note", call(args) { ... notes.set(...) ... } },
+      { name: "read_note",  call(args) { return notes.get(...); } },
+    ],
+  };
+};
 ```
 
-Note: fork is not a capability — it is a core runtime method on `ToolContext`
-(`ctx.fork(prompt)`). Only plugin-level shared services use capabilities.
-
-This is the clean dependency system for:
-
-- MCP
-- memory
-- logging
-- future transports
-
-**Dependency declaration uses capability tokens, not plugin name strings.**
-
-Bad:
-
-```ts
-dependsOn: ["@poe-code/poe-agent-plugin-memory"]
-```
-
-Good:
-
-```ts
-dependsOn: [MemoryCapability]
-```
-
-This decouples plugins from specific implementations. Any plugin that provides
-`MemoryCapability` satisfies the dependency. The builder validates at `.run()`
-time — before any `setup()` executes — that every declared capability dependency
-is satisfiable by a registered plugin. Missing capabilities produce a clear
-error at composition time, not a runtime crash mid-execution.
+MCP is a first-class primitive (`api.addMcp()`, `.mcp()` builder method) — not a
+shared capability. There is no capability/dependency injection system.
 
 ### 4. Async all the way down at run start
 
@@ -400,7 +393,7 @@ run context mid-execution.
 
 ```text
 Model loop (parent):
-  1. Model requests tool call: delegate("investigate auth bug")
+  1. Model requests tool call: spawn("investigate auth bug")
   2. Core emits fork intent to host
   3. Host creates a child run with cloned context + new prompt
   4. Child run executes its own model loop (same host)
@@ -414,6 +407,7 @@ The `AcpHost` interface includes fork:
 type AcpHost = {
   handle(intent: ToolIntent): Promise<ToolAckResult>;
   fork(request: ForkRequest): Promise<ForkResult>;
+  spawn(prompt: string): Promise<RunOutput>;
 };
 
 type ForkRequest = {
@@ -428,7 +422,7 @@ type ForkResult = {
 };
 ```
 
-The local host implements `fork` by creating a new ACP core run with the
+The agent host implements `fork` by creating a new ACP core run with the
 cloned context. The ACP host (external) forwards the fork request to the
 caller, who decides how to execute it (same process, different process,
 different machine).
@@ -441,18 +435,14 @@ different machine).
 | Context source | Live run state (cloned) | Previous run result (passed by caller) |
 | Relationship | Parent-child (concurrent) | Sequential |
 | Abort | Parent abort cascades to children | Independent runs |
-| Who initiates | Model (via delegate tool) | Caller (via options) |
+| Who initiates | Model (via spawn tool) | Caller (via options) |
 
-### 6. MCP is one generic capability with plugin-defined servers
+### 6. MCP is a plain plugin primitive
 
-The MCP layer should separate concerns like this:
-
-- `mcp(...)` plugin: owns the generic client capability and default tool exposure
-- server plugins: register filesystem, GitHub, Postgres, or private servers
-- skills: choose which hidden MCP tools become model-visible for a run
-
-The important point is that MCP stays generic. We should not add provider
-branches in core for each server type.
+An MCP server plugin is a plain `AgentPlugin` using `@poe-code/tiny-mcp-client`
+directly — same shape as `spawn`. No `McpCapability`, no `registerServer()`
+indirection, no two-plugin setup. `api.addTool()` is the only hook needed for
+dynamically discovered tools.
 
 ### 7. Tool registration is separate from tool visibility
 
@@ -477,21 +467,13 @@ MCP tools retain their existing namespace prefix (`server_name.tool_name`) which
 naturally avoids collisions with non-MCP tools, but two MCP servers registering
 the same namespaced tool name should still throw.
 
-### 9. Plugin setup runs in dependency-topological order
+### 9. Plugin setup runs in registration order
 
-Plugin `setup()` functions run in topological order derived from `dependsOn`
-declarations. If plugin B depends on a capability provided by plugin A, A's
-`setup()` runs first.
+All plugin lifecycle methods run in registration order:
 
-Within the same topological tier (no dependencies between them), plugins run in
-registration order.
-
-This is distinct from fragment and transform ordering, which always follows
-registration order regardless of dependencies. The rule is:
-
-- `setup()` — topological order (dependency-safe)
-- `prompts.system` / `prompts.prefix` / `prompts.suffix` — registration order
+- `setup()` — registration order
 - `prompt()` transforms — registration order
+- `hooks` — registration order (first non-continue decision wins)
 
 ### 10. Tool authoring should be flexible, runtime execution should be uniform
 
@@ -535,34 +517,54 @@ Keep `.use(...)` as the center of gravity. If we later add sugar like
 ```ts
 type AgentPlugin = {
   name: string;
-  dependsOn?: CapabilityKey[];
   tools?: Tool[];
-  prompts?: {
-    system?: string[];
-    prefix?: string[];
-    suffix?: string[];
+  prompt?(ctx: PromptContext): PromptContext | Promise<PromptContext>;
+  hooks?: {
+    preToolUse?(ctx: ToolUseContext): HookDecision | void | Promise<HookDecision | void>;
+    postToolUse?(ctx: ToolUseContext): HookDecision | void | Promise<HookDecision | void>;
+    preIteration?(ctx: IterationContext): HookDecision | void | Promise<HookDecision | void>;
+    postIteration?(ctx: IterationContext): HookDecision | void | Promise<HookDecision | void>;
   };
-  prompt?: (ctx: PromptContext) => PromptContext | Promise<PromptContext>;
-  setup?: (api: PluginApi) => void | Promise<void>;
+  setup?(api: PluginApi): void | Promise<void>;
+  dispose?(): void | Promise<void>;
 };
 ```
 
-This keeps most plugins declarative while still allowing imperative setup for
-runtime-backed features like MCP.
+- `tools` — declarative tool definitions
+- `prompt` — async transform over the prompt context
+- `hooks` — named lifecycle methods, matching Claude Code hook naming (`preToolUse`, `postToolUse`)
+- `setup` — only for async init (MCP connections, dynamic tool discovery)
+- `dispose` — cleanup, called after run completes or on abort
 
-### Capabilities
+Most plugins only need `tools`, `prompt`, or `hooks`. `setup` is the escape hatch
+for things that genuinely require async initialization.
+
+### PluginApi
+
+`PluginApi` is intentionally minimal. MCP is a first-class primitive, not a capability:
 
 ```ts
+type McpServerConfig = {
+  name: string;       // namespace prefix → "name.tool_name"
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  visibility?: "model" | "skill";  // default: "model"
+};
+
 type PluginApi = {
-  provide<T>(key: CapabilityKey<T>, value: T): void;
-  require<T>(key: CapabilityKey<T>): T;
-  tryRequire<T>(key: CapabilityKey<T>): T | undefined;
-  addTool(tool: Tool): void;
-  addPromptTransform(fn: PromptTransform): void;
-  addHook(hook: Hook): void;
-  onDispose(fn: () => void | Promise<void>): void;
+  addTool(tool: Tool): void;              // one-off dynamically constructed tools
+  addMcp(config: McpServerConfig): void; // runtime creates StdioTransport, handles lifecycle
 };
 ```
+
+Same shape as `McpSpawnServer` in `agent-spawn`. The runtime creates a `StdioTransport`
+internally — callers never import transport classes. Any plugin or skill can call it;
+the runtime owns the `McpClient` lifecycle. Visibility is a `ToolRegistry` concern,
+not a client concern — `tiny-mcp-client` requires no changes.
+
+`setup` is only needed for dynamic tools (discovered at init time) and MCP. Hooks go
+in `plugin.hooks`, prompt transforms in `plugin.prompt`, and cleanup in `plugin.dispose`.
 
 #### Hooks
 
@@ -592,24 +594,17 @@ not two. Every hook can observe, modify state, and control flow.
 └─ PostIteration ───────────────────────────────────────┘
 ```
 
-##### Hook types
+##### Hook naming
 
-```ts
-type HookEvent =
-  | "PreIteration"
-  | "PostIteration"
-  | "PreModelCall"
-  | "PostModelCall"
-  | "PreToolCall"
-  | "PostToolCall"
-  | "PreFork"
-  | "PostFork";
+Hooks match Claude Code's hook naming convention. Plugin hook methods are the
+camelCase equivalents of the Claude Code hook names:
 
-type Hook = {
-  event: HookEvent;
-  handler(ctx: HookContext): Promise<HookDecision | void> | HookDecision | void;
-};
-```
+| Method | Claude Code equivalent |
+|--------|----------------------|
+| `preToolUse` | `PreToolUse` |
+| `postToolUse` | `PostToolUse` |
+| `preIteration` | — |
+| `postIteration` | — |
 
 ##### Hook context
 
@@ -678,40 +673,25 @@ Decision behavior by hook point:
 
 ##### Registration
 
-Plugins register hooks via `PluginApi.addHook()`:
-
-```ts
-type PluginApi = {
-  // ...existing methods
-  addHook(hook: Hook): void;
-};
-```
-
-Multiple hooks on the same event run in registration order. If any hook
-returns `"skip"`, `"abort"`, or `{ reject }`, later hooks for that event
-still run (they can observe), but the decision of the first non-continue
-hook wins.
+Hooks are named methods directly on the plugin object, not registered via
+`api.addHook()`. Multiple plugins with the same hook run in registration order.
+The first non-continue decision wins; later plugins still run (they can observe).
 
 ##### Example: context compaction
 
 ```ts
 const compaction = (opts: { maxTokens: number }): AgentPlugin => ({
   name: "context-compaction",
-  setup(api) {
-    api.addHook({
-      event: "PreIteration",
-      async handler(ctx) {
-        if (ctx.tokenCount <= opts.maxTokens) return;
-
-        const summary = await ctx.fork(
-          "Summarize the conversation so far into a concise context. " +
-          "Preserve all decisions, findings, and open questions."
-        );
-
-        ctx.messages.length = 0;
-        ctx.messages.push({ role: "system", content: summary.output });
-      },
-    });
+  hooks: {
+    async preIteration(ctx) {
+      if (ctx.tokenCount <= opts.maxTokens) return;
+      const summary = await ctx.fork(
+        "Summarize the conversation so far into a concise context. " +
+        "Preserve all decisions, findings, and open questions."
+      );
+      ctx.messages.length = 0;
+      ctx.messages.push({ role: "system", content: summary.output });
+    },
   },
 });
 ```
@@ -721,56 +701,33 @@ const compaction = (opts: { maxTokens: number }): AgentPlugin => ({
 ```ts
 const guardrails = (): AgentPlugin => ({
   name: "guardrails",
-  setup(api) {
-    api.addHook({
-      event: "PreToolCall",
-      handler(ctx) {
-        if (ctx.tool !== "run_command") return;
-        if (isForbidden(ctx.args)) {
-          return { reject: `Blocked forbidden command: ${JSON.stringify(ctx.args)}` };
-        }
-      },
-    });
+  hooks: {
+    preToolUse(ctx) {
+      if (ctx.tool === "run_command" && isForbidden(ctx.args)) {
+        return { reject: `Blocked forbidden command: ${JSON.stringify(ctx.args)}` };
+      }
+    },
   },
 });
 ```
 
-The model receives the rejection as a tool error and can try a different
-approach.
+The model receives the rejection as a tool error and can try a different approach.
 
 ##### Example: token budget — abort when exceeded
 
 ```ts
-const tokenBudget = (max: number): AgentPlugin => ({
-  name: "token-budget",
-  setup(api) {
-    let total = 0;
-    api.addHook({
-      event: "PostModelCall",
-      handler(ctx) {
+const tokenBudget = (max: number): AgentPlugin => {
+  let total = 0;
+  return {
+    name: "token-budget",
+    hooks: {
+      postIteration(ctx) {
         total += ctx.tokenCount;
         if (total > max) return "abort";
       },
-    });
-  },
-});
-```
-
-##### Example: skip tool calls in dry-run mode
-
-```ts
-const dryRun = (): AgentPlugin => ({
-  name: "dry-run",
-  setup(api) {
-    api.addHook({
-      event: "PreToolCall",
-      handler(ctx) {
-        if (ctx.tool !== "edit_file" && ctx.tool !== "run_command") return;
-        return "skip";
-      },
-    });
-  },
-});
+    },
+  };
+};
 ```
 
 ##### Example: logging — observe everything
@@ -778,38 +735,31 @@ const dryRun = (): AgentPlugin => ({
 ```ts
 const logging = (): AgentPlugin => ({
   name: "logging",
-  setup(api) {
-    api.addHook({
-      event: "PostToolCall",
-      handler(ctx) {
-        logger.info(`${ctx.tool} [${ctx.intentId}]`, {
-          args: ctx.args,
-          result: ctx.result,
-          error: ctx.error,
-        });
-        // no return — continue
-      },
-    });
+  hooks: {
+    postToolUse(ctx) {
+      logger.info(`${ctx.tool} [${ctx.intentId}]`, {
+        args: ctx.args,
+        result: ctx.result,
+        error: ctx.error,
+      });
+    },
   },
 });
 ```
 
-##### Example: modify tool args before execution
+##### Example: sandbox paths
 
 ```ts
 const sandboxPaths = (root: string): AgentPlugin => ({
   name: "sandbox-paths",
-  setup(api) {
-    api.addHook({
-      event: "PreToolCall",
-      handler(ctx) {
-        if (!["read_file", "edit_file", "list_files"].includes(ctx.tool!)) return;
-        const args = ctx.args as { path: string };
-        if (!args.path.startsWith(root)) {
-          return { reject: `Path ${args.path} is outside sandbox ${root}` };
-        }
-      },
-    });
+  hooks: {
+    preToolUse(ctx) {
+      if (!["read_file", "edit_file", "list_files"].includes(ctx.tool)) return;
+      const { path } = ctx.args as { path: string };
+      if (!path.startsWith(root)) {
+        return { reject: `Path ${path} is outside sandbox ${root}` };
+      }
+    },
   },
 });
 ```
@@ -818,8 +768,8 @@ Capabilities are the internal contract. Tools should get the same lookup model:
 
 ```ts
 type ToolContext = {
-  require<T>(key: CapabilityKey<T>): T;
-  fork(prompt: string): Promise<ForkResult>;
+  fork(prompt: string): Promise<ForkResult>;    // clones live run state, parent-child
+  spawn(prompt: string): Promise<RunOutput>;    // fresh agent, independent
   signal: AbortSignal;
 };
 ```
@@ -838,19 +788,15 @@ type PromptContext = {
 Start simple. Do not prematurely expose low-level message mutation unless the
 runtime proves it is necessary.
 
-**Prompt composition is a two-phase pipeline:**
+**Prompt composition is a transform pipeline:**
 
-1. **Fragment collection** — All `prompts.system`, `prompts.prefix`, and
-   `prompts.suffix` arrays from registered plugins are concatenated in
-   registration order. This produces the initial `system` string.
-2. **Transform execution** — All `prompt()` functions run in registration order
-   over the assembled `PromptContext`. Each transform receives the output of the
-   previous one.
+All `prompt()` functions run in registration order over `PromptContext`. Each
+transform receives the output of the previous one. Returning `{ ...ctx, system:
+... }` is the idiomatic way to append or replace system content.
 
-Fragments are pure data. Transforms are functions. This ordering is
-deterministic: fragments build up, transforms reshape. A transform that needs
-to fully replace the system prompt can overwrite `system` — but it always sees
-the fully assembled fragment result, never a partial one.
+There is no separate static fragment collection phase. Static content is just a
+`prompt()` that returns a modified context — the function handles both the static
+and dynamic cases.
 
 The important rule is that the initial user prompt should stay explicit in the
 runtime model. It should not be collapsed into one opaque combined prompt
@@ -888,8 +834,8 @@ agent()
   .use(systemPrompt())
   .use({
     name: "team-policy",
-    prompts: {
-      system: ["Always explain risky commands before running them."],
+    prompt(ctx) {
+      return { ...ctx, system: [ctx.system, "Always explain risky commands before running them."].filter(Boolean).join("\n") };
     },
   })
 ```
@@ -1018,7 +964,7 @@ type Tool = {
 
 This is the only canonical `Tool` type. There is no `mediation` property
 because the ACP core always emits intents. The host decides whether to call
-`tool.call()` (local host) or execute externally (ACP host). The tool itself
+`tool.call()` (agent host) or execute externally (ACP host). The tool itself
 does not know or care.
 
 Internal normalization target:
@@ -1033,7 +979,7 @@ type NormalizedTool = {
 };
 ```
 
-The local host uses `NormalizedTool.invoke()` to execute tools. The ACP host
+The agent host uses `NormalizedTool.invoke()` to execute tools. The ACP host
 ignores it entirely — the tool's `call()` function only matters when a local
 host is wired in.
 
@@ -1067,12 +1013,8 @@ Errors are categorized by where they occur in the runtime lifecycle:
 
 **Composition time (at `.run()`, before any `setup()` executes):**
 
-- Missing capability dependency → throw `MissingCapabilityError` listing the
-  unsatisfied `CapabilityKey` and which plugin declared it
 - Duplicate tool name → throw `DuplicateToolError` with both the existing and
   conflicting plugin names
-- Circular plugin dependency → throw `CircularDependencyError` with the cycle
-  path
 
 **Plugin setup time (during async `setup()` execution):**
 
@@ -1193,10 +1135,14 @@ Model loop:
 
 #### ACP event stream
 
-The core emits a typed event stream. This is a **public API** — it is the
-contract between the runtime and all consumers (execution mode adapters,
-plugin event hooks, external integrations). It must be versioned and kept
-stable.
+The core emits a typed `AcpEvent` stream. This is the **canonical event type**
+used across the entire system — not to be confused with the ACP wire protocol
+`SessionUpdate` types in `@poe-code/poe-acp-client`. The old rendering `AcpEvent`
+in `@poe-code/agent-spawn` (`tool_start`, `tool_complete`, etc.) is replaced by
+this unified type.
+
+`AcpEvent` is a **public API** — it is the contract between the runtime and all
+consumers (execution mode adapters, event hooks, external integrations).
 
 ```ts
 type AcpEvent =
@@ -1208,7 +1154,7 @@ type AcpEvent =
   | { type: "fork.complete"; forkId: string; result: ForkResult }
   | { type: "fork.error"; forkId: string; error: string }
   | { type: "progress"; message: string }
-  | { type: "session.complete"; result: SessionResult }
+  | { type: "session.complete"; result: RunResult }
   | { type: "session.error"; error: Error };
 ```
 
@@ -1257,12 +1203,14 @@ message.delta*  →  tool.intent  →  tool.result  →  message.delta*  →  ..
 
 #### Host interface
 
-The host is the single extension point for tool execution. The core depends on
-one interface:
+The host is the single extension point for tool execution and fork/spawn.
+The core depends on one interface:
 
 ```ts
 type AcpHost = {
   handle(intent: ToolIntent): Promise<ToolAckResult>;
+  fork(request: ForkRequest): Promise<ForkResult>;
+  spawn(prompt: string): Promise<RunOutput>;
 };
 
 type ToolIntent = {
@@ -1287,18 +1235,20 @@ ACP core and exposes the event stream in a different shape.
 
 #### `.run(prompt, options?): Promise<RunResult>`
 
-Provides a **local host** that executes tool `call()` functions directly inside
+Provides a **agent host** that executes tool `call()` functions directly inside
 the process. Collects the full event stream internally. Returns the final
 result when the model loop completes.
 
 ```ts
-// Internal: the local host
+// Internal: the agent host (local execution)
 const localHost: AcpHost = {
   async handle(intent) {
     const tool = registry.get(intent.tool);
     const result = await tool.call(intent.args, ctx);
     return { status: "success", result };
   },
+  fork: (request) => { /* clone context, run child, return result */ },
+  spawn: (prompt) => { /* fresh AcpClient session */ },
 };
 ```
 
@@ -1315,7 +1265,7 @@ single-shot automation.
 
 #### `.stream(prompt, options?): AsyncIterable<AcpEvent>`
 
-Same **local host** as `.run()` — tools execute directly inside the process.
+Same **agent host** as `.run()` — tools execute directly inside the process.
 The difference is that the ACP event stream is exposed to the caller as an
 async iterable instead of being collected internally.
 
@@ -1332,7 +1282,7 @@ for await (const event of events) {
 
 Good for CLI rendering, live UIs, and logging pipelines.
 
-Note: even though the local host handles intents immediately, the caller still
+Note: even though the agent host handles intents immediately, the caller still
 sees `tool.intent` and `tool.result` events in the stream. The event stream is
 always the full ACP event sequence regardless of host.
 
@@ -1438,13 +1388,13 @@ emits intents (ACP adapter). That means:
 With ACP as core:
 
 - one execution path: intents and acknowledgments
-- `.run()` and `.stream()` are trivial: they just provide a local host
+- `.run()` and `.stream()` are trivial: they just provide a agent host
 - the provider integration uses the same path as everything else
 - there is no "direct vs mediated" branching — only different hosts
 - testing is simpler: mock the host, verify intents
 
 The `mediation` property on tools is no longer needed. All tools emit intents.
-The host decides how to handle them. A local host calls `tool.call()`. An
+The host decides how to handle them. A agent host calls `tool.call()`. An
 external host does whatever it wants.
 
 ## Refactor Strategy From Current Code
@@ -1501,9 +1451,9 @@ Before adding any new public fluent API, introduce internal runtime types:
 
 - `ResolvedAgentConfig`
 - `RunContext`
-- `CapabilityRegistry`
 - `ToolRegistry`
 - `PromptRegistry`
+- `HookRegistry`
 
 The current `createAgentSession(...)` should build these registries internally
 even if the caller still knows nothing about them.
@@ -1542,20 +1492,20 @@ current behavior exactly:
 Once this is done, prompt transforms and skill prompt sections can layer on top
 of a normal prompt pipeline instead of special-casing the static prompt.
 
-### Step 5: turn MCP from a sidecar executor into a capability
+### Step 5: turn MCP from a sidecar executor into a first-class primitive
 
 `McpToolExecutor` should not be thrown away. Its useful parts should be split
 like this:
 
-- MCP client lifecycle and server registry -> `McpCapability`
+- MCP client lifecycle and server registry -> moved into `PluginApi.addMcp()`
 - MCP tool schema conversion -> MCP tool adapter helpers
 - tool visibility policy -> runtime tool registry
 
 Recommended sequence:
 
 1. keep current namespacing and tool conversion helpers
-2. move client ownership and server registration behind an MCP capability
-3. expose discovered tools through the normal tool registry
+2. rewrite as a plain `AgentPlugin` that calls `api.addMcp({ name, command, args })`
+3. runtime handles connect, discovery, and disposal via `@poe-code/tiny-mcp-client`
 4. add visibility metadata instead of always exposing all MCP tools
 
 This is where hidden MCP becomes possible without another architecture rewrite.
@@ -1639,16 +1589,14 @@ Suggested new internal modules:
   Public immutable builder entry point.
 - `packages/poe-agent/src/runtime/acp-core.ts`
   ACP core: model loop, intent emission, host delegation.
-- `packages/poe-agent/src/runtime/acp-types.ts`
-  `AcpEvent`, `AcpHost`, `ToolIntent`, `ToolAckResult` types.
-- `packages/poe-agent/src/runtime/local-host.ts`
+- `packages/poe-agent/src/runtime/types.ts`
+  `AcpEvent`, `AcpHost`, `ToolIntent`, `ToolAckResult`, `ForkRequest`, `ForkResult` types.
+- `packages/poe-agent/src/runtime/agent-host.ts`
   Local `AcpHost` that executes tool `call()` directly.
 - `packages/poe-agent/src/runtime/config.ts`
   Resolved config model assembled from builder calls.
 - `packages/poe-agent/src/runtime/run-context.ts`
   Mutable run state and disposal registry.
-- `packages/poe-agent/src/runtime/capabilities.ts`
-  Typed capability keys and registry.
 - `packages/poe-agent/src/runtime/tools.ts`
   Tool registry, visibility model, and handler normalization.
 - `packages/poe-agent/src/runtime/prompts.ts`
@@ -1665,8 +1613,8 @@ Suggested new internal modules:
   Generic MCP capability, server registration, and default exposure policy.
 - `packages/poe-agent/src/plugins/skills.ts`
   Skill discovery, activation, and prompt integration.
-- `packages/poe-agent/src/plugins/delegate.ts`
-  Delegate tool plugin that calls `ctx.fork()` to spawn child runs.
+- `packages/poe-agent/src/plugins/spawn.ts`
+  Spawn tool plugin that calls `ctx.spawn()` to start fresh child agents.
 
 These names do not need to be final, but the separation of concerns should be.
 
@@ -1715,10 +1663,10 @@ removed.
 
 ## Recommended Refactor Order
 
-1. Introduce ACP event types (including fork), `AcpHost` interface, and `ToolContext` with `fork()` as internal contracts.
-2. Introduce internal runtime registries and disposal management behind `createAgentSession(...)`.
+1. Introduce `AcpEvent` types (including fork), `AcpHost` interface, and `ToolContext` with `fork()` as internal contracts. `AcpEvent` is the single canonical event type replacing the old rendering `AcpEvent` from `@poe-code/agent-spawn`.
+2. Introduce internal runtime registries (ToolRegistry, PromptRegistry, HookRegistry) and disposal management behind `createAgentSession(...)`.
 3. Refactor the model loop to emit `AcpEvent`s and delegate tool execution through `AcpHost`.
-4. Implement the local host (direct tool execution + fork via child runs) so existing behavior is preserved.
+4. Implement the agent host (direct tool execution + fork via child runs) so existing behavior is preserved.
 5. Move the system prompt into a built-in prompt plugin without changing behavior.
 6. Split `DefaultToolExecutor` into built-in tool plugins while preserving current tool names and schemas.
 7. Add plugin event hooks (`onEvent`).
@@ -1730,7 +1678,7 @@ removed.
 
 Steps 1-4 are the critical foundation. They introduce ACP as the core
 execution model without changing any public API. After step 4, the existing
-tests pass against the new internals via the local host. This is the first
+tests pass against the new internals via the agent host. This is the first
 milestone where the architecture is proven.
 
 ## What Not To Do
@@ -1746,38 +1694,52 @@ milestone where the architecture is proven.
 
 ## MCP and Skills
 
-### MCP role
+### MCP plugin pattern
 
-The default MCP plugin should:
+An MCP server plugin is a plain `AgentPlugin` — same shape as `spawn`. It calls
+`api.addMcp()` with plain config; the runtime creates the transport internally:
 
-- provide `McpCapability`
-- register servers
-- discover tools
-- optionally expose those tools into the runtime registry
-- manage server lifecycle and teardown
+```ts
+import type { AgentPlugin } from "../runtime/plugin-types.js";
 
-### Server plugins
+const myServer = (options: { command: string; args?: string[] }): AgentPlugin => ({
+  name: "my-server-mcp",
+  setup(api) {
+    api.addMcp({ name: "my-server", command: options.command, args: options.args });
+  },
+});
+export default myServer;
+```
 
-Separate plugins can contribute server definitions:
+`McpServerConfig` uses the same shape as `McpSpawnServer` from `@poe-code/agent-spawn` —
+`{ command, args?, env? }`. No transport import required. The runtime creates a
+`StdioTransport` internally, discovers tools, namespaces them, and disposes on run end.
 
-- `githubMcp()`
-- `filesystemMcp()`
-- `postgresMcp()`
+For testing, use `createInMemoryTransportPair` from `@poe-code/tiny-mcp-client` via a
+custom `addTool()` wrapper or a test-only setup hook.
 
-Those plugins should depend on MCP and call into its capability instead of
-implementing their own clients.
+Any plugin or skill can call `api.addMcp()`. Do not ship pre-built server plugins
+for specific services — document the pattern, let callers write their own.
 
 ### Hidden MCP through skills
 
-This is the target behavior:
+Skills call `api.addMcp()` with `visibility: "skill"` to register tools that are
+only exposed when that skill is active:
+
+```ts
+setup(api) {
+  api.addMcp({
+    name: "my-server",
+    command: "uvx",
+    args: ["mcp-server-my-service"],
+    visibility: "skill",
+  });
+}
+```
 
 1. MCP tools are registered with `skill` visibility.
-2. Skills reference stable tool ids or tags.
-3. A run activates one or more skills.
-4. The runtime exposes matching tools for that run only.
-5. Internal plugins can still call hidden MCP tools through the capability.
-
-Skills should not own MCP discovery. They only gate exposure.
+2. A run activates skills via `options.skills`.
+3. The runtime exposes matching tools for that run only.
 
 ## Third-Party Plugin Model
 
@@ -1794,7 +1756,7 @@ Example:
 ```ts
 import type { AgentPlugin } from "@poe-code/poe-agent";
 
-export function jira(options: JiraOptions): AgentPlugin {
+function jira(options: JiraOptions): AgentPlugin {
   return {
     name: "@acme/poe-agent-plugin-jira",
     async setup(api) {
@@ -1802,6 +1764,7 @@ export function jira(options: JiraOptions): AgentPlugin {
     },
   };
 }
+export default jira;
 ```
 
 This is enough for v1. A custom registry or plugin installer can come later if
@@ -1847,13 +1810,14 @@ without blocking the initial design.
 
 ## Proposed Implementation Phases
 
-### Phase 1: ACP core, local host, and fork
+### Phase 1: ACP core, agent host, and fork
 
-- Define `AcpEvent` types (including fork events) and `AcpHost` interface
+- Define `AcpEvent` types (including fork) and `AcpHost` interface. `AcpEvent` is the
+  unified canonical event type replacing the old rendering events in `@poe-code/agent-spawn`.
 - Refactor the model loop to emit intents and consume acknowledgments
-- Implement the local host for direct tool execution
+- Implement the agent host for direct tool execution, fork, and spawn
 - Implement core fork: context cloning, child run creation, abort cascading
-- Existing behavior preserved — `createAgentSession(...)` uses the local host
+- Existing behavior preserved — `createAgentSession(...)` uses the agent host
 - This phase proves the architecture and delivers the first testable milestone
 
 ### Phase 2: Builder and plugin registry
@@ -1861,9 +1825,8 @@ without blocking the initial design.
 - Introduce the immutable builder and resolved `AgentConfig`
 - Make `.use(...)` the primary extension point
 - Separate builder config from run context
-- Add plugin dependency resolution (topological `setup()` order)
-- Add capability registry
-- Add async setup and disposal hooks
+- Add async setup (registration order) and disposal hooks
+- No capability system — plugins share state via closures
 
 ### Phase 3: Prompt pipeline and event hooks
 
@@ -1905,9 +1868,9 @@ without blocking the initial design.
 The right direction for `poe-agent` is:
 
 - ACP as the core execution model — intents and hosts, not direct execution
+- `AcpEvent` as the unified canonical event type across the whole system
 - immutable fluent builder for ergonomics
-- plugin-first architecture
-- capability-based runtime wiring
+- plugin-first architecture — state in closures, no capability injection
 - async run initialization
 - single-turn runs with resume for continuation
 - plugin event hooks for observability

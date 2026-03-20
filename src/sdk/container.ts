@@ -13,7 +13,7 @@ import { runCommand } from "@poe-code/agent-spawn";
 import { getDefaultProviders } from "../providers/index.js";
 import { createPoeCodeCommandRunner } from "../cli/poe-code-command-runner.js";
 import * as nodeFsSync from "node:fs";
-import { createAuthStore } from "@poe-code/auth";
+import { createAuthStore } from "@poe-code/poe-auth";
 
 export interface SdkContainerOptions {
   /** Working directory (defaults to process.cwd()) */
@@ -65,8 +65,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
       }
       return fs.readFile(path);
     }) as FileSystem["readFile"],
-    writeFile: (path, data, opts) =>
-      fs.writeFile(path, data, opts),
+    writeFile: (path, data, opts) => fs.writeFile(path, data, opts),
     mkdir: (path, opts) => fs.mkdir(path, opts).then(() => {}),
     stat: (path) => fs.stat(path),
     rm: (path, opts) => fs.rm(path, opts),
@@ -79,17 +78,14 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
   const contextFactory = createCommandContextFactory({ fs: asyncFs });
 
   const authFs = {
-    readFile: (filePath: string, encoding: BufferEncoding) =>
-      fs.readFile(filePath, encoding),
+    readFile: (filePath: string, encoding: BufferEncoding) => fs.readFile(filePath, encoding),
     writeFile: (
       filePath: string,
       data: string | NodeJS.ArrayBufferView,
       options?: { encoding?: BufferEncoding }
     ) => fs.writeFile(filePath, data, options),
-    mkdir: (
-      directoryPath: string,
-      options?: { recursive?: boolean }
-    ) => fs.mkdir(directoryPath, options).then(() => undefined),
+    mkdir: (directoryPath: string, options?: { recursive?: boolean }) =>
+      fs.mkdir(directoryPath, options).then(() => undefined),
     unlink: (filePath: string) => fs.unlink(filePath),
     chmod: (filePath: string, mode: number) => fs.chmod(filePath, mode)
   };
@@ -130,9 +126,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
 
   const registry = createServiceRegistry();
 
-  const providers = getDefaultProviders().filter(
-    (adapter) => !adapter.disabled
-  );
+  const providers = getDefaultProviders().filter((adapter) => !adapter.disabled);
   for (const adapter of providers) {
     registry.register(adapter);
   }

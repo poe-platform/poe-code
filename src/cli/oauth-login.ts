@@ -1,10 +1,7 @@
 import { exec } from "node:child_process";
 import readline from "node:readline";
-import { createOAuthClient } from "@poe-code/auth";
-import {
-  text,
-  log
-} from "@poe-code/design-system";
+import { createOAuthClient } from "@poe-code/poe-auth";
+import { text, log } from "@poe-code/design-system";
 
 export async function resolveApiKeyViaOAuth(): Promise<string> {
   const rl = readline.createInterface({

@@ -1,7 +1,7 @@
-import { createAuthStore } from '@poe-code/auth';
+import { createAuthStore } from "@poe-code/poe-auth";
 
 function normalizeApiKey(key: string | undefined): string | null {
-  if (typeof key !== 'string') {
+  if (typeof key !== "string") {
     return null;
   }
   const trimmed = key.trim();

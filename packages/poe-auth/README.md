@@ -1,4 +1,4 @@
-# @poe-code/auth
+# @poe-code/poe-auth
 
 Secure API key storage for poe-code with two backends:
 
@@ -8,7 +8,7 @@ Secure API key storage for poe-code with two backends:
 ## Usage
 
 ```ts
-import { createAuthStore } from "@poe-code/auth";
+import { createAuthStore } from "@poe-code/poe-auth";
 
 const { store, backend } = createAuthStore();
 
@@ -19,11 +19,11 @@ await store.deleteApiKey();
 
 ## Backend selection
 
-| `POE_AUTH_BACKEND` | Platform | Backend           |
-| ------------------ | -------- | ----------------- |
-| _(unset)_          | any      | Encrypted file    |
-| `file`             | any      | Encrypted file    |
-| `keychain`         | macOS    | macOS Keychain    |
+| `POE_AUTH_BACKEND` | Platform | Backend               |
+| ------------------ | -------- | --------------------- |
+| _(unset)_          | any      | Encrypted file        |
+| `file`             | any      | Encrypted file        |
+| `keychain`         | macOS    | macOS Keychain        |
 | `keychain`         | other    | Error (not supported) |
 
 ## Encrypted file backend

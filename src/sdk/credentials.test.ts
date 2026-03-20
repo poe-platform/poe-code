@@ -15,7 +15,7 @@ describe("getPoeApiKey", () => {
     delete process.env.POE_API_KEY;
 
     vi.resetModules();
-    vi.doMock("@poe-code/auth", () => ({
+    vi.doMock("@poe-code/poe-auth", () => ({
       createAuthStore: createAuthStoreMock
     }));
 

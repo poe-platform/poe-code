@@ -4,6 +4,7 @@ const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
 const sessionCaptureMock = vi.hoisted(() => vi.fn());
 const usageCaptureMock = vi.hoisted(() => vi.fn());
 const spawnLogMock = vi.hoisted(() => vi.fn());
+const spawnPoeAgentWithAcpMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: vi.fn(),
@@ -25,6 +26,10 @@ vi.mock("./container.js", () => ({
   createSdkContainer: vi.fn()
 }));
 
+vi.mock("../providers/poe-agent.js", () => ({
+  spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock
+}));
+
 import { spawn } from "./spawn.js";
 import {
   getSpawnConfig,
@@ -39,6 +44,7 @@ import {
 } from "@poe-code/agent-spawn";
 import { spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
+import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
 
 const originalEnv = { ...process.env };
 
@@ -50,6 +56,7 @@ beforeEach(() => {
   vi.mocked(getSpawnConfig).mockReset();
   vi.mocked(spawnCore).mockReset();
   vi.mocked(createSdkContainer).mockReset();
+  vi.mocked(spawnPoeAgentWithAcp).mockReset();
   vi.mocked(renderAcpStream).mockReset();
   vi.mocked(applyMiddlewares).mockReset();
   vi.mocked(renderAcpStream).mockResolvedValue(undefined);
@@ -67,13 +74,19 @@ describe("SDK spawn()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {
         yield event;
       })(),
-      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0, threadId: "thread_1", sessionId: "thread_1" })
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0,
+        threadId: "thread_1",
+        sessionId: "thread_1"
+      })
     }));
 
     const { events, result } = spawn("codex", "test prompt", {
@@ -174,7 +187,7 @@ describe("SDK spawn()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
@@ -391,7 +404,7 @@ describe("SDK spawn()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {})(),
@@ -411,7 +424,7 @@ describe("SDK spawn()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {
@@ -468,7 +481,7 @@ describe("SDK spawn()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {})(),
@@ -483,9 +496,7 @@ describe("SDK spawn()", () => {
 
     expect(applyMiddlewares).toHaveBeenCalledTimes(1);
     const [, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
-    expect(ctx.logDir).toBe(
-      "/repo/.poe-code/pipeline/plans/logs/task-1-implement.jsonl"
-    );
+    expect(ctx.logDir).toBe("/repo/.poe-code/pipeline/plans/logs/task-1-implement.jsonl");
   });
 
   it("forwards an explicitly empty logDir to middleware context", async () => {
@@ -493,7 +504,7 @@ describe("SDK spawn()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {})(),
@@ -516,7 +527,7 @@ describe("SDK spawn()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {
@@ -539,11 +550,10 @@ describe("SDK spawn()", () => {
   });
 
   it("propagates provider spawn errors for poe-agent and returns empty events", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
-    vi.mocked(createSdkContainer).mockReturnValue({} as any);
-    vi.mocked(spawnCore).mockRejectedValue(
-      new Error("Poe Agent does not support spawn.")
-    );
+    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
+      events: (async function* () {})(),
+      done: Promise.reject(new Error("Poe Agent does not support spawn."))
+    });
 
     const { events, result } = spawn("poe-agent", "test prompt", {
       cwd: "/workspace/project",
@@ -568,6 +578,7 @@ describe("SDK spawn()", () => {
     expect(agentSpawn).not.toHaveBeenCalled();
     expect(spawnCore).not.toHaveBeenCalled();
     expect(createSdkContainer).not.toHaveBeenCalled();
+    expect(spawnPoeAgentWithAcp).toHaveBeenCalledTimes(1);
   });
 
   it("propagates usage from poe-agent ACP result", async () => {
@@ -615,7 +626,28 @@ describe("SDK spawn()", () => {
           env: { MCP_LOG_LEVEL: "debug" }
         }
       }
-    );
+    });
+
+    await expect(result).resolves.toEqual({
+      stdout: "from poe-agent\n",
+      stderr: "",
+      exitCode: 0,
+      threadId: "poe-agent-session-2",
+      sessionId: "poe-agent-session-2"
+    });
+
+    expect(spawnPoeAgentWithAcp).toHaveBeenCalledWith({
+      prompt: "test prompt",
+      cwd: undefined,
+      model: undefined,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
   });
 
   it("propagates errors from spawnInteractive", async () => {
@@ -639,7 +671,7 @@ describe("SDK spawn()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {})(),
@@ -672,13 +704,19 @@ describe("spawn.pretty()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {
         yield { event: "agent_message", text: "done" };
       })(),
-      done: Promise.resolve({ stdout: "out", stderr: "", exitCode: 0, threadId: "t1", sessionId: "t1" })
+      done: Promise.resolve({
+        stdout: "out",
+        stderr: "",
+        exitCode: 0,
+        threadId: "t1",
+        sessionId: "t1"
+      })
     }));
 
     const result = await spawn.pretty("codex", "test prompt");
@@ -698,7 +736,7 @@ describe("spawn.pretty()", () => {
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    });
+    } as any);
 
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {})(),

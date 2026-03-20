@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const createAuthStoreMock = vi.hoisted(() => vi.fn());
 const createOptionResolversMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/auth", () => ({
+vi.mock("@poe-code/poe-auth", () => ({
   createAuthStore: createAuthStoreMock
 }));
 

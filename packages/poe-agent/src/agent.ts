@@ -1,10 +1,10 @@
-import { createAuthStore } from "@poe-code/auth";
+import { createAuthStore } from "@poe-code/poe-auth";
 import type { CreateAgentSessionOptions } from "./agent-session.js";
 import { runAcpCore, type AcpModel, type AcpModelRequestMessage } from "./runtime/acp-core.js";
 import {
   AgentHost,
   createInMemorySpawnSession,
-  type AgentHostOptions,
+  type AgentHostOptions
 } from "./runtime/agent-host.js";
 import { AbortError } from "./runtime/hooks.js";
 import {
@@ -13,7 +13,7 @@ import {
   cloneMcpServerConfig,
   resolvePluginSetupOrder,
   toRuntimePlugins,
-  type ResolvedAgentConfig,
+  type ResolvedAgentConfig
 } from "./runtime/config.js";
 import type { AgentPlugin, McpServerConfig } from "./runtime/plugin-types.js";
 import { runPluginSetup } from "./runtime/plugin-setup.js";
@@ -27,7 +27,7 @@ import type {
   RunOutput,
   RunResult,
   ToolAckResult,
-  ToolIntent,
+  ToolIntent
 } from "./runtime/types.js";
 
 type FetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
@@ -78,8 +78,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
     return new ImmutableAgentBuilder(
       createResolvedAgentConfig({
         ...this.#config,
-        model,
-      }),
+        model
+      })
     );
   }
 
@@ -87,8 +87,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
     return new ImmutableAgentBuilder(
       createResolvedAgentConfig({
         ...this.#config,
-        plugins: [...this.#config.plugins, cloneAgentPlugin(plugin)],
-      }),
+        plugins: [...this.#config.plugins, cloneAgentPlugin(plugin)]
+      })
     );
   }
 
@@ -96,13 +96,16 @@ class ImmutableAgentBuilder implements AgentBuilder {
     return new ImmutableAgentBuilder(
       createResolvedAgentConfig({
         ...this.#config,
-        mcpServers: [...this.#config.mcpServers, ...configs.map(config => cloneMcpServerConfig(config))],
-      }),
+        mcpServers: [
+          ...this.#config.mcpServers,
+          ...configs.map((config) => cloneMcpServerConfig(config))
+        ]
+      })
     );
   }
 
   async acp(prompt: string, options: AgentRunOptions = {}): Promise<AcpSession> {
-    const prepared = await this.#prepareRun(options).catch(error => {
+    const prepared = await this.#prepareRun(options).catch((error) => {
       throw toError(error);
     });
 
@@ -111,12 +114,12 @@ class ImmutableAgentBuilder implements AgentBuilder {
       runContext: prepared.runContext,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
-      createSpawnSession: prepared.createSpawnSession,
+      createSpawnSession: prepared.createSpawnSession
     });
     const host = new CallerAcpHost(
       prepared.runContext,
       delegateHost,
-      autoHandleTools ? delegateHost.handle.bind(delegateHost) : undefined,
+      autoHandleTools ? delegateHost.handle.bind(delegateHost) : undefined
     );
     const events = runAcpCore({
       prompt,
@@ -124,7 +127,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
       host,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
-      maxIterations: options.maxIterations,
+      maxIterations: options.maxIterations
     });
 
     return {
@@ -134,12 +137,12 @@ class ImmutableAgentBuilder implements AgentBuilder {
       },
       async dispose() {
         await prepared.runContext.dispose();
-      },
+      }
     };
   }
 
   async run(prompt: string, options: AgentRunOptions = {}): Promise<RunResult> {
-    const events = await this.#startRun(prompt, options).catch(error => {
+    const events = await this.#startRun(prompt, options).catch((error) => {
       throw toError(error);
     });
 
@@ -177,7 +180,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
     } catch (error) {
       yield {
         type: "session.error",
-        error: toError(error),
+        error: toError(error)
       };
     }
   }
@@ -188,7 +191,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
       runContext: prepared.runContext,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
-      createSpawnSession: prepared.createSpawnSession,
+      createSpawnSession: prepared.createSpawnSession
     });
 
     return runAcpCore({
@@ -197,17 +200,17 @@ class ImmutableAgentBuilder implements AgentBuilder {
       host,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
-      maxIterations: options.maxIterations,
+      maxIterations: options.maxIterations
     });
   }
 
   async #prepareRun(options: AgentRunOptions): Promise<PreparedRun> {
     const activeSkills = resolveActiveSkills(options);
     const runContext = createRunContext({
-      ...(activeSkills === undefined ? {} : { activeSkills }),
+      ...(activeSkills === undefined ? {} : { activeSkills })
     });
     runContext.registerDisposeHook(
-      linkExternalAbortSignal(options.signal, runContext.abortController),
+      linkExternalAbortSignal(options.signal, runContext.abortController)
     );
 
     try {
@@ -227,7 +230,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
           model: modelName,
           apiKey: options.apiKey,
           baseUrl: options.baseUrl,
-          fetch: options.fetch,
+          fetch: options.fetch
         }));
       assertNotAborted(runContext.abortController.signal);
 
@@ -244,16 +247,19 @@ class ImmutableAgentBuilder implements AgentBuilder {
               ...(this.#config.mcpServers.length === 0
                 ? {}
                 : {
-                    mcpServers: toSpawnMcpServers(this.#config.mcpServers),
-                  }),
+                    mcpServers: toSpawnMcpServers(this.#config.mcpServers)
+                  })
             })),
-        model,
+        model
       };
     } catch (error) {
       try {
         await runContext.dispose();
       } catch (disposeError) {
-        throw new AggregateError([error, disposeError], "Run preparation failed and disposal failed.");
+        throw new AggregateError(
+          [error, disposeError],
+          "Run preparation failed and disposal failed."
+        );
       }
 
       throw error;
@@ -287,7 +293,7 @@ class CallerAcpHost implements AcpHost {
   constructor(
     runContext: RunContext,
     delegate: Pick<AcpHost, "fork" | "spawn">,
-    autoHandleIntent?: (intent: ToolIntent) => Promise<ToolAckResult>,
+    autoHandleIntent?: (intent: ToolIntent) => Promise<ToolAckResult>
   ) {
     this.#runContext = runContext;
     this.#delegate = delegate;
@@ -369,30 +375,32 @@ async function createPoeAcpModel(options: {
         ...(request.tools.length === 0
           ? {}
           : {
-              tools: request.tools.map(tool => ({
+              tools: request.tools.map((tool) => ({
                 type: "function",
                 function: {
                   name: tool.name,
                   description: tool.description ?? "",
-                  parameters: normalizeToolInputSchema(tool.inputSchema),
-                },
-              })),
-            }),
+                  parameters: normalizeToolInputSchema(tool.inputSchema)
+                }
+              }))
+            })
       };
 
       const response = await fetchFn(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`
         },
         body: JSON.stringify(payload),
-        signal: request.signal,
+        signal: request.signal
       });
 
       if (!response.ok) {
         const details = await response.text().catch(() => "");
-        throw new Error(`Poe API request failed (${response.status}): ${details || response.statusText}`);
+        throw new Error(
+          `Poe API request failed (${response.status}): ${details || response.statusText}`
+        );
       }
 
       const json = (await response.json()) as {
@@ -410,21 +418,21 @@ async function createPoeAcpModel(options: {
           ...(message.reasoning_content === undefined
             ? {}
             : {
-                reasoning_content: message.reasoning_content,
+                reasoning_content: message.reasoning_content
               }),
           ...(message.reasoning === undefined
             ? {}
             : {
-                reasoning: message.reasoning,
+                reasoning: message.reasoning
               }),
           ...(message.tool_calls === undefined
             ? {}
             : {
-                tool_calls: message.tool_calls,
-              }),
-        },
+                tool_calls: message.tool_calls
+              })
+        }
       };
-    },
+    }
   };
 }
 
@@ -454,7 +462,7 @@ function resolveModelName(configModel: string | undefined, model: AcpModel | und
   }
 
   throw new Error("Missing model. Configure one with .model(...).", {
-    cause: undefined,
+    cause: undefined
   });
 }
 
@@ -483,18 +491,18 @@ function normalizeToolInputSchema(schema: unknown): {
     return {
       type: objectSchema.type === "object" ? "object" : "object",
       properties: objectSchema.properties ?? {},
-      ...(objectSchema.required === undefined ? {} : { required: [...objectSchema.required] }),
+      ...(objectSchema.required === undefined ? {} : { required: [...objectSchema.required] })
     };
   }
 
   return {
     type: "object",
-    properties: {},
+    properties: {}
   };
 }
 
 function toSpawnMcpServers(
-  mcpServers: ReadonlyArray<McpServerConfig>,
+  mcpServers: ReadonlyArray<McpServerConfig>
 ): NonNullable<CreateAgentSessionOptions["mcpServers"]> {
   const byName: NonNullable<CreateAgentSessionOptions["mcpServers"]> = {};
 
@@ -503,7 +511,7 @@ function toSpawnMcpServers(
       transport: "stdio",
       command: server.command,
       ...(server.args === undefined ? {} : { args: [...server.args] }),
-      ...(server.env === undefined ? {} : { env: { ...server.env } }),
+      ...(server.env === undefined ? {} : { env: { ...server.env } })
     };
   }
 
@@ -520,7 +528,7 @@ function resolveActiveSkills(options: AgentRunOptions): string[] | undefined {
 
 function linkExternalAbortSignal(
   externalSignal: AbortSignal | undefined,
-  runAbortController: AbortController,
+  runAbortController: AbortController
 ): () => void {
   if (!externalSignal) {
     return () => undefined;
@@ -561,7 +569,7 @@ function toAbortError(reason: unknown): AbortError {
 
 function injectResumeMessages(
   target: ChatMessage[],
-  source: ReadonlyArray<ChatMessage> | undefined,
+  source: ReadonlyArray<ChatMessage> | undefined
 ): void {
   if (!source || source.length === 0) {
     return;

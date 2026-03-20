@@ -1,5 +1,5 @@
 {
-  "name": "@poe-code/auth",
+  "name": "@poe-code/poe-auth",
   "version": "0.0.1",
   "private": true,
   "type": "module",

@@ -1,6 +1,7 @@
 import { getPoeApiKey } from "./credentials.js";
 import { spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
+import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
 import {
   getSpawnConfig,
   spawn as spawnNonStreaming,
@@ -176,18 +177,13 @@ export function spawn(
           startedAt: new Date()
         };
 
-        await applyMiddlewares(
-          [sessionCapture, usageCapture, spawnLog],
-          middlewareContext
-        );
+        await applyMiddlewares([sessionCapture, usageCapture, spawnLog], middlewareContext);
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
         const threadId = middlewareContext.threadId ?? final.threadId;
         const sessionId =
-          (middlewareContext.sessionId !== "unknown"
-            ? middlewareContext.sessionId
-            : undefined) ??
+          (middlewareContext.sessionId !== "unknown" ? middlewareContext.sessionId : undefined) ??
           final.sessionId ??
           threadId;
 

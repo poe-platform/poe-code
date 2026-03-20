@@ -7,7 +7,7 @@ import type { ProviderService } from "../service-registry.js";
 import { registerLogoutCommand } from "./logout.js";
 import { registerUnconfigureCommand } from "./unconfigure.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
-import { createAuthStore } from "@poe-code/auth";
+import { createAuthStore } from "@poe-code/poe-auth";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -22,8 +22,11 @@ function createMemFs(): FileSystem {
 function readStoredApiKey(fs: FileSystem): Promise<string | null> {
   const authFs = {
     readFile: (filePath: string, encoding: BufferEncoding) => fs.readFile(filePath, encoding),
-    writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, opts?: { encoding?: BufferEncoding }) =>
-      fs.writeFile(filePath, data, opts),
+    writeFile: (
+      filePath: string,
+      data: string | NodeJS.ArrayBufferView,
+      opts?: { encoding?: BufferEncoding }
+    ) => fs.writeFile(filePath, data, opts),
     mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
       fs.mkdir(directoryPath, opts).then(() => undefined),
     unlink: (filePath: string) => fs.unlink(filePath),
@@ -57,11 +60,7 @@ describe("logout command", () => {
     const logs: string[] = [];
 
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
-    await fs.writeFile(
-      configPath,
-      JSON.stringify({ apiKey: "test-key" }),
-      { encoding: "utf8" }
-    );
+    await fs.writeFile(configPath, JSON.stringify({ apiKey: "test-key" }), { encoding: "utf8" });
 
     const container = createCliContainer({
       fs,
@@ -79,9 +78,7 @@ describe("logout command", () => {
     await program.parseAsync(["node", "cli", "logout"]);
 
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
-    expect(
-      logs.some((line) => line.includes("Logged out."))
-    ).toBe(true);
+    expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
   });
 
   it("unconfigures all configured services then deletes config", async () => {
@@ -129,9 +126,7 @@ describe("logout command", () => {
 
     expect(unconfigureSpy).toHaveBeenCalledTimes(1);
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
-    expect(
-      logs.some((line) => line.includes("Logged out."))
-    ).toBe(true);
+    expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
   });
 
   it("skips deletion during dry run", async () => {
@@ -139,11 +134,7 @@ describe("logout command", () => {
     const logs: string[] = [];
 
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
-    await fs.writeFile(
-      configPath,
-      JSON.stringify({ apiKey: "test-key" }),
-      { encoding: "utf8" }
-    );
+    await fs.writeFile(configPath, JSON.stringify({ apiKey: "test-key" }), { encoding: "utf8" });
 
     const container = createCliContainer({
       fs,
@@ -164,12 +155,8 @@ describe("logout command", () => {
     await program.parseAsync(["node", "cli", "--dry-run", "logout"]);
 
     const raw = await fs.readFile(configPath, "utf8");
-    expect(JSON.parse(raw)).toEqual(
-      expect.objectContaining({ apiKey: "test-key" })
-    );
-    expect(
-      logs.some((line) => line.includes("Dry run:"))
-    ).toBe(true);
+    expect(JSON.parse(raw)).toEqual(expect.objectContaining({ apiKey: "test-key" }));
+    expect(logs.some((line) => line.includes("Dry run:"))).toBe(true);
   });
 
   it("deletes stored API key during logout", async () => {
@@ -216,8 +203,6 @@ describe("logout command", () => {
 
     await program.parseAsync(["node", "cli", "logout"]);
 
-    expect(
-      logs.some((line) => line.includes("Already logged out."))
-    ).toBe(true);
+    expect(logs.some((line) => line.includes("Already logged out."))).toBe(true);
   });
 });

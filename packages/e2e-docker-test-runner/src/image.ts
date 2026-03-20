@@ -1,32 +1,32 @@
-import { execSync, spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, statSync, renameSync, unlinkSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import type { Engine } from './types.js';
+import { execSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync, statSync, renameSync, unlinkSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import type { Engine } from "./types.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DOCKERFILE_DIR = join(__dirname, '..');
-const DOCKERFILE_PATH = join(DOCKERFILE_DIR, 'e2e.Dockerfile');
+const DOCKERFILE_DIR = join(__dirname, "..");
+const DOCKERFILE_PATH = join(DOCKERFILE_DIR, "e2e.Dockerfile");
 interface BuildTarball {
   name: string;
   packageDir: string;
 }
 
 export const BUILD_TARBALLS: ReadonlyArray<BuildTarball> = [
-  { name: 'poe-code.tgz', packageDir: '.' },
-  { name: 'e2e-docker-test-runner.tgz', packageDir: 'packages/e2e-docker-test-runner' },
-  { name: 'auth.tgz', packageDir: 'packages/auth' },
-  { name: 'agent-defs.tgz', packageDir: 'packages/agent-defs' },
-  { name: 'design-system.tgz', packageDir: 'packages/design-system' },
-  { name: 'agent-spawn.tgz', packageDir: 'packages/agent-spawn' },
-  { name: 'poe-acp-client.tgz', packageDir: 'packages/poe-acp-client' },
-  { name: 'tiny-mcp-client.tgz', packageDir: 'packages/tiny-mcp-client' },
-  { name: 'poe-agent.tgz', packageDir: 'packages/poe-agent' },
-  { name: 'tiny-stdio-mcp-server.tgz', packageDir: 'packages/tiny-stdio-mcp-server' },
-  { name: 'tiny-stdio-mcp-test-server.tgz', packageDir: 'packages/tiny-stdio-mcp-test-server' },
+  { name: "poe-code.tgz", packageDir: "." },
+  { name: "e2e-docker-test-runner.tgz", packageDir: "packages/e2e-docker-test-runner" },
+  { name: "auth.tgz", packageDir: "packages/poe-auth" },
+  { name: "agent-defs.tgz", packageDir: "packages/agent-defs" },
+  { name: "design-system.tgz", packageDir: "packages/design-system" },
+  { name: "agent-spawn.tgz", packageDir: "packages/agent-spawn" },
+  { name: "poe-acp-client.tgz", packageDir: "packages/poe-acp-client" },
+  { name: "tiny-mcp-client.tgz", packageDir: "packages/tiny-mcp-client" },
+  { name: "poe-agent.tgz", packageDir: "packages/poe-agent" },
+  { name: "tiny-stdio-mcp-server.tgz", packageDir: "packages/tiny-stdio-mcp-server" },
+  { name: "tiny-stdio-mcp-test-server.tgz", packageDir: "packages/tiny-stdio-mcp-test-server" }
 ];
-export const IMAGE_NAME = 'poe-code-e2e';
+export const IMAGE_NAME = "poe-code-e2e";
 
 /**
  * Collect all files matching patterns for hashing
@@ -35,11 +35,11 @@ function collectFiles(baseDir: string, patterns: string[]): string[] {
   const files: string[] = [];
 
   for (const pattern of patterns) {
-    if (pattern.includes('*')) {
+    if (pattern.includes("*")) {
       // Handle glob patterns like 'src/**/*.ts'
-      const parts = pattern.split('/');
-      const baseIndex = parts.findIndex((p) => p.includes('*'));
-      const staticPath = parts.slice(0, baseIndex).join('/');
+      const parts = pattern.split("/");
+      const baseIndex = parts.findIndex((p) => p.includes("*"));
+      const staticPath = parts.slice(0, baseIndex).join("/");
       const startDir = join(baseDir, staticPath);
 
       try {
@@ -73,7 +73,7 @@ function walkDir(dir: string, callback: (filePath: string) => void): void {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
       // Skip node_modules and dist
-      if (entry.name !== 'node_modules' && entry.name !== 'dist') {
+      if (entry.name !== "node_modules" && entry.name !== "dist") {
         walkDir(fullPath, callback);
       }
     } else if (entry.isFile()) {
@@ -88,10 +88,10 @@ function matchesPattern(filePath: string, pattern: string, baseDir: string): boo
   // Convert glob pattern to regex
   // IMPORTANT: escape dots before expanding {{GLOBSTAR}} → .* to avoid corrupting .*
   const regexPattern = pattern
-    .replace(/\*\*/g, '{{GLOBSTAR}}')
-    .replace(/\*/g, '[^/]*')
-    .replace(/\./g, '\\.')
-    .replace(/{{GLOBSTAR}}/g, '.*');
+    .replace(/\*\*/g, "{{GLOBSTAR}}")
+    .replace(/\*/g, "[^/]*")
+    .replace(/\./g, "\\.")
+    .replace(/{{GLOBSTAR}}/g, ".*");
 
   return new RegExp(`^${regexPattern}$`).test(relativePath);
 }
@@ -101,18 +101,18 @@ function matchesPattern(filePath: string, pattern: string, baseDir: string): boo
  */
 export function getSourceHash(workspaceRoot: string): string {
   const patterns = [
-    'package-lock.json',
-    'tsconfig.json',
-    'tsconfig.build.json',
-    'turbo.json',
-    'src/**/*.ts',
-    'packages/*/src/**/*.ts',
-    'packages/*/package.json',
-    'scripts/*.mjs',
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "turbo.json",
+    "src/**/*.ts",
+    "packages/*/src/**/*.ts",
+    "packages/*/package.json",
+    "scripts/*.mjs"
   ];
 
   const files = collectFiles(workspaceRoot, patterns);
-  const hash = createHash('sha256');
+  const hash = createHash("sha256");
 
   // Also hash the Dockerfile itself
   try {
@@ -129,7 +129,7 @@ export function getSourceHash(workspaceRoot: string): string {
     }
   }
 
-  return hash.digest('hex').slice(0, 12);
+  return hash.digest("hex").slice(0, 12);
 }
 
 /**
@@ -137,10 +137,10 @@ export function getSourceHash(workspaceRoot: string): string {
  */
 export function imageExists(engine: Engine, tag: string, context?: string): boolean {
   try {
-    const contextArg = context && engine === 'docker' ? `--context ${context} ` : '';
+    const contextArg = context && engine === "docker" ? `--context ${context} ` : "";
     const result = execSync(`${engine} ${contextArg}images -q ${tag}`, {
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'ignore'],
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "ignore"]
     });
     return result.trim().length > 0;
   } catch {
@@ -152,13 +152,13 @@ export function imageExists(engine: Engine, tag: string, context?: string): bool
  * Pack a workspace package into a tarball for the Docker build context.
  */
 function packTarball(cwd: string, targetName: string, verbose: boolean): void {
-  const packResult = execSync('npm pack --pack-destination ' + DOCKERFILE_DIR, {
+  const packResult = execSync("npm pack --pack-destination " + DOCKERFILE_DIR, {
     cwd,
-    encoding: 'utf-8',
-    stdio: ['pipe', 'pipe', verbose ? 'inherit' : 'pipe'],
+    encoding: "utf-8",
+    stdio: ["pipe", "pipe", verbose ? "inherit" : "pipe"]
   });
 
-  const packedFile = packResult.trim().split('\n').pop()!;
+  const packedFile = packResult.trim().split("\n").pop()!;
   const packedPath = join(DOCKERFILE_DIR, packedFile);
   const targetPath = join(DOCKERFILE_DIR, targetName);
 
@@ -172,13 +172,12 @@ function packTarball(cwd: string, targetName: string, verbose: boolean): void {
  */
 function createTarball(workspaceRoot: string, verbose: boolean): void {
   if (verbose) {
-    console.error('Creating tarballs...');
+    console.error("Creating tarballs...");
   }
 
   for (const tarball of BUILD_TARBALLS) {
-    const cwd = tarball.packageDir === '.'
-      ? workspaceRoot
-      : join(workspaceRoot, tarball.packageDir);
+    const cwd =
+      tarball.packageDir === "." ? workspaceRoot : join(workspaceRoot, tarball.packageDir);
     packTarball(cwd, tarball.name, verbose);
   }
 }
@@ -202,7 +201,7 @@ export function buildImage(
   workspaceRoot: string,
   options: { verbose?: boolean; context?: string } = {}
 ): void {
-  const verbose = options.verbose ?? process.env.E2E_VERBOSE === '1';
+  const verbose = options.verbose ?? process.env.E2E_VERBOSE === "1";
 
   if (verbose) {
     console.error(`\n--- Building e2e image: ${tag} ---\n`);
@@ -212,18 +211,18 @@ export function buildImage(
     createTarball(workspaceRoot, verbose);
 
     const args: string[] = [];
-    if (options.context && engine === 'docker') {
-      args.push('--context', options.context);
+    if (options.context && engine === "docker") {
+      args.push("--context", options.context);
     }
-    args.push('build', '-t', tag, '-f', DOCKERFILE_PATH, DOCKERFILE_DIR);
+    args.push("build", "-t", tag, "-f", DOCKERFILE_PATH, DOCKERFILE_DIR);
 
     const result = spawnSync(engine, args, {
-      stdio: verbose ? 'inherit' : 'pipe',
-      encoding: 'utf-8',
+      stdio: verbose ? "inherit" : "pipe",
+      encoding: "utf-8"
     });
 
     if (result.status !== 0) {
-      const error = result.stderr || 'Unknown error';
+      const error = result.stderr || "Unknown error";
       throw new Error(`Failed to build e2e image: ${error}`);
     }
 
@@ -248,7 +247,7 @@ export function ensureImage(
   const tag = `${IMAGE_NAME}:${hash}`;
 
   if (imageExists(engine, tag, options.context)) {
-    if (options.verbose ?? process.env.E2E_VERBOSE === '1') {
+    if (options.verbose ?? process.env.E2E_VERBOSE === "1") {
       console.error(`Using cached e2e image: ${tag}`);
     }
     return tag;

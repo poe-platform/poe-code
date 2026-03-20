@@ -1,24 +1,12 @@
 import * as nodeFsSync from "node:fs";
 import type { FileSystem } from "../utils/file-system.js";
-import { createAuthStore } from "@poe-code/auth";
+import { createAuthStore } from "@poe-code/poe-auth";
 import { createCliEnvironment } from "./environment.js";
-import {
-  createServiceRegistry,
-  type ProviderService
-} from "./service-registry.js";
-import {
-  createCommandContextFactory,
-  type CommandContextFactory
-} from "./context.js";
+import { createServiceRegistry, type ProviderService } from "./service-registry.js";
+import { createCommandContextFactory, type CommandContextFactory } from "./context.js";
 import { createPromptLibrary } from "./prompts.js";
-import {
-  createOptionResolvers,
-  type OptionResolvers
-} from "./options.js";
-import {
-  createLoggerFactory,
-  type LoggerFactory
-} from "./logger.js";
+import { createOptionResolvers, type OptionResolvers } from "./options.js";
+import { createLoggerFactory, type LoggerFactory } from "./logger.js";
 import { ErrorLogger } from "./error-logger.js";
 import { runCommand } from "@poe-code/agent-spawn";
 import type { PromptFn, LoggerFn } from "./types.js";
@@ -71,9 +59,7 @@ export interface CliContainer {
   readonly deleteApiKey: () => Promise<void>;
 }
 
-export function createCliContainer(
-  dependencies: CliDependencies
-): CliContainer {
+export function createCliContainer(dependencies: CliDependencies): CliContainer {
   const environment = createCliEnvironment({
     cwd: dependencies.env.cwd,
     homeDir: dependencies.env.homeDir,
@@ -128,15 +114,11 @@ export function createCliContainer(
       data: string | NodeJS.ArrayBufferView,
       opts?: { encoding?: BufferEncoding }
     ) => dependencies.fs.writeFile(filePath, data, opts),
-    mkdir: (
-      directoryPath: string,
-      opts?: { recursive?: boolean }
-    ) => dependencies.fs.mkdir(directoryPath, opts).then(() => undefined),
+    mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
+      dependencies.fs.mkdir(directoryPath, opts).then(() => undefined),
     unlink: (filePath: string) => dependencies.fs.unlink(filePath),
     chmod: (filePath: string, mode: number) =>
-      dependencies.fs.chmod
-        ? dependencies.fs.chmod(filePath, mode)
-        : Promise.resolve()
+      dependencies.fs.chmod ? dependencies.fs.chmod(filePath, mode) : Promise.resolve()
   };
 
   const { store: authStore } = createAuthStore({
@@ -156,8 +138,7 @@ export function createCliContainer(
   const writeApiKey = authStore.setApiKey.bind(authStore);
   const deleteApiKey = authStore.deleteApiKey.bind(authStore);
 
-  const oauthEnabled =
-    (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN !== "0";
+  const oauthEnabled = (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN !== "0";
 
   const options = createOptionResolvers({
     prompts: dependencies.prompts,
@@ -179,9 +160,7 @@ export function createCliContainer(
 
   const registry = createServiceRegistry();
 
-  const providers = getDefaultProviders().filter(
-    (adapter) => !adapter.disabled
-  );
+  const providers = getDefaultProviders().filter((adapter) => !adapter.disabled);
   for (const adapter of providers) {
     registry.register(adapter);
   }

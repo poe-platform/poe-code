@@ -4,7 +4,7 @@ import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { CommandRunner } from "../../utils/command-checks.js";
 import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace } from "../constants.js";
-import { createAuthStore } from "@poe-code/auth";
+import { createAuthStore } from "@poe-code/poe-auth";
 
 vi.mock("../oauth-login.js", () => ({
   resolveApiKeyViaOAuth: vi.fn(async () => "sk-poe-OAuthKeyFromBrowserFlowTestValue1234567890abc")
@@ -29,8 +29,11 @@ function createMemfs(homeDir: string): FileSystem {
 function readStoredApiKey(fs: FileSystem, homeDir: string): Promise<string | null> {
   const authFs = {
     readFile: (filePath: string, encoding: BufferEncoding) => fs.readFile(filePath, encoding),
-    writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, opts?: { encoding?: BufferEncoding }) =>
-      fs.writeFile(filePath, data, opts),
+    writeFile: (
+      filePath: string,
+      data: string | NodeJS.ArrayBufferView,
+      opts?: { encoding?: BufferEncoding }
+    ) => fs.writeFile(filePath, data, opts),
     mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
       fs.mkdir(directoryPath, opts).then(() => undefined),
     unlink: (filePath: string) => fs.unlink(filePath),
@@ -76,26 +79,16 @@ describe("login command", () => {
     const optsSpy = vi.spyOn(program, "optsWithGlobals");
     optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "login",
-      "--api-key",
-      TEST_KEY
-    ]);
+    await program.parseAsync(["node", "cli", "login", "--api-key", TEST_KEY]);
 
     const storedKey = await readStoredApiKey(fs, homeDir);
     expect(storedKey).toBe(TEST_KEY);
     expect(prompts).not.toHaveBeenCalled();
-    expect(
-      logs.some((message) => message.includes("Logged in."))
-    ).toBe(true);
+    expect(logs.some((message) => message.includes("Logged in."))).toBe(true);
 
     await expect(fs.stat(`${homeDir}/.claude/settings.json`)).rejects.toBeTruthy();
     await expect(fs.stat(`${homeDir}/.codex/config.toml`)).rejects.toBeTruthy();
-    await expect(
-      fs.stat(`${homeDir}/.config/opencode/config.json`)
-    ).rejects.toBeTruthy();
+    await expect(fs.stat(`${homeDir}/.config/opencode/config.json`)).rejects.toBeTruthy();
   });
 
   it("reads API key from POE_API_KEY env variable when flag not provided", async () => {
@@ -219,18 +212,9 @@ describe("login command", () => {
     const optsSpy = vi.spyOn(program, "optsWithGlobals");
     optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "login",
-      "--api-key",
-      NEW_KEY
-    ]);
+    await program.parseAsync(["node", "cli", "login", "--api-key", NEW_KEY]);
 
-    const settingsRaw = await fs.readFile(
-      `${homeDir}/.claude/settings.json`,
-      "utf8"
-    );
+    const settingsRaw = await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8");
     const settings = JSON.parse(settingsRaw);
     expect(settings.apiKeyHelper).toBe(`echo ${NEW_KEY}`);
     expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL));
@@ -260,9 +244,7 @@ describe("login command", () => {
     const storedKey = await readStoredApiKey(fs, homeDir);
     expect(storedKey).toBe(OAUTH_KEY);
     expect(prompts).not.toHaveBeenCalled();
-    expect(
-      logs.some((message) => message.includes("Logged in."))
-    ).toBe(true);
+    expect(logs.some((message) => message.includes("Logged in."))).toBe(true);
   });
 
   it("prefers --api-key flag over OAuth flow", async () => {
@@ -312,21 +294,10 @@ describe("login command", () => {
     const optsSpy = vi.spyOn(program, "optsWithGlobals");
     optsSpy.mockReturnValue({ yes: true, dryRun: true } as any);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--dry-run",
-      "login",
-      "--api-key",
-      DRY_KEY
-    ]);
+    await program.parseAsync(["node", "cli", "--dry-run", "login", "--api-key", DRY_KEY]);
 
     const storedKey = await readStoredApiKey(fs, homeDir);
     expect(storedKey).toBeNull();
-    expect(
-      logs.some((message) =>
-        message.includes("Dry run: would save API key.")
-      )
-    ).toBe(true);
+    expect(logs.some((message) => message.includes("Dry run: would save API key."))).toBe(true);
   });
 });

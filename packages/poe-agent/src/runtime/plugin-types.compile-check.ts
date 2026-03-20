@@ -7,6 +7,7 @@ import type {
   PromptContext,
   ToolUseContext,
 } from "./plugin-types.js";
+import type { McpSpawnServer } from "@poe-code/agent-spawn";
 import type { Tool } from "./types.js";
 
 declare const tool: Tool;
@@ -32,6 +33,16 @@ const mcpConfig: McpServerConfig = {
   env: { NODE_ENV: "test" },
   visibility: "skill",
 };
+
+type AssertAssignable<To, ignoredFrom extends To> = true;
+type ignoredMcpServerConfigExtendsSpawnServer = AssertAssignable<
+  McpSpawnServer,
+  McpServerConfig
+>;
+type ignoredMcpServerConfigCanBeBuiltFromSpawnServer = AssertAssignable<
+  McpServerConfig,
+  McpSpawnServer & { name: string }
+>;
 
 const plugin: AgentPlugin = {
   name: "example-plugin",

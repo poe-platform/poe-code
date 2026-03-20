@@ -16,21 +16,6 @@ const DEFAULT_MCP_CLIENT_INFO = {
   version: "0.0.1",
 };
 
-type PaginatedTools = {
-  tools: McpTool[];
-  nextCursor?: string;
-};
-
-type McpToolClient = {
-  connect(transport: StdioTransport): Promise<unknown>;
-  listTools(params?: { cursor?: string }): Promise<PaginatedTools>;
-  callTool(
-    params: { name: string; arguments?: Record<string, unknown> },
-    options?: { signal?: AbortSignal },
-  ): Promise<CallToolResult>;
-  close?(): Promise<void>;
-};
-
 export class PluginApiImpl implements PluginApi {
   readonly #runContext: RunContext;
   #setupQueue: Promise<void> = Promise.resolve();
@@ -55,12 +40,17 @@ export class PluginApiImpl implements PluginApi {
     const transport = new StdioTransport({
       command: config.command,
       args: config.args,
-      env: config.env,
+      env:
+        config.env === undefined
+          ? undefined
+          : {
+              ...process.env,
+              ...config.env,
+            },
     });
     const client = new McpClient({
       clientInfo: DEFAULT_MCP_CLIENT_INFO,
-      transport,
-    } as unknown as ConstructorParameters<typeof McpClient>[0]) as McpToolClient;
+    });
 
     this.#runContext.registerDisposeHook(async () => {
       await client.close?.();
@@ -87,7 +77,7 @@ export class PluginApiImpl implements PluginApi {
     }
   }
 
-  #toRuntimeTool(config: McpServerConfig, mcpTool: McpTool, client: McpToolClient): Tool {
+  #toRuntimeTool(config: McpServerConfig, mcpTool: McpTool, client: McpClient): Tool {
     return {
       name: `${config.name}.${mcpTool.name}`,
       description: mcpTool.description,

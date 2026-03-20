@@ -1,6 +1,8 @@
 export type ChatMessage = {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
+  reasoning_content?: string;
+  reasoning?: string;
   name?: string;
   toolCallId?: string;
 };

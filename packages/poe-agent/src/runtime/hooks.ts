@@ -30,7 +30,7 @@ async function runHookPipeline<TContext>(
   hooks: Array<(ctx: TContext) => HookDecision | Promise<HookDecision>>,
   context: TContext,
 ): Promise<HookDecision> {
-  let firstDecision: HookDecision;
+  let firstDecision: HookDecision = undefined;
 
   for (const hook of hooks) {
     const decision = await hook(context);

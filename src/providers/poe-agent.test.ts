@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createCliEnvironment } from "../cli/environment.js";
-import type { ProviderContext } from "../cli/service-registry.js";
-import { provider as poeAgentProvider } from "./poe-agent.js";
+import { provider as poeAgentProvider, spawnPoeAgentWithAcp } from "./poe-agent.js";
 import { getDefaultProviders } from "./index.js";
 import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
 import { AcpClient } from "@poe-code/poe-acp-client";
@@ -13,21 +11,6 @@ const disposeMock = vi.hoisted(() => vi.fn());
 vi.mock("@poe-code/poe-agent", () => ({
   createAgentSession: createAgentSessionMock
 }));
-
-function createProviderContext(
-  variables?: Record<string, string | undefined>,
-): ProviderContext {
-  return {
-    env: createCliEnvironment({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      variables: variables ?? {},
-    }),
-    command: {} as ProviderContext["command"],
-    logger: {} as ProviderContext["logger"],
-    runCheck: vi.fn()
-  };
-}
 
 describe("poe-agent provider", () => {
   beforeEach(() => {
@@ -85,16 +68,16 @@ describe("poe-agent provider", () => {
     expect(poeAgentProvider.summary).toBe(
       "Run one-shot prompts with the built-in Poe agent runtime."
     );
-    expect(poeAgentProvider.supportsMcpSpawn).toBe(true);
+    expect(poeAgentProvider.spawn).toBeUndefined();
+    expect(poeAgentProvider.supportsMcpSpawn).toBeUndefined();
   });
 
-  it("delegates spawn to createAgentSession", async () => {
-    const context = createProviderContext();
+  it("runs poe-agent via ACP host lifecycle", async () => {
     const initializeSpy = vi.spyOn(AcpClient.prototype, "initialize");
     const newSessionSpy = vi.spyOn(AcpClient.prototype, "newSession");
     const promptSpy = vi.spyOn(AcpClient.prototype, "prompt");
 
-    const result = await poeAgentProvider.spawn?.(context, {
+    const { events, done } = spawnPoeAgentWithAcp({
       prompt: "Summarize this diff",
       model: "anthropic/claude-opus-4.6",
       cwd: "/workspace/project",
@@ -106,11 +89,18 @@ describe("poe-agent provider", () => {
         }
       }
     });
+    const received: unknown[] = [];
+    const collectPromise = (async () => {
+      for await (const event of events) {
+        received.push(event);
+      }
+    })();
+    const result = await done;
+    await collectPromise;
 
     expect(createAgentSessionMock).toHaveBeenCalledWith({
       model: "anthropic/claude-opus-4.6",
       cwd: "/workspace/project",
-      baseUrl: "https://api.poe.com/v1",
       mcpServers: {
         test: {
           transport: "stdio",
@@ -141,10 +131,28 @@ describe("poe-agent provider", () => {
       })
     );
     expect(disposeMock).toHaveBeenCalledTimes(1);
+    expect(received).toEqual([
+      { event: "session_start", threadId: "poe-agent-session-1" },
+      {
+        event: "tool_start",
+        kind: "exec",
+        title: "run command",
+        id: "tool-1"
+      },
+      {
+        event: "tool_complete",
+        kind: "exec",
+        path: "ok",
+        id: "tool-1"
+      },
+      { event: "agent_message", text: "Poe agent output" }
+    ]);
     expect(result).toEqual({
       stdout: "Poe agent output\n",
       stderr: "",
-      exitCode: 0
+      exitCode: 0,
+      threadId: "poe-agent-session-1",
+      sessionId: "poe-agent-session-1"
     });
 
     initializeSpy.mockRestore();
@@ -153,31 +161,27 @@ describe("poe-agent provider", () => {
   });
 
   it("uses default model when none is provided", async () => {
-    const context = createProviderContext();
-
-    await poeAgentProvider.spawn?.(context, {
+    const { done } = spawnPoeAgentWithAcp({
       prompt: "Explain this function"
     });
+    await done;
 
     expect(createAgentSessionMock).toHaveBeenCalledWith({
       model: DEFAULT_FRONTIER_MODEL,
-      cwd: "/repo",
-      baseUrl: "https://api.poe.com/v1",
+      cwd: process.cwd(),
     });
   });
 
-  it("forwards POE_BASE_URL override to createAgentSession", async () => {
-    const context = createProviderContext({
-      POE_BASE_URL: "http://proxy.example.com",
-    });
-
-    await poeAgentProvider.spawn?.(context, {
+  it("forwards baseUrl override to createAgentSession", async () => {
+    const { done } = spawnPoeAgentWithAcp({
       prompt: "Explain this function",
+      baseUrl: "http://proxy.example.com/v1",
     });
+    await done;
 
     expect(createAgentSessionMock).toHaveBeenCalledWith({
       model: DEFAULT_FRONTIER_MODEL,
-      cwd: "/repo",
+      cwd: process.cwd(),
       baseUrl: "http://proxy.example.com/v1",
     });
   });

@@ -134,6 +134,7 @@ const wrapper = [
 await writeFile(wrapperPath, wrapper, { encoding: "utf8" });
 
 const pipelineTemplateDir = path.join(rootDir, "dist", "templates", "pipeline");
+const distDir = path.join(rootDir, "dist");
 await mkdir(pipelineTemplateDir, { recursive: true });
 await Promise.all([
   copyFile(
@@ -143,6 +144,10 @@ await Promise.all([
   copyFile(
     path.join(rootDir, "src", "templates", "pipeline", "steps.yaml.hbs"),
     path.join(pipelineTemplateDir, "steps.yaml.hbs")
+  ),
+  copyFile(
+    path.join(rootDir, "packages", "poe-agent", "src", "SYSTEM_PROMPT.md"),
+    path.join(distDir, "SYSTEM_PROMPT.md")
   )
 ]);
 

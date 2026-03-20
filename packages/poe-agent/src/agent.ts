@@ -49,6 +49,10 @@ export type AgentRunOptions = {
   createSpawnSession?: AgentHostOptions["createSpawnSession"];
 };
 
+type InternalAgentRunOptions = AgentRunOptions & {
+  __legacyAutoHandleTools?: boolean;
+};
+
 export type AcpSession = {
   events: AsyncIterable<AcpEvent>;
   acknowledge(intentId: string, result: ToolAckResult): void;
@@ -103,13 +107,18 @@ class ImmutableAgentBuilder implements AgentBuilder {
       throw toError(error);
     });
 
+    const autoHandleTools = (options as InternalAgentRunOptions).__legacyAutoHandleTools === true;
     const delegateHost = new AgentHost({
       runContext: prepared.runContext,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
       createSpawnSession: prepared.createSpawnSession,
     });
-    const host = new CallerAcpHost(prepared.runContext, delegateHost);
+    const host = new CallerAcpHost(
+      prepared.runContext,
+      delegateHost,
+      autoHandleTools ? delegateHost.handle.bind(delegateHost) : undefined,
+    );
     const events = runAcpCore({
       prompt,
       runContext: prepared.runContext,
@@ -268,6 +277,7 @@ type PreparedRun = {
 class CallerAcpHost implements AcpHost {
   readonly #runContext: RunContext;
   readonly #delegate: Pick<AcpHost, "fork" | "spawn">;
+  readonly #autoHandleIntent?: (intent: ToolIntent) => Promise<ToolAckResult>;
   readonly #pending = new Map<
     string,
     {
@@ -276,9 +286,14 @@ class CallerAcpHost implements AcpHost {
     }
   >();
 
-  constructor(runContext: RunContext, delegate: Pick<AcpHost, "fork" | "spawn">) {
+  constructor(
+    runContext: RunContext,
+    delegate: Pick<AcpHost, "fork" | "spawn">,
+    autoHandleIntent?: (intent: ToolIntent) => Promise<ToolAckResult>,
+  ) {
     this.#runContext = runContext;
     this.#delegate = delegate;
+    this.#autoHandleIntent = autoHandleIntent;
 
     const onAbort = (): void => {
       this.#rejectPending(toAbortError(runContext.abortController.signal.reason));
@@ -305,6 +320,10 @@ class CallerAcpHost implements AcpHost {
   }
 
   async handle(intent: ToolIntent): Promise<ToolAckResult> {
+    if (this.#autoHandleIntent) {
+      return this.#autoHandleIntent(intent);
+    }
+
     assertNotAborted(this.#runContext.abortController.signal);
 
     if (this.#pending.has(intent.intentId)) {
@@ -390,6 +409,16 @@ async function createPoeAcpModel(options: {
       return {
         message: {
           content: message.content,
+          ...(message.reasoning_content === undefined
+            ? {}
+            : {
+                reasoning_content: message.reasoning_content,
+              }),
+          ...(message.reasoning === undefined
+            ? {}
+            : {
+                reasoning: message.reasoning,
+              }),
           ...(message.tool_calls === undefined
             ? {}
             : {

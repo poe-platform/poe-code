@@ -10,6 +10,7 @@ import {
   type McpSpawnConfig,
   type SpawnMode
 } from "@poe-code/agent-spawn";
+import { resolveAgentId } from "@poe-code/agent-defs";
 import { text, confirm, isCancel } from "@poe-code/design-system";
 import { loadConfiguredServices } from "../../services/config.js";
 import {
@@ -119,16 +120,18 @@ export function registerSpawnCommand(
 
       if (commandOptions.interactive) {
         const adapter = resolveServiceAdapter(container, service);
+        const canonicalService = adapter.name;
+        assertInteractiveSupport(adapter.label, canonicalService);
         const proceed = await confirmUnconfiguredService(
           container,
-          adapter.name,
+          canonicalService,
           adapter.label,
           flags
         );
         if (!proceed) {
           return;
         }
-        const result = await spawnInteractive(adapter.name, {
+        const result = await spawnInteractive(canonicalService, {
           prompt: promptText ?? "",
           args: forwardedArgs,
           model: commandOptions.model,
@@ -207,6 +210,12 @@ export function registerSpawnCommand(
       }
 
       try {
+        assertSpawnSupport(
+          adapter.label,
+          canonicalService,
+          typeof adapter.spawn === "function"
+        );
+
         assertMcpSpawnSupport(
           adapter.label,
           canonicalService,
@@ -427,6 +436,30 @@ function assertMcpSpawnSupport(
     `${label} does not support MCP servers at spawn time.\n` +
       `Agents with spawn-time MCP support: ${supported.join(", ")}`
   );
+}
+
+function assertSpawnSupport(
+  label: string,
+  service: string,
+  providerSupportsSpawn: boolean
+): void {
+  if (providerSupportsSpawn) {
+    return;
+  }
+  if (getSpawnConfig(service)) {
+    return;
+  }
+  throw new ValidationError(`${label} does not support spawn.`);
+}
+
+function assertInteractiveSupport(
+  label: string,
+  service: string
+): void {
+  if (resolveAgentId(service)) {
+    return;
+  }
+  throw new ValidationError(`${label} does not support interactive mode.`);
 }
 
 function isObjectRecord(

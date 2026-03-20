@@ -35,6 +35,8 @@ export type AcpModelToolCall = {
 
 export type AcpModelMessage = {
   content?: string | null;
+  reasoning_content?: string;
+  reasoning?: string;
   toolCalls?: AcpModelToolCall[];
   tool_calls?: Array<{
     id: string;
@@ -56,6 +58,8 @@ export type AcpModelResponse = {
 export type AcpModelRequestMessage = {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
+  reasoning_content?: string;
+  reasoning?: string;
   name?: string;
   tool_call_id?: string;
   tool_calls?: Array<{
@@ -164,7 +168,16 @@ async function execute(options: RunAcpCoreOptions, events: AsyncEventQueue<AcpEv
   const cleanupAbortSignal = signal.cleanup;
 
   let terminalEmitted = false;
-  const disposeRun = options.disposeRun ?? (() => options.runContext.dispose());
+  const baseDisposeRun = options.disposeRun ?? (() => options.runContext.dispose());
+  let disposed = false;
+  const disposeRun = async (): Promise<void> => {
+    if (disposed) {
+      return;
+    }
+
+    disposed = true;
+    await baseDisposeRun();
+  };
 
   const emit = (event: AcpEvent): void => {
     if (terminalEmitted) {
@@ -189,6 +202,7 @@ async function execute(options: RunAcpCoreOptions, events: AsyncEventQueue<AcpEv
       ...options,
       signal: signal.value,
       emit,
+      disposeRun,
     });
 
     await disposeRun();
@@ -541,6 +555,8 @@ function createForkRunner(options: ForkRunnerOptions): (prompt: string) => Promi
 
 type NormalizedModelResponse = {
   content: string;
+  reasoningContent?: string;
+  reasoning?: string;
   toolCalls: NormalizedModelToolCall[];
 };
 
@@ -548,11 +564,15 @@ type NormalizedModelToolCall = {
   intentId: string;
   tool: string;
   args: unknown;
+  rawArguments?: string;
 };
 
 function normalizeModelResponse(response: AcpModelResponse, iterationNumber: number): NormalizedModelResponse {
   const message = response.message;
   const messageContent = message?.content;
+  const reasoningContent =
+    typeof message?.reasoning_content === "string" ? message.reasoning_content : undefined;
+  const reasoning = typeof message?.reasoning === "string" ? message.reasoning : undefined;
 
   const contentFromMessage = typeof messageContent === "string" ? messageContent : undefined;
   const content = contentFromMessage ?? response.content ?? "";
@@ -564,6 +584,8 @@ function normalizeModelResponse(response: AcpModelResponse, iterationNumber: num
 
   return {
     content,
+    ...(reasoningContent === undefined ? {} : { reasoningContent }),
+    ...(reasoning === undefined ? {} : { reasoning }),
     toolCalls: normalizeModelToolCalls(rawToolCalls, iterationNumber),
   };
 }
@@ -589,10 +611,16 @@ function normalizeModelToolCalls(
       continue;
     }
 
+    const normalizedArgs = normalizeToolArguments(raw);
     normalized.push({
       intentId: normalizeIntentId(raw, iterationNumber, index),
       tool,
-      args: normalizeToolArguments(raw),
+      args: normalizedArgs.args,
+      ...(normalizedArgs.rawArguments === undefined
+        ? {}
+        : {
+            rawArguments: normalizedArgs.rawArguments,
+          }),
     });
   }
 
@@ -622,17 +650,20 @@ function normalizeIntentId(raw: AcpModelToolCall, iterationNumber: number, toolI
   return `intent-${iterationNumber}-${toolIndex + 1}`;
 }
 
-function normalizeToolArguments(raw: AcpModelToolCall): unknown {
+function normalizeToolArguments(raw: AcpModelToolCall): { args: unknown; rawArguments?: string } {
   const args = raw.args ?? raw.arguments;
 
   if (typeof args !== "string") {
-    return args;
+    return { args };
   }
 
   try {
-    return JSON.parse(args) as unknown;
+    return {
+      args: JSON.parse(args) as unknown,
+      rawArguments: args,
+    };
   } catch {
-    return args;
+    return { args };
   }
 }
 
@@ -663,6 +694,16 @@ function createAssistantMessage(response: NormalizedModelResponse): ChatMessage 
   const message: ChatMessage = {
     role: "assistant",
     content: response.content,
+    ...(response.reasoningContent === undefined
+      ? {}
+      : {
+          reasoning_content: response.reasoningContent,
+        }),
+    ...(response.reasoning === undefined
+      ? {}
+      : {
+          reasoning: response.reasoning,
+        }),
   };
 
   if (response.toolCalls.length === 0) {
@@ -674,7 +715,7 @@ function createAssistantMessage(response: NormalizedModelResponse): ChatMessage 
     type: "function" as const,
     function: {
       name: toolCall.tool,
-      arguments: serializeToolArguments(toolCall.args),
+      arguments: toolCall.rawArguments ?? serializeToolArguments(toolCall.args),
     },
   }));
 
@@ -698,17 +739,33 @@ function toModelRequestMessages(
   }
 
   for (const message of messages) {
-    const modelMessage: AcpModelRequestMessage = {
-      role: message.role,
-      content: message.content,
-    };
+    let modelMessage: AcpModelRequestMessage;
+    if (message.role === "tool") {
+      modelMessage = {
+        role: message.role,
+        ...(message.toolCallId === undefined ? {} : { tool_call_id: message.toolCallId }),
+        ...(message.name === undefined ? {} : { name: message.name }),
+        content: message.content,
+      };
+    } else {
+      modelMessage = {
+        role: message.role,
+        content: message.content,
+        ...(message.reasoning_content === undefined
+          ? {}
+          : {
+              reasoning_content: message.reasoning_content,
+            }),
+        ...(message.reasoning === undefined
+          ? {}
+          : {
+              reasoning: message.reasoning,
+            }),
+      };
 
-    if (message.name !== undefined) {
-      modelMessage.name = message.name;
-    }
-
-    if (message.role === "tool" && message.toolCallId !== undefined) {
-      modelMessage.tool_call_id = message.toolCallId;
+      if (message.name !== undefined) {
+        modelMessage.name = message.name;
+      }
     }
 
     const maybeToolCalls = (message as ChatMessage & { tool_calls?: AcpModelRequestMessage["tool_calls"] })

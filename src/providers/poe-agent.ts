@@ -20,8 +20,7 @@ import {
 } from "@poe-code/poe-acp-client";
 import { createProvider } from "./create-provider.js";
 import type {
-  EmptyProviderOptions,
-  ProviderSpawnOptions
+  EmptyProviderOptions
 } from "./spawn-options.js";
 
 interface AgentSessionRuntime {
@@ -701,34 +700,14 @@ export function spawnPoeAgentWithAcp(options: {
   };
 }
 
-export const poeAgentService = createProvider<
-  EmptyProviderOptions,
-  EmptyProviderOptions,
-  ProviderSpawnOptions
->({
+export const poeAgentService = createProvider<EmptyProviderOptions>({
   id: "poe-agent",
   name: "poe-agent",
   label: "Poe Agent",
   summary: "Run one-shot prompts with the built-in Poe agent runtime.",
   supportsStdinPrompt: true,
-  supportsMcpSpawn: true,
   manifest: {
     configure: []
-  },
-  async spawn(context, options) {
-    const result = await runPoeAgentAcpLifecycle({
-      prompt: options.prompt,
-      model: options.model ?? DEFAULT_FRONTIER_MODEL,
-      cwd: options.cwd ?? context.env.cwd,
-      baseUrl: context.env.poeApiBaseUrl,
-      mcpServers: options.mcpServers,
-    });
-
-    return {
-      stdout: result.stdout,
-      stderr: result.stderr,
-      exitCode: result.exitCode,
-    };
   }
 });
 

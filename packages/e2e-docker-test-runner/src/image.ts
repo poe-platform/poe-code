@@ -20,6 +20,7 @@ export const BUILD_TARBALLS: ReadonlyArray<BuildTarball> = [
   { name: 'agent-defs.tgz', packageDir: 'packages/agent-defs' },
   { name: 'design-system.tgz', packageDir: 'packages/design-system' },
   { name: 'agent-spawn.tgz', packageDir: 'packages/agent-spawn' },
+  { name: 'poe-acp-client.tgz', packageDir: 'packages/poe-acp-client' },
   { name: 'tiny-mcp-client.tgz', packageDir: 'packages/tiny-mcp-client' },
   { name: 'poe-agent.tgz', packageDir: 'packages/poe-agent' },
   { name: 'tiny-stdio-mcp-server.tgz', packageDir: 'packages/tiny-stdio-mcp-server' },

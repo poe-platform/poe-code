@@ -1052,14 +1052,23 @@ describe("integration: MCP tool isError propagation", () => {
 });
 
 describe("integration: agent session disposal with MCP", () => {
-  it("closes MCP clients and rejects sendMessage after dispose", async () => {
+  it("closes MCP clients after a run and rejects sendMessage after dispose", async () => {
     const connectSpy = vi.spyOn(McpClient.prototype, "connect");
+    const fetchMock = createScriptedFetch([
+      {
+        message: {
+          role: "assistant",
+          content: "ok",
+        },
+      },
+    ]);
     let session: AgentSession | undefined;
 
     try {
       session = await createAgentSession({
         apiKey: "test-key",
         model: "Claude-Sonnet-4.5",
+        fetch: fetchMock,
         mcpServers: {
           "test-server": {
             transport: "stdio",
@@ -1069,9 +1078,11 @@ describe("integration: agent session disposal with MCP", () => {
         },
       });
 
+      await session.sendMessage("hello");
+
       const mcpClient = connectSpy.mock.instances[0] as McpClient | undefined;
       expect(mcpClient).toBeDefined();
-      expect(mcpClient?.state).toBe("ready");
+      expect(mcpClient?.state).toBe("closed");
 
       await session.dispose();
 

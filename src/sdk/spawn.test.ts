@@ -1,17 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const spawnPoeAgentWithAcpMock = vi.hoisted(() => vi.fn());
-
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: vi.fn(),
   spawnStreaming: vi.fn(),
   spawnInteractive: vi.fn(),
   getSpawnConfig: vi.fn(),
   renderAcpStream: vi.fn()
-}));
-
-vi.mock("../providers/poe-agent.js", () => ({
-  spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock
 }));
 
 vi.mock("./spawn-core.js", () => ({
@@ -26,7 +20,6 @@ import { spawn } from "./spawn.js";
 import { getSpawnConfig, spawn as agentSpawn, spawnStreaming, spawnInteractive, renderAcpStream } from "@poe-code/agent-spawn";
 import { spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
-import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
 
 const originalEnv = { ...process.env };
 
@@ -39,7 +32,6 @@ beforeEach(() => {
   vi.mocked(spawnCore).mockReset();
   vi.mocked(createSdkContainer).mockReset();
   vi.mocked(renderAcpStream).mockReset();
-  vi.mocked(spawnPoeAgentWithAcp).mockReset();
   vi.mocked(renderAcpStream).mockResolvedValue(undefined);
 });
 
@@ -319,23 +311,23 @@ describe("SDK spawn()", () => {
     expect(spawnStreaming).toHaveBeenCalledTimes(1);
   });
 
-  it("streams events via AcpClient for poe-agent provider", async () => {
-    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
-      events: (async function* () {
-        yield { event: "agent_message", text: "from poe-agent" } as const;
-      })(),
-      done: Promise.resolve({
-        stdout: "from poe-agent\n",
-        stderr: "",
-        exitCode: 0,
-        threadId: "poe-agent-session-1",
-        sessionId: "poe-agent-session-1"
-      })
-    });
+  it("propagates provider spawn errors for poe-agent and returns empty events", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
+    vi.mocked(createSdkContainer).mockReturnValue({} as any);
+    vi.mocked(spawnCore).mockRejectedValue(
+      new Error("Poe Agent does not support spawn.")
+    );
 
     const { events, result } = spawn("poe-agent", "test prompt", {
       cwd: "/workspace/project",
-      model: "anthropic/claude-opus-4.6"
+      model: "anthropic/claude-opus-4.6",
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
     });
 
     const received: unknown[] = [];
@@ -343,102 +335,30 @@ describe("SDK spawn()", () => {
       received.push(event);
     }
 
-    expect(received).toEqual([{ event: "agent_message", text: "from poe-agent" }]);
-    await expect(result).resolves.toEqual({
-      stdout: "from poe-agent\n",
-      stderr: "",
-      exitCode: 0,
-      threadId: "poe-agent-session-1",
-      sessionId: "poe-agent-session-1"
-    });
-
-    expect(spawnPoeAgentWithAcp).toHaveBeenCalledTimes(1);
-    expect(spawnPoeAgentWithAcp).toHaveBeenCalledWith({
-      prompt: "test prompt",
-      cwd: "/workspace/project",
-      model: "anthropic/claude-opus-4.6"
-    });
+    expect(received).toEqual([]);
+    await expect(result).rejects.toThrow("does not support spawn");
     expect(spawnStreaming).not.toHaveBeenCalled();
     expect(agentSpawn).not.toHaveBeenCalled();
-    expect(spawnCore).not.toHaveBeenCalled();
-    expect(createSdkContainer).not.toHaveBeenCalled();
-  });
-
-  it("forwards mcpServers to poe-agent ACP runtime", async () => {
-    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
-      events: (async function* () {})(),
-      done: Promise.resolve({
-        stdout: "from poe-agent\n",
-        stderr: "",
-        exitCode: 0,
-        threadId: "poe-agent-session-2",
-        sessionId: "poe-agent-session-2"
-      })
-    });
-
-    const { result } = spawn("poe-agent", "test prompt", {
-      mcpServers: {
-        test: {
-          command: "tiny-stdio-mcp-test-server",
-          args: ["serve", "word-of-the-day"],
-          env: { MCP_LOG_LEVEL: "debug" }
-        }
+    expect(spawnCore).toHaveBeenCalledTimes(1);
+    expect(spawnCore).toHaveBeenCalledWith(
+      expect.anything(),
+      "poe-agent",
+      {
+        prompt: "test prompt",
+        cwd: "/workspace/project",
+        model: "anthropic/claude-opus-4.6",
+        mode: undefined,
+        args: undefined,
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server",
+            args: ["serve", "word-of-the-day"],
+            env: { MCP_LOG_LEVEL: "debug" }
+          }
+        },
+        useStdin: false
       }
-    });
-
-    await expect(result).resolves.toEqual({
-      stdout: "from poe-agent\n",
-      stderr: "",
-      exitCode: 0,
-      threadId: "poe-agent-session-2",
-      sessionId: "poe-agent-session-2"
-    });
-
-    expect(spawnPoeAgentWithAcp).toHaveBeenCalledTimes(1);
-    expect(spawnPoeAgentWithAcp).toHaveBeenCalledWith({
-      prompt: "test prompt",
-      cwd: undefined,
-      model: undefined,
-      mcpServers: {
-        test: {
-          command: "tiny-stdio-mcp-test-server",
-          args: ["serve", "word-of-the-day"],
-          env: { MCP_LOG_LEVEL: "debug" }
-        }
-      }
-    });
-  });
-
-  it("forwards POE_BASE_URL to poe-agent ACP runtime", async () => {
-    process.env.POE_BASE_URL = "http://proxy.example.com/v1";
-
-    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
-      events: (async function* () {})(),
-      done: Promise.resolve({
-        stdout: "from poe-agent\n",
-        stderr: "",
-        exitCode: 0,
-        threadId: "poe-agent-session-3",
-        sessionId: "poe-agent-session-3"
-      })
-    });
-
-    const { result } = spawn("poe-agent", "test prompt");
-
-    await expect(result).resolves.toEqual({
-      stdout: "from poe-agent\n",
-      stderr: "",
-      exitCode: 0,
-      threadId: "poe-agent-session-3",
-      sessionId: "poe-agent-session-3"
-    });
-
-    expect(spawnPoeAgentWithAcp).toHaveBeenCalledWith({
-      prompt: "test prompt",
-      cwd: undefined,
-      model: undefined,
-      baseUrl: "http://proxy.example.com/v1"
-    });
+    );
   });
 
   it("propagates errors from spawnInteractive", async () => {

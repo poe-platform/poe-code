@@ -6,8 +6,8 @@ RUN useradd -m -s /bin/bash poe
 WORKDIR /build
 
 # Copy and install the pre-built tarballs (needs root)
-COPY poe-code.tgz e2e-docker-test-runner.tgz auth.tgz agent-defs.tgz design-system.tgz agent-spawn.tgz tiny-mcp-client.tgz poe-agent.tgz tiny-stdio-mcp-server.tgz tiny-stdio-mcp-test-server.tgz ./
-RUN npm install -g commander ./poe-code.tgz ./e2e-docker-test-runner.tgz ./auth.tgz ./agent-defs.tgz ./design-system.tgz ./agent-spawn.tgz ./tiny-mcp-client.tgz ./poe-agent.tgz && \
+COPY poe-code.tgz e2e-docker-test-runner.tgz auth.tgz agent-defs.tgz design-system.tgz agent-spawn.tgz poe-acp-client.tgz tiny-mcp-client.tgz poe-agent.tgz tiny-stdio-mcp-server.tgz tiny-stdio-mcp-test-server.tgz ./
+RUN npm install -g commander ./poe-code.tgz ./e2e-docker-test-runner.tgz ./auth.tgz ./agent-defs.tgz ./design-system.tgz ./agent-spawn.tgz ./poe-acp-client.tgz ./tiny-mcp-client.tgz ./poe-agent.tgz && \
     npm install --prefix /opt/mcp-test @modelcontextprotocol/sdk ./tiny-stdio-mcp-server.tgz ./tiny-stdio-mcp-test-server.tgz && \
     ln -sf /opt/mcp-test/node_modules/.bin/tiny-stdio-mcp-test-server /usr/local/bin/tiny-stdio-mcp-test-server && \
     mkdir -p /node_modules/@poe-code && \
@@ -15,7 +15,7 @@ RUN npm install -g commander ./poe-code.tgz ./e2e-docker-test-runner.tgz ./auth.
     mv poe-code.tgz /opt/poe-code.tgz && \
     node --input-type=module -e "await import.meta.resolve('@poe-code/poe-agent')" >/dev/null && \
     proxy-server --help >/dev/null && \
-    rm e2e-docker-test-runner.tgz auth.tgz agent-defs.tgz design-system.tgz agent-spawn.tgz tiny-mcp-client.tgz poe-agent.tgz tiny-stdio-mcp-server.tgz tiny-stdio-mcp-test-server.tgz
+    rm e2e-docker-test-runner.tgz auth.tgz agent-defs.tgz design-system.tgz agent-spawn.tgz poe-acp-client.tgz tiny-mcp-client.tgz poe-agent.tgz tiny-stdio-mcp-server.tgz tiny-stdio-mcp-test-server.tgz
 
 # Install agents that use global npm install (needs root)
 RUN poe-code install codex && \

@@ -39,6 +39,22 @@ function createHost(): AcpHost {
   };
 }
 
+function createTokenBudget(max: number) {
+  let total = 0;
+
+  return {
+    name: "token-budget",
+    hooks: {
+      postIteration(ctx: { tokenCount: number }) {
+        total += ctx.tokenCount;
+        if (total > max) {
+          return "abort" as const;
+        }
+      },
+    },
+  };
+}
+
 describe("runAcpCore", () => {
   it("emits intent/result events, applies hooks, and completes when the model returns final text", async () => {
     const runContext = createRunContext();
@@ -126,6 +142,151 @@ describe("runAcpCore", () => {
     }
   });
 
+  it("serializes tool request messages with stable key order for snapshot playback", async () => {
+    const runContext = createRunContext();
+    const host = createHost();
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          toolCalls: [
+            {
+              id: "tool-1",
+              tool: "read_file",
+              args: { path: "README.md" },
+            },
+          ],
+        },
+      },
+      {
+        message: {
+          content: "Done",
+          toolCalls: [],
+        },
+      },
+    ]);
+
+    await collectEvents(
+      runAcpCore({
+        prompt: "Read the README",
+        runContext,
+        host,
+        model,
+      }),
+    );
+
+    const secondRequest = (model.complete as ReturnType<typeof vi.fn>).mock.calls[1]?.[0] as
+      | { model: string; messages: unknown[] }
+      | undefined;
+    expect(secondRequest).toBeDefined();
+    const snapshotHashInput = JSON.stringify({
+      model: secondRequest?.model,
+      messages: secondRequest?.messages,
+    });
+    expect(snapshotHashInput).toContain(
+      '"role":"tool","tool_call_id":"tool-1","name":"read_file","content":"',
+    );
+  });
+
+  it("preserves raw model tool argument JSON when echoing assistant tool calls", async () => {
+    const runContext = createRunContext();
+    const host = createHost();
+    const rawArguments = '{"command": "create", "path": "/workspace/test-document.txt"}';
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          tool_calls: [
+            {
+              id: "call-1",
+              type: "function",
+              function: {
+                name: "edit_file",
+                arguments: rawArguments,
+              },
+            },
+          ],
+        },
+      },
+      {
+        message: {
+          content: "Done",
+          toolCalls: [],
+        },
+      },
+    ]);
+
+    await collectEvents(
+      runAcpCore({
+        prompt: "Create a file",
+        runContext,
+        host,
+        model,
+      }),
+    );
+
+    expect(host.handle).toHaveBeenCalledWith({
+      intentId: "call-1",
+      tool: "edit_file",
+      args: {
+        command: "create",
+        path: "/workspace/test-document.txt",
+      },
+    });
+
+    const secondRequest = (model.complete as ReturnType<typeof vi.fn>).mock.calls[1]?.[0] as
+      | { messages?: Array<{ role?: string; tool_calls?: Array<{ function?: { arguments?: string } }> }> }
+      | undefined;
+    const assistantMessage = secondRequest?.messages?.find(message => message.role === "assistant");
+    expect(assistantMessage?.tool_calls?.[0]?.function?.arguments).toBe(rawArguments);
+  });
+
+  it("preserves reasoning fields in follow-up model requests", async () => {
+    const runContext = createRunContext();
+    const host = createHost();
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          reasoning_content: "Need to create file first",
+          reasoning: "Need to create file first",
+          tool_calls: [
+            {
+              id: "call-1",
+              type: "function",
+              function: {
+                name: "edit_file",
+                arguments: '{"command": "create", "path": "/workspace/test-document.txt"}',
+              },
+            },
+          ],
+        },
+      },
+      {
+        message: {
+          content: "Done",
+          toolCalls: [],
+        },
+      },
+    ]);
+
+    await collectEvents(
+      runAcpCore({
+        prompt: "Create a file",
+        runContext,
+        host,
+        model,
+      }),
+    );
+
+    const secondRequest = (model.complete as ReturnType<typeof vi.fn>).mock.calls[1]?.[0] as
+      | { messages?: Array<Record<string, unknown>> }
+      | undefined;
+    const assistantMessage = secondRequest?.messages?.find(message => message.role === "assistant");
+    expect(assistantMessage?.reasoning_content).toBe("Need to create file first");
+    expect(assistantMessage?.reasoning).toBe("Need to create file first");
+  });
+
   it("maps preToolUse reject into tool.error, skips host execution, and lets the run recover", async () => {
     const runContext = createRunContext();
     runContext.hooks.add({
@@ -188,6 +349,382 @@ describe("runAcpCore", () => {
           error: "blocked",
         },
       ]);
+    }
+  });
+
+  it("applies guardrails, lets the model recover with a safe command, and executes allowed commands", async () => {
+    const runContext = createRunContext();
+
+    const isForbidden = (args: unknown): boolean => {
+      if (typeof args !== "object" || args === null || Array.isArray(args)) {
+        return false;
+      }
+
+      const command = (args as { command?: unknown }).command;
+      return typeof command === "string" && command.includes("rm -rf");
+    };
+
+    runContext.hooks.add({
+      name: "guardrails",
+      hooks: {
+        preToolUse(ctx) {
+          if (ctx.tool === "run_command" && isForbidden(ctx.args)) {
+            return { reject: "Blocked forbidden command" };
+          }
+        },
+      },
+    });
+
+    const host = createHost();
+    host.handle = vi.fn(async intent => ({
+      status: "success",
+      result: `executed:${(intent.args as { command?: string }).command ?? ""}`,
+    }));
+
+    let callNumber = 0;
+    const model: AcpModel = {
+      complete: vi.fn(async request => {
+        callNumber += 1;
+
+        if (callNumber === 1) {
+          return {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "blocked-command",
+                  tool: "run_command",
+                  args: { command: "rm -rf /tmp/demo" },
+                },
+              ],
+            },
+          };
+        }
+
+        if (callNumber === 2) {
+          expect(request.messages.at(-1)).toEqual({
+            role: "tool",
+            content: "Error: Blocked forbidden command",
+            name: "run_command",
+            tool_call_id: "blocked-command",
+          });
+
+          return {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "safe-command",
+                  tool: "run_command",
+                  args: { command: "ls -la" },
+                },
+              ],
+            },
+          };
+        }
+
+        if (callNumber === 3) {
+          expect(request.messages.at(-1)).toEqual({
+            role: "tool",
+            content: "executed:ls -la",
+            name: "run_command",
+            tool_call_id: "safe-command",
+          });
+
+          return {
+            message: {
+              content: "Recovered",
+              toolCalls: [],
+            },
+          };
+        }
+
+        throw new Error("Unexpected model call");
+      }),
+    };
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "Run shell commands",
+        runContext,
+        host,
+        model,
+      }),
+    );
+
+    expect(events.map(event => event.type)).toEqual([
+      "tool.error",
+      "tool.intent",
+      "tool.result",
+      "message.delta",
+      "session.complete",
+    ]);
+
+    expect(host.handle).toHaveBeenCalledTimes(1);
+    expect(host.handle).toHaveBeenCalledWith({
+      intentId: "safe-command",
+      tool: "run_command",
+      args: { command: "ls -la" },
+    });
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.complete");
+    if (terminal?.type === "session.complete") {
+      expect(terminal.result.toolCalls).toEqual([
+        {
+          intentId: "blocked-command",
+          tool: "run_command",
+          args: { command: "rm -rf /tmp/demo" },
+          status: "error",
+          error: "Blocked forbidden command",
+        },
+        {
+          intentId: "safe-command",
+          tool: "run_command",
+          args: { command: "ls -la" },
+          status: "success",
+          result: "executed:ls -la",
+        },
+      ]);
+    }
+  });
+
+  it("rejects forbidden commands while executing allowed commands from the same model response", async () => {
+    const runContext = createRunContext();
+
+    const isForbidden = (args: unknown): boolean => {
+      if (typeof args !== "object" || args === null || Array.isArray(args)) {
+        return false;
+      }
+
+      const command = (args as { command?: unknown }).command;
+      return typeof command === "string" && command.includes("rm -rf");
+    };
+
+    runContext.hooks.add({
+      name: "guardrails",
+      hooks: {
+        preToolUse(ctx) {
+          if (ctx.tool === "run_command" && isForbidden(ctx.args)) {
+            return { reject: "Blocked forbidden command" };
+          }
+        },
+      },
+    });
+
+    const host = createHost();
+    host.handle = vi.fn(async intent => ({
+      status: "success",
+      result: `executed:${(intent.args as { command?: string }).command ?? ""}`,
+    }));
+
+    let callNumber = 0;
+    const model: AcpModel = {
+      complete: vi.fn(async request => {
+        callNumber += 1;
+
+        if (callNumber === 1) {
+          return {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "blocked-command",
+                  tool: "run_command",
+                  args: { command: "rm -rf /tmp/demo" },
+                },
+                {
+                  id: "safe-command",
+                  tool: "run_command",
+                  args: { command: "ls -la" },
+                },
+              ],
+            },
+          };
+        }
+
+        if (callNumber === 2) {
+          const toolMessages = request.messages.filter(message => message.role === "tool");
+          expect(toolMessages).toEqual([
+            {
+              role: "tool",
+              content: "Error: Blocked forbidden command",
+              name: "run_command",
+              tool_call_id: "blocked-command",
+            },
+            {
+              role: "tool",
+              content: "executed:ls -la",
+              name: "run_command",
+              tool_call_id: "safe-command",
+            },
+          ]);
+
+          return {
+            message: {
+              content: "done",
+              toolCalls: [],
+            },
+          };
+        }
+
+        throw new Error("Unexpected model call");
+      }),
+    };
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "Run shell commands",
+        runContext,
+        host,
+        model,
+      }),
+    );
+
+    expect(events.map(event => event.type)).toEqual([
+      "tool.error",
+      "tool.intent",
+      "tool.result",
+      "message.delta",
+      "session.complete",
+    ]);
+
+    expect(host.handle).toHaveBeenCalledTimes(1);
+    expect(host.handle).toHaveBeenCalledWith({
+      intentId: "safe-command",
+      tool: "run_command",
+      args: { command: "ls -la" },
+    });
+  });
+
+  it("aborts when postIteration token budget is exceeded and emits AbortError", async () => {
+    const runContext = createRunContext();
+    runContext.hooks.add(createTokenBudget(20));
+
+    const disposeRun = vi.fn(async () => undefined);
+
+    const host = createHost();
+    host.handle = vi.fn(async () => ({ status: "success", result: "" }));
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "0123456789",
+        runContext,
+        host,
+        model: createModel([
+          {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "tool-budget-1",
+                  tool: "read_file",
+                  args: { path: "README.md" },
+                },
+              ],
+            },
+          },
+          {
+            message: {
+              content: "final",
+              toolCalls: [],
+            },
+          },
+        ]),
+        disposeRun,
+      }),
+    );
+
+    expect(events.map(event => event.type)).toEqual([
+      "tool.intent",
+      "tool.result",
+      "message.delta",
+      "session.error",
+    ]);
+    expect(disposeRun).toHaveBeenCalled();
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.error");
+    if (terminal?.type === "session.error") {
+      expect(terminal.error.name).toBe("AbortError");
+    }
+  });
+
+  it("completes normally when postIteration token budget is not exceeded", async () => {
+    const runContext = createRunContext();
+    runContext.hooks.add(createTokenBudget(40));
+
+    const host = createHost();
+    host.handle = vi.fn(async () => ({ status: "success", result: "" }));
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "0123456789",
+        runContext,
+        host,
+        model: createModel([
+          {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "tool-budget-2",
+                  tool: "read_file",
+                  args: { path: "README.md" },
+                },
+              ],
+            },
+          },
+          {
+            message: {
+              content: "within budget",
+              toolCalls: [],
+            },
+          },
+        ]),
+      }),
+    );
+
+    expect(events.map(event => event.type)).toEqual([
+      "tool.intent",
+      "tool.result",
+      "message.delta",
+      "session.complete",
+    ]);
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.complete");
+    if (terminal?.type === "session.complete") {
+      expect(terminal.result.output).toBe("within budget");
+    }
+  });
+
+  it("does not abort when postIteration token budget equals the threshold", async () => {
+    const runContext = createRunContext();
+    runContext.hooks.add(createTokenBudget(8));
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "abcd",
+        runContext,
+        host: createHost(),
+        model: createModel([
+          {
+            message: {
+              content: "efgh",
+              toolCalls: [],
+            },
+          },
+        ]),
+      }),
+    );
+
+    expect(events.map(event => event.type)).toEqual(["message.delta", "session.complete"]);
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.complete");
+    if (terminal?.type === "session.complete") {
+      expect(terminal.result.output).toBe("efgh");
     }
   });
 

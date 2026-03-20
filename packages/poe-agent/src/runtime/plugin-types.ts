@@ -1,4 +1,5 @@
 import type { ChatMessage, ForkResult, Tool } from "./types.js";
+import type { McpSpawnServer } from "@poe-code/agent-spawn";
 
 export type PromptContext = {
   baseSystemPrompt?: string;
@@ -7,11 +8,8 @@ export type PromptContext = {
   metadata?: Record<string, unknown>;
 };
 
-export type McpServerConfig = {
+export type McpServerConfig = McpSpawnServer & {
   name: string;
-  command: string;
-  args?: string[];
-  env?: Record<string, string>;
   visibility?: "model" | "skill";
 };
 

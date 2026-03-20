@@ -90,9 +90,11 @@ export function cloneMcpServerConfig(config: McpServerConfig): McpServerConfig {
     ...config,
     name: normalizeName(config.name, "MCP server"),
     command: normalizeName(config.command, "MCP server command"),
-    ...(config.args === undefined ? {} : { args: Object.freeze(cloneStringArray(config.args)) }),
-    ...(config.env === undefined ? {} : { env: Object.freeze(cloneStringRecord(config.env)) }),
-  });
+    ...(config.args === undefined ? {} : { args: Object.freeze(cloneStringArray(config.args)) as string[] }),
+    ...(config.env === undefined
+      ? {}
+      : { env: Object.freeze(cloneStringRecord(config.env)) as Record<string, string> }),
+  }) as McpServerConfig;
 }
 
 export function createResolvedAgentConfig(input: Partial<ResolvedAgentConfig> = {}): ResolvedAgentConfig {
@@ -100,9 +102,11 @@ export function createResolvedAgentConfig(input: Partial<ResolvedAgentConfig> = 
 
   return Object.freeze({
     ...(model === undefined || model.length === 0 ? {} : { model }),
-    plugins: Object.freeze((input.plugins ?? []).map(plugin => cloneAgentPlugin(plugin))),
-    mcpServers: Object.freeze((input.mcpServers ?? []).map(config => cloneMcpServerConfig(config))),
-  });
+    plugins: Object.freeze((input.plugins ?? []).map(plugin => cloneAgentPlugin(plugin))) as AgentPlugin[],
+    mcpServers: Object.freeze(
+      (input.mcpServers ?? []).map(config => cloneMcpServerConfig(config)),
+    ) as McpServerConfig[],
+  }) as ResolvedAgentConfig;
 }
 
 export function toRuntimePlugins(config: ResolvedAgentConfig): AgentPlugin[] {

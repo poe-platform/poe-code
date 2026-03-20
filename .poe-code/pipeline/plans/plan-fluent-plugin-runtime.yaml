@@ -495,7 +495,7 @@ tasks:
 
       All tests pass. `npm run test && npm run lint`.
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 13–16: Built-in Plugins, MCP, Skills, Migration
@@ -536,9 +536,9 @@ tasks:
       After all tools are plugins, remove the hardcoded `switch` routing from
       `packages/poe-agent/src/tool-executor.ts`. Either delete or reduce to a thin adapter.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: mcp-plugin-pattern
     title: Implement MCP server plugin pattern via api.addMcp()
@@ -575,9 +575,9 @@ tasks:
 
       For testing, use `createInMemoryTransportPair` from `@poe-code/tiny-mcp-client`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: skills-and-spawn-plugins
     title: Implement skills and spawn plugins
@@ -617,9 +617,9 @@ tasks:
       Uses `ctx.spawn()` (not `ctx.fork()`). Independent run — parent abort does NOT cascade.
       Both files: `export default` factory only, no internal types exported.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: migration
     title: Wire createAgentSession as adapter and export public API
@@ -653,9 +653,9 @@ tasks:
       export function jira(options: JiraOptions): AgentPlugin { ... }
       ```
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 17: E2E Tests
@@ -694,9 +694,9 @@ tasks:
       Verify: `message.delta` events contain output, `tool.intent`/`tool.result` pairs
       match by `intentId`, exactly one `session.complete` at the end.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: e2e-hooks
     title: E2E tests - hook-based guardrails and token budget
@@ -735,9 +735,9 @@ tasks:
       Verify: run aborts when budget exceeded, disposal runs, error is AbortError,
       runs within budget complete normally.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: e2e-fork-and-mcp
     title: E2E tests - spawn plugin and MCP server plugin
@@ -761,9 +761,9 @@ tasks:
       Verify: MCP tools discovered during `setup()`, registered with correct namespaced names,
       callable by the model, MCP client disposed when run ends.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: e2e-control-flow
     title: E2E tests - ACP session, cancellation, and resume
@@ -799,9 +799,9 @@ tasks:
       Verify: second run sees first run's conversation history, each run has independent
       disposal, no hidden persistent state.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: e2e-provider-compat
     title: E2E test - provider and CLI compatibility verification
@@ -817,9 +817,9 @@ tasks:
       work without changes. The provider continues using `createAgentSession(...)` which
       now internally delegates to the new runtime.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: remove-poe-agent-from-spawn
     title: Remove poe-agent from regular spawn path
@@ -839,9 +839,9 @@ tasks:
 
       Update any tests that rely on the removed spawn path.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: commit-final
     title: Commit plugins, migration, public API, e2e tests, and poe-agent spawn

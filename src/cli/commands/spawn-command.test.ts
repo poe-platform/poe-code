@@ -416,7 +416,7 @@ describe("spawn command", () => {
     });
   });
 
-  it("passes --mcp-config to SDK spawn for poe-agent", async () => {
+  it("rejects poe-agent because it is not spawnable via spawn command", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -425,35 +425,18 @@ describe("spawn command", () => {
       commandRunner: runner,
       logger: () => {}
     });
-    const mcpConfig = JSON.stringify({
-      test: {
-        command: "tiny-stdio-mcp-test-server",
-        args: ["serve", "word-of-the-day"]
-      }
-    });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "spawn",
-      "--mcp-config",
-      mcpConfig,
-      "poe-agent",
-      "Use word_of_the_day"
-    ]);
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "poe-agent",
+        "Use word_of_the_day"
+      ])
+    ).rejects.toThrow("does not support spawn");
 
-    expect(sdkSpawn).toHaveBeenCalledWith("poe-agent", {
-      prompt: "Use word_of_the_day",
-      args: [],
-      model: undefined,
-      cwd: undefined,
-      mcpServers: {
-        test: {
-          command: "tiny-stdio-mcp-test-server",
-          args: ["serve", "word-of-the-day"]
-        }
-      }
-    });
+    expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
   it("rejects invalid --mcp-config JSON", async () => {
@@ -1037,6 +1020,32 @@ describe("spawn command", () => {
           "hello"
         ])
       ).rejects.toThrow("does not support interactive mode");
+    });
+
+    it("rejects poe-agent interactive mode before prompting for configuration", async () => {
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "spawn",
+          "--interactive",
+          "poe-agent",
+          "hello"
+        ])
+      ).rejects.toThrow("does not support interactive mode");
+
+      expect(confirmMock).not.toHaveBeenCalled();
+      expect(spawnInteractive).not.toHaveBeenCalled();
+      expect(sdkSpawn).not.toHaveBeenCalled();
     });
 
     it("does not render ACP events in interactive mode", async () => {

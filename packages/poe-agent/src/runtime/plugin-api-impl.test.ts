@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ToolContext } from "./types.js";
 import { PluginApiImpl } from "./plugin-api-impl.js";
 import { createRunContext } from "./run-context.js";
@@ -61,6 +61,9 @@ function createToolContext(): ToolContext {
 }
 
 describe("PluginApiImpl", () => {
+  const originalCollisionEnv = process.env.POE_AGENT_MCP_ENV_COLLISION;
+  const originalBaseEnv = process.env.POE_AGENT_MCP_ENV_BASE;
+
   beforeEach(() => {
     stdioTransportConstructorMock.mockReset();
     mcpClientConstructorMock.mockReset();
@@ -71,6 +74,23 @@ describe("PluginApiImpl", () => {
 
     mcpClientConnectMock.mockResolvedValue(undefined);
     mcpClientCloseMock.mockResolvedValue(undefined);
+
+    process.env.POE_AGENT_MCP_ENV_COLLISION = "from-process";
+    process.env.POE_AGENT_MCP_ENV_BASE = "from-process";
+  });
+
+  afterEach(() => {
+    if (originalCollisionEnv === undefined) {
+      delete process.env.POE_AGENT_MCP_ENV_COLLISION;
+    } else {
+      process.env.POE_AGENT_MCP_ENV_COLLISION = originalCollisionEnv;
+    }
+
+    if (originalBaseEnv === undefined) {
+      delete process.env.POE_AGENT_MCP_ENV_BASE;
+    } else {
+      process.env.POE_AGENT_MCP_ENV_BASE = originalBaseEnv;
+    }
   });
 
   it("adds regular tools through the run context registry", () => {
@@ -131,17 +151,16 @@ describe("PluginApiImpl", () => {
 
     await api.flushSetup();
 
-    expect(stdioTransportConstructorMock).toHaveBeenCalledWith({
-      command: "node",
-      args: ["server.js"],
-      env: { NODE_ENV: "test" },
-    });
-    expect(mcpClientConstructorMock).toHaveBeenCalledWith(
+    expect(stdioTransportConstructorMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        clientInfo: { name: "poe-agent", version: "0.0.1" },
-        transport: expect.any(Object),
+        command: "node",
+        args: ["server.js"],
+        env: expect.objectContaining({ NODE_ENV: "test" }),
       }),
     );
+    expect(mcpClientConstructorMock).toHaveBeenCalledWith({
+      clientInfo: { name: "poe-agent", version: "0.0.1" },
+    });
     expect(mcpClientConnectMock).toHaveBeenCalledTimes(1);
     expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(1, undefined);
     expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(2, { cursor: "page-2" });
@@ -240,6 +259,35 @@ describe("PluginApiImpl", () => {
       {
         signal: signalController.signal,
       },
+    );
+  });
+
+  it("merges process env with MCP env overrides", async () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+
+    mcpClientListToolsMock.mockResolvedValueOnce({ tools: [] });
+
+    api.addMcp({
+      name: "repo",
+      command: "node",
+      env: {
+        POE_AGENT_MCP_ENV_COLLISION: "from-plugin",
+        POE_AGENT_MCP_ENV_PLUGIN_ONLY: "plugin-only",
+      },
+    });
+
+    await api.flushSetup();
+
+    expect(stdioTransportConstructorMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "node",
+        env: expect.objectContaining({
+          POE_AGENT_MCP_ENV_BASE: "from-process",
+          POE_AGENT_MCP_ENV_COLLISION: "from-plugin",
+          POE_AGENT_MCP_ENV_PLUGIN_ONLY: "plugin-only",
+        }),
+      }),
     );
   });
 });

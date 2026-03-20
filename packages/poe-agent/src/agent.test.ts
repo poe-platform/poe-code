@@ -84,7 +84,97 @@ async function collectEvents(events: AsyncIterable<AcpEvent>): Promise<AcpEvent[
   return collected;
 }
 
+function createDeferred(): { promise: Promise<void>; resolve(): void } {
+  let resolve: (() => void) | undefined;
+
+  const promise = new Promise<void>(onResolve => {
+    resolve = onResolve;
+  });
+
+  return {
+    promise,
+    resolve: resolve ?? (() => undefined),
+  };
+}
+
 describe("agent builder", () => {
+  it("preserves reasoning fields between model iterations when using Poe fetch transport", async () => {
+    const requests: Array<{ messages: Array<Record<string, unknown>> }> = [];
+    const responses = [
+      {
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              content: "",
+              reasoning_content: "Need to create the file first.",
+              reasoning: "Need to create the file first.",
+              tool_calls: [
+                {
+                  id: "call-1",
+                  type: "function",
+                  function: {
+                    name: "edit_file",
+                    arguments: '{"command": "create", "path": "/workspace/test-document.txt"}',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              content: "done",
+            },
+          },
+        ],
+      },
+    ];
+
+    const fetchMock = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      requests.push(JSON.parse(String(init?.body)) as { messages: Array<Record<string, unknown>> });
+      const payload = responses.shift();
+      return new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    });
+
+    await agent()
+      .model("anthropic/claude-sonnet-4.6")
+      .use({
+        name: "edit-plugin",
+        tools: [
+          {
+            name: "edit_file",
+            inputSchema: {
+              type: "object",
+              properties: {},
+            },
+            call: async () => "Created file: test-document.txt",
+          },
+        ],
+      })
+      .run("Create a file", {
+        apiKey: "test-key",
+        baseUrl: "http://localhost:3456",
+        fetch: fetchMock,
+      });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const secondAssistantMessage = requests[1]?.messages?.find(message => message.role === "assistant");
+    expect(secondAssistantMessage).toEqual(
+      expect.objectContaining({
+        reasoning_content: "Need to create the file first.",
+        reasoning: "Need to create the file first.",
+      }),
+    );
+  });
+
   it("keeps reused builders isolated and immutable", async () => {
     const memory = () => ({
       name: "memory",
@@ -542,6 +632,82 @@ describe("agent builder", () => {
     }
   });
 
+  it("lets caller host ACP tool execution and unblock the loop with acknowledgements", async () => {
+    const dispose = vi.fn(async () => undefined);
+    const executeLocally = vi.fn(async (event: Extract<AcpEvent, { type: "tool.intent" }>) => ({
+      status: "success" as const,
+      result: {
+        local: true,
+        args: event.args,
+      },
+    }));
+    let modelCallCount = 0;
+    const model: AcpModel = {
+      complete: vi.fn(async () => {
+        modelCallCount += 1;
+
+        if (modelCallCount === 1) {
+          return {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "tool-1",
+                  tool: "repo.search",
+                  args: { query: "tests" },
+                },
+              ],
+            },
+          };
+        }
+
+        if (modelCallCount === 2) {
+          return {
+            message: {
+              content: "done",
+              toolCalls: [],
+            },
+          };
+        }
+
+        throw new Error("Unexpected model call");
+      }),
+    };
+
+    const session = await agent()
+      .model("gpt-5")
+      .use({
+        name: "tooling",
+        tools: [{ name: "repo.search", call: () => "should-not-run" }],
+        dispose,
+      })
+      .acp("Do something", {
+        acpModel: model,
+      });
+
+    const events: AcpEvent[] = [];
+    for await (const event of session.events) {
+      events.push(event);
+
+      if (event.type === "tool.intent") {
+        expect(model.complete).toHaveBeenCalledTimes(1);
+        session.acknowledge(event.intentId, await executeLocally(event));
+      }
+    }
+
+    await session.dispose();
+
+    expect(model.complete).toHaveBeenCalledTimes(2);
+    expect(executeLocally).toHaveBeenCalledTimes(1);
+    expect(events.map(event => event.type)).toEqual([
+      "tool.intent",
+      "tool.result",
+      "message.delta",
+      "session.complete",
+    ]);
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
   it("injects resume messages before starting ACP sessions", async () => {
     const model = {
       complete: vi.fn(async request => {
@@ -660,6 +826,236 @@ describe("agent builder", () => {
     });
 
     expect(model.complete).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts externally, propagates signal to in-flight tools, and disposes once", async () => {
+    const dispose = vi.fn(async () => undefined);
+    const started = createDeferred();
+    let capturedSignal: AbortSignal | undefined;
+    const model = createModel(
+      [
+        {
+          message: {
+            content: "",
+            toolCalls: [
+              {
+                id: "tool-1",
+                tool: "long_task",
+                args: {},
+              },
+            ],
+          },
+        },
+      ],
+      [],
+    );
+
+    const controller = new AbortController();
+    const runPromise = agent()
+      .model("gpt-5")
+      .use({
+        name: "long-tool",
+        tools: [
+          {
+            name: "long_task",
+            async call(_args, ctx) {
+              capturedSignal = ctx.signal;
+              started.resolve();
+
+              await new Promise<never>((_, reject) => {
+                if (ctx.signal.aborted) {
+                  reject(new Error("tool aborted"));
+                  return;
+                }
+
+                ctx.signal.addEventListener(
+                  "abort",
+                  () => {
+                    reject(new Error("tool aborted"));
+                  },
+                  { once: true },
+                );
+              });
+            },
+          },
+        ],
+        dispose,
+      })
+      .run("Long task", {
+        acpModel: model,
+        signal: controller.signal,
+      });
+
+    await started.promise;
+    controller.abort(new Error("stop"));
+
+    await expect(runPromise).rejects.toMatchObject({
+      name: "AbortError",
+      message: expect.stringMatching(/abort/i),
+    });
+
+    expect((model.complete as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
+    expect(capturedSignal).toBeDefined();
+    expect(capturedSignal?.aborted).toBe(true);
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("cascades external abort to child forks started from tools", async () => {
+    const dispose = vi.fn(async () => undefined);
+    const childStarted = createDeferred();
+    const childAborted = createDeferred();
+    let childSignal: AbortSignal | undefined;
+    let modelCallCount = 0;
+
+    const model: AcpModel = {
+      complete: vi.fn(async ({ signal }) => {
+        modelCallCount += 1;
+
+        if (modelCallCount === 1) {
+          return {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "tool-fork-1",
+                  tool: "run_fork",
+                  args: {},
+                },
+              ],
+            },
+          };
+        }
+
+        if (modelCallCount === 2) {
+          childSignal = signal;
+          childStarted.resolve();
+
+          if (!signal.aborted) {
+            await new Promise<void>(resolve => {
+              signal.addEventListener(
+                "abort",
+                () => {
+                  childAborted.resolve();
+                  resolve();
+                },
+                { once: true },
+              );
+            });
+          } else {
+            childAborted.resolve();
+          }
+
+          throw new Error("child aborted");
+        }
+
+        throw new Error("Unexpected model call");
+      }),
+    };
+
+    const controller = new AbortController();
+    const runPromise = agent()
+      .model("gpt-5")
+      .use({
+        name: "fork-tool",
+        tools: [
+          {
+            name: "run_fork",
+            async call(_args, ctx) {
+              await ctx.fork("child task");
+              return "done";
+            },
+          },
+        ],
+        dispose,
+      })
+      .run("Long task", {
+        acpModel: model,
+        signal: controller.signal,
+      });
+
+    await childStarted.promise;
+    controller.abort(new Error("stop"));
+
+    await expect(runPromise).rejects.toMatchObject({
+      name: "AbortError",
+      message: expect.stringMatching(/abort/i),
+    });
+    await childAborted.promise;
+
+    expect(childSignal).toBeDefined();
+    expect(childSignal?.aborted).toBe(true);
+    expect(model.complete).toHaveBeenCalledTimes(2);
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("resumes only when requested and keeps runs isolated", async () => {
+    const dispose = vi.fn(async () => undefined);
+    let callCount = 0;
+
+    const model: AcpModel = {
+      complete: vi.fn(async request => {
+        callCount += 1;
+        const userMessages = request.messages.filter(message => message.role === "user");
+        const assistantMessages = request.messages.filter(message => message.role === "assistant");
+
+        if (callCount === 1) {
+          expect(userMessages.map(message => message.content)).toEqual(["Read the test file"]);
+          expect(assistantMessages).toHaveLength(0);
+          return {
+            message: {
+              content: "first output",
+              toolCalls: [],
+            },
+          };
+        }
+
+        if (callCount === 2) {
+          expect(userMessages.map(message => message.content)).toEqual([
+            "Read the test file",
+            "Now fix the assertion",
+          ]);
+          expect(assistantMessages.map(message => message.content)).toEqual(["first output"]);
+          return {
+            message: {
+              content: "second output",
+              toolCalls: [],
+            },
+          };
+        }
+
+        if (callCount === 3) {
+          expect(userMessages.map(message => message.content)).toEqual(["fresh run"]);
+          expect(assistantMessages).toHaveLength(0);
+          return {
+            message: {
+              content: "third output",
+              toolCalls: [],
+            },
+          };
+        }
+
+        throw new Error("Unexpected model call");
+      }),
+    };
+
+    const configured = agent().model("gpt-5").use({
+      name: "resourceful",
+      dispose,
+    });
+
+    const firstRun = await configured.run("Read the test file", {
+      acpModel: model,
+    });
+    await configured.run("Now fix the assertion", {
+      acpModel: model,
+      resume: firstRun,
+    });
+    await configured.run("fresh run", {
+      acpModel: model,
+    });
+
+    expect(model.complete).toHaveBeenCalledTimes(3);
+    expect(dispose).toHaveBeenCalledTimes(3);
   });
 
   it("activates skill tools from RunOptions.skills", async () => {

@@ -85,6 +85,7 @@ function run(): boolean {
       shell: true,
       encoding: "utf-8",
       timeout: 30_000,
+      env: { ...process.env, POE_CODE_OAUTH_LOGIN: "0" },
     });
 
     const output = (result.stdout || "") + (result.stderr || "");

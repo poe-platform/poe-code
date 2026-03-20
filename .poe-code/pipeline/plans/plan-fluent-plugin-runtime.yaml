@@ -45,8 +45,14 @@ tasks:
       ```ts
       type AcpHost = {
         handle(intent: ToolIntent): Promise<ToolAckResult>;
+        fork(request: ForkRequest): Promise<ForkResult>;
+        spawn(prompt: string): Promise<RunOutput>;
       };
       ```
+
+      - `handle` — routes a tool intent to local execution or an external handler
+      - `fork` — clones live run state into a child run (parent-child, abort cascades)
+      - `spawn` — starts a fresh independent agent instance (clean slate, same model/config)
 
       `ToolIntent` represents the core requesting that a tool be executed:
       ```ts
@@ -63,9 +69,9 @@ tasks:
 
       Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Host interface".
     status:
-      implement: done
-      refactor: done
-      test: done
+      implement: open
+      refactor: open
+      test: open
 
   - id: fork-types
     title: Define ForkRequest, ForkResult, and RunContextSnapshot types
@@ -106,24 +112,32 @@ tasks:
 
       Every tool `call()` receives a `ToolContext` providing:
       - `require<T>(key)` — typed capability lookup (same as `PluginApi.require`)
-      - `fork(prompt)` — core fork primitive to spawn a child run
+      - `fork(prompt)` — clone live run context and start a child run
+      - `spawn(prompt)` — start a fresh independent agent instance (clean slate)
       - `signal` — the run's `AbortSignal` for cancellation
 
       ```ts
       type ToolContext = {
         require<T>(key: CapabilityKey<T>): T;
         fork(prompt: string): Promise<ForkResult>;
+        spawn(prompt: string): Promise<RunOutput>;
         signal: AbortSignal;
       };
       ```
+
+      Key distinction:
+      - `fork` — clones full run state (history, tools, capabilities). Parent-child.
+        Abort cascades from parent to children.
+      - `spawn` — creates a fresh agent with the same model/config but no shared context.
+        Independent run. The `delegate` plugin uses `spawn`, not `fork`.
 
       Forward-reference `CapabilityKey<T>` — defined in the plugin types task.
 
       Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Capabilities" (ToolContext).
     status:
-      implement: done
-      refactor: done
-      test: done
+      implement: open
+      refactor: open
+      test: open
 
   - id: tool-type
     title: Define Tool and NormalizedTool types
@@ -932,6 +946,38 @@ tasks:
       refactor: done
       test: done
 
+  - id: local-host-spawn
+    title: Implement spawn in local host
+    prompt: |
+      In `packages/poe-agent/src/runtime/local-host.ts`, implement `spawn()` on `ToolContext`.
+
+      Spawn starts a **fresh** agent instance — same model/config as the parent but no
+      shared state. This is how `delegate` works: sub-tasks get a clean agent, not a clone.
+
+      Contrast with fork:
+      | | fork | spawn |
+      |---|------|-------|
+      | Context | Clones full run state | Clean slate |
+      | Relationship | Parent-child | Independent |
+      | Abort | Cascades from parent | Does not cascade |
+      | Use case | Sub-tasks needing parent context | Delegation |
+
+      Implementation:
+      1. Create a new `RunContext` from the same builder config (same model, same plugins)
+      2. Run plugin setup fresh (no shared capability state)
+      3. Execute the model loop with the given prompt
+      4. Dispose on completion
+      5. Return `RunOutput` — the child's output and message history
+
+      Spawn does NOT emit `fork.start`/`fork.complete` events. It is a tool call like
+      any other — the result is the spawned agent's `RunOutput`.
+
+      The run's `AbortSignal` is NOT propagated to spawned agents (they are independent).
+    status:
+      implement: open
+      refactor: open
+      test: open
+
   # ═══════════════════════════════════════════════════════════════════════
   # COMMIT MILESTONE: ACP core model loop, local host, fork
   # ═══════════════════════════════════════════════════════════════════════
@@ -1652,9 +1698,9 @@ tasks:
       Verify: run aborts when budget exceeded, disposal runs, error is AbortError or
       similar, runs within budget complete normally.
     status:
-      implement: done
-      refactor: done
-      test: done
+      implement: open
+      refactor: open
+      test: open
 
   - id: e2e-fork-delegate
     title: E2E test - fork and delegate
@@ -1676,9 +1722,9 @@ tasks:
       parent continues after receiving fork result. Also verify abort cascade: aborting
       parent mid-fork also aborts the child.
     status:
-      implement: done
-      refactor: done
-      test: done
+      implement: open
+      refactor: open
+      test: open
 
   - id: e2e-mcp-hidden-tools
     title: E2E test - MCP with hidden tools and skill activation
@@ -1700,9 +1746,8 @@ tasks:
       skill the tools are hidden from the model, with active skill the tools are visible,
       MCP clients are disposed on run completion.
     status:
-      implement: done
-      refactor: done
-      test: done
+      implement: open
+      refactor: open
 
   - id: e2e-streaming
     title: E2E test - streaming event consumption
@@ -1721,9 +1766,8 @@ tasks:
       at the end, no events after terminal event. Verify the stream is consumable via
       standard `for await...of`.
     status:
-      implement: done
-      refactor: done
-      test: done
+      implement: open
+      refactor: open
 
   - id: e2e-acp-session
     title: E2E test - ACP session with external host
@@ -1745,9 +1789,7 @@ tasks:
       acknowledgments flow back to core and unblock the model loop, session completes after
       all intents handled, dispose cleans up resources.
     status:
-      implement: done
-      refactor: done
-      test: done
+      implement: open
 
   - id: e2e-cancellation
     title: E2E test - external cancellation via AbortSignal
@@ -1766,7 +1808,7 @@ tasks:
       run, run rejects with AbortError. Also test abort cascading through forks: aborting
       parent mid-fork also aborts child runs.
     status:
-      implement: done
+      implement: open
       refactor: open
       test: open
 

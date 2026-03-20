@@ -77,6 +77,45 @@ describe("createPipelineSimulation", () => {
     });
   });
 
+  it("treats missing exitCode as success while preserving usage totals", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "open"
+          }
+        ]
+      },
+      turns: [
+        {
+          output: {
+            stdout: "",
+            usage: {
+              inputTokens: 3,
+              outputTokens: 2,
+              cachedTokens: 0
+            }
+          }
+        }
+      ]
+    });
+
+    const { result } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(result.metrics).toEqual({
+      totalInputTokens: 3,
+      totalOutputTokens: 2,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 1
+    });
+  });
+
   it("forwards usage to onTaskComplete when available", async () => {
     const sim = createPipelineSimulation({
       plan: {
@@ -103,7 +142,16 @@ describe("createPipelineSimulation", () => {
       ]
     });
 
-    const { taskCompletions } = await sim.run();
+    const { result, taskCompletions } = await sim.run();
+
+    expect(result.metrics).toEqual({
+      totalInputTokens: 9,
+      totalOutputTokens: 4,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 1
+    });
 
     expect(taskCompletions).toHaveLength(1);
     expect(taskCompletions[0]?.usage).toEqual({
@@ -127,7 +175,16 @@ describe("createPipelineSimulation", () => {
       turns: [successTurn()]
     });
 
-    const { taskCompletions } = await sim.run();
+    const { result, taskCompletions } = await sim.run();
+
+    expect(result.metrics).toEqual({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 1
+    });
 
     expect(taskCompletions).toHaveLength(1);
     expect(taskCompletions[0]?.usage).toBeUndefined();
@@ -157,7 +214,16 @@ describe("createPipelineSimulation", () => {
       turns: [successTurn(), successTurn()]
     });
 
-    const { runs } = await sim.run();
+    const { result, runs } = await sim.run();
+
+    expect(result.metrics).toEqual({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 2,
+      tasksFailed: 0,
+      stepsCompleted: 2
+    });
 
     expect(runs).toHaveLength(2);
     expect(runs.map((run) => run.logDir)).toEqual([
@@ -184,7 +250,16 @@ describe("createPipelineSimulation", () => {
       turns: [successTurn()]
     });
 
-    const { runs } = await sim.run();
+    const { result, runs } = await sim.run();
+
+    expect(result.metrics).toEqual({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 1
+    });
 
     expect(runs).toHaveLength(1);
     expect(runs[0]?.logDir).toBe("");
@@ -205,7 +280,16 @@ describe("createPipelineSimulation", () => {
       turns: [successTurn()]
     });
 
-    const { runs } = await sim.run();
+    const { result, runs } = await sim.run();
+
+    expect(result.metrics).toEqual({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 1
+    });
 
     expect(runs).toHaveLength(1);
     expect(runs[0]?.logDir).toBeUndefined();

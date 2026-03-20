@@ -337,7 +337,7 @@ tasks:
 
       Commit message: `feat(pipeline): route spawn logs to plan directory`
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 5: Simulation harness + tests
@@ -360,8 +360,8 @@ tasks:
 
       Reference: `docs/plans/pipeline-metrics-tracking.md` Phase 5.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: commit-simulation-usage
     title: Commit simulation harness usage support

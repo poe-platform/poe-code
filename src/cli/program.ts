@@ -20,7 +20,6 @@ import { registerGenerateCommand } from "./commands/generate.js";
 import { registerMcpCommand } from "./commands/mcp.js";
 import { registerSkillCommand } from "./commands/skill.js";
 import { registerVersionOption } from "./commands/version.js";
-import { registerRalphCommand } from "./commands/ralph.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerModelsCommand } from "./commands/models.js";
 import { registerPipelineCommand } from "./commands/pipeline.js";
@@ -138,6 +137,11 @@ function formatHelpText(input: {
         name: "usage list",
         args: "",
         description: "Display usage history"
+      },
+      {
+        name: "pipeline run",
+        args: "",
+        description: "Run a fixed-step task pipeline plan"
       }
     ];
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
@@ -328,7 +332,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerAuthCommand(program, container);
   registerMcpCommand(program, container);
   registerSkillCommand(program, container);
-  registerRalphCommand(program, container);
+  registerPipelineCommand(program, container);
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
   registerPipelineCommand(program, container);

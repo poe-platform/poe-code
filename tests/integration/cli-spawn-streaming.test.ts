@@ -6,9 +6,13 @@ import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../../src/utils/file-system.js";
 import { createProgram } from "../../src/cli/program.js";
 
-vi.mock("node:child_process", () => ({
-  spawn: vi.fn()
-}));
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    spawn: vi.fn(),
+  };
+});
 
 vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();

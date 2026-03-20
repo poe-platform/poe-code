@@ -291,7 +291,7 @@ tasks:
 
       Commit message: `feat(pipeline): add AgentRunUsage and PipelineMetrics with accumulation`
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 4: Pipeline log directory override
@@ -322,8 +322,8 @@ tasks:
 
       Reference: `docs/plans/pipeline-metrics-tracking.md` Phase 4.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: commit-pipeline-log-dir
     title: Commit pipeline log directory override

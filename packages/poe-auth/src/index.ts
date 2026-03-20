@@ -1,5 +1,6 @@
 export { createAuthStore } from "./create-auth-store.js";
 export { checkAuth } from "./check-auth.js";
+export { getToken } from "./get-token.js";
 export { isValidApiKeyFormat, normalizeApiKey, stripBracketedPaste } from "./api-key-validation.js";
 export { login } from "./login.js";
 export { logout } from "./logout.js";

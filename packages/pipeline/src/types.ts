@@ -1,0 +1,122 @@
+export type PipelineStatus = "open" | "done" | "failed";
+export type StepMode = "yolo" | "edit" | "read";
+
+export interface StepDefinition {
+  mode: StepMode;
+  instruction: string;
+}
+
+export type ResolvedStepDefinitions = Record<string, StepDefinition>;
+
+export interface PipelineTask {
+  id: string;
+  title: string;
+  prompt: string;
+  status: PipelineStatus | Record<string, PipelineStatus>;
+}
+
+export interface PipelinePlan {
+  tasks: PipelineTask[];
+}
+
+export interface PipelineConfig {
+  planPath?: string;
+}
+
+export interface PipelineFileStat {
+  isFile(): boolean;
+  isDirectory(): boolean;
+  mtimeMs: number;
+}
+
+export interface PipelineFileSystem {
+  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  writeFile(
+    path: string,
+    data: string,
+    options?: { encoding?: BufferEncoding }
+  ): Promise<void>;
+  readdir(path: string): Promise<string[]>;
+  stat(path: string): Promise<PipelineFileStat>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  rmdir(path: string): Promise<void>;
+}
+
+export interface AgentRunInput {
+  agent: string;
+  prompt: string;
+  mode: StepMode;
+  cwd: string;
+  model?: string;
+  signal?: AbortSignal;
+}
+
+export interface AgentRunResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  threadId?: string;
+  sessionId?: string;
+}
+
+export type ExecutionSelection =
+  | {
+      kind: "run";
+      task: PipelineTask;
+      stepName?: string;
+    }
+  | {
+      kind: "blocked";
+      task: PipelineTask;
+      stepName?: string;
+    }
+  | {
+      kind: "completed";
+    };
+
+export interface TaskProgress {
+  taskId: string;
+  taskTitle: string;
+  stepName?: string;
+  index: number;
+  total: number;
+}
+
+export interface PlanSummary {
+  planPath: string;
+  done: number;
+  failed: number;
+  open: number;
+  total: number;
+}
+
+export interface PipelineRunOptions {
+  agent: string;
+  cwd: string;
+  homeDir: string;
+  model?: string;
+  plan?: string;
+  task?: string;
+  maxRuns?: number;
+  assumeYes?: boolean;
+  fs?: PipelineFileSystem;
+  runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  selectPlan?: (input: {
+    message: string;
+    options: Array<{ label: string; value: string }>;
+  }) => Promise<string | null>;
+  promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
+  onPlanResolved?: (summary: PlanSummary) => void;
+  onTaskStart?: (progress: TaskProgress) => void;
+  onTaskComplete?: (progress: TaskProgress & { durationMs: number; success: boolean }) => void;
+  signal?: AbortSignal;
+}
+
+export interface PipelineRunResult {
+  stopReason: "completed" | "failed" | "cancelled" | "max_runs" | "nothing_to_run";
+  planPath: string;
+  runsCompleted: number;
+  totalDurationMs: number;
+  lastTaskId?: string;
+  lastStepName?: string;
+}

@@ -1,0 +1,177 @@
+import path from "node:path";
+import * as fsPromises from "node:fs/promises";
+import { loadPipelineConfig } from "../config/loader.js";
+import { parsePlan } from "./parser.js";
+import type { PipelineFileStat, PipelineFileSystem } from "../types.js";
+import { isNotFound } from "../utils.js";
+
+type DiscoveryFs = Pick<PipelineFileSystem, "readFile" | "readdir" | "stat">;
+
+type PlanCandidate = {
+  path: string;
+  done: number;
+  total: number;
+};
+
+function createDefaultFs(): DiscoveryFs {
+  return {
+    readFile: fsPromises.readFile as DiscoveryFs["readFile"],
+    readdir: fsPromises.readdir,
+    stat: async (filePath: string) => {
+      const stat = await fsPromises.stat(filePath);
+      return {
+        isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
+        mtimeMs: stat.mtimeMs
+      } satisfies PipelineFileStat;
+    }
+  };
+}
+
+function isPlanCandidateFile(name: string): boolean {
+  const lower = name.toLowerCase();
+  return (
+    lower.startsWith("plan") &&
+    (lower.endsWith(".yaml") || lower.endsWith(".yml"))
+  );
+}
+
+function countCompletedTasks(planPath: string, content: string): PlanCandidate {
+  const plan = parsePlan(content);
+  const total = plan.tasks.length;
+  const done = plan.tasks.filter((task) => {
+    if (typeof task.status === "string") {
+      return task.status === "done";
+    }
+    return Object.values(task.status).every((status) => status === "done");
+  }).length;
+
+  return {
+    path: planPath,
+    done,
+    total
+  };
+}
+
+async function ensurePlanExists(
+  fs: DiscoveryFs,
+  cwd: string,
+  planPath: string
+): Promise<void> {
+  const absolutePath = path.isAbsolute(planPath)
+    ? planPath
+    : path.resolve(cwd, planPath);
+
+  try {
+    const stat = await fs.stat(absolutePath);
+    if (!stat.isFile()) {
+      throw new Error(`Plan not found at "${planPath}".`);
+    }
+  } catch (error) {
+    if (isNotFound(error)) {
+      throw new Error(`Plan not found at "${planPath}".`);
+    }
+    throw error;
+  }
+}
+
+async function listPlanCandidates(
+  fs: DiscoveryFs,
+  cwd: string
+): Promise<PlanCandidate[]> {
+  const plansDir = path.join(cwd, ".poe-code", "pipeline", "plans");
+  let entries: string[];
+  try {
+    entries = await fs.readdir(plansDir);
+  } catch (error) {
+    if (isNotFound(error)) {
+      return [];
+    }
+    throw error;
+  }
+
+  const candidates: PlanCandidate[] = [];
+  for (const entry of entries) {
+    if (!isPlanCandidateFile(entry)) {
+      continue;
+    }
+
+    const absolutePath = path.join(plansDir, entry);
+    const stat = await fs.stat(absolutePath);
+    if (!stat.isFile()) {
+      continue;
+    }
+
+    const relativePath = path.relative(cwd, absolutePath);
+    const content = await fs.readFile(absolutePath, "utf8");
+    candidates.push(countCompletedTasks(relativePath, content));
+  }
+
+  candidates.sort((left, right) => left.path.localeCompare(right.path));
+  return candidates;
+}
+
+export async function resolvePlanPath(options: {
+  cwd: string;
+  homeDir: string;
+  plan?: string;
+  assumeYes?: boolean;
+  fs?: DiscoveryFs;
+  selectPlan?: (input: {
+    message: string;
+    options: Array<{ label: string; value: string }>;
+  }) => Promise<string | null>;
+  promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
+}): Promise<string | null> {
+  const fs = options.fs ?? createDefaultFs();
+
+  const explicitPlan = options.plan?.trim();
+  if (explicitPlan) {
+    await ensurePlanExists(fs, options.cwd, explicitPlan);
+    return explicitPlan;
+  }
+
+  const config = await loadPipelineConfig({
+    cwd: options.cwd,
+    homeDir: options.homeDir,
+    fs
+  });
+
+  if (config.planPath) {
+    await ensurePlanExists(fs, options.cwd, config.planPath);
+    return config.planPath;
+  }
+
+  const candidates = await listPlanCandidates(fs, options.cwd);
+
+  if (candidates.length >= 1) {
+    if (options.assumeYes) {
+      return candidates[0]!.path;
+    }
+    if (!options.selectPlan) {
+      return null;
+    }
+    return options.selectPlan({
+      message: "Select a pipeline plan to run",
+      options: candidates.map((candidate) => ({
+        label: `${candidate.path} (${candidate.done}/${candidate.total})`,
+        value: candidate.path
+      }))
+    });
+  }
+
+  if (options.assumeYes) {
+    throw new Error(
+      "No plan found under .poe-code/pipeline/plans/. Provide --plan <path> to an existing plan file."
+    );
+  }
+
+  if (!options.promptForPath) {
+    return null;
+  }
+
+  return options.promptForPath({
+    message: "Enter the pipeline plan path",
+    placeholder: ".poe-code/pipeline/plans/plan.yaml"
+  });
+}

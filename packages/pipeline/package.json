@@ -1,0 +1,28 @@
+{
+  "name": "@poe-code/pipeline",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/simulation.d.ts",
+      "import": "./dist/testing/simulation.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/design-system": "*",
+    "yaml": "^2.8.2"
+  }
+}

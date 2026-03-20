@@ -1,0 +1,95 @@
+import { parse } from "yaml";
+import type {
+  PipelinePlan,
+  PipelineStatus,
+  PipelineTask,
+  ResolvedStepDefinitions
+} from "../types.js";
+import { isRecord } from "../utils.js";
+
+function asRequiredString(value: unknown, field: string): string {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+  throw new Error(`Missing ${field}`);
+}
+
+function normalizeStatus(value: unknown, field: string): PipelineStatus {
+  if (typeof value !== "string") {
+    throw new Error(`Invalid ${field}: expected "open", "done", or "failed".`);
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "open" || normalized === "done" || normalized === "failed") {
+    return normalized;
+  }
+
+  throw new Error(`Invalid ${field} "${value}". Expected "open", "done", or "failed".`);
+}
+
+function parseTaskStatus(
+  value: unknown,
+  availableSteps: ResolvedStepDefinitions | undefined,
+  taskId: string
+): PipelineTask["status"] {
+  if (typeof value === "string") {
+    return normalizeStatus(value, "task status");
+  }
+  if (!isRecord(value)) {
+    throw new Error(`Invalid status for task "${taskId}": expected a string or step-status map.`);
+  }
+
+  const statusMap: Record<string, PipelineStatus> = {};
+  for (const [stepName, stepStatus] of Object.entries(value)) {
+    if (availableSteps && !(stepName in availableSteps)) {
+      throw new Error(`Unknown step "${stepName}" referenced by task "${taskId}".`);
+    }
+    statusMap[stepName] = normalizeStatus(stepStatus, `step status for "${stepName}"`);
+  }
+
+  return statusMap;
+}
+
+export function parsePlan(
+  yamlContent: string,
+  options: { availableSteps?: ResolvedStepDefinitions } = {}
+): PipelinePlan {
+  let document: unknown;
+  try {
+    document = parse(yamlContent);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid plan YAML: ${message}`);
+  }
+
+  if (!isRecord(document)) {
+    throw new Error("Invalid plan YAML: expected a top-level object.");
+  }
+
+  const tasksValue = document.tasks;
+  if (!Array.isArray(tasksValue)) {
+    throw new Error("Invalid plan YAML: expected \"tasks\" to be an array.");
+  }
+
+  const ids = new Set<string>();
+  const tasks = tasksValue.map((value, index) => {
+    if (!isRecord(value)) {
+      throw new Error(`Invalid tasks[${index}]: expected an object.`);
+    }
+
+    const id = asRequiredString(value.id, `tasks[${index}].id`);
+    if (ids.has(id)) {
+      throw new Error(`Duplicate task id "${id}".`);
+    }
+    ids.add(id);
+
+    return {
+      id,
+      title: asRequiredString(value.title, `tasks[${index}].title`),
+      prompt: asRequiredString(value.prompt, `tasks[${index}].prompt`),
+      status: parseTaskStatus(value.status, options.availableSteps, id)
+    } satisfies PipelineTask;
+  });
+
+  return { tasks };
+}

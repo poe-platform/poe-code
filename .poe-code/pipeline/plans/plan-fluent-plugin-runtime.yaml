@@ -1,0 +1,1829 @@
+tasks:
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 1: ACP Core Types and Contracts
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: acp-event-types
+    title: Define AcpEvent union type
+    prompt: |
+      Create `packages/poe-agent/src/runtime/acp-types.ts`.
+
+      Define the `AcpEvent` discriminated union type with these variants:
+      - `{ type: "message.delta"; content: string }` — streaming model token output
+      - `{ type: "tool.intent"; intentId: string; tool: string; args: unknown }` — core proposes a tool call
+      - `{ type: "tool.result"; intentId: string; result: unknown }` — host acknowledges success
+      - `{ type: "tool.error"; intentId: string; error: string }` — host acknowledges failure
+      - `{ type: "fork.start"; forkId: string; prompt: string }` — child run spawned
+      - `{ type: "fork.complete"; forkId: string; result: ForkResult }` — child run finished
+      - `{ type: "fork.error"; forkId: string; error: string }` — child run failed
+      - `{ type: "progress"; message: string }` — informational status update
+      - `{ type: "session.complete"; result: SessionResult }` — terminal success
+      - `{ type: "session.error"; error: Error }` — terminal failure
+
+      Every tool call produces exactly one `tool.intent` followed by exactly one `tool.result`
+      or `tool.error`, linked by `intentId`. Every run emits exactly one terminal event.
+
+      Define `SessionResult = { output: string; messages: ChatMessage[]; toolCalls: ToolCallRecord[] }`.
+
+      These are internal contracts — export from a runtime barrel, not from package public API yet.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "ACP event stream".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: acp-host-interface
+    title: Define AcpHost interface and intent types
+    prompt: |
+      In `packages/poe-agent/src/runtime/acp-types.ts`, add the host interface.
+
+      `AcpHost` is the single extension point between the ACP core and execution modes.
+      The core emits intents; the host decides how to handle them. This is the fundamental
+      design rule: the core only proposes, the host decides.
+
+      ```ts
+      type AcpHost = {
+        handle(intent: ToolIntent): Promise<ToolAckResult>;
+      };
+      ```
+
+      `ToolIntent` represents the core requesting that a tool be executed:
+      ```ts
+      type ToolIntent = { intentId: string; tool: string; args: unknown };
+      ```
+
+      `ToolAckResult` is the host's response — either success with a result or error:
+      ```ts
+      type ToolAckResult = { status: "success" | "error"; result: unknown };
+      ```
+
+      Every execution mode (`.run()`, `.stream()`, `.acp()`) provides its own `AcpHost`
+      implementation. That is the only thing that varies between them.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Host interface".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: fork-types
+    title: Define ForkRequest, ForkResult, and RunContextSnapshot types
+    prompt: |
+      In `packages/poe-agent/src/runtime/acp-types.ts`, add fork-related types.
+
+      Fork is a core runtime primitive, not a plugin. It clones the entire live run
+      context and starts a new turn with a new prompt. The fork mechanism lives in
+      the core because only the core has access to the live run context mid-execution.
+
+      `ForkRequest` captures what the core sends to the host:
+      ```ts
+      type ForkRequest = { forkId: string; prompt: string; context: RunContextSnapshot };
+      ```
+
+      `ForkResult` is what comes back:
+      ```ts
+      type ForkResult = { output: string; messages: ChatMessage[] };
+      ```
+
+      `RunContextSnapshot` captures cloneable run state: conversation history, registered
+      tools, capabilities, prompt pipeline. Keep it minimal — expand later as needed.
+
+      Fork vs resume: fork is mid-run (parent-child concurrent, abort cascades), resume
+      is after run completes (sequential, independent).
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Fork is a core
+      runtime primitive" and "Fork vs resume".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: tool-context-type
+    title: Define ToolContext type
+    prompt: |
+      In `packages/poe-agent/src/runtime/acp-types.ts`, add `ToolContext`.
+
+      Every tool `call()` receives a `ToolContext` providing:
+      - `require<T>(key)` — typed capability lookup (same as `PluginApi.require`)
+      - `fork(prompt)` — core fork primitive to spawn a child run
+      - `signal` — the run's `AbortSignal` for cancellation
+
+      ```ts
+      type ToolContext = {
+        require<T>(key: CapabilityKey<T>): T;
+        fork(prompt: string): Promise<ForkResult>;
+        signal: AbortSignal;
+      };
+      ```
+
+      Forward-reference `CapabilityKey<T>` — defined in the plugin types task.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Capabilities" (ToolContext).
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: tool-type
+    title: Define Tool and NormalizedTool types
+    prompt: |
+      In `packages/poe-agent/src/runtime/acp-types.ts`, add tool types.
+
+      Plugin authors should be free to expose tools as sync, async, or async-generator
+      functions. Internally, the runtime normalizes everything to async-generator so
+      progress events and cancellation work uniformly.
+
+      Author-facing `Tool`:
+      ```ts
+      type Tool = {
+        name: string;
+        description?: string;
+        inputSchema?: unknown;
+        visibility?: "model" | "skill" | "internal";
+        call(args: unknown, ctx: ToolContext): unknown | Promise<unknown> | AsyncGenerator<ToolEvent, unknown, void>;
+      };
+      ```
+
+      Internal `NormalizedTool` (all handlers are async-generator):
+      ```ts
+      type NormalizedTool = {
+        name: string;
+        description?: string;
+        inputSchema?: unknown;
+        visibility: "model" | "skill" | "internal";
+        invoke(args: unknown, ctx: ToolContext): AsyncGenerator<ToolEvent, unknown, void>;
+      };
+      ```
+
+      There is no `mediation` property — ACP core always emits intents. The host decides
+      whether to call `tool.call()` (local) or execute externally (ACP host).
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Tool shape".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: runtime-barrel
+    title: Create runtime barrel export
+    prompt: |
+      Create `packages/poe-agent/src/runtime/index.ts` as a barrel export for all
+      runtime types from `acp-types.ts`.
+
+      This barrel is internal — do not re-export from the package's main `index.ts` yet.
+      Verify all types compile without errors.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 2: Plugin Types and Capability System
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: capability-key-type
+    title: Define CapabilityKey branded type and factory
+    prompt: |
+      Create `packages/poe-agent/src/runtime/capabilities.ts`.
+
+      Plugins should depend on capability tokens, not plugin name strings. This decouples
+      plugins from specific implementations — any plugin that provides `MemoryCapability`
+      satisfies the dependency.
+
+      ```ts
+      type CapabilityKey<T> = symbol & { __capabilityType: T };
+      function createCapabilityKey<T>(name: string): CapabilityKey<T>;
+      ```
+
+      Bad: `dependsOn: ["@poe-code/poe-agent-plugin-memory"]`
+      Good: `dependsOn: [MemoryCapability]`
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Capabilities, not
+      plugin-to-plugin calls".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: capability-registry
+    title: Implement CapabilityRegistry class
+    prompt: |
+      In `packages/poe-agent/src/runtime/capabilities.ts`, add `CapabilityRegistry`.
+
+      The registry stores provided capabilities by key. It enforces:
+      - `provide(key, value)` — registers a capability; throws on duplicate (no silent overwrite)
+      - `require(key)` — returns the capability or throws `MissingCapabilityError`
+      - `tryRequire(key)` — returns the capability or `undefined`
+
+      The builder validates at `.run()` time — before any `setup()` executes — that every
+      declared capability dependency is satisfiable by a registered plugin. Missing capabilities
+      produce a clear error at composition time, not a runtime crash mid-execution.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Capabilities".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: plugin-type
+    title: Define AgentPlugin type
+    prompt: |
+      Create `packages/poe-agent/src/runtime/plugin-types.ts`.
+
+      `AgentPlugin` is the main extension mechanism. Plugins may contribute tools, prompt
+      fragments, prompt transforms, hooks, capabilities, async setup, and teardown.
+
+      ```ts
+      type AgentPlugin = {
+        name: string;
+        provides?: CapabilityKey[];
+        dependsOn?: CapabilityKey[];
+        tools?: Tool[];
+        prompts?: { system?: string[]; prefix?: string[]; suffix?: string[] };
+        prompt?: (ctx: PromptContext) => PromptContext | Promise<PromptContext>;
+        setup?: (api: PluginApi) => void | Promise<void>;
+      };
+      ```
+
+      Most plugins should be declarative (just `tools` and `prompts`). The `setup()` hook
+      is for imperative async work like MCP connections, capability provision, and dynamic
+      tool registration.
+
+      Builder registration stays synchronous. Runtime setup is asynchronous — async work
+      happens only when `.run()` starts.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Plugin shape" and
+      "Async all the way down at run start".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: plugin-api-type
+    title: Define PluginApi interface
+    prompt: |
+      In `packages/poe-agent/src/runtime/plugin-types.ts`, add `PluginApi`.
+
+      `PluginApi` is the run-scoped API that plugins receive in their `setup()` call.
+      Each `.run()` creates a fresh `PluginApi` instance — plugins never get builder-scoped
+      access.
+
+      ```ts
+      type PluginApi = {
+        provide<T>(key: CapabilityKey<T>, value: T): void;
+        require<T>(key: CapabilityKey<T>): T;
+        tryRequire<T>(key: CapabilityKey<T>): T | undefined;
+        addTool(tool: Tool): void;
+        addPromptTransform(fn: PromptTransform): void;
+        addHook(hook: Hook): void;
+        onDispose(fn: () => void | Promise<void>): void;
+      };
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Capabilities" (PluginApi).
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: hook-types
+    title: Define Hook, HookEvent, HookContext, and HookDecision types
+    prompt: |
+      In `packages/poe-agent/src/runtime/plugin-types.ts`, add hook types.
+
+      Hooks follow the same model as Claude Code hooks — one hook system, not two. Every
+      hook can observe, modify state, and control flow.
+
+      Hook points in the model loop:
+      ```
+      PreIteration → PreModelCall → model call → PostModelCall →
+        for each tool: PreToolCall → intent → PostToolCall →
+      PostIteration
+      ```
+      Plus `PreFork`/`PostFork` when a tool calls `ctx.fork()`.
+
+      `HookDecision` controls flow:
+      - `"continue"` — proceed normally (default when returning void)
+      - `"skip"` — skip this operation (Pre hooks only)
+      - `"abort"` — abort the entire run, trigger disposal
+      - `{ reject: string }` — PreToolCall returns error to model as tool error so it can
+        recover; other hooks abort the run
+      - `{ modify: Partial<HookContext> }` — apply changes to context
+
+      Multiple hooks on the same event run in registration order. If any returns a non-continue
+      decision, later hooks still run (observe), but the first non-continue decision wins.
+
+      `HookContext` is mutable — hooks can modify messages, args, results directly.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Hooks" with all subsections.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: prompt-context-type
+    title: Define PromptContext type
+    prompt: |
+      In `packages/poe-agent/src/runtime/plugin-types.ts`, add `PromptContext`.
+
+      The runtime must model the initial task prompt explicitly rather than collapsing
+      everything into one opaque merged string too early. This enables reasoning about
+      prompt provenance — whether an instruction came from the built-in default, a plugin,
+      a skill, or the caller.
+
+      ```ts
+      type PromptContext = {
+        baseSystemPrompt?: string;   // explicit content from SYSTEM_PROMPT.md
+        system?: string;             // composed result after plugin contributions + transforms
+        userPrompt: string;          // caller's actual task input — never merged early
+        metadata?: Record<string, unknown>;
+      };
+      ```
+
+      The built-in `SYSTEM_PROMPT.md` is tracked as `baseSystemPrompt`. Plugin contributions
+      are composed into `system`. The task input stays in `userPrompt`. Final chat messages
+      are compiled from these explicit fields late in the pipeline.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md sections "Prompt context",
+      "Initial prompt should be explicit".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: error-types
+    title: Define runtime error types
+    prompt: |
+      Create `packages/poe-agent/src/runtime/errors.ts`.
+
+      Errors are categorized by where they occur in the runtime lifecycle:
+
+      **Composition time** (at `.run()`, before any `setup()` executes):
+      - `MissingCapabilityError` — lists unsatisfied `CapabilityKey` and which plugin declared it
+      - `DuplicateToolError` — names both existing and conflicting plugin
+      - `CircularDependencyError` — includes the cycle path
+
+      **Plugin setup time** (during async `setup()` execution):
+      - `PluginSetupError` — wraps original error, identifies failing plugin
+
+      **Run time** (during model loop):
+      - `PromptTransformError` — wraps original error, identifies failing plugin
+
+      All errors extend `Error` with descriptive messages containing the relevant context.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Error model".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # COMMIT MILESTONE: ACP types, plugin types, capability system
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: commit-types-and-capabilities
+    title: Commit all runtime types, plugin types, and capability system
+    prompt: |
+      Commit all work from Phase 1 and Phase 2:
+      - ACP event types, host interface, fork types, tool context, tool/normalized-tool types
+      - Runtime barrel export
+      - CapabilityKey, CapabilityRegistry
+      - AgentPlugin, PluginApi, Hook types, PromptContext
+      - Runtime error types
+
+      All types should compile. All tests should pass.
+    status:
+      commit: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 3: Tool Registry
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: tool-normalizer
+    title: Implement tool handler normalization
+    prompt: |
+      Create `packages/poe-agent/src/runtime/tools.ts`.
+
+      Plugin authors can expose tools as sync functions, async functions, or async
+      generators. The runtime must normalize everything to one execution contract
+      (async-generator) so progress events and cancellation work uniformly.
+
+      Implement `normalizeTool(tool: Tool): NormalizedTool` that wraps:
+      - Sync `call()` → async generator yielding nothing, returning the result
+      - Async `call()` → async generator yielding nothing, returning the awaited result
+      - Async generator `call()` → used directly as the invoke implementation
+
+      Errors in the original `call()` must propagate through the normalized generator.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Tool authoring should
+      be flexible, runtime execution should be uniform".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: tool-registry-core
+    title: Implement ToolRegistry register and lookup
+    prompt: |
+      In `packages/poe-agent/src/runtime/tools.ts`, add `ToolRegistry`.
+
+      The registry normalizes tools on registration and stores them by name. It enforces
+      strict name uniqueness — no silent overwrite, no last-write-wins. This applies equally
+      to built-in tools, plugin-contributed tools, and MCP tools. MCP tools retain their
+      namespace prefix (`server_name.tool_name`) which naturally avoids collisions with
+      non-MCP tools.
+
+      ```ts
+      class ToolRegistry {
+        register(tool: Tool): void;     // normalizes, stores, throws DuplicateToolError on collision
+        get(name: string): NormalizedTool | undefined;
+        getAll(): NormalizedTool[];
+      }
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Tool name collisions throw".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: tool-visibility
+    title: Add visibility-aware active tool computation
+    prompt: |
+      In `packages/poe-agent/src/runtime/tools.ts`, add to `ToolRegistry`:
+
+      ```ts
+      getActiveTools(activeSkills?: string[]): NormalizedTool[];
+      ```
+
+      The runtime registers tools first, then computes which are visible to the model for
+      a particular run. This separation is what makes hidden MCP viable.
+
+      Visibility levels:
+      - `model` (default when unspecified): always visible to the model
+      - `skill`: hidden by default, visible only when a matching skill activates it
+      - `internal`: never visible to the model, but still callable by plugins via `get()`
+
+      The active tool view is computed per run and never mutated permanently.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Tool registration is
+      separate from tool visibility".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 4: Prompt Pipeline
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: prompt-fragment-collection
+    title: Implement prompt fragment collection phase
+    prompt: |
+      Create `packages/poe-agent/src/runtime/prompts.ts`.
+
+      Prompt composition is a two-phase pipeline. This task implements phase 1: fragment
+      collection.
+
+      All `prompts.system`, `prompts.prefix`, and `prompts.suffix` arrays from registered
+      plugins are concatenated in registration order with newline separators. This produces
+      the initial `system` string before any transforms run.
+
+      Fragments are pure data — they build up. Ordering is deterministic: always registration
+      order, regardless of plugin dependency topology.
+
+      ```ts
+      class PromptRegistry {
+        addFragments(prompts: { system?: string[]; prefix?: string[]; suffix?: string[] }): void;
+        collectFragments(): { system: string; prefix: string; suffix: string };
+      }
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Prompt composition
+      is a two-phase pipeline" — phase 1.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: prompt-transform-execution
+    title: Implement prompt transform execution phase
+    prompt: |
+      In `packages/poe-agent/src/runtime/prompts.ts`, add transform execution — phase 2.
+
+      All `prompt()` transforms run in registration order over the assembled `PromptContext`.
+      Each transform receives the output of the previous one. A transform that needs to
+      fully replace the system prompt can overwrite `system` — but it always sees the fully
+      assembled fragment result, never a partial one.
+
+      ```ts
+      addTransform(fn: PromptTransform): void;
+      async compile(userPrompt: string, baseSystemPrompt?: string): Promise<PromptContext>;
+      ```
+
+      The `compile` method: (1) collects fragments into initial system/prefix/suffix,
+      (2) builds `PromptContext` with `baseSystemPrompt`, assembled `system`, and `userPrompt`,
+      (3) chains all transforms in registration order.
+
+      The important rule: `userPrompt` must stay explicit through the entire pipeline.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Prompt composition
+      is a two-phase pipeline" — phase 2.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 5: Plugin Dependency Resolution
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: topo-sort
+    title: Implement topological sort for plugin setup order
+    prompt: |
+      Create `packages/poe-agent/src/runtime/plugin-resolver.ts`.
+
+      Plugin `setup()` functions run in topological order derived from `dependsOn`
+      declarations. If plugin B depends on a capability provided by plugin A, A's setup
+      runs first. Within the same topological tier (no dependencies between them), plugins
+      run in registration order.
+
+      This is distinct from fragment and transform ordering, which always follows registration
+      order regardless of dependencies. The rule is:
+      - `setup()` — topological order (dependency-safe)
+      - `prompts.system` / `prompts.prefix` / `prompts.suffix` — registration order
+      - `prompt()` transforms — registration order
+
+      Use `provides` field on `AgentPlugin` to determine what each plugin offers.
+      Throw `CircularDependencyError` with the cycle path if cycles detected.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Plugin setup runs
+      in dependency-topological order".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: dependency-validation
+    title: Implement pre-setup dependency validation
+    prompt: |
+      In `packages/poe-agent/src/runtime/plugin-resolver.ts`, add composition-time validation.
+
+      At `.run()` time, before any `setup()` executes, validate that every `dependsOn`
+      capability key is satisfiable by a registered plugin's `provides` list. Missing
+      capabilities produce a clear `MissingCapabilityError` at composition time, not a
+      runtime crash mid-execution.
+
+      This is important for user experience: when a server plugin like `filesystemMcp()`
+      is used without the `mcp()` plugin, the error should clearly say "McpCapability is
+      required by filesystem-mcp but not provided by any registered plugin."
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Error model" —
+      composition time errors.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 6: Hook System
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: hook-registry
+    title: Implement hook registry and execution engine
+    prompt: |
+      Create `packages/poe-agent/src/runtime/hooks.ts`.
+
+      The hook system is how plugins observe, modify state, and control flow at each point
+      in the model loop. There is one hook system, not two.
+
+      ```ts
+      class HookRegistry {
+        add(hook: Hook): void;
+        async run(event: HookEvent, ctx: HookContext): Promise<HookDecision>;
+      }
+      ```
+
+      Execution semantics:
+      - Multiple hooks on the same event run in registration order
+      - All hooks run even after a non-continue decision (they can observe)
+      - The first non-continue decision wins — later non-continue decisions are ignored
+      - Returning `void`/`undefined` means `"continue"`
+
+      Hook context is mutable — hooks can modify `messages`, `args`, `forkPrompt` directly.
+      The `{ modify }` decision is an alternative to direct mutation.
+
+      Decision behavior differs between Pre and Post hooks:
+      - `"skip"` on Pre hooks skips the operation; on Post hooks it's a no-op (already ran)
+      - `{ reject }` on PreToolCall returns error to model as tool error so it can recover
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Hooks".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: hook-context-builder
+    title: Implement HookContext construction for each hook point
+    prompt: |
+      In `packages/poe-agent/src/runtime/hooks.ts`, add factory functions that build
+      `HookContext` for each hook point.
+
+      Each hook point has different fields available:
+      - Always available: `event`, `iterationNumber`, `signal`, `messages`, `tokenCount`, `fork()`
+      - PreModelCall/PostModelCall add: `tools` (read-only), `response` (Post only)
+      - PreToolCall/PostToolCall add: `tool`, `args` (mutable on Pre), `intentId`, `result`/`error` (Post only)
+      - PreFork/PostFork add: `forkId`, `forkPrompt` (mutable on Pre), `forkResult` (Post only)
+
+      This gives plugin authors a consistent but context-aware API at each hook point.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Hook context".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: hook-decision-application
+    title: Implement hook decision dispatch logic
+    prompt: |
+      Implement `applyHookDecision(event, decision, ctx)` that applies decisions correctly
+      at each hook point.
+
+      Key behavioral rules:
+      - `PreToolCall` + `skip` → tool not executed, no intent emitted to host
+      - `PreToolCall` + `{ reject: msg }` → error returned to model as tool error result,
+        model can recover with an alternative approach
+      - `PreModelCall` + `skip` → model call skipped entirely for this iteration
+      - `PreFork` + `skip` → fork not created
+      - `abort` at any point → triggers run disposal and `AbortError`
+      - `{ modify }` → shallow-merge changes into the mutable `HookContext`
+
+      This dispatch table is the contract between hooks and the model loop.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Hook decisions" —
+      decision behavior table.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 7: Run Context and Disposal
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: run-context
+    title: Implement RunContext with mutable run state
+    prompt: |
+      Create `packages/poe-agent/src/runtime/run-context.ts`.
+
+      The builder is immutable. `RunContext` is where mutation happens — it holds all
+      mutable state for a single run:
+      - Conversation history (messages array)
+      - ToolRegistry, CapabilityRegistry, PromptRegistry, HookRegistry (all populated during setup)
+      - Active skills list
+      - AbortController (owned, with derived signal)
+      - Child-run bookkeeping for fork tracking
+
+      A fresh `RunContext` is created per `.run()` call. It is never shared between runs.
+      Two `.run()` calls on the same builder produce completely independent contexts.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Immutable builder,
+      mutable run state".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: disposal-registry
+    title: Implement disposal registry with reverse-order cleanup
+    prompt: |
+      In `packages/poe-agent/src/runtime/run-context.ts`, add disposal management.
+
+      Disposal hooks registered via `onDispose()` run in reverse registration order during
+      cleanup. This ensures resources are torn down in the opposite order they were created.
+
+      Critical rules:
+      - If a disposal hook throws, log the error and continue — never abort disposal midway
+      - After all hooks run, if any threw, throw `AggregateError` with all failures
+      - Plugin `setup()` failure triggers disposal for already-setup plugins only (reverse order)
+      - Dispose must be idempotent — calling twice is safe
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Error model" — disposal time.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: plugin-api-impl
+    title: Implement PluginApi backed by RunContext
+    prompt: |
+      Create `packages/poe-agent/src/runtime/plugin-api-impl.ts`.
+
+      `PluginApi` is a thin facade that delegates to the `RunContext`'s registries:
+      - `provide()` / `require()` / `tryRequire()` → CapabilityRegistry
+      - `addTool()` → ToolRegistry
+      - `addPromptTransform()` → PromptRegistry
+      - `addHook()` → HookRegistry
+      - `onDispose()` → RunContext disposal registry
+
+      Each plugin gets its own `PluginApi` instance scoped to the run. The `PluginApi`
+      is the boundary between plugin code and runtime internals.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Capabilities" (PluginApi).
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 8: Plugin Setup Orchestration
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: plugin-setup-runner
+    title: Implement plugin setup orchestration
+    prompt: |
+      Create `packages/poe-agent/src/runtime/plugin-setup.ts`.
+
+      This is the full plugin initialization sequence that runs when `.run()` starts:
+
+      1. Validate all `dependsOn` requirements are satisfiable (composition-time check)
+      2. Compute topological order from dependency graph
+      3. For each plugin in topological order:
+         a. Register static `tools` from the plugin definition into ToolRegistry
+         b. Register static `prompts` fragments into PromptRegistry
+         c. Register static `prompt` transform into PromptRegistry
+         d. Call `setup(api)` if present — this is where async initialization happens
+            (MCP connections, child processes, tool discovery, capability provision)
+      4. If any `setup()` throws → wrap in `PluginSetupError`, dispose already-setup
+         plugins in reverse order, propagate error
+
+      The signal from RunContext applies — if the caller provides a timeout, setup should
+      abort after the deadline.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md sections "Plugin setup runs
+      in dependency-topological order", "Error model" — plugin setup time.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # COMMIT MILESTONE: Registries, hooks, plugin setup, run context
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: commit-registries-and-runtime
+    title: Commit tool/prompt/hook registries, run context, and plugin setup
+    prompt: |
+      Commit all work from Phases 3–8:
+      - Tool registry with normalization and visibility
+      - Prompt registry with fragments and transforms
+      - Plugin dependency resolution and topological sort
+      - Hook registry, context builders, decision application
+      - RunContext with disposal
+      - PluginApi implementation
+      - Plugin setup orchestration
+
+      All tests should pass. `npm run test && npm run lint`.
+    status:
+      commit: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 9: ACP Core Model Loop
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: acp-core-intent-emission
+    title: Implement ACP core intent emission for tool calls
+    prompt: |
+      Create `packages/poe-agent/src/runtime/acp-core.ts`.
+
+      The ACP core is the execution engine. It always operates in intent mode — it never
+      executes tools directly. The core only proposes, the host decides.
+
+      For each tool call from the model:
+      1. Run `PreToolCall` hooks — if skip/reject, handle accordingly
+      2. Emit `tool.intent` to host via `AcpHost.handle(intent)`
+      3. Suspend — wait for host acknowledgment (`ToolAckResult`)
+      4. Run `PostToolCall` hooks
+      5. Inject result into conversation history as tool result message
+
+      Each tool call produces exactly this event sequence:
+      `tool.intent → (host processes) → tool.result | tool.error`
+
+      There is always exactly one `tool.result` or `tool.error` for each `tool.intent`.
+      The `intentId` links them.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md sections "Layer 2: ACP core",
+      "Event lifecycle for a single tool call".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: acp-core-iteration-loop
+    title: Implement ACP core iteration loop with hooks
+    prompt: |
+      In `packages/poe-agent/src/runtime/acp-core.ts`, implement the full iteration loop:
+
+      ```
+      while not done:
+        PreIteration hooks
+        compile prompt from PromptRegistry
+        PreModelCall hooks (if not skipped → skip means no model call this iteration)
+        send to model
+        PostModelCall hooks
+        for each tool call in model response:
+          PreToolCall → emit intent → wait for ack → PostToolCall
+        PostIteration hooks
+        if model produced final response (no tool calls) → session.complete
+      ```
+
+      Emit `message.delta` events as model tokens stream in. Emit `session.complete` when
+      the model produces a final response with no tool calls. Emit `session.error` on
+      unrecoverable errors.
+
+      The loop must respect the run's `AbortSignal` — check between iterations and tool calls.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md sections "Hook points in the
+      model loop", "Event lifecycle for a full run".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: acp-core-event-stream
+    title: Implement ACP event stream as async iterable
+    prompt: |
+      In `packages/poe-agent/src/runtime/acp-core.ts`, expose the event stream as
+      `AsyncIterable<AcpEvent>`.
+
+      The event stream is a **public API** — the contract between the runtime and all
+      consumers. It must be versioned and kept stable.
+
+      Event ordering for a full run:
+      ```
+      message.delta* → tool.intent → tool.result → message.delta* → ... → session.complete
+      ```
+      - Zero or more `message.delta` per model response
+      - `tool.intent`/`tool.result` pairs for each tool call
+      - `progress` events can appear at any point
+      - Exactly one terminal: `session.complete` or `session.error`
+
+      The stream must be consumable via `for await...of` and must end after the terminal event.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "ACP event stream".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 10: Local Host Implementation
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: local-host-impl
+    title: Implement local AcpHost for direct tool execution
+    prompt: |
+      Create `packages/poe-agent/src/runtime/local-host.ts`.
+
+      The local host is the simplest `AcpHost` — it executes tool `call()` functions
+      directly in-process. Both `.run()` and `.stream()` use this host.
+
+      When receiving a `ToolIntent`:
+      1. Look up the `NormalizedTool` from the registry by name
+      2. If not found → return `{ status: "error", result: "Unknown tool: <name>" }`
+      3. Execute `tool.invoke(args, ctx)` consuming the async generator
+      4. Catch errors → return `{ status: "error", result: errorMessage }`
+      5. Return `{ status: "success", result }`
+
+      Pass the run's `AbortSignal` through the `ToolContext`.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section ".run()" — local host.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: local-host-fork
+    title: Implement fork in local host
+    prompt: |
+      In `packages/poe-agent/src/runtime/local-host.ts`, implement `fork()` on `ToolContext`.
+
+      What gets cloned per fork:
+      - Full conversation history up to the fork point
+      - All registered tools and their current state
+      - Capabilities and their values
+      - Prompt pipeline (fragments + transforms)
+      - The host binding (child uses the same host as parent)
+
+      What is new per fork:
+      - A new prompt (the child's task)
+      - A derived `AbortController` (aborting parent aborts all children)
+      - A new event stream (child events are separate)
+      - A new model loop turn
+
+      The child run executes using the same local host. The fork emits `fork.start`
+      and `fork.complete`/`fork.error` ACP events on the parent's event stream.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Fork is a core
+      runtime primitive" — "What gets cloned" and "What is new per fork".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # COMMIT MILESTONE: ACP core model loop, local host, fork
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: commit-acp-core
+    title: Commit ACP core, local host, and fork mechanism
+    prompt: |
+      Commit all work from Phases 9–10:
+      - ACP core with intent emission, iteration loop, event stream
+      - Local host with direct tool execution
+      - Fork mechanism with context cloning and abort cascading
+
+      All tests should pass. `npm run test && npm run lint`.
+    status:
+      commit: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 11: Immutable Builder
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: builder-config
+    title: Define ResolvedAgentConfig type
+    prompt: |
+      Create `packages/poe-agent/src/runtime/config.ts`.
+
+      The builder produces a frozen, serializable config snapshot:
+      ```ts
+      type ResolvedAgentConfig = { model?: string; plugins: AgentPlugin[] };
+      ```
+
+      The builder holds only this. Closures and mutable references live in the run context,
+      not in the config.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Immutable builder,
+      mutable run state".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: builder-core
+    title: Implement immutable AgentBuilder with .model() and .use()
+    prompt: |
+      Create `packages/poe-agent/src/agent.ts`.
+
+      ```ts
+      function agent(): AgentBuilder;
+      ```
+
+      The builder is immutable — every method returns a new builder with a new config snapshot:
+      - `.model(model)` — returns new builder with model set
+      - `.use(plugin)` — defensively clones plugin config at registration time, returns new builder
+
+      Reusing a builder must not leak state between derived agents:
+      ```ts
+      const base = agent().model("gpt-5").use(memory());
+      const researcher = base.use(web());   // base is unchanged
+      const writer = base.use(docTools());  // base is still unchanged
+      ```
+
+      Plugin factories are called fresh per `.run()`, not at builder time.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Builder" and
+      "Immutable builder, mutable run state".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: builder-run
+    title: Implement AgentBuilder.run() end-to-end
+    prompt: |
+      Wire `AgentBuilder.run()` to execute the full runtime lifecycle:
+
+      1. Resolve config from builder state
+      2. Create fresh RunContext with AbortController (from `options.signal` if provided)
+      3. Validate plugin dependencies (composition-time check)
+      4. Compute topological order
+      5. Run plugin setup in order (via PluginApi)
+      6. Compile prompt from PromptRegistry (two-phase pipeline)
+      7. Compute active tools from ToolRegistry + `options.skills`
+      8. Create LocalHost wired to ToolRegistry
+      9. If `options.resume` provided, inject previous messages into conversation
+      10. Run ACP core model loop
+      11. Dispose RunContext (always, even on error)
+      12. Return `RunResult`
+
+      ```ts
+      type RunResult = { output: string; messages: ChatMessage[]; toolCalls: ToolCallRecord[] };
+      ```
+
+      This is the simplest integration point — good for scripts, tests, single-shot automation.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "High-level flow" and ".run()".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: builder-stream
+    title: Implement AgentBuilder.stream() as async iterable
+    prompt: |
+      Wire `AgentBuilder.stream()` — same local host as `.run()`, but yields `AcpEvent`s
+      as an async iterable instead of collecting internally.
+
+      ```ts
+      const events = agent().use(memory()).stream("Fix the tests");
+      for await (const event of events) {
+        if (event.type === "message.delta") process.stdout.write(event.content);
+        if (event.type === "tool.intent") console.log(`Calling ${event.tool}...`);
+      }
+      ```
+
+      Even though the local host handles intents immediately, the caller still sees
+      `tool.intent` and `tool.result` events — the event stream is always the full ACP
+      sequence regardless of host.
+
+      Good for CLI rendering, live UIs, and logging pipelines.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section ".stream()".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 12: ACP Session Mode and Cancellation
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: acp-session-impl
+    title: Implement .acp() execution mode
+    prompt: |
+      Add `.acp()` to `AgentBuilder`. This exposes the ACP core directly — the caller
+      **is** the host. No built-in tool execution happens.
+
+      ```ts
+      type AcpSession = {
+        events: AsyncIterable<AcpEvent>;
+        acknowledge(intentId: string, result: ToolAckResult): void;
+        dispose(): Promise<void>;
+      };
+      ```
+
+      Every `tool.intent` event flows outward to the caller. The caller must call
+      `acknowledge()` for each intent — the core suspends until acknowledged.
+
+      Like `.run()` and `.stream()`, `.acp()` is async because plugin `setup()` runs
+      before the model loop starts.
+
+      `.acp()` is single-turn. For continuation, use `resume`:
+      ```ts
+      const session2 = await agent().use(memory()).acp("Now fix it", { resume: previousResult });
+      ```
+
+      This is what the provider uses — the host controls all side effects.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section ".acp()".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: resume-support
+    title: Implement resume for continuation across runs
+    prompt: |
+      Add `resume` option to all execution modes:
+
+      ```ts
+      type RunOptions = { signal?: AbortSignal; skills?: string[]; resume?: RunResult };
+      ```
+
+      Resume injects the previous run's message history into the prompt pipeline before
+      the model loop starts. The runtime does not hold persistent state between runs —
+      the caller owns the result and passes it back explicitly.
+
+      This keeps runs stateless and composable while still supporting iterative workflows.
+      It avoids the complexity of long-lived mutable sessions.
+
+      ```ts
+      const r1 = await agent().use(memory()).run("Read the test file");
+      const r2 = await agent().use(memory()).run("Now fix it", { resume: r1 });
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Single-turn execution
+      with resume".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: abort-propagation
+    title: Implement cancellation and abort propagation
+    prompt: |
+      Each run owns an `AbortController`. The signal propagates to:
+      - Every tool invocation via `ctx.signal`
+      - MCP client calls (passed as fetch/transport abort signal)
+      - Child runs via `ctx.fork()` (each child gets a derived controller —
+        aborting parent aborts all children)
+      - Async-generator tools via `.return()` on the generator when signal fires
+
+      Callers abort from outside:
+      ```ts
+      const controller = new AbortController();
+      agent().use(memory()).run("Fix tests", { signal: controller.signal });
+      controller.abort();
+      ```
+
+      When aborted:
+      1. Model loop stops after current iteration
+      2. In-flight tool calls receive the abort signal
+      3. Async-generator tools are returned (`.return()`)
+      4. Disposal hooks run in reverse registration order
+      5. Run rejects with `AbortError`
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Cancellation and abort".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # COMMIT MILESTONE: Builder, execution modes, cancellation
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: commit-builder-and-modes
+    title: Commit builder, .run(), .stream(), .acp(), resume, and cancellation
+    prompt: |
+      Commit all work from Phases 11–12:
+      - ResolvedAgentConfig
+      - Immutable AgentBuilder with .model() and .use()
+      - .run() end-to-end lifecycle
+      - .stream() async iterable
+      - .acp() session mode
+      - Resume support
+      - Abort signal propagation and cleanup lifecycle
+
+      All tests should pass. `npm run test && npm run lint`.
+    status:
+      commit: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 13: Built-in Plugins
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: system-prompt-plugin
+    title: Create system prompt built-in plugin
+    prompt: |
+      Create `packages/poe-agent/src/plugins/poe-agent-plugin-system-prompt.ts`.
+
+      The current `SYSTEM_PROMPT.md` is loaded by a dedicated built-in plugin. This replaces
+      direct `loadSystemPrompt()` usage in `createAgentSession(...)`.
+
+      ```ts
+      export const systemPromptPlugin = (): AgentPlugin => ({
+        name: "poe-agent-plugin-system-prompt",
+        prompts: { system: [loadSystemPromptContent()] },
+      });
+      ```
+
+      The `createAgentSession(...)` compatibility layer includes this plugin by default
+      unless explicitly overridden. This preserves exact current behavior — same content,
+      same injection, same test output.
+
+      For full customization, callers can add transforms or omit the plugin entirely:
+      ```ts
+      agent().use(systemPromptPlugin()).use({
+        name: "replace-system-prompt",
+        prompt(ctx) { return { ...ctx, system: "Custom system prompt." }; },
+      })
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "System prompt customization".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: builtin-file-tools-plugin
+    title: Create built-in file tools plugin (read_file, edit_file, list_files)
+    prompt: |
+      Create `packages/poe-agent/src/plugins/poe-agent-plugin-files.ts`.
+
+      Extract `read_file`, `edit_file`, `list_files` from `DefaultToolExecutor` into
+      declarative `Tool` objects. Same names, same schemas, same behavior — no changes
+      to tool semantics.
+
+      ```ts
+      export const fileTools = (): AgentPlugin => ({
+        name: "poe-agent-plugin-files",
+        tools: [readFileTool, editFileTool, listFilesTool],
+      });
+      ```
+
+      Each tool is a declarative `Tool` object with `name`, `inputSchema`, and `call()`.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Step 3".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: builtin-shell-tool-plugin
+    title: Create built-in shell tool plugin (run_command)
+    prompt: |
+      Create `packages/poe-agent/src/plugins/poe-agent-plugin-shell.ts`.
+
+      Extract `run_command` from `DefaultToolExecutor`. Same name, schema, and behavior.
+
+      ```ts
+      export const shellTools = (): AgentPlugin => ({
+        name: "poe-agent-plugin-shell",
+        tools: [runCommandTool],
+      });
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Step 3".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: builtin-web-tool-plugin
+    title: Create built-in web tool plugin (search_web)
+    prompt: |
+      Create `packages/poe-agent/src/plugins/poe-agent-plugin-web.ts`.
+
+      Extract `search_web` from `DefaultToolExecutor`. Same name, schema, and behavior.
+
+      ```ts
+      export const webTools = (): AgentPlugin => ({
+        name: "poe-agent-plugin-web",
+        tools: [searchWebTool],
+      });
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Step 3".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: remove-default-tool-executor
+    title: Remove DefaultToolExecutor switch routing
+    prompt: |
+      After all built-in tools are plugins, remove the hardcoded `switch` routing from
+      `DefaultToolExecutor` in `packages/poe-agent/src/tool-executor.ts`.
+
+      Either delete the file if no longer needed, or reduce it to a thin adapter that
+      delegates to the plugin-contributed tool registry.
+
+      This is the biggest architectural win in the refactor — the centralized tool
+      executor with provider-style branching is replaced by composable plugin-contributed
+      tool registrations.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md — "Do not preserve the
+      DefaultToolExecutor switch as the long-term routing model".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 14: MCP as Capability
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: mcp-capability-key
+    title: Define McpCapability key and interface
+    prompt: |
+      In `packages/poe-agent/src/plugins/poe-agent-plugin-mcp.ts`, define the MCP capability token.
+
+      ```ts
+      const McpCapability = createCapabilityKey<McpCapabilityApi>("mcp");
+
+      type McpCapabilityApi = {
+        registerServer(config: McpServerConfig): void;
+        getClient(serverName: string): McpClient | undefined;
+      };
+      ```
+
+      The MCP layer separates concerns:
+      - `mcp()` plugin: owns the generic client capability and default tool exposure
+      - Server plugins: register filesystem, GitHub, Postgres servers
+      - Skills: choose which hidden MCP tools become visible for a run
+
+      MCP stays generic — no provider branches in core for each server type.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "MCP is one generic
+      capability with plugin-defined servers".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: mcp-plugin-lifecycle
+    title: Implement MCP plugin with client lifecycle management
+    prompt: |
+      In `packages/poe-agent/src/plugins/poe-agent-plugin-mcp.ts`, implement the generic MCP plugin.
+
+      The MCP plugin:
+      1. Provides `McpCapability` so other plugins can register servers via `api.require(McpCapability)`
+      2. During `setup()`, connects to all registered servers and discovers their tools
+      3. Registers discovered tools in the ToolRegistry with configurable visibility
+      4. Supports `defaultVisibility` option: `mcp({ defaultVisibility: "skill" })`
+      5. Handles disposal by disconnecting all clients
+
+      Reuse existing MCP conversion helpers from `mcp-tool-executor.ts`:
+      - Namespacing (`server_name.tool_name`)
+      - MCP-to-OpenAI tool schema conversion
+      - Client lifecycle management
+
+      The current MCP layer should be promoted into a generic capability, not discarded.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Step 5: turn MCP
+      from a sidecar executor into a capability".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: mcp-server-plugin-pattern
+    title: Implement MCP server plugin pattern
+    prompt: |
+      Server plugins depend on `McpCapability` and register themselves — they do not
+      implement their own clients.
+
+      ```ts
+      export const filesystemMcp = (config: FsMcpConfig): AgentPlugin => ({
+        name: "poe-agent-plugin-filesystem-mcp",
+        dependsOn: [McpCapability],
+        async setup(api) {
+          const mcp = api.require(McpCapability);
+          mcp.registerServer({ name: "filesystem", ...config });
+        },
+      });
+      ```
+
+      Using `filesystemMcp()` without `mcp()` produces a clear `MissingCapabilityError`
+      at composition time. This is the pattern for all MCP server integrations: GitHub,
+      Postgres, custom private servers.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Server plugins".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 15: Skills and Delegate
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: skills-plugin
+    title: Implement skills plugin for tool activation and prompt injection
+    prompt: |
+      Create `packages/poe-agent/src/plugins/poe-agent-plugin-skills.ts`.
+
+      Skills are the mechanism for activating hidden tools and injecting usage guidance.
+      They gate tool exposure but do not own tool registration or MCP discovery.
+
+      The skills plugin:
+      1. Accepts skill definitions mapping skill names to tool names/tags
+      2. Reads `options.skills` at run time to determine which skills are active
+      3. Passes active skills to `ToolRegistry.getActiveTools()` to expose matching
+         `skill`-visibility tools
+      4. Injects prompt guidance describing which skills are active and what tools they provide
+
+      Skills reference stable tool ids or tags. Per-run active tool views are computed,
+      never mutated permanently. The tool registry remains immutable; views are per-run.
+
+      ```ts
+      await agent()
+        .use(mcp({ defaultVisibility: "skill" }))
+        .use(githubMcp())
+        .use(skills({ "github-research": ["github.*"] }))
+        .run("Investigate this repo", { skills: ["github-research"] });
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md sections "Hidden MCP through
+      skills", "Step 7: add skill activation after visibility exists".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: delegate-plugin
+    title: Implement delegate tool plugin
+    prompt: |
+      Create `packages/poe-agent/src/plugins/poe-agent-plugin-delegate.ts`.
+
+      The `delegate` plugin registers a tool that calls into the core's fork mechanism.
+      The tool is a plugin; the fork operation is core.
+
+      ```ts
+      export const delegate = (): AgentPlugin => ({
+        name: "poe-agent-plugin-delegate",
+        setup(api) {
+          api.addTool({
+            name: "delegate",
+            description: "Delegate a sub-task to a child agent run",
+            inputSchema: {
+              type: "object",
+              properties: { task: { type: "string", description: "The sub-task to delegate" } },
+              required: ["task"],
+            },
+            async call({ task }, ctx) { return ctx.fork(task); },
+          });
+        },
+      });
+      ```
+
+      `ctx.fork(prompt)` is a core runtime method available to all tools, not a plugin
+      capability. The delegate plugin just makes it model-accessible.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Fork as a core
+      primitive with a plugin-provided tool".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 16: Migration and Compatibility
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: session-adapter
+    title: Wire createAgentSession as adapter over new runtime
+    prompt: |
+      Refactor `packages/poe-agent/src/agent-session.ts` so `createAgentSession(...)`
+      becomes a thin adapter over the new fluent builder/runtime:
+
+      ```ts
+      export async function createAgentSession(options: CreateAgentSessionOptions) {
+        const builder = agent()
+          .model(resolveModel(options))
+          .use(systemPromptPlugin())
+          .use(fileTools())
+          .use(shellTools())
+          .use(webTools())
+          .use(mcpPluginFromOptions(options));
+        return adaptAcpToLegacySession(builder);
+      }
+      ```
+
+      The public API must not change. Two repo surfaces depend on it:
+      - `src/providers/poe-agent.ts` — adapts session into ACP lifecycle
+      - `src/cli/commands/agent.ts` — CLI agent command
+
+      The provider should use `.acp()` internally so it can act as host. The safest
+      migration: add new builder/runtime internally, implement `createAgentSession(...)` as
+      adapter, keep provider and CLI stable.
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md section "Compatibility Plan".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: public-api-exports
+    title: Export public API from package index
+    prompt: |
+      Update `packages/poe-agent/src/index.ts` to export the public API alongside the
+      existing `createAgentSession` for backward compatibility:
+
+      New exports:
+      - `agent()` builder function
+      - `AgentPlugin`, `AgentBuilder`, `PluginApi`, `CapabilityKey`, `createCapabilityKey`
+      - `Tool`, `ToolContext`, `PromptContext`
+      - `AcpEvent`, `AcpSession`, `RunResult`, `RunOptions`
+      - `HookEvent`, `Hook`, `HookDecision`
+
+      Keep internal: `NormalizedTool`, all registries, `RunContext`, `LocalHost`, `PluginApiImpl`.
+
+      Third-party plugins should be normal npm packages with typed factories:
+      ```ts
+      import type { AgentPlugin } from "@poe-code/poe-agent";
+      export function jira(options: JiraOptions): AgentPlugin { ... }
+      ```
+
+      Reference: docs/plans/poe-agent/fluent-plugin-runtime.md sections "Step 8: add the
+      public fluent builder", "Third-Party Plugin Model".
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Phase 17: E2E Tests for Major Features
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: e2e-basic-run
+    title: E2E test - basic agent run with built-in tools
+    prompt: |
+      Write an e2e test exercising the full runtime path:
+
+      ```ts
+      const result = await agent()
+        .model("test-model")
+        .use(systemPromptPlugin())
+        .use(fileTools())
+        .use(shellTools())
+        .run("Read the file at /tmp/test.txt");
+      ```
+
+      Verify the complete lifecycle: plugin setup → prompt compilation → model call →
+      tool intent → host execution → tool result injection → final output → disposal.
+
+      Use mock model/LLM per project testing guidelines (docs/SNAPSHOT_TESTING.md).
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-immutable-builder
+    title: E2E test - immutable builder reuse and derivation
+    prompt: |
+      Write an e2e test proving builder immutability in practice:
+
+      ```ts
+      const base = agent().model("test-model").use(systemPromptPlugin()).use(fileTools());
+      const researcher = base.use(webTools());
+      const writer = base.use(shellTools());
+
+      const r1 = await researcher.run("Search for X");
+      const r2 = await writer.run("Run command Y");
+      ```
+
+      Verify: base unchanged after derivation, researcher has web but not shell tools,
+      writer has shell but not web tools, independent runs produce independent results,
+      no state leakage between runs.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-hook-guardrails
+    title: E2E test - hook-based guardrails
+    prompt: |
+      Write an e2e test for the guardrails hook pattern from the plan:
+
+      A `PreToolCall` hook blocks forbidden commands and returns a rejection to the model.
+      The model receives the rejection as a tool error and can try a different approach.
+
+      ```ts
+      const guardrails = (): AgentPlugin => ({
+        name: "guardrails",
+        setup(api) {
+          api.addHook({
+            event: "PreToolCall",
+            handler(ctx) {
+              if (ctx.tool === "run_command" && isForbidden(ctx.args)) {
+                return { reject: `Blocked forbidden command` };
+              }
+            },
+          });
+        },
+      });
+      ```
+
+      Verify: forbidden command rejected, model receives error as tool result, model
+      recovers with alternative, non-forbidden commands execute normally.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-hook-dry-run
+    title: E2E test - dry-run mode via hooks
+    prompt: |
+      Write an e2e test for the dry-run hook pattern:
+
+      A `PreToolCall` hook skips `edit_file` and `run_command` tools. Read-only tools
+      like `read_file` and `list_files` execute normally.
+
+      ```ts
+      const dryRun = (): AgentPlugin => ({
+        name: "dry-run",
+        setup(api) {
+          api.addHook({
+            event: "PreToolCall",
+            handler(ctx) {
+              if (ctx.tool === "edit_file" || ctx.tool === "run_command") return "skip";
+            },
+          });
+        },
+      });
+      ```
+
+      Verify: write operations skipped, read operations proceed, model still gets
+      responses for skipped tools (empty/skip result).
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-hook-token-budget
+    title: E2E test - token budget abort via hooks
+    prompt: |
+      Write an e2e test for the token budget hook pattern:
+
+      A `PostModelCall` hook tracks cumulative token usage and aborts the run when the
+      budget is exceeded.
+
+      ```ts
+      const tokenBudget = (max: number): AgentPlugin => ({
+        name: "token-budget",
+        setup(api) {
+          let total = 0;
+          api.addHook({
+            event: "PostModelCall",
+            handler(ctx) {
+              total += ctx.tokenCount;
+              if (total > max) return "abort";
+            },
+          });
+        },
+      });
+      ```
+
+      Verify: run aborts when budget exceeded, disposal runs, error is AbortError or
+      similar, runs within budget complete normally.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-fork-delegate
+    title: E2E test - fork and delegate
+    prompt: |
+      Write an e2e test for the fork mechanism via the delegate plugin:
+
+      ```ts
+      const result = await agent()
+        .model("test-model")
+        .use(delegate())
+        .use(fileTools())
+        .run("Investigate the regression");
+      ```
+
+      Use a mock model that produces a `delegate` tool call with a sub-task prompt.
+
+      Verify: delegate tool call triggers fork, child run creates with cloned context,
+      child has access to parent's tools, child completes and result flows back to parent,
+      parent continues after receiving fork result. Also verify abort cascade: aborting
+      parent mid-fork also aborts the child.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-mcp-hidden-tools
+    title: E2E test - MCP with hidden tools and skill activation
+    prompt: |
+      Write an e2e test for the MCP + skills integration:
+
+      ```ts
+      const result = await agent()
+        .model("test-model")
+        .use(mcp({ defaultVisibility: "skill" }))
+        .use(testServerPlugin())
+        .use(skills({ "test-skill": ["test-server.*"] }))
+        .run("Use the tools", { skills: ["test-skill"] });
+      ```
+
+      Use a mock MCP server that provides discoverable tools.
+
+      Verify: MCP tools discovered and registered with `skill` visibility, without active
+      skill the tools are hidden from the model, with active skill the tools are visible,
+      MCP clients are disposed on run completion.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-streaming
+    title: E2E test - streaming event consumption
+    prompt: |
+      Write an e2e test for `.stream()`:
+
+      ```ts
+      const events: AcpEvent[] = [];
+      for await (const event of agent().use(tools()).stream("Do something")) {
+        events.push(event);
+      }
+      ```
+
+      Verify event ordering: `message.delta` events contain model output,
+      `tool.intent`/`tool.result` pairs match by `intentId`, exactly one `session.complete`
+      at the end, no events after terminal event. Verify the stream is consumable via
+      standard `for await...of`.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-acp-session
+    title: E2E test - ACP session with external host
+    prompt: |
+      Write an e2e test for `.acp()`:
+
+      ```ts
+      const session = await agent().use(tools()).acp("Do something");
+      for await (const event of session.events) {
+        if (event.type === "tool.intent") {
+          const result = await executeLocally(event);
+          session.acknowledge(event.intentId, result);
+        }
+      }
+      await session.dispose();
+      ```
+
+      Verify: session creates with plugin setup, tool intents flow to caller, caller
+      acknowledgments flow back to core and unblock the model loop, session completes after
+      all intents handled, dispose cleans up resources.
+    status:
+      implement: done
+      refactor: done
+      test: done
+
+  - id: e2e-cancellation
+    title: E2E test - external cancellation via AbortSignal
+    prompt: |
+      Write an e2e test for external cancellation:
+
+      ```ts
+      const controller = new AbortController();
+      const promise = agent().use(tools()).run("Long task", { signal: controller.signal });
+      // Abort mid-run (e.g., after first tool call)
+      controller.abort();
+      await expect(promise).rejects.toThrow(/abort/i);
+      ```
+
+      Verify: abort signal propagates to in-flight tools, model loop stops, disposal hooks
+      run, run rejects with AbortError. Also test abort cascading through forks: aborting
+      parent mid-fork also aborts child runs.
+    status:
+      implement: done
+      refactor: open
+      test: open
+
+  - id: e2e-resume
+    title: E2E test - resume across runs
+    prompt: |
+      Write an e2e test for the resume feature:
+
+      ```ts
+      const r1 = await agent().use(tools()).run("Read the test file");
+      const r2 = await agent().use(tools()).run("Now fix the assertion", { resume: r1 });
+      ```
+
+      Verify: second run sees conversation history from first run, tools can reference
+      context from the first run, each run has independent disposal, the caller owns the
+      result and passes it explicitly — no hidden persistent state.
+    status:
+      implement: open
+      refactor: open
+      test: open
+
+  - id: e2e-provider-compat
+    title: E2E test - provider and CLI compatibility
+    prompt: |
+      Run the full compatibility verification:
+
+      1. `npm run test` — all unit tests pass (especially provider, session, chat, MCP tests)
+      2. `npm run lint` — no lint errors
+      3. `npm run e2e:verbose` — all existing e2e tests pass
+      4. `npm run build` — package builds successfully
+
+      Specifically verify that `src/providers/poe-agent.ts` and `src/cli/commands/agent.ts`
+      work without changes — the refactor must be transparent to downstream consumers.
+
+      The provider should continue using `createAgentSession(...)` which now internally
+      delegates to the new runtime.
+    status:
+      implement: open
+      refactor: open
+      test: open
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # COMMIT MILESTONE: All plugins, migration, public API, e2e tests
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: commit-final
+    title: Commit plugins, migration, public API, and e2e tests
+    prompt: |
+      Commit all remaining work from Phases 13–17:
+      - Built-in plugins (system prompt, file tools, shell, web)
+      - DefaultToolExecutor removal
+      - MCP capability plugin and server pattern
+      - Skills and delegate plugins
+      - createAgentSession migration
+      - Public API exports
+      - All e2e tests
+
+      All tests should pass. `npm run test && npm run lint && npm run e2e:verbose`.
+    status:
+      commit: open

@@ -1,0 +1,24 @@
+steps:
+  implement:
+    instruction: |
+      Implement
+
+      {{prompt}}
+
+  refactor:
+    instruction: |
+      Original task:
+      {{prompt}}
+
+      Refactor and improve the code
+
+  test:
+    instruction: |
+      Original task:
+      {{prompt}}
+
+      Be a user and test all edge cases, fix bugs
+
+  commit:
+    instruction: |
+      Commit changes

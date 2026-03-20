@@ -1,0 +1,36 @@
+# Edit this file to define Pipeline steps.
+# Leave it comment-only to keep the default no-step behavior.
+# Uncomment and change the example below when you want stepped tasks.
+# Add `mode` only when you want to override the default `yolo`.
+#
+# steps:
+#   implement:
+#     instruction: |
+#       {{id}}: {{title}}
+#
+#       Implement
+#       {{prompt}}
+#
+#   refactor:
+#     instruction: |
+#       {{id}}: {{title}}
+#       Original task:
+#       {{prompt}}
+#
+#       Refactor and improve the code
+#
+#   test:
+#     instruction: |
+#       {{id}}: {{title}}
+#       Original task:
+#       {{prompt}}
+#
+#       Be a user and test all edge cases, fix bugs
+#
+#   commit:
+#     instruction: |
+#       {{id}}: {{title}}
+#       Original task:
+#       {{prompt}}
+#
+#       Commit changes

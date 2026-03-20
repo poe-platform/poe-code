@@ -243,6 +243,7 @@ The package powers this CLI:
 ```bash
 poe-code pipeline install --local
 poe-code pipeline install --agent codex --global
+poe-code pipeline validate .poe-code/pipeline/plans/plan-auth.yaml
 poe-code pipeline run
 poe-code pipeline run --plan path/to/plan.yaml
 poe-code pipeline run --task auth-hardening
@@ -252,11 +253,8 @@ poe-code pipeline run --agent codex --model gpt-5.2 --max-runs 3
 Supported flags:
 
 - `install`: `--agent`, `--local`, `--global`, `--force`
-- `--agent <name>`
-- `--model <model>`
-- `--task <id>`
-- `--plan <path>`
-- `--max-runs <n>`
+- `validate`: takes a file argument
+- `run`: `--agent`, `--model`, `--task`, `--plan`, `--max-runs`
 
 ## Testing Helper
 

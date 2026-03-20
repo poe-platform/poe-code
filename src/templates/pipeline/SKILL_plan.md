@@ -12,8 +12,8 @@ Ask the user for a one-sentence description of what they want to build.
 Write a YAML pipeline plan. Before writing, determine where to place it:
 
 1. If `.poe-code/pipeline/steps.yaml` exists in the **project** → write to `.poe-code/pipeline/plans/plan-<name>.yaml`
-2. Otherwise, if `~/.poe-code/pipeline/steps.yaml` exists → write to `~/.poe-code/pipeline/plans/plan-<name>.yaml`
-3. If neither exists, use stepless tasks and write to `.poe-code/pipeline/plans/plan-<name>.yaml`
+2. Otherwise, if `~/.poe-code/pipeline/steps.yaml` exists → write to `~/.poe-code/pipeline/plans/plan-<project>-<name>.yaml`
+3. If neither exists, use stepless tasks and write to `~/.poe-code/pipeline/plans/plan-<project>-<name>.yaml`
 
 Read the steps file from whichever location you found it.
 
@@ -53,6 +53,10 @@ tasks:
       test: open
       review: open
 ```
+
+## After Writing
+
+Run `poe-code pipeline validate <path>` to check the plan is valid before running it.
 
 ## Notes
 

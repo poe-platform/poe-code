@@ -33,6 +33,9 @@ function parseStepConfigDocument(
   content: string
 ): ResolvedStepDefinitions {
   const document = parseYamlDocument(filePath, content);
+  if (document === null || document === undefined) {
+    return {};
+  }
   if (!isRecord(document)) {
     throw new Error(`Invalid pipeline step config in "${filePath}": expected a top-level object.`);
   }

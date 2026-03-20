@@ -20,6 +20,22 @@ describe("loadResolvedSteps", () => {
     expect(steps).toEqual({});
   });
 
+  it("returns empty steps for a comment-only steps.yaml", async () => {
+    const steps = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps.yaml": [
+          "# This is all comments",
+          "# No actual steps defined",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(steps).toEqual({});
+  });
+
   it("loads global steps when only the home config exists", async () => {
     const steps = await loadResolvedSteps({
       cwd: "/repo",

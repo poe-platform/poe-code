@@ -161,7 +161,7 @@ tasks:
 
       All types compile. All tests pass.
     status:
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 3–8: Registries, Hooks, Run Context
@@ -194,9 +194,9 @@ tasks:
 
       MCP tools retain their namespace prefix (`server.tool`) which avoids collisions.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: prompt-pipeline
     title: Implement prompt transform pipeline
@@ -214,9 +214,9 @@ tasks:
       transforms in registration order. `userPrompt` must never be merged early — stays
       explicit through the entire pipeline.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: hook-system
     title: Implement hook registry, context builders, and decision dispatch
@@ -245,9 +245,9 @@ tasks:
       - `{ reject: msg }` on `preToolUse`: returns error to model as tool error (model can recover)
       - `"abort"`: triggers run disposal and `AbortError`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: run-context-and-setup
     title: Implement RunContext, PluginApi, and plugin setup orchestration
@@ -276,9 +276,9 @@ tasks:
       1. For each plugin: register static `tools`, register `prompt` transform, call `setup(api)`
       2. On failure: wrap in `PluginSetupError`, dispose already-setup plugins in reverse order
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
 
   - id: commit-registries-and-runtime
     title: Commit registries, hooks, run context, and plugin setup

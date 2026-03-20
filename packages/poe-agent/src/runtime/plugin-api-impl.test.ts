@@ -1,0 +1,177 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ToolContext } from "./types.js";
+import { PluginApiImpl } from "./plugin-api-impl.js";
+import { createRunContext } from "./run-context.js";
+
+const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
+const mcpClientConstructorMock = vi.hoisted(() => vi.fn());
+const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown) => Promise<void>>());
+const mcpClientListToolsMock = vi.hoisted(
+  () => vi.fn<(params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>>(),
+);
+const mcpClientCallToolMock = vi.hoisted(
+  () => vi.fn<(params: { name: string; arguments?: Record<string, unknown> }) => Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }>>(),
+);
+const mcpClientCloseMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
+
+vi.mock("tiny-mcp-client", () => ({
+  StdioTransport: class {
+    constructor(options: unknown) {
+      stdioTransportConstructorMock(options);
+    }
+  },
+  McpClient: class {
+    constructor(options: unknown) {
+      mcpClientConstructorMock(options);
+    }
+
+    async connect(transport: unknown): Promise<void> {
+      await mcpClientConnectMock(transport);
+    }
+
+    async listTools(params?: { cursor?: string }): Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }> {
+      return mcpClientListToolsMock(params);
+    }
+
+    async callTool(params: { name: string; arguments?: Record<string, unknown> }): Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }> {
+      return mcpClientCallToolMock(params);
+    }
+
+    async close(): Promise<void> {
+      await mcpClientCloseMock();
+    }
+  },
+}));
+
+function createToolContext(): ToolContext {
+  return {
+    fork: async () => ({ output: "", messages: [] }),
+    spawn: async () => ({ output: "", messages: [] }),
+    signal: new AbortController().signal,
+  };
+}
+
+describe("PluginApiImpl", () => {
+  beforeEach(() => {
+    stdioTransportConstructorMock.mockReset();
+    mcpClientConstructorMock.mockReset();
+    mcpClientConnectMock.mockReset();
+    mcpClientListToolsMock.mockReset();
+    mcpClientCallToolMock.mockReset();
+    mcpClientCloseMock.mockReset();
+
+    mcpClientConnectMock.mockResolvedValue(undefined);
+    mcpClientCloseMock.mockResolvedValue(undefined);
+  });
+
+  it("adds regular tools through the run context registry", () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+
+    api.addTool({
+      name: "custom.tool",
+      call: () => "ok",
+    });
+
+    expect(context.tools.get("custom.tool")?.name).toBe("custom.tool");
+  });
+
+  it("creates stdio MCP transport, discovers tools during setup, and namespaces them", async () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+
+    mcpClientListToolsMock.mockResolvedValueOnce({
+      tools: [
+        {
+          name: "search",
+          description: "Search docs",
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: { type: "string" },
+            },
+            required: ["query"],
+          },
+        },
+      ],
+      nextCursor: "page-2",
+    });
+    mcpClientListToolsMock.mockResolvedValueOnce({
+      tools: [
+        {
+          name: "status",
+          description: "Status",
+          inputSchema: {
+            type: "object",
+            properties: {},
+          },
+        },
+      ],
+    });
+    mcpClientCallToolMock.mockResolvedValue({
+      content: [{ type: "text", text: "mcp-result" }],
+    });
+
+    api.addMcp({
+      name: "repo",
+      command: "node",
+      args: ["server.js"],
+      env: { NODE_ENV: "test" },
+      visibility: "skill",
+    });
+
+    await api.flushSetup();
+
+    expect(stdioTransportConstructorMock).toHaveBeenCalledWith({
+      command: "node",
+      args: ["server.js"],
+      env: { NODE_ENV: "test" },
+    });
+    expect(mcpClientConstructorMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientInfo: { name: "poe-agent", version: "0.0.1" },
+        transport: expect.any(Object),
+      }),
+    );
+    expect(mcpClientConnectMock).toHaveBeenCalledTimes(1);
+    expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(1, undefined);
+    expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(2, { cursor: "page-2" });
+
+    expect(context.tools.get("repo.search")?.visibility).toBe("skill");
+    expect(context.tools.get("repo.status")?.visibility).toBe("skill");
+
+    const invocation = context.tools.get("repo.search")?.invoke({ query: "errors" }, createToolContext());
+    await expect(invocation?.next()).resolves.toEqual({
+      done: true,
+      value: "mcp-result",
+    });
+    expect(mcpClientCallToolMock).toHaveBeenCalledWith({
+      name: "search",
+      arguments: { query: "errors" },
+    });
+
+    await context.dispose();
+    expect(mcpClientCloseMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("registers MCP client disposal even when connect fails", async () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+    const connectError = new Error("connect failed");
+
+    mcpClientConnectMock.mockRejectedValueOnce(connectError);
+
+    api.addMcp({
+      name: "repo",
+      command: "node",
+      args: ["server.js"],
+    });
+
+    await expect(api.flushSetup()).rejects.toBe(connectError);
+
+    await context.dispose();
+
+    expect(mcpClientCloseMock).toHaveBeenCalledTimes(1);
+    expect(mcpClientListToolsMock).not.toHaveBeenCalled();
+  });
+});

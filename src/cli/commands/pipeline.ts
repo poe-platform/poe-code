@@ -249,6 +249,9 @@ export function registerPipelineCommand(
             ? { maxRuns: resolveMaxRuns(options.maxRuns) }
             : {}),
           assumeYes: flags.assumeYes,
+          onPlanReloadError(error: Error) {
+            resources.logger.warn(`Plan reload failed, using last good state: ${error.message}`);
+          },
           onPlanResolved(summary: PlanSummary) {
             const configLines = [`Agent: ${agent}`];
             if (options.model) configLines.push(`Model: ${options.model}`);

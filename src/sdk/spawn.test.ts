@@ -190,6 +190,37 @@ describe("SDK spawn()", () => {
     );
   });
 
+  it("propagates usage from agent-spawn non-streaming result when no adapter", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "aider",
+      promptFlag: "-p",
+      defaultArgs: []
+    } as any);
+
+    vi.mocked(agentSpawn).mockResolvedValue({
+      stdout: "out",
+      stderr: "err",
+      exitCode: 0,
+      usage: { inputTokens: 6, outputTokens: 4, cachedTokens: 2 }
+    });
+
+    const { events, result } = spawn("aider", "test prompt");
+
+    const received: unknown[] = [];
+    for await (const e of events) {
+      received.push(e);
+    }
+
+    expect(received).toEqual([]);
+    await expect(result).resolves.toEqual({
+      stdout: "out",
+      stderr: "err",
+      exitCode: 0,
+      usage: { inputTokens: 6, outputTokens: 4, cachedTokens: 2 }
+    });
+  });
+
   it("falls back to non-streaming and returns empty events when unsupported", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
     vi.mocked(createSdkContainer).mockReturnValue({} as any);
@@ -233,6 +264,32 @@ describe("SDK spawn()", () => {
         }
       })
     );
+  });
+
+  it("propagates usage from spawnCore non-streaming result when unsupported", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
+    vi.mocked(createSdkContainer).mockReturnValue({} as any);
+    vi.mocked(spawnCore).mockResolvedValue({
+      stdout: "out",
+      stderr: "err",
+      exitCode: 0,
+      usage: { inputTokens: 9, outputTokens: 5 }
+    });
+
+    const { events, result } = spawn("codex", "test prompt");
+
+    const received: unknown[] = [];
+    for await (const e of events) {
+      received.push(e);
+    }
+
+    expect(received).toEqual([]);
+    await expect(result).resolves.toEqual({
+      stdout: "out",
+      stderr: "err",
+      exitCode: 0,
+      usage: { inputTokens: 9, outputTokens: 5 }
+    });
   });
 
   it("calls spawnInteractive and returns empty events when interactive is true", async () => {

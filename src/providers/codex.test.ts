@@ -121,6 +121,8 @@ describe("codex service", () => {
 
     const providers = doc["model_providers"] as Record<string, Record<string, unknown>>;
     expect(providers["poe"]["experimental_bearer_token"]).toBe("sk-test");
+    expect(providers["poe"]["requires_openai_auth"]).toBe(false);
+    expect(providers["poe"]["supports_websockets"]).toBe(false);
 
     await expect(fs.readFile(path.join(configDir, "auth.json"), "utf8")).rejects
       .toThrow();

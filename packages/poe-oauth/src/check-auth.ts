@@ -1,12 +1,10 @@
-import { createAuthStore } from "./create-auth-store.js";
-
 export interface AuthIdentity {
   email: string;
   balance: number | null;
 }
 
-interface CheckAuthOptions {
-  apiKey?: string;
+export interface CheckAuthOptions {
+  apiKey: string;
   baseUrl?: string;
   fetch?: typeof fetch;
 }
@@ -18,14 +16,8 @@ interface CurrentBalanceResponse {
 
 const DEFAULT_BASE_URL = "https://poe.com";
 
-export async function checkAuth(options: CheckAuthOptions = {}): Promise<AuthIdentity | null> {
+export async function checkAuth(options: CheckAuthOptions): Promise<AuthIdentity | null> {
   try {
-    const apiKey = options.apiKey ?? (await createAuthStore().store.getApiKey());
-
-    if (!apiKey) {
-      return null;
-    }
-
     const fetchImplementation = options.fetch ?? globalThis.fetch;
 
     const response = await fetchImplementation(
@@ -33,7 +25,7 @@ export async function checkAuth(options: CheckAuthOptions = {}): Promise<AuthIde
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${apiKey}`
+          Authorization: `Bearer ${options.apiKey}`
         }
       }
     );

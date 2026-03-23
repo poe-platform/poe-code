@@ -1,11 +1,11 @@
-# @poe-code/poe-auth
+# poe-oauth
 
 Secure API key storage and authentication for poe-code.
 
 ## Quick start
 
 ```ts
-import { login, logout, checkAuth, getToken } from "@poe-code/poe-auth";
+import { login, logout, checkAuth, getToken } from "poe-oauth";
 
 // Interactive login (opens browser for OAuth, or pass apiKey directly)
 const apiKey = await login();
@@ -46,7 +46,7 @@ await logout();
 PKCE-based OAuth flow with local callback server:
 
 ```ts
-import { createOAuthClient } from "@poe-code/poe-auth";
+import { createOAuthClient } from "poe-oauth";
 
 const client = createOAuthClient({
   clientId: "your-client-id",
@@ -65,7 +65,7 @@ const result = await authorization.waitForResult();
 ## API key validation
 
 ```ts
-import { isValidApiKeyFormat, normalizeApiKey } from "@poe-code/poe-auth";
+import { isValidApiKeyFormat, normalizeApiKey } from "poe-oauth";
 
 isValidApiKeyFormat("sk-poe-abc123..."); // true
 normalizeApiKey("  sk-poe-abc123...  "); // trimmed + validated

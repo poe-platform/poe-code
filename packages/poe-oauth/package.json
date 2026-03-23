@@ -1,7 +1,6 @@
 {
-  "name": "@poe-code/poe-auth",
+  "name": "poe-oauth",
   "version": "0.0.1",
-  "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,5 +16,10 @@
   "dependencies": {},
   "files": [
     "dist"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/poe-oauth"
+  }
 }

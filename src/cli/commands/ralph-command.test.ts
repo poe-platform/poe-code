@@ -96,8 +96,8 @@ describe("ralph run command", () => {
 
   it("prompts for missing agent, doc, and iterations", async () => {
     selectMock
-      .mockResolvedValueOnce("codex")
-      .mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md");
+      .mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md")
+      .mockResolvedValueOnce("codex");
     promptTextMock.mockResolvedValue("4");
 
     const container = createCliContainer({
@@ -116,6 +116,19 @@ describe("ralph run command", () => {
 
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(selectMock).toHaveBeenNthCalledWith(1, {
+      message: "Select the Ralph markdown doc to run:",
+      options: [
+        {
+          label: ".poe-code/ralph/plans/plan-a.md",
+          value: ".poe-code/ralph/plans/plan-a.md"
+        },
+        {
+          label: ".poe-code/ralph/plans/plan-b.md",
+          value: ".poe-code/ralph/plans/plan-b.md"
+        }
+      ]
+    });
+    expect(selectMock).toHaveBeenNthCalledWith(2, {
       message: "Select agent to run Ralph with:",
       options: [
         { label: "claude-code", value: "claude-code" },
@@ -134,6 +147,25 @@ describe("ralph run command", () => {
         maxIterations: 4
       })
     );
+  });
+
+  it("fails before prompting for agent when no Ralph docs exist", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "ralph", "run", "3"])
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
   });
 
   it("uses defaults with --yes where a default exists", async () => {

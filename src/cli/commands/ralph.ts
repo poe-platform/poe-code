@@ -197,20 +197,20 @@ export function registerRalphCommand(
       resources.logger.intro("ralph run");
 
       try {
-        const agent = await resolveAgent({
-          program,
-          providedAgent: options.agent
-        });
-        if (!agent) {
-          return;
-        }
-
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg
         });
         if (!docPath) {
+          return;
+        }
+
+        const agent = await resolveAgent({
+          program,
+          providedAgent: options.agent
+        });
+        if (!agent) {
           return;
         }
 

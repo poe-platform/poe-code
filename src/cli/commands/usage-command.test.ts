@@ -4,6 +4,7 @@ import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
 import { OperationCancelledError } from "../errors.js";
+import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 const confirmMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
@@ -65,14 +66,12 @@ function createMemfs(homeDir: string): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
-function createConfigVolume(apiKey: string): FileSystem {
+async function createConfigVolume(apiKey: string): Promise<FileSystem> {
   const volume = new Volume();
   volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
-  volume.writeFileSync(
-    credentialsPath,
-    JSON.stringify({ apiKey })
-  );
-  return createFsFromVolume(volume).promises as unknown as FileSystem;
+  const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+  await storeTestApiKey(fs, homeDir, apiKey);
+  return fs;
 }
 
 describe("usage balance command", () => {
@@ -88,7 +87,7 @@ describe("usage balance command", () => {
   });
 
   it("fetches and displays current balance", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -126,7 +125,7 @@ describe("usage balance command", () => {
   });
 
   it("shows balance when invoked without subcommand", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -190,7 +189,7 @@ describe("usage balance command", () => {
   });
 
   it("logs dry run message when --dry-run flag is set", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
 
     const program = createProgram({
       fs,
@@ -236,7 +235,7 @@ describe("usage balance styling", () => {
     const accentFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), accent: accentFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -258,7 +257,7 @@ describe("usage balance styling", () => {
   });
 
   it("applies bold to the balance value", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -280,7 +279,7 @@ describe("usage balance styling", () => {
   });
 
   it("uses logger.info for the balance line", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -319,7 +318,7 @@ describe("usage list command", () => {
   });
 
   it("fetches and displays usage history from GET /usage/points_history with limit=20", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const entries = [
       {
         query_id: "q1",
@@ -395,7 +394,7 @@ describe("usage list command", () => {
   });
 
   it("prompts 'Load more?' when API returns has_more=true", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const page1Entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
       { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
@@ -446,7 +445,7 @@ describe("usage list command", () => {
   });
 
   it("stops pagination when user declines", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -481,7 +480,7 @@ describe("usage list command", () => {
   });
 
   it("aborts pagination when user cancels confirmation", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -519,7 +518,7 @@ describe("usage list command", () => {
   });
 
   it("loads specified number of pages without prompting when --pages is passed", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const page1Entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
       { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
@@ -563,7 +562,7 @@ describe("usage list command", () => {
   });
 
   it("stops after reaching --pages limit", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const page1Entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
       { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
@@ -596,7 +595,7 @@ describe("usage list command", () => {
   });
 
   it("filters results client-side when --filter provided", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
       { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 },
@@ -629,7 +628,7 @@ describe("usage list command", () => {
   });
 
   it("filters case-insensitively on model name", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
       { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
@@ -659,7 +658,7 @@ describe("usage list command", () => {
   });
 
   it("shows 'No usage history found.' when API returns empty data array", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -685,7 +684,7 @@ describe("usage list command", () => {
   });
 
   it("shows 'No entries match \"xyz\".' when filter matches nothing", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
       { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
@@ -715,7 +714,7 @@ describe("usage list command", () => {
   });
 
   it("pagination works with filter applied", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const page1Entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
       { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
@@ -779,7 +778,7 @@ describe("usage list table styling", () => {
     const headerFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), header: headerFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -812,7 +811,7 @@ describe("usage list table styling", () => {
     const mutedFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), muted: mutedFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -840,7 +839,7 @@ describe("usage list table styling", () => {
     const accentFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), accent: accentFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -872,7 +871,7 @@ describe("usage list table styling", () => {
     const errorFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), error: errorFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -900,7 +899,7 @@ describe("usage list table styling", () => {
     const successFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), success: successFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -932,7 +931,7 @@ describe("usage list table styling", () => {
     const mutedFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), muted: mutedFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -971,7 +970,7 @@ describe("usage list table styling", () => {
     const mutedFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), muted: mutedFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -999,7 +998,7 @@ describe("usage list table styling", () => {
   });
 
   it("truncates long model names with '…' suffix", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const longModelName = "A".repeat(60);
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -1030,7 +1029,7 @@ describe("usage list table styling", () => {
     const mutedFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), muted: mutedFn });
 
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,

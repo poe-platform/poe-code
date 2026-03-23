@@ -3,6 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
+import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 const getThemeMock = vi.hoisted(() => vi.fn());
 
@@ -42,14 +43,12 @@ function createMemfs(dir: string): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
-function createConfigVolume(apiKey: string): FileSystem {
+async function createConfigVolume(apiKey: string): Promise<FileSystem> {
   const volume = new Volume();
   volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
-  volume.writeFileSync(
-    credentialsPath,
-    JSON.stringify({ apiKey })
-  );
-  return createFsFromVolume(volume).promises as unknown as FileSystem;
+  const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+  await storeTestApiKey(fs, homeDir, apiKey);
+  return fs;
 }
 
 interface TestParameter {
@@ -128,7 +127,7 @@ describe("models command", () => {
   });
 
   it("fetches models from /v1/models and displays table", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic", created: 1700000000000 }),
       createModelEntry({ id: "gpt-5", owned_by: "OpenAI", created: 1690000000000 })
@@ -155,7 +154,7 @@ describe("models command", () => {
   });
 
   it("sorts models by created date descending (newest first)", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "old-model", owned_by: "A", created: 1600000000000 }),
       createModelEntry({ id: "new-model", owned_by: "B", created: 1800000000000 }),
@@ -177,7 +176,7 @@ describe("models command", () => {
   });
 
   it("filters by --provider (case-insensitive)", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" }),
       createModelEntry({ id: "gpt-5", owned_by: "OpenAI" })
@@ -195,7 +194,7 @@ describe("models command", () => {
   });
 
   it("filters by --model exact match (case-insensitive)", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "gpt-5", owned_by: "OpenAI" }),
       createModelEntry({ id: "gpt-5-mini", owned_by: "OpenAI" })
@@ -213,7 +212,7 @@ describe("models command", () => {
   });
 
   it("filters by --search using substring match on model id and provider", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" }),
       createModelEntry({ id: "gpt-5", owned_by: "OpenAI" })
@@ -235,7 +234,7 @@ describe("models command", () => {
   });
 
   it("filters by --tools (shorthand for --feature tools)", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "with-tools", owned_by: "A", supported_features: ["tools"] }),
       createModelEntry({ id: "no-tools", owned_by: "B", supported_features: ["web_search"] })
@@ -253,7 +252,7 @@ describe("models command", () => {
   });
 
   it("filters by --feature for supported_features", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "with-tools", owned_by: "A", supported_features: ["tools"] }),
       createModelEntry({ id: "no-tools", owned_by: "B", supported_features: ["web_search"] })
@@ -271,7 +270,7 @@ describe("models command", () => {
   });
 
   it("filters by --feature reasoning (treats reasoning as a feature)", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "thinker",
@@ -293,7 +292,7 @@ describe("models command", () => {
   });
 
   it("filters by --input modalities", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "multimodal",
@@ -319,7 +318,7 @@ describe("models command", () => {
   });
 
   it("filters by --input with multiple modalities", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "full",
@@ -345,7 +344,7 @@ describe("models command", () => {
   });
 
   it("filters by --output modalities", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "gen-image",
@@ -371,7 +370,7 @@ describe("models command", () => {
   });
 
   it("pricing view shows separate columns for each price type", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "claude-sonnet",
@@ -405,7 +404,7 @@ describe("models command", () => {
   });
 
   it("pricing view shows request price column", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "request-model",
@@ -431,7 +430,7 @@ describe("models command", () => {
   });
 
   it("displays supported features as dynamic columns", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "model-a", owned_by: "A", supported_features: ["web_search", "tools"] }),
       createModelEntry({ id: "model-b", owned_by: "B", supported_features: ["tools"] })
@@ -450,7 +449,7 @@ describe("models command", () => {
   });
 
   it("formats context_length as human-readable (e.g. 1M, 128K)", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "big-ctx", owned_by: "A", context_length: 1048576 }),
       createModelEntry({ id: "small-ctx", owned_by: "B", context_length: 4096 })
@@ -468,7 +467,7 @@ describe("models command", () => {
   });
 
   it("displays input and output modalities", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "multimodal",
@@ -491,7 +490,7 @@ describe("models command", () => {
   });
 
   it("shows reasoning checkmark when model supports reasoning", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "thinker",
@@ -513,7 +512,7 @@ describe("models command", () => {
   });
 
   it("shows 'No models found.' when API returns empty data", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -526,7 +525,7 @@ describe("models command", () => {
   });
 
   it("shows no-match message when filters exclude everything", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" })];
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -562,7 +561,7 @@ describe("models command", () => {
   });
 
   it("includes Authorization header when API key is available", async () => {
-    fs = createConfigVolume("my-key");
+    fs = await createConfigVolume("my-key");
     const models = [
       createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" })
     ];
@@ -584,7 +583,7 @@ describe("models command", () => {
   });
 
   it("logs dry run message when --dry-run flag is set", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const program = createProgram({
       fs,
       prompts: vi.fn(),
@@ -602,7 +601,7 @@ describe("models command", () => {
   });
 
   it("throws ApiError on non-ok response", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: false,
       status: 500,
@@ -624,7 +623,7 @@ describe("models command", () => {
   });
 
   it("displays date in YYYY-MM-DD format", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [createModelEntry({ id: "test", owned_by: "A", created: 1705276800000 })];
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -638,7 +637,7 @@ describe("models command", () => {
   });
 
   it("avoids floating point errors in pricing conversion", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "precise",
@@ -665,7 +664,7 @@ describe("models command", () => {
   });
 
   it("defaults to capabilities view without --view flag", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "claude-sonnet",
@@ -691,7 +690,7 @@ describe("models command", () => {
   });
 
   it("--view capabilities shows capabilities columns", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "test-model",
@@ -716,7 +715,7 @@ describe("models command", () => {
   });
 
   it("filters by --since duration (excludes old models)", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const now = Date.now();
     const models = [
       createModelEntry({ id: "recent", owned_by: "A", created: now - 1000 * 60 * 60 * 24 }),
@@ -735,7 +734,7 @@ describe("models command", () => {
   });
 
   it("filters by --since with long-form duration (e.g. '30 days')", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const now = Date.now();
     const models = [
       createModelEntry({ id: "recent", owned_by: "A", created: now - 1000 * 60 * 60 * 24 * 10 }),
@@ -754,7 +753,7 @@ describe("models command", () => {
   });
 
   it("shows no-match message when --since excludes all models", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "old", owned_by: "A", created: 1600000000000 })
     ];
@@ -770,7 +769,7 @@ describe("models command", () => {
   });
 
   it("--view pricing shows pricing columns without features", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "claude-sonnet",
@@ -804,7 +803,7 @@ describe("models command", () => {
   });
 
   it("--view parameters shows grouped model headers with parameter rows", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "claude-opus-4.6",
@@ -842,7 +841,7 @@ describe("models command", () => {
   });
 
   it("--view parameters shows number ranges", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "test-model",
@@ -867,7 +866,7 @@ describe("models command", () => {
   });
 
   it("--view parameters skips models without parameters", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "has-params",
@@ -895,7 +894,7 @@ describe("models command", () => {
   });
 
   it("--view parameters shows no-match message when no models have parameters", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({ id: "no-params", owned_by: "A", parameters: [] })
     ];
@@ -911,7 +910,7 @@ describe("models command", () => {
   });
 
   it("--view raw outputs models in YAML format", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "claude-opus-4.6",
@@ -937,7 +936,7 @@ describe("models command", () => {
   });
 
   it("--view parameters truncates long enum values with ellipsis", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const longEnum = Array.from({ length: 50 }, (_, i) => `voice-${String(i).padStart(3, "0")}`);
     const models = [
       createModelEntry({
@@ -961,7 +960,7 @@ describe("models command", () => {
   });
 
   it("--view parameters truncates long default values", async () => {
-    fs = createConfigVolume("test-key");
+    fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
         id: "test-model",

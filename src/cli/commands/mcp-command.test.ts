@@ -5,6 +5,7 @@ import * as clientInstance from "../../services/client-instance.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { LlmClient } from "../services/llm-client.js";
 import * as mcpServer from "../mcp-server.js";
+import { storeTestApiKey } from "../../../tests/test-helpers.js";
 import {
   DEFAULT_IMAGE_BOT,
   DEFAULT_VIDEO_BOT,
@@ -37,22 +38,25 @@ function createMemfs(): FileSystem {
   volume.mkdirSync(homeDir, { recursive: true });
   volume.mkdirSync(cwd, { recursive: true });
   volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
-  volume.writeFileSync(
-    `${homeDir}/.poe-code/credentials.json`,
-    `${JSON.stringify({ apiKey: "test-api-key" }, null, 2)}\n`
-  );
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
-function createMcpProgram(options?: {
+async function createMemfsWithApiKey(): Promise<FileSystem> {
+  const fs = createMemfs();
+  await storeTestApiKey(fs, homeDir, "test-api-key");
+  return fs;
+}
+
+async function createMcpProgram(options?: {
   fs?: FileSystem;
   variables?: Record<string, string | undefined>;
 }) {
   const fs = options?.fs ?? createMemfs();
+  await storeTestApiKey(fs, homeDir, "test-api-key");
   const program = createProgram({
     fs,
     prompts: vi.fn(),
-    env: { cwd, homeDir, variables: options?.variables ?? {} },
+    env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "0", ...options?.variables } },
     logger: () => {},
     suppressCommanderOutput: true
   });
@@ -80,7 +84,7 @@ describe("mcp command", () => {
 
   describe("poe-code mcp serve --help", () => {
     it("includes JSON config and tools documentation", async () => {
-      const { program } = createMcpProgram();
+      const { program } = await createMcpProgram();
       let helpOutput = "";
       const outputConfig = {
         writeOut: (str: string) => { helpOutput += str; },
@@ -117,7 +121,7 @@ describe("mcp command", () => {
   });
 
   it("rejects --agent with unknown option error", async () => {
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     const exitSpy = vi.spyOn(process, "exit").mockImplementation((code?: number) => {
       throw new Error(`exit:${code}`);
     });
@@ -131,7 +135,7 @@ describe("mcp command", () => {
   });
 
   it("defaults --output-format to url", async () => {
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     const initSpy = vi
       .spyOn(clientInstance, "initializeClient")
       .mockResolvedValue(undefined);
@@ -149,7 +153,7 @@ describe("mcp command", () => {
   });
 
   it("parses comma-separated --output-format preferences", async () => {
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     const initSpy = vi
       .spyOn(clientInstance, "initializeClient")
       .mockResolvedValue(undefined);
@@ -174,7 +178,7 @@ describe("mcp command", () => {
   });
 
   it("passes markdown --output-format preference to transport", async () => {
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     const initSpy = vi
       .spyOn(clientInstance, "initializeClient")
       .mockResolvedValue(undefined);
@@ -199,7 +203,7 @@ describe("mcp command", () => {
   });
 
   it("rejects invalid --output-format values", async () => {
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     await expect(
       program.parseAsync([
         "node",
@@ -213,7 +217,7 @@ describe("mcp command", () => {
   });
 
   it("rejects empty --output-format entries", async () => {
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     await expect(
       program.parseAsync([
         "node",
@@ -254,14 +258,14 @@ describe("mcp command", () => {
       status: "unknown",
       input: "unknown"
     });
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     await program.parseAsync(["node", "cli", "mcp", "configure", "unknown"]);
 
     expect(configureMock).not.toHaveBeenCalled();
   });
 
   it("configures with serve command and mapped profile", async () => {
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     await program.parseAsync(["node", "cli", "mcp", "configure", "claude-desktop"]);
 
     expect(configureMock).toHaveBeenCalledTimes(1);
@@ -282,7 +286,7 @@ describe("mcp command", () => {
       input: "claude",
       id: "claude-code"
     });
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
 
     await program.parseAsync(["node", "cli", "mcp", "configure", "claude"]);
 
@@ -299,7 +303,7 @@ describe("mcp command", () => {
       id: "claude-desktop",
       config: { mcpOutputFormat: "markdown_instructions" }
     });
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     await program.parseAsync(["node", "cli", "mcp", "configure", "claude-desktop"]);
 
     expect(configureMock).toHaveBeenCalledTimes(1);
@@ -309,7 +313,7 @@ describe("mcp command", () => {
   });
 
   it("omits --output-format when agent config has no mcpOutputFormat", async () => {
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
     await program.parseAsync(["node", "cli", "mcp", "configure", "claude-code"]);
 
     expect(configureMock).toHaveBeenCalledTimes(1);
@@ -323,7 +327,7 @@ describe("mcp command", () => {
       input: "claude-code",
       id: "claude-code"
     });
-    const { program } = createMcpProgram();
+    const { program } = await createMcpProgram();
 
     await program.parseAsync(["node", "cli", "mcp", "configure", "claude-code"]);
 

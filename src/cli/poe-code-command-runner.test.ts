@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { createCliContainer } from "./container.js";
-import { createHomeFs } from "../../tests/test-helpers.js";
+import { createHomeFs, storeTestApiKey } from "../../tests/test-helpers.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -21,12 +21,7 @@ describe("poe-code command runner", () => {
       commandRunner: baseRunner
     });
 
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
-    await fs.writeFile(
-      `${homeDir}/.poe-code/credentials.json`,
-      JSON.stringify({ apiKey: "sk-test" }),
-      "utf8"
-    );
+    await storeTestApiKey(fs, homeDir, "sk-test");
 
     const result = await container.commandRunner("poe-code", [
       "wrap",

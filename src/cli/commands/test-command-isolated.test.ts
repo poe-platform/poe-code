@@ -6,6 +6,7 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../utils/file-system.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
 import { createCommandExpectationCheck } from "../../utils/command-checks.js";
+import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -30,10 +31,7 @@ function createBaseProgram(): Command {
 describe("test command (isolated)", () => {
   it("runs checks with isolated env variables", async () => {
     const fs = createMemFs();
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
-    await fs.writeFile(credentialsPath, JSON.stringify({ apiKey: "sk-test" }), {
-      encoding: "utf8"
-    });
+    await storeTestApiKey(fs, homeDir, "sk-test");
 
     const commandRunner = vi.fn(async (_command, _args, options) => {
       expect(options?.env?.DEMO_HOME).toBe(`${homeDir}/.poe-code/demo-service`);

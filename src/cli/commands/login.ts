@@ -6,6 +6,7 @@ import {
   resolveCommandFlags,
   applyIsolatedConfiguration
 } from "./shared.js";
+import { AuthenticationError } from "../errors.js";
 import {
   loadConfiguredServices
 } from "../../services/config.js";
@@ -74,10 +75,7 @@ export async function executeLogin(
     resources.context.finalize();
   } catch (error) {
     if (error instanceof Error) {
-      resources.logger.logException(error, "login command", {
-        operation: "login",
-        configPath: container.env.configPath
-      });
+      throw new AuthenticationError(error.message);
     }
     throw error;
   }

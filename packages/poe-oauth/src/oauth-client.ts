@@ -211,7 +211,8 @@ async function exchangeCodeForApiKey(params: {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`Token exchange failed (${response.status}): ${text}`);
+    const description = parseErrorDescription(text);
+    throw new Error(description ?? `Token exchange failed (${response.status}): ${text}`);
   }
 
   const data = (await response.json()) as Record<string, unknown>;
@@ -227,6 +228,21 @@ async function exchangeCodeForApiKey(params: {
         ? data.api_key_expires_in
         : null
   };
+}
+
+function parseErrorDescription(text: string): string | null {
+  try {
+    const data = JSON.parse(text) as Record<string, unknown>;
+    if (typeof data.error_description === "string") {
+      return data.error_description;
+    }
+    if (typeof data.error === "string") {
+      return data.error;
+    }
+  } catch {
+    // not JSON
+  }
+  return null;
 }
 
 function buildSuccessPage(): string {

@@ -181,7 +181,34 @@ describe("OAuthClient", () => {
     await expect(authorization.waitForResult()).rejects.toThrow("access_denied");
   });
 
-  it("throws when token endpoint returns non-200", async () => {
+  it("throws user-friendly message when token endpoint returns error_description", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({
+        error: "invalid_grant",
+        error_description: "The provided authorization code is invalid or has expired."
+      }), {
+        status: 400,
+        headers: { "content-type": "application/json" }
+      })
+    );
+
+    const config = createTestConfig({
+      openBrowser: vi.fn(async () => {
+        simulateCallback("/callback?code=bad-code");
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    const client = createOAuthClient(config);
+    const authorization = await client.authorize();
+    await expect(authorization.waitForResult()).rejects.toThrow(
+      "The provided authorization code is invalid or has expired."
+    );
+  });
+
+  it("throws error code when token endpoint returns error without description", async () => {
     const { server, simulateCallback } = createMockServer();
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({ error: "invalid_grant" }), {
@@ -200,7 +227,7 @@ describe("OAuthClient", () => {
 
     const client = createOAuthClient(config);
     const authorization = await client.authorize();
-    await expect(authorization.waitForResult()).rejects.toThrow();
+    await expect(authorization.waitForResult()).rejects.toThrow("invalid_grant");
   });
 
   it("throws when token response is missing api_key", async () => {

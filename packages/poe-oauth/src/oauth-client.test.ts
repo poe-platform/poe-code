@@ -282,7 +282,7 @@ describe("OAuthClient", () => {
   });
 
   it("uses default endpoints when not specified", async () => {
-    const { server, simulateCallback, boundPort } = createMockServer();
+    const { server, simulateCallback } = createMockServer();
     const fetchMock = vi.fn(async () => createTokenResponse("sk-default-key"));
 
     const client = createOAuthClient({
@@ -308,7 +308,7 @@ describe("OAuthClient", () => {
   });
 
   it("allows overriding default endpoints", async () => {
-    const { server, boundPort } = createMockServer();
+    const { server } = createMockServer();
 
     const client = createOAuthClient({
       clientId: "test-client-id",

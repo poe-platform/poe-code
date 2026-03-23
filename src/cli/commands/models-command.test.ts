@@ -35,7 +35,6 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 
 const cwd = "/repo";
 const homeDir = "/home/test";
-const credentialsPath = `${homeDir}/.poe-code/credentials.json`;
 
 function createMemfs(dir: string): FileSystem {
   const volume = new Volume();

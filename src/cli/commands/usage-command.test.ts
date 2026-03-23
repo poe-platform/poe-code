@@ -48,7 +48,6 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 
 const cwd = "/repo";
 const homeDir = "/home/test";
-const credentialsPath = `${homeDir}/.poe-code/credentials.json`;
 
 function formatLocalDate(microseconds: number): string {
   const date = new Date(microseconds / 1000);

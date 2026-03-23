@@ -10,7 +10,6 @@ import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
-const credentialsPath = `${homeDir}/.poe-code/credentials.json`;
 
 function createMemFs(): FileSystem {
   const vol = new Volume();

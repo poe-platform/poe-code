@@ -41,12 +41,6 @@ function createMemfs(): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
-async function createMemfsWithApiKey(): Promise<FileSystem> {
-  const fs = createMemfs();
-  await storeTestApiKey(fs, homeDir, "test-api-key");
-  return fs;
-}
-
 async function createMcpProgram(options?: {
   fs?: FileSystem;
   variables?: Record<string, string | undefined>;

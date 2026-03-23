@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 // SDK exports
 export { spawn } from "./sdk/spawn.js";
 export { runPipeline } from "./sdk/pipeline.js";
+export { runRalph } from "./sdk/ralph.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey } from "./sdk/credentials.js";
 export type {
@@ -20,6 +21,10 @@ export type {
   PipelineRunOptions,
   PipelineRunResult
 } from "./sdk/pipeline.js";
+export type {
+  RalphRunOptions,
+  RalphRunResult
+} from "./sdk/ralph.js";
 
 async function main(): Promise<void> {
   const [{ createProgram }, { createCliMain }] = await Promise.all([

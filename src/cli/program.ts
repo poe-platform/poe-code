@@ -23,6 +23,7 @@ import { registerVersionOption } from "./commands/version.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerModelsCommand } from "./commands/models.js";
 import { registerPipelineCommand } from "./commands/pipeline.js";
+import { registerRalphCommand } from "./commands/ralph.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -129,6 +130,11 @@ function formatHelpText(input: {
         description: "Run a fixed-step task pipeline plan"
       },
       {
+        name: "ralph run",
+        args: "[iterations] [doc]",
+        description: "Run a markdown doc through repeated agent iterations"
+      },
+      {
         name: "usage",
         args: "",
         description: "Display current Poe compute points balance"
@@ -137,11 +143,6 @@ function formatHelpText(input: {
         name: "usage list",
         args: "",
         description: "Display usage history"
-      },
-      {
-        name: "pipeline run",
-        args: "",
-        description: "Run a fixed-step task pipeline plan"
       }
     ];
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
@@ -333,6 +334,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerMcpCommand(program, container);
   registerSkillCommand(program, container);
   registerPipelineCommand(program, container);
+  registerRalphCommand(program, container);
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
 

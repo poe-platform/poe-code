@@ -11,6 +11,14 @@ import { getPoeApiKey } from "../src/sdk/credentials.js";
 
 process.env.FORCE_COLOR = process.env.FORCE_COLOR ?? "1";
 
+vi.mock("../src/cli/oauth-login.js", () => ({
+  resolveApiKeyViaOAuth: async () => {
+    throw new Error(
+      "Unmocked browser open detected. Mock '../cli/oauth-login.js' in your test."
+    );
+  }
+}));
+
 const fetchMock = vi.fn(async () => {
   throw new Error("Unexpected fetch invocation. Provide a mock implementation.");
 });

@@ -1,6 +1,6 @@
 import { exec } from "node:child_process";
 import readline from "node:readline";
-import { createOAuthClient } from "@poe-code/poe-auth";
+import { createOAuthClient } from "poe-oauth";
 import { text, log } from "@poe-code/design-system";
 
 export async function resolveApiKeyViaOAuth(): Promise<string> {

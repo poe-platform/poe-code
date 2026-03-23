@@ -15,6 +15,7 @@ Go to `https://www.npmjs.com/package/<package-name>/access` and add a trusted pu
 - **Organization or user:** `poe-platform`
 - **Repository:** `poe-code`
 - **Workflow filename:** the workflow file that publishes the package (e.g. `release-<name>.yml`)
+- **Environment:** leave empty
 
 After this, GitHub Actions can publish new versions using OIDC provenance — no tokens needed.
 
@@ -54,7 +55,8 @@ Then make sure the package `package.json` includes repository metadata that poin
 {
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/poe-platform/poe-code.git"
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/<package-dir>"
   }
 }
 ```

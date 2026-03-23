@@ -1,14 +1,14 @@
 tasks:
   - id: rename-to-poe-auth
-    title: Rename packages/auth to packages/poe-auth and update all references
+    title: Rename packages/auth to packages/poe-oauth and update all references
     prompt: |
       Rename the auth package directory and npm package name:
-      - Directory: `packages/auth/` → `packages/poe-auth/`
+      - Directory: `packages/auth/` → `packages/poe-oauth/`
       - Package name: `@poe-code/auth` → `@poe-code/poe-auth`
 
       Steps:
-      1. `git mv packages/auth packages/poe-auth`
-      2. Update `packages/poe-auth/package.json` — change `"name"` to `"@poe-code/poe-auth"`
+      1. `git mv packages/auth packages/poe-oauth`
+      2. Update `packages/poe-oauth/package.json` — change `"name"` to `"@poe-code/poe-auth"`
       3. Update all imports and mocks across the codebase (find/replace `@poe-code/auth` → `@poe-code/poe-auth`):
 
          Source files:
@@ -32,15 +32,15 @@ tasks:
          - `packages/e2e-docker-test-runner/package.json` — same
 
       5. Update config/build references:
-         - `e2e/vitest.config.ts` — update path `'../packages/auth/src'` → `'../packages/poe-auth/src'` and alias key `'@poe-code/auth'` → `'@poe-code/poe-auth'`
-         - `packages/e2e-docker-test-runner/src/image.ts` — update `packageDir: 'packages/auth'` → `packageDir: 'packages/poe-auth'`
+         - `e2e/vitest.config.ts` — update path `'../packages/auth/src'` → `'../packages/poe-oauth/src'` and alias key `'@poe-code/auth'` → `'@poe-code/poe-auth'`
+         - `packages/e2e-docker-test-runner/src/image.ts` — update `packageDir: 'packages/auth'` → `packageDir: 'packages/poe-oauth'`
 
       6. Run `npm install` to regenerate package-lock.json
       7. Run `npm run test` and `npm run lint` to verify nothing is broken
 
       Do NOT update docs/plans — those are planning docs and will be updated separately.
 
-      Commit: `refactor(auth): rename packages/auth to packages/poe-auth`
+      Commit: `refactor(auth): rename packages/auth to packages/poe-oauth`
     status:
       implement: done
       refactor: done
@@ -53,8 +53,8 @@ tasks:
       Extract API key validation functions from `src/cli/options.ts` (lines 12-120) into the auth package.
 
       Create TDD-first:
-      - `packages/poe-auth/src/api-key-validation.test.ts`
-      - `packages/poe-auth/src/api-key-validation.ts`
+      - `packages/poe-oauth/src/api-key-validation.test.ts`
+      - `packages/poe-oauth/src/api-key-validation.ts`
 
       Functions to extract:
       - `stripBracketedPaste(input: string): string` — removes bracketed paste escape sequences
@@ -63,7 +63,7 @@ tasks:
 
       Internal helpers (not exported): `isAlphanumeric`, `isAlphanumericWithSeparators`, `hasMinimumApiKeyLength`.
 
-      Export all three public functions from `packages/poe-auth/src/index.ts`.
+      Export all three public functions from `packages/poe-oauth/src/index.ts`.
 
       Do NOT modify `src/cli/options.ts` yet — that happens in a later task.
 
@@ -80,8 +80,8 @@ tasks:
       Add a `checkAuth()` function to the auth package that verifies an API key against the Poe server and returns user identity.
 
       Create TDD-first:
-      - `packages/poe-auth/src/check-auth.test.ts`
-      - `packages/poe-auth/src/check-auth.ts`
+      - `packages/poe-oauth/src/check-auth.test.ts`
+      - `packages/poe-oauth/src/check-auth.ts`
 
       Interface:
       ```typescript
@@ -107,7 +107,7 @@ tasks:
 
       Reference: `src/cli/commands/auth.ts` has existing inline balance-check logic — match its endpoint and response parsing.
 
-      Export `checkAuth` and `AuthIdentity` from `packages/poe-auth/src/index.ts`.
+      Export `checkAuth` and `AuthIdentity` from `packages/poe-oauth/src/index.ts`.
 
       Tests must mock `fetch` — do NOT make real HTTP calls.
 
@@ -124,8 +124,8 @@ tasks:
       Add a `login()` function to the auth package that handles the full login flow (OAuth or explicit API key).
 
       Create TDD-first:
-      - `packages/poe-auth/src/login.test.ts`
-      - `packages/poe-auth/src/login.ts`
+      - `packages/poe-oauth/src/login.test.ts`
+      - `packages/poe-oauth/src/login.ts`
 
       Interface:
       ```typescript
@@ -150,7 +150,7 @@ tasks:
 
       The `openBrowser` and `readLine` options are passed through to `createOAuthClient()`.
 
-      Export `login` and `LoginOptions` from `packages/poe-auth/src/index.ts`.
+      Export `login` and `LoginOptions` from `packages/poe-oauth/src/index.ts`.
 
       Tests must mock `createAuthStore` and `createOAuthClient` — do NOT open real browsers or start real servers.
 
@@ -167,8 +167,8 @@ tasks:
       Add a `logout()` function to the auth package.
 
       Create TDD-first:
-      - `packages/poe-auth/src/logout.test.ts`
-      - `packages/poe-auth/src/logout.ts`
+      - `packages/poe-oauth/src/logout.test.ts`
+      - `packages/poe-oauth/src/logout.ts`
 
       Interface:
       ```typescript
@@ -177,7 +177,7 @@ tasks:
 
       Behavior: calls `createAuthStore().store.deleteApiKey()`.
 
-      Export from `packages/poe-auth/src/index.ts`.
+      Export from `packages/poe-oauth/src/index.ts`.
 
       Commit: `feat(auth): add logout()`
     status:
@@ -192,8 +192,8 @@ tasks:
       Add a `getToken()` function to the auth package.
 
       Create TDD-first:
-      - `packages/poe-auth/src/get-token.test.ts`
-      - `packages/poe-auth/src/get-token.ts`
+      - `packages/poe-oauth/src/get-token.test.ts`
+      - `packages/poe-oauth/src/get-token.ts`
 
       Interface:
       ```typescript
@@ -202,7 +202,7 @@ tasks:
 
       Behavior: calls `createAuthStore().store.getApiKey()` and returns the result.
 
-      Export from `packages/poe-auth/src/index.ts`.
+      Export from `packages/poe-oauth/src/index.ts`.
 
       Commit: `feat(auth): add getToken()`
     status:
@@ -216,7 +216,7 @@ tasks:
     prompt: |
       Create CLI commands for the standalone `poe-auth` binary. Each command calls the simple SDK functions.
 
-      Create TDD-first in `packages/poe-auth/src/cli/`:
+      Create TDD-first in `packages/poe-oauth/src/cli/`:
 
       1. `login-command.ts` + `login-command.test.ts`
          - `poe-auth login [--api-key <key>]`
@@ -256,7 +256,7 @@ tasks:
       Create the `poe-auth` binary entry point that wires together all CLI commands.
 
       Create:
-      - `packages/poe-auth/src/bin.ts`
+      - `packages/poe-oauth/src/bin.ts`
 
       This file should:
       1. `#!/usr/bin/env node` shebang
@@ -264,7 +264,7 @@ tasks:
       3. Register all commands from the cli/ directory (login, logout, token, whoami)
       4. Call `program.parse()`
 
-      Modify `packages/poe-auth/package.json`:
+      Modify `packages/poe-oauth/package.json`:
       - Add `"bin": { "poe-auth": "./dist/bin.js" }`
       - Add `commander` as a dependency
 
@@ -303,8 +303,8 @@ tasks:
       Add a Linux credential backend using `secret-tool` CLI (libsecret), which works with GNOME Keyring, KWallet, and KeePassXC.
 
       Create TDD-first:
-      - `packages/poe-auth/src/secret-tool-auth-store.test.ts`
-      - `packages/poe-auth/src/secret-tool-auth-store.ts`
+      - `packages/poe-oauth/src/secret-tool-auth-store.test.ts`
+      - `packages/poe-oauth/src/secret-tool-auth-store.ts`
 
       The backend should implement the `AuthStore` interface using these commands:
       - `secret-tool lookup service poe-code account api-key` → getApiKey
@@ -317,8 +317,8 @@ tasks:
       - Handle exit codes
 
       Modify:
-      - `packages/poe-auth/src/types.ts` — extend `AuthBackend` to `"file" | "keychain" | "secret-tool"`
-      - `packages/poe-auth/src/create-auth-store.ts` — add backend selection:
+      - `packages/poe-oauth/src/types.ts` — extend `AuthBackend` to `"file" | "keychain" | "secret-tool"`
+      - `packages/poe-oauth/src/create-auth-store.ts` — add backend selection:
         - If `POE_AUTH_BACKEND=secret-tool` → use it (error if not linux)
         - If `POE_AUTH_BACKEND` not set and platform is linux → check if `secret-tool` binary exists (via `which`), use it if available, else fall back to file
         - Existing keychain logic unchanged (macOS only)
@@ -335,14 +335,14 @@ tasks:
     prompt: |
       Prepare the auth package for standalone npm publishing.
 
-      Modify `packages/poe-auth/package.json`:
+      Modify `packages/poe-oauth/package.json`:
       - Remove `"private": true`
       - Set version to match the monorepo version or `1.0.0`
       - Add `"description": "Secure credential storage and OAuth login for the Poe API"`
       - Add `"keywords": ["poe", "auth", "oauth", "api-key", "credential-storage"]`
       - Add `"repository"`, `"license"`, `"engines"` fields matching the root package.json conventions
 
-      Replace `packages/poe-auth/README.md` with a proper public README containing:
+      Replace `packages/poe-oauth/README.md` with a proper public README containing:
       - Package description
       - Installation: `npm install @poe-code/poe-auth`
       - SDK quick start showing the 4 functions: `login`, `logout`, `getToken`, `checkAuth`

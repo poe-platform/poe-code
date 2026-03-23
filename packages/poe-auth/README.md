@@ -1,23 +1,26 @@
 # @poe-code/poe-auth
 
-Secure API key storage for poe-code with two backends:
+Secure API key storage and authentication for poe-code.
 
-- **Encrypted file** (default) — AES-256-GCM, works on all platforms
-- **macOS Keychain** — opt-in via `POE_AUTH_BACKEND=keychain`
-
-## Usage
+## Quick start
 
 ```ts
-import { createAuthStore } from "@poe-code/poe-auth";
+import { login, logout, checkAuth, getToken } from "@poe-code/poe-auth";
 
-const { store, backend } = createAuthStore();
+// Interactive login (opens browser for OAuth, or pass apiKey directly)
+const apiKey = await login();
 
-await store.setApiKey("poe-...");
-const key = await store.getApiKey(); // string | null
-await store.deleteApiKey();
+// Check stored credentials and fetch identity
+const identity = await checkAuth(); // { email, balance } | null
+
+// Retrieve stored API key
+const token = await getToken(); // string | null
+
+// Remove stored credentials
+await logout();
 ```
 
-## Backend selection
+## Storage backends
 
 | `POE_AUTH_BACKEND` | Platform | Backend               |
 | ------------------ | -------- | --------------------- |
@@ -26,17 +29,47 @@ await store.deleteApiKey();
 | `keychain`         | macOS    | macOS Keychain        |
 | `keychain`         | other    | Error (not supported) |
 
-## Encrypted file backend
+### Encrypted file backend
 
-- Encrypts with AES-256-GCM using a machine-derived key (hostname + username via scrypt)
-- Stores at `~/.poe-code/credentials.enc`
+- AES-256-GCM with machine-derived key (hostname + username via scrypt)
+- Stored at `~/.poe-code/credentials.enc`
 - File permissions: `0600`
 - Random IV per write
 
-## Keychain backend
+### Keychain backend
 
-- Uses the `security` CLI (`add-generic-password`, `find-generic-password`, `delete-generic-password`)
+- Uses the macOS `security` CLI (`add-generic-password`, `find-generic-password`, `delete-generic-password`)
 - Service: `poe-code`, Account: `api-key`
+
+## OAuth
+
+PKCE-based OAuth flow with local callback server:
+
+```ts
+import { createOAuthClient } from "@poe-code/poe-auth";
+
+const client = createOAuthClient({
+  clientId: "your-client-id",
+  authorizationEndpoint: "https://poe.com/oauth/authorize",
+  tokenEndpoint: "https://api.poe.com/token",
+  openBrowser: async (url) => { /* open url in browser */ },
+  readLine: async () => { /* read manual paste from terminal */ }
+});
+
+const authorization = await client.authorize();
+// authorization.authorizationUrl — URL to open in browser
+const result = await authorization.waitForResult();
+// result.apiKey, result.expiresIn
+```
+
+## API key validation
+
+```ts
+import { isValidApiKeyFormat, normalizeApiKey } from "@poe-code/poe-auth";
+
+isValidApiKeyFormat("sk-poe-abc123..."); // true
+normalizeApiKey("  sk-poe-abc123...  "); // trimmed + validated
+```
 
 ## Legacy migration
 

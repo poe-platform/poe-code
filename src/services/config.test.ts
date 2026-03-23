@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
 import {
   loadConfig,
@@ -16,7 +17,7 @@ function createMemFs(): FileSystem {
 }
 
 describe("config store", () => {
-  const configPath = "/home/user/.poe-code/config.json";
+  const configPath = resolveConfigPath("/home/user");
   let fs: FileSystem;
 
   beforeEach(async () => {
@@ -41,7 +42,9 @@ describe("config store", () => {
 
   it("preserves configured services when updating the api key", async () => {
     const initial = {
-      apiKey: "initial",
+      core: {
+        apiKey: "initial"
+      },
       configured_services: {
         codex: {
           files: ["/home/user/.codex/config.toml"]
@@ -61,8 +64,32 @@ describe("config store", () => {
     const updated = JSON.parse(
       await fs.readFile(configPath, "utf8")
     );
-    expect(updated.apiKey).toBe("updated");
+    expect(updated.core.apiKey).toBe("updated");
     expect(updated.configured_services).toEqual(initial.configured_services);
+  });
+
+  it("migrates top-level apiKey into the core scope", async () => {
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ apiKey: "legacy-key" }, null, 2)}\n`,
+      {
+        encoding: "utf8"
+      }
+    );
+
+    await expect(
+      loadConfig({
+        fs,
+        filePath: configPath
+      })
+    ).resolves.toBe("legacy-key");
+
+    const migrated = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(migrated).toEqual({
+      core: {
+        apiKey: "legacy-key"
+      }
+    });
   });
 
   it("stores configured service metadata and returns it on load", async () => {

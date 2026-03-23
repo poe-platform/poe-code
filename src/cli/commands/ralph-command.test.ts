@@ -115,6 +115,15 @@ describe("ralph run command", () => {
     await program.parseAsync(["node", "cli", "ralph", "run"]);
 
     expect(selectMock).toHaveBeenCalledTimes(2);
+    expect(selectMock).toHaveBeenNthCalledWith(1, {
+      message: "Select agent to run Ralph with:",
+      options: [
+        { label: "claude-code", value: "claude-code" },
+        { label: "codex", value: "codex" },
+        { label: "opencode", value: "opencode" },
+        { label: "kimi", value: "kimi" }
+      ]
+    });
     expect(promptTextMock).toHaveBeenCalledWith({
       message: "How many Ralph iterations should run?"
     });

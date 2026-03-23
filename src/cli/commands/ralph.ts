@@ -5,7 +5,8 @@ import {
   promptText,
   select
 } from "@poe-code/design-system";
-import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
+import { resolveAgentId } from "@poe-code/agent-defs";
+import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import {
   discoverDocs
 } from "@poe-code/ralph";
@@ -75,9 +76,9 @@ async function resolveAgent(options: {
 
   const selected = await select({
     message: "Select agent to run Ralph with:",
-    options: allAgents.map((agent) => ({
-      label: agent.id,
-      value: agent.id
+    options: allSpawnConfigs.map((config) => ({
+      label: config.agentId,
+      value: config.agentId
     }))
   });
   if (isCancel(selected)) {

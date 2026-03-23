@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",
-    "@poe-code/poe-auth": "*",
+    "auth-store": "*",
     "@poe-code/poe-acp-client": "*",
     "tiny-mcp-client": "*"
   },

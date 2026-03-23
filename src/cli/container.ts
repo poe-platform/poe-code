@@ -1,6 +1,6 @@
 import * as nodeFsSync from "node:fs";
 import type { FileSystem } from "../utils/file-system.js";
-import { createAuthStore } from "@poe-code/poe-auth";
+import { createSecretStore } from "auth-store";
 import { createCliEnvironment } from "./environment.js";
 import { createServiceRegistry, type ProviderService } from "./service-registry.js";
 import { createCommandContextFactory, type CommandContextFactory } from "./context.js";
@@ -121,22 +121,22 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
       dependencies.fs.chmod ? dependencies.fs.chmod(filePath, mode) : Promise.resolve()
   };
 
-  const { store: authStore } = createAuthStore({
+  const { store: authStore } = createSecretStore({
+    backendEnvVar: "POE_AUTH_BACKEND",
     env: dependencies.env.variables,
     platform: dependencies.env.platform,
     fileStore: {
       fs: authFs,
-      getHomeDirectory: () => dependencies.env.homeDir
-    },
-    legacyCredentials: {
-      fs: authFs,
+      salt: "poe-code:encrypted-file-auth-store:v1",
+      defaultDirectory: ".poe-code",
+      defaultFileName: "credentials.enc",
       getHomeDirectory: () => dependencies.env.homeDir
     }
   });
 
-  const readApiKey = authStore.getApiKey.bind(authStore);
-  const writeApiKey = authStore.setApiKey.bind(authStore);
-  const deleteApiKey = authStore.deleteApiKey.bind(authStore);
+  const readApiKey = authStore.get.bind(authStore);
+  const writeApiKey = authStore.set.bind(authStore);
+  const deleteApiKey = authStore.delete.bind(authStore);
 
   const oauthEnabled = (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN !== "0";
 

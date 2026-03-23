@@ -4,7 +4,7 @@ import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { CommandRunner } from "../../utils/command-checks.js";
 import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace } from "../constants.js";
-import { createAuthStore } from "@poe-code/poe-auth";
+import { createSecretStore } from "auth-store";
 
 vi.mock("../oauth-login.js", () => ({
   resolveApiKeyViaOAuth: vi.fn(async () => "sk-poe-OAuthKeyFromBrowserFlowTestValue1234567890abc")
@@ -40,10 +40,17 @@ function readStoredApiKey(fs: FileSystem, homeDir: string): Promise<string | nul
     chmod: (filePath: string, mode: number) =>
       fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()
   };
-  const { store } = createAuthStore({
-    fileStore: { fs: authFs, getHomeDirectory: () => homeDir }
+  const { store } = createSecretStore({
+    backendEnvVar: "POE_AUTH_BACKEND",
+    fileStore: {
+      fs: authFs,
+      salt: "poe-code:encrypted-file-auth-store:v1",
+      defaultDirectory: ".poe-code",
+      defaultFileName: "credentials.enc",
+      getHomeDirectory: () => homeDir
+    }
   });
-  return store.getApiKey();
+  return store.get();
 }
 
 describe("login command", () => {

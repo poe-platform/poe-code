@@ -84,7 +84,8 @@
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
-    "@poe-code/poe-auth": "*",
+    "auth-store": "*",
+    "poe-oauth": "*",
     "@poe-code/agent-spawn": "*",
     "@poe-code/config-mutations": "*",
     "@poe-code/design-system": "*",

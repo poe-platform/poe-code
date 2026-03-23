@@ -32,7 +32,8 @@ describe('image', () => {
       expect(names).toContain('poe-code.tgz');
       expect(names).toContain('e2e-docker-test-runner.tgz');
       expect(names).toContain('poe-agent.tgz');
-      expect(names).toContain('auth.tgz');
+      expect(names).toContain('auth-store.tgz');
+      expect(names).toContain('poe-oauth.tgz');
       expect(names).toContain('agent-spawn.tgz');
       expect(names).toContain('agent-defs.tgz');
       expect(names).toContain('design-system.tgz');

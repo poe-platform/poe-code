@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const createAuthStoreMock = vi.hoisted(() => vi.fn());
+const createSecretStoreMock = vi.hoisted(() => vi.fn());
 const createOptionResolversMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/poe-auth", () => ({
-  createAuthStore: createAuthStoreMock
+vi.mock("auth-store", () => ({
+  createSecretStore: createSecretStoreMock
 }));
 
 vi.mock("../cli/options.js", async (importOriginal) => {
@@ -19,7 +19,7 @@ import { createSdkContainer } from "./container.js";
 
 describe("createSdkContainer", () => {
   beforeEach(() => {
-    createAuthStoreMock.mockReset();
+    createSecretStoreMock.mockReset();
     createOptionResolversMock.mockReset();
     createOptionResolversMock.mockReturnValue({
       ensure: vi.fn(),
@@ -33,12 +33,12 @@ describe("createSdkContainer", () => {
 
   it("uses auth store for SDK apiKeyStore read and write", async () => {
     const authStore = {
-      getApiKey: vi.fn<() => Promise<string | null>>().mockResolvedValue("stored-key"),
-      setApiKey: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      deleteApiKey: vi.fn<() => Promise<void>>().mockResolvedValue(undefined)
+      get: vi.fn<() => Promise<string | null>>().mockResolvedValue("stored-key"),
+      set: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      delete: vi.fn<() => Promise<void>>().mockResolvedValue(undefined)
     };
 
-    createAuthStoreMock.mockReturnValue({
+    createSecretStoreMock.mockReturnValue({
       backend: "file",
       store: authStore
     });
@@ -49,7 +49,7 @@ describe("createSdkContainer", () => {
       variables
     });
 
-    expect(createAuthStoreMock).toHaveBeenCalledWith(
+    expect(createSecretStoreMock).toHaveBeenCalledWith(
       expect.objectContaining({
         env: variables,
         platform: process.platform
@@ -61,9 +61,9 @@ describe("createSdkContainer", () => {
 
     const storedKey = await createOptionResolversInput.apiKeyStore.read();
     expect(storedKey).toBe("stored-key");
-    expect(authStore.getApiKey).toHaveBeenCalledTimes(1);
+    expect(authStore.get).toHaveBeenCalledTimes(1);
 
     await createOptionResolversInput.apiKeyStore.write("new-key");
-    expect(authStore.setApiKey).toHaveBeenCalledWith("new-key");
+    expect(authStore.set).toHaveBeenCalledWith("new-key");
   });
 });

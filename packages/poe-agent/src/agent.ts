@@ -1,4 +1,4 @@
-import { createAuthStore } from "@poe-code/poe-auth";
+import { createSecretStore } from "auth-store";
 import type { CreateAgentSessionOptions } from "./agent-session.js";
 import { runAcpCore, type AcpModel, type AcpModelRequestMessage } from "./runtime/acp-core.js";
 import {
@@ -442,8 +442,15 @@ async function resolveApiKey(explicitApiKey: string | undefined): Promise<string
     return normalizedExplicitApiKey;
   }
 
-  const { store } = createAuthStore();
-  const storedApiKey = normalizeNonEmptyString(await store.getApiKey());
+  const { store } = createSecretStore({
+    backendEnvVar: "POE_AUTH_BACKEND",
+    fileStore: {
+      salt: "poe-code:encrypted-file-auth-store:v1",
+      defaultDirectory: ".poe-code",
+      defaultFileName: "credentials.enc"
+    }
+  });
+  const storedApiKey = normalizeNonEmptyString(await store.get());
   if (storedApiKey) {
     return storedApiKey;
   }

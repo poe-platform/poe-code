@@ -4,11 +4,11 @@ import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
 import { ApiError } from "../errors.js";
+import { createCliContainer } from "../container.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
-const credentialsPath = `${homeDir}/.poe-code/credentials.json`;
 
 function createMemfs(): FileSystem {
   const volume = new Volume();
@@ -17,7 +17,6 @@ function createMemfs(): FileSystem {
 }
 
 function createConfigVolume(input: {
-  apiKey?: string;
   configuredServices?: Record<string, { files: string[] }>;
 }): FileSystem {
   const volume = new Volume();
@@ -30,14 +29,16 @@ function createConfigVolume(input: {
     );
   }
 
-  if (input.apiKey) {
-    volume.writeFileSync(
-      credentialsPath,
-      `${JSON.stringify({ apiKey: input.apiKey }, null, 2)}\n`
-    );
-  }
-
   return createFsFromVolume(volume).promises as unknown as FileSystem;
+}
+
+async function storeApiKey(fs: FileSystem, apiKey: string): Promise<void> {
+  const container = createCliContainer({
+    fs,
+    prompts: vi.fn(),
+    env: { cwd, homeDir }
+  });
+  await container.writeApiKey(apiKey);
 }
 
 describe("auth command", () => {
@@ -53,11 +54,12 @@ describe("auth command", () => {
 
   it("shows logged-in status, balance, and configured agent", async () => {
     fs = createConfigVolume({
-      apiKey: "test-key",
       configuredServices: {
         "claude-code": { files: ["/tmp/settings.json"] }
       }
     });
+    await storeApiKey(fs, "test-key");
+
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -130,9 +132,7 @@ describe("auth command", () => {
   });
 
   it("skips balance API call in dry-run mode", async () => {
-    fs = createConfigVolume({
-      apiKey: "test-key"
-    });
+    await storeApiKey(fs, "test-key");
 
     const program = createProgram({
       fs,
@@ -151,9 +151,8 @@ describe("auth command", () => {
   });
 
   it("throws ApiError when balance request fails", async () => {
-    fs = createConfigVolume({
-      apiKey: "test-key"
-    });
+    await storeApiKey(fs, "test-key");
+
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: false,
       status: 401,
@@ -176,12 +175,13 @@ describe("auth command", () => {
 
   it("lists multiple configured agents", async () => {
     fs = createConfigVolume({
-      apiKey: "test-key",
       configuredServices: {
         codex: { files: ["/tmp/config.toml"] },
         "claude-code": { files: ["/tmp/settings.json"] }
       }
     });
+    await storeApiKey(fs, "test-key");
+
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -205,9 +205,8 @@ describe("auth command", () => {
   });
 
   it("runs status when auth is invoked without subcommand", async () => {
-    fs = createConfigVolume({
-      apiKey: "test-key"
-    });
+    await storeApiKey(fs, "test-key");
+
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -234,11 +233,12 @@ describe("auth command", () => {
 
   it("shows feedback outro after status output", async () => {
     fs = createConfigVolume({
-      apiKey: "test-key",
       configuredServices: {
         "claude-code": { files: ["/tmp/settings.json"] }
       }
     });
+    await storeApiKey(fs, "test-key");
+
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -275,9 +275,7 @@ describe("auth command", () => {
   });
 
   it("shows stored API key with auth api_key", async () => {
-    fs = createConfigVolume({
-      apiKey: "stored-key"
-    });
+    await storeApiKey(fs, "stored-key");
 
     const program = createProgram({
       fs,

@@ -1,4 +1,4 @@
-import { createAuthStore } from "@poe-code/poe-auth";
+import { createSecretStore } from "auth-store";
 
 function normalizeApiKey(key: string | undefined): string | null {
   if (typeof key !== "string") {
@@ -15,11 +15,17 @@ export async function getApiKey(): Promise<string | null> {
   }
 
   try {
-    const { store } = createAuthStore({
+    const { store } = createSecretStore({
+      backendEnvVar: "POE_AUTH_BACKEND",
       env: process.env,
-      platform: process.platform
+      platform: process.platform,
+      fileStore: {
+        salt: "poe-code:encrypted-file-auth-store:v1",
+        defaultDirectory: ".poe-code",
+        defaultFileName: "credentials.enc"
+      }
     });
-    const storedKey = await store.getApiKey();
+    const storedKey = await store.get();
     return normalizeApiKey(storedKey ?? undefined);
   } catch {
     return null;

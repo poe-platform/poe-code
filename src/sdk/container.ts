@@ -13,7 +13,7 @@ import { runCommand } from "@poe-code/agent-spawn";
 import { getDefaultProviders } from "../providers/index.js";
 import { createPoeCodeCommandRunner } from "../cli/poe-code-command-runner.js";
 import * as nodeFsSync from "node:fs";
-import { createAuthStore } from "@poe-code/poe-auth";
+import { createSecretStore } from "auth-store";
 
 export interface SdkContainerOptions {
   /** Working directory (defaults to process.cwd()) */
@@ -90,22 +90,22 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     chmod: (filePath: string, mode: number) => fs.chmod(filePath, mode)
   };
 
-  const { store: authStore } = createAuthStore({
+  const { store: authStore } = createSecretStore({
+    backendEnvVar: "POE_AUTH_BACKEND",
     env: variables,
     platform: process.platform,
     fileStore: {
       fs: authFs,
-      getHomeDirectory: () => homeDir
-    },
-    legacyCredentials: {
-      fs: authFs,
+      salt: "poe-code:encrypted-file-auth-store:v1",
+      defaultDirectory: ".poe-code",
+      defaultFileName: "credentials.enc",
       getHomeDirectory: () => homeDir
     }
   });
 
-  const readApiKey = authStore.getApiKey.bind(authStore);
-  const writeApiKey = authStore.setApiKey.bind(authStore);
-  const deleteApiKey = authStore.deleteApiKey.bind(authStore);
+  const readApiKey = authStore.get.bind(authStore);
+  const writeApiKey = authStore.set.bind(authStore);
+  const deleteApiKey = authStore.delete.bind(authStore);
 
   // No-op prompts for SDK (non-interactive)
   const noopPrompts = async () => {

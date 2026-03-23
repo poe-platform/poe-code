@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const createAuthStoreMock = vi.hoisted(() => vi.fn());
+const createSecretStoreMock = vi.hoisted(() => vi.fn());
 
 describe("getPoeApiKey", () => {
   let originalEnv: NodeJS.ProcessEnv;
   const store = {
-    getApiKey: vi.fn<() => Promise<string | null>>(),
-    setApiKey: vi.fn<() => Promise<void>>(),
-    deleteApiKey: vi.fn<() => Promise<void>>()
+    get: vi.fn<() => Promise<string | null>>(),
+    set: vi.fn<() => Promise<void>>(),
+    delete: vi.fn<() => Promise<void>>()
   };
 
   beforeEach(() => {
@@ -15,15 +15,15 @@ describe("getPoeApiKey", () => {
     delete process.env.POE_API_KEY;
 
     vi.resetModules();
-    vi.doMock("@poe-code/poe-auth", () => ({
-      createAuthStore: createAuthStoreMock
+    vi.doMock("auth-store", () => ({
+      createSecretStore: createSecretStoreMock
     }));
 
-    createAuthStoreMock.mockReset();
-    store.getApiKey.mockReset();
-    store.setApiKey.mockReset();
-    store.deleteApiKey.mockReset();
-    createAuthStoreMock.mockReturnValue({
+    createSecretStoreMock.mockReset();
+    store.get.mockReset();
+    store.set.mockReset();
+    store.delete.mockReset();
+    createSecretStoreMock.mockReturnValue({
       backend: "file",
       store
     });
@@ -40,7 +40,7 @@ describe("getPoeApiKey", () => {
     const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
     expect(result).toBe("env-api-key-123");
-    expect(createAuthStoreMock).not.toHaveBeenCalled();
+    expect(createSecretStoreMock).not.toHaveBeenCalled();
   });
 
   it("trims whitespace from environment variable", async () => {
@@ -49,54 +49,54 @@ describe("getPoeApiKey", () => {
     const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
     expect(result).toBe("trimmed-key");
-    expect(createAuthStoreMock).not.toHaveBeenCalled();
+    expect(createSecretStoreMock).not.toHaveBeenCalled();
   });
 
   it("returns key from auth store when environment variable is missing", async () => {
     delete process.env.POE_API_KEY;
-    store.getApiKey.mockResolvedValue("auth-store-key");
+    store.get.mockResolvedValue("auth-store-key");
 
     const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("auth-store-key");
-    expect(createAuthStoreMock).toHaveBeenCalledTimes(1);
-    expect(store.getApiKey).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(store.get).toHaveBeenCalledTimes(1);
   });
 
   it("uses auth store when POE_API_KEY is empty", async () => {
     process.env.POE_API_KEY = "";
-    store.getApiKey.mockResolvedValue("fallback-key");
+    store.get.mockResolvedValue("fallback-key");
 
     const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("fallback-key");
-    expect(createAuthStoreMock).toHaveBeenCalledTimes(1);
-    expect(store.getApiKey).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(store.get).toHaveBeenCalledTimes(1);
   });
 
   it("uses auth store when POE_API_KEY is whitespace-only", async () => {
     process.env.POE_API_KEY = "   ";
-    store.getApiKey.mockResolvedValue("fallback-key");
+    store.get.mockResolvedValue("fallback-key");
 
     const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("fallback-key");
-    expect(createAuthStoreMock).toHaveBeenCalledTimes(1);
-    expect(store.getApiKey).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(store.get).toHaveBeenCalledTimes(1);
   });
 
   it("throws error when neither env nor auth store has a key", async () => {
     delete process.env.POE_API_KEY;
-    store.getApiKey.mockResolvedValue(null);
+    store.get.mockResolvedValue(null);
 
     const { getPoeApiKey } = await import("./credentials.js");
     await expect(getPoeApiKey()).rejects.toThrow(
       "No API key found. Set POE_API_KEY or run 'poe-code login'."
     );
-    expect(createAuthStoreMock).toHaveBeenCalledTimes(1);
-    expect(store.getApiKey).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(store.get).toHaveBeenCalledTimes(1);
   });
 });

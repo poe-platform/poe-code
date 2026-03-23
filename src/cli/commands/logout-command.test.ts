@@ -7,7 +7,7 @@ import type { ProviderService } from "../service-registry.js";
 import { registerLogoutCommand } from "./logout.js";
 import { registerUnconfigureCommand } from "./unconfigure.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
-import { createAuthStore } from "@poe-code/poe-auth";
+import { createSecretStore } from "auth-store";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -33,10 +33,17 @@ function readStoredApiKey(fs: FileSystem): Promise<string | null> {
     chmod: (filePath: string, mode: number) =>
       fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()
   };
-  const { store } = createAuthStore({
-    fileStore: { fs: authFs, getHomeDirectory: () => homeDir }
+  const { store } = createSecretStore({
+    backendEnvVar: "POE_AUTH_BACKEND",
+    fileStore: {
+      fs: authFs,
+      salt: "poe-code:encrypted-file-auth-store:v1",
+      defaultDirectory: ".poe-code",
+      defaultFileName: "credentials.enc",
+      getHomeDirectory: () => homeDir
+    }
   });
-  return store.getApiKey();
+  return store.get();
 }
 
 function createBaseProgram(): Command {

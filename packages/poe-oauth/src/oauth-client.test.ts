@@ -281,6 +281,49 @@ describe("OAuthClient", () => {
     expect(verifier.length).toBeLessThanOrEqual(128);
   });
 
+  it("uses default endpoints when not specified", async () => {
+    const { server, simulateCallback, boundPort } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-default-key"));
+
+    const client = createOAuthClient({
+      clientId: "test-client-id",
+      openBrowser: vi.fn(async () => {
+        simulateCallback("/callback?code=default-code");
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    const authorization = await client.authorize();
+
+    const authUrl = new URL(authorization.authorizationUrl);
+    expect(authUrl.origin).toBe("https://poe.com");
+    expect(authUrl.pathname).toBe("/oauth/authorize");
+
+    const result = await authorization.waitForResult();
+    expect(result.apiKey).toBe("sk-default-key");
+
+    const [tokenUrl] = fetchMock.mock.calls[0]!;
+    expect(tokenUrl.toString()).toBe("https://api.poe.com/token");
+  });
+
+  it("allows overriding default endpoints", async () => {
+    const { server, boundPort } = createMockServer();
+
+    const client = createOAuthClient({
+      clientId: "test-client-id",
+      authorizationEndpoint: "https://custom.example.com/auth",
+      tokenEndpoint: "https://custom.example.com/token",
+      createServer: () => server
+    });
+
+    const authorization = await client.authorize();
+
+    const authUrl = new URL(authorization.authorizationUrl);
+    expect(authUrl.origin).toBe("https://custom.example.com");
+    expect(authUrl.pathname).toBe("/auth");
+  });
+
   it("listens on 127.0.0.1 for security", async () => {
     const { server } = createMockServer();
 

@@ -11,11 +11,11 @@ import { createOAuthClient } from "poe-oauth";
 
 const client = createOAuthClient({
   clientId: "your-client-id",
-  authorizationEndpoint: "https://poe.com/oauth/authorize",
-  tokenEndpoint: "https://api.poe.com/token",
   openBrowser: async (url) => { /* open url in browser */ },
   readLine: async () => { /* read manual paste from terminal */ }
 });
+// Defaults to https://poe.com/oauth/authorize and https://api.poe.com/token
+// Override with authorizationEndpoint / tokenEndpoint if needed
 
 const authorization = await client.authorize();
 // authorization.authorizationUrl — URL to open in browser

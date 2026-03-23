@@ -1,10 +1,13 @@
 import http from "node:http";
 import crypto from "node:crypto";
 
+const DEFAULT_AUTHORIZATION_ENDPOINT = "https://poe.com/oauth/authorize";
+const DEFAULT_TOKEN_ENDPOINT = "https://api.poe.com/token";
+
 export interface OAuthClientConfig {
   clientId: string;
-  authorizationEndpoint: string;
-  tokenEndpoint: string;
+  authorizationEndpoint?: string;
+  tokenEndpoint?: string;
   openBrowser?: (url: string) => Promise<void>;
   readLine?: () => Promise<string>;
   createServer?: () => http.Server;
@@ -45,6 +48,9 @@ async function startAuthorization(
   config: OAuthClientConfig,
   fetchFn: typeof globalThis.fetch
 ): Promise<OAuthAuthorization> {
+  const authorizationEndpoint = config.authorizationEndpoint ?? DEFAULT_AUTHORIZATION_ENDPOINT;
+  const tokenEndpoint = config.tokenEndpoint ?? DEFAULT_TOKEN_ENDPOINT;
+
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
@@ -56,7 +62,7 @@ async function startAuthorization(
   const redirectUri = `http://127.0.0.1:${port}/callback`;
 
   const authorizationUrl = buildAuthorizationUrl({
-    endpoint: config.authorizationEndpoint,
+    endpoint: authorizationEndpoint,
     clientId: config.clientId,
     redirectUri,
     codeChallenge
@@ -67,7 +73,7 @@ async function startAuthorization(
       const code = await waitForAuthorizationCode(server, config, authorizationUrl);
 
       return await exchangeCodeForApiKey({
-        tokenEndpoint: config.tokenEndpoint,
+        tokenEndpoint,
         code,
         codeVerifier,
         clientId: config.clientId,

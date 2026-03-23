@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
 import { Command } from "commander";
 import { createProgram } from "../program.js";
@@ -1161,7 +1162,7 @@ describe("spawn command", () => {
   });
 
   describe("unconfigured service warning", () => {
-    const configPath = `${homeDir}/.poe-code/config.json`;
+    const configPath = resolveConfigPath(homeDir);
 
     async function writeConfiguredServices(
       fileSystem: FileSystem,

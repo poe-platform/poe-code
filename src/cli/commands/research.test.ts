@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
 import { createProgram } from "../program.js";
 import { createCliContainer } from "../container.js";
@@ -422,7 +423,7 @@ describe("research command", () => {
 
   it("uses configured agent when --yes and no agent provided", async () => {
     const fs = createMemFs();
-    const configPath = path.join(homeDir, ".poe-code", "config.json");
+    const configPath = resolveConfigPath(homeDir);
     await fs.writeFile(
       configPath,
       JSON.stringify({ configured_services: { codex: { files: [] } } }),

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 
 export interface CliEnvironmentInit {
   cwd: string;
@@ -44,10 +45,6 @@ export function createCliEnvironment(init: CliEnvironmentInit): CliEnvironment {
     resolveHomePath,
     getVariable
   };
-}
-
-export function resolveConfigPath(homeDir: string): string {
-  return path.join(homeDir, ".poe-code", "config.json");
 }
 
 export function resolveLogDir(homeDir: string): string {

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
@@ -8,7 +9,7 @@ import { createCliContainer } from "../container.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
-const configPath = `${homeDir}/.poe-code/config.json`;
+const configPath = resolveConfigPath(homeDir);
 
 function createMemfs(): FileSystem {
   const volume = new Volume();

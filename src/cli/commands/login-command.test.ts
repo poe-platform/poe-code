@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { CommandRunner } from "../../utils/command-checks.js";
@@ -56,7 +57,7 @@ function readStoredApiKey(fs: FileSystem, homeDir: string): Promise<string | nul
 describe("login command", () => {
   const cwd = "/repo";
   const homeDir = "/home/test";
-  const configPath = `${homeDir}/.poe-code/config.json`;
+  const configPath = resolveConfigPath(homeDir);
   let fs: FileSystem;
   let logs: string[];
   let prompts: ReturnType<typeof vi.fn>;

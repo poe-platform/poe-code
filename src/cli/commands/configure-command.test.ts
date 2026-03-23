@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { executeConfigure } from "./configure.js";
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -8,7 +9,7 @@ import type { LoggerFn } from "../types.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
-const configPath = homeDir + "/.poe-code/config.json";
+const configPath = resolveConfigPath(homeDir);
 
 describe("configure command", () => {
   let fs: FileSystem;

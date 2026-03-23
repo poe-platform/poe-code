@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createCliEnvironment, resolveSpawnLogDir } from "./environment.js";
 
 describe("CliEnvironment", () => {
@@ -9,7 +10,7 @@ describe("CliEnvironment", () => {
     const environment = createCliEnvironment({ cwd, homeDir });
 
     expect(environment.configPath).toBe(
-      "/home/user/.poe-code/config.json"
+      resolveConfigPath(homeDir)
     );
   });
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer, type CliDependencies } from "../cli/container.js";
 import { spawnCore } from "./spawn-core.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -15,6 +16,7 @@ const homeDir = "/home/test";
 function createMemFs(): FileSystem {
   const vol = new Volume();
   vol.mkdirSync(homeDir, { recursive: true });
+  vol.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
   return createFsFromVolume(vol).promises as unknown as FileSystem;
 }
 
@@ -119,6 +121,33 @@ describe("spawnCore", () => {
       stderr: "error text",
       exitCode: 0
     });
+  });
+
+  it("uses the configured model when no explicit model is provided", async () => {
+    const { runner, calls } = createCommandRunnerStub({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({ models: { opencode: "openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test prompt"
+    });
+
+    expect(calls.length).toBeGreaterThan(0);
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall.args).toContain("poe/openai/gpt-5.4");
   });
 
   it("passes prompt and args to provider", async () => {

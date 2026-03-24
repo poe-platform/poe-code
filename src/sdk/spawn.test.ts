@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
+import type { FileSystem } from "../utils/file-system.js";
+import { DEFAULT_CODEX_MODEL } from "../cli/constants.js";
 
 const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
 const sessionCaptureMock = vi.hoisted(() => vi.fn());
@@ -18,9 +22,13 @@ vi.mock("@poe-code/agent-spawn", () => ({
   spawnLog: spawnLogMock
 }));
 
-vi.mock("./spawn-core.js", () => ({
-  spawnCore: vi.fn()
-}));
+vi.mock("./spawn-core.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./spawn-core.js")>();
+  return {
+    ...actual,
+    spawnCore: vi.fn()
+  };
+});
 
 vi.mock("./container.js", () => ({
   createSdkContainer: vi.fn()
@@ -47,6 +55,14 @@ import { createSdkContainer } from "./container.js";
 import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
 
 const originalEnv = { ...process.env };
+const homeDir = "/home/test";
+
+function createMemFs(): FileSystem {
+  const vol = new Volume();
+  vol.mkdirSync(homeDir, { recursive: true });
+  vol.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
+  return createFsFromVolume(vol).promises as unknown as FileSystem;
+}
 
 beforeEach(() => {
   process.env = { ...originalEnv, POE_API_KEY: "test-key" };
@@ -60,6 +76,13 @@ beforeEach(() => {
   vi.mocked(renderAcpStream).mockReset();
   vi.mocked(applyMiddlewares).mockReset();
   vi.mocked(renderAcpStream).mockResolvedValue(undefined);
+  vi.mocked(createSdkContainer).mockImplementation(() => ({
+    fs: createMemFs(),
+    env: { configPath: resolveConfigPath(homeDir) },
+    registry: {
+      get: vi.fn(() => undefined)
+    }
+  } as any));
 });
 
 afterEach(() => {
@@ -177,7 +200,7 @@ describe("SDK spawn()", () => {
       useStdin: false
     });
     expect(spawnCore).not.toHaveBeenCalled();
-    expect(createSdkContainer).not.toHaveBeenCalled();
+    expect(createSdkContainer).toHaveBeenCalledTimes(1);
   });
 
   it("forwards signal to spawnStreaming when supported", async () => {
@@ -275,6 +298,48 @@ describe("SDK spawn()", () => {
             command: "tiny-stdio-mcp-test-server"
           }
         }
+      })
+    );
+  });
+
+  it("uses the stored configured model for streaming agents", async () => {
+    const fs = createMemFs();
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({ models: { codex: "openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs,
+      env: { configPath: resolveConfigPath(homeDir) },
+      registry: {
+        get: vi.fn(() => ({
+          name: "codex",
+          configurePrompts: {
+            model: {
+              defaultValue: DEFAULT_CODEX_MODEL
+            }
+          }
+        }))
+      }
+    } as any);
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt");
+    await result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "openai/gpt-5.4"
       })
     );
   });

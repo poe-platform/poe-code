@@ -1,5 +1,7 @@
 import path from "node:path";
 import chalk from "chalk";
+import { resolveAgentId } from "@poe-code/agent-defs";
+import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../cli/container.js";
 import type { SpawnResult } from "./types.js";
 import {
@@ -42,6 +44,13 @@ export async function spawnCore(
   options: SpawnCoreOptions,
   flags: SpawnCoreFlags = { dryRun: false, verbose: false }
 ): Promise<SpawnResult> {
+  const adapter = container.registry.get(service);
+  if (!adapter) {
+    throw new Error(`Unknown service "${service}".`);
+  }
+
+  const model = await resolveConfiguredModel(container, service, options.model);
+
   // Resolve working directory
   const cwdOverride = resolveSpawnWorkingDirectory(
     container.env.cwd,
@@ -52,18 +61,12 @@ export async function spawnCore(
   const spawnOptions: SpawnCommandOptions = {
     prompt: options.prompt,
     args: options.args,
-    model: options.model,
+    model,
     mode: options.mode,
     mcpServers: options.mcpServers,
     cwd: cwdOverride,
     useStdin: options.useStdin ?? false
   };
-
-  // Resolve service adapter
-  const adapter = container.registry.get(service);
-  if (!adapter) {
-    throw new Error(`Unknown service "${service}".`);
-  }
 
   // Create execution resources (logger, context)
   const commandFlags = { dryRun: flags.dryRun, assumeYes: true, verbose: flags.verbose };
@@ -124,6 +127,32 @@ export async function spawnCore(
     stderr: result.stderr,
     exitCode: result.exitCode
   };
+}
+
+export async function resolveConfiguredModel(
+  container: Pick<CliContainer, "env" | "fs" | "registry">,
+  service: string,
+  model?: string
+): Promise<string | undefined> {
+  if (model != null) {
+    return model;
+  }
+
+  const adapter = container.registry.get(service);
+  const agentId = adapter?.name ?? resolveAgentId(service) ?? service;
+  const configuredModel = await resolveConfigModel(
+    {
+      fs: container.fs,
+      filePath: container.env.configPath
+    },
+    agentId
+  );
+
+  if (configuredModel) {
+    return configuredModel;
+  }
+
+  return adapter?.configurePrompts?.model?.defaultValue;
 }
 
 function formatSpawnDryRunMessage(

@@ -14,6 +14,14 @@ export type {
 export { defineScope } from "./schema.js";
 export { createConfigStore } from "./config.js";
 export { deepMergeDocuments } from "./merge.js";
+export {
+  loadAgentModel,
+  loadDefaultModel,
+  resolveModel as resolveConfigModel,
+  saveAgentModel,
+  saveDefaultModel,
+  type ModelsConfigOptions
+} from "./models.js";
 export { resolveScope } from "./resolve.js";
 export {
   readDocument,

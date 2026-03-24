@@ -1,3 +1,4 @@
+import { loadAgentModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
 import type { ProviderContext, ProviderService } from "../service-registry.js";
@@ -28,10 +29,17 @@ export async function createConfigurePayload(
 
   const modelPrompt = adapter.configurePrompts?.model;
   if (modelPrompt) {
+    const configModel = await loadAgentModel(
+      {
+        fs: container.fs,
+        filePath: container.env.configPath
+      },
+      adapter.name
+    );
     const model = await container.options.resolveModel({
       value: options.model,
       assumeDefault: flags.assumeYes,
-      defaultValue: modelPrompt.defaultValue,
+      defaultValue: configModel ?? modelPrompt.defaultValue,
       choices: modelPrompt.choices,
       label: modelPrompt.label,
       onResolve: (label, value) => logger.resolved(label, value)

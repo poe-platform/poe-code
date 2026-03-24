@@ -4,6 +4,7 @@ import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
 import { Command } from "commander";
+import { DEFAULT_CLAUDE_CODE_MODEL } from "../constants.js";
 import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
 import { createCliContainer, type CliDependencies } from "../container.js";
@@ -930,7 +931,7 @@ describe("spawn command", () => {
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "hello",
         args: [],
-        model: undefined,
+        model: DEFAULT_CLAUDE_CODE_MODEL,
         cwd: undefined
       });
       expect(sdkSpawn).not.toHaveBeenCalled();
@@ -1117,10 +1118,49 @@ describe("spawn command", () => {
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "",
         args: [],
-        model: undefined,
+        model: DEFAULT_CLAUDE_CODE_MODEL,
         cwd: undefined
       });
       expect(sdkSpawn).not.toHaveBeenCalled();
+    });
+
+    it("uses the configured model for interactive spawn when --model is omitted", async () => {
+      vi.mocked(spawnInteractive).mockResolvedValue({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      });
+
+      await fs.writeFile(
+        resolveConfigPath(homeDir),
+        `${JSON.stringify({ models: { "claude-code": "anthropic/claude-opus-4.6" } }, null, 2)}\n`,
+        { encoding: "utf8" }
+      );
+
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--interactive",
+        "claude",
+        "hello"
+      ]);
+
+      expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
+        prompt: "hello",
+        args: [],
+        model: "anthropic/claude-opus-4.6",
+        cwd: undefined
+      });
     });
 
     it("passes model and cwd to spawnInteractive", async () => {

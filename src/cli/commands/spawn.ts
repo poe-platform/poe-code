@@ -23,7 +23,7 @@ import {
   type ExecutionResources
 } from "./shared.js";
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
-import { spawnCore } from "../../sdk/spawn-core.js";
+import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 
@@ -114,10 +114,15 @@ export function registerSpawnCommand(
         if (!proceed) {
           return;
         }
+        const model = await resolveConfiguredModel(
+          container,
+          canonicalService,
+          commandOptions.model
+        );
         const result = await spawnInteractive(canonicalService, {
           prompt: promptText ?? "",
           args: forwardedArgs,
-          model: commandOptions.model,
+          model,
           mode: commandOptions.mode as SpawnMode | undefined,
           ...(mcpServers ? { mcpServers } : {}),
           cwd: cwdOverride

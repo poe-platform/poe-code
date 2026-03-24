@@ -1,5 +1,5 @@
 import { getPoeApiKey } from "./credentials.js";
-import { spawnCore } from "./spawn-core.js";
+import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
 import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
 import {
@@ -96,12 +96,21 @@ export function spawn(
     try {
       await getPoeApiKey();
 
+      let container: ReturnType<typeof createSdkContainer> | undefined;
+      const getContainer = () => {
+        container ??= createSdkContainer({ cwd: options.cwd });
+        return container;
+      };
+      const resolveModel = async () =>
+        options.model ?? await resolveConfiguredModel(getContainer(), service);
+
       if (options.interactive) {
         resolveEventsOnce(emptyEvents);
+        const model = await resolveModel();
         const interactiveResult = await spawnInteractive(service, {
           prompt: options.prompt,
           cwd: options.cwd,
-          model: options.model,
+          model,
           mode: options.mode,
           signal: options.signal,
           args: options.args,
@@ -116,6 +125,7 @@ export function spawn(
       }
 
       if (service === "poe-agent") {
+        const model = await resolveModel();
         const poeBaseUrl =
           typeof process.env.POE_BASE_URL === "string"
             ? process.env.POE_BASE_URL.trim() || undefined
@@ -124,7 +134,7 @@ export function spawn(
         const { events: innerEvents, done } = spawnPoeAgentWithAcp({
           prompt: options.prompt,
           cwd: options.cwd,
-          model: options.model,
+          model,
           ...(poeBaseUrl ? { baseUrl: poeBaseUrl } : {}),
           ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
         });
@@ -148,11 +158,12 @@ export function spawn(
         typeof (spawnConfig as { adapter?: unknown }).adapter === "string";
 
       if (supportsStreaming) {
+        const model = await resolveModel();
         const { events: rawEvents, done } = spawnStreaming({
           agentId: service,
           prompt: options.prompt,
           cwd: options.cwd,
-          model: options.model,
+          model,
           mode: options.mode,
           args: options.args,
           signal: options.signal,
@@ -171,7 +182,7 @@ export function spawn(
           },
           eventStream: rawEvents,
           prompt: options.prompt,
-          model: options.model,
+          model,
           mode: options.mode,
           cwd: options.cwd,
           startedAt: new Date()
@@ -199,10 +210,11 @@ export function spawn(
 
       if (spawnConfig && spawnConfig.kind === "cli") {
         resolveEventsOnce(emptyEvents);
+        const model = await resolveModel();
         return spawnNonStreaming(service, {
           prompt: options.prompt,
           cwd: options.cwd,
-          model: options.model,
+          model,
           mode: options.mode,
           args: options.args,
           signal: options.signal,
@@ -213,8 +225,7 @@ export function spawn(
 
       resolveEventsOnce(emptyEvents);
 
-      const container = createSdkContainer({ cwd: options.cwd });
-      return spawnCore(container, service, {
+      return spawnCore(getContainer(), service, {
         prompt: options.prompt,
         cwd: options.cwd,
         model: options.model,

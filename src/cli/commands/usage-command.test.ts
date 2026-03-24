@@ -46,6 +46,14 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
   };
 });
 
+vi.mock("poe-oauth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("poe-oauth")>();
+  return {
+    ...actual,
+    checkAuth: vi.fn(async () => ({ email: "test@example.com", balance: null }))
+  };
+});
+
 const cwd = "/repo";
 const homeDir = "/home/test";
 

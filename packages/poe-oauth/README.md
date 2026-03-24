@@ -16,13 +16,28 @@ const client = createOAuthClient({
 });
 // Defaults to https://poe.com/oauth/authorize and https://api.poe.com/token
 // Override with authorizationEndpoint / tokenEndpoint if needed
-// Customize the browser landing page with landingPage: { title, body }
 
 const authorization = await client.authorize();
 // authorization.authorizationUrl — URL to open in browser
 const result = await authorization.waitForResult();
 // result.apiKey, result.expiresIn
 ```
+
+### Landing page
+
+Customize the browser page shown after successful authorization:
+
+```ts
+const client = createOAuthClient({
+  clientId: "your-client-id",
+  landingPage: {
+    title: "All set!",
+    body: "You can close this tab and return to your IDE."
+  }
+});
+```
+
+Defaults to "Connected to Poe" / "You can close this tab and return to your terminal." when omitted.
 
 ## Check auth
 

@@ -11,6 +11,14 @@ vi.mock("../oauth-login.js", () => ({
   resolveApiKeyViaOAuth: vi.fn(async () => "sk-poe-OAuthKeyFromBrowserFlowTestValue1234567890abc")
 }));
 
+vi.mock("poe-oauth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("poe-oauth")>();
+  return {
+    ...actual,
+    checkAuth: vi.fn(async () => ({ email: "test@example.com", balance: null }))
+  };
+});
+
 // Valid-format API keys for tests (43+ alphanumeric characters)
 const TEST_KEY = "sk-poe-TestKeyValue1234567890abcdefghijklmnop";
 const ENV_KEY = "sk-poe-EnvKeyValue01234567890abcdefghijklmnop";

@@ -5,8 +5,11 @@ export interface RalphFileStat {
 
 export interface RalphFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  writeFile(path: string, content: string): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<RalphFileStat>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
 }
 
 export interface AgentRunInput {

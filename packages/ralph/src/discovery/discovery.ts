@@ -1,12 +1,14 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import type { RalphFileSystem } from "../types.js";
+import type { RalphFileStat } from "../types.js";
 
-type DiscoveryFs = Pick<RalphFileSystem, "readFile" | "readdir" | "stat">;
+type DiscoveryFs = {
+  readdir(path: string): Promise<string[]>;
+  stat(path: string): Promise<RalphFileStat>;
+};
 
 function createDefaultFs(): DiscoveryFs {
   return {
-    readFile: fsPromises.readFile as DiscoveryFs["readFile"],
     readdir: fsPromises.readdir,
     stat: async (filePath) => {
       const stat = await fsPromises.stat(filePath);
@@ -72,7 +74,7 @@ async function scanDir(
 export async function discoverDocs(options: {
   cwd: string;
   homeDir: string;
-  fs?: RalphFileSystem;
+  fs?: DiscoveryFs;
 }): Promise<Array<{ path: string; displayPath: string }>> {
   const fs = options.fs ?? createDefaultFs();
   const [localDocs, globalDocs] = await Promise.all([

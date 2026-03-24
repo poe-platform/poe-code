@@ -90,6 +90,10 @@ function createSimulationFs(options: SimulationOptions): {
   const fs: SimulationFs = {
     readFile: (filePath, encoding) =>
       rawFs.readFile(filePath, encoding) as Promise<string>,
+    writeFile: async (filePath, content) => {
+      await rawFs.mkdir(path.dirname(filePath), { recursive: true });
+      await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+    },
     readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
     stat: async (filePath) => {
       const stat = await rawFs.stat(filePath);
@@ -97,6 +101,13 @@ function createSimulationFs(options: SimulationOptions): {
         isFile: () => stat.isFile(),
         mtimeMs: Number(stat.mtimeMs)
       };
+    },
+    mkdir: async (filePath, options) => {
+      await rawFs.mkdir(filePath, options);
+    },
+    rename: async (oldPath, newPath) => {
+      await rawFs.mkdir(path.dirname(newPath), { recursive: true });
+      await rawFs.rename(oldPath, newPath);
     }
   };
 

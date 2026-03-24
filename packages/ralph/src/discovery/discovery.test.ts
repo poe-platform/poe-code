@@ -1,17 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { discoverDocs } from "./discovery.js";
-import type { RalphFileSystem } from "../types.js";
-
-function createFs(files: Record<string, string>): RalphFileSystem {
+function createFs(files: Record<string, string>) {
   const volume = Volume.fromJSON(files, "/");
   const rawFs = createFsFromVolume(volume).promises;
 
   return {
-    readFile: (filePath, encoding) =>
-      rawFs.readFile(filePath, encoding) as Promise<string>,
-    readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
-    stat: async (filePath) => {
+    readdir: (filePath: string) =>
+      rawFs.readdir(filePath) as Promise<string[]>,
+    stat: async (filePath: string) => {
       const stat = await rawFs.stat(filePath);
       return {
         isFile: () => stat.isFile(),

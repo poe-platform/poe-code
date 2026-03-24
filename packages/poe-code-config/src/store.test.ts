@@ -1,7 +1,7 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { readDocument, writeScope } from "./store.js";
+import { readDocument, readMergedDocument, resolveProjectConfigPath, writeScope } from "./store.js";
 
 const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
@@ -56,12 +56,10 @@ describe("store", () => {
     await expect(readDocument(fs, configPath)).resolves.toEqual({});
 
     const directoryEntries = await fs.readdir(path.dirname(configPath));
-    expect(directoryEntries).toContain(
-      "config.json.invalid-2026-03-23T12-34-56-789Z.json"
+    expect(directoryEntries).toContain("config.json.invalid-2026-03-23T12-34-56-789Z.json");
+    expect(fs.getContent("~/.poe-code/config.json.invalid-2026-03-23T12-34-56-789Z.json")).toBe(
+      "not json\n"
     );
-    expect(
-      fs.getContent("~/.poe-code/config.json.invalid-2026-03-23T12-34-56-789Z.json")
-    ).toBe("not json\n");
     expect(fs.getContent("~/.poe-code/config.json")).toBe("{}\n");
   });
 
@@ -120,5 +118,65 @@ describe("store", () => {
     expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
       core: { apiKey: "stored-key" }
     });
+  });
+
+  it("merges global and project documents with project overrides", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "global-key", poeBaseUrl: "https://global.example.test" },
+            ui: { darkMode: false }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "project-key" },
+            models: { default: "anthropic/claude-opus-4.6" }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(
+      readMergedDocument(fs, configPath, `${homeDir}/workspace/.poe-code/config.json`)
+    ).resolves.toEqual({
+      core: {
+        apiKey: "project-key",
+        poeBaseUrl: "https://global.example.test"
+      },
+      ui: { darkMode: false },
+      models: { default: "anthropic/claude-opus-4.6" }
+    });
+  });
+
+  it("uses only the global document when project config is missing", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "global-key" }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(
+      readMergedDocument(fs, configPath, `${homeDir}/workspace/.poe-code/config.json`)
+    ).resolves.toEqual({
+      core: { apiKey: "global-key" }
+    });
+  });
+
+  it("resolves the project config path from the current working directory", () => {
+    expect(resolveProjectConfigPath("/workspace/app")).toBe("/workspace/app/.poe-code/config.json");
   });
 });

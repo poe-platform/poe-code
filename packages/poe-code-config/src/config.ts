@@ -1,4 +1,4 @@
-import { readDocument, writeScope } from "./store.js";
+import { readDocument, readMergedDocument, writeScope } from "./store.js";
 import { resolveScope } from "./resolve.js";
 import type {
   ConfigStore,
@@ -9,9 +9,7 @@ import type {
   ScopeSchema
 } from "./types.js";
 
-export function createConfigStore(
-  options: ConfigStoreOptions
-): ConfigStore {
+export function createConfigStore(options: ConfigStoreOptions): ConfigStore {
   const env = options.env ?? {};
 
   return {
@@ -44,6 +42,6 @@ async function resolveScopedValues<S extends ScopeSchema>(
   definition: ScopeDefinition<S>,
   env: Record<string, string | undefined>
 ): Promise<InferConfig<S>> {
-  const document = await readDocument(options.fs, options.filePath);
+  const document = await readMergedDocument(options.fs, options.filePath, options.projectFilePath);
   return resolveScope(definition.schema, document[definition.scope], env);
 }

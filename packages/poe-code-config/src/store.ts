@@ -1,15 +1,9 @@
 import path from "node:path";
-import {
-  createTimestamp,
-  isNotFound,
-  type FileSystem
-} from "@poe-code/config-mutations";
+import { createTimestamp, isNotFound, type FileSystem } from "@poe-code/config-mutations";
+import { deepMergeDocuments } from "./merge.js";
 import type { ConfigDocument } from "./types.js";
 
-export async function readDocument(
-  fs: FileSystem,
-  filePath: string
-): Promise<ConfigDocument> {
+export async function readDocument(fs: FileSystem, filePath: string): Promise<ConfigDocument> {
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return await parseDocument(fs, filePath, raw);
@@ -37,6 +31,20 @@ export async function writeScope(
   }
 
   await writeDocument(fs, filePath, document);
+}
+
+export async function readMergedDocument(
+  fs: FileSystem,
+  globalPath: string,
+  projectPath?: string
+): Promise<ConfigDocument> {
+  const globalDocument = await readDocument(fs, globalPath);
+  if (!projectPath) {
+    return globalDocument;
+  }
+
+  const projectDocument = await readDocument(fs, projectPath);
+  return deepMergeDocuments(globalDocument, projectDocument);
 }
 
 async function parseDocument(
@@ -120,6 +128,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function resolveConfigPath(homeDir: string): string {
   return path.join(homeDir, ".poe-code", "config.json");
+}
+
+export function resolveProjectConfigPath(cwd: string): string {
+  return path.join(cwd, ".poe-code", "config.json");
 }
 
 const EMPTY_DOCUMENT = `${JSON.stringify({}, null, 2)}\n`;

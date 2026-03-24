@@ -7,9 +7,7 @@ import {
   applyIsolatedConfiguration
 } from "./shared.js";
 import { AuthenticationError } from "../errors.js";
-import {
-  loadConfiguredServices
-} from "../../services/config.js";
+import { loadConfiguredServices } from "../../services/config.js";
 import {
   combineMutationObservers,
   createMutationReporter
@@ -19,10 +17,7 @@ export interface LoginCommandOptions {
   apiKey?: string;
 }
 
-export function registerLoginCommand(
-  program: Command,
-  container: CliContainer
-): void {
+export function registerLoginCommand(program: Command, container: CliContainer): void {
   program
     .command("login")
     .description("Store a Poe API key for reuse across commands.")
@@ -38,11 +33,7 @@ export async function executeLogin(
   options: LoginCommandOptions
 ): Promise<void> {
   const flags = resolveCommandFlags(program);
-  const resources = createExecutionResources(
-    container,
-    flags,
-    "login"
-  );
+  const resources = createExecutionResources(container, flags, "login");
 
   resources.logger.intro("login");
 
@@ -57,7 +48,8 @@ export async function executeLogin(
 
     const configuredServices = await loadConfiguredServices({
       fs: container.fs,
-      filePath: container.env.configPath
+      filePath: container.env.configPath,
+      projectFilePath: container.env.projectConfigPath
     });
 
     await reconfigureServices({
@@ -88,9 +80,7 @@ interface ReconfigureServicesInput {
   configuredServices: Record<string, { files: string[] }>;
 }
 
-async function reconfigureServices(
-  input: ReconfigureServicesInput
-): Promise<void> {
+async function reconfigureServices(input: ReconfigureServicesInput): Promise<void> {
   const { program, container, apiKey, configuredServices } = input;
   const serviceNames = Object.keys(configuredServices);
 

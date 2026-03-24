@@ -16,20 +16,13 @@ export interface UnconfigureCommandOptions {
   configName?: string;
 }
 
-export function registerUnconfigureCommand(
-  program: Command,
-  container: CliContainer
-): Command {
+export function registerUnconfigureCommand(program: Command, container: CliContainer): Command {
   const serviceNames = container.registry.list().map((service) => service.name);
-  const serviceDescription =
-    `Agent to unconfigure${formatServiceList(serviceNames)}`;
+  const serviceDescription = `Agent to unconfigure${formatServiceList(serviceNames)}`;
   return program
     .command("unconfigure")
     .description("Remove existing Poe API tooling configuration.")
-    .argument(
-      "<agent>",
-      serviceDescription
-    )
+    .argument("<agent>", serviceDescription)
     .action(async (service: string, options: UnconfigureCommandOptions) => {
       await executeUnconfigure(program, container, service, options);
     });
@@ -44,19 +37,11 @@ export async function executeUnconfigure(
   const adapter = resolveServiceAdapter(container, service);
   const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
-  const resources = createExecutionResources(
-    container,
-    flags,
-    `unconfigure:${canonicalService}`
-  );
+  const resources = createExecutionResources(container, flags, `unconfigure:${canonicalService}`);
 
   resources.logger.intro(`unconfigure ${canonicalService}`);
 
-  const providerContext = buildProviderContext(
-    container,
-    adapter,
-    resources
-  );
+  const providerContext = buildProviderContext(container, adapter, resources);
   const mutationLogger = createMutationReporter(resources.logger);
 
   const payload = await createUnconfigurePayload({
@@ -113,6 +98,7 @@ export async function executeUnconfigure(
     await unconfigureService({
       fs: container.fs,
       filePath: providerContext.env.configPath,
+      projectFilePath: providerContext.env.projectConfigPath,
       service: canonicalService
     });
   }
@@ -158,9 +144,7 @@ function formatUnconfigureMessages(
       };
     case "codex":
       return {
-        success: didUnconfigure
-          ? "Removed Codex configuration."
-          : "No Codex configuration found.",
+        success: didUnconfigure ? "Removed Codex configuration." : "No Codex configuration found.",
         dry: "Dry run: would remove Codex configuration."
       };
     case "opencode":

@@ -21,6 +21,12 @@ When adding a new provider, the author should be creating 1 provider file, every
 
 Prefer adding code to specific packages e.g. `agent-spawn`. The core should be lightweight and only wire packages and expose public apis, sdk, cli, no real logic.
 
+### Rules
+
+- Package must have own readme
+  - includes all env variables exposed
+  - includes all config options via config
+
 ## github workflows
 
 Do NOT write unit tests for github workflows

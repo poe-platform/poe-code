@@ -1,18 +1,12 @@
 import path from "node:path";
-import {
-  createTimestamp,
-  isNotFound,
-  readFileIfExists
-} from "@poe-code/config-mutations";
-import {
-  readDocument,
-  writeScope
-} from "@poe-code/poe-code-config";
+import { createTimestamp, isNotFound, readFileIfExists } from "@poe-code/config-mutations";
+import { readDocument, readMergedDocument, writeScope } from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
 
 export interface ConfigStoreOptions {
   fs: FileSystem;
   filePath: string;
+  projectFilePath?: string;
 }
 
 export interface SaveConfigOptions extends ConfigStoreOptions {
@@ -28,22 +22,18 @@ interface LegacyConfigDocument {
   configured_services?: Record<string, ConfiguredServiceMetadata>;
 }
 
-export interface SaveConfiguredServiceOptions
-  extends ConfigStoreOptions {
+export interface SaveConfiguredServiceOptions extends ConfigStoreOptions {
   service: string;
   metadata: ConfiguredServiceMetadata;
 }
 
-export interface UnconfigureServiceOptions
-  extends ConfigStoreOptions {
+export interface UnconfigureServiceOptions extends ConfigStoreOptions {
   service: string;
 }
 
 const CORE_SCOPE = "core";
 
-export async function saveConfig(
-  options: SaveConfigOptions
-): Promise<void> {
+export async function saveConfig(options: SaveConfigOptions): Promise<void> {
   const { fs, filePath, apiKey } = options;
   await migrateLegacyConfigIfNeeded(fs, filePath);
 
@@ -55,22 +45,18 @@ export async function saveConfig(
   });
 }
 
-export async function loadConfig(
-  options: ConfigStoreOptions
-): Promise<string | null> {
-  const { fs, filePath } = options;
+export async function loadConfig(options: ConfigStoreOptions): Promise<string | null> {
+  const { fs, filePath, projectFilePath } = options;
   await migrateLegacyConfigIfNeeded(fs, filePath);
 
-  const document = await readDocument(fs, filePath);
+  const document = await readMergedDocument(fs, filePath, projectFilePath);
   const core = document[CORE_SCOPE];
   const apiKey = typeof core?.apiKey === "string" ? core.apiKey : "";
 
   return apiKey.length > 0 ? apiKey : null;
 }
 
-export async function deleteConfig(
-  options: ConfigStoreOptions
-): Promise<boolean> {
+export async function deleteConfig(options: ConfigStoreOptions): Promise<boolean> {
   const { fs, filePath } = options;
   try {
     await fs.unlink(filePath);
@@ -86,38 +72,30 @@ export async function deleteConfig(
 export async function loadConfiguredServices(
   options: ConfigStoreOptions
 ): Promise<Record<string, ConfiguredServiceMetadata>> {
-  const { fs, filePath } = options;
+  const { fs, filePath, projectFilePath } = options;
   await migrateLegacyCredentialsIfNeeded(fs, filePath);
 
-  const document = await readDocument(fs, filePath);
+  const document = await readMergedDocument(fs, filePath, projectFilePath);
   return normalizeConfiguredServices(document[configuredServicesScope]);
 }
 
-export async function saveConfiguredService(
-  options: SaveConfiguredServiceOptions
-): Promise<void> {
+export async function saveConfiguredService(options: SaveConfiguredServiceOptions): Promise<void> {
   const { fs, filePath, service, metadata } = options;
   await migrateLegacyConfigIfNeeded(fs, filePath);
 
   const document = await readDocument(fs, filePath);
-  const services = normalizeConfiguredServices(
-    document[configuredServicesScope]
-  );
+  const services = normalizeConfiguredServices(document[configuredServicesScope]);
   services[service] = normalizeConfiguredServiceMetadata(metadata);
 
   await writeScope(fs, filePath, configuredServicesScope, services);
 }
 
-export async function unconfigureService(
-  options: UnconfigureServiceOptions
-): Promise<boolean> {
+export async function unconfigureService(options: UnconfigureServiceOptions): Promise<boolean> {
   const { fs, filePath, service } = options;
   await migrateLegacyConfigIfNeeded(fs, filePath);
 
   const document = await readDocument(fs, filePath);
-  const services = normalizeConfiguredServices(
-    document[configuredServicesScope]
-  );
+  const services = normalizeConfiguredServices(document[configuredServicesScope]);
 
   if (!(service in services)) {
     return false;
@@ -147,10 +125,7 @@ function normalizeConfiguredServiceMetadata(
   return { files };
 }
 
-async function migrateLegacyConfigIfNeeded(
-  fs: FileSystem,
-  filePath: string
-): Promise<void> {
+async function migrateLegacyConfigIfNeeded(fs: FileSystem, filePath: string): Promise<void> {
   await migrateLegacyCredentialsIfNeeded(fs, filePath);
 
   const currentRaw = await readFileIfExists(fs, filePath);
@@ -158,9 +133,7 @@ async function migrateLegacyConfigIfNeeded(
     return;
   }
 
-  const legacyDocument = normalizeLegacyConfigDocument(
-    parseLegacyConfigDocument(currentRaw)
-  );
+  const legacyDocument = normalizeLegacyConfigDocument(parseLegacyConfigDocument(currentRaw));
   if (!legacyDocument.apiKey) {
     return;
   }
@@ -177,10 +150,7 @@ async function migrateLegacyConfigIfNeeded(
   });
 }
 
-async function migrateLegacyCredentialsIfNeeded(
-  fs: FileSystem,
-  filePath: string
-): Promise<void> {
+async function migrateLegacyCredentialsIfNeeded(fs: FileSystem, filePath: string): Promise<void> {
   const currentRaw = await readFileIfExists(fs, filePath);
   if (currentRaw !== null) {
     return;
@@ -189,10 +159,7 @@ async function migrateLegacyCredentialsIfNeeded(
   await migrateLegacyCredentialsFile(fs, filePath);
 }
 
-async function migrateLegacyCredentialsFile(
-  fs: FileSystem,
-  configPath: string
-): Promise<void> {
+async function migrateLegacyCredentialsFile(fs: FileSystem, configPath: string): Promise<void> {
   const legacyPath = path.join(path.dirname(configPath), "credentials.json");
   const raw = await readFileIfExists(fs, legacyPath);
   if (raw === null) {
@@ -212,12 +179,7 @@ async function migrateLegacyCredentialsFile(
   }
 
   if (legacyDocument.configured_services) {
-    await writeScope(
-      fs,
-      configPath,
-      configuredServicesScope,
-      legacyDocument.configured_services
-    );
+    await writeScope(fs, configPath, configuredServicesScope, legacyDocument.configured_services);
   }
 
   if (legacyDocument.apiKey) {
@@ -255,9 +217,7 @@ function normalizeLegacyConfigDocument(value: unknown): LegacyConfigDocument {
   return document;
 }
 
-function normalizeConfiguredServices(
-  value: unknown
-): Record<string, ConfiguredServiceMetadata> {
+function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredServiceMetadata> {
   if (!isRecord(value)) {
     return {};
   }

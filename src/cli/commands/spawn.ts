@@ -35,9 +35,7 @@ export interface CustomSpawnHandlerContext {
   resources: ExecutionResources;
 }
 
-export type CustomSpawnHandler = (
-  context: CustomSpawnHandlerContext
-) => Promise<void>;
+export type CustomSpawnHandler = (context: CustomSpawnHandlerContext) => Promise<void>;
 
 export interface RegisterSpawnCommandOptions {
   handlers?: Record<string, CustomSpawnHandler>;
@@ -55,8 +53,7 @@ export function registerSpawnCommand(
     .map((service) => service.name);
   const extraServices = options.extraServices ?? [];
   const serviceList = [...spawnServices, ...extraServices];
-  const serviceDescription =
-    `Agent to spawn${formatServiceList(serviceList)}`;
+  const serviceDescription = `Agent to spawn${formatServiceList(serviceList)}`;
 
   program
     .command("spawn")
@@ -66,19 +63,10 @@ export function registerSpawnCommand(
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
-    .option(
-      "--mcp-config <json>",
-      "MCP server config JSON: {name: {command, args?, env?}}"
-    )
-    .argument(
-      "<agent>",
-      serviceDescription
-    )
+    .option("--mcp-config <json>", "MCP server config JSON: {name: {command, args?, env?}}")
+    .argument("<agent>", serviceDescription)
     .argument("[prompt]", "Prompt text to send (or '-' / stdin)")
-    .argument(
-      "[agentArgs...]",
-      "Additional arguments forwarded to the agent CLI"
-    )
+    .argument("[agentArgs...]", "Additional arguments forwarded to the agent CLI")
     .action(async function (
       this: Command,
       service: string,
@@ -95,16 +83,11 @@ export function registerSpawnCommand(
         mcpConfig?: string;
       }>();
       const mcpServers = parseMcpSpawnConfig(commandOptions.mcpConfig);
-      const cwdOverride = resolveSpawnWorkingDirectory(
-        container.env.cwd,
-        commandOptions.cwd
-      );
+      const cwdOverride = resolveSpawnWorkingDirectory(container.env.cwd, commandOptions.cwd);
 
       const wantsStdinFlag = commandOptions.stdin === true;
       const shouldReadFromStdin =
-        wantsStdinFlag ||
-        promptText === "-" ||
-        (!promptText && !process.stdin.isTTY);
+        wantsStdinFlag || promptText === "-" || (!promptText && !process.stdin.isTTY);
 
       const forwardedArgs = wantsStdinFlag
         ? [...(promptText ? [promptText] : []), ...agentArgs]
@@ -168,11 +151,7 @@ export function registerSpawnCommand(
       // Check for custom handlers first
       const directHandler = options.handlers?.[service];
       if (directHandler) {
-        const resources = createExecutionResources(
-          container,
-          flags,
-          `spawn:${service}`
-        );
+        const resources = createExecutionResources(container, flags, `spawn:${service}`);
         resources.logger.intro(`spawn ${service}`);
         await directHandler({
           container,
@@ -187,11 +166,7 @@ export function registerSpawnCommand(
 
       const adapter = resolveServiceAdapter(container, service);
       const canonicalService = adapter.name;
-      const resources = createExecutionResources(
-        container,
-        flags,
-        `spawn:${canonicalService}`
-      );
+      const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
       resources.logger.intro(`spawn ${canonicalService}`);
       const canonicalHandler = options.handlers?.[canonicalService];
       if (canonicalHandler) {
@@ -210,17 +185,13 @@ export function registerSpawnCommand(
       }
 
       try {
-        assertSpawnSupport(
-          adapter.label,
-          canonicalService,
-          typeof adapter.spawn === "function"
-        );
+        assertSpawnSupport(adapter.label, canonicalService, typeof adapter.spawn === "function");
 
         assertMcpSpawnSupport(
           adapter.label,
           canonicalService,
           adapter.supportsMcpSpawn === true,
-          mcpServers,
+          mcpServers
         );
 
         if (flags.dryRun) {
@@ -248,9 +219,7 @@ export function registerSpawnCommand(
           model: spawnOptions.model,
           mode: spawnOptions.mode,
           cwd: spawnOptions.cwd,
-          ...(spawnOptions.mcpServers
-            ? { mcpServers: spawnOptions.mcpServers }
-            : {})
+          ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {})
         });
 
         await renderAcpStream(events);
@@ -301,7 +270,8 @@ async function confirmUnconfiguredService(
 ): Promise<boolean> {
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
-    filePath: container.env.configPath
+    filePath: container.env.configPath,
+    projectFilePath: container.env.projectConfigPath
   });
 
   if (service in configuredServices) {
@@ -323,10 +293,7 @@ async function confirmUnconfiguredService(
   return shouldProceed === true;
 }
 
-function resolveSpawnWorkingDirectory(
-  baseDir: string,
-  candidate?: string
-): string | undefined {
+function resolveSpawnWorkingDirectory(baseDir: string, candidate?: string): string | undefined {
   if (!candidate || candidate.trim().length === 0) {
     return undefined;
   }
@@ -374,9 +341,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     let args: string[] | undefined;
     if ("args" in value && value.args !== undefined) {
       if (!Array.isArray(value.args)) {
-        throw new ValidationError(
-          `--mcp-config entry "${name}".args must be an array of strings`
-        );
+        throw new ValidationError(`--mcp-config entry "${name}".args must be an array of strings`);
       }
 
       args = [];
@@ -438,11 +403,7 @@ function assertMcpSpawnSupport(
   );
 }
 
-function assertSpawnSupport(
-  label: string,
-  service: string,
-  providerSupportsSpawn: boolean
-): void {
+function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {
   if (providerSupportsSpawn) {
     return;
   }
@@ -452,18 +413,13 @@ function assertSpawnSupport(
   throw new ValidationError(`${label} does not support spawn.`);
 }
 
-function assertInteractiveSupport(
-  label: string,
-  service: string
-): void {
+function assertInteractiveSupport(label: string, service: string): void {
   if (resolveAgentId(service)) {
     return;
   }
   throw new ValidationError(`${label} does not support interactive mode.`);
 }
 
-function isObjectRecord(
-  value: unknown
-): value is Record<string, unknown> {
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

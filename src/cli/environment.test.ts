@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliEnvironment, resolveSpawnLogDir } from "./environment.js";
 
 describe("CliEnvironment", () => {
@@ -9,9 +9,13 @@ describe("CliEnvironment", () => {
   it("computes a shared config path inside the poe-code folder", () => {
     const environment = createCliEnvironment({ cwd, homeDir });
 
-    expect(environment.configPath).toBe(
-      resolveConfigPath(homeDir)
-    );
+    expect(environment.configPath).toBe(resolveConfigPath(homeDir));
+  });
+
+  it("computes a project config path inside the current working directory", () => {
+    const environment = createCliEnvironment({ cwd, homeDir });
+
+    expect(environment.projectConfigPath).toBe(resolveProjectConfigPath(cwd));
   });
 
   it("resolves paths relative to the user's home directory", () => {

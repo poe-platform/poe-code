@@ -29,10 +29,7 @@ export interface ScopeDefinition<S extends ScopeSchema> {
 export interface ScopedConfig<S extends ScopeSchema> {
   get<K extends keyof S & string>(key: K): Promise<InferConfig<S>[K]>;
   getAll(): Promise<InferConfig<S>>;
-  set<K extends keyof S & string>(
-    key: K,
-    value: InferConfig<S>[K]
-  ): Promise<void>;
+  set<K extends keyof S & string>(key: K, value: InferConfig<S>[K]): Promise<void>;
 }
 
 export interface ConfigStore {
@@ -42,6 +39,7 @@ export interface ConfigStore {
 export interface ConfigStoreOptions {
   fs: FileSystem;
   filePath: string;
+  projectFilePath?: string;
   env?: Record<string, string | undefined>;
 }
 

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 
 export interface CliEnvironmentInit {
   cwd: string;
@@ -13,6 +13,7 @@ export interface CliEnvironment {
   readonly homeDir: string;
   readonly platform: NodeJS.Platform;
   readonly configPath: string;
+  readonly projectConfigPath: string;
   readonly logDir: string;
   readonly poeApiBaseUrl: string;
   readonly poeBaseUrl: string;
@@ -25,11 +26,11 @@ export function createCliEnvironment(init: CliEnvironmentInit): CliEnvironment {
   const platform = init.platform ?? process.platform;
   const variables = init.variables ?? process.env;
   const configPath = resolveConfigPath(init.homeDir);
+  const projectConfigPath = resolveProjectConfigPath(init.cwd);
   const logDir = resolveLogDir(init.homeDir);
   const { poeApiBaseUrl, poeBaseUrl } = resolvePoeBaseUrls(variables);
 
-  const resolveHomePath = (...segments: string[]): string =>
-    path.join(init.homeDir, ...segments);
+  const resolveHomePath = (...segments: string[]): string => path.join(init.homeDir, ...segments);
 
   const getVariable = (name: string): string | undefined => variables[name];
 
@@ -38,6 +39,7 @@ export function createCliEnvironment(init: CliEnvironmentInit): CliEnvironment {
     homeDir: init.homeDir,
     platform,
     configPath,
+    projectConfigPath,
     logDir,
     poeApiBaseUrl,
     poeBaseUrl,
@@ -64,9 +66,7 @@ function resolvePoeBaseUrls(variables: Record<string, string | undefined>): {
 } {
   const raw = variables.POE_BASE_URL;
   const baseInput =
-    typeof raw === "string" && raw.trim().length > 0
-      ? raw.trim()
-      : DEFAULT_POE_API_BASE_URL;
+    typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : DEFAULT_POE_API_BASE_URL;
   const parsed = parseUrl(baseInput);
   if (!parsed) {
     const trimmed = trimTrailingSlash(baseInput.trim());

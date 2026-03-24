@@ -6,10 +6,7 @@ import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout } from "./logout.js";
 
-export function registerAuthCommand(
-  program: Command,
-  container: CliContainer
-): void {
+export function registerAuthCommand(program: Command, container: CliContainer): void {
   const auth = program
     .command("auth")
     .description("Authentication and account commands.")
@@ -47,10 +44,7 @@ export function registerAuthCommand(
     });
 }
 
-async function executeStatus(
-  program: Command,
-  container: CliContainer
-): Promise<void> {
+async function executeStatus(program: Command, container: CliContainer): Promise<void> {
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(container, flags, "auth:status");
 
@@ -63,9 +57,7 @@ async function executeStatus(
 
     if (loggedIn) {
       if (flags.dryRun) {
-        resources.logger.dryRun(
-          "Dry run: would fetch usage balance from Poe API."
-        );
+        resources.logger.dryRun("Dry run: would fetch usage balance from Poe API.");
       } else {
         const response = await container.httpClient(
           `${container.env.poeBaseUrl}/usage/current_balance`,
@@ -78,26 +70,22 @@ async function executeStatus(
         );
 
         if (!response.ok) {
-          throw new ApiError(
-            `Failed to fetch usage balance (HTTP ${response.status})`,
-            {
-              httpStatus: response.status,
-              endpoint: "/usage/current_balance"
-            }
-          );
+          throw new ApiError(`Failed to fetch usage balance (HTTP ${response.status})`, {
+            httpStatus: response.status,
+            endpoint: "/usage/current_balance"
+          });
         }
 
         const data = (await response.json()) as { current_point_balance: number };
-        const formattedBalance = data.current_point_balance.toLocaleString(
-          "en-US"
-        );
+        const formattedBalance = data.current_point_balance.toLocaleString("en-US");
         resources.logger.info(`Current balance: ${formattedBalance} points`);
       }
     }
 
     const configuredServices = await loadConfiguredServices({
       fs: container.fs,
-      filePath: container.env.configPath
+      filePath: container.env.configPath,
+      projectFilePath: container.env.projectConfigPath
     });
 
     const configuredAgentNames = Object.keys(configuredServices).sort();
@@ -105,9 +93,7 @@ async function executeStatus(
     if (configuredAgentNames.length === 0) {
       resources.logger.info("No agents configured.");
     } else {
-      resources.logger.info(
-        `Configured agents: ${configuredAgentNames.join(", ")}`
-      );
+      resources.logger.info(`Configured agents: ${configuredAgentNames.join(", ")}`);
     }
 
     resources.context.finalize();
@@ -121,10 +107,7 @@ async function executeStatus(
   }
 }
 
-async function executeApiKey(
-  program: Command,
-  container: CliContainer
-): Promise<void> {
+async function executeApiKey(program: Command, container: CliContainer): Promise<void> {
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(container, flags, "auth:api_key");
 

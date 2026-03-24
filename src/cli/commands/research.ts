@@ -1,10 +1,6 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
-import {
-  renderAcpStream,
-  getSpawnConfig,
-  type SpawnMode
-} from "@poe-code/agent-spawn";
+import { renderAcpStream, getSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import { loadConfiguredServices } from "../../services/config.js";
 import { research } from "../../sdk/research.js";
 import { OperationCancelledError } from "../errors.js";
@@ -27,18 +23,12 @@ export interface ResearchCommandOptions {
   keep?: boolean;
 }
 
-export function registerResearchCommand(
-  program: Command,
-  container: CliContainer
-): void {
+export function registerResearchCommand(program: Command, container: CliContainer): void {
   const spawnServices = container.registry
     .list()
-    .filter((service) =>
-      typeof service.spawn === "function" || getSpawnConfig(service.name)
-    )
+    .filter((service) => typeof service.spawn === "function" || getSpawnConfig(service.name))
     .map((service) => service.name);
-  const serviceDescription =
-    `Agent to research with${formatServiceList(spawnServices)}`;
+  const serviceDescription = `Agent to research with${formatServiceList(spawnServices)}`;
 
   program
     .command("research")
@@ -63,9 +53,7 @@ export function registerResearchCommand(
 
       const wantsStdinFlag = commandOptions.stdin === true;
       const shouldReadFromStdin =
-        wantsStdinFlag ||
-        promptText === "-" ||
-        (!promptText && !process.stdin.isTTY);
+        wantsStdinFlag || promptText === "-" || (!promptText && !process.stdin.isTTY);
 
       const forwardedArgs = wantsStdinFlag
         ? [...(promptText ? [promptText] : []), ...agentArgs]
@@ -99,11 +87,7 @@ export function registerResearchCommand(
       const adapter = resolveServiceAdapter(container, resolvedAgent);
       const canonicalService = adapter.name;
 
-      const resources = createExecutionResources(
-        container,
-        flags,
-        `research:${canonicalService}`
-      );
+      const resources = createExecutionResources(container, flags, `research:${canonicalService}`);
       resources.logger.intro(`research ${canonicalService}`);
 
       const model = await resolveResearchModel({
@@ -148,9 +132,7 @@ async function resolveResearchAgent(input: {
 
   const spawnable = input.container.registry
     .list()
-    .filter((service) =>
-      typeof service.spawn === "function" || getSpawnConfig(service.name)
-    );
+    .filter((service) => typeof service.spawn === "function" || getSpawnConfig(service.name));
 
   if (spawnable.length === 0) {
     throw new Error("No spawn-capable agents available.");
@@ -159,12 +141,11 @@ async function resolveResearchAgent(input: {
   if (input.flags.assumeYes) {
     const configured = await loadConfiguredServices({
       fs: input.container.fs,
-      filePath: input.container.env.configPath
+      filePath: input.container.env.configPath,
+      projectFilePath: input.container.env.projectConfigPath
     });
 
-    const configuredService = spawnable.find(
-      (service) => service.name in configured
-    );
+    const configuredService = spawnable.find((service) => service.name in configured);
 
     return configuredService?.name ?? spawnable[0]!.name;
   }

@@ -13,5 +13,12 @@ export type {
 
 export { defineScope } from "./schema.js";
 export { createConfigStore } from "./config.js";
+export { deepMergeDocuments } from "./merge.js";
 export { resolveScope } from "./resolve.js";
-export { readDocument, resolveConfigPath, writeScope } from "./store.js";
+export {
+  readDocument,
+  readMergedDocument,
+  resolveConfigPath,
+  resolveProjectConfigPath,
+  writeScope
+} from "./store.js";

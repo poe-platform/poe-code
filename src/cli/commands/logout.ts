@@ -1,19 +1,10 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
-import {
-  deleteConfig,
-  loadConfiguredServices
-} from "../../services/config.js";
-import {
-  createExecutionResources,
-  resolveCommandFlags
-} from "./shared.js";
+import { deleteConfig, loadConfiguredServices } from "../../services/config.js";
+import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { executeUnconfigure } from "./unconfigure.js";
 
-export function registerLogoutCommand(
-  program: Command,
-  container: CliContainer
-): void {
+export function registerLogoutCommand(program: Command, container: CliContainer): void {
   program
     .command("logout")
     .description("Remove all Poe API configuration.")
@@ -22,22 +13,16 @@ export function registerLogoutCommand(
     });
 }
 
-export async function executeLogout(
-  program: Command,
-  container: CliContainer
-): Promise<void> {
+export async function executeLogout(program: Command, container: CliContainer): Promise<void> {
   const flags = resolveCommandFlags(program);
-  const resources = createExecutionResources(
-    container,
-    flags,
-    "logout"
-  );
+  const resources = createExecutionResources(container, flags, "logout");
 
   resources.logger.intro("logout");
 
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
-    filePath: container.env.configPath
+    filePath: container.env.configPath,
+    projectFilePath: container.env.projectConfigPath
   });
 
   for (const serviceName of Object.keys(configuredServices)) {

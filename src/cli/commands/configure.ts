@@ -26,34 +26,22 @@ export interface ConfigureCommandOptions {
   reasoningEffort?: string;
 }
 
-export function registerConfigureCommand(
-  program: Command,
-  container: CliContainer
-): Command {
+export function registerConfigureCommand(program: Command, container: CliContainer): Command {
   const serviceNames = container.registry.list().map((service) => service.name);
-  const serviceDescription =
-    `Agent to configure${formatServiceList(serviceNames)}`;
+  const serviceDescription = `Agent to configure${formatServiceList(serviceNames)}`;
   const configureCommand = program
     .command("configure")
     .description("Configure developer tooling for Poe API.")
-    .argument(
-      "[agent]",
-      serviceDescription
-    )
+    .argument("[agent]", serviceDescription)
     .option("--api-key <key>", "Poe API key")
     .option("--model <model>", "Model identifier")
     .option("--reasoning-effort <level>", "Reasoning effort level")
-    .action(
-      async (service: string | undefined, options: ConfigureCommandOptions) => {
-        const resolved = await resolveServiceArgument(
-          program,
-          container,
-          service,
-          { action: "configure" }
-        );
-        await executeConfigure(program, container, resolved, options);
-      }
-    );
+    .action(async (service: string | undefined, options: ConfigureCommandOptions) => {
+      const resolved = await resolveServiceArgument(program, container, service, {
+        action: "configure"
+      });
+      await executeConfigure(program, container, resolved, options);
+    });
 
   return configureCommand;
 }
@@ -67,19 +55,11 @@ export async function executeConfigure(
   const adapter = resolveServiceAdapter(container, service);
   const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
-  const resources = createExecutionResources(
-    container,
-    flags,
-    `configure:${canonicalService}`
-  );
+  const resources = createExecutionResources(container, flags, `configure:${canonicalService}`);
 
   resources.logger.intro(`configure ${canonicalService}`);
 
-  const providerContext = buildProviderContext(
-    container,
-    adapter,
-    resources
-  );
+  const providerContext = buildProviderContext(container, adapter, resources);
 
   const payload = await createConfigurePayload({
     container,
@@ -116,6 +96,7 @@ export async function executeConfigure(
       await saveConfiguredService({
         fs: container.fs,
         filePath: providerContext.env.configPath,
+        projectFilePath: providerContext.env.projectConfigPath,
         service: canonicalService,
         metadata: {
           files: tracker.files()
@@ -127,10 +108,7 @@ export async function executeConfigure(
     if (isolated && isolated.requiresConfig !== false) {
       const isolatedTracker = createMutationTracker();
       const isolatedLogger = createMutationReporter(resources.logger);
-      const isolatedObservers = combineMutationObservers(
-        isolatedTracker.observers,
-        isolatedLogger
-      );
+      const isolatedObservers = combineMutationObservers(isolatedTracker.observers, isolatedLogger);
       await applyIsolatedConfiguration({
         adapter: entry,
         providerContext,

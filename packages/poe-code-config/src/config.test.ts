@@ -5,6 +5,7 @@ import { defineScope } from "./schema.js";
 
 const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
+const projectConfigPath = `${homeDir}/workspace/.poe-code/config.json`;
 
 const coreScope = defineScope("core", {
   apiKey: {
@@ -94,6 +95,174 @@ describe("createConfigStore", () => {
       ui: {
         darkMode: true
       }
+    });
+  });
+
+  it("prefers project config values on get", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "global-key",
+              poeBaseUrl: "https://global.example.test"
+            }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "project-key"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await expect(store.scope(coreScope).get("apiKey")).resolves.toBe("project-key");
+  });
+
+  it("merges project config with global for getAll", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "global-key"
+            }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              poeBaseUrl: "https://project.example.test"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await expect(store.scope(coreScope).getAll()).resolves.toEqual({
+      apiKey: "global-key",
+      poeBaseUrl: "https://project.example.test"
+    });
+  });
+
+  it("writes updates to the global config file only", async () => {
+    const fs = createMockFs(
+      {
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "project-key"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await store.scope(coreScope).set("apiKey", "global-key");
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      core: {
+        apiKey: "global-key"
+      }
+    });
+    expect(JSON.parse(fs.getContent("~/workspace/.poe-code/config.json") as string)).toEqual({
+      core: {
+        apiKey: "project-key"
+      }
+    });
+  });
+
+  it("falls back to the global config when the project file is missing", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "global-key"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await expect(store.scope(coreScope).getAll()).resolves.toEqual({
+      apiKey: "global-key",
+      poeBaseUrl: "https://api.poe.com/v1"
+    });
+  });
+
+  it("uses the global scope when the project scope is absent", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "global-key"
+            }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            ui: {
+              darkMode: true
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await expect(store.scope(coreScope).getAll()).resolves.toEqual({
+      apiKey: "global-key",
+      poeBaseUrl: "https://api.poe.com/v1"
     });
   });
 });

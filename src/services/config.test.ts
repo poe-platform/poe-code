@@ -18,6 +18,7 @@ function createMemFs(): FileSystem {
 
 describe("config store", () => {
   const configPath = resolveConfigPath("/home/user");
+  const projectConfigPath = "/home/user/workspace/.poe-code/config.json";
   let fs: FileSystem;
 
   beforeEach(async () => {
@@ -61,21 +62,15 @@ describe("config store", () => {
       apiKey: "updated"
     });
 
-    const updated = JSON.parse(
-      await fs.readFile(configPath, "utf8")
-    );
+    const updated = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(updated.core.apiKey).toBe("updated");
     expect(updated.configured_services).toEqual(initial.configured_services);
   });
 
   it("migrates top-level apiKey into the core scope", async () => {
-    await fs.writeFile(
-      configPath,
-      `${JSON.stringify({ apiKey: "legacy-key" }, null, 2)}\n`,
-      {
-        encoding: "utf8"
-      }
-    );
+    await fs.writeFile(configPath, `${JSON.stringify({ apiKey: "legacy-key" }, null, 2)}\n`, {
+      encoding: "utf8"
+    });
 
     await expect(
       loadConfig({
@@ -177,9 +172,7 @@ describe("config store", () => {
 
     const configDir = path.dirname(configPath);
     const entries = await fs.readdir(configDir);
-    const backupName = entries.find((entry) =>
-      entry.startsWith("config.json.invalid-")
-    );
+    const backupName = entries.find((entry) => entry.startsWith("config.json.invalid-"));
     expect(backupName).toBeDefined();
 
     const backupPath = path.join(configDir, backupName as string);
@@ -188,5 +181,110 @@ describe("config store", () => {
 
     const rewritten = await fs.readFile(configPath, "utf8");
     expect(JSON.parse(rewritten)).toEqual({});
+  });
+
+  it("prefers the project api key over the global one on load", async () => {
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ core: { apiKey: "global-key" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    await fs.mkdir(path.dirname(projectConfigPath), { recursive: true });
+    await fs.writeFile(
+      projectConfigPath,
+      `${JSON.stringify({ core: { apiKey: "project-key" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    await expect(
+      loadConfig({
+        fs,
+        filePath: configPath,
+        projectFilePath: projectConfigPath
+      })
+    ).resolves.toBe("project-key");
+  });
+
+  it("merges configured services from global and project config", async () => {
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify(
+        {
+          configured_services: {
+            codex: { files: ["/home/user/.codex/config.toml"] }
+          }
+        },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+    await fs.mkdir(path.dirname(projectConfigPath), { recursive: true });
+    await fs.writeFile(
+      projectConfigPath,
+      `${JSON.stringify(
+        {
+          configured_services: {
+            claude: { files: ["/home/user/.claude/settings.json"] }
+          }
+        },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+
+    await expect(
+      loadConfiguredServices({
+        fs,
+        filePath: configPath,
+        projectFilePath: projectConfigPath
+      })
+    ).resolves.toEqual({
+      codex: { files: ["/home/user/.codex/config.toml"] },
+      claude: { files: ["/home/user/.claude/settings.json"] }
+    });
+  });
+
+  it("writes configured service updates to the global config only", async () => {
+    await fs.mkdir(path.dirname(projectConfigPath), { recursive: true });
+    await fs.writeFile(
+      projectConfigPath,
+      `${JSON.stringify(
+        {
+          configured_services: {
+            codex: { files: ["/home/user/.codex/config.toml"] }
+          }
+        },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath,
+      service: "claude-code",
+      metadata: {
+        files: ["/home/user/.claude/settings.json"]
+      }
+    });
+
+    expect(JSON.parse(await fs.readFile(configPath, "utf8"))).toEqual({
+      configured_services: {
+        "claude-code": {
+          files: ["/home/user/.claude/settings.json"]
+        }
+      }
+    });
+    expect(JSON.parse(await fs.readFile(projectConfigPath, "utf8"))).toEqual({
+      configured_services: {
+        codex: {
+          files: ["/home/user/.codex/config.toml"]
+        }
+      }
+    });
   });
 });

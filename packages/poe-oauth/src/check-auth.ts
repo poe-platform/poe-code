@@ -1,5 +1,5 @@
 export interface AuthIdentity {
-  email: string;
+  email: string | null;
   balance: number | null;
 }
 
@@ -14,7 +14,7 @@ interface CurrentBalanceResponse {
   current_point_balance?: unknown;
 }
 
-const DEFAULT_BASE_URL = "https://poe.com";
+const DEFAULT_BASE_URL = "https://api.poe.com";
 
 export async function checkAuth(options: CheckAuthOptions): Promise<AuthIdentity | null> {
   try {
@@ -36,12 +36,8 @@ export async function checkAuth(options: CheckAuthOptions): Promise<AuthIdentity
 
     const data = (await response.json()) as CurrentBalanceResponse;
 
-    if (typeof data.email !== "string" || data.email.length === 0) {
-      return null;
-    }
-
     return {
-      email: data.email,
+      email: typeof data.email === "string" && data.email.length > 0 ? data.email : null,
       balance: typeof data.current_point_balance === "number" ? data.current_point_balance : null
     };
   } catch {

@@ -27,7 +27,7 @@ describe("checkAuth", () => {
       balance: 1500
     });
 
-    expect(fetchMock).toHaveBeenCalledWith("https://poe.com/usage/current_balance", {
+    expect(fetchMock).toHaveBeenCalledWith("https://api.poe.com/usage/current_balance", {
       method: "GET",
       headers: {
         Authorization: "Bearer provided-key"
@@ -85,6 +85,31 @@ describe("checkAuth", () => {
     ).resolves.toEqual({
       email: "user@example.com",
       balance: null
+    });
+  });
+
+  it("returns identity with null email when API omits email", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            current_point_balance: 21082621
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" }
+          }
+        )
+    );
+
+    await expect(
+      checkAuth({
+        apiKey: "provided-key",
+        fetch: fetchMock as typeof fetch
+      })
+    ).resolves.toEqual({
+      email: null,
+      balance: 21082621
     });
   });
 

@@ -20,7 +20,7 @@ async function authorize(): Promise<AuthOauthResult> {
   const client = createOAuthClient({
     clientId: CLIENT_ID,
     landingPage: {
-      title: "Connected to Poe via OpenCode",
+      title: "Connected to Poe",
       body: "You can close this tab and return to OpenCode."
     },
     openBrowser: async (url) => {

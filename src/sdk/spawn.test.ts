@@ -259,7 +259,6 @@ describe("SDK spawn()", () => {
 
   it("falls back to non-streaming and returns empty events when unsupported", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
-    vi.mocked(createSdkContainer).mockReturnValue({} as any);
     vi.mocked(spawnCore).mockResolvedValue({
       stdout: "out",
       stderr: "err",
@@ -346,7 +345,6 @@ describe("SDK spawn()", () => {
 
   it("propagates usage from spawnCore non-streaming result when unsupported", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
-    vi.mocked(createSdkContainer).mockReturnValue({} as any);
     vi.mocked(spawnCore).mockResolvedValue({
       stdout: "out",
       stderr: "err",

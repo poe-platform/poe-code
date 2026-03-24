@@ -225,10 +225,11 @@ export function spawn(
 
       resolveEventsOnce(emptyEvents);
 
+      const model = await resolveModel();
       return spawnCore(getContainer(), service, {
         prompt: options.prompt,
         cwd: options.cwd,
-        model: options.model,
+        model,
         mode: options.mode,
         args: options.args,
         ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),

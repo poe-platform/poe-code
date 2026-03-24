@@ -4,10 +4,16 @@ import crypto from "node:crypto";
 const DEFAULT_AUTHORIZATION_ENDPOINT = "https://poe.com/oauth/authorize";
 const DEFAULT_TOKEN_ENDPOINT = "https://api.poe.com/token";
 
+export interface OAuthLandingPage {
+  title: string;
+  body: string;
+}
+
 export interface OAuthClientConfig {
   clientId: string;
   authorizationEndpoint?: string;
   tokenEndpoint?: string;
+  landingPage?: OAuthLandingPage;
   openBrowser?: (url: string) => Promise<void>;
   readLine?: () => Promise<string>;
   createServer?: () => http.Server;
@@ -155,7 +161,7 @@ function waitForAuthorizationCode(
       }
 
       res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(buildSuccessPage());
+      res.end(buildSuccessPage(config.landingPage));
       settle(() => resolve(code));
     });
 
@@ -251,14 +257,25 @@ function parseErrorDescription(text: string): string | null {
   return null;
 }
 
-function buildSuccessPage(): string {
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildSuccessPage(landingPage?: OAuthLandingPage): string {
+  const title = landingPage?.title ?? "Connected to Poe";
+  const body = landingPage?.body ?? "You can close this tab and return to your terminal.";
+
   return [
     "<!DOCTYPE html>",
-    "<html><head><meta charset=utf-8><title>Connected to Poe</title></head>",
+    `<html><head><meta charset=utf-8><title>${escapeHtml(title)}</title></head>`,
     "<body style=\"font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0\">",
     "<div style=\"text-align:center\">",
-    "<h1>Connected to Poe</h1>",
-    "<p style=\"color:#666\">You can close this tab and return to your terminal.</p>",
+    `<h1>${escapeHtml(title)}</h1>`,
+    `<p style="color:#666">${escapeHtml(body)}</p>`,
     "</div></body></html>"
   ].join("");
 }

@@ -4,6 +4,7 @@ export type { AuthIdentity, CheckAuthOptions } from "./check-auth.js";
 export type {
   OAuthClient,
   OAuthClientConfig,
+  OAuthLandingPage,
   OAuthResult,
   OAuthAuthorization
 } from "./oauth-client.js";

@@ -16,6 +16,7 @@ const client = createOAuthClient({
 });
 // Defaults to https://poe.com/oauth/authorize and https://api.poe.com/token
 // Override with authorizationEndpoint / tokenEndpoint if needed
+// Customize the browser landing page with landingPage: { title, body }
 
 const authorization = await client.authorize();
 // authorization.authorizationUrl — URL to open in browser

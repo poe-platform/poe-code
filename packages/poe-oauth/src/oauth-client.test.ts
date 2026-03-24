@@ -20,10 +20,12 @@ function createTestConfig(
 function createMockServer(): {
   server: http.Server;
   simulateCallback: (url: string) => void;
+  captureResponseBody: () => string;
   boundPort: number;
 } {
   let requestHandler: ((req: http.IncomingMessage, res: http.ServerResponse) => void) | null = null;
   const boundPort = 54321;
+  let lastResponseBody = "";
 
   const server = {
     on: vi.fn((event: string, handler: any) => {
@@ -49,14 +51,17 @@ function createMockServer(): {
       url,
       method: "GET"
     } as http.IncomingMessage;
+    const endFn = vi.fn((body: string) => { lastResponseBody = body; });
     const res = {
       writeHead: vi.fn(),
-      end: vi.fn()
+      end: endFn
     } as unknown as http.ServerResponse;
     requestHandler(req, res);
   };
 
-  return { server, simulateCallback, boundPort };
+  const captureResponseBody = () => lastResponseBody;
+
+  return { server, simulateCallback, captureResponseBody, boundPort };
 }
 
 function createTokenResponse(apiKey: string, expiresIn?: number): Response {
@@ -361,6 +366,80 @@ describe("OAuthClient", () => {
     expect(result.apiKey).toBe("sk-pasted-key");
     const body = new URLSearchParams(fetchMock.mock.calls[0]![1].body);
     expect(body.get("code")).toBe("pasted-code");
+  });
+
+  it("uses default landing page text", async () => {
+    const { server, simulateCallback, captureResponseBody } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
+
+    const client = createOAuthClient({
+      clientId: "test-client-id",
+      openBrowser: vi.fn(async () => {
+        simulateCallback("/callback?code=test-code");
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    const authorization = await client.authorize();
+    await authorization.waitForResult();
+
+    const html = captureResponseBody();
+    expect(html).toContain("Connected to Poe");
+    expect(html).toContain("You can close this tab");
+  });
+
+  it("uses custom landing page text", async () => {
+    const { server, simulateCallback, captureResponseBody } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
+
+    const client = createOAuthClient({
+      clientId: "test-client-id",
+      landingPage: {
+        title: "All set!",
+        body: "Return to your IDE."
+      },
+      openBrowser: vi.fn(async () => {
+        simulateCallback("/callback?code=test-code");
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    const authorization = await client.authorize();
+    await authorization.waitForResult();
+
+    const html = captureResponseBody();
+    expect(html).toContain("All set!");
+    expect(html).toContain("Return to your IDE.");
+    expect(html).not.toContain("Connected to Poe");
+  });
+
+  it("escapes HTML in custom landing page text", async () => {
+    const { server, simulateCallback, captureResponseBody } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
+
+    const client = createOAuthClient({
+      clientId: "test-client-id",
+      landingPage: {
+        title: "<script>alert('xss')</script>",
+        body: 'Some "quoted" & <special> text'
+      },
+      openBrowser: vi.fn(async () => {
+        simulateCallback("/callback?code=test-code");
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    const authorization = await client.authorize();
+    await authorization.waitForResult();
+
+    const html = captureResponseBody();
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;");
+    expect(html).toContain("&amp;");
+    expect(html).toContain("&quot;quoted&quot;");
   });
 
   it("localhost callback wins the race when it arrives first", async () => {

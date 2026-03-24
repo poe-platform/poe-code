@@ -29,6 +29,14 @@ vi.mock("@poe-code/agent-mcp-config", () => ({
   resolveAgentSupport: resolveAgentSupportMock
 }));
 
+vi.mock("poe-oauth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("poe-oauth")>();
+  return {
+    ...actual,
+    checkAuth: vi.fn(async () => ({ email: "test@example.com", balance: null }))
+  };
+});
+
 const cwd = "/repo";
 const homeDir = "/home/test";
 const VALID_API_KEY = "vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuo";

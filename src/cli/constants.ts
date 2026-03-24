@@ -3,7 +3,7 @@ export const FRONTIER_MODELS = [
   "anthropic/claude-sonnet-4.6",
   "openai/gpt-5.3-codex",
   "openai/gpt-5.4",
-  "google/gemini-3-pro"
+  "google/gemini-3.1-pro"
 ] as const;
 
 export const DEFAULT_FRONTIER_MODEL = "anthropic/claude-sonnet-4.6";

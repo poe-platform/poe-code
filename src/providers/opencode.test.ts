@@ -113,6 +113,15 @@ describe("opencode service", () => {
     expect(config.model).toBe(withProviderPrefix(alternate));
   });
 
+  it("offers Gemini 3.1 Pro in configure prompts instead of the removed Gemini 3 Pro", () => {
+    const choices =
+      opencodeService.openCodeService.configurePrompts?.model?.choices ?? [];
+    const values = choices.map((choice) => choice.value);
+
+    expect(values).toContain("google/gemini-3.1-pro");
+    expect(values).not.toContain("google/gemini-3-pro");
+  });
+
   it("merges with existing config and preserves other settings", async () => {
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(

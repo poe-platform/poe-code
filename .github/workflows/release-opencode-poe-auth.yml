@@ -1,0 +1,37 @@
+name: Release opencode-poe-auth
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/opencode-poe-auth/**'
+concurrency:
+  group: release-opencode-poe-auth
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Upgrade npm for trusted publishing
+        run: npm install --global npm@^11.5.1
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build
+        run: npm run build --workspace opencode-poe-auth
+      - name: Auto-bump patch version from npm
+        working-directory: packages/opencode-poe-auth
+        run: |
+          REMOTE=$(npm view opencode-poe-auth version 2>/dev/null || echo "0.0.0")
+          npm version --no-git-tag-version --allow-same-version "$REMOTE"
+          npm version --no-git-tag-version patch
+      - name: Publish
+        working-directory: packages/opencode-poe-auth
+        run: npm publish --provenance --access public

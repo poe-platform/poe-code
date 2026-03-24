@@ -1,0 +1,215 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Hooks } from "@opencode-ai/plugin";
+import open from "open";
+import { createOAuthClient } from "poe-oauth";
+import PoeAuthPlugin from "./poe-auth-plugin.js";
+
+vi.mock("open", () => ({
+  default: vi.fn(async () => undefined)
+}));
+
+vi.mock("poe-oauth", () => ({
+  createOAuthClient: vi.fn()
+}));
+
+type AuthHook = NonNullable<Hooks["auth"]>;
+type OAuthMethod = Extract<AuthHook["methods"][number], { type: "oauth" }>;
+
+function getAuthHook(hooks: Hooks): AuthHook {
+  if (!hooks.auth) {
+    throw new Error("Expected auth hook");
+  }
+
+  return hooks.auth;
+}
+
+function getOAuthMethod(hooks: Hooks): OAuthMethod {
+  const method = getAuthHook(hooks).methods.find((candidate) => candidate.type === "oauth");
+
+  if (!method || method.type !== "oauth") {
+    throw new Error("Expected oauth method");
+  }
+
+  return method;
+}
+
+describe("PoeAuthPlugin", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns the poe provider name", async () => {
+    const hooks = await PoeAuthPlugin({} as never);
+
+    expect(getAuthHook(hooks).provider).toBe("poe");
+  });
+
+  it("loader returns apiKey for api auth", async () => {
+    const hooks = await PoeAuthPlugin({} as never);
+    const loader = getAuthHook(hooks).loader;
+
+    expect(loader).toBeTypeOf("function");
+    await expect(loader!(async () => ({ type: "api", key: "sk-manual" }), {} as never)).resolves.toEqual({
+      apiKey: "sk-manual"
+    });
+  });
+
+  it("loader returns apiKey for valid oauth auth", async () => {
+    const hooks = await PoeAuthPlugin({} as never);
+    const loader = getAuthHook(hooks).loader;
+
+    expect(loader).toBeTypeOf("function");
+    await expect(
+      loader!(
+        async () => ({
+          type: "oauth",
+          access: "sk-oauth",
+          refresh: "sk-oauth",
+          expires: Date.now() + 60_000
+        }),
+        {} as never
+      )
+    ).resolves.toEqual({
+      apiKey: "sk-oauth"
+    });
+  });
+
+  it("loader throws for expired oauth auth", async () => {
+    const hooks = await PoeAuthPlugin({} as never);
+    const loader = getAuthHook(hooks).loader;
+
+    expect(loader).toBeTypeOf("function");
+    await expect(
+      loader!(
+        async () => ({
+          type: "oauth",
+          access: "sk-expired",
+          refresh: "sk-expired",
+          expires: Date.now() - 1
+        }),
+        {} as never
+      )
+    ).rejects.toThrow("Poe API key expired");
+  });
+
+  it("loader returns empty object for unknown auth type", async () => {
+    const hooks = await PoeAuthPlugin({} as never);
+    const loader = getAuthHook(hooks).loader;
+
+    expect(loader).toBeTypeOf("function");
+    await expect(
+      loader!(async () => ({ type: "wellknown", key: "sk", token: "token" }), {} as never)
+    ).resolves.toEqual({});
+  });
+
+  it("authorize returns a URL with the expected client id", async () => {
+    const waitForResult = vi.fn(async () => ({
+      apiKey: "sk-poe",
+      expiresIn: 60
+    }));
+
+    vi.mocked(createOAuthClient).mockReturnValue({
+      authorize: vi.fn(async () => ({
+        authorizationUrl:
+          "https://poe.com/oauth/authorize?client_id=client_728290227fc048cc9262091a1ea197ea",
+        waitForResult
+      }))
+    });
+
+    const grant = await getOAuthMethod(await PoeAuthPlugin({} as never)).authorize();
+
+    expect(new URL(grant.url).searchParams.get("client_id")).toBe(
+      "client_728290227fc048cc9262091a1ea197ea"
+    );
+  });
+
+  it("authorize opens the browser with the provided URL and resolves oauth auth", async () => {
+    const waitForResult = vi.fn(async () => ({
+      apiKey: "sk-poe",
+      expiresIn: 60
+    }));
+
+    vi.mocked(createOAuthClient).mockImplementation((config) => ({
+      authorize: vi.fn(async () => {
+        await config.openBrowser?.("https://poe.com/oauth/authorize?client_id=test");
+
+        return {
+          authorizationUrl: "https://poe.com/oauth/authorize?client_id=test",
+          waitForResult
+        };
+      })
+    }));
+
+    vi.spyOn(Date, "now").mockReturnValue(1_700_000_000_000);
+
+    const grant = await getOAuthMethod(await PoeAuthPlugin({} as never)).authorize();
+
+    expect(open).toHaveBeenCalledWith("https://poe.com/oauth/authorize?client_id=test");
+    expect(grant.method).toBe("auto");
+    if (grant.method !== "auto") {
+      throw new Error("Expected auto oauth grant");
+    }
+
+    await expect(grant.callback()).resolves.toEqual({
+      type: "success",
+      access: "sk-poe",
+      refresh: "sk-poe",
+      expires: 60_000 + 1_700_000_000_000
+    });
+  });
+
+  it("maps null expiry to Number.MAX_SAFE_INTEGER", async () => {
+    vi.mocked(createOAuthClient).mockReturnValue({
+      authorize: vi.fn(async () => ({
+        authorizationUrl: "https://poe.com/oauth/authorize?client_id=test",
+        waitForResult: vi.fn(async () => ({
+          apiKey: "sk-poe",
+          expiresIn: null
+        }))
+      }))
+    });
+
+    vi.spyOn(Date, "now").mockReturnValue(1_700_000_000_000);
+
+    const grant = await getOAuthMethod(await PoeAuthPlugin({} as never)).authorize();
+
+    expect(grant.method).toBe("auto");
+    if (grant.method !== "auto") {
+      throw new Error("Expected auto oauth grant");
+    }
+
+    await expect(grant.callback()).resolves.toEqual({
+      type: "success",
+      access: "sk-poe",
+      refresh: "sk-poe",
+      expires: Number.MAX_SAFE_INTEGER
+    });
+  });
+
+  it("creates the oauth client with the OpenCode landing page", async () => {
+    vi.mocked(createOAuthClient).mockReturnValue({
+      authorize: vi.fn(async () => ({
+        authorizationUrl: "https://poe.com/oauth/authorize?client_id=test",
+        waitForResult: vi.fn(async () => ({
+          apiKey: "sk-poe",
+          expiresIn: 60
+        }))
+      }))
+    });
+
+    await getOAuthMethod(await PoeAuthPlugin({} as never)).authorize();
+
+    expect(createOAuthClient).toHaveBeenCalledWith({
+      clientId: "client_728290227fc048cc9262091a1ea197ea",
+      landingPage: {
+        title: "Connected to Poe via OpenCode",
+        body: "You can close this tab and return to OpenCode."
+      },
+      openBrowser: expect.any(Function)
+    });
+  });
+});

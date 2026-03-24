@@ -1,0 +1,57 @@
+{
+  "name": "opencode-poe-auth",
+  "version": "0.0.1",
+  "description": "Poe OAuth authentication plugin for OpenCode",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "poe",
+    "oauth",
+    "oauth2",
+    "authentication",
+    "auth",
+    "login",
+    "pkce",
+    "plugin",
+    "ai",
+    "typescript"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  },
+  "dependencies": {
+    "open": "^10.0.0",
+    "poe-oauth": "*"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.3.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/opencode-poe-auth"
+  },
+  "homepage": "https://github.com/poe-platform/poe-code/tree/main/packages/opencode-poe-auth"
+}

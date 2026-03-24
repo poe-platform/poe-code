@@ -6,6 +6,7 @@ import { createCliEnvironment } from "../cli/environment.js";
 import { createServiceRegistry } from "../cli/service-registry.js";
 import { createCommandContextFactory } from "../cli/context.js";
 import { createPromptLibrary } from "../cli/prompts.js";
+import { checkAuth } from "poe-oauth";
 import { createOptionResolvers } from "../cli/options.js";
 import { createLoggerFactory } from "../cli/logger.js";
 import { ErrorLogger } from "../cli/error-logger.js";
@@ -121,7 +122,8 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
       read: readApiKey,
       write: writeApiKey
     },
-    confirm: async () => true
+    confirm: async () => true,
+    checkAuth: async (apiKey) => (await checkAuth({ apiKey })) !== null
   });
 
   const registry = createServiceRegistry();

@@ -5,6 +5,7 @@ import { createCliEnvironment } from "./environment.js";
 import { createServiceRegistry, type ProviderService } from "./service-registry.js";
 import { createCommandContextFactory, type CommandContextFactory } from "./context.js";
 import { createPromptLibrary } from "./prompts.js";
+import { checkAuth } from "poe-oauth";
 import { createOptionResolvers, type OptionResolvers } from "./options.js";
 import { createLoggerFactory, type LoggerFactory } from "./logger.js";
 import { ErrorLogger } from "./error-logger.js";
@@ -147,6 +148,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
       read: readApiKey,
       write: writeApiKey
     },
+    checkAuth: async (apiKey) => (await checkAuth({ apiKey })) !== null,
     confirm: async (message) => {
       const result = await dsConfirm({ message });
       if (isCancel(result)) {

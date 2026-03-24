@@ -65,7 +65,6 @@ export interface OptionResolvers {
     defaultValue: string
   ): Promise<string>;
   resolveApiKey(input: ResolveApiKeyInput): Promise<string>;
-  normalizeApiKey(value: string): string;
 }
 
 export interface OptionResolverInit {
@@ -73,40 +72,8 @@ export interface OptionResolverInit {
   promptLibrary: PromptLibrary;
   apiKeyStore: ApiKeyStore;
   confirm: (message: string) => Promise<boolean>;
+  checkAuth: (apiKey: string) => Promise<boolean>;
   loginViaOAuth?: () => Promise<string>;
-}
-
-function isAlphanumericWithSeparators(value: string): boolean {
-  for (let i = 0; i < value.length; i++) {
-    const code = value.charCodeAt(i);
-    const isDigit = code >= 48 && code <= 57;
-    const isUpper = code >= 65 && code <= 90;
-    const isLower = code >= 97 && code <= 122;
-    const isHyphen = code === 45;
-    const isUnderscore = code === 95;
-    if (!isDigit && !isUpper && !isLower && !isHyphen && !isUnderscore)
-      return false;
-  }
-  return value.length > 0;
-}
-
-const API_KEY_REFERENCE_LENGTH = 43;
-const API_KEY_MIN_LENGTH_RATIO = 0.8;
-const MIN_API_KEY_LENGTH = Math.ceil(
-  API_KEY_REFERENCE_LENGTH * API_KEY_MIN_LENGTH_RATIO
-);
-
-function hasMinimumApiKeyLength(value: string): boolean {
-  return value.length >= MIN_API_KEY_LENGTH;
-}
-
-export function isValidApiKeyFormat(key: string): boolean {
-  if (key.length === 0) return false;
-  if (key.startsWith("sk-poe-")) {
-    const hash = key.slice(7);
-    return hasMinimumApiKeyLength(hash) && isAlphanumericWithSeparators(hash);
-  }
-  return hasMinimumApiKeyLength(key) && isAlphanumericWithSeparators(key);
 }
 
 export function createOptionResolvers(
@@ -138,15 +105,8 @@ export function createOptionResolvers(
     return trimmed;
   };
 
-  const confirmKeyFormat = async (
-    apiKey: string,
-    assumeYes: boolean
-  ): Promise<boolean> => {
-    if (isValidApiKeyFormat(apiKey)) return true;
-    if (assumeYes) return false;
-    return await init.confirm(
-      "Key doesn't match expected API key format. Use it anyway?"
-    );
+  const validateApiKey = async (apiKey: string): Promise<boolean> => {
+    return await init.checkAuth(apiKey);
   };
 
   const resolveApiKey = async (
@@ -157,8 +117,7 @@ export function createOptionResolvers(
 
     if (input.value != null) {
       const apiKey = normalizeApiKey(input.value);
-      const accepted = await confirmKeyFormat(apiKey, assumeYes);
-      if (!accepted) {
+      if (!await validateApiKey(apiKey)) {
         throw new Error("API key rejected.");
       }
       if (!input.dryRun) {
@@ -175,8 +134,7 @@ export function createOptionResolvers(
         );
       if (useEnv) {
         const apiKey = normalizeApiKey(envValue);
-        const accepted = await confirmKeyFormat(apiKey, assumeYes);
-        if (accepted) {
+        if (await validateApiKey(apiKey)) {
           if (!input.dryRun) {
             await init.apiKeyStore.write(apiKey);
           }
@@ -185,8 +143,6 @@ export function createOptionResolvers(
         if (assumeYes) {
           throw new Error("API key rejected.");
         }
-        // Fall back to stored credentials or prompt for a key when user
-        // explicitly declined using the environment value.
       }
     }
 
@@ -225,8 +181,7 @@ export function createOptionResolvers(
         }
         throw error;
       }
-      const accepted = await confirmKeyFormat(apiKey, assumeYes);
-      if (!accepted) {
+      if (!await validateApiKey(apiKey)) {
         continue;
       }
       if (!input.dryRun) {
@@ -298,7 +253,6 @@ export function createOptionResolvers(
     resolveModel,
     resolveReasoning,
     resolveConfigName,
-    resolveApiKey,
-    normalizeApiKey
+    resolveApiKey
   };
 }

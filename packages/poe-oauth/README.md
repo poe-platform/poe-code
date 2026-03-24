@@ -1,6 +1,6 @@
 # poe-oauth
 
-OAuth client and API key validation for the Poe API.
+OAuth client and auth verification for the Poe API.
 
 ## OAuth
 
@@ -32,13 +32,4 @@ import { checkAuth } from "poe-oauth";
 
 const identity = await checkAuth({ apiKey: "sk-poe-..." });
 // { email: "user@example.com", balance: 1500 } | null
-```
-
-## API key validation
-
-```ts
-import { isValidApiKeyFormat, normalizeApiKey } from "poe-oauth";
-
-isValidApiKeyFormat("sk-poe-abc123..."); // true
-normalizeApiKey("  sk-poe-abc123...  "); // trimmed + validated
 ```

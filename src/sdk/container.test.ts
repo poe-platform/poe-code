@@ -26,8 +26,7 @@ describe("createSdkContainer", () => {
       resolveModel: vi.fn(),
       resolveReasoning: vi.fn(),
       resolveConfigName: vi.fn(),
-      resolveApiKey: vi.fn(),
-      normalizeApiKey: vi.fn()
+      resolveApiKey: vi.fn()
     });
   });
 

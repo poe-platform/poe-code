@@ -1,11 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { createOptionResolvers, isValidApiKeyFormat } from "./options.js";
+import { createOptionResolvers } from "./options.js";
 import { createPromptLibrary } from "./prompts.js";
 
 const VALID_API_KEY = "vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuo";
 const VALID_SK_POE_API_KEY = "sk-poe-vnlaoHCddCx7eAGLgdH4iSg1MYPsg0JnTRPF1qMuo";
-const VALID_SK_POE_API_KEY_WITH_HYPHENS = "sk-poe--jX3djLqPsg0JnTRPF1qMuovnlaoHCddCx7eAGL";
-const TOO_SHORT_SK_POE_API_KEY = "sk-poe-abc123";
 
 describe("option resolvers", () => {
   it("uses the login API key prompt when a key is missing", async () => {
@@ -20,11 +18,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -46,11 +46,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     // Simulate tmux/iTerm2 bracketed paste: \x1b[200~ at start, \x1b[201~ at end
@@ -71,11 +73,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -94,11 +98,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     // Real world case: key + "undefinedndefined" from mangled bracketed paste
@@ -118,11 +124,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -141,11 +149,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -169,11 +179,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn();
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -200,17 +212,19 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn();
+    const checkAuthFn = vi.fn().mockResolvedValue(false);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     await expect(
       resolvers.resolveApiKey({
         value: undefined,
-        envValue: TOO_SHORT_SK_POE_API_KEY,
+        envValue: "invalid-key",
         dryRun: false,
         assumeYes: true,
         allowStored: false
@@ -230,11 +244,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(false);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -260,11 +276,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -278,12 +296,12 @@ describe("option resolvers", () => {
     expect(apiKeyStore.write).toHaveBeenCalledWith(VALID_API_KEY);
   });
 
-  it("re-prompts when prompted key has invalid format and user rejects it", async () => {
+  it("re-prompts when checkAuth rejects the key", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi
       .fn()
       .mockImplementationOnce(async (descriptor: { name: string }) => ({
-        [descriptor.name]: "bad key!"
+        [descriptor.name]: "bad-key"
       }))
       .mockImplementationOnce(async (descriptor: { name: string }) => ({
         [descriptor.name]: VALID_API_KEY
@@ -293,11 +311,15 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(false);
+    const checkAuthFn = vi.fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -308,7 +330,7 @@ describe("option resolvers", () => {
 
     expect(result).toBe(VALID_API_KEY);
     expect(prompts).toHaveBeenCalledTimes(2);
-    expect(confirmFn).toHaveBeenCalledTimes(1);
+    expect(checkAuthFn).toHaveBeenCalledTimes(2);
     expect(apiKeyStore.write).toHaveBeenCalledWith(VALID_API_KEY);
   });
 
@@ -325,11 +347,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn();
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -359,11 +383,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn();
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -390,11 +416,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(false);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -407,7 +435,7 @@ describe("option resolvers", () => {
     expect(prompts).toHaveBeenCalledTimes(1);
   });
 
-  it("confirms when key has invalid format", async () => {
+  it("rejects key via checkAuth when passed directly", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi.fn();
     const apiKeyStore = {
@@ -415,25 +443,26 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(false);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
-    const result = await resolvers.resolveApiKey({
-      value: "has spaces in it",
-      dryRun: false
-    });
-
-    expect(result).toBe("has spaces in it");
-    expect(confirmFn).toHaveBeenCalledWith(
-      expect.stringContaining("format")
-    );
+    await expect(
+      resolvers.resolveApiKey({
+        value: "invalid-key",
+        dryRun: false
+      })
+    ).rejects.toThrow("API key rejected.");
+    expect(checkAuthFn).toHaveBeenCalledWith("invalid-key");
+    expect(apiKeyStore.write).not.toHaveBeenCalled();
   });
 
-  it("does not confirm format for valid keys", async () => {
+  it("validates key via checkAuth for valid keys", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi.fn();
     const apiKeyStore = {
@@ -441,70 +470,26 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn();
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
-    await resolvers.resolveApiKey({
+    const result = await resolvers.resolveApiKey({
       value: VALID_SK_POE_API_KEY,
       dryRun: false
     });
 
+    expect(result).toBe(VALID_SK_POE_API_KEY);
+    expect(checkAuthFn).toHaveBeenCalledWith(VALID_SK_POE_API_KEY);
     expect(confirmFn).not.toHaveBeenCalled();
   });
 
-  it("rejects invalid format without prompting when assumeYes is true", async () => {
-    const promptLibrary = createPromptLibrary();
-    const prompts = vi.fn();
-    const apiKeyStore = {
-      read: vi.fn().mockResolvedValue(null),
-      write: vi.fn().mockResolvedValue(undefined)
-    };
-    const confirmFn = vi.fn();
-    const resolvers = createOptionResolvers({
-      prompts,
-      promptLibrary,
-      apiKeyStore,
-      confirm: confirmFn
-    });
-
-    await expect(
-      resolvers.resolveApiKey({
-        value: "bad key!",
-        dryRun: false,
-        assumeYes: true
-      })
-    ).rejects.toThrow("API key rejected.");
-    expect(confirmFn).not.toHaveBeenCalled();
-  });
-
-  it("throws when user rejects invalid format", async () => {
-    const promptLibrary = createPromptLibrary();
-    const prompts = vi.fn();
-    const apiKeyStore = {
-      read: vi.fn().mockResolvedValue(null),
-      write: vi.fn().mockResolvedValue(undefined)
-    };
-    const confirmFn = vi.fn().mockResolvedValue(false);
-    const resolvers = createOptionResolvers({
-      prompts,
-      promptLibrary,
-      apiKeyStore,
-      confirm: confirmFn
-    });
-
-    await expect(
-      resolvers.resolveApiKey({
-        value: "bad key!",
-        dryRun: false
-      })
-    ).rejects.toThrow();
-  });
-
-  it("skips format check for stored credentials", async () => {
+  it("skips checkAuth for stored credentials", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi.fn();
     const apiKeyStore = {
@@ -512,11 +497,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn();
+    const checkAuthFn = vi.fn();
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveApiKey({
@@ -525,6 +512,7 @@ describe("option resolvers", () => {
     });
 
     expect(result).toBe("stored with spaces");
+    expect(checkAuthFn).not.toHaveBeenCalled();
     expect(confirmFn).not.toHaveBeenCalled();
   });
 
@@ -536,11 +524,13 @@ describe("option resolvers", () => {
       write: vi.fn().mockResolvedValue(undefined)
     };
     const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
     const resolvers = createOptionResolvers({
       prompts,
       promptLibrary,
       apiKeyStore,
-      confirm: confirmFn
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
     });
 
     const result = await resolvers.resolveModel({
@@ -553,53 +543,5 @@ describe("option resolvers", () => {
 
     expect(result).toBe("Unique-Model");
     expect(prompts).not.toHaveBeenCalled();
-  });
-});
-
-describe("isValidApiKeyFormat", () => {
-  it("accepts sk-poe- prefixed keys", () => {
-    expect(isValidApiKeyFormat(VALID_SK_POE_API_KEY)).toBe(true);
-  });
-
-  it("accepts sk-poe- keys with hyphens and underscores in hash", () => {
-    expect(isValidApiKeyFormat(VALID_SK_POE_API_KEY_WITH_HYPHENS)).toBe(true);
-  });
-
-  it("accepts legacy alphanumeric hash keys", () => {
-    expect(
-      isValidApiKeyFormat("vnlaoHCddCx7eAGLgdH4iSg1MYPsg0JnTRPF1qMuo")
-    ).toBe(true);
-  });
-
-  it("accepts keys with hyphens and underscores", () => {
-    expect(isValidApiKeyFormat(VALID_API_KEY)).toBe(true);
-  });
-
-  it("rejects legacy keys shorter than 80% expected length", () => {
-    expect(isValidApiKeyFormat("vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0Jn")).toBe(false);
-  });
-
-  it("rejects sk-poe- keys shorter than 80% expected length", () => {
-    expect(isValidApiKeyFormat(TOO_SHORT_SK_POE_API_KEY)).toBe(false);
-  });
-
-  it("rejects empty string", () => {
-    expect(isValidApiKeyFormat("")).toBe(false);
-  });
-
-  it("rejects keys with spaces", () => {
-    expect(isValidApiKeyFormat("key with spaces")).toBe(false);
-  });
-
-  it("rejects keys with special characters", () => {
-    expect(isValidApiKeyFormat("key!@#$%")).toBe(false);
-  });
-
-  it("rejects bare sk-poe- prefix with no hash", () => {
-    expect(isValidApiKeyFormat("sk-poe-")).toBe(false);
-  });
-
-  it("rejects sk-poe- prefix with special chars in hash", () => {
-    expect(isValidApiKeyFormat("sk-poe-abc!def")).toBe(false);
   });
 });

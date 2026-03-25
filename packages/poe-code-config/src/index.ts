@@ -24,6 +24,13 @@ export {
 } from "./models.js";
 export { resolveScope } from "./resolve.js";
 export {
+  collectEnvOverrides,
+  initProjectConfig,
+  resolveEditTarget,
+  type EditTargetOptions,
+  type EnvOverrides
+} from "./inspect.js";
+export {
   readDocument,
   readMergedDocument,
   resolveConfigPath,

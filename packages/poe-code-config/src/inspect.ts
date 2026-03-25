@@ -1,0 +1,126 @@
+import path from "node:path";
+import { pathExists, type FileSystem } from "@poe-code/config-mutations";
+import type { ConfigDocument, ConfigFieldType, ScopeDefinition, ScopeSchema } from "./types.js";
+
+export interface EnvOverrides {
+  entries: string[];
+  document: ConfigDocument;
+}
+
+export interface EditTargetOptions {
+  global?: boolean;
+  project?: boolean;
+}
+
+export function collectEnvOverrides(
+  scopes: ReadonlyArray<ScopeDefinition<ScopeSchema>>,
+  env: Record<string, string | undefined>
+): EnvOverrides {
+  const document: ConfigDocument = {};
+  const entries: string[] = [];
+
+  for (const definition of scopes) {
+    const scopeResult = collectScopeEnvOverrides(definition, env);
+    if (Object.keys(scopeResult.values).length === 0) {
+      continue;
+    }
+
+    document[definition.scope] = scopeResult.values;
+    entries.push(...scopeResult.entries);
+  }
+
+  return { entries, document };
+}
+
+export async function resolveEditTarget(
+  fs: FileSystem,
+  configPath: string,
+  projectConfigPath: string,
+  options: EditTargetOptions
+): Promise<string> {
+  if (options.global && options.project) {
+    throw new Error("Choose either --global or --project, not both.");
+  }
+
+  if (options.global) {
+    return configPath;
+  }
+  if (options.project) {
+    return projectConfigPath;
+  }
+  if (await pathExists(fs, projectConfigPath)) {
+    return projectConfigPath;
+  }
+  return configPath;
+}
+
+export async function initProjectConfig(
+  fs: FileSystem,
+  targetPath: string
+): Promise<"created" | "already-exists"> {
+  if (await pathExists(fs, targetPath)) {
+    return "already-exists";
+  }
+
+  await fs.mkdir(path.dirname(targetPath), { recursive: true });
+  await fs.writeFile(targetPath, EMPTY_DOCUMENT, { encoding: "utf8" });
+  return "created";
+}
+
+function collectScopeEnvOverrides<S extends ScopeSchema>(
+  definition: ScopeDefinition<S>,
+  env: Record<string, string | undefined>
+): {
+  entries: string[];
+  values: Record<string, unknown>;
+} {
+  const entries: string[] = [];
+  const values: Record<string, unknown> = {};
+
+  for (const [key, field] of Object.entries(definition.schema) as Array<
+    [keyof S & string, S[keyof S & string]]
+  >) {
+    if (!field.env) {
+      continue;
+    }
+
+    const value = coerceEnvValue(field.type, env[field.env]);
+    if (value === undefined) {
+      continue;
+    }
+
+    values[key] = value;
+    entries.push(`  ${field.env} = ${String(value)}`);
+  }
+
+  return { entries, values };
+}
+
+function coerceEnvValue(
+  type: ConfigFieldType,
+  raw: string | undefined
+): string | number | boolean | undefined {
+  if (raw === undefined) {
+    return undefined;
+  }
+
+  if (type === "string") {
+    return raw;
+  }
+  if (type === "number") {
+    if (raw.length === 0) {
+      return undefined;
+    }
+    const parsed = Number(raw);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+  if (raw === "true" || raw === "1") {
+    return true;
+  }
+  if (raw === "false" || raw === "0") {
+    return false;
+  }
+  return undefined;
+}
+
+const EMPTY_DOCUMENT = `${JSON.stringify({}, null, 2)}\n`;

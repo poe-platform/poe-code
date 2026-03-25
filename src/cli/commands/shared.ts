@@ -168,7 +168,7 @@ export async function applyIsolatedConfiguration(input: {
   );
 }
 
-function shlexQuote(value: string): string {
+export function shlexQuote(value: string): string {
   if (value.length === 0) {
     return "''";
   }

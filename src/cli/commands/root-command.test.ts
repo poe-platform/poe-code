@@ -71,6 +71,10 @@ describe("root command", () => {
     expect(plainOutput).toContain("mcp unconfigure");
     expect(plainOutput).toContain("mcp serve");
     expect(plainOutput).toContain("login");
+    expect(plainOutput).toContain("config");
+    expect(plainOutput).toContain("config show");
+    expect(plainOutput).toContain("config init");
+    expect(plainOutput).toContain("config edit");
     expect(plainOutput).toContain("auth status");
     expect(plainOutput).toContain("agent");
     expect(plainOutput).toContain("Run a one-shot Poe agent prompt");

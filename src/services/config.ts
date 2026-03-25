@@ -1,6 +1,11 @@
 import path from "node:path";
 import { createTimestamp, isNotFound, readFileIfExists } from "@poe-code/config-mutations";
-import { readDocument, readMergedDocument, writeScope } from "@poe-code/poe-code-config";
+import {
+  defineScope,
+  readDocument,
+  readMergedDocument,
+  writeScope
+} from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
 
 export interface ConfigStoreOptions {
@@ -31,7 +36,24 @@ export interface UnconfigureServiceOptions extends ConfigStoreOptions {
   service: string;
 }
 
-const CORE_SCOPE = "core";
+export const coreConfigScope = defineScope("core", {
+  apiKey: {
+    type: "string",
+    default: "",
+    env: "POE_API_KEY",
+    doc: "Poe API key"
+  },
+  poeBaseUrl: {
+    type: "string",
+    default: "https://api.poe.com/v1",
+    env: "POE_BASE_URL",
+    doc: "Poe API base URL"
+  }
+});
+
+export const knownConfigScopes = [coreConfigScope] as const;
+
+const CORE_SCOPE = coreConfigScope.scope;
 
 export async function saveConfig(options: SaveConfigOptions): Promise<void> {
   const { fs, filePath, apiKey } = options;

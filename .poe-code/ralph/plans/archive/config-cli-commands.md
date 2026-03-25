@@ -1,3 +1,7 @@
+---
+status: completed
+iteration: 3
+---
 # Plan: `poe-code config` CLI Commands
 
 ## Overview

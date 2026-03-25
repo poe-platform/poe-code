@@ -206,7 +206,7 @@ describe("PoeAuthPlugin", () => {
     expect(createOAuthClient).toHaveBeenCalledWith({
       clientId: "client_728290227fc048cc9262091a1ea197ea",
       landingPage: {
-        title: "Connected to Poe via OpenCode",
+        title: "Connected to Poe",
         body: "You can close this tab and return to OpenCode."
       },
       openBrowser: expect.any(Function)

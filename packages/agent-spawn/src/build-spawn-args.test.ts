@@ -246,7 +246,7 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
-  it("adds codex MCP config as repeated -c TOML overrides before mode args", () => {
+  it("adds codex MCP config as repeated -c TOML overrides before the subcommand", () => {
     const result = buildSpawnArgs("codex", {
       prompt: "hello",
       mcpServers: {
@@ -259,15 +259,15 @@ describe("buildSpawnArgs", () => {
     });
 
     expect(result.args).toEqual([
-      codexSpawnConfig.promptFlag,
-      "hello",
-      ...codexSpawnConfig.defaultArgs,
       "-c",
       "mcp_servers.test.command=\"tiny-stdio-mcp-test-server\"",
       "-c",
       "mcp_servers.test.args=[\"serve\", \"word-of-the-day\"]",
       "-c",
       "mcp_servers.test.env={\"MCP_LOG_LEVEL\"=\"debug\"}",
+      codexSpawnConfig.promptFlag,
+      "hello",
+      ...codexSpawnConfig.defaultArgs,
       ...codexSpawnConfig.modes.yolo
     ]);
   });

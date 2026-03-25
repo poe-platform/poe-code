@@ -45,7 +45,14 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     throw new Error(`Agent "${agentId}" has no binaryName.`);
   }
 
-  const args: string[] = [spawnConfig.promptFlag];
+  const mcpArgs = getMcpArgs(spawnConfig, options.mcpServers);
+  const args: string[] = [];
+
+  if (spawnConfig.mcpArgsBeforeCommand) {
+    args.push(...mcpArgs);
+  }
+
+  args.push(spawnConfig.promptFlag);
 
   const useStdin = !!options.useStdin && !!spawnConfig.stdinMode;
   if (!useStdin || !spawnConfig.stdinMode?.omitPrompt) {
@@ -61,7 +68,10 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   }
 
   args.push(...spawnConfig.defaultArgs);
-  args.push(...getMcpArgs(spawnConfig, options.mcpServers));
+
+  if (!spawnConfig.mcpArgsBeforeCommand) {
+    args.push(...mcpArgs);
+  }
 
   const mode = options.mode ?? "yolo";
   args.push(...spawnConfig.modes[mode]);

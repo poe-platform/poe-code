@@ -59,13 +59,23 @@ function buildCliArgs(
   options: BuildSpawnArgsOptions,
   stdinMode?: StdinMode
 ): string[] {
-  const args: string[] = stdinMode
-    ? [
-        config.promptFlag,
-        ...(stdinMode.omitPrompt ? [] : [options.prompt]),
-        ...stdinMode.extraArgs
-      ]
-    : [config.promptFlag, options.prompt];
+  const mcpArgs = getMcpArgs(config, options.mcpServers);
+
+  const args: string[] = [];
+
+  if (config.mcpArgsBeforeCommand) {
+    args.push(...mcpArgs);
+  }
+
+  if (stdinMode) {
+    args.push(
+      config.promptFlag,
+      ...(stdinMode.omitPrompt ? [] : [options.prompt]),
+      ...stdinMode.extraArgs
+    );
+  } else {
+    args.push(config.promptFlag, options.prompt);
+  }
 
   if (options.model && config.modelFlag) {
     let model = config.modelStripProviderPrefix
@@ -76,7 +86,11 @@ function buildCliArgs(
   }
 
   args.push(...config.defaultArgs);
-  args.push(...getMcpArgs(config, options.mcpServers));
+
+  if (!config.mcpArgsBeforeCommand) {
+    args.push(...mcpArgs);
+  }
+
   args.push(...config.modes[options.mode ?? "yolo"]);
 
   if (options.args && options.args.length > 0) {

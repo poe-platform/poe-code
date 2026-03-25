@@ -11,6 +11,7 @@ export const codexSpawnConfig: CliSpawnConfig = {
   modelStripProviderPrefix: true,
   defaultArgs: ["--skip-git-repo-check", "--json"],
   mcpArgs: serializeCodexMcpArgs,
+  mcpArgsBeforeCommand: true,
   modes: {
     yolo: ["-s", "danger-full-access"],
     edit: ["-s", "workspace-write"],

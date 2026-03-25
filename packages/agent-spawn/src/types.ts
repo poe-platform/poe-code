@@ -88,6 +88,11 @@ export interface CliSpawnConfig {
    * Presence of this function declares spawn-time MCP support.
    */
   mcpArgs?: (servers: McpSpawnConfig) => string[];
+  /**
+   * When true, MCP args are placed before the subcommand (e.g. `codex -c ... exec "prompt"`).
+   * When false/undefined, they are placed after defaultArgs (e.g. `claude -p "prompt" --mcp-config ...`).
+   */
+  mcpArgsBeforeCommand?: boolean;
   interactive?: InteractiveSpawnConfig;
   resumeCommand?: (threadId: string, cwd: string) => string[];
 }

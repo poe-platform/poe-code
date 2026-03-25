@@ -68,7 +68,7 @@ async function executeConfigInfo(program: Command, container: CliContainer): Pro
     `${container.env.projectConfigPath} (${projectExists ? "exists" : "missing"})`
   );
   resources.logger.nextSteps([
-    'Run "poe-code config show" to see resolved configuration.'
+    'Run "poe-code utils config show" to see resolved configuration.'
   ]);
 }
 

@@ -13,7 +13,7 @@ import { registerWrapCommand } from "./commands/wrap.js";
 import { registerLoginCommand } from "./commands/login.js";
 import { registerLogoutCommand } from "./commands/logout.js";
 import { registerAuthCommand } from "./commands/auth.js";
-import { registerConfigCommand } from "./commands/config.js";
+import { registerUtilsCommand } from "./commands/utils.js";
 import { registerInstallCommand } from "./commands/install.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
@@ -76,22 +76,22 @@ function formatHelpText(input: {
         description: "Remove all configuration"
       },
       {
-        name: "config",
+        name: "utils config",
         args: "",
         description: "Show config file paths and usage hints"
       },
       {
-        name: "config show",
+        name: "utils config show",
         args: "",
         description: "Show config inputs and resolved result"
       },
       {
-        name: "config init",
+        name: "utils config init",
         args: "",
         description: "Create a project config file"
       },
       {
-        name: "config edit",
+        name: "utils config edit",
         args: "",
         description: "Open a config file in your editor"
       },
@@ -351,7 +351,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerUnconfigureCommand(program, container);
   registerLoginCommand(program, container);
   registerLogoutCommand(program, container);
-  registerConfigCommand(program, container);
+  registerUtilsCommand(program, container);
   registerAuthCommand(program, container);
   registerMcpCommand(program, container);
   registerSkillCommand(program, container);

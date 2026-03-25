@@ -3,7 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer } from "../container.js";
-import { registerConfigCommand } from "./config.js";
+import { registerUtilsCommand } from "./utils.js";
 import type { FileSystem } from "../utils/file-system.js";
 
 vi.mock("node:child_process", () => ({
@@ -54,15 +54,15 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "config"]);
+    await program.parseAsync(["node", "cli", "utils", "config"]);
 
     expect(logs.some((message) => message.includes(`Global config: ${globalConfigPath} (exists)`)))
       .toBe(true);
     expect(logs.some((message) => message.includes(`Project config: ${projectConfigPath} (missing)`)))
       .toBe(true);
-    expect(logs.some((message) => message.includes('Run "poe-code config show" to see resolved configuration')))
+    expect(logs.some((message) => message.includes('Run "poe-code utils config show" to see resolved configuration')))
       .toBe(true);
   });
 
@@ -93,9 +93,9 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "config", "show"]);
+    await program.parseAsync(["node", "cli", "utils", "config", "show"]);
 
     const output = logs.join("\n");
     expect(output).toContain("Global config");
@@ -118,9 +118,9 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "config", "show"]);
+    await program.parseAsync(["node", "cli", "utils", "config", "show"]);
 
     const output = logs.join("\n");
     expect(output).toContain("Global config");
@@ -138,9 +138,9 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "config", "init"]);
+    await program.parseAsync(["node", "cli", "utils", "config", "init"]);
 
     await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toBe("{}\n");
     expect(logs.some((message) => message.includes(`Created project config at ${projectConfigPath}`)))
@@ -160,9 +160,9 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "config", "init"]);
+    await program.parseAsync(["node", "cli", "utils", "config", "init"]);
 
     await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toContain("sk-project");
     expect(logs.some((message) => message.includes(`Project config already exists at ${projectConfigPath}`)))
@@ -177,9 +177,9 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--dry-run", "config", "init"]);
+    await program.parseAsync(["node", "cli", "--dry-run", "utils", "config", "init"]);
 
     await expect(fs.stat(projectConfigPath)).rejects.toBeTruthy();
     expect(logs.some((message) => message.includes(`Dry run: would create project config at ${projectConfigPath}`)))
@@ -204,9 +204,9 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "config", "edit"]);
+    await program.parseAsync(["node", "cli", "utils", "config", "edit"]);
 
     expect(execSync).toHaveBeenCalledWith(`vim ${projectConfigPath}`, {
       stdio: "inherit"
@@ -229,9 +229,9 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "config", "edit", "--global"]);
+    await program.parseAsync(["node", "cli", "utils", "config", "edit", "--global"]);
 
     expect(execSync).toHaveBeenCalledWith(`code -w ${globalConfigPath}`, {
       stdio: "inherit"
@@ -247,10 +247,10 @@ describe("config command", () => {
       logger: (message) => logs.push(message)
     });
     const program = createBaseProgram();
-    registerConfigCommand(program, container);
+    registerUtilsCommand(program, container);
 
     await expect(
-      program.parseAsync(["node", "cli", "config", "edit"])
+      program.parseAsync(["node", "cli", "utils", "config", "edit"])
     ).rejects.toThrow("Set $EDITOR to use this command");
   });
 });

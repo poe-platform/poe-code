@@ -20,6 +20,7 @@ vi.mock('./credentials.js', () => ({
 
 vi.mock('./image.js', () => ({
   IMAGE_NAME: 'poe-code-e2e',
+  ensureImage: vi.fn(),
 }));
 
 describe('runPreflight - Docker Desktop auto-start', () => {
@@ -37,15 +38,24 @@ describe('runPreflight - Docker Desktop auto-start', () => {
   async function setup() {
     const { execSync } = await import('node:child_process');
     const { detectEngine } = await import('./engine.js');
-    const { detectRunningContext } = await import('./context.js');
+    const { detectRunningContext, getResolvedContext } = await import('./context.js');
     const { hasApiKey } = await import('./credentials.js');
+    const { ensureImage } = await import('./image.js');
     const { runPreflight } = await import('./preflight.js');
 
     vi.mocked(detectEngine).mockReturnValue('docker');
     vi.mocked(detectRunningContext).mockReturnValue(null);
+    vi.mocked(getResolvedContext).mockReturnValue(null);
     vi.mocked(hasApiKey).mockResolvedValue(true);
+    vi.mocked(ensureImage).mockReturnValue('poe-code-e2e:test');
 
-    return { execSync: vi.mocked(execSync), runPreflight };
+    return {
+      execSync: vi.mocked(execSync),
+      detectRunningContext: vi.mocked(detectRunningContext),
+      ensureImage: vi.mocked(ensureImage),
+      getResolvedContext: vi.mocked(getResolvedContext),
+      runPreflight,
+    };
   }
 
   function mockExecCommands(execSync: ReturnType<typeof vi.fn>, overrides: Record<string, () => string | Buffer> = {}) {
@@ -197,5 +207,58 @@ describe('runPreflight - Docker Desktop auto-start', () => {
     const result = await runPreflight();
 
     expect(result.passed).toBe(false);
+  });
+
+  it('prebuilds the e2e image when a workspace is provided', async () => {
+    Object.defineProperty(process, 'platform', { value: 'darwin' });
+    const { detectRunningContext, execSync, ensureImage, getResolvedContext, runPreflight } = await setup();
+
+    detectRunningContext.mockReturnValue('colima');
+    getResolvedContext.mockReturnValue('colima');
+    mockExecCommands(execSync, {
+      'docker --context colima info': () => 'ok',
+    });
+
+    const result = await runPreflight({
+      prebuildWorkspaceDir: '/repo',
+    });
+
+    expect(result.passed).toBe(true);
+    expect(ensureImage).toHaveBeenCalledWith('docker', '/repo', {
+      context: 'colima',
+      verbose: false,
+    });
+    expect(result.results).toContainEqual(
+      expect.objectContaining({
+        name: 'E2E image',
+        passed: true,
+        message: 'Prepared poe-code-e2e:test',
+      }),
+    );
+  });
+
+  it('fails when image prebuild fails', async () => {
+    Object.defineProperty(process, 'platform', { value: 'darwin' });
+    const { execSync, ensureImage, runPreflight } = await setup();
+
+    ensureImage.mockImplementation(() => {
+      throw new Error('build failed');
+    });
+    mockExecCommands(execSync, {
+      'docker info': () => 'ok',
+    });
+
+    const result = await runPreflight({
+      prebuildWorkspaceDir: '/repo',
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.results).toContainEqual(
+      expect.objectContaining({
+        name: 'E2E image',
+        passed: false,
+        message: 'build failed',
+      }),
+    );
   });
 });

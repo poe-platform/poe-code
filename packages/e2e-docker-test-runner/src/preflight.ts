@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import chalk from 'chalk';
 import { detectEngine } from './engine.js';
 import { hasApiKey } from './credentials.js';
-import { IMAGE_NAME } from './image.js';
+import { ensureImage, IMAGE_NAME } from './image.js';
 import { setResolvedContext, getResolvedContext, detectRunningContext } from './context.js';
 import type { Engine } from './types.js';
 
@@ -15,7 +15,14 @@ interface CheckResult {
   fix?: string;
 }
 
-export async function runPreflight(): Promise<{ passed: boolean; results: CheckResult[] }> {
+export interface RunPreflightOptions {
+  prebuildWorkspaceDir?: string;
+  verbose?: boolean;
+}
+
+export async function runPreflight(
+  options: RunPreflightOptions = {}
+): Promise<{ passed: boolean; results: CheckResult[] }> {
   const results: CheckResult[] = [];
 
   // Check 1: Docker/Podman installed
@@ -59,6 +66,28 @@ export async function runPreflight(): Promise<{ passed: boolean; results: CheckR
       passed: true,
       message: `Removed ${pruned} old e2e image(s) and pruned build cache`,
     });
+  }
+
+  if (options.prebuildWorkspaceDir) {
+    try {
+      const context = engine === 'docker' ? getResolvedContext() ?? undefined : undefined;
+      const tag = ensureImage(engine, options.prebuildWorkspaceDir, {
+        context,
+        verbose: options.verbose ?? false,
+      });
+      results.push({
+        name: 'E2E image',
+        passed: true,
+        message: `Prepared ${tag}`,
+      });
+    } catch (error) {
+      results.push({
+        name: 'E2E image',
+        passed: false,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      return { passed: false, results };
+    }
   }
 
   return { passed: true, results };

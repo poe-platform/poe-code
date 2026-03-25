@@ -13,6 +13,7 @@ import { getGlobalClient, initializeClient } from "../../services/client-instanc
 import type { LlmClient } from "../../services/llm-client.js";
 import { downloadToFile, MediaDownloadError } from "../../services/media-download.js";
 import { ValidationError } from "../errors.js";
+import { loadAgentModel } from "@poe-code/poe-code-config";
 
 export interface GenerateCommandOptions {
   model?: string;
@@ -61,7 +62,7 @@ export function registerGenerateCommand(
 
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
-      const model = resolveModel("text", opts, container.env.variables);
+      const model = await resolveModel("text", opts, container);
 
       if (flags.dryRun) {
         resources.logger.dryRun(
@@ -101,7 +102,7 @@ export function registerGenerateCommand(
       const prompt = ensurePrompt(promptArg, { type: "text", isDefault: false });
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
-      const model = resolveModel("text", opts, container.env.variables);
+      const model = await resolveModel("text", opts, container);
 
       if (flags.dryRun) {
         resources.logger.dryRun(
@@ -154,7 +155,7 @@ function registerMediaSubcommand(
       const prompt = ensurePrompt(promptArg, { type, isDefault: false });
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
-      const model = resolveModel(type, opts, container.env.variables);
+      const model = await resolveModel(type, opts, container);
 
       if (flags.dryRun) {
         resources.logger.dryRun(
@@ -293,18 +294,25 @@ function resolveApiBaseUrl(container: CliContainer): string {
   return container.env.poeApiBaseUrl;
 }
 
-function resolveModel(
+async function resolveModel(
   type: GenerateType,
   options: GenerateCommandOptions,
-  variables?: Record<string, string | undefined>
-): string {
+  container: CliContainer
+): Promise<string> {
   if (options.model) {
     return options.model;
   }
   const envKey = MODEL_ENV_KEYS[type];
-  const envModel = normalizeEnvModel(variables ? variables[envKey] : undefined);
+  const envModel = normalizeEnvModel(container.env.variables[envKey]);
   if (envModel) {
     return envModel;
+  }
+  const configModel = await loadAgentModel(
+    { fs: container.fs, filePath: container.env.configPath },
+    `generate-${type}`
+  );
+  if (configModel) {
+    return configModel;
   }
   return DEFAULT_MODELS[type];
 }

@@ -109,6 +109,93 @@ describe("generate command", () => {
     });
   });
 
+  it("uses model from config file when no flag or env var is set", async () => {
+    const fs = createMemfs();
+    const configPath = `${homeDir}/.poe-code/config.json`;
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ models: { "generate-text": "config/text-model" } }),
+      "utf8"
+    );
+    const { program } = createGenerateProgram({ fs });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({}))
+    };
+    setGlobalClient(client);
+
+    await program.parseAsync(["node", "cli", "generate", "Hello"]);
+
+    expect(client.text).toHaveBeenCalledWith({
+      model: "config/text-model",
+      prompt: "Hello",
+      params: {}
+    });
+  });
+
+  it("uses model from config for image generation", async () => {
+    const fs = createMemfs();
+    const configPath = `${homeDir}/.poe-code/config.json`;
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ models: { "generate-image": "config/image-model" } }),
+      "utf8"
+    );
+    const { program } = createGenerateProgram({ fs });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/image.png",
+        mimeType: "image/png"
+      }))
+    };
+    setGlobalClient(client);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([1]).buffer
+    } as unknown as Response);
+
+    await program.parseAsync(["node", "cli", "generate", "image", "A bird"]);
+
+    expect(client.media).toHaveBeenCalledWith("image", {
+      model: "config/image-model",
+      prompt: "A bird",
+      params: {}
+    });
+  });
+
+  it("prefers env var over config file model", async () => {
+    const fs = createMemfs();
+    const configPath = `${homeDir}/.poe-code/config.json`;
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ models: { "generate-text": "config/text-model" } }),
+      "utf8"
+    );
+    const { program } = createGenerateProgram({
+      fs,
+      variables: { POE_TEXT_MODEL: "Env-Model" }
+    });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({}))
+    };
+    setGlobalClient(client);
+
+    await program.parseAsync(["node", "cli", "generate", "Hello"]);
+
+    expect(client.text).toHaveBeenCalledWith({
+      model: "Env-Model",
+      prompt: "Hello",
+      params: {}
+    });
+  });
+
   it("respects POE_TEXT_MODEL override", async () => {
     const { program } = createGenerateProgram({
       variables: { POE_TEXT_MODEL: "Env-Model" }

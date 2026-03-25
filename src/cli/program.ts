@@ -76,26 +76,6 @@ function formatHelpText(input: {
         description: "Remove all configuration"
       },
       {
-        name: "utils config",
-        args: "",
-        description: "Show config file paths and usage hints"
-      },
-      {
-        name: "utils config show",
-        args: "",
-        description: "Show config inputs and resolved result"
-      },
-      {
-        name: "utils config init",
-        args: "",
-        description: "Create a project config file"
-      },
-      {
-        name: "utils config edit",
-        args: "",
-        description: "Open a config file in your editor"
-      },
-      {
         name: "auth status",
         args: "",
         description: "Show login, balance, and configuration status"
@@ -164,6 +144,26 @@ function formatHelpText(input: {
         name: "usage list",
         args: "",
         description: "Display usage history"
+      },
+      {
+        name: "utils config",
+        args: "",
+        description: "Show config file paths and usage hints"
+      },
+      {
+        name: "utils config show",
+        args: "",
+        description: "Show config inputs and resolved result"
+      },
+      {
+        name: "utils config init",
+        args: "",
+        description: "Create a project config file"
+      },
+      {
+        name: "utils config edit",
+        args: "",
+        description: "Open a config file in your editor"
       }
     ];
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));

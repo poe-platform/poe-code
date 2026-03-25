@@ -60,19 +60,28 @@ Models are configured under the `"models"` scope in config files. Use the `"defa
   "models": {
     "default": "anthropic/claude-sonnet-4.6",
     "claude-code": "anthropic/claude-opus-4.6",
-    "codex": "openai/gpt-5.4"
+    "codex": "openai/gpt-5.4",
+    "generate-text": "anthropic/claude-sonnet-4.6",
+    "generate-image": "google/nano-banana-pro",
+    "generate-video": "google/veo-3.1",
+    "generate-audio": "elevenlabs/elevenlabs-v3"
   }
 }
 ```
 
-### Resolution order
-
-When resolving which model to use, poe-code checks the following sources in order (highest priority first):
+### Resolution order — spawn
 
 1. `--model` CLI flag
-2. Project config (`<cwd>/.poe-code/config.json`) → `models.<agent-id>`
-3. Global config (`~/.poe-code/config.json`) → `models.default`
+2. Project config → `models.<agent-id>`
+3. Global config → `models.default`
 4. Provider's built-in default
+
+### Resolution order — generate
+
+1. `--model` CLI flag
+2. Environment variable (`POE_TEXT_MODEL`, `POE_IMAGE_MODEL`, `POE_VIDEO_MODEL`, `POE_AUDIO_MODEL`)
+3. Config file → `models.generate-<type>`
+4. Built-in default
 
 ### Examples
 
@@ -98,8 +107,20 @@ Override the model for a specific agent in a project:
 }
 ```
 
+Override the default model for `generate image`:
+
+```json
+// ~/.poe-code/config.json
+{
+  "models": {
+    "generate-image": "openai/dall-e-3"
+  }
+}
+```
+
 The CLI flag always takes precedence:
 
 ```sh
 poe-code spawn claude-code --model anthropic/claude-opus-4.6
+poe-code generate image --model openai/dall-e-3 "A sunset"
 ```

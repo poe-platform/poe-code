@@ -3,7 +3,7 @@ import parseDuration from "parse-duration";
 import { stringify as yamlStringify } from "yaml";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
-import { ApiError } from "../errors.js";
+import { ApiError, ValidationError } from "../errors.js";
 import { getTheme, renderTable, withSpinner } from "@poe-code/design-system";
 
 interface ModelParameter {
@@ -22,6 +22,7 @@ interface ModelEntry {
   id: string;
   created: number;
   owned_by: string;
+  supported_endpoints: string[] | null;
   context_window: {
     context_length: number | null;
     max_output_tokens: number | null;
@@ -44,6 +45,23 @@ interface ModelEntry {
     supports_reasoning_effort: boolean;
   } | null;
   parameters: ModelParameter[];
+}
+
+interface PreprocessedModelEntry extends ModelEntry {
+  normalized_supported_endpoints: string[];
+}
+
+interface ModelsCommandOptions {
+  provider?: string;
+  model?: string;
+  search?: string;
+  feature?: string;
+  endpoint?: string;
+  input?: string;
+  output?: string;
+  tools?: boolean;
+  since?: string;
+  view: string;
 }
 
 function formatTokenCount(tokens: number): string {
@@ -110,6 +128,53 @@ function hasFeature(model: ModelEntry, feature: string): boolean {
   return (model.supported_features ?? []).includes(feature);
 }
 
+function normalizeEndpoint(endpoint: string): string {
+  const trimmed = endpoint.trim().toLowerCase();
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+}
+
+function preprocessModels(models: ModelEntry[]): {
+  models: PreprocessedModelEntry[];
+  availableEndpoints: string[];
+} {
+  const availableEndpoints = new Set<string>();
+  const preprocessedModels = models.map((model) => {
+    const normalizedSupportedEndpoints = (model.supported_endpoints ?? [])
+      .map(normalizeEndpoint);
+
+    for (const endpoint of normalizedSupportedEndpoints) {
+      availableEndpoints.add(endpoint);
+    }
+
+    return {
+      ...model,
+      normalized_supported_endpoints: normalizedSupportedEndpoints
+    };
+  });
+
+  return {
+    models: preprocessedModels,
+    availableEndpoints: Array.from(availableEndpoints).sort()
+  };
+}
+
+function toRawModel(model: PreprocessedModelEntry): ModelEntry {
+  const { normalized_supported_endpoints, ...rawModel } = model;
+  return rawModel;
+}
+
+function hasActiveFilters(options: ModelsCommandOptions): boolean {
+  return options.provider !== undefined ||
+    options.model !== undefined ||
+    options.search !== undefined ||
+    options.feature !== undefined ||
+    options.endpoint !== undefined ||
+    options.input !== undefined ||
+    options.output !== undefined ||
+    options.tools === true ||
+    options.since !== undefined;
+}
+
 export function registerModelsCommand(
   program: Command,
   container: CliContainer
@@ -121,6 +186,7 @@ export function registerModelsCommand(
     .option("--model <name>", "Filter by exact model id")
     .option("--search <term>", "Search model id and provider name")
     .option("--feature <name>", "Filter by feature (tools, web_search, reasoning)")
+    .option("--endpoint <path>", "Filter by supported endpoint (e.g. /v1/responses)")
     .option("--input <modalities>", "Filter by input modalities (e.g. text,image)")
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
     .option("--tools", "Show only models with tool support")
@@ -133,6 +199,7 @@ export function registerModelsCommand(
       "  --model      Exact model id match (case-insensitive, e.g. gpt-5.2-codex)",
       "  --search     Substring match on model id and provider (e.g. sonnet, openai)",
       "  --feature    Exact match: tools, web_search, or reasoning",
+      "  --endpoint   Exact supported endpoint match (e.g. /v1/responses)",
       "  --input      Comma-separated input modalities: text, image, audio, video",
       "  --output     Comma-separated output modalities: text, image, audio",
       "  --tools      Shorthand for --feature tools",
@@ -147,6 +214,7 @@ export function registerModelsCommand(
       "Examples:",
       "  $ poe-code models --provider anthropic",
       "  $ poe-code models --feature reasoning --since 3mo",
+      "  $ poe-code models --endpoint /v1/responses",
       "  $ poe-code models --input image --view pricing",
       "  $ poe-code models --search claude --view parameters",
       "  $ poe-code models --model claude-opus-4.6 --view raw",
@@ -159,17 +227,7 @@ export function registerModelsCommand(
         flags,
         "models"
       );
-      const commandOptions = this.opts<{
-        provider?: string;
-        model?: string;
-        search?: string;
-        feature?: string;
-        input?: string;
-        output?: string;
-        tools?: boolean;
-        since?: string;
-        view: string;
-      }>();
+      const commandOptions = this.opts<ModelsCommandOptions>();
 
       resources.logger.intro("models");
 
@@ -214,10 +272,10 @@ export function registerModelsCommand(
               data: ModelEntry[];
             };
           },
-          stopMessage: (r) => `${r.data.length} models`
+          stopMessage: (r) => `${r.data.length} models fetched`
         });
 
-        const allModels = result.data;
+        const { models: allModels, availableEndpoints } = preprocessModels(result.data);
 
         if (allModels.length === 0) {
           resources.logger.info("No models found.");
@@ -248,6 +306,20 @@ export function registerModelsCommand(
           const feature = commandOptions.feature.toLowerCase();
           filtered = filtered.filter((m) => hasFeature(m, feature));
         }
+        if (commandOptions.endpoint) {
+          const endpoint = normalizeEndpoint(commandOptions.endpoint);
+          if (!availableEndpoints.includes(endpoint)) {
+            const availableLabel = availableEndpoints.length > 0
+              ? availableEndpoints.join(", ")
+              : "none";
+            throw new ValidationError(
+              `Unsupported endpoint "${endpoint}". Available endpoints: ${availableLabel}`
+            );
+          }
+          filtered = filtered.filter((m) =>
+            m.normalized_supported_endpoints.includes(endpoint)
+          );
+        }
         if (commandOptions.tools) {
           filtered = filtered.filter((m) => hasFeature(m, "tools"));
         }
@@ -273,6 +345,10 @@ export function registerModelsCommand(
           }
         }
 
+        if (hasActiveFilters(commandOptions)) {
+          resources.logger.info(`${filtered.length}/${allModels.length} models`);
+        }
+
         if (filtered.length === 0) {
           resources.logger.info("No models match the given filters.");
           return;
@@ -283,7 +359,7 @@ export function registerModelsCommand(
         const theme = getTheme();
 
         if (commandOptions.view === "raw") {
-          resources.logger.info(yamlStringify(filtered));
+          resources.logger.info(yamlStringify(filtered.map(toRawModel)));
           return;
         }
 

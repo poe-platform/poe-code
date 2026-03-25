@@ -52,6 +52,7 @@ npx poe-code@latest logout
 
 - [Utilities](#utilities)
 - [Usage and Billing](#usage--billing)
+- [Models](#models)
 - [MCP Server](#poe-mcp-server)
 - [SDK](#sdk)
 - [Poe API](https://poe.com/api)
@@ -115,6 +116,24 @@ poe-code usage list --pages 5
 
 # Filter by model name
 poe-code usage list --filter claude
+```
+
+## Models
+
+List available Poe API models and filter them by provider, capabilities, modalities, and supported API endpoint.
+
+```bash
+# List all models
+poe-code models
+
+# Show only models that support the Responses API
+poe-code models --endpoint /v1/responses
+
+# Show only models that support Chat Completions
+poe-code models --endpoint /v1/chat/completions
+
+# Search by provider or model id
+poe-code models --search claude
 ```
 
 ## Poe MCP Server

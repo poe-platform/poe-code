@@ -3,6 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
+import { ValidationError } from "../errors.js";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 const getThemeMock = vi.hoisted(() => vi.fn());
@@ -64,6 +65,7 @@ function createModelEntry(overrides: Partial<{
   context_length: number;
   max_output_tokens: number;
   supported_features: string[];
+  supported_endpoints: string[] | null;
   pricing: {
     prompt: number | null;
     completion: number | null;
@@ -88,6 +90,7 @@ function createModelEntry(overrides: Partial<{
       max_output_tokens: overrides.max_output_tokens ?? 4096
     },
     supported_features: overrides.supported_features ?? [],
+    supported_endpoints: overrides.supported_endpoints ?? null,
     pricing: overrides.pricing ?? null,
     architecture: overrides.architecture ?? null,
     reasoning: overrides.reasoning ?? null,
@@ -188,6 +191,7 @@ describe("models command", () => {
 
     const output = await runModels({ fs, httpClient, logs, args: ["--provider", "anthropic"] });
 
+    expect(output).toContain("1/2 models");
     expect(output).toContain("anthropic/claude-sonnet");
     expect(output).not.toContain("openai/gpt-5");
   });
@@ -288,6 +292,146 @@ describe("models command", () => {
 
     expect(output).toContain("a/thinker");
     expect(output).not.toContain("b/non-thinker");
+  });
+
+  it("filters by --endpoint using supported_endpoints", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "responses-model",
+        owned_by: "A",
+        supported_endpoints: ["/v1/responses", "/v1/chat/completions"]
+      }),
+      createModelEntry({
+        id: "legacy-model",
+        owned_by: "B",
+        supported_endpoints: ["/v1/chat/completions"]
+      }),
+      createModelEntry({
+        id: "no-endpoints",
+        owned_by: "C",
+        supported_endpoints: null
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({
+      fs,
+      httpClient,
+      logs,
+      args: ["--endpoint", "/v1/responses"]
+    });
+
+    expect(output).toContain("a/responses-model");
+    expect(output).not.toContain("b/legacy-model");
+    expect(output).not.toContain("c/no-endpoints");
+  });
+
+  it("filters by --endpoint for chat completions models", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "dual-endpoint",
+        owned_by: "A",
+        supported_endpoints: ["/v1/responses", "/v1/chat/completions"]
+      }),
+      createModelEntry({
+        id: "responses-only",
+        owned_by: "B",
+        supported_endpoints: ["/v1/responses"]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({
+      fs,
+      httpClient,
+      logs,
+      args: ["--endpoint", "/v1/chat/completions"]
+    });
+
+    expect(output).toContain("a/dual-endpoint");
+    expect(output).not.toContain("b/responses-only");
+  });
+
+  it("normalizes --endpoint before validation and filtering", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "responses-model",
+        owned_by: "A",
+        supported_endpoints: ["/v1/responses"]
+      }),
+      createModelEntry({
+        id: "chat-model",
+        owned_by: "B",
+        supported_endpoints: ["/v1/chat/completions"]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({
+      fs,
+      httpClient,
+      logs,
+      args: ["--endpoint", "V1/RESPONSES"]
+    });
+
+    expect(output).toContain("a/responses-model");
+    expect(output).not.toContain("b/chat-model");
+  });
+
+  it("validates --endpoint against preprocessed available endpoints", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "dual-endpoint-a",
+        owned_by: "A",
+        supported_endpoints: ["/v1/responses", "/v1/chat/completions"]
+      }),
+      createModelEntry({
+        id: "dual-endpoint-b",
+        owned_by: "B",
+        supported_endpoints: ["/v1/chat/completions", "/v1/responses"]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await expect(
+      runModels({
+        fs,
+        httpClient,
+        logs,
+        args: ["--endpoint", "/v1/embeddings"]
+      })
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    await expect(
+      runModels({
+        fs,
+        httpClient,
+        logs,
+        args: ["--endpoint", "/v1/embeddings"]
+      })
+    ).rejects.toThrow(
+      'Unsupported endpoint "/v1/embeddings". Available endpoints: /v1/chat/completions, /v1/responses'
+    );
   });
 
   it("filters by --input modalities", async () => {

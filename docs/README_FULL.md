@@ -614,8 +614,10 @@ poe-code models
 | Option | Description |
 |--------|-------------|
 | `--provider <name>` | Filter by provider (substring match). |
-| `--model <name>` | Filter by model ID (substring match). |
+| `--model <name>` | Filter by model ID (exact match, case-insensitive). |
+| `--search <term>` | Search model ID and provider name (substring match). |
 | `--feature <name>` | Filter by feature: `tools`, `web_search`, `reasoning` (exact match). |
+| `--endpoint <path>` | Filter by supported endpoint, for example `/v1/responses` or `/v1/chat/completions`. |
 | `--input <modalities>` | Filter by input modalities: `text`, `image` (comma-separated). |
 | `--output <modalities>` | Filter by output modalities: `text`, `image`, `video`, `audio` (comma-separated). |
 | `--tools` | Shorthand for `--feature tools`. |
@@ -640,6 +642,15 @@ poe-code models
 # Filter by provider
 poe-code models --provider anthropic
 
+# Search by provider or model id
+poe-code models --search claude
+
+# Models that support the Responses API
+poe-code models --endpoint /v1/responses
+
+# Models that support Chat Completions
+poe-code models --endpoint /v1/chat/completions
+
 # Models with tool support added in last 2 weeks
 poe-code models --tools --since 2w
 
@@ -652,8 +663,8 @@ poe-code models --feature reasoning
 # Models that accept image input
 poe-code models --input image
 
-# Parameters for Claude models
-poe-code models --model claude --view parameters
+# Parameters for one exact model
+poe-code models --model claude-opus-4.6 --view parameters
 
 # Raw YAML output for scripting
 poe-code models --provider openai --view raw

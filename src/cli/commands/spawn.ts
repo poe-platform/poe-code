@@ -143,7 +143,7 @@ export function registerSpawnCommand(
         throw new Error("No prompt provided via argument or stdin");
       }
 
-      const spawnOptions: SpawnCommandOptions = {
+      const directSpawnOptions: SpawnCommandOptions = {
         prompt: promptText,
         args: forwardedArgs,
         model: commandOptions.model,
@@ -161,7 +161,7 @@ export function registerSpawnCommand(
         await directHandler({
           container,
           service,
-          options: spawnOptions,
+          options: directSpawnOptions,
           flags,
           resources
         });
@@ -171,6 +171,15 @@ export function registerSpawnCommand(
 
       const adapter = resolveServiceAdapter(container, service);
       const canonicalService = adapter.name;
+      const model = await resolveConfiguredModel(
+        container,
+        canonicalService,
+        commandOptions.model
+      );
+      const spawnOptions: SpawnCommandOptions = {
+        ...directSpawnOptions,
+        model
+      };
       const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
       resources.logger.intro(`spawn ${canonicalService}`);
       const canonicalHandler = options.handlers?.[canonicalService];

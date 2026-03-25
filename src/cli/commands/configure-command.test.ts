@@ -172,6 +172,33 @@ describe("configure command", () => {
     expect(resolveModel).toHaveBeenCalled();
   });
 
+  it("prefills the configure model prompt from the stored global model config", async () => {
+    const { container } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.6" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const resolveModel = vi
+      .spyOn(container.options, "resolveModel")
+      .mockImplementation(async (input) => {
+        expect(input.defaultValue).toBe("anthropic/claude-opus-4.6");
+        return input.defaultValue;
+      });
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "codex", {});
+
+    expect(resolveModel).toHaveBeenCalled();
+  });
+
   it("resolves the model when configuring kimi", async () => {
     const { container } = createContainer();
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-kimi");

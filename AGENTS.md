@@ -34,13 +34,12 @@ Use `npm run lint:workflows`
 
 ## Commits
 
-- Commit every atomic change, once the tests are green - npm run test, npm run lint
 - Follow Conventional Commits (`feat`, `fix`, `chore`, `docs`, `test`, `refactor`).
-- Keep subjects imperative and under 72 characters.
 - Commit specific files that you edited, never blanket git add -A
 - Do not add yourself as co-author!
 - Do not commit files that are in gitignore
 - Never use --no-verify on either push or commit. You should figure out the issue.
+- Relevant plans belongs to commits
 
 ## Release
 

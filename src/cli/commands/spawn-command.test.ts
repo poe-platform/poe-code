@@ -4,7 +4,7 @@ import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
 import { Command } from "commander";
-import { DEFAULT_CLAUDE_CODE_MODEL } from "../constants.js";
+import { DEFAULT_CLAUDE_CODE_MODEL, DEFAULT_CODEX_MODEL } from "../constants.js";
 import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
 import { createCliContainer, type CliDependencies } from "../container.js";
@@ -196,7 +196,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("claude-code", {
       prompt: "hello",
       args: [],
-      model: undefined,
+      model: DEFAULT_CLAUDE_CODE_MODEL,
       cwd: undefined
     });
 
@@ -376,6 +376,38 @@ describe("spawn command", () => {
     });
   });
 
+  it("uses the configured model for SDK spawn when --model is omitted", async () => {
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({ models: { codex: "openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: "openai/gpt-5.4",
+      cwd: undefined
+    });
+  });
+
   it("passes --mcp-config to SDK spawn for MCP-capable agents", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
@@ -406,7 +438,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Use word_of_the_day",
       args: [],
-      model: undefined,
+      model: DEFAULT_CODEX_MODEL,
       cwd: undefined,
       mcpServers: {
         test: {
@@ -522,7 +554,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("claude-code", {
       prompt: "Explain the change",
       args: [],
-      model: undefined,
+      model: DEFAULT_CLAUDE_CODE_MODEL,
       cwd: customCwd
     });
   });
@@ -552,7 +584,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Summarize the diff",
       args: [],
-      model: undefined,
+      model: DEFAULT_CODEX_MODEL,
       cwd: resolved
     });
   });
@@ -582,7 +614,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Prompt via stdin",
       args: [],
-      model: undefined,
+      model: DEFAULT_CODEX_MODEL,
       cwd: undefined
     });
   });
@@ -621,7 +653,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Prompt via stdin",
       args: ["--foo", "bar"],
-      model: undefined,
+      model: DEFAULT_CODEX_MODEL,
       cwd: undefined
     });
   });

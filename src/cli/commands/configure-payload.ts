@@ -1,4 +1,4 @@
-import { loadAgentModel } from "@poe-code/poe-code-config";
+import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
 import type { ProviderContext, ProviderService } from "../service-registry.js";
@@ -29,7 +29,7 @@ export async function createConfigurePayload(
 
   const modelPrompt = adapter.configurePrompts?.model;
   if (modelPrompt) {
-    const configModel = await loadAgentModel(
+    const configModel = await resolveConfigModel(
       {
         fs: container.fs,
         filePath: container.env.configPath

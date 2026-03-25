@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer, type CliDependencies } from "../cli/container.js";
-import { spawnCore } from "./spawn-core.js";
+import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
+import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type {
   CommandRunner,
@@ -68,6 +69,42 @@ describe("spawnCore", () => {
   beforeEach(() => {
     fs = createMemFs();
     vi.clearAllMocks();
+  });
+
+  it("prefers explicit model over configured values", async () => {
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.6", opencode: "openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const { container } = createContainerWithDependencies({ fs });
+
+    await expect(
+      resolveConfiguredModel(container, "opencode", "google/gemini-3-pro")
+    ).resolves.toBe("google/gemini-3-pro");
+  });
+
+  it("falls back to the global configured model when no agent override exists", async () => {
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.6" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const { container } = createContainerWithDependencies({ fs });
+
+    await expect(resolveConfiguredModel(container, "opencode")).resolves.toBe(
+      "anthropic/claude-opus-4.6"
+    );
+  });
+
+  it("falls back to the provider default when config has no matching model", async () => {
+    const { container } = createContainerWithDependencies({ fs });
+
+    await expect(resolveConfiguredModel(container, "opencode")).resolves.toBe(
+      DEFAULT_FRONTIER_MODEL
+    );
   });
 
   async function ensureIsolatedConfig(service: string): Promise<void> {

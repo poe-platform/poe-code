@@ -146,6 +146,20 @@ describe("codex service", () => {
     expect(opusProfile["model_reasoning_effort"]).toBe("high");
   });
 
+  it("writes gemini-pro model as pro profile", async () => {
+    await configureCodex({
+      model: "google/gemini-3.1-pro",
+      reasoningEffort: "medium"
+    });
+
+    const doc = parseToml(await fs.readFile(configPath, "utf8"));
+    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
+    const geminiProfile = profiles["pro"];
+    expect(geminiProfile["model"]).toBe("gemini-3.1-pro");
+    expect(geminiProfile["model_provider"]).toBe("poe");
+    expect(geminiProfile["model_reasoning_effort"]).toBe("medium");
+  });
+
   it("replaces stale profile when reconfiguring with a different model", async () => {
     await configureCodex({ model: DEFAULT_CODEX_MODEL });
 

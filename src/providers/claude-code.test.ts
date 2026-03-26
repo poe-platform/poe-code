@@ -199,6 +199,14 @@ describe("claude-code service", () => {
     });
   });
 
+  it("writes gemini model name to settings json", async () => {
+    await configureClaude({ model: "google/gemini-3.1-pro" });
+
+    const content = await fs.readFile(settingsPath, "utf8");
+    const parsed = JSON.parse(content);
+    expect(parsed.model).toBe("gemini-3.1-pro");
+  });
+
   it("uses POE_BASE_URL override for ANTHROPIC_BASE_URL", async () => {
     env = createCliEnvironment({
       cwd: home,

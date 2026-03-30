@@ -1,3 +1,10 @@
+---
+agent: ["codex", "claude-code"]
+iterations: 10
+status:
+  state: open
+  iteration: 0
+---
 # Bun Migration Plan
 
 ## Goal

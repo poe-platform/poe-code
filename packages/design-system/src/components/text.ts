@@ -43,5 +43,11 @@ export const text = {
   badge(content: string): string {
     const theme = getTheme();
     return theme.badge(content);
+  },
+  selectLabel(label: string, detail?: string): string {
+    if (!detail) {
+      return label;
+    }
+    return `${label} ${typography.dim(detail)}`;
   }
 } as const;

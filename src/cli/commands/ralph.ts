@@ -4,7 +4,8 @@ import {
   cancel,
   isCancel,
   promptText,
-  select
+  select,
+  text as designText
 } from "@poe-code/design-system";
 import { resolveAgentId } from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
@@ -175,9 +176,8 @@ async function resolveDocPath(options: {
   const selected = await select({
     message: "Select the Ralph markdown doc to run:",
     options: docs.map((doc, index) => ({
-      label: doc.displayPath,
-      value: doc.path,
-      ...(hints[index] ? { hint: hints[index] } : {})
+      label: designText.selectLabel(doc.displayPath, hints[index]),
+      value: doc.path
     }))
   });
   if (isCancel(selected)) {

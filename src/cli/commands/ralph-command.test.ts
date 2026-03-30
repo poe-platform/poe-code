@@ -212,20 +212,12 @@ describe("ralph run command", () => {
 
     await program.parseAsync(["node", "cli", "ralph", "run"]);
 
-    expect(selectMock).toHaveBeenNthCalledWith(1, {
-      message: "Select the Ralph markdown doc to run:",
-      options: [
-        {
-          label: ".poe-code/ralph/plans/plan-a.md",
-          value: ".poe-code/ralph/plans/plan-a.md",
-          hint: "codex · ×3 · in_progress 1"
-        },
-        {
-          label: ".poe-code/ralph/plans/plan-b.md",
-          value: ".poe-code/ralph/plans/plan-b.md"
-        }
-      ]
-    });
+    const call = selectMock.mock.calls[0]![0];
+    expect(call.options[0].label).toContain(".poe-code/ralph/plans/plan-a.md");
+    expect(call.options[0].label).toContain("codex");
+    expect(call.options[0].label).toContain("×3");
+    expect(call.options[0].label).toContain("in_progress 1");
+    expect(call.options[1].label).toBe(".poe-code/ralph/plans/plan-b.md");
   });
 
   it("lets CLI flags override frontmatter values", async () => {

@@ -311,6 +311,47 @@ describe("pipeline validate command", () => {
   });
 });
 
+describe("pipeline plan-path command", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("prints project plans path when local .poe-code directory exists", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code", { recursive: true });
+
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "pipeline", "plan-path"]);
+
+    expect(writeSpy).toHaveBeenCalledWith("/repo/.poe-code/pipeline/plans\n");
+  });
+
+  it("prints global plans path when local .poe-code directory does not exist", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "pipeline", "plan-path"]);
+
+    expect(writeSpy).toHaveBeenCalledWith("/home/test/.poe-code/pipeline/plans\n");
+  });
+});
+
 describe("pipeline install command", () => {
   afterEach(() => {
     vi.clearAllMocks();

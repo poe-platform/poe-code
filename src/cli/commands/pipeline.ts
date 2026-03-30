@@ -15,7 +15,12 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
+import {
+  readMergedDocument,
+  resolveScope
+} from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
+import { pipelineConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
 import {
   createExecutionResources,
@@ -31,8 +36,24 @@ import {
 import {
   loadResolvedSteps,
   parsePlan,
-  resolveAbsolutePlanPath
+  resolveAbsolutePlanPath,
+  resolvePlanDirectory
 } from "@poe-code/pipeline";
+
+async function resolvePipelinePlanDirectory(container: CliContainer): Promise<string | undefined> {
+  const configDoc = await readMergedDocument(
+    container.fs,
+    container.env.configPath,
+    container.env.projectConfigPath
+  );
+  const pipelineConfig = resolveScope(
+    pipelineConfigScope.schema,
+    configDoc[pipelineConfigScope.scope],
+    container.env.variables
+  );
+  const dir = pipelineConfig.plan_directory?.trim();
+  return dir || undefined;
+}
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
@@ -239,10 +260,13 @@ export function registerPipelineCommand(
           agent = resolvePipelineAgent(selected as string);
         }
 
+        const planDirectory = await resolvePipelinePlanDirectory(container);
+
         const result = await sdkRunPipeline({
           agent,
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
+          ...(planDirectory ? { planDirectory } : {}),
           ...(options.model ? { model: options.model } : {}),
           ...(options.task ? { task: options.task } : {}),
           ...(options.plan ? { plan: options.plan } : {}),
@@ -400,6 +424,22 @@ export function registerPipelineCommand(
       } finally {
         resources.context.finalize();
       }
+    });
+
+  pipeline
+    .command("plan-path")
+    .description("Print the directory where pipeline plan files should be placed.")
+    .action(async function () {
+      const planDirectory = await resolvePipelinePlanDirectory(container);
+
+      const resolvedPath = await resolvePlanDirectory({
+        cwd: container.env.cwd,
+        homeDir: container.env.homeDir,
+        planDirectory,
+        fs: container.fs
+      });
+
+      process.stdout.write(`${resolvedPath}\n`);
     });
 
   pipeline

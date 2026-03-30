@@ -10,7 +10,12 @@ import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import {
   discoverDocs
 } from "@poe-code/ralph";
+import {
+  readMergedDocument,
+  resolveScope
+} from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
+import { ralphConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
 import {
   createExecutionResources,
@@ -93,6 +98,7 @@ async function resolveDocPath(options: {
   container: CliContainer;
   program: Command;
   providedDoc?: string;
+  planDirectory?: string;
 }): Promise<string | null> {
   if (options.providedDoc && options.providedDoc.trim().length > 0) {
     return options.providedDoc.trim();
@@ -101,6 +107,7 @@ async function resolveDocPath(options: {
   const docs = await discoverDocs({
     cwd: options.container.env.cwd,
     homeDir: options.container.env.homeDir,
+    planDirectory: options.planDirectory,
     fs: options.container.fs
   });
   if (docs.length === 0) {
@@ -197,10 +204,24 @@ export function registerRalphCommand(
       resources.logger.intro("ralph run");
 
       try {
+        const configDoc = await readMergedDocument(
+          container.fs,
+          container.env.configPath,
+          container.env.projectConfigPath
+        );
+        const ralphConfig = resolveScope(
+          ralphConfigScope.schema,
+          configDoc[ralphConfigScope.scope],
+          container.env.variables
+        );
+        const configDir = ralphConfig.plan_directory?.trim();
+        const planDirectory = configDir || undefined;
+
         const docPath = await resolveDocPath({
           container,
           program,
-          providedDoc: docArg
+          providedDoc: docArg,
+          planDirectory
         });
         if (!docPath) {
           return;

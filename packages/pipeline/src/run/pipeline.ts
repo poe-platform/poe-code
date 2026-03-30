@@ -91,6 +91,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     cwd: options.cwd,
     homeDir: options.homeDir,
     plan: options.plan,
+    planDirectory: options.planDirectory,
     assumeYes: options.assumeYes,
     fs,
     selectPlan: options.selectPlan,

@@ -74,27 +74,59 @@ async function scanDir(
 export async function discoverDocs(options: {
   cwd: string;
   homeDir: string;
+  planDirectory?: string;
   fs?: DiscoveryFs;
 }): Promise<Array<{ path: string; displayPath: string }>> {
   const fs = options.fs ?? createDefaultFs();
-  const [localDocs, globalDocs] = await Promise.all([
-    scanDir(
-      fs,
-      path.join(options.cwd, ".poe-code", "ralph", "plans"),
-      ".poe-code/ralph/plans"
-    ),
-    scanDir(
-      fs,
-      path.join(options.homeDir, ".poe-code", "ralph", "plans"),
-      "~/.poe-code/ralph/plans"
-    )
-  ]);
 
-  return [...localDocs, ...globalDocs].sort((left, right) => {
+  const customDir = options.planDirectory?.trim();
+  const docs = customDir
+    ? await scanCustomDir(fs, customDir, options.cwd, options.homeDir)
+    : await scanDefaultDirs(fs, options.cwd, options.homeDir);
+
+  return docs.sort((left, right) => {
     const leftName = path.basename(left.displayPath).toLowerCase();
     const rightName = path.basename(right.displayPath).toLowerCase();
     return leftName === rightName
       ? left.displayPath.localeCompare(right.displayPath)
       : leftName.localeCompare(rightName);
   });
+}
+
+async function scanCustomDir(
+  fs: DiscoveryFs,
+  planDirectory: string,
+  cwd: string,
+  homeDir: string
+): Promise<Array<{ path: string; displayPath: string }>> {
+  const absoluteDir = resolveAbsoluteDirectory(planDirectory, cwd, homeDir);
+  const displayDir = planDirectory;
+  return scanDir(fs, absoluteDir, displayDir);
+}
+
+async function scanDefaultDirs(
+  fs: DiscoveryFs,
+  cwd: string,
+  homeDir: string
+): Promise<Array<{ path: string; displayPath: string }>> {
+  const [localDocs, globalDocs] = await Promise.all([
+    scanDir(
+      fs,
+      path.join(cwd, ".poe-code", "ralph", "plans"),
+      ".poe-code/ralph/plans"
+    ),
+    scanDir(
+      fs,
+      path.join(homeDir, ".poe-code", "ralph", "plans"),
+      "~/.poe-code/ralph/plans"
+    )
+  ]);
+  return [...localDocs, ...globalDocs];
+}
+
+function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): string {
+  if (dir.startsWith("~/")) {
+    return path.join(homeDir, dir.slice(2));
+  }
+  return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
 }

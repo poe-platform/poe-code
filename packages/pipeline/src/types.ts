@@ -117,6 +117,7 @@ export interface PipelineRunOptions {
   logDir?: string;
   model?: string;
   plan?: string;
+  planDirectory?: string;
   task?: string;
   maxRuns?: number;
   assumeYes?: boolean;

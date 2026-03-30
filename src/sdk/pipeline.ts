@@ -21,6 +21,7 @@ export type {
   TaskProgress,
   PlanSummary
 } from "@poe-code/pipeline";
+export { resolvePlanDirectory } from "@poe-code/pipeline";
 export type { PipelineRunOptions, PipelineRunResult };
 
 export async function runPipeline(

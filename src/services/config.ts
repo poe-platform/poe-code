@@ -51,7 +51,25 @@ export const coreConfigScope = defineScope("core", {
   }
 });
 
-export const knownConfigScopes = [coreConfigScope] as const;
+export const ralphConfigScope = defineScope("ralph", {
+  plan_directory: {
+    type: "string",
+    default: "",
+    env: "POE_RALPH_PLAN_DIRECTORY",
+    doc: "Custom directory for Ralph plan documents"
+  }
+});
+
+export const pipelineConfigScope = defineScope("pipeline", {
+  plan_directory: {
+    type: "string",
+    default: "",
+    env: "POE_PIPELINE_PLAN_DIRECTORY",
+    doc: "Custom directory for Pipeline plan files"
+  }
+});
+
+export const knownConfigScopes = [coreConfigScope, ralphConfigScope, pipelineConfigScope] as const;
 
 const CORE_SCOPE = coreConfigScope.scope;
 

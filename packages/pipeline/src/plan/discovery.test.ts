@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { resolvePlanPath } from "./discovery.js";
+import { resolvePlanDirectory, resolvePlanPath } from "./discovery.js";
 
 type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
 
@@ -220,5 +220,109 @@ describe("resolvePlanPath", () => {
     });
 
     expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.yaml");
+  });
+
+  it("scans only the custom planDirectory when provided", async () => {
+    const select = vi.fn().mockResolvedValue("custom-plans/plan-custom.yaml");
+
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "custom-plans",
+      fs: createFs({
+        "/repo/custom-plans/plan-custom.yaml": "tasks: []\n",
+        "/repo/.poe-code/pipeline/plans/plan-default.yaml": "tasks: []\n"
+      }),
+      selectPlan: select
+    });
+
+    expect(select).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          { label: "custom-plans/plan-custom.yaml (0/0)", value: "custom-plans/plan-custom.yaml" }
+        ]
+      })
+    );
+    expect(result).toBe("custom-plans/plan-custom.yaml");
+  });
+
+  it("auto-selects from custom planDirectory with --yes", async () => {
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "/abs/plans",
+      assumeYes: true,
+      fs: createFs({
+        "/abs/plans/plan-one.yaml": "tasks: []\n"
+      })
+    });
+
+    expect(result).toBe("/abs/plans/plan-one.yaml");
+  });
+
+  it("resolves tilde planDirectory paths", async () => {
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "~/my-plans",
+      assumeYes: true,
+      fs: createFs({
+        "/home/test/my-plans/plan-tilde.yaml": "tasks: []\n"
+      })
+    });
+
+    expect(result).toBe("~/my-plans/plan-tilde.yaml");
+  });
+});
+
+describe("resolvePlanDirectory", () => {
+  it("returns project plans path when local .poe-code directory exists", async () => {
+    const result = await resolvePlanDirectory({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({ "/repo/.poe-code/config.json": "{}" })
+    });
+
+    expect(result).toBe("/repo/.poe-code/pipeline/plans");
+  });
+
+  it("returns global plans path when local .poe-code directory does not exist", async () => {
+    const result = await resolvePlanDirectory({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs()
+    });
+
+    expect(result).toBe("/home/test/.poe-code/pipeline/plans");
+  });
+
+  it("uses custom planDirectory when provided", async () => {
+    const result = await resolvePlanDirectory({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "custom-plans"
+    });
+
+    expect(result).toBe("/repo/custom-plans");
+  });
+
+  it("resolves tilde in custom planDirectory", async () => {
+    const result = await resolvePlanDirectory({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "~/my-plans"
+    });
+
+    expect(result).toBe("/home/test/my-plans");
+  });
+
+  it("uses absolute custom planDirectory as-is", async () => {
+    const result = await resolvePlanDirectory({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "/abs/plans"
+    });
+
+    expect(result).toBe("/abs/plans");
   });
 });

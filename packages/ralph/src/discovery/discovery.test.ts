@@ -60,4 +60,69 @@ describe("discoverDocs", () => {
       })
     ).resolves.toEqual([]);
   });
+
+  it("scans only the custom planDirectory when provided", async () => {
+    const fs = createFs({
+      "/repo/custom-plans/alpha.md": "# alpha",
+      "/repo/.poe-code/ralph/plans/default.md": "# default"
+    });
+
+    const result = await discoverDocs({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "custom-plans",
+      fs
+    });
+
+    expect(result).toEqual([
+      { path: "custom-plans/alpha.md", displayPath: "custom-plans/alpha.md" }
+    ]);
+  });
+
+  it("resolves absolute planDirectory paths", async () => {
+    const fs = createFs({
+      "/abs/plans/doc.md": "# doc"
+    });
+
+    const result = await discoverDocs({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "/abs/plans",
+      fs
+    });
+
+    expect(result).toEqual([
+      { path: "/abs/plans/doc.md", displayPath: "/abs/plans/doc.md" }
+    ]);
+  });
+
+  it("resolves tilde planDirectory paths", async () => {
+    const fs = createFs({
+      "/home/test/my-plans/doc.md": "# doc"
+    });
+
+    const result = await discoverDocs({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "~/my-plans",
+      fs
+    });
+
+    expect(result).toEqual([
+      { path: "~/my-plans/doc.md", displayPath: "~/my-plans/doc.md" }
+    ]);
+  });
+
+  it("returns empty when custom planDirectory does not exist", async () => {
+    const fs = createFs({});
+
+    const result = await discoverDocs({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "nonexistent",
+      fs
+    });
+
+    expect(result).toEqual([]);
+  });
 });

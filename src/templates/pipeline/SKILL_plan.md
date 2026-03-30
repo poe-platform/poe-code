@@ -11,11 +11,9 @@ Ask the user for a one-sentence description of what they want to build.
 
 Write a YAML pipeline plan. Before writing, determine where to place it:
 
-1. If `.poe-code/pipeline/steps.yaml` exists in the **project** → write to `.poe-code/pipeline/plans/plan-<name>.yaml`
-2. Otherwise, if `~/.poe-code/pipeline/steps.yaml` exists → write to `~/.poe-code/pipeline/plans/plan-<project>-<name>.yaml`
-3. If neither exists, use stepless tasks and write to `~/.poe-code/pipeline/plans/plan-<project>-<name>.yaml`
-
-Read the steps file from whichever location you found it.
+1. Run `poe-code pipeline plan-path` to get the plans directory.
+2. Write the plan to `<plan-path>/plan-<name>.yaml`. If the plan path is under the global `~/.poe-code` directory, prefix the filename with the project name: `plan-<project>-<name>.yaml`.
+3. Check if a `steps.yaml` exists next to the plans directory (i.e. `<plan-path>/../steps.yaml`). If it does, read it to determine available steps. If not, use stepless tasks.
 
 ## Rules
 
@@ -60,4 +58,5 @@ Run `poe-code pipeline validate <path>` to check the plan is valid before runnin
 
 ## Notes
 
-- Check `.poe-code/pipeline/steps.yaml` first, then `~/.poe-code/pipeline/steps.yaml`. Match the uncommented step names and order from whichever file you find.
+- Match the uncommented step names and order from whichever `steps.yaml` file you find.
+- If `poe-code` is not available as a global command, use `npx poe-code` instead.

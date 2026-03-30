@@ -26,13 +26,7 @@ export interface AgentRunResult {
   exitCode: number;
 }
 
-export type OverbakeAction = "continue" | "abort";
-
-export type RalphStopReason =
-  | "completed"
-  | "max_iterations"
-  | "overbake_abort"
-  | "cancelled";
+export type RalphStopReason = "completed" | "max_iterations" | "cancelled";
 
 export interface RalphRunResult {
   stopReason: RalphStopReason;
@@ -42,25 +36,23 @@ export interface RalphRunResult {
 }
 
 export interface RalphRunOptions {
-  agent: string;
+  agent: string | string[];
   cwd: string;
   homeDir: string;
   model?: string;
   docPath: string;
   maxIterations: number;
-  maxFailures?: number;
   fs?: RalphFileSystem;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
-  promptOverbake?: (args: {
-    consecutiveFailures: number;
-    threshold: number;
-  }) => Promise<OverbakeAction>;
-  onIterationStart?: (iteration: number, maxIterations: number) => void;
+  onIterationStart?: (
+    iteration: number,
+    maxIterations: number,
+    agent: string
+  ) => void;
   onIterationComplete?: (
     iteration: number,
     durationMs: number,
     success: boolean
   ) => void;
-  onOverbakeWarning?: (consecutiveFailures: number, threshold: number) => void;
   signal?: AbortSignal;
 }

@@ -7,16 +7,24 @@ describe("parseFrontmatter", () => {
     const result = parseFrontmatter("# My Plan\n\nSome content");
 
     expect(result).toEqual({
-      data: { status: "pending", iteration: 0 },
+      data: {
+        status: {
+          state: "open",
+          iteration: 0
+        }
+      },
       body: "# My Plan\n\nSome content"
     });
   });
 
-  it("parses existing frontmatter with status and iteration", () => {
+  it("parses nested frontmatter with a single agent and iterations", () => {
     const doc = [
       "---",
-      "status: in_progress",
-      "iteration: 3",
+      "agent: claude-code",
+      "iterations: 5",
+      "status:",
+      "  state: in_progress",
+      "  iteration: 3",
       "---",
       "# My Plan",
       "",
@@ -26,19 +34,119 @@ describe("parseFrontmatter", () => {
     const result = parseFrontmatter(doc);
 
     expect(result).toEqual({
-      data: { status: "in_progress", iteration: 3 },
+      data: {
+        agent: "claude-code",
+        iterations: 5,
+        status: {
+          state: "in_progress",
+          iteration: 3
+        }
+      },
       body: "# My Plan\n\nContent"
     });
   });
 
-  it("defaults missing fields", () => {
-    const doc = ["---", "status: completed", "---", "Body"].join("\n");
+  it("parses an agent array", () => {
+    const doc = [
+      "---",
+      "agent:",
+      "  - claude-code",
+      "  - codex",
+      "status:",
+      "  state: open",
+      "  iteration: 0",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(result.data).toEqual({
+      agent: ["claude-code", "codex"],
+      status: {
+        state: "open",
+        iteration: 0
+      }
+    });
+  });
+
+  it("migrates legacy flat frontmatter to the nested status shape", () => {
+    const doc = [
+      "---",
+      "status: pending",
+      "iteration: 2",
+      "---",
+      "Body"
+    ].join("\n");
 
     const result = parseFrontmatter(doc);
 
     expect(result).toEqual({
-      data: { status: "completed", iteration: 0 },
+      data: {
+        status: {
+          state: "open",
+          iteration: 2
+        }
+      },
       body: "Body"
+    });
+  });
+
+  it("maps legacy cancelled state back to open", () => {
+    const doc = [
+      "---",
+      "status: cancelled",
+      "iteration: 7",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(result.data.status).toEqual({
+      state: "open",
+      iteration: 7
+    });
+  });
+
+  it("ignores invalid agent and iterations values", () => {
+    const doc = [
+      "---",
+      "agent:",
+      "  - claude-code",
+      "  - 3",
+      "iterations: 0",
+      "status:",
+      "  state: nope",
+      "  iteration: -1",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(result).toEqual({
+      data: {
+        status: {
+          state: "open",
+          iteration: 0
+        }
+      },
+      body: "Body"
+    });
+  });
+
+  it("preserves an empty agent array for later validation", () => {
+    const doc = ["---", "agent: []", "---", "Body"].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(result.data).toEqual({
+      agent: [],
+      status: {
+        state: "open",
+        iteration: 0
+      }
     });
   });
 
@@ -46,24 +154,39 @@ describe("parseFrontmatter", () => {
     const result = parseFrontmatter("");
 
     expect(result).toEqual({
-      data: { status: "pending", iteration: 0 },
+      data: {
+        status: {
+          state: "open",
+          iteration: 0
+        }
+      },
       body: ""
     });
   });
 });
 
 describe("writeFrontmatter", () => {
-  it("adds frontmatter to body without existing frontmatter", () => {
+  it("writes nested status with agent and iterations", () => {
     const result = writeFrontmatter(
-      { status: "in_progress", iteration: 1 },
+      {
+        agent: "claude-code",
+        iterations: 3,
+        status: {
+          state: "in_progress",
+          iteration: 1
+        }
+      },
       "# My Plan\n\nContent"
     );
 
     expect(result).toBe(
       [
         "---",
-        "status: in_progress",
-        "iteration: 1",
+        "agent: claude-code",
+        "iterations: 3",
+        "status:",
+        "  state: in_progress",
+        "  iteration: 1",
         "---",
         "# My Plan",
         "",
@@ -72,7 +195,24 @@ describe("writeFrontmatter", () => {
     );
   });
 
-  it("replaces existing frontmatter", () => {
+  it("roundtrips agent arrays through parse and write", () => {
+    const frontmatter: RalphFrontmatter = {
+      agent: ["claude-code", "codex"],
+      iterations: 5,
+      status: {
+        state: "completed",
+        iteration: 5
+      }
+    };
+    const body = "# Test\n\nContent here";
+    const written = writeFrontmatter(frontmatter, body);
+    const parsed = parseFrontmatter(written);
+
+    expect(parsed.data).toEqual(frontmatter);
+    expect(parsed.body).toBe(body);
+  });
+
+  it("always writes the new nested format after reading a legacy document", () => {
     const original = [
       "---",
       "status: pending",
@@ -83,46 +223,20 @@ describe("writeFrontmatter", () => {
       "Body"
     ].join("\n");
 
-    const { body } = parseFrontmatter(original);
-    const result = writeFrontmatter(
-      { status: "in_progress", iteration: 2 },
-      body
-    );
+    const { data, body } = parseFrontmatter(original);
+    const result = writeFrontmatter(data, body);
 
     expect(result).toBe(
       [
         "---",
-        "status: in_progress",
-        "iteration: 2",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
         "---",
         "# Plan",
         "",
         "Body"
       ].join("\n")
     );
-  });
-
-  it("writes completed status", () => {
-    const result = writeFrontmatter(
-      { status: "completed", iteration: 5 },
-      "Done"
-    );
-
-    expect(result).toBe(
-      ["---", "status: completed", "iteration: 5", "---", "Done"].join("\n")
-    );
-  });
-
-  it("roundtrips through parse and write", () => {
-    const frontmatter: RalphFrontmatter = {
-      status: "in_progress",
-      iteration: 7
-    };
-    const body = "# Test\n\nContent here";
-    const written = writeFrontmatter(frontmatter, body);
-    const parsed = parseFrontmatter(written);
-
-    expect(parsed.data).toEqual(frontmatter);
-    expect(parsed.body).toBe(body);
   });
 });

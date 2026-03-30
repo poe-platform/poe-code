@@ -4,7 +4,6 @@ import { runRalph } from "../run/ralph.js";
 import type {
   AgentRunInput,
   AgentRunResult,
-  OverbakeAction,
   RalphFileSystem,
   RalphRunResult
 } from "../types.js";
@@ -30,16 +29,12 @@ export type TurnSpec = {
 };
 
 export type SimulationOptions = {
+  agent?: string | string[];
   docContent?: string;
   docPath?: string;
   maxIterations: number;
-  maxFailures?: number;
   turns: TurnSpec[];
   files?: Record<string, string>;
-  promptOverbake?: (args: {
-    consecutiveFailures: number;
-    threshold: number;
-  }) => Promise<OverbakeAction>;
   signal?: AbortSignal;
 };
 
@@ -194,17 +189,11 @@ export function createRalphSimulation(options: SimulationOptions): {
         fsWriteFile(rawFs, path.join(cwd, filePath), content);
 
       const result = await runRalph({
-        agent: "codex",
+        agent: options.agent ?? "codex",
         cwd,
         homeDir,
         docPath,
         maxIterations: options.maxIterations,
-        ...(options.maxFailures != null
-          ? { maxFailures: options.maxFailures }
-          : {}),
-        ...(options.promptOverbake
-          ? { promptOverbake: options.promptOverbake }
-          : {}),
         ...(options.signal ? { signal: options.signal } : {}),
         fs,
         runAgent: async (input) => {

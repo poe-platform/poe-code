@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type {
   AgentRunInput,
   AgentRunResult,
-  OverbakeAction,
   RalphRunOptions,
   RalphRunResult
 } from "@poe-code/ralph";
@@ -19,9 +18,8 @@ describe("@poe-code/ralph public exports", () => {
       stderr: "",
       exitCode: 0
     };
-    const action: OverbakeAction = "continue";
     const options: RalphRunOptions = {
-      agent: "codex",
+      agent: ["codex", "claude-code"],
       cwd: "/repo",
       homeDir: "/home/test",
       docPath: ".poe-code/ralph/plans/plan.md",
@@ -31,9 +29,8 @@ describe("@poe-code/ralph public exports", () => {
 
     expect(input.agent).toBe("codex");
     expect(result.exitCode).toBe(0);
-    expect(action).toBe("continue");
+    expect(options.agent).toEqual(["codex", "claude-code"]);
 
-    void options;
     void runResult;
   });
 });

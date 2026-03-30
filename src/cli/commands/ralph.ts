@@ -104,6 +104,43 @@ async function resolvePlanDirectory(
   return configDir || undefined;
 }
 
+function formatDocHint(frontmatter: RalphFrontmatter): string | undefined {
+  const parts: string[] = [];
+
+  if (frontmatter.agent !== undefined) {
+    const agents = Array.isArray(frontmatter.agent)
+      ? frontmatter.agent
+      : [frontmatter.agent];
+    if (agents.length > 0) {
+      parts.push(agents.join(", "));
+    }
+  }
+
+  if (frontmatter.iterations !== undefined) {
+    parts.push(`×${frontmatter.iterations}`);
+  }
+
+  if (frontmatter.status.state !== "open" || frontmatter.status.iteration > 0) {
+    parts.push(`${frontmatter.status.state} ${frontmatter.status.iteration}`);
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : undefined;
+}
+
+async function readDocHint(
+  container: CliContainer,
+  docPath: string
+): Promise<string | undefined> {
+  const absolutePath = resolveAbsoluteDocPath(container, docPath);
+  try {
+    const content = await container.fs.readFile(absolutePath, "utf8");
+    const { data } = parseFrontmatter(content);
+    return formatDocHint(data);
+  } catch {
+    return undefined;
+  }
+}
+
 async function resolveDocPath(options: {
   container: CliContainer;
   program: Command;
@@ -131,11 +168,16 @@ async function resolveDocPath(options: {
     return docs[0]!.path;
   }
 
+  const hints = await Promise.all(
+    docs.map((doc) => readDocHint(options.container, doc.path))
+  );
+
   const selected = await select({
     message: "Select the Ralph markdown doc to run:",
-    options: docs.map((doc) => ({
+    options: docs.map((doc, index) => ({
       label: doc.displayPath,
-      value: doc.path
+      value: doc.path,
+      ...(hints[index] ? { hint: hints[index] } : {})
     }))
   });
   if (isCancel(selected)) {

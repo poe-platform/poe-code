@@ -186,6 +186,48 @@ describe("ralph run command", () => {
     );
   });
 
+  it("shows frontmatter hints in the doc selection prompt", async () => {
+    selectMock.mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md");
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/.poe-code/ralph/plans/plan-a.md": [
+          "---",
+          "agent: codex",
+          "iterations: 3",
+          "status:",
+          "  state: in_progress",
+          "  iteration: 1",
+          "---",
+          "# A"
+        ].join("\n"),
+        "/repo/.poe-code/ralph/plans/plan-b.md": "# B"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "run"]);
+
+    expect(selectMock).toHaveBeenNthCalledWith(1, {
+      message: "Select the Ralph markdown doc to run:",
+      options: [
+        {
+          label: ".poe-code/ralph/plans/plan-a.md",
+          value: ".poe-code/ralph/plans/plan-a.md",
+          hint: "codex · ×3 · in_progress 1"
+        },
+        {
+          label: ".poe-code/ralph/plans/plan-b.md",
+          value: ".poe-code/ralph/plans/plan-b.md"
+        }
+      ]
+    });
+  });
+
   it("lets CLI flags override frontmatter values", async () => {
     const container = createCliContainer({
       fs: createMemFs({

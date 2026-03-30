@@ -48,6 +48,6 @@ export const text = {
     if (!detail) {
       return label;
     }
-    return `${label} ${typography.dim(detail)}`;
+    return `${label} ${typography.dim("—")} ${typography.dim(detail)}`;
   }
 } as const;

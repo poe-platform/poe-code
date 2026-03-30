@@ -131,8 +131,13 @@ function formatHelpText(input: {
         description: "Run a fixed-step task pipeline plan"
       },
       {
+        name: "ralph init",
+        args: "[doc]",
+        description: "Write Ralph config into a markdown doc frontmatter"
+      },
+      {
         name: "ralph run",
-        args: "[iterations] [doc]",
+        args: "[doc]",
         description: "Run a markdown doc through repeated agent iterations"
       },
       {

@@ -9,7 +9,6 @@ import { spawn as sdkSpawn } from "./spawn.js";
 export type {
   AgentRunInput,
   AgentRunResult,
-  OverbakeAction,
   RalphRunOptions,
   RalphRunResult,
   RalphStopReason

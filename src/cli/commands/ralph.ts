@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { Command } from "commander";
 import {
   cancel,
@@ -8,7 +9,10 @@ import {
 import { resolveAgentId } from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import {
-  discoverDocs
+  discoverDocs,
+  parseFrontmatter,
+  writeFrontmatter,
+  type RalphFrontmatter
 } from "@poe-code/ralph";
 import {
   readMergedDocument,
@@ -21,12 +25,10 @@ import {
   createExecutionResources,
   resolveCommandFlags
 } from "./shared.js";
-import {
-  runRalph as sdkRunRalph,
-  type RalphRunOptions
-} from "../../sdk/ralph.js";
+import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
 
 const DEFAULT_RALPH_AGENT = "claude-code";
+const DEFAULT_RALPH_ITERATIONS = 3;
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
@@ -35,14 +37,17 @@ function formatDuration(ms: number): string {
   return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 }
 
-function resolveRalphAgent(value: string | undefined): string {
+function resolveRalphAgent(
+  value: string | undefined,
+  sourceLabel = "agent"
+): string {
   if (!value || value.trim().length === 0) {
     return DEFAULT_RALPH_AGENT;
   }
 
   const resolved = resolveAgentId(value.trim());
   if (!resolved) {
-    throw new ValidationError(`Unsupported agent: ${value}`);
+    throw new ValidationError(`Unsupported ${sourceLabel}: ${value}`);
   }
 
   return resolved;
@@ -66,32 +71,37 @@ function parsePositiveInt(
   return parsed;
 }
 
-async function resolveAgent(options: {
-  program: Command;
-  providedAgent?: string;
-}): Promise<string | null> {
-  if (options.providedAgent) {
-    return resolveRalphAgent(options.providedAgent);
+function normalizeConfiguredIterations(value: number | undefined): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1
+    ? value
+    : undefined;
+}
+
+function resolveAbsoluteDocPath(container: CliContainer, docPath: string): string {
+  if (docPath.startsWith("~/")) {
+    return path.join(container.env.homeDir, docPath.slice(2));
   }
 
-  const flags = resolveCommandFlags(options.program);
-  if (flags.assumeYes) {
-    return DEFAULT_RALPH_AGENT;
-  }
+  return path.isAbsolute(docPath)
+    ? docPath
+    : path.resolve(container.env.cwd, docPath);
+}
 
-  const selected = await select({
-    message: "Select agent to run Ralph with:",
-    options: allSpawnConfigs.map((config) => ({
-      label: config.agentId,
-      value: config.agentId
-    }))
-  });
-  if (isCancel(selected)) {
-    cancel("Ralph run cancelled.");
-    return null;
-  }
-
-  return resolveRalphAgent(typeof selected === "string" ? selected : undefined);
+async function resolvePlanDirectory(
+  container: CliContainer
+): Promise<string | undefined> {
+  const configDoc = await readMergedDocument(
+    container.fs,
+    container.env.configPath,
+    container.env.projectConfigPath
+  );
+  const ralphConfig = resolveScope(
+    ralphConfigScope.schema,
+    configDoc[ralphConfigScope.scope],
+    container.env.variables
+  );
+  const configDir = ralphConfig.plan_directory?.trim();
+  return configDir || undefined;
 }
 
 async function resolveDocPath(options: {
@@ -136,9 +146,89 @@ async function resolveDocPath(options: {
   return typeof selected === "string" ? selected : null;
 }
 
-async function resolveIterations(options: {
+async function readRalphDoc(
+  container: CliContainer,
+  docPath: string
+): Promise<{
+  absolutePath: string;
+  body: string;
+  data: RalphFrontmatter;
+}> {
+  const absolutePath = resolveAbsoluteDocPath(container, docPath);
+
+  try {
+    const content = await container.fs.readFile(absolutePath, "utf8");
+    const parsed = parseFrontmatter(content);
+    return {
+      absolutePath,
+      body: parsed.body,
+      data: parsed.data
+    };
+  } catch {
+    throw new ValidationError(`Ralph doc not found: ${docPath}`);
+  }
+}
+
+function resolveConfiguredAgents(
+  value: RalphFrontmatter["agent"]
+): string | string[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === "string") {
+    return resolveRalphAgent(value, "frontmatter agent");
+  }
+
+  if (value.length === 0) {
+    throw new ValidationError("Frontmatter agent array must not be empty.");
+  }
+
+  return value.map((entry) => resolveRalphAgent(entry, "frontmatter agent"));
+}
+
+async function promptForAgent(program: Command): Promise<string | null> {
+  const flags = resolveCommandFlags(program);
+  if (flags.assumeYes) {
+    return DEFAULT_RALPH_AGENT;
+  }
+
+  const selected = await select({
+    message: "Select agent to run Ralph with:",
+    options: allSpawnConfigs.map((config) => ({
+      label: config.agentId,
+      value: config.agentId
+    }))
+  });
+  if (isCancel(selected)) {
+    cancel("Ralph run cancelled.");
+    return null;
+  }
+
+  return resolveRalphAgent(typeof selected === "string" ? selected : undefined);
+}
+
+async function resolveRunAgent(options: {
+  program: Command;
+  providedAgent?: string;
+  frontmatterAgent?: RalphFrontmatter["agent"];
+}): Promise<string | string[] | null> {
+  if (options.providedAgent) {
+    return resolveRalphAgent(options.providedAgent);
+  }
+
+  const configured = resolveConfiguredAgents(options.frontmatterAgent);
+  if (configured !== undefined) {
+    return configured;
+  }
+
+  return promptForAgent(options.program);
+}
+
+async function resolveRunIterations(options: {
   program: Command;
   providedIterations?: string;
+  frontmatterIterations?: number;
 }): Promise<number | null> {
   const explicitIterations = parsePositiveInt(
     options.providedIterations,
@@ -148,11 +238,16 @@ async function resolveIterations(options: {
     return explicitIterations;
   }
 
+  const configuredIterations = normalizeConfiguredIterations(
+    options.frontmatterIterations
+  );
+  if (configuredIterations != null) {
+    return configuredIterations;
+  }
+
   const flags = resolveCommandFlags(options.program);
   if (flags.assumeYes) {
-    throw new ValidationError(
-      "Iterations are required when using --yes. Provide poe-code ralph run <iterations> [doc]."
-    );
+    return DEFAULT_RALPH_ITERATIONS;
   }
 
   const entered = await promptText({
@@ -169,6 +264,87 @@ async function resolveIterations(options: {
   ) ?? null;
 }
 
+async function resolveInitAgent(options: {
+  program: Command;
+  providedAgent?: string;
+}): Promise<string | null> {
+  if (options.providedAgent) {
+    return resolveRalphAgent(options.providedAgent);
+  }
+
+  return promptForAgent(options.program);
+}
+
+async function resolveInitIterations(options: {
+  program: Command;
+  providedIterations?: string;
+}): Promise<number | null> {
+  const explicitIterations = parsePositiveInt(
+    options.providedIterations,
+    "iterations"
+  );
+  if (explicitIterations != null) {
+    return explicitIterations;
+  }
+
+  const flags = resolveCommandFlags(options.program);
+  if (flags.assumeYes) {
+    return DEFAULT_RALPH_ITERATIONS;
+  }
+
+  const entered = await promptText({
+    message: "How many Ralph iterations should run?"
+  });
+  if (isCancel(entered)) {
+    cancel("Ralph init cancelled.");
+    return null;
+  }
+
+  return parsePositiveInt(
+    typeof entered === "string" ? entered.trim() : undefined,
+    "iterations"
+  ) ?? null;
+}
+
+function formatCurrentConfig(frontmatter: RalphFrontmatter): string | null {
+  if (frontmatter.agent === undefined && frontmatter.iterations === undefined) {
+    return null;
+  }
+
+  const items: string[] = [];
+  if (frontmatter.iterations !== undefined) {
+    items.push(String(frontmatter.iterations));
+  }
+
+  const agentList = expandAgentList(frontmatter.agent, frontmatter.iterations);
+  if (agentList.length > 0) {
+    items.push(...agentList);
+  }
+
+  return items.length > 0 ? `Current: ${items.join(", ")}` : null;
+}
+
+function expandAgentList(
+  agent: RalphFrontmatter["agent"],
+  iterations: number | undefined
+): string[] {
+  if (agent === undefined) {
+    return [];
+  }
+
+  if (typeof agent === "string") {
+    const count = normalizeConfiguredIterations(iterations) ?? 1;
+    return Array.from({ length: count }, () => agent);
+  }
+
+  if (agent.length === 0) {
+    return [];
+  }
+
+  const count = normalizeConfiguredIterations(iterations) ?? agent.length;
+  return Array.from({ length: count }, (_, index) => agent[index % agent.length]!);
+}
+
 export function registerRalphCommand(
   program: Command,
   container: CliContainer
@@ -178,45 +354,23 @@ export function registerRalphCommand(
     .description("Run a simple iterative markdown loop.");
 
   ralph
-    .command("run")
-    .description("Run the selected markdown doc through repeated agent iterations.")
-    .argument("[iterations]", "Number of Ralph iterations to run")
+    .command("init")
+    .description("Write Ralph config into an existing markdown doc frontmatter.")
     .argument("[doc]", "Markdown doc path")
-    .option("--agent <name>", "Agent to run each iteration with")
-    .option("--model <model>", "Model override passed to the agent")
-    .option(
-      "--max-failures <n>",
-      "Consecutive failure threshold before overbake protection prompts"
-    )
-    .action(async function (
-      this: Command,
-      iterationsArg?: string,
-      docArg?: string
-    ) {
+    .option("--agent <name>", "Agent to write into frontmatter")
+    .option("--iterations <n>", "Number of iterations to write into frontmatter")
+    .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "ralph:run");
+      const resources = createExecutionResources(container, flags, "ralph:init");
       const options = this.opts<{
         agent?: string;
-        model?: string;
-        maxFailures?: string;
+        iterations?: string;
       }>();
 
-      resources.logger.intro("ralph run");
+      resources.logger.intro("ralph init");
 
       try {
-        const configDoc = await readMergedDocument(
-          container.fs,
-          container.env.configPath,
-          container.env.projectConfigPath
-        );
-        const ralphConfig = resolveScope(
-          ralphConfigScope.schema,
-          configDoc[ralphConfigScope.scope],
-          container.env.variables
-        );
-        const configDir = ralphConfig.plan_directory?.trim();
-        const planDirectory = configDir || undefined;
-
+        const planDirectory = await resolvePlanDirectory(container);
         const docPath = await resolveDocPath({
           container,
           program,
@@ -227,7 +381,13 @@ export function registerRalphCommand(
           return;
         }
 
-        const agent = await resolveAgent({
+        const doc = await readRalphDoc(container, docPath);
+        const currentConfig = formatCurrentConfig(doc.data);
+        if (!options.agent && !options.iterations && !flags.assumeYes && currentConfig) {
+          resources.logger.info(currentConfig);
+        }
+
+        const agent = await resolveInitAgent({
           program,
           providedAgent: options.agent
         });
@@ -235,18 +395,85 @@ export function registerRalphCommand(
           return;
         }
 
-        const maxIterations = await resolveIterations({
+        const iterations = await resolveInitIterations({
           program,
-          providedIterations: iterationsArg
+          providedIterations: options.iterations
+        });
+        if (iterations == null) {
+          return;
+        }
+
+        const updated = writeFrontmatter(
+          {
+            agent,
+            iterations,
+            status: {
+              state: doc.data.status.state,
+              iteration: doc.data.status.iteration
+            }
+          },
+          doc.body
+        );
+        await container.fs.writeFile(doc.absolutePath, updated, { encoding: "utf8" });
+
+        resources.logger.resolved(
+          "Initialized Ralph config",
+          `Doc: ${docPath}\n   Agent: ${agent}\n   Iterations: ${iterations}`
+        );
+        resources.logger.success("Ralph config saved.");
+      } finally {
+        resources.context.finalize();
+      }
+    });
+
+  ralph
+    .command("run")
+    .description("Run the selected markdown doc through repeated agent iterations.")
+    .argument("[doc]", "Markdown doc path")
+    .option("--agent <name>", "Override the agent from frontmatter")
+    .option("--iterations <n>", "Override iterations from frontmatter")
+    .option("--model <model>", "Model override passed to the agent")
+    .action(async function (this: Command, docArg?: string) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "ralph:run");
+      const options = this.opts<{
+        agent?: string;
+        iterations?: string;
+        model?: string;
+      }>();
+
+      resources.logger.intro("ralph run");
+
+      try {
+        const planDirectory = await resolvePlanDirectory(container);
+        const docPath = await resolveDocPath({
+          container,
+          program,
+          providedDoc: docArg,
+          planDirectory
+        });
+        if (!docPath) {
+          return;
+        }
+
+        const doc = await readRalphDoc(container, docPath);
+        const agent = await resolveRunAgent({
+          program,
+          providedAgent: options.agent,
+          frontmatterAgent: doc.data.agent
+        });
+        if (!agent) {
+          return;
+        }
+
+        const maxIterations = await resolveRunIterations({
+          program,
+          providedIterations: options.iterations,
+          frontmatterIterations: doc.data.iterations
         });
         if (maxIterations == null) {
           return;
         }
-
-        const maxFailures = parsePositiveInt(
-          options.maxFailures,
-          "max-failures"
-        );
 
         const result = await sdkRunRalph({
           agent,
@@ -255,39 +482,13 @@ export function registerRalphCommand(
           docPath,
           maxIterations,
           ...(options.model ? { model: options.model } : {}),
-          ...(maxFailures != null ? { maxFailures } : {}),
-          promptOverbake: async (
-            input: Parameters<NonNullable<RalphRunOptions["promptOverbake"]>>[0]
-          ) => {
-            const selected = await select({
-              message:
-                `Ralph hit ${input.consecutiveFailures} consecutive failures ` +
-                `(threshold ${input.threshold}). What should happen next?`,
-              options: [
-                { label: "Continue", value: "continue" },
-                { label: "Abort", value: "abort" }
-              ]
-            });
-
-            if (isCancel(selected)) {
-              cancel("Ralph run cancelled.");
-              return "abort";
-            }
-
-            return selected === "continue" ? "continue" : "abort";
-          },
-          onIterationStart(iteration, total) {
-            resources.logger.info(`Iteration ${iteration}/${total}`);
+          onIterationStart(iteration, total, currentAgent) {
+            resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
           },
           onIterationComplete(iteration, durationMs, success) {
             const status = success ? "done" : "failed";
             resources.logger.info(
               `Iteration ${iteration} ${status} in ${formatDuration(durationMs)}`
-            );
-          },
-          onOverbakeWarning(consecutiveFailures, threshold) {
-            resources.logger.warn(
-              `Overbake protection triggered at ${consecutiveFailures} consecutive failures (threshold ${threshold}).`
             );
           }
         });
@@ -301,13 +502,6 @@ export function registerRalphCommand(
         if (result.stopReason === "cancelled") {
           process.exitCode = 130;
           resources.logger.warn("Ralph run cancelled.");
-          resources.logger.resolved("Run summary", summary);
-          return;
-        }
-
-        if (result.stopReason === "overbake_abort") {
-          process.exitCode = 1;
-          resources.logger.warn("Ralph stopped after repeated failures.");
           resources.logger.resolved("Run summary", summary);
           return;
         }

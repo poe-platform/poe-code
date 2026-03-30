@@ -5,6 +5,7 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerRalphCommand } from "./ralph.js";
 import { ValidationError } from "../errors.js";
+import { parseFrontmatter } from "../../../packages/ralph/src/frontmatter/frontmatter.js";
 
 const selectMock = vi.hoisted(() => vi.fn());
 const promptTextMock = vi.hoisted(() => vi.fn());
@@ -58,7 +59,9 @@ describe("ralph run command", () => {
 
   it("calls the Ralph SDK with explicit CLI options", async () => {
     const container = createCliContainer({
-      fs: createMemFs(),
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
       logger: () => {}
@@ -71,14 +74,13 @@ describe("ralph run command", () => {
       "cli",
       "ralph",
       "run",
-      "5",
       "docs/loop.md",
       "--agent",
       "claude",
+      "--iterations",
+      "5",
       "--model",
-      "gpt-5.2",
-      "--max-failures",
-      "4"
+      "gpt-5.2"
     ]);
 
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
@@ -88,13 +90,48 @@ describe("ralph run command", () => {
         homeDir,
         docPath: "docs/loop.md",
         maxIterations: 5,
-        model: "gpt-5.2",
-        maxFailures: 4
+        model: "gpt-5.2"
       })
     );
   });
 
-  it("prompts for missing agent, doc, and iterations", async () => {
+  it("reads agent and iterations from frontmatter and skips prompts", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": [
+          "---",
+          "agent:",
+          "  - claude-code",
+          "  - codex",
+          "iterations: 4",
+          "status:",
+          "  state: open",
+          "  iteration: 0",
+          "---",
+          "# A"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: ["claude-code", "codex"],
+        docPath: "docs/loop.md",
+        maxIterations: 4
+      })
+    );
+  });
+
+  it("prompts for missing agent, doc, and iterations when frontmatter does not provide them", async () => {
     selectMock
       .mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md")
       .mockResolvedValueOnce("codex");
@@ -149,6 +186,47 @@ describe("ralph run command", () => {
     );
   });
 
+  it("lets CLI flags override frontmatter values", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": [
+          "---",
+          "agent: codex",
+          "iterations: 4",
+          "status:",
+          "  state: open",
+          "  iteration: 0",
+          "---",
+          "# A"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--iterations",
+      "6"
+    ]);
+
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        maxIterations: 6
+      })
+    );
+  });
+
   it("fails before prompting for agent when no Ralph docs exist", async () => {
     const container = createCliContainer({
       fs: createMemFs(),
@@ -160,7 +238,7 @@ describe("ralph run command", () => {
     registerRalphCommand(program, container);
 
     await expect(
-      program.parseAsync(["node", "cli", "ralph", "run", "3"])
+      program.parseAsync(["node", "cli", "ralph", "run"])
     ).rejects.toBeInstanceOf(ValidationError);
 
     expect(selectMock).not.toHaveBeenCalled();
@@ -168,7 +246,7 @@ describe("ralph run command", () => {
     expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
   });
 
-  it("uses defaults with --yes where a default exists", async () => {
+  it("uses defaults with --yes when frontmatter does not provide values", async () => {
     const container = createCliContainer({
       fs: createMemFs({
         "/repo/.poe-code/ralph/plans/plan-b.md": "# B",
@@ -181,7 +259,7 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "ralph", "run", "3"]);
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "run"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
@@ -194,10 +272,19 @@ describe("ralph run command", () => {
     );
   });
 
-  it("requires iterations when using --yes without an explicit value", async () => {
+  it("fails fast on unknown agent names in frontmatter", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/ralph/plans/plan-a.md": "# A"
+        "/repo/docs/loop.md": [
+          "---",
+          "agent: mystery-agent",
+          "iterations: 4",
+          "status:",
+          "  state: open",
+          "  iteration: 0",
+          "---",
+          "# A"
+        ].join("\n")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -207,11 +294,67 @@ describe("ralph run command", () => {
     registerRalphCommand(program, container);
 
     await expect(
-      program.parseAsync(["node", "cli", "--yes", "ralph", "run"])
+      program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"])
     ).rejects.toBeInstanceOf(ValidationError);
+
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+});
+
+describe("ralph init command", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    isCancelMock.mockReturnValue(false);
   });
 
-  it("rejects invalid max-failures values", async () => {
+  it("updates an existing doc preserving body and runtime status", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "status:",
+        "  state: in_progress",
+        "  iteration: 2",
+        "---",
+        "# My Plan",
+        "",
+        "Body"
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "init",
+      "docs/loop.md",
+      "--agent",
+      "codex",
+      "--iterations",
+      "5"
+    ]);
+
+    const updated = await fs.readFile("/repo/docs/loop.md", "utf8");
+    const parsed = parseFrontmatter(updated);
+    expect(parsed.data).toEqual({
+      agent: "codex",
+      iterations: 5,
+      status: {
+        state: "in_progress",
+        iteration: 2
+      }
+    });
+    expect(parsed.body).toBe("# My Plan\n\nBody");
+  });
+
+  it("errors when the doc does not exist", async () => {
     const container = createCliContainer({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),
@@ -222,16 +365,78 @@ describe("ralph run command", () => {
     registerRalphCommand(program, container);
 
     await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "ralph",
-        "run",
-        "2",
-        "docs/loop.md",
-        "--max-failures",
-        "0"
-      ])
+      program.parseAsync(["node", "cli", "ralph", "init", "docs/missing.md"])
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("uses CLI prompts when agent and iterations are omitted", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/ralph/plans/plan-a.md": "# A"
+    });
+    selectMock
+      .mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md")
+      .mockResolvedValueOnce("codex");
+    promptTextMock.mockResolvedValue("4");
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "init"]);
+
+    const updated = await fs.readFile(
+      "/repo/.poe-code/ralph/plans/plan-a.md",
+      "utf8"
+    );
+    const parsed = parseFrontmatter(updated);
+    expect(parsed.data).toEqual({
+      agent: "codex",
+      iterations: 4,
+      status: {
+        state: "open",
+        iteration: 0
+      }
+    });
+  });
+
+  it("uses defaults with --yes", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": "# A"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "ralph",
+      "init",
+      "docs/loop.md"
+    ]);
+
+    const updated = await fs.readFile("/repo/docs/loop.md", "utf8");
+    const parsed = parseFrontmatter(updated);
+    expect(parsed.data).toEqual({
+      agent: "claude-code",
+      iterations: 3,
+      status: {
+        state: "open",
+        iteration: 0
+      }
+    });
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
   });
 });

@@ -1,3 +1,7 @@
+---
+status: completed
+iteration: 3
+---
 # Ralph Init — Frontmatter-Driven Config
 
 ## Goal
@@ -14,15 +18,19 @@ Add `ralph init` command that writes `agent` and `iterations` into plan frontmat
 
 ```yaml
 ---
-status: pending
-iteration: 0
 agent: claude-code          # string or string[]
 iterations: 5               # max iterations for this plan
+status:
+  state: open
+  iteration: 0
 ---
 ```
 
 - `agent`: `string | string[]` — when array, cycle through agents round-robin per iteration
 - `iterations`: `number` — max iterations to run
+- `status.state`: runtime state (open, in_progress, completed)
+  - `open` replaces both `pending` and `cancelled` — cancelling sets state back to `open`
+- `status.iteration`: current iteration count (runtime, managed by `ralph run`)
 
 ## Implementation Steps
 
@@ -30,16 +38,26 @@ iterations: 5               # max iterations for this plan
 
 **File: `packages/ralph/src/frontmatter/frontmatter.ts`**
 
-- Add optional fields to `RalphFrontmatter`:
+- Restructure `RalphFrontmatter`:
   ```ts
-  agent?: string | string[];
-  iterations?: number;
+  type RalphPlanStatus = "open" | "in_progress" | "completed";
+
+  interface RalphFrontmatter {
+    agent?: string | string[];
+    iterations?: number;
+    status: {
+      state: RalphPlanStatus;
+      iteration: number;
+    };
+  }
   ```
-- Update `parseFrontmatter` to extract these fields with validation:
+- Update `parseFrontmatter` to handle nested `status` object and new top-level fields
   - `agent`: string or array of strings, optional
   - `iterations`: positive integer, optional
-- Update `writeFrontmatter` — already generic, just works with new fields
-- **Tests**: parse/write round-trip with agent string, agent array, iterations, and combinations
+  - `status`: object with `state` and `iteration`, defaults to `{ state: "open", iteration: 0 }`
+- Update `writeFrontmatter` accordingly
+- **Migration**: handle old flat format (`status: "pending"`, `iteration: 0`) gracefully — read both, always write new nested format
+- **Tests**: parse/write round-trip with agent string, agent array, iterations, nested status, and legacy flat format
 
 ### 2. Add `ralph init` command (CLI layer)
 
@@ -100,7 +118,18 @@ poe-code ralph run [doc]
 
 **CRITICAL: `updateFrontmatter` in `ralph.ts` must preserve `agent` and `iterations` fields.** Currently it only writes `{ status, iteration }`. After this change it must carry forward `agent`/`iterations` so they aren't wiped during a run.
 
-### 4. Agent cycling in run loop
+### 4. Remove overbake protection
+
+Remove the overbaking subsystem entirely:
+
+- Delete `packages/ralph/src/overbaking/` directory (detector + tests)
+- Remove from `packages/ralph/src/index.ts` exports
+- Remove from `packages/ralph/src/run/ralph.ts`: detector usage, `maxFailures` option, `promptOverbake` callback, `onOverbakeWarning` callback, `overbake_abort` stop reason
+- Remove from `packages/ralph/src/types.ts`: `OverbakeAction`, related fields on `RalphRunOptions`
+- Remove from `src/cli/commands/ralph.ts`: `--max-failures` flag, overbake prompt handler, overbake warning log
+- Remove `RalphStopReason` value `overbake_abort`, `RalphPlanStatus` value `overbake_abort`
+
+### 5. Agent cycling in run loop
 
 **File: `packages/ralph/src/run/ralph.ts`**
 
@@ -113,7 +142,7 @@ poe-code ralph run [doc]
 - Pass `currentAgent` to `runAgent()` call
 - `onIterationStart` callback should include agent name so CLI can log which agent is running each iteration
 
-### 5. SDK layer update
+### 6. SDK layer update
 
 **File: `src/sdk/ralph.ts`**
 
@@ -147,13 +176,15 @@ All unit tests use `memfs` + `createRalphSimulation`.
 
 | File | Change |
 |------|--------|
-| `packages/ralph/src/frontmatter/frontmatter.ts` | Add `agent`, `iterations` to schema |
-| `packages/ralph/src/frontmatter/frontmatter.test.ts` | New test cases |
-| `packages/ralph/src/types.ts` | `agent: string → string \| string[]` |
-| `packages/ralph/src/run/ralph.ts` | Agent cycling logic |
-| `packages/ralph/src/run/ralph.test.ts` or simulation | Cycling tests |
-| `src/cli/commands/ralph.ts` | Add `init` subcommand, update `run` to read frontmatter |
-| `src/sdk/ralph.ts` | Type update |
+| `packages/ralph/src/frontmatter/frontmatter.ts` | Restructure schema: nested status, add `agent`, `iterations` |
+| `packages/ralph/src/frontmatter/frontmatter.test.ts` | New test cases + migration tests |
+| `packages/ralph/src/types.ts` | `agent: string → string \| string[]`, remove overbake types |
+| `packages/ralph/src/run/ralph.ts` | Agent cycling, remove overbake logic |
+| `packages/ralph/src/run/ralph.test.ts` or simulation | Cycling tests, remove overbake tests |
+| `packages/ralph/src/overbaking/` | **Delete entire directory** |
+| `packages/ralph/src/index.ts` | Remove overbake exports |
+| `src/cli/commands/ralph.ts` | Add `init` subcommand, update `run`, remove `--max-failures` + overbake UI |
+| `src/sdk/ralph.ts` | Type update, remove overbake callbacks |
 
 ## Edge Cases
 

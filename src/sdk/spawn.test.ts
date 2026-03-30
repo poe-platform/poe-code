@@ -8,7 +8,6 @@ const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
 const sessionCaptureMock = vi.hoisted(() => vi.fn());
 const usageCaptureMock = vi.hoisted(() => vi.fn());
 const spawnLogMock = vi.hoisted(() => vi.fn());
-const spawnPoeAgentWithAcpMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: vi.fn(),
@@ -34,10 +33,6 @@ vi.mock("./container.js", () => ({
   createSdkContainer: vi.fn()
 }));
 
-vi.mock("../providers/poe-agent.js", () => ({
-  spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock
-}));
-
 import { spawn } from "./spawn.js";
 import {
   getSpawnConfig,
@@ -52,7 +47,6 @@ import {
 } from "@poe-code/agent-spawn";
 import { spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
-import { spawnPoeAgentWithAcp } from "../providers/poe-agent.js";
 
 const originalEnv = { ...process.env };
 const homeDir = "/home/test";
@@ -72,7 +66,6 @@ beforeEach(() => {
   vi.mocked(getSpawnConfig).mockReset();
   vi.mocked(spawnCore).mockReset();
   vi.mocked(createSdkContainer).mockReset();
-  vi.mocked(spawnPoeAgentWithAcp).mockReset();
   vi.mocked(renderAcpStream).mockReset();
   vi.mocked(applyMiddlewares).mockReset();
   vi.mocked(renderAcpStream).mockResolvedValue(undefined);
@@ -610,107 +603,6 @@ describe("SDK spawn()", () => {
 
     expect(received).toEqual([]);
     await expect(result).rejects.toThrow("middleware failed");
-  });
-
-  it("propagates provider spawn errors for poe-agent and returns empty events", async () => {
-    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
-      events: (async function* () {})(),
-      done: Promise.reject(new Error("Poe Agent does not support spawn."))
-    });
-
-    const { events, result } = spawn("poe-agent", "test prompt", {
-      cwd: "/workspace/project",
-      model: "anthropic/claude-opus-4.6",
-      mcpServers: {
-        test: {
-          command: "tiny-stdio-mcp-test-server",
-          args: ["serve", "word-of-the-day"],
-          env: { MCP_LOG_LEVEL: "debug" }
-        }
-      }
-    });
-
-    const received: unknown[] = [];
-    for await (const event of events) {
-      received.push(event);
-    }
-
-    expect(received).toEqual([]);
-    await expect(result).rejects.toThrow("does not support spawn");
-    expect(spawnStreaming).not.toHaveBeenCalled();
-    expect(agentSpawn).not.toHaveBeenCalled();
-    expect(spawnCore).not.toHaveBeenCalled();
-    expect(createSdkContainer).not.toHaveBeenCalled();
-    expect(spawnPoeAgentWithAcp).toHaveBeenCalledTimes(1);
-  });
-
-  it("propagates usage from poe-agent ACP result", async () => {
-    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
-      events: (async function* () {})(),
-      done: Promise.resolve({
-        stdout: "from poe-agent\n",
-        stderr: "",
-        exitCode: 0,
-        threadId: "poe-agent-session-usage",
-        sessionId: "poe-agent-session-usage",
-        usage: { inputTokens: 101, outputTokens: 55, cachedTokens: 8 }
-      })
-    });
-
-    const { result } = spawn("poe-agent", "test prompt");
-
-    await expect(result).resolves.toEqual({
-      stdout: "from poe-agent\n",
-      stderr: "",
-      exitCode: 0,
-      threadId: "poe-agent-session-usage",
-      sessionId: "poe-agent-session-usage",
-      usage: { inputTokens: 101, outputTokens: 55, cachedTokens: 8 }
-    });
-  });
-
-  it("forwards mcpServers to poe-agent ACP runtime", async () => {
-    vi.mocked(spawnPoeAgentWithAcp).mockReturnValue({
-      events: (async function* () {})(),
-      done: Promise.resolve({
-        stdout: "from poe-agent\n",
-        stderr: "",
-        exitCode: 0,
-        threadId: "poe-agent-session-2",
-        sessionId: "poe-agent-session-2"
-      })
-    });
-
-    const { result } = spawn("poe-agent", "test prompt", {
-      mcpServers: {
-        test: {
-          command: "tiny-stdio-mcp-test-server",
-          args: ["serve", "word-of-the-day"],
-          env: { MCP_LOG_LEVEL: "debug" }
-        }
-      }
-    });
-
-    await expect(result).resolves.toEqual({
-      stdout: "from poe-agent\n",
-      stderr: "",
-      exitCode: 0,
-      threadId: "poe-agent-session-2",
-      sessionId: "poe-agent-session-2"
-    });
-
-    expect(spawnPoeAgentWithAcp).toHaveBeenCalledWith({
-      prompt: "test prompt",
-      cwd: undefined,
-      model: undefined,
-      mcpServers: {
-        test: {
-          command: "tiny-stdio-mcp-test-server",
-          args: ["serve", "word-of-the-day"],
-          env: { MCP_LOG_LEVEL: "debug" }
-        }
-      }
-    });
   });
 
   it("propagates errors from spawnInteractive", async () => {

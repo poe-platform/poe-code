@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { provider as poeAgentProvider, spawnPoeAgentWithAcp } from "./poe-agent.js";
-import { getDefaultProviders } from "./index.js";
 import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
 import { AcpClient } from "@poe-code/poe-acp-client";
 
@@ -186,8 +185,4 @@ describe("poe-agent provider", () => {
     });
   });
 
-  it("is auto-discovered by the provider loader", () => {
-    const names = getDefaultProviders().map((entry) => entry.name);
-    expect(names).toContain("poe-agent");
-  });
 });

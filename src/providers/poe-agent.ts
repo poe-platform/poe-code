@@ -708,6 +708,7 @@ export const poeAgentService = createProvider<EmptyProviderOptions>({
   label: "Poe Agent",
   summary: "Run one-shot prompts with the built-in Poe agent runtime.",
   supportsStdinPrompt: true,
+  disabled: true,
   manifest: {
     configure: []
   }

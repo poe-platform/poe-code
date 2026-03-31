@@ -19,17 +19,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Upgrade npm for trusted publishing
-        run: npm install --global npm@^11.5.1
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Prepare Bun for publishing
+        run: bun upgrade
       - name: Build
         working-directory: packages/tiny-stdio-mcp-server
-        run: npm run build
-      - name: Auto-bump patch version from npm
+        run: bun run build
+      - name: Auto-bump patch version from registry
         working-directory: packages/tiny-stdio-mcp-server
         run: |
-          REMOTE=$(npm view tiny-stdio-mcp-server version 2>/dev/null || echo "0.0.0")
-          npm version --no-git-tag-version "$REMOTE"
-          npm version --no-git-tag-version patch
+          REMOTE=$(bun info tiny-stdio-mcp-server version 2>/dev/null || echo "0.0.0")
+          bun pm version "$REMOTE"
+          bun pm version patch
       - name: Publish
         working-directory: packages/tiny-stdio-mcp-server
-        run: npm publish --provenance --access public
+        run: bun publish --access public

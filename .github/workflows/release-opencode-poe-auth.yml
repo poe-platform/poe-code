@@ -20,20 +20,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Upgrade npm for trusted publishing
-        run: npm install --global npm@^11.5.1
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Prepare Bun for publishing
+        run: bun upgrade
       - name: Install dependencies
-        run: npm clean-install
+        run: bun install --frozen-lockfile
       - name: Build poe-oauth
-        run: npm run build --workspace poe-oauth
+        run: bun run build --workspace poe-oauth
       - name: Build opencode-poe-auth
-        run: npm run build --workspace opencode-poe-auth
-      - name: Auto-bump patch version from npm
+        run: bun run build --workspace opencode-poe-auth
+      - name: Auto-bump patch version from registry
         working-directory: packages/opencode-poe-auth
         run: |
-          REMOTE=$(npm view opencode-poe-auth version 2>/dev/null || echo "0.0.0")
-          npm version --no-git-tag-version --allow-same-version "$REMOTE"
-          npm version --no-git-tag-version patch
+          REMOTE=$(bun info opencode-poe-auth version 2>/dev/null || echo "0.0.0")
+          bun pm version "$REMOTE"
+          bun pm version patch
       - name: Publish
         working-directory: packages/opencode-poe-auth
-        run: npm publish --provenance --access public
+        run: bun publish --access public

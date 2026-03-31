@@ -55,11 +55,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
+      - name: Setup Bun
+        if: steps.auth.outputs.allowed == 'true'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
 
       - name: Install and build
         if: steps.auth.outputs.allowed == 'true'
-        run: npm ci && npm run build && npm install -g .
+        run: bun install --frozen-lockfile && bun run build && bun install --global .
 
       - name: Configure agent
         if: steps.auth.outputs.allowed == 'true'

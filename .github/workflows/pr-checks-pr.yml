@@ -21,8 +21,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci
-      - run: npm run e2e:verbose
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - run: bun install --frozen-lockfile
+      - run: bun run e2e:verbose
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
         timeout-minutes: 15

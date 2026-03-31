@@ -20,7 +20,7 @@ describe("poe-agent system prompt", () => {
   });
 
   it("can import built system-prompt module in plain node", () => {
-    const modulePath = path.resolve(process.cwd(), "packages/poe-agent/dist/system-prompt.js");
+    const modulePath = path.resolve(import.meta.dir, "../dist/system-prompt.js");
     const moduleUrl = pathToFileURL(modulePath).href;
     const command = `await import(${JSON.stringify(moduleUrl)});`;
 

@@ -5,9 +5,9 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "//#test:unit": {
+    "test:unit": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "tests/**", "packages/**/*.test.ts", "package.json", "tsconfig.json", "bunfig.toml"]
+      "inputs": ["src/**", "tests/**", "*.test.ts", "package.json", "tsconfig.json", "bunfig.toml"]
     },
     "lint": {
       "outputs": []

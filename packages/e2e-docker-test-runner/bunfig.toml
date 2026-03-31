@@ -1,0 +1,7 @@
+[loader]
+".hbs" = "text"
+".md" = "text"
+".log" = "text"
+
+[test]
+preload = ["./tests/setup.ts"]

@@ -9,7 +9,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "postinstall": "test -f dist/download.js && node dist/download.js || true"
+    "postinstall": "test -f dist/download.js && node dist/download.js || true",
+    "test:unit": "bun test"
   },
   "goBinary": {
     "name": "freeze",

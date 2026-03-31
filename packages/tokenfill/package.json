@@ -15,7 +15,8 @@
     }
   },
   "scripts": {
-    "build": "tsc && node ./scripts/copy-corpus.mjs"
+    "build": "tsc && node ./scripts/copy-corpus.mjs",
+    "test:unit": "bun test"
   },
   "files": [
     "dist"

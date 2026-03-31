@@ -11,7 +11,8 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test:unit": "bun test"
   },
   "dependencies": {},
   "files": [

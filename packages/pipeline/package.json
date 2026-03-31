@@ -16,7 +16,8 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test:unit": "bun test"
   },
   "files": [
     "dist"

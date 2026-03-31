@@ -12,7 +12,8 @@
     }
   },
   "scripts": {
-    "build": "tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\""
+    "build": "tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\"",
+    "test:unit": "bun test"
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",

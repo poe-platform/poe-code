@@ -9,7 +9,6 @@ include = [
   "src/**/*.test.ts",
   "tests/helpers/**/*.test.ts",
   "tests/integration/**/*.test.ts",
-  "packages/**/*.test.ts",
   "scripts/screenshot.test.ts"
 ]
 pathIgnorePatterns = [

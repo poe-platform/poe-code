@@ -42,15 +42,7 @@ jobs:
           bun-version: 1.3.11
       - run: bun install --frozen-lockfile
       - run: bun run build
-      - name: Debug design-system exports
-        run: |
-          echo "--- dist/index.js text exports ---"
-          grep "text" packages/design-system/dist/index.js || true
-          echo "--- dist/components/text.js selectLabel ---"
-          grep -c "selectLabel" packages/design-system/dist/components/text.js || true
-          echo "--- bun resolve test ---"
-          bun -e "import { text } from '@poe-code/design-system'; console.log('type:', typeof text, 'heading:', typeof text.heading, 'selectLabel:', typeof text.selectLabel);"
-      - run: bun test
+      - run: bun run test
       - run: bun run smoke
       - name: Generate GitHub App token
         id: app_token

@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc",
     "demo": "tsx scripts/demo.ts",
-    "generate:docs": "tsx scripts/generate-docs.ts"
+    "generate:docs": "tsx scripts/generate-docs.ts",
+    "test:unit": "bun test"
   },
   "files": [
     "dist"

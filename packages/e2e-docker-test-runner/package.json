@@ -21,7 +21,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "test:unit": "bun test"
   },
   "dependencies": {
     "auth-store": "*",

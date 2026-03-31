@@ -12,7 +12,8 @@
     }
   },
   "scripts": {
-    "build": "tsc && mkdir -p dist/templates && cp src/templates/*.md dist/templates/"
+    "build": "tsc && mkdir -p dist/templates && cp src/templates/*.md dist/templates/",
+    "test:unit": "bun test"
   },
   "files": [
     "dist"

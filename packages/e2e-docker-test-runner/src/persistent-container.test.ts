@@ -62,6 +62,7 @@ beforeEach(async () => {
   }));
 
   mock.module('node:crypto', () => ({
+    ...require('node:crypto'),
     randomUUID: randomUUIDMock,
   }));
 

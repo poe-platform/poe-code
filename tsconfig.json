@@ -10,7 +10,16 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "jsx": "react",
-    "types": ["node", "vitest/globals"]
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
   },
-  "include": ["src", "tests", "packages", "vitest.config.ts"]
+  "include": [
+    "src",
+    "tests",
+    "packages",
+    "packages/terminal-pilot",
+    "vitest.config.ts"
+  ]
 }

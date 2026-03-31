@@ -1,23 +1,47 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "package.json",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "packages/*/package.json",
+    "packages/*/tsconfig.json"
+  ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
     },
     "//#test:unit": {
-      "dependsOn": ["^build"],
-      "inputs": ["src/**", "tests/**", "packages/**/*.test.ts", "package.json", "tsconfig.json", "vitest.config.ts"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "packages/**/*.test.ts",
+        "package.json",
+        "tsconfig.json",
+        "vitest.config.ts"
+      ]
     },
     "lint": {
       "outputs": []
     },
     "lint:types": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": []
     },
     "generate:docs": {
-      "outputs": ["docs/**"]
+      "outputs": [
+        "docs/**"
+      ]
     }
   }
 }

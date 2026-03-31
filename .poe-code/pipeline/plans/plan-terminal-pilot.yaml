@@ -20,9 +20,9 @@ tasks:
 
       Do NOT implement any source files yet — just the package skeleton.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: keys

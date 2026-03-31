@@ -1,0 +1,29 @@
+{
+  "name": "@poe-code/terminal-pilot",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp-server.d.ts",
+      "import": "./dist/mcp-server.js"
+    }
+  },
+  "bin": {
+    "terminal-pilot-mcp": "dist/mcp-server.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "headless-terminal": "^0.4.0",
+    "node-pty": "^1.1.0"
+  },
+  "devDependencies": {}
+}

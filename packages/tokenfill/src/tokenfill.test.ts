@@ -42,8 +42,9 @@ afterAll(() => {
     .map((name: string) => readFileSync(join(corpusDir, name), "utf8").trim());
   mock.module("./corpus.js", () => ({ BUILT_IN_CORPUS_ARTICLES, CORPUS_ARTICLE_SEPARATOR }));
 
-  // Restore real tokenizer
+  // Restore real tokenizer and tokenfill
   mock.module("./tokenizer.js", () => require("./tokenizer.js"));
+  mock.module("./tokenfill.js", () => require("./tokenfill.js"));
 });
 
 describe("tokenfill", () => {

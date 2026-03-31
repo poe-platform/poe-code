@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "tsc && node ./scripts/copy-corpus.mjs",
-    "test:unit": "bun test"
+    "test:unit": "bun test src/cli.test.ts && bun test src/tokenfill.test.ts src/corpus.test.ts src/tokenizer.test.ts"
   },
   "files": [
     "dist"

@@ -15,6 +15,7 @@ import {
   NPM_CACHE_DIR,
   UV_CACHE_DIR,
   getWorkspaceDir,
+  resolveWorkspaceDir,
 } from './container.js';
 import { mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -206,7 +207,7 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
     throw new Error('useSnapshots requires testName');
   }
 
-  const workspace = getWorkspaceDir() ?? process.cwd();
+  const workspace = getWorkspaceDir() ?? resolveWorkspaceDir(process.cwd());
   ensureCacheDirs();
   const snapshotDir = useSnapshots && options.testName
     ? `${E2E_FIXTURES_DIR}/${options.testName}`

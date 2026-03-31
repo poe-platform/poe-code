@@ -41,7 +41,14 @@ export async function runPreflight(
     return { passed: false, results };
   }
 
-  // Check 3: API key available
+  // Check 3: Docker DNS resolution
+  const dnsCheck = checkDockerDns(engine);
+  results.push(dnsCheck);
+  if (!dnsCheck.passed) {
+    return { passed: false, results };
+  }
+
+  // Check 4: API key available
   const apiKeyCheck = await checkApiKey();
   results.push(apiKeyCheck);
   if (!apiKeyCheck.passed) {
@@ -73,7 +80,7 @@ export async function runPreflight(
       const context = engine === 'docker' ? getResolvedContext() ?? undefined : undefined;
       const tag = ensureImage(engine, options.prebuildWorkspaceDir, {
         context,
-        verbose: options.verbose ?? false,
+        verbose: options.verbose,
       });
       results.push({
         name: 'E2E image',
@@ -198,6 +205,29 @@ function tryStartColima(): boolean {
     }
   } catch {
     return false;
+  }
+}
+
+function checkDockerDns(engine: Engine): CheckResult {
+  const ctx = engine === 'docker' ? getResolvedContext() : null;
+  const contextArg = ctx ? `--context ${ctx}` : '';
+
+  try {
+    execSync(
+      `${engine} ${contextArg} run --rm node:22 bash -c "getent hosts registry.npmjs.org"`,
+      { stdio: 'ignore', timeout: 15000 }
+    );
+    return { name: 'Docker DNS', passed: true };
+  } catch {
+    return {
+      name: 'Docker DNS',
+      passed: false,
+      message: 'DNS resolution failed inside Docker containers',
+      fix:
+        'Restart your Docker VM with working DNS:\n' +
+        '  - Colima: colima stop && colima start --dns 8.8.8.8\n' +
+        '  - Docker Desktop: check DNS settings in Preferences > Docker Engine',
+    };
   }
 }
 

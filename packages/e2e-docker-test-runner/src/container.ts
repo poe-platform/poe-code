@@ -1,6 +1,6 @@
 import { execSync, spawnSync } from 'node:child_process';
-import { mkdirSync, existsSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { mkdirSync, existsSync, readFileSync } from 'node:fs';
+import { join, basename, dirname, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import type { Engine } from './types.js';
 import { detectEngine } from './engine.js';
@@ -21,6 +21,39 @@ export function setWorkspaceDir(dir: string): void {
 
 export function getWorkspaceDir(): string | null {
   return workspaceDir;
+}
+
+export function resolveWorkspaceDir(startDir: string): string {
+  let currentDir = resolve(startDir);
+  let nearestPackageDir: string | null = null;
+
+  for (;;) {
+    const packageJsonPath = join(currentDir, 'package.json');
+    if (existsSync(packageJsonPath)) {
+      nearestPackageDir ??= currentDir;
+
+      try {
+        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as {
+          workspaces?: unknown;
+        };
+        if (packageJson.workspaces !== undefined) {
+          return currentDir;
+        }
+      } catch {
+        // Ignore unreadable package.json and keep searching upward.
+      }
+
+      if (existsSync(join(currentDir, 'turbo.json')) || existsSync(join(currentDir, 'bunfig.toml'))) {
+        return currentDir;
+      }
+    }
+
+    const parentDir = dirname(currentDir);
+    if (parentDir === currentDir) {
+      return nearestPackageDir ?? resolve(startDir);
+    }
+    currentDir = parentDir;
+  }
 }
 
 function ensureCacheDirs(): void {
@@ -233,7 +266,7 @@ export async function runInContainer(
   options: { verbose?: boolean } = {}
 ): Promise<RunResult> {
   const verbose = options.verbose ?? process.env.E2E_VERBOSE === '1';
-  const workspace = workspaceDir ?? process.cwd();
+  const workspace = workspaceDir ?? resolveWorkspaceDir(process.cwd());
   ensureCacheDirs();
 
   const runConfig = setupRunConfig(workspace);

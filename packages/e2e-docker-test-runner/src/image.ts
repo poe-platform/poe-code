@@ -1,6 +1,6 @@
 import { execSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, statSync, renameSync, unlinkSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Engine } from "./types.js";
@@ -153,19 +153,16 @@ export function imageExists(engine: Engine, tag: string, context?: string): bool
  * Pack a workspace package into a tarball for the Docker build context.
  */
 function packTarball(cwd: string, targetName: string, verbose: boolean): void {
-  const packResult = execSync("npm pack --pack-destination " + DOCKERFILE_DIR, {
+  const quietFlag = verbose ? "" : " --quiet";
+  const targetPath = join(DOCKERFILE_DIR, targetName);
+  execSync(
+    `bun pm pack --filename ${targetPath} --ignore-scripts${quietFlag}`,
+    {
     cwd,
     encoding: "utf-8",
     stdio: ["pipe", "pipe", verbose ? "inherit" : "pipe"]
-  });
-
-  const packedFile = packResult.trim().split("\n").pop()!;
-  const packedPath = join(DOCKERFILE_DIR, packedFile);
-  const targetPath = join(DOCKERFILE_DIR, targetName);
-
-  if (packedPath !== targetPath) {
-    renameSync(packedPath, targetPath);
-  }
+    }
+  );
 }
 
 /**
@@ -215,7 +212,11 @@ export function buildImage(
     if (options.context && engine === "docker") {
       args.push("--context", options.context);
     }
-    args.push("build", "-t", tag, "-f", DOCKERFILE_PATH, DOCKERFILE_DIR);
+    args.push("build", "--network", "host");
+    if (verbose && engine === "docker") {
+      args.push("--progress", "plain");
+    }
+    args.push("-t", tag, "-f", DOCKERFILE_PATH, DOCKERFILE_DIR);
 
     const result = spawnSync(engine, args, {
       stdio: verbose ? "inherit" : "pipe",

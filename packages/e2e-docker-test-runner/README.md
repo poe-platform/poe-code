@@ -97,11 +97,11 @@ Run preflight checks and return results.
 
 ## CLI Commands
 
-When used with poe-code, the following npm scripts are available:
+When used with poe-code, the following bun scripts are available:
 
-- `npm run e2e` - Run e2e tests
-- `npm run e2e:cleanup` - Clean up orphaned containers
-- `npm run e2e:logs` - View test logs
-- `npm run e2e:logs -- <filter>` - View logs matching filter
-- `npm run e2e:logs -- --follow` - Stream logs in real-time
-- `npm run e2e:logs:rotate` - Manually rotate old logs
+- `bun run e2e` - Run e2e tests
+- `bun run e2e:cleanup` - Clean up orphaned containers
+- `bun run e2e:logs` - View test logs
+- `bun run e2e:logs -- <filter>` - View logs matching filter
+- `bun run e2e:logs -- --follow` - Stream logs in real-time
+- `bun run e2e:logs:rotate` - Manually rotate old logs

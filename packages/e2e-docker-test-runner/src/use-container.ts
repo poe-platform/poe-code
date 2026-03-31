@@ -1,6 +1,6 @@
-import { beforeEach, afterEach, expect } from 'vitest';
+import { beforeEach, afterEach, expect } from 'bun:test';
 import { createContainer } from './persistent-container.js';
-import { setWorkspaceDir } from './container.js';
+import { setWorkspaceDir, resolveWorkspaceDir } from './container.js';
 import type { Container } from './types.js';
 
 export interface UseContainerOptions {
@@ -13,7 +13,7 @@ export function useContainer(options: UseContainerOptions): Container {
   let current: Container | null = null;
 
   beforeEach(async () => {
-    setWorkspaceDir(options.workspaceDir ?? process.cwd());
+    setWorkspaceDir(options.workspaceDir ?? resolveWorkspaceDir(process.cwd()));
     current = await createContainer({
       testName: options.testName,
       useSnapshots: options.useSnapshots ?? false,

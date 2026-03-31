@@ -51,8 +51,6 @@ describe("TerminalPilot", () => {
     expect(first.id).not.toBe(second.id);
 
     await Promise.all([first.waitFor("What is your name?"), second.waitFor("What is your name?")]);
-    await Promise.all([first.send("Ada\r"), second.send("Grace\r")]);
-    await Promise.all([first.waitFor("Hello, Ada!"), second.waitFor("Hello, Grace!")]);
 
     expect(pilot.sessions()).toEqual([first, second]);
     expect(pilot.getSession(first.id)).toBe(first);
@@ -60,6 +58,9 @@ describe("TerminalPilot", () => {
     expect(() => pilot.getSession("missing-session")).toThrowError(
       "Session not found: missing-session"
     );
+
+    await Promise.all([first.send("Ada\r"), second.send("Grace\r")]);
+    await Promise.all([first.waitFor("Hello, Ada!"), second.waitFor("Hello, Grace!")]);
 
     await pilot.close();
 
@@ -84,6 +85,42 @@ describe("TerminalPilot", () => {
 
     const screen = await session.screen();
     expect(screen.size).toEqual({ cols: 120, rows: 40 });
+  });
+
+  it("removes closed sessions from the active session list", async () => {
+    const pilot = await TerminalPilot.launch();
+    pilots.push(pilot);
+
+    const first = await pilot.newSession(createSessionOptions());
+    const second = await pilot.newSession(createSessionOptions());
+
+    await Promise.all([first.waitFor("What is your name?"), second.waitFor("What is your name?")]);
+    await first.send("Ada\r");
+    await first.waitFor("Hello, Ada!");
+
+    expect(await first.close()).toBe(0);
+    expect(pilot.sessions()).toEqual([second]);
+    expect(() => pilot.getSession(first.id)).toThrowError(`Session not found: ${first.id}`);
+
+    await second.send("Grace\r");
+    await second.waitFor("Hello, Grace!");
+    expect(await second.close()).toBe(0);
+    expect(pilot.sessions()).toEqual([]);
+  });
+
+  it("removes sessions that exit on their own from the active session list", async () => {
+    const pilot = await TerminalPilot.launch();
+    pilots.push(pilot);
+
+    const session = await pilot.newSession(createSessionOptions());
+
+    await session.waitFor("What is your name?");
+    await session.send("Ada\r");
+    await session.waitFor("Hello, Ada!");
+    await expect(session.close()).resolves.toBe(0);
+
+    expect(pilot.sessions()).toEqual([]);
+    expect(() => pilot.getSession(session.id)).toThrowError(`Session not found: ${session.id}`);
   });
 
   it("cleans up every tracked session even when some sessions were already closed", async () => {

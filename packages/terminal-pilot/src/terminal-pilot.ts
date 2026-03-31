@@ -33,6 +33,10 @@ export class TerminalPilot {
       observe: opts.observe ?? false
     });
 
+    session.on("exit", () => {
+      this.sessionMap.delete(session.id);
+    });
+
     this.sessionMap.set(session.id, session);
     return session;
   }

@@ -349,7 +349,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: readme
     title: Write package README
@@ -366,7 +366,7 @@ tasks:
       Keep it concise and practical. Reference the plan at docs/plans/terminal-pilot.md
       for design rationale.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

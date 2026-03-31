@@ -15,15 +15,15 @@ Ship a **thin** Python SDK for `@poe-code/agent-spawn` by shelling out to the ex
 
 The Python SDK mirrors the following JS SDK functions:
 
-| JS SDK               | Python SDK            | Notes                          |
-|----------------------|-----------------------|--------------------------------|
-| `spawn()`           | `spawn()`            | Returns final result           |
-| `spawnStreaming()`   | `spawn_streaming()`  | Yields events, returns result  |
-| `spawnInteractive()` | `spawn_interactive()` | Inherits stdio                 |
+| JS SDK               | Python SDK            | Notes                         |
+| -------------------- | --------------------- | ----------------------------- |
+| `spawn()`            | `spawn()`             | Returns final result          |
+| `spawnStreaming()`   | `spawn_streaming()`   | Yields events, returns result |
+| `spawnInteractive()` | `spawn_interactive()` | Inherits stdio                |
 
 ## Prerequisites
 
-- **Bun migration** — standalone binary compilation (`bun build --compile`) is required for bundling the binary into Python wheels. See [bun-migration-plan.md](bun-migration-plan.md).
+- **Standalone binary compilation** — required for bundling the binary into Python wheels. Use `pkg` (or `@vercel/ncc` + a Node.js shim) to produce self-contained binaries.
 
 ## Approach
 
@@ -37,19 +37,45 @@ Follow the [ACP spec](https://agentclientprotocol.com/) wire format using `sessi
 
 - **`agent_message_chunk`** — streamed text content
   ```jsonl
-  {"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"..."}}
+  {
+    "sessionUpdate": "agent_message_chunk",
+    "content": {
+      "type": "text",
+      "text": "..."
+    }
+  }
   ```
 - **`tool_call`** — tool invocation with status lifecycle
   ```jsonl
-  {"sessionUpdate":"tool_call","toolCallId":"...","title":"...","kind":"read","status":"pending"}
+  {
+    "sessionUpdate": "tool_call",
+    "toolCallId": "...",
+    "title": "...",
+    "kind": "read",
+    "status": "pending"
+  }
   ```
 - **`tool_call_update`** — tool result / status change
   ```jsonl
-  {"sessionUpdate":"tool_call_update","toolCallId":"...","status":"completed","rawOutput":"..."}
+  {
+    "sessionUpdate": "tool_call_update",
+    "toolCallId": "...",
+    "status": "completed",
+    "rawOutput": "..."
+  }
   ```
 - **`session_complete`** — final line, emitted once when spawn completes
   ```jsonl
-  {"sessionUpdate":"session_complete","exitCode":0,"threadId":"...","sessionId":"...","usage":{"inputTokens":0,"outputTokens":0}}
+  {
+    "sessionUpdate": "session_complete",
+    "exitCode": 0,
+    "threadId": "...",
+    "sessionId": "...",
+    "usage": {
+      "inputTokens": 0,
+      "outputTokens": 0
+    }
+  }
   ```
 
 No custom wrapper types — events are ACP objects directly, one per line. Python parses only these four `sessionUpdate` values.
@@ -82,7 +108,7 @@ Only CLI args are constructed in Python; provider behavior remains in the JS CLI
 
 #### Standalone binary
 
-Compile the **full `poe-code` CLI** into a self-contained binary (no Node runtime required) using `bun build --compile`. This gives Python users the complete CLI, not just spawn. Produce one binary per platform:
+Compile the **full `poe-code` CLI** into a self-contained binary (no Node runtime required) using `pkg` or a similar Node.js bundler. This gives Python users the complete CLI, not just spawn. Produce one binary per platform:
 
 - `poe-code-linux-x64`
 - `poe-code-linux-arm64`

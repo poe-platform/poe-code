@@ -102,11 +102,12 @@ interface RunSpec {
  */
 interface Runner {
   exec(spec: RunSpec): RunHandle;
-  readonly name: string;  // "host" | "docker"
+  readonly name: string; // "host" | "docker"
 }
 ```
 
 Why `RunHandle` instead of just `Promise<RunResult>`:
+
 - Long-running processes need streaming access to stdout/stderr
 - Callers need `kill()` before the process exits
 - stdin piping (for agent-spawn's stdin mode)
@@ -128,7 +129,7 @@ runner.exec({
   stdin: stdinMode ? "pipe" : "inherit",
   stdout: "pipe",
   stderr: "pipe",
-  signal: options.signal,
+  signal: options.signal
 });
 ```
 
@@ -147,7 +148,7 @@ runner.exec({
   stdin: "inherit",
   stdout: "inherit",
   stderr: "inherit",
-  tty: true,
+  tty: true
 });
 ```
 
@@ -171,7 +172,7 @@ const handle = runner.exec({
   stdin: "pipe",
   stdout: "pipe",
   stderr: "pipe",
-  signal: options.signal,
+  signal: options.signal
 });
 
 handle.stdin!.write(prompt);
@@ -197,6 +198,7 @@ function createHostRunner(options?: HostRunnerOptions): Runner;
 ```
 
 Implementation:
+
 - Wraps `node:child_process.spawn()`
 - Maps `RunSpec` fields directly to spawn options
 - `kill(signal)`:
@@ -212,12 +214,12 @@ This is what `agent-spawn` currently does inline. Extracting it here means
 ```typescript
 interface DockerRunnerOptions {
   image: string;
-  engine?: Engine;            // auto-detected if omitted
-  context?: string;           // e.g. "colima", auto-detected if omitted
+  engine?: Engine; // auto-detected if omitted
+  context?: string; // e.g. "colima", auto-detected if omitted
   mounts?: DockerMount[];
   ports?: DockerPortMapping[];
   network?: string;
-  extraArgs?: string[];       // passthrough to docker run
+  extraArgs?: string[]; // passthrough to docker run
   /** Override container name. Default: auto-generated from RunSpec.command. */
   containerName?: string;
 }
@@ -225,21 +227,22 @@ interface DockerRunnerOptions {
 type Engine = "docker" | "podman";
 
 interface DockerMount {
-  source: string;             // host path (resolved to absolute)
-  target: string;             // container path
+  source: string; // host path (resolved to absolute)
+  target: string; // container path
   readonly?: boolean;
 }
 
 interface DockerPortMapping {
   host: number;
   container: number;
-  protocol?: "tcp" | "udp";  // default: tcp
+  protocol?: "tcp" | "udp"; // default: tcp
 }
 
 function createDockerRunner(options: DockerRunnerOptions): Runner;
 ```
 
 Implementation:
+
 - `exec()` builds and runs `docker run` with the correct args
 - Three modes based on stdio and tty:
   - **Piped** (stdout/stderr: "pipe"): `docker run --rm` in foreground,
@@ -267,7 +270,7 @@ Implementation:
 Extracted from `e2e-docker-test-runner/src/engine.ts`:
 
 ```typescript
-function detectEngine(): Engine;        // docker → podman → throw
+function detectEngine(): Engine; // docker → podman → throw
 function isEngineAvailable(engine: Engine): boolean;
 ```
 
@@ -276,7 +279,7 @@ function isEngineAvailable(engine: Engine): boolean;
 Extracted from `e2e-docker-test-runner/src/context.ts`:
 
 ```typescript
-function detectContext(): string | null;            // colima auto-detect
+function detectContext(): string | null; // colima auto-detect
 function buildContextArgs(engine: Engine, context: string | null): string[];
 ```
 
@@ -301,8 +304,8 @@ interface DockerRunArgs {
   network?: string;
   containerName: string;
   detached: boolean;
-  interactive: boolean;        // -i flag (keep stdin open)
-  tty: boolean;                // -t flag (allocate pseudo-TTY)
+  interactive: boolean; // -i flag (keep stdin open)
+  tty: boolean; // -t flag (allocate pseudo-TTY)
   rm: boolean;
   extraArgs: string[];
 }
@@ -318,10 +321,10 @@ Tested in isolation — pure input → output, no side effects.
 interface MockRunBehavior {
   pid?: number;
   exitCode: number;
-  exitAfterMs?: number;       // default: 0 (immediate)
-  stdout?: string[];          // lines emitted over time
+  exitAfterMs?: number; // default: 0 (immediate)
+  stdout?: string[]; // lines emitted over time
   stderr?: string[];
-  stdoutInterval?: number;    // ms between lines, default: 10
+  stdoutInterval?: number; // ms between lines, default: 10
 }
 
 /** Returns a Runner that replays pre-programmed behaviors in order. */
@@ -331,9 +334,7 @@ function createMockRunner(behaviors: MockRunBehavior[]): Runner;
  * Returns a Runner that matches specs to behaviors by command name.
  * Useful when exec order isn't deterministic.
  */
-function createMockRunnerByCommand(
-  map: Record<string, MockRunBehavior>
-): Runner;
+function createMockRunnerByCommand(map: Record<string, MockRunBehavior>): Runner;
 ```
 
 Both `agent-spawn` and `process-launcher` use this in their tests
@@ -345,11 +346,7 @@ The runner is a plain object — consumers create the one they want at the call 
 There is no global config, registry, or resolution chain. The consumer owns the decision.
 
 ```typescript
-import {
-  createHostRunner,
-  createDockerRunner,
-  createMockRunner,
-} from "@poe-code/process-runner";
+import { createHostRunner, createDockerRunner, createMockRunner } from "@poe-code/process-runner";
 
 // Host (default for most use cases)
 const host = createHostRunner();
@@ -358,13 +355,11 @@ const host = createHostRunner();
 const docker = createDockerRunner({
   image: "node:22-slim",
   mounts: [{ source: "./data", target: "/app/data" }],
-  ports: [{ host: 8080, container: 8080 }],
+  ports: [{ host: 8080, container: 8080 }]
 });
 
 // Mock (tests)
-const mock = createMockRunner([
-  { exitCode: 0, stdout: ["hello\n"] },
-]);
+const mock = createMockRunner([{ exitCode: 0, stdout: ["hello\n"] }]);
 
 // All three satisfy the same Runner interface.
 // The consumer passes whichever one it wants:
@@ -372,7 +367,7 @@ const handle = docker.exec({
   command: "node",
   args: ["server.js"],
   stdout: "pipe",
-  stderr: "pipe",
+  stderr: "pipe"
 });
 ```
 
@@ -402,6 +397,7 @@ When other packages adopt this runner, they create the runner themselves:
 ### Unit tests (mock-based, fast)
 
 **Docker args builder:**
+
 1. Minimal spec → correct `docker run` args
 2. With mounts → `-v` args with absolute paths
 3. With ports → `-p` args
@@ -414,30 +410,11 @@ When other packages adopt this runner, they create the runner themselves:
 10. Combined interactive + TTY → `-it` flags
 11. Extra args passed through
 
-**Host runner:**
-12. Piped mode — spawns with stdio pipes, streams accessible on RunHandle
-13. Inherit mode — spawns with stdio inherit, RunHandle streams are null
-14. tty flag — no-op for host runner (inherit already passes TTY through)
-15. kill() sends signal to process
-16. AbortSignal sends SIGTERM
-17. Detached mode uses process group kill
+**Host runner:** 12. Piped mode — spawns with stdio pipes, streams accessible on RunHandle 13. Inherit mode — spawns with stdio inherit, RunHandle streams are null 14. tty flag — no-op for host runner (inherit already passes TTY through) 15. kill() sends signal to process 16. AbortSignal sends SIGTERM 17. Detached mode uses process group kill
 
-**Docker runner:**
-18. Piped mode — docker run in foreground, streams accessible
-19. Interactive mode (tty + inherit) — docker run -it, streams null
-20. Detached mode — docker run -d, logs sidecar
-21. kill(SIGTERM) runs docker stop
-22. kill(SIGKILL) runs docker kill
-23. Exit code parsed correctly
-24. Container name generated correctly
-25. Engine auto-detection used when not specified
+**Docker runner:** 18. Piped mode — docker run in foreground, streams accessible 19. Interactive mode (tty + inherit) — docker run -it, streams null 20. Detached mode — docker run -d, logs sidecar 21. kill(SIGTERM) runs docker stop 22. kill(SIGKILL) runs docker kill 23. Exit code parsed correctly 24. Container name generated correctly 25. Engine auto-detection used when not specified
 
-**Mock runner:**
-26. Replays behaviors in order
-27. Emits stdout/stderr lines
-28. Resolves with programmed exit code
-29. By-command matching works
-30. Inherit mode — returns null streams
+**Mock runner:** 26. Replays behaviors in order 27. Emits stdout/stderr lines 28. Resolves with programmed exit code 29. By-command matching works 30. Inherit mode — returns null streams
 
 ### Integration tests
 
@@ -463,9 +440,10 @@ When other packages adopt this runner, they create the runner themselves:
 6. **Host runner integration test** — test 31: spawn `echo hello`, verify stdout capture
 
 **Verify phase 2:**
+
 - `npm run test` — all unit tests pass
 - `npm run lint` — no type errors
-- Manual: `bun packages/process-runner/src/host/host-runner.integration.test.ts`
+- Manual: `npx tsx packages/process-runner/src/host/host-runner.integration.test.ts`
 
 ### Phase 3: Docker args + infrastructure
 
@@ -475,6 +453,7 @@ When other packages adopt this runner, they create the runner themselves:
 10. **Context detection** — extract from `e2e-docker-test-runner`
 
 **Verify phase 3:**
+
 - `npm run test` — args builder and detection tests pass
 - Spot-check: import and call `detectEngine()` from a scratch script, verify it finds docker/podman
 
@@ -485,28 +464,29 @@ When other packages adopt this runner, they create the runner themselves:
 13. **Docker runner integration test** — test 33: `echo hello` in alpine
 
 **Verify phase 4:**
+
 - `npm run test` — all tests pass
 - Manual integration: run a real container
   ```
-  bun -e "
-    const { createDockerRunner } = require('./packages/process-runner/src');
+  node --input-type=module <<'EOF'
+    import { createDockerRunner } from './packages/process-runner/src/index.js';
     const runner = createDockerRunner({ image: 'alpine:latest' });
     const handle = runner.exec({ command: 'echo', args: ['hello from docker'] });
     handle.stdout.on('data', d => process.stdout.write(d));
     await handle.result;
-  "
+  EOF
   ```
 - Manual interactive: verify `docker run -it` works
   ```
-  bun -e "
-    const { createDockerRunner } = require('./packages/process-runner/src');
+  node --input-type=module <<'EOF'
+    import { createDockerRunner } from './packages/process-runner/src/index.js';
     const runner = createDockerRunner({ image: 'alpine:latest' });
     const handle = runner.exec({
       command: 'sh',
       stdin: 'inherit', stdout: 'inherit', stderr: 'inherit', tty: true
     });
     await handle.result;
-  "
+  EOF
   ```
   Should drop into an interactive alpine shell.
 
@@ -529,7 +509,7 @@ When other packages adopt this runner, they create the runner themselves:
 ## Manual verification
 
 Verification scripts live at `packages/process-runner/src/testing/verify.ts`.
-Run with `bun packages/process-runner/src/testing/verify.ts`.
+Run with `npx tsx packages/process-runner/src/testing/verify.ts`.
 
 All verification is automated and assertions are checked in code —
 no human interaction required. An AI agent can run this and read the output.
@@ -544,12 +524,14 @@ async function verifyHostPiped() {
     command: "echo",
     args: ["hello from host"],
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "pipe"
   });
 
   let stdout = "";
   handle.stdout!.setEncoding("utf8");
-  handle.stdout!.on("data", (chunk: string) => { stdout += chunk; });
+  handle.stdout!.on("data", (chunk: string) => {
+    stdout += chunk;
+  });
 
   const { exitCode } = await handle.result;
   assert.equal(exitCode, 0, "host piped: exit code 0");
@@ -562,7 +544,7 @@ async function verifyHostStdin() {
   const handle = runner.exec({
     command: "cat",
     stdin: "pipe",
-    stdout: "pipe",
+    stdout: "pipe"
   });
 
   handle.stdin!.write("ping");
@@ -570,7 +552,9 @@ async function verifyHostStdin() {
 
   let stdout = "";
   handle.stdout!.setEncoding("utf8");
-  handle.stdout!.on("data", (chunk: string) => { stdout += chunk; });
+  handle.stdout!.on("data", (chunk: string) => {
+    stdout += chunk;
+  });
 
   const { exitCode } = await handle.result;
   assert.equal(exitCode, 0, "host stdin: exit code 0");
@@ -584,7 +568,7 @@ async function verifyHostKill() {
     command: "sleep",
     args: ["60"],
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "pipe"
   });
 
   handle.kill("SIGTERM");
@@ -601,7 +585,7 @@ async function verifyHostAbort() {
     args: ["60"],
     stdout: "pipe",
     stderr: "pipe",
-    signal: controller.signal,
+    signal: controller.signal
   });
 
   controller.abort();
@@ -619,7 +603,7 @@ async function verifyHostInherit() {
     args: ["inherit-mode-output"],
     stdin: "inherit",
     stdout: "inherit",
-    stderr: "inherit",
+    stderr: "inherit"
   });
 
   assert.equal(handle.stdout, null, "host inherit: stdout is null");
@@ -637,7 +621,7 @@ async function verifyHostExitCode() {
     command: "sh",
     args: ["-c", "exit 42"],
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "pipe"
   });
 
   const { exitCode } = await handle.result;
@@ -651,12 +635,14 @@ async function verifyHostEnv() {
     command: "sh",
     args: ["-c", "echo $MY_TEST_VAR"],
     stdout: "pipe",
-    env: { ...process.env, MY_TEST_VAR: "runner-works" },
+    env: { ...process.env, MY_TEST_VAR: "runner-works" }
   });
 
   let stdout = "";
   handle.stdout!.setEncoding("utf8");
-  handle.stdout!.on("data", (chunk: string) => { stdout += chunk; });
+  handle.stdout!.on("data", (chunk: string) => {
+    stdout += chunk;
+  });
 
   const { exitCode } = await handle.result;
   assert.equal(exitCode, 0);
@@ -670,12 +656,14 @@ async function verifyDockerPiped() {
     command: "echo",
     args: ["hello from docker"],
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "pipe"
   });
 
   let stdout = "";
   handle.stdout!.setEncoding("utf8");
-  handle.stdout!.on("data", (chunk: string) => { stdout += chunk; });
+  handle.stdout!.on("data", (chunk: string) => {
+    stdout += chunk;
+  });
 
   const { exitCode } = await handle.result;
   assert.equal(exitCode, 0, "docker piped: exit code 0");
@@ -688,7 +676,7 @@ async function verifyDockerStdin() {
   const handle = runner.exec({
     command: "cat",
     stdin: "pipe",
-    stdout: "pipe",
+    stdout: "pipe"
   });
 
   handle.stdin!.write("docker-ping");
@@ -696,7 +684,9 @@ async function verifyDockerStdin() {
 
   let stdout = "";
   handle.stdout!.setEncoding("utf8");
-  handle.stdout!.on("data", (chunk: string) => { stdout += chunk; });
+  handle.stdout!.on("data", (chunk: string) => {
+    stdout += chunk;
+  });
 
   const { exitCode } = await handle.result;
   assert.equal(exitCode, 0, "docker stdin: exit code 0");
@@ -710,7 +700,7 @@ async function verifyDockerKill() {
     command: "sleep",
     args: ["60"],
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "pipe"
   });
 
   // Give container a moment to start
@@ -727,7 +717,7 @@ async function verifyDockerExitCode() {
     command: "sh",
     args: ["-c", "exit 42"],
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "pipe"
   });
 
   const { exitCode } = await handle.result;
@@ -741,12 +731,14 @@ async function verifyDockerEnv() {
     command: "sh",
     args: ["-c", "echo $MY_TEST_VAR"],
     stdout: "pipe",
-    env: { MY_TEST_VAR: "docker-runner-works" },
+    env: { MY_TEST_VAR: "docker-runner-works" }
   });
 
   let stdout = "";
   handle.stdout!.setEncoding("utf8");
-  handle.stdout!.on("data", (chunk: string) => { stdout += chunk; });
+  handle.stdout!.on("data", (chunk: string) => {
+    stdout += chunk;
+  });
 
   const { exitCode } = await handle.result;
   assert.equal(exitCode, 0);
@@ -757,13 +749,13 @@ async function verifyDockerEnv() {
 async function verifyDockerMount() {
   const runner = createDockerRunner({
     image: "alpine:latest",
-    mounts: [{ source: "/tmp", target: "/host-tmp", readonly: true }],
+    mounts: [{ source: "/tmp", target: "/host-tmp", readonly: true }]
   });
   const handle = runner.exec({
     command: "ls",
     args: ["/host-tmp"],
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "pipe"
   });
 
   const { exitCode } = await handle.result;
@@ -775,13 +767,13 @@ async function verifyDockerPort() {
   // Start a simple HTTP server in Docker, hit it from host.
   const runner = createDockerRunner({
     image: "alpine:latest",
-    ports: [{ host: 18923, container: 8080 }],
+    ports: [{ host: 18923, container: 8080 }]
   });
   const handle = runner.exec({
     command: "sh",
     args: ["-c", "echo -e 'HTTP/1.1 200 OK\\r\\n\\r\\nok' | nc -l -p 8080"],
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "pipe"
   });
 
   // Give the server time to start
@@ -807,10 +799,13 @@ async function verifyDockerInteractiveContract() {
   const runner = createDockerRunner({ image: "alpine:latest" });
   const handle = runner.exec({
     command: "sh",
-    args: ["-c", "[ -t 0 ] && echo 'stdin-is-tty' || echo 'stdin-not-tty'; [ -t 1 ] && echo 'stdout-is-tty' || echo 'stdout-not-tty'"],
-    stdin: "pipe",   // pipe, not inherit — so we can read output
+    args: [
+      "-c",
+      "[ -t 0 ] && echo 'stdin-is-tty' || echo 'stdin-not-tty'; [ -t 1 ] && echo 'stdout-is-tty' || echo 'stdout-not-tty'"
+    ],
+    stdin: "pipe", // pipe, not inherit — so we can read output
     stdout: "pipe",
-    tty: true,
+    tty: true
   });
 
   // Close stdin immediately so the process exits
@@ -818,7 +813,9 @@ async function verifyDockerInteractiveContract() {
 
   let stdout = "";
   handle.stdout!.setEncoding("utf8");
-  handle.stdout!.on("data", (chunk: string) => { stdout += chunk; });
+  handle.stdout!.on("data", (chunk: string) => {
+    stdout += chunk;
+  });
 
   await handle.result;
   // With -t flag, the container should report TTY
@@ -867,22 +864,22 @@ main().catch((e) => {
 
 ### What each verification proves
 
-| Test | What it proves |
-|------|---------------|
-| `hostPiped` | Basic spawn + stdout capture works |
-| `hostStdin` | stdin pipe → process → stdout roundtrip |
-| `hostKill` | SIGTERM terminates the process |
-| `hostAbort` | AbortSignal terminates the process |
-| `hostInherit` | Inherit mode returns null streams |
-| `hostExitCode` | Non-zero exit codes are preserved |
-| `hostEnv` | Env vars are passed through |
-| `dockerPiped` | Docker container runs, stdout captured |
-| `dockerStdin` | stdin → container → stdout roundtrip |
-| `dockerKill` | docker stop terminates the container |
-| `dockerExitCode` | Container exit code propagated |
-| `dockerEnv` | Env vars passed via `-e` flags |
-| `dockerMount` | Bind mount accessible inside container |
-| `dockerPort` | Port mapping works (host → container) |
+| Test                        | What it proves                           |
+| --------------------------- | ---------------------------------------- |
+| `hostPiped`                 | Basic spawn + stdout capture works       |
+| `hostStdin`                 | stdin pipe → process → stdout roundtrip  |
+| `hostKill`                  | SIGTERM terminates the process           |
+| `hostAbort`                 | AbortSignal terminates the process       |
+| `hostInherit`               | Inherit mode returns null streams        |
+| `hostExitCode`              | Non-zero exit codes are preserved        |
+| `hostEnv`                   | Env vars are passed through              |
+| `dockerPiped`               | Docker container runs, stdout captured   |
+| `dockerStdin`               | stdin → container → stdout roundtrip     |
+| `dockerKill`                | docker stop terminates the container     |
+| `dockerExitCode`            | Container exit code propagated           |
+| `dockerEnv`                 | Env vars passed via `-e` flags           |
+| `dockerMount`               | Bind mount accessible inside container   |
+| `dockerPort`                | Port mapping works (host → container)    |
 | `dockerInteractiveContract` | `-t` flag allocates TTY inside container |
 
 ### What can't be verified automatically
@@ -894,13 +891,15 @@ by checking `[ -t 0 ]` inside the container — but it does NOT test actual
 keystroke passthrough. That requires the `terminal-agent` package (planned, not built).
 
 **Workaround for now:** When implementing, manually run this one-liner in a real terminal:
+
 ```sh
-bun -e "
+node --input-type=module <<'EOF'
   import { createDockerRunner } from './packages/process-runner/src/index.js';
   const r = createDockerRunner({ image: 'alpine:latest' });
   const h = r.exec({ command: 'sh', stdin: 'inherit', stdout: 'inherit', stderr: 'inherit', tty: true });
   await h.result;
-"
+EOF
 ```
+
 This should drop into an interactive alpine shell. Type `ls`, `exit` — if it works, interactive mode is correct.
 This test CANNOT be run by an AI agent and must be run by a human.

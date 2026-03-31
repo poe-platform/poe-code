@@ -49,19 +49,23 @@ interface ExperimentFileSystem {
 }
 
 interface ExperimentGit {
-  commitAll(message: string, cwd: string): Promise<string>;  // returns short hash
+  commitAll(message: string, cwd: string): Promise<string>; // returns short hash
   reset(commitHash: string, cwd: string): Promise<void>;
   currentHash(cwd: string): Promise<string>;
 }
 
-type ExecFn = (command: string, options?: {
-  cwd?: string; timeout?: number;
-}) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+type ExecFn = (
+  command: string,
+  options?: {
+    cwd?: string;
+    timeout?: number;
+  }
+) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
 
 type MetricDirection = "minimize" | "maximize";
 
 interface MetricDef {
-  name: string;              // npm script name (without metric: prefix)
+  name: string; // npm script name (without metric: prefix)
   direction: MetricDirection;
 }
 ```
@@ -91,7 +95,7 @@ interface ExperimentRunOptions {
   cwd: string;
   homeDir: string;
   docPath: string;
-  maxExperiments?: number;          // undefined = infinite
+  maxExperiments?: number; // undefined = infinite
   fs?: ExperimentFileSystem;
   git?: ExperimentGit;
   exec?: ExecFn;
@@ -123,6 +127,7 @@ Metric scripts are npm scripts with a `metric:` prefix in `package.json`.
 The loop runs `npm run metric:<name>` for each entry.
 
 Every metric script must:
+
 - Exit 0 on success, non-zero on crash/error
 - Print a single number to stdout (the score)
 
@@ -150,7 +155,7 @@ metric:
 ```json
 {
   "scripts": {
-    "metric:tests": "bun test",
+    "metric:tests": "npm test",
     "metric:test_duration": "node scripts/metric-test-duration.mjs",
     "metric:bundle_size": "node scripts/metric-bundle-size.mjs"
   }
@@ -161,16 +166,12 @@ metric:
 
 ```typescript
 interface EvalResult {
-  score: number;     // parsed from stdout
-  passed: boolean;   // exit 0 = true
-  output: string;    // raw stdout + stderr, logged to journal
+  score: number; // parsed from stdout
+  passed: boolean; // exit 0 = true
+  output: string; // raw stdout + stderr, logged to journal
 }
 
-async function evaluate(
-  metric: string,
-  cwd: string,
-  exec: ExecFn
-): Promise<EvalResult>;
+async function evaluate(metric: string, cwd: string, exec: ExecFn): Promise<EvalResult>;
 
 async function evaluateChain(
   metrics: MetricDef[],
@@ -186,22 +187,27 @@ Parse last line of stdout as the score.
 ### Examples
 
 **Tests pass/fail** — script outputs 1 (pass) or 0 (fail), direction maximize:
+
 ```yaml
 metric:
   name: tests
   direction: maximize
 ```
+
 ```json
-{ "scripts": { "metric:tests": "bun test && echo 1 || echo 0" } }
+{ "scripts": { "metric:tests": "npm test && echo 1 || echo 0" } }
 ```
 
 **Benchmark with comparison** — the script owns the comparison logic:
+
 ```yaml
 metric: test_duration
 ```
+
 ```json
 { "scripts": { "metric:test_duration": "node scripts/metric-test-duration.mjs" } }
 ```
+
 ```javascript
 // scripts/metric-test-duration.mjs
 
@@ -248,11 +254,13 @@ console.log(stdout.trim()); // the loop reads this as the score
 ```
 
 **Gate then optimize:**
+
 ```yaml
 metric:
   - tests
   - test_duration
 ```
+
 Tests must pass first. If they do, benchmark runs and decides keep/discard.
 
 ## Frontmatter
@@ -297,14 +305,14 @@ class ExperimentJournal {
   constructor(journalPath: string, fs: ExperimentFileSystem);
   async log(entry: JournalEntry): Promise<void>;
   async readAll(): Promise<JournalEntry[]>;
-  async format(): Promise<string>;  // human-readable for agent prompt injection
+  async format(): Promise<string>; // human-readable for agent prompt injection
 }
 
 interface JournalEntry {
   commit: string;
   status: "keep" | "discard" | "crash";
-  score: number | null;  // null on crash
-  output: string;        // raw stdout from eval script
+  score: number | null; // null on crash
+  output: string; // raw stdout from eval script
   durationMs: number;
   timestamp: string;
 }
@@ -414,6 +422,7 @@ Run with:
 Simulation harness (memfs + mock git + mock exec) following ralph pattern.
 
 Key test scenarios:
+
 1. Single script — keep (exit 0)
 2. Single script — discard (exit 1)
 3. Chain — all pass → keep

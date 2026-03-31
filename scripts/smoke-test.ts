@@ -44,7 +44,7 @@ type InstallContext = {
 function install(): InstallContext {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), "poe-smoke-"));
   console.log("Packing and installing globally...");
-  execSync(`npm pack --pack-destination "${tmpDir}" --silent`, {
+  execSync(`bun pm pack --destination "${tmpDir}" --quiet`, {
     stdio: "pipe",
   });
   const tgz = readdirSync(tmpDir).find((f) => f.endsWith(".tgz"));
@@ -53,11 +53,11 @@ function install(): InstallContext {
   }
 
   const packagePath = path.join(tmpDir, tgz);
-  execSync(`npm install -g "${packagePath}"`, { stdio: "pipe" });
+  execSync(`bun install --global "${packagePath}"`, { stdio: "pipe" });
 
   const sdkProjectDir = mkdtempSync(path.join(os.tmpdir(), "poe-smoke-sdk-"));
-  execSync("npm init -y", { cwd: sdkProjectDir, stdio: "pipe" });
-  execSync(`npm install "${packagePath}" --silent`, {
+  writeFileSync(path.join(sdkProjectDir, "package.json"), JSON.stringify({ name: "poe-smoke-sdk", private: true, type: "module" }, null, 2));
+  execSync(`bun install "${packagePath}" --silent`, {
     cwd: sdkProjectDir,
     stdio: "pipe",
   });
@@ -67,10 +67,10 @@ function install(): InstallContext {
 
 function cleanup(context: InstallContext) {
   try {
-    execSync("npm uninstall -g poe-code", { stdio: "pipe" });
+    execSync("bun remove --global poe-code", { stdio: "pipe" });
   } catch {
     if (verbose) {
-      console.log("Cleanup warning: npm uninstall failed.");
+      console.log("Cleanup warning: Bun uninstall failed.");
     }
   }
   rmSync(context.packageDir, { recursive: true, force: true });

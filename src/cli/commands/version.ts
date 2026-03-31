@@ -48,6 +48,6 @@ async function displayVersion(
     logger.warn(
       `Update available: ${result.currentVersion} -> ${result.latestVersion}`
     );
-    logger.resolved("Update", `npm install -g poe-code@latest`);
+    logger.resolved("Update", `bun install --global poe-code@latest`);
   }
 }

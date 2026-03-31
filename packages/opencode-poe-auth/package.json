@@ -16,8 +16,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run --config vitest.config.ts",
-    "test:unit": "vitest run --config vitest.config.ts"
+    "test": "bun test",
+    "test:unit": "bun test"
   },
   "keywords": [
     "opencode",

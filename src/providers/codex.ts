@@ -55,12 +55,12 @@ export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
   ),
   steps: [
     {
-      id: "install-codex-cli-npm",
-      command: "npm",
-      args: ["install", "-g", "@openai/codex"]
+      id: "install-codex-cli-bun",
+      command: "bun",
+      args: ["install", "--global", "@openai/codex"]
     }
   ],
-  successMessage: "Installed Codex CLI via npm."
+  successMessage: "Installed Codex CLI via Bun."
 };
 
 function stripCodexConfiguration(

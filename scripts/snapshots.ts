@@ -18,7 +18,7 @@ class StaleAccessedKeysError extends Error {
   constructor(ageMinutes: number) {
     super(
       `Accessed keys file is ${ageMinutes} minutes old (max: 10 minutes).\n` +
-        `Run tests first: POE_SNAPSHOT_MODE=playback npm test`
+        `Run tests first: POE_SNAPSHOT_MODE=playback bun test`
     );
     this.name = "StaleAccessedKeysError";
   }

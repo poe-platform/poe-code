@@ -191,7 +191,7 @@ export function createSpawnHealthCheck(
 
 /**
  * Creates a check that detects if a binary exists using multiple fallback methods.
- * This is useful in Docker/containerized environments where PATH may not be updated after npm install.
+ * This is useful in Docker/containerized environments where PATH may not be updated after Bun installs a CLI.
  *
  * @param binaryName - The name of the binary to check for (e.g., "claude", "codex")
  * @param id - Unique identifier for the check

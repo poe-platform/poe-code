@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && mkdir -p dist/templates && cp src/templates/*.md dist/templates/"
   },
   "files": [
     "dist"

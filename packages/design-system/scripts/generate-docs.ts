@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * Generates DESIGN_LANGUAGE.md documentation with screenshots.
- * Run from root: npm run generate:design-docs
+ * Run from root: bun run generate:design-docs
  */
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -139,8 +139,8 @@ text.example("$ poe-code configure claude")`,
         name: "usageCommand",
         description: "Commands in usage examples (green)",
         codeSnippet: `import { text } from "@poe-code/design-system";
-text.usageCommand("npm install -g poe-code")`,
-        demoArgs: `usageCommand "npm install -g poe-code"`
+text.usageCommand("bun install --global poe-code")`,
+        demoArgs: `usageCommand "bun install --global poe-code"`
       },
       {
         name: "link",
@@ -350,7 +350,8 @@ function screenshotPath(name: string): string {
 
 function runScreenshot(name: string, demoArgs: string): void {
   const outputPath = screenshotPath(name);
-  const cmd = `npm run screenshot -- --no-header -o ${outputPath} npm run demo -w @poe-code/design-system -- ${demoArgs}`;
+  const demoCwd = JSON.stringify(path.join(ROOT_DIR, "packages/design-system"));
+  const cmd = `bun run screenshot -- --no-header -o ${outputPath} bun --cwd ${demoCwd} run demo -- ${demoArgs}`;
   console.log(`Generating: ${name}`);
   execSync(cmd, { cwd: ROOT_DIR, stdio: "inherit" });
 }
@@ -361,7 +362,7 @@ function generateMarkdown(): string {
     "",
     "Visual reference for poe-code CLI design elements.",
     "",
-    "This document is auto-generated. Run `npm run generate:design-docs` to regenerate.",
+    "This document is auto-generated. Run `bun run generate:design-docs` to regenerate.",
     "",
     "## Package Overview",
     "",

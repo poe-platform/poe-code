@@ -68,7 +68,7 @@ async function downloadAndExtract(): Promise<void> {
   }
 
   // Extract tar.gz directly to bin directory (strip the top-level directory)
-  const nodeStream = Readable.fromWeb(response.body as import('stream/web').ReadableStream);
+  const nodeStream = Readable.fromWeb(response.body as unknown as import('stream/web').ReadableStream);
   await pipeline(nodeStream, createGunzip(), extract({ cwd: binDir, strip: 1 }));
 
   // Make binary executable

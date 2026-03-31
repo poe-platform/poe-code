@@ -16,7 +16,7 @@ export type ExecutionMode =
   | "npx"             // npx poe-code
   | "npx-latest"      // npx poe-code@latest
   | "npx-beta"        // npx poe-code@beta
-  | "development";    // npm run dev / tsx
+  | "development";    // bun run dev / tsx
 
 interface ExecutionContext {
   mode: ExecutionMode;
@@ -36,7 +36,7 @@ interface DetectionInput {
 export function detectExecutionContext(input: DetectionInput): ExecutionContext {
   const { argv, env, moduleUrl } = input;
 
-  // Check for development mode (tsx, ts-node, or npm run dev)
+  // Check for development mode (tsx, ts-node, or bun run dev)
   if (isDevelopmentMode(argv, env)) {
     return createDevelopmentContext(moduleUrl);
   }
@@ -68,7 +68,7 @@ function isDevelopmentMode(
     return true;
   }
 
-  // Running via npm run dev (check lifecycle event)
+  // Running via bun run dev (check lifecycle event)
   if (env.npm_lifecycle_event === "dev") {
     return true;
   }
@@ -135,8 +135,8 @@ function createDevelopmentContext(moduleUrl: string): ExecutionContext {
   return {
     mode: "development",
     command: {
-      command: "npm",
-      args: ["--silent", "--prefix", projectRoot, "run", "dev", "--"]
+      command: "bun",
+      args: ["--cwd", projectRoot, "run", "--silent", "dev", "--"]
     }
   };
 }
@@ -198,7 +198,7 @@ export function formatCliUsageCommand(context: {
 }): string {
   switch (context.mode) {
     case "development":
-      return "npm run dev --";
+      return "bun run dev --";
     case "npx":
       return "npx poe-code";
     case "npx-latest":

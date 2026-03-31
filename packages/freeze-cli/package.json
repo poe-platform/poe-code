@@ -1,7 +1,7 @@
 {
   "name": "@poe-code/freeze-cli",
   "version": "1.0.0",
-  "description": "npm wrapper for charmbracelet/freeze binary",
+  "description": "Bun wrapper for charmbracelet/freeze binary",
   "private": true,
   "type": "module",
   "bin": {

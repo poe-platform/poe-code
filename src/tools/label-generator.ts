@@ -51,7 +51,7 @@ export function renderLabelDocument(labels: ServiceLabelInfo[]): string {
   const lines = [
     "# Agent Labels",
     "",
-    "> Generated via `npm run labels:generate`. Do not edit manually.",
+    "> Generated via `bun run labels:generate`. Do not edit manually.",
     "",
     "## GitHub Label Definitions",
     "",

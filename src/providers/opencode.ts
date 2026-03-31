@@ -32,12 +32,12 @@ export const OPEN_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   ),
   steps: [
     {
-      id: "install-opencode-cli-npm",
-      command: "npm",
-      args: ["install", "-g", "opencode-ai"]
+      id: "install-opencode-cli-bun",
+      command: "bun",
+      args: ["install", "--global", "opencode-ai"]
     }
   ],
-  successMessage: "Installed OpenCode CLI via npm."
+  successMessage: "Installed OpenCode CLI via Bun."
 };
 
 function getModelArgs(model?: string): string[] {

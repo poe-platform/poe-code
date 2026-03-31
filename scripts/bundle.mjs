@@ -27,7 +27,7 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   }
 }
 
-// External deps = root package.json dependencies (what users install via npm)
+// External deps = root package.json dependencies (what users install from the registry)
 const packageJson = JSON.parse(
   await readFile(path.join(rootDir, "package.json"), "utf8")
 );

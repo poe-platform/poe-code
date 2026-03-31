@@ -1,1 +1,1 @@
-npm run lint:eslint && npm run lint:types
+bun run lint:eslint && bun run lint:types

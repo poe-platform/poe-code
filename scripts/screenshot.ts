@@ -62,8 +62,8 @@ export function resolveScreenshotTarget(args: string[]): ScreenshotTarget {
   const [first, ...rest] = args;
   if (first === "--poe-code") {
     return {
-      command: "npm",
-      args: ["run", "dev", "--silent", "--", ...rest],
+      command: "bun",
+      args: ["run", "--silent", "dev", "--", ...rest],
       nameArgs: rest,
       displayCommand: "poe-code",
       displayArgs: rest,
@@ -127,6 +127,20 @@ export function sanitizeOutputChunk(chunk: string): string {
 
 const DEFAULT_SCREENSHOT_TIMEOUT_MS = 60000;
 
+type FreezeDeps = {
+  existsSync: typeof existsSync;
+  accessSync: typeof accessSync;
+  spawnSync: typeof spawnSync;
+  createRequire: typeof createRequire;
+};
+
+const defaultFreezeDeps: FreezeDeps = {
+  existsSync,
+  accessSync,
+  spawnSync,
+  createRequire
+};
+
 export function resolveScreenshotTimeoutMs(
   env: NodeJS.ProcessEnv
 ): number {
@@ -142,27 +156,28 @@ export function resolveScreenshotTimeoutMs(
 }
 
 export function resolveFreezeCommand(
-  env: NodeJS.ProcessEnv
+  env: NodeJS.ProcessEnv,
+  deps: FreezeDeps = defaultFreezeDeps
 ): string {
   const override = env.POE_FREEZE_PATH;
   if (typeof override === "string" && override.trim().length > 0) {
-    if (!existsSync(override)) {
+    if (!deps.existsSync(override)) {
       throw new Error(`POE_FREEZE_PATH points to missing binary: ${override}`);
     }
     return override;
   }
 
-  const systemFreeze = resolveSystemFreeze();
+  const systemFreeze = resolveSystemFreeze(deps);
   if (systemFreeze) {
     return systemFreeze;
   }
 
-  const pathFreeze = resolveFreezeFromPath(env);
+  const pathFreeze = resolveFreezeFromPath(env, deps);
   if (pathFreeze) {
     return pathFreeze;
   }
 
-  const require = createRequire(import.meta.url);
+  const require = deps.createRequire(import.meta.url);
   try {
     return require.resolve("@poe-code/freeze-cli/bin/freeze");
   } catch {
@@ -172,14 +187,14 @@ export function resolveFreezeCommand(
   }
 }
 
-function resolveSystemFreeze(): string | null {
+function resolveSystemFreeze(deps: FreezeDeps): string | null {
   const systemPath = buildSystemPath(process.env);
-  if (probeFreeze("freeze", systemPath)) {
+  if (probeFreeze("freeze", systemPath, deps)) {
     return "freeze";
   }
   const candidates = ["/opt/homebrew/bin/freeze", "/usr/local/bin/freeze"];
   for (const candidate of candidates) {
-    if (probeFreeze(candidate, systemPath)) {
+    if (probeFreeze(candidate, systemPath, deps)) {
       return candidate;
     }
   }
@@ -187,7 +202,8 @@ function resolveSystemFreeze(): string | null {
 }
 
 function resolveFreezeFromPath(
-  env: NodeJS.ProcessEnv
+  env: NodeJS.ProcessEnv,
+  deps: FreezeDeps
 ): string | null {
   const pathValue = buildSystemPath(env);
   const segments = pathValue.length > 0
@@ -198,7 +214,7 @@ function resolveFreezeFromPath(
       continue;
     }
     const candidate = path.join(segment, "freeze");
-    const resolved = resolveExecutable(candidate);
+    const resolved = resolveExecutable(candidate, deps);
     if (resolved) {
       return resolved;
     }
@@ -209,7 +225,7 @@ function resolveFreezeFromPath(
     "/usr/local/bin/freeze"
   ];
   for (const candidate of commonCandidates) {
-    const resolved = resolveExecutable(candidate);
+    const resolved = resolveExecutable(candidate, deps);
     if (resolved) {
       return resolved;
     }
@@ -233,8 +249,8 @@ function buildSystemPath(env: NodeJS.ProcessEnv): string {
   return filtered.join(path.delimiter);
 }
 
-function probeFreeze(command: string, systemPath: string): boolean {
-  const result = spawnSync(command, ["--help"], {
+function probeFreeze(command: string, systemPath: string, deps: FreezeDeps): boolean {
+  const result = deps.spawnSync(command, ["--help"], {
     stdio: "ignore",
     timeout: 1500,
     env: {
@@ -245,12 +261,12 @@ function probeFreeze(command: string, systemPath: string): boolean {
   return result.status === 0;
 }
 
-function resolveExecutable(candidate: string): string | null {
-  if (!existsSync(candidate)) {
+function resolveExecutable(candidate: string, deps: FreezeDeps): string | null {
+  if (!deps.existsSync(candidate)) {
     return null;
   }
   try {
-    accessSync(candidate, constants.X_OK);
+    deps.accessSync(candidate, constants.X_OK);
     return candidate;
   } catch {
     return null;

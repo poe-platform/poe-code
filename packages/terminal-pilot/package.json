@@ -1,7 +1,7 @@
 {
-  "name": "@poe-code/terminal-pilot",
+  "name": "terminal-pilot",
   "version": "0.0.1",
-  "private": true,
+  "description": "Headless terminal session manager with MCP server support",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,13 +18,33 @@
   "bin": {
     "terminal-pilot-mcp": "dist/mcp-server.js"
   },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "tsc",
+    "install-local-package": "TMPD=$(mktemp -d) && cd ../tiny-stdio-mcp-server && npm pack --pack-destination $TMPD && cd ../terminal-pilot && npm pack --pack-destination $TMPD && npm install -g $TMPD/poe-code-terminal-pilot-*.tgz $TMPD/tiny-stdio-mcp-server-*.tgz && rm -rf $TMPD"
+  },
   "files": [
     "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/terminal-pilot"
+  },
+  "license": "MIT",
+  "keywords": [
+    "terminal",
+    "mcp",
+    "pty",
+    "headless"
   ],
   "dependencies": {
     "headless-terminal": "^0.4.0",
     "node-pty": "^1.1.0",
-    "tiny-stdio-mcp-server": "*"
+    "tiny-stdio-mcp-server": "^0.1.0"
   },
   "devDependencies": {}
 }

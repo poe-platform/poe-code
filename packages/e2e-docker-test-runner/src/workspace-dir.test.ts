@@ -1,20 +1,19 @@
 import { beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 import { vol } from 'memfs';
-import * as nodeFs from 'node:fs';
 
 let resolveWorkspaceDir: typeof import('./container.js').resolveWorkspaceDir;
 
 beforeEach(async () => {
   mock.restore();
-  vi.resetModules();
   vol.reset();
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const memfs = require('memfs').fs as typeof nodeFs;
-  vi.spyOn(nodeFs, 'existsSync').mockImplementation(memfs.existsSync.bind(memfs));
-  vi
-    .spyOn(nodeFs, 'readFileSync')
-    .mockImplementation(memfs.readFileSync.bind(memfs) as typeof nodeFs.readFileSync);
+  const memfs = require('memfs').fs;
+  mock.module('node:fs', () => ({
+    ...require('node:fs'),
+    existsSync: memfs.existsSync.bind(memfs),
+    readFileSync: memfs.readFileSync.bind(memfs),
+  }));
 
   ({ resolveWorkspaceDir } = await import('./container.js'));
 });

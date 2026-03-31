@@ -1,10 +1,12 @@
 import { afterAll, beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 
 vi.mock('node:child_process', () => ({
+  ...require('node:child_process'),
   execSync: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
+  ...require('node:fs'),
   rmSync: vi.fn(),
 }));
 

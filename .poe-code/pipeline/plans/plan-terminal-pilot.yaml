@@ -58,7 +58,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: ansi
     title: ANSI stripping utility
@@ -73,10 +73,10 @@ tasks:
       covering colors, cursor codes, OSC titles, nested sequences, and
       passthrough of plain text.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 2: Screen model

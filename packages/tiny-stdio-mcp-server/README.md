@@ -160,7 +160,7 @@ server.tool("analyze", "Analyze image", schema, async () => {
 Use `createTestPair` with the official MCP SDK for in-memory testing:
 
 ```ts
-import { createTestPair } from "tiny-stdio-mcp-server";
+import { createTestPair } from "tiny-stdio-mcp-server/testing";
 
 const server = createServer({ name: "test", version: "1.0.0" })
   .tool("ping", "Ping", defineSchema({}), () => "pong");

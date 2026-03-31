@@ -214,6 +214,53 @@ import { main } from "@poe-code/terminal-pilot/mcp";
 await main();
 ```
 
+### Connect to an MCP client
+
+Install the package globally from a local build:
+
+```sh
+cd packages/terminal-pilot
+npm pack --pack-destination /tmp && npm install -g /tmp/poe-code-terminal-pilot-*.tgz && rm /tmp/poe-code-terminal-pilot-*.tgz
+```
+
+This makes the `terminal-pilot-mcp` bin available globally.
+
+**Claude Code** (`~/.claude.json` or project `.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "terminal-pilot": {
+      "command": "terminal-pilot-mcp"
+    }
+  }
+}
+```
+
+**Claude Desktop** (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "terminal-pilot": {
+      "command": "terminal-pilot-mcp"
+    }
+  }
+}
+```
+
+**Cursor** (`.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "terminal-pilot": {
+      "command": "terminal-pilot-mcp"
+    }
+  }
+}
+```
+
 ### Tools
 
 `void` means the tool returns no payload.

@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
     }
   },
   "scripts": {
@@ -16,7 +20,8 @@
     "prepublishOnly": "tsc"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/testing.*"
   ],
   "engines": {
     "node": ">=18"

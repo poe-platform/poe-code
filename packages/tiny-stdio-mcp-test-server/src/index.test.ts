@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { createTestPair, type TestPair } from "tiny-stdio-mcp-server";
+import { createTestPair, type TestPair } from "tiny-stdio-mcp-server/testing";
 import { createTestServer, caesarEncrypt } from "./index.js";
 
 describe("caesarEncrypt", () => {

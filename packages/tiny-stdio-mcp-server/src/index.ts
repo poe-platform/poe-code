@@ -6,10 +6,6 @@ export type { Server } from "./server.js";
 export { defineSchema } from "./schema.js";
 export type { TypedSchema } from "./schema.js";
 
-// Testing utilities
-export { createTestPair } from "./testing.js";
-export type { TestPair } from "./testing.js";
-
 // Content helpers
 export {
   Image,

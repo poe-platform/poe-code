@@ -1,5 +1,6 @@
 import type { TemplateLoader } from "@poe-code/config-mutations";
-import { readFile } from "node:fs/promises";
+
+import poeGenerateTemplate from "./templates/poe-generate.md";
 
 let templatesCache: Record<string, string> | null = null;
 
@@ -7,11 +8,6 @@ async function getTemplates(): Promise<Record<string, string>> {
   if (templatesCache) {
     return templatesCache;
   }
-  const poeGenerateTemplateUrl = new URL(
-    "./templates/poe-generate.md",
-    import.meta.url
-  );
-  const poeGenerateTemplate = await readFile(poeGenerateTemplateUrl, "utf8");
   templatesCache = {
     "poe-generate.md": poeGenerateTemplate,
   };

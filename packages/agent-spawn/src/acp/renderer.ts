@@ -49,7 +49,11 @@ export function renderAcpEvent(event: AcpEvent): void {
       );
       return;
     default:
-      writeLine(text.muted(event.event));
+      writeLine(
+        typeof (text as { muted?: unknown }).muted === "function"
+          ? (text as { muted: (content: string) => string }).muted(event.event)
+          : event.event
+      );
       return;
   }
 }

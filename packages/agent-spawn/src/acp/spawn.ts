@@ -15,6 +15,7 @@ function createAbortError(): Error {
 
 export interface SpawnStreamingOptions extends SpawnOptions {
   agentId: string;
+  spawnImpl?: typeof spawnChildProcess;
 }
 
 export interface SpawnStreamingResult {
@@ -84,7 +85,8 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     args.push(...options.args);
   }
 
-  const child = spawnChildProcess(binaryName, args, {
+  const spawnImpl = options.spawnImpl ?? spawnChildProcess;
+  const child = spawnImpl(binaryName, args, {
     cwd: options.cwd,
     stdio: ["pipe", "pipe", "pipe"]
   });
@@ -96,6 +98,49 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   options.signal?.addEventListener("abort", onAbort, { once: true });
 
   const result: SpawnResult = { stdout: "", stderr: "", exitCode: 1 };
+  const done = new Promise<SpawnResult>((resolve, reject) => {
+    let settled = false;
+    const settleRejected = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      options.signal?.removeEventListener("abort", onAbort);
+      reject(error);
+    };
+    const settleResolved = (code: number | null) => {
+      if (settled) return;
+      settled = true;
+      options.signal?.removeEventListener("abort", onAbort);
+      result.exitCode = code ?? 1;
+      resolve(result);
+    };
+
+    child.once("error", (error) => {
+      if (aborted) {
+        settleRejected(createAbortError());
+        return;
+      }
+      settleRejected(error);
+    });
+
+    child.once("close", (code) => {
+      if (aborted) {
+        settleRejected(createAbortError());
+        return;
+      }
+      settleResolved(code);
+    });
+
+    if (typeof child.exitCode === "number") {
+      queueMicrotask(() => {
+        if (aborted) {
+          settleRejected(createAbortError());
+          return;
+        }
+        settleResolved(child.exitCode);
+      });
+    }
+  });
+
   child.stderr.setEncoding("utf8");
   child.stderr.on("data", (chunk) => {
     result.stderr += chunk;
@@ -114,27 +159,6 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
       yield output;
     }
   })();
-
-  const done = new Promise<SpawnResult>((resolve, reject) => {
-    child.on("error", (error) => {
-      options.signal?.removeEventListener("abort", onAbort);
-      if (aborted) {
-        reject(createAbortError());
-        return;
-      }
-      reject(error);
-    });
-
-    child.on("close", (code) => {
-      options.signal?.removeEventListener("abort", onAbort);
-      if (aborted) {
-        reject(createAbortError());
-        return;
-      }
-      result.exitCode = code ?? 1;
-      resolve(result);
-    });
-  });
 
   return { events, done };
 }

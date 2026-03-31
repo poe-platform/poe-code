@@ -2325,8 +2325,8 @@ export class HttpTransport implements McpTransport {
       this.resolveClosed = resolve;
     });
 
-    this.readStream.once("error", (error) => {
-      this.dispose(error instanceof Error ? error : new Error(String(error)));
+    this.readStream.on("error", () => {
+      // readStream errors (e.g. consumer stopped iterating early) do not terminate the transport
     });
     this.writeStream.once("error", (error) => {
       this.dispose(error instanceof Error ? error : new Error(String(error)));

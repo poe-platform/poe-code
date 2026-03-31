@@ -1,6 +1,6 @@
 /**
  * Minimal magic bytes detection for common media types.
- * This can be replaced with `file-type` package (https://npm.im/file-type)
+ * This can be replaced with `file-type` package (https://github.com/sindresorhus/file-type)
  * if more comprehensive detection is needed. The API is designed to be
  * compatible: fileTypeFromBuffer(data) returns { mime: string, ext: string } | undefined
  */

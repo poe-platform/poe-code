@@ -9,15 +9,22 @@ function chunkToString(chunk: unknown): string {
 export async function* readLines(stream: Readable): AsyncGenerator<string> {
   let buffer = "";
 
-  for await (const chunk of stream as AsyncIterable<unknown>) {
+  const pushChunk = (chunk: unknown) => {
     buffer += chunkToString(chunk);
-
     while (true) {
       const newlineIndex = buffer.indexOf("\n");
       if (newlineIndex === -1) break;
-
-      yield buffer.slice(0, newlineIndex);
+      const line = buffer.slice(0, newlineIndex);
       buffer = buffer.slice(newlineIndex + 1);
+      lines.push(line);
+    }
+  };
+
+  const lines: string[] = [];
+  for await (const chunk of stream) {
+    pushChunk(chunk);
+    while (lines.length > 0) {
+      yield lines.shift()!;
     }
   }
 

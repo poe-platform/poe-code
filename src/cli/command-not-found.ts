@@ -39,6 +39,8 @@ export function throwCommandNotFound(input: {
     logger.error(`${panel.label}\n${panel.footer}`);
   }
 
-  process.exitCode = 1;
+  if (container.dependencies.exitOverride === false) {
+    process.exitCode = 1;
+  }
   throw new SilentError();
 }

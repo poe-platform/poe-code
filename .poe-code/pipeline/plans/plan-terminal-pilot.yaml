@@ -148,7 +148,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: terminal-session
     title: TerminalSession with PTY process
@@ -203,9 +203,9 @@ tasks:
       test-cli.ts fixture from the testing/ directory. Test: spawn, type,
       press, waitFor, screen, history, close, exitCode, timeout error.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ═══════════════════════════════════════════════════════════════════════

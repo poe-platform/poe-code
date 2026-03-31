@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\"",
-    "test:unit": "bun test"
+    "test:unit": "for f in src/*.test.ts src/**/*.test.ts; do [ -f \"$f\" ] && bun test \"$f\" || exit 1; done"
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",

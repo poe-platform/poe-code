@@ -6,6 +6,7 @@ steps:
       {{prompt}}
 
   refactor:
+    agent: claude-code
     instruction: |
       Original task:
       {{prompt}}
@@ -21,4 +22,4 @@ steps:
 
   commit:
     instruction: |
-      Commit all changes
+      Make sure tests run, and commit all changes

@@ -32,6 +32,8 @@ packages/experiment-loop/
       index.ts
       simulation.ts
       simulation.test.ts
+  assets/
+    SKILL_experiment.md
 ```
 
 ## Types
@@ -182,7 +184,7 @@ async function evaluateChain(
 
 Resolves each metric name to `npm run metric:<name>`.
 Run in order. Short-circuit on non-zero exit.
-Parse last line of stdout as the score.
+Parse last non-empty line of stdout as the score. If it fails to parse as a `Number`, treat as a `crash`/failure.
 
 ### Examples
 
@@ -270,10 +272,11 @@ Experiment doc is markdown with YAML frontmatter:
 ```yaml
 ---
 agent: claude-code
+install: npm install
 metric:
   name: tests
   direction: maximize
-baseline: null
+baseline: Record<string, number> | null;
 editable:
   - src/model.py
 readonly:
@@ -292,7 +295,7 @@ Same library as ralph (gray-matter).
 
 ## Journal
 
-Append-only JSONL file at `{docDir}/journal.jsonl`. Not committed to git.
+Append-only JSONL file at `{docDir}/{docName}.journal.jsonl`. Not committed to git.
 
 ```jsonl
 {"commit":"a1b2c3d","status":"keep","score":1.04,"output":"test_duration: 1.04","durationMs":5023,"timestamp":"2026-03-30T10:00:00.000Z"}
@@ -328,6 +331,7 @@ function createDefaultGit(exec: ExecFn): ExperimentGit;
 ```
 
 - `commitAll`: `git add -A`, unstage the experiment doc, then `git commit -m "..."` → short hash. No changes = return current hash.
+- If no changes are detected, log a `no_changes` status to the journal and continue.
 - `reset`: `git reset --hard {hash}`, then re-write frontmatter to disk (since reset clobbers it).
 - Shell-escape commit messages.
 
@@ -354,6 +358,14 @@ LOOP:
     journal.log("crash", output), git.reset(), continue
 
   git.commitAll()
+
+  if frontmatter.install is defined:
+    run install command
+    if install fails:
+      journal.log("crash", "Install failed: ...")
+      git.reset()
+      continue
+
   results = evaluateChain(metrics)
 
   if all passed and all scores improved vs baseline:
@@ -382,6 +394,15 @@ poe-code experiment run [doc]
 
 poe-code experiment journal [doc]
   displays journal as table
+
+poe-code experiment install
+  --agent <name>           agent to install the skill for
+  --local                  install project-local skill and files (default)
+  --global                 install user-global skill and files
+  --force                  overwrite existing files
+
+  Installs the 'poe-code-experiment-plan' skill using `@poe-code/agent-skill-config`
+  and scaffolds the `.poe-code/experiments/` (local) or `~/.poe-code/experiments/` (global) directory.
 ```
 
 Discovery from `.poe-code/experiments/` when doc not specified.

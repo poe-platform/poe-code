@@ -323,7 +323,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: mcp-server
     title: MCP stdio server entry point
@@ -346,9 +346,9 @@ tasks:
       - All 10 tools are registered
       - Server lifecycle (start/stop)
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: readme

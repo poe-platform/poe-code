@@ -184,6 +184,21 @@ export function terminalCloseSessionTool(agent: TerminalPilot): TerminalPilotMcp
   };
 }
 
+export function terminalPilotMcpTools(agent: TerminalPilot): Array<TerminalPilotMcpTool<any>> {
+  return [
+    terminalCreateSessionTool(agent),
+    terminalTypeTool(agent),
+    terminalPressKeyTool(agent),
+    terminalSendSignalTool(agent),
+    terminalWaitForTool(agent),
+    terminalReadScreenTool(agent),
+    terminalReadHistoryTool(agent),
+    terminalResizeTool(agent),
+    terminalCloseSessionTool(agent),
+    terminalListSessionsTool(agent)
+  ];
+}
+
 export function terminalListSessionsTool(
   agent: TerminalPilot
 ): TerminalPilotMcpTool<Record<string, never>> {

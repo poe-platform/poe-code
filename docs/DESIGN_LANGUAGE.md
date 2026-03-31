@@ -2,7 +2,7 @@
 
 Visual reference for poe-code CLI design elements.
 
-This document is auto-generated. Run `npm run generate:design-docs` to regenerate.
+This document is auto-generated. Run `bun run generate:design-docs` to regenerate.
 
 ## Package Overview
 
@@ -171,7 +171,7 @@ Commands in usage examples (green)
 
 ```typescript
 import { text } from "@poe-code/design-system";
-text.usageCommand("npm install -g poe-code")
+text.usageCommand("bun install --global poe-code")
 ```
 
 ![usageCommand](design-language/usageCommand.png)

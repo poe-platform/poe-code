@@ -30,7 +30,7 @@ Prefer adding code to specific packages e.g. `agent-spawn`. The core should be l
 ## github workflows
 
 Do NOT write unit tests for github workflows
-Use `npm run lint:workflows`
+Use `bun run lint:workflows`
 
 ## Commits
 
@@ -82,17 +82,17 @@ Whenever making changes to agent definitions, use test command quickly verify
 
 ### Spot testing
 
-`npm run dev -- <command> <args>`
+`bun run dev -- <command> <args>`
 
 ### Visual testing - use screenshots to see
 
 You must test changes via screenshots
 
-`npm run screenshot-poe-code -- <command>`
+`bun run screenshot-poe-code -- <command>`
 
 e.g.
 
-`npm run screenshot-poe-code -- --help`
+`bun run screenshot-poe-code -- --help`
 
 Make sure they are designed well, functional and work correctly.
 Test every change using screenshots that might have impact on visual cli
@@ -102,7 +102,7 @@ Do not use libraries like @clack/prompts or chalk directly, otherwise we won't a
 
 ### E2E Tests
 
-Use judgement when to run these `npm run e2e:verbose`
+Use judgement when to run these `bun run e2e:verbose`
 
 ## Readme
 
@@ -154,7 +154,7 @@ Automatically accept defaults
 ## Other recommendations
 
 - For cli args parsing use `commander` package, don't roll your own
-- When changing the visual language / design languge, make sure to run `npm run generate:design-docs`
+- When changing the visual language / design languge, make sure to run `bun run generate:design-docs`
 
 ## Figure it out
 

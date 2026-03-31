@@ -5,7 +5,7 @@ Minimal [Model Context Protocol](https://modelcontextprotocol.io) server for Nod
 ## Install
 
 ```sh
-npm install tiny-stdio-mcp-server
+bun add tiny-stdio-mcp-server
 ```
 
 ## Quick start

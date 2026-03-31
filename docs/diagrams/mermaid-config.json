@@ -1,0 +1,15 @@
+{
+  "look": "handDrawn",
+  "theme": "neutral",
+  "themeVariables": {
+    "primaryColor": "#4C9AFF",
+    "primaryTextColor": "#1a1a1a",
+    "primaryBorderColor": "#2684FF",
+    "secondaryColor": "#F4F5F7",
+    "secondaryBorderColor": "#C1C7D0",
+    "tertiaryColor": "#E6FCFF",
+    "lineColor": "#505F79",
+    "fontFamily": "Inter, system-ui, sans-serif",
+    "fontSize": "14px"
+  }
+}

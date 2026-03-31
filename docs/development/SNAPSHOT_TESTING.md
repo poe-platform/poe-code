@@ -26,13 +26,13 @@ Snapshots are stored in the `.snapshots` directory.
 
 | Task                   | Command                                                     |
 | ---------------------- | ----------------------------------------------------------- |
-| Run tests (playback)   | `npm run test`                                              |
-| Record all snapshots   | `POE_SNAPSHOT_MODE=record npm run test`                     |
-| Record specific test   | `POE_SNAPSHOT_MODE=record npm run test -- tests/my.test.ts` |
-| List snapshots         | `npm run snapshots:list`                                    |
-| Refresh snapshots      | `npm run snapshots:refresh`                                 |
-| Delete all snapshots   | `npm run snapshots:delete`                                  |
-| Delete stale snapshots | `npm run snapshots:delete-stale`                            |
+| Run tests (playback)   | `bun run test`                                              |
+| Record all snapshots   | `POE_SNAPSHOT_MODE=record bun run test`                     |
+| Record specific test   | `POE_SNAPSHOT_MODE=record bun run test -- tests/my.test.ts` |
+| List snapshots         | `bun run snapshots:list`                                    |
+| Refresh snapshots      | `bun run snapshots:refresh`                                 |
+| Delete all snapshots   | `bun run snapshots:delete`                                  |
+| Delete stale snapshots | `bun run snapshots:delete-stale`                            |
 
 ## Writing a New Test
 
@@ -41,13 +41,13 @@ Snapshots are stored in the `.snapshots` directory.
 2. **Record snapshots** - Run with record mode to capture LLM responses:
 
    ```bash
-   POE_SNAPSHOT_MODE=record npm run test -- tests/my.test.ts
+   POE_SNAPSHOT_MODE=record bun run test -- tests/my.test.ts
    ```
 
 3. **Verify playback** - Run normally to confirm snapshots replay correctly:
 
    ```bash
-   npm run test -- tests/my.test.ts
+   bun run test -- tests/my.test.ts
    ```
 
 4. **Delete stale snapshots** - Remove unused snapshots after refactoring:
@@ -55,8 +55,8 @@ Snapshots are stored in the `.snapshots` directory.
 Check for sanity
 
 ```bash
-npm run snapshots:list:stale - list stale snapshots
-npm run snapshots:delete:stale - delete stale snapshots (no confirmation)
+bun run snapshots:list:stale - list stale snapshots
+bun run snapshots:delete:stale - delete stale snapshots (no confirmation)
 ```
 
 ## E2E Proxy Snapshots
@@ -67,7 +67,7 @@ E2E snapshots are stored in `.snapshots/<testName>/` directories (e.g. `.snapsho
 
 | Task                    | Command                                                |
 | ----------------------- | ------------------------------------------------------ |
-| Run e2e (playback)      | `npm run e2e:verbose`                                  |
-| Record all e2e fixtures | `POE_SNAPSHOT_MODE=record npm run e2e:verbose`         |
-| Record missing only     | `POE_SNAPSHOT_MISS=record npm run e2e:verbose`         |
-| Record specific test    | `POE_SNAPSHOT_MODE=record npm run e2e:verbose -- e2e/my.test.ts` |
+| Run e2e (playback)      | `bun run e2e:verbose`                                  |
+| Record all e2e fixtures | `POE_SNAPSHOT_MODE=record bun run e2e:verbose`         |
+| Record missing only     | `POE_SNAPSHOT_MISS=record bun run e2e:verbose`         |
+| Record specific test    | `POE_SNAPSHOT_MODE=record bun run e2e:verbose -- e2e/my.test.ts` |

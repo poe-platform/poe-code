@@ -1,10 +1,10 @@
 # CLI Aliasing and Shorthand Commands
 
-Add a `poe` top-level binary alias and npm-style single-letter command shorthands.
+Add a `poe` top-level binary alias and single-letter command shorthands.
 
 ## Motivation
 
-`poe-code` is verbose for daily use. npm has `npm i`, `npm t` — we want the same ergonomics.
+`poe-code` is verbose for daily use. short aliases are common in package managers — we want the same ergonomics.
 
 ## Binary alias: `poe`
 
@@ -56,7 +56,7 @@ Commander handles alias resolution automatically — unknown command detection, 
 
 ### Root help (`formatHelpText`)
 
-Show alias inline with command name, npm-style:
+Show alias inline with command name:
 
 ```
 Commands:
@@ -129,9 +129,9 @@ This affects: help text, MCP server config output, error messages. All become sh
 
 1. Unit tests for `formatHelpText` — verify alias display in command rows
 2. Unit tests for `execution-context.ts` — verify `"poe"` output
-3. Screenshot: `npm run screenshot-poe-code -- --help` — verify layout with aliases
-4. Screenshot: `npm run screenshot-poe-code -- install --help` — verify subcommand alias display
-5. Spot test: `npm run dev -- i codex` — verify alias resolution works
+3. Screenshot: `bun run screenshot-poe-code -- --help` — verify layout with aliases
+4. Screenshot: `bun run screenshot-poe-code -- install --help` — verify subcommand alias display
+5. Spot test: `bun run dev -- i codex` — verify alias resolution works
 
 ## Implementation order
 

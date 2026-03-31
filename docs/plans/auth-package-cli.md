@@ -148,9 +148,9 @@ The auth package exports `registerAuthCommands(program, deps)` which registers a
 
 ## Verification
 
-1. `npm run test` — all unit tests pass
-2. `npm run lint` — clean
-3. `npm run e2e:verbose` — login/logout/configure e2e flows work
-4. `npm run screenshot-poe-code -- --help` — help output unchanged
-5. `npm run screenshot-poe-code -- login --help` — login help works
-6. `npm run screenshot-poe-code -- auth status --help` — status help works
+1. `bun run test` — all unit tests pass
+2. `bun run lint` — clean
+3. `bun run e2e:verbose` — login/logout/configure e2e flows work
+4. `bun run screenshot-poe-code -- --help` — help output unchanged
+5. `bun run screenshot-poe-code -- login --help` — login help works
+6. `bun run screenshot-poe-code -- auth status --help` — status help works

@@ -195,7 +195,7 @@ Compose `[sessionCapture, usageCapture, spawnLog]` via `applyMiddlewares()` on e
 
 1. Unit tests for each middleware in isolation
 2. Unit tests for `applyMiddlewares` composition
-3. `npm run dev -- spawn claude-code "Hello"` → verify `~/.poe-code/spawn-logs/` has JSONL
+3. `bun run dev -- spawn claude-code "Hello"` → verify `~/.poe-code/spawn-logs/` has JSONL
 4. `cat ~/.poe-code/spawn-logs/*.jsonl | jq .` to verify format
-5. `npm run test` and `npm run lint`
-6. E2E tests (`npm run e2e:verbose`) since this touches spawn
+5. `bun run test` and `bun run lint`
+6. E2E tests (`bun run e2e:verbose`) since this touches spawn

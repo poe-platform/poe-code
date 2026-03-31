@@ -1,6 +1,6 @@
 # Creating Internal Packages
 
-This project uses npm workspaces for internal packages. Packages live in `packages/` and are automatically linked via `npm install`.
+This project uses Bun workspaces for internal packages. Packages live in `packages/` and are automatically linked via `bun install`.
 
 ## Package Structure
 
@@ -82,7 +82,7 @@ Note: Use `.js` extensions in imports (TypeScript resolves these to `.ts` files)
 ### 5. Link the package
 
 ```bash
-npm install
+bun install
 ```
 
 This creates a symlink at `node_modules/@poe-code/your-package`.
@@ -109,11 +109,11 @@ describe("your-package", () => {
 });
 ```
 
-Run with `npm run test` from root.
+Run with `bun run test` from root.
 
 ## Key Points
 
-- **Build for production**: Packages compile via `npm run build --workspaces` during the main build
+- **Build for production**: Packages compile via `bun run build --workspaces` during the main build
 - **Tests in package**: Place `*.test.ts` files alongside source. Excluded from build via tsconfig.
 - **Zero imports from src/**: Packages must not import from the main `src/` directory to avoid circular dependencies.
 

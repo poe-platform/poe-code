@@ -11,7 +11,7 @@ Generate deterministic filler text with exact token counts.
 ## Install
 
 ```bash
-npm install tokenfill
+bun add tokenfill
 ```
 
 Run with `npx`:

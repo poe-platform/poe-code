@@ -109,7 +109,7 @@ servers without writing a plugin. Same config shape as `McpSpawnServer` in
 `agent-spawn`, plus an optional `visibility` field. For more control (hooks,
 capability provision), a plugin can call `api.addMcp()` in `setup()` instead.
 
-### Third-party plugins as npm packages
+### Third-party plugins as packages
 
 ```ts
 import { jira } from "@acme/poe-agent-plugin-jira";
@@ -119,7 +119,7 @@ await agent()
   .run("Find the ticket linked to this branch");
 ```
 
-Plugins should be normal npm packages with typed factories, standard semver, and
+Plugins should be normal packages with typed factories, standard semver, and
 no custom marketplace requirement.
 
 ## Why
@@ -1743,13 +1743,13 @@ setup(api) {
 
 ## Third-Party Plugin Model
 
-Third-party plugins should be ordinary npm packages:
+Third-party plugins should be ordinary packages:
 
 - explicit imports
 - typed factories
 - semver compatibility
 - `peerDependencies` on `@poe-code/poe-agent` or the stable plugin API package
-- package names prefixed with `poe-agent-plugin-` after the npm scope, for example `@poe-code/poe-agent-plugin-memory`
+- package names prefixed with `poe-agent-plugin-` after the package scope, for example `@poe-code/poe-agent-plugin-memory`
 
 Example:
 
@@ -1802,7 +1802,7 @@ levels.
 ### Third-party plugins are arbitrary code execution
 
 Risk:
-npm-based plugins have the same trust model as any Node plugin ecosystem.
+Registry-based plugins have the same trust model as any Node plugin ecosystem.
 
 Mitigation:
 Be explicit about the trust model now. Leave room for later permission metadata
@@ -1861,7 +1861,7 @@ without blocking the initial design.
 ### Phase 8: Third-party plugin package
 
 - Document third-party plugin authoring
-- Publish first-party examples as npm packages
+- Publish first-party examples as packages
 
 ## Recommendation
 

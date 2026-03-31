@@ -17,7 +17,7 @@ Factory Droid is an enterprise-grade AI coding agent that operates in your termi
 ### NPM Installation (Global)
 
 ```bash
-npm install -g @factory/cli
+bun install --global @factory/cli
 ```
 
 ### Shell Script Installation
@@ -571,8 +571,8 @@ AGENTS.md is a Markdown file that provides project context to AI agents.
 
 ```markdown
 # Build & Test
-- Build: `npm run build`
-- Test: `npm run test`
+- Build: `bun run build`
+- Test: `bun run test`
 
 # Architecture Overview
 Brief description of major modules and data flow.
@@ -728,7 +728,7 @@ The repository contains:
 
 1. **As a Provider Option**
    - Add `factory-droid` as a supported agent alongside Claude Code
-   - Configure via `@factory/cli` npm package
+   - Configure via `@factory/cli` package
 
 2. **Shared Configuration Format**
    - AGENTS.md is cross-compatible (works with both)
@@ -746,7 +746,7 @@ The repository contains:
 
 ```bash
 # Install globally
-npm install -g @factory/cli
+bun install --global @factory/cli
 
 # Or via curl
 curl -fsSL https://app.factory.ai/cli | sh

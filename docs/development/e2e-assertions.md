@@ -61,18 +61,18 @@ This is important: we don't need to match the entire stdout, just one line.
 #### codex
 | What | How to check | Expected |
 |------|-------------|----------|
-| Success message | `result.stdout` | Contains `Installed Codex.` or `Installed Codex CLI via npm.` |
+| Success message | `result.stdout` | Contains `Installed Codex.` or `Installed Codex CLI via Bun.` |
 | Binary exists | `container.exec('which codex')` | Exit code `0` |
 
-**Install method:** `npm install -g @openai/codex`
+**Install method:** `bun install --global @openai/codex`
 
 #### opencode
 | What | How to check | Expected |
 |------|-------------|----------|
-| Success message | `result.stdout` | Contains `Installed OpenCode CLI.` or `Installed OpenCode CLI via npm.` |
+| Success message | `result.stdout` | Contains `Installed OpenCode CLI.` or `Installed OpenCode CLI via Bun.` |
 | Binary exists | `container.exec('which opencode')` | Exit code `0` |
 
-**Install method:** `npm install -g opencode-ai`
+**Install method:** `bun install --global opencode-ai`
 
 #### kimi
 | What | How to check | Expected |
@@ -364,8 +364,8 @@ it('test', async () => {
 | Agent | Binary Name | Config Path(s) | Install Method |
 |-------|------------|----------------|----------------|
 | claude-code | `claude` | `~/.claude/settings.json` | curl installer |
-| codex | `codex` | `~/.codex/config.toml` | npm -g |
-| opencode | `opencode` | `~/.config/opencode/config.json`, `~/.opencode-data/auth.json` | npm -g |
+| codex | `codex` | `~/.codex/config.toml` | bun --global |
+| opencode | `opencode` | `~/.config/opencode/config.json`, `~/.opencode-data/auth.json` | bun --global |
 | kimi | `kimi` | `~/.kimi/config.toml` | uv tool install |
 
 **Shared:** `~/.poe-code/credentials.json` (login, tracks configured services)

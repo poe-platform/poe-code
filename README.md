@@ -4,21 +4,21 @@
   <h1>Poe Code ⚡</h1>
 
 <a href="https://poe.com"><img src="https://img.shields.io/badge/Poe-Sign up-purple?logo=poe&logoColor=white&color=5D5CDE&style=for-the-badge" alt="Discord"></a>
-<a href="https://www.npmjs.com/package/poe-code"><img alt="NPM version" src="https://img.shields.io/npm/v/next.svg?&style=for-the-badge&color=09B16B"></a>
+<a href="https://github.com/poe-platform/poe-code/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/poe-platform/poe-code?style=for-the-badge&color=09B16B"></a>
 <a href="https://discord.gg/joinpoe"><img src="https://img.shields.io/badge/Discord-Join-purple?logo=discord&logoColor=white&color=FF44D3&style=for-the-badge" alt="Discord"></a>
 
 </div>
 
 Power your favorite coding agents (Claude Code, Codex, OpenCode, and more) with your Poe subscription—**no need to handle multiple providers/accounts.** Poe Code routes everything through the [Poe API](https://poe.com/api) .
 
-Use it on a single session (`npx poe-code@latest wrap claude`) or configure it as your default and use your tools normally.
+Use it on a single session (`bunx poe-code@latest wrap claude`) or configure it as your default and use your tools normally.
 
 ## Quickstart
 
 Start a coding session routing all your `claude` calls to Poe
 
 ```bash
-npx poe-code@latest wrap claude
+bunx poe-code@latest wrap claude
 # Also available: codex, opencode, kimi
 ```
 
@@ -30,16 +30,16 @@ This updates the provider’s config files and continue using your tools normall
 
 ```bash
 # Start the interactive setup
-npx poe-code@latest configure
+bunx poe-code@latest configure
 
 # Setup a specific agent
-npx poe-code@latest configure codex # (or claude, opencode, kimi)
+bunx poe-code@latest configure codex # (or claude, opencode, kimi)
 ```
 
 ### Unconfigure (remove overrides)
 
 ```bash
-npx poe-code@latest unconfigure claude
+bunx poe-code@latest unconfigure claude
 ```
 
 ### Logout (remove config + credentials)
@@ -64,35 +64,35 @@ Utilities are especially useful for scripting and CI/CD.
 #### Spawn a one-off prompt
 
 ```bash
-npx poe-code@latest spawn codex "Say hello"
+bunx poe-code@latest spawn codex "Say hello"
 ```
 
 #### Spawn a prompt via stdin
 
 ```bash
-echo "Say hello" | npx poe-code@latest spawn codex
+echo "Say hello" | bunx poe-code@latest spawn codex
 ```
 
 #### Test a configured service
 
 ```bash
-npx poe-code@latest test codex
+bunx poe-code@latest test codex
 ```
 
 ### Install agent CLIs
 
 ```bash
 # Claude Code
-npx poe-code@latest install claude-code
+bunx poe-code@latest install claude-code
 
 # Codex
-npx poe-code@latest install codex
+bunx poe-code@latest install codex
 
 # OpenCode
-npx poe-code@latest install opencode
+bunx poe-code@latest install opencode
 
 # Kimi
-npx poe-code@latest install kimi
+bunx poe-code@latest install kimi
 ```
 
 ### Optional flags

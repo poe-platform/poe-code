@@ -58,7 +58,7 @@ const container = await createContainer({ image: 'my-custom-image:latest' });
 | `options.testName` | `string?` | — | Label for container identification |
 | `options.image` | `string?` | auto-built `poe-code-e2e:<hash>` | Docker image to use |
 
-The container runs `sleep 86400`, staying alive for the duration of the test suite. On creation it mounts the workspace, npm/uv caches, and sets `PATH` for agent binaries.
+The container runs `sleep 86400`, staying alive for the duration of the test suite. On creation it mounts the workspace, package-manager/uv caches, and sets `PATH` for agent binaries.
 
 ### `setWorkspaceDir(dir: string): void`
 
@@ -196,7 +196,7 @@ Failure message:
 ```
 expected exit code 0, got 1
   Exit code: 1
-  stdout: npm warn deprecated ...
+  stdout: warn deprecated ...
   stderr: Error: binary not found
 ```
 
@@ -512,7 +512,7 @@ Export the API key before running tests:
 
 ```bash
 export POE_API_KEY='your-api-key'
-npm run e2e
+bun run e2e
 ```
 
 ### Container leak cleanup

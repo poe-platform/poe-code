@@ -35,7 +35,7 @@ act -W .github/workflows/pr-checks.yml -n --detect-event
 ```
 
 - Resolves `workflow_call` trigger for `test` job
-- Walks steps: checkout → setup-node → npm ci → build → test → smoke
+- Walks steps: checkout → setup-node → bun install --frozen-lockfile → build → test → smoke
 - Resolves action refs without executing
 - **Expected:** All steps `✅ Success`
 
@@ -90,7 +90,7 @@ act -W .github/workflows/pr-checks.yml -j test
 ```
 
 - Pulls Docker image, creates container, executes all steps for real
-- Runs npm ci → build → test → smoke inside container
+- Runs bun install --frozen-lockfile → build → test → smoke inside container
 - No secrets needed for pr-checks
 - **Expected:** Build and tests pass. Catches dep/Node/script issues before pushing.
 

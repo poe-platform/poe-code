@@ -306,5 +306,5 @@ export async function runChore(
 - **Executor**: mock `spawnSdk` and `commandRunner` at boundary
 - **CLI**: mock `@poe-code/chores` and `../../sdk/spawn.js`
 - **Prompts**: validate all built-in prompts have valid frontmatter
-- **Visual**: `npm run screenshot-poe-code -- chore --help`, `chore list`, `chore enable --help`
+- **Visual**: `bun run screenshot-poe-code -- chore --help`, `chore list`, `chore enable --help`
 - **No LLM calls in tests**

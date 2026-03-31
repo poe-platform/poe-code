@@ -158,8 +158,8 @@ Pipeline log dir convention: `{planDir}/logs/{taskId}-{stepName}.jsonl`
 
 ## Verification
 
-1. `npm run test` — middleware tests, simulation tests with metrics
-2. `npm run lint` — no type errors
-3. `npm run dev -- spawn claude-code "Hello"` → verify JSONL in `~/.poe-code/spawn-logs/`
-4. `npm run e2e:verbose` — e2e tests pass
-5. `npm run screenshot-poe-code -- pipeline run` — visual check of metrics display
+1. `bun run test` — middleware tests, simulation tests with metrics
+2. `bun run lint` — no type errors
+3. `bun run dev -- spawn claude-code "Hello"` → verify JSONL in `~/.poe-code/spawn-logs/`
+4. `bun run e2e:verbose` — e2e tests pass
+5. `bun run screenshot-poe-code -- pipeline run` — visual check of metrics display

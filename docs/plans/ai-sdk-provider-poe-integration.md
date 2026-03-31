@@ -15,7 +15,7 @@ Three integration surfaces:
 ## Dependencies
 
 ```
-npm install ai-sdk-provider-poe ai
+bun add ai-sdk-provider-poe ai
 ```
 
 - `ai` — Vercel AI SDK core (peer dep of `ai-sdk-provider-poe`)
@@ -51,7 +51,7 @@ npm install ai-sdk-provider-poe ai
 ### Tests
 
 - Unit test: mock `fetchPoeModels` → verify filtering, views, formatting still work
-- Screenshot: `npm run screenshot-poe-code -- models --provider anthropic`
+- Screenshot: `bun run screenshot-poe-code -- models --provider anthropic`
 
 ## Phase 2: generate → Vercel AI SDK `generateText()`
 
@@ -172,8 +172,8 @@ npm install ai-sdk-provider-poe ai
 ### Tests
 
 - Unit test: mock AI SDK `generateText` → verify tool loop, session updates, error handling
-- E2E: `npm run e2e:verbose` (poe-agent spawn flow)
-- Spot test: `npm run dev -- spawn poe-agent "list files"`
+- E2E: `bun run e2e:verbose` (poe-agent spawn flow)
+- Spot test: `bun run dev -- spawn poe-agent "list files"`
 
 ## Migration Strategy
 

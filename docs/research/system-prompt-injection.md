@@ -121,7 +121,7 @@ Modify `createSpawnHealthCheck` to embed deterministic instructions directly in 
 **Option 1 (proxy all test traffic)** is the most robust for CI/CD determinism. It's already working for `poe-agent-mcp`. Steps:
 
 1. Create fixture directories: `e2e/fixtures/claude-code/`, `e2e/fixtures/codex/`, etc.
-2. Record fixtures once: `POE_PROXY_MODE=record npm run e2e:verbose`
+2. Record fixtures once: `POE_PROXY_MODE=record bun run e2e:verbose`
 3. CI runs in `playback` mode — fully deterministic, no API calls
 4. The system prompt doesn't matter because the **entire request/response exchange is recorded**
 

@@ -453,6 +453,189 @@ Same mock works for testing both host and Docker code paths — the supervisor d
 24. Container removed on stop
 25. Engine auto-detection (docker vs podman)
 
+## Example: OpenClaw
+
+OpenClaw is a self-hosted AI assistant platform. Its core is a gateway process
+(`openclaw gateway`) — a WebSocket control plane that manages sessions, channels,
+agents, and device nodes. It needs to be installed, configured, and kept running.
+
+### Provider definition
+
+OpenClaw is a provider like any other (`claude-code`, `opencode`, `kimi`).
+It uses the existing `ServiceInstallDefinition` for installation and
+`createProvider()` manifest for configuration. The only new piece is a
+`process` block that tells the launcher what to supervise.
+
+```typescript
+// src/providers/openclaw.ts
+import { createBinaryExistsCheck } from "../utils/command-checks.js";
+import { configMutation, fileMutation } from "@poe-code/config-mutations";
+import { createProvider } from "./create-provider.js";
+import { openClawAgent } from "@poe-code/agent-defs";
+import type { ServiceInstallDefinition } from "../services/service-install.js";
+
+export const OPENCLAW_INSTALL_DEFINITION: ServiceInstallDefinition = {
+  id: "openclaw",
+  summary: "OpenClaw",
+  check: createBinaryExistsCheck(
+    "openclaw",
+    "openclaw-binary",
+    "OpenClaw binary must exist"
+  ),
+  steps: [
+    {
+      id: "install-openclaw-unix",
+      command: "bash",
+      args: ["-c", "curl -fsSL https://get.openclaw.dev | sh"],
+      platforms: ["darwin", "linux"],
+    },
+  ],
+  successMessage: "Installed OpenClaw.",
+};
+
+export const openClawService = createProvider({
+  ...openClawAgent,
+  manifest: {
+    configure: [
+      fileMutation.ensureDirectory({ path: "~/.openclaw" }),
+      configMutation.merge({
+        target: "~/.openclaw/openclaw.json",
+        value: (ctx) => {
+          const { apiKey, model } = ctx as { apiKey?: string; model?: string };
+          return {
+            gateway: { mode: "local", port: 18789 },
+            models: {
+              providers: {
+                poe: {
+                  baseUrl: "${POE_BASE_URL}",
+                  apiKey: apiKey ?? "",
+                  api: "openai-completions",
+                  models: [{ id: model ?? "gpt-4o", contextWindow: 128000 }],
+                },
+              },
+            },
+          };
+        },
+      }),
+    ],
+    unconfigure: [
+      configMutation.prune({
+        target: "~/.openclaw/openclaw.json",
+        shape: { models: { providers: { poe: true } } },
+      }),
+    ],
+  },
+  install: OPENCLAW_INSTALL_DEFINITION,
+  // NEW: declares a long-running process for the launcher
+  process: {
+    command: "openclaw",
+    args: ["gateway", "--port", "18789"],
+    restart: "on-failure",
+    maxRestarts: 5,
+    readyCheck: { kind: "tcp", port: 18789 },
+  },
+});
+```
+
+The key insight: **no new setup/install mechanism**. The existing `install()` and
+`configure()` from `ProviderService` handle everything. The only addition is the
+`process` field on `CreateProviderOptions` — a `ProcessSpec` that the launcher picks up.
+
+### CLI flow
+
+`poe-code launch start` leverages the existing provider operations:
+
+```text
+# First time: install → configure → start process
+poe-code launch start openclaw
+  → poe-code install openclaw        # existing install command
+  → poe-code configure openclaw      # existing configure command
+  → starting openclaw... ready on :18789
+
+# Already installed and configured — just starts
+poe-code launch start openclaw
+  → OpenClaw already installed.
+  → OpenClaw already configured.
+  → starting openclaw... ready on :18789
+
+# Lifecycle (no install/configure needed)
+poe-code launch stop openclaw
+poe-code launch restart openclaw
+
+# Status
+poe-code launch status
+  ID         RUNTIME   STATUS     PID     RESTARTS   UPTIME       LAST EXIT
+  openclaw   host      running    48291   0          2h 15m       —
+
+# Logs
+poe-code launch logs openclaw --follow
+
+# Update binary (just re-runs existing install)
+poe-code install openclaw
+```
+
+### SDK usage
+
+```typescript
+import { createSupervisor } from "poe-code";
+
+const openclaw = createSupervisor({
+  spec: {
+    id: "openclaw",
+    command: "openclaw",
+    args: ["gateway", "--port", "18789"],
+    restart: "on-failure",
+    readyCheck: { kind: "tcp", port: 18789 },
+  },
+  stateDir: "~/.poe-code/launcher/",
+  onStatusChange(state) {
+    console.log(`openclaw: ${state.status}`);
+  },
+});
+
+await openclaw.start();
+// OpenClaw is healthy and accepting connections on :18789
+
+await openclaw.stop();
+```
+
+### Docker variant
+
+Same provider, containerized — only the spec changes:
+
+```typescript
+const openclaw = createSupervisor({
+  spec: {
+    id: "openclaw",
+    command: "openclaw",
+    args: ["gateway", "--port", "18789"],
+    restart: "on-failure",
+    readyCheck: { kind: "tcp", port: 18789 },
+    docker: {
+      image: "cherryhq/openclaw:latest",
+      ports: [{ host: 18789, container: 18789 }],
+      mounts: [
+        { source: "~/.openclaw", target: "/root/.openclaw" },
+      ],
+    },
+  },
+  stateDir: "~/.poe-code/launcher/",
+});
+```
+
+### Design notes
+
+- **No parallel install/setup system.** The launcher delegates to the existing
+  `ProviderService.install()` and `ProviderService.configure()`. No new types
+  like `SetupStep` or `SkipCondition` — those concepts already exist as
+  `ServiceInstallDefinition` with `CommandCheck` and platform-filtered `InstallCommand[]`.
+- **`process` is the only new field** on `CreateProviderOptions`. Providers that
+  don't need a long-running process simply omit it (claude-code, codex, etc.).
+- **`poe-code launch start`** orchestrates: check install → run install if needed →
+  check configure → run configure if needed → start supervised process.
+- **Updates** use the existing `poe-code install openclaw` command — no separate
+  update mechanism needed.
+
 ## Implementation order
 
 1. Types + package scaffolding

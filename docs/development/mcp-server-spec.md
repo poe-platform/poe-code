@@ -490,7 +490,7 @@ The system generates `jsonMergeMutation`/`jsonPruneMutation` (or toml variants) 
 ## Dependencies to Add
 
 ```bash
-npm install @modelcontextprotocol/sdk zod
+bun add @modelcontextprotocol/sdk zod
 ```
 
 Note: `zod` is a required peer dependency of the MCP SDK.

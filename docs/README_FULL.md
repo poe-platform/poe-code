@@ -76,13 +76,13 @@
 
 ```bash
 # Global install
-npm install -g poe-code
+bun install --global poe-code
 
-# Or use directly with npx
-npx poe-code@latest <command>
+# Or use directly with bunx
+bunx poe-code@latest <command>
 ```
 
-**Requirements**: Node.js >= 22.14.0, npm >= 11.5.1
+**Requirements**: Bun >= 1.3.0
 
 ---
 
@@ -92,7 +92,7 @@ npx poe-code@latest <command>
 
 ```bash
 # Wrap any agent to route through Poe for a single session
-npx poe-code@latest wrap claude
+bunx poe-code@latest wrap claude
 npx poe-code@latest wrap codex
 npx poe-code@latest wrap opencode
 npx poe-code@latest wrap kimi
@@ -482,8 +482,8 @@ poe-code install [agent]
 | Agent | Method |
 |-------|--------|
 | Claude Code | `curl -fsSL https://claude.ai/install.sh \| bash` (Unix) or PowerShell (Windows) |
-| Codex | `npm install -g @openai/codex` |
-| OpenCode | `npm install -g opencode-ai` |
+| Codex | `bun install --global @openai/codex` |
+| OpenCode | `bun install --global opencode-ai` |
 | Kimi | `uv tool install --python 3.13 kimi-cli` |
 
 **Examples:**
@@ -815,7 +815,7 @@ poe-code skill unconfigure claude-code --local --force
 ## SDK Reference
 
 ```bash
-npm install poe-code
+bun add poe-code
 ```
 
 All SDK functions automatically resolve the Poe API key from `POE_API_KEY` environment variable or `~/.poe-code/credentials.json`.
@@ -1503,7 +1503,7 @@ export const provider = createProvider<ConfigureOptions, UnconfigureOptions, Spa
     summary: "My Agent CLI",
     check: createBinaryExistsCheck("my-cli", "my-agent-binary", "..."),
     steps: [
-      { id: "install-step", command: "npm", args: ["install", "-g", "my-agent-cli"] }
+      { id: "install-step", command: "bun", args: ["install", "--global", "my-agent-cli"] }
     ],
     successMessage: "Installed My Agent CLI."
   },

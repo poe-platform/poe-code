@@ -11,7 +11,7 @@ status:
 
 ## Goal
 
-Fully migrate poe-code from Node.js + npm + esbuild to **Bun** as the sole runtime, package manager, bundler, and test runner.
+Fully migrate poe-code from Node.js + the previous package manager + esbuild to **Bun** as the sole runtime, package manager, bundler, and test runner.
 
 ## Non-Goals
 
@@ -23,11 +23,11 @@ Fully migrate poe-code from Node.js + npm + esbuild to **Bun** as the sole runti
 | Area             | Current                        | Target              |
 |------------------|--------------------------------|---------------------|
 | Runtime          | Node.js 20/22                  | Bun                 |
-| Package manager  | npm + package-lock.json        | bun + bun.lock      |
+| Package manager  | previous lockfile setup        | bun + bun.lock      |
 | Build/bundler    | tsc + esbuild + turbo          | bun build + turbo   |
 | Test runner      | Vitest                         | bun:test            |
 | Dev execution    | tsx                            | bun run             |
-| Binary dist      | npm package (requires Node)    | bun build --compile |
+| Binary dist      | package (requires Node)    | bun build --compile |
 
 ## Compatibility Validation (Bun 1.3.11)
 
@@ -75,7 +75,7 @@ Validated against the actual codebase on 2026-03-30. Every item below was tested
 
 ### 1) Package manager swap
 
-- Replace `npm ci` / `npm install` with `bun install`.
+- Replace `bun install --frozen-lockfile` / `bun install` with `bun install`.
 - Delete `package-lock.json`, generate `bun.lock`.
 - Update `packageManager` field in root `package.json` to `bun`.
 - Verify all 24 workspace packages resolve correctly with Bun's resolver.
@@ -114,8 +114,8 @@ Validated against the actual codebase on 2026-03-30. Every item below was tested
 
 ### 4) Dev workflow
 
-- Replace `tsx` with `bun run` for `npm run dev`.
-- Update `npm run screenshot-poe-code` and other dev scripts.
+- Replace `tsx` with `bun run` for `bun run dev`.
+- Update `bun run screenshot-poe-code` and other dev scripts.
 - Update `freeze-cli` postinstall to be runtime-agnostic.
 
 ### 5) Standalone binary
@@ -127,7 +127,7 @@ Validated against the actual codebase on 2026-03-30. Every item below was tested
   - `poe-code-darwin-arm64`
   - `poe-code-win-x64.exe`
 - Replaces the current `dist/bin.cjs` Node version gate wrapper.
-- Publish binaries as GitHub release assets alongside npm package.
+- Publish binaries as GitHub release assets alongside package.
 
 ### 6) CI/CD
 
@@ -135,7 +135,7 @@ Validated against the actual codebase on 2026-03-30. Every item below was tested
 - Update workflow steps: `bun install` → `bun run build` → `bun run lint` → `bun run typecheck` → `bun test`.
 - Add binary compilation step to release workflow (per-platform matrix).
 - Verify `semantic-release` works under Bun (it should — it's a Node package that Bun runs fine).
-- Remove `npm audit signatures` (npm-specific) or find Bun equivalent.
+- Remove `bun audit` (previously package-manager-specific) or find Bun equivalent.
 
 ### 7) Cleanup
 
@@ -145,7 +145,7 @@ Validated against the actual codebase on 2026-03-30. Every item below was tested
 - Remove tsx dependency.
 - Remove Node version gate in `dist/bin.cjs` and `scripts/node-version-gate.mjs`.
 - Update root `engines` field to specify Bun version.
-- Update package READMEs where they reference npm/node.
+- Update package READMEs where they reference the previous runtime/tooling stack.
 
 ## Risks
 

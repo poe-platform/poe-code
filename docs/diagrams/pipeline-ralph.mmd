@@ -1,0 +1,96 @@
+---
+config:
+  look: handDrawn
+  theme: neutral
+  themeVariables:
+    primaryColor: "#4C9AFF"
+    primaryTextColor: "#1a1a1a"
+    primaryBorderColor: "#2684FF"
+    secondaryColor: "#F4F5F7"
+    secondaryBorderColor: "#C1C7D0"
+    tertiaryColor: "#E6FCFF"
+    lineColor: "#505F79"
+    fontFamily: "Inter, system-ui, sans-serif"
+    fontSize: "14px"
+---
+
+graph TB
+  subgraph SDK["SDK Layer"]
+    direction LR
+    SSDK["sdk/spawn"]
+    PSDK["sdk/pipeline"]
+    RSDK["sdk/ralph"]
+  end
+
+  subgraph PIPELINE["Pipeline — Structured Task Workflow"]
+    direction TB
+
+    subgraph CONFIG_P["Config"]
+      PLOAD["Loader<br/><i>global + project YAML merge</i>"]
+      PSTEPS["Step Definitions<br/><i>mode · instruction · agent</i>"]
+    end
+
+    subgraph PLAN["Plan Management"]
+      PDISC["Discovery<br/><i>scan plan*.yaml</i>"]
+      PPARSE["Parser<br/><i>validate tasks & steps</i>"]
+      PWRITE["Writer<br/><i>update status in-place</i>"]
+    end
+
+    subgraph RUN_P["Execution"]
+      PSELECT["Select Next<br/><i>task → step → run|blocked|done</i>"]
+      PPROMPT["Build Prompt<br/><i>interpolate {{id}} {{title}} …</i>"]
+      PRUN["Runner<br/><i>spawn agent · lock file</i>"]
+      PARCH["Archive<br/><i>completed → archive/</i>"]
+    end
+
+    PLOAD --> PSTEPS
+    PDISC --> PPARSE
+    PPARSE --> PSELECT
+    PSTEPS --> PPROMPT
+    PSELECT --> PPROMPT
+    PPROMPT --> PRUN
+    PRUN -->|"exit 0 → done<br/>exit 1 → failed"| PWRITE
+    PWRITE -->|"next iteration"| PSELECT
+    PRUN -->|"all done"| PARCH
+  end
+
+  subgraph RALPH["Ralph — Iterative Document Refinement"]
+    direction TB
+
+    subgraph CONFIG_R["Config"]
+      RDISC["Discovery<br/><i>scan *.md docs</i>"]
+      RFM["Frontmatter<br/><i>agent · iterations · status</i>"]
+    end
+
+    subgraph RUN_R["Execution Loop"]
+      RREAD["Read Document<br/><i>parse frontmatter + body</i>"]
+      RAGENT["Select Agent<br/><i>round-robin from array</i>"]
+      RSPAWN["Spawn Agent<br/><i>body as prompt</i>"]
+      RITER["Update Iteration<br/><i>iteration++</i>"]
+      RARCH2["Archive<br/><i>completed → archive/</i>"]
+    end
+
+    RDISC --> RFM
+    RFM --> RREAD
+    RREAD --> RAGENT
+    RAGENT --> RSPAWN
+    RSPAWN --> RITER
+    RITER -->|"iteration < max"| RREAD
+    RITER -->|"done"| RARCH2
+  end
+
+  PSDK --> PIPELINE
+  RSDK --> RALPH
+  SSDK --> PSDK
+  SSDK --> RSDK
+
+  subgraph SHARED["Shared Concepts"]
+    direction LR
+    S1["📁 File-based state"]
+    S2["🔄 Agent spawn callback"]
+    S3["🗂️ Auto-archiving"]
+    S4["🛑 AbortSignal cancellation"]
+  end
+
+  PIPELINE ~~~ SHARED
+  RALPH ~~~ SHARED

@@ -5,7 +5,7 @@ Poe authentication plugin for OpenCode with browser-based OAuth and manual API k
 ## Install
 
 ```bash
-npm install opencode-poe-auth
+bun add opencode-poe-auth
 ```
 
 ## Usage

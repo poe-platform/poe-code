@@ -463,8 +463,8 @@ When other packages adopt this runner, they create the runner themselves:
 6. **Host runner integration test** — test 31: spawn `echo hello`, verify stdout capture
 
 **Verify phase 2:**
-- `npm run test` — all unit tests pass
-- `npm run lint` — no type errors
+- `bun run test` — all unit tests pass
+- `bun run lint` — no type errors
 - Manual: `bun packages/process-runner/src/host/host-runner.integration.test.ts`
 
 ### Phase 3: Docker args + infrastructure
@@ -475,7 +475,7 @@ When other packages adopt this runner, they create the runner themselves:
 10. **Context detection** — extract from `e2e-docker-test-runner`
 
 **Verify phase 3:**
-- `npm run test` — args builder and detection tests pass
+- `bun run test` — args builder and detection tests pass
 - Spot-check: import and call `detectEngine()` from a scratch script, verify it finds docker/podman
 
 ### Phase 4: Docker runner
@@ -485,7 +485,7 @@ When other packages adopt this runner, they create the runner themselves:
 13. **Docker runner integration test** — test 33: `echo hello` in alpine
 
 **Verify phase 4:**
-- `npm run test` — all tests pass
+- `bun run test` — all tests pass
 - Manual integration: run a real container
   ```
   bun -e "
@@ -512,8 +512,8 @@ When other packages adopt this runner, they create the runner themselves:
 
 ### Phase 5: Verification + cleanup
 
-14. **Full test suite** — `npm run test` across workspace, no regressions
-15. **Lint** — `npm run lint`, no type errors
+14. **Full test suite** — `bun run test` across workspace, no regressions
+15. **Lint** — `bun run lint`, no type errors
 16. **Run verification scripts** (see below)
 17. **Update plans:**
     - `process-launcher.md` — reference `Runner` from this package, drop `ProcessRuntime`

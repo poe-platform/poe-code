@@ -127,7 +127,7 @@ ACP normalization/parsing is a shared concern and must not live inside a single 
 Shared package:
 
 - `packages/poe-acp-client`
-- npm name: `@poe-code/poe-acp-client`
+- package name: `@poe-code/poe-acp-client`
 
 Required responsibilities:
 

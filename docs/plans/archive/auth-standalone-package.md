@@ -219,7 +219,7 @@ type AuthBackend = "file" | "keychain" | "secret-tool"
 #### 5.2 README
 
 **Replace** `packages/auth/README.md` with:
-- Installation (`npm install @poe-code/auth`)
+- Installation (`bun add @poe-code/auth`)
 - SDK quick start (4 functions)
 - CLI usage (`npx poe-auth login`)
 - Environment variables (`POE_API_KEY`, `POE_AUTH_BACKEND`)
@@ -270,8 +270,8 @@ poe-auth whoami [--json]           # verify key, show identity
 
 ## Verification
 
-1. `npm run test` — all unit tests pass
-2. `npm run lint` — clean
-3. `npm run e2e:verbose` — login/logout e2e flows work
-4. `npm run screenshot-poe-code -- --help` — help output unchanged
-5. `npm run screenshot-poe-code -- login --help` — login help works
+1. `bun run test` — all unit tests pass
+2. `bun run lint` — clean
+3. `bun run e2e:verbose` — login/logout e2e flows work
+4. `bun run screenshot-poe-code -- --help` — help output unchanged
+5. `bun run screenshot-poe-code -- login --help` — login help works

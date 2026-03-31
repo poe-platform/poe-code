@@ -61,7 +61,7 @@ type ExecFn = (command: string, options?: {
 type MetricDirection = "minimize" | "maximize";
 
 interface MetricDef {
-  name: string;              // npm script name (without metric: prefix)
+  name: string;              // bun script name (without metric: prefix)
   direction: MetricDirection;
 }
 ```
@@ -119,8 +119,8 @@ interface ExperimentRunResult {
 The loop doesn't interpret stdout, parse numbers, or understand what "improvement" means.
 The script owns the domain logic — it decides whether the result is good enough.
 
-Metric scripts are npm scripts with a `metric:` prefix in `package.json`.
-The loop runs `npm run metric:<name>` for each entry.
+Metric scripts are bun scripts with a `metric:` prefix in `package.json`.
+The loop runs `bun run metric:<name>` for each entry.
 
 Every metric script must:
 - Exit 0 on success, non-zero on crash/error
@@ -179,7 +179,7 @@ async function evaluateChain(
 ): Promise<EvalResult[]>;
 ```
 
-Resolves each metric name to `npm run metric:<name>`.
+Resolves each metric name to `bun run metric:<name>`.
 Run in order. Short-circuit on non-zero exit.
 Parse last line of stdout as the score.
 
@@ -393,7 +393,7 @@ Creates two things:
 - If request is empty, ask what to optimize/fix
 - Write the experiment doc with frontmatter
 - Create metric script(s) — could be:
-  - An npm script (`metric:tests` in package.json)
+  - An bun script (`metric:tests` in package.json)
   - A standalone JS file (`scripts/metric-test-duration.mjs`)
   - A shell script (`scripts/metric-bundle-size.sh`)
   - Any executable that prints a number to stdout

@@ -44,8 +44,8 @@ Practical seam shape:
 
 ## Quality Gates
 
-- `npm run test`
-- `npm run lint`
-- `npm run e2e:verbose`
-- `npm run screenshot-poe-code -- spawn --help`
-- `npm run screenshot-poe-code -- docker-spawn build-image --help`
+- `bun run test`
+- `bun run lint`
+- `bun run e2e:verbose`
+- `bun run screenshot-poe-code -- spawn --help`
+- `bun run screenshot-poe-code -- docker-spawn build-image --help`

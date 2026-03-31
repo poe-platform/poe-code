@@ -1,11 +1,11 @@
-# Publishing a new npm package
+# Publishing a new package
 
 ## 1. First publish (local, one-time)
 
 ```sh
 cd packages/<package-dir>
-npm login
-npm publish --access public
+bun pm whoami
+bun publish --access public
 ```
 
 ## 2. Configure provenance on npmjs.com
@@ -24,23 +24,23 @@ After this, GitHub Actions can publish new versions using OIDC provenance — no
 Add a workflow in `.github/workflows/` that triggers on push to `main` with a path filter for the package directory. The workflow should:
 
 1. Build the package
-2. Auto-bump the patch version from whatever is currently on npm
+2. Auto-bump the patch version from whatever is currently in the registry
 3. Publish with `--provenance --access public`
 
 Required permissions: `id-token: write` (for OIDC provenance).
 
-For trusted publishing, avoid token-based npm auth in the workflow:
+For trusted publishing, avoid token-based registry auth in the workflow:
 
 - Do not set `NODE_AUTH_TOKEN` / `NPM_TOKEN` for the publish job.
-- Trusted publishing requires `npm >= 11.5.1` and `node >= 22.14.0`.
-- In `actions/setup-node`, set `node-version`, then upgrade npm (example: `npm install --global npm@^11.5.1`) before running `npm publish --provenance --access public`.
+- Trusted publishing requires a current Bun release and `node >= 22.14.0`.
+- In `actions/setup-node`, set `node-version`, then install Bun before running `bun publish --access public`.
 
 For the version alignment step, use `--allow-same-version` so the workflow does not fail on first run after local initial publish:
 
 ```sh
-REMOTE=$(npm view <package-name> version 2>/dev/null || echo "0.0.0")
-npm version --no-git-tag-version --allow-same-version "$REMOTE"
-npm version --no-git-tag-version patch
+REMOTE=$(bun info <package-name> version 2>/dev/null || echo "0.0.0")
+bun pm version "$REMOTE"
+bun pm version patch
 ```
 
 ## 4. Provenance troubleshooting

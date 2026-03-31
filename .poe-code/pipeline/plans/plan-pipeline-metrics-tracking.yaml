@@ -156,7 +156,7 @@ tasks:
       - Simplified spawnStreaming (raw events only)
       - SDK middleware wiring and log dir resolver
 
-      Run `npm run test && npm run lint` before committing.
+      Run `bun run test && bun run lint` before committing.
 
       Commit message: `feat(agent-spawn): add ACP event middleware pipeline with spawn logging`
     status:
@@ -205,7 +205,7 @@ tasks:
       - SpawnUsage type added to SDK types
       - Usage propagated through all SDK spawn return paths
 
-      Run `npm run test && npm run lint` before committing.
+      Run `bun run test && bun run lint` before committing.
 
       Commit message: `feat: propagate token usage through SDK spawn`
     status:
@@ -287,7 +287,7 @@ tasks:
       - Metrics accumulation in runPipeline
       - Updated tests
 
-      Run `npm run test && npm run lint` before committing.
+      Run `bun run test && bun run lint` before committing.
 
       Commit message: `feat(pipeline): add AgentRunUsage and PipelineMetrics with accumulation`
     status:
@@ -333,7 +333,7 @@ tasks:
       - logDir passthrough in runPipeline to runAgent
       - SDK spawn logDir forwarding
 
-      Run `npm run test && npm run lint` before committing.
+      Run `bun run test && bun run lint` before committing.
 
       Commit message: `feat(pipeline): route spawn logs to plan directory`
     status:
@@ -371,7 +371,7 @@ tasks:
       - normalizeAgentResult usage propagation
       - New and updated simulation tests
 
-      Run `npm run test && npm run lint` before committing.
+      Run `bun run test && bun run lint` before committing.
 
       Commit message: `test(pipeline): add usage support to simulation harness`
     status:
@@ -401,7 +401,7 @@ tasks:
       Use the project's design system for formatting — do not use chalk or
       @clack/prompts directly.
 
-      Test the visual output with `npm run screenshot-poe-code -- pipeline run`.
+      Test the visual output with `bun run screenshot-poe-code -- pipeline run`.
 
       Reference: `docs/plans/pipeline-metrics-tracking.md` Phase 6.
     status:
@@ -415,7 +415,7 @@ tasks:
       - SDK re-exports of AgentRunUsage and PipelineMetrics
       - CLI pipeline metrics display
 
-      Run `npm run test && npm run lint` before committing.
+      Run `bun run test && bun run lint` before committing.
 
       Commit message: `feat: display pipeline metrics in CLI summary`
     status:
@@ -430,10 +430,10 @@ tasks:
     prompt: |
       Run the full verification suite as described in the plan:
 
-      1. `npm run test` — all middleware tests, simulation tests with metrics pass
-      2. `npm run lint` — no type errors
-      3. `npm run e2e:verbose` — all e2e tests pass
-      4. `npm run screenshot-poe-code -- pipeline run` — visual check of metrics display
+      1. `bun run test` — all middleware tests, simulation tests with metrics pass
+      2. `bun run lint` — no type errors
+      3. `bun run e2e:verbose` — all e2e tests pass
+      4. `bun run screenshot-poe-code -- pipeline run` — visual check of metrics display
 
       Fix any failures found. Do not skip tests or use --no-verify.
     status:

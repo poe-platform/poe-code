@@ -2,7 +2,7 @@ tasks:
   - id: rename-to-poe-auth
     title: Rename packages/auth to packages/poe-oauth and update all references
     prompt: |
-      Rename the auth package directory and npm package name:
+      Rename the auth package directory and package name:
       - Directory: `packages/auth/` → `packages/poe-oauth/`
       - Package name: `@poe-code/auth` → `@poe-code/poe-auth`
 
@@ -35,8 +35,8 @@ tasks:
          - `e2e/vitest.config.ts` — update path `'../packages/auth/src'` → `'../packages/poe-oauth/src'` and alias key `'@poe-code/auth'` → `'@poe-code/poe-auth'`
          - `packages/e2e-docker-test-runner/src/image.ts` — update `packageDir: 'packages/auth'` → `packageDir: 'packages/poe-oauth'`
 
-      6. Run `npm install` to regenerate package-lock.json
-      7. Run `npm run test` and `npm run lint` to verify nothing is broken
+      6. Run `bun install` to refresh the lockfile
+      7. Run `bun run test` and `bun run lint` to verify nothing is broken
 
       Do NOT update docs/plans — those are planning docs and will be updated separately.
 
@@ -331,9 +331,9 @@ tasks:
       commit: open
 
   - id: publish-prep
-    title: Prepare @poe-code/poe-auth for npm publishing
+    title: Prepare @poe-code/poe-auth for registry publishing
     prompt: |
-      Prepare the auth package for standalone npm publishing.
+      Prepare the auth package for standalone registry publishing.
 
       Modify `packages/poe-oauth/package.json`:
       - Remove `"private": true`
@@ -344,7 +344,7 @@ tasks:
 
       Replace `packages/poe-oauth/README.md` with a proper public README containing:
       - Package description
-      - Installation: `npm install @poe-code/poe-auth`
+      - Installation: `bun add @poe-code/poe-auth`
       - SDK quick start showing the 4 functions: `login`, `logout`, `getToken`, `checkAuth`
       - CLI usage: `npx poe-auth login`, `npx poe-auth logout`, `npx poe-auth token`, `npx poe-auth whoami`
       - Environment variables: `POE_API_KEY`, `POE_AUTH_BACKEND`
@@ -352,7 +352,7 @@ tasks:
 
       Add `@poe-code/poe-auth` to the existing release pipeline so it publishes alongside poe-code on the beta and main branches.
 
-      Commit: `chore(auth): prepare @poe-code/poe-auth for npm publishing`
+      Commit: `chore(auth): prepare @poe-code/poe-auth for registry publishing`
     status:
       implement: open
       refactor: open

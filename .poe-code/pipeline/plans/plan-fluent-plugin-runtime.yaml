@@ -291,7 +291,7 @@ tasks:
       - PluginApi implementation (addTool, addMcp)
       - Plugin setup orchestration (registration order)
 
-      All tests pass. `npm run test && npm run lint`.
+      All tests pass. `bun run test && bun run lint`.
     status:
       commit: done
 
@@ -389,7 +389,7 @@ tasks:
       - Fork mechanism with context cloning and abort cascading
       - Spawn via AcpClient (in-process + external modes)
 
-      All tests pass. `npm run test && npm run lint`.
+      All tests pass. `bun run test && bun run lint`.
     status:
       commit: done
 
@@ -493,7 +493,7 @@ tasks:
       - Resume support
       - Abort signal propagation and cleanup lifecycle
 
-      All tests pass. `npm run test && npm run lint`.
+      All tests pass. `bun run test && bun run lint`.
     status:
       commit: done
 
@@ -647,7 +647,7 @@ tasks:
 
       Keep internal: `NormalizedTool`, all registries, `RunContext`, `AgentHost`, `PluginApiImpl`.
 
-      Third-party plugins are ordinary npm packages:
+      Third-party plugins are ordinary packages:
       ```ts
       import type { AgentPlugin } from "@poe-code/poe-agent";
       export function jira(options: JiraOptions): AgentPlugin { ... }
@@ -808,10 +808,10 @@ tasks:
     prompt: |
       Run the full compatibility check to verify the refactor is transparent to consumers:
 
-      1. `npm run test` — all unit tests pass (provider, session, chat, MCP tests)
-      2. `npm run lint` — no lint errors
-      3. `npm run e2e:verbose` — all existing e2e tests pass
-      4. `npm run build` — package builds successfully
+      1. `bun run test` — all unit tests pass (provider, session, chat, MCP tests)
+      2. `bun run lint` — no lint errors
+      3. `bun run e2e:verbose` — all existing e2e tests pass
+      4. `bun run build` — package builds successfully
 
       Specifically verify `src/providers/poe-agent.ts` and `src/cli/commands/agent.ts`
       work without changes. The provider continues using `createAgentSession(...)` which
@@ -857,7 +857,7 @@ tasks:
       - All e2e tests
       - poe-agent removed from regular spawn path
 
-      All tests pass. `npm run test && npm run lint && npm run e2e:verbose`.
+      All tests pass. `bun run test && bun run lint && bun run e2e:verbose`.
     status:
       commit: done
 

@@ -26,7 +26,7 @@ describe("SDK Client integration", () => {
     it("returns correct server info with special characters", async () => {
       const server = createServer({
         name: "test-server-with-dashes",
-        version: "1.0.0-beta.1+build.123",
+        version: "1.0.0-beta.1+build.123"
       });
       testPair = await createTestPair(server);
 
@@ -47,7 +47,7 @@ describe("SDK Client integration", () => {
   describe("tools/list", () => {
     it("lists tools via SDK Client", async () => {
       const schema = defineSchema({
-        name: { type: "string", description: "Name to greet" },
+        name: { type: "string", description: "Name to greet" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "greet",
@@ -78,12 +78,7 @@ describe("SDK Client integration", () => {
       let server = createServer({ name: "test", version: "1.0.0" });
 
       for (let i = 0; i < 20; i++) {
-        server = server.tool(
-          `tool${i}`,
-          `Tool number ${i}`,
-          schema,
-          async () => String(i)
-        );
+        server = server.tool(`tool${i}`, `Tool number ${i}`, schema, async () => String(i));
       }
 
       testPair = await createTestPair(server);
@@ -94,11 +89,11 @@ describe("SDK Client integration", () => {
 
     it("returns correct schema for each tool", async () => {
       const schema1 = defineSchema({
-        name: { type: "string", description: "User name" },
+        name: { type: "string", description: "User name" }
       });
       const schema2 = defineSchema({
         count: { type: "number" },
-        enabled: { type: "boolean", optional: true },
+        enabled: { type: "boolean", optional: true }
       });
 
       const server = createServer({ name: "test", version: "1.0.0" })
@@ -124,7 +119,7 @@ describe("SDK Client integration", () => {
   describe("tools/call", () => {
     it("calls tools via SDK Client", async () => {
       const schema = defineSchema({
-        name: { type: "string" },
+        name: { type: "string" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "greet",
@@ -136,7 +131,7 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "greet",
-        arguments: { name: "World" },
+        arguments: { name: "World" }
       });
 
       expect(result.content).toEqual([{ type: "text", text: "Hello, World!" }]);
@@ -154,17 +149,55 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "noop",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "done" }]);
+    });
+
+    it("serializes object tool results to JSON text", async () => {
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "structured",
+        "Structured result",
+        schema,
+        async () => ({ sessionId: "session-1", pid: 1234 })
+      );
+
+      testPair = await createTestPair(server);
+      const result = await testPair.client.callTool({
+        name: "structured",
+        arguments: {}
+      });
+
+      expect(result.content).toEqual([
+        { type: "text", text: '{"sessionId":"session-1","pid":1234}' }
+      ]);
+    });
+
+    it("allows tools to return no content", async () => {
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "empty",
+        "Empty result",
+        schema,
+        async () => undefined
+      );
+
+      testPair = await createTestPair(server);
+      const result = await testPair.client.callTool({
+        name: "empty",
+        arguments: {}
+      });
+
+      expect(result.content).toEqual([]);
     });
 
     it("passes complex arguments correctly", async () => {
       const schema = defineSchema({
         str: { type: "string" },
         num: { type: "number" },
-        bool: { type: "boolean" },
+        bool: { type: "boolean" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "complex",
@@ -176,18 +209,16 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "complex",
-        arguments: { str: "test", num: 42, bool: true },
+        arguments: { str: "test", num: 42, bool: true }
       });
 
-      expect(result.content).toEqual([
-        { type: "text", text: "str=test, num=42, bool=true" },
-      ]);
+      expect(result.content).toEqual([{ type: "text", text: "str=test, num=42, bool=true" }]);
     });
 
     it("handles numeric calculations", async () => {
       const schema = defineSchema({
         a: { type: "number" },
-        b: { type: "number" },
+        b: { type: "number" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "add",
@@ -200,19 +231,19 @@ describe("SDK Client integration", () => {
 
       const result1 = await testPair.client.callTool({
         name: "add",
-        arguments: { a: 2, b: 3 },
+        arguments: { a: 2, b: 3 }
       });
       expect(result1.content).toEqual([{ type: "text", text: "5" }]);
 
       const result2 = await testPair.client.callTool({
         name: "add",
-        arguments: { a: -10, b: 5 },
+        arguments: { a: -10, b: 5 }
       });
       expect(result2.content).toEqual([{ type: "text", text: "-5" }]);
 
       const result3 = await testPair.client.callTool({
         name: "add",
-        arguments: { a: 0.1, b: 0.2 },
+        arguments: { a: 0.1, b: 0.2 }
       });
       expect(parseFloat((result3.content[0] as { text: string }).text)).toBeCloseTo(0.3);
     });
@@ -235,13 +266,13 @@ describe("SDK Client integration", () => {
         "Unicode: 日本語",
         "Emoji: 🎉",
         "Backslash: \\",
-        "Mixed: \"hello\"\n\tworld\\end",
+        'Mixed: "hello"\n\tworld\\end'
       ];
 
       for (const str of specialStrings) {
         const result = await testPair.client.callTool({
           name: "echo",
-          arguments: { text: str },
+          arguments: { text: str }
         });
         expect(result.content).toEqual([{ type: "text", text: str }]);
       }
@@ -253,7 +284,7 @@ describe("SDK Client integration", () => {
       const schema = defineSchema({
         strField: { type: "string", description: "A string" },
         numField: { type: "number", optional: true },
-        boolField: { type: "boolean", optional: true },
+        boolField: { type: "boolean", optional: true }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "typed",
@@ -277,7 +308,7 @@ describe("SDK Client integration", () => {
         num: { type: "number" },
         bool: { type: "boolean" },
         obj: { type: "object" },
-        arr: { type: "array" },
+        arr: { type: "array" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "allTypes",
@@ -300,7 +331,7 @@ describe("SDK Client integration", () => {
     it("schema includes descriptions", async () => {
       const schema = defineSchema({
         name: { type: "string", description: "The user's name" },
-        age: { type: "number", description: "Age in years" },
+        age: { type: "number", description: "Age in years" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "user",
@@ -313,9 +344,7 @@ describe("SDK Client integration", () => {
       const result = await testPair.client.listTools();
 
       const tool = result.tools[0];
-      expect(tool.inputSchema.properties?.name?.description).toBe(
-        "The user's name"
-      );
+      expect(tool.inputSchema.properties?.name?.description).toBe("The user's name");
       expect(tool.inputSchema.properties?.age?.description).toBe("Age in years");
     });
   });
@@ -335,13 +364,11 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "fail",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.isError).toBe(true);
-      expect(result.content).toEqual([
-        { type: "text", text: "Error: Intentional failure" },
-      ]);
+      expect(result.content).toEqual([{ type: "text", text: "Error: Intentional failure" }]);
     });
 
     it("handles async rejection", async () => {
@@ -359,13 +386,11 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "reject",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.isError).toBe(true);
-      expect((result.content[0] as { text: string }).text).toContain(
-        "Async rejection"
-      );
+      expect((result.content[0] as { text: string }).text).toContain("Async rejection");
     });
 
     it("handles sync throw", async () => {
@@ -382,7 +407,7 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "syncFail",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.isError).toBe(true);
@@ -399,14 +424,14 @@ describe("SDK Client integration", () => {
         schema,
         async () => [
           { type: "text", text: "First" } as const,
-          { type: "text", text: "Second" } as const,
+          { type: "text", text: "Second" } as const
         ]
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "multi",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toHaveLength(2);
@@ -418,7 +443,7 @@ describe("SDK Client integration", () => {
       const schema = defineSchema({});
       const items = Array.from({ length: 10 }, (_, i) => ({
         type: "text" as const,
-        text: `Item ${i}`,
+        text: `Item ${i}`
       }));
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "many",
@@ -430,7 +455,7 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "many",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toHaveLength(10);
@@ -451,7 +476,7 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "single",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toHaveLength(1);
@@ -463,7 +488,7 @@ describe("SDK Client integration", () => {
     it("supports multiple tools", async () => {
       const schema1 = defineSchema({
         a: { type: "number" },
-        b: { type: "number" },
+        b: { type: "number" }
       });
       const schema2 = defineSchema({ name: { type: "string" } });
 
@@ -475,13 +500,13 @@ describe("SDK Client integration", () => {
 
       const addResult = await testPair.client.callTool({
         name: "add",
-        arguments: { a: 2, b: 3 },
+        arguments: { a: 2, b: 3 }
       });
       expect(addResult.content).toEqual([{ type: "text", text: "5" }]);
 
       const greetResult = await testPair.client.callTool({
         name: "greet",
-        arguments: { name: "Alice" },
+        arguments: { name: "Alice" }
       });
       expect(greetResult.content).toEqual([{ type: "text", text: "Hi Alice" }]);
     });
@@ -503,19 +528,19 @@ describe("SDK Client integration", () => {
 
       const result1 = await testPair.client.callTool({
         name: "counter",
-        arguments: {},
+        arguments: {}
       });
       expect(result1.content).toEqual([{ type: "text", text: "1" }]);
 
       const result2 = await testPair.client.callTool({
         name: "counter",
-        arguments: {},
+        arguments: {}
       });
       expect(result2.content).toEqual([{ type: "text", text: "2" }]);
 
       const result3 = await testPair.client.callTool({
         name: "counter",
-        arguments: {},
+        arguments: {}
       });
       expect(result3.content).toEqual([{ type: "text", text: "3" }]);
     });
@@ -561,7 +586,7 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "delay",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "delayed" }]);
@@ -579,7 +604,7 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "sync",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "sync" }]);
@@ -599,7 +624,7 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "empty",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "" }]);
@@ -618,7 +643,7 @@ describe("SDK Client integration", () => {
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "long",
-        arguments: {},
+        arguments: {}
       });
 
       expect((result.content[0] as { text: string }).text).toBe(longText);
@@ -640,7 +665,7 @@ describe("SDK Client integration", () => {
 
       const callResult = await testPair.client.callTool({
         name: longName,
-        arguments: {},
+        arguments: {}
       });
       expect(callResult.content).toEqual([{ type: "text", text: "ok" }]);
     });
@@ -726,7 +751,7 @@ describe("removeTool via SDK", () => {
     // Call tool successfully first
     const before = await testPair.client.callTool({
       name: "test",
-      arguments: {},
+      arguments: {}
     });
     expect(before.content).toEqual([{ type: "text", text: "ok" }]);
 
@@ -734,9 +759,7 @@ describe("removeTool via SDK", () => {
     server.removeTool("test");
 
     // Calling again should fail
-    await expect(
-      testPair.client.callTool({ name: "test", arguments: {} })
-    ).rejects.toThrow();
+    await expect(testPair.client.callTool({ name: "test", arguments: {} })).rejects.toThrow();
   });
 });
 
@@ -781,7 +804,7 @@ describe("dynamic tool management via SDK", () => {
     // Call the dynamically added tool
     const result = await testPair.client.callTool({
       name: "echo",
-      arguments: { msg: "hello" },
+      arguments: { msg: "hello" }
     });
 
     expect(result.content).toEqual([{ type: "text", text: "hello" }]);

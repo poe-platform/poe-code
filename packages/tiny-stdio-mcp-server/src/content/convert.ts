@@ -9,17 +9,27 @@ export interface TextContent {
 
 export type ContentBlock = TextContent | ImageContent | AudioContent | EmbeddedResource;
 
+type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
+export type JsonObject = { [key: string]: JsonValue };
+
 export type ToolReturn =
-  | string
+  | undefined
+  | JsonPrimitive
+  | JsonObject
   | Image
   | Audio
   | File
   | ContentBlock
-  | Array<string | Image | Audio | File | ContentBlock>;
+  | Array<undefined | JsonPrimitive | JsonObject | Image | Audio | File | ContentBlock>;
 
-function convertSingleValue(value: string | Image | Audio | File | ContentBlock): ContentBlock {
-  if (typeof value === "string") {
-    return { type: "text", text: value };
+function convertSingleValue(value: Exclude<ToolReturn, Array<unknown> | undefined>): ContentBlock {
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return { type: "text", text: String(value) };
+  }
+
+  if (value === null) {
+    return { type: "text", text: "null" };
   }
 
   if (value instanceof Image) {
@@ -34,14 +44,34 @@ function convertSingleValue(value: string | Image | Audio | File | ContentBlock)
     return value.toContentBlock();
   }
 
-  // Already a ContentBlock
-  return value;
+  if (isContentBlock(value)) {
+    return value;
+  }
+
+  return { type: "text", text: JSON.stringify(value) };
 }
 
 export function toContentBlocks(result: ToolReturn): ContentBlock[] {
+  if (result === undefined) {
+    return [];
+  }
+
   if (Array.isArray(result)) {
     return result.flatMap((item) => toContentBlocks(item));
   }
 
   return [convertSingleValue(result)];
+}
+
+function isContentBlock(value: object): value is ContentBlock {
+  if (!("type" in value) || typeof value.type !== "string") {
+    return false;
+  }
+
+  return (
+    value.type === "text" ||
+    value.type === "image" ||
+    value.type === "audio" ||
+    value.type === "resource"
+  );
 }

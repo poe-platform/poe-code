@@ -269,7 +269,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 5: MCP server
@@ -320,9 +320,9 @@ tasks:
       that mock the TerminalPilot and verify tool handlers call the right methods
       with the right arguments.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: mcp-server

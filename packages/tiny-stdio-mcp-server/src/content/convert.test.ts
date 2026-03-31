@@ -29,6 +29,18 @@ describe("toContentBlocks", () => {
 
       expect(result).toEqual([{ type: "text", text: "Hello, 世界! 🌍" }]);
     });
+
+    it("converts plain objects to JSON text", () => {
+      const result = toContentBlocks({ sessionId: "session-1", pid: 1234 });
+
+      expect(result).toEqual([{ type: "text", text: '{"sessionId":"session-1","pid":1234}' }]);
+    });
+
+    it("treats undefined as no content", () => {
+      const result = toContentBlocks(undefined);
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe("Image conversion", () => {
@@ -40,14 +52,14 @@ describe("toContentBlocks", () => {
         {
           type: "image",
           data: "iVBORw0KGgo=",
-          mimeType: "image/png",
-        },
+          mimeType: "image/png"
+        }
       ]);
     });
 
     it("converts Image from bytes", () => {
       const pngData = new Uint8Array([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00,
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00
       ]);
       const image = Image.fromBytes(pngData);
       const result = toContentBlocks(image);
@@ -66,14 +78,14 @@ describe("toContentBlocks", () => {
         {
           type: "audio",
           data: "SUQzBAAAAAA=",
-          mimeType: "audio/mpeg",
-        },
+          mimeType: "audio/mpeg"
+        }
       ]);
     });
 
     it("converts Audio from bytes", () => {
       const mp3Data = new Uint8Array([
-        0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
       ]);
       const audio = Audio.fromBytes(mp3Data);
       const result = toContentBlocks(audio);
@@ -112,7 +124,7 @@ describe("toContentBlocks", () => {
 
       expect(result).toEqual([
         { type: "text", text: "Hello" },
-        { type: "text", text: "World" },
+        { type: "text", text: "World" }
       ]);
     });
 
@@ -168,7 +180,7 @@ describe("toContentBlocks", () => {
       const content: ContentBlock = {
         type: "image",
         data: "base64data",
-        mimeType: "image/png",
+        mimeType: "image/png"
       };
       const result = toContentBlocks(content);
 
@@ -179,7 +191,7 @@ describe("toContentBlocks", () => {
       const content: ContentBlock = {
         type: "audio",
         data: "base64data",
-        mimeType: "audio/mpeg",
+        mimeType: "audio/mpeg"
       };
       const result = toContentBlocks(content);
 
@@ -192,8 +204,8 @@ describe("toContentBlocks", () => {
         resource: {
           uri: "file:///test",
           mimeType: "text/plain",
-          text: "content",
-        },
+          text: "content"
+        }
       };
       const result = toContentBlocks(content);
 
@@ -206,7 +218,7 @@ describe("toContentBlocks", () => {
 
       expect(result).toEqual([
         { type: "text", text: "raw" },
-        { type: "text", text: "string" },
+        { type: "text", text: "string" }
       ]);
     });
   });

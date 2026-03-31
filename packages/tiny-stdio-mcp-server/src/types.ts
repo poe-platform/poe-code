@@ -25,7 +25,7 @@ export const JSON_RPC_ERROR_CODES = {
   INVALID_REQUEST: -32600,
   METHOD_NOT_FOUND: -32601,
   INVALID_PARAMS: -32602,
-  INTERNAL_ERROR: -32603,
+  INTERNAL_ERROR: -32603
 } as const;
 
 // MCP protocol types
@@ -84,19 +84,7 @@ export interface ServerOptions {
   version: string;
 }
 
-// Import content helper types for tool return type
-import type { Image } from "./content/image.js";
-import type { Audio } from "./content/audio.js";
-import type { File } from "./content/file.js";
-
-// Tool return type - can be string, content helpers, raw blocks, or arrays
-export type ToolReturn =
-  | string
-  | Image
-  | Audio
-  | File
-  | ContentItem
-  | Array<string | Image | Audio | File | ContentItem>;
+import type { ToolReturn } from "./content/index.js";
 
 export type ToolHandler<T = Record<string, unknown>> = (
   args: T

@@ -41,6 +41,7 @@ describe("TerminalPilot", () => {
       cols: 80,
       rows: 24
     });
+    expect(first.command).toBe(tsxPath);
     const second = await pilot.newSession({
       ...createSessionOptions(),
       cols: 100,

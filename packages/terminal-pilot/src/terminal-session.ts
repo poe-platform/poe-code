@@ -57,6 +57,7 @@ type PtyLike = {
 
 export class TerminalSession {
   readonly id: string;
+  readonly command: string;
   readonly pid: number;
   exitCode: number | null = null;
 
@@ -82,6 +83,7 @@ export class TerminalSession {
     observe = false
   }: TerminalSessionOptions) {
     this.id = id;
+    this.command = command;
     this.currentCols = cols;
     this.currentRows = rows;
     this.terminal = new HeadlessTerminal(cols, rows);

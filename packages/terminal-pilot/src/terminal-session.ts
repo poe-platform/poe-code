@@ -26,11 +26,11 @@ type TerminalSessionOptions = {
   observe?: boolean;
 };
 
-type WaitForOptions = {
+export type WaitForOptions = {
   timeout?: number;
 };
 
-type HistoryOptions = {
+export type HistoryOptions = {
   last?: number;
 };
 

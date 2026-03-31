@@ -250,7 +250,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: sdk-exports
     title: Public SDK barrel export
@@ -266,9 +266,9 @@ tasks:
 
       Verify the exports compile and are accessible from a consumer perspective.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ═══════════════════════════════════════════════════════════════════════

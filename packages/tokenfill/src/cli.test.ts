@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "bun:test";
+import { afterAll, beforeEach, describe, expect, it, mock, vi } from "bun:test";
 import { runCli } from "./cli.js";
 import { tokenfill } from "./tokenfill.js";
 
@@ -48,6 +48,10 @@ function createCapturedOutput(): CapturedOutput {
     }
   };
 }
+
+afterAll(() => {
+  mock.module("./tokenfill.js", () => require("./tokenfill.js"));
+});
 
 const tokenfillMock = tokenfill as ReturnType<typeof vi.fn>;
 

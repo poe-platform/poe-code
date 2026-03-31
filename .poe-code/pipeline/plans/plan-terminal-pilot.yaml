@@ -113,9 +113,9 @@ tasks:
       Write unit tests in `terminal-screen.test.ts` with mocked input data
       (no real PTY needed).
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ═══════════════════════════════════════════════════════════════════════

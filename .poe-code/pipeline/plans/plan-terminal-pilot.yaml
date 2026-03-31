@@ -206,7 +206,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 4: Agent (multi-session manager)
@@ -247,9 +247,9 @@ tasks:
       Write integration tests in `terminal-pilot.test.ts`: create multiple
       sessions, list them, get by ID, close all, verify cleanup.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: sdk-exports

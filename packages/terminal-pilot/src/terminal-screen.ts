@@ -1,8 +1,8 @@
 import { stripAnsi } from "./ansi.js";
 
 export class TerminalScreen {
-  readonly lines: string[];
-  readonly rawLines: string[];
+  readonly lines: readonly string[];
+  readonly rawLines: readonly string[];
   readonly cursor: { row: number; col: number };
   readonly size: { rows: number; cols: number };
 

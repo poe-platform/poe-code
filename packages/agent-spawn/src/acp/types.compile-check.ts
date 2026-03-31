@@ -7,11 +7,11 @@ type ignoredSessionUpdateIsExported = AssertAssignable<SessionUpdate, SessionUpd
 
 type ignoredToolCallExampleIsValid = AssertAssignable<
   ToolCall,
-  { sessionUpdate: "tool_call"; toolCallId: "x"; title: "npm test"; kind: "execute" }
+  { sessionUpdate: "tool_call"; toolCallId: "x"; title: "bun test"; kind: "execute" }
 >;
 
 // @ts-expect-error 'exec' is not a valid ACP ToolKind
 type ignoredInvalidToolKind = AssertAssignable<ToolKind, "exec">;
 
 // @ts-expect-error sessionUpdate discriminator is required
-type ignoredToolCallMissingDiscriminator = AssertAssignable<ToolCall, { toolCallId: "x"; title: "npm test" }>;
+type ignoredToolCallMissingDiscriminator = AssertAssignable<ToolCall, { toolCallId: "x"; title: "bun test" }>;

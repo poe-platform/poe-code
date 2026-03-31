@@ -1,16 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
-import { spawn as spawnChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
+import * as childProcess from "node:child_process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
 
 import { spawnStreaming } from "./spawn.js";
 import * as adapterModule from "../adapters/index.js";
 import { codexSpawnConfig } from "../configs/codex.js";
 import { openCodeSpawnConfig } from "../configs/opencode.js";
-
-vi.mock("node:child_process", () => ({
-  spawn: vi.fn()
-}));
+let spawnSpy: ReturnType<typeof vi.spyOn>;
 
 async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
   const items: T[] = [];
@@ -86,6 +84,11 @@ function createMockChildProcess(
 describe("acp/spawnStreaming", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    spawnSpy = vi.spyOn(childProcess, "spawn");
+  });
+
+  afterEach(() => {
+    spawnSpy.mockRestore();
   });
 
   it("streams OpenCode JSON events via the opencode adapter", async () => {
@@ -106,7 +109,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = spawnSpy.mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -155,7 +158,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -182,7 +185,7 @@ describe("acp/spawnStreaming", () => {
 
   it("ignores non-ACP adapter outputs and yields only raw ACP events", async () => {
     const mock = createMockChildProcess({ exitCode: 0 });
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = spawnSpy.mockReturnValue(mock.child);
     const getAdapterMock = vi.spyOn(adapterModule, "getAdapter").mockReturnValue(
       async function* () {
         yield { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "ignore me" } };
@@ -211,7 +214,7 @@ describe("acp/spawnStreaming", () => {
 
   it("rejects done when child process emits error", async () => {
     const mock = createMockChildProcess({ error: new Error("spawn failed") });
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -221,6 +224,30 @@ describe("acp/spawnStreaming", () => {
     const doneRejection = expect(done).rejects.toThrow("spawn failed");
     await expect(collect(events)).resolves.toEqual([]);
     await doneRejection;
+  });
+
+  it("resolves done even if the child already exited before listeners attach", async () => {
+    const mock = createMockChildProcess({ autoClose: false });
+    mock.child.stdout.end();
+    mock.child.stderr.end();
+
+    spawnSpy.mockImplementation(() => {
+      (mock.child as unknown as { exitCode: number }).exitCode = 0;
+      mock.child.emit("close", 0, null);
+      return mock.child;
+    });
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "hello"
+    });
+
+    await expect(collect(events)).resolves.toEqual([]);
+    await expect(done).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
   });
 
   it("writes prompt to stdin when useStdin is true and stdinMode is available", async () => {
@@ -239,7 +266,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = spawnSpy.mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
@@ -282,7 +309,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = spawnSpy.mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "claude-code",
@@ -311,7 +338,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = spawnSpy.mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -339,7 +366,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = spawnSpy.mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -363,7 +390,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = spawnSpy.mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
@@ -412,7 +439,7 @@ describe("acp/spawnStreaming", () => {
   });
 
   it("throws on unknown agentId before spawning", () => {
-    const spawnMock = vi.mocked(spawnChildProcess);
+    const spawnMock = spawnSpy;
     expect(() =>
       spawnStreaming({
         agentId: "unknown",
@@ -423,7 +450,7 @@ describe("acp/spawnStreaming", () => {
   });
 
   it("throws error if agent has no spawn config", () => {
-    const spawnMock = vi.mocked(spawnChildProcess);
+    const spawnMock = spawnSpy;
     expect(() =>
       spawnStreaming({
         agentId: "claude-desktop",
@@ -437,7 +464,7 @@ describe("acp/spawnStreaming", () => {
     const controller = new AbortController();
     const mock = createMockChildProcess({ autoClose: false });
     const killSpy = vi.spyOn(mock.child, "kill");
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
 
     const { done } = spawnStreaming({
       agentId: "codex",

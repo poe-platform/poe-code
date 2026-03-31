@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 import { formatExchangeContext, formatExchangeList } from './matcher-format.js';
 import type { CapturedExchange } from './proxy-types.js';
 

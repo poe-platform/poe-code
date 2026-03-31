@@ -4,7 +4,7 @@ import {
   ResourceListChangedNotificationSchema,
   ResourceUpdatedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { createMockSubscribableResourceServer } from "./internal.js";
 
 const waitFor = async (predicate: () => boolean): Promise<void> => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "bun:test";
 import path from "node:path";
 import type { FileSystem } from "../utils/file-system.js";
 import {

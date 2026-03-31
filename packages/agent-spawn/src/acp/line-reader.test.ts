@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { PassThrough, Readable } from "node:stream";
 
 import { readLines } from "./line-reader.js";
@@ -12,6 +12,13 @@ async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
 describe("acp/readLines", () => {
   it("yields nothing for an empty stream", async () => {
     const stream = Readable.from([]);
+    await expect(collect(readLines(stream))).resolves.toEqual([]);
+  });
+
+  it("finishes when iteration starts after the stream already ended", async () => {
+    const stream = new PassThrough();
+    stream.end();
+
     await expect(collect(readLines(stream))).resolves.toEqual([]);
   });
 
@@ -33,5 +40,13 @@ describe("acp/readLines", () => {
     stream.destroy(new Error("boom"));
 
     await expect(collected).rejects.toThrow("boom");
+  });
+
+  it("throws if iteration starts after the stream already errored", async () => {
+    const stream = new PassThrough();
+    stream.write("ok\n");
+    stream.destroy(new Error("boom"));
+
+    await expect(collect(readLines(stream))).rejects.toThrow("boom");
   });
 });

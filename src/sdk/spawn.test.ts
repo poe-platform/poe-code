@@ -1,52 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
 import { DEFAULT_CODEX_MODEL } from "../cli/constants.js";
 
-const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
-const sessionCaptureMock = vi.hoisted(() => vi.fn());
-const usageCaptureMock = vi.hoisted(() => vi.fn());
-const spawnLogMock = vi.hoisted(() => vi.fn());
-
-vi.mock("@poe-code/agent-spawn", () => ({
-  spawn: vi.fn(),
-  spawnStreaming: vi.fn(),
-  spawnInteractive: vi.fn(),
-  getSpawnConfig: vi.fn(),
-  renderAcpStream: vi.fn(),
-  applyMiddlewares: applyMiddlewaresMock,
-  sessionCapture: sessionCaptureMock,
-  usageCapture: usageCaptureMock,
-  spawnLog: spawnLogMock
-}));
-
-vi.mock("./spawn-core.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./spawn-core.js")>();
-  return {
-    ...actual,
-    spawnCore: vi.fn()
-  };
-});
-
-vi.mock("./container.js", () => ({
-  createSdkContainer: vi.fn()
-}));
-
-import { spawn } from "./spawn.js";
-import {
-  getSpawnConfig,
-  spawn as agentSpawn,
-  spawnStreaming,
-  spawnInteractive,
-  renderAcpStream,
-  applyMiddlewares,
-  sessionCapture,
-  usageCapture,
-  spawnLog
-} from "@poe-code/agent-spawn";
-import { spawnCore } from "./spawn-core.js";
-import { createSdkContainer } from "./container.js";
+import * as agentSpawnModule from "@poe-code/agent-spawn";
+import * as spawnCoreModule from "./spawn-core.js";
+import * as containerModule from "./container.js";
 
 const originalEnv = { ...process.env };
 const homeDir = "/home/test";
@@ -58,41 +18,62 @@ function createMemFs(): FileSystem {
   return createFsFromVolume(vol).promises as unknown as FileSystem;
 }
 
+let spawnSpy: ReturnType<typeof vi.spyOn>;
+let spawnStreamingSpy: ReturnType<typeof vi.spyOn>;
+let spawnInteractiveSpy: ReturnType<typeof vi.spyOn>;
+let getSpawnConfigSpy: ReturnType<typeof vi.spyOn>;
+let renderAcpStreamSpy: ReturnType<typeof vi.spyOn>;
+let applyMiddlewaresSpy: ReturnType<typeof vi.spyOn>;
+let spawnCoreSpy: ReturnType<typeof vi.spyOn>;
+let createSdkContainerSpy: ReturnType<typeof vi.spyOn>;
+
 beforeEach(() => {
   process.env = { ...originalEnv, POE_API_KEY: "test-key" };
-  vi.mocked(spawnStreaming).mockReset();
-  vi.mocked(spawnInteractive).mockReset();
-  vi.mocked(agentSpawn).mockReset();
-  vi.mocked(getSpawnConfig).mockReset();
-  vi.mocked(spawnCore).mockReset();
-  vi.mocked(createSdkContainer).mockReset();
-  vi.mocked(renderAcpStream).mockReset();
-  vi.mocked(applyMiddlewares).mockReset();
-  vi.mocked(renderAcpStream).mockResolvedValue(undefined);
-  vi.mocked(createSdkContainer).mockImplementation(() => ({
+
+  spawnSpy = vi.spyOn(agentSpawnModule, "spawn" as any).mockReset();
+  spawnStreamingSpy = vi.spyOn(agentSpawnModule, "spawnStreaming" as any).mockReset();
+  spawnInteractiveSpy = vi.spyOn(agentSpawnModule, "spawnInteractive" as any).mockReset();
+  getSpawnConfigSpy = vi.spyOn(agentSpawnModule, "getSpawnConfig" as any).mockReset();
+  renderAcpStreamSpy = vi.spyOn(agentSpawnModule, "renderAcpStream" as any).mockReset();
+  applyMiddlewaresSpy = vi.spyOn(agentSpawnModule, "applyMiddlewares" as any).mockReset();
+  spawnCoreSpy = vi.spyOn(spawnCoreModule, "spawnCore" as any).mockReset();
+  createSdkContainerSpy = vi.spyOn(containerModule, "createSdkContainer" as any).mockReset();
+
+  (renderAcpStreamSpy as any).mockResolvedValue(undefined);
+  (createSdkContainerSpy as any).mockImplementation(() => ({
     fs: createMemFs(),
     env: { configPath: resolveConfigPath(homeDir) },
     registry: {
       get: vi.fn(() => undefined)
     }
-  } as any));
+  }));
 });
 
 afterEach(() => {
   process.env = { ...originalEnv };
+  spawnSpy?.mockRestore();
+  spawnStreamingSpy?.mockRestore();
+  spawnInteractiveSpy?.mockRestore();
+  getSpawnConfigSpy?.mockRestore();
+  renderAcpStreamSpy?.mockRestore();
+  applyMiddlewaresSpy?.mockRestore();
+  spawnCoreSpy?.mockRestore();
+  createSdkContainerSpy?.mockRestore();
 });
+
+import { spawn } from "./spawn.js";
 
 describe("SDK spawn()", () => {
   it("returns events and result from spawnStreaming() when supported", async () => {
     const event = { event: "agent_message", text: "hello" };
 
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {
         yield event;
       })(),
@@ -128,8 +109,8 @@ describe("SDK spawn()", () => {
       sessionId: "thread_1"
     });
 
-    expect(spawnStreaming).toHaveBeenCalledTimes(1);
-    expect(spawnStreaming).toHaveBeenCalledWith(
+    expect(spawnStreamingSpy).toHaveBeenCalledTimes(1);
+    expect(spawnStreamingSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         mcpServers: {
           test: {
@@ -139,19 +120,19 @@ describe("SDK spawn()", () => {
         }
       })
     );
-    expect(agentSpawn).not.toHaveBeenCalled();
-    expect(spawnCore).not.toHaveBeenCalled();
+    expect(spawnSpy).not.toHaveBeenCalled();
+    expect(spawnCoreSpy).not.toHaveBeenCalled();
   });
 
   it("falls back to agent-spawn non-streaming and returns empty events when no adapter", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "aider",
       promptFlag: "-p",
       defaultArgs: []
-    } as any);
+    });
 
-    vi.mocked(agentSpawn).mockResolvedValue({
+    (spawnSpy as any).mockResolvedValue({
       stdout: "out",
       stderr: "err",
       exitCode: 0
@@ -177,9 +158,9 @@ describe("SDK spawn()", () => {
       exitCode: 0
     });
 
-    expect(spawnStreaming).not.toHaveBeenCalled();
-    expect(agentSpawn).toHaveBeenCalledTimes(1);
-    expect(agentSpawn).toHaveBeenCalledWith("aider", {
+    expect(spawnStreamingSpy).not.toHaveBeenCalled();
+    expect(spawnSpy).toHaveBeenCalledTimes(1);
+    expect(spawnSpy).toHaveBeenCalledWith("aider", {
       prompt: "test prompt",
       cwd: undefined,
       model: undefined,
@@ -192,19 +173,19 @@ describe("SDK spawn()", () => {
       },
       useStdin: false
     });
-    expect(spawnCore).not.toHaveBeenCalled();
-    expect(createSdkContainer).toHaveBeenCalledTimes(1);
+    expect(spawnCoreSpy).not.toHaveBeenCalled();
+    expect(createSdkContainerSpy).toHaveBeenCalledTimes(1);
   });
 
   it("forwards signal to spawnStreaming when supported", async () => {
     const signal = new AbortController().signal;
 
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    });
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
@@ -212,7 +193,7 @@ describe("SDK spawn()", () => {
     const { result } = spawn("codex", "test prompt", { signal });
     await result;
 
-    expect(spawnStreaming).toHaveBeenCalledWith(
+    expect(spawnStreamingSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         signal
       })
@@ -220,14 +201,14 @@ describe("SDK spawn()", () => {
   });
 
   it("propagates usage from agent-spawn non-streaming result when no adapter", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "aider",
       promptFlag: "-p",
       defaultArgs: []
-    } as any);
+    });
 
-    vi.mocked(agentSpawn).mockResolvedValue({
+    (spawnSpy as any).mockResolvedValue({
       stdout: "out",
       stderr: "err",
       exitCode: 0,
@@ -251,8 +232,8 @@ describe("SDK spawn()", () => {
   });
 
   it("falls back to non-streaming and returns empty events when unsupported", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
-    vi.mocked(spawnCore).mockResolvedValue({
+    (getSpawnConfigSpy as any).mockReturnValue(undefined);
+    (spawnCoreSpy as any).mockResolvedValue({
       stdout: "out",
       stderr: "err",
       exitCode: 0
@@ -278,10 +259,10 @@ describe("SDK spawn()", () => {
       exitCode: 0
     });
 
-    expect(spawnStreaming).not.toHaveBeenCalled();
-    expect(agentSpawn).not.toHaveBeenCalled();
-    expect(spawnCore).toHaveBeenCalledTimes(1);
-    expect(spawnCore).toHaveBeenCalledWith(
+    expect(spawnStreamingSpy).not.toHaveBeenCalled();
+    expect(spawnSpy).not.toHaveBeenCalled();
+    expect(spawnCoreSpy).toHaveBeenCalledTimes(1);
+    expect(spawnCoreSpy).toHaveBeenCalledWith(
       expect.anything(),
       "codex",
       expect.objectContaining({
@@ -302,7 +283,7 @@ describe("SDK spawn()", () => {
       { encoding: "utf8" }
     );
 
-    vi.mocked(createSdkContainer).mockReturnValue({
+    (createSdkContainerSpy as any).mockReturnValue({
       fs,
       env: { configPath: resolveConfigPath(homeDir) },
       registry: {
@@ -315,13 +296,13 @@ describe("SDK spawn()", () => {
           }
         }))
       }
-    } as any);
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    });
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    });
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
@@ -329,7 +310,7 @@ describe("SDK spawn()", () => {
     const { result } = spawn("codex", "test prompt");
     await result;
 
-    expect(spawnStreaming).toHaveBeenCalledWith(
+    expect(spawnStreamingSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         model: "openai/gpt-5.4"
       })
@@ -337,8 +318,8 @@ describe("SDK spawn()", () => {
   });
 
   it("propagates usage from spawnCore non-streaming result when unsupported", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
-    vi.mocked(spawnCore).mockResolvedValue({
+    (getSpawnConfigSpy as any).mockReturnValue(undefined);
+    (spawnCoreSpy as any).mockResolvedValue({
       stdout: "out",
       stderr: "err",
       exitCode: 0,
@@ -362,7 +343,7 @@ describe("SDK spawn()", () => {
   });
 
   it("calls spawnInteractive and returns empty events when interactive is true", async () => {
-    vi.mocked(spawnInteractive).mockResolvedValue({
+    (spawnInteractiveSpy as any).mockResolvedValue({
       stdout: "",
       stderr: "",
       exitCode: 0
@@ -390,8 +371,8 @@ describe("SDK spawn()", () => {
       exitCode: 0
     });
 
-    expect(spawnInteractive).toHaveBeenCalledTimes(1);
-    expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
+    expect(spawnInteractiveSpy).toHaveBeenCalledTimes(1);
+    expect(spawnInteractiveSpy).toHaveBeenCalledWith("claude-code", {
       prompt: "test prompt",
       cwd: undefined,
       model: undefined,
@@ -403,13 +384,13 @@ describe("SDK spawn()", () => {
         }
       }
     });
-    expect(spawnStreaming).not.toHaveBeenCalled();
-    expect(agentSpawn).not.toHaveBeenCalled();
-    expect(spawnCore).not.toHaveBeenCalled();
+    expect(spawnStreamingSpy).not.toHaveBeenCalled();
+    expect(spawnSpy).not.toHaveBeenCalled();
+    expect(spawnCoreSpy).not.toHaveBeenCalled();
   });
 
   it("propagates usage from spawnInteractive result", async () => {
-    vi.mocked(spawnInteractive).mockResolvedValue({
+    (spawnInteractiveSpy as any).mockResolvedValue({
       stdout: "",
       stderr: "",
       exitCode: 0,
@@ -427,7 +408,7 @@ describe("SDK spawn()", () => {
   });
 
   it("passes options through to spawnInteractive in interactive mode", async () => {
-    vi.mocked(spawnInteractive).mockResolvedValue({
+    (spawnInteractiveSpy as any).mockResolvedValue({
       stdout: "",
       stderr: "",
       exitCode: 42
@@ -447,7 +428,7 @@ describe("SDK spawn()", () => {
       exitCode: 42
     });
 
-    expect(spawnInteractive).toHaveBeenCalledWith("codex", {
+    expect(spawnInteractiveSpy).toHaveBeenCalledWith("codex", {
       prompt: "fix bug",
       cwd: "/tmp/project",
       model: "gpt-4",
@@ -456,13 +437,13 @@ describe("SDK spawn()", () => {
   });
 
   it("uses normal spawn flow when interactive is false", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
@@ -471,25 +452,25 @@ describe("SDK spawn()", () => {
 
     await result;
 
-    expect(spawnInteractive).not.toHaveBeenCalled();
-    expect(spawnStreaming).toHaveBeenCalledTimes(1);
+    expect(spawnInteractiveSpy).not.toHaveBeenCalled();
+    expect(spawnStreamingSpy).toHaveBeenCalledTimes(1);
   });
 
   it("composes ACP middlewares in SDK streaming path", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {
         yield { event: "agent_message", text: "raw" };
       })(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
 
-    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+    (applyMiddlewaresSpy as any).mockImplementation(async (_middlewares: unknown[], ctx: any) => {
       ctx.threadId = "thread_via_middleware";
       ctx.sessionId = "thread_via_middleware";
       ctx.eventStream = (async function* () {
@@ -513,9 +494,9 @@ describe("SDK spawn()", () => {
       sessionId: "thread_via_middleware"
     });
 
-    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
-    const [middlewares, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
-    expect(middlewares).toEqual([sessionCapture, usageCapture, spawnLog]);
+    expect(applyMiddlewaresSpy).toHaveBeenCalledTimes(1);
+    const [middlewares, ctx] = (applyMiddlewaresSpy as any).mock.calls[0];
+    expect(middlewares).toEqual([agentSpawnModule.sessionCapture, agentSpawnModule.usageCapture, agentSpawnModule.spawnLog]);
     expect(ctx.logDir).toBeUndefined();
     expect(ctx).toEqual(
       expect.objectContaining({
@@ -533,13 +514,13 @@ describe("SDK spawn()", () => {
   });
 
   it("forwards logDir to middleware context in SDK streaming path", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
@@ -550,19 +531,19 @@ describe("SDK spawn()", () => {
 
     await result;
 
-    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
-    const [, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
+    expect(applyMiddlewaresSpy).toHaveBeenCalledTimes(1);
+    const [, ctx] = (applyMiddlewaresSpy as any).mock.calls[0];
     expect(ctx.logDir).toBe("/repo/.poe-code/pipeline/plans/logs/task-1-implement.jsonl");
   });
 
   it("forwards an explicitly empty logDir to middleware context", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
@@ -573,26 +554,26 @@ describe("SDK spawn()", () => {
 
     await result;
 
-    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
-    const [, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
+    expect(applyMiddlewaresSpy).toHaveBeenCalledTimes(1);
+    const [, ctx] = (applyMiddlewaresSpy as any).mock.calls[0];
     expect(ctx.logDir).toBe("");
   });
 
   it("resolves events and rejects result when middleware composition fails", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {
         yield { event: "agent_message", text: "raw event" };
       })(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
 
-    vi.mocked(applyMiddlewares).mockRejectedValue(new Error("middleware failed"));
+    (applyMiddlewaresSpy as any).mockRejectedValue(new Error("middleware failed"));
 
     const { events, result } = spawn("codex", "test prompt");
 
@@ -606,7 +587,7 @@ describe("SDK spawn()", () => {
   });
 
   it("propagates errors from spawnInteractive", async () => {
-    vi.mocked(spawnInteractive).mockRejectedValue(
+    (spawnInteractiveSpy as any).mockRejectedValue(
       new Error('Agent "unknown" does not support interactive mode.')
     );
 
@@ -622,13 +603,13 @@ describe("SDK spawn()", () => {
   });
 
   it("propagates usage from streaming done result", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({
         stdout: "done",
@@ -655,13 +636,13 @@ describe("SDK spawn()", () => {
 
 describe("spawn.pretty()", () => {
   it("renders events and returns the result", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {
         yield { event: "agent_message", text: "done" };
       })(),
@@ -676,7 +657,7 @@ describe("spawn.pretty()", () => {
 
     const result = await spawn.pretty("codex", "test prompt");
 
-    expect(renderAcpStream).toHaveBeenCalledTimes(1);
+    expect(renderAcpStreamSpy).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
       stdout: "out",
       stderr: "",
@@ -687,21 +668,21 @@ describe("spawn.pretty()", () => {
   });
 
   it("accepts options object overload", async () => {
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    (getSpawnConfigSpy as any).mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex"
-    } as any);
+    });
 
-    vi.mocked(spawnStreaming).mockImplementation(() => ({
+    (spawnStreamingSpy as any).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
 
     const result = await spawn.pretty("codex", { prompt: "fix bug", model: "gpt-4" });
 
-    expect(renderAcpStream).toHaveBeenCalledTimes(1);
-    expect(spawnStreaming).toHaveBeenCalledWith(
+    expect(renderAcpStreamSpy).toHaveBeenCalledTimes(1);
+    expect(spawnStreamingSpy).toHaveBeenCalledWith(
       expect.objectContaining({ prompt: "fix bug", model: "gpt-4" })
     );
     expect(result).toEqual({ stdout: "", stderr: "", exitCode: 0 });

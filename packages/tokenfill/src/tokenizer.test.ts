@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, mock, vi } from "bun:test";
 
 vi.mock("tiktoken", () => ({
   get_encoding: vi.fn((_encoding: string) => {
@@ -12,6 +12,31 @@ vi.mock("tiktoken", () => ({
     };
   })
 }));
+
+// Re-establish the real tokenizer module so that any prior global mock from
+// another test file (e.g. tokenfill.test.ts) does not bleed into these tests.
+mock.module("./tokenizer.js", () => {
+  const { get_encoding } = require("tiktoken") as typeof import("tiktoken");
+  const DEFAULT_ENCODING = "cl100k_base";
+  function createTokenizer(options: { encoding?: string } = {}) {
+    const encoding = options.encoding ?? DEFAULT_ENCODING;
+    const tokenizer = get_encoding(encoding as Parameters<typeof get_encoding>[0]);
+    const utf8Decoder = new TextDecoder();
+    const encode = (text: string): Uint32Array => tokenizer.encode(text);
+    const decode = (tokens: Uint32Array | number[]): string => {
+      const arr = tokens instanceof Uint32Array ? tokens : Uint32Array.from(tokens);
+      return utf8Decoder.decode(tokenizer.decode(arr));
+    };
+    const count = (text: string): number => encode(text).length;
+    const truncate = (text: string, tokenCount: number): string => {
+      if (tokenCount <= 0) return "";
+      const tokens = encode(text);
+      return tokens.length <= tokenCount ? text : decode(tokens.slice(0, tokenCount));
+    };
+    return { encoding, encode, decode, count, truncate, free: () => tokenizer.free() };
+  }
+  return { createTokenizer, DEFAULT_ENCODING };
+});
 
 import { createTokenizer, DEFAULT_ENCODING } from "./tokenizer.js";
 

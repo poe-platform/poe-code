@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
@@ -28,14 +28,6 @@ vi.mock("../../sdk/pipeline.js", () => ({
 vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
 }));
-
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return {
-    ...actual,
-    renderAcpStream: vi.fn().mockResolvedValue(undefined)
-  };
-});
 
 import { runPipeline as sdkRunPipeline } from "../../sdk/pipeline.js";
 
@@ -252,15 +244,13 @@ describe("pipeline validate command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "pipeline",
-        "validate",
-        ".poe-code/pipeline/plans/plan-demo.yaml"
-      ])
-    ).resolves.not.toThrow();
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "validate",
+      ".poe-code/pipeline/plans/plan-demo.yaml"
+    ]);
   });
 
   it("validates step references against steps.yaml", async () => {

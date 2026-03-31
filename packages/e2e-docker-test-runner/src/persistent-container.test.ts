@@ -1,10 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterAll, afterEach, mock } from 'bun:test';
 import { vol } from 'memfs';
+import * as nodeFs from 'node:fs';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
-import { buildCreateArgs, buildExecArgs, CONTAINER_PATH, CONTAINER_HOME } from './persistent-container.js';
-import { MOUNT_TARGET, setWorkspaceDir } from './container.js';
-import { setResolvedContext } from './context.js';
+
+let persistentContainer: typeof import('./persistent-container.js');
+let containerModule: typeof import('./container.js');
+let contextModule: typeof import('./context.js');
+
+const execSyncMock = vi.fn();
+const spawnSyncMock = vi.fn();
+const spawnMock = vi.fn();
+const detectEngineMock = vi.fn(() => 'docker');
+const randomUUIDMock = vi.fn(() => 'a1b2c3d4-e5f6-7890-abcd-ef1234567890');
 
 function createMockChildProcess(exitCode: number, stdoutData: string, stderrData: string) {
   const child = new EventEmitter() as EventEmitter & { stdout: PassThrough; stderr: PassThrough };
@@ -22,36 +30,48 @@ function createMockChildProcess(exitCode: number, stdoutData: string, stderrData
   return child;
 }
 
-vi.mock('node:fs', async () => {
-  const memfs = await import('memfs');
-  return memfs.fs;
+const originalEnv = process.env;
+
+beforeEach(async () => {
+  process.env = { ...originalEnv, POE_API_KEY: 'test-api-key' };
+
+  execSyncMock.mockReset();
+  spawnSyncMock.mockReset();
+  spawnMock.mockReset();
+  detectEngineMock.mockReset();
+  detectEngineMock.mockReturnValue('docker');
+  randomUUIDMock.mockReset();
+  randomUUIDMock.mockReturnValue('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+
+  mock.restore();
+  vi.resetModules();
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const memfs = require('memfs').fs as typeof nodeFs;
+  vi.spyOn(nodeFs, 'existsSync').mockImplementation(memfs.existsSync.bind(memfs));
+  vi.spyOn(nodeFs, 'mkdirSync').mockImplementation(memfs.mkdirSync.bind(memfs));
+  vi.spyOn(nodeFs, 'readdirSync').mockImplementation(memfs.readdirSync.bind(memfs));
+
+  mock.module('node:child_process', () => ({
+    execSync: execSyncMock,
+    spawnSync: spawnSyncMock,
+    spawn: spawnMock,
+  }));
+
+  mock.module('./engine.js', () => ({
+    detectEngine: detectEngineMock,
+  }));
+
+  mock.module('node:crypto', () => ({
+    randomUUID: randomUUIDMock,
+  }));
+
+  persistentContainer = await import('./persistent-container.js');
+  containerModule = await import('./container.js');
+  contextModule = await import('./context.js');
 });
 
-vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
-  spawnSync: vi.fn(),
-  spawn: vi.fn(),
-}));
-
-vi.mock('./engine.js', () => ({
-  detectEngine: vi.fn(() => 'docker'),
-}));
-
-vi.mock('./image.js', () => ({
-  ensureImage: vi.fn(() => 'poe-code-e2e:abc123'),
-  IMAGE_NAME: 'poe-code-e2e',
-}));
-
-vi.mock('./credentials.js', () => ({
-  getApiKey: vi.fn(async () => 'test-api-key'),
-}));
-
-vi.mock('node:crypto', async (importOriginal) => {
-  const original = await importOriginal<typeof import('node:crypto')>();
-  return {
-    ...original,
-    randomUUID: vi.fn(() => 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'),
-  };
+afterEach(() => {
+  process.env = originalEnv;
 });
 
 describe('buildCreateArgs', () => {
@@ -65,66 +85,66 @@ describe('buildCreateArgs', () => {
   };
 
   it('starts with docker create', () => {
-    const args = buildCreateArgs(baseConfig);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
     expect(args[0]).toBe('create');
   });
 
   it('sets container name', () => {
-    const args = buildCreateArgs(baseConfig);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
     const nameIndex = args.indexOf('--name');
     expect(nameIndex).toBeGreaterThan(-1);
     expect(args[nameIndex + 1]).toBe('poe-e2e-a1b2c3d4');
   });
 
   it('adds poe-e2e-test-runner label', () => {
-    const args = buildCreateArgs(baseConfig);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
     const labelIndex = args.indexOf('--label');
     expect(labelIndex).toBeGreaterThan(-1);
     expect(args[labelIndex + 1]).toBe('poe-e2e-test-runner=true');
   });
 
   it('does not mount host workspace', () => {
-    const args = buildCreateArgs(baseConfig);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
     const volumeArgs = args.filter((_, i) => i > 0 && args[i - 1] === '-v');
     for (const v of volumeArgs) {
-      expect(v).not.toContain(MOUNT_TARGET);
+      expect(v).not.toContain(containerModule.MOUNT_TARGET);
     }
   });
 
   it('mounts cache directories to non-root user home', () => {
-    const args = buildCreateArgs(baseConfig);
-    expect(args).toContain(`/cache/npm:${CONTAINER_HOME}/.npm:rw`);
-    expect(args).toContain(`/cache/uv:${CONTAINER_HOME}/.cache/uv:rw`);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
+    expect(args).toContain(`/cache/npm:${persistentContainer.CONTAINER_HOME}/.npm:rw`);
+    expect(args).toContain(`/cache/uv:${persistentContainer.CONTAINER_HOME}/.cache/uv:rw`);
   });
 
   it('sets working directory', () => {
-    const args = buildCreateArgs(baseConfig);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
     const wIndex = args.indexOf('-w');
     expect(wIndex).toBeGreaterThan(-1);
-    expect(args[wIndex + 1]).toBe(MOUNT_TARGET);
+    expect(args[wIndex + 1]).toBe(containerModule.MOUNT_TARGET);
   });
 
   it('includes image and sleep command', () => {
-    const args = buildCreateArgs(baseConfig);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
     expect(args).toContain('poe-code-e2e:abc123');
     expect(args).toContain('sleep');
     expect(args).toContain('86400');
   });
 
   it('adds env vars when apiKey is provided', () => {
-    const args = buildCreateArgs({ ...baseConfig, apiKey: 'test-key' });
+    const args = persistentContainer.buildCreateArgs({ ...baseConfig, apiKey: 'test-key' });
     expect(args).toContain('-e');
     expect(args).toContain('POE_API_KEY');
     expect(args).toContain('POE_CODE_STDERR_LOGS=1');
   });
 
   it('does not add env vars when apiKey is null', () => {
-    const args = buildCreateArgs(baseConfig);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
     expect(args).not.toContain('POE_API_KEY');
   });
 
   it('adds POE_BASE_URL when proxy is enabled', () => {
-    const args = buildCreateArgs({
+    const args = persistentContainer.buildCreateArgs({
       ...baseConfig,
       proxyBaseUrl: 'http://localhost:3456',
     });
@@ -133,19 +153,19 @@ describe('buildCreateArgs', () => {
   });
 
   it('always sets PATH env for local bins and uv', () => {
-    const args = buildCreateArgs(baseConfig);
-    expect(args).toContain(`PATH=${CONTAINER_PATH}`);
+    const args = persistentContainer.buildCreateArgs(baseConfig);
+    expect(args).toContain(`PATH=${persistentContainer.CONTAINER_PATH}`);
   });
 });
 
 describe('buildExecArgs', () => {
   it('constructs docker exec with sh -c', () => {
-    const args = buildExecArgs('abc123', 'echo hello');
+    const args = persistentContainer.buildExecArgs('abc123', 'echo hello');
     expect(args).toEqual(['exec', 'abc123', 'sh', '-c', 'echo hello']);
   });
 
   it('passes command as single sh -c argument', () => {
-    const args = buildExecArgs('cid', 'ls -la /root && cat /etc/hosts');
+    const args = persistentContainer.buildExecArgs('cid', 'ls -la /root && cat /etc/hosts');
     expect(args[3]).toBe('-c');
     expect(args[4]).toBe('ls -la /root && cat /etc/hosts');
   });
@@ -315,7 +335,7 @@ describe('createContainer', () => {
   });
 
   it('starts proxy lifecycle when fixtures directory exists', async () => {
-    setWorkspaceDir('/workspace/repo');
+    containerModule.setWorkspaceDir('/workspace/repo');
     vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
     vol.writeFileSync(
       '/workspace/repo/.snapshots/proxy/example.json',
@@ -483,7 +503,7 @@ describe('createContainer', () => {
   });
 
   it('does not start proxy when useSnapshots is false even if fixtures directory exists', async () => {
-    setWorkspaceDir('/workspace/repo');
+    containerModule.setWorkspaceDir('/workspace/repo');
     vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
 
     const { spawnSync } = await import('node:child_process');
@@ -537,7 +557,7 @@ describe('createContainer', () => {
   });
 
   it('waits for slow proxy startup before failing health checks', async () => {
-    setWorkspaceDir('/workspace/repo');
+    containerModule.setWorkspaceDir('/workspace/repo');
     vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
 
     const { spawnSync } = await import('node:child_process');
@@ -610,7 +630,7 @@ describe('createContainer', () => {
   it('uses POE_SNAPSHOT_MODE when provided', async () => {
     const originalProxyMode = process.env.POE_SNAPSHOT_MODE;
     process.env.POE_SNAPSHOT_MODE = 'record';
-    setWorkspaceDir('/workspace/repo');
+    containerModule.setWorkspaceDir('/workspace/repo');
     vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
 
     try {
@@ -714,7 +734,7 @@ describe('createContainer', () => {
   it('auto-creates snapshot directory when POE_SNAPSHOT_MISS=record', async () => {
     const originalMiss = process.env.POE_SNAPSHOT_MISS;
     process.env.POE_SNAPSHOT_MISS = 'record';
-    setWorkspaceDir('/workspace/repo');
+    containerModule.setWorkspaceDir('/workspace/repo');
     vol.mkdirSync('/workspace/repo/.snapshots', { recursive: true });
 
     try {
@@ -768,7 +788,7 @@ describe('createContainer', () => {
     const originalMode = process.env.POE_SNAPSHOT_MODE;
     delete process.env.POE_SNAPSHOT_MISS;
     delete process.env.POE_SNAPSHOT_MODE;
-    setWorkspaceDir('/workspace/repo');
+    containerModule.setWorkspaceDir('/workspace/repo');
     vol.mkdirSync('/workspace/repo/.snapshots', { recursive: true });
 
     try {
@@ -935,6 +955,11 @@ describe('destroy', () => {
       { stdio: 'ignore' }
     );
   });
+});
+
+afterAll(() => {
+  mock.restore();
+  vi.resetModules();
 });
 
 function setupContainerMock() {
@@ -1379,11 +1404,9 @@ describe('execOrThrow', () => {
 });
 
 describe('login', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
     vol.reset();
-    const { getApiKey } = await import('./credentials.js');
-    vi.mocked(getApiKey).mockResolvedValue('test-api-key');
   });
 
   it('runs login without passing API key on command line', async () => {
@@ -1413,8 +1436,13 @@ describe('login', () => {
   });
 
   it('throws if no API key is available', async () => {
-    const { getApiKey } = await import('./credentials.js');
-    vi.mocked(getApiKey).mockResolvedValue(null);
+    const isolatedHome = `/tmp/poe-code-empty-home-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const os = await import('node:os');
+    vi.spyOn(os, 'homedir').mockReturnValue(isolatedHome);
+    process.env.HOME = isolatedHome;
+    process.env.USERPROFILE = isolatedHome;
+    delete process.env.POE_API_KEY;
+    process.env.POE_AUTH_BACKEND = 'invalid-backend';
 
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
@@ -1469,11 +1497,11 @@ describe('docker context support', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vol.reset();
-    setResolvedContext(null);
+    contextModule.setResolvedContext(null);
   });
 
   it('prepends --context args to docker create when context is set', async () => {
-    setResolvedContext('colima-poe-runner');
+    contextModule.setResolvedContext('colima-poe-runner');
 
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
@@ -1500,7 +1528,7 @@ describe('docker context support', () => {
   });
 
   it('prepends --context args to docker start', async () => {
-    setResolvedContext('colima-poe-runner');
+    contextModule.setResolvedContext('colima-poe-runner');
 
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
@@ -1527,7 +1555,7 @@ describe('docker context support', () => {
   });
 
   it('prepends --context args to docker exec', async () => {
-    setResolvedContext('colima-poe-runner');
+    contextModule.setResolvedContext('colima-poe-runner');
 
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
@@ -1556,7 +1584,7 @@ describe('docker context support', () => {
   });
 
   it('prepends --context args to docker rm on destroy', async () => {
-    setResolvedContext('colima-poe-runner');
+    contextModule.setResolvedContext('colima-poe-runner');
 
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
@@ -1584,7 +1612,7 @@ describe('docker context support', () => {
   });
 
   it('does not add context args when no context is set', async () => {
-    setResolvedContext(null);
+    contextModule.setResolvedContext(null);
 
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);

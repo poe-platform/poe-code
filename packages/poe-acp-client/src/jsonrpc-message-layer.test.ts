@@ -1,5 +1,5 @@
 import { PassThrough } from "node:stream";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "bun:test";
 import {
   JsonRpcMessageLayer,
   parseJsonRpcMessage,
@@ -232,13 +232,14 @@ describe("JsonRpcMessageLayer", () => {
     vi.useFakeTimers();
 
     const { layer } = createHarness({ requestTimeoutMs: 25 });
-    const pending = expect(layer.sendRequest("slow/method")).rejects.toThrow(
+    const pending = layer.sendRequest("slow/method");
+
+    vi.advanceTimersByTime(25);
+    await Promise.resolve();
+
+    await expect(pending).rejects.toThrow(
       'JSON-RPC request "slow/method" timed out after 25ms'
     );
-
-    await vi.advanceTimersByTimeAsync(25);
-
-    await pending;
     expect(layer.pendingRequestCount()).toBe(0);
   });
 

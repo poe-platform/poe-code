@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { createMockFs } from "@poe-code/config-mutations/testing";
 import { createCliContainer } from "../cli/container.js";
 import {

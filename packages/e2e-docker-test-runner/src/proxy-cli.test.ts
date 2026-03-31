@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'bun:test';
 import type { ProxyConfig } from './proxy-types.js';
 import { isCliInvocation, parseProxyConfigFromArgs, runProxyCli } from './proxy-cli.js';
 

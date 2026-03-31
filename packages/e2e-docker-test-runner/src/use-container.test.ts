@@ -1,11 +1,19 @@
-import { describe, it, expect, expectTypeOf, vi, beforeEach } from 'vitest';
+import { afterAll, beforeEach, describe, expect, expectTypeOf, it, mock, vi } from 'bun:test';
 import './matchers.js';
 
-vi.mock('./persistent-container.js');
-vi.mock('./container.js');
+mock.restore();
+
+vi.mock('./persistent-container.js', () => ({
+  createContainer: vi.fn(),
+}));
+
+vi.mock('./container.js', () => ({
+  setWorkspaceDir: vi.fn(),
+  resolveWorkspaceDir: vi.fn((dir: string) => dir),
+}));
 
 import { createContainer } from './persistent-container.js';
-import { setWorkspaceDir } from './container.js';
+import { setWorkspaceDir, resolveWorkspaceDir } from './container.js';
 import { useContainer } from './use-container.js';
 import type { UseContainerOptions } from './use-container.js';
 import type { CapturedRequests, Container } from './types.js';
@@ -115,6 +123,11 @@ describe('useContainer', () => {
       testName: 'default-agent',
     });
 
+    it('resolves workspace dir from cwd by default', () => {
+      expect(resolveWorkspaceDir).toHaveBeenCalledWith(process.cwd());
+      expect(setWorkspaceDir).toHaveBeenCalledWith(process.cwd());
+    });
+
     it('creates container with snapshots disabled by default', () => {
       expect(createContainer).toHaveBeenCalledWith({
         testName: 'default-agent',
@@ -122,4 +135,9 @@ describe('useContainer', () => {
       });
     });
   });
+});
+
+afterAll(() => {
+  mock.restore();
+  vi.resetModules();
 });

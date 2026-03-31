@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";

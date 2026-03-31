@@ -2,7 +2,7 @@ import { once } from "node:events";
 import type { Readable } from "node:stream";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import type { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "bun:test";
 import { SdkTransportAdapter, readLines } from "./internal.js";
 
 const cleanup: Array<() => void> = [];

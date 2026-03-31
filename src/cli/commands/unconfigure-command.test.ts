@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "bun:test";
 import { Command } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
 import { createCliContainer } from "../container.js";

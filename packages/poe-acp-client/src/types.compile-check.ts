@@ -516,7 +516,7 @@ type ignoredCreateTerminalRequestShape = AssertAssignable<
   CreateTerminalRequest,
   {
     sessionId: "session-1";
-    command: "npm";
+    command: "bun";
     args: ["test"];
     cwd: "/workspace";
     env: [{ name: "FORCE_COLOR"; value: "1" }];

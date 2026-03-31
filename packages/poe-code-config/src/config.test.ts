@@ -1,5 +1,5 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { createConfigStore } from "./config.js";
 import { defineScope } from "./schema.js";
 

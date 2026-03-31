@@ -1,16 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as fs from "node:fs/promises";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
-import auditLog from "./poe-agent-plugin-audit-log.js";
 
-const appendFileMock = vi.hoisted(() => vi.fn());
-
-vi.mock("node:fs/promises", () => ({
-  appendFile: appendFileMock,
-}));
+const appendFileMock = vi.fn();
+let auditLog: typeof import("./poe-agent-plugin-audit-log.js").default;
 
 describe("poe-agent-plugin-audit-log", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     appendFileMock.mockReset();
+    vi.restoreAllMocks();
+    vi.spyOn(fs, "appendFile").mockImplementation(appendFileMock as typeof fs.appendFile);
+    vi.resetModules();
+    ({ default: auditLog } = await import("./poe-agent-plugin-audit-log.js"));
   });
 
   it("writes one JSONL record per tool invocation", async () => {

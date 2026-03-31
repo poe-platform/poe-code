@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
@@ -7,10 +7,10 @@ import { registerRalphCommand } from "./ralph.js";
 import { ValidationError } from "../errors.js";
 import { parseFrontmatter } from "../../../packages/ralph/src/frontmatter/frontmatter.js";
 
-const selectMock = vi.hoisted(() => vi.fn());
-const promptTextMock = vi.hoisted(() => vi.fn());
-const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
-const cancelMock = vi.hoisted(() => vi.fn());
+const selectMock = vi.fn();
+const promptTextMock = vi.fn();
+const isCancelMock = vi.fn().mockReturnValue(false);
+const cancelMock = vi.fn();
 
 vi.mock("../../sdk/ralph.js", () => ({
   runRalph: vi.fn().mockResolvedValue({
@@ -21,16 +21,12 @@ vi.mock("../../sdk/ralph.js", () => ({
   })
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
-  return {
-    ...actual,
-    select: selectMock,
-    promptText: promptTextMock,
-    isCancel: isCancelMock,
-    cancel: cancelMock
-  };
-});
+import * as designSystemModule from "@poe-code/design-system";
+
+let selectSpy: ReturnType<typeof vi.spyOn>;
+let promptTextSpyDsign: ReturnType<typeof vi.spyOn>;
+let isCancelSpyDsign: ReturnType<typeof vi.spyOn>;
+let cancelSpyDsign: ReturnType<typeof vi.spyOn>;
 
 import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
 
@@ -52,9 +48,20 @@ function createBaseProgram(): Command {
 }
 
 describe("ralph run command", () => {
+  beforeEach(() => {
+    selectSpy = vi.spyOn(designSystemModule, "select" as any).mockImplementation(selectMock);
+    promptTextSpyDsign = vi.spyOn(designSystemModule, "promptText" as any).mockImplementation(promptTextMock);
+    isCancelSpyDsign = vi.spyOn(designSystemModule, "isCancel" as any).mockImplementation(isCancelMock);
+    cancelSpyDsign = vi.spyOn(designSystemModule, "cancel" as any).mockImplementation(cancelMock);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     isCancelMock.mockReturnValue(false);
+    selectSpy?.mockRestore();
+    promptTextSpyDsign?.mockRestore();
+    isCancelSpyDsign?.mockRestore();
+    cancelSpyDsign?.mockRestore();
   });
 
   it("calls the Ralph SDK with explicit CLI options", async () => {
@@ -83,7 +90,7 @@ describe("ralph run command", () => {
       "gpt-5.2"
     ]);
 
-    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+    expect((sdkRunRalph as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
         cwd,
@@ -122,7 +129,7 @@ describe("ralph run command", () => {
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
-    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+    expect((sdkRunRalph as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: ["claude-code", "codex"],
         docPath: "docs/loop.md",
@@ -177,7 +184,7 @@ describe("ralph run command", () => {
     expect(promptTextMock).toHaveBeenCalledWith({
       message: "How many Ralph iterations should run?"
     });
-    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+    expect((sdkRunRalph as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "codex",
         docPath: ".poe-code/ralph/plans/plan-a.md",
@@ -253,7 +260,7 @@ describe("ralph run command", () => {
       "6"
     ]);
 
-    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+    expect((sdkRunRalph as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
         maxIterations: 6
@@ -277,7 +284,7 @@ describe("ralph run command", () => {
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
-    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+    expect((sdkRunRalph as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
   });
 
   it("uses defaults with --yes when frontmatter does not provide values", async () => {
@@ -297,7 +304,7 @@ describe("ralph run command", () => {
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
-    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+    expect((sdkRunRalph as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
         docPath: ".poe-code/ralph/plans/plan-a.md",
@@ -331,14 +338,25 @@ describe("ralph run command", () => {
       program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"])
     ).rejects.toBeInstanceOf(ValidationError);
 
-    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+    expect((sdkRunRalph as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
   });
 });
 
 describe("ralph init command", () => {
+  beforeEach(() => {
+    selectSpy = vi.spyOn(designSystemModule, "select" as any).mockImplementation(selectMock);
+    promptTextSpyDsign = vi.spyOn(designSystemModule, "promptText" as any).mockImplementation(promptTextMock);
+    isCancelSpyDsign = vi.spyOn(designSystemModule, "isCancel" as any).mockImplementation(isCancelMock);
+    cancelSpyDsign = vi.spyOn(designSystemModule, "cancel" as any).mockImplementation(cancelMock);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     isCancelMock.mockReturnValue(false);
+    selectSpy?.mockRestore();
+    promptTextSpyDsign?.mockRestore();
+    isCancelSpyDsign?.mockRestore();
+    cancelSpyDsign?.mockRestore();
   });
 
   it("updates an existing doc preserving body and runtime status", async () => {

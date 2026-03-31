@@ -1,6 +1,6 @@
 import type { Readable } from "node:stream";
 import { createTestServer } from "tiny-stdio-mcp-test-server";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { type McpTransport, createTestPair, readLines } from "./internal.js";
 
 class FakeClient {

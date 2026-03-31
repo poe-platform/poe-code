@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import * as clack from "@clack/prompts";
 import { withSpinner } from "./index.js";
 import { resetOutputFormatCache, resolveOutputFormat } from "../internal/output-format.js";
@@ -71,10 +71,13 @@ describe("withSpinner", () => {
       stopMessage: () => "Done"
     });
 
-    await vi.advanceTimersByTimeAsync(1000);
+    // Advance time synchronously and allow microtasks to run
+    vi.advanceTimersByTime(1000);
+    await Promise.resolve();
     expect(message).toHaveBeenCalledWith("Working... [1s]");
 
-    await vi.advanceTimersByTimeAsync(1000);
+    vi.advanceTimersByTime(1000);
+    await Promise.resolve();
     expect(message).toHaveBeenCalledWith("Working... [2s]");
 
     resolve!("ok");
@@ -98,7 +101,8 @@ describe("withSpinner", () => {
       stopMessage: () => "Done"
     });
 
-    await vi.advanceTimersByTimeAsync(65_000);
+    vi.advanceTimersByTime(65_000);
+    await Promise.resolve();
     expect(message).toHaveBeenCalledWith("Working... [1m 5s]");
 
     resolve!("ok");

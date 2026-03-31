@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { adaptClaude } from "./claude.js";
 import { adaptCodex } from "./codex.js";
 import { adaptKimi } from "./kimi.js";

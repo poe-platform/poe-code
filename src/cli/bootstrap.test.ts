@@ -1,45 +1,23 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import type { Command } from "commander";
 import { CommanderError } from "commander";
 import { OperationCancelledError, SilentError } from "./errors.js";
 import { VersionExit } from "./exit-signals.js";
-
-const logErrorWithStackTrace = vi.fn();
-let capturedOptions: any;
-
-vi.mock("./error-logger.js", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>(
-    "./error-logger.js"
-  );
-  return {
-    ...actual,
-    ErrorLogger: class MockErrorLogger {
-      constructor(options: any) {
-        capturedOptions = options;
-      }
-      logErrorWithStackTrace = logErrorWithStackTrace;
-    }
-  };
-});
-
-vi.mock("@poe-code/design-system", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
-  return {
-    ...actual,
-    log: {
-      error: vi.fn(),
-      message: vi.fn()
-    }
-  };
-});
+import * as designSystemModule from "@poe-code/design-system";
+import * as errorLoggerModule from "./error-logger.js";
 
 describe("createCliMain", () => {
   let exitSpy: ReturnType<typeof vi.spyOn>;
+  let logErrorSpy: ReturnType<typeof vi.spyOn>;
+  let logMessageSpy: ReturnType<typeof vi.spyOn>;
+  let errorLoggerSpy: ReturnType<typeof vi.spyOn>;
+  let logErrorWithStackTrace: ReturnType<typeof vi.fn>;
+  let capturedOptions: any;
   let originalEnvValue: string | undefined;
 
   beforeEach(() => {
     capturedOptions = undefined;
-    logErrorWithStackTrace.mockReset();
+    logErrorWithStackTrace = vi.fn();
     originalEnvValue = process.env.POE_CODE_STDERR_LOGS;
     process.env.POE_CODE_STDERR_LOGS = "1";
     exitSpy = vi
@@ -47,6 +25,14 @@ describe("createCliMain", () => {
       .mockImplementation((code?: string | number | null) => {
         throw new Error(`exit:${code ?? "undefined"}`);
       });
+    logErrorSpy = vi.spyOn(designSystemModule.log, "error").mockImplementation(() => {});
+    logMessageSpy = vi.spyOn(designSystemModule.log, "message").mockImplementation(() => {});
+    errorLoggerSpy = vi.spyOn(errorLoggerModule, "ErrorLogger" as any).mockImplementation(
+      (options: any) => {
+        capturedOptions = options;
+        return { logErrorWithStackTrace };
+      }
+    );
   });
 
   afterEach(() => {
@@ -56,6 +42,9 @@ describe("createCliMain", () => {
       process.env.POE_CODE_STDERR_LOGS = originalEnvValue;
     }
     exitSpy.mockRestore();
+    logErrorSpy?.mockRestore();
+    logMessageSpy?.mockRestore();
+    errorLoggerSpy?.mockRestore();
     vi.clearAllMocks();
   });
 

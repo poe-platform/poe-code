@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { useContainer } from '@poe-code/e2e-docker-test-runner';
 
 describe('kimi', () => {

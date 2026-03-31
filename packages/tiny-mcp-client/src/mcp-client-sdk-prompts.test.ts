@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { McpClient, createMockPromptServer, createSdkTestPair } from "./internal.js";
 
 describe("McpClient SDK integration prompts", () => {

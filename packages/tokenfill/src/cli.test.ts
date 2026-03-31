@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 import { runCli } from "./cli.js";
 import { tokenfill } from "./tokenfill.js";
 
@@ -49,7 +49,7 @@ function createCapturedOutput(): CapturedOutput {
   };
 }
 
-const tokenfillMock = vi.mocked(tokenfill);
+const tokenfillMock = tokenfill as ReturnType<typeof vi.fn>;
 
 describe("tokenfill CLI", () => {
   beforeEach(() => {

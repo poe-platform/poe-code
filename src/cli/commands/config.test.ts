@@ -1,14 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
+import * as childProcess from "node:child_process";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer } from "../container.js";
 import { registerUtilsCommand } from "./utils.js";
 import type { FileSystem } from "../utils/file-system.js";
-
-vi.mock("node:child_process", () => ({
-  execSync: vi.fn()
-}));
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -36,11 +33,17 @@ function createBaseProgram(): Command {
 describe("config command", () => {
   let fs: FileSystem;
   let logs: string[];
+  let execSyncSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    execSyncSpy = vi.spyOn(childProcess, "execSync").mockImplementation(() => Buffer.from(""));
     fs = createMemFs();
     logs = [];
+  });
+
+  afterEach(() => {
+    execSyncSpy.mockRestore();
   });
 
   it("shows global and project config paths with status", async () => {
@@ -187,7 +190,6 @@ describe("config command", () => {
   });
 
   it("opens the project config in the configured editor", async () => {
-    const { execSync } = await import("node:child_process");
     await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
     await fs.writeFile(projectConfigPath, "{}\n", { encoding: "utf8" });
 
@@ -208,14 +210,13 @@ describe("config command", () => {
 
     await program.parseAsync(["node", "cli", "utils", "config", "edit"]);
 
-    expect(execSync).toHaveBeenCalledWith(`vim ${projectConfigPath}`, {
+    expect(execSyncSpy).toHaveBeenCalledWith(`vim ${projectConfigPath}`, {
       stdio: "inherit"
     });
     await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toBe("{}\n");
   });
 
   it("opens the global config when --global is passed", async () => {
-    const { execSync } = await import("node:child_process");
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -233,7 +234,7 @@ describe("config command", () => {
 
     await program.parseAsync(["node", "cli", "utils", "config", "edit", "--global"]);
 
-    expect(execSync).toHaveBeenCalledWith(`code -w ${globalConfigPath}`, {
+    expect(execSyncSpy).toHaveBeenCalledWith(`code -w ${globalConfigPath}`, {
       stdio: "inherit"
     });
     await expect(fs.readFile(globalConfigPath, "utf8")).resolves.toBe("{}\n");

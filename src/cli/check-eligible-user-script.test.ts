@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import fs from "node:fs";
 
 const scriptPath = "../../scripts/workflows/check-eligible-user.cjs";
@@ -28,13 +28,25 @@ function createResponse(options: {
   };
 }
 
+async function waitFor(fn: () => void, timeout = 1000): Promise<void> {
+  const start = Date.now();
+  while (true) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      if (Date.now() - start > timeout) throw e;
+      await new Promise(r => setTimeout(r, 10));
+    }
+  }
+}
+
 describe("check eligible user workflow script", () => {
   let originalAppend: typeof fs.appendFileSync;
   let writes: string[];
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    vi.resetModules();
     writes = [];
     originalAppend = fs.appendFileSync;
     fs.appendFileSync = ((_, content: string | NodeJS.ArrayBufferView) => {
@@ -48,7 +60,7 @@ describe("check eligible user workflow script", () => {
     }) as typeof fs.appendFileSync;
 
     fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
+    (globalThis as any).fetch = fetchMock;
 
     process.env.USERNAME = "eligible-user";
     process.env.GITHUB_REPOSITORY = "poe-platform/poe-code";
@@ -58,12 +70,10 @@ describe("check eligible user workflow script", () => {
 
   afterEach(() => {
     fs.appendFileSync = originalAppend;
-    vi.unstubAllGlobals();
     delete process.env.USERNAME;
     delete process.env.GITHUB_REPOSITORY;
     delete process.env.GITHUB_TOKEN;
     delete process.env.GITHUB_OUTPUT;
-    vi.resetModules();
   });
 
   it("writes allowed=true for org member with write permission", async () => {
@@ -78,9 +88,9 @@ describe("check eligible user workflow script", () => {
       }) satisfies MockResponse
     );
 
-    await import(scriptPath);
+    await import(scriptPath + "?t=" + Date.now());
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(writes.join("")).toContain("allowed=true");
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -109,9 +119,9 @@ describe("check eligible user workflow script", () => {
       createResponse({ ok: false, status: 404, statusText: "Not Found" }) satisfies MockResponse
     );
 
-    await import(scriptPath);
+    await import(scriptPath + "?t=" + Date.now());
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(writes.join("")).toContain("allowed=false");
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);

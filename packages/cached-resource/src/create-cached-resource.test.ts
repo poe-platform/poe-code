@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createCachedResource } from "./create-cached-resource.js";
 import type { CacheConfig } from "./types.js";
@@ -161,7 +161,7 @@ describe("createCachedResource", () => {
 
     await resource.get();
 
-    await expect(resource.clear()).resolves.not.toThrow();
+    await expect(resource.clear()).resolves.toBeUndefined();
     expect(resource.stats().memoryCacheSize).toBe(0);
   });
 

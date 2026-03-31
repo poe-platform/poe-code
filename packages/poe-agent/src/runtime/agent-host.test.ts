@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { runAcpCore, type AcpModel, type AcpModelResponse } from "./acp-core.js";
 import { AgentHost, createInMemorySpawnSession } from "./agent-host.js";
 import { createRunContext } from "./run-context.js";
@@ -38,6 +38,19 @@ async function collectEvents(events: AsyncIterable<AcpEvent>): Promise<AcpEvent[
   }
 
   return collected;
+}
+
+async function waitFor(fn: () => void, timeout = 2000): Promise<void> {
+  const start = Date.now();
+  while (true) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      if (Date.now() - start > timeout) throw e;
+      await new Promise(r => setTimeout(r, 10));
+    }
+  }
 }
 
 describe("AgentHost.handle", () => {
@@ -222,7 +235,7 @@ describe("AgentHost.handle", () => {
       args: {},
     });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(invocation.next).toHaveBeenCalledTimes(2);
     });
 
@@ -353,14 +366,13 @@ describe("AgentHost.fork", () => {
       },
     });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(model.complete).toHaveBeenCalledTimes(1);
     });
 
-    const forkRejection = expect(forkRun).rejects.toThrow("child aborted");
     runContext.abortController.abort(new Error("stop parent"));
 
-    await forkRejection;
+    await expect(forkRun).rejects.toThrow("child aborted");
     expect(emitted.map(event => event.type)).toEqual(["fork.start", "fork.error"]);
   });
 

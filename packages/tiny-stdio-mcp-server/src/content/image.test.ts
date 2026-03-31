@@ -1,13 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { Image } from "./image.js";
+
+let fetchMock: ReturnType<typeof vi.fn>;
 
 describe("Image", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
+    fetchMock = vi.fn();
+    (globalThis as any).fetch = fetchMock;
   });
 
   describe("fromUrl", () => {
@@ -21,7 +20,7 @@ describe("Image", () => {
         arrayBuffer: () => Promise.resolve(pngData.buffer),
         headers: new Map([["content-type", "image/png"]]),
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const image = await Image.fromUrl("https://example.com/test.png");
       const block = image.toContentBlock();
@@ -41,7 +40,7 @@ describe("Image", () => {
         arrayBuffer: () => Promise.resolve(jpegData.buffer),
         headers: new Map(),
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const image = await Image.fromUrl("https://example.com/test.jpg");
       const block = image.toContentBlock();
@@ -58,7 +57,7 @@ describe("Image", () => {
           get: (name: string) => name === "content-type" ? "image/png" : null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const image = await Image.fromUrl("https://example.com/test.png");
       const block = image.toContentBlock();
@@ -72,7 +71,7 @@ describe("Image", () => {
         status: 404,
         statusText: "Not Found",
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(Image.fromUrl("https://example.com/notfound.png")).rejects.toThrow(
         "Failed to fetch image from https://example.com/notfound.png: 404 Not Found"
@@ -88,7 +87,7 @@ describe("Image", () => {
           get: () => null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(Image.fromUrl("https://example.com/unknown")).rejects.toThrow(
         "Unable to detect image MIME type"
@@ -96,7 +95,7 @@ describe("Image", () => {
     });
 
     it("throws on network error", async () => {
-      vi.mocked(fetch).mockRejectedValue(new Error("Network request failed"));
+      fetchMock.mockRejectedValue(new Error("Network request failed"));
 
       await expect(Image.fromUrl("https://invalid.example/image.png")).rejects.toThrow(
         "Network request failed"
@@ -112,7 +111,7 @@ describe("Image", () => {
         arrayBuffer: () => Promise.resolve(gifData.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const image = await Image.fromUrl("https://example.com/test.gif");
       const block = image.toContentBlock();
@@ -129,7 +128,7 @@ describe("Image", () => {
         arrayBuffer: () => Promise.resolve(webpData.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const image = await Image.fromUrl("https://example.com/test.webp");
       const block = image.toContentBlock();
@@ -149,7 +148,7 @@ describe("Image", () => {
           get: (name: string) => name === "content-type" ? "application/octet-stream" : null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const image = await Image.fromUrl("https://example.com/image");
       const block = image.toContentBlock();
@@ -167,7 +166,7 @@ describe("Image", () => {
           get: (name: string) => name === "content-type" ? "image/png; charset=utf-8" : null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const image = await Image.fromUrl("https://example.com/image");
       const block = image.toContentBlock();
@@ -181,7 +180,7 @@ describe("Image", () => {
         status: 500,
         statusText: "Internal Server Error",
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(Image.fromUrl("https://example.com/error")).rejects.toThrow(
         "Failed to fetch image from https://example.com/error: 500 Internal Server Error"

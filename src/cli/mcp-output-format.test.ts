@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { ValidationError } from "./errors.js";
 import { parseMcpOutputFormatPreferences } from "./mcp-output-format.js";
 

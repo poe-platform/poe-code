@@ -1,0 +1,4 @@
+[test]
+root = "."
+include = ["*.test.ts"]
+preload = ["./setup.ts", "../packages/e2e-docker-test-runner/src/matchers.ts"]

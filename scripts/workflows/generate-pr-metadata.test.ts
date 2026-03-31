@@ -1,6 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test } from "bun:test";
 
-import { parseMetadata } from "../../../scripts/workflows/generate-pr-metadata.cjs";
+import { parseMetadata } from "./generate-pr-metadata.cjs";
 
 describe("parseMetadata", () => {
   test("extracts metadata when payload only contains JSON", () => {

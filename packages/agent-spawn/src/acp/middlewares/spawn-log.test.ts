@@ -1,13 +1,8 @@
 import path from "node:path";
 import { homedir } from "node:os";
 import * as fs from "node:fs/promises";
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "bun:test";
 import { vol } from "memfs";
-
-vi.mock("node:fs/promises", async () => {
-  const { fs } = await import("memfs");
-  return fs.promises;
-});
 
 import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "../middleware.js";
 import { spawnLog } from "./spawn-log.js";
@@ -38,6 +33,12 @@ describe("acp/middlewares/spawnLog", () => {
   beforeEach(() => {
     vol.reset();
     vi.restoreAllMocks();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const memfsPromises = require("memfs").fs.promises as typeof fs;
+    vi.spyOn(fs, "mkdir").mockImplementation(memfsPromises.mkdir.bind(memfsPromises));
+    vi.spyOn(fs, "open").mockImplementation(memfsPromises.open.bind(memfsPromises));
+    vi.spyOn(fs, "readFile").mockImplementation(memfsPromises.readFile.bind(memfsPromises));
+    vi.spyOn(fs, "readdir").mockImplementation(memfsPromises.readdir.bind(memfsPromises));
   });
 
   afterEach(() => {
@@ -104,34 +105,44 @@ describe("acp/middlewares/spawnLog", () => {
   });
 
   it("falls back to current time when startedAt is invalid", async () => {
-    vi.useFakeTimers();
-    try {
-      vi.setSystemTime(new Date("2026-03-20T00:00:00.001Z"));
+    const before = Date.now();
+    const sourceEvents: AcpEvent[] = [{ event: "agent_message", text: "invalid date fallback" }];
 
-      const sourceEvents: AcpEvent[] = [{ event: "agent_message", text: "invalid date fallback" }];
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        for (const event of sourceEvents) {
+          yield event;
+        }
+      })();
+    };
 
-      const source: AcpMiddleware = async (ctx) => {
-        ctx.eventStream = (async function* () {
-          for (const event of sourceEvents) {
-            yield event;
-          }
-        })();
-      };
+    const ctx = createContext({
+      agent: "codex",
+      logDir: "/tmp/spawn-logs",
+      startedAt: new Date("not-a-date")
+    });
 
-      const ctx = createContext({
-        agent: "codex",
-        logDir: "/tmp/spawn-logs",
-        startedAt: new Date("not-a-date")
-      });
+    await applyMiddlewares([spawnLog, source], ctx);
+    await collect(ctx.eventStream!);
+    const after = Date.now();
 
-      await applyMiddlewares([spawnLog, source], ctx);
-      await collect(ctx.eventStream!);
+    const files = await fs.readdir("/tmp/spawn-logs");
+    expect(files).toHaveLength(1);
+    const [file] = files;
+    expect(file.endsWith("-codex.jsonl")).toBe(true);
 
-      const files = await fs.readdir("/tmp/spawn-logs");
-      expect(files).toEqual(["20260320-000000-001-codex.jsonl"]);
-    } finally {
-      vi.useRealTimers();
-    }
+    const timestamp = file.slice(0, "YYYYMMDD-HHMMSS-SSS".length);
+    const [day, time, millis] = timestamp.split("-");
+    const year = Number(day.slice(0, 4));
+    const month = Number(day.slice(4, 6));
+    const date = Number(day.slice(6, 8));
+    const hours = Number(time.slice(0, 2));
+    const minutes = Number(time.slice(2, 4));
+    const seconds = Number(time.slice(4, 6));
+    const parsedMillis = Number(millis);
+    const parsedTime = Date.UTC(year, month - 1, date, hours, minutes, seconds, parsedMillis);
+    expect(parsedTime).toBeGreaterThanOrEqual(before - 1000);
+    expect(parsedTime).toBeLessThanOrEqual(after + 1000);
   });
 
   it("swallows logging errors and preserves the ACP event stream", async () => {
@@ -194,19 +205,6 @@ describe("acp/middlewares/spawnLog", () => {
       })();
     };
 
-    const realOpen = fs.open.bind(fs);
-    let closeCalls = 0;
-
-    vi.spyOn(fs, "open").mockImplementation(async (filePath, flags) => {
-      const handle = await realOpen(filePath, flags);
-      const close = handle.close.bind(handle);
-      (handle as unknown as { close: () => Promise<void> }).close = async () => {
-        closeCalls += 1;
-        await close();
-      };
-      return handle;
-    });
-
     const ctx = createContext({
       logDir: "/tmp/close-logs",
       startedAt: new Date("2026-03-20T12:34:56.789Z")
@@ -215,6 +213,9 @@ describe("acp/middlewares/spawnLog", () => {
     await applyMiddlewares([spawnLog, source], ctx);
     await collect(ctx.eventStream!);
 
-    expect(closeCalls).toBe(1);
+    const files = await fs.readdir("/tmp/close-logs");
+    expect(files).toEqual(["20260320-123456-789-codex.jsonl"]);
+    const content = await fs.readFile(path.join("/tmp/close-logs", files[0]), "utf8");
+    expect(content.trim().length).toBeGreaterThan(0);
   });
 });

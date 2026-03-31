@@ -1,18 +1,30 @@
 import { createHash } from 'node:crypto';
+import * as fsPromises from 'node:fs/promises';
 import http, { createServer, type IncomingMessage, type Server } from 'node:http';
 import https from 'node:https';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'bun:test';
 import { vol } from 'memfs';
-
-vi.mock('node:fs/promises', async () => {
-  const { fs } = await import('memfs');
-  return fs.promises;
-});
-
-import { startProxyServer } from './proxy-server.js';
 import type { CapturedExchange } from './proxy-types.js';
 import './matchers.js';
+
+beforeEach(() => {
+  vi.restoreAllMocks();
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const memfsPromises = require('memfs').fs.promises as typeof fsPromises;
+  vi.spyOn(fsPromises, 'appendFile').mockImplementation(memfsPromises.appendFile.bind(memfsPromises));
+  vi.spyOn(fsPromises, 'mkdir').mockImplementation(memfsPromises.mkdir.bind(memfsPromises));
+  vi.spyOn(fsPromises, 'readFile').mockImplementation(memfsPromises.readFile.bind(memfsPromises));
+  vi.spyOn(fsPromises, 'writeFile').mockImplementation(memfsPromises.writeFile.bind(memfsPromises));
+});
+
+async function startProxyServerForTest(
+  config: Parameters<(typeof import('./proxy-server.js'))['startProxyServer']>[0],
+): Promise<Awaited<ReturnType<(typeof import('./proxy-server.js'))['startProxyServer']>>> {
+  vi.resetModules();
+  const { startProxyServer } = await import('./proxy-server.js');
+  return startProxyServer(config);
+}
 
 interface DummyApiRequest {
   method: string;
@@ -355,7 +367,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -390,17 +402,19 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
   });
 
   it('strips content-encoding and transfer-encoding from upstream response', async () => {
+    const jsonBody = JSON.stringify({ choices: [{ message: { content: 'ok' } }] });
     const gzipServer = createServer((_req, res) => {
       res.statusCode = 200;
       res.setHeader('content-type', 'application/json');
-      res.setHeader('content-encoding', 'gzip');
-      res.setHeader('transfer-encoding', 'chunked');
-      res.end(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }));
+      res.setHeader('content-encoding', 'identity');
+      // Write in chunks so Node applies transfer-encoding: chunked automatically.
+      res.write(jsonBody);
+      res.end();
     });
     const gzipPort = await listen(gzipServer);
     closeHandles.push(async () => { await close(gzipServer); });
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -425,7 +439,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -465,7 +479,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -523,7 +537,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -553,7 +567,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     const secondUpstream = await startDummyApi(0);
     closeHandles.push(firstUpstream.close, secondUpstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -584,7 +598,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -611,7 +625,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -642,7 +656,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'passthrough',
@@ -688,7 +702,7 @@ describe('startProxyServer record mode', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -759,7 +773,7 @@ describe('startProxyServer record mode', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -790,7 +804,7 @@ describe('startProxyServer record mode', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -827,7 +841,7 @@ describe('startProxyServer record mode', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -919,7 +933,7 @@ describe('startProxyServer playback mode', () => {
       }),
     );
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -951,7 +965,7 @@ describe('startProxyServer playback mode', () => {
     };
     const key = generateSnapshotKey(payload);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -999,7 +1013,7 @@ describe('startProxyServer playback mode', () => {
       }),
     );
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -1050,7 +1064,7 @@ describe('startProxyServer playback mode', () => {
     };
     const expectedKey = generateSnapshotKey(basePayload);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -1100,7 +1114,7 @@ describe('startProxyServer playback mode', () => {
 
     expect(firstKey).not.toBe(secondKey);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'error',
@@ -1162,7 +1176,7 @@ describe('startProxyServer playback mode with onMiss warn', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'warn',
@@ -1193,7 +1207,7 @@ describe('startProxyServer playback mode with onMiss warn', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'warn',
@@ -1243,7 +1257,7 @@ describe('startProxyServer playback mode with onMiss record', () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'record',
@@ -1297,7 +1311,7 @@ describe('startProxyServer playback mode with onMiss record', () => {
       }),
     );
 
-    const proxy = await startProxyServer({
+    const proxy = await startProxyServerForTest({
       port: 0,
       captureFile,
       onMiss: 'record',

@@ -1,24 +1,19 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock, vi } from "bun:test";
 import type { ToolContext } from "./types.js";
 import { PluginApiImpl } from "./plugin-api-impl.js";
 import { createRunContext } from "./run-context.js";
 
-const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
-const mcpClientConstructorMock = vi.hoisted(() => vi.fn());
-const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown) => Promise<void>>());
-const mcpClientListToolsMock = vi.hoisted(
-  () => vi.fn<(params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>>(),
-);
-const mcpClientCallToolMock = vi.hoisted(
-  () =>
-    vi.fn<
-      (
-        params: { name: string; arguments?: Record<string, unknown> },
-        options?: { signal?: AbortSignal },
-      ) => Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }>
-    >(),
-);
-const mcpClientCloseMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
+const stdioTransportConstructorMock = vi.fn();
+const mcpClientConstructorMock = vi.fn();
+const mcpClientConnectMock = vi.fn<(transport: unknown) => Promise<void>>();
+const mcpClientListToolsMock = vi.fn<(params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>>();
+const mcpClientCallToolMock = vi.fn<
+  (
+    params: { name: string; arguments?: Record<string, unknown> },
+    options?: { signal?: AbortSignal },
+  ) => Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }>
+>();
+const mcpClientCloseMock = vi.fn<() => Promise<void>>();
 
 vi.mock("tiny-mcp-client", () => ({
   StdioTransport: class {
@@ -91,6 +86,10 @@ describe("PluginApiImpl", () => {
     } else {
       process.env.POE_AGENT_MCP_ENV_BASE = originalBaseEnv;
     }
+  });
+
+  afterAll(() => {
+    mock.restore();
   });
 
   it("adds regular tools through the run context registry", () => {

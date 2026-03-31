@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { loadFromDisk, persist, removeFromDisk, resolveCacheDir } from "./disk-cache.js";
 import type { CachedData } from "./types.js";
@@ -131,7 +131,7 @@ describe("persist", () => {
 
     await expect(
       persist("data", { cacheDir: "/cache", cacheName: "test" }, { fs }),
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
   });
 });
 
@@ -150,7 +150,7 @@ describe("removeFromDisk", () => {
 
     await expect(
       removeFromDisk({ cacheDir: "/cache", cacheName: "test" }, { fs }),
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
   });
 
   it("silently ignores unlink errors", async () => {
@@ -159,7 +159,7 @@ describe("removeFromDisk", () => {
 
     await expect(
       removeFromDisk({ cacheDir: "/cache", cacheName: "test" }, { fs }),
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
   });
 });
 

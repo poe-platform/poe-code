@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import { ErrorLogger } from "./error-logger.js";

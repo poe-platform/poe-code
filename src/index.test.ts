@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { getPoeApiKey, isCliInvocation, runRalph } from "./index.js";
 
 describe("entrypoint module", () => {

@@ -1,5 +1,5 @@
 import { PassThrough } from "node:stream";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "bun:test";
 import {
   JsonRpcMessageLayer,
   createJsonRpcErrorResponse,

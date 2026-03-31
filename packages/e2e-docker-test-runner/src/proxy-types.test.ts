@@ -1,4 +1,4 @@
-import { describe, it, expectTypeOf } from 'vitest';
+import { describe, it, expectTypeOf } from 'bun:test';
 import type { ProxyRoute, ProxyConfig, CapturedExchange, SnapshotMode, SnapshotMissBehavior } from './proxy-types.js';
 
 describe('proxy types', () => {

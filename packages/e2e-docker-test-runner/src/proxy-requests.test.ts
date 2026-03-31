@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 import { CapturedRequests } from './proxy-requests.js';
 import type { CapturedExchange } from './proxy-types.js';
 

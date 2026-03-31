@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { resolveAgentSupport, type AgentMcpConfig } from "./configs.js";
 
 describe("resolveAgentSupport", () => {

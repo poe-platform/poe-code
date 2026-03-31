@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import {
   createMemFs,
   createMockCachedResource,
@@ -57,7 +57,7 @@ describe("createMockCachedResource", () => {
   it("clear resolves without error", async () => {
     const resource = createMockCachedResource("data");
 
-    await expect(resource.clear()).resolves.not.toThrow();
+    await expect(resource.clear()).resolves.toBeUndefined();
   });
 
   it("stats returns zeroed stats", () => {

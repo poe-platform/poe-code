@@ -1,5 +1,5 @@
 import { createFsFromVolume, Volume } from "memfs";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock, vi } from "bun:test";
 import { createServer, defineSchema, type Server } from "tiny-stdio-mcp-server";
 import { createInMemoryTransportPair, type McpTransport } from "tiny-mcp-client";
 import { agent } from "./agent.js";
@@ -31,12 +31,12 @@ type StdioTransportOptions = {
   env?: Record<string, string>;
 };
 
-const transportFactoryMock = vi.hoisted(
-  () => vi.fn<(options: StdioTransportOptions) => McpTransport>(),
-);
+const transportFactoryMock = vi.fn<(options: StdioTransportOptions) => McpTransport>();
 
-vi.mock("tiny-mcp-client", async () => {
-  const actual = await vi.importActual<typeof import("tiny-mcp-client")>("tiny-mcp-client");
+vi.mock("tiny-mcp-client", () => {
+  // Use require() to get the actual module without triggering circular mock resolution
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const actual = require("tiny-mcp-client");
 
   return {
     ...actual,
@@ -127,6 +127,19 @@ function testMcpServer(options: {
   };
 }
 
+async function waitFor(fn: () => void, timeout = 2000): Promise<void> {
+  const start = Date.now();
+  while (true) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      if (Date.now() - start > timeout) throw e;
+      await new Promise(r => setTimeout(r, 10));
+    }
+  }
+}
+
 describe("runtime spawn + MCP plugin e2e", () => {
   let commandToServer: Map<string, Server>;
   let serverConnections: Promise<void>[];
@@ -157,6 +170,10 @@ describe("runtime spawn + MCP plugin e2e", () => {
     }
 
     await Promise.allSettled(serverConnections);
+  });
+
+  afterAll(() => {
+    mock.restore();
   });
 
   it("spawn tool runs a fresh child, returns result, and parent continues", async () => {
@@ -324,7 +341,7 @@ describe("runtime spawn + MCP plugin e2e", () => {
           }),
       });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(releaseChild).toBeTypeOf("function");
     });
 
@@ -338,7 +355,7 @@ describe("runtime spawn + MCP plugin e2e", () => {
     releaseChild?.();
     await childCompleted;
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(disposeChildSession).toHaveBeenCalledTimes(1);
     });
   });

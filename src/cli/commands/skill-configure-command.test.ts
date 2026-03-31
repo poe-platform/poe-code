@@ -1,25 +1,17 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
 
-const { selectMock, cancelMock } = vi.hoisted(() => {
-  return {
-    selectMock: vi.fn(),
-    cancelMock: vi.fn()
-  };
-});
+const selectMock = vi.fn();
+const cancelMock = vi.fn();
 
-vi.mock("@poe-code/design-system", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>(
-    "@poe-code/design-system"
-  );
-  return {
-    ...actual,
-    select: selectMock,
-    isCancel: (value: unknown) => value === "__cancel__",
-    cancel: cancelMock
-  };
-});
+const identity = (s: string) => s;
+
+import * as designSystemModule from "@poe-code/design-system";
+
+let selectSpyDs: ReturnType<typeof vi.spyOn>;
+let cancelSpyDs: ReturnType<typeof vi.spyOn>;
+let isCancelSpyDs: ReturnType<typeof vi.spyOn>;
 
 import { createProgram } from "../program.js";
 
@@ -35,10 +27,19 @@ function createMemFs(): { fs: FileSystem; vol: Volume } {
 }
 
 describe("skill configure command", () => {
+    beforeEach(() => {
+    selectSpyDs = vi.spyOn(designSystemModule, "select" as any).mockImplementation(selectMock);
+    cancelSpyDs = vi.spyOn(designSystemModule, "cancel" as any).mockImplementation(cancelMock);
+    isCancelSpyDs = vi.spyOn(designSystemModule, "isCancel" as any).mockImplementation((value: unknown) => value === "__cancel__");
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
     selectMock.mockReset();
     cancelMock.mockReset();
+    selectSpyDs?.mockRestore();
+    cancelSpyDs?.mockRestore();
+    isCancelSpyDs?.mockRestore();
   });
 
   it("errors for unknown agent", async () => {
@@ -165,4 +166,3 @@ describe("skill configure command", () => {
     await expect(fs.stat(`${cwd}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 });
-

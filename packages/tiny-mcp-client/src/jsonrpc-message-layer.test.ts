@@ -1,5 +1,5 @@
 import { PassThrough, Readable } from "node:stream";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "bun:test";
 import {
   ERROR_INVALID_REQUEST,
   ERROR_PARSE,
@@ -494,13 +494,14 @@ describe("JsonRpcMessageLayer sendRequest", () => {
       const responsePromise = layer.sendRequest("slow/method");
       expect(pendingCount()).toBe(1);
 
-      const timeoutPromise = expect(responsePromise).rejects.toThrow(
+      vi.advanceTimersByTime(25);
+      // Flush microtasks to let the rejection propagate
+      await Promise.resolve();
+      await Promise.resolve();
+
+      await expect(responsePromise).rejects.toThrow(
         'JSON-RPC request "slow/method" timed out after 25ms'
       );
-
-      await vi.advanceTimersByTimeAsync(25);
-
-      await timeoutPromise;
       expect(pendingCount()).toBe(0);
     } finally {
       vi.useRealTimers();
@@ -526,15 +527,18 @@ describe("JsonRpcMessageLayer sendRequest", () => {
         undefined,
         { timeoutMs: 15 }
       );
-      const timeoutPromise = expect(responsePromise).rejects.toThrow(
-        'JSON-RPC request "custom/timeout" timed out after 15ms'
-      );
 
-      await vi.advanceTimersByTimeAsync(14);
+      vi.advanceTimersByTime(14);
+      await Promise.resolve();
       expect(pendingCount()).toBe(1);
 
-      await vi.advanceTimersByTimeAsync(1);
-      await timeoutPromise;
+      vi.advanceTimersByTime(1);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      await expect(responsePromise).rejects.toThrow(
+        'JSON-RPC request "custom/timeout" timed out after 15ms'
+      );
       expect(pendingCount()).toBe(0);
     } finally {
       vi.useRealTimers();

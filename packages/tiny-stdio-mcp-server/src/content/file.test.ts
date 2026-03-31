@@ -1,13 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { File } from "./file.js";
+
+let fetchMock: ReturnType<typeof vi.fn>;
 
 describe("File", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
+    fetchMock = vi.fn();
+    (globalThis as any).fetch = fetchMock;
   });
 
   describe("fromUrl", () => {
@@ -20,7 +19,7 @@ describe("File", () => {
         arrayBuffer: () => Promise.resolve(mp4Data.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const file = await File.fromUrl("https://example.com/video.mp4");
       const block = file.toContentBlock();
@@ -42,7 +41,7 @@ describe("File", () => {
         arrayBuffer: () => Promise.resolve(webmData.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const file = await File.fromUrl("https://example.com/video.webm");
       const block = file.toContentBlock();
@@ -59,7 +58,7 @@ describe("File", () => {
           get: (name: string) => name === "content-type" ? "application/pdf" : null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const file = await File.fromUrl("https://example.com/doc.pdf");
       const block = file.toContentBlock();
@@ -73,7 +72,7 @@ describe("File", () => {
         status: 404,
         statusText: "Not Found",
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(File.fromUrl("https://example.com/notfound.mp4")).rejects.toThrow(
         "Failed to fetch file from https://example.com/notfound.mp4: 404 Not Found"
@@ -86,7 +85,7 @@ describe("File", () => {
         status: 500,
         statusText: "Internal Server Error",
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(File.fromUrl("https://example.com/error")).rejects.toThrow(
         "Failed to fetch file from https://example.com/error: 500 Internal Server Error"
@@ -102,7 +101,7 @@ describe("File", () => {
           get: () => null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(File.fromUrl("https://example.com/unknown")).rejects.toThrow(
         "Unable to detect MIME type"
@@ -110,7 +109,7 @@ describe("File", () => {
     });
 
     it("throws on network error", async () => {
-      vi.mocked(fetch).mockRejectedValue(new Error("Network request failed"));
+      fetchMock.mockRejectedValue(new Error("Network request failed"));
 
       await expect(File.fromUrl("https://invalid.example/file")).rejects.toThrow(
         "Network request failed"
@@ -126,7 +125,7 @@ describe("File", () => {
           get: (name: string) => name === "content-type" ? "application/json; charset=utf-8" : null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const file = await File.fromUrl("https://example.com/data.json");
       const block = file.toContentBlock();
@@ -143,7 +142,7 @@ describe("File", () => {
         arrayBuffer: () => Promise.resolve(data.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const file = await File.fromUrl("https://example.com/path/to/video.mp4");
       const block = file.toContentBlock();

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { adaptOpenCode } from "./opencode.js";
 import { fromArray, collect } from "./test-utils.js";
 

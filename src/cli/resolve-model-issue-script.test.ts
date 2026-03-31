@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 
 const scriptUrl = new URL(
   "../../scripts/workflows/resolve-model-issue.cjs",
@@ -9,7 +9,6 @@ describe("resolve model issue workflow script", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    vi.resetModules();
     process.env = {
       ...originalEnv,
       GITHUB_REPOSITORY: "poe-platform/poe-code",

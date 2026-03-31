@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import * as clientInstance from "../../services/client-instance.js";
@@ -16,11 +16,11 @@ const {
   configureMock,
   unconfigureMock,
   resolveAgentSupportMock
-} = vi.hoisted(() => ({
+} = {
   configureMock: vi.fn(),
   unconfigureMock: vi.fn(),
   resolveAgentSupportMock: vi.fn()
-}));
+};
 
 vi.mock("@poe-code/agent-mcp-config", () => ({
   supportedAgents: ["claude-desktop", "claude-code", "codex"],
@@ -29,13 +29,9 @@ vi.mock("@poe-code/agent-mcp-config", () => ({
   resolveAgentSupport: resolveAgentSupportMock
 }));
 
-vi.mock("poe-oauth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("poe-oauth")>();
-  return {
-    ...actual,
-    checkAuth: vi.fn(async () => ({ email: "test@example.com", balance: null }))
-  };
-});
+vi.mock("poe-oauth", () => ({
+  checkAuth: vi.fn(async () => ({ email: "test@example.com", balance: null }))
+}));
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -339,8 +335,11 @@ describe("mcp command", () => {
 
 describe("mcp server tools", () => {
   let mockClient: LlmClient;
+  let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    fetchMock = vi.fn();
+    (globalThis as any).fetch = fetchMock;
     mockClient = {
       text: vi.fn(async () => ({ content: "Hello from bot" })),
       media: vi.fn(async () => ({
@@ -485,7 +484,7 @@ describe("mcp server tools", () => {
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00
     ]);
 
-    vi.mocked(fetch).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
       statusText: "OK",
@@ -509,7 +508,7 @@ describe("mcp server tools", () => {
 
     const result = await generateImage({ prompt: "A sunset" }, ["base64", "url"]);
 
-    expect(fetch).toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalled();
     expect(result).toEqual([{ type: "text", text: "https://example.com/media.png" }]);
   });
 

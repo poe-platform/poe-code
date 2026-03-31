@@ -1,13 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { Audio } from "./audio.js";
+
+let fetchMock: ReturnType<typeof vi.fn>;
 
 describe("Audio", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
+    fetchMock = vi.fn();
+    (globalThis as any).fetch = fetchMock;
   });
 
   describe("fromUrl", () => {
@@ -20,7 +19,7 @@ describe("Audio", () => {
         arrayBuffer: () => Promise.resolve(mp3Data.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const audio = await Audio.fromUrl("https://example.com/sound.mp3");
       const block = audio.toContentBlock();
@@ -39,7 +38,7 @@ describe("Audio", () => {
         arrayBuffer: () => Promise.resolve(mp3Data.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const audio = await Audio.fromUrl("https://example.com/sound.mp3");
       const block = audio.toContentBlock();
@@ -56,7 +55,7 @@ describe("Audio", () => {
         arrayBuffer: () => Promise.resolve(wavData.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const audio = await Audio.fromUrl("https://example.com/sound.wav");
       const block = audio.toContentBlock();
@@ -73,7 +72,7 @@ describe("Audio", () => {
         arrayBuffer: () => Promise.resolve(oggData.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const audio = await Audio.fromUrl("https://example.com/sound.ogg");
       const block = audio.toContentBlock();
@@ -90,7 +89,7 @@ describe("Audio", () => {
         arrayBuffer: () => Promise.resolve(m4aData.buffer),
         headers: { get: () => null },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const audio = await Audio.fromUrl("https://example.com/sound.m4a");
       const block = audio.toContentBlock();
@@ -107,7 +106,7 @@ describe("Audio", () => {
           get: (name: string) => name === "content-type" ? "audio/mpeg" : null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const audio = await Audio.fromUrl("https://example.com/sound");
       const block = audio.toContentBlock();
@@ -121,7 +120,7 @@ describe("Audio", () => {
         status: 404,
         statusText: "Not Found",
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(Audio.fromUrl("https://example.com/notfound.mp3")).rejects.toThrow(
         "Failed to fetch audio from https://example.com/notfound.mp3: 404 Not Found"
@@ -134,7 +133,7 @@ describe("Audio", () => {
         status: 500,
         statusText: "Internal Server Error",
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(Audio.fromUrl("https://example.com/error")).rejects.toThrow(
         "Failed to fetch audio from https://example.com/error: 500 Internal Server Error"
@@ -150,7 +149,7 @@ describe("Audio", () => {
           get: () => null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       await expect(Audio.fromUrl("https://example.com/unknown")).rejects.toThrow(
         "Unable to detect audio MIME type"
@@ -158,7 +157,7 @@ describe("Audio", () => {
     });
 
     it("throws on network error", async () => {
-      vi.mocked(fetch).mockRejectedValue(new Error("Network request failed"));
+      fetchMock.mockRejectedValue(new Error("Network request failed"));
 
       await expect(Audio.fromUrl("https://invalid.example/audio.mp3")).rejects.toThrow(
         "Network request failed"
@@ -177,7 +176,7 @@ describe("Audio", () => {
           get: (name: string) => name === "content-type" ? "application/octet-stream" : null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const audio = await Audio.fromUrl("https://example.com/audio");
       const block = audio.toContentBlock();
@@ -194,7 +193,7 @@ describe("Audio", () => {
           get: (name: string) => name === "content-type" ? "audio/wav; charset=utf-8" : null,
         },
       };
-      vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
+      fetchMock.mockResolvedValue(mockResponse as unknown as Response);
 
       const audio = await Audio.fromUrl("https://example.com/audio");
       const block = audio.toContentBlock();

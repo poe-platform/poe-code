@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { ERROR_INVALID_REQUEST, ERROR_PARSE, parseJsonRpcMessage } from "./internal.js";
 
 describe("parseJsonRpcMessage", () => {

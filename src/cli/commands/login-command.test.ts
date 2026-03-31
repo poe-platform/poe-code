@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createProgram } from "../program.js";
@@ -11,10 +11,8 @@ vi.mock("../oauth-login.js", () => ({
   resolveApiKeyViaOAuth: vi.fn(async () => "sk-poe-OAuthKeyFromBrowserFlowTestValue1234567890abc")
 }));
 
-vi.mock("poe-oauth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("poe-oauth")>();
+vi.mock("poe-oauth", () => {
   return {
-    ...actual,
     checkAuth: vi.fn(async () => ({ email: "test@example.com", balance: null }))
   };
 });

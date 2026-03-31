@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { executeConfigure } from "./configure.js";
 import { createCliContainer } from "../container.js";

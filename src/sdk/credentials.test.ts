@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-
-const createSecretStoreMock = vi.hoisted(() => vi.fn());
+import { describe, it, expect, beforeEach, afterEach, vi } from "bun:test";
+import * as authStoreModule from "auth-store";
+import { getPoeApiKey } from "./credentials.js";
 
 describe("getPoeApiKey", () => {
   let originalEnv: NodeJS.ProcessEnv;
+  let createSecretStoreSpy: ReturnType<typeof vi.spyOn>;
   const store = {
     get: vi.fn<() => Promise<string | null>>(),
     set: vi.fn<() => Promise<void>>(),
@@ -14,53 +15,45 @@ describe("getPoeApiKey", () => {
     originalEnv = { ...process.env };
     delete process.env.POE_API_KEY;
 
-    vi.resetModules();
-    vi.doMock("auth-store", () => ({
-      createSecretStore: createSecretStoreMock
-    }));
-
-    createSecretStoreMock.mockReset();
-    store.get.mockReset();
-    store.set.mockReset();
-    store.delete.mockReset();
-    createSecretStoreMock.mockReturnValue({
+    createSecretStoreSpy = vi.spyOn(authStoreModule, "createSecretStore" as any).mockReturnValue({
       backend: "file",
       store
     });
+
+    store.get.mockReset();
+    store.set.mockReset();
+    store.delete.mockReset();
   });
 
   afterEach(() => {
     process.env = originalEnv;
-    vi.restoreAllMocks();
+    createSecretStoreSpy?.mockRestore();
   });
 
   it("returns POE_API_KEY from environment variable when set", async () => {
     process.env.POE_API_KEY = "env-api-key-123";
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
     expect(result).toBe("env-api-key-123");
-    expect(createSecretStoreMock).not.toHaveBeenCalled();
+    expect(createSecretStoreSpy).not.toHaveBeenCalled();
   });
 
   it("trims whitespace from environment variable", async () => {
     process.env.POE_API_KEY = "  trimmed-key  ";
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
     expect(result).toBe("trimmed-key");
-    expect(createSecretStoreMock).not.toHaveBeenCalled();
+    expect(createSecretStoreSpy).not.toHaveBeenCalled();
   });
 
   it("returns key from auth store when environment variable is missing", async () => {
     delete process.env.POE_API_KEY;
     store.get.mockResolvedValue("auth-store-key");
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("auth-store-key");
-    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreSpy).toHaveBeenCalledTimes(1);
     expect(store.get).toHaveBeenCalledTimes(1);
   });
 
@@ -68,11 +61,10 @@ describe("getPoeApiKey", () => {
     process.env.POE_API_KEY = "";
     store.get.mockResolvedValue("fallback-key");
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("fallback-key");
-    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreSpy).toHaveBeenCalledTimes(1);
     expect(store.get).toHaveBeenCalledTimes(1);
   });
 
@@ -80,11 +72,10 @@ describe("getPoeApiKey", () => {
     process.env.POE_API_KEY = "   ";
     store.get.mockResolvedValue("fallback-key");
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("fallback-key");
-    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreSpy).toHaveBeenCalledTimes(1);
     expect(store.get).toHaveBeenCalledTimes(1);
   });
 
@@ -92,11 +83,10 @@ describe("getPoeApiKey", () => {
     delete process.env.POE_API_KEY;
     store.get.mockResolvedValue(null);
 
-    const { getPoeApiKey } = await import("./credentials.js");
     await expect(getPoeApiKey()).rejects.toThrow(
       "No API key found. Set POE_API_KEY or run 'poe-code login'."
     );
-    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreSpy).toHaveBeenCalledTimes(1);
     expect(store.get).toHaveBeenCalledTimes(1);
   });
 });

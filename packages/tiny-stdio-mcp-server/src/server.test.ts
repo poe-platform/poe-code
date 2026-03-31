@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { Readable, Writable } from "stream";
 import { createServer } from "./server.js";
 import { defineSchema } from "./schema.js";

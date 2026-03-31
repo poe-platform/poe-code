@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { createLoggerFactory } from "./logger.js";
 import { createMutationReporter } from "../services/mutation-events.js";
 

@@ -10,7 +10,7 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "jsx": "react",
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "bun"]
   },
-  "include": ["src", "tests", "packages", "vitest.config.ts"]
+  "include": ["src", "tests", "packages"]
 }

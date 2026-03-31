@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
@@ -18,10 +18,6 @@ vi.mock('./context.js', () => ({
 
 vi.mock('./preflight.js', () => ({
   cleanupOrphans: vi.fn(),
-}));
-
-vi.mock('./image.js', () => ({
-  IMAGE_NAME: 'poe-code-e2e',
 }));
 
 vi.mock('./container.js', () => ({
@@ -116,4 +112,9 @@ describe('cleanupDisk', () => {
     expect(calls).toContain('docker --context colima image prune -f');
     expect(calls).toContain('docker --context colima builder prune -f');
   });
+});
+
+afterAll(() => {
+  mock.restore();
+  vi.resetModules();
 });

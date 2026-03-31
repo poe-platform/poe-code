@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  spawnSync: vi.fn(),
 }));
 
 vi.mock('./engine.js', () => ({
@@ -14,46 +15,38 @@ vi.mock('./context.js', () => ({
   getResolvedContext: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('./credentials.js', () => ({
-  hasApiKey: vi.fn(),
-}));
-
-vi.mock('./image.js', () => ({
-  IMAGE_NAME: 'poe-code-e2e',
-  ensureImage: vi.fn(),
-}));
-
 describe('runPreflight - Docker Desktop auto-start', () => {
   const originalPlatform = process.platform;
+  const originalEnv = process.env;
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.resetModules();
+    process.env = { ...originalEnv, POE_API_KEY: 'test-api-key' };
   });
 
   afterEach(() => {
     Object.defineProperty(process, 'platform', { value: originalPlatform });
+    process.env = originalEnv;
   });
 
   async function setup() {
-    const { execSync } = await import('node:child_process');
+    const { execSync, spawnSync } = await import('node:child_process');
     const { detectEngine } = await import('./engine.js');
     const { detectRunningContext, getResolvedContext } = await import('./context.js');
-    const { hasApiKey } = await import('./credentials.js');
-    const { ensureImage } = await import('./image.js');
+    const { getSourceHash } = await import('./image.js');
     const { runPreflight } = await import('./preflight.js');
 
     vi.mocked(detectEngine).mockReturnValue('docker');
     vi.mocked(detectRunningContext).mockReturnValue(null);
     vi.mocked(getResolvedContext).mockReturnValue(null);
-    vi.mocked(hasApiKey).mockResolvedValue(true);
-    vi.mocked(ensureImage).mockReturnValue('poe-code-e2e:test');
 
     return {
       execSync: vi.mocked(execSync),
+      spawnSync: vi.mocked(spawnSync),
       detectRunningContext: vi.mocked(detectRunningContext),
-      ensureImage: vi.mocked(ensureImage),
       getResolvedContext: vi.mocked(getResolvedContext),
+      getSourceHash,
       runPreflight,
     };
   }
@@ -211,12 +204,17 @@ describe('runPreflight - Docker Desktop auto-start', () => {
 
   it('prebuilds the e2e image when a workspace is provided', async () => {
     Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { detectRunningContext, execSync, ensureImage, getResolvedContext, runPreflight } = await setup();
+    const { detectRunningContext, execSync, getResolvedContext, getSourceHash, runPreflight } = await setup();
 
     detectRunningContext.mockReturnValue('colima');
     getResolvedContext.mockReturnValue('colima');
     mockExecCommands(execSync, {
       'docker --context colima info': () => 'ok',
+      'docker --context colima run': () => 'ok',
+      'docker --context colima images --format': () => '',
+      'docker --context colima ps -aq': () => '',
+      [`docker --context colima images -q poe-code-e2e:${getSourceHash('/repo')}`]:
+        () => 'cached-image-id\n',
     });
 
     const result = await runPreflight({
@@ -224,28 +222,25 @@ describe('runPreflight - Docker Desktop auto-start', () => {
     });
 
     expect(result.passed).toBe(true);
-    expect(ensureImage).toHaveBeenCalledWith('docker', '/repo', {
-      context: 'colima',
-      verbose: false,
-    });
     expect(result.results).toContainEqual(
       expect.objectContaining({
         name: 'E2E image',
         passed: true,
-        message: 'Prepared poe-code-e2e:test',
+        message: `Prepared poe-code-e2e:${getSourceHash('/repo')}`,
       }),
     );
   });
 
   it('fails when image prebuild fails', async () => {
     Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { execSync, ensureImage, runPreflight } = await setup();
+    const { execSync, getSourceHash, runPreflight } = await setup();
 
-    ensureImage.mockImplementation(() => {
-      throw new Error('build failed');
-    });
     mockExecCommands(execSync, {
       'docker info': () => 'ok',
+      [`docker images -q poe-code-e2e:${getSourceHash('/repo')}`]: () => '',
+      'bun pm pack --filename': () => {
+        throw new Error('build failed');
+      },
     });
 
     const result = await runPreflight({
@@ -261,4 +256,9 @@ describe('runPreflight - Docker Desktop auto-start', () => {
       }),
     );
   });
+});
+
+afterAll(() => {
+  mock.restore();
+  vi.resetModules();
 });

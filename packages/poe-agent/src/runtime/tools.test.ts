@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { DuplicateToolError } from "./errors.js";
 import { normalizeTool, ToolRegistry } from "./tools.js";
 import type { Tool, ToolContext, ToolEvent } from "./types.js";

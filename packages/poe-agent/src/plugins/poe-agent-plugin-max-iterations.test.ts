@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { createRunContext } from "../runtime/run-context.js";
 import { runAcpCore, type AcpModel } from "../runtime/acp-core.js";
 import type { AcpEvent, AcpHost } from "../runtime/types.js";

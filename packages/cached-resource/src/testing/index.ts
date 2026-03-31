@@ -1,5 +1,5 @@
 import { Volume, createFsFromVolume } from "memfs";
-import { vi } from "vitest";
+import { vi } from "bun:test";
 import type { CachedData } from "../types.js";
 import type { CachedResource, CacheStats } from "../create-cached-resource.js";
 import type { DiskCacheFs } from "../disk-cache.js";

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
@@ -16,30 +16,23 @@ import type {
   CommandRunnerResult
 } from "../../utils/command-checks.js";
 
-const confirmMock = vi.hoisted(() => vi.fn());
-const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
+const confirmMock = vi.fn();
+const isCancelMock = vi.fn().mockReturnValue(false);
 
 vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
 }));
 
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return {
-    ...actual,
-    getSpawnConfig: vi.fn(actual.getSpawnConfig),
-    spawnInteractive: vi.fn()
-  };
-});
+import * as agentSpawnModule from "@poe-code/agent-spawn";
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
-  return {
-    ...actual,
-    confirm: confirmMock,
-    isCancel: isCancelMock
-  };
-});
+let renderAcpStreamSpy: ReturnType<typeof vi.spyOn>;
+let spawnInteractiveSpy: ReturnType<typeof vi.spyOn>;
+let getSpawnConfigSpy: ReturnType<typeof vi.spyOn>;
+
+import * as designSystemModule from "@poe-code/design-system";
+
+let confirmSpy: ReturnType<typeof vi.spyOn>;
+let isCancelSpy: ReturnType<typeof vi.spyOn>;
 
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { getSpawnConfig, spawnInteractive } from "@poe-code/agent-spawn";
@@ -138,7 +131,16 @@ describe("spawn command", () => {
     confirmMock.mockResolvedValue(true);
     isCancelMock.mockReturnValue(false);
 
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    // Set up agent-spawn spies
+    renderAcpStreamSpy = vi.spyOn(agentSpawnModule, "renderAcpStream" as any);
+    spawnInteractiveSpy = vi.spyOn(agentSpawnModule, "spawnInteractive" as any).mockResolvedValue(undefined as any);
+    getSpawnConfigSpy = vi.spyOn(agentSpawnModule, "getSpawnConfig" as any);
+
+    // Set up design-system spies
+    confirmSpy = vi.spyOn(designSystemModule, "confirm" as any).mockImplementation(confirmMock);
+    isCancelSpy = vi.spyOn(designSystemModule, "isCancel" as any).mockImplementation(isCancelMock);
+
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
@@ -146,12 +148,17 @@ describe("spawn command", () => {
 
   afterEach(() => {
     process.env = { ...originalEnv };
+    renderAcpStreamSpy?.mockRestore();
+    spawnInteractiveSpy?.mockRestore();
+    getSpawnConfigSpy?.mockRestore();
+    confirmSpy?.mockRestore();
+    isCancelSpy?.mockRestore();
   });
 
   it("streams events via renderAcpStream()", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: fromArray([
-        { event: "tool_start", kind: "exec", title: "npm test" },
+        { event: "tool_start", kind: "exec", title: "bun test" },
         { event: "tool_complete", kind: "exec", path: "result.txt" },
         { event: "agent_message", text: "Hi" }
       ]),
@@ -186,7 +193,7 @@ describe("spawn command", () => {
         "claude",
         "hello"
       ]);
-      await vi.runAllTimersAsync();
+      vi.runAllTimers();
       await parsePromise;
     } finally {
       spy.mockRestore();
@@ -202,7 +209,7 @@ describe("spawn command", () => {
 
     const plainChunks = chunks.map((chunk) => stripAnsi(chunk));
     expect(plainChunks).toEqual([
-      "  → exec: npm test\n",
+      "  → exec: bun test\n",
       "  ✓ exec\n",
       "✓ agent: Hi\n"
     ]);
@@ -210,7 +217,7 @@ describe("spawn command", () => {
   });
 
   it("prints final stdout when events are empty", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({ stdout: "Final output\n", stderr: "", exitCode: 0 })
     }));
@@ -250,7 +257,7 @@ describe("spawn command", () => {
   });
 
   it("fails when spawn command exits with error", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({ stdout: "", stderr: "spawn failed", exitCode: 1 })
     }));
@@ -636,7 +643,7 @@ describe("spawn command", () => {
   });
 
   it("prints a resume command when threadId is present", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({
         stdout: "",
@@ -677,7 +684,7 @@ describe("spawn command", () => {
   });
 
   it("quotes resume cwd when it contains spaces", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({
         stdout: "",
@@ -714,7 +721,7 @@ describe("spawn command", () => {
   });
 
   it("does not print a resume command when threadId is missing", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({
         stdout: "",
@@ -746,7 +753,7 @@ describe("spawn command", () => {
   });
 
   it("prints claude-code resume command with --resume flag", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({
         stdout: "",
@@ -787,7 +794,7 @@ describe("spawn command", () => {
   });
 
   it("prints opencode resume command with positional cwd", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({
         stdout: "",
@@ -828,7 +835,7 @@ describe("spawn command", () => {
   });
 
   it("prints kimi resume command with --session and --work-dir", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({
         stdout: "",
@@ -869,7 +876,7 @@ describe("spawn command", () => {
   });
 
   it("does not print resume when config has no resumeCommand", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({
         stdout: "",
@@ -879,7 +886,7 @@ describe("spawn command", () => {
       })
     }));
 
-    vi.mocked(getSpawnConfig).mockReturnValue({
+    getSpawnConfigSpy.mockReturnValue({
       kind: "cli",
       agentId: "codex",
       adapter: "codex",
@@ -913,7 +920,7 @@ describe("spawn command", () => {
 
   describe("--interactive flag", () => {
     it("calls spawnInteractive when --interactive is set", async () => {
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 0
@@ -947,7 +954,7 @@ describe("spawn command", () => {
     });
 
     it("calls spawnInteractive when -i shorthand is used", async () => {
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 0
@@ -976,7 +983,7 @@ describe("spawn command", () => {
     });
 
     it("propagates non-zero exit code from interactive spawn", async () => {
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 42
@@ -1008,7 +1015,7 @@ describe("spawn command", () => {
     });
 
     it("shows error when agent does not support interactive mode", async () => {
-      vi.mocked(spawnInteractive).mockRejectedValue(
+      spawnInteractiveSpy.mockRejectedValue(
         new Error('Agent "codex" does not support interactive mode.')
       );
 
@@ -1034,7 +1041,7 @@ describe("spawn command", () => {
     });
 
     it("does not render ACP events in interactive mode", async () => {
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 0
@@ -1075,7 +1082,7 @@ describe("spawn command", () => {
     });
 
     it("works without a prompt in interactive mode", async () => {
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 0
@@ -1108,7 +1115,7 @@ describe("spawn command", () => {
     });
 
     it("uses the configured model for interactive spawn when --model is omitted", async () => {
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 0
@@ -1147,7 +1154,7 @@ describe("spawn command", () => {
     });
 
     it("passes model and cwd to spawnInteractive", async () => {
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 0
@@ -1324,7 +1331,7 @@ describe("spawn command", () => {
 
     it("prompts in interactive mode when not configured", async () => {
       confirmMock.mockResolvedValueOnce(true);
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 0
@@ -1354,7 +1361,7 @@ describe("spawn command", () => {
 
     it("cancels interactive spawn when user declines", async () => {
       confirmMock.mockResolvedValueOnce(false);
-      vi.mocked(spawnInteractive).mockResolvedValue({
+      spawnInteractiveSpy.mockResolvedValue({
         stdout: "",
         stderr: "",
         exitCode: 0

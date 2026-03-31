@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'bun:test';
 import type { ExecResult, Container } from './types.js';
 import type { CapturedExchange } from './proxy-types.js';
 import './matchers.js';
@@ -263,9 +263,14 @@ describe('toHaveFile', () => {
     const container = makeContainer({
       fileExists: vi.fn().mockResolvedValue(false),
     });
-    await expect(
-      expect(container).toHaveFile('/root/.config/missing.json')
-    ).rejects.toThrow('expected container to have file "/root/.config/missing.json"');
+    let error: unknown;
+    try {
+      await expect(container).toHaveFile('/root/.config/missing.json');
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain('expected container to have file "/root/.config/missing.json"');
   });
 
   it('supports .not modifier', async () => {
@@ -296,9 +301,14 @@ describe('toHaveFileContaining', () => {
     const container = makeContainer({
       fileExists: vi.fn().mockResolvedValue(false),
     });
-    await expect(
-      expect(container).toHaveFileContaining('/missing.json', 'text')
-    ).rejects.toThrow('file does not exist');
+    let error: unknown;
+    try {
+      await expect(container).toHaveFileContaining('/missing.json', 'text');
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain('file does not exist');
   });
 
   it('fails when file exists but does not contain text', async () => {
@@ -306,9 +316,14 @@ describe('toHaveFileContaining', () => {
       fileExists: vi.fn().mockResolvedValue(true),
       readFile: vi.fn().mockResolvedValue('other content'),
     });
-    await expect(
-      expect(container).toHaveFileContaining('/config.json', 'missing text')
-    ).rejects.toThrow('expected file "/config.json" to contain "missing text"');
+    let error: unknown;
+    try {
+      await expect(container).toHaveFileContaining('/config.json', 'missing text');
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain('expected file "/config.json" to contain "missing text"');
   });
 
   it('failure message includes file content', async () => {
@@ -316,9 +331,14 @@ describe('toHaveFileContaining', () => {
       fileExists: vi.fn().mockResolvedValue(true),
       readFile: vi.fn().mockResolvedValue('actual file content'),
     });
-    await expect(
-      expect(container).toHaveFileContaining('/config.json', 'missing')
-    ).rejects.toThrow(/Content: actual file content/);
+    let error: unknown;
+    try {
+      await expect(container).toHaveFileContaining('/config.json', 'missing');
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toMatch(/Content: actual file content/);
   });
 
   it('supports .not modifier', async () => {
@@ -793,27 +813,42 @@ describe('toHaveHealthyProxy', () => {
     const container = makeContainer({
       proxyLog: vi.fn().mockResolvedValue('Proxy server listening on http://127.0.0.1:3456\nError: connection refused'),
     });
-    await expect(
-      expect(container).toHaveHealthyProxy()
-    ).rejects.toThrow('proxy log contains errors');
+    let error: unknown;
+    try {
+      await expect(container).toHaveHealthyProxy();
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain('proxy log contains errors');
   });
 
   it('fails when proxy log is missing listening message', async () => {
     const container = makeContainer({
       proxyLog: vi.fn().mockResolvedValue('some other output'),
     });
-    await expect(
-      expect(container).toHaveHealthyProxy()
-    ).rejects.toThrow('proxy log missing listening confirmation');
+    let error: unknown;
+    try {
+      await expect(container).toHaveHealthyProxy();
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain('proxy log missing listening confirmation');
   });
 
   it('failure message includes proxy log content', async () => {
     const container = makeContainer({
       proxyLog: vi.fn().mockResolvedValue('Error: something went wrong'),
     });
-    await expect(
-      expect(container).toHaveHealthyProxy()
-    ).rejects.toThrow(/Error: something went wrong/);
+    let error: unknown;
+    try {
+      await expect(container).toHaveHealthyProxy();
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toMatch(/Error: something went wrong/);
   });
 
   it('supports .not modifier', async () => {

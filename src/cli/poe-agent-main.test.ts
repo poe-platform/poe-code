@@ -1,42 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { createPoeAgentProgram } from "./poe-agent-main.js";
+import * as agentSpawnModule from "@poe-code/agent-spawn";
+import * as designSystemModule from "@poe-code/design-system";
 
-const spawnPoeAgentWithAcpMock = vi.hoisted(() =>
-  vi.fn(() => ({
-    events: (async function* () {})(),
-    done: Promise.resolve({
-      stdout: "agent output\n",
-      stderr: "",
-      exitCode: 0,
-    }),
-  }))
-);
+const spawnPoeAgentWithAcpMock = vi.fn(() => ({
+  events: (async function* () {})(),
+  done: Promise.resolve({
+    stdout: "agent output\n",
+    stderr: "",
+    exitCode: 0,
+  }),
+}));
 
 vi.mock("../providers/poe-agent.js", () => ({
   spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock,
+  poeAgentService: { id: "poe-agent", name: "poe-agent", label: "Poe Agent", summary: "", configure: vi.fn(), unconfigure: vi.fn() },
+  provider: { id: "poe-agent", name: "poe-agent", label: "Poe Agent", summary: "", configure: vi.fn(), unconfigure: vi.fn() },
 }));
-
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return {
-    ...actual,
-    renderAcpStream: vi.fn(),
-  };
-});
-
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@poe-code/design-system")>();
-  return {
-    ...actual,
-    log: {
-      info: vi.fn(),
-      error: vi.fn(),
-      message: vi.fn(),
-    },
-  };
-});
 
 async function runProgram(args: string[]): Promise<void> {
   const program = createPoeAgentProgram();
@@ -45,6 +25,11 @@ async function runProgram(args: string[]): Promise<void> {
 }
 
 describe("poe-agent CLI", () => {
+  let renderAcpStreamSpy: ReturnType<typeof vi.spyOn>;
+  let logInfoSpy: ReturnType<typeof vi.spyOn>;
+  let logErrorSpy: ReturnType<typeof vi.spyOn>;
+  let logMessageSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     spawnPoeAgentWithAcpMock.mockClear();
     spawnPoeAgentWithAcpMock.mockReturnValue({
@@ -55,6 +40,17 @@ describe("poe-agent CLI", () => {
         exitCode: 0,
       }),
     });
+    renderAcpStreamSpy = vi.spyOn(agentSpawnModule, "renderAcpStream" as any).mockResolvedValue(undefined);
+    logInfoSpy = vi.spyOn(designSystemModule.log, "info").mockImplementation(() => {});
+    logErrorSpy = vi.spyOn(designSystemModule.log, "error").mockImplementation(() => {});
+    logMessageSpy = vi.spyOn(designSystemModule.log, "message").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    renderAcpStreamSpy?.mockRestore();
+    logInfoSpy?.mockRestore();
+    logErrorSpy?.mockRestore();
+    logMessageSpy?.mockRestore();
   });
 
   it("passes prompt to spawnPoeAgentWithAcp", async () => {

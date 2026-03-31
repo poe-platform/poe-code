@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { createMockFs } from "@poe-code/config-mutations/testing";
 import {
   configure,
@@ -329,7 +329,7 @@ describe("unconfigure", () => {
 
     await expect(
       unconfigure("claude-code", "poe-code", createOptions(fs))
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
   });
 
   it("throws UnsupportedAgentError for unknown agent", async () => {

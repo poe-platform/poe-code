@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { formatCommandNotFoundPanel } from "./command-errors.js";
 
 function stripAnsi(value: string): string {

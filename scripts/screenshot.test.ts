@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { resolveScreenshotTimeoutMs } from "./screenshot.js";
+import { beforeEach, describe, it, expect, vi } from "bun:test";
+import { resolveFreezeCommand, resolveScreenshotTimeoutMs } from "./screenshot.js";
 
 describe("resolveScreenshotTimeoutMs", () => {
   it("uses default when env is missing or invalid", () => {
@@ -15,130 +15,94 @@ describe("resolveScreenshotTimeoutMs", () => {
   });
 });
 
-describe("resolveFreezeCommand", () => {
-  afterEach(() => {
-    vi.unmock("node:child_process");
-    vi.unmock("node:fs");
-    vi.unmock("node:process");
-    vi.unmock("node:module");
-  });
+const existsSync = vi.fn<[string], boolean>();
+const accessSync = vi.fn<(path: string, mode?: number) => void>();
+const spawnSync = vi.fn<[string, string[], object], { status: number | null }>();
+let resolveImpl: (() => string) | null = null;
 
-  async function loadWithMocks({
-    exists,
-    access,
-    pathEnv,
-    resolveError,
-    spawnResults
-  }: {
-    exists: (value: string) => boolean;
-    access: (value: string) => void;
-    pathEnv?: string;
-    resolveError?: boolean;
-    spawnResults?: Record<string, number | null>;
-  }) {
-    vi.resetModules();
-    vi.doMock("node:fs", () => ({
-      existsSync: (value: string) => exists(value),
-      accessSync: (value: string) => access(value),
-      constants: { X_OK: 1 }
-    }));
-    vi.doMock("node:child_process", () => ({
-      spawnSync: (command: string) => ({
-        status: spawnResults?.[command] ?? null
-      })
-    }));
-    vi.doMock("node:process", () => ({
-      default: {
-        argv: ["node", "/tmp/not-screenshot.ts"],
-        env: { PATH: pathEnv ?? "" }
-      }
-    }));
-    if (resolveError) {
-      vi.doMock("node:module", () => ({
-        createRequire: () => ({
-          resolve: () => {
-            throw new Error("missing");
-          }
-        })
-      }));
+const deps = {
+  existsSync: (path: string) => existsSync(path),
+  accessSync: (path: string, mode?: number) => accessSync(path, mode),
+  spawnSync: (cmd: string, args: string[], opts: object) => spawnSync(cmd, args, opts),
+  createRequire: () => ({
+    resolve: () => {
+      if (resolveImpl) return resolveImpl();
+      return `/fake/node_modules/@poe-code/freeze-cli/bin/freeze`;
     }
-    return await import("./screenshot.js");
-  }
+  })
+};
 
-  it("uses the override path when provided", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: () => true,
-      access: () => undefined,
-      spawnResults: { freeze: 1 }
-    });
-    expect(
-      resolveFreezeCommand({ POE_FREEZE_PATH: "/tmp/freeze" })
-    ).toBe("/tmp/freeze");
+describe("resolveFreezeCommand", () => {
+  beforeEach(() => {
+    existsSync.mockReset();
+    accessSync.mockReset();
+    spawnSync.mockReset();
+    resolveImpl = null;
   });
 
-  it("throws when the override path is missing", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: () => false,
-      access: () => undefined,
-      spawnResults: { freeze: 1 }
-    });
+  it("uses the override path when provided", () => {
+    existsSync.mockReturnValue(true);
+    spawnSync.mockReturnValue({ status: 1 });
+
+    expect(resolveFreezeCommand({ POE_FREEZE_PATH: "/tmp/freeze" }, deps as any)).toBe(
+      "/tmp/freeze"
+    );
+  });
+
+  it("throws when the override path is missing", () => {
+    existsSync.mockReturnValue(false);
+
     expect(() =>
-      resolveFreezeCommand({ POE_FREEZE_PATH: "/tmp/missing" })
+      resolveFreezeCommand({ POE_FREEZE_PATH: "/tmp/missing" }, deps as any)
     ).toThrow("POE_FREEZE_PATH");
   });
 
-  it("prefers a freeze binary on PATH", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: (value) => value === "/opt/bin/freeze",
-      access: () => undefined,
-      pathEnv: "/opt/bin:/usr/bin",
-      spawnResults: { freeze: 1 }
-    });
-    expect(resolveFreezeCommand({ PATH: "/opt/bin:/usr/bin" })).toBe("/opt/bin/freeze");
+  it("prefers a freeze binary on PATH", () => {
+    existsSync.mockImplementation((value: string) => value === "/opt/bin/freeze");
+    accessSync.mockImplementation(() => undefined);
+    spawnSync.mockReturnValue({ status: 1 });
+
+    expect(resolveFreezeCommand({ PATH: "/opt/bin:/usr/bin" }, deps as any)).toBe(
+      "/opt/bin/freeze"
+    );
   });
 
-  it("falls back to common system paths when PATH misses freeze", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: (value) => value === "/opt/homebrew/bin/freeze",
-      access: () => undefined,
-      pathEnv: "",
-      spawnResults: {
-        freeze: 1,
-        "/opt/homebrew/bin/freeze": 0
-      }
-    });
-    expect(resolveFreezeCommand({})).toBe("/opt/homebrew/bin/freeze");
+  it("falls back to common system paths when PATH misses freeze", () => {
+    existsSync.mockImplementation((value: string) => value === "/opt/homebrew/bin/freeze");
+    accessSync.mockImplementation(() => undefined);
+    spawnSync.mockImplementation((cmd: string) => ({
+      status: cmd === "/opt/homebrew/bin/freeze" ? 0 : 1
+    }));
+
+    expect(resolveFreezeCommand({}, deps as any)).toBe("/opt/homebrew/bin/freeze");
   });
 
-  it("skips node_modules/.bin when resolving PATH", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: (value) =>
-        value === "/opt/bin/freeze" || value === "/repo/node_modules/.bin/freeze",
-      access: () => undefined,
-      pathEnv: "/repo/node_modules/.bin:/opt/bin:/usr/bin",
-      spawnResults: { freeze: 1 }
-    });
+  it("skips node_modules/.bin when resolving PATH", () => {
+    existsSync.mockImplementation(
+      (value: string) =>
+        value === "/opt/bin/freeze" || value === "/repo/node_modules/.bin/freeze"
+    );
+    accessSync.mockImplementation(() => undefined);
+    spawnSync.mockReturnValue({ status: 1 });
+
     expect(
-      resolveFreezeCommand({ PATH: "/repo/node_modules/.bin:/opt/bin:/usr/bin" })
+      resolveFreezeCommand({ PATH: "/repo/node_modules/.bin:/opt/bin:/usr/bin" }, deps as any)
     ).toBe("/opt/bin/freeze");
   });
 
-  it("uses system freeze when available", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: () => false,
-      access: () => undefined,
-      spawnResults: { freeze: 0 }
-    });
-    expect(resolveFreezeCommand({})).toBe("freeze");
+  it("uses system freeze when available", () => {
+    existsSync.mockReturnValue(false);
+    spawnSync.mockReturnValue({ status: 0 });
+
+    expect(resolveFreezeCommand({}, deps as any)).toBe("freeze");
   });
 
-  it("falls back to bundled freeze-cli binary", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: () => false,
-      access: () => undefined,
-      spawnResults: { freeze: 1 }
-    });
-    const resolved = resolveFreezeCommand({});
+  it("falls back to bundled freeze-cli binary", () => {
+    existsSync.mockReturnValue(false);
+    spawnSync.mockReturnValue({ status: 1 });
+    resolveImpl = () => `/fake/node_modules/@poe-code/freeze-cli/bin/freeze`;
+
+    const resolved = resolveFreezeCommand({}, deps as any);
     expect(resolved.includes("freeze-cli")).toBe(true);
     expect(resolved.endsWith("bin/freeze")).toBe(true);
   });

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "bun:test";
 import path from "node:path";
 import type { FileSystem } from "./file-system.js";
 import { createBackup, restoreLatestBackup } from "./backup.js";

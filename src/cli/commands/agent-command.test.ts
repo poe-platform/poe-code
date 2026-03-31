@@ -1,21 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
+import * as agentSpawnModule from "@poe-code/agent-spawn";
 
-const createAgentSessionMock = vi.hoisted(() => vi.fn());
-const sendMessageMock = vi.hoisted(() => vi.fn());
-const disposeMock = vi.hoisted(() => vi.fn());
-const renderAcpEventMock = vi.hoisted(() => vi.fn());
+const createAgentSessionMock = vi.fn();
+const sendMessageMock = vi.fn();
+const disposeMock = vi.fn();
+const renderAcpEventMock = vi.fn();
 
 vi.mock("@poe-code/poe-agent", () => ({
   createAgentSession: createAgentSessionMock
 }));
-
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return { ...actual, renderAcpEvent: renderAcpEventMock };
-});
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -27,11 +23,14 @@ function createMemFs(): FileSystem {
 }
 
 describe("agent command", () => {
+  let renderAcpEventSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     createAgentSessionMock.mockReset();
     sendMessageMock.mockReset();
     disposeMock.mockReset();
     renderAcpEventMock.mockReset();
+    renderAcpEventSpy = vi.spyOn(agentSpawnModule, "renderAcpEvent" as any).mockImplementation(renderAcpEventMock);
     createAgentSessionMock.mockResolvedValue({
       sendMessage: sendMessageMock,
       dispose: disposeMock
@@ -41,6 +40,10 @@ describe("agent command", () => {
       content: "Hello from Poe agent"
     });
     disposeMock.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    renderAcpEventSpy?.mockRestore();
   });
 
   it("creates a session, sends prompt, prints response, and disposes", async () => {

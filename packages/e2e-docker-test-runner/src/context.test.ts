@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 import { setResolvedContext, getResolvedContext, buildContextArgs, detectRunningContext } from './context.js';
 
 vi.mock('node:child_process', () => ({
@@ -87,4 +87,9 @@ describe('buildContextArgs', () => {
   it('returns empty array for podman even with context', () => {
     expect(buildContextArgs('podman', 'colima-test')).toEqual([]);
   });
+});
+
+afterAll(() => {
+  mock.restore();
+  vi.resetModules();
 });

@@ -1,7 +1,8 @@
-import { type ChildProcessWithoutNullStreams, spawn as spawnChildProcess } from "node:child_process";
+import * as childProcess from "node:child_process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
-import { afterEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "bun:test";
 import { AcpTransport } from "./acp-transport.js";
 import type {
   InitializeResponse,
@@ -10,10 +11,6 @@ import type {
   WaitForTerminalExitRequest,
   WaitForTerminalExitResponse,
 } from "./types.js";
-
-vi.mock("node:child_process", () => ({
-  spawn: vi.fn(),
-}));
 
 interface MockChildProcess {
   child: ChildProcessWithoutNullStreams;
@@ -27,11 +24,13 @@ interface MockChildProcess {
 }
 
 const cleanup: Array<() => void> = [];
+let spawnSpy: ReturnType<typeof vi.spyOn>;
 
 afterEach(() => {
   while (cleanup.length > 0) {
     cleanup.pop()?.();
   }
+  spawnSpy.mockRestore();
   vi.clearAllMocks();
 });
 
@@ -113,9 +112,13 @@ async function waitForOutboundCount(mock: MockChildProcess, count: number): Prom
 }
 
 describe("AcpTransport", () => {
+  beforeEach(() => {
+    spawnSpy = vi.spyOn(childProcess, "spawn");
+  });
+
   it("spawns the agent process and sends typed JSON-RPC requests", async () => {
     const mock = createMockChildProcess();
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({
       command: "poe-agent",
       args: ["--stdio"],
@@ -159,7 +162,7 @@ describe("AcpTransport", () => {
 
   it("sends notifications without awaiting a response", async () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       transport.dispose();
@@ -187,7 +190,7 @@ describe("AcpTransport", () => {
 
   it("sends underscore-prefixed extension requests and resolves typed responses", async () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       transport.dispose();
@@ -223,7 +226,7 @@ describe("AcpTransport", () => {
 
   it("sends underscore-prefixed extension notifications", async () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       transport.dispose();
@@ -251,7 +254,7 @@ describe("AcpTransport", () => {
 
   it("registers and dispatches underscore-prefixed extension handlers", async () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       transport.dispose();
@@ -299,7 +302,7 @@ describe("AcpTransport", () => {
 
   it("rejects extension methods without underscore prefix", () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       transport.dispose();
@@ -327,7 +330,7 @@ describe("AcpTransport", () => {
 
   it("registers and dispatches incoming request and notification handlers", async () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       transport.dispose();
@@ -387,7 +390,7 @@ describe("AcpTransport", () => {
 
   it("rejects pending requests when the process exits", async () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       transport.dispose();
@@ -410,7 +413,7 @@ describe("AcpTransport", () => {
 
   it("captures stderr for diagnostics and disposes gracefully", async () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       mock.stdin.destroy();
@@ -438,7 +441,7 @@ describe("AcpTransport", () => {
 
   it("rejects pending requests when the process errors", async () => {
     const mock = createMockChildProcess();
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    spawnSpy.mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     cleanup.push(() => {
       transport.dispose();

@@ -1,9 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "bun:test";
 import { EventEmitter } from "node:events";
+import * as childProcess from "node:child_process";
+import * as fs from "node:fs";
 
-const spawn = vi.fn();
-const existsSync = vi.fn();
-const accessSync = vi.fn();
+let spawnSpy: ReturnType<typeof vi.spyOn>;
+let existsSyncSpy: ReturnType<typeof vi.spyOn>;
+let accessSyncSpy: ReturnType<typeof vi.spyOn>;
 
 function createChild() {
   const emitter = new EventEmitter();
@@ -16,24 +18,25 @@ function createChild() {
 
 describe("ensureFreezeBinary", () => {
   beforeEach(() => {
-    vi.resetModules();
-    spawn.mockReset();
-    existsSync.mockReset();
-    accessSync.mockReset();
-    vi.doMock("node:child_process", () => ({ spawn }));
-    vi.doMock("node:fs", () => ({ existsSync, accessSync }));
+    spawnSpy = vi.spyOn(childProcess, "spawn");
+    spawnSpy.mockClear();
+    existsSyncSpy = vi.spyOn(fs, "existsSync");
+    existsSyncSpy.mockClear();
+    accessSyncSpy = vi.spyOn(fs, "accessSync");
+    accessSyncSpy.mockClear();
   });
 
   afterEach(() => {
-    vi.unmock("node:child_process");
-    vi.unmock("node:fs");
+    spawnSpy.mockRestore();
+    existsSyncSpy.mockRestore();
+    accessSyncSpy.mockRestore();
   });
 
   it("skips download when binary is healthy", async () => {
-    existsSync.mockReturnValue(true);
-    accessSync.mockImplementation(() => undefined);
+    existsSyncSpy.mockReturnValue(true);
+    accessSyncSpy.mockImplementation(() => undefined);
     const probeChild = createChild();
-    spawn.mockReturnValueOnce(probeChild);
+    spawnSpy.mockReturnValueOnce(probeChild as any);
 
     const { ensureFreezeBinary } = await import("./ensure-binary.js");
     const promise = ensureFreezeBinary("/bin/freeze", "/scripts/download.js", {
@@ -42,17 +45,19 @@ describe("ensureFreezeBinary", () => {
     probeChild.emit("exit", 0, null);
     await promise;
 
-    expect(spawn).toHaveBeenCalledTimes(1);
-    const [command, args] = spawn.mock.calls[0];
+    expect(spawnSpy).toHaveBeenCalledTimes(1);
+    const [command, args] = spawnSpy.mock.calls[0];
     expect(command).toBe("/bin/freeze");
     expect(args).toEqual(["--help"]);
   });
 
   it("downloads when binary is missing", async () => {
-    existsSync.mockReturnValue(false);
+    existsSyncSpy.mockReturnValue(false);
     const downloadChild = createChild();
     const probeChild = createChild();
-    spawn.mockReturnValueOnce(downloadChild).mockReturnValueOnce(probeChild);
+    spawnSpy
+      .mockReturnValueOnce(downloadChild as any)
+      .mockReturnValueOnce(probeChild as any);
 
     const { ensureFreezeBinary } = await import("./ensure-binary.js");
     const promise = ensureFreezeBinary("/bin/freeze", "/scripts/download.js", {
@@ -63,9 +68,9 @@ describe("ensureFreezeBinary", () => {
     probeChild.emit("exit", 0, null);
     await promise;
 
-    expect(spawn).toHaveBeenCalledTimes(2);
-    const [command, args] = spawn.mock.calls[0];
-    const [probeCommand, probeArgs] = spawn.mock.calls[1];
+    expect(spawnSpy).toHaveBeenCalledTimes(2);
+    const [command, args] = spawnSpy.mock.calls[0];
+    const [probeCommand, probeArgs] = spawnSpy.mock.calls[1];
     expect(command).toBe(process.execPath);
     expect(args).toEqual(["/scripts/download.js"]);
     expect(probeCommand).toBe("/bin/freeze");
@@ -73,15 +78,15 @@ describe("ensureFreezeBinary", () => {
   });
 
   it("downloads when probe fails", async () => {
-    existsSync.mockReturnValue(true);
-    accessSync.mockImplementation(() => undefined);
+    existsSyncSpy.mockReturnValue(true);
+    accessSyncSpy.mockImplementation(() => undefined);
     const probeChild = createChild();
     const downloadChild = createChild();
     const postDownloadProbe = createChild();
-    spawn
-      .mockReturnValueOnce(probeChild)
-      .mockReturnValueOnce(downloadChild)
-      .mockReturnValueOnce(postDownloadProbe);
+    spawnSpy
+      .mockReturnValueOnce(probeChild as any)
+      .mockReturnValueOnce(downloadChild as any)
+      .mockReturnValueOnce(postDownloadProbe as any);
 
     const { ensureFreezeBinary } = await import("./ensure-binary.js");
     const promise = ensureFreezeBinary("/bin/freeze", "/scripts/download.js", {
@@ -94,10 +99,10 @@ describe("ensureFreezeBinary", () => {
     postDownloadProbe.emit("exit", 0, null);
     await promise;
 
-    expect(spawn).toHaveBeenCalledTimes(3);
-    const [probeCommand] = spawn.mock.calls[0];
-    const [downloadCommand, downloadArgs] = spawn.mock.calls[1];
-    const [postProbeCommand, postProbeArgs] = spawn.mock.calls[2];
+    expect(spawnSpy).toHaveBeenCalledTimes(3);
+    const [probeCommand] = spawnSpy.mock.calls[0];
+    const [downloadCommand, downloadArgs] = spawnSpy.mock.calls[1];
+    const [postProbeCommand, postProbeArgs] = spawnSpy.mock.calls[2];
     expect(probeCommand).toBe("/bin/freeze");
     expect(downloadCommand).toBe(process.execPath);
     expect(downloadArgs).toEqual(["/scripts/download.js"]);

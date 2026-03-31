@@ -1,9 +1,9 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
 import path from "node:path";
-import { PassThrough } from "node:stream";
+import { PassThrough, Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "bun:test";
 import { StdioTransport, readLines, type StdioSpawn } from "./internal.js";
 
 const testServerCli = path.resolve(
@@ -96,6 +96,59 @@ function createMockChildProcess(): MockChildProcess {
   };
 
   return child;
+}
+
+function createBunBackedSpawn(): StdioSpawn {
+  return (command, args, options) => {
+    const child = new EventEmitter() as unknown as MockChildProcess & {
+      stdin: NodeJS.WritableStream;
+      stdout: Readable;
+      stderr: Readable;
+      exitCode: number | null;
+      signalCode: NodeJS.Signals | null;
+      killed: boolean;
+      kill: (signal?: NodeJS.Signals) => boolean;
+    };
+
+    const proc = Bun.spawn([command, ...args], {
+      cwd: options.cwd,
+      env: options.env,
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+
+    child.stdin = proc.stdin as unknown as NodeJS.WritableStream;
+    child.stdout = Readable.fromWeb(proc.stdout);
+    child.stderr = Readable.fromWeb(proc.stderr);
+    child.exitCode = null;
+    child.signalCode = null;
+    child.killed = false;
+    child.kill = (signal?: NodeJS.Signals) => {
+      child.killed = true;
+      proc.kill(signal);
+      return true;
+    };
+    child.emitExit = (code = null, signal = null) => {
+      child.exitCode = code;
+      child.signalCode = signal;
+      child.emit("exit", code, signal);
+    };
+    child.emitError = (error: Error) => {
+      child.emit("error", error);
+    };
+
+    void proc.exited
+      .then((code) => {
+        child.exitCode = code;
+        child.emit("exit", code, null);
+      })
+      .catch((error) => {
+        child.emit("error", error instanceof Error ? error : new Error(String(error)));
+      });
+
+    return child;
+  };
 }
 
 describe("StdioTransport constructor", () => {
@@ -319,6 +372,7 @@ describe("StdioTransport real process smoke test", () => {
     const transport = new StdioTransport({
       command: process.execPath,
       args: [testServerCli, "serve", "word-of-the-day"],
+      spawn: createBunBackedSpawn(),
     });
 
     try {

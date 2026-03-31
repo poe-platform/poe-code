@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, mock, vi } from "bun:test";
 import gitContext from "./poe-agent-plugin-git-context.js";
 
-const runCommandMock = vi.hoisted(() => vi.fn());
+const runCommandMock = vi.fn();
 
 vi.mock("@poe-code/agent-spawn", () => ({
   runCommand: runCommandMock,
@@ -10,6 +10,10 @@ vi.mock("@poe-code/agent-spawn", () => ({
 describe("poe-agent-plugin-git-context", () => {
   beforeEach(() => {
     runCommandMock.mockReset();
+  });
+
+  afterAll(() => {
+    mock.restore();
   });
 
   it("adds git status and log to the system prompt", async () => {

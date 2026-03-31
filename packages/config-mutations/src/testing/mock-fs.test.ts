@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { createMockFs } from "./mock-fs.js";
 
 describe("createMockFs", () => {
@@ -159,7 +159,7 @@ describe("createMockFs", () => {
   describe("chmod", () => {
     it("does not throw for existing file", async () => {
       const fs = createMockFs({ "~/.config": "{}" });
-      await expect(fs.chmod("/home/test/.config", 0o755)).resolves.not.toThrow();
+      await expect(fs.chmod("/home/test/.config", 0o755)).resolves.toBeUndefined();
     });
 
     it("throws ENOENT for missing file", async () => {

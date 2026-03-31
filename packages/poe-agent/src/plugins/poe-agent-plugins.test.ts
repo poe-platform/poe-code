@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import type { ToolContext } from "../runtime/types.js";
 import type { ToolExecutorFileSystem } from "../tool-executor.js";
-import { loadSystemPromptSync } from "../system-prompt.js";
+import * as systemPromptModule from "../system-prompt.js";
 import filesPlugin from "./poe-agent-plugin-files.js";
 import shellPlugin from "./poe-agent-plugin-shell.js";
 import skillsPlugin from "./poe-agent-plugin-skills.js";
@@ -39,6 +39,18 @@ async function callToolByName(
 }
 
 describe("poe-agent built-in plugins", () => {
+  let loadSystemPromptSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    loadSystemPromptSpy = vi
+      .spyOn(systemPromptModule, "loadSystemPromptSync")
+      .mockReturnValue("Bundled system prompt");
+  });
+
+  afterEach(() => {
+    loadSystemPromptSpy.mockRestore();
+  });
+
   it("system prompt plugin prepends bundled prompt", () => {
     const plugin = systemPromptPlugin();
 
@@ -52,13 +64,13 @@ describe("poe-agent built-in plugins", () => {
 
     expect(transformed).toEqual({
       userPrompt: "hello",
-      system: `${loadSystemPromptSync()}\nuser-system`,
+      system: "Bundled system prompt\nuser-system",
     });
   });
 
   it("system prompt plugin does not duplicate bundled prompt", () => {
     const plugin = systemPromptPlugin();
-    const bundled = loadSystemPromptSync();
+    const bundled = "Bundled system prompt";
 
     const transformed = plugin.prompt?.({
       userPrompt: "hello",

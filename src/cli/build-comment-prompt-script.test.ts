@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 
 const scriptPath = "../../scripts/workflows/build-comment-prompt.cjs";
 
@@ -31,15 +31,27 @@ function createResponse(options: {
   };
 }
 
+async function waitFor(fn: () => void, timeout = 1000): Promise<void> {
+  const start = Date.now();
+  while (true) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      if (Date.now() - start > timeout) throw e;
+      await new Promise(r => setTimeout(r, 10));
+    }
+  }
+}
+
 describe("build comment prompt workflow script", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
   let output: string[];
   let stdoutSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    vi.resetModules();
     fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
+    (globalThis as any).fetch = fetchMock;
 
     output = [];
     stdoutSpy = vi
@@ -57,14 +69,12 @@ describe("build comment prompt workflow script", () => {
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
     stdoutSpy.mockRestore();
     delete process.env.ISSUE_NUMBER;
     delete process.env.COMMENT_BODY;
     delete process.env.COMMENT_AUTHOR;
     delete process.env.GITHUB_REPOSITORY;
     delete process.env.GITHUB_TOKEN;
-    vi.resetModules();
   });
 
   it("builds prompt with conversation and highlighted latest instruction", async () => {
@@ -92,9 +102,9 @@ describe("build comment prompt workflow script", () => {
       }) satisfies MockResponse
     );
 
-    await import(scriptPath);
+    await import(scriptPath + "?t=" + Date.now());
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
       const prompt = output.join("");
       expect(prompt).toContain("You are working on GitHub issue #42: Fix auth bug.");

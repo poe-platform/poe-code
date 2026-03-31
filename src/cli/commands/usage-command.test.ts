@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -6,16 +6,16 @@ import type { HttpClient } from "../http.js";
 import { OperationCancelledError } from "../errors.js";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
-const confirmMock = vi.hoisted(() => vi.fn());
-const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
-const getThemeMock = vi.hoisted(() => vi.fn());
-const typographyMock = vi.hoisted(() => ({
+const confirmMock = vi.fn();
+const isCancelMock = vi.fn().mockReturnValue(false);
+const getThemeMock = vi.fn();
+const typographyMock = {
   bold: vi.fn((t: string) => t),
   dim: vi.fn((t: string) => t),
   italic: vi.fn((t: string) => t),
   underline: vi.fn((t: string) => t),
   strikethrough: vi.fn((t: string) => t)
-}));
+};
 
 function createIdentityTheme() {
   return {
@@ -35,24 +35,27 @@ function createIdentityTheme() {
   };
 }
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
-  return {
-    ...actual,
-    confirm: confirmMock,
-    isCancel: isCancelMock,
-    getTheme: getThemeMock,
-    typography: typographyMock
-  };
-});
+vi.mock("@poe-code/design-system", () => ({
+  confirm: confirmMock,
+  isCancel: isCancelMock,
+  getTheme: getThemeMock,
+  typography: typographyMock,
+  widths: { header: 60, helpColumn: 24, maxLine: 80 },
+  renderTable: vi.fn((options: { theme: Record<string, (t: string) => string>, columns: Array<{name: string, title: string}>, rows: Array<Record<string, string>> }) => {
+    const { theme, columns, rows } = options;
+    theme.muted("┌"); theme.muted("─"); theme.muted("│"); theme.muted("└");
+    columns.forEach((col) => theme.header(col.title));
+    return rows.map((row) => columns.map((col) => row[col.name] ?? "").join(" | ")).join("\n");
+  }),
+  select: vi.fn(),
+  cancel: vi.fn(),
+  text: vi.fn(),
+  spinner: vi.fn()
+}));
 
-vi.mock("poe-oauth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("poe-oauth")>();
-  return {
-    ...actual,
-    checkAuth: vi.fn(async () => ({ email: "test@example.com", balance: null }))
-  };
-});
+vi.mock("poe-oauth", () => ({
+  checkAuth: vi.fn(async () => ({ email: "test@example.com", balance: null }))
+}));
 
 const cwd = "/repo";
 const homeDir = "/home/test";

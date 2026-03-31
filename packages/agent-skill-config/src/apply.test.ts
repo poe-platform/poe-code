@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "@poe-code/config-mutations";
 import { configure, unconfigure, UnsupportedAgentError } from "./apply.js";

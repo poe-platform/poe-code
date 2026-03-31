@@ -1,4 +1,4 @@
-import { expect } from 'vitest';
+import { expect } from 'bun:test';
 import type { ExecResult, Container } from './types.js';
 import type { CapturedExchange } from './proxy-types.js';
 import { formatExchangeContext, formatExchangeList } from './matcher-format.js';
@@ -82,7 +82,7 @@ function matchesContent(content: string, matcher: string | RegExp): boolean {
   return new RegExp(matcher.source, matcher.flags).test(content);
 }
 
-expect.extend({
+const customMatchers = {
   toHaveExitCode(received: ExecResult, expected: number) {
     const pass = received.exitCode === expected;
     return {
@@ -214,9 +214,9 @@ expect.extend({
           return `expected request body not to match\n\nFull exchange:\n${formatExchangeContext(received)}`;
         }
 
-        const diff =
-          this.utils.diff(expected, actualBody, { expand: this.expand }) ??
-          '  (no diff available)';
+        const expectedStr = JSON.stringify(expected, null, 2);
+        const actualStr = JSON.stringify(actualBody, null, 2);
+        const diff = `- Expected\n${expectedStr}\n\n+ Received\n${actualStr}`;
 
         return `expected request body to match\n\nDiff:\n${diff}\n\nFull exchange:\n${formatExchangeContext(received)}`;
       },
@@ -237,9 +237,9 @@ expect.extend({
           return `expected response body not to match\n\nFull exchange:\n${formatExchangeContext(received)}`;
         }
 
-        const diff =
-          this.utils.diff(expected, actualBody, { expand: this.expand }) ??
-          '  (no diff available)';
+        const expectedStr = JSON.stringify(expected, null, 2);
+        const actualStr = JSON.stringify(actualBody, null, 2);
+        const diff = `- Expected\n${expectedStr}\n\n+ Received\n${actualStr}`;
 
         return `expected response body to match\n\nDiff:\n${diff}\n\nFull exchange:\n${formatExchangeContext(received)}`;
       },
@@ -442,11 +442,13 @@ expect.extend({
       message: () => `expected proxy not to be healthy\n\nProxy log:\n${log}`,
     };
   },
-});
+};
 
-declare module 'vitest' {
+expect.extend(customMatchers as any);
+
+declare module 'bun:test' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface Assertion<T> {
+  interface Matchers<T = unknown> {
     toHaveExitCode(code: number): void;
     toSucceedWith(text: string): void;
     toFail(): void;
@@ -462,20 +464,5 @@ declare module 'vitest' {
     toHaveToolCall(toolName: string): void;
     toHaveToolResult(toolName: string, contentMatcher?: string | RegExp): void;
     toHaveHealthyProxy(): Promise<void>;
-  }
-
-  interface AsymmetricMatchersContaining {
-    toHaveExitCode(code: number): void;
-    toSucceedWith(text: string): void;
-    toFail(): void;
-    toFailWith(text: string): void;
-    toHaveStdout(matcher: string | RegExp): void;
-    toHaveStderr(matcher: string | RegExp): void;
-    toHaveRequestBody(expected: Record<string, unknown>): void;
-    toHaveResponseBody(expected: Record<string, unknown>): void;
-    toContainRequest(matcher: RequestMatcher): void;
-    toHaveToolInRequest(toolName: string): void;
-    toHaveToolCall(toolName: string): void;
-    toHaveToolResult(toolName: string, contentMatcher?: string | RegExp): void;
   }
 }

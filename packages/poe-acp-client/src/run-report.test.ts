@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import {
   formatSessionUpdate,
@@ -40,7 +40,7 @@ describe("generateRunReportFromSessionUpdateStream", () => {
         sessionUpdate: "tool_call_update",
         toolCallId: "tool-1",
         status: "failed",
-        rawOutput: "npm test failed",
+        rawOutput: "bun test failed",
       } satisfies SessionUpdate,
       {
         sessionUpdate: "usage_update",
@@ -71,7 +71,7 @@ describe("generateRunReportFromSessionUpdateStream", () => {
           title: "Run tests",
           kind: "execute",
           status: "failed",
-          rawOutput: "npm test failed",
+          rawOutput: "bun test failed",
         },
       ],
       usage: {
@@ -83,7 +83,7 @@ describe("generateRunReportFromSessionUpdateStream", () => {
       errors: [
         {
           toolCallId: "tool-1",
-          message: "npm test failed",
+          message: "bun test failed",
         },
       ],
     });
@@ -143,7 +143,7 @@ describe("saveRunReport", () => {
       exitStatus: "failed",
       toolCalls: [{ toolCallId: "tool-1", title: "Run tests", status: "failed" }],
       usage: { used: 150, size: 195, updates: 2 },
-      errors: [{ message: "npm test failed", toolCallId: "tool-1" }],
+      errors: [{ message: "bun test failed", toolCallId: "tool-1" }],
     };
 
     const output = await saveRunReport(report, {

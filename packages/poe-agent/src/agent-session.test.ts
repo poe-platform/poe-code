@@ -1,43 +1,25 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import type { SessionUpdate } from "@poe-code/agent-spawn";
 import type { AcpEvent, AcpSession, RunResult } from "./runtime/types.js";
+import * as agentModule from "./agent.js";
+import * as filesPluginModule from "./plugins/poe-agent-plugin-files.js";
+import * as shellPluginModule from "./plugins/poe-agent-plugin-shell.js";
+import * as systemPromptPluginModule from "./plugins/poe-agent-plugin-system-prompt.js";
+import * as webPluginModule from "./plugins/poe-agent-plugin-web.js";
 
-const systemPromptPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "system-prompt" })));
-const filesPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "file-tools" })));
-const shellPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "shell-tools" })));
-const webPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "web-tools" })));
+const systemPromptPluginMock = vi.fn(() => ({ name: "system-prompt" }));
+const filesPluginMock = vi.fn(() => ({ name: "file-tools" }));
+const shellPluginMock = vi.fn(() => ({ name: "shell-tools" }));
+const webPluginMock = vi.fn(() => ({ name: "web-tools" }));
 
-const acpMock = vi.hoisted(
-  () => vi.fn<(prompt: string, options?: Record<string, unknown>) => Promise<AcpSession>>(),
-);
-const useMock = vi.hoisted(() => vi.fn());
-const modelMock = vi.hoisted(() => vi.fn());
-const agentMock = vi.hoisted(() => vi.fn());
-
-vi.mock("./agent.js", () => ({
-  agent: agentMock,
-  normalizeNonEmptyString: (value: string | null | undefined) => {
-    if (typeof value !== "string") return undefined;
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  },
-}));
-
-vi.mock("./plugins/poe-agent-plugin-system-prompt.js", () => ({
-  default: systemPromptPluginMock,
-}));
-
-vi.mock("./plugins/poe-agent-plugin-files.js", () => ({
-  default: filesPluginMock,
-}));
-
-vi.mock("./plugins/poe-agent-plugin-shell.js", () => ({
-  default: shellPluginMock,
-}));
-
-vi.mock("./plugins/poe-agent-plugin-web.js", () => ({
-  default: webPluginMock,
-}));
+const acpMock = vi.fn<(prompt: string, options?: Record<string, unknown>) => Promise<AcpSession>>();
+const useMock = vi.fn();
+const modelMock = vi.fn();
+let agentSpy: ReturnType<typeof vi.spyOn>;
+let systemPromptPluginSpy: ReturnType<typeof vi.spyOn>;
+let filesPluginSpy: ReturnType<typeof vi.spyOn>;
+let shellPluginSpy: ReturnType<typeof vi.spyOn>;
+let webPluginSpy: ReturnType<typeof vi.spyOn>;
 
 function asAsyncIterable(events: AcpEvent[]): AsyncIterable<AcpEvent> {
   return {
@@ -66,7 +48,6 @@ describe("createAgentSession", () => {
     acpMock.mockReset();
     useMock.mockReset();
     modelMock.mockReset();
-    agentMock.mockReset();
 
     const builder = {
       model: modelMock,
@@ -76,7 +57,22 @@ describe("createAgentSession", () => {
 
     modelMock.mockReturnValue(builder);
     useMock.mockReturnValue(builder);
-    agentMock.mockReturnValue(builder);
+    // Use vi.spyOn instead of vi.mock to avoid bleeding across test files
+    agentSpy = vi
+      .spyOn(agentModule, "agent")
+      .mockReturnValue(builder as ReturnType<typeof agentModule.agent>);
+    systemPromptPluginSpy = vi
+      .spyOn(systemPromptPluginModule, "default")
+      .mockImplementation(systemPromptPluginMock as typeof systemPromptPluginModule.default);
+    filesPluginSpy = vi
+      .spyOn(filesPluginModule, "default")
+      .mockImplementation(filesPluginMock as typeof filesPluginModule.default);
+    shellPluginSpy = vi
+      .spyOn(shellPluginModule, "default")
+      .mockImplementation(shellPluginMock as typeof shellPluginModule.default);
+    webPluginSpy = vi
+      .spyOn(webPluginModule, "default")
+      .mockImplementation(webPluginMock as typeof webPluginModule.default);
 
     acpMock.mockImplementation(() =>
       createAcpSession([
@@ -94,6 +90,14 @@ describe("createAgentSession", () => {
         },
       ]),
     );
+  });
+
+  afterEach(() => {
+    agentSpy.mockRestore();
+    systemPromptPluginSpy.mockRestore();
+    filesPluginSpy.mockRestore();
+    shellPluginSpy.mockRestore();
+    webPluginSpy.mockRestore();
   });
 
   it("exports createAgentSession from package entrypoint", async () => {
@@ -114,7 +118,7 @@ describe("createAgentSession", () => {
 
     await session.sendMessage("hello");
 
-    expect(agentMock).toHaveBeenCalledTimes(1);
+    expect(agentSpy).toHaveBeenCalledTimes(1);
     expect(modelMock).toHaveBeenCalledWith("Claude-Sonnet-4.5");
     expect(systemPromptPluginMock).toHaveBeenCalledTimes(1);
     expect(filesPluginMock).toHaveBeenCalledWith({

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import type { WorktreeFileSystem, ExecFn } from "./types.js";
 import { listWorktrees } from "./list.js";

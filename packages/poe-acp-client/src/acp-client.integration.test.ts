@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, mock, vi } from "bun:test";
 import { AcpClient } from "./acp-client.js";
 import type { SessionUpdateNotification } from "./types.js";
 
@@ -176,6 +176,14 @@ async function collectUpdates(
 }
 
 describe("AcpClient integration", () => {
+  const realSpawn = (globalThis as Record<string, unknown>).__POE_REAL_CHILD_PROCESS_SPAWN__ as
+    | typeof import("node:child_process").spawn
+    | undefined;
+
+  beforeEach(() => {
+    mock.restore();
+  });
+
   it("runs full ACP lifecycle over a mock subprocess through the high-level facade", async () => {
     const permission = vi.fn(async () => ({ outcome: "selected" as const, optionId: "allow-once" }));
     const readTextFile = vi.fn(async () => "hello-from-client-fs");
@@ -189,6 +197,7 @@ describe("AcpClient integration", () => {
         ...process.env,
         ACP_CLIENT_TEST_FLAG: "from-client-env",
       },
+      spawn: realSpawn,
       clientCapabilities: {
         fs: { readTextFile: true },
         terminal: true,

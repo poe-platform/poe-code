@@ -1,6 +1,6 @@
 import { once } from "node:events";
 import type { Readable } from "node:stream";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "bun:test";
 import { createInMemoryTransportPair, readLines } from "./internal.js";
 
 const cleanup: Array<() => void> = [];

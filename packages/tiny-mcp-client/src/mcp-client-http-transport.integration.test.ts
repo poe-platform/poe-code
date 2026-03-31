@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { HttpTransport, McpClient } from "./internal.js";
 
 interface JsonRpcRequest {

@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 
 function normalizeNewlines(value: string): string {
   return value.replaceAll("\r\n", "\n");

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import http from "node:http";
 import { createOAuthClient } from "./oauth-client.js";
 import type { OAuthClientConfig } from "./oauth-client.js";

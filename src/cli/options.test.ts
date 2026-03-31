@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { createOptionResolvers } from "./options.js";
 import { createPromptLibrary } from "./prompts.js";
 

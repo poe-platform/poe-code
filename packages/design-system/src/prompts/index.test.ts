@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 import * as clack from "@clack/prompts";
 import { confirmOrCancel, PromptCancelledError } from "./index.js";
 

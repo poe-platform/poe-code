@@ -1,6 +1,6 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
 import path from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "bun:test";
 import { readDocument, readMergedDocument, resolveProjectConfigPath, writeScope } from "./store.js";
 
 const homeDir = "/home/test";

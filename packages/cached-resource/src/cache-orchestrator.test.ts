@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveData } from "./cache-orchestrator.js";
 import type { CacheConfig, CachedData } from "./types.js";

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -6,7 +6,7 @@ import type { HttpClient } from "../http.js";
 import { ValidationError } from "../errors.js";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
-const getThemeMock = vi.hoisted(() => vi.fn());
+const getThemeMock = vi.fn();
 
 function createIdentityTheme() {
   return {
@@ -26,10 +26,8 @@ function createIdentityTheme() {
   };
 }
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("@poe-code/design-system", () => {
   return {
-    ...actual,
     getTheme: getThemeMock
   };
 });

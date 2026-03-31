@@ -1,3 +1,4 @@
+import { describe, it, expect } from "bun:test";
 import * as agentSkillConfig from "@poe-code/agent-skill-config";
 
 describe('@poe-code/agent-skill-config', () => {

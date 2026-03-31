@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { extractThreadId, isNonEmptyString, truncate } from "./utils.js";
 
 describe("truncate", () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import { setGlobalClient } from "../../services/client-instance.js";
@@ -153,7 +153,7 @@ describe("generate command", () => {
     };
     setGlobalClient(client);
 
-    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    const fetchMock = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>);
     fetchMock.mockResolvedValue({
       ok: true,
       arrayBuffer: async () => new Uint8Array([1]).buffer
@@ -233,7 +233,7 @@ describe("generate command", () => {
 
     const nowSpy = vi.spyOn(Date, "now").mockReturnValue(1737984000);
 
-    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    const fetchMock = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>);
     fetchMock.mockResolvedValue({
       ok: true,
       arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer
@@ -268,7 +268,7 @@ describe("generate command", () => {
     };
     setGlobalClient(client);
 
-    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    const fetchMock = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>);
     fetchMock.mockResolvedValue({
       ok: true,
       arrayBuffer: async () => new Uint8Array([9, 8, 7]).buffer
@@ -305,7 +305,7 @@ describe("generate command", () => {
 
     const nowSpy = vi.spyOn(Date, "now").mockReturnValue(1737984000);
 
-    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    const fetchMock = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>);
     fetchMock.mockResolvedValue({
       ok: true,
       arrayBuffer: async () => new Uint8Array([4, 5, 6]).buffer
@@ -345,7 +345,7 @@ describe("generate command", () => {
     };
     setGlobalClient(client);
 
-    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    const fetchMock = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>);
     fetchMock.mockResolvedValue({
       ok: true,
       arrayBuffer: async () => new Uint8Array([7, 8, 9]).buffer
@@ -385,7 +385,7 @@ describe("generate command", () => {
     };
     setGlobalClient(client);
 
-    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    const fetchMock = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>);
     fetchMock.mockResolvedValue({
       ok: true,
       arrayBuffer: async () => new Uint8Array([1]).buffer

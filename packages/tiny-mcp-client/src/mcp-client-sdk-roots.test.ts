@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { McpClient, createMockRootsServer, createSdkTestPair } from "./internal.js";
 
 const waitFor = async (predicate: () => boolean): Promise<void> => {

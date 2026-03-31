@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { parseFrontmatter, writeFrontmatter } from "./frontmatter.js";
 import type { RalphFrontmatter } from "./frontmatter.js";
 

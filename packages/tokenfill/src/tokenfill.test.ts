@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, describe, expect, it, mock, vi } from "bun:test";
 
 vi.mock("./corpus.js", () => ({
   BUILT_IN_CORPUS_ARTICLES: [
@@ -24,6 +24,27 @@ vi.mock("./tokenizer.js", () => ({
 }));
 
 import { tokenfill } from "./tokenfill.js";
+
+// Restore real module implementations after these tests so that other test files
+// (corpus.test.ts, tokenizer.test.ts) which may run in the same bun process get
+// the real implementations.
+afterAll(() => {
+  // Restore real corpus
+  const { readdirSync, readFileSync } = require("node:fs");
+  const { dirname, join } = require("node:path");
+  const { fileURLToPath } = require("node:url");
+  const corpusDir = join(dirname(fileURLToPath(import.meta.url)), "corpus");
+  const CORPUS_ARTICLE_SEPARATOR = "\n\n";
+  const BUILT_IN_CORPUS_ARTICLES = readdirSync(corpusDir, { withFileTypes: true })
+    .filter((e: { isFile: () => boolean; name: string }) => e.isFile() && e.name.endsWith(".md"))
+    .map((e: { name: string }) => e.name)
+    .sort((a: string, b: string) => a.localeCompare(b))
+    .map((name: string) => readFileSync(join(corpusDir, name), "utf8").trim());
+  mock.module("./corpus.js", () => ({ BUILT_IN_CORPUS_ARTICLES, CORPUS_ARTICLE_SEPARATOR }));
+
+  // Restore real tokenizer
+  mock.module("./tokenizer.js", () => require("./tokenizer.js"));
+});
 
 describe("tokenfill", () => {
   it("returns text and exact actualTokens for requested count", () => {

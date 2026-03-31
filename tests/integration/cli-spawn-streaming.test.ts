@@ -1,21 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { spawn as spawnChildProcess } from "node:child_process";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
+import * as childProcess from "node:child_process";
 import { PassThrough } from "node:stream";
 import { EventEmitter } from "node:events";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../../src/utils/file-system.js";
 import { createProgram } from "../../src/cli/program.js";
 
-vi.mock("node:child_process", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:child_process")>();
-  return {
-    ...actual,
-    spawn: vi.fn(),
-  };
-});
-
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("@poe-code/design-system", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const actual = require("@poe-code/design-system");
   return {
     ...actual,
     confirm: vi.fn().mockResolvedValue(true),
@@ -83,9 +76,11 @@ function createMockChildProcess(options: {
 
 describe("CLI spawn streaming integration", () => {
   const originalEnv = { ...process.env };
+  let spawnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    spawnSpy = vi.spyOn(childProcess, "spawn");
     process.env = {
       ...originalEnv,
       POE_API_KEY: "test-api-key",
@@ -94,6 +89,7 @@ describe("CLI spawn streaming integration", () => {
   });
 
   afterEach(() => {
+    spawnSpy.mockRestore();
     process.env = { ...originalEnv };
   });
 
@@ -101,7 +97,7 @@ describe("CLI spawn streaming integration", () => {
     const mockStdoutLines = [
       JSON.stringify({
         type: "item.started",
-        item: { id: "1", type: "command_execution", command: "npm test" }
+        item: { id: "1", type: "command_execution", command: "bun test" }
       }),
       JSON.stringify({
         type: "item.completed",
@@ -115,7 +111,7 @@ describe("CLI spawn streaming integration", () => {
       })
     ];
 
-    vi.mocked(spawnChildProcess).mockImplementation(() =>
+    spawnSpy.mockImplementation(() =>
       createMockChildProcess({ stdoutLines: mockStdoutLines }) as any
     );
 
@@ -147,11 +143,11 @@ describe("CLI spawn streaming integration", () => {
       spy.mockRestore();
     }
 
-    expect(spawnChildProcess).toHaveBeenCalledTimes(1);
+    expect(spawnSpy).toHaveBeenCalledTimes(1);
 
     const plainChunks = chunks.map((chunk) => stripAnsi(chunk));
     expect(plainChunks).toEqual([
-      "  → exec: npm test\n",
+      "  → exec: bun test\n",
       "  ✓ exec\n",
       "✓ agent: Hi\n"
     ]);

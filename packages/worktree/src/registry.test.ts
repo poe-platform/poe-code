@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { parse } from "yaml";
 import type { WorktreeFileSystem, Worktree, WorktreeRegistry } from "./types.js";

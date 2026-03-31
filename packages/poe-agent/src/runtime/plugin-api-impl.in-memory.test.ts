@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock, vi } from "bun:test";
 import { createServer, defineSchema, type Server } from "tiny-stdio-mcp-server";
 import { createInMemoryTransportPair, type McpTransport } from "tiny-mcp-client";
 import type { ToolContext } from "./types.js";
@@ -11,14 +11,12 @@ type StdioTransportOptions = {
   env?: Record<string, string>;
 };
 
-const transportFactoryMock = vi.hoisted(
-  () => vi.fn<(options: StdioTransportOptions) => McpTransport>(),
-);
+const transportFactoryMock = vi.fn<(options: StdioTransportOptions) => McpTransport>();
 
-vi.mock("tiny-mcp-client", async () => {
-  const actual = await vi.importActual<typeof import("tiny-mcp-client")>(
-    "tiny-mcp-client",
-  );
+vi.mock("tiny-mcp-client", () => {
+  // Use require() to get the actual module without triggering circular mock resolution
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const actual = require("tiny-mcp-client");
 
   return {
     ...actual,
@@ -77,6 +75,10 @@ describe("PluginApiImpl (in-memory MCP transport)", () => {
     }
 
     await Promise.allSettled(serverConnections);
+  });
+
+  afterAll(() => {
+    mock.restore();
   });
 
   it("creates in-memory stdio transport, discovers tools, namespaces them, and closes at run end", async () => {

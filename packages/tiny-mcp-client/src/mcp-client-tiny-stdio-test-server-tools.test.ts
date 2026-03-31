@@ -1,5 +1,5 @@
 import { createTestServer } from "tiny-stdio-mcp-test-server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { McpClient, createTestPair } from "./internal.js";
 
 describe("McpClient integration tools with tiny-stdio-mcp-test-server", () => {

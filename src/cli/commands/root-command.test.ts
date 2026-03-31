@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -29,6 +29,20 @@ function stripAnsi(str: string): string {
     index += 1;
   }
   return result;
+}
+
+/**
+ * Temporarily set process.argv[1] to simulate a production (non-development) execution context,
+ * and run an async operation within that context.
+ */
+async function withProductionArgv<T>(fn: () => Promise<T>): Promise<T> {
+  const originalArgv1 = process.argv[1];
+  process.argv[1] = "/usr/local/bin/poe-code";
+  try {
+    return await fn();
+  } finally {
+    process.argv[1] = originalArgv1;
+  }
 }
 
 describe("root command", () => {
@@ -126,30 +140,33 @@ describe("root command", () => {
     let commanderOut = "";
     let commanderErr = "";
 
-    const program = createProgram({
-      fs,
-      prompts,
-      env: {
-        cwd: "/repo",
-        homeDir: "/home/test"
-      },
-      logger: (message) => {
-        loggerOutput += `${message}\n`;
-      }
-    });
+    await withProductionArgv(async () => {
+      const program = createProgram({
+        fs,
+        prompts,
+        env: {
+          cwd: "/repo",
+          homeDir: "/home/test",
+          variables: {}
+        },
+        logger: (message) => {
+          loggerOutput += `${message}\n`;
+        }
+      });
 
-    program.configureOutput({
-      writeOut: (str) => {
-        commanderOut += str;
-      },
-      writeErr: (str) => {
-        commanderErr += str;
-      }
-    });
+      program.configureOutput({
+        writeOut: (str) => {
+          commanderOut += str;
+        },
+        writeErr: (str) => {
+          commanderErr += str;
+        }
+      });
 
-    await expect(program.parseAsync(["node", "cli", "nope"])).rejects.toBeInstanceOf(
-      SilentError
-    );
+      await expect(program.parseAsync(["node", "cli", "nope"])).rejects.toBeInstanceOf(
+        SilentError
+      );
+    });
 
     const plainLogger = stripAnsi(loggerOutput);
     expect(plainLogger).toContain("Unknown command:");
@@ -166,21 +183,25 @@ describe("root command", () => {
     const prompts = vi.fn().mockResolvedValue({});
 
     let loggerOutput = "";
-    const program = createProgram({
-      fs,
-      prompts,
-      env: {
-        cwd: "/repo",
-        homeDir: "/home/test"
-      },
-      logger: (message) => {
-        loggerOutput += `${message}\n`;
-      }
-    });
 
-    await expect(
-      program.parseAsync(["node", "cli", "mcp", "nope"])
-    ).rejects.toBeInstanceOf(SilentError);
+    await withProductionArgv(async () => {
+      const program = createProgram({
+        fs,
+        prompts,
+        env: {
+          cwd: "/repo",
+          homeDir: "/home/test",
+          variables: {}
+        },
+        logger: (message) => {
+          loggerOutput += `${message}\n`;
+        }
+      });
+
+      await expect(
+        program.parseAsync(["node", "cli", "mcp", "nope"])
+      ).rejects.toBeInstanceOf(SilentError);
+    });
 
     const plainLogger = stripAnsi(loggerOutput);
     expect(plainLogger).toContain("Unknown command:");
@@ -188,7 +209,7 @@ describe("root command", () => {
     expect(plainLogger).toContain("poe-code mcp --help");
   });
 
-  it("uses the development invocation in help hints when running via npm run dev", async () => {
+  it("uses the development invocation in help hints when running via bun run dev", async () => {
     const previousLifecycleEvent = process.env.npm_lifecycle_event;
     process.env.npm_lifecycle_event = "dev";
     try {
@@ -214,7 +235,7 @@ describe("root command", () => {
 
       const plainLogger = stripAnsi(loggerOutput);
       expect(plainLogger).toContain("Unknown command:");
-      expect(plainLogger).toContain("npm run dev -- --help");
+      expect(plainLogger).toContain("bun run dev -- --help");
     } finally {
       if (previousLifecycleEvent === undefined) {
         delete process.env.npm_lifecycle_event;

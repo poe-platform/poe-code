@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { DuplicateToolError, PluginSetupError, PromptTransformError } from "./errors.js";
 
 describe("runtime errors", () => {

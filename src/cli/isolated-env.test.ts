@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import path from "node:path";
 import { resolveIsolatedTargetDirectory } from "./isolated-env.js";
 import { createCliEnvironment } from "./environment.js";

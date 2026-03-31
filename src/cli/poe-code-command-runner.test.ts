@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { createCliContainer } from "./container.js";
 import { createHomeFs, storeTestApiKey } from "../../tests/test-helpers.js";
 

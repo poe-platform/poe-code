@@ -1,11 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { afterAll, beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 import {
   getSourceHash,
   imageExists,
   IMAGE_NAME,
   BUILD_TARBALLS,
 } from './image.js';
+
+mock.restore();
 
 // Mock child_process for imageExists
 vi.mock('node:child_process', () => ({
@@ -14,7 +15,9 @@ vi.mock('node:child_process', () => ({
 }));
 
 describe('image', () => {
-  const dockerfileSource = readFileSync(new URL('../e2e.Dockerfile', import.meta.url), 'utf-8');
+  async function readDockerfileSource(): Promise<string> {
+    return Bun.file(new URL('../e2e.Dockerfile', import.meta.url)).text();
+  }
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,11 +47,13 @@ describe('image', () => {
   });
 
   describe('e2e.Dockerfile', () => {
-    it('keeps proxy-server binary available on PATH', () => {
+    it('keeps proxy-server binary available on PATH', async () => {
+      const dockerfileSource = await readDockerfileSource();
       expect(dockerfileSource).toContain('proxy-server --help >/dev/null');
     });
 
-    it('verifies poe-agent can be imported in the image', () => {
+    it('verifies poe-agent can be imported in the image', async () => {
+      const dockerfileSource = await readDockerfileSource();
       expect(dockerfileSource).toContain('node --input-type=module -e "await import.meta.resolve(\'@poe-code/poe-agent\')"');
     });
   });
@@ -132,4 +137,29 @@ describe('image', () => {
       );
     });
   });
+
+  describe('buildImage', () => {
+    it('uses plain docker progress in verbose mode', async () => {
+      const { execSync, spawnSync } = await import('node:child_process');
+      vi.mocked(execSync).mockReturnValue('');
+      vi.mocked(spawnSync).mockReturnValue({
+        status: 0,
+        stderr: '',
+      } as ReturnType<typeof spawnSync>);
+
+      const { buildImage } = await import('./image.js');
+      buildImage('docker', 'poe-code-e2e:test', process.cwd(), { verbose: true, context: 'colima' });
+
+      expect(spawnSync).toHaveBeenCalledWith(
+        'docker',
+        expect.arrayContaining(['--context', 'colima', 'build', '--progress', 'plain']),
+        expect.any(Object)
+      );
+    });
+  });
+});
+
+afterAll(() => {
+  mock.restore();
+  vi.resetModules();
 });

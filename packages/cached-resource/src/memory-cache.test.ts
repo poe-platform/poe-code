@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { createMemoryCache } from "./memory-cache.js";
 import type { CachedData } from "./types.js";
 

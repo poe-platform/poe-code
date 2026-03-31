@@ -1,6 +1,6 @@
 import path from "node:path";
 import os from "node:os";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import {
   getAgentConfig,
   resolveAgentSupport,

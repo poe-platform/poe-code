@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { deriveWrapBinaryAliases } from "./binary-aliases.js";
 import type { ProviderService } from "./service-registry.js";
 

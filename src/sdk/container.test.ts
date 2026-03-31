@@ -1,27 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const createSecretStoreMock = vi.hoisted(() => vi.fn());
-const createOptionResolversMock = vi.hoisted(() => vi.fn());
-
-vi.mock("auth-store", () => ({
-  createSecretStore: createSecretStoreMock
-}));
-
-vi.mock("../cli/options.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../cli/options.js")>();
-  return {
-    ...actual,
-    createOptionResolvers: createOptionResolversMock
-  };
-});
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
+import * as authStore from "auth-store";
+import * as optionsModule from "../cli/options.js";
 import { createSdkContainer } from "./container.js";
+
+let createSecretStoreSpy: ReturnType<typeof vi.spyOn>;
+let createOptionResolversSpy: ReturnType<typeof vi.spyOn>;
 
 describe("createSdkContainer", () => {
   beforeEach(() => {
-    createSecretStoreMock.mockReset();
-    createOptionResolversMock.mockReset();
-    createOptionResolversMock.mockReturnValue({
+    createSecretStoreSpy = vi.spyOn(authStore, "createSecretStore" as any);
+    createOptionResolversSpy = vi.spyOn(optionsModule, "createOptionResolvers" as any).mockReturnValue({
       ensure: vi.fn(),
       resolveModel: vi.fn(),
       resolveReasoning: vi.fn(),
@@ -30,16 +18,21 @@ describe("createSdkContainer", () => {
     });
   });
 
+  afterEach(() => {
+    createSecretStoreSpy?.mockRestore();
+    createOptionResolversSpy?.mockRestore();
+  });
+
   it("uses auth store for SDK apiKeyStore read and write", async () => {
-    const authStore = {
+    const authStoreInstance = {
       get: vi.fn<() => Promise<string | null>>().mockResolvedValue("stored-key"),
       set: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       delete: vi.fn<() => Promise<void>>().mockResolvedValue(undefined)
     };
 
-    createSecretStoreMock.mockReturnValue({
+    createSecretStoreSpy.mockReturnValue({
       backend: "file",
-      store: authStore
+      store: authStoreInstance
     });
 
     const variables = { POE_AUTH_BACKEND: "file" };
@@ -48,21 +41,21 @@ describe("createSdkContainer", () => {
       variables
     });
 
-    expect(createSecretStoreMock).toHaveBeenCalledWith(
+    expect(createSecretStoreSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         env: variables,
         platform: process.platform
       })
     );
 
-    const createOptionResolversInput = createOptionResolversMock.mock.calls[0]?.[0];
+    const createOptionResolversInput = createOptionResolversSpy.mock.calls[0]?.[0];
     expect(createOptionResolversInput).toBeDefined();
 
     const storedKey = await createOptionResolversInput.apiKeyStore.read();
     expect(storedKey).toBe("stored-key");
-    expect(authStore.get).toHaveBeenCalledTimes(1);
+    expect(authStoreInstance.get).toHaveBeenCalledTimes(1);
 
     await createOptionResolversInput.apiKeyStore.write("new-key");
-    expect(authStore.set).toHaveBeenCalledWith("new-key");
+    expect(authStoreInstance.set).toHaveBeenCalledWith("new-key");
   });
 });

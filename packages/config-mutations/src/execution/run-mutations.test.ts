@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { runMutations } from "./run-mutations.js";
 import { configMutation } from "../mutations/config-mutation.js";
 import { fileMutation } from "../mutations/file-mutation.js";

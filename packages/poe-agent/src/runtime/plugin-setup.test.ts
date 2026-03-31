@@ -1,15 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, mock, vi } from "bun:test";
 import { PluginSetupError } from "./errors.js";
 import { createPreToolUseHookContext } from "./hooks.js";
 import { runPluginSetup } from "./plugin-setup.js";
 import { createRunContext } from "./run-context.js";
 
-const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
-const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown) => Promise<void>>());
-const mcpClientListToolsMock = vi.hoisted(
-  () => vi.fn<(params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>>(),
-);
-const mcpClientCloseMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
+const stdioTransportConstructorMock = vi.fn();
+const mcpClientConnectMock = vi.fn<(transport: unknown) => Promise<void>>();
+const mcpClientListToolsMock = vi.fn<(params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>>();
+const mcpClientCloseMock = vi.fn<() => Promise<void>>();
 
 vi.mock("tiny-mcp-client", () => ({
   StdioTransport: class {
@@ -34,6 +32,19 @@ vi.mock("tiny-mcp-client", () => ({
   },
 }));
 
+async function waitFor(fn: () => void, timeout = 2000): Promise<void> {
+  const start = Date.now();
+  while (true) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      if (Date.now() - start > timeout) throw e;
+      await new Promise(r => setTimeout(r, 10));
+    }
+  }
+}
+
 describe("runPluginSetup", () => {
   beforeEach(() => {
     stdioTransportConstructorMock.mockReset();
@@ -43,6 +54,10 @@ describe("runPluginSetup", () => {
 
     mcpClientConnectMock.mockResolvedValue(undefined);
     mcpClientCloseMock.mockResolvedValue(undefined);
+  });
+
+  afterAll(() => {
+    mock.restore();
   });
 
   it("runs plugin setup in registration order and registers static declarations first", async () => {
@@ -261,7 +276,7 @@ describe("runPluginSetup", () => {
       error => ({ ok: false as const, error }),
     );
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mcpClientListToolsMock).toHaveBeenCalledTimes(1);
     });
 

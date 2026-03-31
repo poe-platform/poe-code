@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { useContainer, shellQuote } from '@poe-code/e2e-docker-test-runner';
 
 interface AgentMcpSpawnTest {

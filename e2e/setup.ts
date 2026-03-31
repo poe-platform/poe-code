@@ -4,13 +4,12 @@ import { runPreflight, formatPreflightResults } from '@poe-code/e2e-docker-test-
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export async function setup(): Promise<void> {
-  const { passed, results } = await runPreflight({
-    prebuildWorkspaceDir: path.resolve(__dirname, '..'),
-  });
-  console.error(formatPreflightResults(results));
+const { passed, results } = await runPreflight({
+  prebuildWorkspaceDir: path.resolve(__dirname, '..'),
+  verbose: process.env.E2E_VERBOSE === '1',
+});
+console.error(formatPreflightResults(results));
 
-  if (!passed) {
-    throw new Error('Preflight checks failed');
-  }
+if (!passed) {
+  throw new Error('Preflight checks failed');
 }

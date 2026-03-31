@@ -1,41 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, mock } from "bun:test";
 import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import * as resolveConfigModule from "../configs/resolve-config.js";
+import * as designSystem from "@poe-code/design-system";
 
-vi.mock("../configs/resolve-config.js", () => ({
-  resolveConfig: vi.fn()
-}));
-
-vi.mock("@poe-code/design-system", () => {
-  const renderLog: unknown[] = [];
-  (globalThis as any).__acpIntegrationRenderLog = renderLog;
-
-  return {
-    acp: {
-      renderAgentMessage: vi.fn((text: string) => {
-        renderLog.push(["agent_message", text]);
-      }),
-      renderToolStart: vi.fn((kind: string, title: string) => {
-        renderLog.push(["tool_start", kind, title]);
-      }),
-      renderToolComplete: vi.fn((kind: string) => {
-        renderLog.push(["tool_complete", kind]);
-      }),
-      renderReasoning: vi.fn((text: string) => {
-        renderLog.push(["reasoning", text]);
-      }),
-      renderUsage: vi.fn((usage: unknown) => {
-        renderLog.push(["usage", usage]);
-      }),
-      renderError: vi.fn((message: string) => {
-        renderLog.push(["error", message]);
-      })
-    },
-    text: {
-      muted: (content: string) => `<muted>${content}</muted>`
-    }
-  };
-});
+import { spawnStreaming } from "./spawn.js";
+import { renderAcpStream } from "./renderer.js";
 
 type ExpectedAcpOutput = {
   fromCodex: Array<Record<string, unknown>>;
@@ -76,193 +46,233 @@ async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
   return items;
 }
 
+async function collectUntilDone<T>(
+  events: AsyncIterable<T>,
+  done: Promise<unknown>,
+  settleMs = 200
+): Promise<T[]> {
+  const items: T[] = [];
+  let consumeError: unknown;
+  const consumePromise = (async () => {
+    try {
+      for await (const item of events) {
+        items.push(item);
+      }
+    } catch (error) {
+      consumeError = error;
+    }
+  })();
+
+  await done;
+  await Promise.race([
+    consumePromise,
+    new Promise<void>((resolve) => setTimeout(resolve, settleMs))
+  ]);
+
+  if (consumeError) throw consumeError;
+  return items;
+}
+
+function makeResolveConfigForAgent(
+  agentId: string,
+  mockAgentScriptPath: string,
+  adapter: string
+): ReturnType<typeof resolveConfigModule.resolveConfig> {
+  return {
+    agentId,
+    binaryName: process.execPath,
+    spawnConfig: {
+      kind: "cli",
+      agentId,
+      adapter: adapter as any,
+      promptFlag: mockAgentScriptPath,
+      modelStripProviderPrefix: true,
+      defaultArgs: [],
+      modes: { yolo: [], edit: [], read: [] }
+    }
+  } as any;
+}
+
 describe("acp/spawnStreaming integration", () => {
   const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
   const mockAgentScriptPath = fileURLToPath(new URL("./__fixtures__/mock-agent.mjs", import.meta.url));
+  const realSpawn = (globalThis as Record<string, unknown>).__POE_REAL_CHILD_PROCESS_SPAWN__ as
+    | typeof import("node:child_process").spawn
+    | undefined;
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.resetModules();
-    const log = (globalThis as any).__acpIntegrationRenderLog as unknown[] | undefined;
-    if (Array.isArray(log)) {
-      log.length = 0;
+  const renderLog: unknown[] = [];
+  let resolveConfigSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeAll(() => {
+    mock.restore();
+    if (!realSpawn) {
+      throw new Error("Missing __POE_REAL_CHILD_PROCESS_SPAWN__ test setup hook.");
     }
+    resolveConfigSpy = vi.spyOn(resolveConfigModule, "resolveConfig");
+    vi.spyOn(designSystem.acp, "renderAgentMessage").mockImplementation((text: string) => {
+      renderLog.push(["agent_message", text]);
+    });
+    vi.spyOn(designSystem.acp, "renderToolStart").mockImplementation((kind: string, title: string) => {
+      renderLog.push(["tool_start", kind, title]);
+    });
+    vi.spyOn(designSystem.acp, "renderToolComplete").mockImplementation((kind: string) => {
+      renderLog.push(["tool_complete", kind]);
+    });
+    vi.spyOn(designSystem.acp, "renderReasoning").mockImplementation((text: string) => {
+      renderLog.push(["reasoning", text]);
+    });
+    vi.spyOn(designSystem.acp, "renderUsage").mockImplementation((usage: unknown) => {
+      renderLog.push(["usage", usage]);
+    });
+    vi.spyOn(designSystem.acp, "renderError").mockImplementation((message: string) => {
+      renderLog.push(["error", message]);
+    });
+    vi.spyOn(designSystem.text, "muted").mockImplementation((content: string) => `<muted>${content}</muted>`);
+  });
+
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
+  beforeEach(async () => {
+    renderLog.length = 0;
+    resolveConfigSpy.mockReset();
   });
 
   it("spawnStreaming (codex) emits events in the expected order", async () => {
     const expected = await loadExpectedAcpOutput();
 
-    const { resolveConfig } = await import("../configs/resolve-config.js");
-    vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
-      if (agentId !== "codex") {
-        throw new Error(`unexpected agentId: ${agentId}`);
-      }
-      return {
+    resolveConfigSpy.mockImplementation((agentId: string) => {
+      if (agentId !== "codex") throw new Error(`unexpected agentId: ${agentId}`);
+      return makeResolveConfigForAgent("codex", mockAgentScriptPath, "codex");
+    });
+
+    const controller = new AbortController();
+    try {
+      const { events, done } = spawnStreaming({
         agentId: "codex",
-        binaryName: process.execPath,
-        spawnConfig: {
-          kind: "cli",
-          agentId: "codex",
-          adapter: "codex",
-          promptFlag: mockAgentScriptPath,
-          modelStripProviderPrefix: true,
-          defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
-        }
-      };
-    });
+        prompt: "codex",
+        cwd: repoRoot,
+        spawnImpl: realSpawn,
+        signal: controller.signal
+      });
 
-    const { spawnStreaming } = await import("./spawn.js");
+      const actualEventsPromise = collectUntilDone(events, done);
+      const doneResult = await done;
+      const actualEvents = await actualEventsPromise;
+      expect(doneResult).toMatchObject({ exitCode: 0 });
 
-    const { events, done } = spawnStreaming({
-      agentId: "codex",
-      prompt: "codex",
-      cwd: repoRoot
-    });
-
-    const actualEvents = await collect(events);
-    await expect(done).resolves.toMatchObject({ exitCode: 0 });
-
-    const normalizedExpected = expected.fromCodex.map(normalizeExpectedEvent);
-    expect(actualEvents.map((e: any) => e.event)).toEqual(normalizedExpected.map((e) => e.event));
-    expect(actualEvents).toHaveLength(normalizedExpected.length);
-    for (let i = 0; i < normalizedExpected.length; i++) {
-      expect(actualEvents[i]).toMatchObject(normalizedExpected[i]);
+      const normalizedExpected = expected.fromCodex.map(normalizeExpectedEvent);
+      expect(actualEvents.map((e: any) => e.event)).toEqual(normalizedExpected.map((e) => e.event));
+      expect(actualEvents).toHaveLength(normalizedExpected.length);
+      for (let i = 0; i < normalizedExpected.length; i++) {
+        expect(actualEvents[i]).toMatchObject(normalizedExpected[i]);
+      }
+    } finally {
+      controller.abort();
     }
   });
 
   it("spawnStreaming (claude) emits events in the expected order", async () => {
     const expected = await loadExpectedAcpOutput();
 
-    const { resolveConfig } = await import("../configs/resolve-config.js");
-    vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
-      if (agentId !== "claude-code") {
-        throw new Error(`unexpected agentId: ${agentId}`);
-      }
-      return {
+    resolveConfigSpy.mockImplementation((agentId: string) => {
+      if (agentId !== "claude-code") throw new Error(`unexpected agentId: ${agentId}`);
+      return makeResolveConfigForAgent("claude-code", mockAgentScriptPath, "claude");
+    });
+
+    const controller = new AbortController();
+    try {
+      const { events, done } = spawnStreaming({
         agentId: "claude-code",
-        binaryName: process.execPath,
-        spawnConfig: {
-          kind: "cli",
-          agentId: "claude-code",
-          adapter: "claude",
-          promptFlag: mockAgentScriptPath,
-          modelStripProviderPrefix: true,
-          defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
-        }
-      };
-    });
+        prompt: "claude",
+        cwd: repoRoot,
+        spawnImpl: realSpawn,
+        signal: controller.signal
+      });
 
-    const { spawnStreaming } = await import("./spawn.js");
+      const actualEventsPromise = collectUntilDone(events, done);
+      await expect(done).resolves.toMatchObject({ exitCode: 0 });
+      const actualEvents = await actualEventsPromise;
 
-    const { events, done } = spawnStreaming({
-      agentId: "claude-code",
-      prompt: "claude",
-      cwd: repoRoot
-    });
-
-    const actualEvents = await collect(events);
-    await expect(done).resolves.toMatchObject({ exitCode: 0 });
-
-    const normalizedExpected = expected.fromClaude.map(normalizeExpectedEvent);
-    expect(actualEvents.map((e: any) => e.event)).toEqual(normalizedExpected.map((e) => e.event));
-    expect(actualEvents).toHaveLength(normalizedExpected.length);
-    for (let i = 0; i < normalizedExpected.length; i++) {
-      expect(actualEvents[i]).toMatchObject(normalizedExpected[i]);
+      const normalizedExpected = expected.fromClaude.map(normalizeExpectedEvent);
+      expect(actualEvents.map((e: any) => e.event)).toEqual(normalizedExpected.map((e) => e.event));
+      expect(actualEvents).toHaveLength(normalizedExpected.length);
+      for (let i = 0; i < normalizedExpected.length; i++) {
+        expect(actualEvents[i]).toMatchObject(normalizedExpected[i]);
+      }
+    } finally {
+      controller.abort();
     }
   });
 
   it("full pipeline: spawnStreaming → renderAcpStream", async () => {
-    const { resolveConfig } = await import("../configs/resolve-config.js");
-    vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
-      if (agentId !== "codex") {
-        throw new Error(`unexpected agentId: ${agentId}`);
-      }
-      return {
+    resolveConfigSpy.mockImplementation((agentId: string) => {
+      if (agentId !== "codex") throw new Error(`unexpected agentId: ${agentId}`);
+      return makeResolveConfigForAgent("codex", mockAgentScriptPath, "codex");
+    });
+
+    const controller = new AbortController();
+    try {
+      const { events, done } = spawnStreaming({
         agentId: "codex",
-        binaryName: process.execPath,
-        spawnConfig: {
-          kind: "cli",
-          agentId: "codex",
-          adapter: "codex",
-          promptFlag: mockAgentScriptPath,
-          modelStripProviderPrefix: true,
-          defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
+        prompt: "codex",
+        cwd: repoRoot,
+        spawnImpl: realSpawn,
+        signal: controller.signal
+      });
+
+      const capturedPromise = collectUntilDone(events, done);
+      await expect(done).resolves.toMatchObject({ exitCode: 0 });
+      const captured = await capturedPromise;
+
+      await renderAcpStream((async function* () {
+        for (const event of captured) {
+          yield event;
         }
-      };
-    });
+      })());
 
-    const { spawnStreaming } = await import("./spawn.js");
-    const { renderAcpStream } = await import("./renderer.js");
+      expect(renderLog).toEqual([
+        ["tool_start", "exec", "ls -la"],
+        ["tool_complete", "exec"],
+        ["tool_start", "edit", "src/config.ts"],
+        ["tool_complete", "edit"],
+        ["tool_start", "think", "thinking..."],
+        ["reasoning", "I need to update the imports after the file edit."],
+        ["agent_message", "I've updated the configuration file with the new settings."],
+        ["usage", { input: 1500, output: 350, cached: 800, costUsd: undefined }]
+      ]);
 
-    const { events, done } = spawnStreaming({
-      agentId: "codex",
-      prompt: "codex",
-      cwd: repoRoot
-    });
-
-    const captured: any[] = [];
-    async function* tap(iterable: AsyncIterable<any>): AsyncIterable<any> {
-      for await (const item of iterable) {
-        captured.push(item);
-        yield item;
-      }
+      expect(captured.map((e) => e.event)).toContain("agent_message");
+      expect(captured.map((e) => e.event)[0]).toBe("session_start");
+    } finally {
+      controller.abort();
     }
-
-    await renderAcpStream(tap(events));
-    await expect(done).resolves.toMatchObject({ exitCode: 0 });
-
-    const log = (globalThis as any).__acpIntegrationRenderLog as unknown[];
-    expect(log).toEqual([
-      ["tool_start", "exec", "ls -la"],
-      ["tool_complete", "exec"],
-      ["tool_start", "edit", "src/config.ts"],
-      ["tool_complete", "edit"],
-      ["tool_start", "think", "thinking..."],
-      ["reasoning", "I need to update the imports after the file edit."],
-      ["agent_message", "I've updated the configuration file with the new settings."],
-      ["usage", { input: 1500, output: 350, cached: 800, costUsd: undefined }]
-    ]);
-
-    expect(captured.map((e) => e.event)).toContain("agent_message");
-    expect(captured.map((e) => e.event)[0]).toBe("session_start");
   });
 
   it("captures stderr and exitCode when the agent fails", async () => {
-    const { resolveConfig } = await import("../configs/resolve-config.js");
-    vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
-      if (agentId !== "codex") {
-        throw new Error(`unexpected agentId: ${agentId}`);
-      }
-      return {
+    resolveConfigSpy.mockImplementation((agentId: string) => {
+      if (agentId !== "codex") throw new Error(`unexpected agentId: ${agentId}`);
+      return makeResolveConfigForAgent("codex", mockAgentScriptPath, "codex");
+    });
+
+    const controller = new AbortController();
+    try {
+      const { events, done } = spawnStreaming({
         agentId: "codex",
-        binaryName: process.execPath,
-        spawnConfig: {
-          kind: "cli",
-          agentId: "codex",
-          adapter: "codex",
-          promptFlag: mockAgentScriptPath,
-          modelStripProviderPrefix: true,
-          defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
-        }
-      };
-    });
+        prompt: "fail",
+        cwd: repoRoot,
+        spawnImpl: realSpawn,
+        signal: controller.signal
+      });
 
-    const { spawnStreaming } = await import("./spawn.js");
-
-    const { events, done } = spawnStreaming({
-      agentId: "codex",
-      prompt: "fail",
-      cwd: repoRoot
-    });
-
-    await expect(collect(events)).resolves.toEqual([]);
-    await expect(done).resolves.toMatchObject({
-      exitCode: 2,
-      stderr: "mock agent failed\n"
-    });
+      await expect(collectUntilDone(events, done)).resolves.toEqual([]);
+      await expect(done).resolves.toMatchObject({
+        exitCode: 2,
+        stderr: "mock agent failed\n"
+      });
+    } finally {
+      controller.abort();
+    }
   });
 });

@@ -1,15 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
-import { spawn as spawnChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
+import * as childProcess from "node:child_process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { claudeCodeSpawnConfig } from "./configs/claude-code.js";
 import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
 import { spawn } from "./spawn.js";
 
-vi.mock("node:child_process", () => ({
-  spawn: vi.fn()
-}));
+let spawnSpy: ReturnType<typeof vi.spyOn>;
 
 interface MockChildProcessOptions {
   stdout?: string;
@@ -70,22 +69,27 @@ function createMockChildProcess(
 describe("spawn", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    spawnSpy = vi.spyOn(childProcess, "spawn");
+  });
+
+  afterEach(() => {
+    spawnSpy.mockRestore();
   });
 
   it("throws error if agent ID cannot be resolved", async () => {
     await expect(spawn("unknown", { prompt: "test" })).rejects.toThrow(/Unknown agent/);
     await expect(spawn("unknown", { prompt: "test" })).rejects.not.toThrow(/has no spawn config/);
-    expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
+    expect(spawnSpy).not.toHaveBeenCalled();
   });
 
   it("throws error if agent has no spawn config", async () => {
     await expect(spawn("claude-desktop", { prompt: "test" })).rejects.toThrow(/has no spawn config/);
     await expect(spawn("claude-desktop", { prompt: "test" })).rejects.not.toThrow(/Unknown agent/);
-    expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
+    expect(spawnSpy).not.toHaveBeenCalled();
   });
 
   it("spawns CLI using promptFlag + prompt + defaultArgs + options.args", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
     );
 
@@ -109,7 +113,7 @@ describe("spawn", () => {
   });
 
   it("includes model flag when model is provided", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ exitCode: 0 })
     );
 
@@ -129,7 +133,7 @@ describe("spawn", () => {
   });
 
   it("serializes codex MCP servers to -c TOML args", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ exitCode: 0 })
     );
 
@@ -180,7 +184,7 @@ describe("spawn", () => {
   // The namespace MUST be stripped and dots converted to hyphens before invoking the binary.
   // Do NOT remove this stripping — it will break all spawns that pass a namespaced model.
   it("strips provider namespace and transforms model before passing to CLI", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ exitCode: 0 })
     );
 
@@ -193,7 +197,7 @@ describe("spawn", () => {
   });
 
   it("passes cwd option to the spawned process", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ exitCode: 0 })
     );
 
@@ -206,7 +210,7 @@ describe("spawn", () => {
 
   it("writes prompt to stdin when useStdin is enabled and supported", async () => {
     const cwd = "/repo";
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
     );
 
@@ -233,7 +237,7 @@ describe("spawn", () => {
   });
 
   it("writes prompt to stdin for claude-code when supported", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
     );
 
@@ -257,7 +261,7 @@ describe("spawn", () => {
   });
 
   it("forwards output to tee streams when provided", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(
+    spawnSpy.mockReturnValue(
       createMockChildProcess({ stdout: "agent output", stderr: "agent progress", exitCode: 0 })
     );
 
@@ -281,7 +285,7 @@ describe("spawn", () => {
     const controller = new AbortController();
     const child = createMockChildProcess({ autoClose: false });
     const killSpy = vi.spyOn(child, "kill");
-    vi.mocked(spawnChildProcess).mockReturnValue(child);
+    spawnSpy.mockReturnValue(child);
 
     const resultPromise = spawn("codex", {
       prompt: "hello",
@@ -297,7 +301,7 @@ describe("spawn", () => {
   });
 
   it("appends edit mode args when mode is 'edit'", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ exitCode: 0 })
     );
 
@@ -313,7 +317,7 @@ describe("spawn", () => {
   });
 
   it("appends read mode args when mode is 'read'", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ exitCode: 0 })
     );
 
@@ -329,7 +333,7 @@ describe("spawn", () => {
   });
 
   it("returns early without spawning when dryRun is true", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess);
+    const spawnMock = spawnSpy;
     const dryRunMessages: string[] = [];
 
     const result = await spawn("claude-code", { prompt: "test" }, {
@@ -346,7 +350,7 @@ describe("spawn", () => {
   });
 
   it("falls back to prompt args when stdin is unsupported", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(
+    const spawnMock = spawnSpy.mockReturnValue(
       createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
     );
 

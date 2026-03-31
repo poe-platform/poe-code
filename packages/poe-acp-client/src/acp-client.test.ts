@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import type { AcpTransport } from "./acp-transport.js";
 import { AcpClient } from "./acp-client.js";
@@ -889,7 +889,7 @@ describe("AcpClient", () => {
 
     const response = await emitRequest("terminal/create", {
       sessionId: "session-1",
-      command: "npm",
+      command: "bun",
       args: ["run", "test"],
       cwd: "/workspace",
       env: [
@@ -901,7 +901,7 @@ describe("AcpClient", () => {
 
     expect(create).toHaveBeenCalledWith({
       sessionId: "session-1",
-      command: "npm",
+      command: "bun",
       args: ["run", "test"],
       cwd: "/workspace",
       env: [
@@ -937,7 +937,7 @@ describe("AcpClient", () => {
 
     await emitRequest("terminal/create", {
       sessionId: "session-1",
-      command: "npm",
+      command: "bun",
     } satisfies CreateTerminalRequest);
 
     const response = await emitRequest("terminal/output", {
@@ -976,7 +976,7 @@ describe("AcpClient", () => {
 
     await emitRequest("terminal/create", {
       sessionId: "session-1",
-      command: "npm",
+      command: "bun",
     } satisfies CreateTerminalRequest);
 
     const response = await emitRequest("terminal/wait_for_exit", {
@@ -1012,7 +1012,7 @@ describe("AcpClient", () => {
 
     await emitRequest("terminal/create", {
       sessionId: "session-1",
-      command: "npm",
+      command: "bun",
     } satisfies CreateTerminalRequest);
 
     const killResponse = await emitRequest("terminal/kill", {
@@ -1053,7 +1053,7 @@ describe("AcpClient", () => {
     await expect(
       emitRequest("terminal/create", {
         sessionId: "session-1",
-        command: "npm",
+        command: "bun",
       } satisfies CreateTerminalRequest)
     ).rejects.toMatchObject({
       code: -32601,

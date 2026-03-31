@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { provider as poeAgentProvider, spawnPoeAgentWithAcp } from "./poe-agent.js";
 import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
 import { AcpClient } from "@poe-code/poe-acp-client";
 
-const createAgentSessionMock = vi.hoisted(() => vi.fn());
-const sendMessageMock = vi.hoisted(() => vi.fn());
-const disposeMock = vi.hoisted(() => vi.fn());
+const createAgentSessionMock = vi.fn();
+const sendMessageMock = vi.fn();
+const disposeMock = vi.fn();
 
 vi.mock("@poe-code/poe-agent", () => ({
   createAgentSession: createAgentSessionMock

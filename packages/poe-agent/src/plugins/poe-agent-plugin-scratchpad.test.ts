@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import type { ToolContext } from "../runtime/types.js";
 import scratchpad from "./poe-agent-plugin-scratchpad.js";
 

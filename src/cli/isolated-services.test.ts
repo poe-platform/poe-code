@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { createCliContainer } from "./container.js";
 import { listIsolatedServiceIds } from "./commands/shared.js";
 import { createProviderStub } from "../../tests/provider-stub.js";

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import {
   extractMessagesFromSessionUpdateStream,
   extractToolCallSummariesFromSessionUpdateStream,
@@ -99,7 +99,7 @@ describe("extractToolCallSummariesFromSessionUpdateStream", () => {
         title: "Run command",
         kind: "execute",
         status: "pending",
-        rawInput: { command: "npm test" },
+        rawInput: { command: "bun test" },
       } satisfies SessionUpdate,
       {
         sessionUpdate: "tool_call_update",
@@ -132,7 +132,7 @@ describe("extractToolCallSummariesFromSessionUpdateStream", () => {
         title: "Run command",
         kind: "execute",
         status: "completed",
-        rawInput: { command: "npm test" },
+        rawInput: { command: "bun test" },
         rawOutput: "ok",
       },
       {
@@ -179,17 +179,17 @@ describe("mapLegacyEventToSessionUpdates", () => {
         event: "tool_start",
         id: "tool-7",
         kind: "exec",
-        title: "npm test",
-        input: { command: "npm test" },
+        title: "bun test",
+        input: { command: "bun test" },
       }),
     ).toEqual([
       {
         sessionUpdate: "tool_call",
         toolCallId: "tool-7",
-        title: "npm test",
+        title: "bun test",
         kind: "execute",
         status: "pending",
-        rawInput: { command: "npm test" },
+        rawInput: { command: "bun test" },
       },
       {
         sessionUpdate: "tool_call_update",

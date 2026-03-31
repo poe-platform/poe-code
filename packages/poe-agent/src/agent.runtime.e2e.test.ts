@@ -1,6 +1,6 @@
 import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { agent } from "./agent.js";
 import filesPlugin from "./plugins/poe-agent-plugin-files.js";
 import shellPlugin from "./plugins/poe-agent-plugin-shell.js";

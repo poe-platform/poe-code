@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, setSystemTime } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
@@ -11,23 +11,7 @@ import type {
   CommandRunnerOptions,
   CommandRunnerResult
 } from "../../utils/command-checks.js";
-
-const renderAcpStreamMock = vi.hoisted(
-  () =>
-    vi.fn(async (events: AsyncIterable<unknown>) => {
-      for await (const ignoredEvent of events) {
-        // noop
-      }
-    })
-);
-
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return {
-    ...actual,
-    renderAcpStream: renderAcpStreamMock
-  };
-});
+import * as agentSpawnModule from "@poe-code/agent-spawn";
 
 vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
@@ -350,27 +334,56 @@ describe("resolveSource", () => {
 
 describe("research command", () => {
   const originalEnv = { ...process.env };
+  let renderAcpStreamSpy: ReturnType<typeof vi.spyOn>;
+  let getSpawnConfigSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     process.env = { ...originalEnv, FORCE_COLOR: "1" };
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
+    renderAcpStreamSpy = vi.spyOn(agentSpawnModule, "renderAcpStream" as any).mockImplementation(
+      async (events: AsyncIterable<unknown>) => {
+        for await (const ignoredEvent of events) {
+          // noop
+        }
+      }
+    );
+    getSpawnConfigSpy = vi.spyOn(agentSpawnModule, "getSpawnConfig" as any).mockImplementation(
+      (name: string) => {
+        if (name === "codex") {
+          return {
+            kind: "cli",
+            agentId: "codex",
+            adapter: "codex",
+            promptFlag: "exec",
+            modelFlag: "--model",
+            modelStripProviderPrefix: true,
+            defaultArgs: ["--skip-git-repo-check", "--json"],
+            mcpArgsBeforeCommand: true,
+            resumeCommand: (threadId: string, cwd: string) => ["resume", "-C", cwd, threadId]
+          };
+        }
+        return undefined;
+      }
+    );
   });
 
   afterEach(() => {
     process.env = { ...originalEnv };
     vi.useRealTimers();
+    renderAcpStreamSpy?.mockRestore();
+    getSpawnConfigSpy?.mockRestore();
   });
 
   it("writes output with resume command and captures agent messages", async () => {
     vi.useFakeTimers();
     const now = new Date("2026-01-02T03:04:05Z");
-    vi.setSystemTime(now);
+    setSystemTime(now);
 
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: fromArray([
         { event: "agent_message", text: "Hello " },
         { event: "agent_message", text: "world" }
@@ -404,7 +417,7 @@ describe("research command", () => {
     const outputPath = buildOutputPath(homeDir, "Explain the project", now);
     const content = await fs.readFile(outputPath, "utf8");
 
-    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledWith("codex", {
+    expect((sdkSpawn as unknown as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith("codex", {
       prompt: expect.stringContaining("Explain the project"),
       args: [],
       model: "openai/gpt-5.2",
@@ -448,7 +461,7 @@ describe("research command", () => {
     ]);
 
     expect(prompts.mock.calls.length).toBe(0);
-    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledWith("codex", expect.any(Object));
+    expect((sdkSpawn as unknown as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith("codex", expect.any(Object));
   });
 
   it("forwards model and agent args", async () => {
@@ -476,7 +489,7 @@ describe("research command", () => {
       "bar"
     ]);
 
-    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledWith("codex", {
+    expect((sdkSpawn as unknown as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith("codex", {
       prompt: expect.stringContaining("Explain"),
       args: ["--foo", "bar"],
       model: "gpt-4",
@@ -515,7 +528,7 @@ describe("research command", () => {
       stdinSpy.mockRestore();
     }
 
-    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledWith("codex", {
+    expect((sdkSpawn as unknown as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith("codex", {
       prompt: expect.stringContaining("Prompt via stdin"),
       args: [],
       model: "openai/gpt-5.2",
@@ -598,7 +611,7 @@ describe("research command", () => {
   });
 
   it("cleans up cloned repos on spawn failure", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
+    (sdkSpawn as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({ stdout: "", stderr: "", exitCode: 1 })
     }));

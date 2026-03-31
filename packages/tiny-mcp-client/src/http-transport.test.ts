@@ -1,5 +1,5 @@
 import type { Readable } from "node:stream";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { HttpTransport, type McpTransport, readLines } from "./internal.js";
 
 async function readLineCount(stream: Readable, count: number): Promise<string[]> {

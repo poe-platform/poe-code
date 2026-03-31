@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { runAcpCore, type AcpModel, type AcpModelResponse } from "./acp-core.js";
 import { createRunContext } from "./run-context.js";
 import type { AcpEvent, AcpHost } from "./types.js";
@@ -53,6 +53,19 @@ function createTokenBudget(max: number) {
       },
     },
   };
+}
+
+async function waitFor(fn: () => void, timeout = 2000): Promise<void> {
+  const start = Date.now();
+  while (true) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      if (Date.now() - start > timeout) throw e;
+      await new Promise(r => setTimeout(r, 10));
+    }
+  }
 }
 
 describe("runAcpCore", () => {
@@ -895,7 +908,7 @@ describe("runAcpCore", () => {
       }),
     );
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(host.handle).toHaveBeenCalledTimes(1);
     });
 

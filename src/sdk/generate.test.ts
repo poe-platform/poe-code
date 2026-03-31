@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from "vitest";
+import { describe, it, expect, afterEach, vi } from "bun:test";
 import { generate, generateAudio, generateImage, generateVideo } from "./generate.js";
 import { setGlobalClient } from "../services/client-instance.js";
 import type { LlmClient } from "../services/llm-client.js";

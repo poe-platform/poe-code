@@ -1,23 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { EventEmitter } from "node:events";
-import { spawn as spawnChildProcess, type ChildProcess } from "node:child_process";
-import { resolveConfig } from "./configs/resolve-config.js";
+import * as childProcess from "node:child_process";
+import type { ChildProcess } from "node:child_process";
+import * as resolveConfigModule from "./configs/resolve-config.js";
 import { claudeCodeSpawnConfig } from "./configs/claude-code.js";
 import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
 import { kimiSpawnConfig } from "./configs/kimi.js";
 import { spawnInteractive } from "./spawn-interactive.js";
 
-vi.mock("node:child_process", () => ({
-  spawn: vi.fn()
-}));
-
-vi.mock("./configs/resolve-config.js", async () => {
-  const actual = await vi.importActual<typeof import("./configs/resolve-config.js")>(
-    "./configs/resolve-config.js"
-  );
-  return { ...actual, resolveConfig: vi.fn(actual.resolveConfig) };
-});
+let resolveConfigSpy: ReturnType<typeof vi.spyOn>;
+let spawnSpy: ReturnType<typeof vi.spyOn>;
 
 function createMockInheritProcess(exitCode = 0): ChildProcess {
   const child = new EventEmitter() as unknown as ChildProcess;
@@ -35,24 +28,31 @@ function createMockInheritProcess(exitCode = 0): ChildProcess {
 describe("spawnInteractive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resolveConfigSpy = vi.spyOn(resolveConfigModule, "resolveConfig");
+    spawnSpy = vi.spyOn(childProcess, "spawn");
+  });
+
+  afterEach(() => {
+    resolveConfigSpy.mockRestore();
+    spawnSpy.mockRestore();
   });
 
   it("throws if agent ID cannot be resolved", async () => {
     await expect(spawnInteractive("unknown", { prompt: "test" })).rejects.toThrow(
       /Unknown agent/
     );
-    expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
+    expect(spawnSpy).not.toHaveBeenCalled();
   });
 
   it("throws if agent has no spawn config", async () => {
     await expect(spawnInteractive("claude-desktop", { prompt: "test" })).rejects.toThrow(
       /has no spawn config/
     );
-    expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
+    expect(spawnSpy).not.toHaveBeenCalled();
   });
 
   it("throws if agent has no interactive config", async () => {
-    vi.mocked(resolveConfig).mockReturnValueOnce({
+    resolveConfigSpy.mockReturnValueOnce({
       agentId: "test-agent",
       binaryName: "test",
       spawnConfig: {
@@ -69,13 +69,11 @@ describe("spawnInteractive", () => {
     await expect(spawnInteractive("test-agent", { prompt: "test" })).rejects.toThrow(
       /does not support interactive mode/
     );
-    expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
+    expect(spawnSpy).not.toHaveBeenCalled();
   });
 
   it("builds positional prompt args for claude-code", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     const result = await spawnInteractive("claude-code", { prompt: "test prompt" });
 
@@ -90,9 +88,7 @@ describe("spawnInteractive", () => {
   });
 
   it("builds positional prompt args for codex", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "test prompt" });
 
@@ -102,9 +98,7 @@ describe("spawnInteractive", () => {
   });
 
   it("builds flag-based prompt args for opencode", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("opencode", { prompt: "test prompt" });
 
@@ -119,9 +113,7 @@ describe("spawnInteractive", () => {
   });
 
   it("builds flag-based prompt args for kimi", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("kimi", { prompt: "test prompt" });
 
@@ -136,9 +128,7 @@ describe("spawnInteractive", () => {
   });
 
   it("includes model flag when model is provided", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("claude-code", { prompt: "test", model: "sonnet" });
 
@@ -153,9 +143,7 @@ describe("spawnInteractive", () => {
   });
 
   it("applies modelTransform from config (preserves namespace + poe/ prefix)", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("opencode", { prompt: "test", model: "anthropic/claude-opus-4.6" });
 
@@ -168,9 +156,7 @@ describe("spawnInteractive", () => {
   // The namespace MUST be stripped and dots converted to hyphens before invoking the binary.
   // Do NOT remove this stripping — it will break all spawns that pass a namespaced model.
   it("strips provider namespace and transforms model before passing to CLI", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("claude-code", { prompt: "test", model: "anthropic/claude-opus-4.6" });
 
@@ -181,9 +167,7 @@ describe("spawnInteractive", () => {
   });
 
   it("spawns with stdio inherit for all streams", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "test" });
 
@@ -192,7 +176,7 @@ describe("spawnInteractive", () => {
   });
 
   it("returns empty stdout and stderr with exit code", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(42));
+    spawnSpy.mockReturnValue(createMockInheritProcess(42));
 
     const result = await spawnInteractive("codex", { prompt: "test" });
 
@@ -202,9 +186,7 @@ describe("spawnInteractive", () => {
   });
 
   it("passes cwd to spawned process", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "test", cwd: "/my/project" });
 
@@ -213,9 +195,7 @@ describe("spawnInteractive", () => {
   });
 
   it("omits prompt args when prompt is empty", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("claude-code", { prompt: "" });
 
@@ -227,9 +207,7 @@ describe("spawnInteractive", () => {
   });
 
   it("omits prompt flag when prompt is empty for flag-based agents", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("opencode", { prompt: "" });
 
@@ -242,9 +220,7 @@ describe("spawnInteractive", () => {
   });
 
   it("appends extra args from options", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "test", args: ["--extra", "flag"] });
 
@@ -259,9 +235,7 @@ describe("spawnInteractive", () => {
   });
 
   it("serializes MCP servers for interactive spawn when supported", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = spawnSpy.mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", {
       prompt: "test",

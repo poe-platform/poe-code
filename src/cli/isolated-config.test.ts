@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { createCliContainer } from "./container.js";
 import type { FileSystem } from "../utils/file-system.js";
 import { createHomeFs } from "../../tests/test-helpers.js";

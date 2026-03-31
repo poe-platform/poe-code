@@ -1,3 +1,4 @@
+import { describe, it, expect } from "bun:test";
 import * as agentSpawnApi from "@poe-code/agent-spawn";
 import {
   adaptClaude,

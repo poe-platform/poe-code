@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -83,7 +83,7 @@ describe("version command", () => {
 
     expect(logs.some((log) => log.includes("99.0.0"))).toBe(true);
     expect(
-      logs.some((log) => log.includes("npm install -g poe-code@latest"))
+      logs.some((log) => log.includes("bun install --global poe-code@latest"))
     ).toBe(true);
   });
 
@@ -107,7 +107,7 @@ describe("version command", () => {
     await parseWithVersionExit(program, ["node", "cli", "--version"]);
 
     expect(
-      logs.some((log) => log.includes("npm install -g poe-code@latest"))
+      logs.some((log) => log.includes("bun install --global poe-code@latest"))
     ).toBe(false);
   });
 

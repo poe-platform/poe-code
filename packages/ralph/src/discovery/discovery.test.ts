@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { discoverDocs } from "./discovery.js";
 function createFs(files: Record<string, string>) {

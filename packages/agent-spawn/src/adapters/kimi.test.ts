@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { adaptKimi } from "./kimi.js";
 import { fromArray, collect } from "./test-utils.js";
 

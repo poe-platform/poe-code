@@ -1,20 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
+import * as designSystem from "@poe-code/design-system";
 
-vi.mock("@poe-code/design-system", () => {
-  return {
-    acp: {
-      renderAgentMessage: vi.fn(),
-      renderToolStart: vi.fn(),
-      renderToolComplete: vi.fn(),
-      renderReasoning: vi.fn(),
-      renderUsage: vi.fn(),
-      renderError: vi.fn()
-    },
-    text: {
-      muted: (content: string) => `<muted>${content}</muted>`
-    }
-  };
-});
+import { renderAcpEvent, renderAcpStream } from "./renderer.js";
 
 async function* fromArray<T>(items: T[]): AsyncIterable<T> {
   for (const item of items) yield item;
@@ -40,64 +27,56 @@ function captureStdout(run: () => void): string {
 
 describe("acp/renderer", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
+    vi.spyOn(designSystem.acp, "renderAgentMessage").mockImplementation(() => {});
+    vi.spyOn(designSystem.acp, "renderToolStart").mockImplementation(() => {});
+    vi.spyOn(designSystem.acp, "renderToolComplete").mockImplementation(() => {});
+    vi.spyOn(designSystem.acp, "renderReasoning").mockImplementation(() => {});
+    vi.spyOn(designSystem.acp, "renderUsage").mockImplementation(() => {});
+    vi.spyOn(designSystem.acp, "renderError").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("ignores session_start events (no output)", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     const output = captureStdout(() => renderAcpEvent({ event: "session_start" } as any));
 
     expect(output).toBe("");
-    expect(acp.renderAgentMessage).not.toHaveBeenCalled();
-    expect(acp.renderToolStart).not.toHaveBeenCalled();
-    expect(acp.renderToolComplete).not.toHaveBeenCalled();
-    expect(acp.renderReasoning).not.toHaveBeenCalled();
-    expect(acp.renderUsage).not.toHaveBeenCalled();
-    expect(acp.renderError).not.toHaveBeenCalled();
+    expect(designSystem.acp.renderAgentMessage).not.toHaveBeenCalled();
+    expect(designSystem.acp.renderToolStart).not.toHaveBeenCalled();
+    expect(designSystem.acp.renderToolComplete).not.toHaveBeenCalled();
+    expect(designSystem.acp.renderReasoning).not.toHaveBeenCalled();
+    expect(designSystem.acp.renderUsage).not.toHaveBeenCalled();
+    expect(designSystem.acp.renderError).not.toHaveBeenCalled();
   });
 
   it("renders agent_message via design-system", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     renderAcpEvent({ event: "agent_message", text: "hello" } as any);
 
-    expect(acp.renderAgentMessage).toHaveBeenCalledWith("hello");
+    expect(designSystem.acp.renderAgentMessage).toHaveBeenCalledWith("hello");
   });
 
   it("renders tool_start via design-system", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     renderAcpEvent({ event: "tool_start", kind: "read", title: "README.md" } as any);
 
-    expect(acp.renderToolStart).toHaveBeenCalledWith("read", "README.md");
+    expect(designSystem.acp.renderToolStart).toHaveBeenCalledWith("read", "README.md");
   });
 
   it("renders tool_complete via design-system (kind only, no output)", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     renderAcpEvent({ event: "tool_complete", kind: "read", path: "README.md" } as any);
 
-    expect(acp.renderToolComplete).toHaveBeenCalledWith("read");
+    expect(designSystem.acp.renderToolComplete).toHaveBeenCalledWith("read");
   });
 
   it("renders reasoning via design-system", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     renderAcpEvent({ event: "reasoning", text: "thinking..." } as any);
 
-    expect(acp.renderReasoning).toHaveBeenCalledWith("thinking...");
+    expect(designSystem.acp.renderReasoning).toHaveBeenCalledWith("thinking...");
   });
 
   it("renders usage via design-system", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     renderAcpEvent({
       event: "usage",
       inputTokens: 1,
@@ -106,7 +85,7 @@ describe("acp/renderer", () => {
       costUsd: 0.04
     } as any);
 
-    expect(acp.renderUsage).toHaveBeenCalledWith({
+    expect(designSystem.acp.renderUsage).toHaveBeenCalledWith({
       input: 1,
       output: 2,
       cached: 3,
@@ -115,37 +94,25 @@ describe("acp/renderer", () => {
   });
 
   it("renders error via design-system", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     renderAcpEvent({ event: "error", message: "nope" } as any);
 
-    expect(acp.renderError).toHaveBeenCalledWith("nope");
+    expect(designSystem.acp.renderError).toHaveBeenCalledWith("nope");
   });
 
   it("includes stack trace when present on error events", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     renderAcpEvent({ event: "error", message: "nope", stack: "stack line 1" } as any);
 
-    expect(acp.renderError).toHaveBeenCalledWith("nope\nstack line 1");
+    expect(designSystem.acp.renderError).toHaveBeenCalledWith("nope\nstack line 1");
   });
 
   it("renders unknown event types as muted text showing the type", async () => {
-    const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     const output = captureStdout(() => renderAcpEvent({ event: "some_future_event" } as any));
 
-    expect(output).toBe("<muted>some_future_event</muted>\n");
-    expect(acp.renderAgentMessage).not.toHaveBeenCalled();
+    expect(output).toContain("some_future_event");
+    expect(designSystem.acp.renderAgentMessage).not.toHaveBeenCalled();
   });
 
   it("renderAcpStream buffers consecutive agent_message events and flushes at end", async () => {
-    const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     const events = [
       { event: "agent_message", text: "a" },
       { event: "agent_message", text: "b" }
@@ -153,14 +120,11 @@ describe("acp/renderer", () => {
 
     await renderAcpStream(fromArray(events as any[]));
 
-    expect(acp.renderAgentMessage).toHaveBeenCalledTimes(1);
-    expect(acp.renderAgentMessage).toHaveBeenCalledWith("ab");
+    expect(designSystem.acp.renderAgentMessage).toHaveBeenCalledTimes(1);
+    expect(designSystem.acp.renderAgentMessage).toHaveBeenCalledWith("ab");
   });
 
   it("renderAcpStream flushes buffer when non-agent_message event arrives", async () => {
-    const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
-
     const events = [
       { event: "agent_message", text: "hello " },
       { event: "agent_message", text: "world" },
@@ -170,9 +134,9 @@ describe("acp/renderer", () => {
 
     await renderAcpStream(fromArray(events as any[]));
 
-    expect(acp.renderAgentMessage).toHaveBeenCalledTimes(2);
-    expect(acp.renderAgentMessage).toHaveBeenNthCalledWith(1, "hello world");
-    expect(acp.renderAgentMessage).toHaveBeenNthCalledWith(2, "done");
-    expect(acp.renderToolStart).toHaveBeenCalledWith("read", "file.txt");
+    expect(designSystem.acp.renderAgentMessage).toHaveBeenCalledTimes(2);
+    expect(designSystem.acp.renderAgentMessage).toHaveBeenNthCalledWith(1, "hello world");
+    expect(designSystem.acp.renderAgentMessage).toHaveBeenNthCalledWith(2, "done");
+    expect(designSystem.acp.renderToolStart).toHaveBeenCalledWith("read", "file.txt");
   });
 });

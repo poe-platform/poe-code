@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { createPoeClient } from "./llm-client.js";
 import type { HttpClient } from "../cli/http.js";
 

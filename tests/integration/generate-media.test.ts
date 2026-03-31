@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../../src/cli/program.js";
 import type { FileSystem } from "../../src/utils/file-system.js";

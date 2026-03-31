@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { runMutations } from "./run-mutations.js";
 import { fileMutation } from "../mutations/file-mutation.js";

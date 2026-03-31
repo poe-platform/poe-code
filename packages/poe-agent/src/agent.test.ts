@@ -1,58 +1,75 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import type { AcpModel, AcpModelResponse } from "./runtime/acp-core.js";
 import { agent } from "./agent.js";
 import type { AcpEvent } from "./runtime/types.js";
+import * as mcpModule from "tiny-mcp-client";
+import { McpClient } from "tiny-mcp-client";
 
-const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
-const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown) => Promise<void>>());
-const mcpClientListToolsMock = vi.hoisted(
-  () =>
-    vi.fn<
-      (params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>
-    >(),
-);
-const mcpClientCallToolMock = vi.hoisted(
-  () =>
-    vi.fn<
-      (
-        params: { name: string; arguments?: Record<string, unknown> },
-        options?: { signal?: AbortSignal },
-      ) => Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }>
-    >(),
-);
-const mcpClientCloseMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
+// vi.spyOn is used instead of vi.mock("tiny-mcp-client") to avoid conflicting
+// with plugin-api-impl.in-memory.test.ts which also mocks tiny-mcp-client.
+// bun:test 1.x shares module registry across test files in the same process.
+const stdioTransportConstructorMock = vi.fn();
+const mcpClientConnectMock = vi.fn<(transport: unknown) => Promise<void>>();
+const mcpClientListToolsMock = vi.fn<
+  (params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>
+>();
+const mcpClientCallToolMock = vi.fn<
+  (
+    params: { name: string; arguments?: Record<string, unknown> },
+    options?: { signal?: AbortSignal },
+  ) => Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }>
+>();
+const mcpClientCloseMock = vi.fn<() => Promise<void>>();
 
-vi.mock("tiny-mcp-client", () => ({
-  StdioTransport: class {
-    constructor(options: unknown) {
+let stdioTransportSpy: ReturnType<typeof vi.spyOn>;
+let connectSpy: ReturnType<typeof vi.spyOn>;
+let listToolsSpy: ReturnType<typeof vi.spyOn>;
+let callToolSpy: ReturnType<typeof vi.spyOn>;
+let closeSpy: ReturnType<typeof vi.spyOn>;
+
+function setupMcpSpies(): void {
+  stdioTransportSpy = vi.spyOn(mcpModule, "StdioTransport" as any).mockImplementation(
+    function(this: Record<string, unknown>, options: unknown) {
       stdioTransportConstructorMock(options);
+      this.readable = null;
+      this.writable = null;
+      this.closed = Promise.resolve({ reason: new Error("mock transport closed") });
+      this.dispose = () => {};
     }
-  },
-  McpClient: class {
-    constructor() {}
-
-    async connect(transport: unknown): Promise<void> {
+  );
+  connectSpy = vi.spyOn(McpClient.prototype, "connect" as any).mockImplementation(
+    async function(transport: unknown) {
       await mcpClientConnectMock(transport);
     }
-
-    async listTools(params?: {
-      cursor?: string;
-    }): Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }> {
+  );
+  listToolsSpy = vi.spyOn(McpClient.prototype, "listTools" as any).mockImplementation(
+    async function(params?: { cursor?: string }) {
       return mcpClientListToolsMock(params);
     }
-
-    async callTool(
+  );
+  callToolSpy = vi.spyOn(McpClient.prototype, "callTool" as any).mockImplementation(
+    async function(
       params: { name: string; arguments?: Record<string, unknown> },
       options?: { signal?: AbortSignal },
-    ): Promise<{ content: Array<Record<string, unknown>>; isError?: boolean }> {
+    ) {
       return mcpClientCallToolMock(params, options);
     }
-
-    async close(): Promise<void> {
+  );
+  closeSpy = vi.spyOn(McpClient.prototype, "close" as any).mockImplementation(
+    async function() {
       await mcpClientCloseMock();
     }
-  },
-}));
+  );
+}
+
+function restoreMcpSpies(): void {
+  stdioTransportSpy?.mockRestore();
+  connectSpy?.mockRestore();
+  listToolsSpy?.mockRestore();
+  callToolSpy?.mockRestore();
+  closeSpy?.mockRestore();
+}
+
 
 function createModel(responses: Array<AcpModelResponse | Error>, capturedTools: string[]): AcpModel {
   const queue = [...responses];
@@ -97,7 +114,36 @@ function createDeferred(): { promise: Promise<void>; resolve(): void } {
   };
 }
 
+async function waitFor(fn: () => void, timeout = 2000): Promise<void> {
+  const start = Date.now();
+  while (true) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      if (Date.now() - start > timeout) throw e;
+      await new Promise(r => setTimeout(r, 10));
+    }
+  }
+}
+
 describe("agent builder", () => {
+  beforeEach(() => {
+    setupMcpSpies();
+    mcpClientConnectMock.mockResolvedValue(undefined);
+    mcpClientCloseMock.mockResolvedValue(undefined);
+    mcpClientListToolsMock.mockResolvedValue({ tools: [] });
+  });
+
+  afterEach(() => {
+    restoreMcpSpies();
+    stdioTransportConstructorMock.mockReset();
+    mcpClientConnectMock.mockReset();
+    mcpClientListToolsMock.mockReset();
+    mcpClientCallToolMock.mockReset();
+    mcpClientCloseMock.mockReset();
+  });
+
   it("preserves reasoning fields between model iterations when using Poe fetch transport", async () => {
     const requests: Array<{ messages: Array<Record<string, unknown>> }> = [];
     const responses = [
@@ -495,7 +541,7 @@ describe("agent builder", () => {
         signal: controller.signal,
       });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mcpClientCallToolMock).toHaveBeenCalledTimes(1);
     });
 

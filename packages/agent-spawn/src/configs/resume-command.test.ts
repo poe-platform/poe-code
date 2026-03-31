@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { codexSpawnConfig } from "./codex.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { openCodeSpawnConfig } from "./opencode.js";

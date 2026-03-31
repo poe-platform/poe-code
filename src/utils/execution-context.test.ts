@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import {
   detectExecutionContext,
   formatCliHelpCommand,
@@ -20,11 +20,11 @@ describe("detectExecutionContext", () => {
       });
 
       expect(result.mode).toBe("development");
-      expect(result.command.command).toBe("npm");
-      expect(result.command.args).toEqual(["--silent", "--prefix", "/workspace/poe-code", "run", "dev", "--"]);
+      expect(result.command.command).toBe("bun");
+      expect(result.command.args).toEqual(["--cwd", "/workspace/poe-code", "run", "--silent", "dev", "--"]);
     });
 
-    it("detects npm run dev via lifecycle event", () => {
+    it("detects bun run dev via lifecycle event", () => {
       const result = detectExecutionContext({
         argv: ["/usr/bin/node", "/workspace/poe-code/dist/index.js", "mcp"],
         env: { npm_lifecycle_event: "dev" },
@@ -143,13 +143,13 @@ describe("toOpenCodeMcpCommand", () => {
     expect(result).toEqual(["npx", "-y", "poe-code", "mcp"]);
   });
 
-  it("works with npm run dev for development", () => {
+  it("works with bun run dev for development", () => {
     const result = toOpenCodeMcpCommand(
-      { command: "npm", args: ["--silent", "--prefix", "/workspace/poe-code", "run", "dev", "--"] },
+      { command: "bun", args: ["--cwd", "/workspace/poe-code", "run", "--silent", "dev", "--"] },
       "mcp"
     );
 
-    expect(result).toEqual(["npm", "--silent", "--prefix", "/workspace/poe-code", "run", "dev", "--", "mcp"]);
+    expect(result).toEqual(["bun", "--cwd", "/workspace/poe-code", "run", "--silent", "dev", "--", "mcp"]);
   });
 });
 
@@ -170,12 +170,12 @@ describe("formatCliHelpCommand", () => {
     expect(help).toBe("npx poe-code@beta mcp --help");
   });
 
-  it("formats development help command as npm run dev", () => {
+  it("formats development help command as bun run dev", () => {
     const help = formatCliHelpCommand(
-      { mode: "development", command: { command: "npm", args: [] } },
+      { mode: "development", command: { command: "bun", args: [] } },
       ["--help"]
     );
-    expect(help).toBe("npm run dev -- --help");
+    expect(help).toBe("bun run dev -- --help");
   });
 });
 
@@ -186,10 +186,10 @@ describe("formatCliUsageCommand", () => {
     ).toBe("poe-code");
   });
 
-  it("formats development usage as npm run dev", () => {
+  it("formats development usage as bun run dev", () => {
     expect(
-      formatCliUsageCommand({ mode: "development", command: { command: "npm", args: [] } })
-    ).toBe("npm run dev --");
+      formatCliUsageCommand({ mode: "development", command: { command: "bun", args: [] } })
+    ).toBe("bun run dev --");
   });
 
   it("formats npx-beta usage with channel", () => {

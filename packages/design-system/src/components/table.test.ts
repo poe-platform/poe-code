@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "bun:test";
 import chalk from "chalk";
 import { renderTable } from "./table.js";
 import type { ThemePalette } from "../tokens/colors.js";

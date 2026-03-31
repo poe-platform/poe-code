@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "bun:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { createSecretStore } from "./index.js";
 import type { EncryptedFileStoreFileSystem } from "./encrypted-file-store.js";
@@ -28,8 +28,19 @@ function createKeychainCommandRunner() {
   });
 }
 
+const envBackup: Record<string, string | undefined> = {};
+
 afterEach(() => {
-  vi.unstubAllEnvs();
+  for (const key of Object.keys(envBackup)) {
+    if (envBackup[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = envBackup[key];
+    }
+  }
+  for (const key of Object.keys(envBackup)) {
+    delete envBackup[key];
+  }
 });
 
 describe("createSecretStore", () => {
@@ -122,7 +133,8 @@ describe("createSecretStore", () => {
   });
 
   it("reads backend from process.env using custom env var", async () => {
-    vi.stubEnv("CUSTOM_BACKEND", "keychain");
+    envBackup["CUSTOM_BACKEND"] = process.env["CUSTOM_BACKEND"];
+    process.env["CUSTOM_BACKEND"] = "keychain";
     const runCommand = createKeychainCommandRunner();
 
     const result = createSecretStore({

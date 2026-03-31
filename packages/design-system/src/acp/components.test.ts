@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 
 function stripAnsi(input: string): string {
   let output = "";
@@ -60,9 +60,9 @@ describe("acp/components", () => {
 
   it("renderToolStart prints a colored arrow based on kind", async () => {
     const { renderToolStart } = await import("./components.js");
-    const output = captureStdout(() => renderToolStart("exec", "npm test"));
+    const output = captureStdout(() => renderToolStart("exec", "bun test"));
 
-    expect(stripAnsi(output)).toBe("  → exec: npm test\n");
+    expect(stripAnsi(output)).toBe("  → exec: bun test\n");
     expect(output).toContain("\u001b[33m");
   });
 

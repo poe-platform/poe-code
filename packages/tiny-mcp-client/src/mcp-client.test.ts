@@ -1,5 +1,6 @@
-import { PassThrough } from "node:stream";
-import { describe, expect, it, vi } from "vitest";
+import { EventEmitter } from "node:events";
+import { PassThrough, Readable } from "node:stream";
+import { describe, expect, it, vi } from "bun:test";
 import {
   ERROR_INVALID_REQUEST,
   ERROR_METHOD_NOT_FOUND,
@@ -15,6 +16,7 @@ import {
   type ServerCapabilities,
   type McpTransportClosedEvent,
   type McpTransport,
+  type StdioSpawn,
 } from "./internal.js";
 
 const getMessageLayerOrThrow = (client: McpClient): JsonRpcMessageLayer =>
@@ -23,6 +25,54 @@ const getMessageLayerOrThrow = (client: McpClient): JsonRpcMessageLayer =>
       getMessageLayerOrThrow: () => JsonRpcMessageLayer;
     }
   ).getMessageLayerOrThrow();
+
+const createBunBackedSpawn = (): StdioSpawn => {
+  return (command, args, options) => {
+    const child = new EventEmitter() as EventEmitter & {
+      stdin: NodeJS.WritableStream;
+      stdout: NodeJS.ReadableStream;
+      stderr: NodeJS.ReadableStream;
+      exitCode: number | null;
+      signalCode: NodeJS.Signals | null;
+      killed: boolean;
+      kill: (signal?: NodeJS.Signals) => boolean;
+      once: (event: string, listener: (...args: unknown[]) => void) => void;
+      on: (event: string, listener: (...args: unknown[]) => void) => void;
+      emit: (event: string, ...args: unknown[]) => boolean;
+    };
+
+    const proc = Bun.spawn([command, ...args], {
+      cwd: options.cwd,
+      env: options.env,
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+
+    child.stdin = proc.stdin as unknown as NodeJS.WritableStream;
+    child.stdout = Readable.fromWeb(proc.stdout);
+    child.stderr = Readable.fromWeb(proc.stderr);
+    child.exitCode = null;
+    child.signalCode = null;
+    child.killed = false;
+    child.kill = (signal?: NodeJS.Signals) => {
+      child.killed = true;
+      proc.kill(signal);
+      return true;
+    };
+
+    void proc.exited
+      .then((code) => {
+        child.exitCode = code;
+        child.emit("exit", code, null);
+      })
+      .catch((error) => {
+        child.emit("error", error instanceof Error ? error : new Error(String(error)));
+      });
+
+    return child as unknown as ReturnType<StdioSpawn>;
+  };
+};
 
 describe("McpClient constructor", () => {
   it("accepts required and optional options", () => {
@@ -4117,7 +4167,9 @@ describe("McpClient callTool", () => {
       },
       { signal: abortController.signal }
     );
-    const callToolRejection = expect(callToolPromise).rejects.toBe("user cancelled");
+    // Suppress unhandled rejection - bun fails tests on unhandled rejections
+    // before the assertion can catch them when using deferred rejects.toBe()
+    callToolPromise.catch(() => undefined);
     const callToolLineResult = await iterator.next();
     if (callToolLineResult.done) {
       throw new Error("Expected tools/call request line to be written");
@@ -4141,7 +4193,7 @@ describe("McpClient callTool", () => {
       },
     });
 
-    await callToolRejection;
+    await expect(callToolPromise).rejects.toBe("user cancelled");
     await client.close();
   });
 
@@ -4723,7 +4775,9 @@ describe("McpClient cancel", () => {
       },
       { signal: abortController.signal }
     );
-    const callToolRejection = expect(callToolPromise).rejects.toBe("user cancelled");
+    // Suppress unhandled rejection - bun fails tests on unhandled rejections
+    // before the assertion can catch them when using deferred rejects.toBe()
+    callToolPromise.catch(() => undefined);
     const callToolLineResult = await iterator.next();
     if (callToolLineResult.done) {
       throw new Error("Expected tools/call request line to be written");
@@ -4760,7 +4814,7 @@ describe("McpClient cancel", () => {
       })}\n`
     );
 
-    await callToolRejection;
+    await expect(callToolPromise).rejects.toBe("user cancelled");
 
     const pingPromise = client.ping();
     const pingLineResult = await iterator.next();
@@ -4911,13 +4965,14 @@ describe("McpClient ping", () => {
       };
       expect(pingRequest.method).toBe("ping");
 
-      const timeoutPromise = expect(pingPromise).rejects.toThrow(
+      vi.advanceTimersByTime(30_000);
+      // Flush microtasks to let the rejection propagate
+      await Promise.resolve();
+      await Promise.resolve();
+
+      await expect(pingPromise).rejects.toThrow(
         'JSON-RPC request "ping" timed out after 30000ms'
       );
-
-      await vi.advanceTimersByTimeAsync(30_000);
-
-      await timeoutPromise;
       await client.close();
     } finally {
       vi.useRealTimers();
@@ -5272,6 +5327,11 @@ describe("McpClient unexpected transport close", () => {
     const pendingToolsRequest = activeMessageLayer.sendRequest("tools/list");
     const pendingPromptsRequest = activeMessageLayer.sendRequest("prompts/list");
 
+    // Suppress unhandled rejections - bun fails tests on unhandled rejections before
+    // the assertions can catch them when promises reject synchronously on resolveClosed()
+    pendingToolsRequest.catch(() => undefined);
+    pendingPromptsRequest.catch(() => undefined);
+
     const firstPendingRequestLine = await iterator.next();
     if (firstPendingRequestLine.done) {
       throw new Error("Expected first pending request line to be written");
@@ -5375,6 +5435,7 @@ describe("McpClient unexpected transport close", () => {
     const transport = new StdioTransport({
       command: process.execPath,
       args: ["-e", crashingServerScript],
+      spawn: createBunBackedSpawn(),
     });
     const client = new McpClient({
       clientInfo: {

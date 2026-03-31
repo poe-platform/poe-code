@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { renderServiceMenu } from "./service-menu.js";
 import type { ProviderService } from "../service-registry.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";

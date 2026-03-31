@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "bun:test";
 import { createServer } from "./server.js";
 import { defineSchema } from "./schema.js";
 import { createTestPair, type TestPair } from "./testing.js";

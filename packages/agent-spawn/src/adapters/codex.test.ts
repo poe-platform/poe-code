@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import fs from "node:fs/promises";
 import { adaptCodex } from "./codex.js";
 import { fromArray, collect } from "./test-utils.js";

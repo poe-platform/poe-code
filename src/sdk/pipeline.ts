@@ -38,7 +38,7 @@ export async function runPipeline(
         mode: input.mode
       });
       await renderAcpStream(events);
-      return result;
+      return await result;
     }
   });
 }

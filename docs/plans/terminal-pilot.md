@@ -1,4 +1,4 @@
-# Terminal Agent
+# Terminal Pilot
 
 A Playwright-like SDK + MCP server for automating interactive CLI applications via pseudoterminals. AI agents use the MCP tools to test interactive CLI flows — the same way Playwright MCP lets agents test browsers.
 
@@ -14,7 +14,7 @@ The MCP server is the primary interface — it exposes terminal automation as to
 
 ## Goals
 
-- Playwright-like stateful SDK: `TerminalAgent` → `TerminalSession` → `TerminalScreen`
+- Playwright-like stateful SDK: `TerminalPilot` → `TerminalSession` → `TerminalScreen`
 - MCP server exposing the SDK as tools for AI agent use
 - Spawn any CLI app in a real pseudoterminal
 - Send keystrokes, text input, and signals
@@ -41,7 +41,7 @@ No expect-style libraries — we build a thin `waitFor` loop over the PTY output
 
 ### Headless vs Observable Mode
 
-By default, terminal-agent runs **headless** — the PTY output is captured in-memory and never displayed. This is the right mode for automated testing and agent use.
+By default, terminal-pilot runs **headless** — the PTY output is captured in-memory and never displayed. This is the right mode for automated testing and agent use.
 
 For debugging and development, sessions support an **observable mode** that mirrors PTY output to the caller's stdout in real-time, so you can watch what the app is doing:
 
@@ -62,17 +62,17 @@ Both modes produce identical `screen()` / `history()` results — `observe` only
 ### Object model
 
 ```
-TerminalAgent       — manages sessions (like Playwright Browser)
+TerminalPilot       — manages sessions (like Playwright Browser)
   TerminalSession   — one PTY process (like Playwright Page)
     TerminalScreen  — normalized screen snapshot (like Playwright accessibility tree)
 ```
 
-### TerminalAgent
+### TerminalPilot
 
 ```ts
-import { TerminalAgent } from "@poe-code/terminal-agent"
+import { TerminalPilot } from "@poe-code/terminal-pilot"
 
-const agent = await TerminalAgent.launch()
+const agent = await TerminalPilot.launch()
 
 const session = await agent.newSession({
   command: "poe-code",
@@ -201,7 +201,7 @@ interface HistoryOptions {
 
 ## MCP Server
 
-The MCP server is a thin adapter over the SDK. It is the primary way AI agents interact with terminal-agent.
+The MCP server is a thin adapter over the SDK. It is the primary way AI agents interact with terminal-pilot.
 
 ### Tools
 
@@ -335,14 +335,14 @@ Returns: `{ "sessions": [{ "id": "abc123", "command": "poe-code", "pid": 4567 }]
 
 ### MCP Server Implementation
 
-The server uses `@poe-code/tiny-stdio-mcp-server` and holds a single `TerminalAgent` instance. Each tool call delegates to the SDK. Session state lives in-memory on the server — sessionIds are opaque strings returned to the agent.
+The server uses `@poe-code/tiny-stdio-mcp-server` and holds a single `TerminalPilot` instance. Each tool call delegates to the SDK. Session state lives in-memory on the server — sessionIds are opaque strings returned to the agent.
 
 ```ts
 import { createServer } from "@poe-code/tiny-stdio-mcp-server"
-import { TerminalAgent } from "./terminal-agent.js"
+import { TerminalPilot } from "./terminal-pilot.js"
 
-const agent = await TerminalAgent.launch()
-const server = createServer({ name: "terminal-agent", version: "0.1.0" })
+const agent = await TerminalPilot.launch()
+const server = createServer({ name: "terminal-pilot", version: "0.1.0" })
 
 server
   .tool("terminal_create_session", "Spawn an interactive CLI in a PTY", schema, async (input) => {
@@ -374,7 +374,7 @@ This is the terminal equivalent of Playwright MCP's `browser_navigate` → `brow
 ## Internal Architecture
 
 ```
-TerminalAgent
+TerminalPilot
   └─ Map<id, SessionHandle>
 
 SessionHandle
@@ -397,20 +397,20 @@ Flow:
 ## Package Structure
 
 ```
-packages/terminal-agent/
+packages/terminal-pilot/
 ├── package.json
 ├── README.md
 ├── tsconfig.json
 ├── src/
 │   ├── index.ts                    # public SDK exports
-│   ├── terminal-agent.ts           # TerminalAgent class
+│   ├── terminal-pilot.ts           # TerminalPilot class
 │   ├── terminal-session.ts         # TerminalSession class
 │   ├── terminal-screen.ts          # TerminalScreen class
 │   ├── keys.ts                     # key name → escape sequence mapping
 │   ├── ansi.ts                     # ANSI stripping utilities
 │   ├── mcp-server.ts              # MCP server entry point
 │   ├── mcp-tools.ts               # MCP tool definitions
-│   ├── terminal-agent.test.ts
+│   ├── terminal-pilot.test.ts
 │   ├── terminal-session.test.ts
 │   ├── terminal-screen.test.ts
 │   ├── keys.test.ts
@@ -428,7 +428,7 @@ packages/terminal-agent/
     "./mcp": { "types": "./dist/mcp-server.d.ts", "import": "./dist/mcp-server.js" }
   },
   "bin": {
-    "terminal-agent-mcp": "dist/mcp-server.js"
+    "terminal-pilot-mcp": "dist/mcp-server.js"
   }
 }
 ```
@@ -444,7 +444,7 @@ packages/terminal-agent/
 ### Integration tests
 
 - `terminal-session.ts` — spawn a real process (e.g. `cat`, `sh`, or a simple test CLI), send input, verify output
-- `terminal-agent.ts` — multi-session lifecycle, cleanup on close
+- `terminal-pilot.ts` — multi-session lifecycle, cleanup on close
 - `mcp-tools.ts` — end-to-end MCP tool calls: create session → interact → read screen → close
 - `mcp-server.ts` — server lifecycle, tool registration
 
@@ -473,7 +473,7 @@ Use this in integration tests instead of depending on external CLIs.
 2. `ansi.ts` + tests — ANSI strip utility
 3. `terminal-screen.ts` + tests — screen snapshot model
 4. `terminal-session.ts` + integration tests — PTY session with real process
-5. `terminal-agent.ts` + tests — multi-session management
+5. `terminal-pilot.ts` + tests — multi-session management
 6. `index.ts` — public SDK surface
 7. `mcp-tools.ts` + tests — MCP tool definitions over the SDK
 8. `mcp-server.ts` + tests — MCP stdio server entry point
@@ -484,9 +484,9 @@ Use this in integration tests instead of depending on external CLIs.
 ### Testing a poe-code configure flow
 
 ```ts
-import { TerminalAgent } from "@poe-code/terminal-agent"
+import { TerminalPilot } from "@poe-code/terminal-pilot"
 
-const agent = await TerminalAgent.launch()
+const agent = await TerminalPilot.launch()
 const session = await agent.newSession({
   command: "poe-code",
   args: ["configure"],

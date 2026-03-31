@@ -4,14 +4,14 @@ tasks:
   # ═══════════════════════════════════════════════════════════════════════
 
   - id: package-scaffold
-    title: Scaffold terminal-agent package
+    title: Scaffold terminal-pilot package
     prompt: |
-      Create `packages/terminal-agent/` with package.json, tsconfig.json, README.md.
+      Create `packages/terminal-pilot/` with package.json, tsconfig.json, README.md.
 
       package.json:
-        - name: `@poe-code/terminal-agent`
+        - name: `@poe-code/terminal-pilot`
         - exports: `"."` → `dist/index.js` and `"./mcp"` → `dist/mcp-server.js`
-        - bin: `terminal-agent-mcp` → `dist/mcp-server.js`
+        - bin: `terminal-pilot-mcp` → `dist/mcp-server.js`
         - dependencies: `node-pty` (1.x), `headless-terminal`
         - devDependencies: reference workspace packages as needed
 
@@ -28,7 +28,7 @@ tasks:
   - id: keys
     title: Key name to escape sequence mapping
     prompt: |
-      Create `packages/terminal-agent/src/keys.ts` with a `TerminalKey` type
+      Create `packages/terminal-pilot/src/keys.ts` with a `TerminalKey` type
       and a `keyToSequence(key: TerminalKey): string` function.
 
       Supported keys and their escape sequences:
@@ -63,7 +63,7 @@ tasks:
   - id: ansi
     title: ANSI stripping utility
     prompt: |
-      Create `packages/terminal-agent/src/ansi.ts` with a `stripAnsi(input: string): string`
+      Create `packages/terminal-pilot/src/ansi.ts` with a `stripAnsi(input: string): string`
       function that removes all ANSI escape sequences from a string.
 
       Must handle: SGR (colors/styles), cursor movement, erase sequences,
@@ -85,7 +85,7 @@ tasks:
   - id: terminal-screen
     title: TerminalScreen snapshot model
     prompt: |
-      Create `packages/terminal-agent/src/terminal-screen.ts`.
+      Create `packages/terminal-pilot/src/terminal-screen.ts`.
 
       TerminalScreen is a read-only snapshot of the visible terminal state.
       It is constructed from a headless-terminal instance's state.
@@ -125,7 +125,7 @@ tasks:
   - id: test-cli-fixture
     title: Create test CLI fixture for integration tests
     prompt: |
-      Create `packages/terminal-agent/src/testing/test-cli.ts` — a minimal
+      Create `packages/terminal-pilot/src/testing/test-cli.ts` — a minimal
       interactive CLI program used as a test fixture.
 
       The program should:
@@ -136,7 +136,7 @@ tasks:
       Use Node's `readline` module. This file is executed directly as a
       script (not imported), so add a shebang and make it self-contained.
 
-      Also create a second fixture `packages/terminal-agent/src/testing/menu-cli.ts`
+      Also create a second fixture `packages/terminal-pilot/src/testing/menu-cli.ts`
       that shows a simple arrow-key menu:
       1. Print "Select an option:"
       2. Show 3 options with `>` indicating current selection
@@ -153,7 +153,7 @@ tasks:
   - id: terminal-session
     title: TerminalSession with PTY process
     prompt: |
-      Create `packages/terminal-agent/src/terminal-session.ts`.
+      Create `packages/terminal-pilot/src/terminal-session.ts`.
 
       TerminalSession wraps a single PTY process (via `node-pty`) and a
       `headless-terminal` instance for screen state.
@@ -212,16 +212,16 @@ tasks:
   # Phase 4: Agent (multi-session manager)
   # ═══════════════════════════════════════════════════════════════════════
 
-  - id: terminal-agent
-    title: TerminalAgent multi-session manager
+  - id: terminal-pilot
+    title: TerminalPilot multi-session manager
     prompt: |
-      Create `packages/terminal-agent/src/terminal-agent.ts`.
+      Create `packages/terminal-pilot/src/terminal-pilot.ts`.
 
-      TerminalAgent manages multiple TerminalSession instances.
+      TerminalPilot manages multiple TerminalSession instances.
 
       ```ts
-      class TerminalAgent {
-        static async launch(): Promise<TerminalAgent>
+      class TerminalPilot {
+        static async launch(): Promise<TerminalPilot>
 
         async newSession(opts: NewSessionOptions): Promise<TerminalSession>
         getSession(id: string): TerminalSession   // throws if not found
@@ -244,7 +244,7 @@ tasks:
       generated with `crypto.randomUUID()`. `close()` calls `session.close()`
       on all active sessions and clears the map.
 
-      Write integration tests in `terminal-agent.test.ts`: create multiple
+      Write integration tests in `terminal-pilot.test.ts`: create multiple
       sessions, list them, get by ID, close all, verify cleanup.
     status:
       implement: open
@@ -255,10 +255,10 @@ tasks:
   - id: sdk-exports
     title: Public SDK barrel export
     prompt: |
-      Create `packages/terminal-agent/src/index.ts` as the public entry point.
+      Create `packages/terminal-pilot/src/index.ts` as the public entry point.
 
       Export:
-      - `TerminalAgent` from `./terminal-agent.js`
+      - `TerminalPilot` from `./terminal-pilot.js`
       - `TerminalSession` from `./terminal-session.js`
       - `TerminalScreen` from `./terminal-screen.js`
       - `TerminalKey` type from `./keys.js`
@@ -278,10 +278,10 @@ tasks:
   - id: mcp-tools
     title: MCP tool definitions over the SDK
     prompt: |
-      Create `packages/terminal-agent/src/mcp-tools.ts`.
+      Create `packages/terminal-pilot/src/mcp-tools.ts`.
 
-      Define MCP tool handlers that wrap TerminalAgent. Each tool takes a
-      TerminalAgent instance and returns a tool registration object compatible
+      Define MCP tool handlers that wrap TerminalPilot. Each tool takes a
+      TerminalPilot instance and returns a tool registration object compatible
       with `@poe-code/tiny-stdio-mcp-server`.
 
       Tools to implement:
@@ -317,7 +317,7 @@ tasks:
           → calls agent.sessions(), returns { sessions: [{ id, command, pid }] }
 
       Define JSON schemas for each tool's input. Write tests in `mcp-tools.test.ts`
-      that mock the TerminalAgent and verify tool handlers call the right methods
+      that mock the TerminalPilot and verify tool handlers call the right methods
       with the right arguments.
     status:
       implement: open
@@ -328,13 +328,13 @@ tasks:
   - id: mcp-server
     title: MCP stdio server entry point
     prompt: |
-      Create `packages/terminal-agent/src/mcp-server.ts`.
+      Create `packages/terminal-pilot/src/mcp-server.ts`.
 
       This is the MCP server entry point (also the bin script).
 
-      1. Create a TerminalAgent instance via `TerminalAgent.launch()`
+      1. Create a TerminalPilot instance via `TerminalPilot.launch()`
       2. Create an MCP server via `createServer` from `@poe-code/tiny-stdio-mcp-server`
-         with name "terminal-agent" and version from package.json
+         with name "terminal-pilot" and version from package.json
       3. Register all tools from `./mcp-tools.ts`
       4. Call `server.listen()` to start the stdio transport
       5. On process exit, call `agent.close()` for cleanup
@@ -354,16 +354,16 @@ tasks:
   - id: readme
     title: Write package README
     prompt: |
-      Write `packages/terminal-agent/README.md` documenting:
+      Write `packages/terminal-pilot/README.md` documenting:
 
-      1. What terminal-agent is (Playwright-like SDK + MCP server for CLI automation)
-      2. SDK API reference with code examples for TerminalAgent, TerminalSession, TerminalScreen
+      1. What terminal-pilot is (Playwright-like SDK + MCP server for CLI automation)
+      2. SDK API reference with code examples for TerminalPilot, TerminalSession, TerminalScreen
       3. MCP server usage: how to run the server, all 10 tools with input/output schemas
       4. Environment variables (if any)
       5. Testing: how to use the test fixtures
       6. Example: testing a poe-code configure flow end-to-end
 
-      Keep it concise and practical. Reference the plan at docs/plans/terminal-agent.md
+      Keep it concise and practical. Reference the plan at docs/plans/terminal-pilot.md
       for design rationale.
     status:
       implement: open

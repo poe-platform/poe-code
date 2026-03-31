@@ -22,7 +22,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "test:unit": "bun test"
+    "test:unit": "bun test src/persistent-container.test.ts && bun test --path-ignore-patterns '**/persistent-container*'"
   },
   "dependencies": {
     "auth-store": "*",

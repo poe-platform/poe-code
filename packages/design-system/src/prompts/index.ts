@@ -56,7 +56,7 @@ export async function select<Value>(
 
 export type TextOptions = Parameters<typeof clack.text>[0];
 
-export async function text(opts: TextOptions): Promise<string | symbol> {
+export async function promptText(opts: TextOptions): Promise<string | symbol> {
   return clack.text(opts);
 }
 

@@ -23,7 +23,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: keys
     title: Key name to escape sequence mapping
@@ -55,9 +55,9 @@ tasks:
       Throw on unknown key names. Pure function, no side effects.
       Write comprehensive unit tests in `keys.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: ansi

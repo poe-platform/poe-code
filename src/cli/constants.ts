@@ -48,6 +48,7 @@ export const DEFAULT_CODEX_MODEL = CODEX_MODELS[0];
 export const KIMI_MODELS = [
   "novitaai/kimi-k2.5",
   "novitaai/kimi-k2-thinking",
+  "novitaai/kimi-k2.5-fw",
 ] as const;
 export const DEFAULT_KIMI_MODEL = KIMI_MODELS[0];
 

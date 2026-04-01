@@ -105,17 +105,12 @@ async function executeStatus(program: Command, container: CliContainer): Promise
   }
 }
 
-async function executeApiKey(program: Command, container: CliContainer): Promise<void> {
-  const flags = resolveCommandFlags(program);
-  const resources = createExecutionResources(container, flags, "auth:api_key");
-
-  resources.logger.intro("auth api_key");
-
+async function executeApiKey(_program: Command, container: CliContainer): Promise<void> {
   const apiKey = await container.readApiKey();
   if (!apiKey) {
-    resources.logger.info("No API key stored.");
+    process.exitCode = 1;
     return;
   }
 
-  resources.logger.info(`API key: ${apiKey}`);
+  process.stdout.write(apiKey);
 }

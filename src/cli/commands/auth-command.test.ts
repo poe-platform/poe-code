@@ -220,9 +220,11 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Problems?"))).toBe(true);
   });
 
-  it("shows stored API key with auth api_key", async () => {
+  it("outputs only the raw API key with auth api_key", async () => {
     await storeApiKey(fs, "stored-key");
 
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
     const program = createProgram({
       fs,
       prompts: vi.fn(),
@@ -233,10 +235,11 @@ describe("auth command", () => {
 
     await program.parseAsync(["node", "cli", "auth", "api_key"]);
 
-    expect(logs.some((m) => m.includes("API key: stored-key"))).toBe(true);
+    expect(stdoutSpy).toHaveBeenCalledWith("stored-key");
+    stdoutSpy.mockRestore();
   });
 
-  it("shows no API key message with auth api_key when key is missing", async () => {
+  it("sets exit code 1 when no API key is stored", async () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
@@ -245,8 +248,10 @@ describe("auth command", () => {
       logger: (message) => logs.push(message)
     });
 
+    process.exitCode = 0;
     await program.parseAsync(["node", "cli", "auth", "api_key"]);
 
-    expect(logs.some((m) => m.includes("No API key stored"))).toBe(true);
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
   });
 });

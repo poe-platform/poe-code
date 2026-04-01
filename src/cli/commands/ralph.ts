@@ -474,14 +474,12 @@ export function registerRalphCommand(
     .argument("[doc]", "Markdown doc path")
     .option("--agent <name>", "Override the agent from frontmatter")
     .option("--iterations <n>", "Override iterations from frontmatter")
-    .option("--model <model>", "Model override passed to the agent")
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "ralph:run");
       const options = this.opts<{
         agent?: string;
         iterations?: string;
-        model?: string;
       }>();
 
       resources.logger.intro("ralph run");
@@ -523,7 +521,6 @@ export function registerRalphCommand(
           homeDir: container.env.homeDir,
           docPath,
           maxIterations,
-          ...(options.model ? { model: options.model } : {}),
           onIterationStart(iteration, total, currentAgent) {
             resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
           },

@@ -78,9 +78,7 @@ describe("ralph run command", () => {
       "--agent",
       "claude",
       "--iterations",
-      "5",
-      "--model",
-      "gpt-5.2"
+      "5"
     ]);
 
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
@@ -89,8 +87,7 @@ describe("ralph run command", () => {
         cwd,
         homeDir,
         docPath: "docs/loop.md",
-        maxIterations: 5,
-        model: "gpt-5.2"
+        maxIterations: 5
       })
     );
   });

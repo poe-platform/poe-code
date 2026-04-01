@@ -195,7 +195,6 @@ describe("parseExperimentFrontmatter", () => {
       "  direction: maximize",
       "baseline:",
       "  tests: 1",
-      "model: claude-sonnet-4-20250514",
       "status:",
       "  state: open",
       "  experiment: 3",
@@ -216,7 +215,6 @@ describe("parseExperimentFrontmatter", () => {
       baseline: {
         tests: 1
       },
-      model: "claude-sonnet-4-20250514",
       status: {
         state: "open",
         experiment: 3,
@@ -243,7 +241,6 @@ describe("writeExperimentFrontmatter", () => {
       "baseline:",
       "  tests: 1",
       "  test_duration: 42.5",
-      "model: claude-sonnet-4-20250514",
       "status:",
       "  state: open",
       "  experiment: 3",

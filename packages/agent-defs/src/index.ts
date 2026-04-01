@@ -1,4 +1,5 @@
 export type { AgentDefinition } from "./types.js";
+export type { AgentSpecifier } from "./specifier.js";
 export {
   claudeCodeAgent,
   claudeDesktopAgent,
@@ -7,3 +8,4 @@ export {
   kimiAgent
 } from "./agents/index.js";
 export { allAgents, resolveAgentId } from "./registry.js";
+export { parseAgentSpecifier, formatAgentSpecifier } from "./specifier.js";

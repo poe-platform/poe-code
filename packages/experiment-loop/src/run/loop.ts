@@ -9,6 +9,7 @@ import { createDefaultGit } from "../git/git.js";
 import { ExperimentJournal } from "../journal/journal.js";
 import { evaluateChain } from "../evaluator/evaluator.js";
 import { loadRunConfig } from "../config/loader.js";
+import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
 import type {
   EvalResult,
   ExecFn,
@@ -93,20 +94,18 @@ function normalizeMetrics(metric: MetricDef | MetricDef[] | undefined): MetricDe
   return Array.isArray(metric) ? metric : [metric];
 }
 
-function normalizeAgents(agent: string | string[] | undefined): string[] {
+function normalizeAgents(agent: string | string[] | undefined): AgentSpecifier[] {
   if (!agent) {
     throw new Error("Experiment doc is missing agent frontmatter.");
   }
 
-  if (typeof agent === "string") {
-    return [agent];
-  }
+  const raw = typeof agent === "string" ? [agent] : agent;
 
-  if (agent.length === 0) {
+  if (raw.length === 0) {
     throw new Error("agent must contain at least one entry.");
   }
 
-  return agent;
+  return raw.map(parseAgentSpecifier);
 }
 
 function validateMaxExperiments(maxExperiments: number | undefined): number {
@@ -395,7 +394,6 @@ export async function runExperimentLoop(
       const metrics = normalizeMetrics(frontmatter.metric);
       const agents = normalizeAgents(options.agent ?? frontmatter.agent);
       const metricTimeoutMs = frontmatter.metricTimeout ? frontmatter.metricTimeout * 1000 : undefined;
-      const model = options.model ?? frontmatter.model;
 
       const experimentIndex = experimentsCompleted + 1;
       const prompt = buildPrompt({
@@ -411,13 +409,14 @@ export async function runExperimentLoop(
       const preExperimentHash = baselineHash;
       const experimentStart = Date.now();
 
-      const currentAgent = agents[(experimentIndex - 1) % agents.length]!;
-      options.onExperimentStart?.(experimentIndex, currentAgent);
+      const currentSpecifier = agents[(experimentIndex - 1) % agents.length]!;
+      const model = currentSpecifier.model;
+      options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
 
       let agentResult;
       try {
         agentResult = await runAgent({
-          agent: currentAgent,
+          agent: currentSpecifier.agent,
           prompt,
           cwd: options.cwd,
           ...(model ? { model } : {}),

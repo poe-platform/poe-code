@@ -50,7 +50,6 @@ export type CreateExperimentDocOptions = {
   agent?: string | string[];
   metric?: MetricDef | MetricDef[];
   baseline?: Record<string, number> | null;
-  model?: string;
   status?: {
     state?: string;
     experiment?: number;
@@ -363,7 +362,6 @@ export function createExperimentDoc(options: CreateExperimentDocOptions = {}): s
     agent: options.agent ?? "claude-code",
     metric: options.metric ?? { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
     baseline: options.baseline ?? null,
-    ...(options.model ? { model: options.model } : {}),
     status: {
       state: options.status?.state ?? "open",
       experiment: options.status?.experiment ?? 0,

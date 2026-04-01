@@ -282,7 +282,7 @@ describe("runExperimentLoop", () => {
     );
   });
 
-  it("lets explicit agent and model options override frontmatter", async () => {
+  it("lets explicit agent option override frontmatter", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({
       [docPath]: [
@@ -293,7 +293,6 @@ describe("runExperimentLoop", () => {
         "  script: node scripts/metric-tests.mjs",
         "  direction: maximize",
         "baseline: { tests: 1 }",
-        "model: doc-model",
         "status:",
         "  state: open",
         "  experiment: 0",
@@ -319,8 +318,7 @@ describe("runExperimentLoop", () => {
       cwd: "/repo",
       homeDir: "/home/user",
       docPath,
-      agent: "claude-code",
-      model: "cli-model",
+      agent: "claude-code:anthropic/claude-opus-4.6",
       maxExperiments: 1,
       fs,
       git,
@@ -331,7 +329,7 @@ describe("runExperimentLoop", () => {
     expect(runAgent).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
-        model: "cli-model"
+        model: "anthropic/claude-opus-4.6"
       })
     );
   });
@@ -637,6 +635,167 @@ describe("runExperimentLoop", () => {
     });
 
     expect(result.experimentsKept).toBe(1);
+  });
+
+  it("uses inline model from agent specifier notation", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code:anthropic/claude-opus-4.6",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Improve the tests"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([{ stdout: "2\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        model: "anthropic/claude-opus-4.6"
+      })
+    );
+  });
+
+  it("per-agent inline models work with agent arrays", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent:",
+        "  - claude-code:anthropic/claude-opus-4.6",
+        "  - codex:openai/gpt-5.4",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Improve the tests"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([
+      { stdout: "2\n", stderr: "", exitCode: 0 },
+      { stdout: "3\n", stderr: "", exitCode: 0 }
+    ]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 2,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        model: "anthropic/claude-opus-4.6"
+      })
+    );
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
+        model: "openai/gpt-5.4"
+      })
+    );
+  });
+
+  it("reports agent id without model in onExperimentStart", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code:anthropic/claude-opus-4.6",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Improve the tests"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([{ stdout: "2\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+    const onExperimentStart = vi.fn();
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent,
+      onExperimentStart
+    });
+
+    expect(onExperimentStart).toHaveBeenCalledWith(1, "claude-code");
   });
 
   it("keeps a minimize metric with slight regression within delta", async () => {

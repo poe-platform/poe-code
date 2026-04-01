@@ -49,7 +49,6 @@ export interface ExperimentRunOptions {
   homeDir: string;
   docPath: string;
   agent?: string | string[];
-  model?: string;
   maxExperiments?: number;
   fs?: ExperimentFileSystem;
   git?: ExperimentGit;

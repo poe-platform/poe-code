@@ -46,7 +46,6 @@ metric:
   name: tests
   direction: maximize
 baseline: null
-model: claude-sonnet-4-20250514
 status:
   state: open
   experiment: 0
@@ -75,6 +74,24 @@ From the CLI, pass a comma-separated list:
 ```bash
 poe-code experiment run --agent claude-code,codex
 ```
+
+### Specifying a model
+
+To pin a specific model, use the agent specifier notation `agent:provider/model`:
+
+```yaml
+agent: claude-code:anthropic/claude-opus-4.6
+```
+
+Each entry in an array can specify its own model:
+
+```yaml
+agent:
+  - claude-code:anthropic/claude-opus-4.6
+  - codex:openai/gpt-5.4
+```
+
+When the model part is omitted, the configured default model is used.
 
 ## Metric scripts
 

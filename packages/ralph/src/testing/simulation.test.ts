@@ -271,6 +271,42 @@ describe("createRalphSimulation", () => {
     expect(prompts).toEqual(["# Legacy content"]);
   });
 
+  it("uses inline model from agent specifier notation", async () => {
+    const sim = createRalphSimulation({
+      agent: "claude-code:anthropic/claude-opus-4.6",
+      docContent: "# Plan",
+      maxIterations: 1,
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs[0]).toMatchObject({
+      agent: "claude-code",
+      model: "anthropic/claude-opus-4.6"
+    });
+  });
+
+  it("per-agent inline models work with agent arrays", async () => {
+    const sim = createRalphSimulation({
+      agent: ["claude-code:anthropic/claude-opus-4.6", "codex:openai/gpt-5.4"],
+      docContent: "# Plan",
+      maxIterations: 2,
+      turns: [successTurn(), successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs[0]).toMatchObject({
+      agent: "claude-code",
+      model: "anthropic/claude-opus-4.6"
+    });
+    expect(runs[1]).toMatchObject({
+      agent: "codex",
+      model: "openai/gpt-5.4"
+    });
+  });
+
   it("stops on first failed iteration", async () => {
     const sim = createRalphSimulation({
       docContent: "Keep trying",

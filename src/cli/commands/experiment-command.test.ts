@@ -104,8 +104,6 @@ describe("experiment run command", () => {
       "docs/loop.md",
       "--agent",
       "claude",
-      "--model",
-      "gpt-5.2",
       "--max-experiments",
       "5"
     ]);
@@ -116,7 +114,6 @@ describe("experiment run command", () => {
         cwd,
         homeDir,
         docPath: "docs/loop.md",
-        model: "gpt-5.2",
         maxExperiments: 5,
         onExperimentStart: expect.any(Function),
         onExperimentComplete: expect.any(Function)

@@ -380,14 +380,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .description("Run an experiment doc through the autonomous experiment loop.")
     .argument("[doc]", "Experiment doc path")
     .option("--agent <agent>", "Override the agent from frontmatter")
-    .option("--model <model>", "Override the model from frontmatter")
     .option("--max-experiments <n>", "Limit the number of experiments to run")
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "experiment:run");
       const options = this.opts<{
         agent?: string;
-        model?: string;
         maxExperiments?: string;
       }>();
 
@@ -421,7 +419,6 @@ export function registerExperimentCommand(program: Command, container: CliContai
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
           docPath,
-          ...(options.model ? { model: options.model } : {}),
           ...(maxExperiments !== undefined ? { maxExperiments } : {}),
           onExperimentStart(index, currentAgent) {
             resources.logger.info(`Experiment ${index} (${currentAgent})`);

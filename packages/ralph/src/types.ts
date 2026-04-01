@@ -39,7 +39,6 @@ export interface RalphRunOptions {
   agent: string | string[];
   cwd: string;
   homeDir: string;
-  model?: string;
   docPath: string;
   maxIterations: number;
   fs?: RalphFileSystem;

@@ -1,5 +1,6 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
+import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
 import {
   parseFrontmatter,
   writeFrontmatter,
@@ -76,17 +77,18 @@ export async function runRalph(
       iteration += 1
     ) {
       assertNotAborted(options.signal);
-      const currentAgent = agents[(iteration - 1) % agents.length]!;
-      options.onIterationStart?.(iteration, options.maxIterations, currentAgent);
+      const currentSpecifier = agents[(iteration - 1) % agents.length]!;
+      const model = currentSpecifier.model;
+      options.onIterationStart?.(iteration, options.maxIterations, currentSpecifier.agent);
 
       const iterationStart = Date.now();
       let result;
       try {
         result = await runAgent({
-          agent: currentAgent,
+          agent: currentSpecifier.agent,
           prompt,
           cwd: options.cwd,
-          ...(options.model ? { model: options.model } : {}),
+          ...(model ? { model } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });
       } catch (error) {
@@ -148,25 +150,22 @@ function createDefaultFs(): RalphFileSystem {
   };
 }
 
-function normalizeAgents(agent: RalphRunOptions["agent"]): string[] {
-  if (typeof agent === "string") {
-    const trimmed = agent.trim();
-    if (trimmed.length === 0) {
-      throw new Error("agent must contain at least one entry.");
-    }
-    return [trimmed];
-  }
+function normalizeAgents(agent: RalphRunOptions["agent"]): AgentSpecifier[] {
+  const raw = typeof agent === "string" ? [agent] : agent;
 
-  if (agent.length === 0) {
+  if (raw.length === 0) {
     throw new Error("agent must contain at least one entry.");
   }
 
-  const agents = agent.map((entry) => entry.trim());
-  if (agents.some((entry) => entry.length === 0)) {
-    throw new Error("agent entries must be non-empty strings.");
-  }
+  const specifiers = raw.map((entry) => {
+    const trimmed = entry.trim();
+    if (trimmed.length === 0) {
+      throw new Error("agent entries must be non-empty strings.");
+    }
+    return parseAgentSpecifier(trimmed);
+  });
 
-  return agents;
+  return specifiers;
 }
 
 function resolveAbsoluteDocPath(

@@ -34,6 +34,12 @@ status:
 ---
 ```
 
+To pin a specific model, use the agent specifier notation `agent:provider/model`:
+
+```yaml
+agent: claude-code:anthropic/claude-opus-4.6
+```
+
 For multiple metrics (chain — all must pass, scores tracked independently):
 
 ```yaml

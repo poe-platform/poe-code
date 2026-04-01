@@ -14,7 +14,6 @@ export interface ExperimentFrontmatter {
   baseline: Record<string, number> | null;
   maxExperiments?: number;
   metricTimeout?: number;
-  model?: string;
   status: ExperimentFrontmatterStatus;
 }
 
@@ -57,7 +56,6 @@ function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
   const metric = parseMetric(parsed?.metric);
   const maxExperiments = parseNonNegativeInteger(parsed?.maxExperiments);
   const metricTimeout = parseNonNegativeInteger(parsed?.metricTimeout);
-  const model = parseString(parsed?.model);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
@@ -65,7 +63,6 @@ function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
     baseline: parseBaseline(parsed?.baseline),
     ...(maxExperiments !== undefined ? { maxExperiments } : {}),
     ...(metricTimeout !== undefined ? { metricTimeout } : {}),
-    ...(model !== undefined ? { model } : {}),
     status: parseStatus(parsed?.status)
   };
 }
@@ -77,7 +74,6 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
     baseline: frontmatter.baseline,
     ...(frontmatter.maxExperiments !== undefined ? { maxExperiments: frontmatter.maxExperiments } : {}),
     ...(frontmatter.metricTimeout !== undefined ? { metricTimeout: frontmatter.metricTimeout } : {}),
-    ...(frontmatter.model !== undefined ? { model: frontmatter.model } : {}),
     status: {
       state: frontmatter.status.state,
       experiment: frontmatter.status.experiment,

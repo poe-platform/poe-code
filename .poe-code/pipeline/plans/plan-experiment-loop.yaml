@@ -189,7 +189,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: simulation-harness
     title: Build simulation test harness and integration tests
@@ -219,9 +219,9 @@ tasks:
       These are full loop integration tests using the simulation harness — no real git or filesystem.
       Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: cli-command

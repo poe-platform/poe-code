@@ -50,7 +50,9 @@
     "prepare": "husky",
     "install-local-package": "npm pack --pack-destination /tmp && npm install -g /tmp/poe-code-*.tgz && rm /tmp/poe-code-*.tgz",
     "smoke": "tsx scripts/smoke-test.ts",
-    "smoke:verbose": "tsx scripts/smoke-test.ts --verbose"
+    "smoke:verbose": "tsx scripts/smoke-test.ts --verbose",
+    "metric:test_count": "node scripts/metric-test-count.mjs",
+    "metric:test_duration": "node scripts/metric-test-duration.mjs"
   },
   "bin": {
     "poe-code": "dist/bin.cjs",

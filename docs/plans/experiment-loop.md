@@ -395,6 +395,10 @@ poe-code experiment run [doc]
 poe-code experiment journal [doc]
   displays journal as table
 
+poe-code experiment validate [doc]
+  validates frontmatter: agent, metric, editable, status consistency
+  reports errors or prints summary on success
+
 poe-code experiment install
   --agent <name>           agent to install the skill for
   --local                  install project-local skill and files (default)
@@ -406,6 +410,79 @@ poe-code experiment install
 ```
 
 Discovery from `.poe-code/experiments/` when doc not specified.
+
+## Install command
+
+Follows the same pattern as `pipeline install`. Uses `@poe-code/agent-skill-config` for skill installation and `@poe-code/config-mutations` for file operations.
+
+### Flow
+
+1. Resolve agent — from `--agent` flag, interactive select, or default (`claude-code`) with `--yes`
+2. Validate agent support via `resolveAgentSupport(agent)`
+3. Resolve scope — from `--local`/`--global` flag, interactive select, or default (`local`) with `--yes`
+4. Load skill template from `packages/experiment-loop/src/assets/SKILL_experiment.md`
+5. Call `installSkill(agentId, { name: "poe-code-experiment-plan", content }, { fs, cwd, homeDir, scope, dryRun })`
+6. Scaffold experiments directory at resolved scope path
+7. Report results via logger
+
+### Scaffolded files
+
+```
+{scope}/.poe-code/experiments/          # created if not exists
+{scope}/.claude/skills/poe-code-experiment-plan/SKILL.md   # skill file (agent-specific path)
+```
+
+### Defaults
+
+```typescript
+const DEFAULT_EXPERIMENT_AGENT = "claude-code";
+const DEFAULT_EXPERIMENT_SCOPE: SkillScope = "local";
+```
+
+### Resolve paths
+
+```typescript
+function resolveExperimentPaths(
+  scope: SkillScope,
+  cwd: string,
+  homeDir: string
+): {
+  experimentsPath: string;       // absolute path to experiments dir
+  displayExperimentsPath: string; // human-readable relative path
+};
+```
+
+- `local` → `{cwd}/.poe-code/experiments/`
+- `global` → `{homeDir}/.poe-code/experiments/`
+
+### Template loading
+
+```typescript
+async function loadExperimentTemplates(): Promise<{
+  skillPlan: string; // content of SKILL_experiment.md
+}>;
+```
+
+Reads from `src/templates/experiment/SKILL_experiment.md` at runtime (same pattern as `loadPipelineTemplates`).
+
+## Validate command
+
+Validates an experiment doc's frontmatter without running the loop. Follows the same pattern as `pipeline validate`.
+
+### Checks
+
+1. `agent` — must be present and non-empty
+2. `metric` — must be present; each metric must have `name` (non-empty) and `direction` (`"minimize"` or `"maximize"`)
+3. `editable` — must have at least one file path
+4. `status` consistency — `kept` must not exceed `experiment` count
+
+### Success output
+
+Reports: doc path, agent, metrics with direction, editable files, readonly files. Prints "Experiment doc is valid."
+
+### Failure output
+
+Lists all validation errors, then throws `ValidationError` with error count.
 
 ## Skill: `poe-code-experiment-plan`
 

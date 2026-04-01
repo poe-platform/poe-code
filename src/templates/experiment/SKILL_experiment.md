@@ -1,0 +1,109 @@
+---
+name: poe-code-experiment-plan
+description: 'Create an experiment plan for the poe-code experiment loop. Triggers on: create experiment, experiment plan, karpathy loop.'
+---
+
+## If The Request Is Empty
+
+Ask the user what they want to optimize, fix, or measure.
+
+## Goal
+
+Create an experiment doc and metric script(s) for the autonomous experiment loop.
+
+## Steps
+
+1. Create an experiment doc at `.poe-code/experiments/<name>.md` with YAML frontmatter.
+2. Create metric script(s) that output a single number to stdout and add them as `metric:*` npm scripts in `package.json`.
+
+## Frontmatter Format
+
+```yaml
+---
+agent: claude-code
+install: npm install
+metric:
+  name: <metric-name>
+  direction: minimize | maximize
+baseline: null
+editable:
+  - <file paths the agent may edit>
+readonly:
+  - <file paths the agent should read but not edit>
+model: claude-sonnet-4-20250514
+status:
+  state: open
+  experiment: 0
+  kept: 0
+---
+```
+
+For multiple metrics (chain — all must pass, scores tracked independently):
+
+```yaml
+metric:
+  - name: tests
+    direction: maximize
+  - name: test_duration
+    direction: minimize
+```
+
+## Metric Scripts
+
+Every metric script must:
+
+- Exit 0 on success, non-zero on crash/error
+- Print a single number to stdout (the score)
+
+The loop runs `npm run metric:<name>` for each metric.
+
+### Examples
+
+**Pass/fail test gate:**
+
+```json
+{ "scripts": { "metric:tests": "npm test && echo 1 || echo 0" } }
+```
+
+**Benchmark measurement:**
+
+```javascript
+// scripts/metric-test-duration.mjs
+const result = await measure();
+console.log(result);
+```
+
+**Agent-as-judge:**
+
+```javascript
+// scripts/metric-readme-ux.mjs
+import { readFileSync } from "node:fs";
+import { spawn } from "poe-code";
+
+const readme = readFileSync("README.md", "utf8");
+const { result } = spawn("claude-code", `Rate this README 1-100.\n\n${readme}`);
+const { stdout } = await result;
+console.log(stdout.trim());
+```
+
+## Rules
+
+- Each metric script must be idempotent and self-contained.
+- Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better.
+- List only files the agent should touch in `editable`. Everything else is off-limits.
+- The `baseline` field starts as `null` — the loop sets it after the first successful run.
+
+## After Writing
+
+Run `poe-code experiment validate <path>` to check the experiment doc is valid.
+
+## Output
+
+```text
+Created:
+  .poe-code/experiments/<name>.md
+  scripts/metric-<name>.mjs  (if needed)
+
+Run with:
+  poe-code experiment run .poe-code/experiments/<name>.md
+```

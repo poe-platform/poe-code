@@ -5,6 +5,7 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerExperimentCommand } from "./experiment.js";
 import { ValidationError } from "../errors.js";
+import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
 
 const selectMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
@@ -322,5 +323,331 @@ describe("experiment journal command", () => {
       homeDir,
       docPath: ".poe-code/experiments/plan-a.md"
     });
+  });
+});
+
+describe("experiment validate command", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    isCancelMock.mockReturnValue(false);
+  });
+
+  it("validates a valid experiment doc and reports success", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": [
+          "---",
+          "agent: claude-code",
+          "metric:",
+          "  name: tests",
+          "  direction: maximize",
+          "baseline: null",
+          "editable:",
+          "  - src/model.py",
+          "readonly:",
+          "  - src/data.py",
+          "status:",
+          "  state: open",
+          "  experiment: 0",
+          "  kept: 0",
+          "---",
+          "# Loop"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "experiment", "validate", "docs/loop.md"]);
+
+    expect(loggerOutput).toContain("claude-code");
+    expect(loggerOutput).toContain("tests (maximize)");
+    expect(loggerOutput).toContain("src/model.py");
+    expect(loggerOutput).toContain("valid");
+  });
+
+  it("reports errors for missing required fields", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/bad.md": [
+          "---",
+          "baseline: null",
+          "editable: []",
+          "readonly: []",
+          "status:",
+          "  state: open",
+          "  experiment: 0",
+          "  kept: 0",
+          "---",
+          "# Bad"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "experiment", "validate", "docs/bad.md"])
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("reports status inconsistency when kept exceeds experiment count", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/inconsistent.md": [
+          "---",
+          "agent: claude-code",
+          "metric:",
+          "  name: tests",
+          "  direction: maximize",
+          "baseline: null",
+          "editable:",
+          "  - src/model.py",
+          "status:",
+          "  state: open",
+          "  experiment: 2",
+          "  kept: 5",
+          "---",
+          "# Inconsistent"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "experiment", "validate", "docs/inconsistent.md"])
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("validates a chain of metrics", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/chain.md": [
+          "---",
+          "agent: claude-code",
+          "metric:",
+          "  - name: tests",
+          "    direction: maximize",
+          "  - name: test_duration",
+          "    direction: minimize",
+          "baseline: null",
+          "editable:",
+          "  - src/model.py",
+          "status:",
+          "  state: open",
+          "  experiment: 0",
+          "  kept: 0",
+          "---",
+          "# Chain"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "experiment", "validate", "docs/chain.md"]);
+
+    expect(loggerOutput).toContain("tests (maximize)");
+    expect(loggerOutput).toContain("test_duration (minimize)");
+    expect(loggerOutput).toContain("valid");
+  });
+
+  it("discovers doc with --yes", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/.poe-code/experiments/plan-a.md": [
+          "---",
+          "agent: claude-code",
+          "metric:",
+          "  name: tests",
+          "  direction: maximize",
+          "baseline: null",
+          "editable:",
+          "  - src/model.py",
+          "status:",
+          "  state: open",
+          "  experiment: 0",
+          "  kept: 0",
+          "---",
+          "# A"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "experiment", "validate"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(loggerOutput).toContain("valid");
+  });
+});
+
+describe("experiment install command", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    isCancelMock.mockReturnValue(false);
+  });
+
+  it("installs the experiment skill and scaffolds local experiments directory", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local"
+    ]);
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).resolves.toBe(experimentSkillPlan);
+    await expect(fs.stat("/repo/.poe-code/experiments")).resolves.toBeDefined();
+  });
+
+  it("defaults to claude-code and local scope with --yes", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "experiment", "install"]);
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).resolves.toBe(experimentSkillPlan);
+    await expect(fs.stat("/repo/.poe-code/experiments")).resolves.toBeDefined();
+  });
+
+  it("rejects --local and --global together", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "install",
+        "--local",
+        "--global"
+      ])
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("installs to global scope when --global is specified", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "install",
+      "--agent",
+      "claude-code",
+      "--global"
+    ]);
+
+    await expect(
+      fs.readFile("/home/test/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).resolves.toBe(experimentSkillPlan);
+    await expect(fs.stat("/home/test/.poe-code/experiments")).resolves.toBeDefined();
+  });
+
+  it("does not recreate experiments directory if it already exists", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/experiments", { recursive: true });
+    await fs.writeFile("/repo/.poe-code/experiments/existing.md", "# Existing", {
+      encoding: "utf8"
+    });
+
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local"
+    ]);
+
+    // existing file should still be there
+    await expect(
+      fs.readFile("/repo/.poe-code/experiments/existing.md", "utf8")
+    ).resolves.toBe("# Existing");
+    // skill should be installed
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).resolves.toBe(experimentSkillPlan);
+    // should not log "Create: .poe-code/experiments" since it already existed
+    expect(loggerOutput).not.toContain("Create: .poe-code/experiments");
   });
 });

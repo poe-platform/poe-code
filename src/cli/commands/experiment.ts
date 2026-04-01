@@ -1,9 +1,18 @@
 import path from "node:path";
+import { readFile, stat } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import { cancel, getTheme, isCancel, renderTable, select } from "@poe-code/design-system";
 import { resolveAgentId } from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
+import {
+  installSkill,
+  resolveAgentSupport,
+  supportedAgents,
+  type SkillScope
+} from "@poe-code/agent-skill-config";
 import { parseExperimentFrontmatter } from "@poe-code/experiment-loop";
+import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
@@ -13,7 +22,158 @@ import {
 } from "../../sdk/experiment.js";
 
 const DEFAULT_EXPERIMENT_AGENT = "claude-code";
+const DEFAULT_EXPERIMENT_SCOPE: SkillScope = "local";
 const EXPERIMENTS_DIRECTORY = path.join(".poe-code", "experiments");
+
+type ExperimentInstallCommandOptions = {
+  force?: boolean;
+  agent?: string;
+  local?: boolean;
+  global?: boolean;
+};
+
+let experimentTemplatesCache: { skillPlan: string } | null = null;
+
+function resolveExperimentPaths(
+  scope: SkillScope,
+  cwd: string,
+  homeDir: string
+): {
+  experimentsPath: string;
+  displayExperimentsPath: string;
+} {
+  const rootPath =
+    scope === "global"
+      ? path.join(homeDir, ".poe-code", "experiments")
+      : path.join(cwd, ".poe-code", "experiments");
+  const displayRoot =
+    scope === "global" ? "~/.poe-code/experiments" : ".poe-code/experiments";
+
+  return {
+    experimentsPath: rootPath,
+    displayExperimentsPath: displayRoot
+  };
+}
+
+async function pathExistsOnDisk(targetPath: string): Promise<boolean> {
+  try {
+    await stat(targetPath);
+    return true;
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+async function findPackageRoot(entryFilePath: string): Promise<string> {
+  let currentPath = path.dirname(entryFilePath);
+
+  while (true) {
+    if (await pathExistsOnDisk(path.join(currentPath, "package.json"))) {
+      return currentPath;
+    }
+
+    const parentPath = path.dirname(currentPath);
+    if (parentPath === currentPath) {
+      throw new Error("Unable to locate package root for Experiment templates.");
+    }
+    currentPath = parentPath;
+  }
+}
+
+async function loadExperimentTemplates(): Promise<{ skillPlan: string }> {
+  if (experimentTemplatesCache) {
+    return experimentTemplatesCache;
+  }
+
+  const packageRoot = await findPackageRoot(fileURLToPath(import.meta.url));
+  const templateRoots = [
+    path.join(packageRoot, "src", "templates", "experiment"),
+    path.join(packageRoot, "dist", "templates", "experiment")
+  ];
+
+  for (const templateRoot of templateRoots) {
+    if (!(await pathExistsOnDisk(templateRoot))) {
+      continue;
+    }
+
+    const skillPlan = await readFile(
+      path.join(templateRoot, "SKILL_experiment.md"),
+      "utf8"
+    );
+
+    experimentTemplatesCache = { skillPlan };
+    return experimentTemplatesCache;
+  }
+
+  throw new Error("Experiment templates not found.");
+}
+
+async function pathExists(
+  fs: CliContainer["fs"],
+  targetPath: string
+): Promise<boolean> {
+  try {
+    await fs.stat(targetPath);
+    return true;
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
+  const errors: string[] = [];
+
+  if (!frontmatter.agent) {
+    errors.push("Missing required field: agent");
+  }
+
+  if (!frontmatter.metric) {
+    errors.push("Missing required field: metric");
+  } else {
+    const metrics = Array.isArray(frontmatter.metric)
+      ? frontmatter.metric
+      : [frontmatter.metric];
+
+    for (const metric of metrics) {
+      if (!metric.name || metric.name.trim().length === 0) {
+        errors.push("Metric is missing required field: name");
+      }
+      if (metric.direction !== "minimize" && metric.direction !== "maximize") {
+        errors.push(
+          `Metric "${metric.name ?? "(unnamed)"}" has invalid direction: "${String(metric.direction)}". Must be "minimize" or "maximize"`
+        );
+      }
+    }
+  }
+
+  if (frontmatter.editable.length === 0) {
+    errors.push("Missing required field: editable (must list at least one file path)");
+  }
+
+  if (frontmatter.status.kept > frontmatter.status.experiment) {
+    errors.push(
+      `Status inconsistency: kept (${frontmatter.status.kept}) exceeds experiment count (${frontmatter.status.experiment})`
+    );
+  }
+
+  return errors;
+}
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
@@ -336,6 +496,188 @@ export function registerExperimentCommand(program: Command, container: CliContai
             rows
           })
         );
+      } finally {
+        resources.context.finalize();
+      }
+    });
+
+  experiment
+    .command("validate")
+    .description("Validate an experiment doc without running it.")
+    .argument("[doc]", "Experiment doc path")
+    .action(async function (this: Command, docArg?: string) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(
+        container,
+        flags,
+        "experiment:validate"
+      );
+
+      try {
+        resources.logger.intro("experiment validate");
+
+        const docPath = await resolveDocPath({
+          container,
+          program,
+          providedDoc: docArg,
+          selectMessage: "Select the experiment doc to validate:",
+          cancelMessage: "Experiment validate cancelled."
+        });
+        if (!docPath) {
+          return;
+        }
+
+        const doc = await readExperimentDoc(container, docPath);
+        const errors = validateExperimentDoc(doc.frontmatter);
+
+        if (errors.length > 0) {
+          for (const error of errors) {
+            resources.logger.error(error);
+          }
+          throw new ValidationError(
+            `Experiment doc has ${errors.length} validation error${errors.length === 1 ? "" : "s"}.`
+          );
+        }
+
+        const metrics = doc.frontmatter.metric
+          ? Array.isArray(doc.frontmatter.metric)
+            ? doc.frontmatter.metric
+            : [doc.frontmatter.metric]
+          : [];
+
+        resources.logger.resolved("Doc", docPath);
+        resources.logger.resolved("Agent", doc.frontmatter.agent!);
+        resources.logger.resolved(
+          "Metrics",
+          metrics.map((m) => `${m.name} (${m.direction})`).join(", ")
+        );
+        resources.logger.resolved("Editable", doc.frontmatter.editable.join(", "));
+        if (doc.frontmatter.readonly.length > 0) {
+          resources.logger.resolved("Readonly", doc.frontmatter.readonly.join(", "));
+        }
+        resources.logger.success("Experiment doc is valid.");
+      } finally {
+        resources.context.finalize();
+      }
+    });
+
+  experiment
+    .command("install")
+    .description("Install the Experiment /experiment skill and scaffold experiment files.")
+    .option("--agent <name>", "Agent to install the Experiment skill for")
+    .option("--local", "Install project-local skill and experiment files")
+    .option("--global", "Install user-global skill and experiment files")
+    .option("--force", "Overwrite existing files")
+    .action(async function (this: Command) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(
+        container,
+        flags,
+        "experiment:install"
+      );
+      const options = this.opts<ExperimentInstallCommandOptions>();
+
+      if (options.local && options.global) {
+        throw new ValidationError("Use either --local or --global, not both.");
+      }
+
+      try {
+        let agent = options.agent;
+        if (!agent) {
+          if (flags.assumeYes) {
+            agent = DEFAULT_EXPERIMENT_AGENT;
+          } else {
+            const selected = await select({
+              message: "Select agent to install the Experiment skill for:",
+              options: supportedAgents.map((value) => ({
+                value,
+                label: value
+              }))
+            });
+            if (isCancel(selected)) {
+              cancel("Experiment install cancelled.");
+              return;
+            }
+            agent = selected as string;
+          }
+        }
+
+        const support = resolveAgentSupport(agent);
+        if (support.status !== "supported" || !support.id) {
+          throw new ValidationError(`Unsupported agent: ${agent}`);
+        }
+
+        let scope: SkillScope;
+        if (options.local) {
+          scope = "local";
+        } else if (options.global) {
+          scope = "global";
+        } else if (flags.assumeYes) {
+          scope = DEFAULT_EXPERIMENT_SCOPE;
+        } else {
+          const selected = await select({
+            message: "Select install scope:",
+            options: [
+              { value: "local", label: "Local" },
+              { value: "global", label: "Global" }
+            ]
+          });
+          if (isCancel(selected)) {
+            cancel("Experiment install cancelled.");
+            return;
+          }
+          scope = selected as SkillScope;
+        }
+
+        resources.logger.intro(`experiment install (${support.id}, ${scope})`);
+
+        const templates = await loadExperimentTemplates();
+        const skillResult = await installSkill(
+          support.id,
+          {
+            name: "poe-code-experiment-plan",
+            content: templates.skillPlan
+          },
+          {
+            fs: container.fs,
+            cwd: container.env.cwd,
+            homeDir: container.env.homeDir,
+            scope,
+            dryRun: flags.dryRun
+          }
+        );
+
+        if (flags.dryRun) {
+          resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
+        } else {
+          resources.logger.info(`Create: ${skillResult.displayPath}`);
+        }
+
+        const experimentPaths = resolveExperimentPaths(
+          scope,
+          container.env.cwd,
+          container.env.homeDir
+        );
+
+        if (!(await pathExists(container.fs, experimentPaths.experimentsPath))) {
+          if (flags.dryRun) {
+            resources.logger.dryRun(
+              `Would create: ${experimentPaths.displayExperimentsPath}`
+            );
+          } else {
+            await container.fs.mkdir(experimentPaths.experimentsPath, {
+              recursive: true
+            });
+            resources.logger.info(
+              `Create: ${experimentPaths.displayExperimentsPath}`
+            );
+          }
+        }
+
+        resources.context.complete({
+          success: `Installed Experiment skill for ${support.id} and scaffolded ${scope} experiment files`,
+          dry: `Would install Experiment skill for ${support.id} and scaffold ${scope} experiment files`
+        });
       } finally {
         resources.context.finalize();
       }

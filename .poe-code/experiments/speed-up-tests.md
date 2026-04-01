@@ -2,15 +2,14 @@
 agent: claude-code
 metric:
   - name: test_count
+    script: node scripts/metric-test-count.mjs
     direction: stable
   - name: test_duration
+    script: node scripts/metric-test-duration.mjs
     direction: minimize
-baseline:
-  test_count: 2725
-  test_duration: 73859.97021484375
 status:
   state: open
-  experiment: 0
+  experiment: 1
   kept: 0
 ---
 

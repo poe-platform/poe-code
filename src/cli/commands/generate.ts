@@ -10,7 +10,7 @@ import {
 } from "../constants.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { getGlobalClient, initializeClient } from "../../services/client-instance.js";
-import type { LlmClient } from "../../services/llm-client.js";
+import type { LlmClient, LlmResponse } from "../../services/llm-client.js";
 import { downloadToFile, MediaDownloadError } from "../../services/media-download.js";
 import { ValidationError } from "../errors.js";
 import { loadAgentModel } from "@poe-code/poe-code-config";
@@ -73,7 +73,7 @@ export function registerGenerateCommand(
 
       intro("generate");
       const client = await resolveClient(container);
-      const response = await withSpinner({
+      const response = await withSpinner<LlmResponse>({
         message: `Generating with ${model}...`,
         fn: () => client.text({ model, prompt, params }),
         stopMessage: () => model,
@@ -113,7 +113,7 @@ export function registerGenerateCommand(
 
       intro("generate text");
       const client = await resolveClient(container);
-      const response = await withSpinner({
+      const response = await withSpinner<LlmResponse>({
         message: `Generating with ${model}...`,
         fn: () => client.text({ model, prompt, params }),
         stopMessage: () => model,

@@ -246,7 +246,7 @@ export function registerModelsCommand(
           headers.Authorization = `Bearer ${apiKey}`;
         }
 
-        const result = await withSpinner({
+        const result = await withSpinner<{ object: string; data: ModelEntry[] }>({
           message: "Fetching models...",
           fn: async () => {
             const response = await container.httpClient(

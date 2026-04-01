@@ -1,13 +1,13 @@
 ---
 agent: claude-code
-install: npm install
 metric:
   - name: test_count
     direction: stable
   - name: test_duration
     direction: minimize
-baseline: null
-model: claude-sonnet-4-20250514
+baseline:
+  test_count: 2725
+  test_duration: 73859.97021484375
 status:
   state: open
   experiment: 0
@@ -26,4 +26,4 @@ Run single experiment to speed up test.
 
 - Do not remove or skip existing tests
 - Do not reduce test coverage
-- Focus on: reducing unnecessary setup, parallelization, faster mocks, avoiding redundant work
+- Focus on: reducing unnecessary setup, faster mocks, avoiding redundant work

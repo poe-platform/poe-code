@@ -1,7 +1,7 @@
 import { exec } from "node:child_process";
 import readline from "node:readline";
 import { createOAuthClient } from "poe-oauth";
-import { text, log } from "@poe-code/design-system";
+import { text, log, spinner } from "@poe-code/design-system";
 
 export async function resolveApiKeyViaOAuth(): Promise<string> {
   const rl = readline.createInterface({
@@ -24,9 +24,13 @@ export async function resolveApiKeyViaOAuth(): Promise<string> {
     const authorization = await client.authorize();
 
     log.message(`${text.muted("Authorize at")} ${text.link(authorization.authorizationUrl)}`);
-    log.message(text.muted("Waiting for authorization. You can also paste the redirect URL here:"));
+
+    const s = spinner();
+    s.start("Waiting for authorization. You can also paste the redirect URL here:");
 
     const result = await authorization.waitForResult();
+
+    s.stop("Authenticated");
 
     return result.apiKey;
   } finally {

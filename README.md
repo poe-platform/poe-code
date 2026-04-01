@@ -55,7 +55,7 @@ npx poe-code@latest logout
 - [Models](#models)
 - [MCP Server](#poe-mcp-server)
 - [SDK](#sdk)
-- [Experimental](#experimental)
+- [Research Preview](#research-preview)
 - [Poe API](https://poe.com/api)
 
 ## Utilities

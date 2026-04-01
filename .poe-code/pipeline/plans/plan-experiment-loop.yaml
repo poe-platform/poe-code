@@ -91,7 +91,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: evaluator
     title: Implement metric evaluator
@@ -121,9 +121,9 @@ tasks:
 
       Use mock `ExecFn` in tests. Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: git-strategy

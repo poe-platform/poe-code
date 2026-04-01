@@ -68,6 +68,12 @@ export interface ExperimentRunResult {
   totalDurationMs: number;
 }
 
+export interface EvalResult {
+  score: number | null;
+  passed: boolean;
+  output: string;
+}
+
 export interface JournalEntry {
   commit: string;
   status: "keep" | "discard" | "crash";

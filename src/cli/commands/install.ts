@@ -21,6 +21,7 @@ export function registerInstallCommand(
     `Agent to install${formatServiceList(serviceNames)}`;
   return program
     .command("install")
+    .alias("i")
     .description("Install tooling for a configured agent.")
     .argument(
       "[agent]",

@@ -93,7 +93,19 @@ describe("detectExecutionContext", () => {
   });
 
   describe("global installation detection", () => {
-    it("defaults to global when no special conditions match", () => {
+    it("uses poe when invoked as poe", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/usr/local/bin/poe"],
+        env: {},
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("global");
+      expect(result.command.command).toBe("poe");
+      expect(result.command.args).toEqual([]);
+    });
+
+    it("uses poe-code when invoked as poe-code", () => {
       const result = detectExecutionContext({
         argv: ["/usr/bin/node", "/usr/lib/node_modules/poe-code/dist/index.js", "mcp"],
         env: {},
@@ -122,12 +134,12 @@ describe("toMcpServerCommand", () => {
 
   it("works with global command", () => {
     const result = toMcpServerCommand(
-      { command: "poe-code", args: [] },
+      { command: "poe", args: [] },
       "mcp"
     );
 
     expect(result).toEqual({
-      command: "poe-code",
+      command: "poe",
       args: ["mcp"]
     });
   });
@@ -154,12 +166,12 @@ describe("toOpenCodeMcpCommand", () => {
 });
 
 describe("formatCliHelpCommand", () => {
-  it("formats global help command as poe-code invocation", () => {
+  it("formats global help command as poe invocation", () => {
     const help = formatCliHelpCommand(
-      { mode: "global", command: { command: "poe-code", args: [] } },
+      { mode: "global", command: { command: "poe", args: [] } },
       ["--help"]
     );
-    expect(help).toBe("poe-code --help");
+    expect(help).toBe("poe --help");
   });
 
   it("formats npx help command with package spec", () => {
@@ -180,7 +192,13 @@ describe("formatCliHelpCommand", () => {
 });
 
 describe("formatCliUsageCommand", () => {
-  it("formats global usage as poe-code", () => {
+  it("formats global usage as poe", () => {
+    expect(
+      formatCliUsageCommand({ mode: "global", command: { command: "poe", args: [] } })
+    ).toBe("poe");
+  });
+
+  it("formats global usage as poe-code when invoked as poe-code", () => {
     expect(
       formatCliUsageCommand({ mode: "global", command: { command: "poe-code", args: [] } })
     ).toBe("poe-code");

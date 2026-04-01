@@ -21,6 +21,7 @@ export function registerUnconfigureCommand(program: Command, container: CliConta
   const serviceDescription = `Agent to unconfigure${formatServiceList(serviceNames)}`;
   return program
     .command("unconfigure")
+    .alias("uc")
     .description("Remove existing Poe API tooling configuration.")
     .argument("<agent>", serviceDescription)
     .action(async (service: string, options: UnconfigureCommandOptions) => {

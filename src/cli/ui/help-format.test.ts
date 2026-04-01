@@ -37,6 +37,20 @@ function createHelpProgram() {
 }
 
 describe("command help formatting", () => {
+  it("shows root command aliases inline in the command list", () => {
+    const program = createHelpProgram();
+
+    const help = stripAnsi(program.helpInformation());
+    expect(help).toContain("install, i");
+    expect(help).toContain("configure, c");
+    expect(help).toContain("unconfigure, uc");
+    expect(help).toContain("spawn, s");
+    expect(help).toContain("wrap, w");
+    expect(help).toContain("models, m");
+    expect(help).toContain("usage, u");
+    expect(help).toContain("generate, g");
+  });
+
   it("adds a design header to subcommand help output", () => {
     const program = createHelpProgram();
     const configureCommand = program.commands.find(

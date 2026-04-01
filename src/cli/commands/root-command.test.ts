@@ -32,11 +32,16 @@ function stripAnsi(str: string): string {
 }
 
 describe("root command", () => {
+  const originalArgv = [...process.argv];
+
   afterEach(() => {
     vi.restoreAllMocks();
+    process.argv = [...originalArgv];
   });
 
   it("shows help when invoked without arguments", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code"];
+
     const fs = createMemFs();
     const prompts = vi.fn().mockResolvedValue({});
 
@@ -46,7 +51,8 @@ describe("root command", () => {
       prompts,
       env: {
         cwd: "/repo",
-        homeDir: "/home/test"
+        homeDir: "/home/test",
+        variables: {}
       },
       logger: () => {}
     });
@@ -63,10 +69,19 @@ describe("root command", () => {
     expect(plainOutput).toContain("Poe - poe-code");
     expect(plainOutput).toContain("Configure coding agents to use the Poe API");
     expect(plainOutput).toContain("Usage:");
+    expect(plainOutput).toContain("poe-code <command> [...args]");
     expect(plainOutput).toContain("<command>");
     expect(plainOutput).toContain("Commands:");
-    expect(plainOutput).toContain("configure");
+    expect(plainOutput).toContain("install, i");
+    expect(plainOutput).toContain("configure, c");
+    expect(plainOutput).toContain("unconfigure, uc");
+    expect(plainOutput).toContain("spawn, s");
+    expect(plainOutput).toContain("wrap, w");
+    expect(plainOutput).toContain("models, m");
+    expect(plainOutput).toContain("usage, u");
+    expect(plainOutput).toContain("generate, g");
     expect(plainOutput).toContain("Configure a coding agent");
+    expect(plainOutput).toContain("Install tooling for a configured agent");
     expect(plainOutput).toContain("mcp configure");
     expect(plainOutput).toContain("mcp unconfigure");
     expect(plainOutput).toContain("mcp serve");
@@ -92,7 +107,7 @@ describe("root command", () => {
     expect(plainOutput).toContain("Configure agent skills");
     expect(plainOutput).not.toContain("poe-code configure claude-code");
     expect(plainOutput).not.toContain('poe-code spawn codex "Say hello"');
-    expect(plainOutput).not.toContain("wrap");
+    expect(plainOutput).toContain("Run poe-code <command> --help for command options.");
     expect(plainOutput).not.toContain("test");
     expect(plainOutput).not.toContain("Options:");
     expect(plainOutput).not.toContain("[service]");
@@ -117,7 +132,40 @@ describe("root command", () => {
     expect(hasVerbose).toBe(true);
   });
 
+  it("shows a short heading when invoked as poe", async () => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+
+    let helpOutput = "";
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test",
+        variables: {}
+      },
+      logger: () => {}
+    });
+
+    program.configureOutput({
+      writeOut: (str) => {
+        helpOutput += str;
+      }
+    });
+
+    await program.parseAsync(["node", "cli"]);
+
+    const plainOutput = stripAnsi(helpOutput);
+    expect(plainOutput).toContain("Poe\n");
+    expect(plainOutput).not.toContain("Poe - poe-code");
+  });
+
   it("errors for unknown commands without printing help", async () => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+
     const fs = createMemFs();
     const prompts = vi.fn().mockResolvedValue({});
 
@@ -130,7 +178,8 @@ describe("root command", () => {
       prompts,
       env: {
         cwd: "/repo",
-        homeDir: "/home/test"
+        homeDir: "/home/test",
+        variables: {}
       },
       logger: (message) => {
         loggerOutput += `${message}\n`;
@@ -151,7 +200,7 @@ describe("root command", () => {
     const plainLogger = stripAnsi(loggerOutput);
     expect(plainLogger).toContain("Unknown command:");
     expect(plainLogger).toContain("nope");
-    expect(plainLogger).toContain("poe-code --help");
+    expect(plainLogger).toContain("poe --help");
 
     const plainCommander = stripAnsi(`${commanderOut}${commanderErr}`);
     expect(plainCommander).not.toContain("Usage:");
@@ -159,6 +208,8 @@ describe("root command", () => {
   });
 
   it("suggests the correct help scope for unknown subcommands", async () => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+
     const fs = createMemFs();
     const prompts = vi.fn().mockResolvedValue({});
 
@@ -168,7 +219,8 @@ describe("root command", () => {
       prompts,
       env: {
         cwd: "/repo",
-        homeDir: "/home/test"
+        homeDir: "/home/test",
+        variables: {}
       },
       logger: (message) => {
         loggerOutput += `${message}\n`;
@@ -182,7 +234,7 @@ describe("root command", () => {
     const plainLogger = stripAnsi(loggerOutput);
     expect(plainLogger).toContain("Unknown command:");
     expect(plainLogger).toContain("nope");
-    expect(plainLogger).toContain("poe-code mcp --help");
+    expect(plainLogger).toContain("poe mcp --help");
   });
 
   it("uses the development invocation in help hints when running via npm run dev", async () => {

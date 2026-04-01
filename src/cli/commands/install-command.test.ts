@@ -65,4 +65,35 @@ describe("install command", () => {
       true
     );
   });
+
+  it("resolves the install alias", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    const install = vi.fn(async () => {});
+    const adapter: ProviderService = createProviderStub({
+      name: "test-service",
+      label: "Test Service",
+      install
+    });
+
+    container.registry.register(adapter);
+
+    const program = createBaseProgram();
+    registerInstallCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "i",
+      "test-service"
+    ]);
+
+    expect(install).toHaveBeenCalledOnce();
+  });
 });

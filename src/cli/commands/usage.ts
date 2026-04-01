@@ -131,6 +131,7 @@ export function registerUsageCommand(
 ): void {
   const usage = program
     .command("usage")
+    .alias("u")
     .description("Check Poe API usage information.")
     .action(async () => {
       await executeBalance(program, container);

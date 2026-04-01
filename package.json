@@ -55,6 +55,7 @@
     "metric:test_duration": "node scripts/metric-test-duration.mjs"
   },
   "bin": {
+    "poe": "dist/bin.cjs",
     "poe-code": "dist/bin.cjs",
     "poe-code-configure": "dist/bin.cjs",
     "poe-claude": "dist/bin/poe-claude.js",

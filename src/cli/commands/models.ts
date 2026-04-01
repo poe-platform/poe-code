@@ -181,6 +181,7 @@ export function registerModelsCommand(
 ): void {
   program
     .command("models")
+    .alias("m")
     .description("List available Poe API models.")
     .option("--provider <name>", "Filter by provider name")
     .option("--model <name>", "Filter by exact model id")

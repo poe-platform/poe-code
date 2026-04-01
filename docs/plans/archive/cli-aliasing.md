@@ -1,3 +1,8 @@
+---
+status:
+  state: completed
+  iteration: 3
+---
 # CLI Aliasing and Shorthand Commands
 
 Add a `poe` top-level binary alias and npm-style single-letter command shorthands.

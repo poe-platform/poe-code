@@ -45,6 +45,7 @@ export function registerGenerateCommand(
 ): void {
   const generate = program
     .command("generate")
+    .alias("g")
     .description("Generate content via Poe API")
     .option("--model <model>", `Model identifier (default: ${DEFAULT_TEXT_MODEL})`)
     .option(

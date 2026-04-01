@@ -31,6 +31,7 @@ export function registerConfigureCommand(program: Command, container: CliContain
   const serviceDescription = `Agent to configure${formatServiceList(serviceNames)}`;
   const configureCommand = program
     .command("configure")
+    .alias("c")
     .description("Configure developer tooling for Poe API.")
     .argument("[agent]", serviceDescription)
     .option("--api-key <key>", "Poe API key")

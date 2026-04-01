@@ -19,6 +19,7 @@ export function registerWrapCommand(
     `Agent to wrap${formatServiceList(serviceNames)}`;
   return program
     .command("wrap")
+    .alias("w")
     .description("Run an agent CLI with Poe isolated configuration.")
     .allowUnknownOption(true)
     .allowExcessArguments(true)

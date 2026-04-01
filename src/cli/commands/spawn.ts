@@ -57,6 +57,7 @@ export function registerSpawnCommand(
 
   program
     .command("spawn")
+    .alias("s")
     .description("Run a single prompt through a configured agent CLI.")
     .option("--model <model>", "Model identifier override passed to the agent CLI")
     .option("-C, --cwd <path>", "Working directory for the agent CLI")

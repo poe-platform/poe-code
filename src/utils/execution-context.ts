@@ -1,4 +1,4 @@
-import { dirname } from "node:path";
+import { basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -48,10 +48,12 @@ export function detectExecutionContext(input: DetectionInput): ExecutionContext 
   }
 
   // Default to global installation
+  const invoked = basename(argv[1] ?? "");
+  const isPoeShort = invoked === "poe" || invoked === "poe.cmd" || invoked === "poe.exe";
   return {
     mode: "global",
     command: {
-      command: "poe-code",
+      command: isPoeShort ? "poe" : "poe-code",
       args: []
     }
   };
@@ -207,7 +209,7 @@ export function formatCliUsageCommand(context: {
       return "npx poe-code@beta";
     case "global":
     default:
-      return "poe-code";
+      return context.command.command;
   }
 }
 

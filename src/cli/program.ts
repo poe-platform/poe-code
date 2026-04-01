@@ -1,3 +1,4 @@
+import { basename } from "node:path";
 import { Command, Help } from "commander";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "@poe-code/design-system";
@@ -46,145 +47,201 @@ function formatCommandHeader(cmd: Command): string {
   return `Poe - ${parts.reverse().join(" ")}`;
 }
 
-function formatHelpText(input: { usageCommand: string; helpCommand: string }): string {
-  const commandRows: Array<{ name: string; args: string; description: string }> = [
+function formatHelpText(input: {
+  heading: string;
+  usageCommand: string;
+  helpCommand: string;
+}): string {
+  const commandRows: Array<{
+    name: string;
+    aliases: string[];
+    args: string;
+    description: string;
+  }> = [
+    {
+      name: "install",
+      aliases: ["i"],
+      args: "[agent]",
+      description: "Install tooling for a configured agent"
+    },
     {
       name: "configure",
+      aliases: ["c"],
       args: "[agent]",
       description: "Configure a coding agent"
     },
     {
       name: "unconfigure",
+      aliases: ["uc"],
       args: "<agent>",
       description: "Remove a previously applied configuration"
     },
     {
       name: "login",
+      aliases: [],
       args: "",
       description: "Store a Poe API key"
     },
     {
       name: "logout",
+      aliases: [],
       args: "",
       description: "Remove all configuration"
     },
     {
       name: "auth status",
+      aliases: [],
       args: "",
       description: "Show login, balance, and configuration status"
     },
     {
       name: "agent",
+      aliases: [],
       args: "<prompt>",
       description: "Run a one-shot Poe agent prompt"
     },
     {
       name: "spawn",
+      aliases: ["s"],
       args: "<agent> [prompt]",
       description: "Launch a coding agent"
     },
     {
+      name: "wrap",
+      aliases: ["w"],
+      args: "<agent> [agentArgs...]",
+      description: "Run an agent with Poe isolated configuration"
+    },
+    {
       name: "generate",
+      aliases: ["g"],
       args: "[type]",
       description: "Call Poe models via CLI (text/image/video/audio)"
     },
     {
+      name: "models",
+      aliases: ["m"],
+      args: "",
+      description: "List available Poe API models"
+    },
+    {
       name: "mcp configure",
+      aliases: [],
       args: "[agent]",
       description: "Configure Poe MCP for your coding agent"
     },
     {
       name: "mcp unconfigure",
+      aliases: [],
       args: "<agent>",
       description: "Remove Poe MCP configuration from your agent"
     },
     {
       name: "mcp serve",
+      aliases: [],
       args: "",
       description: "Run the Poe MCP server on stdin/stdout"
     },
     {
       name: "skill configure",
+      aliases: [],
       args: "[agent]",
       description: "Configure agent skills to call Poe models"
     },
     {
       name: "skill unconfigure",
+      aliases: [],
       args: "[agent]",
       description: "Remove agent skills configuration"
     },
     {
       name: "pipeline install",
+      aliases: [],
       args: "[agent]",
       description: "Install pipeline skill into agent configuration"
     },
     {
       name: "pipeline run",
+      aliases: [],
       args: "",
       description: "Run a fixed-step task pipeline plan"
     },
     {
       name: "ralph init",
+      aliases: [],
       args: "[doc]",
       description: "Write Ralph config into a markdown doc frontmatter"
     },
     {
       name: "ralph run",
+      aliases: [],
       args: "[doc]",
       description: "Run a markdown doc through repeated agent iterations"
     },
     {
       name: "experiment run",
+      aliases: [],
       args: "[doc]",
       description: "Run an experiment doc through the autonomous experiment loop"
     },
     {
       name: "experiment journal",
+      aliases: [],
       args: "[doc]",
       description: "Display an experiment journal as a formatted table"
     },
     {
       name: "usage",
+      aliases: ["u"],
       args: "",
       description: "Display current Poe compute points balance"
     },
     {
       name: "usage list",
+      aliases: [],
       args: "",
       description: "Display usage history"
     },
     {
       name: "utils config",
+      aliases: [],
       args: "",
       description: "Show config file paths and usage hints"
     },
     {
       name: "utils config show",
+      aliases: [],
       args: "",
       description: "Show config inputs and resolved result"
     },
     {
       name: "utils config init",
+      aliases: [],
       args: "",
       description: "Create a project config file"
     },
     {
       name: "utils config edit",
+      aliases: [],
       args: "",
       description: "Open a config file in your editor"
     }
   ];
-  const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
+  const nameWidth = Math.max(
+    0,
+    ...commandRows.map((row) => [row.name, ...row.aliases].join(", ").length)
+  );
   const argsWidth = Math.max(0, ...commandRows.map((row) => row.args.length));
   const cmd = (row: (typeof commandRows)[number]) => {
-    const name = text.command(row.name.padEnd(nameWidth));
+    const displayName = [row.name, ...row.aliases].join(", ");
+    const name = text.command(displayName.padEnd(nameWidth));
     const args =
       row.args.length > 0 ? text.argument(row.args.padEnd(argsWidth)) : " ".repeat(argsWidth);
     return `  ${name} ${args}  ${row.description}`;
   };
 
   return [
-    text.heading("Poe - poe-code"),
+    text.heading(input.heading),
     "",
     "Configure coding agents to use the Poe API.",
     "",
@@ -282,6 +339,14 @@ function formatSubcommandHelp(cmd: Command, helper: Help): string {
   return output.join("\n");
 }
 
+function resolveRootHelpHeading(argv: string[]): string {
+  const invoked = basename(argv[1] ?? "");
+  if (invoked === "poe" || invoked === "poe.cmd" || invoked === "poe.exe") {
+    return "Poe";
+  }
+  return "Poe - poe-code";
+}
+
 export function createProgram(dependencies: CliDependencies): Command {
   const container = createCliContainer(dependencies);
   const program = bootstrapProgram(container);
@@ -304,6 +369,7 @@ function bootstrapProgram(container: CliContainer): Command {
     env: container.env.variables,
     moduleUrl: import.meta.url
   });
+  const heading = resolveRootHelpHeading(process.argv);
   const usageCommand = formatCliUsageCommand(executionContext);
   const helpCommand = formatCliHelpCommand(executionContext, ["<command>", "--help"]);
 
@@ -319,7 +385,7 @@ function bootstrapProgram(container: CliContainer): Command {
     .configureHelp({
       formatHelp: (cmd, helper) => {
         if (cmd.name() === "poe-code") {
-          return formatHelpText({ usageCommand, helpCommand });
+          return formatHelpText({ heading, usageCommand, helpCommand });
         }
         return formatSubcommandHelp(cmd, helper);
       }

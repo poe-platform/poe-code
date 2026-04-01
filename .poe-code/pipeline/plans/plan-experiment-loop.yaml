@@ -252,7 +252,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: skill
     title: Create poe-code-experiment-plan skill
@@ -275,10 +275,10 @@ tasks:
 
       Follow the same SKILL.md structure as `.claude/skills/poe-code-pipeline-plan/SKILL.md`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: verify
     title: End-to-end verification

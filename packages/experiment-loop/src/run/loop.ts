@@ -8,6 +8,7 @@ import {
 import { createDefaultGit } from "../git/git.js";
 import { ExperimentJournal } from "../journal/journal.js";
 import { evaluateChain } from "../evaluator/evaluator.js";
+import { loadRunConfig } from "../config/loader.js";
 import type {
   EvalResult,
   ExecFn,
@@ -15,7 +16,8 @@ import type {
   ExperimentRunOptions,
   ExperimentRunResult,
   JournalEntry,
-  MetricDef
+  MetricDef,
+  RunConfig
 } from "../types.js";
 
 function createDefaultFs(): ExperimentFileSystem {
@@ -141,26 +143,46 @@ function combineOutput(stdout: string, stderr: string): string {
   return `${stdout}${stderr}`;
 }
 
+function interpolate(template: string, values: Record<string, string>): string {
+  let output = template;
+  for (const [key, value] of Object.entries(values)) {
+    output = output.split(`{{${key}}}`).join(value);
+  }
+  return output;
+}
+
+function formatMetrics(metrics: MetricDef[], baseline: Record<string, number> | null): string {
+  return metrics
+    .map((m) => {
+      const parts = [`- ${m.name}: ${m.direction}, script: \`${m.script}\``];
+      const score = baseline?.[m.name];
+      if (score !== undefined) {
+        parts.push(`(baseline: ${score})`);
+      }
+      return parts.join(" ");
+    })
+    .join("\n");
+}
+
 function buildPrompt(options: {
+  runConfig: RunConfig;
   body: string;
   journal: string;
+  metrics: MetricDef[];
   lastCrashOutput?: string;
+  experimentIndex: number;
+  baseline: Record<string, number> | null;
 }): string {
-  const sections = [
-    options.body.trim(),
-    ["Journal", options.journal].join("\n\n")
-  ];
-
-  if (options.lastCrashOutput) {
-    sections.push(["Last crash output", options.lastCrashOutput.trim()].join("\n\n"));
-  }
-
-  sections.push(
-    "you are autonomous, do not stop or ask for input",
-    "Do not write to the journal file or commit changes. Both are managed automatically after your run completes."
-  );
-
-  return `${sections.filter((section) => section.length > 0).join("\n\n")}`;
+  return interpolate(options.runConfig.prompt, {
+    body: options.body.trim(),
+    journal: options.journal,
+    metrics: formatMetrics(options.metrics, options.baseline),
+    crash_output: options.lastCrashOutput
+      ? `## Last crash output\n\n${options.lastCrashOutput.trim()}`
+      : "",
+    experiment_index: String(options.experimentIndex),
+    baseline: options.baseline ? JSON.stringify(options.baseline) : ""
+  }).trim();
 }
 
 function allMetricsPassed(metrics: MetricDef[], results: EvalResult[]): boolean {
@@ -292,6 +314,7 @@ export async function runExperimentLoop(
   const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   await journal.init();
+  const runConfig = await loadRunConfig({ cwd: options.cwd, homeDir: options.homeDir, fs });
   const startTime = Date.now();
 
   async function readDoc(): Promise<{ frontmatter: ReturnType<typeof parseExperimentFrontmatter>["frontmatter"]; body: string }> {
@@ -360,8 +383,12 @@ export async function runExperimentLoop(
 
       const experimentIndex = experimentsCompleted + 1;
       const prompt = buildPrompt({
+        runConfig,
         body,
         journal: await journal.format(),
+        metrics,
+        experimentIndex,
+        baseline: frontmatter.baseline,
         ...(lastCrashOutput ? { lastCrashOutput } : {})
       });
       baselineHash ??= await git.currentHash(options.cwd);

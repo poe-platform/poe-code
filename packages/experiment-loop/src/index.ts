@@ -3,4 +3,5 @@ export * from "./frontmatter/frontmatter.js";
 export * from "./journal/journal.js";
 export * from "./evaluator/evaluator.js";
 export * from "./git/git.js";
+export * from "./config/loader.js";
 export * from "./run/loop.js";

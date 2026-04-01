@@ -6,6 +6,7 @@ import type { FileSystem } from "../../utils/file-system.js";
 import { registerExperimentCommand } from "./experiment.js";
 import { ValidationError } from "../errors.js";
 import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
+import experimentRunYaml from "../../templates/experiment/run.yaml.hbs";
 
 const selectMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
@@ -530,6 +531,9 @@ describe("experiment install command", () => {
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).resolves.toBe(experimentSkillPlan);
     await expect(fs.stat("/repo/.poe-code/experiments")).resolves.toBeDefined();
+    await expect(
+      fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")
+    ).resolves.toBe(experimentRunYaml);
   });
 
   it("defaults to claude-code and local scope with --yes", async () => {
@@ -549,6 +553,9 @@ describe("experiment install command", () => {
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).resolves.toBe(experimentSkillPlan);
     await expect(fs.stat("/repo/.poe-code/experiments")).resolves.toBeDefined();
+    await expect(
+      fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")
+    ).resolves.toBe(experimentRunYaml);
   });
 
   it("rejects --local and --global together", async () => {
@@ -599,6 +606,9 @@ describe("experiment install command", () => {
       fs.readFile("/home/test/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).resolves.toBe(experimentSkillPlan);
     await expect(fs.stat("/home/test/.poe-code/experiments")).resolves.toBeDefined();
+    await expect(
+      fs.readFile("/home/test/.poe-code/experiments/run.yaml", "utf8")
+    ).resolves.toBe(experimentRunYaml);
   });
 
   it("does not recreate experiments directory if it already exists", async () => {
@@ -638,7 +648,12 @@ describe("experiment install command", () => {
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).resolves.toBe(experimentSkillPlan);
-    // should not log "Create: .poe-code/experiments" since it already existed
-    expect(loggerOutput).not.toContain("Create: .poe-code/experiments");
+    // should not log directory creation since it already existed
+    const lines = loggerOutput.split("\n");
+    expect(lines.some((l) => l.includes("Create: .poe-code/experiments") && !l.includes("run.yaml"))).toBe(false);
+    // run.yaml should still be created
+    await expect(
+      fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")
+    ).resolves.toBe(experimentRunYaml);
   });
 });

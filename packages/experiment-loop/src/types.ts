@@ -87,3 +87,7 @@ export interface JournalEntry {
   durationMs: number;
   timestamp: string;
 }
+
+export interface RunConfig {
+  prompt: string;
+}

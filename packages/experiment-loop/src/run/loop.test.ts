@@ -118,7 +118,7 @@ describe("runExperimentLoop", () => {
     const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
     expect(prompt).toContain("# Improve the tests");
     expect(prompt).toContain("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput");
-    expect(prompt).toContain("you are autonomous, do not stop or ask for input");
+    expect(prompt).toContain("You are autonomous, do not stop or ask for input.");
 
     expect(git.currentHash).toHaveBeenCalledWith("/repo");
     expect(git.commitAll).toHaveBeenCalledWith("experiment-loop: test-duration #1", "/repo");
@@ -585,5 +585,47 @@ describe("runExperimentLoop", () => {
 
     expect(result.stopReason).toBe("max_experiments");
     expect(result.experimentsCompleted).toBe(2);
+  });
+
+  it("uses custom run.yaml prompt template when present", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 }),
+      "/repo/.poe-code/experiments/run.yaml": [
+        "prompt: |",
+        "  CUSTOM: {{body}}",
+        "  INDEX: {{experiment_index}}",
+        ""
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([{ stdout: "2\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
+    expect(prompt).toContain("CUSTOM:");
+    expect(prompt).toContain("# Improve the tests");
+    expect(prompt).toContain("INDEX: 1");
+    expect(prompt).not.toContain("You are autonomous");
   });
 });

@@ -32,7 +32,7 @@ type ExperimentInstallCommandOptions = {
   global?: boolean;
 };
 
-let experimentTemplatesCache: { skillPlan: string } | null = null;
+let experimentTemplatesCache: { skillPlan: string; runYaml: string } | null = null;
 
 function resolveExperimentPaths(
   scope: SkillScope,
@@ -88,7 +88,7 @@ async function findPackageRoot(entryFilePath: string): Promise<string> {
   }
 }
 
-async function loadExperimentTemplates(): Promise<{ skillPlan: string }> {
+async function loadExperimentTemplates(): Promise<{ skillPlan: string; runYaml: string }> {
   if (experimentTemplatesCache) {
     return experimentTemplatesCache;
   }
@@ -104,12 +104,12 @@ async function loadExperimentTemplates(): Promise<{ skillPlan: string }> {
       continue;
     }
 
-    const skillPlan = await readFile(
-      path.join(templateRoot, "SKILL_experiment.md"),
-      "utf8"
-    );
+    const [skillPlan, runYaml] = await Promise.all([
+      readFile(path.join(templateRoot, "SKILL_experiment.md"), "utf8"),
+      readFile(path.join(templateRoot, "run.yaml.hbs"), "utf8")
+    ]);
 
-    experimentTemplatesCache = { skillPlan };
+    experimentTemplatesCache = { skillPlan, runYaml };
     return experimentTemplatesCache;
   }
 
@@ -700,6 +700,17 @@ export function registerExperimentCommand(program: Command, container: CliContai
             resources.logger.info(
               `Create: ${experimentPaths.displayExperimentsPath}`
             );
+          }
+        }
+
+        const runYamlPath = path.join(experimentPaths.experimentsPath, "run.yaml");
+        const runYamlDisplayPath = path.join(experimentPaths.displayExperimentsPath, "run.yaml");
+        if (!(await pathExists(container.fs, runYamlPath))) {
+          if (flags.dryRun) {
+            resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
+          } else {
+            await container.fs.writeFile(runYamlPath, templates.runYaml);
+            resources.logger.info(`Create: ${runYamlDisplayPath}`);
           }
         }
 

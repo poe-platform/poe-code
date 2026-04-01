@@ -16,7 +16,9 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "cd ../.. && vitest run --config vitest.config.ts packages/experiment-loop/src/**/*.test.ts",
+    "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/experiment-loop/src/**/*.test.ts"
   },
   "files": [
     "dist"

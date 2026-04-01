@@ -159,7 +159,7 @@ function preprocessModels(models: ModelEntry[]): {
 }
 
 function toRawModel(model: PreprocessedModelEntry): ModelEntry {
-  const { normalized_supported_endpoints, ...rawModel } = model;
+  const { normalized_supported_endpoints: ignored_normalized_supported_endpoints, ...rawModel } = model;
   return rawModel;
 }
 

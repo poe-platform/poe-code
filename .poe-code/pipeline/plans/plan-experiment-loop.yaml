@@ -299,7 +299,7 @@ tasks:
 
       Do NOT run the actual experiment loop — just verify everything compiles, tests pass, and CLI is wired correctly.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

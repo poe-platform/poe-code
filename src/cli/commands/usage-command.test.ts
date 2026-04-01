@@ -81,6 +81,43 @@ async function createConfigVolume(apiKey: string): Promise<FileSystem> {
   return fs;
 }
 
+function createBalanceResponse(overrides: Partial<{
+  current_point_balance: number;
+  plan_points_balance: number;
+  addon_point_balance: number;
+  plan_balance_usd: string;
+  addon_balance_usd: string;
+  total_balance_usd: string;
+  next_daily_grant_amount: number;
+  next_monthly_grant_amount: number;
+  next_daily_grant_time: number;
+  next_monthly_grant_time: number;
+  auto_recharge: { enabled: boolean; status: string; threshold_points: number; threshold_usd: string; refill_points: number; refill_usd: string; last_recharge_failure_time: number | null };
+}> = {}) {
+  return {
+    current_point_balance: overrides.current_point_balance ?? 1500,
+    plan_points_balance: overrides.plan_points_balance ?? 0,
+    addon_point_balance: overrides.addon_point_balance ?? (overrides.current_point_balance ?? 1500),
+    plan_balance_usd: overrides.plan_balance_usd ?? "0.00",
+    addon_balance_usd: overrides.addon_balance_usd ?? "0.05",
+    total_balance_usd: overrides.total_balance_usd ?? "0.05",
+    points_cycle_start_time: 1773795921000000,
+    next_daily_grant_time: overrides.next_daily_grant_time ?? 0,
+    next_monthly_grant_time: overrides.next_monthly_grant_time ?? 0,
+    next_daily_grant_amount: overrides.next_daily_grant_amount ?? 0,
+    next_monthly_grant_amount: overrides.next_monthly_grant_amount ?? 0,
+    auto_recharge: overrides.auto_recharge ?? {
+      enabled: false,
+      status: "never_enabled",
+      threshold_points: 0,
+      threshold_usd: "0.00",
+      refill_points: 0,
+      refill_usd: "0.00",
+      last_recharge_failure_time: null
+    }
+  };
+}
+
 describe("usage balance command", () => {
   let fs: FileSystem;
   let logs: string[];
@@ -98,7 +135,7 @@ describe("usage balance command", () => {
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 1500 })
+      json: async () => createBalanceResponse({ current_point_balance: 1500, total_balance_usd: "0.05" })
     });
 
     const program = createProgram({
@@ -124,7 +161,7 @@ describe("usage balance command", () => {
       })
     );
     expect(
-      logs.some((message) => message.includes("Current balance: 1,500 points"))
+      logs.some((message) => message.includes("Balance:") && message.includes("1,500 pts"))
     ).toBe(true);
     expect(
       logs.some((message) => message.includes("https://poe.com/api/keys"))
@@ -136,7 +173,7 @@ describe("usage balance command", () => {
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 1500 })
+      json: async () => createBalanceResponse()
     });
 
     const program = createProgram({
@@ -157,7 +194,7 @@ describe("usage balance command", () => {
       expect.any(Object)
     );
     expect(
-      logs.some((message) => message.includes("Current balance: 1,500 points"))
+      logs.some((message) => message.includes("Balance:") && message.includes("1,500 pts"))
     ).toBe(true);
   });
 
@@ -165,7 +202,7 @@ describe("usage balance command", () => {
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 500 })
+      json: async () => createBalanceResponse({ current_point_balance: 500 })
     });
 
     // "prompted-key" fails API key format validation (too short).
@@ -238,7 +275,7 @@ describe("usage balance styling", () => {
     typographyMock.bold.mockReset().mockImplementation((t: string) => t);
   });
 
-  it("styles balance value with theme.accent", async () => {
+  it("styles total balance with theme.accent", async () => {
     const accentFn = vi.fn((t: string) => t);
     getThemeMock.mockReturnValue({ ...createIdentityTheme(), accent: accentFn });
 
@@ -246,7 +283,7 @@ describe("usage balance styling", () => {
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 1500 })
+      json: async () => createBalanceResponse({ current_point_balance: 1500, total_balance_usd: "0.05" })
     });
 
     const program = createProgram({
@@ -260,15 +297,15 @@ describe("usage balance styling", () => {
 
     await program.parseAsync(["node", "cli", "usage", "balance"]);
 
-    expect(accentFn).toHaveBeenCalledWith("1,500");
+    expect(accentFn).toHaveBeenCalledWith("$0.05 (1,500 pts)");
   });
 
-  it("applies bold to the balance value", async () => {
+  it("applies bold to the total balance value", async () => {
     fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 2500 })
+      json: async () => createBalanceResponse({ current_point_balance: 2500, total_balance_usd: "0.08" })
     });
 
     const program = createProgram({
@@ -282,15 +319,22 @@ describe("usage balance styling", () => {
 
     await program.parseAsync(["node", "cli", "usage", "balance"]);
 
-    expect(typographyMock.bold).toHaveBeenCalledWith("2,500");
+    expect(typographyMock.bold).toHaveBeenCalledWith("$0.08 (2,500 pts)");
   });
 
-  it("uses logger.info for the balance line", async () => {
+  it("shows plan and addon breakdown under balance", async () => {
     fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 750 })
+      json: async () => createBalanceResponse({
+        current_point_balance: 750,
+        plan_points_balance: 250,
+        addon_point_balance: 500,
+        plan_balance_usd: "0.01",
+        addon_balance_usd: "0.02",
+        total_balance_usd: "0.03"
+      })
     });
 
     const program = createProgram({
@@ -304,9 +348,100 @@ describe("usage balance styling", () => {
 
     await program.parseAsync(["node", "cli", "usage", "balance"]);
 
-    expect(logs.some((m) => m.includes("Current balance:"))).toBe(true);
-    expect(logs.some((m) => m.includes("750"))).toBe(true);
-    expect(logs.some((m) => m.includes("points"))).toBe(true);
+    const output = logs.join("\n");
+    expect(output).toContain("Balance:");
+    expect(output).toContain("750 pts");
+    expect(output).toContain("Plan:");
+    expect(output).toContain("$0.01 (250 pts)");
+    expect(output).toContain("Add-on:");
+    expect(output).toContain("$0.02 (500 pts)");
+  });
+
+  it("shows next monthly grant when nonzero", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createBalanceResponse({
+        next_monthly_grant_amount: 12600000,
+        next_monthly_grant_time: 1776425721000000
+      })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "balance"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Next monthly grant:");
+    expect(output).toContain("12,600,000 pts");
+  });
+
+  it("hides grant lines when amounts are zero", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createBalanceResponse({
+        next_daily_grant_amount: 0,
+        next_monthly_grant_amount: 0
+      })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "balance"]);
+
+    const output = logs.join("\n");
+    expect(output).not.toContain("Next daily grant:");
+    expect(output).not.toContain("Next monthly grant:");
+  });
+
+  it("shows (auto) label on Add-on when auto-recharge is enabled", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createBalanceResponse({
+        auto_recharge: {
+          enabled: true,
+          status: "active",
+          threshold_points: 1000,
+          threshold_usd: "0.03",
+          refill_points: 5000,
+          refill_usd: "0.15",
+          last_recharge_failure_time: null
+        }
+      })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "balance"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Add-on (auto):");
   });
 });
 

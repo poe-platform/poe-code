@@ -1,35 +1,28 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
 import { ApiError } from "../errors.js";
 import { createCliContainer } from "../container.js";
 
+const spinnerStopMessages: string[] = [];
+const spinnerMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@poe-code/design-system", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+  return {
+    ...actual,
+    spinner: spinnerMock
+  };
+});
+
 const cwd = "/repo";
 const homeDir = "/home/test";
-const configPath = resolveConfigPath(homeDir);
 
 function createMemfs(): FileSystem {
   const volume = new Volume();
   volume.mkdirSync(homeDir, { recursive: true });
-  return createFsFromVolume(volume).promises as unknown as FileSystem;
-}
-
-function createConfigVolume(input: {
-  configuredServices?: Record<string, { files: string[] }>;
-}): FileSystem {
-  const volume = new Volume();
-  volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
-
-  if (input.configuredServices) {
-    volume.writeFileSync(
-      configPath,
-      `${JSON.stringify({ configured_services: input.configuredServices }, null, 2)}\n`
-    );
-  }
-
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
@@ -42,6 +35,20 @@ async function storeApiKey(fs: FileSystem, apiKey: string): Promise<void> {
   await container.writeApiKey(apiKey);
 }
 
+function createWhoamiResponse(overrides?: Partial<{
+  user_id: number;
+  handle: string;
+  name: string;
+  profile_picture: string;
+}>) {
+  return {
+    user_id: overrides?.user_id ?? 12345,
+    handle: overrides?.handle ?? "testuser",
+    name: overrides?.name ?? "Test User",
+    profile_picture: overrides?.profile_picture ?? "https://example.com/pic.jpg"
+  };
+}
+
 describe("auth command", () => {
   let fs: FileSystem;
   let logs: string[];
@@ -51,20 +58,20 @@ describe("auth command", () => {
     fs = createMemfs();
     logs = [];
     httpClient = vi.fn();
+    spinnerStopMessages.length = 0;
+    spinnerMock.mockReturnValue({
+      start: vi.fn(),
+      stop: (msg: string) => { spinnerStopMessages.push(msg); }
+    });
   });
 
-  it("shows logged-in status, balance, and configured agent", async () => {
-    fs = createConfigVolume({
-      configuredServices: {
-        "claude-code": { files: ["/tmp/settings.json"] }
-      }
-    });
+  it("shows logged-in identity from whoami endpoint", async () => {
     await storeApiKey(fs, "test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 1500 })
+      json: async () => createWhoamiResponse({ name: "Kamil Jopek", handle: "kamil" })
     });
 
     const program = createProgram({
@@ -79,20 +86,18 @@ describe("auth command", () => {
     await program.parseAsync(["node", "cli", "auth", "status"]);
 
     expect(httpClient).toHaveBeenCalledWith(
-      expect.stringContaining("/usage/current_balance"),
+      expect.stringContaining("/whoami"),
       expect.objectContaining({
-        method: "GET",
+        method: "POST",
         headers: expect.objectContaining({
           Authorization: "Bearer test-key"
         })
       })
     );
-    expect(logs.some((m) => m.includes("Logged in"))).toBe(true);
-    expect(logs.some((m) => m.includes("Current balance: 1,500 points"))).toBe(true);
-    expect(logs.some((m) => m.includes("Configured agents: claude-code"))).toBe(true);
+    expect(spinnerStopMessages.some((m) => m.includes("Logged in as Kamil Jopek (@kamil)"))).toBe(true);
   });
 
-  it("shows not logged in and no configured agents when no config exists", async () => {
+  it("shows not logged in when no API key exists", async () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
@@ -106,33 +111,9 @@ describe("auth command", () => {
 
     expect(httpClient).not.toHaveBeenCalled();
     expect(logs.some((m) => m.includes("Not logged in"))).toBe(true);
-    expect(logs.some((m) => m.includes("No agents configured"))).toBe(true);
   });
 
-  it("lists configured agents even when not logged in", async () => {
-    fs = createConfigVolume({
-      configuredServices: {
-        codex: { files: ["/tmp/config.toml"] }
-      }
-    });
-
-    const program = createProgram({
-      fs,
-      prompts: vi.fn(),
-      env: { cwd, homeDir },
-      httpClient,
-      logger: (message) => logs.push(message)
-    });
-    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
-
-    await program.parseAsync(["node", "cli", "auth", "status"]);
-
-    expect(httpClient).not.toHaveBeenCalled();
-    expect(logs.some((m) => m.includes("Not logged in"))).toBe(true);
-    expect(logs.some((m) => m.includes("Configured agents: codex"))).toBe(true);
-  });
-
-  it("skips balance API call in dry-run mode", async () => {
+  it("skips whoami API call in dry-run mode", async () => {
     await storeApiKey(fs, "test-key");
 
     const program = createProgram({
@@ -151,7 +132,7 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Dry run"))).toBe(true);
   });
 
-  it("throws ApiError when balance request fails", async () => {
+  it("throws ApiError when whoami request fails", async () => {
     await storeApiKey(fs, "test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -174,44 +155,13 @@ describe("auth command", () => {
     ).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("lists multiple configured agents", async () => {
-    fs = createConfigVolume({
-      configuredServices: {
-        codex: { files: ["/tmp/config.toml"] },
-        "claude-code": { files: ["/tmp/settings.json"] }
-      }
-    });
-    await storeApiKey(fs, "test-key");
-
-    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ current_point_balance: 900 })
-    });
-
-    const program = createProgram({
-      fs,
-      prompts: vi.fn(),
-      env: { cwd, homeDir },
-      httpClient,
-      logger: (message) => logs.push(message)
-    });
-    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
-
-    await program.parseAsync(["node", "cli", "auth", "status"]);
-
-    expect(
-      logs.some((m) => m.includes("Configured agents:") && m.includes("claude-code") && m.includes("codex"))
-    ).toBe(true);
-  });
-
   it("runs status when auth is invoked without subcommand", async () => {
     await storeApiKey(fs, "test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 321 })
+      json: async () => createWhoamiResponse({ name: "Test User", handle: "testuser" })
     });
 
     const program = createProgram({
@@ -226,24 +176,19 @@ describe("auth command", () => {
     await program.parseAsync(["node", "cli", "auth"]);
 
     expect(httpClient).toHaveBeenCalledWith(
-      expect.stringContaining("/usage/current_balance"),
+      expect.stringContaining("/whoami"),
       expect.any(Object)
     );
-    expect(logs.some((m) => m.includes("Current balance: 321 points"))).toBe(true);
+    expect(spinnerStopMessages.some((m) => m.includes("Logged in as Test User (@testuser)"))).toBe(true);
   });
 
   it("shows feedback outro after status output", async () => {
-    fs = createConfigVolume({
-      configuredServices: {
-        "claude-code": { files: ["/tmp/settings.json"] }
-      }
-    });
     await storeApiKey(fs, "test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ current_point_balance: 1500 })
+      json: async () => createWhoamiResponse()
     });
 
     const program = createProgram({
@@ -260,7 +205,7 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Problems?"))).toBe(true);
   });
 
-  it("shows feedback outro when no agents configured", async () => {
+  it("shows feedback outro when not logged in", async () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),

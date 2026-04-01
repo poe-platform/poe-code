@@ -3,6 +3,68 @@ import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { ApiError, OperationCancelledError } from "../errors.js";
 import { confirm, isCancel, getTheme, widths, typography, renderTable } from "@poe-code/design-system";
+import type { ScopedLogger } from "../logger.js";
+
+export interface BalanceResponse {
+  current_point_balance: number;
+  plan_points_balance: number;
+  addon_point_balance: number;
+  plan_balance_usd: string;
+  addon_balance_usd: string;
+  total_balance_usd: string;
+  points_cycle_start_time: number;
+  next_daily_grant_time: number;
+  next_monthly_grant_time: number;
+  next_daily_grant_amount: number;
+  next_monthly_grant_amount: number;
+  auto_recharge: {
+    enabled: boolean;
+    status: string;
+    threshold_points: number;
+    threshold_usd: string;
+    refill_points: number;
+    refill_usd: string;
+    last_recharge_failure_time: number | null;
+  };
+}
+
+function formatUsdAndPoints(usd: string, points: number): string {
+  return `$${usd} (${points.toLocaleString("en-US")} pts)`;
+}
+
+function formatGrantDate(microseconds: number): string {
+  const date = new Date(microseconds / 1000);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+export function renderBalanceDisplay(data: BalanceResponse, logger: ScopedLogger): void {
+  const theme = getTheme();
+
+  const totalLine = typography.bold(
+    theme.accent(formatUsdAndPoints(data.total_balance_usd, data.current_point_balance))
+  );
+  const planLine = theme.muted(
+    `Plan:   ${formatUsdAndPoints(data.plan_balance_usd, data.plan_points_balance)}`
+  );
+  const addonLabel = data.auto_recharge.enabled ? "Add-on (auto)" : "Add-on";
+  const addonLine = theme.muted(
+    `${addonLabel}: ${formatUsdAndPoints(data.addon_balance_usd, data.addon_point_balance)}`
+  );
+
+  logger.info(`Balance: ${totalLine}\n   ◇  ${planLine}\n   ◇  ${addonLine}`);
+
+  if (data.next_daily_grant_amount > 0) {
+    const dailyPts = data.next_daily_grant_amount.toLocaleString("en-US");
+    const dailyDate = formatGrantDate(data.next_daily_grant_time);
+    logger.info(`Next daily grant: ${theme.accent(`${dailyPts} pts`)} (${dailyDate})`);
+  }
+
+  if (data.next_monthly_grant_amount > 0) {
+    const monthlyPts = data.next_monthly_grant_amount.toLocaleString("en-US");
+    const monthlyDate = formatGrantDate(data.next_monthly_grant_time);
+    logger.info(`Next monthly grant: ${theme.accent(`${monthlyPts} pts`)} (${monthlyDate})`);
+  }
+}
 
 async function executeBalance(
   program: Command,
@@ -47,14 +109,8 @@ async function executeBalance(
       );
     }
 
-    const data = (await response.json()) as {
-      current_point_balance: number;
-    };
-    const theme = getTheme();
-    const formatted = data.current_point_balance.toLocaleString("en-US");
-    const styledBalance = typography.bold(theme.accent(formatted));
-
-    resources.logger.info(`Current balance: ${styledBalance} points`);
+    const data = (await response.json()) as BalanceResponse;
+    renderBalanceDisplay(data, resources.logger);
     resources.logger.feedback(
       "Need more points?",
       "https://poe.com/api/keys"

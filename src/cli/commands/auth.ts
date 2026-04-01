@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { ApiError } from "../errors.js";
-import { loadConfiguredServices } from "../../services/config.js";
+import { spinner } from "@poe-code/design-system";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout } from "./logout.js";
@@ -52,50 +52,48 @@ async function executeStatus(program: Command, container: CliContainer): Promise
 
   try {
     const apiKey = await container.readApiKey();
-    const loggedIn = Boolean(apiKey);
-    resources.logger.info(loggedIn ? "Logged in" : "Not logged in");
 
-    if (loggedIn) {
-      if (flags.dryRun) {
-        resources.logger.dryRun("Dry run: would fetch usage balance from Poe API.");
-      } else {
-        const response = await container.httpClient(
-          `${container.env.poeBaseUrl}/usage/current_balance`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${apiKey}`
-            }
-          }
-        );
+    if (!apiKey) {
+      resources.logger.info("Not logged in");
+      resources.context.finalize();
+      return;
+    }
 
-        if (!response.ok) {
-          throw new ApiError(`Failed to fetch usage balance (HTTP ${response.status})`, {
-            httpStatus: response.status,
-            endpoint: "/usage/current_balance"
-          });
+    if (flags.dryRun) {
+      resources.logger.dryRun("Dry run: would fetch identity from Poe API.");
+      resources.context.finalize();
+      return;
+    }
+
+    const s = spinner();
+    s.start("Checking authentication...");
+
+    const response = await container.httpClient(
+      `${container.env.poeApiBaseUrl}/whoami`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`
         }
-
-        const data = (await response.json()) as { current_point_balance: number };
-        const formattedBalance = data.current_point_balance.toLocaleString("en-US");
-        resources.logger.info(`Current balance: ${formattedBalance} points`);
       }
+    );
+
+    if (!response.ok) {
+      s.stop("Authentication failed");
+      throw new ApiError(`Failed to fetch identity (HTTP ${response.status})`, {
+        httpStatus: response.status,
+        endpoint: "/v1/whoami"
+      });
     }
 
-    const configuredServices = await loadConfiguredServices({
-      fs: container.fs,
-      filePath: container.env.configPath,
-      projectFilePath: container.env.projectConfigPath
-    });
+    const identity = (await response.json()) as {
+      user_id: number;
+      handle: string;
+      name: string;
+      profile_picture: string;
+    };
 
-    const configuredAgentNames = Object.keys(configuredServices).sort();
-
-    if (configuredAgentNames.length === 0) {
-      resources.logger.info("No agents configured.");
-    } else {
-      resources.logger.info(`Configured agents: ${configuredAgentNames.join(", ")}`);
-    }
-
+    s.stop(`Logged in as ${identity.name} (@${identity.handle})`);
     resources.context.finalize();
   } catch (error) {
     if (error instanceof Error) {

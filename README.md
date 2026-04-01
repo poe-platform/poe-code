@@ -1,4 +1,4 @@
-![poe-code banner](docs/banners/poe-code-gpt-5-3.png)
+![poe-code banner](docs/banners/kimi-k2.5-fw.jpg)
 
 <div align="center">
   <h1>Poe Code ⚡</h1>

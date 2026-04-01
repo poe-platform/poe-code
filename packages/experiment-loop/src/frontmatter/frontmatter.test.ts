@@ -9,12 +9,13 @@ function createFs(files: Record<string, string> = {}): ExperimentFileSystem {
 }
 
 describe("parseExperimentFrontmatter", () => {
-  it("parses a single metric with direction", () => {
+  it("parses a single metric with script and direction", () => {
     const content = [
       "---",
       "agent: claude-code",
       "metric:",
       "  name: test_duration",
+      "  script: node scripts/metric-test-duration.mjs",
       "  direction: minimize",
       "status:",
       "  state: open",
@@ -30,6 +31,7 @@ describe("parseExperimentFrontmatter", () => {
 
     expect(result.frontmatter.metric).toEqual({
       name: "test_duration",
+      script: "node scripts/metric-test-duration.mjs",
       direction: "minimize"
     });
     expect(result.body).toBe("# Experiment\n\nBody");
@@ -40,6 +42,7 @@ describe("parseExperimentFrontmatter", () => {
       "---",
       "metric:",
       "  name: test_count",
+      "  script: node scripts/metric-test-count.mjs",
       "  direction: stable",
       "---",
       "Body"
@@ -49,6 +52,7 @@ describe("parseExperimentFrontmatter", () => {
 
     expect(result.frontmatter.metric).toEqual({
       name: "test_count",
+      script: "node scripts/metric-test-count.mjs",
       direction: "stable"
     });
   });
@@ -91,6 +95,7 @@ describe("parseExperimentFrontmatter", () => {
       "agent: claude-code",
       "metric:",
       "  name: tests",
+      "  script: npm test",
       "  direction: maximize",
       "maxExperiments: 10",
       "baseline: null",
@@ -116,8 +121,10 @@ describe("parseExperimentFrontmatter", () => {
       "---",
       "metric:",
       "  - name: tests",
+      "    script: npm test",
       "    direction: maximize",
       "  - name: test_duration",
+      "    script: node scripts/metric-test-duration.mjs",
       "    direction: minimize",
       "---",
       "Body"
@@ -128,10 +135,12 @@ describe("parseExperimentFrontmatter", () => {
     expect(result.frontmatter.metric).toEqual<MetricDef[]>([
       {
         name: "tests",
+        script: "npm test",
         direction: "maximize"
       },
       {
         name: "test_duration",
+        script: "node scripts/metric-test-duration.mjs",
         direction: "minimize"
       }
     ]);
@@ -182,6 +191,7 @@ describe("parseExperimentFrontmatter", () => {
       "agent: claude-code",
       "metric:",
       "  name: tests",
+      "  script: npm test",
       "  direction: maximize",
       "baseline:",
       "  tests: 1",
@@ -200,6 +210,7 @@ describe("parseExperimentFrontmatter", () => {
       agent: "claude-code",
       metric: {
         name: "tests",
+        script: "npm test",
         direction: "maximize"
       },
       baseline: {
@@ -224,8 +235,10 @@ describe("writeExperimentFrontmatter", () => {
       "agent: claude-code",
       "metric:",
       "  - name: tests",
+      "    script: npm test",
       "    direction: maximize",
       "  - name: test_duration",
+      "    script: node scripts/metric-test-duration.mjs",
       "    direction: minimize",
       "baseline:",
       "  tests: 1",

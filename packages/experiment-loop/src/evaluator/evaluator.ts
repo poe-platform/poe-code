@@ -23,9 +23,9 @@ function parseScore(stdout: string): number | null {
 
 const DEFAULT_METRIC_TIMEOUT_MS = 180_000;
 
-async function runMetric(metric: string, cwd: string, exec: ExecFn, timeoutMs?: number): Promise<MetricExecutionResult> {
+async function runMetric(script: string, cwd: string, exec: ExecFn, timeoutMs?: number): Promise<MetricExecutionResult> {
   const timeout = timeoutMs ?? DEFAULT_METRIC_TIMEOUT_MS;
-  const { stdout, stderr, exitCode } = await exec(`npm run metric:${metric}`, {
+  const { stdout, stderr, exitCode } = await exec(script, {
     cwd,
     timeout
   });
@@ -45,8 +45,8 @@ async function runMetric(metric: string, cwd: string, exec: ExecFn, timeoutMs?: 
   };
 }
 
-export async function evaluate(metric: string, cwd: string, exec: ExecFn, timeoutMs?: number): Promise<EvalResult> {
-  const { result } = await runMetric(metric, cwd, exec, timeoutMs);
+export async function evaluate(script: string, cwd: string, exec: ExecFn, timeoutMs?: number): Promise<EvalResult> {
+  const { result } = await runMetric(script, cwd, exec, timeoutMs);
 
   return result;
 }
@@ -61,7 +61,7 @@ export async function evaluateChain(
   const results: EvalResult[] = [];
 
   for (const metric of metrics) {
-    const { exitCode, result } = await runMetric(metric.name, cwd, exec, timeoutMs);
+    const { exitCode, result } = await runMetric(metric.script, cwd, exec, timeoutMs);
     results.push(result);
     onMetricResult?.(metric, result);
 

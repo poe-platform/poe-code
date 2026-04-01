@@ -309,17 +309,12 @@ async function createSimulationGit(options: {
   };
 }
 
-function parseMetricName(command: string): string | undefined {
-  const prefix = "npm run metric:";
-  return command.startsWith(prefix) ? command.slice(prefix.length) : undefined;
-}
-
 function createSimulationExec(metricResults: MetricResultQueue | undefined): {
   exec: ExecFn;
   execCalls: SimulationExecCall[];
 } {
   const queues = new Map(
-    Object.entries(metricResults ?? {}).map(([metric, result]) => [metric, normalizeMetricResult(result).queue])
+    Object.entries(metricResults ?? {}).map(([key, result]) => [key, normalizeMetricResult(result).queue])
   );
   const execCalls: SimulationExecCall[] = [];
 
@@ -330,17 +325,11 @@ function createSimulationExec(metricResults: MetricResultQueue | undefined): {
       ...(options?.timeout !== undefined ? { timeout: options.timeout } : {})
     });
 
-    const metricName = parseMetricName(command);
-
-    if (!metricName) {
-      throw new Error(`Unexpected exec command in experiment-loop simulation: ${command}`);
-    }
-
-    const queue = queues.get(metricName);
+    const queue = queues.get(command);
     const nextResult = queue?.shift();
 
     if (!nextResult) {
-      throw new Error(`No metric result configured for ${metricName}`);
+      throw new Error(`No metric result configured for command: ${command}`);
     }
 
     return nextResult;
@@ -372,7 +361,7 @@ export function createExperimentDoc(options: CreateExperimentDocOptions = {}): s
 
   return matter.stringify(body, {
     agent: options.agent ?? "claude-code",
-    metric: options.metric ?? { name: "tests", direction: "maximize" },
+    metric: options.metric ?? { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
     baseline: options.baseline ?? null,
     ...(options.model ? { model: options.model } : {}),
     status: {

@@ -101,14 +101,16 @@ function parseMetric(value: unknown): MetricDef | MetricDef[] | undefined {
 function parseMetricDefinition(value: unknown): MetricDef | undefined {
   const parsed = isRecord(value) ? value : undefined;
   const name = parseString(parsed?.name);
+  const script = parseString(parsed?.script);
   const direction = parseMetricDirection(parsed?.direction);
 
-  if (name === undefined || direction === undefined) {
+  if (name === undefined || script === undefined || direction === undefined) {
     return undefined;
   }
 
   return {
     name,
+    script,
     direction
   };
 }

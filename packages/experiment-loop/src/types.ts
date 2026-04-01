@@ -25,6 +25,7 @@ export type MetricDirection = "minimize" | "maximize" | "stable";
 
 export interface MetricDef {
   name: string;
+  script: string;
   direction: MetricDirection;
 }
 

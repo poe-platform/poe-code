@@ -35,13 +35,13 @@ describe("evaluate", () => {
       }
     ]);
 
-    await expect(evaluate("tests", "/repo", exec)).resolves.toEqual({
+    await expect(evaluate("node scripts/metric-tests.mjs", "/repo", exec)).resolves.toEqual({
       score: 42,
       passed: true,
       output: "42\n"
     });
 
-    expect(execMock).toHaveBeenCalledWith("npm run metric:tests", {
+    expect(execMock).toHaveBeenCalledWith("node scripts/metric-tests.mjs", {
       cwd: "/repo",
       timeout: 180_000
     });
@@ -56,7 +56,7 @@ describe("evaluate", () => {
       }
     ]);
 
-    await expect(evaluate("tests", "/repo", exec)).resolves.toEqual({
+    await expect(evaluate("node scripts/metric-tests.mjs", "/repo", exec)).resolves.toEqual({
       score: 0,
       passed: false,
       output: "0\nmetric failed\n"
@@ -72,7 +72,7 @@ describe("evaluate", () => {
       }
     ]);
 
-    await expect(evaluate("tests", "/repo", exec)).resolves.toEqual({
+    await expect(evaluate("node scripts/metric-tests.mjs", "/repo", exec)).resolves.toEqual({
       score: null,
       passed: false,
       output: "not-a-number\n"
@@ -88,7 +88,7 @@ describe("evaluate", () => {
       }
     ]);
 
-    await expect(evaluate("benchmark", "/repo", exec)).resolves.toEqual({
+    await expect(evaluate("node scripts/metric-benchmark.mjs", "/repo", exec)).resolves.toEqual({
       score: 12.5,
       passed: true,
       output: "Running benchmark\nIntermediate note\n\n12.5\n\n"
@@ -100,14 +100,17 @@ describe("evaluateChain", () => {
   const metrics: MetricDef[] = [
     {
       name: "tests",
+      script: "node scripts/metric-tests.mjs",
       direction: "maximize"
     },
     {
       name: "duration",
+      script: "node scripts/metric-duration.mjs",
       direction: "minimize"
     },
     {
       name: "size",
+      script: "node scripts/metric-size.mjs",
       direction: "minimize"
     }
   ];

@@ -154,6 +154,9 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
       if (!metric.name || metric.name.trim().length === 0) {
         errors.push("Metric is missing required field: name");
       }
+      if (!metric.script || metric.script.trim().length === 0) {
+        errors.push(`Metric "${metric.name ?? "(unnamed)"}" is missing required field: script`);
+      }
       if (metric.direction !== "minimize" && metric.direction !== "maximize" && metric.direction !== "stable") {
         errors.push(
           `Metric "${metric.name ?? "(unnamed)"}" has invalid direction: "${String(metric.direction)}". Must be "minimize", "maximize", or "stable"`
@@ -579,7 +582,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
         resources.logger.resolved("Agent", agentDisplay);
         resources.logger.resolved(
           "Metrics",
-          metrics.map((m) => `${m.name} (${m.direction})`).join(", ")
+          metrics.map((m) => `${m.name}: ${m.script} (${m.direction})`).join(", ")
         );
         resources.logger.success("Experiment doc is valid.");
       } finally {

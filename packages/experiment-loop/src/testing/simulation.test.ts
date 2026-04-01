@@ -24,7 +24,7 @@ describe("createExperimentLoopSimulation", () => {
         })
       ],
       metricResults: {
-        tests: metricResult({ score: 2 })
+        "node scripts/metric-tests.mjs": metricResult({ score: 2 })
       }
     });
 
@@ -63,7 +63,7 @@ describe("createExperimentLoopSimulation", () => {
         })
       ],
       metricResults: {
-        tests: metricResult({ score: 2 })
+        "node scripts/metric-tests.mjs": metricResult({ score: 2 })
       }
     });
 
@@ -87,7 +87,7 @@ describe("createExperimentLoopSimulation", () => {
         })
       ],
       metricResults: {
-        tests: metricResult({ score: 2 })
+        "node scripts/metric-tests.mjs": metricResult({ score: 2 })
       }
     });
 
@@ -113,8 +113,8 @@ describe("createExperimentLoopSimulation", () => {
       maxExperiments: 1,
       docContent: createExperimentDoc({
         metric: [
-          { name: "tests", direction: "maximize" },
-          { name: "test_duration", direction: "minimize" }
+          { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
+          { name: "test_duration", script: "node scripts/metric-duration.mjs", direction: "minimize" }
         ],
         baseline: {
           tests: 1,
@@ -127,8 +127,8 @@ describe("createExperimentLoopSimulation", () => {
         })
       ],
       metricResults: {
-        tests: metricResult({ score: 2 }),
-        test_duration: metricResult({ score: 9 })
+        "node scripts/metric-tests.mjs": metricResult({ score: 2 }),
+        "node scripts/metric-duration.mjs": metricResult({ score: 9 })
       }
     });
 
@@ -148,8 +148,8 @@ describe("createExperimentLoopSimulation", () => {
       test_duration: 9
     });
     expect(execCalls.map((call) => call.command)).toEqual([
-      "npm run metric:tests",
-      "npm run metric:test_duration"
+      "node scripts/metric-tests.mjs",
+      "node scripts/metric-duration.mjs"
     ]);
   });
 
@@ -158,8 +158,8 @@ describe("createExperimentLoopSimulation", () => {
       maxExperiments: 1,
       docContent: createExperimentDoc({
         metric: [
-          { name: "tests", direction: "maximize" },
-          { name: "test_duration", direction: "minimize" }
+          { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
+          { name: "test_duration", script: "node scripts/metric-duration.mjs", direction: "minimize" }
         ],
         baseline: {
           tests: 1,
@@ -168,8 +168,8 @@ describe("createExperimentLoopSimulation", () => {
       }),
       turns: [agentMakesChanges()],
       metricResults: {
-        tests: metricResult({ score: 0, exitCode: 1 }),
-        test_duration: metricResult({ score: 9 })
+        "node scripts/metric-tests.mjs": metricResult({ score: 0, exitCode: 1 }),
+        "node scripts/metric-duration.mjs": metricResult({ score: 9 })
       }
     });
 
@@ -177,7 +177,7 @@ describe("createExperimentLoopSimulation", () => {
     const [entry] = await readJournal();
 
     expect(entry?.status).toBe("discard");
-    expect(execCalls.map((call) => call.command)).toEqual(["npm run metric:tests"]);
+    expect(execCalls.map((call) => call.command)).toEqual(["node scripts/metric-tests.mjs"]);
   });
 
   it("discards a metric chain when the second metric fails", async () => {
@@ -185,8 +185,8 @@ describe("createExperimentLoopSimulation", () => {
       maxExperiments: 1,
       docContent: createExperimentDoc({
         metric: [
-          { name: "tests", direction: "maximize" },
-          { name: "test_duration", direction: "minimize" }
+          { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
+          { name: "test_duration", script: "node scripts/metric-duration.mjs", direction: "minimize" }
         ],
         baseline: {
           tests: 1,
@@ -195,8 +195,8 @@ describe("createExperimentLoopSimulation", () => {
       }),
       turns: [agentMakesChanges()],
       metricResults: {
-        tests: metricResult({ score: 2 }),
-        test_duration: metricResult({ score: 11, exitCode: 1 })
+        "node scripts/metric-tests.mjs": metricResult({ score: 2 }),
+        "node scripts/metric-duration.mjs": metricResult({ score: 11, exitCode: 1 })
       }
     });
 
@@ -205,8 +205,8 @@ describe("createExperimentLoopSimulation", () => {
 
     expect(entry?.status).toBe("discard");
     expect(execCalls.map((call) => call.command)).toEqual([
-      "npm run metric:tests",
-      "npm run metric:test_duration"
+      "node scripts/metric-tests.mjs",
+      "node scripts/metric-duration.mjs"
     ]);
   });
 
@@ -226,7 +226,7 @@ describe("createExperimentLoopSimulation", () => {
         })
       ],
       metricResults: {
-        tests: [metricResult({ score: 2 })]
+        "node scripts/metric-tests.mjs": [metricResult({ score: 2 })]
       }
     });
 
@@ -267,7 +267,7 @@ describe("createExperimentLoopSimulation", () => {
         )
       ],
       metricResults: {
-        tests: [metricResult({ score: 2 }), metricResult({ score: 3 })]
+        "node scripts/metric-tests.mjs": [metricResult({ score: 2 }), metricResult({ score: 3 })]
       }
     });
 
@@ -297,7 +297,7 @@ describe("createExperimentLoopSimulation", () => {
         )
       ],
       metricResults: {
-        tests: metricResult({ score: 2 })
+        "node scripts/metric-tests.mjs": metricResult({ score: 2 })
       }
     });
 
@@ -338,7 +338,7 @@ describe("createExperimentLoopSimulation", () => {
         )
       ],
       metricResults: {
-        tests: [metricResult({ score: 2 }), metricResult({ score: 3 })]
+        "node scripts/metric-tests.mjs": [metricResult({ score: 2 }), metricResult({ score: 3 })]
       }
     });
 
@@ -368,7 +368,7 @@ describe("createExperimentLoopSimulation", () => {
         agentMakesChanges({ "src/b.ts": "2" })
       ],
       metricResults: {
-        tests: [metricResult({ score: 2 }), metricResult({ score: 3 })]
+        "node scripts/metric-tests.mjs": [metricResult({ score: 2 }), metricResult({ score: 3 })]
       }
     });
 
@@ -386,7 +386,7 @@ describe("createExperimentLoopSimulation", () => {
       }),
       turns: [agentMakesChanges({ "src/a.ts": "1" })],
       metricResults: {
-        tests: [metricResult({ score: 5 }), metricResult({ score: 6 })]
+        "node scripts/metric-tests.mjs": [metricResult({ score: 5 }), metricResult({ score: 6 })]
       }
     });
 
@@ -411,7 +411,7 @@ describe("createExperimentLoopSimulation", () => {
         agentMakesChanges({ "src/d.ts": "4" })
       ],
       metricResults: {
-        tests: [
+        "node scripts/metric-tests.mjs": [
           metricResult({ score: 2 }),
           metricResult({ score: 3 }),
           metricResult({ score: 4 }),

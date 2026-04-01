@@ -23,6 +23,7 @@ Create an experiment doc and metric script(s) for the autonomous experiment loop
 agent: claude-code
 metric:
   name: <metric-name>
+  script: <full command to run in cwd>
   direction: minimize | maximize
 baseline: null
 status:
@@ -37,29 +38,52 @@ For multiple metrics (chain — all must pass, scores tracked independently):
 ```yaml
 metric:
   - name: tests
+    script: node scripts/metric-tests.mjs
     direction: maximize
   - name: test_duration
+    script: node scripts/metric-test-duration.mjs
     direction: minimize
 ```
 
 ## Metric Scripts
 
-Every metric script must:
+Every metric must have an explicit `script` field — the full command to run in cwd.
+
+The script must:
 
 - Exit 0 on success, non-zero on crash/error
-- Print a single number to stdout (the score)
-
-The loop runs `npm run metric:<name>` for each metric.
+- Print a single number to stdout as the last line (the score)
 
 ### Examples
 
 **Pass/fail test gate:**
 
-```json
-{ "scripts": { "metric:tests": "npm test && echo 1 || echo 0" } }
+```yaml
+metric:
+  name: tests
+  script: node scripts/metric-tests.mjs
+  direction: maximize
+```
+
+```javascript
+// scripts/metric-tests.mjs
+import { execSync } from "node:child_process";
+try {
+  execSync("npm test", { stdio: "pipe" });
+  console.log(1);
+} catch {
+  console.log(0);
+}
 ```
 
 **Benchmark measurement:**
+
+```yaml
+metric:
+  name: test_duration
+  script: node scripts/metric-test-duration.mjs
+  direction: minimize
+```
 
 ```javascript
 // scripts/metric-test-duration.mjs
@@ -68,6 +92,13 @@ console.log(result);
 ```
 
 **Agent-as-judge:**
+
+```yaml
+metric:
+  name: readme_ux
+  script: node scripts/metric-readme-ux.mjs
+  direction: maximize
+```
 
 ```javascript
 // scripts/metric-readme-ux.mjs
@@ -91,7 +122,7 @@ console.log(stdout.trim());
 ## After Writing
 
 1. Run `poe-code experiment validate <path>` to check the experiment doc is valid.
-2. Run each metric script 3 times (e.g. `npm run metric:<name>`) and record the scores.
+2. Run each metric script 3 times (using the exact `script` command from the frontmatter) and record the scores.
 3. Check the results:
    - Do the scores make sense for what you're measuring?
    - Is the variance low enough? If scores swing wildly between runs, the metric is too noisy — the loop won't be able to distinguish real improvements from random fluctuation.

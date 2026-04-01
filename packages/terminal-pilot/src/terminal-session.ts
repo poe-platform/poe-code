@@ -220,7 +220,9 @@ export class TerminalSession {
   async resize(cols: number, rows: number): Promise<void> {
     this.currentCols = cols;
     this.currentRows = rows;
-    this.pty.resize(cols, rows);
+    if (this.exitCode === null) {
+      this.pty.resize(cols, rows);
+    }
     this.terminal.resize(cols, rows);
   }
 

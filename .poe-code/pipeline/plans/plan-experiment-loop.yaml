@@ -152,7 +152,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: core-loop
     title: Implement the core experiment loop
@@ -186,9 +186,9 @@ tasks:
       Wire up all modules: frontmatter, journal, evaluator, git.
       Export `runExperimentLoop` from `packages/experiment-loop/src/index.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: simulation-harness

@@ -51,10 +51,8 @@ export interface ExperimentRunOptions {
   git?: ExperimentGit;
   exec?: ExecFn;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
-  callbacks?: {
-    onExperimentStart?: (index: number, agent: string) => void;
-    onExperimentComplete?: (index: number, entry: JournalEntry) => void;
-  };
+  onExperimentStart?: (index: number, agent: string) => void;
+  onExperimentComplete?: (index: number, entry: JournalEntry) => void;
   signal?: AbortSignal;
 }
 

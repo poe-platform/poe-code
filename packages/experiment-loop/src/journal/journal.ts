@@ -9,6 +9,20 @@ export class ExperimentJournal {
     private readonly fs: ExperimentFileSystem
   ) {}
 
+  async init(): Promise<void> {
+    await this.fs.mkdir(dirname(this.journalPath), { recursive: true });
+
+    try {
+      await this.fs.readFile(this.journalPath, "utf8");
+    } catch (error) {
+      if (!isFileNotFoundError(error)) {
+        throw error;
+      }
+
+      await this.fs.writeFile(this.journalPath, "");
+    }
+  }
+
   async log(entry: JournalEntry): Promise<void> {
     await this.fs.mkdir(dirname(this.journalPath), { recursive: true });
     await this.fs.appendFile(this.journalPath, `${JSON.stringify(entry)}\n`);

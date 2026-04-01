@@ -21,6 +21,21 @@ function createEntry(overrides: Partial<JournalEntry> = {}): JournalEntry {
 }
 
 describe("ExperimentJournal", () => {
+  it("initializes a missing journal file without clobbering future entries", async () => {
+    const fs = createFs();
+    const journalPath = "/repo/experiment.journal.jsonl";
+    const journal = new ExperimentJournal(journalPath, fs);
+
+    await journal.init();
+
+    await expect(fs.readFile(journalPath, "utf8")).resolves.toBe("");
+
+    const entry = createEntry();
+    await journal.log(entry);
+
+    await expect(fs.readFile(journalPath, "utf8")).resolves.toBe(`${JSON.stringify(entry)}\n`);
+  });
+
   it("logs a single entry and reads it back", async () => {
     const fs = createFs();
     const journalPath = "/repo/docs/experiment.journal.jsonl";
@@ -101,7 +116,9 @@ describe("ExperimentJournal", () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/missing.journal.jsonl", fs);
 
-    await expect(journal.format()).resolves.toBe("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput");
+    await expect(journal.format()).resolves.toBe(
+      "commit\tstatus\tscore\tdurationMs\ttimestamp\toutput"
+    );
   });
 
   it("escapes carriage returns and backslashes in formatted output", async () => {

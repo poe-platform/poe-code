@@ -80,6 +80,7 @@ describe("root command", () => {
     expect(plainOutput).toContain("Run a one-shot Poe agent prompt");
     expect(plainOutput).toContain("pipeline");
     expect(plainOutput).toContain("ralph");
+    expect(plainOutput).toContain("experiment");
     expect(plainOutput).not.toContain("auth api_key");
     expect(plainOutput).not.toContain("auth login");
     expect(plainOutput).not.toContain("auth logout");
@@ -112,9 +113,7 @@ describe("root command", () => {
       logger: () => {}
     });
 
-    const hasVerbose = program.options.some(
-      (option) => option.long === "--verbose"
-    );
+    const hasVerbose = program.options.some((option) => option.long === "--verbose");
     expect(hasVerbose).toBe(true);
   });
 
@@ -147,9 +146,7 @@ describe("root command", () => {
       }
     });
 
-    await expect(program.parseAsync(["node", "cli", "nope"])).rejects.toBeInstanceOf(
-      SilentError
-    );
+    await expect(program.parseAsync(["node", "cli", "nope"])).rejects.toBeInstanceOf(SilentError);
 
     const plainLogger = stripAnsi(loggerOutput);
     expect(plainLogger).toContain("Unknown command:");
@@ -178,9 +175,9 @@ describe("root command", () => {
       }
     });
 
-    await expect(
-      program.parseAsync(["node", "cli", "mcp", "nope"])
-    ).rejects.toBeInstanceOf(SilentError);
+    await expect(program.parseAsync(["node", "cli", "mcp", "nope"])).rejects.toBeInstanceOf(
+      SilentError
+    );
 
     const plainLogger = stripAnsi(loggerOutput);
     expect(plainLogger).toContain("Unknown command:");
@@ -208,9 +205,7 @@ describe("root command", () => {
         }
       });
 
-      await expect(
-        program.parseAsync(["node", "cli", "nope"])
-      ).rejects.toBeInstanceOf(SilentError);
+      await expect(program.parseAsync(["node", "cli", "nope"])).rejects.toBeInstanceOf(SilentError);
 
       const plainLogger = stripAnsi(loggerOutput);
       expect(plainLogger).toContain("Unknown command:");

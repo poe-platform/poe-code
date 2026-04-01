@@ -222,7 +222,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-command
     title: Add experiment CLI commands
@@ -249,9 +249,9 @@ tasks:
       Use `commander` for arg parsing. Follow the same CLI patterns as existing commands.
       Keep parity with SDK — expose the same options programmatically.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: skill

@@ -1,9 +1,5 @@
 import { Command, Help } from "commander";
-import {
-  createCliContainer,
-  type CliContainer,
-  type CliDependencies
-} from "./container.js";
+import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerAgentCommand } from "./commands/agent.js";
@@ -25,6 +21,7 @@ import { registerUsageCommand } from "./commands/usage.js";
 import { registerModelsCommand } from "./commands/models.js";
 import { registerPipelineCommand } from "./commands/pipeline.js";
 import { registerRalphCommand } from "./commands/ralph.js";
+import { registerExperimentCommand } from "./commands/experiment.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -49,138 +46,140 @@ function formatCommandHeader(cmd: Command): string {
   return `Poe - ${parts.reverse().join(" ")}`;
 }
 
-function formatHelpText(input: {
-  usageCommand: string;
-  helpCommand: string;
-}): string {
-  const commandRows: Array<{ name: string; args: string; description: string }> =
-    [
-      {
-        name: "configure",
-        args: "[agent]",
-        description: "Configure a coding agent"
-      },
-      {
-        name: "unconfigure",
-        args: "<agent>",
-        description: "Remove a previously applied configuration"
-      },
-      {
-        name: "login",
-        args: "",
-        description: "Store a Poe API key"
-      },
-      {
-        name: "logout",
-        args: "",
-        description: "Remove all configuration"
-      },
-      {
-        name: "auth status",
-        args: "",
-        description: "Show login, balance, and configuration status"
-      },
-      {
-        name: "agent",
-        args: "<prompt>",
-        description: "Run a one-shot Poe agent prompt"
-      },
-      {
-        name: "spawn",
-        args: "<agent> [prompt]",
-        description: "Launch a coding agent"
-      },
-      {
-        name: "generate",
-        args: "[type]",
-        description: "Call Poe models via CLI (text/image/video/audio)"
-      },
-      {
-        name: "mcp configure",
-        args: "[agent]",
-        description: "Configure Poe MCP for your coding agent"
-      },
-      {
-        name: "mcp unconfigure",
-        args: "<agent>",
-        description: "Remove Poe MCP configuration from your agent"
-      },
-      {
-        name: "mcp serve",
-        args: "",
-        description: "Run the Poe MCP server on stdin/stdout"
-      },
-      {
-        name: "skill configure",
-        args: "[agent]",
-        description: "Configure agent skills to call Poe models"
-      },
-      {
-        name: "skill unconfigure",
-        args: "[agent]",
-        description: "Remove agent skills configuration"
-      },
-      {
-        name: "pipeline install",
-        args: "[agent]",
-        description: "Install pipeline skill into agent configuration"
-      },
-      {
-        name: "pipeline run",
-        args: "",
-        description: "Run a fixed-step task pipeline plan"
-      },
-      {
-        name: "ralph init",
-        args: "[doc]",
-        description: "Write Ralph config into a markdown doc frontmatter"
-      },
-      {
-        name: "ralph run",
-        args: "[doc]",
-        description: "Run a markdown doc through repeated agent iterations"
-      },
-      {
-        name: "usage",
-        args: "",
-        description: "Display current Poe compute points balance"
-      },
-      {
-        name: "usage list",
-        args: "",
-        description: "Display usage history"
-      },
-      {
-        name: "utils config",
-        args: "",
-        description: "Show config file paths and usage hints"
-      },
-      {
-        name: "utils config show",
-        args: "",
-        description: "Show config inputs and resolved result"
-      },
-      {
-        name: "utils config init",
-        args: "",
-        description: "Create a project config file"
-      },
-      {
-        name: "utils config edit",
-        args: "",
-        description: "Open a config file in your editor"
-      }
-    ];
+function formatHelpText(input: { usageCommand: string; helpCommand: string }): string {
+  const commandRows: Array<{ name: string; args: string; description: string }> = [
+    {
+      name: "configure",
+      args: "[agent]",
+      description: "Configure a coding agent"
+    },
+    {
+      name: "unconfigure",
+      args: "<agent>",
+      description: "Remove a previously applied configuration"
+    },
+    {
+      name: "login",
+      args: "",
+      description: "Store a Poe API key"
+    },
+    {
+      name: "logout",
+      args: "",
+      description: "Remove all configuration"
+    },
+    {
+      name: "auth status",
+      args: "",
+      description: "Show login, balance, and configuration status"
+    },
+    {
+      name: "agent",
+      args: "<prompt>",
+      description: "Run a one-shot Poe agent prompt"
+    },
+    {
+      name: "spawn",
+      args: "<agent> [prompt]",
+      description: "Launch a coding agent"
+    },
+    {
+      name: "generate",
+      args: "[type]",
+      description: "Call Poe models via CLI (text/image/video/audio)"
+    },
+    {
+      name: "mcp configure",
+      args: "[agent]",
+      description: "Configure Poe MCP for your coding agent"
+    },
+    {
+      name: "mcp unconfigure",
+      args: "<agent>",
+      description: "Remove Poe MCP configuration from your agent"
+    },
+    {
+      name: "mcp serve",
+      args: "",
+      description: "Run the Poe MCP server on stdin/stdout"
+    },
+    {
+      name: "skill configure",
+      args: "[agent]",
+      description: "Configure agent skills to call Poe models"
+    },
+    {
+      name: "skill unconfigure",
+      args: "[agent]",
+      description: "Remove agent skills configuration"
+    },
+    {
+      name: "pipeline install",
+      args: "[agent]",
+      description: "Install pipeline skill into agent configuration"
+    },
+    {
+      name: "pipeline run",
+      args: "",
+      description: "Run a fixed-step task pipeline plan"
+    },
+    {
+      name: "ralph init",
+      args: "[doc]",
+      description: "Write Ralph config into a markdown doc frontmatter"
+    },
+    {
+      name: "ralph run",
+      args: "[doc]",
+      description: "Run a markdown doc through repeated agent iterations"
+    },
+    {
+      name: "experiment run",
+      args: "[doc]",
+      description: "Run an experiment doc through the autonomous experiment loop"
+    },
+    {
+      name: "experiment journal",
+      args: "[doc]",
+      description: "Display an experiment journal as a formatted table"
+    },
+    {
+      name: "usage",
+      args: "",
+      description: "Display current Poe compute points balance"
+    },
+    {
+      name: "usage list",
+      args: "",
+      description: "Display usage history"
+    },
+    {
+      name: "utils config",
+      args: "",
+      description: "Show config file paths and usage hints"
+    },
+    {
+      name: "utils config show",
+      args: "",
+      description: "Show config inputs and resolved result"
+    },
+    {
+      name: "utils config init",
+      args: "",
+      description: "Create a project config file"
+    },
+    {
+      name: "utils config edit",
+      args: "",
+      description: "Open a config file in your editor"
+    }
+  ];
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
-  const argsWidth = Math.max(
-    0,
-    ...commandRows.map((row) => row.args.length)
-  );
+  const argsWidth = Math.max(0, ...commandRows.map((row) => row.args.length));
   const cmd = (row: (typeof commandRows)[number]) => {
     const name = text.command(row.name.padEnd(nameWidth));
-    const args = row.args.length > 0
-      ? text.argument(row.args.padEnd(argsWidth))
-      : " ".repeat(argsWidth);
+    const args =
+      row.args.length > 0 ? text.argument(row.args.padEnd(argsWidth)) : " ".repeat(argsWidth);
     return `  ${name} ${args}  ${row.description}`;
   };
 
@@ -201,10 +200,7 @@ function formatHelpText(input: {
   ].join("\n");
 }
 
-function formatSubcommandHelp(
-  cmd: Command,
-  helper: Help
-): string {
+function formatSubcommandHelp(cmd: Command, helper: Help): string {
   const termWidth = helper.padWidth(cmd, helper);
   const itemIndentWidth = 2;
   const itemSeparatorWidth = 2;
@@ -230,67 +226,55 @@ function formatSubcommandHelp(
       .map((line) => `${indent}${line}`)
       .join("\n");
 
-  const formatList = (items: string[]): string =>
-    items.map(indentBlock).join("\n");
+  const formatList = (items: string[]): string => items.map(indentBlock).join("\n");
 
   const output: string[] = [];
   output.push(text.heading(formatCommandHeader(cmd)), "");
-  output.push(
-    `${text.section("Usage:")} ${text.usageCommand(helper.commandUsage(cmd))}`,
-    ""
-  );
+  output.push(`${text.section("Usage:")} ${text.usageCommand(helper.commandUsage(cmd))}`, "");
 
   const commandDescription = helper.commandDescription(cmd);
   if (commandDescription.length > 0) {
     output.push(commandDescription, "");
   }
 
-  const argumentList = helper.visibleArguments(cmd).map((argument) =>
-    formatItem(
-      helper.argumentTerm(argument),
-      helper.argumentDescription(argument),
-      text.argument
-    )
-  );
+  const argumentList = helper
+    .visibleArguments(cmd)
+    .map((argument) =>
+      formatItem(helper.argumentTerm(argument), helper.argumentDescription(argument), text.argument)
+    );
   if (argumentList.length > 0) {
     output.push(text.section("Arguments:"), formatList(argumentList), "");
   }
 
-  const optionList = helper.visibleOptions(cmd).map((option) =>
-    formatItem(
-      helper.optionTerm(option),
-      helper.optionDescription(option),
-      text.option
-    )
-  );
+  const optionList = helper
+    .visibleOptions(cmd)
+    .map((option) =>
+      formatItem(helper.optionTerm(option), helper.optionDescription(option), text.option)
+    );
   if (optionList.length > 0) {
     output.push(text.section("Options:"), formatList(optionList), "");
   }
 
   if (helper.showGlobalOptions) {
-    const globalOptionList = helper.visibleGlobalOptions(cmd).map((option) =>
-      formatItem(
-        helper.optionTerm(option),
-        helper.optionDescription(option),
-        text.option
-      )
-    );
-    if (globalOptionList.length > 0) {
-      output.push(
-        text.section("Global Options:"),
-        formatList(globalOptionList),
-        ""
+    const globalOptionList = helper
+      .visibleGlobalOptions(cmd)
+      .map((option) =>
+        formatItem(helper.optionTerm(option), helper.optionDescription(option), text.option)
       );
+    if (globalOptionList.length > 0) {
+      output.push(text.section("Global Options:"), formatList(globalOptionList), "");
     }
   }
 
-  const commandList = helper.visibleCommands(cmd).map((subcommand) =>
-    formatItem(
-      helper.subcommandTerm(subcommand),
-      helper.subcommandDescription(subcommand),
-      text.command
-    )
-  );
+  const commandList = helper
+    .visibleCommands(cmd)
+    .map((subcommand) =>
+      formatItem(
+        helper.subcommandTerm(subcommand),
+        helper.subcommandDescription(subcommand),
+        text.command
+      )
+    );
   if (commandList.length > 0) {
     output.push(text.section("Commands:"), formatList(commandList), "");
   }
@@ -321,10 +305,7 @@ function bootstrapProgram(container: CliContainer): Command {
     moduleUrl: import.meta.url
   });
   const usageCommand = formatCliUsageCommand(executionContext);
-  const helpCommand = formatCliHelpCommand(executionContext, [
-    "<command>",
-    "--help"
-  ]);
+  const helpCommand = formatCliHelpCommand(executionContext, ["<command>", "--help"]);
 
   program
     .name("poe-code")
@@ -362,6 +343,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerSkillCommand(program, container);
   registerPipelineCommand(program, container);
   registerRalphCommand(program, container);
+  registerExperimentCommand(program, container);
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
 

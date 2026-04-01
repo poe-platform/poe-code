@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getPoeApiKey, isCliInvocation, runRalph } from "./index.js";
+import { getPoeApiKey, isCliInvocation, runExperiment, runRalph } from "./index.js";
 
 describe("entrypoint module", () => {
   it("re-exports getPoeApiKey", async () => {
@@ -33,6 +33,10 @@ describe("entrypoint module", () => {
 
   it("re-exports runRalph", () => {
     expect(typeof runRalph).toBe("function");
+  });
+
+  it("re-exports runExperiment", () => {
+    expect(typeof runExperiment).toBe("function");
   });
 
   it("returns false when invoked via CJS wrapper (bin.cjs)", () => {

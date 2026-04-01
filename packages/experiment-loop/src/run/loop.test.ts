@@ -291,6 +291,63 @@ describe("runExperimentLoop", () => {
     );
   });
 
+  it("lets explicit agent and model options override frontmatter", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: codex",
+        "metric:",
+        "  name: tests",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "editable:",
+        "  - src/index.ts",
+        "readonly:",
+        "  - README.md",
+        "model: doc-model",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Improve the tests"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([{ stdout: "2\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      agent: "claude-code",
+      model: "cli-model",
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        model: "cli-model"
+      })
+    );
+  });
+
   it("initializes the journal file even when no experiments are run", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({
@@ -318,6 +375,7 @@ describe("runExperimentLoop", () => {
       experimentsKept: 0,
       totalDurationMs: expect.any(Number)
     });
+    expect(git.currentHash).not.toHaveBeenCalled();
     expect(runAgent).not.toHaveBeenCalled();
     await expect(
       fs.readFile("/repo/.poe-code/experiments/test-duration.journal.jsonl", "utf8")

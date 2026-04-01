@@ -284,7 +284,8 @@ export async function runExperimentLoop(
   const rawContent = await fs.readFile(absoluteDocPath, "utf8");
   const parsedDoc = parseExperimentFrontmatter(rawContent);
   const metrics = normalizeMetrics(parsedDoc.frontmatter.metric);
-  const agent = resolveAgent(parsedDoc.frontmatter.agent);
+  const agent = resolveAgent(options.agent ?? parsedDoc.frontmatter.agent);
+  const model = options.model ?? parsedDoc.frontmatter.model;
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   await journal.init();
   const startTime = Date.now();
@@ -294,7 +295,7 @@ export async function runExperimentLoop(
   let experimentsCompleted = 0;
   let experimentsKept = 0;
   let lastCrashOutput: string | undefined;
-  let baselineHash = await git.currentHash(options.cwd);
+  let baselineHash: string | undefined;
 
   async function finalize(
     stopReason: ExperimentRunResult["stopReason"]
@@ -320,6 +321,7 @@ export async function runExperimentLoop(
         readonly: frontmatter.readonly,
         ...(lastCrashOutput ? { lastCrashOutput } : {})
       });
+      baselineHash ??= await git.currentHash(options.cwd);
       const preExperimentHash = baselineHash;
       const experimentStart = Date.now();
 
@@ -331,7 +333,7 @@ export async function runExperimentLoop(
           agent,
           prompt,
           cwd: options.cwd,
-          ...(frontmatter.model ? { model: frontmatter.model } : {}),
+          ...(model ? { model } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });
       } catch (error) {

@@ -85,12 +85,20 @@ console.log(stdout.trim());
 ## Rules
 
 - Each metric script must be idempotent and self-contained.
-- Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better.
-- The `baseline` field starts as `null` — the loop sets it after the first successful run.
+- Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better, `direction: stable` when the value must not change.
+- Metric scripts must output raw values, not pass/fail — the loop handles baseline comparison.
+- The `baseline` field starts as `null` — the loop measures it automatically before the first experiment.
 
 ## After Writing
 
-Run `poe-code experiment validate <path>` to check the experiment doc is valid.
+1. Run `poe-code experiment validate <path>` to check the experiment doc is valid.
+2. Run each metric script 3 times (e.g. `npm run metric:<name>`) and record the scores.
+3. Check the results:
+   - Do the scores make sense for what you're measuring?
+   - Is the variance low enough? If scores swing wildly between runs, the metric is too noisy — the loop won't be able to distinguish real improvements from random fluctuation.
+   - Does the script exit 0 consistently? Flaky failures will cause false discards.
+4. If a metric is too noisy, fix it (pin random seeds, increase sample size, average multiple runs inside the script) and re-verify.
+5. Report the scores and variance to the user before finishing.
 
 ## Output
 
@@ -98,6 +106,9 @@ Run `poe-code experiment validate <path>` to check the experiment doc is valid.
 Created:
   .poe-code/experiments/<name>.md
   scripts/metric-<name>.mjs  (if needed)
+
+Verification (3 runs):
+  metric:<name>  →  42, 43, 42  (variance: 0.3)  ✓ stable
 
 Run with:
   poe-code experiment run .poe-code/experiments/<name>.md

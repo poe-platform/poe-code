@@ -154,9 +154,9 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
       if (!metric.name || metric.name.trim().length === 0) {
         errors.push("Metric is missing required field: name");
       }
-      if (metric.direction !== "minimize" && metric.direction !== "maximize") {
+      if (metric.direction !== "minimize" && metric.direction !== "maximize" && metric.direction !== "stable") {
         errors.push(
-          `Metric "${metric.name ?? "(unnamed)"}" has invalid direction: "${String(metric.direction)}". Must be "minimize" or "maximize"`
+          `Metric "${metric.name ?? "(unnamed)"}" has invalid direction: "${String(metric.direction)}". Must be "minimize", "maximize", or "stable"`
         );
       }
     }

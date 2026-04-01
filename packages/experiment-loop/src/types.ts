@@ -21,7 +21,7 @@ export type ExecFn = (
   }
 ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
 
-export type MetricDirection = "minimize" | "maximize";
+export type MetricDirection = "minimize" | "maximize" | "stable";
 
 export interface MetricDef {
   name: string;

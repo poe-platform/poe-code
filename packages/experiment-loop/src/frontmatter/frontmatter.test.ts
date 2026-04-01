@@ -35,6 +35,50 @@ describe("parseExperimentFrontmatter", () => {
     expect(result.body).toBe("# Experiment\n\nBody");
   });
 
+  it("parses a metric with stable direction", () => {
+    const content = [
+      "---",
+      "metric:",
+      "  name: test_count",
+      "  direction: stable",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.metric).toEqual({
+      name: "test_count",
+      direction: "stable"
+    });
+  });
+
+  it("parses maxExperiments from frontmatter", () => {
+    const content = [
+      "---",
+      "agent: claude-code",
+      "metric:",
+      "  name: tests",
+      "  direction: maximize",
+      "maxExperiments: 10",
+      "baseline: null",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.maxExperiments).toBe(10);
+  });
+
+  it("omits maxExperiments when not present", () => {
+    const content = ["---", "baseline: null", "---", "Body"].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.maxExperiments).toBeUndefined();
+  });
+
   it("parses a metric chain", () => {
     const content = [
       "---",

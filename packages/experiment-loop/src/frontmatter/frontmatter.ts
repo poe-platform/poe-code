@@ -12,6 +12,7 @@ export interface ExperimentFrontmatter {
   agent?: string;
   metric?: MetricDef | MetricDef[];
   baseline: Record<string, number> | null;
+  maxExperiments?: number;
   model?: string;
   status: ExperimentFrontmatterStatus;
 }
@@ -53,12 +54,14 @@ function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
   const parsed = isRecord(value) ? value : undefined;
   const agent = parseString(parsed?.agent);
   const metric = parseMetric(parsed?.metric);
+  const maxExperiments = parseNonNegativeInteger(parsed?.maxExperiments);
   const model = parseString(parsed?.model);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
     ...(metric !== undefined ? { metric } : {}),
     baseline: parseBaseline(parsed?.baseline),
+    ...(maxExperiments !== undefined ? { maxExperiments } : {}),
     ...(model !== undefined ? { model } : {}),
     status: parseStatus(parsed?.status)
   };
@@ -69,6 +72,7 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
     ...(frontmatter.agent !== undefined ? { agent: frontmatter.agent } : {}),
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),
     baseline: frontmatter.baseline,
+    ...(frontmatter.maxExperiments !== undefined ? { maxExperiments: frontmatter.maxExperiments } : {}),
     ...(frontmatter.model !== undefined ? { model: frontmatter.model } : {}),
     status: {
       state: frontmatter.status.state,
@@ -106,7 +110,7 @@ function parseMetricDefinition(value: unknown): MetricDef | undefined {
 }
 
 function parseMetricDirection(value: unknown): MetricDef["direction"] | undefined {
-  return value === "minimize" || value === "maximize" ? value : undefined;
+  return value === "minimize" || value === "maximize" || value === "stable" ? value : undefined;
 }
 
 function parseBaseline(value: unknown): Record<string, number> | null {

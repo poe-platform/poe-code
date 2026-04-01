@@ -42,7 +42,7 @@ function createExec(
 function createDoc(options?: {
   baseline?: number | null;
 }): string {
-  const baseline = options?.baseline ?? 1;
+  const baseline = options?.baseline === undefined ? 1 : options.baseline;
 
   return [
     "---",
@@ -399,5 +399,186 @@ describe("runExperimentLoop", () => {
       totalDurationMs: expect.any(Number)
     });
     expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("keeps an experiment when a stable metric stays equal to baseline", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: test_count",
+        "  direction: stable",
+        "baseline: { test_count: 100 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Keep test count stable"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([{ stdout: "100\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(1);
+  });
+
+  it("discards an experiment when a stable metric changes from baseline", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: test_count",
+        "  direction: stable",
+        "baseline: { test_count: 100 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Keep test count stable"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "discard-1")
+    });
+    const exec = createExec([{ stdout: "99\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(0);
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+  });
+
+  it("measures baseline automatically when baseline is null", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: null })
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    // First exec call = baseline measurement, second = after experiment
+    const exec = createExec([
+      { stdout: "5\n", stderr: "", exitCode: 0 },
+      { stdout: "7\n", stderr: "", exitCode: 0 }
+    ]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.experimentsCompleted).toBe(1);
+    expect(result.experimentsKept).toBe(1);
+
+    const updated = parseExperimentFrontmatter(await fs.readFile(docPath, "utf8"));
+    // Baseline was measured as 5, then experiment scored 7 (maximize) so kept
+    expect(updated.frontmatter.baseline).toEqual({ tests: 7 });
+  });
+
+  it("uses maxExperiments from frontmatter when not provided via options", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "maxExperiments: 2",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Improve the tests"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([
+      { stdout: "2\n", stderr: "", exitCode: 0 },
+      { stdout: "3\n", stderr: "", exitCode: 0 }
+    ]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.stopReason).toBe("max_experiments");
+    expect(result.experimentsCompleted).toBe(2);
   });
 });

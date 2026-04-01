@@ -174,6 +174,10 @@ function allScoresImproved(
       return true;
     }
 
+    if (metric.direction === "stable") {
+      return score === baselineScore;
+    }
+
     return metric.direction === "maximize" ? score > baselineScore : score < baselineScore;
   });
 }
@@ -271,10 +275,12 @@ export async function runExperimentLoop(
     throw new Error("runExperimentLoop requires a runAgent implementation.");
   }
 
-  const maxExperiments = validateMaxExperiments(options.maxExperiments);
   const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
   const rawContent = await fs.readFile(absoluteDocPath, "utf8");
   const parsedDoc = parseExperimentFrontmatter(rawContent);
+  const maxExperiments = validateMaxExperiments(
+    options.maxExperiments ?? parsedDoc.frontmatter.maxExperiments
+  );
   const metrics = normalizeMetrics(parsedDoc.frontmatter.metric);
   const agent = resolveAgent(options.agent ?? parsedDoc.frontmatter.agent);
   const model = options.model ?? parsedDoc.frontmatter.model;
@@ -288,6 +294,24 @@ export async function runExperimentLoop(
   let experimentsKept = 0;
   let lastCrashOutput: string | undefined;
   let baselineHash: string | undefined;
+
+  if (frontmatter.baseline === null) {
+    const baselineResults = await evaluateChain(metrics, options.cwd, exec);
+    if (allMetricsPassed(metrics, baselineResults)) {
+      frontmatter = {
+        ...frontmatter,
+        baseline: updateBaseline(metrics, baselineResults)
+      };
+      await persistDoc({
+        fs,
+        docPath: absoluteDocPath,
+        frontmatter,
+        body,
+        experimentsCompleted,
+        experimentsKept
+      });
+    }
+  }
 
   async function finalize(
     stopReason: ExperimentRunResult["stopReason"]

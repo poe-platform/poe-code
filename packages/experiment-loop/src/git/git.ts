@@ -25,8 +25,7 @@ async function readCurrentHash(exec: ExecFn, cwd: string): Promise<string> {
 export function createDefaultGit(exec: ExecFn): ExperimentGit {
   return {
     async commitAll(message: string, cwd: string): Promise<string> {
-      await runOrThrow(exec, "git add -A", cwd);
-      await runOrThrow(exec, `git reset -q HEAD -- ${EXPERIMENT_DOCS_PATH}`, cwd);
+      await runOrThrow(exec, `git add -A -- . ':!${EXPERIMENT_DOCS_PATH}'`, cwd);
 
       const diffResult = await exec("git diff --cached --quiet", { cwd });
 
@@ -46,7 +45,17 @@ export function createDefaultGit(exec: ExecFn): ExperimentGit {
     },
 
     async reset(commitHash: string, cwd: string): Promise<void> {
+      const stashResult = await exec(
+        `git stash push -q --include-untracked -- ${EXPERIMENT_DOCS_PATH}`,
+        { cwd }
+      );
+      const stashed = stashResult.exitCode === 0;
+
       await runOrThrow(exec, `git reset --hard ${shellEscape(commitHash)}`, cwd);
+
+      if (stashed) {
+        await exec("git stash pop -q", { cwd });
+      }
     },
 
     async currentHash(cwd: string): Promise<string> {

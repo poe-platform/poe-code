@@ -41,12 +41,8 @@ function createExec(
 
 function createDoc(options?: {
   baseline?: number | null;
-  editable?: string[];
-  readonly?: string[];
 }): string {
   const baseline = options?.baseline ?? 1;
-  const editable = options?.editable ?? ["src/editable.ts"];
-  const readonly = options?.readonly ?? ["README.md"];
 
   return [
     "---",
@@ -55,10 +51,6 @@ function createDoc(options?: {
     "  name: tests",
     "  direction: maximize",
     `baseline: ${baseline === null ? "null" : `{ tests: ${baseline} }`}`,
-    "editable:",
-    ...editable.map((entry) => `  - ${entry}`),
-    "readonly:",
-    ...readonly.map((entry) => `  - ${entry}`),
     "status:",
     "  state: open",
     "  experiment: 0",
@@ -74,7 +66,7 @@ describe("runExperimentLoop", () => {
   it("keeps an experiment when all metrics pass and improve the baseline", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({
-      [docPath]: createDoc({ baseline: 1, editable: ["src/index.ts"], readonly: ["docs/spec.md"] })
+      [docPath]: createDoc({ baseline: 1 })
     });
     const git = createGit({
       currentHash: vi.fn(async () => "base-1"),
@@ -125,8 +117,6 @@ describe("runExperimentLoop", () => {
     const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
     expect(prompt).toContain("# Improve the tests");
     expect(prompt).toContain("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput");
-    expect(prompt).toContain("Editable files:\n- src/index.ts");
-    expect(prompt).toContain("Readonly files:\n- docs/spec.md");
     expect(prompt).toContain("you are autonomous, do not stop or ask for input");
 
     expect(git.currentHash).toHaveBeenCalledWith("/repo");
@@ -301,10 +291,6 @@ describe("runExperimentLoop", () => {
         "  name: tests",
         "  direction: maximize",
         "baseline: { tests: 1 }",
-        "editable:",
-        "  - src/index.ts",
-        "readonly:",
-        "  - README.md",
         "model: doc-model",
         "status:",
         "  state: open",

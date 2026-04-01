@@ -26,10 +26,6 @@ metric:
   name: <metric-name>
   direction: minimize | maximize
 baseline: null
-editable:
-  - <file paths the agent may edit>
-readonly:
-  - <file paths the agent should read but not edit>
 model: claude-sonnet-4-20250514
 status:
   state: open
@@ -90,7 +86,6 @@ console.log(stdout.trim());
 
 - Each metric script must be idempotent and self-contained.
 - Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better.
-- List only files the agent should touch in `editable`. Everything else is off-limits.
 - The `baseline` field starts as `null` — the loop sets it after the first successful run.
 
 ## After Writing

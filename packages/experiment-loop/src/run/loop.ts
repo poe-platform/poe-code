@@ -133,22 +133,14 @@ function combineOutput(stdout: string, stderr: string): string {
   return `${stdout}${stderr}`;
 }
 
-function formatList(title: string, values: string[], emptyMessage: string): string {
-  return `${title}:\n${values.length === 0 ? emptyMessage : values.map((value) => `- ${value}`).join("\n")}`;
-}
-
 function buildPrompt(options: {
   body: string;
   journal: string;
-  editable: string[];
-  readonly: string[];
   lastCrashOutput?: string;
 }): string {
   const sections = [
     options.body.trim(),
-    ["Journal", options.journal].join("\n\n"),
-    formatList("Editable files", options.editable, "- none provided"),
-    formatList("Readonly files", options.readonly, "- none provided")
+    ["Journal", options.journal].join("\n\n")
   ];
 
   if (options.lastCrashOutput) {
@@ -317,8 +309,6 @@ export async function runExperimentLoop(
       const prompt = buildPrompt({
         body,
         journal: await journal.format(),
-        editable: frontmatter.editable,
-        readonly: frontmatter.readonly,
         ...(lastCrashOutput ? { lastCrashOutput } : {})
       });
       baselineHash ??= await git.currentHash(options.cwd);

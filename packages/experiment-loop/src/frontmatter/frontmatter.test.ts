@@ -90,8 +90,6 @@ describe("parseExperimentFrontmatter", () => {
     expect(result).toEqual({
       frontmatter: {
         baseline: null,
-        editable: [],
-        readonly: [],
         status: {
           state: "open",
           experiment: 0,
@@ -111,10 +109,6 @@ describe("parseExperimentFrontmatter", () => {
       "  direction: maximize",
       "baseline:",
       "  tests: 1",
-      "editable:",
-      "  - src/model.py",
-      "readonly:",
-      "  - src/data.py",
       "model: claude-sonnet-4-20250514",
       "status:",
       "  state: open",
@@ -135,8 +129,6 @@ describe("parseExperimentFrontmatter", () => {
       baseline: {
         tests: 1
       },
-      editable: ["src/model.py"],
-      readonly: ["src/data.py"],
       model: "claude-sonnet-4-20250514",
       status: {
         state: "open",
@@ -162,10 +154,6 @@ describe("writeExperimentFrontmatter", () => {
       "baseline:",
       "  tests: 1",
       "  test_duration: 42.5",
-      "editable:",
-      "  - src/model.py",
-      "readonly:",
-      "  - src/data.py",
       "model: claude-sonnet-4-20250514",
       "status:",
       "  state: open",
@@ -195,8 +183,6 @@ describe("writeExperimentFrontmatter", () => {
       docPath,
       {
         baseline: null,
-        editable: [],
-        readonly: [],
         status: {
           state: "open",
           experiment: 0,
@@ -211,8 +197,6 @@ describe("writeExperimentFrontmatter", () => {
 
     expect(written).toContain("---\n");
     expect(written).toContain("baseline: null\n");
-    expect(written).toContain("editable: []\n");
-    expect(written).toContain("readonly: []\n");
     expect(written).toContain("status:\n  state: open\n  experiment: 0\n  kept: 0\n");
     expect(written.endsWith("# Experiment\n")).toBe(true);
   });

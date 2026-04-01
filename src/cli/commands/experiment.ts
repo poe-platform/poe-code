@@ -162,10 +162,6 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
     }
   }
 
-  if (frontmatter.editable.length === 0) {
-    errors.push("Missing required field: editable (must list at least one file path)");
-  }
-
   if (frontmatter.status.kept > frontmatter.status.experiment) {
     errors.push(
       `Status inconsistency: kept (${frontmatter.status.kept}) exceeds experiment count (${frontmatter.status.experiment})`
@@ -551,10 +547,6 @@ export function registerExperimentCommand(program: Command, container: CliContai
           "Metrics",
           metrics.map((m) => `${m.name} (${m.direction})`).join(", ")
         );
-        resources.logger.resolved("Editable", doc.frontmatter.editable.join(", "));
-        if (doc.frontmatter.readonly.length > 0) {
-          resources.logger.resolved("Readonly", doc.frontmatter.readonly.join(", "));
-        }
         resources.logger.success("Experiment doc is valid.");
       } finally {
         resources.context.finalize();

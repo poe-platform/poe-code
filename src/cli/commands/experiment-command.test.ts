@@ -343,10 +343,6 @@ describe("experiment validate command", () => {
           "  name: tests",
           "  direction: maximize",
           "baseline: null",
-          "editable:",
-          "  - src/model.py",
-          "readonly:",
-          "  - src/data.py",
           "status:",
           "  state: open",
           "  experiment: 0",
@@ -368,7 +364,6 @@ describe("experiment validate command", () => {
 
     expect(loggerOutput).toContain("claude-code");
     expect(loggerOutput).toContain("tests (maximize)");
-    expect(loggerOutput).toContain("src/model.py");
     expect(loggerOutput).toContain("valid");
   });
 
@@ -378,8 +373,6 @@ describe("experiment validate command", () => {
         "/repo/docs/bad.md": [
           "---",
           "baseline: null",
-          "editable: []",
-          "readonly: []",
           "status:",
           "  state: open",
           "  experiment: 0",
@@ -410,8 +403,6 @@ describe("experiment validate command", () => {
           "  name: tests",
           "  direction: maximize",
           "baseline: null",
-          "editable:",
-          "  - src/model.py",
           "status:",
           "  state: open",
           "  experiment: 2",
@@ -445,8 +436,6 @@ describe("experiment validate command", () => {
           "  - name: test_duration",
           "    direction: minimize",
           "baseline: null",
-          "editable:",
-          "  - src/model.py",
           "status:",
           "  state: open",
           "  experiment: 0",
@@ -482,8 +471,6 @@ describe("experiment validate command", () => {
           "  name: tests",
           "  direction: maximize",
           "baseline: null",
-          "editable:",
-          "  - src/model.py",
           "status:",
           "  state: open",
           "  experiment: 0",

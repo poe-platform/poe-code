@@ -277,10 +277,6 @@ metric:
   name: tests
   direction: maximize
 baseline: Record<string, number> | null;
-editable:
-  - src/model.py
-readonly:
-  - src/data.py
 model: claude-sonnet-4-20250514
 status:
   state: open
@@ -346,7 +342,6 @@ LOOP:
   build prompt:
     - doc body (the agent's research brief)
     - journal contents (so agent learns from past attempts)
-    - editable/readonly file hints
     - last crash output if previous experiment crashed (for self-repair)
     - "you are autonomous, do not stop or ask for input"
 
@@ -396,7 +391,7 @@ poe-code experiment journal [doc]
   displays journal as table
 
 poe-code experiment validate [doc]
-  validates frontmatter: agent, metric, editable, status consistency
+  validates frontmatter: agent, metric, status consistency
   reports errors or prints summary on success
 
 poe-code experiment install
@@ -473,12 +468,11 @@ Validates an experiment doc's frontmatter without running the loop. Follows the 
 
 1. `agent` — must be present and non-empty
 2. `metric` — must be present; each metric must have `name` (non-empty) and `direction` (`"minimize"` or `"maximize"`)
-3. `editable` — must have at least one file path
-4. `status` consistency — `kept` must not exceed `experiment` count
+3. `status` consistency — `kept` must not exceed `experiment` count
 
 ### Success output
 
-Reports: doc path, agent, metrics with direction, editable files, readonly files. Prints "Experiment doc is valid."
+Reports: doc path, agent, metrics with direction. Prints "Experiment doc is valid."
 
 ### Failure output
 

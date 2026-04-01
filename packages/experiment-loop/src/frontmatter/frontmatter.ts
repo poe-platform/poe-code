@@ -12,8 +12,6 @@ export interface ExperimentFrontmatter {
   agent?: string;
   metric?: MetricDef | MetricDef[];
   baseline: Record<string, number> | null;
-  editable: string[];
-  readonly: string[];
   model?: string;
   status: ExperimentFrontmatterStatus;
 }
@@ -61,8 +59,6 @@ function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
     ...(agent !== undefined ? { agent } : {}),
     ...(metric !== undefined ? { metric } : {}),
     baseline: parseBaseline(parsed?.baseline),
-    editable: parseStringArray(parsed?.editable),
-    readonly: parseStringArray(parsed?.readonly),
     ...(model !== undefined ? { model } : {}),
     status: parseStatus(parsed?.status)
   };
@@ -73,8 +69,6 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
     ...(frontmatter.agent !== undefined ? { agent: frontmatter.agent } : {}),
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),
     baseline: frontmatter.baseline,
-    editable: frontmatter.editable,
-    readonly: frontmatter.readonly,
     ...(frontmatter.model !== undefined ? { model: frontmatter.model } : {}),
     status: {
       state: frontmatter.status.state,
@@ -137,18 +131,6 @@ function parseBaseline(value: unknown): Record<string, number> | null {
   return baselineEntries.length === Object.keys(value).length
     ? Object.fromEntries(baselineEntries)
     : null;
-}
-
-function parseStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  const items = value
-    .map((item) => parseString(item))
-    .filter((item): item is string => item !== undefined);
-
-  return items.length === value.length ? items : [];
 }
 
 function parseStatus(value: unknown): ExperimentFrontmatterStatus {

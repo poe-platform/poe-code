@@ -50,8 +50,6 @@ export type CreateExperimentDocOptions = {
   agent?: string;
   metric?: MetricDef | MetricDef[];
   baseline?: Record<string, number> | null;
-  editable?: string[];
-  readonly?: string[];
   model?: string;
   status?: {
     state?: string;
@@ -376,8 +374,6 @@ export function createExperimentDoc(options: CreateExperimentDocOptions = {}): s
     agent: options.agent ?? "claude-code",
     metric: options.metric ?? { name: "tests", direction: "maximize" },
     baseline: options.baseline ?? null,
-    editable: options.editable ?? ["src/index.ts"],
-    readonly: options.readonly ?? ["README.md"],
     ...(options.model ? { model: options.model } : {}),
     status: {
       state: options.status?.state ?? "open",

@@ -11,9 +11,9 @@ function rawTextPlugin(): Plugin {
     name: "raw-text",
     transform(code, id) {
       if (id.endsWith(".hbs") || id.endsWith(".md") || id.endsWith(".log")) {
-        const content = fs.readFileSync(id, "utf8");
+        // We can just use the code that vitest already read from disk
         return {
-          code: `export default ${JSON.stringify(content)};`,
+          code: `export default ${JSON.stringify(code)};`,
           map: null
         };
       }

@@ -31,7 +31,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: frontmatter
     title: Implement frontmatter parsing and serialization
@@ -57,9 +57,9 @@ tasks:
       Use `memfs` for filesystem in tests. Follow TDD — write tests first.
       Reference types from `packages/experiment-loop/src/types.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: journal

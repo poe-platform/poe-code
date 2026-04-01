@@ -27,6 +27,7 @@ export interface MetricDef {
   name: string;
   script: string;
   direction: MetricDirection;
+  delta?: number;
 }
 
 export interface AgentRunInput {

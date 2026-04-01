@@ -108,10 +108,13 @@ function parseMetricDefinition(value: unknown): MetricDef | undefined {
     return undefined;
   }
 
+  const delta = typeof parsed?.delta === "number" && parsed.delta >= 0 ? parsed.delta : undefined;
+
   return {
     name,
     script,
-    direction
+    direction,
+    ...(delta !== undefined ? { delta } : {})
   };
 }
 

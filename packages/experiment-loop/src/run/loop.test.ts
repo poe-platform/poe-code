@@ -496,6 +496,197 @@ describe("runExperimentLoop", () => {
     expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
   });
 
+  it("keeps a stable metric within delta tolerance", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: test_count",
+        "  script: node scripts/metric-test-count.mjs",
+        "  direction: stable",
+        "  delta: 5",
+        "baseline: { test_count: 100 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Keep test count stable"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([{ stdout: "103\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(1);
+  });
+
+  it("discards a stable metric that exceeds delta tolerance", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: test_count",
+        "  script: node scripts/metric-test-count.mjs",
+        "  direction: stable",
+        "  delta: 5",
+        "baseline: { test_count: 100 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Keep test count stable"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "discard-1")
+    });
+    const exec = createExec([{ stdout: "106\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(0);
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+  });
+
+  it("keeps a maximize metric with slight regression within delta", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "  delta: 2",
+        "baseline: { tests: 10 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Maximize with tolerance"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    // Score 9 is below baseline 10, but within delta 2
+    const exec = createExec([{ stdout: "9\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(1);
+  });
+
+  it("keeps a minimize metric with slight regression within delta", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: duration",
+        "  script: node scripts/metric-duration.mjs",
+        "  direction: minimize",
+        "  delta: 100",
+        "baseline: { duration: 5000 }",
+        "status:",
+        "  state: open",
+        "  experiment: 0",
+        "  kept: 0",
+        "---",
+        "# Minimize with tolerance"
+      ].join("\n")
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    // Score 5050 is above baseline 5000, but within delta 100
+    const exec = createExec([{ stdout: "5050\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(1);
+  });
+
   it("measures baseline automatically when baseline is null", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({

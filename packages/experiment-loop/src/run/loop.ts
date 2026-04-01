@@ -154,12 +154,16 @@ function interpolate(template: string, values: Record<string, string>): string {
 function formatMetrics(metrics: MetricDef[], baseline: Record<string, number> | null): string {
   return metrics
     .map((m) => {
-      const parts = [`- ${m.name}: ${m.direction}, script: \`${m.script}\``];
+      const parts = [`- ${m.name}: ${m.direction}`];
+      if (m.delta !== undefined) {
+        parts.push(`±${m.delta}`);
+      }
+      parts.push(`script: \`${m.script}\``);
       const score = baseline?.[m.name];
       if (score !== undefined) {
         parts.push(`(baseline: ${score})`);
       }
-      return parts.join(" ");
+      return parts.join(", ");
     })
     .join("\n");
 }
@@ -207,11 +211,23 @@ function allScoresImproved(
       return true;
     }
 
+    const delta = metric.delta;
+
     if (metric.direction === "stable") {
-      return score === baselineScore;
+      return delta !== undefined
+        ? Math.abs(score - baselineScore) <= delta
+        : score === baselineScore;
     }
 
-    return metric.direction === "maximize" ? score > baselineScore : score < baselineScore;
+    if (metric.direction === "maximize") {
+      return delta !== undefined
+        ? score >= baselineScore - delta
+        : score > baselineScore;
+    }
+
+    return delta !== undefined
+      ? score <= baselineScore + delta
+      : score < baselineScore;
   });
 }
 

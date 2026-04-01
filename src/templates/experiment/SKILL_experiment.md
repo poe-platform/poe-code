@@ -25,6 +25,7 @@ metric:
   name: <metric-name>
   script: <full command to run in cwd>
   direction: minimize | maximize
+  delta: <optional, acceptable variance from baseline>
 baseline: null
 status:
   state: open
@@ -115,6 +116,7 @@ console.log(stdout.trim());
 
 - Each metric script must be idempotent and self-contained.
 - Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better, `direction: stable` when the value must not change.
+- Use `delta` to allow variance. Without delta, comparisons are strict (must improve or stay equal). With `delta: 5`, a regression up to 5 is tolerated for minimize/maximize, and stable accepts ±5 drift.
 - Metric scripts must output raw values, not pass/fail — the loop handles baseline comparison.
 - The `baseline` field starts as `null` — the loop measures it automatically before the first experiment.
 - Do not add `maxExperiments` to the frontmatter unless the user explicitly requests a limit. The loop defaults to unlimited.

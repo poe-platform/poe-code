@@ -1,6 +1,6 @@
 import { parse, stringify } from "yaml";
 
-export type RalphPlanStatus = "open" | "in_progress" | "completed";
+export type RalphPlanStatus = "open" | "in_progress" | "completed" | "failed";
 
 export interface RalphFrontmatter {
   agent?: string | string[];
@@ -128,7 +128,7 @@ function parseAgent(value: unknown): RalphFrontmatter["agent"] | undefined {
 }
 
 function parsePlanStatus(value: unknown): RalphPlanStatus | undefined {
-  if (value === "open" || value === "in_progress" || value === "completed") {
+  if (value === "open" || value === "in_progress" || value === "completed" || value === "failed") {
     return value;
   }
 

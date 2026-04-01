@@ -113,6 +113,10 @@ export async function runRalph(
         Date.now() - iterationStart,
         success
       );
+
+      if (!success) {
+        return finalize("failed");
+      }
     }
   } catch (error) {
     if (isAbortError(error)) {
@@ -238,5 +242,7 @@ function stopReasonToStatus(
       return "completed";
     case "cancelled":
       return "open";
+    case "failed":
+      return "failed";
   }
 }

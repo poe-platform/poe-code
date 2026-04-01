@@ -548,6 +548,13 @@ export function registerRalphCommand(
           return;
         }
 
+        if (result.stopReason === "failed") {
+          process.exitCode = 1;
+          resources.logger.error("Agent run failed.");
+          resources.logger.resolved("Run summary", summary);
+          return;
+        }
+
         resources.logger.resolved("Run summary", summary);
         resources.logger.success("Ralph run finished.");
       } finally {

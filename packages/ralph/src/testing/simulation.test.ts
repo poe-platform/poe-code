@@ -271,19 +271,19 @@ describe("createRalphSimulation", () => {
     expect(prompts).toEqual(["# Legacy content"]);
   });
 
-  it("keeps running after failed iterations", async () => {
+  it("stops on first failed iteration", async () => {
     const sim = createRalphSimulation({
       docContent: "Keep trying",
       maxIterations: 3,
-      turns: [failTurn("first"), failTurn("second"), successTurn()]
+      turns: [failTurn("first")]
     });
 
     const { result, runs } = await sim.run();
 
     expect(result).toMatchObject({
-      stopReason: "max_iterations",
-      iterationsCompleted: 3
+      stopReason: "failed",
+      iterationsCompleted: 1
     });
-    expect(runs).toHaveLength(3);
+    expect(runs).toHaveLength(1);
   });
 });

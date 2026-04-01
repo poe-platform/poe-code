@@ -26,7 +26,7 @@ export interface AgentRunResult {
   exitCode: number;
 }
 
-export type RalphStopReason = "completed" | "max_iterations" | "cancelled";
+export type RalphStopReason = "completed" | "max_iterations" | "cancelled" | "failed";
 
 export interface RalphRunResult {
   stopReason: RalphStopReason;

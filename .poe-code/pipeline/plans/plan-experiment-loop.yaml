@@ -124,7 +124,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: git-strategy
     title: Implement git strategy
@@ -149,9 +149,9 @@ tasks:
 
       Use mock `ExecFn` that records called commands. Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: core-loop

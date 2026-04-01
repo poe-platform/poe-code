@@ -87,10 +87,9 @@ describe("ErrorLogger (read-only environments)", () => {
       now
     });
 
-    expect(mkdirSpy).toHaveBeenCalledTimes(1);
-
     logger.logError("run command");
 
+    expect(mkdirSpy).toHaveBeenCalledTimes(1);
     expect(appendSpy).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy.mock.calls[0][0]).toContain("ERROR: run command");

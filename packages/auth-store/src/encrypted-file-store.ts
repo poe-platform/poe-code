@@ -4,6 +4,8 @@ import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
 import type { SecretStore } from "./types.js";
 
+const derivedKeyCache = new Map<string, Promise<Buffer>>();
+
 const ENCRYPTION_ALGORITHM = "aes-256-gcm";
 const ENCRYPTION_VERSION = 1;
 const ENCRYPTION_KEY_BYTES = 32;
@@ -160,8 +162,14 @@ async function deriveEncryptionKey(
 ): Promise<Buffer> {
   const machineIdentity = await getMachineIdentity();
   const secret = `${machineIdentity.hostname}:${machineIdentity.username}`;
+  const cacheKey = `${secret}:${salt}`;
 
-  return await new Promise<Buffer>((resolve, reject) => {
+  const cached = derivedKeyCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const keyPromise = new Promise<Buffer>((resolve, reject) => {
     scrypt(secret, salt, ENCRYPTION_KEY_BYTES, (error, derivedKey) => {
       if (error) {
         reject(error);
@@ -170,6 +178,9 @@ async function deriveEncryptionKey(
       resolve(Buffer.from(derivedKey));
     });
   });
+
+  derivedKeyCache.set(cacheKey, keyPromise);
+  return keyPromise;
 }
 
 function parseEncryptedDocument(raw: string): EncryptedDocument | null {

@@ -47,7 +47,7 @@ export class ErrorLogger {
   private readonly maxSize: number;
   private readonly maxBackups: number;
   private readonly now: () => Date;
-  private fileLoggingAvailable: boolean;
+  private fileLoggingAvailable: boolean | undefined;
 
   constructor(options: ErrorLoggerOptions) {
     this.fs = options.fs;
@@ -56,8 +56,6 @@ export class ErrorLogger {
     this.maxSize = options.maxSize ?? DEFAULT_MAX_SIZE;
     this.maxBackups = options.maxBackups ?? DEFAULT_MAX_BACKUPS;
     this.now = options.now ?? (() => new Date());
-
-    this.fileLoggingAvailable = this.ensureLogDirectory();
   }
 
   logError(error: Error | string, context?: ErrorContext): void {
@@ -120,6 +118,10 @@ export class ErrorLogger {
   }
 
   private writeEntry(entry: ErrorLogEntry): void {
+    if (this.fileLoggingAvailable === undefined) {
+      this.fileLoggingAvailable = this.ensureLogDirectory();
+    }
+
     if (!this.fileLoggingAvailable) {
       this.writeToStderr(entry, true);
       return;

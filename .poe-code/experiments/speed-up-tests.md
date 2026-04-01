@@ -16,14 +16,10 @@ status:
 
 # Speed Up Tests
 
-Optimize test suite execution time without removing or skipping tests.
-
-## Prompt
-
-Run single experiment to speed up test.
+Optimize test suite execution time without removing or skipping tests by improving only one single thing
 
 ## Constraints
 
 - Do not remove or skip existing tests
 - Do not reduce test coverage
-- Focus on: reducing unnecessary setup, faster mocks, avoiding redundant work
+- No parallel execution

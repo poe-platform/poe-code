@@ -254,22 +254,25 @@ function createEntry(options: {
 async function persistDoc(options: {
   fs: ExperimentFileSystem;
   docPath: string;
-  frontmatter: Awaited<ReturnType<typeof parseExperimentFrontmatter>>["frontmatter"];
-  body: string;
+  baseline: Record<string, number> | null;
   experimentsCompleted: number;
   experimentsKept: number;
 }): Promise<void> {
+  const rawContent = await options.fs.readFile(options.docPath, "utf8");
+  const { frontmatter, body } = parseExperimentFrontmatter(rawContent);
+
   await writeExperimentFrontmatter(
     options.docPath,
     {
-      ...options.frontmatter,
+      ...frontmatter,
+      baseline: options.baseline,
       status: {
-        ...options.frontmatter.status,
+        ...frontmatter.status,
         experiment: options.experimentsCompleted,
         kept: options.experimentsKept
       }
     },
-    options.body,
+    body,
     options.fs
   );
 }
@@ -287,29 +290,24 @@ export async function runExperimentLoop(
   }
 
   const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
-  const rawContent = await fs.readFile(absoluteDocPath, "utf8");
-  const parsedDoc = parseExperimentFrontmatter(rawContent);
-  const maxExperiments = validateMaxExperiments(
-    options.maxExperiments ?? parsedDoc.frontmatter.maxExperiments
-  );
-  const metrics = normalizeMetrics(parsedDoc.frontmatter.metric);
-  const agents = normalizeAgents(options.agent ?? parsedDoc.frontmatter.agent);
-  const metricTimeoutMs = parsedDoc.frontmatter.metricTimeout
-    ? parsedDoc.frontmatter.metricTimeout * 1000
-    : undefined;
-  const model = options.model ?? parsedDoc.frontmatter.model;
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   await journal.init();
   const startTime = Date.now();
 
-  let frontmatter = parsedDoc.frontmatter;
-  const body = parsedDoc.body;
+  async function readDoc(): Promise<{ frontmatter: ReturnType<typeof parseExperimentFrontmatter>["frontmatter"]; body: string }> {
+    const rawContent = await fs.readFile(absoluteDocPath, "utf8");
+    return parseExperimentFrontmatter(rawContent);
+  }
+
+  let { frontmatter, body } = await readDoc();
   let experimentsCompleted = 0;
   let experimentsKept = 0;
   let lastCrashOutput: string | undefined;
   let baselineHash: string | undefined;
 
   if (frontmatter.baseline === null) {
+    const metrics = normalizeMetrics(frontmatter.metric);
+    const metricTimeoutMs = frontmatter.metricTimeout ? frontmatter.metricTimeout * 1000 : undefined;
     const baselineResults = await evaluateChain(metrics, options.cwd, exec, options.onMetricResult, metricTimeoutMs);
     if (allMetricsPassed(metrics, baselineResults)) {
       const baseline = updateBaseline(metrics, baselineResults);
@@ -321,8 +319,7 @@ export async function runExperimentLoop(
       await persistDoc({
         fs,
         docPath: absoluteDocPath,
-        frontmatter,
-        body,
+        baseline: frontmatter.baseline,
         experimentsCompleted,
         experimentsKept
       });
@@ -342,8 +339,24 @@ export async function runExperimentLoop(
   }
 
   try {
-    while (experimentsCompleted < maxExperiments) {
+    while (true) {
       assertNotAborted(options.signal);
+
+      const doc = await readDoc();
+      body = doc.body;
+      frontmatter = doc.frontmatter;
+
+      const maxExperiments = validateMaxExperiments(
+        options.maxExperiments ?? frontmatter.maxExperiments
+      );
+      if (experimentsCompleted >= maxExperiments) {
+        break;
+      }
+
+      const metrics = normalizeMetrics(frontmatter.metric);
+      const agents = normalizeAgents(options.agent ?? frontmatter.agent);
+      const metricTimeoutMs = frontmatter.metricTimeout ? frontmatter.metricTimeout * 1000 : undefined;
+      const model = options.model ?? frontmatter.model;
 
       const experimentIndex = experimentsCompleted + 1;
       const prompt = buildPrompt({
@@ -393,8 +406,7 @@ export async function runExperimentLoop(
         await persistDoc({
           fs,
           docPath: absoluteDocPath,
-          frontmatter,
-          body,
+          baseline: frontmatter.baseline,
           experimentsCompleted,
           experimentsKept
         });
@@ -439,8 +451,7 @@ export async function runExperimentLoop(
       await persistDoc({
         fs,
         docPath: absoluteDocPath,
-        frontmatter,
-        body,
+        baseline: frontmatter.baseline,
         experimentsCompleted,
         experimentsKept
       });

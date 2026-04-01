@@ -310,6 +310,93 @@ describe("createExperimentLoopSimulation", () => {
     });
   });
 
+  it("re-reads the prompt from disk on each iteration", async () => {
+    const sim = createExperimentLoopSimulation({
+      maxExperiments: 2,
+      docContent: createExperimentDoc({
+        baseline: { tests: 1 },
+        body: "# Original prompt\n\nDo the original thing.\n"
+      }),
+      turns: [
+        agentMakesChanges(
+          { "src/a.ts": "1" },
+          {
+            assertPrompt: async (_prompt, ctx) => {
+              const doc = await ctx.readFile("/repo/.poe-code/experiments/plan.md");
+              const updated = doc.replace("Original prompt", "Updated prompt");
+              await ctx.writeFile("/repo/.poe-code/experiments/plan.md", updated);
+            }
+          }
+        ),
+        agentMakesChanges(
+          { "src/b.ts": "2" },
+          {
+            assertPrompt: (prompt) => {
+              expect(prompt).toContain("Updated prompt");
+            }
+          }
+        )
+      ],
+      metricResults: {
+        tests: [metricResult({ score: 2 }), metricResult({ score: 3 })]
+      }
+    });
+
+    const { result } = await sim.run();
+
+    expect(result.experimentsKept).toBe(2);
+  });
+
+  it("preserves user edits when persistDoc writes back", async () => {
+    const sim = createExperimentLoopSimulation({
+      maxExperiments: 2,
+      docContent: createExperimentDoc({
+        baseline: { tests: 1 },
+        body: "# Speed up tests\n\nOriginal constraints.\n"
+      }),
+      turns: [
+        agentMakesChanges(
+          { "src/a.ts": "1" },
+          {
+            assertPrompt: async (_prompt, ctx) => {
+              const doc = await ctx.readFile("/repo/.poe-code/experiments/plan.md");
+              const updated = doc.replace("Original constraints", "New constraints added by user");
+              await ctx.writeFile("/repo/.poe-code/experiments/plan.md", updated);
+            }
+          }
+        ),
+        agentMakesChanges({ "src/b.ts": "2" })
+      ],
+      metricResults: {
+        tests: [metricResult({ score: 2 }), metricResult({ score: 3 })]
+      }
+    });
+
+    const { readDoc } = await sim.run();
+    const doc = await readDoc();
+
+    expect(doc).toContain("New constraints added by user");
+  });
+
+  it("collects baseline from metrics when baseline is null", async () => {
+    const sim = createExperimentLoopSimulation({
+      maxExperiments: 1,
+      docContent: createExperimentDoc({
+        baseline: null
+      }),
+      turns: [agentMakesChanges({ "src/a.ts": "1" })],
+      metricResults: {
+        tests: [metricResult({ score: 5 }), metricResult({ score: 6 })]
+      }
+    });
+
+    const { result, readDoc } = await sim.run();
+    const doc = parseExperimentFrontmatter(await readDoc());
+
+    expect(doc.frontmatter.baseline).toEqual({ tests: 6 });
+    expect(result.experimentsKept).toBe(1);
+  });
+
   it("cycles agents round-robin across experiments", async () => {
     const sim = createExperimentLoopSimulation({
       maxExperiments: 4,

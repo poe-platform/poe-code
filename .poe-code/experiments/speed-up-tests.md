@@ -7,10 +7,13 @@ metric:
   - name: test_duration
     script: node scripts/metric-test-duration.mjs
     direction: minimize
+baseline:
+  test_count: 2725
+  test_duration: 23447.85009765625
 status:
   state: open
-  experiment: 1
-  kept: 0
+  experiment: 2
+  kept: 1
 ---
 
 # Speed Up Tests

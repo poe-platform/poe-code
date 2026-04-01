@@ -21,12 +21,10 @@ Create an experiment doc and metric script(s) for the autonomous experiment loop
 ```yaml
 ---
 agent: claude-code
-install: npm install
 metric:
   name: <metric-name>
   direction: minimize | maximize
 baseline: null
-model: claude-sonnet-4-20250514
 status:
   state: open
   experiment: 0

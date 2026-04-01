@@ -1,6 +1,6 @@
 import path from "node:path";
 import chalk from "chalk";
-import { resolveAgentId } from "@poe-code/agent-defs";
+import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
 import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../cli/container.js";
 import type { SpawnResult } from "./types.js";
@@ -139,7 +139,8 @@ export async function resolveConfiguredModel(
   }
 
   const adapter = container.registry.get(service);
-  const agentId = adapter?.name ?? resolveAgentId(service) ?? service;
+  const { agent } = parseAgentSpecifier(service);
+  const agentId = adapter?.name ?? resolveAgentId(agent) ?? agent;
   const configuredModel = await resolveConfigModel(
     {
       fs: container.fs,

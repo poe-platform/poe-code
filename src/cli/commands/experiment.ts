@@ -3,7 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import { cancel, getTheme, isCancel, renderTable, select } from "@poe-code/design-system";
-import { resolveAgentId } from "@poe-code/agent-defs";
+import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import {
   installSkill,
@@ -186,12 +186,14 @@ function resolveExperimentAgent(value: string | undefined, sourceLabel = "agent"
     return DEFAULT_EXPERIMENT_AGENT;
   }
 
-  const resolved = resolveAgentId(value.trim());
+  const specifier = parseAgentSpecifier(value.trim());
+  const resolved = resolveAgentId(specifier.agent);
   if (!resolved) {
-    throw new ValidationError(`Unsupported ${sourceLabel}: ${value}`);
+    const supported = allAgents.map((a) => a.id).join(", ");
+    throw new ValidationError(`Unsupported ${sourceLabel}: ${specifier.agent}. Supported agents: ${supported}`);
   }
 
-  return resolved;
+  return formatAgentSpecifier({ agent: resolved, model: specifier.model });
 }
 
 function parseNonNegativeInt(value: string | undefined, fieldName: string): number | undefined {

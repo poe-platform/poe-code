@@ -8,7 +8,7 @@ import {
   promptText,
   select
 } from "@poe-code/design-system";
-import { resolveAgentId } from "@poe-code/agent-defs";
+import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
 import {
   installSkill,
   resolveAgentSupport,
@@ -78,12 +78,14 @@ function resolvePipelineAgent(value: string | undefined): string {
     return DEFAULT_PIPELINE_AGENT;
   }
 
-  const resolved = resolveAgentId(value.trim());
+  const specifier = parseAgentSpecifier(value.trim());
+  const resolved = resolveAgentId(specifier.agent);
   if (!resolved) {
-    throw new ValidationError(`Unsupported agent: ${value}`);
+    const supported = allAgents.map((a) => a.id).join(", ");
+    throw new ValidationError(`Unsupported agent: ${specifier.agent}. Supported agents: ${supported}`);
   }
 
-  return resolved;
+  return formatAgentSpecifier({ agent: resolved, model: specifier.model });
 }
 
 function resolveMaxRuns(value: string | undefined): number | undefined {

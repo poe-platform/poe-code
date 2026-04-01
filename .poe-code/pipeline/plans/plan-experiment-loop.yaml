@@ -60,7 +60,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: journal
     title: Implement append-only JSONL journal
@@ -88,9 +88,9 @@ tasks:
 
       Use `memfs` for filesystem. Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: evaluator

@@ -88,6 +88,7 @@ console.log(stdout.trim());
 - Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better, `direction: stable` when the value must not change.
 - Metric scripts must output raw values, not pass/fail — the loop handles baseline comparison.
 - The `baseline` field starts as `null` — the loop measures it automatically before the first experiment.
+- Do not add `maxExperiments` to the frontmatter unless the user explicitly requests a limit. The loop defaults to unlimited.
 
 ## After Writing
 

@@ -55,6 +55,7 @@ npx poe-code@latest logout
 - [Models](#models)
 - [MCP Server](#poe-mcp-server)
 - [SDK](#sdk)
+- [Experimental](#experimental)
 - [Poe API](https://poe.com/api)
 
 ## Utilities
@@ -211,3 +212,12 @@ Reads the Poe API key with the following priority:
 2. Credentials file (`~/.poe-code/credentials.json`)
 
 Throws if no credentials found.
+
+## Research Preview
+
+These features are available but subject to breaking changes.
+
+- **[Pipeline](packages/pipeline/)** — Run YAML task plans through agents with configurable steps
+- **[Ralph](packages/ralph/)** — Agentic build loop that iterates on a markdown doc
+- **[Experiment loop](docs/plans/experiment-loop.md)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.
+- **[Poe Agent](packages/poe-agent/)** — Composable agent runtime

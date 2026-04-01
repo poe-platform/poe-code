@@ -309,4 +309,37 @@ describe("createExperimentLoopSimulation", () => {
       experimentsKept: 1
     });
   });
+
+  it("cycles agents round-robin across experiments", async () => {
+    const sim = createExperimentLoopSimulation({
+      maxExperiments: 4,
+      docContent: createExperimentDoc({
+        agent: ["claude-code", "codex"],
+        baseline: { tests: 1 }
+      }),
+      turns: [
+        agentMakesChanges({ "src/a.ts": "1" }),
+        agentMakesChanges({ "src/b.ts": "2" }),
+        agentMakesChanges({ "src/c.ts": "3" }),
+        agentMakesChanges({ "src/d.ts": "4" })
+      ],
+      metricResults: {
+        tests: [
+          metricResult({ score: 2 }),
+          metricResult({ score: 3 }),
+          metricResult({ score: 4 }),
+          metricResult({ score: 5 })
+        ]
+      }
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs.map((run) => run.agent)).toEqual([
+      "claude-code",
+      "codex",
+      "claude-code",
+      "codex"
+    ]);
+  });
 });

@@ -53,6 +53,38 @@ describe("parseExperimentFrontmatter", () => {
     });
   });
 
+  it("parses metricTimeout from frontmatter", () => {
+    const content = ["---", "metricTimeout: 120", "baseline: null", "---", "Body"].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.metricTimeout).toBe(120);
+  });
+
+  it("parses agent as a single string", () => {
+    const content = ["---", "agent: claude-code", "baseline: null", "---", "Body"].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.agent).toBe("claude-code");
+  });
+
+  it("parses agent as an array of strings", () => {
+    const content = [
+      "---",
+      "agent:",
+      "  - claude-code",
+      "  - codex",
+      "baseline: null",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.agent).toEqual(["claude-code", "codex"]);
+  });
+
   it("parses maxExperiments from frontmatter", () => {
     const content = [
       "---",

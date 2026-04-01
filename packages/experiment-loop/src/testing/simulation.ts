@@ -47,7 +47,7 @@ export type SimulationMetricResult = {
 };
 
 export type CreateExperimentDocOptions = {
-  agent?: string;
+  agent?: string | string[];
   metric?: MetricDef | MetricDef[];
   baseline?: Record<string, number> | null;
   model?: string;

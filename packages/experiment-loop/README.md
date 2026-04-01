@@ -58,6 +58,24 @@ Reduce test execution time without removing coverage.
 Focus on parallelization and removing unnecessary setup/teardown.
 ```
 
+### Multiple agents
+
+The `agent` field accepts an array. Agents are cycled round-robin across experiments:
+
+```yaml
+agent:
+  - claude-code
+  - codex
+```
+
+Experiment 1 uses `claude-code`, experiment 2 uses `codex`, experiment 3 back to `claude-code`, and so on.
+
+From the CLI, pass a comma-separated list:
+
+```bash
+poe-code experiment run --agent claude-code,codex
+```
+
 ## Metric scripts
 
 Metric scripts are the oracle. They decide what "better" means.

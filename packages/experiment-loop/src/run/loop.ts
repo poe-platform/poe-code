@@ -91,9 +91,17 @@ function normalizeMetrics(metric: MetricDef | MetricDef[] | undefined): MetricDe
   return Array.isArray(metric) ? metric : [metric];
 }
 
-function resolveAgent(agent: string | undefined): string {
+function normalizeAgents(agent: string | string[] | undefined): string[] {
   if (!agent) {
     throw new Error("Experiment doc is missing agent frontmatter.");
+  }
+
+  if (typeof agent === "string") {
+    return [agent];
+  }
+
+  if (agent.length === 0) {
+    throw new Error("agent must contain at least one entry.");
   }
 
   return agent;
@@ -147,7 +155,10 @@ function buildPrompt(options: {
     sections.push(["Last crash output", options.lastCrashOutput.trim()].join("\n\n"));
   }
 
-  sections.push("you are autonomous, do not stop or ask for input");
+  sections.push(
+    "you are autonomous, do not stop or ask for input",
+    "Do not write to the journal file or commit changes. Both are managed automatically after your run completes."
+  );
 
   return `${sections.filter((section) => section.length > 0).join("\n\n")}`;
 }
@@ -282,7 +293,10 @@ export async function runExperimentLoop(
     options.maxExperiments ?? parsedDoc.frontmatter.maxExperiments
   );
   const metrics = normalizeMetrics(parsedDoc.frontmatter.metric);
-  const agent = resolveAgent(options.agent ?? parsedDoc.frontmatter.agent);
+  const agents = normalizeAgents(options.agent ?? parsedDoc.frontmatter.agent);
+  const metricTimeoutMs = parsedDoc.frontmatter.metricTimeout
+    ? parsedDoc.frontmatter.metricTimeout * 1000
+    : undefined;
   const model = options.model ?? parsedDoc.frontmatter.model;
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   await journal.init();
@@ -296,11 +310,13 @@ export async function runExperimentLoop(
   let baselineHash: string | undefined;
 
   if (frontmatter.baseline === null) {
-    const baselineResults = await evaluateChain(metrics, options.cwd, exec);
+    const baselineResults = await evaluateChain(metrics, options.cwd, exec, options.onMetricResult, metricTimeoutMs);
     if (allMetricsPassed(metrics, baselineResults)) {
+      const baseline = updateBaseline(metrics, baselineResults);
+      options.onBaselineCollected?.(baseline);
       frontmatter = {
         ...frontmatter,
-        baseline: updateBaseline(metrics, baselineResults)
+        baseline
       };
       await persistDoc({
         fs,
@@ -339,12 +355,13 @@ export async function runExperimentLoop(
       const preExperimentHash = baselineHash;
       const experimentStart = Date.now();
 
-      options.onExperimentStart?.(experimentIndex, agent);
+      const currentAgent = agents[(experimentIndex - 1) % agents.length]!;
+      options.onExperimentStart?.(experimentIndex, currentAgent);
 
       let agentResult;
       try {
         agentResult = await runAgent({
-          agent,
+          agent: currentAgent,
           prompt,
           cwd: options.cwd,
           ...(model ? { model } : {}),
@@ -371,6 +388,7 @@ export async function runExperimentLoop(
         lastCrashOutput = entry.output;
         await journal.log(entry);
         await git.reset(preExperimentHash, options.cwd);
+        options.onReset?.(preExperimentHash);
         options.onExperimentComplete?.(experimentIndex, entry);
         await persistDoc({
           fs,
@@ -387,7 +405,8 @@ export async function runExperimentLoop(
         `experiment-loop: ${path.basename(absoluteDocPath, path.extname(absoluteDocPath))} #${experimentIndex}`,
         options.cwd
       );
-      const evaluationResults = await evaluateChain(metrics, options.cwd, exec);
+      options.onCommit?.(commitHash);
+      const evaluationResults = await evaluateChain(metrics, options.cwd, exec, options.onMetricResult, metricTimeoutMs);
       const keep =
         allMetricsPassed(metrics, evaluationResults) &&
         allScoresImproved(metrics, evaluationResults, frontmatter.baseline);
@@ -412,6 +431,7 @@ export async function runExperimentLoop(
         lastCrashOutput = undefined;
       } else {
         await git.reset(preExperimentHash, options.cwd);
+        options.onReset?.(preExperimentHash);
         lastCrashOutput = undefined;
       }
 

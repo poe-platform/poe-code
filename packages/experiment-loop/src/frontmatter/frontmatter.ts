@@ -9,10 +9,11 @@ export interface ExperimentFrontmatterStatus {
 }
 
 export interface ExperimentFrontmatter {
-  agent?: string;
+  agent?: string | string[];
   metric?: MetricDef | MetricDef[];
   baseline: Record<string, number> | null;
   maxExperiments?: number;
+  metricTimeout?: number;
   model?: string;
   status: ExperimentFrontmatterStatus;
 }
@@ -52,9 +53,10 @@ export async function writeExperimentFrontmatter(
 
 function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
   const parsed = isRecord(value) ? value : undefined;
-  const agent = parseString(parsed?.agent);
+  const agent = parseAgent(parsed?.agent);
   const metric = parseMetric(parsed?.metric);
   const maxExperiments = parseNonNegativeInteger(parsed?.maxExperiments);
+  const metricTimeout = parseNonNegativeInteger(parsed?.metricTimeout);
   const model = parseString(parsed?.model);
 
   return {
@@ -62,6 +64,7 @@ function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
     ...(metric !== undefined ? { metric } : {}),
     baseline: parseBaseline(parsed?.baseline),
     ...(maxExperiments !== undefined ? { maxExperiments } : {}),
+    ...(metricTimeout !== undefined ? { metricTimeout } : {}),
     ...(model !== undefined ? { model } : {}),
     status: parseStatus(parsed?.status)
   };
@@ -73,6 +76,7 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),
     baseline: frontmatter.baseline,
     ...(frontmatter.maxExperiments !== undefined ? { maxExperiments: frontmatter.maxExperiments } : {}),
+    ...(frontmatter.metricTimeout !== undefined ? { metricTimeout: frontmatter.metricTimeout } : {}),
     ...(frontmatter.model !== undefined ? { model: frontmatter.model } : {}),
     status: {
       state: frontmatter.status.state,
@@ -145,6 +149,27 @@ function parseStatus(value: unknown): ExperimentFrontmatterStatus {
     experiment: parseNonNegativeInteger(parsed?.experiment) ?? DEFAULT_STATUS.experiment,
     kept: parseNonNegativeInteger(parsed?.kept) ?? DEFAULT_STATUS.kept
   };
+}
+
+function parseAgent(value: unknown): string | string[] | undefined {
+  if (typeof value === "string") {
+    return parseString(value);
+  }
+
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const agents: string[] = [];
+  for (const item of value) {
+    const parsed = parseString(item);
+    if (parsed === undefined) {
+      return undefined;
+    }
+    agents.push(parsed);
+  }
+
+  return agents.length > 0 ? agents : undefined;
 }
 
 function parseString(value: unknown): string | undefined {

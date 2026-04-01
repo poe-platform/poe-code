@@ -136,6 +136,17 @@ describe("ExperimentJournal", () => {
     );
   });
 
+  it("reads concatenated JSON objects on a single line", async () => {
+    const first = createEntry({ commit: "aaa1111" });
+    const second = createEntry({ commit: "bbb2222", status: "discard" });
+    const fs = createFs({
+      "/repo/experiment.journal.jsonl": `${JSON.stringify(first)}${JSON.stringify(second)}\n`
+    });
+    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
+
+    await expect(journal.readAll()).resolves.toEqual([first, second]);
+  });
+
   it("handles crash entries with a null score", async () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);

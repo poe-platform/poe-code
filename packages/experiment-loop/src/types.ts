@@ -46,7 +46,7 @@ export interface ExperimentRunOptions {
   cwd: string;
   homeDir: string;
   docPath: string;
-  agent?: string;
+  agent?: string | string[];
   model?: string;
   maxExperiments?: number;
   fs?: ExperimentFileSystem;
@@ -54,6 +54,10 @@ export interface ExperimentRunOptions {
   exec?: ExecFn;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   onExperimentStart?: (index: number, agent: string) => void;
+  onBaselineCollected?: (baseline: Record<string, number>) => void;
+  onCommit?: (commitHash: string) => void;
+  onMetricResult?: (metric: MetricDef, result: EvalResult) => void;
+  onReset?: (targetHash: string) => void;
   onExperimentComplete?: (index: number, entry: JournalEntry) => void;
   signal?: AbortSignal;
 }

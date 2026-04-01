@@ -44,7 +44,7 @@ export class ExperimentJournal {
     return content
       .split("\n")
       .filter((line) => line.length > 0)
-      .map((line) => JSON.parse(line) as JournalEntry);
+      .flatMap((line) => parseLine(line));
   }
 
   async format(): Promise<string> {
@@ -63,6 +63,31 @@ export class ExperimentJournal {
         ].join("\t")
       )
     ].join("\n");
+  }
+}
+
+function parseLine(line: string): JournalEntry[] {
+  try {
+    return [JSON.parse(line) as JournalEntry];
+  } catch {
+    // Handle concatenated JSON objects (e.g. {...}{...}) on a single line
+    const entries: JournalEntry[] = [];
+    let depth = 0;
+    let start = 0;
+
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === "{") {
+        depth++;
+      } else if (line[i] === "}") {
+        depth--;
+        if (depth === 0) {
+          entries.push(JSON.parse(line.slice(start, i + 1)) as JournalEntry);
+          start = i + 1;
+        }
+      }
+    }
+
+    return entries;
   }
 }
 

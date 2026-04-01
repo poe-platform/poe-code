@@ -42,7 +42,8 @@ describe("evaluate", () => {
     });
 
     expect(execMock).toHaveBeenCalledWith("npm run metric:tests", {
-      cwd: "/repo"
+      cwd: "/repo",
+      timeout: 180_000
     });
   });
 

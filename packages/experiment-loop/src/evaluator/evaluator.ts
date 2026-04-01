@@ -21,22 +21,32 @@ function parseScore(stdout: string): number | null {
   return Number.isNaN(score) ? null : score;
 }
 
-async function runMetric(metric: string, cwd: string, exec: ExecFn): Promise<MetricExecutionResult> {
-  const { stdout, stderr, exitCode } = await exec(`npm run metric:${metric}`, { cwd });
+const DEFAULT_METRIC_TIMEOUT_MS = 180_000;
+
+async function runMetric(metric: string, cwd: string, exec: ExecFn, timeoutMs?: number): Promise<MetricExecutionResult> {
+  const timeout = timeoutMs ?? DEFAULT_METRIC_TIMEOUT_MS;
+  const { stdout, stderr, exitCode } = await exec(`npm run metric:${metric}`, {
+    cwd,
+    timeout
+  });
   const score = parseScore(stdout);
+  const timedOut = exitCode !== 0 && score === null && stdout.length === 0;
+  const timeoutHint = timedOut
+    ? `\nMetric timed out after ${timeout / 1000}s. Increase timeout via metricTimeout in experiment frontmatter.`
+    : "";
 
   return {
     exitCode,
     result: {
       score,
       passed: exitCode === 0 && score !== null,
-      output: `${stdout}${stderr}`
+      output: `${stdout}${stderr}${timeoutHint}`
     }
   };
 }
 
-export async function evaluate(metric: string, cwd: string, exec: ExecFn): Promise<EvalResult> {
-  const { result } = await runMetric(metric, cwd, exec);
+export async function evaluate(metric: string, cwd: string, exec: ExecFn, timeoutMs?: number): Promise<EvalResult> {
+  const { result } = await runMetric(metric, cwd, exec, timeoutMs);
 
   return result;
 }
@@ -44,13 +54,16 @@ export async function evaluate(metric: string, cwd: string, exec: ExecFn): Promi
 export async function evaluateChain(
   metrics: MetricDef[],
   cwd: string,
-  exec: ExecFn
+  exec: ExecFn,
+  onMetricResult?: (metric: MetricDef, result: EvalResult) => void,
+  timeoutMs?: number
 ): Promise<EvalResult[]> {
   const results: EvalResult[] = [];
 
   for (const metric of metrics) {
-    const { exitCode, result } = await runMetric(metric.name, cwd, exec);
+    const { exitCode, result } = await runMetric(metric.name, cwd, exec, timeoutMs);
     results.push(result);
+    onMetricResult?.(metric, result);
 
     if (exitCode !== 0) {
       break;

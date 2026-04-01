@@ -331,17 +331,31 @@ async function promptForAgent(program: Command): Promise<string | null> {
 async function resolveRunAgent(options: {
   program: Command;
   providedAgent?: string;
-  frontmatterAgent?: string;
-}): Promise<string | null> {
+  frontmatterAgent?: string | string[];
+}): Promise<string | string[] | null> {
   if (options.providedAgent) {
-    return resolveExperimentAgent(options.providedAgent);
+    return resolveAgentList(options.providedAgent);
   }
 
   if (options.frontmatterAgent) {
+    if (Array.isArray(options.frontmatterAgent)) {
+      return options.frontmatterAgent.map((a) => resolveExperimentAgent(a, "frontmatter agent"));
+    }
     return resolveExperimentAgent(options.frontmatterAgent, "frontmatter agent");
   }
 
   return promptForAgent(options.program);
+}
+
+function resolveAgentList(value: string): string | string[] {
+  const parts = value.split(",").map((p) => p.trim()).filter((p) => p.length > 0);
+  if (parts.length === 0) {
+    return resolveExperimentAgent(undefined);
+  }
+  if (parts.length === 1) {
+    return resolveExperimentAgent(parts[0]);
+  }
+  return parts.map((p) => resolveExperimentAgent(p));
 }
 
 function formatJournalOutput(output: string): string {
@@ -408,6 +422,23 @@ export function registerExperimentCommand(program: Command, container: CliContai
           ...(maxExperiments !== undefined ? { maxExperiments } : {}),
           onExperimentStart(index, currentAgent) {
             resources.logger.info(`Experiment ${index} (${currentAgent})`);
+          },
+          onBaselineCollected(baseline) {
+            const entries = Object.entries(baseline)
+              .map(([name, value]) => `${name}=${value}`)
+              .join(", ");
+            resources.logger.info(`Baseline collected: ${entries}`);
+          },
+          onCommit(commitHash) {
+            resources.logger.info(`  Committed ${commitHash.slice(0, 7)}`);
+          },
+          onMetricResult(metric, result) {
+            const score = result.score === null ? "-" : String(result.score);
+            const status = result.passed ? "passed" : "failed";
+            resources.logger.info(`  ${metric.name}: ${score} (${status})`);
+          },
+          onReset(targetHash) {
+            resources.logger.info(`  Reset to ${targetHash.slice(0, 7)}`);
           },
           onExperimentComplete(index, entry) {
             const score = entry.score === null ? "-" : String(entry.score);
@@ -542,7 +573,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
           : [];
 
         resources.logger.resolved("Doc", docPath);
-        resources.logger.resolved("Agent", doc.frontmatter.agent!);
+        const agentDisplay = Array.isArray(doc.frontmatter.agent)
+          ? doc.frontmatter.agent.join(", ")
+          : doc.frontmatter.agent!;
+        resources.logger.resolved("Agent", agentDisplay);
         resources.logger.resolved(
           "Metrics",
           metrics.map((m) => `${m.name} (${m.direction})`).join(", ")

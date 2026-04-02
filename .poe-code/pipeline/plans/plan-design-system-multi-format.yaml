@@ -47,9 +47,9 @@ tasks:
       Export `withOutputFormat` from `src/index.ts`.
       Tests: scoping (override applies inside fn), nesting (inner wins), async (AsyncLocalStorage propagates through await).
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: own-prompt-types

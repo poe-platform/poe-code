@@ -1,12 +1,9 @@
 import * as clack from "@clack/prompts";
 import { text as textComponent } from "../components/text.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
+import { stripAnsi } from "../internal/strip-ansi.js";
 
 export { isCancel, cancel, log } from "@clack/prompts";
-
-function stripAnsi(value: string): string {
-  return value.replace(/\u001b\[[0-9;]*m/g, "");
-}
 
 export function intro(title: string): void {
   const format = resolveOutputFormat();

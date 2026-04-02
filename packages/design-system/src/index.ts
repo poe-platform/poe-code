@@ -35,5 +35,5 @@ export type { SpinnerFrameOptions, SpinnerStoppedOptions, MenuOption, RenderMenu
 // Internal utilities (for advanced use)
 export { getTheme, resolveThemeName, resetThemeCache } from "./internal/theme-detect.js";
 export type { ThemeEnv } from "./internal/theme-detect.js";
-export { resolveOutputFormat, resetOutputFormatCache } from "./internal/output-format.js";
+export { resolveOutputFormat, resetOutputFormatCache, withOutputFormat } from "./internal/output-format.js";
 export type { OutputFormat } from "./internal/output-format.js";

@@ -1,6 +1,7 @@
 import { Table } from "console-table-printer";
 import type { ThemePalette } from "../tokens/colors.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
+import { stripAnsi } from "../internal/strip-ansi.js";
 
 export interface TableColumn {
   name: string;
@@ -13,10 +14,6 @@ export interface RenderTableOptions {
   theme: ThemePalette;
   columns: TableColumn[];
   rows: Record<string, string>[];
-}
-
-function stripAnsi(value: string): string {
-  return value.replace(/\u001b\[[0-9;]*m/g, "");
 }
 
 function renderTableTerminal(options: RenderTableOptions): string {

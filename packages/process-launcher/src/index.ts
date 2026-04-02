@@ -10,3 +10,5 @@ export type {
   Supervisor,
   SupervisorOptions
 } from "./types.js";
+
+export { createStateStore } from "./state/state-store.js";

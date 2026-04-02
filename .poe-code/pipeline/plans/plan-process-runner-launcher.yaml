@@ -495,7 +495,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pl-state-store
     title: Implement state store
@@ -543,10 +543,10 @@ tasks:
 
       Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: pl-log-writer
     title: Implement log writer with rotation

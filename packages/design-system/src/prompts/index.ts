@@ -1,23 +1,14 @@
 import * as clack from "@clack/prompts";
-import { text as textComponent } from "../components/text.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
 import { cancel, isCancel } from "./primitives/cancel.js";
+import { intro } from "./primitives/intro.js";
 import { log } from "./primitives/log.js";
+import { note } from "./primitives/note.js";
+import { outro } from "./primitives/outro.js";
 
 export { isCancel, cancel, log };
-
-export function intro(title: string): void {
-  const format = resolveOutputFormat();
-  if (format === "markdown") {
-    process.stdout.write(`# ${stripAnsi(title)}\n\n`);
-    return;
-  }
-  if (format === "json") {
-    return;
-  }
-  clack.intro(textComponent.intro(title));
-}
+export { intro, outro, note };
 
 export function introPlain(title: string): void {
   const format = resolveOutputFormat();
@@ -29,20 +20,6 @@ export function introPlain(title: string): void {
     return;
   }
   clack.intro(title);
-}
-
-export function outro(message: string): void {
-  if (resolveOutputFormat() !== "terminal") {
-    return;
-  }
-  clack.outro(message);
-}
-
-export function note(message: string, title?: string): void {
-  if (resolveOutputFormat() !== "terminal") {
-    return;
-  }
-  clack.note(message, title);
 }
 
 export interface SelectOptions<Value> {

@@ -145,7 +145,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: primitive-display
     title: Own intro, outro, note primitives
@@ -188,9 +188,9 @@ tasks:
       All functions use `resolveOutputFormat()` to dispatch and `stripAnsi` from `src/internal/strip-ansi.ts`.
       All write via `process.stdout.write`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: primitive-spinner

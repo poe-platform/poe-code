@@ -201,7 +201,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pr-docker-args
     title: Implement Docker args builder (pure function)
@@ -255,9 +255,9 @@ tasks:
 
       Follow TDD — write tests first. No filesystem access needed, pure logic.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pr-engine-context

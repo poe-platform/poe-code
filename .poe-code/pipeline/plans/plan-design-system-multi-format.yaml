@@ -275,8 +275,8 @@ tasks:
       Fix any visual differences before committing.
     status:
       implement: done
-      refactor: open
-      test: open
+      refactor: done
+      test: done
       commit: open
 
   - id: text-symbols-format

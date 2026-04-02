@@ -18,10 +18,11 @@ status:
 
 # Speed Up Tests
 
-Optimize test suite execution time without removing or skipping tests by improving only one single thing
+Optimize test suite execution time without removing or skipping tests.
 
 ## Constraints
 
+- You are allowed to try only single hypothesis, one improvement, then finish the task
 - Do not remove or skip existing tests
 - Do not reduce test coverage
 - No parallel execution

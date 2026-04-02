@@ -715,7 +715,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pl-simulation
     title: Build simulation test harness and integration tests
@@ -752,9 +752,9 @@ tasks:
       These are full lifecycle integration tests using the simulation harness.
       Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pl-cli

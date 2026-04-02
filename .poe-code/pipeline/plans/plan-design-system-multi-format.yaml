@@ -444,7 +444,7 @@ tasks:
 
       After generating, visually review each doc to confirm the outputs make sense.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done

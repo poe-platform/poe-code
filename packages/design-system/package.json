@@ -8,7 +8,10 @@
   "scripts": {
     "build": "tsc",
     "demo": "tsx scripts/demo.ts",
-    "generate:docs": "tsx scripts/generate-docs.ts"
+    "generate:docs": "tsx scripts/generate-docs.ts terminal",
+    "generate:design-docs:markdown": "tsx scripts/generate-docs.ts markdown",
+    "generate:design-docs:json": "tsx scripts/generate-docs.ts json",
+    "generate:design-docs:all": "tsx scripts/generate-docs.ts all"
   },
   "files": [
     "dist"

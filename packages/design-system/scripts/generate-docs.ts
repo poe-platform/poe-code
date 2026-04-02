@@ -1,15 +1,24 @@
 #!/usr/bin/env tsx
 /**
- * Generates DESIGN_LANGUAGE.md documentation with screenshots.
+ * Generates design language documentation for terminal, markdown, and JSON formats.
  * Run from root: npm run generate:design-docs
  */
+import { execSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
 
 const ROOT_DIR = path.resolve(import.meta.dirname, "../../..");
 const SCREENSHOTS_DIR = path.join(ROOT_DIR, "docs/design-language");
-const OUTPUT_MD = path.join(ROOT_DIR, "docs/DESIGN_LANGUAGE.md");
+const OUTPUT_DOCS = {
+  terminal: path.join(ROOT_DIR, "docs/DESIGN_LANGUAGE.md"),
+  markdown: path.join(ROOT_DIR, "docs/DESIGN_LANGUAGE_MARKDOWN.md"),
+  json: path.join(ROOT_DIR, "docs/DESIGN_LANGUAGE_JSON.md")
+} as const;
+
+type OutputMode = keyof typeof OUTPUT_DOCS;
+type GeneratorMode = OutputMode | "all";
 
 type DesignElement = {
   name: string;
@@ -24,29 +33,44 @@ type Section = {
   elements: DesignElement[];
 };
 
-const sections: Section[] = [
-  // High-level: Package overview
+const textDocConfig = {
+  markdown: {
+    title: "# Design Language Markdown",
+    summary: "Text reference for poe-code CLI design elements rendered in markdown mode.",
+    command: "generate:design-docs:markdown",
+    fenceLanguage: "markdown",
+    formatDescription:
+      "Each example below shows the plain text markdown output captured with `OUTPUT_FORMAT=markdown`."
+  },
+  json: {
+    title: "# Design Language JSON",
+    summary: "Text reference for poe-code CLI design elements rendered in JSON mode.",
+    command: "generate:design-docs:json",
+    fenceLanguage: "json",
+    formatDescription:
+      "Each example below shows the NDJSON output captured with `OUTPUT_FORMAT=json`."
+  }
+} as const;
+
+export const sections: Section[] = [
   {
     title: "Overview",
     description:
       "The `@poe-code/design-system` package provides a consistent visual language for poe-code CLI output. Import components from the package:",
     elements: []
   },
-  // Design Tokens
   {
     title: "Design Tokens",
     description:
       "Foundational design values that ensure consistency across the CLI. Tokens define colors, spacing, typography, and layout widths.",
     elements: []
   },
-  // Theme Palettes
   {
     title: "Theme Palettes",
     description:
       "Color palettes that adapt to dark and light terminal themes. The system auto-detects the theme from environment variables (POE_CODE_THEME, APPLE_INTERFACE_STYLE, VSCODE_COLOR_THEME_KIND, COLORFGBG).",
     elements: []
   },
-  // Layout Patterns
   {
     title: "Layout Patterns",
     description:
@@ -80,7 +104,6 @@ outro("Problems? https://...");`,
       }
     ]
   },
-  // Text Styles
   {
     title: "Text Styles",
     description:
@@ -158,7 +181,6 @@ text.muted("(optional)")`,
       }
     ]
   },
-  // Symbols
   {
     title: "Symbols",
     description:
@@ -194,7 +216,6 @@ log.message("Config Failed\\n   Missing API key", { symbol: symbols.errorResolve
       }
     ]
   },
-  // Log Messages
   {
     title: "Log Messages",
     description:
@@ -230,7 +251,6 @@ log.error("Failed to write config file");`,
       }
     ]
   },
-  // Prompts
   {
     title: "Prompts",
     description:
@@ -286,7 +306,6 @@ const choice = await select({
       }
     ]
   },
-  // Static Rendering
   {
     title: "Static Rendering",
     description:
@@ -351,17 +370,37 @@ function screenshotPath(name: string): string {
 function runScreenshot(name: string, demoArgs: string): void {
   const outputPath = screenshotPath(name);
   const cmd = `npm run screenshot -- --no-header -o ${outputPath} npm run demo -w @poe-code/design-system -- ${demoArgs}`;
-  console.log(`Generating: ${name}`);
+  console.log(`Generating screenshot: ${name}`);
   execSync(cmd, { cwd: ROOT_DIR, stdio: "inherit" });
 }
 
-function generateMarkdown(): string {
+export function captureTextOutput(
+  demoArgs: string,
+  format: Extract<OutputMode, "markdown" | "json">
+): string {
+  const result = execSync(
+    `npm run --silent demo -w @poe-code/design-system -- ${demoArgs}`,
+    {
+      cwd: ROOT_DIR,
+      env: { ...process.env, OUTPUT_FORMAT: format }
+    }
+  );
+
+  return result.toString();
+}
+
+function renderSharedIntro(
+  title: string,
+  summary: string,
+  regenerateCommand: string,
+  extraParagraph?: string
+): string[] {
   const lines: string[] = [
-    "# Design Language",
+    title,
     "",
-    "Visual reference for poe-code CLI design elements.",
+    summary,
     "",
-    "This document is auto-generated. Run `npm run generate:design-docs` to regenerate.",
+    `This document is auto-generated. Run \`npm run ${regenerateCommand}\` to regenerate.`,
     "",
     "## Package Overview",
     "",
@@ -405,12 +444,26 @@ function generateMarkdown(): string {
     "- `POE_CODE_THEME` - explicit override ('dark' or 'light')",
     "- `APPLE_INTERFACE_STYLE` - macOS appearance",
     "- `VSCODE_COLOR_THEME_KIND` - VS Code theme",
-    "- `COLORFGBG` - terminal color hint",
-    ""
+    "- `COLORFGBG` - terminal color hint"
   ];
 
+  if (extraParagraph) {
+    lines.push("");
+    lines.push(extraParagraph);
+  }
+
+  lines.push("");
+  return lines;
+}
+
+export function renderTerminalDocument(): string {
+  const lines = renderSharedIntro(
+    "# Design Language",
+    "Visual reference for poe-code CLI design elements.",
+    "generate:design-docs"
+  );
+
   for (const section of sections) {
-    // Skip sections that are handled above (Overview, Tokens, Themes)
     if (section.elements.length === 0) {
       continue;
     }
@@ -420,17 +473,16 @@ function generateMarkdown(): string {
     lines.push(section.description);
     lines.push("");
 
-    for (const el of section.elements) {
-      const relativePath = `design-language/${el.name}.png`;
-      lines.push(`### ${el.name}`);
+    for (const element of section.elements) {
+      lines.push(`### ${element.name}`);
       lines.push("");
-      lines.push(el.description);
+      lines.push(element.description);
       lines.push("");
       lines.push("```typescript");
-      lines.push(el.codeSnippet);
+      lines.push(element.codeSnippet);
       lines.push("```");
       lines.push("");
-      lines.push(`![${el.name}](${relativePath})`);
+      lines.push(`![${element.name}](design-language/${element.name}.png)`);
       lines.push("");
     }
   }
@@ -438,22 +490,104 @@ function generateMarkdown(): string {
   return lines.join("\n");
 }
 
-async function main(): Promise<void> {
+export function renderTextDocument(
+  format: Extract<OutputMode, "markdown" | "json">,
+  capture: (
+    demoArgs: string,
+    currentFormat: Extract<OutputMode, "markdown" | "json">
+  ) => string = captureTextOutput
+): string {
+  const config = textDocConfig[format];
+  const lines = renderSharedIntro(
+    config.title,
+    config.summary,
+    config.command,
+    config.formatDescription
+  );
+
+  for (const section of sections) {
+    if (section.elements.length === 0) {
+      continue;
+    }
+
+    lines.push(`## ${section.title}`);
+    lines.push("");
+    lines.push(section.description);
+    lines.push("");
+
+    for (const element of section.elements) {
+      lines.push(`### ${element.name}`);
+      lines.push("");
+      lines.push(element.description);
+      lines.push("");
+      lines.push("```typescript");
+      lines.push(element.codeSnippet);
+      lines.push("```");
+      lines.push("");
+      lines.push(`\`\`\`${config.fenceLanguage}`);
+      lines.push(capture(element.demoArgs, format).trimEnd());
+      lines.push("```");
+      lines.push("");
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function generateTerminalArtifacts(): void {
   rmSync(SCREENSHOTS_DIR, { recursive: true, force: true });
   mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 
   for (const section of sections) {
-    for (const el of section.elements) {
-      runScreenshot(el.name, el.demoArgs);
+    for (const element of section.elements) {
+      runScreenshot(element.name, element.demoArgs);
     }
   }
 
-  const markdown = generateMarkdown();
-  writeFileSync(OUTPUT_MD, markdown);
-  console.log(`\nGenerated: ${OUTPUT_MD}`);
+  writeFileSync(OUTPUT_DOCS.terminal, renderTerminalDocument());
+  console.log(`Generated: ${OUTPUT_DOCS.terminal}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exitCode = 1;
-});
+function generateTextArtifacts(format: Extract<OutputMode, "markdown" | "json">): void {
+  writeFileSync(OUTPUT_DOCS[format], renderTextDocument(format));
+  console.log(`Generated: ${OUTPUT_DOCS[format]}`);
+}
+
+function parseMode(argv: string[]): GeneratorMode {
+  const mode = argv[2] as GeneratorMode | undefined;
+
+  if (!mode) {
+    return "terminal";
+  }
+
+  if (mode === "terminal" || mode === "markdown" || mode === "json" || mode === "all") {
+    return mode;
+  }
+
+  throw new Error(
+    `Unknown mode: ${mode}. Expected one of: terminal, markdown, json, all.`
+  );
+}
+
+export async function main(argv = process.argv): Promise<void> {
+  const mode = parseMode(argv);
+
+  if (mode === "terminal" || mode === "all") {
+    generateTerminalArtifacts();
+  }
+
+  if (mode === "markdown" || mode === "all") {
+    generateTextArtifacts("markdown");
+  }
+
+  if (mode === "json" || mode === "all") {
+    generateTextArtifacts("json");
+  }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+  });
+}

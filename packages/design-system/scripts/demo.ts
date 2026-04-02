@@ -14,6 +14,7 @@ import {
   symbols,
   renderSpinnerFrame,
   renderSpinnerStopped,
+  renderMenu,
   renderTable,
   getTheme,
   resolveOutputFormat,
@@ -101,15 +102,17 @@ function runDiffDemo(): void {
 }
 
 function runMenuDemo(): void {
-  const selected = chalk.magenta("●");
-  const unselected = chalk.dim("○");
-  const bar = chalk.gray(symbols.bar);
-
-  process.stdout.write(`${chalk.magenta("◆")}  Pick an agent to configure:\n`);
-  process.stdout.write(`${bar}  ${selected} ${chalk.hex("#ff6b35").bold("Claude Code")}\n`);
-  process.stdout.write(`${bar}  ${unselected} ${chalk.hex("#10a37f").bold("Codex CLI")}\n`);
-  process.stdout.write(`${bar}  ${unselected} Aider\n`);
-  process.stdout.write(`${chalk.gray("└")}\n`);
+  process.stdout.write(
+    renderMenu({
+      message: "Pick an agent:",
+      options: [
+        { value: "claude-code", label: "Claude Code" },
+        { value: "codex", label: "Codex CLI" },
+        { value: "aider", label: "Aider" }
+      ],
+      selectedIndex: 0
+    }) + "\n"
+  );
 }
 
 function runIntroDemo(content: string): void {
@@ -171,7 +174,6 @@ function runLayoutDemo(): void {
 }
 
 function runTableDemo(): void {
-  setOutputFormat("terminal");
   const theme = getTheme();
   const output = renderTable({
     theme,

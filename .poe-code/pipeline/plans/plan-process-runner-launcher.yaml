@@ -817,7 +817,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pl-sdk
     title: Expose process-launcher SDK
@@ -857,9 +857,9 @@ tasks:
 
       Keep parity with CLI — every CLI option should be configurable via SDK.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pl-verify

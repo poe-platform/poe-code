@@ -13,7 +13,7 @@ function normalizeOutput(output: string): string {
 
 async function runFixture(scriptName: string, input: string) {
   const scriptPath = path.join(testingDirectory, scriptName);
-  const child = spawn(scriptPath, [], {
+  const child = spawn(process.execPath, [scriptPath], {
     cwd: process.cwd(),
     env: process.env,
     stdio: ["pipe", "pipe", "pipe"]
@@ -41,7 +41,7 @@ async function runFixture(scriptName: string, input: string) {
 
 describe("interactive testing fixtures", () => {
   it("runs the prompt fixture and greets the provided name", async () => {
-    const result = await runFixture("test-cli.ts", "Ada\n");
+    const result = await runFixture("test-cli.js", "Ada\n");
 
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain("What is your name? ");
@@ -49,7 +49,7 @@ describe("interactive testing fixtures", () => {
   });
 
   it("greets the final line even when stdin ends without a trailing newline", async () => {
-    const result = await runFixture("test-cli.ts", "Ada");
+    const result = await runFixture("test-cli.js", "Ada");
 
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain("What is your name? ");
@@ -57,7 +57,7 @@ describe("interactive testing fixtures", () => {
   });
 
   it("runs the menu fixture and selects the highlighted option with arrow keys", async () => {
-    const result = await runFixture("menu-cli.ts", "\u001b[B\u001b[B\r");
+    const result = await runFixture("menu-cli.js", "\u001b[B\u001b[B\r");
 
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain("Select an option:");
@@ -66,14 +66,14 @@ describe("interactive testing fixtures", () => {
   });
 
   it("wraps to the last option when pressing ArrowUp from the default selection", async () => {
-    const result = await runFixture("menu-cli.ts", "\u001b[A\r");
+    const result = await runFixture("menu-cli.js", "\u001b[A\r");
 
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain("You selected: Option 3");
   });
 
   it("exits with code 130 when interrupted with Ctrl+C", async () => {
-    const result = await runFixture("menu-cli.ts", "\u0003");
+    const result = await runFixture("menu-cli.js", "\u0003");
 
     expect(result.exitCode).toBe(130);
     expect(result.output).not.toContain("You selected:");

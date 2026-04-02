@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import readline from "node:readline";
 
 const options = ["Option 1", "Option 2", "Option 3"];
@@ -68,7 +68,7 @@ function render() {
   renderedLineCount = lines.length;
 }
 
-function exitWithCode(code: number) {
+function exitWithCode(code) {
   if (hasExited) {
     return;
   }

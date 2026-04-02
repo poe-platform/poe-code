@@ -4,12 +4,11 @@ import { afterEach, describe, expect, it } from "vitest";
 import { TerminalPilot } from "./terminal-pilot.js";
 
 const testingDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), "testing");
-const testCliPath = path.join(testingDirectory, "test-cli.ts");
-const tsxPath = path.join(process.cwd(), "node_modules", ".bin", "tsx");
+const testCliPath = path.join(testingDirectory, "test-cli.js");
 
 function createSessionOptions() {
   return {
-    command: tsxPath,
+    command: process.execPath,
     args: [testCliPath],
     cwd: process.cwd(),
     observe: false
@@ -41,7 +40,7 @@ describe("TerminalPilot", () => {
       cols: 80,
       rows: 24
     });
-    expect(first.command).toBe(tsxPath);
+    expect(first.command).toBe(process.execPath);
     const second = await pilot.newSession({
       ...createSessionOptions(),
       cols: 100,

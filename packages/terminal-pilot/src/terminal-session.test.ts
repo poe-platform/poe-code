@@ -4,13 +4,12 @@ import { afterEach, describe, expect, it } from "vitest";
 import { TerminalSession } from "./terminal-session.js";
 
 const testingDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), "testing");
-const testCliPath = path.join(testingDirectory, "test-cli.ts");
-const tsxPath = path.join(process.cwd(), "node_modules", ".bin", "tsx");
+const testCliPath = path.join(testingDirectory, "test-cli.js");
 
 function createSession(id: string) {
   return new TerminalSession({
     id,
-    command: tsxPath,
+    command: process.execPath,
     args: [testCliPath],
     cwd: process.cwd(),
     env: process.env,

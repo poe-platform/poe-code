@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import readline from "node:readline";
 
 const terminal = readline.createInterface({

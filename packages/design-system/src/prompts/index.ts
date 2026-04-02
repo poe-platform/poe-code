@@ -43,24 +43,37 @@ export function note(message: string, title?: string): void {
   clack.note(message, title);
 }
 
-export type SelectOptions<Value> = Parameters<typeof clack.select<Value>>[0];
+export interface SelectOptions<Value> {
+  message: string;
+  options: Array<{ value: Value; label: string; hint?: string }>;
+  initialValue?: Value;
+}
 
 export async function select<Value>(
   opts: SelectOptions<Value>
 ): Promise<Value | symbol> {
-  return clack.select(opts);
+  return clack.select(opts as Parameters<typeof clack.select<Value>>[0]);
 }
 
-export type TextOptions = Parameters<typeof clack.text>[0];
+export interface TextOptions {
+  message: string;
+  placeholder?: string;
+  defaultValue?: string;
+  initialValue?: string;
+  validate?: (value: string) => string | undefined;
+}
 
 export async function text(opts: TextOptions): Promise<string | symbol> {
-  return clack.text(opts);
+  return clack.text(opts as Parameters<typeof clack.text>[0]);
 }
 
-export type ConfirmOptions = Parameters<typeof clack.confirm>[0];
+export interface ConfirmOptions {
+  message: string;
+  initialValue?: boolean;
+}
 
 export async function confirm(opts: ConfirmOptions): Promise<boolean | symbol> {
-  return clack.confirm(opts);
+  return clack.confirm(opts as Parameters<typeof clack.confirm>[0]);
 }
 
 export class PromptCancelledError extends Error {
@@ -82,10 +95,13 @@ export async function confirmOrCancel(opts: ConfirmOptions): Promise<boolean> {
   return result === true;
 }
 
-export type PasswordOptions = Parameters<typeof clack.password>[0];
+export interface PasswordOptions {
+  message: string;
+  validate?: (value: string) => string | undefined;
+}
 
 export async function password(opts: PasswordOptions): Promise<string | symbol> {
-  return clack.password(opts);
+  return clack.password(opts as Parameters<typeof clack.password>[0]);
 }
 
 export type SpinnerOptions = {

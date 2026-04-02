@@ -50,7 +50,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: own-prompt-types
     title: Own interface definitions for interactive prompt types
@@ -96,9 +96,9 @@ tasks:
       Verify TypeScript compiles cleanly (`npm run build -w @poe-code/design-system`).
       No test changes needed — this is a type-only change.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: primitive-log-cancel

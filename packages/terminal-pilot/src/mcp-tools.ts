@@ -100,12 +100,12 @@ export function terminalWaitForTool(agent: TerminalPilot): TerminalPilotMcpTool<
     async handler(input) {
       const session = agent.getSession(input.sessionId);
       const pattern = new RegExp(input.pattern);
-      const output =
+      const line =
         input.timeout === undefined
           ? await session.waitFor(pattern)
           : await session.waitFor(pattern, { timeout: input.timeout });
 
-      return { matched: true, output };
+      return { matched: true, line };
     }
   };
 }

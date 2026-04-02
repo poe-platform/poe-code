@@ -126,7 +126,7 @@ export class TerminalSession {
   }
 
   async fill(text: string): Promise<void> {
-    await this.send(text);
+    await this.send(text.replace(/\r?\n/g, "\r"));
   }
 
   async press(key: TerminalKey): Promise<void> {
@@ -383,15 +383,18 @@ function signalToExitCode(signal: NodeJS.Signals | null): number {
 }
 
 function matchPattern(buffer: string, pattern: string | RegExp): string | null {
-  if (typeof pattern === "string") {
-    return buffer.includes(pattern) ? pattern : null;
+  const clean = normalizeHistoryBuffer(stripAnsi(buffer));
+
+  for (const line of clean.split("\n")) {
+    if (typeof pattern === "string") {
+      if (line.includes(pattern)) return line;
+    } else {
+      const flags = removeCharacter(pattern.flags, "g");
+      if (new RegExp(pattern.source, flags).test(line)) return line;
+    }
   }
 
-  const flags = removeCharacter(pattern.flags, "g");
-  const localPattern = new RegExp(pattern.source, flags);
-  const match = localPattern.exec(buffer);
-
-  return match?.[0] ?? null;
+  return null;
 }
 
 function removeCharacter(input: string, charToRemove: string): string {

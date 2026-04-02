@@ -53,7 +53,7 @@ describe("TerminalSession", () => {
     await session.press("Enter");
 
     const matched = await session.waitFor(/Hello, Ada!/);
-    expect(matched).toBe("Hello, Ada!");
+    expect(matched).toContain("Hello, Ada!");
 
     await session.waitForQuiet(200);
 
@@ -85,7 +85,7 @@ describe("TerminalSession", () => {
     await session.send("Grace\r");
 
     const matched = await session.waitFor(expression);
-    expect(matched).toBe("Hello, Grace!");
+    expect(matched).toContain("Hello, Grace!");
     expect(expression.lastIndex).toBe(0);
 
     await session.waitForQuiet(200);
@@ -122,6 +122,15 @@ describe("TerminalSession", () => {
     expect(code).toBe(130);
     expect(session.exitCode).toBe(130);
     expect(exitEvents).toContain(130);
+  });
+
+  it("fills text with embedded newline, treating \\n as Enter", async () => {
+    const session = createSession("session-4a");
+    sessions.push(session);
+
+    await session.waitFor("What is your name?");
+    await session.fill("Grace\n");
+    await session.waitFor("Hello, Grace!");
   });
 
   it("fills text at once and rejects when waitFor times out", async () => {

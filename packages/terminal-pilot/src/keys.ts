@@ -15,6 +15,16 @@ const NAMED_KEY_SEQUENCES = {
   Space: " "
 } as const;
 
+const NAMED_KEY_LOWER = new Map(
+  (Object.entries(NAMED_KEY_SEQUENCES) as [string, string][]).map(([k, v]) => [k.toLowerCase(), v])
+);
+
+const VALID_KEYS_HINT = `Valid keys: ${Object.keys(NAMED_KEY_SEQUENCES).join(", ")}, Control+<letter>, Alt+<key>`;
+
+function unknownKeyError(key: string): Error {
+  return new Error(`Unknown terminal key: ${key}. ${VALID_KEYS_HINT}`);
+}
+
 export type TerminalKey =
   | "Enter"
   | "Tab"
@@ -34,19 +44,21 @@ export type TerminalKey =
   | `Alt+${string}`;
 
 export function keyToSequence(key: TerminalKey): string {
-  const namedSequence = NAMED_KEY_SEQUENCES[key as keyof typeof NAMED_KEY_SEQUENCES];
+  const lowerKey = (key as string).toLowerCase();
+
+  const namedSequence = NAMED_KEY_LOWER.get(lowerKey);
   if (namedSequence !== undefined) {
     return namedSequence;
   }
 
-  if (key.startsWith("Control+")) {
-    return controlKeyToSequence(key as `Control+${string}`);
+  if (lowerKey.startsWith("control+")) {
+    return controlKeyToSequence((key as string).slice("control+".length));
   }
 
-  if (key.startsWith("Alt+")) {
-    const nestedKey = key.slice("Alt+".length);
+  if (lowerKey.startsWith("alt+")) {
+    const nestedKey = (key as string).slice("alt+".length);
     if (nestedKey.length === 0) {
-      throw new Error(`Unknown terminal key: ${key}`);
+      throw unknownKeyError(key);
     }
 
     if (nestedKey.length === 1) {
@@ -56,23 +68,22 @@ export function keyToSequence(key: TerminalKey): string {
     try {
       return "\x1b" + keyToSequence(nestedKey as TerminalKey);
     } catch {
-      throw new Error(`Unknown terminal key: ${key}`);
+      throw unknownKeyError(key);
     }
   }
 
-  throw new Error(`Unknown terminal key: ${key}`);
+  throw unknownKeyError(key);
 }
 
-function controlKeyToSequence(key: `Control+${string}`): string {
-  const controlKey = key.slice("Control+".length);
+function controlKeyToSequence(controlKey: string): string {
   if (controlKey.length !== 1) {
-    throw new Error(`Unknown terminal key: ${key}`);
+    throw unknownKeyError(`Control+${controlKey}`);
   }
 
   const uppercaseLetter = controlKey.toUpperCase();
   const charCode = uppercaseLetter.charCodeAt(0);
   if (charCode < 65 || charCode > 90) {
-    throw new Error(`Unknown terminal key: ${key}`);
+    throw unknownKeyError(`Control+${controlKey}`);
   }
 
   return String.fromCharCode(charCode - 64);

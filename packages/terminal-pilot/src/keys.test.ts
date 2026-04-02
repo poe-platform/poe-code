@@ -53,8 +53,28 @@ describe("keyToSequence", () => {
   });
 
   it.each([
+    ["enter", "\r"],
+    ["ENTER", "\r"],
+    ["arrowup", "\x1b[A"],
+    ["ARROWDOWN", "\x1b[B"],
+    ["space", " "],
+    ["escape", "\x1b"],
+    ["BACKSPACE", "\x7f"]
+  ] as const)("maps case-insensitive key %s to expected sequence", (key, expected) => {
+    expect(keyToSequence(key as TerminalKey)).toBe(expected);
+  });
+
+  it.each([
+    ["control+c", "\x03"],
+    ["CONTROL+C", "\x03"],
+    ["alt+enter", "\x1b\r"],
+    ["ALT+ENTER", "\x1b\r"]
+  ] as const)("maps case-insensitive modifier key %s to expected sequence", (key, expected) => {
+    expect(keyToSequence(key as TerminalKey)).toBe(expected);
+  });
+
+  it.each([
     "Unknown",
-    "enter",
     "Control+",
     "Control+1",
     "Control+ab",
@@ -63,11 +83,10 @@ describe("keyToSequence", () => {
     "Alt+",
     "Alt+Unknown",
     "Alt+Control+",
-    "Alt+Control+1",
-    "Alt+enter"
+    "Alt+Control+1"
   ])("throws for unsupported key %s", (key) => {
     expect(() => keyToSequence(key as TerminalKey)).toThrow(
-      `Unknown terminal key: ${key}`
+      `Unknown terminal key: ${key}. Valid keys:`
     );
   });
 });

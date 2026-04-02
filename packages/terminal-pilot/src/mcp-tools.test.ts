@@ -198,7 +198,7 @@ describe("mcp terminal tools", () => {
 
     await expect(
       tool.handler({ sessionId: "session-1", pattern: "Select.*agent", timeout: 5000 })
-    ).resolves.toEqual({ matched: true, output: "Select an agent" });
+    ).resolves.toEqual({ matched: true, line: "Select an agent" });
 
     expect(pilot.getSession).toHaveBeenCalledWith("session-1");
     expect(session.waitFor).toHaveBeenCalledTimes(1);
@@ -216,7 +216,7 @@ describe("mcp terminal tools", () => {
 
     await expect(tool.handler({ sessionId: "session-1", pattern: "ready" })).resolves.toEqual({
       matched: true,
-      output: "matched output"
+      line: "matched output"
     });
 
     const [pattern, options] = session.waitFor.mock.calls[0] as [RegExp, unknown];

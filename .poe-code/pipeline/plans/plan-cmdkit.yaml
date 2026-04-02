@@ -138,7 +138,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: secrets-and-requires
     title: Secrets resolution + requirements checking
@@ -168,9 +168,9 @@ tasks:
 
       Write unit tests for each failure path.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: fixtures

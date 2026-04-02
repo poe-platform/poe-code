@@ -463,8 +463,41 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(handler).not.toHaveBeenCalled();
+    expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      "Missing required secret API_KEY.\nSet it in the environment before running this command.",
+      "Error: Missing required secret API_KEY\n  Set it in the environment before running this command.",
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("checks requirements before prompting for params", async () => {
+    const handler = vi.fn(async () => null);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        name: S.String(),
+      }),
+      requires: {
+        auth: true,
+      },
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    delete process.env.POE_API_KEY;
+    process.argv = ["node", "cmdkit", "deploy"];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(promptState.text).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      `Error: Command "deploy" requires authentication.\n  Run 'poe-code login' first.`,
     ]);
     expect(process.exitCode).toBe(1);
   });

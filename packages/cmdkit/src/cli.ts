@@ -15,13 +15,14 @@ import type {
   AnySchema,
   ArraySchema,
   Command,
+  CommandRequirementOptions,
   Group,
   HandlerContext,
   HandlerEnv,
   HandlerFs,
   ObjectSchema,
 } from "./index.js";
-import { UserError } from "./index.js";
+import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 
@@ -59,6 +60,7 @@ interface ExecutionState<TServices extends object> {
 }
 
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
+  apiVersion?: string;
   casing?: Casing;
   services?: TServices;
   version?: string;
@@ -541,27 +543,6 @@ async function withOutputFormat<T>(output: OutputMode, fn: () => Promise<T>): Pr
   }
 }
 
-function readSecrets(command: Command<any, any, any, any>): Record<string, string | undefined> {
-  return Object.fromEntries(
-    Object.entries(command.secrets).map(([name, secret]) => [name, process.env[secret.env]])
-  );
-}
-
-function validateSecrets(command: Command<any, any, any, any>, secrets: Record<string, string | undefined>): void {
-  for (const [name, secret] of Object.entries(command.secrets)) {
-    if (secret.optional === true) {
-      continue;
-    }
-
-    if (secrets[name] !== undefined) {
-      continue;
-    }
-
-    const details = secret.description ? `\n${secret.description}` : "";
-    throw new UserError(`Missing required secret ${secret.env}.${details}`);
-  }
-}
-
 function createFs(): HandlerFs {
   return {
     readFile: async (path: string, encoding = "utf8") =>
@@ -645,7 +626,8 @@ function getGlobalFlags(command: CommanderCommand): GlobalFlags {
 
 async function executeCommand<TServices extends object>(
   state: ExecutionState<TServices>,
-  services: TServices
+  services: TServices,
+  requirementOptions: CommandRequirementOptions
 ): Promise<void> {
   const logger = createLogger();
   const primitives = {
@@ -656,35 +638,34 @@ async function executeCommand<TServices extends object>(
   const globalFlags = getGlobalFlags(state.actionCommand);
   const output = resolveOutput(globalFlags);
   const shouldPrompt = !globalFlags.yes && Boolean(process.stdin.isTTY);
+  const fs = createFs();
+  const env = createEnv();
+  const secrets = resolveCommandSecrets(state.command);
+  const preflightContext = {
+    ...services,
+    secrets,
+    fetch: globalThis.fetch,
+    fs,
+    env,
+    progress(message: string): void {
+      logger.info(message);
+    },
+  };
 
   await withOutputFormat(output, async () => {
+    await assertCommandRequirements(state.command, preflightContext, requirementOptions);
+
     const params = await resolveParams(
       state.fields,
       state.positionalValues,
       state.actionCommand.optsWithGlobals() as Record<string, unknown>,
       shouldPrompt
     );
-    const secrets = readSecrets(state.command);
-    validateSecrets(state.command, secrets);
-    const fs = createFs();
-    const env = createEnv();
 
     const context = {
-      ...services,
+      ...preflightContext,
       params,
-      secrets,
-      fetch: globalThis.fetch,
-      fs,
-      env,
-      progress(message: string): void {
-        logger.info(message);
-      },
     } as HandlerContext<any, any, TServices>;
-
-    const checkResult = await state.command.requires?.check?.(context);
-    if (checkResult && !checkResult.ok) {
-      throw new UserError(checkResult.message ?? "Command precondition failed.");
-    }
 
     if (state.command.confirm && !globalFlags.yes && process.stdin.isTTY) {
       for (const field of state.fields) {
@@ -754,6 +735,9 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 ): Promise<void> {
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
+  const requirementOptions = {
+    apiVersion: options.apiVersion,
+  } satisfies CommandRequirementOptions;
 
   validateServices(services as Record<string, unknown>);
 
@@ -769,7 +753,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
   const execute = async (state: ExecutionState<TServices>) => {
     try {
-      await executeCommand(state, services);
+      await executeCommand(state, services, requirementOptions);
     } catch (error) {
       handleRunError(error, Boolean(getGlobalFlags(state.actionCommand).verbose));
     }

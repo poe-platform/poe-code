@@ -1,8 +1,29 @@
 import { describe, expect, it, vi } from "vitest";
 import { S } from "@poe-code/cmdkit-schema";
-import { UserError, defineCommand, defineGroup } from "@poe-code/cmdkit";
+import {
+  UserError,
+  assertCommandRequirements,
+  defineCommand,
+  defineGroup,
+  resolveCommandSecrets,
+} from "@poe-code/cmdkit";
 
 describe("@poe-code/cmdkit", () => {
+  function createPreflightContext() {
+    return {
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: async () => "",
+        writeFile: async () => undefined,
+        exists: async () => true,
+      },
+      env: {
+        get: () => undefined,
+      },
+      progress: () => undefined,
+    };
+  }
+
   it("inherits secrets through nested groups", () => {
     const leaf = defineCommand({
       name: "leaf",
@@ -326,6 +347,199 @@ describe("@poe-code/cmdkit", () => {
     command.secrets.rootToken.description = "Leaf view";
     expect(root.secrets.rootToken.description).toBe("Root token");
     expect(group.secrets.rootToken.description).toBe("Root token");
+  });
+
+  it("throws when a required secret has no description", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: {
+        token: { env: "TOKEN" },
+      },
+      handler: async () => null,
+    });
+
+    expect(() => resolveCommandSecrets(cmd, {})).toThrowError(
+      new UserError("Error: Missing required secret TOKEN")
+    );
+  });
+
+  it("passes undefined for optional secrets that are missing", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: {
+        token: { env: "TOKEN", optional: true },
+      },
+      handler: async () => null,
+    });
+
+    expect(resolveCommandSecrets(cmd, {})).toEqual({ token: undefined });
+  });
+
+  it("throws when a required inherited secret is missing", () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => null,
+    });
+
+    const root = defineGroup({
+      name: "root",
+      secrets: {
+        apiKey: {
+          env: "API_KEY",
+          description: "Set it before running deploy.",
+        },
+      },
+      children: [deploy],
+    });
+
+    const command = root.children[0];
+    expect(command?.kind).toBe("command");
+    if (command?.kind !== "command") {
+      throw new Error("Expected deploy command");
+    }
+
+    expect(() =>
+      resolveCommandSecrets(command, {
+        API_KEY: undefined,
+      })
+    ).toThrowError(
+      new UserError("Error: Missing required secret API_KEY\n  Set it before running deploy.")
+    );
+  });
+
+  it("throws when auth is required and the auth env var is missing", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      requires: {
+        auth: true,
+      },
+      handler: async () => null,
+    });
+
+    await expect(
+      assertCommandRequirements(deploy, createPreflightContext(), {
+        env: {},
+      })
+    ).rejects.toThrowError(
+      new UserError(`Error: Command "deploy" requires authentication.\n  Run 'poe-code login' first.`)
+    );
+  });
+
+  it("throws when the runner api version does not satisfy the command requirement", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      requires: {
+        apiVersion: ">=2.4.0",
+      },
+      handler: async () => null,
+    });
+
+    await expect(
+      assertCommandRequirements(deploy, createPreflightContext(), {
+        apiVersion: "2.3.9",
+      })
+    ).rejects.toThrowError(
+      new UserError(
+        'Error: Command "deploy" requires API version >=2.4.0, but runner API version is 2.3.9.'
+      )
+    );
+  });
+
+  it("throws when a custom requirement check fails", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      requires: {
+        check: async () => ({
+          ok: false,
+          message: "Account is not allowed to deploy.",
+        }),
+      },
+      handler: async () => null,
+    });
+
+    await expect(
+      assertCommandRequirements(deploy, createPreflightContext())
+    ).rejects.toThrowError(new UserError("Account is not allowed to deploy."));
+  });
+
+  it("uses a fallback message when check fails without one", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      requires: {
+        check: async () => ({ ok: false }),
+      },
+      handler: async () => null,
+    });
+
+    await expect(
+      assertCommandRequirements(deploy, createPreflightContext())
+    ).rejects.toThrowError(new UserError("Command precondition failed."));
+  });
+
+  it("throws when apiVersion requirement has invalid format", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      requires: {
+        apiVersion: "1.0.0",
+      },
+      handler: async () => null,
+    });
+
+    await expect(
+      assertCommandRequirements(deploy, createPreflightContext())
+    ).rejects.toThrowError(
+      new UserError(
+        'Error: Command "deploy" has invalid apiVersion requirement "1.0.0". Expected format ">=X.Y.Z".'
+      )
+    );
+  });
+
+  it("throws when apiVersion is required but runner provides none", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      requires: {
+        apiVersion: ">=1.0.0",
+      },
+      handler: async () => null,
+    });
+
+    await expect(
+      assertCommandRequirements(deploy, createPreflightContext())
+    ).rejects.toThrowError(
+      new UserError(
+        'Error: Command "deploy" requires API version >=1.0.0, but no runner API version was provided.'
+      )
+    );
+  });
+
+  it("throws when runner apiVersion is not valid semver", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      requires: {
+        apiVersion: ">=1.0.0",
+      },
+      handler: async () => null,
+    });
+
+    await expect(
+      assertCommandRequirements(deploy, createPreflightContext(), {
+        apiVersion: "not-semver",
+      })
+    ).rejects.toThrowError(
+      new UserError(
+        'Error: Command "deploy" requires API version >=1.0.0, but runner API version "not-semver" is not valid semver.'
+      )
+    );
   });
 
   it("materializes the default command and validates the declaration", () => {

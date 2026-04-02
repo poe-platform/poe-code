@@ -64,6 +64,19 @@ export type GroupCheckContext<TServices extends object = EmptyServices> = TServi
   progress(message: string): void;
 };
 
+export type CommandCheckContext<
+  TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
+  TSecrets extends SecretDeclarations | undefined = undefined,
+  TServices extends object = EmptyServices,
+> = TServices & {
+  params?: Static<TParamsSchema>;
+  secrets?: InferSecrets<TSecrets>;
+  fetch: typeof globalThis.fetch;
+  fs: HandlerFs;
+  env: HandlerEnv;
+  progress(message: string): void;
+};
+
 export interface Requires<TContext = unknown> {
   auth?: boolean;
   apiVersion?: string;
@@ -103,7 +116,7 @@ export interface CommandConfig<
   secrets?: TSecrets;
   scope?: Scope[];
   confirm?: boolean;
-  requires?: Requires<HandlerContext<TParamsSchema, TSecrets, TServices>>;
+  requires?: Requires<CommandCheckContext<TParamsSchema, TSecrets, TServices>>;
   handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult>;
   render?: Renderers<TResult>;
 }
@@ -123,7 +136,7 @@ export interface Command<
   secrets: SecretDeclarations;
   scope: Scope[];
   confirm: boolean;
-  requires?: Requires<HandlerContext<TParamsSchema, TSecrets, TServices>>;
+  requires?: Requires<CommandCheckContext<TParamsSchema, TSecrets, TServices>>;
   handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult>;
   render?: Renderers<TResult>;
 }
@@ -180,6 +193,12 @@ export class UserError extends Error {
     super(message);
     this.name = "UserError";
   }
+}
+
+export interface CommandRequirementOptions {
+  apiVersion?: string;
+  authEnvVar?: string;
+  env?: Record<string, string | undefined>;
 }
 
 function cloneScope(scope: Scope[] | undefined): Scope[] | undefined {
@@ -258,6 +277,126 @@ function mergeRequires(parent: Requires<any> | undefined, child: Requires<any> |
   }
 
   return merged;
+}
+
+function parseSimpleSemver(value: string): [number, number, number] | undefined {
+  const parts = value.split(".");
+  if (parts.length !== 3) {
+    return undefined;
+  }
+
+  const parsed = parts.map((part) => {
+    if (part.length === 0) {
+      return Number.NaN;
+    }
+
+    for (const char of part) {
+      if (char < "0" || char > "9") {
+        return Number.NaN;
+      }
+    }
+
+    return Number(part);
+  });
+
+  if (parsed.some((part) => !Number.isInteger(part) || part < 0)) {
+    return undefined;
+  }
+
+  return parsed as [number, number, number];
+}
+
+function parseMinimumApiVersion(requirement: string): [number, number, number] | undefined {
+  if (!requirement.startsWith(">=")) {
+    return undefined;
+  }
+
+  return parseSimpleSemver(requirement.slice(2).trim());
+}
+
+function compareSemver(left: [number, number, number], right: [number, number, number]): number {
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] === right[index]) {
+      continue;
+    }
+
+    return left[index]! > right[index]! ? 1 : -1;
+  }
+
+  return 0;
+}
+
+export function resolveCommandSecrets(
+  command: Command<any, any, any, any>,
+  env: Record<string, string | undefined> = process.env
+): Record<string, string | undefined> {
+  const secrets: Record<string, string | undefined> = {};
+
+  for (const [name, secret] of Object.entries(command.secrets)) {
+    const value = env[secret.env];
+
+    if (value === undefined && secret.optional !== true) {
+      const details = secret.description ? `\n  ${secret.description}` : "";
+      throw new UserError(`Error: Missing required secret ${secret.env}${details}`);
+    }
+
+    secrets[name] = value;
+  }
+
+  return secrets;
+}
+
+export async function assertCommandRequirements(
+  command: Command<any, any, any, any>,
+  context: GroupCheckContext<any>,
+  options: CommandRequirementOptions = {}
+): Promise<void> {
+  const requires = command.requires;
+  if (requires === undefined) {
+    return;
+  }
+
+  const env = options.env ?? process.env;
+  const authEnvVar = options.authEnvVar ?? "POE_API_KEY";
+
+  if (requires.auth === true && env[authEnvVar] === undefined) {
+    throw new UserError(
+      `Error: Command "${command.name}" requires authentication.\n  Run 'poe-code login' first.`
+    );
+  }
+
+  if (requires.apiVersion !== undefined) {
+    const minimumVersion = parseMinimumApiVersion(requires.apiVersion);
+    if (minimumVersion === undefined) {
+      throw new UserError(
+        `Error: Command "${command.name}" has invalid apiVersion requirement "${requires.apiVersion}". Expected format ">=X.Y.Z".`
+      );
+    }
+
+    if (options.apiVersion === undefined) {
+      throw new UserError(
+        `Error: Command "${command.name}" requires API version ${requires.apiVersion}, but no runner API version was provided.`
+      );
+    }
+
+    const runnerVersion = parseSimpleSemver(options.apiVersion);
+    if (runnerVersion === undefined) {
+      throw new UserError(
+        `Error: Command "${command.name}" requires API version ${requires.apiVersion}, but runner API version "${options.apiVersion}" is not valid semver.`
+      );
+    }
+
+    if (compareSemver(runnerVersion, minimumVersion) < 0) {
+      throw new UserError(
+        `Error: Command "${command.name}" requires API version ${requires.apiVersion}, but runner API version is ${options.apiVersion}.`
+      );
+    }
+  }
+
+  const checkResult = await requires.check?.(context);
+  if (checkResult && !checkResult.ok) {
+    throw new UserError(checkResult.message ?? "Command precondition failed.");
+  }
 }
 
 function mergeSecrets(parent: SecretDeclarations, child: SecretDeclarations): SecretDeclarations {

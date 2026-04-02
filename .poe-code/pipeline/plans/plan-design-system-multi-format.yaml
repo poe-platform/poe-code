@@ -277,7 +277,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: text-symbols-format
     title: Format-aware text.* and symbols
@@ -336,10 +336,10 @@ tasks:
       OUTPUT_FORMAT=markdown npm run dev -- --help
       ```
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: acp-static-format
     title: Format dispatch for acp/components and static renderers

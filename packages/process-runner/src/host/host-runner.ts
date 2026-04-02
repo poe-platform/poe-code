@@ -18,6 +18,10 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
         ...(detached ? { detached: true } : {})
       });
 
+      if (detached) {
+        child.unref();
+      }
+
       const kill = (signal?: NodeJS.Signals) => {
         if (detached && process.platform !== "win32" && child.pid !== undefined) {
           process.kill(-child.pid, signal);

@@ -115,7 +115,9 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
     "vitest": "^4.0.18",
-    "@poe-code/experiment-loop": "*"
+    "@poe-code/experiment-loop": "*",
+    "@poe-code/process-launcher": "*",
+    "@poe-code/process-runner": "*"
   },
   "repository": {
     "type": "git",

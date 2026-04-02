@@ -755,7 +755,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pl-cli
     title: Add process-launcher CLI commands
@@ -814,9 +814,9 @@ tasks:
       - `npm run screenshot-poe-code -- launch status --help`
       - `npm run screenshot-poe-code -- launch logs --help`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pl-sdk

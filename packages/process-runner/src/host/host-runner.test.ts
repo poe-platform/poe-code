@@ -106,6 +106,38 @@ describe("createHostRunner", () => {
     }
   );
 
+  it("unrefs detached child processes", async () => {
+    const child = {
+      pid: 123,
+      stdin: null,
+      stdout: null,
+      stderr: null,
+      kill: vi.fn(),
+      once: vi.fn(),
+      unref: vi.fn()
+    };
+    const spawnMock = vi.fn(() => child);
+
+    vi.resetModules();
+    vi.doMock("node:child_process", () => ({
+      spawn: spawnMock
+    }));
+
+    const { createHostRunner: createDetachedHostRunner } = await import("./host-runner.js");
+    const runner = createDetachedHostRunner({ detached: true });
+    runner.exec({ command: "sleep", args: ["60"] });
+
+    expect(spawnMock).toHaveBeenCalledWith(
+      "sleep",
+      ["60"],
+      expect.objectContaining({ detached: true })
+    );
+    expect(child.unref).toHaveBeenCalledTimes(1);
+
+    vi.doUnmock("node:child_process");
+    vi.resetModules();
+  });
+
   it("uses default stdio modes when omitted", async () => {
     const runner = createHostRunner();
     const handle = runner.exec({

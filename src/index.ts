@@ -9,6 +9,16 @@ export { runRalph } from "./sdk/ralph.js";
 export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey } from "./sdk/credentials.js";
+export {
+  followLaunchLogs,
+  listLaunches,
+  readLaunchLogs,
+  removeLaunch,
+  restartLaunch,
+  runLaunchDaemon,
+  startLaunch,
+  stopLaunch
+} from "./sdk/launch.js";
 export type {
   SpawnOptions,
   SpawnUsage,
@@ -18,6 +28,17 @@ export type {
   GenerateResult,
   MediaGenerateResult
 } from "./sdk/types.js";
+export type {
+  FollowLaunchLogsSdkOptions,
+  ListLaunchesOptions,
+  ReadLaunchLogsOptions,
+  RemoveLaunchOptions,
+  RestartLaunchOptions,
+  RunLaunchDaemonOptions,
+  StartLaunchOptions,
+  StopLaunchOptions
+} from "./sdk/launch.js";
+export type { ManagedProcessRecord, ProcessSpec } from "@poe-code/process-launcher";
 export type { PipelineRunOptions, PipelineRunResult } from "./sdk/pipeline.js";
 export type { RalphRunOptions, RalphRunResult } from "./sdk/ralph.js";
 export type {

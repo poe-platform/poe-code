@@ -23,6 +23,7 @@ import { registerModelsCommand } from "./commands/models.js";
 import { registerPipelineCommand } from "./commands/pipeline.js";
 import { registerRalphCommand } from "./commands/ralph.js";
 import { registerExperimentCommand } from "./commands/experiment.js";
+import { registerLaunchCommand } from "./commands/launch.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -189,6 +190,12 @@ function formatHelpText(input: {
       aliases: [],
       args: "[doc]",
       description: "Display an experiment journal as a formatted table"
+    },
+    {
+      name: "launch",
+      aliases: [],
+      args: "",
+      description: "Manage long-running host and Docker processes"
     },
     {
       name: "usage",
@@ -392,6 +399,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerPipelineCommand(program, container);
   registerRalphCommand(program, container);
   registerExperimentCommand(program, container);
+  registerLaunchCommand(program, container);
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
 

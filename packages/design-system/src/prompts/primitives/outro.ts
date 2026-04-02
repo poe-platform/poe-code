@@ -18,5 +18,5 @@ export function outro(message: string): void {
     return;
   }
 
-  process.stdout.write(chalk.dim(`└  ${message}\n`));
+  process.stdout.write(`${chalk.gray("│")}\n${chalk.gray("└")}  ${message}\n\n`);
 }

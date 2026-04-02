@@ -37,14 +37,16 @@ describe("prompts/primitives/cancel", () => {
     resetOutputFormatCache();
   });
 
-  it("writes dim terminal cancel output", () => {
+  it("writes clack-style terminal cancel output", () => {
     const output = captureStdout(() => {
       withOutputFormat("terminal", () => {
         cancel("Operation cancelled.");
       });
     });
 
-    expect(output).toBe(chalk.dim("│\n└  Operation cancelled.\n"));
+    expect(output).toBe(
+      `${chalk.gray("└")}  ${chalk.red("Operation cancelled.")}\n\n`
+    );
   });
 
   it("is silent for markdown output", () => {

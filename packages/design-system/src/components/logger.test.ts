@@ -1,11 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import chalk from "chalk";
 import {
   resetOutputFormatCache,
   withOutputFormat
-} from "../../internal/output-format.js";
-import { text } from "../../components/text.js";
-import { intro } from "./intro.js";
+} from "../internal/output-format.js";
+import { createLogger } from "./logger.js";
 
 function captureStdout(run: () => void): string {
   const chunks: string[] = [];
@@ -25,7 +23,7 @@ function captureStdout(run: () => void): string {
   return chunks.join("");
 }
 
-describe("prompts/primitives/intro", () => {
+describe("components/logger", () => {
   const originalForceColor = process.env.FORCE_COLOR;
 
   beforeEach(() => {
@@ -38,43 +36,27 @@ describe("prompts/primitives/intro", () => {
     resetOutputFormatCache();
   });
 
-  it("writes terminal intro output with themed intro text", () => {
-    const output = captureStdout(() => {
-      withOutputFormat("terminal", () => {
-        intro("Configure");
-      });
-    });
+  it("renders markdown info output through the log primitive", () => {
+    const logger = createLogger();
 
-    expect(output).toBe(`${chalk.gray("┌")}  ${text.intro("Configure")}\n`);
-  });
-
-  it("writes markdown intro output", () => {
     const output = captureStdout(() => {
       withOutputFormat("markdown", () => {
-        intro("Configure");
+        logger.info("Configuring...");
       });
     });
 
-    expect(output).toBe("# Configure\n\n");
+    expect(output).toBe("- **info:** Configuring...\n");
   });
 
-  it("strips ansi in markdown output", () => {
-    const output = captureStdout(() => {
-      withOutputFormat("markdown", () => {
-        intro(chalk.green("Configure"));
-      });
-    });
+  it("renders json warning output through the log primitive", () => {
+    const logger = createLogger();
 
-    expect(output).toBe("# Configure\n\n");
-  });
-
-  it("is silent for json output", () => {
     const output = captureStdout(() => {
       withOutputFormat("json", () => {
-        intro("Configure");
+        logger.warn("Watch out");
       });
     });
 
-    expect(output).toBe("");
+    expect(output).toBe('{"level":"warn","message":"Watch out"}\n');
   });
 });

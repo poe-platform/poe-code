@@ -37,14 +37,14 @@ describe("prompts/primitives/outro", () => {
     resetOutputFormatCache();
   });
 
-  it("writes dim terminal outro output", () => {
+  it("writes clack-style terminal outro output", () => {
     const output = captureStdout(() => {
       withOutputFormat("terminal", () => {
         outro("Finished.");
       });
     });
 
-    expect(output).toBe(chalk.dim("└  Finished.\n"));
+    expect(output).toBe(`${chalk.gray("│")}\n${chalk.gray("└")}  Finished.\n\n`);
   });
 
   it("strips ansi and writes markdown outro output", () => {

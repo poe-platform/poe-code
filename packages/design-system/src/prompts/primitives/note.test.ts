@@ -37,7 +37,7 @@ describe("prompts/primitives/note", () => {
     resetOutputFormatCache();
   });
 
-  it("writes terminal note output with a boxed layout", () => {
+  it("writes terminal note output with a clack-style boxed layout", () => {
     const output = captureStdout(() => {
       withOutputFormat("terminal", () => {
         note("message line 1\nmessage line 2", "Title");
@@ -46,10 +46,13 @@ describe("prompts/primitives/note", () => {
 
     expect(output).toBe(
       [
-        "╭  Title ──────────╮",
-        "│  message line 1  │",
-        "│  message line 2  │",
-        "╰──────────────────╯",
+        chalk.gray("│"),
+        `${chalk.green("◇")}  ${chalk.reset("Title")} ${chalk.gray("──────────╮")}`,
+        `${chalk.gray("│")}                  ${chalk.gray("│")}`,
+        `${chalk.gray("│")}  message line 1  ${chalk.gray("│")}`,
+        `${chalk.gray("│")}  message line 2  ${chalk.gray("│")}`,
+        `${chalk.gray("│")}                  ${chalk.gray("│")}`,
+        chalk.gray("├──────────────────╯"),
         ""
       ].join("\n")
     );
@@ -86,10 +89,13 @@ describe("prompts/primitives/note", () => {
 
     expect(output).toBe(
       [
-        `╭  ${chalk.bold("T")} ───────────╮`,
-        `│  ${chalk.green("short")}        │`,
-        "│  longer line  │",
-        "╰───────────────╯",
+        chalk.gray("│"),
+        `${chalk.green("◇")}  ${chalk.reset(chalk.bold("T"))} ${chalk.gray("───────────╮")}`,
+        `${chalk.gray("│")}               ${chalk.gray("│")}`,
+        `${chalk.gray("│")}  ${chalk.green("short")}        ${chalk.gray("│")}`,
+        `${chalk.gray("│")}  longer line  ${chalk.gray("│")}`,
+        `${chalk.gray("│")}               ${chalk.gray("│")}`,
+        chalk.gray("├───────────────╯"),
         ""
       ].join("\n")
     );

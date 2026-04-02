@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import { log } from "../prompts/primitives/log.js";
 import { symbols } from "./symbols.js";
-import { resolveOutputFormat } from "../internal/output-format.js";
 
 export interface LoggerOutput {
   info(message: string): void;
@@ -22,12 +21,8 @@ export function createLogger(emitter?: (message: string) => void): LoggerOutput 
       emitter(message);
       return;
     }
-    if (resolveOutputFormat() !== "terminal") {
-      process.stdout.write(message + "\n");
-      return;
-    }
     if (level === "success") {
-      log.message(message, { symbol: symbols.success });
+      log.success(message);
       return;
     }
     if (level === "warn") {
@@ -38,7 +33,7 @@ export function createLogger(emitter?: (message: string) => void): LoggerOutput 
       log.error(message);
       return;
     }
-    log.message(message, { symbol: symbols.info });
+    log.info(message);
   };
 
   return {

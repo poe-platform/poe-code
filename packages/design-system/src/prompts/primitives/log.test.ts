@@ -44,7 +44,9 @@ describe("prompts/primitives/log", () => {
       });
     });
 
-    expect(output).toBe(`◆  first\n${chalk.gray("│")}  second\n`);
+    expect(output).toBe(
+      `${chalk.gray("│")}\n◆  first\n${chalk.gray("│")}  second\n`
+    );
   });
 
   it("writes terminal info output with the info symbol", () => {
@@ -54,7 +56,9 @@ describe("prompts/primitives/log", () => {
       });
     });
 
-    expect(output).toBe(`${chalk.magenta("●")}  heads up\n`);
+    expect(output).toBe(
+      `${chalk.gray("│")}\n${chalk.magenta("●")}  heads up\n`
+    );
   });
 
   it("strips ansi and writes markdown message output", () => {
@@ -110,7 +114,13 @@ describe("prompts/primitives/log", () => {
     });
 
     expect(output).toBe(
-      `${chalk.yellow("▲")}  watch out\n${chalk.red("✕")}  boom\n`
+      [
+        chalk.gray("│"),
+        `${chalk.yellow("▲")}  watch out`,
+        chalk.gray("│"),
+        `${chalk.red("■")}  boom`,
+        ""
+      ].join("\n")
     );
   });
 });

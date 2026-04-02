@@ -5,8 +5,20 @@
  */
 import chalk from "chalk";
 import process from "node:process";
-import { intro, log, note, outro } from "@clack/prompts";
-import { text, symbols, renderSpinnerFrame, renderSpinnerStopped, renderTable, getTheme, resolveOutputFormat, resetOutputFormatCache } from "../src/index.js";
+import {
+  intro,
+  log,
+  note,
+  outro,
+  text,
+  symbols,
+  renderSpinnerFrame,
+  renderSpinnerStopped,
+  renderTable,
+  getTheme,
+  resolveOutputFormat,
+  resetOutputFormatCache
+} from "../src/index.js";
 
 type DemoType =
   | "intro"
@@ -56,10 +68,10 @@ function runSymbolDemo(symbolName: string): void {
 function runLogDemo(level: string): void {
   switch (level) {
     case "info":
-      log.message("Configuring claude-code...", { symbol: symbols.info });
+      log.info("Configuring claude-code...");
       break;
     case "success":
-      log.message("Configuration complete!", { symbol: symbols.success });
+      log.success("Configuration complete!");
       break;
     case "warn":
       log.warn("API key expires in 7 days");
@@ -101,7 +113,7 @@ function runMenuDemo(): void {
 }
 
 function runIntroDemo(content: string): void {
-  intro(text.intro(content));
+  intro(content);
 }
 
 function runNoteDemo(): void {
@@ -151,8 +163,8 @@ function setOutputFormat(format: "terminal" | "markdown" | "json"): void {
 }
 
 function runLayoutDemo(): void {
-  intro(text.intro("Configure"));
-  log.message("Configuring claude-code...", { symbol: symbols.info });
+  intro("Configure");
+  log.info("Configuring claude-code...");
   log.message("Provider\n   claude", { symbol: symbols.resolved });
   log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
   outro("Configuration complete.");
@@ -197,11 +209,11 @@ function runTableMarkdownDemo(): void {
 }
 
 function runLayoutExpandedDemo(): void {
-  intro(text.intro("configure claude-code"));
+  intro("configure claude-code");
   log.message("Claude Code default model\n   Claude-Opus-4.6", {
     symbol: symbols.resolved
   });
-  log.message("Configured Claude Code.", { symbol: symbols.success });
+  log.success("Configured Claude Code.");
   note(
     "If using VSCode - Open the Disable Login Prompt setting and check the box.\nvscode://settings/claudeCode.disableLoginPrompt",
     "Next steps."

@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { resolveOutputFormat } from "../../internal/output-format.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
 
@@ -6,22 +7,22 @@ function getVisibleWidth(value: string): number {
 }
 
 function renderTerminalNote(message: string, title?: string): string {
-  const messageLines = message.split("\n");
-  const strippedLines = messageLines.map(stripAnsi);
+  const contentLines = ["", ...message.split("\n"), ""];
   const visibleTitle = stripAnsi(title ?? "");
   const contentWidth = Math.max(
     visibleTitle.length,
-    ...strippedLines.map((line) => line.length)
-  );
-  const topBorder = title
-    ? `╭  ${title} ${"─".repeat(contentWidth - visibleTitle.length + 1)}╮`
-    : `╭${"─".repeat(contentWidth + 4)}╮`;
-  const content = messageLines.map((line) => {
+    ...contentLines.map((line) => getVisibleWidth(line))
+  ) + 2;
+  const titleLine = `${chalk.green("◇")}  ${chalk.reset(title ?? "")} ${chalk.gray(
+    `${"─".repeat(Math.max(contentWidth - visibleTitle.length - 1, 1))}╮`
+  )}`;
+  const content = contentLines.map((line) => {
     const padding = " ".repeat(contentWidth - getVisibleWidth(line));
-    return `│  ${line}${padding}  │`;
+    return `${chalk.gray("│")}  ${line}${padding}${chalk.gray("│")}`;
   });
+  const bottom = chalk.gray(`├${"─".repeat(contentWidth + 2)}╯`);
 
-  return [topBorder, ...content, `╰${"─".repeat(contentWidth + 4)}╯`].join("\n");
+  return [chalk.gray("│"), titleLine, ...content, bottom].join("\n");
 }
 
 export function note(message: string, title?: string): void {

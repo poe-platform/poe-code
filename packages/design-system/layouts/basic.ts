@@ -2,12 +2,11 @@
 /**
  * Basic layout: intro → info messages → resolved prompts → outro
  */
-import { intro, outro, log } from "@clack/prompts";
-import { text, symbols } from "../src/index.js";
+import { intro, outro, log, symbols } from "../src/index.js";
 
 export function render(): void {
-  intro(text.intro("Configure"));
-  log.message("Configuring claude-code...", { symbol: symbols.info });
+  intro("Configure");
+  log.info("Configuring claude-code...");
   log.message("Provider\n   claude", { symbol: symbols.resolved });
   log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
   outro("Configuration complete.");

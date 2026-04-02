@@ -274,7 +274,7 @@ tasks:
       The terminal output must look identical to pre-change screenshots.
       Fix any visual differences before committing.
     status:
-      implement: open
+      implement: done
       refactor: open
       test: open
       commit: open

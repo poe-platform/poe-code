@@ -3,15 +3,14 @@
  * Expanded layout: intro → resolved prompts → success → note → outro
  */
 import chalk from "chalk";
-import { intro, note, outro, log } from "@clack/prompts";
-import { text, symbols } from "../src/index.js";
+import { intro, note, outro, log, symbols } from "../src/index.js";
 
 export function render(): void {
-  intro(text.intro("configure claude-code"));
+  intro("configure claude-code");
   log.message("Claude Code default model\n   Claude-Opus-4.6", {
     symbol: symbols.resolved
   });
-  log.message("Configured Claude Code.", { symbol: symbols.success });
+  log.success("Configured Claude Code.");
   note(
     "If using VSCode - Open the Disable Login Prompt setting and check the box.\nvscode://settings/claudeCode.disableLoginPrompt",
     "Next steps."

@@ -3,7 +3,7 @@
  * Diff layout: showing file changes
  */
 import chalk from "chalk";
-import { log } from "@clack/prompts";
+import { log } from "../src/index.js";
 
 function renderSimpleDiff(): string {
   const lines = [

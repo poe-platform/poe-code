@@ -12,3 +12,4 @@ export type {
 } from "./types.js";
 
 export { createStateStore } from "./state/state-store.js";
+export { createLogWriter } from "./logs/log-writer.js";

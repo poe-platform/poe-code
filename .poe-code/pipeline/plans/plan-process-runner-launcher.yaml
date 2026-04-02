@@ -591,9 +591,9 @@ tasks:
 
       Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pl-health-check

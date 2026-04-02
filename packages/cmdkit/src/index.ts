@@ -1,8 +1,10 @@
+import { fileURLToPath } from "node:url";
 import type { ObjectSchema, Static } from "@poe-code/cmdkit-schema";
 import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/design-system";
 
 const commandConfigSymbol = Symbol("cmdkit.command.config");
 const groupConfigSymbol = Symbol("cmdkit.group.config");
+const commandSourcePathSymbol = Symbol("cmdkit.command.sourcePath");
 
 type ScopeValue = "cli" | "mcp" | "sdk";
 type AnyObjectSchema = ObjectSchema<Record<string, never>>;
@@ -172,6 +174,7 @@ interface InternalCommandConfig {
   scope?: Scope[];
   secrets: SecretDeclarations;
   requires?: Requires<any>;
+  sourcePath?: string;
 }
 
 interface InternalGroupConfig<TServices extends object> {
@@ -233,6 +236,81 @@ function cloneRequires<TContext>(requires: Requires<TContext> | undefined): Requ
     apiVersion: requires.apiVersion,
     check: requires.check,
   };
+}
+
+function parseStackPath(candidate: string): string | undefined {
+  if (candidate.startsWith("file://")) {
+    try {
+      return fileURLToPath(candidate);
+    } catch {
+      return undefined;
+    }
+  }
+
+  if (candidate.startsWith("/")) {
+    return candidate;
+  }
+
+  return undefined;
+}
+
+function extractStackPath(line: string): string | undefined {
+  const trimmed = line.trim();
+  const fileIndex = trimmed.indexOf("file://");
+
+  if (fileIndex >= 0) {
+    const location = trimmed.slice(fileIndex);
+    const separatorIndex = location.lastIndexOf(":");
+    const previousSeparatorIndex = separatorIndex >= 0 ? location.lastIndexOf(":", separatorIndex - 1) : -1;
+    const candidate =
+      separatorIndex >= 0 && previousSeparatorIndex >= 0
+        ? location.slice(0, previousSeparatorIndex)
+        : location;
+
+    return parseStackPath(candidate);
+  }
+
+  const slashIndex = trimmed.indexOf("/");
+  if (slashIndex < 0) {
+    return undefined;
+  }
+
+  const location = trimmed.slice(slashIndex);
+  const separatorIndex = location.lastIndexOf(":");
+  const previousSeparatorIndex = separatorIndex >= 0 ? location.lastIndexOf(":", separatorIndex - 1) : -1;
+  const candidate =
+    separatorIndex >= 0 && previousSeparatorIndex >= 0
+      ? location.slice(0, previousSeparatorIndex)
+      : location;
+
+  return parseStackPath(candidate);
+}
+
+function inferCommandSourcePath(): string | undefined {
+  const stack = new Error().stack;
+
+  if (typeof stack !== "string") {
+    return undefined;
+  }
+
+  for (const line of stack.split("\n").slice(1)) {
+    const candidate = extractStackPath(line);
+
+    if (candidate === undefined) {
+      continue;
+    }
+
+    if (
+      candidate.includes("/packages/cmdkit/src/index.ts") ||
+      candidate.includes("/packages/cmdkit/dist/index.js")
+    ) {
+      continue;
+    }
+
+    return candidate;
+  }
+
+  return undefined;
 }
 
 function composeChecks(
@@ -442,6 +520,7 @@ function createBaseCommand<
       scope: cloneScope(config.scope),
       secrets: cloneSecrets(config.secrets),
       requires: cloneRequires(config.requires),
+      sourcePath: inferCommandSourcePath(),
     } satisfies InternalCommandConfig,
   });
 
@@ -517,7 +596,12 @@ function materializeCommand<
       scope: cloneScope(internal.scope),
       secrets: cloneSecrets(internal.secrets),
       requires: cloneRequires(internal.requires),
+      sourcePath: internal.sourcePath,
     } satisfies InternalCommandConfig,
+  });
+
+  Object.defineProperty(materialized, commandSourcePathSymbol, {
+    value: internal.sourcePath,
   });
 
   return materialized;
@@ -615,6 +699,12 @@ export function defineGroup<TServices extends object = EmptyServices>(
     secrets: {},
     requires: undefined,
   });
+}
+
+export function getCommandSourcePath(command: Command<any, any, any, any>): string | undefined {
+  return (command as Command<any, any, any, any> & { [commandSourcePathSymbol]?: string })[
+    commandSourcePathSymbol
+  ];
 }
 
 export type { AnySchema, ArraySchema, BooleanSchema, EnumSchema, JsonSchema, NumberSchema, ObjectSchema, OptionalSchema, Static, StringSchema } from "@poe-code/cmdkit-schema";

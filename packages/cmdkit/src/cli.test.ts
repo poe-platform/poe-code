@@ -47,6 +47,52 @@ vi.mock("@poe-code/design-system", () => ({
 
 const { runCLI } = await import("./cli.js");
 
+type FixtureStoreService = {
+  readValue(key: string): Promise<string | null>;
+  writeValue(key: string, value: string): Promise<void>;
+};
+
+const fixtureCommand = defineCommand<{ store: FixtureStoreService }>({
+  name: "fixture-demo",
+  params: S.Object({}),
+  secrets: {
+    apiKey: {
+      env: "API_KEY",
+    },
+  },
+  handler: async ({ fetch, fs, secrets, store }) => {
+    const matched = await fetch("https://example.com/items");
+    const matchedBody = matched === null ? null : await matched.json();
+    const unmatchedRead = await fetch("https://example.com/missing");
+    const unmatchedWrite = await fetch("https://example.com/items", {
+      method: "POST",
+    });
+    const file = await fs.readFile("/config.json");
+    const missingFile = await fs.readFile("/missing.json");
+    const exists = await fs.exists("/config.json");
+
+    await fs.writeFile("/output.json", "ignored");
+    const storeValue = await store.readValue("token");
+    await store.writeValue("token", "updated");
+
+    return {
+      exists,
+      file,
+      matched: matchedBody,
+      missingFile,
+      secret: secrets.apiKey,
+      storeValue,
+      unmatchedReadStatus: unmatchedRead === null ? null : unmatchedRead.status,
+      unmatchedWriteStatus: unmatchedWrite === null ? null : unmatchedWrite.status,
+    };
+  },
+});
+
+const fixtureRoot = defineGroup({
+  name: "cmdkit",
+  children: [fixtureCommand],
+});
+
 function resetLoggerState(): void {
   loggerState.info.length = 0;
   loggerState.success.length = 0;
@@ -61,6 +107,7 @@ const originalArgv = [...process.argv];
 const stdoutTTY = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
 const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 const originalOutputFormat = process.env.OUTPUT_FORMAT;
+const originalFixtureSelector = process.env.CMDKIT_FIXTURE;
 
 function setTTY(stream: NodeJS.WriteStream | NodeJS.ReadStream, value: boolean): void {
   Object.defineProperty(stream, "isTTY", {
@@ -77,6 +124,7 @@ describe("runCLI", () => {
     process.argv = [...originalArgv];
     process.exitCode = undefined;
     process.env.OUTPUT_FORMAT = originalOutputFormat;
+    delete process.env.CMDKIT_FIXTURE;
     setTTY(process.stdout, true);
     setTTY(process.stdin, true);
   });
@@ -85,6 +133,7 @@ describe("runCLI", () => {
     process.argv = [...originalArgv];
     process.exitCode = undefined;
     process.env.OUTPUT_FORMAT = originalOutputFormat;
+    process.env.CMDKIT_FIXTURE = originalFixtureSelector;
 
     if (stdoutTTY) {
       Object.defineProperty(process.stdout, "isTTY", stdoutTTY);
@@ -556,5 +605,97 @@ describe("runCLI", () => {
         },
       })
     ).rejects.toThrow('Service name "params" is reserved. Choose a different name.');
+  });
+
+  it("selects fixture scenarios by 1-based index", async () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const realStore = {
+      readValue: vi.fn(async () => {
+        throw new Error("real store read should not be used in fixture mode");
+      }),
+      writeValue: vi.fn(async () => {
+        throw new Error("real store write should not be used in fixture mode");
+      }),
+    };
+
+    process.env.CMDKIT_FIXTURE = "2";
+    process.argv = ["node", "cmdkit", "fixture-demo", "--output", "json", "--yes"];
+
+    await runCLI(fixtureRoot, {
+      services: {
+        store: realStore,
+      },
+    });
+
+    const payload = JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join(""));
+    expect(payload).toEqual({
+      exists: true,
+      file: "named file",
+      matched: {
+        scenario: "named",
+      },
+      missingFile: null,
+      secret: "fixture-secret",
+      storeValue: null,
+      unmatchedReadStatus: null,
+      unmatchedWriteStatus: 204,
+    });
+    expect(realStore.readValue).not.toHaveBeenCalled();
+    expect(realStore.writeValue).not.toHaveBeenCalled();
+  });
+
+  it("selects fixture scenarios by name and matches fetch by method plus url", async () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.env.CMDKIT_FIXTURE = "named scenario";
+    process.argv = ["node", "cmdkit", "fixture-demo", "--output", "json", "--yes"];
+
+    await runCLI(fixtureRoot, {
+      services: {
+        store: {
+          readValue: async () => "live value",
+          writeValue: async () => undefined,
+        },
+      },
+    });
+
+    const payload = JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join(""));
+    expect(payload.matched).toEqual({
+      scenario: "named",
+    });
+    expect(payload.file).toBe("named file");
+    expect(payload.unmatchedReadStatus).toBeNull();
+    expect(payload.unmatchedWriteStatus).toBe(204);
+  });
+
+  it("falls back to safe no-ops for services omitted from the fixture scenario", async () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const realStore = {
+      readValue: vi.fn(async () => "live value"),
+      writeValue: vi.fn(async () => undefined),
+    };
+
+    process.env.CMDKIT_FIXTURE = "no-op fallback";
+    process.argv = ["node", "cmdkit", "fixture-demo", "--output", "json", "--yes"];
+
+    await runCLI(fixtureRoot, {
+      services: {
+        store: realStore,
+      },
+    });
+
+    const payload = JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join(""));
+    expect(payload).toEqual({
+      exists: false,
+      file: null,
+      matched: null,
+      missingFile: null,
+      secret: "fixture-secret",
+      storeValue: null,
+      unmatchedReadStatus: null,
+      unmatchedWriteStatus: 204,
+    });
+    expect(realStore.readValue).not.toHaveBeenCalled();
+    expect(realStore.writeValue).not.toHaveBeenCalled();
   });
 });

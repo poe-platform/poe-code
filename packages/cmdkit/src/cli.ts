@@ -1,4 +1,5 @@
 import { access, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { Command as CommanderCommand, CommanderError, InvalidArgumentError, Option } from "commander";
 import {
   cancel,
@@ -22,7 +23,7 @@ import type {
   HandlerFs,
   ObjectSchema,
 } from "./index.js";
-import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import { UserError, assertCommandRequirements, getCommandSourcePath, resolveCommandSecrets } from "./index.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 
@@ -57,6 +58,37 @@ interface ExecutionState<TServices extends object> {
   fields: FieldDefinition[];
   positionalValues: string[];
   actionCommand: CommanderCommand;
+}
+
+interface FixtureFetchRequest {
+  method?: string;
+  url: string;
+}
+
+interface FixtureFetchResponse {
+  body?: unknown;
+  headers?: Record<string, string>;
+  status?: number;
+}
+
+interface FixtureFetchEntry {
+  request: FixtureFetchRequest;
+  response: FixtureFetchResponse;
+}
+
+interface FixtureScenario {
+  name: string;
+  services?: Record<string, unknown>;
+}
+
+interface ResolvedFixtureRuntime<TServices extends object> {
+  env: HandlerEnv;
+  fetch: typeof globalThis.fetch;
+  fs: HandlerFs;
+  isFixture: boolean;
+  requirementOptions: CommandRequirementOptions;
+  secrets: Record<string, string | undefined>;
+  services: TServices;
 }
 
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
@@ -561,12 +593,397 @@ function createFs(): HandlerFs {
   };
 }
 
-function createEnv(): HandlerEnv {
+function createEnv(values: Record<string, string | undefined> = process.env): HandlerEnv {
   return {
     get(key: string): string | undefined {
-      return process.env[key];
+      return values[key];
     },
   };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isNumericFixtureSelector(value: string): boolean {
+  if (value.length === 0) {
+    return false;
+  }
+
+  for (const char of value) {
+    if (char < "0" || char > "9") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function normalizeHttpMethod(value: string | undefined): string {
+  return (value ?? "GET").toUpperCase();
+}
+
+function isReadLikeMethod(name: string): boolean {
+  const normalized = name.toLowerCase();
+
+  return (
+    normalized === "get" ||
+    normalized === "head" ||
+    normalized === "options" ||
+    normalized.startsWith("read") ||
+    normalized.startsWith("get") ||
+    normalized.startsWith("find") ||
+    normalized.startsWith("list") ||
+    normalized.startsWith("load") ||
+    normalized.startsWith("fetch") ||
+    normalized.startsWith("query") ||
+    normalized.startsWith("exists") ||
+    normalized.startsWith("has")
+  );
+}
+
+function isWriteLikeMethod(name: string): boolean {
+  const normalized = name.toLowerCase();
+
+  return (
+    normalized === "post" ||
+    normalized === "put" ||
+    normalized === "patch" ||
+    normalized === "delete" ||
+    normalized.startsWith("write") ||
+    normalized.startsWith("set") ||
+    normalized.startsWith("save") ||
+    normalized.startsWith("create") ||
+    normalized.startsWith("update") ||
+    normalized.startsWith("delete") ||
+    normalized.startsWith("remove") ||
+    normalized.startsWith("insert")
+  );
+}
+
+function matchesFixtureValue(expected: unknown, actual: unknown): boolean {
+  if (typeof expected === "string" && typeof actual === "string" && expected.endsWith("%")) {
+    return actual.startsWith(expected.slice(0, -1));
+  }
+
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(actual) || expected.length !== actual.length) {
+      return false;
+    }
+
+    return expected.every((item, index) => matchesFixtureValue(item, actual[index]));
+  }
+
+  if (isPlainObject(expected)) {
+    if (!isPlainObject(actual)) {
+      return false;
+    }
+
+    return Object.entries(expected).every(([key, value]) => matchesFixtureValue(value, actual[key]));
+  }
+
+  return Object.is(expected, actual);
+}
+
+function getFetchUrl(input: RequestInfo | URL): string {
+  if (typeof input === "string") {
+    return input;
+  }
+
+  if (input instanceof URL) {
+    return input.toString();
+  }
+
+  return input.url;
+}
+
+function createFixtureResponse(response: FixtureFetchResponse): Response {
+  const status = response.status ?? 200;
+  const headers = new Headers(response.headers);
+
+  if (response.body === undefined) {
+    return new Response(null, {
+      status,
+      headers,
+    });
+  }
+
+  if (typeof response.body === "string") {
+    return new Response(response.body, {
+      status,
+      headers,
+    });
+  }
+
+  if (!headers.has("content-type")) {
+    headers.set("content-type", "application/json");
+  }
+
+  return new Response(JSON.stringify(response.body), {
+    status,
+    headers,
+  });
+}
+
+function createFixtureFetch(entries: FixtureFetchEntry[] | undefined): typeof globalThis.fetch {
+  return async (input: RequestInfo | URL, init?: RequestInit) => {
+    const method = normalizeHttpMethod(init?.method ?? (input instanceof Request ? input.method : undefined));
+    const url = getFetchUrl(input);
+    const match = entries?.find((entry) => {
+      const requestMethod = normalizeHttpMethod(entry.request.method);
+      return requestMethod === method && entry.request.url === url;
+    });
+
+    if (match !== undefined) {
+      return createFixtureResponse(match.response);
+    }
+
+    if (isReadLikeMethod(method)) {
+      return null as unknown as Response;
+    }
+
+    return new Response(null, {
+      status: 204,
+    });
+  };
+}
+
+function createFixtureFs(definition: unknown): HandlerFs {
+  const fsDefinition = isPlainObject(definition) ? definition : {};
+  const readFileEntries = isPlainObject(fsDefinition.readFile) ? fsDefinition.readFile : {};
+  const existsEntries = isPlainObject(fsDefinition.exists) ? fsDefinition.exists : {};
+
+  return {
+    readFile: async (filePath: string) => {
+      if (Object.prototype.hasOwnProperty.call(readFileEntries, filePath)) {
+        return String(readFileEntries[filePath]);
+      }
+
+      return null as unknown as string;
+    },
+    writeFile: async () => undefined,
+    exists: async (filePath: string) => {
+      if (Object.prototype.hasOwnProperty.call(existsEntries, filePath)) {
+        return Boolean(existsEntries[filePath]);
+      }
+
+      return Object.prototype.hasOwnProperty.call(readFileEntries, filePath);
+    },
+  };
+}
+
+function resolveFixtureMethodResult(
+  methodName: string,
+  definition: unknown,
+  args: unknown[]
+): Promise<unknown> {
+  if (Array.isArray(definition)) {
+    for (const entry of definition) {
+      if (!isPlainObject(entry)) {
+        continue;
+      }
+
+      const explicitMatcher = isPlainObject(entry.request) ? entry.request : undefined;
+      const matcher =
+        explicitMatcher ??
+        Object.fromEntries(
+          Object.entries(entry).filter(([key]) => key !== "result" && key !== "response" && key !== "error")
+        );
+
+      const firstArg = args[0];
+      let matched = false;
+
+      if (Array.isArray(matcher.args)) {
+        matched = matchesFixtureValue(matcher.args, args);
+      } else if (Object.keys(matcher).length === 0) {
+        matched = true;
+      } else if (isPlainObject(firstArg)) {
+        matched = matchesFixtureValue(matcher, firstArg);
+      } else if (args.length === 1 && Object.keys(matcher).length === 1) {
+        const [[, expectedValue]] = Object.entries(matcher);
+        matched = matchesFixtureValue(expectedValue, firstArg);
+      }
+
+      if (!matched) {
+        continue;
+      }
+
+      if (entry.error !== undefined) {
+        throw new Error(String(entry.error));
+      }
+
+      if (Object.prototype.hasOwnProperty.call(entry, "result")) {
+        return Promise.resolve(entry.result);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(entry, "response")) {
+        return Promise.resolve(entry.response);
+      }
+
+      return Promise.resolve(null);
+    }
+  }
+
+  if (isPlainObject(definition)) {
+    const firstArg = args[0];
+
+    if (typeof firstArg === "string" && Object.prototype.hasOwnProperty.call(definition, firstArg)) {
+      return Promise.resolve(definition[firstArg]);
+    }
+  }
+
+  if (isWriteLikeMethod(methodName)) {
+    return Promise.resolve(undefined);
+  }
+
+  return Promise.resolve(null);
+}
+
+function createFixtureService(definition: unknown): Record<string, unknown> {
+  const methods = isPlainObject(definition) ? definition : {};
+
+  return new Proxy(
+    {},
+    {
+      get(_target, property) {
+        if (property === "then") {
+          return undefined;
+        }
+
+        const methodName = String(property);
+        return async (...args: unknown[]) => resolveFixtureMethodResult(methodName, methods[methodName], args);
+      },
+    }
+  );
+}
+
+function resolveFixturePath(commandPath: string): string {
+  const parsed = path.parse(commandPath);
+  return path.join(parsed.dir, `${parsed.name}.fixture.json`);
+}
+
+function selectFixtureScenario(scenarios: FixtureScenario[], selector: string): FixtureScenario {
+  if (isNumericFixtureSelector(selector)) {
+    const index = Number(selector) - 1;
+    const scenario = scenarios[index];
+
+    if (scenario === undefined) {
+      throw new UserError(
+        `Fixture scenario index ${selector} is out of range. Available scenarios: ${scenarios.length}.`
+      );
+    }
+
+    return scenario;
+  }
+
+  const scenario = scenarios.find((entry) => entry.name === selector);
+
+  if (scenario === undefined) {
+    throw new UserError(`Fixture scenario "${selector}" was not found.`);
+  }
+
+  return scenario;
+}
+
+async function loadFixtureScenario(command: Command<any, any, any, any>, selector: string): Promise<FixtureScenario> {
+  const commandPath = getCommandSourcePath(command);
+
+  if (commandPath === undefined) {
+    throw new UserError(`Fixture mode could not determine the source file for command "${command.name}".`);
+  }
+
+  const fixturePath = resolveFixturePath(commandPath);
+  let rawFixture: string;
+
+  try {
+    rawFixture = await readFile(fixturePath, {
+      encoding: "utf8",
+    });
+  } catch {
+    throw new UserError(
+      `Fixture file not found for command "${command.name}". Expected ${fixturePath}.`
+    );
+  }
+
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(rawFixture);
+  } catch {
+    throw new UserError(`Fixture file ${fixturePath} is not valid JSON.`);
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new UserError(`Fixture file ${fixturePath} must contain a JSON array of scenarios.`);
+  }
+
+  return selectFixtureScenario(parsed as FixtureScenario[], selector);
+}
+
+function resolveFixtureSecrets(command: Command<any, any, any, any>): Record<string, string> {
+  return Object.fromEntries(Object.keys(command.secrets).map((name) => [name, "fixture-secret"]));
+}
+
+function createFixtureEnvValues(command: Command<any, any, any, any>): Record<string, string | undefined> {
+  const values: Record<string, string | undefined> = {
+    ...process.env,
+    POE_API_KEY: process.env.POE_API_KEY ?? "fixture-secret",
+  };
+
+  for (const secret of Object.values(command.secrets)) {
+    values[secret.env] = values[secret.env] ?? "fixture-secret";
+  }
+
+  return values;
+}
+
+async function resolveFixtureRuntime<TServices extends object>(
+  command: Command<TServices, any, any, any>,
+  services: TServices,
+  requirementOptions: CommandRequirementOptions
+): Promise<ResolvedFixtureRuntime<TServices>> {
+  const selector = process.env.CMDKIT_FIXTURE;
+
+  if (selector === undefined || selector.length === 0) {
+    return {
+      env: createEnv(),
+      fetch: globalThis.fetch,
+      fs: createFs(),
+      isFixture: false,
+      requirementOptions,
+      secrets: resolveCommandSecrets(command),
+      services,
+    };
+  }
+
+  const scenario = await loadFixtureScenario(command, selector);
+  const scenarioServices = isPlainObject(scenario.services) ? scenario.services : {};
+  const customServiceNames = new Set([
+    ...Object.keys(services as Record<string, unknown>),
+    ...Object.keys(scenarioServices).filter((name) => !RESERVED_SERVICE_NAMES.has(name)),
+  ]);
+  const fixtureServices = Object.fromEntries(
+    [...customServiceNames].map((name) => [name, createFixtureService(scenarioServices[name])])
+  ) as TServices;
+  const fixtureEnvValues = createFixtureEnvValues(command);
+
+  return {
+    env: createEnv(fixtureEnvValues),
+    fetch: createFixtureFetch(scenarioServices.fetch as FixtureFetchEntry[] | undefined),
+    fs: createFixtureFs(scenarioServices.fs),
+    isFixture: true,
+    requirementOptions: {
+      ...requirementOptions,
+      env: fixtureEnvValues,
+    },
+    secrets: resolveFixtureSecrets(command),
+    services: fixtureServices,
+  };
+}
+
+function writeRichHeader(title: string): void {
+  const padding = Math.max(12, 34 - title.length);
+  process.stdout.write(`── ${title} ${"─".repeat(padding)}\n`);
 }
 
 function validateServices(services: Record<string, unknown>): void {
@@ -638,22 +1055,20 @@ async function executeCommand<TServices extends object>(
   const globalFlags = getGlobalFlags(state.actionCommand);
   const output = resolveOutput(globalFlags);
   const shouldPrompt = !globalFlags.yes && Boolean(process.stdin.isTTY);
-  const fs = createFs();
-  const env = createEnv();
-  const secrets = resolveCommandSecrets(state.command);
+  const runtime = await resolveFixtureRuntime(state.command, services, requirementOptions);
   const preflightContext = {
-    ...services,
-    secrets,
-    fetch: globalThis.fetch,
-    fs,
-    env,
+    ...runtime.services,
+    secrets: runtime.secrets,
+    fetch: runtime.fetch,
+    fs: runtime.fs,
+    env: runtime.env,
     progress(message: string): void {
       logger.info(message);
     },
   };
 
   await withOutputFormat(output, async () => {
-    await assertCommandRequirements(state.command, preflightContext, requirementOptions);
+    await assertCommandRequirements(state.command, preflightContext, runtime.requirementOptions);
 
     const params = await resolveParams(
       state.fields,
@@ -698,6 +1113,11 @@ async function executeCommand<TServices extends object>(
     }
 
     const result = await state.command.handler(context);
+
+    if (output === "rich" && runtime.isFixture) {
+      writeRichHeader(`${state.command.name} (fixture)`);
+    }
+
     renderResult(state.command, result, output, primitives);
   });
 }

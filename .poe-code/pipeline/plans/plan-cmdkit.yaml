@@ -171,7 +171,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: fixtures
     title: Fixture mode (CMDKIT_FIXTURE)
@@ -208,10 +208,10 @@ tasks:
 
       Write unit tests for scenario selection, fetch matching, and no-op fallback behaviour.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: mcp-runner
     title: MCP runner (runMCP)

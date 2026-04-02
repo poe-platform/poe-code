@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as clack from "@clack/prompts";
 import { confirmOrCancel, PromptCancelledError } from "./index.js";
 
@@ -18,12 +18,18 @@ vi.mock("@clack/prompts", () => ({
 
 const clackConfirm = vi.mocked(clack.confirm);
 const clackIsCancel = vi.mocked(clack.isCancel);
-const clackCancel = vi.mocked(clack.cancel);
 
 describe("confirmOrCancel", () => {
+  let stdoutSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
     clackIsCancel.mockReturnValue(false);
+    stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    stdoutSpy.mockRestore();
   });
 
   it("returns true when user confirms", async () => {
@@ -50,6 +56,6 @@ describe("confirmOrCancel", () => {
     await expect(
       confirmOrCancel({ message: "Proceed?" })
     ).rejects.toBeInstanceOf(PromptCancelledError);
-    expect(clackCancel).toHaveBeenCalledWith("Operation cancelled.");
+    expect(stdoutSpy).toHaveBeenCalledWith(expect.stringContaining("Operation cancelled."));
   });
 });

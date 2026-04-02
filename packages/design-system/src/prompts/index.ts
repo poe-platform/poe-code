@@ -2,8 +2,10 @@ import * as clack from "@clack/prompts";
 import { text as textComponent } from "../components/text.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
+import { cancel, isCancel } from "./primitives/cancel.js";
+import { log } from "./primitives/log.js";
 
-export { isCancel, cancel, log } from "@clack/prompts";
+export { isCancel, cancel, log };
 
 export function intro(title: string): void {
   const format = resolveOutputFormat();
@@ -88,8 +90,8 @@ export class PromptCancelledError extends Error {
 
 export async function confirmOrCancel(opts: ConfirmOptions): Promise<boolean> {
   const result = await confirm(opts);
-  if (clack.isCancel(result)) {
-    clack.cancel("Operation cancelled.");
+  if (isCancel(result)) {
+    cancel("Operation cancelled.");
     throw new PromptCancelledError();
   }
   return result === true;

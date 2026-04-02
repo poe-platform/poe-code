@@ -99,7 +99,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: primitive-log-cancel
     title: Own log and cancel primitives
@@ -142,9 +142,9 @@ tasks:
 
       Export both from `src/prompts/primitives/log.ts` and `src/prompts/primitives/cancel.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: primitive-display

@@ -1,5 +1,5 @@
-import { log } from "@clack/prompts";
 import chalk from "chalk";
+import { log } from "../prompts/primitives/log.js";
 import { symbols } from "./symbols.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 

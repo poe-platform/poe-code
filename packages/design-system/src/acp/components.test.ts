@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 
 function stripAnsi(input: string): string {
   let output = "";
@@ -21,12 +22,10 @@ function stripAnsi(input: string): string {
 
 function captureStdout(run: () => void): string {
   const chunks: string[] = [];
-  const spy = vi
-    .spyOn(process.stdout, "write")
-    .mockImplementation(((chunk: unknown) => {
-      chunks.push(String(chunk));
-      return true;
-    }) as unknown as typeof process.stdout.write);
+  const spy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+    chunks.push(String(chunk));
+    return true;
+  }) as unknown as typeof process.stdout.write);
 
   try {
     run();
@@ -42,11 +41,12 @@ describe("acp/components", () => {
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
-    vi.resetModules();
+    resetOutputFormatCache();
   });
 
   afterEach(() => {
     process.env.FORCE_COLOR = originalForceColor;
+    resetOutputFormatCache();
   });
 
   it("renderAgentMessage prints a green bold checkmark + text", async () => {
@@ -100,5 +100,79 @@ describe("acp/components", () => {
 
     expect(stripAnsi(output)).toBe("✗ nope\n");
     expect(output).toContain("\u001b[31m✗ nope");
+  });
+
+  it("renders markdown ACP events", async () => {
+    const {
+      renderAgentMessage,
+      renderToolStart,
+      renderToolComplete,
+      renderReasoning,
+      renderUsage,
+      renderError
+    } = await import("./components.js");
+
+    const output = captureStdout(() => {
+      withOutputFormat("markdown", () => {
+        renderAgentMessage("hello");
+        renderToolStart("exec", "npm test");
+        renderToolComplete("exec");
+        renderReasoning("x".repeat(200));
+        renderUsage({ input: 1000, output: 500, cached: 200, costUsd: 0.01 });
+        renderError("boom");
+      });
+    });
+
+    expect(output).toBe(
+      [
+        "- **agent:** hello",
+        "- *→ exec: npm test*",
+        "- *✓ exec*",
+        `- *thinking:* ${"x".repeat(77)}...`,
+        "- **tokens:** 1000 in → 500 out ($0.01)",
+        "- **error:** boom",
+        ""
+      ].join("\n")
+    );
+  });
+
+  it("renders json ACP events as ndjson", async () => {
+    const {
+      renderAgentMessage,
+      renderToolStart,
+      renderToolComplete,
+      renderReasoning,
+      renderUsage,
+      renderError
+    } = await import("./components.js");
+
+    const output = captureStdout(() => {
+      withOutputFormat("json", () => {
+        renderAgentMessage("hello");
+        renderToolStart("exec", "npm test");
+        renderToolComplete("exec");
+        renderReasoning("thinking");
+        renderUsage({ input: 1000, output: 500 });
+        renderError("boom");
+      });
+    });
+
+    expect(output).toBe(
+      [
+        JSON.stringify({ type: "agent", message: "hello" }),
+        JSON.stringify({ type: "tool_start", kind: "exec", title: "npm test" }),
+        JSON.stringify({ type: "tool_complete", kind: "exec" }),
+        JSON.stringify({ type: "reasoning", text: "thinking" }),
+        JSON.stringify({
+          type: "usage",
+          input: 1000,
+          output: 500,
+          cached: 0,
+          costUsd: 0
+        }),
+        JSON.stringify({ type: "error", message: "boom" }),
+        ""
+      ].join("\n")
+    );
   });
 });

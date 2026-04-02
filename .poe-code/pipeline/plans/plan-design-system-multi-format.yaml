@@ -400,10 +400,10 @@ tasks:
 
       All dispatch via `resolveOutputFormat()`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: design-docs-multiformat
     title: Generate DESIGN_LANGUAGE_MARKDOWN and DESIGN_LANGUAGE_JSON docs

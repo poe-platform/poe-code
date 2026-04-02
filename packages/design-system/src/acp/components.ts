@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { resolveOutputFormat } from "../internal/output-format.js";
 
 function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
@@ -25,21 +26,78 @@ function writeLine(line: string): void {
 
 const AGENT_PREFIX = `${chalk.green.bold("✓")} agent: `;
 
+function formatCost(costUsd: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6
+  }).format(costUsd);
+}
+
 export function renderAgentMessage(text: string): void {
+  const format = resolveOutputFormat();
+
+  if (format === "markdown") {
+    writeLine(`- **agent:** ${text}`);
+    return;
+  }
+
+  if (format === "json") {
+    writeLine(JSON.stringify({ type: "agent", message: text }));
+    return;
+  }
+
   writeLine(`${AGENT_PREFIX}${text}`);
 }
 
 export function renderToolStart(kind: string, title: string): void {
+  const format = resolveOutputFormat();
+
+  if (format === "markdown") {
+    writeLine(`- *→ ${kind}: ${title}*`);
+    return;
+  }
+
+  if (format === "json") {
+    writeLine(JSON.stringify({ type: "tool_start", kind, title }));
+    return;
+  }
+
   const color = colorForKind(kind);
   writeLine(color(`  → ${kind}: ${title}`));
 }
 
 export function renderToolComplete(kind: string): void {
+  const format = resolveOutputFormat();
+
+  if (format === "markdown") {
+    writeLine(`- *✓ ${kind}*`);
+    return;
+  }
+
+  if (format === "json") {
+    writeLine(JSON.stringify({ type: "tool_complete", kind }));
+    return;
+  }
+
   const color = colorForKind(kind);
   writeLine(color(`  ✓ ${kind}`));
 }
 
 export function renderReasoning(text: string): void {
+  const format = resolveOutputFormat();
+
+  if (format === "markdown") {
+    writeLine(`- *thinking:* ${truncate(text, 80)}`);
+    return;
+  }
+
+  if (format === "json") {
+    writeLine(JSON.stringify({ type: "reasoning", text }));
+    return;
+  }
+
   writeLine(chalk.dim(`  ✓ ${truncate(text, 80)}`));
 }
 
@@ -49,28 +107,48 @@ export function renderUsage(tokens: {
   cached?: number;
   costUsd?: number;
 }): void {
-  const cached = typeof tokens.cached === "number" && tokens.cached > 0
-    ? ` (${tokens.cached} cached)`
-    : "";
+  const format = resolveOutputFormat();
+  const cached =
+    typeof tokens.cached === "number" && tokens.cached > 0 ? ` (${tokens.cached} cached)` : "";
 
   let cost = "";
   if (typeof tokens.costUsd === "number") {
-    const formatted = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 6
-    }).format(tokens.costUsd);
-    cost = ` (${formatted})`;
+    cost = ` (${formatCost(tokens.costUsd)})`;
   }
 
-  writeLine(
-    chalk.green(
-      `✓ tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`
-    )
-  );
+  if (format === "markdown") {
+    writeLine(`- **tokens:** ${tokens.input} in → ${tokens.output} out${cost}`);
+    return;
+  }
+
+  if (format === "json") {
+    writeLine(
+      JSON.stringify({
+        type: "usage",
+        input: tokens.input,
+        output: tokens.output,
+        cached: tokens.cached ?? 0,
+        costUsd: tokens.costUsd ?? 0
+      })
+    );
+    return;
+  }
+
+  writeLine(chalk.green(`✓ tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`));
 }
 
 export function renderError(message: string): void {
+  const format = resolveOutputFormat();
+
+  if (format === "markdown") {
+    writeLine(`- **error:** ${message}`);
+    return;
+  }
+
+  if (format === "json") {
+    writeLine(JSON.stringify({ type: "error", message }));
+    return;
+  }
+
   writeLine(chalk.red(`✗ ${message}`));
 }

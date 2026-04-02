@@ -1,19 +1,20 @@
-# Chore Command Plan
+# GitHub Automations Plan (`poe-code gh`)
 
 ## Overview
 
-Add a `poe-code chore <name>` command that runs predefined, prompt-driven maintenance tasks through a configured agent. The system follows a pipeline architecture: **prompt library → source → map(agent executor)**.
+Add a `poe-code gh <name>` command that runs predefined, prompt-driven automation tasks through a configured agent. The system follows a pipeline architecture: **prompt library → source → map(agent executor)**.
 
-Key motivator: automate fixes for dependabot/security vulnerabilities surfaced on `git push`.
+Key motivator: automate GitHub-native tasks (issue triage, PR review, vulnerability fixes) and repo maintenance, installable into any repo.
 
 ## Design Principle
 
-- Chores are declarative: one `.md` prompt file per chore, everything else derived
+- Automations are declarative: one `.md` prompt file per automation, everything else derived
 - Pipeline: source command discovers items, each item spawns its own agent
 - Reuse spawn/agent infrastructure for execution (agent, model, interactive flags)
-- No branching logic per chore type in core code — chores are discovered automatically
+- No branching logic per automation type in core code — automations are discovered automatically
 - GitHub-native state management — no local state files
 - SDK parity with CLI
+- `install` generates a self-contained workflow file + copies prompt for local customization
 
 ## Architecture
 
@@ -23,215 +24,214 @@ Key motivator: automate fixes for dependabot/security vulnerabilities surfaced o
 │ Library      │───▶│ Command  │───▶│ Executor     │
 │ (discovery)  │    │ (JSON[]) │    │ (per item)   │
 └─────────────┘    └──────────┘    └──────────────┘
-packages/chores/   sh -c "source"   src/sdk/chore.ts
+packages/gh/       sh -c "source"   src/sdk/gh.ts
 ```
 
-**Two chore modes:**
+**Two automation modes:**
 
 - **Simple** (no `source`): single agent spawn with the full prompt body
 - **Sourced** (with `source`): shell command returns JSON array, each item spawns its own agent with a mustache-rendered prompt
 
 ## Command Usage
 
-### `poe-code chore <name>`
+### `poe-code gh <name>`
 
 ```bash
-poe-code chore fix-vulnerabilities
-poe-code chore update-dependencies
-poe-code chore github-issue-check
+poe-code gh github-issue-opened
+poe-code gh fix-vulnerabilities
+poe-code gh update-dependencies
 ```
 
 ### Standard Agent Options
 
-All chores accept the same agent params as spawn:
+All automations accept the same agent params as spawn:
 
 ```bash
-poe-code chore fix-vulnerabilities --agent claude --model Claude-Sonnet-4.5
-poe-code chore fix-vulnerabilities -i              # interactive mode
-poe-code chore fix-vulnerabilities --yes           # accept defaults
+poe-code gh github-issue-opened --agent claude --model Claude-Sonnet-4.5
+poe-code gh github-issue-opened -i              # interactive mode
+poe-code gh github-issue-opened --yes           # accept defaults
 ```
 
-### `poe-code chore list`
+### `poe-code gh list`
 
-Lists all available chores in a table (built-in + project-local).
+Lists all available automations in a table (built-in + project-local).
 
-### `poe-code chore enable <name>`
+### `poe-code gh install <name>`
 
-Enables a chore by creating its GitHub Actions workflow file:
+Installs an automation into the current repo:
 
 ```bash
-poe-code chore enable fix-vulnerabilities          # creates .github/workflows/chore-fix-vulnerabilities.yml
-poe-code chore enable fix-vulnerabilities --copy   # also copies prompt to .poe-code/chores/ for customization
+poe-code gh install github-issue-opened
 ```
 
-**Flow:**
+**Does two things:**
 
-1. Loads chore definition (built-in or project-local)
-2. Generates `.github/workflows/chore-<name>.yml` with cron from `schedule` frontmatter
-3. If `--copy`: also copies the `.md` prompt file into `<cwd>/.poe-code/chores/`
+1. Generates `.github/workflows/gh-<name>.yml` — self-contained workflow that calls `npx poe-code gh <name>`
+2. Copies `.md` prompt file into `.poe-code/gh/<name>.md` for local customization
 
-### `poe-code chore disable <name>`
+When the automation runs, it checks `.poe-code/gh/<name>.md` first, falls back to the built-in prompt.
 
-Disables a chore by deleting its workflow file:
+### `poe-code gh uninstall <name>`
 
 ```bash
-poe-code chore disable fix-vulnerabilities   # deletes .github/workflows/chore-fix-vulnerabilities.yml
+poe-code gh uninstall github-issue-opened
+# deletes .github/workflows/gh-github-issue-opened.yml
+# leaves .poe-code/gh/github-issue-opened.md intact (user may have customized it)
 ```
 
-## Chore Prompt Format
+### Workflow Step Helpers
 
-Each chore is a markdown file with YAML frontmatter:
+Scripts currently in `scripts/workflows/` are migrated into `poe-code gh` as direct subcommands, callable from workflow files:
 
-```markdown
----
-name: fix-vulnerabilities
-description: Fix dependabot security vulnerabilities
-source: gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] | select(.state=="open")]'
-schedule: '0 6 * * 1'
----
-
-# Fix: {{dependency.package.name}}
-
-Severity: {{security_advisory.severity}}
-Summary: {{security_advisory.summary}}
-
-1. Update {{dependency.package.name}} to the patched version
-2. Run tests to verify nothing breaks
-3. Commit with: fix(deps): upgrade {{dependency.package.name}}
+```yaml
+# Instead of: node scripts/workflows/check-eligible-user.cjs
+run: npx poe-code gh exec check-eligible-user
 ```
 
-### Frontmatter fields
+Migrated scripts:
+- `poe-code gh exec check-eligible-user`
+- `poe-code gh exec build-comment-prompt`
+- `poe-code gh exec build-issue-prompt`
+- `poe-code gh exec generate-pr-metadata`
+- `poe-code gh exec resolve-model-issue`
+- `poe-code gh exec select-service`
+- `poe-code gh exec discover-models`
 
-- `name` (required): chore identifier
-- `description` (required): human-readable summary
-- `source` (optional): shell command whose stdout is parsed as JSON array
-- `schedule` (optional): cron expression for GitHub Action generation
-- Prompt body: mustache template rendered per source item (or used as-is for simple chores)
+These are internal workflow helpers, not user-facing automations. They do not appear in `poe-code gh list`.
 
-## Built-in Chores
+## Generated Workflow Examples
 
-### `update-dependencies`
+All generated workflows are self-contained. Uses `GITHUB_TOKEN` (automatic, no setup) + `POE_API_KEY` (only secret users need). Attribution shows as `github-actions[bot]`.
 
-Simple chore. Updates project dependencies to latest versions.
+### `github-issue-opened`
 
-### `update-documentation`
+```yaml
+# Auto-generated by: poe-code gh install github-issue-opened
+# Edit .poe-code/gh/github-issue-opened.md to customize the prompt.
+name: 'GitHub: Issue Opened'
+on:
+  issues:
+    types: [opened]
 
-Simple chore. Reviews code changes since last documentation update and refreshes docs.
+concurrency:
+  group: agent-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
 
-### `github-issue-check`
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx poe-code gh github-issue-opened --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+```
 
-Sourced chore. Source: `gh issue list` filtered to exclude `poe-triaged` label.
-Agent triages each issue and adds `poe-triaged` label when done.
+### `github-issue-comment-created`
 
-### `github-pull-request-check`
+```yaml
+# Auto-generated by: poe-code gh install github-issue-comment-created
+# Edit .poe-code/gh/github-issue-comment-created.md to customize the prompt.
+name: 'GitHub: Issue Comment Created'
+on:
+  issue_comment:
+    types: [created]
 
-Sourced chore. Source: `gh pr list` filtered to unreviewed PRs.
-Agent reviews each PR and posts review comments.
+concurrency:
+  group: agent-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    if: github.event.issue.state == 'open' && github.event.comment.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx poe-code gh github-issue-comment-created --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+```
+
+### `github-pull-request-opened`
+
+```yaml
+# Auto-generated by: poe-code gh install github-pull-request-opened
+# Edit .poe-code/gh/github-pull-request-opened.md to customize the prompt.
+name: 'GitHub: Pull Request Opened'
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx poe-code gh github-pull-request-opened --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+```
+
+### `github-pull-request-synchronized`
+
+```yaml
+# Auto-generated by: poe-code gh install github-pull-request-synchronized
+# Edit .poe-code/gh/github-pull-request-synchronized.md to customize the prompt.
+name: 'GitHub: Pull Request Synchronized'
+on:
+  pull_request:
+    types: [synchronize]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx poe-code gh github-pull-request-synchronized --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+```
 
 ### `fix-vulnerabilities`
 
-Sourced chore. Source: `gh api` dependabot alerts filtered to open.
-Agent fixes each vulnerability — update dep, run tests, commit.
-
-## State Management
-
-GitHub-native — no local state files. Each chore uses platform state:
-
-- **Issues**: agent adds `poe-triaged` label → source filters `select(... | index("poe-triaged") | not)`
-- **PRs**: agent posts review → source filters unreviewed PRs
-- **Vulnerabilities**: fix auto-closes the alert → source only returns open alerts
-
-## Chore Discovery
-
-Priority order (later overrides by name):
-
-1. **Built-in**: `packages/chores/src/prompts/*.md` — ships with poe-code
-2. **Project-local**: `<cwd>/.poe-code/chores/*.md` — copied via `chore enable --copy` or user-created
-
-```
-packages/chores/
-  src/
-    prompts/
-      update-dependencies.md
-      update-documentation.md
-      github-issue-check.md
-      github-pull-request-check.md
-      fix-vulnerabilities.md
-    index.ts                  # exports chore registry
-    discover.ts               # reads prompts dir, parses frontmatter, merges layers
-    frontmatter.ts            # YAML frontmatter parser
-    types.ts                  # ChoreDefinition type
-```
-
-### Chore Registry
-
-```typescript
-interface ChoreDefinition {
-  name: string;
-  description: string;
-  prompt: string;             // full markdown body (mustache template)
-  source?: string;            // shell command returning JSON array
-  schedule?: string;          // cron expression
-}
-
-function discoverChores(builtInDir, projectDir?): Promise<ChoreDefinition[]>
-function loadChore(name, dirs): Promise<ChoreDefinition>
-```
-
-Frontmatter parsed with a simple custom parser (no `gray-matter` dependency — promoted from existing test code in `agent-skill-config`).
-
-## Execution Flow
-
-### Simple chore (no source)
-
-1. Discover chore, match by name
-2. Resolve agent + model
-3. Spawn agent with raw prompt body
-
-### Sourced chore
-
-1. Discover chore, match by name
-2. Resolve agent + model
-3. Run source command: `commandRunner("sh", ["-c", source])`
-4. Parse stdout as JSON array
-5. For each item: `mustache.render(template, item)` → spawn agent
-6. Collect results
-
-```typescript
-// Pseudocode for src/sdk/chore.ts
-async function runChore(container, options) {
-  const definition = await loadChore(options.name, {
-    builtIn: promptsDirUrl,
-    projectLocal: path.join(container.env.cwd, ".poe-code/chores")
-  });
-
-  if (!definition.source) {
-    return spawnSdk(options.agent, { prompt: definition.prompt });
-  }
-
-  const { stdout } = await commandRunner("sh", ["-c", definition.source]);
-  const items = JSON.parse(stdout);
-
-  const results = [];
-  for (const item of items) {
-    const prompt = mustache.render(definition.prompt, item);
-    const { result } = spawnSdk(options.agent, { prompt });
-    results.push(await result);
-  }
-  return results;
-}
-```
-
-## Workflow Generation (`chore enable`)
-
-Each `chore enable <name>` creates a dedicated workflow file at `.github/workflows/chore-<name>.yml`:
-
 ```yaml
-# Auto-generated by poe-code chore enable fix-vulnerabilities
-name: 'Chore: fix-vulnerabilities'
+# Auto-generated by: poe-code gh install fix-vulnerabilities
+# Edit .poe-code/gh/fix-vulnerabilities.md to customize the prompt.
+name: 'Fix Vulnerabilities'
 on:
   schedule:
-    - cron: '0 6 * * 1'    # from frontmatter schedule field
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 jobs:
@@ -239,23 +239,205 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
       security-events: read
     steps:
       - uses: actions/checkout@v4
-      - run: npx poe-code chore fix-vulnerabilities --yes --agent claude
+      - run: npx poe-code gh fix-vulnerabilities --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 ```
 
-One workflow file per chore. The `schedule` frontmatter field drives the cron expression. `chore disable <name>` deletes the corresponding workflow file.
+### `update-dependencies`
 
-If `--copy` is passed with `chore enable`, the `.md` prompt is also copied to `.poe-code/chores/` for customization.
+```yaml
+# Auto-generated by: poe-code gh install update-dependencies
+# Edit .poe-code/gh/update-dependencies.md to customize the prompt.
+name: 'Update Dependencies'
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx poe-code gh update-dependencies --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+```
+
+### `update-documentation`
+
+```yaml
+# Auto-generated by: poe-code gh install update-documentation
+# Edit .poe-code/gh/update-documentation.md to customize the prompt.
+name: 'Update Documentation'
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+      - run: npx poe-code gh update-documentation --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+```
+
+## Automation Prompt Format
+
+Each automation is a markdown file. Filename is the automation name. Frontmatter is only used when behavior can't be derived from the workflow — `source` and `schedule`. Everything else lives in the workflow YAML.
+
+### Frontmatter fields
+
+- `source` (optional): shell command whose stdout is parsed as JSON array; each item spawns its own agent
+
+Prompt body: mustache template rendered per source item, or used as-is.
+
+## Built-in Prompt Files
+
+### `github-issue-opened.md`
+
+```markdown
+Read {{url}} and implement the requested changes.
+```
+
+### `github-issue-comment-created.md`
+
+```markdown
+Read {{url}} and act on the comment from {{comment.author}}: {{comment.body}}
+```
+
+### `github-pull-request-opened.md`
+
+```markdown
+Read {{url}} and review the pull request.
+```
+
+### `github-pull-request-synchronized.md`
+
+```markdown
+Read {{url}} and re-review the updated pull request.
+```
+
+### `fix-vulnerabilities.md`
+
+```markdown
+---
+source: gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] | select(.state=="open")]'
+---
+Fix {{dependency.package.name}} ({{security_advisory.severity}}): {{security_advisory.summary}}
+```
+
+### `update-dependencies.md`
+
+```markdown
+Update all dependencies to their latest compatible versions and open a pull request.
+```
+
+### `update-documentation.md`
+
+```markdown
+Review recent code changes and update the documentation to reflect them.
+```
+
+## State Management
+
+GitHub-native — no local state files. Each automation uses platform state:
+
+- **Issues**: agent adds `poe-triaged` label → source filters `select(... | index("poe-triaged") | not)`
+- **PRs**: agent posts review → source filters unreviewed PRs
+- **Vulnerabilities**: fix auto-closes the alert → source only returns open alerts
+
+## Automation Discovery
+
+Priority order (later overrides by name):
+
+1. **Built-in**: `packages/gh/src/prompts/*.md` — ships with poe-code
+2. **Project-local**: `<cwd>/.poe-code/gh/*.md` — copied via `gh install` or user-created
+
+```
+packages/gh/
+  src/
+    prompts/
+      github-issue-opened.md
+      github-issue-comment-created.md
+      github-pull-request-opened.md
+      github-pull-request-synchronized.md
+      fix-vulnerabilities.md
+      update-dependencies.md
+      update-documentation.md
+    workflow-helpers/
+      check-eligible-user.ts
+      build-comment-prompt.ts
+      build-issue-prompt.ts
+      generate-pr-metadata.ts
+      resolve-model-issue.ts
+      select-service.ts
+      discover-models.ts
+    index.ts                  # exports automation registry
+    discover.ts               # reads prompts dir, parses frontmatter, merges layers
+    frontmatter.ts            # YAML frontmatter parser
+    types.ts                  # AutomationDefinition type
+```
+
+### Automation Registry
+
+```typescript
+interface AutomationDefinition {
+  name: string;               // derived from filename
+  prompt: string;             // full markdown body (mustache template)
+  source?: string;            // shell command returning JSON array
+}
+
+function discoverAutomations(builtInDir, projectDir?): Promise<AutomationDefinition[]>
+function loadAutomation(name, dirs): Promise<AutomationDefinition>
+```
+
+## Execution Flow
+
+### Simple automation (no source)
+
+1. Discover automation, match by name
+2. Resolve agent + model
+3. Load prompt: check `.poe-code/gh/<name>.md`, fall back to built-in
+4. Spawn agent with prompt body
+
+### Sourced automation
+
+1. Discover automation, match by name
+2. Resolve agent + model
+3. Load prompt: check `.poe-code/gh/<name>.md`, fall back to built-in
+4. Run source command: `commandRunner("sh", ["-c", source])`
+5. Parse stdout as JSON array
+6. For each item: `mustache.render(template, item)` → spawn agent
+7. Collect results
 
 ## SDK Integration
 
 ```typescript
-// src/sdk/chore.ts
-export interface ChoreOptions {
+// src/sdk/gh.ts
+export interface GhOptions {
   name: string;
   agent: string;
   model?: string;
@@ -263,9 +445,9 @@ export interface ChoreOptions {
   cwd?: string;
 }
 
-export async function runChore(
+export async function runGh(
   container: CliContainer,
-  options: ChoreOptions
+  options: GhOptions
 ): Promise<{ results: SpawnResult[] }>
 ```
 
@@ -273,38 +455,44 @@ export async function runChore(
 
 | File | Action |
 |------|--------|
-| `packages/chores/package.json` | New package `@poe-code/chores` |
-| `packages/chores/tsconfig.json` | Extends root |
-| `packages/chores/src/types.ts` | ChoreDefinition type |
-| `packages/chores/src/frontmatter.ts` | YAML frontmatter parser |
-| `packages/chores/src/frontmatter.test.ts` | Frontmatter unit tests |
-| `packages/chores/src/discover.ts` | Discovery + merge layers |
-| `packages/chores/src/discover.test.ts` | Discovery tests |
-| `packages/chores/src/index.ts` | Public exports |
-| `packages/chores/src/prompts/*.md` | 5 built-in chore prompts |
-| `packages/chores/src/prompts/prompts.test.ts` | Validate all prompts |
-| `src/sdk/chore.ts` | SDK executor (source → map → spawn) |
-| `src/cli/commands/chore.ts` | CLI command (run, list, enable, disable) |
-| `src/cli/commands/chore.test.ts` | CLI tests |
-| `src/cli/program.ts` | Register `registerChoreCommand()` |
-| `src/index.ts` | Export SDK `runChore()` |
+| `packages/gh/package.json` | New package `@poe-code/gh` |
+| `packages/gh/tsconfig.json` | Extends root |
+| `packages/gh/src/types.ts` | AutomationDefinition type |
+| `packages/gh/src/frontmatter.ts` | YAML frontmatter parser |
+| `packages/gh/src/frontmatter.test.ts` | Frontmatter unit tests |
+| `packages/gh/src/discover.ts` | Discovery + merge layers |
+| `packages/gh/src/discover.test.ts` | Discovery tests |
+| `packages/gh/src/index.ts` | Public exports |
+| `packages/gh/src/prompts/*.md` | 7 built-in automation prompts (4 event-driven + 3 cron) |
+| `packages/gh/src/prompts/prompts.test.ts` | Validate all prompts |
+| `packages/gh/src/workflow-helpers/*.ts` | Migrated from `scripts/workflows/` |
+| `packages/gh/src/workflow-helpers/*.test.ts` | Unit tests |
+| `src/sdk/gh.ts` | SDK executor (source → map → spawn) |
+| `src/cli/commands/gh.ts` | CLI command (run, list, install, uninstall + helpers) |
+| `src/cli/commands/gh.test.ts` | CLI tests |
+| `src/cli/program.ts` | Register `registerGhCommand()` |
+| `src/index.ts` | Export SDK `runGh()` |
+| `scripts/workflows/` | Delete after migration |
 
 ## Implementation Steps
 
-1. Create `packages/chores` package with frontmatter parser (TDD)
+1. Create `packages/gh` package with frontmatter parser (TDD)
 2. Add types and discovery with two-layer merge (TDD)
-3. Write 5 built-in chore prompt files + validation tests
-4. Implement SDK executor with source → map → spawn pipeline
-5. Implement CLI `chore` command (run + list + enable + disable subcommands)
-6. Register command in `program.ts`, export from SDK
-7. Screenshots + E2E tests
+3. Write 7 built-in automation prompt files + validation tests
+4. Migrate `scripts/workflows/*.cjs` → `packages/gh/src/workflow-helpers/*.ts` (TDD)
+5. Update existing `.github/workflows/` to call `npx poe-code gh <helper>` instead of `node scripts/`
+6. Implement SDK executor with source → map → spawn pipeline
+7. Implement CLI `gh` command (run + list + install + uninstall + helpers)
+8. Register command in `program.ts`, export from SDK
+9. Screenshots + E2E tests
 
 ## Testing Strategy
 
 - **Frontmatter**: pure function tests, no mocking
 - **Discovery**: mock `node:fs/promises` via `vi.mock`
-- **Executor**: mock `spawnSdk` and `commandRunner` at boundary
-- **CLI**: mock `@poe-code/chores` and `../../sdk/spawn.js`
+- **Workflow helpers**: unit tests, mock external calls
+- **Executor**: mock `runGh` and `commandRunner` at boundary
+- **CLI**: mock `@poe-code/gh` and `../../sdk/spawn.js`
 - **Prompts**: validate all built-in prompts have valid frontmatter
-- **Visual**: `npm run screenshot-poe-code -- chore --help`, `chore list`, `chore enable --help`
+- **Visual**: `npm run screenshot-poe-code -- gh --help`, `gh list`, `gh install --help`
 - **No LLM calls in tests**

@@ -70,6 +70,13 @@ When a task uses a step-status map, Pipeline:
 ## Plan Format
 
 ```yaml
+mcp:
+  my-server:
+    command: npx
+    args: [my-server]
+    env:
+      API_KEY: secret
+
 tasks:
   - id: quick-fix
     title: Fix timeout bug
@@ -88,6 +95,8 @@ tasks:
       bug_sweep: open
 ```
 
+The top-level `mcp` key is optional. When present, its servers are passed to every agent execution in the plan via `mcpServers`. The syntax is identical to spawn's `McpSpawnConfig`: a record of named servers each with `command`, optional `args`, and optional `env`.
+
 Validation rules:
 
 - `tasks` must be an array
@@ -95,6 +104,7 @@ Validation rules:
 - scalar task statuses must be `open`, `done`, or `failed`
 - step statuses must be `open`, `done`, or `failed`
 - if a task references a step by name, that step must exist in resolved step config
+- if `mcp` is present, each entry must have a non-empty `command` string; `args` must be a string array; `env` must be a string record
 
 Authoring rules:
 
@@ -214,7 +224,7 @@ const result = await runPipeline({
   homeDir: "/home/test",
   plan: ".poe-code/pipeline/plans/plan-auth.yaml",
   maxRuns: 5,
-  runAgent: async ({ agent, prompt, mode, cwd, model, signal }) => {
+  runAgent: async ({ agent, prompt, mode, cwd, model, mcpServers, signal }) => {
     // Adapter provided by the caller
     return {
       stdout: "",

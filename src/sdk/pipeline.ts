@@ -35,7 +35,8 @@ export async function runPipeline(
         cwd: input.cwd,
         logDir: input.logDir,
         model: input.model,
-        mode: input.mode
+        mode: input.mode,
+        ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
       });
       await renderAcpStream(events);
       return await result;

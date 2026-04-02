@@ -1,5 +1,7 @@
 import { parse } from "yaml";
 import type {
+  McpSpawnConfig,
+  McpSpawnServer,
   PipelinePlan,
   PipelineStatus,
   PipelineTask,
@@ -50,6 +52,36 @@ function parseTaskStatus(
   return statusMap;
 }
 
+function parseMcpConfig(value: unknown): McpSpawnConfig {
+  if (!isRecord(value)) {
+    throw new Error("Invalid plan YAML: \"mcp\" must be an object.");
+  }
+  const result: McpSpawnConfig = {};
+  for (const [name, entry] of Object.entries(value)) {
+    if (!isRecord(entry)) {
+      throw new Error(`Invalid plan YAML: mcp["${name}"] must be an object.`);
+    }
+    if (typeof entry.command !== "string" || entry.command.length === 0) {
+      throw new Error(`Invalid plan YAML: mcp["${name}"].command must be a non-empty string.`);
+    }
+    const server: McpSpawnServer = { command: entry.command };
+    if (entry.args !== undefined) {
+      if (!Array.isArray(entry.args) || !entry.args.every((a) => typeof a === "string")) {
+        throw new Error(`Invalid plan YAML: mcp["${name}"].args must be an array of strings.`);
+      }
+      server.args = entry.args as string[];
+    }
+    if (entry.env !== undefined) {
+      if (!isRecord(entry.env) || !Object.values(entry.env).every((v) => typeof v === "string")) {
+        throw new Error(`Invalid plan YAML: mcp["${name}"].env must be a string record.`);
+      }
+      server.env = entry.env as Record<string, string>;
+    }
+    result[name] = server;
+  }
+  return result;
+}
+
 export function parsePlan(
   yamlContent: string,
   options: { availableSteps?: ResolvedStepDefinitions } = {}
@@ -91,5 +123,8 @@ export function parsePlan(
     } satisfies PipelineTask;
   });
 
-  return { tasks };
+  const mcpValue = document.mcp;
+  const mcp = mcpValue !== undefined ? parseMcpConfig(mcpValue) : undefined;
+
+  return { tasks, ...(mcp !== undefined ? { mcp } : {}) };
 }

@@ -229,6 +229,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           cwd: options.cwd,
           logDir: options.logDir,
           ...(model ? { model } : {}),
+          ...(plan.mcp ? { mcpServers: plan.mcp } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });
       } catch (error) {

@@ -133,4 +133,61 @@ describe("parsePlan", () => {
     const plan = parsePlan("tasks: []\n");
     expect(plan.tasks).toEqual([]);
   });
+
+  it("parses mcp block with command, args, and env", () => {
+    const plan = parsePlan([
+      "mcp:",
+      "  my-server:",
+      "    command: npx",
+      "    args:",
+      "      - my-server",
+      "    env:",
+      "      FOO: bar",
+      "tasks: []",
+      ""
+    ].join("\n"));
+
+    expect(plan.mcp).toEqual({
+      "my-server": { command: "npx", args: ["my-server"], env: { FOO: "bar" } }
+    });
+  });
+
+  it("parses mcp block with command only", () => {
+    const plan = parsePlan([
+      "mcp:",
+      "  minimal:",
+      "    command: my-tool",
+      "tasks: []",
+      ""
+    ].join("\n"));
+
+    expect(plan.mcp).toEqual({ minimal: { command: "my-tool" } });
+  });
+
+  it("omits mcp when not present", () => {
+    const plan = parsePlan("tasks: []\n");
+    expect(plan.mcp).toBeUndefined();
+  });
+
+  it("rejects mcp that is not an object", () => {
+    expect(() =>
+      parsePlan([
+        "mcp: not-an-object",
+        "tasks: []",
+        ""
+      ].join("\n"))
+    ).toThrow(/mcp.*must be an object/i);
+  });
+
+  it("rejects mcp server entry missing command", () => {
+    expect(() =>
+      parsePlan([
+        "mcp:",
+        "  bad-server:",
+        "    args: [foo]",
+        "tasks: []",
+        ""
+      ].join("\n"))
+    ).toThrow(/command.*non-empty string/i);
+  });
 });

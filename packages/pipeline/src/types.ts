@@ -1,6 +1,14 @@
 export type PipelineStatus = "open" | "done" | "failed";
 export type StepMode = "yolo" | "edit" | "read";
 
+export interface McpSpawnServer {
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
+
+export type McpSpawnConfig = Record<string, McpSpawnServer>;
+
 export interface StepDefinition {
   mode: StepMode;
   instruction: string;
@@ -19,6 +27,7 @@ export interface PipelineTask {
 
 export interface PipelinePlan {
   tasks: PipelineTask[];
+  mcp?: McpSpawnConfig;
 }
 
 export interface PipelineConfig {
@@ -52,6 +61,7 @@ export interface AgentRunInput {
   cwd: string;
   logDir?: string;
   model?: string;
+  mcpServers?: McpSpawnConfig;
   signal?: AbortSignal;
 }
 

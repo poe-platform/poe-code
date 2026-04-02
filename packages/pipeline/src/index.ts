@@ -2,6 +2,8 @@ export type {
   AgentRunUsage,
   AgentRunInput,
   AgentRunResult,
+  McpSpawnConfig,
+  McpSpawnServer,
   ExecutionSelection,
   PipelineConfig,
   PipelineFileSystem,

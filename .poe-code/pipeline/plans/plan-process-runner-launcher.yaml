@@ -94,7 +94,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pr-mock-runner
     title: Implement mock runner for testing
@@ -141,9 +141,9 @@ tasks:
       Export mock runner from `packages/process-runner/src/index.ts`.
       Use `memfs` for any file operations in tests. Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pr-host-runner

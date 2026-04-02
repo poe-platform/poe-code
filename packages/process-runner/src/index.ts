@@ -1,3 +1,5 @@
+export { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";
+
 export type {
   DockerMount,
   DockerPortMapping,

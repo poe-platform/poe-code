@@ -1,6 +1,7 @@
 import { PassThrough } from "node:stream";
 import { describe, expect, it } from "vitest";
 import * as api from "./index.js";
+import { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";
 import type {
   DockerMount,
   DockerPortMapping,
@@ -108,6 +109,11 @@ describe("@poe-code/process-runner public exports", () => {
     expect(api).not.toHaveProperty("Runner");
     expect(api).not.toHaveProperty("DockerRunnerOptions");
     expect(api).not.toHaveProperty("MockRunBehavior");
-    expect(Object.keys(api)).toEqual([]);
+    expect(api.createMockRunner).toBe(createMockRunner);
+    expect(api.createMockRunnerByCommand).toBe(createMockRunnerByCommand);
+    expect(Object.keys(api)).toEqual([
+      "createMockRunner",
+      "createMockRunnerByCommand"
+    ]);
   });
 });

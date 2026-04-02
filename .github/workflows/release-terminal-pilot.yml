@@ -23,6 +23,9 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
+      - name: Build workspace dependency
+        working-directory: packages/tiny-stdio-mcp-server
+        run: npm run build
       - name: Build
         working-directory: packages/terminal-pilot
         run: npm run build

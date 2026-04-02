@@ -15,6 +15,7 @@ import {
 import { createProvider } from "./create-provider.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
 import { openCodeAgent } from "@poe-code/agent-defs";
+import { serializeOpenCodeMcpEnv } from "@poe-code/agent-spawn";
 
 function providerModel(model?: string): string {
   const value = model ?? DEFAULT_FRONTIER_MODEL;
@@ -44,9 +45,11 @@ function getModelArgs(model?: string): string[] {
   return ["--model", providerModel(model)];
 }
 
+
 export const openCodeService = createProvider({
   ...openCodeAgent,
   supportsStdinPrompt: false,
+  supportsMcpSpawn: true,
   configurePrompts: {
     model: {
       label: "OpenCode model",
@@ -124,12 +127,13 @@ export const openCodeService = createProvider({
       opts.prompt,
       ...(opts.args ?? [])
     ];
-    if (opts.cwd) {
-      return context.command.runCommand("poe-code", ["wrap", "opencode", ...args], {
-        cwd: opts.cwd
-      });
+    if (!opts.cwd && !opts.mcpServers) {
+      return context.command.runCommand("poe-code", ["wrap", "opencode", ...args]);
     }
-    return context.command.runCommand("poe-code", ["wrap", "opencode", ...args]);
+    return context.command.runCommand("poe-code", ["wrap", "opencode", ...args], {
+      cwd: opts.cwd,
+      env: opts.mcpServers ? serializeOpenCodeMcpEnv(opts.mcpServers) : undefined
+    });
   }
 });
 

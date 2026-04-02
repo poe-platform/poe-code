@@ -258,6 +258,69 @@ describe("opencode service", () => {
     ]);
   });
 
+  it("passes MCP servers as OPENCODE_CONFIG_CONTENT env var", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "opencode-output\n",
+      stderr: "",
+      exitCode: 0
+    }));
+    const providerContext = createProviderTestContext(runCommand).context;
+
+    await opencodeService.openCodeService.spawn(providerContext, {
+      prompt: "Refactor this",
+      mcpServers: {
+        "my-server": {
+          command: "npx",
+          args: ["my-mcp-server", "--port", "3000"],
+          env: { API_KEY: "secret" }
+        }
+      }
+    });
+
+    expect(runCommand).toHaveBeenCalledWith(
+      "poe-code",
+      ["wrap", "opencode", "--model", DEFAULT_PROVIDER_MODEL, "run", "Refactor this"],
+      {
+        cwd: undefined,
+        env: {
+          OPENCODE_CONFIG_CONTENT: JSON.stringify({
+            mcp: {
+              "my-server": {
+                type: "local",
+                command: ["npx", "my-mcp-server", "--port", "3000"],
+                environment: { API_KEY: "secret" }
+              }
+            }
+          })
+        }
+      }
+    );
+  });
+
+  it("omits environment key from MCP server entry when env is empty", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const providerContext = createProviderTestContext(runCommand).context;
+
+    await opencodeService.openCodeService.spawn(providerContext, {
+      prompt: "Do something",
+      mcpServers: {
+        "bare-server": { command: "my-binary" }
+      }
+    });
+
+    const [, , callOptions] = runCommand.mock.calls[0]!;
+    const config = JSON.parse(callOptions.env.OPENCODE_CONFIG_CONTENT);
+    expect(config.mcp["bare-server"]).toEqual({
+      type: "local",
+      command: ["my-binary"]
+    });
+    expect(config.mcp["bare-server"].environment).toBeUndefined();
+  });
+
   it("runs the OpenCode health check via runCommand when test is invoked", async () => {
     const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"OPEN_CODE_OK"}\n',

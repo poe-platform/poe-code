@@ -20,7 +20,7 @@ const agents: AgentMcpSpawnTest[] = [
   },
   {
     name: 'opencode',
-    expectSpawnSuccess: false,
+    expectSpawnSuccess: true,
   },
   {
     name: 'kimi',

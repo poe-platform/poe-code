@@ -29,6 +29,7 @@ export {
   listMcpSupportedAgents,
   supportsMcpAtSpawn
 } from "./configs/index.js";
+export { serializeOpenCodeMcpEnv } from "./configs/mcp.js";
 export {
   buildSpawnArgs,
   type BuildSpawnArgsOptions,

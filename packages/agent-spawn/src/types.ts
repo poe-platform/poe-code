@@ -89,6 +89,11 @@ export interface CliSpawnConfig {
    */
   mcpArgs?: (servers: McpSpawnConfig) => string[];
   /**
+   * Transforms MCP server config into env vars for this agent.
+   * Use instead of `mcpArgs` when the agent reads MCP config from the environment.
+   */
+  mcpEnv?: (servers: McpSpawnConfig) => Record<string, string>;
+  /**
    * When true, MCP args are placed before the subcommand (e.g. `codex -c ... exec "prompt"`).
    * When false/undefined, they are placed after defaultArgs (e.g. `claude -p "prompt" --mcp-config ...`).
    */

@@ -44,6 +44,25 @@ export function serializeJsonMcpArgs(servers: McpSpawnConfig): string[] {
   return ["--mcp-config", JSON.stringify({ mcpServers: toJsonMcpServers(servers) })];
 }
 
+export function serializeOpenCodeMcpEnv(servers: McpSpawnConfig): Record<string, string> {
+  const mcp: Record<
+    string,
+    { type: "local"; command: string[]; environment?: Record<string, string> }
+  > = {};
+  for (const [name, server] of Object.entries(servers)) {
+    const entry: {
+      type: "local";
+      command: string[];
+      environment?: Record<string, string>;
+    } = { type: "local", command: [server.command, ...(server.args ?? [])] };
+    if (server.env && Object.keys(server.env).length > 0) {
+      entry.environment = server.env;
+    }
+    mcp[name] = entry;
+  }
+  return { OPENCODE_CONFIG_CONTENT: JSON.stringify({ mcp }) };
+}
+
 export function serializeCodexMcpArgs(servers: McpSpawnConfig): string[] {
   const args: string[] = [];
 

@@ -15,10 +15,23 @@ export function getMcpArgs(
   if (!hasMcpServers(servers)) {
     return [];
   }
-  if (!config.mcpArgs) {
+  if (!config.mcpArgs && !config.mcpEnv) {
     throw new Error(formatUnsupportedMcpSpawnMessage(config.agentId));
   }
+  if (!config.mcpArgs) {
+    return [];
+  }
   return config.mcpArgs(servers);
+}
+
+export function getMcpEnv(
+  config: CliSpawnConfig,
+  servers?: McpSpawnConfig
+): Record<string, string> {
+  if (!hasMcpServers(servers) || !config.mcpEnv) {
+    return {};
+  }
+  return config.mcpEnv(servers);
 }
 
 export function formatUnsupportedMcpSpawnMessage(agentId: string): string {

@@ -1,4 +1,5 @@
 import type { CliSpawnConfig } from "../types.js";
+import { serializeOpenCodeMcpEnv } from "./mcp.js";
 
 /**
  * OpenCode JSON output format (empirically observed)
@@ -83,5 +84,6 @@ export const openCodeSpawnConfig: CliSpawnConfig = {
     defaultArgs: [],
     promptFlag: "--prompt"
   },
-  resumeCommand: (threadId, cwd) => [cwd, "--session", threadId]
+  resumeCommand: (threadId, cwd) => [cwd, "--session", threadId],
+  mcpEnv: serializeOpenCodeMcpEnv
 };

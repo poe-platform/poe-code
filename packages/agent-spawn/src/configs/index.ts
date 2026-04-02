@@ -33,7 +33,7 @@ export function supportsMcpAtSpawn(input: string): boolean {
   return (
     !!config &&
     config.kind === "cli" &&
-    typeof config.mcpArgs === "function"
+    (typeof config.mcpArgs === "function" || typeof config.mcpEnv === "function")
   );
 }
 
@@ -41,7 +41,10 @@ export function listMcpSupportedAgents(): string[] {
   const supported: string[] = [];
 
   for (const config of allSpawnConfigs) {
-    if (config.kind !== "cli" || typeof config.mcpArgs !== "function") {
+    if (
+      config.kind !== "cli" ||
+      (typeof config.mcpArgs !== "function" && typeof config.mcpEnv !== "function")
+    ) {
       continue;
     }
     supported.push(config.agentId);

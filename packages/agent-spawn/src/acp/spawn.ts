@@ -3,7 +3,7 @@ import { getAdapter } from "../adapters/index.js";
 import type { AcpEvent } from "./types.js";
 import { readLines } from "./line-reader.js";
 import { resolveConfig } from "../configs/resolve-config.js";
-import { getMcpArgs } from "../mcp-args.js";
+import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
 import type { SpawnOptions, SpawnResult } from "../types.js";
 
@@ -46,6 +46,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   }
 
   const mcpArgs = getMcpArgs(spawnConfig, options.mcpServers);
+  const mcpEnvVars = getMcpEnv(spawnConfig, options.mcpServers);
   const args: string[] = [];
 
   if (spawnConfig.mcpArgsBeforeCommand) {
@@ -86,7 +87,10 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
 
   const child = spawnChildProcess(binaryName, args, {
     cwd: options.cwd,
-    stdio: ["pipe", "pipe", "pipe"]
+    stdio: ["pipe", "pipe", "pipe"],
+    env: Object.keys(mcpEnvVars).length > 0
+      ? { ...process.env, ...mcpEnvVars }
+      : undefined
   });
   let aborted = false;
   const onAbort = () => {

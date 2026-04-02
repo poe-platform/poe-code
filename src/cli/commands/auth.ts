@@ -16,7 +16,7 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
 
   auth
     .command("status")
-    .description("Show login, balance, and configuration status.")
+    .description("Show login status.")
     .action(async () => {
       await executeStatus(program, container);
     });

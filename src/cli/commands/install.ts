@@ -22,7 +22,7 @@ export function registerInstallCommand(
   return program
     .command("install")
     .alias("i")
-    .description("Install tooling for a configured agent.")
+    .description("Install agent binary for a configured agent.")
     .argument(
       "[agent]",
       serviceDescription

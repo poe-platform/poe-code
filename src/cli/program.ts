@@ -62,7 +62,7 @@ function formatHelpText(input: {
       name: "install",
       aliases: ["i"],
       args: "[agent]",
-      description: "Install tooling for a configured agent"
+      description: "Install agent binary for a configured agent"
     },
     {
       name: "configure",
@@ -92,7 +92,7 @@ function formatHelpText(input: {
       name: "auth status",
       aliases: [],
       args: "",
-      description: "Show login, balance, and configuration status"
+      description: "Show login status"
     },
     {
       name: "agent",
@@ -137,10 +137,10 @@ function formatHelpText(input: {
       description: "Remove Poe MCP configuration from your agent"
     },
     {
-      name: "mcp serve",
+      name: "experiment install",
       aliases: [],
-      args: "",
-      description: "Run the Poe MCP server on stdin/stdout"
+      args: "[agent]",
+      description: "Install the experiment skill into agent configuration"
     },
     {
       name: "skill configure",
@@ -207,24 +207,6 @@ function formatHelpText(input: {
       aliases: [],
       args: "",
       description: "Show config file paths and usage hints"
-    },
-    {
-      name: "utils config show",
-      aliases: [],
-      args: "",
-      description: "Show config inputs and resolved result"
-    },
-    {
-      name: "utils config init",
-      aliases: [],
-      args: "",
-      description: "Create a project config file"
-    },
-    {
-      name: "utils config edit",
-      aliases: [],
-      args: "",
-      description: "Open a config file in your editor"
     }
   ];
   const nameWidth = Math.max(

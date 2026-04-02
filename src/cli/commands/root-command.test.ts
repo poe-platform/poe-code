@@ -81,15 +81,12 @@ describe("root command", () => {
     expect(plainOutput).toContain("usage, u");
     expect(plainOutput).toContain("generate, g");
     expect(plainOutput).toContain("Configure a coding agent");
-    expect(plainOutput).toContain("Install tooling for a configured agent");
+    expect(plainOutput).toContain("Install agent binary for a configured agent");
     expect(plainOutput).toContain("mcp configure");
     expect(plainOutput).toContain("mcp unconfigure");
-    expect(plainOutput).toContain("mcp serve");
+    expect(plainOutput).toContain("experiment install");
     expect(plainOutput).toContain("login");
     expect(plainOutput).toContain("config");
-    expect(plainOutput).toContain("config show");
-    expect(plainOutput).toContain("config init");
-    expect(plainOutput).toContain("config edit");
     expect(plainOutput).toContain("auth status");
     expect(plainOutput).toContain("agent");
     expect(plainOutput).toContain("Run a one-shot Poe agent prompt");

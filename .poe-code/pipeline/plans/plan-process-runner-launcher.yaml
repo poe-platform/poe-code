@@ -144,7 +144,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pr-host-runner
     title: Implement host runner
@@ -198,9 +198,9 @@ tasks:
       Export `createHostRunner` from `packages/process-runner/src/index.ts`.
       Follow TDD — write tests first.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pr-docker-args

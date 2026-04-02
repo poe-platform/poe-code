@@ -1,3 +1,4 @@
+export { createHostRunner } from "./host/host-runner.js";
 export { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";
 
 export type {

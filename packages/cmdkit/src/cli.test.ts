@@ -32,6 +32,11 @@ vi.mock("@poe-code/design-system", () => ({
       loggerState.errorResolved.push({ label, value }),
     message: (message: string) => loggerState.message.push(message),
   }),
+  renderTable: vi.fn(() => "table"),
+  getTheme: vi.fn(() => ({
+    header: (value: string) => value,
+    muted: (value: string) => value,
+  })),
   promptText: promptState.text,
   select: promptState.select,
   confirm: promptState.confirm,
@@ -170,16 +175,23 @@ describe("runCLI", () => {
         host: "db.internal",
       },
     });
-    expect(renderJson).toHaveBeenCalledWith({
-      name: "demo-app",
-      dryRun: true,
-      retryCount: 3,
-      mode: "safe",
-      tags: ["alpha", "beta", "gamma"],
-      database: {
-        host: "db.internal",
+    expect(renderJson).toHaveBeenCalledWith(
+      {
+        name: "demo-app",
+        dryRun: true,
+        retryCount: 3,
+        mode: "safe",
+        tags: ["alpha", "beta", "gamma"],
+        database: {
+          host: "db.internal",
+        },
       },
-    });
+      expect.objectContaining({
+        logger: expect.any(Object),
+        renderTable: expect.any(Function),
+        getTheme: expect.any(Function),
+      })
+    );
     expect(stdoutWrite).toHaveBeenCalledWith(
       `${JSON.stringify(handler.mock.results[0]?.value ? await handler.mock.results[0]?.value : {}, null, 2)}\n`
     );
@@ -366,9 +378,16 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(renderRich).not.toHaveBeenCalled();
-    expect(renderJson).toHaveBeenCalledWith({
-      ok: true,
-    });
+    expect(renderJson).toHaveBeenCalledWith(
+      {
+        ok: true,
+      },
+      expect.objectContaining({
+        logger: expect.any(Object),
+        renderTable: expect.any(Function),
+        getTheme: expect.any(Function),
+      })
+    );
     expect(stdoutWrite).toHaveBeenCalledWith('{\n  "ok": true\n}\n');
   });
 

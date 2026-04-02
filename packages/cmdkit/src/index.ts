@@ -1,4 +1,5 @@
 import type { ObjectSchema, Static } from "@poe-code/cmdkit-schema";
+import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/design-system";
 
 const commandConfigSymbol = Symbol("cmdkit.command.config");
 const groupConfigSymbol = Symbol("cmdkit.group.config");
@@ -44,7 +45,9 @@ export interface HandlerEnv {
 }
 
 export interface RenderPrimitives {
-  [key: string]: unknown;
+  logger: LoggerOutput;
+  renderTable(options: RenderTableOptions): string;
+  getTheme(): ThemePalette;
 }
 
 export interface CheckResult {
@@ -69,8 +72,8 @@ export interface Requires<TContext = unknown> {
 
 export interface Renderers<TResult> {
   rich?: (result: TResult, primitives: RenderPrimitives) => void;
-  markdown?: (result: TResult) => string;
-  json?: (result: TResult) => unknown;
+  markdown?: (result: TResult, primitives: RenderPrimitives) => string;
+  json?: (result: TResult, primitives: RenderPrimitives) => unknown;
 }
 
 export type HandlerContext<

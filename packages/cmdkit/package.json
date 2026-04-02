@@ -17,8 +17,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "cd ../.. && vitest run packages/cmdkit/src/index.test.ts packages/cmdkit/src/cli.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/cmdkit/src/index.test.ts packages/cmdkit/src/cli.test.ts",
+    "test": "cd ../.. && vitest run packages/cmdkit/src/index.test.ts packages/cmdkit/src/renderer.test.ts packages/cmdkit/src/cli.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/cmdkit/src/index.test.ts packages/cmdkit/src/renderer.test.ts packages/cmdkit/src/cli.test.ts",
     "lint": "cd ../.. && eslint packages/cmdkit/src --ext ts && tsc -p packages/cmdkit/tsconfig.json --noEmit"
   },
   "dependencies": {

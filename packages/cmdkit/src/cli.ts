@@ -1,6 +1,16 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import { Command as CommanderCommand, CommanderError, InvalidArgumentError, Option } from "commander";
-import { cancel, confirm, createLogger, isCancel, promptText, resetOutputFormatCache, select } from "@poe-code/design-system";
+import {
+  cancel,
+  confirm,
+  createLogger,
+  getTheme,
+  isCancel,
+  promptText,
+  renderTable,
+  resetOutputFormatCache,
+  select,
+} from "@poe-code/design-system";
 import type {
   AnySchema,
   ArraySchema,
@@ -12,11 +22,12 @@ import type {
   ObjectSchema,
 } from "./index.js";
 import { UserError } from "./index.js";
+import { renderResult } from "./renderer.js";
+import type { OutputMode } from "./renderer.js";
 
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
 
 type Casing = "kebab" | "snake";
-type OutputMode = "rich" | "md" | "json";
 type PrimitiveSchema = Exclude<AnySchema, ObjectSchema<any>>;
 type ScalarSchema = Exclude<PrimitiveSchema, ArraySchema<any>>;
 type FieldSchema = Exclude<PrimitiveSchema, { kind: "optional" }>;
@@ -627,48 +638,6 @@ async function resolveParams(
   return params;
 }
 
-function renderResult(
-  command: Command<any, any, any, any>,
-  result: unknown,
-  output: OutputMode,
-  logger: ReturnType<typeof createLogger>
-): void {
-  if (output === "json") {
-    const payload = command.render?.json ? command.render.json(result) : result;
-    if (payload !== undefined) {
-      process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
-    }
-    return;
-  }
-
-  if (output === "md") {
-    const payload = command.render?.markdown
-      ? command.render.markdown(result)
-      : typeof result === "string"
-      ? result
-      : JSON.stringify(result, null, 2);
-
-    if (payload.length > 0) {
-      process.stdout.write(`${payload}\n`);
-    }
-    return;
-  }
-
-  if (command.render?.rich) {
-    command.render.rich(result, { logger });
-    return;
-  }
-
-  if (typeof result === "string") {
-    process.stdout.write(`${result}\n`);
-    return;
-  }
-
-  if (result !== undefined) {
-    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-  }
-}
-
 function getGlobalFlags(command: CommanderCommand): GlobalFlags {
   const flags = command.optsWithGlobals() as GlobalFlags;
   return flags;
@@ -679,6 +648,11 @@ async function executeCommand<TServices extends object>(
   services: TServices
 ): Promise<void> {
   const logger = createLogger();
+  const primitives = {
+    logger,
+    renderTable,
+    getTheme,
+  };
   const globalFlags = getGlobalFlags(state.actionCommand);
   const output = resolveOutput(globalFlags);
   const shouldPrompt = !globalFlags.yes && Boolean(process.stdin.isTTY);
@@ -743,7 +717,7 @@ async function executeCommand<TServices extends object>(
     }
 
     const result = await state.command.handler(context);
-    renderResult(state.command, result, output, logger);
+    renderResult(state.command, result, output, primitives);
   });
 }
 

@@ -113,7 +113,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: output-rendering
     title: Auto output rendering (rich / md / json)
@@ -135,9 +135,9 @@ tasks:
 
       Write unit tests covering each return shape × format combination.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: secrets-and-requires

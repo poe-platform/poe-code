@@ -7,6 +7,7 @@ const terminal = readline.createInterface({
 });
 
 let hasGreeted = false;
+let interrupted = false;
 
 process.stdout.write("What is your name? ");
 
@@ -20,10 +21,18 @@ terminal.on("line", (name) => {
   terminal.close();
 });
 
+terminal.on("SIGINT", () => {
+  interrupted = true;
+  terminal.close();
+  process.kill(process.pid, "SIGINT");
+});
+
 terminal.on("close", () => {
   if (!hasGreeted) {
     console.log(`Hello, ${terminal.line}!`);
   }
 
-  process.exit(0);
+  if (!interrupted) {
+    process.exit(0);
+  }
 });

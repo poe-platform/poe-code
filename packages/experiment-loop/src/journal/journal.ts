@@ -1,7 +1,7 @@
 import { dirname } from "node:path";
 import type { ExperimentFileSystem, JournalEntry } from "../types.js";
 
-const TSV_HEADER = ["commit", "status", "score", "durationMs", "timestamp", "output"].join("\t");
+const TSV_HEADER = ["commit", "status", "score", "durationMs", "timestamp", "output", "agentOutput"].join("\t");
 
 export class ExperimentJournal {
   constructor(
@@ -59,7 +59,8 @@ export class ExperimentJournal {
           entry.score === null ? "null" : String(entry.score),
           String(entry.durationMs),
           entry.timestamp,
-          formatOutput(entry.output)
+          formatOutput(entry.output),
+          formatOutput(entry.agentOutput ?? "")
         ].join("\t")
       )
     ].join("\n");

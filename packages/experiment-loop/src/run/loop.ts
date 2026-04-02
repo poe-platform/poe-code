@@ -276,6 +276,7 @@ function createEntry(options: {
   status: JournalEntry["status"];
   score: number | null;
   output: string;
+  agentOutput: string;
   durationMs: number;
 }): JournalEntry {
   return {
@@ -283,6 +284,7 @@ function createEntry(options: {
     status: options.status,
     score: options.score,
     output: options.output,
+    agentOutput: options.agentOutput,
     durationMs: options.durationMs,
     timestamp: new Date().toISOString()
   };
@@ -430,12 +432,15 @@ export async function runExperimentLoop(
         throw error;
       }
 
+      const agentOutput = combineOutput(agentResult.stdout, agentResult.stderr);
+
       if (agentResult.exitCode !== 0) {
         const entry = createEntry({
           commit: preExperimentHash,
           status: "crash",
           score: null,
-          output: combineOutput(agentResult.stdout, agentResult.stderr),
+          output: agentOutput,
+          agentOutput,
           durationMs: Date.now() - experimentStart
         });
 
@@ -478,6 +483,7 @@ export async function runExperimentLoop(
             status: "crash",
             score: null,
             output: errorMessage,
+            agentOutput,
             durationMs: Date.now() - experimentStart
           });
 
@@ -509,6 +515,7 @@ export async function runExperimentLoop(
         status: keep ? "keep" : "discard",
         score: selectJournalScore(metrics, evaluationResults),
         output: formatEvaluationOutput(metrics, evaluationResults),
+        agentOutput,
         durationMs: Date.now() - experimentStart
       });
 

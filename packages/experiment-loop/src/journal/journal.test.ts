@@ -14,6 +14,7 @@ function createEntry(overrides: Partial<JournalEntry> = {}): JournalEntry {
     status: "keep",
     score: 1.04,
     output: "test_duration: 1.04",
+    agentOutput: "optimized hot path",
     durationMs: 5023,
     timestamp: "2026-03-30T10:00:00.000Z",
     ...overrides
@@ -105,9 +106,9 @@ describe("ExperimentJournal", () => {
 
     await expect(journal.format()).resolves.toBe(
       [
-        "commit\tstatus\tscore\tdurationMs\ttimestamp\toutput",
-        "a1b2c3d\tkeep\t1.04\t5023\t2026-03-30T10:00:00.000Z\tline 1\\nline\\t2",
-        "e4f5g6h\tdiscard\t1.12\t4987\t2026-03-30T10:11:00.000Z\ttest_duration: 1.12"
+        "commit\tstatus\tscore\tdurationMs\ttimestamp\toutput\tagentOutput",
+        "a1b2c3d\tkeep\t1.04\t5023\t2026-03-30T10:00:00.000Z\tline 1\\nline\\t2\toptimized hot path",
+        "e4f5g6h\tdiscard\t1.12\t4987\t2026-03-30T10:11:00.000Z\ttest_duration: 1.12\toptimized hot path"
       ].join("\n")
     );
   });
@@ -117,7 +118,7 @@ describe("ExperimentJournal", () => {
     const journal = new ExperimentJournal("/repo/missing.journal.jsonl", fs);
 
     await expect(journal.format()).resolves.toBe(
-      "commit\tstatus\tscore\tdurationMs\ttimestamp\toutput"
+      "commit\tstatus\tscore\tdurationMs\ttimestamp\toutput\tagentOutput"
     );
   });
 
@@ -132,7 +133,7 @@ describe("ExperimentJournal", () => {
     );
 
     await expect(journal.format()).resolves.toContain(
-      "a1b2c3d\tkeep\t1.04\t5023\t2026-03-30T10:00:00.000Z\tpath\\\\to\\\\file\\\\rnext line"
+      "a1b2c3d\tkeep\t1.04\t5023\t2026-03-30T10:00:00.000Z\tpath\\\\to\\\\file\\\\rnext line\toptimized hot path"
     );
   });
 
@@ -163,7 +164,7 @@ describe("ExperimentJournal", () => {
 
     await expect(journal.readAll()).resolves.toEqual([entry]);
     await expect(journal.format()).resolves.toContain(
-      "cr4sh00\tcrash\tnull\t102\t2026-03-30T10:05:30.000Z\tSyntaxError: unexpected token"
+      "cr4sh00\tcrash\tnull\t102\t2026-03-30T10:05:30.000Z\tSyntaxError: unexpected token\toptimized hot path"
     );
   });
 });

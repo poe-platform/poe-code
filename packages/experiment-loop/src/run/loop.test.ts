@@ -117,7 +117,7 @@ describe("runExperimentLoop", () => {
 
     const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
     expect(prompt).toContain("# Improve the tests");
-    expect(prompt).toContain("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput");
+    expect(prompt).toContain("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput\tagentOutput");
     expect(prompt).toContain("You are autonomous, do not stop or ask for input.");
 
     expect(git.currentHash).toHaveBeenCalledWith("/repo");
@@ -148,6 +148,7 @@ describe("runExperimentLoop", () => {
       })
     );
     expect(entry.output).toContain("tests: score=2, passed=true");
+    expect(entry.agentOutput).toBe("done");
   });
 
   it("logs crashes, resets git, and feeds the crash output into the next prompt", async () => {
@@ -213,14 +214,16 @@ describe("runExperimentLoop", () => {
       expect.objectContaining({
         commit: "base-1",
         status: "crash",
-        score: null
+        score: null,
+        agentOutput: "boom stdout\nboom stderr\n"
       })
     );
     expect(journalEntries[1]).toEqual(
       expect.objectContaining({
         commit: "keep-2",
         status: "keep",
-        score: 3
+        score: 3,
+        agentOutput: "fixed"
       })
     );
   });
@@ -277,7 +280,8 @@ describe("runExperimentLoop", () => {
       expect.objectContaining({
         commit: "discard-1",
         status: "discard",
-        score: 4
+        score: 4,
+        agentOutput: "done"
       })
     );
   });
@@ -1032,6 +1036,42 @@ describe("runExperimentLoop", () => {
 
     expect(entry?.status).toBe("crash");
     expect(entry?.output).toContain("unmerged files");
+  });
+
+  it("includes agent output in the journal fed to subsequent experiments", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 })
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll: vi.fn(async () => "keep-1")
+    });
+    const exec = createExec([
+      { stdout: "2\n", stderr: "", exitCode: 0 },
+      { stdout: "3\n", stderr: "", exitCode: 0 }
+    ]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => ({
+        stdout: "I refactored the parser module to reduce allocations",
+        stderr: "",
+        exitCode: 0
+      })
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 2,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    const secondPrompt = runAgent.mock.calls[1]?.[0].prompt as string;
+    expect(secondPrompt).toContain("I refactored the parser module to reduce allocations");
   });
 
   it("uses custom run.yaml prompt template when present", async () => {

@@ -85,6 +85,7 @@ export interface JournalEntry {
   status: "keep" | "discard" | "crash";
   score: number | null;
   output: string;
+  agentOutput: string;
   durationMs: number;
   timestamp: string;
 }

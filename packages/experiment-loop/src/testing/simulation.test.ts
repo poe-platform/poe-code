@@ -260,7 +260,7 @@ describe("createExperimentLoopSimulation", () => {
           },
           {
             assertPrompt: (prompt) => {
-              expect(prompt).toContain("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput");
+              expect(prompt).toContain("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput\tagentOutput");
               expect(prompt).toContain("commit-1\tkeep\t2");
             }
           }

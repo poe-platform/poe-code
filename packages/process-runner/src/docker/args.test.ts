@@ -199,6 +199,23 @@ describe("buildDockerRunArgs", () => {
     ]);
   });
 
+  it("does not add context args for an empty docker context", () => {
+    expect(
+      buildDockerRunArgs({
+        ...baseInput,
+        context: ""
+      })
+    ).toEqual([
+      "docker",
+      "run",
+      "--rm",
+      "--name",
+      "process-runner-test",
+      "node:22",
+      "node"
+    ]);
+  });
+
   it("adds detached mode flag", () => {
     expect(
       buildDockerRunArgs({

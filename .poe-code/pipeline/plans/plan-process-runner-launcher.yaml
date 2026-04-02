@@ -258,7 +258,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pr-engine-context
     title: Implement engine and context detection
@@ -302,9 +302,9 @@ tasks:
       Export `detectEngine`, `isEngineAvailable`, `detectContext`, `buildContextArgs` from `packages/process-runner/src/index.ts`.
       Follow TDD.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pr-docker-runner

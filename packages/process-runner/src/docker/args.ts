@@ -4,7 +4,7 @@ import type { DockerRunArgs } from "../types.js";
 export function buildDockerRunArgs(input: DockerRunArgs): string[] {
   const args: string[] = [input.engine];
 
-  if (input.engine === "docker" && input.context !== null) {
+  if (input.engine === "docker" && input.context) {
     args.push("--context", input.context);
   }
 

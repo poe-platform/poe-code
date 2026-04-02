@@ -366,7 +366,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pr-verify
     title: Verify process-runner end-to-end
@@ -398,9 +398,9 @@ tasks:
       7. Update `docs/plans/process-runner.md` — if there are any deviations from the plan, document them.
       8. Note in `docs/plans/process-launcher.md` that `ProcessRuntime` is superseded by `Runner` from `@poe-code/process-runner` (as stated in process-runner plan phase 5 step 17).
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ══════════════════════════════════════════════════════════════════

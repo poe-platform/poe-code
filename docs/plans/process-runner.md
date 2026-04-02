@@ -514,6 +514,17 @@ Run with `npx tsx packages/process-runner/src/testing/verify.ts`.
 All verification is automated and assertions are checked in code —
 no human interaction required. An AI agent can run this and read the output.
 
+### Implementation notes
+
+- The implemented verifier also supports the package-local flow used during delivery:
+  `cd packages/process-runner && npm test && npm run lint`.
+- Docker checks are skipped when the container engine is unavailable or unresponsive,
+  which includes cases where the CLI exists but `docker info` / `podman info` hangs.
+- `verifyDockerMount` uses a temporary directory with a known file instead of listing `/tmp`,
+  so the assertion validates mount contents directly.
+- `verifyDockerPort` runs `busybox httpd` inside Alpine instead of a one-shot `nc` server,
+  which makes the host-to-container port assertion more reliable.
+
 ```typescript
 import { createHostRunner, createDockerRunner } from "../index.js";
 import { strict as assert } from "node:assert";

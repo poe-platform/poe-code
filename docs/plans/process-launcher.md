@@ -1,5 +1,9 @@
 # Process Launcher
 
+Note: the process execution abstraction described here is superseded by `Runner`
+from `@poe-code/process-runner`. `ProcessRuntime` should be treated as the older
+name for that execution seam when this plan is revisited.
+
 Lightweight cross-platform process supervisor for poe-code.
 Start, monitor, restart, and stop long-running dev tools (e.g. `openclaw`) from the CLI.
 Supports both native (host) and Docker runtimes via a `ProcessRuntime` abstraction.

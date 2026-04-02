@@ -173,6 +173,38 @@ describe("launch command", () => {
     );
   });
 
+  it("infers the host runtime when a command is provided without a docker image", async () => {
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "launch",
+      "start",
+      "test-echo",
+      "--ready-pattern",
+      "ready",
+      "--",
+      "sh",
+      "-c",
+      "echo ready && sleep 30"
+    ]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(startLaunchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spec: expect.objectContaining({
+          id: "test-echo",
+          command: "sh",
+          args: ["-c", "echo ready && sleep 30"],
+          readyCheck: { kind: "log-pattern", pattern: "ready" },
+          restart: "on-failure"
+        })
+      })
+    );
+  });
+
   it("renders launch status as a table", async () => {
     listLaunchesMock.mockResolvedValue([
       {

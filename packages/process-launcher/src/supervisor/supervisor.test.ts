@@ -1,8 +1,6 @@
 import net from "node:net";
-import path from "node:path";
-import { once } from "node:events";
 import { Volume, createFsFromVolume } from "memfs";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createMockRunner } from "@poe-code/process-runner/testing";
 import type {
   LauncherFileSystem,
@@ -606,18 +604,4 @@ async function getAvailablePort(host = "127.0.0.1"): Promise<number> {
   const { port } = address;
   await closeServer(server);
   return port;
-}
-
-async function readLines(fs: LauncherFileSystem, filePath: string): Promise<string[]> {
-  const content = await fs.readFile(filePath, "utf8");
-
-  if (content.length === 0) {
-    return [];
-  }
-
-  const lines = content.split("\n");
-  if (content.endsWith("\n")) {
-    lines.pop();
-  }
-  return lines;
 }

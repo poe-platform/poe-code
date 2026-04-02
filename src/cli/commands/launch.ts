@@ -209,7 +209,11 @@ async function resolveStartSpec(options: {
     throw new ValidationError("Command to run is required.");
   }
 
-  const runtime = await resolveRuntime(options.options.image, flags.assumeYes);
+  const runtime = await resolveRuntime({
+    assumeYes: flags.assumeYes,
+    hasCommand: commandParts.length > 0,
+    image: options.options.image
+  });
   if (runtime === null) {
     return null;
   }
@@ -305,15 +309,16 @@ async function resolveCommandParts(commandArgs: string[]): Promise<string[] | nu
   return splitCommandLine(value);
 }
 
-async function resolveRuntime(
-  image: string | undefined,
-  assumeYes: boolean
-): Promise<"host" | "docker" | null> {
-  if (image) {
+async function resolveRuntime(options: {
+  image: string | undefined;
+  assumeYes: boolean;
+  hasCommand: boolean;
+}): Promise<"host" | "docker" | null> {
+  if (options.image) {
     return "docker";
   }
 
-  if (assumeYes) {
+  if (options.hasCommand || options.assumeYes) {
     return "host";
   }
 
@@ -414,7 +419,7 @@ function parseEnvEntries(entries: string[]): Record<string, string> {
 }
 
 function parseMount(value: string): DockerMount {
-  const parts = splitByDelimiter(value, ":");
+  const parts = value.split(":");
   if (parts.length < 2 || parts.length > 3) {
     throw new ValidationError(`Invalid --mount value "${value}". Expected src:target[:ro].`);
   }
@@ -432,7 +437,7 @@ function parseMount(value: string): DockerMount {
 }
 
 function parsePort(value: string): DockerPortMapping {
-  const parts = splitByDelimiter(value, ":");
+  const parts = value.split(":");
   if (parts.length !== 2) {
     throw new ValidationError(`Invalid --port value "${value}". Expected host:container.`);
   }
@@ -443,22 +448,6 @@ function parsePort(value: string): DockerPortMapping {
   };
 }
 
-function splitByDelimiter(value: string, delimiter: string): string[] {
-  const parts: string[] = [];
-  let current = "";
-
-  for (const char of value) {
-    if (char === delimiter) {
-      parts.push(current);
-      current = "";
-      continue;
-    }
-    current += char;
-  }
-
-  parts.push(current);
-  return parts;
-}
 
 function splitCommandLine(value: string): string[] {
   const parts: string[] = [];

@@ -860,7 +860,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pl-verify
     title: Verify process-launcher end-to-end
@@ -890,7 +890,7 @@ tasks:
 
       Do NOT test Docker runtime unless Docker is confirmed available.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

@@ -1,0 +1,623 @@
+import net from "node:net";
+import path from "node:path";
+import { once } from "node:events";
+import { Volume, createFsFromVolume } from "memfs";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createMockRunner } from "@poe-code/process-runner/testing";
+import type {
+  LauncherFileSystem,
+  ProcessSpec,
+  ProcessState,
+  SupervisorOptions
+} from "../types.js";
+import { createSupervisor } from "./supervisor.js";
+import { createSupervisor as createSupervisorFromIndex } from "../index.js";
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
+
+describe("createSupervisor", () => {
+  it("is exported from the package entrypoint", () => {
+    expect(createSupervisorFromIndex).toBe(createSupervisor);
+  });
+
+  it("start() transitions to running and calls onStatusChange", async () => {
+    const changes: ProcessState[] = [];
+    const supervisor = createTestSupervisor({
+      runner: createMockRunner([{ pid: 123, exitCode: 0, exitAfterMs: 10_000 }]),
+      onStatusChange: state => {
+        changes.push(state);
+      }
+    });
+
+    await supervisor.start();
+
+    expect(supervisor.getState()).toMatchObject({
+      pid: 123,
+      restartCount: 0,
+      status: "running"
+    });
+    expect(changes.map(state => state.status)).toEqual(["running"]);
+
+    await supervisor.stop();
+  });
+
+  it("process exits 0 with restart never and stays stopped", async () => {
+    vi.useFakeTimers();
+    const supervisor = createTestSupervisor({
+      runner: createMockRunner([{ exitCode: 0, exitAfterMs: 5 }]),
+      spec: { restart: "never" }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(5);
+
+    expect(supervisor.getState()).toMatchObject({
+      lastExitCode: 0,
+      pid: null,
+      status: "stopped"
+    });
+  });
+
+  it("process exits 1 with restart on-failure and restarts with backoff", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const runner = createRecordingRunner([
+      { pid: 1, exitCode: 1, exitAfterMs: 5 },
+      { pid: 2, exitCode: 0, exitAfterMs: 10_000 }
+    ]);
+    const supervisor = createTestSupervisor({
+      runner,
+      spec: { restart: "on-failure" }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(5);
+
+    expect(supervisor.getState()).toMatchObject({
+      lastExitCode: 1,
+      restartCount: 1,
+      status: "restarting"
+    });
+    expect(runner.execTimes).toEqual([0]);
+
+    await vi.advanceTimersByTimeAsync(999);
+    expect(runner.execTimes).toEqual([0]);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(runner.execTimes).toEqual([0, 1005]);
+    expect(supervisor.getState()).toMatchObject({
+      pid: 2,
+      restartCount: 1,
+      status: "running"
+    });
+
+    await supervisor.stop();
+  });
+
+  it("process exits 0 with restart on-failure and stays stopped", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const runner = createRecordingRunner([{ exitCode: 0, exitAfterMs: 5 }]);
+    const supervisor = createTestSupervisor({
+      runner,
+      spec: { restart: "on-failure" }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(5);
+
+    expect(runner.execTimes).toEqual([0]);
+    expect(supervisor.getState()).toMatchObject({
+      lastExitCode: 0,
+      status: "stopped"
+    });
+  });
+
+  it("process exits 0 with restart always and restarts", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const runner = createRecordingRunner([
+      { pid: 1, exitCode: 0, exitAfterMs: 5 },
+      { pid: 2, exitCode: 0, exitAfterMs: 10_000 }
+    ]);
+    const supervisor = createTestSupervisor({
+      runner,
+      spec: { restart: "always" }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(5);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(runner.execTimes).toEqual([0, 1005]);
+    expect(supervisor.getState()).toMatchObject({
+      pid: 2,
+      restartCount: 1,
+      status: "running"
+    });
+
+    await supervisor.stop();
+  });
+
+  it("max restarts exceeded transitions to crashed and stops retrying", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const runner = createRecordingRunner([
+      { pid: 1, exitCode: 1, exitAfterMs: 1 },
+      { pid: 2, exitCode: 1, exitAfterMs: 1 },
+      { pid: 3, exitCode: 1, exitAfterMs: 1 }
+    ]);
+    const supervisor = createTestSupervisor({
+      runner,
+      spec: { restart: "on-failure", maxRestarts: 2 }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(2_000);
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(runner.execTimes).toEqual([0, 1001, 3002]);
+    expect(supervisor.getState()).toMatchObject({
+      lastExitCode: 1,
+      pid: null,
+      restartCount: 2,
+      status: "crashed"
+    });
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(runner.execTimes).toEqual([0, 1001, 3002]);
+  });
+
+  it("treats maxRestarts 0 as unlimited restarts", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const runner = createRecordingRunner([
+      { pid: 1, exitCode: 1, exitAfterMs: 1 },
+      { pid: 2, exitCode: 1, exitAfterMs: 1 },
+      { pid: 3, exitCode: 0, exitAfterMs: 10_000 }
+    ]);
+    const supervisor = createTestSupervisor({
+      runner,
+      spec: { restart: "on-failure", maxRestarts: 0 }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    expect(runner.execTimes).toEqual([0, 1001, 3002]);
+    expect(supervisor.getState()).toMatchObject({
+      pid: 3,
+      restartCount: 2,
+      status: "running"
+    });
+
+    await supervisor.stop();
+  });
+
+  it("uses exponential backoff with a cap", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const runner = createRecordingRunner([
+      { exitCode: 1, exitAfterMs: 1 },
+      { exitCode: 1, exitAfterMs: 1 },
+      { exitCode: 1, exitAfterMs: 1 },
+      { exitCode: 0, exitAfterMs: 10_000 }
+    ]);
+    const supervisor = createTestSupervisor({
+      runner,
+      spec: {
+        backoffMs: 1_000,
+        maxBackoffMs: 2_500,
+        maxRestarts: 4,
+        restart: "always"
+      }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(2_000);
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(2_500);
+
+    expect(runner.execTimes).toEqual([0, 1001, 3002, 5503]);
+
+    await supervisor.stop();
+  });
+
+  it("resets restartCount after 60 seconds of stable uptime", async () => {
+    vi.useFakeTimers();
+    const supervisor = createTestSupervisor({
+      runner: createMockRunner([
+        { pid: 1, exitCode: 1, exitAfterMs: 1 },
+        { pid: 2, exitCode: 0, exitAfterMs: 61_000 }
+      ]),
+      spec: { restart: "on-failure" }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(supervisor.getState().restartCount).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(supervisor.getState().restartCount).toBe(0);
+  });
+
+  it("stop() calls kill, waits, and marks the process stopped", async () => {
+    vi.useFakeTimers();
+    const handle = createControllableHandle();
+    const runner = {
+      name: "controllable",
+      exec: vi.fn(() => handle)
+    };
+    const supervisor = createTestSupervisor({ runner });
+
+    await supervisor.start();
+    const stopPromise = supervisor.stop();
+
+    expect(handle.kill).toHaveBeenCalledWith("SIGTERM");
+    expect(supervisor.getState().status).toBe("running");
+
+    handle.finish({ exitCode: 0 });
+    await stopPromise;
+
+    expect(supervisor.getState()).toMatchObject({
+      pid: null,
+      status: "stopped"
+    });
+  });
+
+  it("stop() escalates to SIGKILL after 5 seconds when the process does not exit", async () => {
+    vi.useFakeTimers();
+    const handle = createControllableHandle();
+    handle.kill.mockImplementation((signal?: NodeJS.Signals) => {
+      if (signal === "SIGKILL") {
+        handle.finish({ exitCode: 137 });
+      }
+    });
+    const runner = {
+      name: "controllable",
+      exec: vi.fn(() => handle)
+    };
+    const supervisor = createTestSupervisor({ runner });
+
+    await supervisor.start();
+    const stopPromise = supervisor.stop();
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    await stopPromise;
+
+    expect(handle.kill).toHaveBeenNthCalledWith(1, "SIGTERM");
+    expect(handle.kill).toHaveBeenNthCalledWith(2, "SIGKILL");
+    expect(supervisor.getState().status).toBe("stopped");
+  });
+
+  it("restart() stops then starts again", async () => {
+    const first = createControllableHandle(11);
+    const second = createControllableHandle(22);
+    const runner = {
+      name: "controllable",
+      exec: vi.fn().mockReturnValueOnce(first).mockReturnValueOnce(second)
+    };
+    const supervisor = createTestSupervisor({ runner });
+
+    await supervisor.start();
+    first.finish({ exitCode: 0 });
+    await supervisor.restart();
+
+    expect(first.kill).toHaveBeenCalledWith("SIGTERM");
+    expect(runner.exec).toHaveBeenCalledTimes(2);
+    expect(supervisor.getState()).toMatchObject({
+      pid: 22,
+      status: "running"
+    });
+
+    second.finish({ exitCode: 0 });
+    await supervisor.stop();
+  });
+
+  it("ready check with log pattern becomes running only after the pattern appears", async () => {
+    vi.useFakeTimers();
+    const supervisor = createTestSupervisor({
+      runner: createMockRunner([
+        {
+          exitCode: 0,
+          exitAfterMs: 10_000,
+          stdout: ["booting\n", "server ready\n"],
+          stdoutInterval: 10
+        }
+      ]),
+      spec: {
+        readyCheck: { kind: "log-pattern", pattern: "ready" },
+        restart: "never"
+      }
+    });
+
+    const startPromise = supervisor.start();
+
+    await vi.advanceTimersByTimeAsync(10);
+    expect(supervisor.getState().status).not.toBe("running");
+
+    await vi.advanceTimersByTimeAsync(10);
+    await startPromise;
+
+    expect(supervisor.getState().status).toBe("running");
+
+    await supervisor.stop();
+  });
+
+  it("ready check with tcp polls until the port responds", async () => {
+    const port = await getAvailablePort();
+    const server = net.createServer();
+    const supervisor = createTestSupervisor({
+      runner: createMockRunner([{ exitCode: 0, exitAfterMs: 10_000 }]),
+      spec: {
+        readyCheck: { kind: "tcp", port, timeoutMs: 2_000 },
+        restart: "never"
+      }
+    });
+
+    setTimeout(() => {
+      void listen(server, port);
+    }, 200);
+
+    await supervisor.start();
+
+    expect(supervisor.getState().status).toBe("running");
+
+    await supervisor.stop();
+    await closeServer(server);
+  });
+
+  it("rotates logs on each restart", async () => {
+    vi.useFakeTimers();
+    const { fs } = createMemFs();
+    const supervisor = createTestSupervisor({
+      fs,
+      runner: createMockRunner([
+        { exitCode: 1, exitAfterMs: 5, stdout: ["first run\n"] },
+        { exitCode: 1, exitAfterMs: 5, stdout: ["second run\n"] },
+        { exitCode: 0, exitAfterMs: 10_000, stdout: ["third run\n"] }
+      ]),
+      spec: { restart: "on-failure", maxRestarts: 3 }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(5);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.advanceTimersByTimeAsync(5);
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    expect(await fs.readFile("/state/process/logs/stdout.2.log", "utf8")).toBe("first run\n");
+    expect(await fs.readFile("/state/process/logs/stdout.1.log", "utf8")).toBe("second run\n");
+
+    await supervisor.stop();
+  });
+
+  it("writes state.json on every status change", async () => {
+    vi.useFakeTimers();
+    const { fs, stateWrites } = createMemFs();
+    const supervisor = createTestSupervisor({
+      fs,
+      runner: createMockRunner([
+        { pid: 1, exitCode: 1, exitAfterMs: 5 },
+        { pid: 2, exitCode: 0, exitAfterMs: 10_000 }
+      ]),
+      spec: { restart: "on-failure" }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(5);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await supervisor.stop();
+
+    expect(stateWrites).toHaveLength(4);
+    expect(stateWrites.map(content => JSON.parse(content).status)).toEqual([
+      "running",
+      "restarting",
+      "running",
+      "stopped"
+    ]);
+    expect(stateWrites.at(-1)).toContain('"status": "stopped"');
+  });
+
+  it("abort signal shuts the supervisor down cleanly", async () => {
+    const controller = new AbortController();
+    const handle = createControllableHandle();
+    const runner = {
+      name: "controllable",
+      exec: vi.fn(() => handle)
+    };
+    const supervisor = createTestSupervisor({
+      runner,
+      signal: controller.signal
+    });
+
+    await supervisor.start();
+    controller.abort();
+    handle.finish({ exitCode: 0 });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(handle.kill).toHaveBeenCalledWith("SIGTERM");
+    expect(supervisor.getState().status).toBe("stopped");
+  });
+
+  it("pipes stdout and stderr to the log writer and onLog callback", async () => {
+    vi.useFakeTimers();
+    const { fs } = createMemFs();
+    const logs: Array<{ line: string; stream: "stdout" | "stderr" }> = [];
+    const supervisor = createTestSupervisor({
+      fs,
+      runner: createMockRunner([
+        {
+          exitCode: 0,
+          exitAfterMs: 25,
+          stderr: ["warn\n"],
+          stdout: ["hello\n"],
+          stdoutInterval: 5
+        }
+      ]),
+      onLog: (line, stream) => {
+        logs.push({ line, stream });
+      }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect(logs).toEqual([
+      { line: "hello", stream: "stdout" },
+      { line: "warn", stream: "stderr" }
+    ]);
+    expect(await fs.readFile("/state/process/logs/stdout.log", "utf8")).toBe("hello\n");
+    expect(await fs.readFile("/state/process/logs/stderr.log", "utf8")).toBe("warn\n");
+  });
+});
+
+function createTestSupervisor(overrides: Partial<SupervisorOptions> & { spec?: Partial<ProcessSpec> } = {}) {
+  const { fs } = createMemFs();
+  const { spec, ...optionOverrides } = overrides;
+
+  return createSupervisor({
+    spec: createSpec(spec),
+    stateDir: "/state",
+    fs,
+    runner: createMockRunner([{ exitCode: 0, exitAfterMs: 10_000 }]),
+    ...optionOverrides
+  });
+}
+
+function createSpec(overrides: Partial<ProcessSpec> = {}): ProcessSpec {
+  return {
+    args: ["run", "dev"],
+    command: "npm",
+    id: "process",
+    restart: "never",
+    ...overrides
+  };
+}
+
+function createMemFs(): {
+  fs: LauncherFileSystem;
+  stateWrites: string[];
+} {
+  const volume = new Volume();
+  const fs = createFsFromVolume(volume).promises as unknown as LauncherFileSystem;
+  const stateWrites: string[] = [];
+  const originalWriteFile = fs.writeFile.bind(fs);
+
+  fs.writeFile = vi.fn(async (filePath: string, content: string) => {
+    if (filePath.endsWith("state.json")) {
+      stateWrites.push(content);
+    }
+
+    await originalWriteFile(filePath, content);
+  });
+
+  return { fs, stateWrites };
+}
+
+function createRecordingRunner(behaviors: Parameters<typeof createMockRunner>[0]) {
+  const runner = createMockRunner(behaviors);
+  const execTimes: number[] = [];
+
+  return {
+    execTimes,
+    name: runner.name,
+    exec(spec: Parameters<typeof runner.exec>[0]) {
+      execTimes.push(Date.now());
+      return runner.exec(spec);
+    }
+  };
+}
+
+function createControllableHandle(pid = 123) {
+  let resolveResult: ((result: { exitCode: number }) => void) | null = null;
+
+  return {
+    pid,
+    stdout: null,
+    stderr: null,
+    stdin: null,
+    result: new Promise<{ exitCode: number }>(resolve => {
+      resolveResult = resolve;
+    }),
+    kill: vi.fn(),
+    finish(result: { exitCode: number }) {
+      if (resolveResult === null) {
+        throw new Error("Missing result resolver");
+      }
+
+      resolveResult(result);
+    }
+  };
+}
+
+async function listen(server: net.Server, port: number, host = "127.0.0.1"): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, host, () => {
+      server.off("error", reject);
+      resolve();
+    });
+  });
+}
+
+async function closeServer(server: net.Server): Promise<void> {
+  if (!server.listening) {
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    server.close(error => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
+async function getAvailablePort(host = "127.0.0.1"): Promise<number> {
+  const server = net.createServer();
+  await listen(server, 0, host);
+  const address = server.address();
+
+  if (!address || typeof address === "string") {
+    throw new Error("Expected server to listen on a TCP port");
+  }
+
+  const { port } = address;
+  await closeServer(server);
+  return port;
+}
+
+async function readLines(fs: LauncherFileSystem, filePath: string): Promise<string[]> {
+  const content = await fs.readFile(filePath, "utf8");
+
+  if (content.length === 0) {
+    return [];
+  }
+
+  const lines = content.split("\n");
+  if (content.endsWith("\n")) {
+    lines.pop();
+  }
+  return lines;
+}

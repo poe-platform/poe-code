@@ -937,6 +937,103 @@ describe("runExperimentLoop", () => {
     expect(result.experimentsCompleted).toBe(2);
   });
 
+  it("spawns recovery agent when git.commitAll fails, then retries successfully", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 })
+    });
+    const commitAll = vi
+      .fn<(message: string, cwd: string) => Promise<string>>()
+      .mockRejectedValueOnce(
+        new Error(
+          "Committing is not possible because you have unmerged files.\nhint: Fix them up in the work tree"
+        )
+      )
+      .mockResolvedValueOnce("keep-1");
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll
+    });
+    const exec = createExec([{ stdout: "2\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi
+      .fn<(input: AgentRunInput) => Promise<AgentRunResult>>()
+      .mockResolvedValueOnce({ stdout: "done", stderr: "", exitCode: 0 })
+      .mockResolvedValueOnce({ stdout: "fixed merge", stderr: "", exitCode: 0 });
+    const onRecoveryAttempt = vi.fn();
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent,
+      onRecoveryAttempt
+    });
+
+    expect(result.experimentsCompleted).toBe(1);
+    expect(result.experimentsKept).toBe(1);
+
+    // First call = experiment agent, second call = recovery agent
+    expect(runAgent).toHaveBeenCalledTimes(2);
+    const recoveryPrompt = runAgent.mock.calls[1]?.[0].prompt as string;
+    expect(recoveryPrompt).toContain("unmerged files");
+    expect(recoveryPrompt).toContain("Fix");
+
+    expect(onRecoveryAttempt).toHaveBeenCalledTimes(1);
+    expect(commitAll).toHaveBeenCalledTimes(2);
+  });
+
+  it("treats experiment as crash when recovery agent fails to fix git.commitAll", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 })
+    });
+    const commitAll = vi.fn(async () => {
+      throw new Error("Committing is not possible because you have unmerged files.");
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "base-1"),
+      commitAll
+    });
+    const exec = createExec([]);
+    const runAgent = vi
+      .fn<(input: AgentRunInput) => Promise<AgentRunResult>>()
+      .mockResolvedValueOnce({ stdout: "done", stderr: "", exitCode: 0 })
+      .mockResolvedValueOnce({ stdout: "tried but failed", stderr: "", exitCode: 1 });
+    const onRecoveryAttempt = vi.fn();
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent,
+      onRecoveryAttempt
+    });
+
+    expect(result.experimentsCompleted).toBe(1);
+    expect(result.experimentsKept).toBe(0);
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+
+    const journalContent = await fs.readFile(
+      "/repo/.poe-code/experiments/test-duration.journal.jsonl",
+      "utf8"
+    );
+    const [entry] = journalContent
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as JournalEntry);
+
+    expect(entry?.status).toBe("crash");
+    expect(entry?.output).toContain("unmerged files");
+  });
+
   it("uses custom run.yaml prompt template when present", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({

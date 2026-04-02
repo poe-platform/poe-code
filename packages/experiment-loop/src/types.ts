@@ -60,6 +60,7 @@ export interface ExperimentRunOptions {
   onMetricResult?: (metric: MetricDef, result: EvalResult) => void;
   onReset?: (targetHash: string) => void;
   onExperimentComplete?: (index: number, entry: JournalEntry) => void;
+  onRecoveryAttempt?: (error: string) => void;
   signal?: AbortSignal;
 }
 

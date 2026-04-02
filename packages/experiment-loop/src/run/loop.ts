@@ -455,10 +455,50 @@ export async function runExperimentLoop(
         continue;
       }
 
-      const commitHash = await git.commitAll(
-        `experiment-loop: ${path.basename(absoluteDocPath, path.extname(absoluteDocPath))} #${experimentIndex}`,
-        options.cwd
-      );
+      const commitMessage = `experiment-loop: ${path.basename(absoluteDocPath, path.extname(absoluteDocPath))} #${experimentIndex}`;
+      let commitHash: string;
+      try {
+        commitHash = await git.commitAll(commitMessage, options.cwd);
+      } catch (commitError) {
+        const errorMessage =
+          commitError instanceof Error ? commitError.message : String(commitError);
+        options.onRecoveryAttempt?.(errorMessage);
+
+        const recoveryResult = await runAgent({
+          agent: currentSpecifier.agent,
+          prompt: `A git command failed. Fix the issue so the commit can succeed.\n\nError:\n${errorMessage}`,
+          cwd: options.cwd,
+          ...(model ? { model } : {}),
+          ...(options.signal ? { signal: options.signal } : {})
+        });
+
+        if (recoveryResult.exitCode !== 0) {
+          const entry = createEntry({
+            commit: preExperimentHash,
+            status: "crash",
+            score: null,
+            output: errorMessage,
+            durationMs: Date.now() - experimentStart
+          });
+
+          experimentsCompleted += 1;
+          lastCrashOutput = entry.output;
+          await journal.log(entry);
+          await git.reset(preExperimentHash, options.cwd);
+          options.onReset?.(preExperimentHash);
+          options.onExperimentComplete?.(experimentIndex, entry);
+          await persistDoc({
+            fs,
+            docPath: absoluteDocPath,
+            baseline: frontmatter.baseline,
+            experimentsCompleted,
+            experimentsKept
+          });
+          continue;
+        }
+
+        commitHash = await git.commitAll(commitMessage, options.cwd);
+      }
       options.onCommit?.(commitHash);
       const evaluationResults = await evaluateChain(metrics, options.cwd, exec, options.onMetricResult, metricTimeoutMs);
       const keep =

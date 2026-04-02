@@ -259,6 +259,38 @@ export const generate = defineGroup({
 
 Everything on a group (`requires`, `secrets`) inherits down to all children. A child can add its own on top.
 
+### Default command
+
+A group can designate one of its children as the default command. When the first token after the group name doesn't match any child's name or alias, it is forwarded to the default command as a positional argument instead of producing an error.
+
+```typescript
+export const gh = defineGroup({
+  name: 'gh',
+  default: run,          // handles: poe-code gh <name>
+  children: [run, list, install, uninstall, exec],
+});
+
+export const run = defineCommand({
+  name: 'run',
+  positional: ['name'],
+  params: S.Object({
+    name:  S.String({ description: 'Automation name' }),
+    agent: S.Optional(S.String()),
+    model: S.Optional(S.String()),
+    interactive: S.Optional(S.Boolean({ short: 'i' })),
+  }),
+  handler: async ({ params }) => { /* ... */ },
+});
+```
+
+```bash
+poe-code gh github-issue-opened          # forwarded to run, name='github-issue-opened'
+poe-code gh run github-issue-opened      # explicit, same result
+poe-code gh list                         # normal subcommand, not forwarded
+```
+
+The default command must be listed in `children` as well — `default` is just a pointer, not a separate registration.
+
 ### File structure mirrors command structure
 
 ```

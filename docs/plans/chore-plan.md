@@ -306,11 +306,13 @@ jobs:
 
 ## Automation Prompt Format
 
-Each automation is a markdown file. Filename is the automation name. Frontmatter is only used when behavior can't be derived from the workflow — `source` and `schedule`. Everything else lives in the workflow YAML.
+Each automation is a markdown file. Filename is the automation name. Frontmatter is only used when behavior can't be derived from the workflow — `source`, `agent`, and `mcp`. Everything else lives in the workflow YAML.
 
 ### Frontmatter fields
 
 - `source` (optional): shell command whose stdout is parsed as JSON array; each item spawns its own agent
+- `agent` (optional): override the agent to use for this automation (e.g. `claude`, `opencode`)
+- `mcp` (optional): MCP servers to enable — same `Record<string, { command, args?, env? }>` shape as pipeline
 
 Prompt body: mustache template rendered per source item, or used as-is.
 
@@ -319,24 +321,54 @@ Prompt body: mustache template rendered per source item, or used as-is.
 ### `github-issue-opened.md`
 
 ```markdown
+---
+# Available variables:
+#   {{url}}          - full GitHub URL to the issue
+#   {{repo}}         - owner/repo (e.g. acme/my-app)
+#   {{issue.number}} - issue number
+#   {{issue.title}}  - issue title
+---
 Read {{url}} and implement the requested changes.
 ```
 
 ### `github-issue-comment-created.md`
 
 ```markdown
+---
+# Available variables:
+#   {{url}}            - full GitHub URL to the issue
+#   {{repo}}           - owner/repo (e.g. acme/my-app)
+#   {{issue.number}}   - issue number
+#   {{issue.title}}    - issue title
+#   {{comment.author}} - login of the comment author
+#   {{comment.body}}   - body text of the triggering comment
+---
 Read {{url}} and act on the comment from {{comment.author}}: {{comment.body}}
 ```
 
 ### `github-pull-request-opened.md`
 
 ```markdown
+---
+# Available variables:
+#   {{url}}       - full GitHub URL to the pull request
+#   {{repo}}      - owner/repo (e.g. acme/my-app)
+#   {{pr.number}} - pull request number
+#   {{pr.title}}  - pull request title
+#   {{pr.author}} - login of the PR author
+---
 Read {{url}} and review the pull request.
 ```
 
 ### `github-pull-request-synchronized.md`
 
 ```markdown
+---
+# Available variables:
+#   {{url}}       - full GitHub URL to the pull request
+#   {{repo}}      - owner/repo (e.g. acme/my-app)
+#   {{pr.number}} - pull request number
+---
 Read {{url}} and re-review the updated pull request.
 ```
 
@@ -345,6 +377,23 @@ Read {{url}} and re-review the updated pull request.
 ```markdown
 ---
 source: gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] | select(.state=="open")]'
+agent: claude
+mcp:
+  github:
+    command: npx
+    args: [-y, "@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: ${{ GITHUB_TOKEN }}
+# Available variables (each sourced Dependabot alert):
+#   {{number}}                                          - alert number
+#   {{dependency.package.name}}                         - vulnerable package name
+#   {{dependency.package.ecosystem}}                    - ecosystem (e.g. npm)
+#   {{dependency.manifest_path}}                        - path to manifest (e.g. package.json)
+#   {{security_advisory.ghsa_id}}                       - advisory ID
+#   {{security_advisory.summary}}                       - short description
+#   {{security_advisory.severity}}                      - low | medium | high | critical
+#   {{security_advisory.description}}                   - full advisory description
+#   {{security_vulnerability.first_patched_version.identifier}} - first safe version
 ---
 Fix {{dependency.package.name}} ({{security_advisory.severity}}): {{security_advisory.summary}}
 ```
@@ -408,6 +457,8 @@ interface AutomationDefinition {
   name: string;               // derived from filename
   prompt: string;             // full markdown body (mustache template)
   source?: string;            // shell command returning JSON array
+  agent?: string;             // override agent for this automation
+  mcp?: McpSpawnConfig;       // MCP servers (same shape as pipeline)
 }
 
 function discoverAutomations(builtInDir, projectDir?): Promise<AutomationDefinition[]>
@@ -419,18 +470,18 @@ function loadAutomation(name, dirs): Promise<AutomationDefinition>
 ### Simple automation (no source)
 
 1. Discover automation, match by name
-2. Resolve agent + model
+2. Resolve agent + model (frontmatter `agent` overrides CLI flag)
 3. Load prompt: check `.poe-code/gh/<name>.md`, fall back to built-in
-4. Spawn agent with prompt body
+4. Spawn agent with prompt body + frontmatter `mcp` servers
 
 ### Sourced automation
 
 1. Discover automation, match by name
-2. Resolve agent + model
+2. Resolve agent + model (frontmatter `agent` overrides CLI flag)
 3. Load prompt: check `.poe-code/gh/<name>.md`, fall back to built-in
 4. Run source command: `commandRunner("sh", ["-c", source])`
 5. Parse stdout as JSON array
-6. For each item: `mustache.render(template, item)` → spawn agent
+6. For each item: `mustache.render(template, item)` → spawn agent with frontmatter `mcp` servers
 7. Collect results
 
 ## SDK Integration

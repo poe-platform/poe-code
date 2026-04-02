@@ -24,10 +24,10 @@ tasks:
       Export all builders and types from the package root.
       Write unit tests covering type inference and JSON Schema output for all schema types.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: cmdkit-define
     title: defineCommand + defineGroup core types

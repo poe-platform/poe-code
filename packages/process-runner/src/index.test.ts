@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import * as api from "./index.js";
 import { buildContextArgs, detectContext } from "./docker/context.js";
 import { detectEngine, isEngineAvailable } from "./docker/engine.js";
+import { createDockerRunner } from "./docker/docker-runner.js";
 import { createHostRunner } from "./host/host-runner.js";
 import { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";
 import type {
@@ -117,6 +118,7 @@ describe("@poe-code/process-runner public exports", () => {
     expect(api.detectEngine).toBe(detectEngine);
     expect(api.isEngineAvailable).toBe(isEngineAvailable);
     expect(api.createHostRunner).toBe(createHostRunner);
+    expect(api.createDockerRunner).toBe(createDockerRunner);
     expect(api.createMockRunner).toBe(createMockRunner);
     expect(api.createMockRunnerByCommand).toBe(createMockRunnerByCommand);
     expect(Object.keys(api)).toEqual([
@@ -124,6 +126,7 @@ describe("@poe-code/process-runner public exports", () => {
       "detectContext",
       "detectEngine",
       "isEngineAvailable",
+      "createDockerRunner",
       "createHostRunner",
       "createMockRunner",
       "createMockRunnerByCommand"

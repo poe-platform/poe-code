@@ -6,9 +6,10 @@ import { intro } from "./primitives/intro.js";
 import { log } from "./primitives/log.js";
 import { note } from "./primitives/note.js";
 import { outro } from "./primitives/outro.js";
+import { spinner } from "./primitives/spinner.js";
 
 export { isCancel, cancel, log };
-export { intro, outro, note };
+export { intro, outro, note, spinner };
 
 export function introPlain(title: string): void {
   const format = resolveOutputFormat();
@@ -88,10 +89,6 @@ export type SpinnerOptions = {
   stop: (message?: string, code?: number) => void;
   message: (message?: string) => void;
 };
-
-export function spinner(): SpinnerOptions {
-  return clack.spinner();
-}
 
 export interface WithSpinnerOptions<T> {
   message: string;

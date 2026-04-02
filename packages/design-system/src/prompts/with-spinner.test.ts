@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import * as clack from "@clack/prompts";
 import { withSpinner } from "./index.js";
 import { resetOutputFormatCache, resolveOutputFormat } from "../internal/output-format.js";
+import { spinner as primitiveSpinner } from "./primitives/spinner.js";
 
-vi.mock("@clack/prompts", () => ({
+vi.mock("./primitives/spinner.js", () => ({
   spinner: vi.fn()
 }));
 
-const clackSpinner = vi.mocked(clack.spinner);
+const spinnerFactory = vi.mocked(primitiveSpinner);
 
 describe("withSpinner", () => {
   let stdoutSpy: ReturnType<typeof vi.spyOn>;
@@ -16,7 +16,7 @@ describe("withSpinner", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    clackSpinner.mockClear();
+    spinnerFactory.mockClear();
     stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     process.env.POE_NO_SPINNER = undefined;
     resetOutputFormatCache();
@@ -43,7 +43,7 @@ describe("withSpinner", () => {
     const start = vi.fn();
     const stop = vi.fn();
     const message = vi.fn();
-    clackSpinner.mockReturnValue({ start, stop, message } as any);
+    spinnerFactory.mockReturnValue({ start, stop, message } as any);
 
     const result = await withSpinner({
       message: "Loading...",
@@ -60,7 +60,7 @@ describe("withSpinner", () => {
     const start = vi.fn();
     const stop = vi.fn();
     const message = vi.fn();
-    clackSpinner.mockReturnValue({ start, stop, message } as any);
+    spinnerFactory.mockReturnValue({ start, stop, message } as any);
 
     let resolve: (value: string) => void;
     const fn = () => new Promise<string>((r) => { resolve = r; });
@@ -87,7 +87,7 @@ describe("withSpinner", () => {
     const start = vi.fn();
     const stop = vi.fn();
     const message = vi.fn();
-    clackSpinner.mockReturnValue({ start, stop, message } as any);
+    spinnerFactory.mockReturnValue({ start, stop, message } as any);
 
     let resolve: (value: string) => void;
     const fn = () => new Promise<string>((r) => { resolve = r; });
@@ -111,7 +111,7 @@ describe("withSpinner", () => {
     const start = vi.fn();
     const stop = vi.fn();
     const message = vi.fn();
-    clackSpinner.mockReturnValue({ start, stop, message } as any);
+    spinnerFactory.mockReturnValue({ start, stop, message } as any);
 
     await expect(
       withSpinner({
@@ -127,7 +127,7 @@ describe("withSpinner", () => {
     const start = vi.fn();
     const stop = vi.fn();
     const message = vi.fn();
-    clackSpinner.mockReturnValue({ start, stop, message } as any);
+    spinnerFactory.mockReturnValue({ start, stop, message } as any);
 
     await withSpinner({
       message: "Working...",
@@ -151,7 +151,7 @@ describe("withSpinner", () => {
     });
 
     expect(result).toBe("hello");
-    expect(clackSpinner).not.toHaveBeenCalled();
+    expect(spinnerFactory).not.toHaveBeenCalled();
 
     const output = stdoutSpy.mock.calls.map((c) => c[0]).join("");
     expect(output).toContain("hello");
@@ -171,7 +171,7 @@ describe("withSpinner", () => {
     });
 
     expect(result).toBe("hello");
-    expect(clackSpinner).not.toHaveBeenCalled();
+    expect(spinnerFactory).not.toHaveBeenCalled();
 
     const output = stdoutSpy.mock.calls.map((c) => c[0]).join("");
     expect(output).toContain("hello");
@@ -181,7 +181,7 @@ describe("withSpinner", () => {
     const start = vi.fn();
     const stop = vi.fn();
     const message = vi.fn();
-    clackSpinner.mockReturnValue({ start, stop, message } as any);
+    spinnerFactory.mockReturnValue({ start, stop, message } as any);
 
     await withSpinner({
       message: "Loading...",
@@ -203,7 +203,7 @@ describe("withSpinner", () => {
     });
 
     expect(result).toBe("raw content");
-    expect(clackSpinner).not.toHaveBeenCalled();
+    expect(spinnerFactory).not.toHaveBeenCalled();
 
     const output = stdoutSpy.mock.calls.map((c) => c[0]).join("");
     expect(output).toBe("raw content\n");

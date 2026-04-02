@@ -191,7 +191,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: primitive-spinner
     title: Own spinner primitive
@@ -226,10 +226,10 @@ tasks:
       format dispatch for the full async wrapper — keep that logic there, just replace the
       underlying `clack.spinner()` call with the new own spinner.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: wire-primitives
     title: Wire own primitives into prompts/index.ts and logger, screenshot validation

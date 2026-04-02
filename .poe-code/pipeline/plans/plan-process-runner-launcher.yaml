@@ -594,7 +594,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: pl-health-check
     title: Implement health check (ready checks)
@@ -637,9 +637,9 @@ tasks:
 
       Follow TDD. For TCP tests, use `node:net` to create a real local server on a random port.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: pl-supervisor

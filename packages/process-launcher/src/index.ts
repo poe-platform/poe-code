@@ -13,3 +13,4 @@ export type {
 
 export { createStateStore } from "./state/state-store.js";
 export { createLogWriter } from "./logs/log-writer.js";
+export { waitForReady } from "./health/health-check.js";

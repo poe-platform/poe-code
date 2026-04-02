@@ -9,16 +9,22 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
     }
   },
   "scripts": {
     "build": "tsc",
-    "test": "cd ../.. && vitest run packages/cmdkit/src/index.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/cmdkit/src/index.test.ts",
+    "test": "cd ../.. && vitest run packages/cmdkit/src/index.test.ts packages/cmdkit/src/cli.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/cmdkit/src/index.test.ts packages/cmdkit/src/cli.test.ts",
     "lint": "cd ../.. && eslint packages/cmdkit/src --ext ts && tsc -p packages/cmdkit/tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@poe-code/cmdkit-schema": "*"
+    "@poe-code/cmdkit-schema": "*",
+    "@poe-code/design-system": "*",
+    "commander": "^14.0.3"
   },
   "files": [
     "dist"

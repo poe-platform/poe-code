@@ -72,7 +72,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-runner
     title: CLI runner (runCLI)
@@ -110,9 +110,9 @@ tasks:
 
       Write unit tests for arg parsing, casing conversion, TTY detection, and error handling.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: output-rendering

@@ -7,6 +7,8 @@ import { spawnStreaming } from "./spawn.js";
 import * as adapterModule from "../adapters/index.js";
 import { codexSpawnConfig } from "../configs/codex.js";
 import { openCodeSpawnConfig } from "../configs/opencode.js";
+import { getMcpArgs } from "../mcp-args.js";
+import type { CliSpawnConfig } from "../types.js";
 
 vi.mock("node:child_process", () => ({
   spawn: vi.fn()
@@ -395,20 +397,11 @@ describe("acp/spawnStreaming", () => {
     ]);
   });
 
-  it("throws a clear error when MCP config is passed to unsupported streaming agents", () => {
+  it("throws a clear error when MCP config is passed to unsupported agents", () => {
+    const fakeConfig = { kind: "cli" as const, agentId: "fake-agent" } as CliSpawnConfig;
     expect(() =>
-      spawnStreaming({
-        agentId: "opencode",
-        prompt: "hello",
-        mcpServers: {
-          test: {
-            command: "tiny-stdio-mcp-test-server"
-          }
-        }
-      })
-    ).toThrow(
-      'Agent "opencode" does not support MCP servers at spawn time.\nAgents with spawn-time MCP support: claude-code, codex, kimi'
-    );
+      getMcpArgs(fakeConfig, { test: { command: "tiny-stdio-mcp-test-server" } })
+    ).toThrow('Agent "fake-agent" does not support MCP servers at spawn time.');
   });
 
   it("throws on unknown agentId before spawning", () => {

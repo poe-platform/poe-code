@@ -28,6 +28,7 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   return {
     ...actual,
     getSpawnConfig: vi.fn(actual.getSpawnConfig),
+    supportsMcpAtSpawn: vi.fn(actual.supportsMcpAtSpawn),
     spawnInteractive: vi.fn()
   };
 });
@@ -42,7 +43,7 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 });
 
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { getSpawnConfig, spawnInteractive } from "@poe-code/agent-spawn";
+import { getSpawnConfig, spawnInteractive, supportsMcpAtSpawn } from "@poe-code/agent-spawn";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -476,6 +477,7 @@ describe("spawn command", () => {
   });
 
   it("rejects --mcp-config for agents without spawn-time MCP support", async () => {
+    vi.mocked(supportsMcpAtSpawn).mockReturnValueOnce(false);
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -497,7 +499,7 @@ describe("spawn command", () => {
             args: ["serve", "word-of-the-day"]
           }
         }),
-        "opencode",
+        "kimi",
         "hello"
       ])
     ).rejects.toThrow(

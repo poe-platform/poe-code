@@ -7,6 +7,8 @@ import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
 import { kimiSpawnConfig } from "./configs/kimi.js";
 import { spawnInteractive } from "./spawn-interactive.js";
+import { getMcpArgs } from "./mcp-args.js";
+import type { CliSpawnConfig } from "./types.js";
 
 vi.mock("node:child_process", () => ({
   spawn: vi.fn()
@@ -285,18 +287,10 @@ describe("spawnInteractive", () => {
     ]);
   });
 
-  it("throws clear error for interactive MCP on unsupported agents", async () => {
-    await expect(
-      spawnInteractive("opencode", {
-        prompt: "test",
-        mcpServers: {
-          test: {
-            command: "tiny-stdio-mcp-test-server"
-          }
-        }
-      })
-    ).rejects.toThrow(
-      'Agent "opencode" does not support MCP servers at spawn time.\nAgents with spawn-time MCP support: claude-code, codex, kimi'
-    );
+  it("throws clear error for interactive MCP on unsupported agents", () => {
+    const fakeConfig = { kind: "cli" as const, agentId: "fake-agent" } as CliSpawnConfig;
+    expect(() =>
+      getMcpArgs(fakeConfig, { test: { command: "tiny-stdio-mcp-test-server" } })
+    ).toThrow('Agent "fake-agent" does not support MCP servers at spawn time.');
   });
 });

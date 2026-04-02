@@ -6,6 +6,8 @@ import { claudeCodeSpawnConfig } from "./configs/claude-code.js";
 import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
 import { spawn } from "./spawn.js";
+import { getMcpArgs } from "./mcp-args.js";
+import type { CliSpawnConfig } from "./types.js";
 
 vi.mock("node:child_process", () => ({
   spawn: vi.fn()
@@ -160,19 +162,11 @@ describe("spawn", () => {
     ]);
   });
 
-  it("throws a clear error when MCP servers are passed to unsupported agents", async () => {
-    await expect(
-      spawn("opencode", {
-        prompt: "hello",
-        mcpServers: {
-          test: {
-            command: "tiny-stdio-mcp-test-server"
-          }
-        }
-      })
-    ).rejects.toThrow(
-      'Agent "opencode" does not support MCP servers at spawn time.\nAgents with spawn-time MCP support: claude-code, codex, kimi'
-    );
+  it("throws a clear error when MCP servers are passed to unsupported agents", () => {
+    const fakeConfig = { kind: "cli" as const, agentId: "fake-agent" } as CliSpawnConfig;
+    expect(() =>
+      getMcpArgs(fakeConfig, { test: { command: "tiny-stdio-mcp-test-server" } })
+    ).toThrow('Agent "fake-agent" does not support MCP servers at spawn time.');
   });
 
   // IMPORTANT: CLI binaries (claude, codex, etc.) only accept bare model IDs

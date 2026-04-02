@@ -4,6 +4,8 @@ import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
 import { kimiSpawnConfig } from "./configs/kimi.js";
 import { buildSpawnArgs } from "./spawn.js";
+import { getMcpArgs } from "./mcp-args.js";
+import type { CliSpawnConfig } from "./types.js";
 
 describe("buildSpawnArgs", () => {
   it("throws error if agent ID cannot be resolved", () => {
@@ -297,19 +299,15 @@ describe("buildSpawnArgs", () => {
   });
 
   it("throws a clear error when MCP config is passed to unsupported agents", () => {
+    const fakeConfig = { kind: "cli" as const, agentId: "fake-agent" } as CliSpawnConfig;
     expect(() =>
-      buildSpawnArgs("opencode", {
-        prompt: "hello",
-        mcpServers: {
-          test: {
-            command: "tiny-stdio-mcp-test-server",
-            args: ["serve", "word-of-the-day"]
-          }
+      getMcpArgs(fakeConfig, {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
         }
       })
-    ).toThrow(
-      'Agent "opencode" does not support MCP servers at spawn time.\nAgents with spawn-time MCP support: claude-code, codex, kimi'
-    );
+    ).toThrow('Agent "fake-agent" does not support MCP servers at spawn time.');
   });
 
 });

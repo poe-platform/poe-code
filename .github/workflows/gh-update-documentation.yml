@@ -1,0 +1,23 @@
+name: Update Documentation
+on:
+  workflow_call:
+    inputs:
+      GITHUB_REPOSITORY:
+        required: true
+        type: string
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+      - run: npx poe-code github-workflows update-documentation --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ inputs.GITHUB_REPOSITORY }}

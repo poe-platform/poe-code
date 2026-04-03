@@ -1,0 +1,54 @@
+name: GitHub Issue Comment Created
+on:
+  workflow_call:
+    inputs:
+      ISSUE_NUMBER:
+        required: true
+        type: number
+      ISSUE_STATE:
+        required: true
+        type: string
+      COMMENT_BODY:
+        required: true
+        type: string
+      COMMENT_AUTHOR:
+        required: true
+        type: string
+      COMMENT_AUTHOR_ASSOCIATION:
+        required: true
+        type: string
+      COMMENT_USER_TYPE:
+        required: true
+        type: string
+      GITHUB_REPOSITORY:
+        required: true
+        type: string
+
+concurrency:
+  group: agent-issue-${{ inputs.ISSUE_NUMBER }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    if: inputs.ISSUE_STATE == 'open' && inputs.COMMENT_USER_TYPE != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx poe-code github-workflows exec check-user-allow github-issue-comment-created
+        env:
+          COMMENT_AUTHOR_ASSOCIATION: ${{ inputs.COMMENT_AUTHOR_ASSOCIATION }}
+      - run: npx poe-code github-workflows exec require-comment-prefix github-issue-comment-created
+        env:
+          COMMENT_BODY: ${{ inputs.COMMENT_BODY }}
+      - run: npx poe-code github-workflows github-issue-comment-created --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ inputs.ISSUE_NUMBER }}
+          COMMENT_BODY: ${{ inputs.COMMENT_BODY }}
+          COMMENT_AUTHOR: ${{ inputs.COMMENT_AUTHOR }}
+          GITHUB_REPOSITORY: ${{ inputs.GITHUB_REPOSITORY }}

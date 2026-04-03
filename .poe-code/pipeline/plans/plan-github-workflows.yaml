@@ -98,10 +98,10 @@ tasks:
       See `docs/plans/chore-plan.md` for the full workflow YAML examples.
       Run `npm run lint:workflows` before committing.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: command-tree
     title: Implement cmdkit command tree

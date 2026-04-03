@@ -434,3 +434,448 @@ Assert: error response.
 terminal_close_session { sessionId: "does-not-exist" }
 ```
 Assert: error response.
+
+---
+
+## 25. Bash — interactive shell
+
+```
+terminal_create_session { command: "bash", args: ["--norc", "--noprofile"], cols: 120, rows: 40 }
+```
+Save as **BASH**.
+
+```
+terminal_wait_for { sessionId: BASH, pattern: "\\$\\s*$", timeout: 3000 }
+```
+Assert: shell prompt visible.
+
+```
+terminal_fill { sessionId: BASH, text: "echo hello-from-bash\n" }
+terminal_wait_for { sessionId: BASH, pattern: "hello-from-bash" }
+```
+Assert: output appears.
+
+```
+terminal_fill { sessionId: BASH, text: "echo $((6 * 7))\n" }
+terminal_wait_for { sessionId: BASH, pattern: "42" }
+```
+Assert: arithmetic works.
+
+```
+terminal_fill { sessionId: BASH, text: "sleep 60\n" }
+terminal_wait_for { sessionId: BASH, pattern: "sleep", timeout: 2000 }
+terminal_press_key { sessionId: BASH, key: "Control+c" }
+terminal_wait_for { sessionId: BASH, pattern: "\\$\\s*$", timeout: 3000 }
+```
+Assert: Control+C interrupts the sleep and returns to prompt.
+
+```
+terminal_fill { sessionId: BASH, text: "exit\n" }
+terminal_wait_for_exit { sessionId: BASH, timeout: 3000 }
+```
+Assert: `exitCode == 0`.
+
+```
+terminal_close_session { sessionId: BASH }
+```
+
+---
+
+## 26. Bash — long output, read_history line count
+
+```
+terminal_create_session { command: "bash", args: ["--norc", "--noprofile"] }
+```
+Save as **BASH2**.
+
+```
+terminal_wait_for { sessionId: BASH2, pattern: "\\$\\s*$", timeout: 3000 }
+terminal_fill { sessionId: BASH2, text: "for i in $(seq 1 50); do echo \"line $i\"; done\n" }
+terminal_wait_for { sessionId: BASH2, pattern: "line 50" }
+```
+
+```
+terminal_read_history { sessionId: BASH2 }
+```
+Assert: `lines` contains entries for "line 1" through "line 50".
+
+```
+terminal_read_history { sessionId: BASH2, last: 10 }
+```
+Assert: `lines` has at most 10 entries, last entry contains "line 50".
+
+```
+terminal_close_session { sessionId: BASH2 }
+```
+
+---
+
+## 27. Python REPL — expression evaluation and multi-line input
+
+```
+terminal_create_session { command: "python3", args: ["-q"], cols: 120, rows: 40 }
+```
+Save as **PY**.
+
+```
+terminal_wait_for { sessionId: PY, pattern: ">>>" }
+```
+
+```
+terminal_fill { sessionId: PY, text: "2 ** 10\n" }
+terminal_wait_for { sessionId: PY, pattern: "1024" }
+```
+Assert: `1024` appears.
+
+```
+terminal_fill { sessionId: PY, text: "[x*x for x in range(5)]\n" }
+terminal_wait_for { sessionId: PY, pattern: "\\[0, 1, 4, 9, 16\\]" }
+```
+Assert: list comprehension result appears.
+
+Multi-line function definition:
+```
+terminal_fill { sessionId: PY, text: "def greet(name):\n" }
+terminal_wait_for { sessionId: PY, pattern: "\\.\\.\\." }
+terminal_fill { sessionId: PY, text: "    return f'hi {name}'\n" }
+terminal_wait_for { sessionId: PY, pattern: "\\.\\.\\." }
+terminal_fill { sessionId: PY, text: "\n" }
+terminal_wait_for { sessionId: PY, pattern: ">>>" }
+terminal_fill { sessionId: PY, text: "greet('world')\n" }
+terminal_wait_for { sessionId: PY, pattern: "hi world" }
+```
+Assert: function defined and called successfully.
+
+```
+terminal_press_key { sessionId: PY, key: "Control+d" }
+terminal_wait_for_exit { sessionId: PY, timeout: 3000 }
+```
+Assert: `exitCode == 0`.
+
+```
+terminal_close_session { sessionId: PY }
+```
+
+---
+
+## 28. Node.js REPL — evaluation and tab completion
+
+```
+terminal_create_session { command: "node", cols: 120, rows: 40 }
+```
+Save as **NODE**.
+
+```
+terminal_wait_for { sessionId: NODE, pattern: ">" }
+```
+
+```
+terminal_fill { sessionId: NODE, text: "Math.PI.toFixed(4)\n" }
+terminal_wait_for { sessionId: NODE, pattern: "3.1416" }
+```
+
+```
+terminal_fill { sessionId: NODE, text: "[1,2,3].map(x => x * 2)\n" }
+terminal_wait_for { sessionId: NODE, pattern: "\\[ 2, 4, 6 \\]" }
+```
+
+```
+terminal_fill { sessionId: NODE, text: "process.version\n" }
+terminal_wait_for { sessionId: NODE, pattern: "v\\d+" }
+```
+Assert: Node.js version string appears.
+
+```
+terminal_press_key { sessionId: NODE, key: "Control+d" }
+terminal_wait_for_exit { sessionId: NODE, timeout: 3000 }
+terminal_close_session { sessionId: NODE }
+```
+
+---
+
+## 29. vim — open, insert, edit, save and quit
+
+```
+terminal_create_session { command: "vim", args: ["/tmp/terminal-pilot-qa-test.txt"], cols: 120, rows: 40 }
+```
+Save as **VIM**.
+
+```
+terminal_wait_for { sessionId: VIM, pattern: "terminal-pilot-qa-test.txt", timeout: 5000 }
+```
+Assert: vim opens and shows the filename.
+
+Enter insert mode and type:
+```
+terminal_press_key { sessionId: VIM, key: "i" }
+terminal_type { sessionId: VIM, text: "hello from terminal-pilot" }
+```
+
+Exit insert mode:
+```
+terminal_press_key { sessionId: VIM, key: "Escape" }
+```
+
+```
+terminal_read_screen { sessionId: VIM }
+```
+Assert: `lines` contains "hello from terminal-pilot". `exitCode == null`.
+
+Save and quit:
+```
+terminal_fill { sessionId: VIM, text: ":wq\n" }
+terminal_wait_for_exit { sessionId: VIM, timeout: 5000 }
+```
+Assert: `exitCode == 0`.
+
+```
+terminal_close_session { sessionId: VIM }
+```
+
+Verify the file was written:
+```
+terminal_create_session { command: "cat", args: ["/tmp/terminal-pilot-qa-test.txt"] }
+```
+Save as **CAT**.
+```
+terminal_wait_for { sessionId: CAT, pattern: "hello from terminal-pilot" }
+terminal_close_session { sessionId: CAT }
+```
+
+---
+
+## 30. vim — quit without saving (discard)
+
+```
+terminal_create_session { command: "vim", args: ["/tmp/terminal-pilot-qa-discard.txt"], cols: 80, rows: 24 }
+```
+Save as **VIM2**.
+
+```
+terminal_wait_for { sessionId: VIM2, pattern: "terminal-pilot-qa-discard.txt", timeout: 5000 }
+terminal_press_key { sessionId: VIM2, key: "i" }
+terminal_type { sessionId: VIM2, text: "this should not be saved" }
+terminal_press_key { sessionId: VIM2, key: "Escape" }
+terminal_fill { sessionId: VIM2, text: ":q!\n" }
+terminal_wait_for_exit { sessionId: VIM2, timeout: 5000 }
+```
+Assert: `exitCode == 0` (forced quit succeeds).
+
+```
+terminal_close_session { sessionId: VIM2 }
+```
+
+---
+
+## 31. poe-code — help output
+
+```
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/poe-code/src/cli.ts", "--help"], cols: 120, rows: 40 }
+```
+Save as **POE_HELP**.
+
+```
+terminal_wait_for { sessionId: POE_HELP, pattern: "Usage:", timeout: 10000 }
+terminal_read_screen { sessionId: POE_HELP }
+```
+Assert: screen contains "configure" command.
+
+```
+terminal_wait_for_exit { sessionId: POE_HELP, timeout: 5000 }
+terminal_close_session { sessionId: POE_HELP }
+```
+
+---
+
+## 32. poe-code configure — interactive agent selection
+
+Create a temporary home directory first by running a bash one-liner to get the path:
+
+```
+terminal_create_session { command: "bash", args: ["-c", "mktemp -d /tmp/poe-qa-XXXXXX && echo TMPDIR_READY"] }
+```
+Save as **MKTMP**. Wait for "TMPDIR_READY", read the line before it to get the path (e.g. `/tmp/poe-qa-abc123`). Save as **TMPDIR**. Close **MKTMP**.
+
+Start configure with isolated home:
+```
+terminal_create_session {
+  command: "bash",
+  args: ["-c", "HOME=TMPDIR XDG_CONFIG_HOME=TMPDIR/.config XDG_DATA_HOME=TMPDIR/.local/share node_modules/.bin/tsx packages/poe-code/src/cli.ts configure"],
+  cols: 120,
+  rows: 40
+}
+```
+(Substitute the actual TMPDIR path into the command string.) Save as **CONF**.
+
+```
+terminal_wait_for { sessionId: CONF, pattern: "Pick an agent to configure", timeout: 15000 }
+```
+Assert: agent picker appears.
+
+```
+terminal_read_screen { sessionId: CONF }
+```
+Assert: screen lists available agents (Claude, Gemini, etc.), cursor is visible.
+
+Navigate to a different agent:
+```
+terminal_press_key { sessionId: CONF, key: "ArrowDown" }
+terminal_read_screen { sessionId: CONF }
+```
+Assert: selection moved down.
+
+Navigate back:
+```
+terminal_press_key { sessionId: CONF, key: "ArrowUp" }
+```
+
+Select the first agent (Claude) with Enter:
+```
+terminal_press_key { sessionId: CONF, key: "Enter" }
+terminal_wait_for { sessionId: CONF, pattern: "model|API key|authorization|Waiting", timeout: 15000 }
+```
+Assert: moved to the next step (model selection or auth).
+
+```
+terminal_read_screen { sessionId: CONF }
+```
+Assert: screen shows the next configuration step.
+
+Interrupt the configure flow:
+```
+terminal_press_key { sessionId: CONF, key: "Control+c" }
+terminal_wait_for_exit { sessionId: CONF, timeout: 5000 }
+terminal_close_session { sessionId: CONF }
+```
+
+Clean up temp dir:
+```
+terminal_create_session { command: "rm", args: ["-rf", "TMPDIR"] }
+terminal_wait_for_exit { sessionId: cleanup, timeout: 3000 }
+terminal_close_session { sessionId: cleanup }
+```
+
+---
+
+## 33. Claude Code — version and help
+
+```
+terminal_create_session { command: "claude", args: ["--version"], cols: 120, rows: 40 }
+```
+Save as **CC_VER**.
+
+```
+terminal_wait_for { sessionId: CC_VER, pattern: "\\d+\\.\\d+\\.\\d+", timeout: 10000 }
+```
+Assert: a semver string appears.
+
+```
+terminal_wait_for_exit { sessionId: CC_VER, timeout: 5000 }
+terminal_close_session { sessionId: CC_VER }
+```
+
+```
+terminal_create_session { command: "claude", args: ["--help"], cols: 120, rows: 40 }
+```
+Save as **CC_HELP**.
+
+```
+terminal_wait_for { sessionId: CC_HELP, pattern: "Usage", timeout: 10000 }
+terminal_read_screen { sessionId: CC_HELP }
+```
+Assert: help text visible, mentions common flags/commands.
+
+```
+terminal_wait_for_exit { sessionId: CC_HELP, timeout: 5000 }
+terminal_close_session { sessionId: CC_HELP }
+```
+
+---
+
+## 34. Claude Code — interactive session, single prompt
+
+Start Claude Code in print mode (non-interactive) to avoid needing stdin:
+
+```
+terminal_create_session {
+  command: "claude",
+  args: ["-p", "Reply with exactly: TERMINAL_PILOT_QA_OK"],
+  cols: 120,
+  rows: 40
+}
+```
+Save as **CC_PRINT**.
+
+```
+terminal_wait_for { sessionId: CC_PRINT, pattern: "TERMINAL_PILOT_QA_OK", timeout: 60000 }
+```
+Assert: Claude responds with the expected string.
+
+```
+terminal_read_history { sessionId: CC_PRINT }
+```
+Assert: history contains "TERMINAL_PILOT_QA_OK".
+
+```
+terminal_wait_for_exit { sessionId: CC_PRINT, timeout: 10000 }
+```
+Assert: `exitCode == 0`.
+
+```
+terminal_close_session { sessionId: CC_PRINT }
+```
+
+---
+
+## 35. Claude Code — interactive REPL mode
+
+```
+terminal_create_session {
+  command: "claude",
+  cols: 120,
+  rows: 40
+}
+```
+Save as **CC_REPL**.
+
+```
+terminal_wait_for { sessionId: CC_REPL, pattern: ">|\\$|claude", timeout: 15000 }
+```
+Assert: interactive prompt appears.
+
+```
+terminal_read_screen { sessionId: CC_REPL }
+```
+Assert: screen is non-empty, `exitCode == null`.
+
+Type a short prompt:
+```
+terminal_type { sessionId: CC_REPL, text: "Reply with exactly: REPL_QA_OK" }
+terminal_press_key { sessionId: CC_REPL, key: "Enter" }
+terminal_wait_for { sessionId: CC_REPL, pattern: "REPL_QA_OK", timeout: 60000 }
+```
+Assert: response contains "REPL_QA_OK".
+
+```
+terminal_read_history { sessionId: CC_REPL }
+```
+Assert: contains the prompt and the response.
+
+Exit Claude Code:
+```
+terminal_press_key { sessionId: CC_REPL, key: "Control+c" }
+```
+Or type `/exit` if prompted.
+```
+terminal_wait_for_exit { sessionId: CC_REPL, timeout: 10000 }
+terminal_close_session { sessionId: CC_REPL }
+```
+
+---
+
+## 36. Final state — all sessions closed
+
+```
+terminal_list_sessions {}
+```
+Assert: `sessions` is empty.

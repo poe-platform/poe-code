@@ -158,8 +158,23 @@ export function parsePlan(
   const mcpValue = document.mcp;
   const mcp = mcpValue !== undefined ? parseMcpConfig(mcpValue) : undefined;
 
+  let vars: Record<string, string> | undefined;
+  if (document.vars !== undefined) {
+    if (!isRecord(document.vars)) {
+      throw new Error("Invalid plan YAML: \"vars\" must be an object.");
+    }
+    vars = {};
+    for (const [key, val] of Object.entries(document.vars)) {
+      if (typeof val !== "string") {
+        throw new Error(`Invalid plan YAML: vars["${key}"] must be a string.`);
+      }
+      vars[key] = val;
+    }
+  }
+
   return {
     tasks,
+    ...(vars !== undefined ? { vars } : {}),
     ...(setup !== undefined ? { setup } : {}),
     ...(teardown !== undefined ? { teardown } : {}),
     ...(mcp !== undefined ? { mcp } : {})

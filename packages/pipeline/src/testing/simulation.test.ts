@@ -803,6 +803,53 @@ describe("createPipelineSimulation", () => {
     expect(prompts).toEqual(["Preamble\n# Context\nUse this context.\nDo the work."]);
   });
 
+  it("interpolates vars into task prompt", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        vars: { env: "production" },
+        tasks: [
+          {
+            id: "task-1",
+            title: "Deploy",
+            prompt: "Deploy to {{env}}.",
+            status: "open"
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual(["Deploy to production."]);
+  });
+
+  it("resolves a file-backed var and interpolates it into task prompt", async () => {
+    const sim = createPipelineSimulation({
+      files: {
+        "docs/plans/my-feature.md": "# My Feature\nBuild the thing."
+      },
+      plan: {
+        vars: { plan_doc: "{{file 'docs/plans/my-feature.md'}}" },
+        tasks: [
+          {
+            id: "task-1",
+            title: "Implement",
+            prompt: "{{plan_doc}}\n\nDo the implementation.",
+            status: "open"
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual(["# My Feature\nBuild the thing.\n\nDo the implementation."]);
+  });
+
   it("expands {{file '...'}} in setup/teardown prompts", async () => {
     const sim = createPipelineSimulation({
       files: {

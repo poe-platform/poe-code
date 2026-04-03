@@ -60,7 +60,7 @@ export function selectNextExecution(
   return { kind: "completed" };
 }
 
-function interpolate(template: string, values: Record<string, string>): string {
+export function interpolate(template: string, values: Record<string, string>): string {
   let output = template;
   for (const [key, value] of Object.entries(values)) {
     output = output.split(`{{${key}}}`).join(value);
@@ -92,9 +92,12 @@ export function buildExecutionPrompt(input: {
   selection: Extract<ExecutionSelection, { kind: "run" }>;
   steps: ResolvedStepDefinitions;
   planPath: string;
+  vars?: Record<string, string>;
 }): string {
   if (!input.selection.stepName) {
-    return input.selection.task.prompt;
+    return input.vars && Object.keys(input.vars).length > 0
+      ? interpolate(input.selection.task.prompt, input.vars)
+      : input.selection.task.prompt;
   }
 
   const step = input.steps[input.selection.stepName];
@@ -103,6 +106,7 @@ export function buildExecutionPrompt(input: {
   }
 
   return interpolate(step.prompt, {
+    ...(input.vars ?? {}),
     id: input.selection.task.id,
     title: input.selection.task.title,
     prompt: input.selection.task.prompt,

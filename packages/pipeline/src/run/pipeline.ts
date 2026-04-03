@@ -7,6 +7,7 @@ import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";
 import {
   buildExecutionPrompt,
+  interpolate,
   resolveFileIncludes,
   selectNextExecution
 } from "./runner.js";
@@ -47,6 +48,18 @@ function createDefaultFs(): PipelineFileSystem {
 
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
+}
+
+async function resolveVars(
+  vars: Record<string, string>,
+  cwd: string,
+  readFile: (filePath: string, encoding: BufferEncoding) => Promise<string>
+): Promise<Record<string, string>> {
+  const resolved: Record<string, string> = {};
+  for (const [key, value] of Object.entries(vars)) {
+    resolved[key] = await resolveFileIncludes(value, cwd, readFile);
+  }
+  return resolved;
 }
 
 function resolveMode(
@@ -148,6 +161,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     phaseDef: StepDefinition,
     phase: "setup" | "teardown",
     totalTasks: number,
+    vars: Record<string, string>,
     mcp?: PipelinePlan["mcp"]
   ): Promise<{ success: boolean; cancelled: boolean }> {
     const phaseProgress = {
@@ -161,7 +175,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     const startTime = Date.now();
     let result: AgentRunResult;
     try {
-      const phasePrompt = await resolveFileIncludes(phaseDef.prompt, options.cwd, fs.readFile.bind(fs));
+      const rawPrompt = Object.keys(vars).length > 0 ? interpolate(phaseDef.prompt, vars) : phaseDef.prompt;
+      const phasePrompt = await resolveFileIncludes(rawPrompt, options.cwd, fs.readFile.bind(fs));
       // runAgent is validated non-null at the top of runPipeline; TypeScript cannot narrow across closures
       result = await runAgent!({
         agent: phaseDef.agent ?? options.agent,
@@ -206,9 +221,10 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   const resolvedSetup = initialPlan.setup === null ? undefined : (initialPlan.setup ?? initialStepsConfig.setup);
   const resolvedTeardown = initialPlan.teardown === null ? undefined : (initialPlan.teardown ?? initialStepsConfig.teardown);
   const initialTotalTasks = initialPlan.tasks.length;
+  const initialVars = await resolveVars(initialPlan.vars ?? {}, options.cwd, fs.readFile.bind(fs));
 
   if (resolvedSetup) {
-    const { success, cancelled } = await runPhase(resolvedSetup, "setup", initialTotalTasks, initialPlan.mcp);
+    const { success, cancelled } = await runPhase(resolvedSetup, "setup", initialTotalTasks, initialVars, initialPlan.mcp);
     if (cancelled || !success) {
       return {
         stopReason: cancelled ? "cancelled" : "failed",
@@ -251,12 +267,13 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       }
 
       const totalTasks = plan.tasks.length;
+      const planVars = await resolveVars(plan.vars ?? {}, options.cwd, fs.readFile.bind(fs));
       const selection = selectNextExecution(plan, options.task);
 
       if (selection.kind === "completed") {
         if (runsCompleted > 0) {
           if (resolvedTeardown) {
-            const { success, cancelled } = await runPhase(resolvedTeardown, "teardown", initialTotalTasks, plan.mcp);
+            const { success, cancelled } = await runPhase(resolvedTeardown, "teardown", initialTotalTasks, planVars, plan.mcp);
             if (cancelled || !success) {
               return {
                 stopReason: cancelled ? "cancelled" : "failed",
@@ -315,7 +332,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       options.onTaskStart?.(taskProgress);
 
       const prompt = await resolveFileIncludes(
-        buildExecutionPrompt({ selection, steps: stepsConfig.steps, planPath }),
+        buildExecutionPrompt({ selection, steps: stepsConfig.steps, planPath, vars: planVars }),
         options.cwd,
         fs.readFile.bind(fs)
       );

@@ -70,6 +70,10 @@ When a task uses a step-status map, Pipeline:
 ## Plan Format
 
 ```yaml
+vars:
+  plan_doc: "{{file 'docs/plans/my-feature.md'}}"
+  env: production
+
 mcp:
   my-server:
     command: npx
@@ -86,6 +90,7 @@ tasks:
   - id: auth-hardening
     title: Harden auth flow
     prompt: |
+      {{plan_doc}}
       Improve auth validation and session handling.
     status:
       implement: done
@@ -105,6 +110,7 @@ Validation rules:
 - step statuses must be `open`, `done`, or `failed`
 - if a task references a step by name, that step must exist in resolved step config
 - if `mcp` is present, each entry must have a non-empty `command` string; `args` must be a string array; `env` must be a string record
+- if `vars` is present, it must be a string-valued object
 
 Authoring rules:
 
@@ -112,6 +118,37 @@ Authoring rules:
 - a task prompt should include the context needed to execute that task
 - do not rely on implicit dependencies between tasks
 - if no step configuration exists, use scalar task statuses such as `status: open`
+
+## Variables
+
+The optional top-level `vars` field defines named string values available as `{{var_name}}` placeholders in every prompt: task prompts, step prompts, and setup/teardown prompts.
+
+```yaml
+vars:
+  plan_doc: "{{file 'docs/plans/my-feature.md'}}"
+  env: staging
+
+tasks:
+  - id: deploy
+    title: Deploy to staging
+    prompt: |
+      {{plan_doc}}
+      Deploy the feature to {{env}}.
+    status: open
+```
+
+Variable values are plain strings. Use `{{file 'path'}}` inside a value to load a file — the file is read relative to the project root before the variable is injected into prompts.
+
+The typical use case is linking an existing Markdown plan document to the pipeline:
+
+```yaml
+vars:
+  plan_doc: "{{file 'docs/plans/my-feature.md'}}"
+```
+
+Then reference `{{plan_doc}}` in any task or step prompt instead of repeating the file include everywhere.
+
+Built-in step placeholders (`{{id}}`, `{{title}}`, `{{prompt}}`, `{{plan_path}}`) always take precedence over vars with the same name.
 
 ## Step Configuration
 

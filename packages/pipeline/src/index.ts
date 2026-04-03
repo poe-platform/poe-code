@@ -24,5 +24,5 @@ export { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
 export { resolveAbsolutePlanPath, resolvePlanDirectory, resolvePlanPath } from "./plan/discovery.js";
 export { parsePlan } from "./plan/parser.js";
 export { readPlanFile, writeTaskStatus } from "./plan/writer.js";
-export { buildExecutionPrompt, resolveFileIncludes, selectNextExecution } from "./run/runner.js";
+export { buildExecutionPrompt, interpolate, resolveFileIncludes, selectNextExecution } from "./run/runner.js";
 export { runPipeline } from "./run/pipeline.js";

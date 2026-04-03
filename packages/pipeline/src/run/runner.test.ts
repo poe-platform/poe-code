@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildExecutionPrompt,
+  interpolate,
   resolveFileIncludes,
   selectNextExecution,
   type ExecutionSelection
@@ -165,6 +166,60 @@ describe("buildExecutionPrompt", () => {
     });
 
     expect(prompt).toBe("Fix the timeout regression");
+  });
+
+  it("interpolates vars into stepless task prompt", () => {
+    const prompt = buildExecutionPrompt({
+      selection: {
+        kind: "run",
+        task: {
+          id: "task-1",
+          title: "Task",
+          prompt: "Context:\n{{plan_doc}}\nDo the work.",
+          status: "open"
+        }
+      },
+      steps,
+      planPath: "ignored.yaml",
+      vars: { plan_doc: "# Feature Plan\nSome content." }
+    });
+
+    expect(prompt).toBe("Context:\n# Feature Plan\nSome content.\nDo the work.");
+  });
+
+  it("interpolates vars into step prompt, built-ins take precedence", () => {
+    const prompt = buildExecutionPrompt({
+      selection: {
+        kind: "run",
+        task: {
+          id: "auth-hardening",
+          title: "Harden auth flow",
+          prompt: "Improve auth validation",
+          status: { implement: "open" }
+        },
+        stepName: "implement"
+      },
+      steps: {
+        implement: {
+          mode: "edit",
+          prompt: "{{plan_doc}}\n{{id}}: {{title}}\n{{prompt}}"
+        }
+      },
+      planPath: "plan.yaml",
+      vars: { plan_doc: "# Context", id: "should-be-ignored" }
+    });
+
+    expect(prompt).toBe("# Context\nauth-hardening: Harden auth flow\nImprove auth validation");
+  });
+});
+
+describe("interpolate", () => {
+  it("replaces all occurrences of a placeholder", () => {
+    expect(interpolate("{{x}} and {{x}}", { x: "hello" })).toBe("hello and hello");
+  });
+
+  it("leaves unknown placeholders untouched", () => {
+    expect(interpolate("{{known}} {{unknown}}", { known: "yes" })).toBe("yes {{unknown}}");
   });
 });
 

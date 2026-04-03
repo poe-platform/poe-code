@@ -14,6 +14,7 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 1. Run `poe-code pipeline plan-path` to get the plans directory.
 2. Write the plan to `<plan-path>/plan-<name>.yaml`. If the plan path is under the global `~/.poe-code` directory, prefix the filename with the project name: `plan-<project>-<name>.yaml`.
 3. Check if a `steps.yaml` exists next to the plans directory (i.e. `<plan-path>/../steps.yaml`). If it does, read it to determine available steps and note any `setup`/`teardown` hooks defined there. If not, use stepless tasks.
+4. If the user has an existing Markdown plan document (e.g. in `docs/plans/`), link it via `vars` so it is available in every prompt without repeating the path.
 
 ## Rules
 
@@ -27,10 +28,20 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 - `setup` and `teardown` defined in `steps.yaml` are inherited automatically.
 - To disable an inherited hook for a specific plan, set `setup: false` or `teardown: false`.
 - To override an inherited hook, define the full block with an `prompt` field.
+- If the user has an existing Markdown plan document, add a `vars` block and reference it as `{{plan_doc}}` in prompts instead of inlining or repeating `{{file '...'}}` in every task.
+- `vars` values are plain strings. Use `{{file 'path'}}` inside a value to load a file at runtime (path relative to project root).
 
 ## Output Format
 
 ```yaml
+# vars: define named values available as {{var_name}} in every prompt.
+# Use {{file 'path'}} inside a value to load a file (path relative to project root).
+# Omit if there are no shared values.
+#
+# vars:
+#   plan_doc: "{{file 'docs/plans/my-feature.md'}}"
+#   env: production
+
 # setup/teardown are inherited from steps.yaml automatically.
 # Include them only to disable or override:
 #
@@ -44,6 +55,7 @@ tasks:
   - id: auth-hardening
     title: Harden auth flow
     prompt: |
+      # {{plan_doc}} is available here if vars is defined above
       Improve auth validation and session handling.
     # scalar when no steps.yaml steps are defined:
     status: open

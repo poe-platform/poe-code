@@ -246,4 +246,36 @@ describe("parsePlan", () => {
 
     expect(plan.teardown).toBeNull();
   });
+
+  it("parses vars as a string record", () => {
+    const plan = parsePlan([
+      "vars:",
+      "  plan_doc: docs/plans/my-feature.md",
+      "  env: production",
+      "tasks: []",
+      ""
+    ].join("\n"));
+
+    expect(plan.vars).toEqual({
+      plan_doc: "docs/plans/my-feature.md",
+      env: "production"
+    });
+  });
+
+  it("omits vars when not defined", () => {
+    const plan = parsePlan("tasks: []\n");
+    expect(plan.vars).toBeUndefined();
+  });
+
+  it("throws when vars is not an object", () => {
+    expect(() =>
+      parsePlan("vars: just-a-string\ntasks: []\n")
+    ).toThrow(/"vars" must be an object/i);
+  });
+
+  it("throws when a var value is not a string", () => {
+    expect(() =>
+      parsePlan("vars:\n  bad: 123\ntasks: []\n")
+    ).toThrow(/vars\["bad"\] must be a string/i);
+  });
 });

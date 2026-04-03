@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StyledRun } from "./ansi-parser.js";
-import { renderPng } from "./index.js";
+import { renderPng } from "./png-renderer.js";
 import { renderSvg } from "./svg-renderer.js";
 
 function createRun(overrides: Partial<StyledRun> = {}): StyledRun {

@@ -1,2 +1,5 @@
 #!/usr/bin/env node
-import "../dist/cli.js";
+import { main } from "../dist/cli.js";
+
+const exitCode = await main();
+process.exitCode = exitCode;

@@ -106,6 +106,18 @@ describe("TerminalSession", () => {
     expect(await session.close()).toBe(0);
   });
 
+  it("lets a process finish cleanly when close is called during its natural shutdown", async () => {
+    const session = createSession("session-2b");
+    sessions.push(session);
+
+    await session.waitFor("What is your name?");
+    await session.send("Grace\r");
+    await session.waitFor("Hello, Grace!");
+
+    expect(await session.close()).toBe(0);
+    expect(session.exitCode).toBe(0);
+  });
+
   it("handles signals and surfaces the exit code", async () => {
     const session = createSession("session-3");
     sessions.push(session);

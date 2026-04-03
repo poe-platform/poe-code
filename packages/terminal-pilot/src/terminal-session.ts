@@ -234,11 +234,13 @@ export class TerminalSession {
     if (!this.closeRequested) {
       this.closeRequested = true;
 
+      const gracefulExitCode = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGNAL_GRACE_MS);
+      if (gracefulExitCode !== null) {
+        return gracefulExitCode;
+      }
+
       if (this.signalRequested) {
-        const exitCode = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGNAL_GRACE_MS);
-        if (exitCode !== null) {
-          return exitCode;
-        }
+        return this.exitPromise;
       }
 
       if (this.exitCode === null) {

@@ -202,7 +202,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: index-and-cli
     title: Public API + CLI
@@ -253,9 +253,9 @@ tasks:
 
       Update `packages/terminal-screenshot/src/index.ts` to export `renderTerminalScreenshot` and `TerminalScreenshotOptions`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: visual-comparison

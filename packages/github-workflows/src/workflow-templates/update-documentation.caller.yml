@@ -6,7 +6,7 @@ on:
 
 jobs:
   run:
-    uses: poe-code/poe-setup-scripts/.github/workflows/gh-update-documentation.yml@main
+    uses: __UPSTREAM_REPO__/.github/workflows/gh-update-documentation.yml@main
     secrets: inherit
     with:
       GITHUB_REPOSITORY: ${{ github.repository }}

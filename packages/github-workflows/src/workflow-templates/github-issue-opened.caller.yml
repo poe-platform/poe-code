@@ -5,7 +5,7 @@ on:
 
 jobs:
   run:
-    uses: poe-code/poe-setup-scripts/.github/workflows/gh-github-issue-opened.yml@main
+    uses: __UPSTREAM_REPO__/.github/workflows/gh-github-issue-opened.yml@main
     secrets: inherit
     with:
       ISSUE_NUMBER: ${{ github.event.issue.number }}

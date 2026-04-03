@@ -60,17 +60,9 @@ describe("built-in prompts", () => {
       name: "fix-vulnerabilities",
       source:
         `gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] | select(.state=="open")]'`,
-      agent: "claude",
-      mcp: {
-        github: {
-          command: "npx",
-          args: ["-y", "@modelcontextprotocol/server-github"],
-          env: {
-            GITHUB_PERSONAL_ACCESS_TOKEN: "${{ GITHUB_TOKEN }}"
-          }
-        }
-      }
+      agent: "claude"
     });
+    expect(automation?.mcp).toBeUndefined();
 
     expect(automation?.prompt.trimEnd()).toBe(
       "Fix {{dependency.package.name}} ({{security_advisory.severity}}): {{security_advisory.summary}}"

@@ -401,9 +401,9 @@ describe("ghGroup", () => {
       })
     );
 
-    expect(readRepoFile("/repo/.poe-code/github-workflows/github-issue-opened.md")).toBe("# Prompt");
-    expect(readRepoFile("/repo/.github/workflows/gh-github-issue-opened.yml")).toContain(
-      "uses: poe-code/poe-setup-scripts/.github/workflows/gh-github-issue-opened.yml@main"
+    expect(readRepoFile("/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md")).toBe("# Prompt");
+    expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toContain(
+      "uses: poe-platform/poe-code/.github/workflows/gh-github-issue-opened.yml@main"
     );
   });
 
@@ -419,7 +419,7 @@ describe("ghGroup", () => {
       })
     );
 
-    const workflow = readRepoFile("/repo/.github/workflows/gh-github-pull-request-opened.yml");
+    const workflow = readRepoFile("/repo/.github/workflows/poe-code-github-pull-request-opened.yml");
     expect(workflow).toContain("pull_request:");
     expect(workflow).not.toContain("workflow_dispatch:");
   });
@@ -437,10 +437,10 @@ describe("ghGroup", () => {
       })
     );
 
-    const workflow = readRepoFile("/repo/.github/workflows/gh-github-issue-comment-created.yml");
+    const workflow = readRepoFile("/repo/.github/workflows/poe-code-github-issue-comment-created.yml");
     expect(workflow).toContain("issue_comment:");
     expect(workflow).toContain(
-      "npx poe-code github-workflows exec check-user-allow github-issue-comment-created"
+      "npx poe-code github-workflows exec check-user-allow poe-code-github-issue-comment-created"
     );
     expect(workflow).not.toContain("workflow_call:");
   });
@@ -459,8 +459,8 @@ describe("ghGroup", () => {
 
   it("uninstalls the workflow file and leaves the prompt copy intact", async () => {
     vol.fromJSON({
-      "/repo/.github/workflows/gh-github-issue-opened.yml": "workflow",
-      "/repo/.poe-code/github-workflows/github-issue-opened.md": "prompt"
+      "/repo/.github/workflows/poe-code-github-issue-opened.yml": "workflow",
+      "/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md": "prompt"
     });
 
     const uninstallCommand = getCommand(["uninstall"]);
@@ -471,8 +471,8 @@ describe("ghGroup", () => {
       })
     );
 
-    expect(vol.existsSync("/repo/.github/workflows/gh-github-issue-opened.yml")).toBe(false);
-    expect(readRepoFile("/repo/.poe-code/github-workflows/github-issue-opened.md")).toBe("prompt");
+    expect(vol.existsSync("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toBe(false);
+    expect(readRepoFile("/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md")).toBe("prompt");
   });
 
   it("treats uninstalling a missing workflow as a no-op", async () => {
@@ -485,13 +485,13 @@ describe("ghGroup", () => {
         })
       )
     ).resolves.toEqual({
-      workflowPath: "/repo/.github/workflows/gh-github-issue-opened.yml"
+      workflowPath: "/repo/.github/workflows/poe-code-github-issue-opened.yml"
     });
   });
 
   it("wires exec commands that enforce allow and prefix frontmatter from the local prompt copy", async () => {
     vol.fromJSON({
-      "/repo/.poe-code/github-workflows/github-issue-comment-created.md": [
+      "/repo/.poe-code/github-workflows/poe-code-github-issue-comment-created.md": [
         "---",
         "allow:",
         "  - OWNER",
@@ -507,21 +507,21 @@ describe("ghGroup", () => {
     await expect(
       checkUserAllowCommand.handler(
         createContext(
-          { name: "github-issue-comment-created" },
+          { name: "poe-code-github-issue-comment-created" },
           { COMMENT_AUTHOR_ASSOCIATION: "MEMBER" }
         )
       )
-    ).rejects.toThrow('Automation "github-issue-comment-created" does not allow COMMENT_AUTHOR_ASSOCIATION "MEMBER". Allowed values: OWNER.');
+    ).rejects.toThrow('Automation "poe-code-github-issue-comment-created" does not allow COMMENT_AUTHOR_ASSOCIATION "MEMBER". Allowed values: OWNER.');
 
     await expect(
       requireCommentPrefixCommand.handler(
         createContext(
-          { name: "github-issue-comment-created" },
+          { name: "poe-code-github-issue-comment-created" },
           { COMMENT_BODY: "/poe please review" }
         )
       )
     ).rejects.toThrow(
-      'Automation "github-issue-comment-created" requires COMMENT_BODY to start with "poe-code".'
+      'Automation "poe-code-github-issue-comment-created" requires COMMENT_BODY to start with "poe-code".'
     );
   });
 });

@@ -3,15 +3,7 @@ label: "Scheduled: Fix Vulnerabilities"
 source: >-
   gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] |
   select(.state=="open")]'
-agent: claude
-mcp:
-  github:
-    command: npx
-    args:
-      - -y
-      - "@modelcontextprotocol/server-github"
-    env:
-      GITHUB_PERSONAL_ACCESS_TOKEN: "${{ GITHUB_TOKEN }}"
+agent: claude-code
 # Available variables (each sourced Dependabot alert):
 #   {{number}}                                          - alert number
 #   {{dependency.package.name}}                         - vulnerable package name

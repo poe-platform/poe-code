@@ -5,7 +5,7 @@ on:
 
 jobs:
   run:
-    uses: poe-code/poe-setup-scripts/.github/workflows/gh-github-pull-request-opened.yml@main
+    uses: __UPSTREAM_REPO__/.github/workflows/gh-github-pull-request-opened.yml@main
     secrets: inherit
     with:
       PR_NUMBER: ${{ github.event.pull_request.number }}

@@ -53,9 +53,15 @@ function formatLabel(name: string): string {
   return name.split("-").map(capitalize).join(" ");
 }
 
-const automationLabels: Partial<Record<string, string>> = Object.fromEntries(
-  installableAutomations.map((name) => [name, formatLabel(name)])
-);
+const automationLabels: Partial<Record<string, string>> = {
+  "fix-vulnerabilities": "Scheduled: Fix Vulnerabilities",
+  "update-dependencies": "Scheduled: Update Dependencies",
+  "update-documentation": "Scheduled: Update Documentation",
+  "github-issue-comment-created": "GitHub: Issue Comment Handler",
+  "github-issue-opened": "GitHub: Issue Handler",
+  "github-pull-request-opened": "GitHub: Pull Request Handler",
+  "github-pull-request-synchronized": "GitHub: Pull Request Update Handler"
+};
 
 const runCommandDef = defineCommand({
   name: "run",
@@ -189,7 +195,7 @@ const installCommand = defineCommand({
   description: "Install an automation workflow into the current repo.",
   positional: ["name"],
   params: S.Object({
-    name: S.Enum(installableAutomations, { description: "Pick a workflow to install", labels: automationLabels }),
+    name: S.Enum(installableAutomations, { description: "Pick a GitHub workflow to install", labels: automationLabels }),
     eject: S.Optional(S.Boolean())
   }),
   scope: ["cli"],
@@ -227,7 +233,7 @@ const uninstallCommand = defineCommand({
   description: "Remove an installed automation workflow from the current repo.",
   positional: ["name"],
   params: S.Object({
-    name: S.Enum(installableAutomations, { description: "Pick a workflow to uninstall", labels: automationLabels })
+    name: S.Enum(installableAutomations, { description: "Pick a GitHub workflow to uninstall", labels: automationLabels })
   }),
   scope: ["cli"],
   handler: async ({ params }) => {

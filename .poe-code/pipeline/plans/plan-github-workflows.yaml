@@ -213,7 +213,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ── Testing infrastructure ─────────────────────────────────────────────────
 
@@ -235,9 +235,9 @@ tasks:
          - Run: `act <event> -e <payload> --secret-file .secrets.act`
       4. Verify `act --list` shows all workflows without errors.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: workflow-test-fixtures

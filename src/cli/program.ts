@@ -1,5 +1,8 @@
 import { basename } from "node:path";
 import { Command, Help } from "commander";
+import type { Group } from "@poe-code/cmdkit";
+import { runCLI } from "@poe-code/cmdkit/cli";
+import { ghGroup } from "@poe-code/github-workflows";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
@@ -198,6 +201,12 @@ function formatHelpText(input: {
       description: "Manage long-running host and Docker processes"
     },
     {
+      name: "github-workflows",
+      aliases: ["gh"],
+      args: "[automation]",
+      description: "GitHub workflow automations"
+    },
+    {
       name: "usage",
       aliases: ["u"],
       args: "",
@@ -336,6 +345,28 @@ function resolveRootHelpHeading(argv: string[]): string {
   return "Poe - poe-code";
 }
 
+const FORWARDABLE_CMDKIT_FLAGS = new Set(["-y", "--yes", "--verbose"]);
+
+function buildCmdkitArgv(argv: string[], group: Group): string[] {
+  const entry = argv[0] ?? "node";
+  const script = argv[1] ?? "cli";
+  const commandNames = new Set([group.name, ...group.aliases]);
+  const commandIndex = argv.findIndex((value, index) => index >= 2 && commandNames.has(value));
+
+  if (commandIndex < 0) {
+    return [entry, script];
+  }
+
+  const forwardedFlags = argv.slice(2, commandIndex).filter((value) => FORWARDABLE_CMDKIT_FLAGS.has(value));
+  const commandArgs = argv.slice(commandIndex + 1);
+
+  if (commandArgs.length === 0) {
+    return [entry, script, ...forwardedFlags, "--help"];
+  }
+
+  return [entry, script, ...forwardedFlags, ...commandArgs];
+}
+
 export function createProgram(dependencies: CliDependencies): Command {
   const container = createCliContainer(dependencies);
   const program = bootstrapProgram(container);
@@ -400,6 +431,23 @@ function bootstrapProgram(container: CliContainer): Command {
   registerRalphCommand(program, container);
   registerExperimentCommand(program, container);
   registerLaunchCommand(program, container);
+  program
+    .command(ghGroup.name)
+    .description(ghGroup.description ?? "")
+    .aliases(ghGroup.aliases)
+    .argument("[args...]")
+    .allowUnknownOption()
+    .allowExcessArguments()
+    .helpOption(false)
+    .action(async () => {
+      const originalArgv = [...process.argv];
+      process.argv = buildCmdkitArgv(originalArgv, ghGroup);
+      try {
+        await runCLI(ghGroup);
+      } finally {
+        process.argv = originalArgv;
+      }
+    });
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
 

@@ -15,6 +15,7 @@ export { runRalph } from "./sdk/ralph.js";
 export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey } from "./sdk/credentials.js";
+export { ghGroup } from "@poe-code/github-workflows";
 export {
   followLaunchLogs,
   listLaunches,
@@ -59,6 +60,7 @@ export type {
 } from "./sdk/process-launcher.js";
 export type { PipelineRunOptions, PipelineRunResult } from "./sdk/pipeline.js";
 export type { RalphRunOptions, RalphRunResult } from "./sdk/ralph.js";
+export type { AutomationDefinition } from "@poe-code/github-workflows";
 export type {
   ExperimentRunOptions,
   ExperimentRunResult,

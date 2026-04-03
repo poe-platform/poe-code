@@ -34,6 +34,13 @@ function getPackageAliases(): Record<string, string> {
     // Main export: @poe-code/<name> -> packages/<name>/src/index.ts
     mainAliases[`@poe-code/${pkg}`] = path.resolve(packagesDir, pkg, "src/index.ts");
 
+    for (const subpath of ["cli", "mcp", "sdk"]) {
+      const entryPath = path.resolve(packagesDir, pkg, "src", `${subpath}.ts`);
+      if (fs.existsSync(entryPath)) {
+        subpathAliases[`@poe-code/${pkg}/${subpath}`] = entryPath;
+      }
+    }
+
     // Check for /testing subpath export
     const testingIndexPath = path.resolve(packagesDir, pkg, "src/testing/index.ts");
     if (fs.existsSync(testingIndexPath)) {

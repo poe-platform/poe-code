@@ -4,6 +4,20 @@ import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import { SilentError } from "../errors.js";
 
+const runCliState = vi.hoisted(() => ({
+  argvSnapshots: [] as string[][]
+}));
+
+vi.mock("@poe-code/cmdkit/cli", async () => {
+  const actual = await vi.importActual<typeof import("@poe-code/cmdkit/cli")>("@poe-code/cmdkit/cli");
+  return {
+    ...actual,
+    runCLI: vi.fn(async () => {
+      runCliState.argvSnapshots.push([...process.argv]);
+    })
+  };
+});
+
 function createMemFs(): FileSystem {
   const vol = new Volume();
   vol.mkdirSync("/home/test", { recursive: true });
@@ -37,6 +51,7 @@ describe("root command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     process.argv = [...originalArgv];
+    runCliState.argvSnapshots = [];
   });
 
   it("shows help when invoked without arguments", async () => {
@@ -93,6 +108,8 @@ describe("root command", () => {
     expect(plainOutput).toContain("pipeline");
     expect(plainOutput).toContain("ralph");
     expect(plainOutput).toContain("experiment");
+    expect(plainOutput).toContain("github-workflows, gh");
+    expect(plainOutput).toContain("GitHub workflow automations");
     expect(plainOutput).not.toContain("auth api_key");
     expect(plainOutput).not.toContain("auth login");
     expect(plainOutput).not.toContain("auth logout");
@@ -127,6 +144,66 @@ describe("root command", () => {
 
     const hasVerbose = program.options.some((option) => option.long === "--verbose");
     expect(hasVerbose).toBe(true);
+  });
+
+  it("registers the github-workflows command with the gh alias", () => {
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    const command = program.commands.find((entry) => entry.name() === "github-workflows");
+    expect(command).toBeDefined();
+    expect(command?.aliases()).toContain("gh");
+  });
+
+  it("shows github-workflows help when invoked without an automation name", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code", "github-workflows"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "github-workflows"]);
+
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "--help"]]);
+    expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "github-workflows"]);
+  });
+
+  it("preserves forwarded root flags when showing github-workflows help", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code", "--yes", "github-workflows"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "github-workflows"]);
+
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "--yes", "--help"]]);
+    expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "--yes", "github-workflows"]);
   });
 
   it("shows a short heading when invoked as poe", async () => {

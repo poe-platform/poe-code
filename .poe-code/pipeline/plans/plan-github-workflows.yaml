@@ -149,9 +149,9 @@ tasks:
 
       Run `npm run dev -- github-workflows --help` and take a screenshot to verify.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ── Cleanup ────────────────────────────────────────────────────────────────

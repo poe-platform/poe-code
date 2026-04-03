@@ -3,11 +3,13 @@ import {
   createLogWriter,
   createStateStore,
   createSupervisor,
+  ghGroup,
   getPoeApiKey,
   isCliInvocation,
   runExperiment,
   runRalph,
   waitForReady,
+  type AutomationDefinition,
   type ProcessSpec,
   type SupervisorOptions
 } from "./index.js";
@@ -74,6 +76,16 @@ describe("entrypoint module", () => {
     expect(typeof createLogWriter).toBe("function");
     expect(typeof waitForReady).toBe("function");
     expect(options.spec.readyCheck).toEqual(spec.readyCheck);
+  });
+
+  it("re-exports github workflows SDK symbols", () => {
+    const automation: AutomationDefinition = {
+      name: "github-issue-opened",
+      prompt: "Handle issue"
+    };
+
+    expect(ghGroup.name).toBe("github-workflows");
+    expect(automation.name).toBe("github-issue-opened");
   });
 
   it("returns false when invoked via CJS wrapper (bin.cjs)", () => {

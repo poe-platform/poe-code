@@ -74,6 +74,8 @@
   "packageManager": "npm@10.9.2",
   "dependencies": {
     "@clack/prompts": "^1.0.0",
+    "@poe-code/cmdkit": "*",
+    "@poe-code/github-workflows": "*",
     "terminal-png": "*",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",

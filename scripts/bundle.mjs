@@ -20,7 +20,7 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
   workspacePackageNames.add(pkg.name);
   // Resolve workspace packages to source (Just-in-Time compilation)
-  workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src/index.ts");
+  workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src");
   // Collect workspace package dependencies for externalization
   for (const dep of Object.keys(pkg.dependencies || {})) {
     workspaceDeps.add(dep);

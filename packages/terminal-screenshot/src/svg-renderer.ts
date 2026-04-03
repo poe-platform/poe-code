@@ -61,11 +61,12 @@ const XTERM_256_PALETTE = [
 ] as const;
 
 const BACKGROUND = "#171717";
-const DEFAULT_FOREGROUND = "#C5C8C6";
+const DEFAULT_FOREGROUND = "#c4c4c4";
 const FONT_FAMILY = "JetBrains Mono";
 const FONT_SIZE = 14;
 const LINE_HEIGHT = 1.2;
-const FONT_HEIGHT_TO_WIDTH_RATIO = 1.68;
+const CHARACTER_WIDTH = 8.412666666666667;
+const TEXT_BOTTOM_PADDING = 11.6;
 const DEFAULT_PADDING = {
   top: 20,
   right: 40,
@@ -86,74 +87,101 @@ export function renderSvg(runs: StyledRun[], options: SvgOptions = {}): string {
   const showWindow = options.window ?? true;
   const titleBarHeight = showWindow ? WINDOW_BAR_HEIGHT : 0;
   const textStartX = padding.left;
-  const textStartY = titleBarHeight + padding.top + FONT_SIZE;
-  const charWidth = FONT_SIZE / FONT_HEIGHT_TO_WIDTH_RATIO;
   const lineHeightPx = FONT_SIZE * LINE_HEIGHT;
-  const { width: contentWidth, lines } = measureRuns(runs, charWidth);
+  const textStartY = titleBarHeight + padding.top + lineHeightPx;
+  const lines = splitIntoLines(runs);
+  const contentWidth = measureLines(lines);
   const width = padding.left + contentWidth + padding.right;
-  const height = titleBarHeight + padding.top + (lines * lineHeightPx) + padding.bottom;
-
-  const tspanElements = runs.map(run => renderRun(run, textStartX)).join("");
+  const height =
+    titleBarHeight + padding.top + (lines.length * lineHeightPx) + padding.bottom + TEXT_BOTTOM_PADDING;
   const svgWidth = formatNumber(width);
   const svgHeight = formatNumber(height);
   const viewBox = `0 0 ${svgWidth} ${svgHeight}`;
+  const textElements = renderLines(lines, textStartX, textStartY, lineHeightPx);
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="${viewBox}">`,
     "<defs>",
     "<style><![CDATA[",
     FONT_FACE_CSS,
-    `
-text {
-  font-family: '${FONT_FAMILY}';
-  font-size: ${FONT_SIZE}px;
-  font-variant-ligatures: normal;
-  font-feature-settings: "calt" 1, "liga" 1;
-}`,
     "]]></style>",
     "</defs>",
     `<rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="${BACKGROUND}" />`,
     showWindow ? renderWindowControls() : "",
-    `<text xml:space="preserve" x="${formatNumber(textStartX)}" y="${formatNumber(textStartY)}">`,
-    tspanElements,
-    "</text>",
+    `<g font-family="${FONT_FAMILY}" font-size="${formatNumber(FONT_SIZE)}px" fill="${DEFAULT_FOREGROUND}">`,
+    textElements,
+    "</g>",
     "</svg>"
   ].join("");
 }
 
-function measureRuns(runs: StyledRun[], charWidth: number): { width: number; lines: number } {
-  const lineWidths = [0];
-  let lineIndex = 0;
+function splitIntoLines(runs: StyledRun[]): StyledRun[][] {
+  const lines: StyledRun[][] = [[]];
 
   for (const run of runs) {
     if (run.text === "\n") {
-      lineIndex += 1;
-      lineWidths.push(0);
+      lines.push([]);
       continue;
     }
 
-    lineWidths[lineIndex] += Array.from(run.text).length * charWidth;
+    lines[lines.length - 1]?.push(run);
   }
 
-  return {
-    width: Math.max(...lineWidths, 0),
-    lines: lineWidths.length
-  };
+  return lines;
 }
 
-function renderRun(run: StyledRun, textStartX: number): string {
-  const attributes = [
-    `fill="${escapeXmlAttribute(resolveColor(run.fg))}"`,
-    `font-weight="${run.bold ? "bold" : "normal"}"`,
-    `font-style="${run.italic ? "italic" : "normal"}"`,
-    `text-decoration="${run.underline ? "underline" : "none"}"`,
-    `opacity="${run.dim ? "0.7" : "1"}"`
-  ];
+function measureLines(lines: StyledRun[][]): number {
+  return Math.max(
+    ...lines.map(line => line.reduce((width, run) => width + (Array.from(run.text).length * CHARACTER_WIDTH), 0)),
+    0
+  );
+}
 
-  if (run.text === "\n") {
-    attributes.push(`x="${formatNumber(textStartX)}"`);
-    attributes.push(`dy="${LINE_HEIGHT}em"`);
-    return `<tspan ${attributes.join(" ")}>&#8203;</tspan>`;
+function renderLines(
+  lines: StyledRun[][],
+  textStartX: number,
+  textStartY: number,
+  lineHeightPx: number
+): string {
+  return lines
+    .map((line, index) => {
+      const y = formatNumber(textStartY + (index * lineHeightPx));
+
+      if (line.length === 0) {
+        return `<text x="${formatNumber(textStartX)}" y="${y}" xml:space="preserve"/>`;
+      }
+
+      return [
+        `<text x="${formatNumber(textStartX)}" y="${y}" xml:space="preserve">`,
+        line.map(renderRun).join(""),
+        "</text>"
+      ].join("");
+    })
+    .join("");
+}
+
+function renderRun(run: StyledRun): string {
+  const attributes = ['xml:space="preserve"'];
+  const color = resolveColor(run.fg);
+
+  if (color !== DEFAULT_FOREGROUND) {
+    attributes.push(`fill="${escapeXmlAttribute(color)}"`);
+  }
+
+  if (run.bold) {
+    attributes.push('font-weight="bold"');
+  }
+
+  if (run.italic) {
+    attributes.push('font-style="italic"');
+  }
+
+  if (run.underline) {
+    attributes.push('text-decoration="underline"');
+  }
+
+  if (run.dim) {
+    attributes.push('opacity="0.7"');
   }
 
   return `<tspan ${attributes.join(" ")}>${escapeXmlText(run.text)}</tspan>`;

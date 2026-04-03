@@ -59,23 +59,30 @@ describe("renderSvg", () => {
   it("reflects custom padding in the dimensions and viewBox", () => {
     const svg = renderSvg([createRun({ text: "hi" })], { window: false, padding: 10 });
 
-    expect(svg).toContain('width="36.67"');
-    expect(svg).toContain('height="36.80"');
-    expect(svg).toContain('viewBox="0 0 36.67 36.80"');
+    expect(svg).toContain('width="36.83"');
+    expect(svg).toContain('height="48.40"');
+    expect(svg).toContain('viewBox="0 0 36.83 48.40"');
   });
 
-  it("resets x and advances dy for newline runs", () => {
+  it("renders separate text nodes for each line", () => {
     const svg = renderSvg(
       [createRun({ text: "a" }), createRun({ text: "\n" }), createRun({ text: "b" })],
       { window: false }
     );
 
-    expect(svg).toContain('<tspan fill="#C5C8C6" font-weight="normal" font-style="normal" text-decoration="none" opacity="1" x="20.00" dy="1.2em">&#8203;</tspan>');
+    expect(svg).toContain('<text x="20.00" y="36.80" xml:space="preserve">');
+    expect(svg).toContain('<text x="20.00" y="53.60" xml:space="preserve">');
   });
 
   it("escapes xml text content", () => {
     const svg = renderSvg([createRun({ text: `<a & "b">` })], { window: false });
 
     expect(svg).toContain("&lt;a &amp; \"b\"&gt;");
+  });
+
+  it("uses the freeze default foreground color", () => {
+    const svg = renderSvg([createRun()], { window: false });
+
+    expect(svg).toContain('fill="#c4c4c4"');
   });
 });

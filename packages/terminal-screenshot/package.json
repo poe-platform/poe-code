@@ -10,11 +10,13 @@
     "terminal-screenshot": "./bin/terminal-screenshot"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "compare": "tsx scripts/compare.ts"
   },
   "files": [
     "dist",
-    "bin"
+    "bin",
+    "assets"
   ],
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",

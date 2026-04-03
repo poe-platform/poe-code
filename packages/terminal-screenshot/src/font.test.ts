@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FONT_FACE_CSS, JETBRAINS_MONO_BASE64 } from "./font.js";
+import { FONT_FACE_CSS, JETBRAINS_MONO_BASE64, JETBRAINS_MONO_TTF_PATH } from "./font.js";
 
 const require = createRequire(import.meta.url);
 const fontPackageRoot = dirname(require.resolve("@fontsource/jetbrains-mono/package.json"));
@@ -20,5 +20,10 @@ describe("font", () => {
     expect(FONT_FACE_CSS).toContain("font-weight: 400");
     expect(FONT_FACE_CSS).toContain(`data:font/woff2;base64,${JETBRAINS_MONO_BASE64}`);
     expect(FONT_FACE_CSS).toContain("format('woff2')");
+  });
+
+  it("ships a local JetBrains Mono ttf asset for resvg font loading", () => {
+    expect(JETBRAINS_MONO_TTF_PATH).toMatch(/jetbrains-mono-latin-400-normal\.ttf$/);
+    expect(readFileSync(JETBRAINS_MONO_TTF_PATH).byteLength).toBeGreaterThan(0);
   });
 });

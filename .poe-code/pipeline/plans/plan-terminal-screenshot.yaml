@@ -256,7 +256,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: visual-comparison
     title: Side-by-side visual comparison (agent QA)
@@ -297,9 +297,9 @@ tasks:
            and fix them before marking this task done.
         6. Only mark the task done when the two images are visually equivalent.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: integrate-screenshot

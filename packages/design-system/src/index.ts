@@ -23,8 +23,8 @@ export * as acp from "./acp/index.js";
 
 // Prompts
 export * as prompts from "./prompts/index.js";
-export { intro, introPlain, outro, note, select, text as promptText, confirm, confirmOrCancel, password, spinner, withSpinner, isCancel, cancel, log, PromptCancelledError } from "./prompts/index.js";
-export type { SelectOptions, TextOptions, ConfirmOptions, PasswordOptions, SpinnerOptions, WithSpinnerOptions } from "./prompts/index.js";
+export { intro, introPlain, outro, note, select, multiselect, text as promptText, confirm, confirmOrCancel, password, spinner, withSpinner, isCancel, cancel, log, PromptCancelledError } from "./prompts/index.js";
+export type { SelectOptions, MultiselectOptions, TextOptions, ConfirmOptions, PasswordOptions, SpinnerOptions, WithSpinnerOptions } from "./prompts/index.js";
 export { promptTheme } from "./prompts/theme.js";
 
 // Static rendering

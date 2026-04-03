@@ -36,13 +36,15 @@ export async function select<Value>(
   return clack.select(opts as Parameters<typeof clack.select<Value>>[0]);
 }
 
-export interface TextOptions {
-  message: string;
-  placeholder?: string;
-  defaultValue?: string;
-  initialValue?: string;
-  validate?: (value: string) => string | undefined;
+export type MultiselectOptions<Value> = Parameters<typeof clack.multiselect<Value>>[0];
+
+export async function multiselect<Value>(
+  opts: MultiselectOptions<Value>
+): Promise<Value[] | symbol> {
+  return clack.multiselect(opts);
 }
+
+export type TextOptions = Parameters<typeof clack.text>[0];
 
 export async function text(opts: TextOptions): Promise<string | symbol> {
   return clack.text(opts as Parameters<typeof clack.text>[0]);

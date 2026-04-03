@@ -54,6 +54,7 @@ vi.mock("@poe-code/design-system", () => ({
   isCancel: promptState.isCancel,
   cancel: promptState.cancel,
   resetOutputFormatCache: promptState.resetOutputFormatCache,
+  note: vi.fn(),
 }));
 
 vi.mock("node:fs/promises", async () => {

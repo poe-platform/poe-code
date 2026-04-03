@@ -367,6 +367,7 @@ describe("ghGroup", () => {
     listCommand.render.rich(result, {
       logger,
       renderTable,
+      note: vi.fn(),
       getTheme: () => ({
         header: (value: string) => value,
         muted: (value: string) => value
@@ -389,21 +390,59 @@ describe("ghGroup", () => {
     expect(logger.message).toHaveBeenCalledWith("automation table");
   });
 
-  it("installs a thin caller workflow and copies the built-in prompt", async () => {
+  it("installs a thin caller workflow without writing a prompt file", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     seedWorkflowTemplate("github-issue-opened", "caller");
 
     const installCommand = getCommand(["install"]);
 
-    await installCommand.handler(
+    const result = await installCommand.handler(
       createContext({
         name: "github-issue-opened"
       })
     );
 
-    expect(readRepoFile("/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md")).toBe("# Prompt");
+    expect(vol.existsSync("/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md")).toBe(false);
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toContain(
       "uses: poe-platform/poe-code/.github/workflows/gh-github-issue-opened.yml@main"
+    );
+    expect(result).toMatchObject({
+      name: "github-issue-opened",
+      promptContent: "# Prompt",
+      promptPath: undefined,
+      ejected: false
+    });
+  });
+
+  it("shows the default prompt in a note and suggests eject on non-ejected install", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+
+    const installCommand = getCommand(["install"]);
+    const result = await installCommand.handler(createContext({ name: "github-issue-opened" }));
+
+    const logger = {
+      info: vi.fn(),
+      success: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      resolved: vi.fn(),
+      errorResolved: vi.fn(),
+      message: vi.fn()
+    };
+    const note = vi.fn();
+
+    installCommand.render.rich(result, {
+      logger,
+      note,
+      renderTable: vi.fn(),
+      getTheme: vi.fn()
+    });
+
+    expect(logger.success).toHaveBeenCalledWith(expect.stringContaining("poe-code-github-issue-opened.yml"));
+    expect(note).toHaveBeenCalledWith("# Prompt", "Default prompt");
+    expect(logger.message).toHaveBeenCalledWith(
+      expect.stringContaining("poe-code github-workflows install github-issue-opened --eject")
     );
   });
 

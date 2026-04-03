@@ -200,30 +200,48 @@ const installCommand = defineCommand({
   scope: ["cli"],
   handler: async ({ params }) => {
     const name = params.name;
-    const variant = params.eject === true ? "ejected" : "caller";
-    const workflowTemplate = await readBuiltInWorkflowTemplate(name, variant);
-    const rawPrompt = await readBuiltInPromptFile(name);
+    const isEject = params.eject === true;
+    const variant = isEject ? "ejected" : "caller";
+    const [workflowTemplate, rawPrompt] = await Promise.all([
+      readBuiltInWorkflowTemplate(name, variant),
+      readBuiltInPromptFile(name)
+    ]);
     const cwd = resolveCwd();
-    const promptPath = path.join(projectPromptsDir(cwd), `poe-code-${name}.md`);
     const workflowPath = path.join(cwd, ".github", "workflows", `poe-code-${name}.yml`);
 
-    await mkdir(path.dirname(promptPath), { recursive: true });
     await mkdir(path.dirname(workflowPath), { recursive: true });
-    await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
     await writeFile(workflowPath, workflowTemplate, "utf8");
 
+    let promptPath: string | undefined;
+    if (isEject) {
+      promptPath = path.join(projectPromptsDir(cwd), `poe-code-${name}.md`);
+      await mkdir(path.dirname(promptPath), { recursive: true });
+      await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
+    }
+
     return {
+      name,
       workflowPath,
       promptPath,
-      ejected: params.eject === true
+      ejected: isEject,
+      promptContent: rawPrompt
     };
   },
   render: {
-    rich: (result: { workflowPath: string; promptPath: string; ejected: boolean }, { logger }) => {
+    rich: (
+      result: { name: string; workflowPath: string; promptPath?: string; ejected: boolean; promptContent: string },
+      { logger, note }
+    ) => {
       logger.success(`Installed workflow at ${result.workflowPath}`);
-      logger.message(`Prompt copied to ${result.promptPath}`);
+      if (result.promptPath !== undefined) {
+        logger.message(`Prompt copied to ${result.promptPath}`);
+      }
+      note(result.promptContent, "Default prompt");
+      if (!result.ejected) {
+        logger.message(`To customize the prompt, run: poe-code github-workflows install ${result.name} --eject`);
+      }
     },
-    json: (result: { workflowPath: string; promptPath: string; ejected: boolean }) => result
+    json: (result: { name: string; workflowPath: string; promptPath?: string; ejected: boolean; promptContent: string }) => result
   }
 });
 

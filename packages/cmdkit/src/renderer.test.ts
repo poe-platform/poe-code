@@ -32,6 +32,7 @@ function createPrimitives(): {
         header: (value: string) => value,
         muted: (value: string) => value,
       })),
+      note: vi.fn(),
     },
     renderTable,
   };

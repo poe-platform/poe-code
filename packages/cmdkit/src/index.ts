@@ -51,6 +51,7 @@ export interface RenderPrimitives {
   logger: LoggerOutput;
   renderTable(options: RenderTableOptions): string;
   getTheme(): ThemePalette;
+  note(message: string, title?: string): void;
 }
 
 export interface CheckResult {

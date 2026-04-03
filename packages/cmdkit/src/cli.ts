@@ -10,6 +10,7 @@ import {
   formatOptionList,
   getTheme,
   isCancel,
+  note,
   promptText,
   renderTable,
   resetOutputFormatCache,
@@ -1688,6 +1689,7 @@ async function executeCommand<TServices extends object>(
     logger,
     renderTable,
     getTheme,
+    note,
   };
   const globalFlags = getGlobalFlags(state.actionCommand);
   const output = resolveOutput(globalFlags);

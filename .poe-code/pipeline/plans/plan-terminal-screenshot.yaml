@@ -126,9 +126,9 @@ tasks:
       Verify the woff2 file path is correct by checking what files `@fontsource/jetbrains-mono`
       actually ships — the exact filename may differ, adjust accordingly.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: svg-renderer

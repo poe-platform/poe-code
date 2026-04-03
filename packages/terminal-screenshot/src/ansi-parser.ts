@@ -63,7 +63,11 @@ function colorsEqual(left: Color | null, right: Color | null): boolean {
     return left.r === right.r && left.g === right.g && left.b === right.b;
   }
 
-  return left.index === right.index;
+  if ((left.type === "ansi4" || left.type === "ansi8") && left.type === right.type) {
+    return left.index === right.index;
+  }
+
+  return false;
 }
 
 function pushRun(runs: StyledRun[], style: StyleState, text: string): void {

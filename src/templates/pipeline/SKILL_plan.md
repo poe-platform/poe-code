@@ -28,45 +28,29 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 
 ## Output Format
 
-Stepless tasks:
-
 ```yaml
-tasks:
-  - id: auth-hardening
-    title: Harden auth flow
-    prompt: |
-      Improve auth validation and session handling.
-    status: open
-```
-
-Stepped tasks when `.poe-code/pipeline/steps.yaml` defines steps:
-
-```yaml
-tasks:
-  - id: auth-hardening
-    title: Harden auth flow
-    prompt: |
-      Improve auth validation and session handling.
-    status:
-      implement: open
-      test: open
-      review: open
-```
-
-With setup/teardown copied from `steps.yaml` (or written per user request):
-
-```yaml
+# optional — copy from steps.yaml if present, or write per user request
 setup:
   instruction: Prepare the workspace before running tasks
-  # mode: yolo (default)
+  mode: yolo
 
+# optional — same source as setup
 teardown:
   instruction: Run final checks and clean up
-  # mode: read
+  mode: read
 
 tasks:
   - id: auth-hardening
-    ...
+    title: Harden auth flow
+    prompt: |
+      Improve auth validation and session handling.
+    # scalar when no steps.yaml steps are defined:
+    status: open
+    # stepped when steps.yaml defines steps:
+    # status:
+    #   implement: open
+    #   test: open
+    #   commit: open
 ```
 
 ## After Writing

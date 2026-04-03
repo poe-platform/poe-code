@@ -238,7 +238,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: workflow-test-fixtures
     title: Write event payload fixtures for all edge cases
@@ -265,10 +265,10 @@ tasks:
         - `pull-request-opened.json`
         - `pull-request-synchronized.json`
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: workflow-act-tests
     title: Write comprehensive act-based bats test suite

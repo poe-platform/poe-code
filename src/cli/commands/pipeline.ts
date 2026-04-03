@@ -314,8 +314,12 @@ export function registerPipelineCommand(
           },
           onTaskStart(progress: TaskProgress) {
             const step = progress.stepName ? ` (${progress.stepName})` : "";
+            const stepCounter =
+              progress.stepIndex !== undefined
+                ? ` step ${progress.stepIndex}/${progress.totalSteps}`
+                : "";
             resources.logger.info(
-              `Task ${progress.index}/${progress.total}: ${progress.taskId}${step}`
+              `Task ${progress.taskIndex}/${progress.totalTasks}: ${progress.taskId}${step}${stepCounter}`
             );
           },
           onTaskComplete(progress: TaskProgress & {

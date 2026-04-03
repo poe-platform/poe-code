@@ -136,6 +136,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
   const maxRuns = options.maxRuns ?? Number.POSITIVE_INFINITY;
   let runsCompleted = 0;
+  let taskIndex = 0;
+  let lastSeenTaskId: string | undefined;
   let lastGoodPlan: PipelinePlan | undefined;
   let lastGoodSteps: ResolvedStepDefinitions | undefined;
   const pipelineStartTime = Date.now();
@@ -198,12 +200,26 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         };
       }
 
+      if (selection.task.id !== lastSeenTaskId) {
+        taskIndex += 1;
+        lastSeenTaskId = selection.task.id;
+      }
+
+      let stepIndex: number | undefined;
+      let totalSteps: number | undefined;
+      if (selection.stepName && typeof selection.task.status === "object") {
+        const stepStatuses = Object.values(selection.task.status);
+        totalSteps = stepStatuses.length;
+        stepIndex = stepStatuses.filter((s) => s === "done").length + 1;
+      }
+
       const taskProgress = {
         taskId: selection.task.id,
         taskTitle: selection.task.title,
         ...(selection.stepName ? { stepName: selection.stepName } : {}),
-        index: runsCompleted + 1,
-        total: totalTasks
+        taskIndex,
+        totalTasks,
+        ...(stepIndex !== undefined ? { stepIndex, totalSteps } : {})
       };
 
       options.onTaskStart?.(taskProgress);

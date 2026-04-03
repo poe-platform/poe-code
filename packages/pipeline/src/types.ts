@@ -108,8 +108,10 @@ export interface TaskProgress {
   taskId: string;
   taskTitle: string;
   stepName?: string;
-  index: number;
-  total: number;
+  taskIndex: number;
+  totalTasks: number;
+  stepIndex?: number;
+  totalSteps?: number;
 }
 
 export interface PlanSummary {

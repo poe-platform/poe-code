@@ -10,11 +10,18 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
       - run: npx poe-code github-workflows github-pull-request-opened --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}

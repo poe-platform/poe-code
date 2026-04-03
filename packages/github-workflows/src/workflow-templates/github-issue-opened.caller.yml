@@ -1,0 +1,12 @@
+name: 'GitHub: Issue Opened'
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  run:
+    uses: poe-code/poe-setup-scripts/.github/workflows/gh-github-issue-opened.yml@main
+    secrets: inherit
+    with:
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      GITHUB_REPOSITORY: ${{ github.repository }}

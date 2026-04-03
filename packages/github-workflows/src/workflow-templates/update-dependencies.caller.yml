@@ -1,0 +1,12 @@
+name: 'Update Dependencies'
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  run:
+    uses: poe-code/poe-setup-scripts/.github/workflows/gh-update-dependencies.yml@main
+    secrets: inherit
+    with:
+      GITHUB_REPOSITORY: ${{ github.repository }}

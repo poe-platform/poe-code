@@ -1,0 +1,33 @@
+name: 'GitHub: Issue Comment Created'
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: agent-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    if: github.event.issue.state == 'open' && github.event.comment.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx poe-code github-workflows exec check-user-allow github-issue-comment-created
+        env:
+          COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+      - run: npx poe-code github-workflows exec require-comment-prefix github-issue-comment-created
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+      - run: npx poe-code github-workflows github-issue-comment-created --yes
+        env:
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          GITHUB_REPOSITORY: ${{ github.repository }}

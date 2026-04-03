@@ -1,0 +1,12 @@
+name: 'Update Documentation'
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  run:
+    uses: poe-code/poe-setup-scripts/.github/workflows/gh-update-documentation.yml@main
+    secrets: inherit
+    with:
+      GITHUB_REPOSITORY: ${{ github.repository }}

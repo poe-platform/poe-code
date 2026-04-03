@@ -1,0 +1,14 @@
+name: 'GitHub: Pull Request Opened'
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  run:
+    uses: poe-code/poe-setup-scripts/.github/workflows/gh-github-pull-request-opened.yml@main
+    secrets: inherit
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      GITHUB_REPOSITORY: ${{ github.repository }}

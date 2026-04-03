@@ -1,0 +1,12 @@
+name: 'GitHub: Pull Request Synchronized'
+on:
+  pull_request:
+    types: [synchronize]
+
+jobs:
+  run:
+    uses: poe-code/poe-setup-scripts/.github/workflows/gh-github-pull-request-synchronized.yml@main
+    secrets: inherit
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GITHUB_REPOSITORY: ${{ github.repository }}

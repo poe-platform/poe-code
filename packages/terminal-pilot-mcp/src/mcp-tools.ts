@@ -1,6 +1,5 @@
 import { defineSchema, type ToolDefinition } from "tiny-stdio-mcp-server";
-import type { TerminalKey } from "./keys.js";
-import type { TerminalPilot } from "./terminal-pilot.js";
+import type { TerminalKey, TerminalPilot } from "terminal-pilot";
 
 export type TerminalPilotMcpTool<T = Record<string, unknown>> = ToolDefinition<T>;
 

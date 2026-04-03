@@ -1,8 +1,7 @@
-#!/usr/bin/env node
 import packageJson from "../package.json" with { type: "json" };
 import { createServer, type Server } from "tiny-stdio-mcp-server";
 import { terminalPilotMcpTools } from "./mcp-tools.js";
-import { TerminalPilot } from "./terminal-pilot.js";
+import { TerminalPilot } from "terminal-pilot";
 
 type RuntimeProcess = Pick<typeof process, "on" | "off">;
 
@@ -52,8 +51,4 @@ export async function main({
     runtimeProcess.off("exit", handleExit);
     await closeAgent();
   }
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  void main();
 }

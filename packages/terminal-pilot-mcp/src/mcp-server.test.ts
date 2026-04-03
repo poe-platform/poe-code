@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestPair, type TestPair } from "tiny-stdio-mcp-server/testing";
 import packageJson from "../package.json" with { type: "json" };
 import { createTerminalPilotMcpServer, main } from "./mcp-server.js";
-import type { TerminalPilot } from "./terminal-pilot.js";
+import type { TerminalPilot } from "terminal-pilot";
 
 const EXPECTED_TOOL_NAMES = [
   "terminal_create_session",

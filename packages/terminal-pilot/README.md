@@ -1,38 +1,23 @@
-# @poe-code/terminal-pilot
+# terminal-pilot
 
-`terminal-pilot` is a Playwright-like SDK and MCP server for automating interactive CLI apps through a real pseudoterminal (PTY).
+`terminal-pilot` is a Playwright-like SDK for automating interactive CLI apps through a real pseudoterminal (PTY).
 
 Use it when plain stdio is not enough: menus, prompts, arrow-key navigation, confirmations, and terminal redraws such as `poe-code configure`.
 
 For design rationale and scope, see `docs/plans/terminal-pilot.md`.
 
+For the MCP server, see [terminal-pilot-mcp](../terminal-pilot-mcp).
+
 ## What it includes
 
 - **SDK:** `TerminalPilot` → `TerminalSession` → `TerminalScreen`
-- **MCP server:** 10 tools for AI-driven CLI automation
 - **Real PTY execution:** works with interactive CLIs that expect a terminal
 - **Headless by default:** optional `observe: true` mirrors PTY output for debugging
 
 ## Entry points
 
 ```ts
-import { TerminalPilot } from "@poe-code/terminal-pilot";
-```
-
-```ts
-import { createTerminalPilotMcpServer, main } from "@poe-code/terminal-pilot/mcp";
-```
-
-CLI bin:
-
-```sh
-terminal-pilot-mcp
-```
-
-Development entry point in this repo:
-
-```sh
-npx tsx packages/terminal-pilot/src/mcp-server.ts
+import { TerminalPilot } from "terminal-pilot";
 ```
 
 ## SDK API
@@ -42,7 +27,7 @@ npx tsx packages/terminal-pilot/src/mcp-server.ts
 Creates and tracks active terminal sessions.
 
 ```ts
-import { TerminalPilot } from "@poe-code/terminal-pilot";
+import { TerminalPilot } from "terminal-pilot";
 
 const pilot = await TerminalPilot.launch();
 
@@ -188,125 +173,11 @@ class TerminalScreen {
 }
 ```
 
-## MCP server
-
-The MCP server holds one in-memory `TerminalPilot` instance and exposes terminal automation over stdio.
-
-### Run it
-
-Development:
-
-```sh
-npx tsx packages/terminal-pilot/src/mcp-server.ts
-```
-
-Built / installed package:
-
-```sh
-terminal-pilot-mcp
-```
-
-Programmatic:
-
-```ts
-import { main } from "@poe-code/terminal-pilot/mcp";
-
-await main();
-```
-
-### Connect to an MCP client
-
-Install the package globally from a local build:
-
-```sh
-cd packages/terminal-pilot
-npm pack --pack-destination /tmp && npm install -g /tmp/poe-code-terminal-pilot-*.tgz && rm /tmp/poe-code-terminal-pilot-*.tgz
-```
-
-This makes the `terminal-pilot-mcp` bin available globally.
-
-**Claude Code** (`~/.claude.json` or project `.mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "terminal-pilot": {
-      "command": "terminal-pilot-mcp"
-    }
-  }
-}
-```
-
-**Claude Desktop** (`claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "terminal-pilot": {
-      "command": "terminal-pilot-mcp"
-    }
-  }
-}
-```
-
-**Cursor** (`.cursor/mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "terminal-pilot": {
-      "command": "terminal-pilot-mcp"
-    }
-  }
-}
-```
-
-### Tools
-
-`void` means the tool returns no payload.
-
-| Tool | Input | Output |
-| --- | --- | --- |
-| `terminal_create_session` | `{ command: string, args?: string[], cwd?: string, cols?: number, rows?: number, observe?: boolean }` | `{ sessionId: string, pid: number }` |
-| `terminal_type` | `{ sessionId: string, text: string }` | `void` |
-| `terminal_press_key` | `{ sessionId: string, key: TerminalKey }` | `void` |
-| `terminal_send_signal` | `{ sessionId: string, signal: string }` | `void` |
-| `terminal_wait_for` | `{ sessionId: string, pattern: string, timeout?: number }` | `{ matched: true, output: string }` |
-| `terminal_read_screen` | `{ sessionId: string }` | `{ lines: string[], cursor: { row: number, col: number }, size: { rows: number, cols: number } }` |
-| `terminal_read_history` | `{ sessionId: string, last?: number }` | `{ lines: string[] }` |
-| `terminal_resize` | `{ sessionId: string, cols: number, rows: number }` | `void` |
-| `terminal_close_session` | `{ sessionId: string }` | `{ exitCode: number }` |
-| `terminal_list_sessions` | `{}` | `{ sessions: Array<{ id: string, command: string, pid: number }> }` |
-
-Practical notes:
-
-- `terminal_wait_for.pattern` is compiled as a JavaScript `RegExp` on the server.
-- `terminal_type` maps to `session.fill(...)` for bulk text entry.
-- `terminal_read_screen` returns the **current visible screen**, not scrollback.
-- `terminal_read_history` returns ANSI-stripped output since session start.
-- `terminal_list_sessions` returns **active** sessions only.
-- `observe: true` mirrors PTY output to `stderr`, which is useful when debugging MCP-driven runs.
-
-Minimal MCP flow:
-
-```json
-{"tool":"terminal_create_session","arguments":{"command":"poe-code","args":["configure"]}}
-{"tool":"terminal_wait_for","arguments":{"sessionId":"<id>","pattern":"Pick an agent to configure:"}}
-{"tool":"terminal_press_key","arguments":{"sessionId":"<id>","key":"Enter"}}
-{"tool":"terminal_read_screen","arguments":{"sessionId":"<id>"}}
-{"tool":"terminal_close_session","arguments":{"sessionId":"<id>"}}
-```
-
 ## Environment variables
 
 There are **no terminal-pilot-specific environment variables**.
 
-Runtime environment is controlled per session:
-
-- SDK: `newSession({ env })`
-- MCP server: spawned commands inherit the MCP server process environment unless you override it in your command wrapper
-
-There are also **no package-level config files or config options** beyond the per-session options above.
+Runtime environment is controlled per session via `newSession({ env })`. There are no package-level config files or config options beyond the per-session options.
 
 ## Testing
 
@@ -340,7 +211,7 @@ Example fixture-based test:
 
 ```ts
 import path from "node:path";
-import { TerminalPilot } from "@poe-code/terminal-pilot";
+import { TerminalPilot } from "terminal-pilot";
 
 const pilot = await TerminalPilot.launch();
 const tsxPath = path.join(process.cwd(), "node_modules", ".bin", "tsx");
@@ -371,7 +242,7 @@ Use a temporary home directory so you do not touch your real config while testin
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { TerminalPilot } from "@poe-code/terminal-pilot";
+import { TerminalPilot } from "terminal-pilot";
 
 const tmpHome = mkdtempSync(path.join(os.tmpdir(), "poe-configure-test-"));
 const pilot = await TerminalPilot.launch();

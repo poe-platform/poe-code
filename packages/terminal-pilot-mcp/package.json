@@ -1,10 +1,13 @@
 {
-  "name": "terminal-pilot",
+  "name": "terminal-pilot-mcp",
   "version": "0.0.1",
-  "description": "Playwright-like SDK for automating interactive CLI apps through a real PTY",
+  "description": "MCP server that exposes terminal pilot automation as tools.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "terminal-pilot-mcp": "dist/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -13,8 +16,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "tsc",
-    "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-*.tgz && rm -rf $TMPD"
+    "prepublishOnly": "tsc"
   },
   "files": [
     "dist"
@@ -25,17 +27,18 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/terminal-pilot"
+    "directory": "packages/terminal-pilot-mcp"
   },
   "license": "MIT",
   "keywords": [
+    "mcp",
+    "model-context-protocol",
     "terminal",
     "pty",
     "headless"
   ],
   "dependencies": {
-    "headless-terminal": "^0.4.0",
-    "node-pty": "^1.1.0"
-  },
-  "devDependencies": {}
+    "terminal-pilot": "*",
+    "tiny-stdio-mcp-server": "*"
+  }
 }

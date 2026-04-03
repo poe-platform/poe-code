@@ -9,6 +9,7 @@ const commandSourcePathSymbol = Symbol("cmdkit.command.sourcePath");
 type ScopeValue = "cli" | "mcp" | "sdk";
 type AnyObjectSchema = ObjectSchema<Record<string, never>>;
 type EmptyServices = Record<string, never>;
+type ScopeInput = readonly Scope[] | undefined;
 
 export type Scope = ScopeValue;
 
@@ -138,7 +139,7 @@ export interface Command<
   secrets: SecretDeclarations;
   scope: Scope[];
   confirm: boolean;
-  requires?: Requires<CommandCheckContext<TParamsSchema, TSecrets, TServices>>;
+  requires?: Requires<any>;
   handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult>;
   render?: Renderers<TResult>;
 }
@@ -161,7 +162,7 @@ export interface Group<TServices extends object = EmptyServices> {
   aliases: string[];
   scope?: Scope[];
   secrets: SecretDeclarations;
-  requires?: Requires<GroupCheckContext<TServices>>;
+  requires?: Requires<any>;
   children: Array<CommandNode<TServices>>;
   default?: Command<TServices, any, any, any>;
 }
@@ -169,6 +170,47 @@ export interface Group<TServices extends object = EmptyServices> {
 export type CommandNode<TServices extends object = EmptyServices> =
   | Command<TServices, any, any, any>
   | Group<TServices>;
+
+interface CommandTypeInfo<
+  TName extends string = string,
+  TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
+  TResult = unknown,
+  TOwnScope extends ScopeInput = ScopeInput,
+> {
+  name: TName;
+  params: TParamsSchema;
+  result: TResult;
+  ownScope: TOwnScope;
+}
+
+interface GroupTypeInfo<
+  TServices extends object = EmptyServices,
+  TName extends string = string,
+  TChildren extends readonly unknown[] = readonly CommandNode<TServices>[],
+  TOwnScope extends ScopeInput = ScopeInput,
+> {
+  name: TName;
+  children: TChildren;
+  ownScope: TOwnScope;
+}
+
+type TypedCommandMetadata<
+  TName extends string,
+  TParamsSchema extends ObjectSchema<any>,
+  TResult,
+  TOwnScope extends ScopeInput,
+> = {
+  readonly __cmdkitCommandTypeInfo: CommandTypeInfo<TName, TParamsSchema, TResult, TOwnScope>;
+};
+
+type TypedGroupMetadata<
+  TServices extends object,
+  TName extends string,
+  TChildren extends readonly unknown[],
+  TOwnScope extends ScopeInput,
+> = {
+  readonly __cmdkitGroupTypeInfo: GroupTypeInfo<TServices, TName, TChildren, TOwnScope>;
+};
 
 interface InternalCommandConfig {
   scope?: Scope[];
@@ -678,27 +720,43 @@ function materializeNode<TServices extends object>(
 
 export function defineCommand<
   TServices extends object = EmptyServices,
+  TName extends string = string,
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TSecrets extends SecretDeclarations | undefined = undefined,
   TResult = unknown,
+  TOwnScope extends ScopeInput = undefined,
 >(
-  config: CommandConfig<TServices, TParamsSchema, TSecrets, TResult>
-): Command<TServices, TParamsSchema, TSecrets, TResult> {
-  return materializeCommand(createBaseCommand(config), {
+  config: Omit<CommandConfig<TServices, TParamsSchema, TSecrets, TResult>, "name" | "scope"> & {
+    name: TName;
+    scope?: TOwnScope;
+  }
+): Command<TServices, TParamsSchema, TSecrets, TResult> &
+  TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope> {
+  return materializeCommand(createBaseCommand(config as CommandConfig<TServices, TParamsSchema, TSecrets, TResult>), {
     scope: undefined,
     secrets: {},
     requires: undefined,
-  });
+  }) as Command<TServices, TParamsSchema, TSecrets, TResult> &
+    TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope>;
 }
 
-export function defineGroup<TServices extends object = EmptyServices>(
-  config: GroupConfig<TServices>
-): Group<TServices> {
-  return materializeGroup(createBaseGroup(config), {
+export function defineGroup<
+  TServices extends object = EmptyServices,
+  TName extends string = string,
+  TChildren extends readonly unknown[] = readonly CommandNode<TServices>[],
+  TOwnScope extends ScopeInput = undefined,
+>(
+  config: Omit<GroupConfig<TServices>, "name" | "children" | "scope"> & {
+    name: TName;
+    children: TChildren & readonly CommandNode<TServices>[];
+    scope?: TOwnScope;
+  }
+): Group<TServices> & TypedGroupMetadata<TServices, TName, TChildren, TOwnScope> {
+  return materializeGroup(createBaseGroup(config as unknown as GroupConfig<TServices>), {
     scope: undefined,
     secrets: {},
     requires: undefined,
-  });
+  }) as Group<TServices> & TypedGroupMetadata<TServices, TName, TChildren, TOwnScope>;
 }
 
 export function getCommandSourcePath(command: Command<any, any, any, any>): string | undefined {

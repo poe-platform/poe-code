@@ -248,7 +248,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: sdk-runner
     title: SDK runner (createSDK)
@@ -277,9 +277,9 @@ tasks:
 
       Write unit tests for nested method resolution, camelCase conversion, and scope filtering.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: help-generation

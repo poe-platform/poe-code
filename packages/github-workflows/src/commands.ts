@@ -1,4 +1,4 @@
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Mustache from "mustache";
@@ -12,7 +12,10 @@ import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
 import type { AutomationDefinition } from "./types.js";
 
-const builtInPromptsDir = fileURLToPath(new URL("./prompts", import.meta.url));
+const builtInPromptsDirCandidates = [
+  fileURLToPath(new URL("./prompts", import.meta.url)),
+  fileURLToPath(new URL("../src/prompts", import.meta.url))
+];
 const originalMustacheEscape = Mustache.escape;
 
 interface RunItemResult {
@@ -143,7 +146,6 @@ const installTemplates: Record<string, InstallTemplate> = {
       "on:",
       "  pull_request:",
       "    types: [opened, ready_for_review]",
-      "  workflow_dispatch:",
       "",
       "jobs:",
       "  run:",
@@ -162,7 +164,6 @@ const installTemplates: Record<string, InstallTemplate> = {
       "on:",
       "  pull_request:",
       "    types: [opened, ready_for_review]",
-      "  workflow_dispatch:",
       "",
       "jobs:",
       "  run:",
@@ -445,7 +446,7 @@ const listCommand = defineCommand({
   description: "List available automations.",
   params: S.Object({}),
   scope: ["cli", "sdk"],
-  handler: async () => discoverAutomations(builtInPromptsDir, projectPromptsDir(resolveCwd())),
+  handler: async () => discoverAutomations(await resolveBuiltInPromptsDir(), projectPromptsDir(resolveCwd())),
   render: {
     rich: (automations: AutomationDefinition[], { logger, renderTable, getTheme }) => {
       logger.message(
@@ -585,7 +586,7 @@ export const ghGroup: Group = defineGroup({
 });
 
 async function loadNamedAutomation(name: string, cwd: string): Promise<AutomationDefinition> {
-  const automation = await loadAutomation(name, [projectPromptsDir(cwd), builtInPromptsDir]);
+  const automation = await loadAutomation(name, [projectPromptsDir(cwd), await resolveBuiltInPromptsDir()]);
   if (automation === undefined) {
     throw new UserError(`Automation "${name}" was not found.`);
   }
@@ -594,7 +595,7 @@ async function loadNamedAutomation(name: string, cwd: string): Promise<Automatio
 
 async function readBuiltInPromptFile(name: string): Promise<string> {
   try {
-    return await readFile(path.join(builtInPromptsDir, `${name}.md`), "utf8");
+    return await readFile(path.join(await resolveBuiltInPromptsDir(), `${name}.md`), "utf8");
   } catch (error) {
     if (isMissingPathError(error)) {
       throw new UserError(`Automation "${name}" was not found.`);
@@ -605,6 +606,21 @@ async function readBuiltInPromptFile(name: string): Promise<string> {
 
 function projectPromptsDir(cwd: string): string {
   return path.join(cwd, ".poe-code", "github-workflows");
+}
+
+async function resolveBuiltInPromptsDir(): Promise<string> {
+  for (const candidate of builtInPromptsDirCandidates) {
+    try {
+      await access(candidate);
+      return candidate;
+    } catch (error) {
+      if (!isMissingPathError(error)) {
+        throw error;
+      }
+    }
+  }
+
+  return builtInPromptsDirCandidates[0];
 }
 
 function resolveCwd(cwd?: string): string {

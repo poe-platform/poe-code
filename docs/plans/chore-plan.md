@@ -1,3 +1,32 @@
+<!--
+Workflow review as of 2026-04-02.
+
+keep
+- .github/workflows/bump-version.yml
+- .github/workflows/model-discovery.yml
+- .github/workflows/pr-checks.yml
+- .github/workflows/pr-checks-pr.yml
+- .github/workflows/release.yml
+- .github/workflows/release-opencode-poe-auth.yml
+- .github/workflows/release-poe-oauth.yml
+- .github/workflows/release-terminal-pilot.yml
+- .github/workflows/release-tiny-mcp-test.yml
+- .github/workflows/release-tiny-mcp.yml
+- .github/workflows/release-tokenfill.yml
+- .github/workflows/gh-fix-vulnerabilities.yml
+- .github/workflows/gh-github-issue-comment-created.yml
+- .github/workflows/gh-github-issue-opened.yml
+- .github/workflows/gh-github-pull-request-opened.yml
+- .github/workflows/gh-github-pull-request-synchronized.yml
+- .github/workflows/gh-update-dependencies.yml
+- .github/workflows/gh-update-documentation.yml
+
+replace
+- .github/workflows/comment-agent.yml -> github-issue-comment-created
+- .github/workflows/auto-resolve-issue.yml -> github-issue-opened
+- .github/workflows/pull-request-reviewer.yml -> github-pull-request-opened
+-->
+
 # GitHub Automations Plan (`poe-code github-workflows`)
 
 ## Overview

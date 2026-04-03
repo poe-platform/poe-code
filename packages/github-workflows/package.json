@@ -18,7 +18,8 @@
     "lint": "cd ../.. && eslint packages/github-workflows/src --ext ts && tsc -p packages/github-workflows/tsconfig.json --noEmit"
   },
   "files": [
-    "dist"
+    "dist",
+    "src/prompts"
   ],
   "dependencies": {
     "@poe-code/agent-spawn": "*",

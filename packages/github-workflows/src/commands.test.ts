@@ -357,6 +357,25 @@ describe("ghGroup", () => {
     );
   });
 
+  it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {
+    writeBuiltInPrompt("github-pull-request-opened", "# Prompt");
+    vol.fromJSON({
+      [path.join(workflowDir, "gh-github-pull-request-opened.yml")]: "name: GitHub Pull Request Opened\n"
+    });
+
+    const installCommand = getCommand(["install"]);
+
+    await installCommand.handler(
+      createContext({
+        name: "github-pull-request-opened"
+      })
+    );
+
+    const workflow = readRepoFile("/repo/.github/workflows/gh-github-pull-request-opened.yml");
+    expect(workflow).toContain("pull_request:");
+    expect(workflow).not.toContain("workflow_dispatch:");
+  });
+
   it("installs an ejected workflow copy when --eject is set", async () => {
     writeBuiltInPrompt("github-issue-comment-created", "# Prompt");
     vol.fromJSON({

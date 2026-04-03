@@ -1062,6 +1062,53 @@ describe("runCLI", () => {
     );
   });
 
+  it("prefers an explicit nested subcommand over the group's default command", async () => {
+    const runHandler = vi.fn(async ({ params }: { params: { name: string } }) => params);
+    const installHandler = vi.fn(async ({ params }: { params: { name: string } }) => params);
+
+    const run = defineCommand({
+      name: "run",
+      positional: ["name"],
+      params: S.Object({
+        name: S.String(),
+      }),
+      handler: runHandler,
+    });
+
+    const install = defineCommand({
+      name: "install",
+      positional: ["name"],
+      params: S.Object({
+        name: S.String(),
+      }),
+      handler: installHandler,
+    });
+
+    const githubWorkflows = defineGroup({
+      name: "github-workflows",
+      children: [run, install],
+      default: run,
+    });
+
+    const root = defineGroup({
+      name: "poe-code",
+      children: [githubWorkflows],
+    });
+
+    process.argv = ["node", "poe-code", "github-workflows", "install", "demo", "--yes"];
+
+    await runCLI(root);
+
+    expect(installHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          name: "demo",
+        },
+      })
+    );
+    expect(runHandler).not.toHaveBeenCalled();
+  });
+
   it("renders leaf help with inherited secrets", async () => {
     const textCommand = defineCommand({
       name: "text",

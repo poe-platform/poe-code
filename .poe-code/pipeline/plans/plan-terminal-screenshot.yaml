@@ -199,9 +199,9 @@ tasks:
 
       No tests required for this file — it is a thin wrapper over the external library.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: index-and-cli

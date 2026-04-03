@@ -33,8 +33,8 @@ export interface PipelineTask {
 
 export interface PipelinePlan {
   tasks: PipelineTask[];
-  setup?: StepDefinition;
-  teardown?: StepDefinition;
+  setup?: StepDefinition | null;
+  teardown?: StepDefinition | null;
   mcp?: McpSpawnConfig;
 }
 

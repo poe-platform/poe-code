@@ -146,11 +146,13 @@ export function parsePlan(
     } satisfies PipelineTask;
   });
 
-  const setup = document.setup !== undefined && document.setup !== null
-    ? parseStepDef(document.setup, "setup")
+  const setup =
+    document.setup === false || document.setup === null ? null
+    : document.setup !== undefined ? parseStepDef(document.setup, "setup")
     : undefined;
-  const teardown = document.teardown !== undefined && document.teardown !== null
-    ? parseStepDef(document.teardown, "teardown")
+  const teardown =
+    document.teardown === false || document.teardown === null ? null
+    : document.teardown !== undefined ? parseStepDef(document.teardown, "teardown")
     : undefined;
 
   const mcpValue = document.mcp;

@@ -12,7 +12,8 @@ import type {
   PipelineRunOptions,
   PipelineRunResult,
   PipelineTask,
-  ResolvedStepDefinitions
+  ResolvedStepDefinitions,
+  StepDefinition
 } from "../types.js";
 
 type SimulationFs = PipelineFileSystem;
@@ -40,7 +41,11 @@ export type TurnSpec = {
 export type SimulationOptions = {
   plan: PipelinePlan;
   globalSteps?: ResolvedStepDefinitions;
+  globalStepsSetup?: StepDefinition;
+  globalStepsTeardown?: StepDefinition;
   projectSteps?: ResolvedStepDefinitions;
+  projectStepsSetup?: StepDefinition;
+  projectStepsTeardown?: StepDefinition;
   turns: TurnSpec[];
   files?: Record<string, string>;
   config?: {
@@ -79,14 +84,18 @@ function createSimulationFs(
     )
   };
 
-  if (options.globalSteps) {
+  if (options.globalSteps || options.globalStepsSetup || options.globalStepsTeardown) {
     files["/home/test/.poe-code/pipeline/steps.yaml"] = stringify({
-      steps: options.globalSteps
+      ...(options.globalStepsSetup ? { setup: options.globalStepsSetup } : {}),
+      ...(options.globalStepsTeardown ? { teardown: options.globalStepsTeardown } : {}),
+      ...(options.globalSteps ? { steps: options.globalSteps } : {})
     });
   }
-  if (options.projectSteps) {
+  if (options.projectSteps || options.projectStepsSetup || options.projectStepsTeardown) {
     files["/repo/.poe-code/pipeline/steps.yaml"] = stringify({
-      steps: options.projectSteps
+      ...(options.projectStepsSetup ? { setup: options.projectStepsSetup } : {}),
+      ...(options.projectStepsTeardown ? { teardown: options.projectStepsTeardown } : {}),
+      ...(options.projectSteps ? { steps: options.projectSteps } : {})
     });
   }
 

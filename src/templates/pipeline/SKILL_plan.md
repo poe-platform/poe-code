@@ -13,7 +13,7 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 
 1. Run `poe-code pipeline plan-path` to get the plans directory.
 2. Write the plan to `<plan-path>/plan-<name>.yaml`. If the plan path is under the global `~/.poe-code` directory, prefix the filename with the project name: `plan-<project>-<name>.yaml`.
-3. Check if a `steps.yaml` exists next to the plans directory (i.e. `<plan-path>/../steps.yaml`). If it does, read it to determine available steps and copy any `setup`/`teardown` blocks it defines into the plan. If not, use stepless tasks.
+3. Check if a `steps.yaml` exists next to the plans directory (i.e. `<plan-path>/../steps.yaml`). If it does, read it to determine available steps and note any `setup`/`teardown` hooks defined there. If not, use stepless tasks.
 
 ## Rules
 
@@ -24,20 +24,21 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 - The available steps come from the `steps.yaml` file you found (project or global). Use the current step names instead of inventing hardcoded ones.
 - If no step configuration is present, use stepless tasks with scalar `status: open`.
 - If step configuration is present, start every configured step status at `open`.
-- Copy `setup` and `teardown` from `steps.yaml` into the plan as-is. If `steps.yaml` has none, omit them unless the user explicitly requests a lifecycle hook.
+- `setup` and `teardown` defined in `steps.yaml` are inherited automatically — do not copy them into the plan unless the user wants to override or disable them.
+- To disable an inherited hook for a specific plan, set `setup: false` or `teardown: false`.
+- To override an inherited hook, define the full block with an `instruction` field.
 
 ## Output Format
 
 ```yaml
-# optional — copy from steps.yaml if present, or write per user request
-setup:
-  instruction: Prepare the workspace before running tasks
-  mode: yolo
-
-# optional — same source as setup
-teardown:
-  instruction: Run final checks and clean up
-  mode: read
+# setup/teardown are inherited from steps.yaml automatically.
+# Include them only to disable or override:
+#
+# setup: false              # disable the inherited setup hook
+# teardown: false           # disable the inherited teardown hook
+# setup:                    # override with a different instruction
+#   instruction: Custom setup
+#   mode: yolo
 
 tasks:
   - id: auth-hardening

@@ -226,4 +226,24 @@ describe("parsePlan", () => {
       ].join("\n"))
     ).toThrow(/setup.*missing an instruction/i);
   });
+
+  it("maps setup: false to null (disabled)", () => {
+    const plan = parsePlan([
+      "setup: false",
+      "tasks: []",
+      ""
+    ].join("\n"));
+
+    expect(plan.setup).toBeNull();
+  });
+
+  it("maps teardown: false to null (disabled)", () => {
+    const plan = parsePlan([
+      "teardown: false",
+      "tasks: []",
+      ""
+    ].join("\n"));
+
+    expect(plan.teardown).toBeNull();
+  });
 });

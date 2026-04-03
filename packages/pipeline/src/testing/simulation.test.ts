@@ -729,6 +729,38 @@ describe("createPipelineSimulation", () => {
     expect(prompts).toEqual(["Setup"]);
   });
 
+  it("disables steps.yaml setup when plan sets setup: null", async () => {
+    const sim = createPipelineSimulation({
+      projectStepsSetup: { mode: "yolo", instruction: "Setup from steps.yaml" },
+      plan: {
+        setup: null,
+        tasks: [{ id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }]
+      },
+      turns: [successTurn()]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual(["Do task 1"]);
+  });
+
+  it("overrides steps.yaml setup when plan defines its own setup", async () => {
+    const sim = createPipelineSimulation({
+      projectStepsSetup: { mode: "yolo", instruction: "Setup from steps.yaml" },
+      plan: {
+        setup: { mode: "yolo", instruction: "Custom setup from plan" },
+        tasks: [{ id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }]
+      },
+      turns: [successTurn(), successTurn()]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual(["Custom setup from plan", "Do task 1"]);
+  });
+
   it("returns failed when teardown fails after all tasks complete", async () => {
     const sim = createPipelineSimulation({
       plan: {

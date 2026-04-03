@@ -201,8 +201,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   });
   const initialContent = await fs.readFile(absolutePlanPath, "utf8");
   const initialPlan = parsePlan(initialContent, { availableSteps: initialStepsConfig.steps });
-  const resolvedSetup = initialPlan.setup ?? initialStepsConfig.setup;
-  const resolvedTeardown = initialPlan.teardown ?? initialStepsConfig.teardown;
+  const resolvedSetup = initialPlan.setup === null ? undefined : (initialPlan.setup ?? initialStepsConfig.setup);
+  const resolvedTeardown = initialPlan.teardown === null ? undefined : (initialPlan.teardown ?? initialStepsConfig.teardown);
   const initialTotalTasks = initialPlan.tasks.length;
 
   if (resolvedSetup) {

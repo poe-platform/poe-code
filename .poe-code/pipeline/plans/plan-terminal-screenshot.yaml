@@ -21,7 +21,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: ansi-parser
     title: ANSI parser
@@ -85,10 +85,10 @@ tasks:
         - Nested style change then reset
         - Multiline input
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: font-embed
     title: Embed JetBrains Mono font

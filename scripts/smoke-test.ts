@@ -26,6 +26,10 @@ const COMMANDS = [
   "poe-code mcp configure --yes --dry-run --verbose",
   "poe-code login --dry-run",
   "poe-code install --dry-run",
+  "poe-code github-workflows --help",
+  "poe-code github-workflows list",
+  "poe-code github-workflows prompt-preview github-issue-opened",
+  "poe-code github-workflows prompt-preview fix-vulnerabilities",
 ];
 // ─────────────────────────────────────────────────────────────
 

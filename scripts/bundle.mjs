@@ -151,4 +151,14 @@ await Promise.all([
   )
 ]);
 
+const ghPromptsDestDir = path.join(rootDir, "dist", "prompts");
+const ghPromptsSrcDir = path.join(rootDir, "packages", "github-workflows", "src", "prompts");
+await mkdir(ghPromptsDestDir, { recursive: true });
+const ghPromptFiles = (await readdir(ghPromptsSrcDir)).filter((f) => f.endsWith(".md"));
+await Promise.all(
+  ghPromptFiles.map((file) =>
+    copyFile(path.join(ghPromptsSrcDir, file), path.join(ghPromptsDestDir, file))
+  )
+);
+
 console.log("Bundle complete: dist/index.js + dist/bin.cjs");

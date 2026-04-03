@@ -570,6 +570,26 @@ const requireCommentPrefixCommand = defineCommand({
   }
 });
 
+const promptPreviewCommand = defineCommand({
+  name: "prompt-preview",
+  description: "Preview the resolved prompt for an automation.",
+  positional: ["name"],
+  params: S.Object({
+    name: S.String()
+  }),
+  scope: ["cli", "sdk"],
+  handler: async ({ params }) => {
+    const automation = await loadNamedAutomation(params.name, resolveCwd());
+    return { name: automation.name, prompt: automation.prompt };
+  },
+  render: {
+    rich: (result: { name: string; prompt: string }, { logger }) => {
+      logger.message(result.prompt);
+    },
+    json: (result: { name: string; prompt: string }) => result
+  }
+});
+
 const execGroup = defineGroup({
   name: "exec",
   description: "Workflow step helpers.",
@@ -581,7 +601,7 @@ export const ghGroup: Group = defineGroup({
   name: "github-workflows",
   aliases: ["gh"],
   description: "GitHub workflow automations.",
-  children: [runCommandDef, listCommand, installCommand, uninstallCommand, execGroup],
+  children: [runCommandDef, listCommand, installCommand, uninstallCommand, promptPreviewCommand, execGroup],
   default: runCommandDef
 });
 

@@ -296,9 +296,9 @@ tasks:
         `"test:workflows": "bats .github/workflows/test/workflows.bats"`
         `"test:workflows:fast": "bats --filter 'dry-run' .github/workflows/test/workflows.bats"`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: regression-script

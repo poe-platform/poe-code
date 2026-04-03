@@ -1,13 +1,13 @@
 {
-  "name": "@poe-code/terminal-screenshot",
+  "name": "terminal-png",
   "version": "0.1.0",
-  "description": "Render terminal screenshots from ANSI input.",
+  "description": "Render PNG images from ANSI terminal output.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": "./dist/index.js",
   "bin": {
-    "terminal-screenshot": "./bin/terminal-screenshot"
+    "terminal-png": "./bin/terminal-png"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

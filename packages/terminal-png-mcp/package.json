@@ -1,12 +1,12 @@
 {
-  "name": "@poe-code/terminal-screenshot-mcp",
+  "name": "terminal-png-mcp",
   "version": "0.1.0",
-  "description": "MCP server that exposes terminal screenshot rendering as a tool.",
+  "description": "MCP server that exposes terminal PNG rendering as a tool.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "terminal-screenshot-mcp": "dist/cli.js"
+    "terminal-png-mcp": "dist/cli.js"
   },
   "exports": {
     ".": {
@@ -27,18 +27,18 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/terminal-screenshot-mcp"
+    "directory": "packages/terminal-png-mcp"
   },
   "license": "MIT",
   "keywords": [
     "mcp",
     "model-context-protocol",
     "terminal",
-    "screenshot",
+    "png",
     "ansi"
   ],
   "dependencies": {
-    "@poe-code/terminal-screenshot": "*",
+    "terminal-png": "*",
     "tiny-stdio-mcp-server": "*"
   }
 }

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EventEmitter } from "node:events";
 import { spawn } from "node:child_process";
 import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { renderTerminalScreenshot } from "../src/index.js";
+import { renderTerminalPng } from "../src/index.js";
 import { runCompare } from "./compare.js";
 
 vi.mock("node:child_process", () => ({
@@ -17,7 +17,7 @@ vi.mock("node:fs/promises", () => ({
 }));
 
 vi.mock("../src/index.js", () => ({
-  renderTerminalScreenshot: vi.fn()
+  renderTerminalPng: vi.fn()
 }));
 
 interface CapturedOutput {
@@ -92,22 +92,22 @@ const chmodMock = vi.mocked(chmod);
 const mkdtempMock = vi.mocked(mkdtemp);
 const rmMock = vi.mocked(rm);
 const writeFileMock = vi.mocked(writeFile);
-const renderTerminalScreenshotMock = vi.mocked(renderTerminalScreenshot);
+const renderTerminalPngMock = vi.mocked(renderTerminalPng);
 
-describe("terminal-screenshot compare script", () => {
+describe("terminal-png compare script", () => {
   beforeEach(() => {
     spawnMock.mockReset();
     chmodMock.mockReset();
     mkdtempMock.mockReset();
     rmMock.mockReset();
     writeFileMock.mockReset();
-    renderTerminalScreenshotMock.mockReset();
+    renderTerminalPngMock.mockReset();
 
     chmodMock.mockResolvedValue(undefined);
     mkdtempMock.mockResolvedValue("/tmp/ts-compare-dir");
     rmMock.mockResolvedValue(undefined);
     writeFileMock.mockResolvedValue(undefined);
-    renderTerminalScreenshotMock.mockResolvedValue(Buffer.from("new-png"));
+    renderTerminalPngMock.mockResolvedValue(Buffer.from("new-png"));
   });
 
   afterEach(() => {
@@ -140,7 +140,7 @@ describe("terminal-screenshot compare script", () => {
       "utf8"
     );
     expect(chmodMock).toHaveBeenCalledWith("/tmp/ts-compare-dir/poe-code", 0o755);
-    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith("\u001b[31mhelp\u001b[39m\n", {
+    expect(renderTerminalPngMock).toHaveBeenCalledWith("\u001b[31mhelp\u001b[39m\n", {
       output: "/tmp/ts-compare-new.png",
       padding: 20,
       window: true
@@ -160,7 +160,7 @@ describe("terminal-screenshot compare script", () => {
     await runCompare(output.io);
 
     expect(output.stdout).toContain("PNG: /tmp/ts-compare-new.png");
-    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith("help\n", {
+    expect(renderTerminalPngMock).toHaveBeenCalledWith("help\n", {
       output: "/tmp/ts-compare-new.png",
       padding: 20,
       window: true

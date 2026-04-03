@@ -6,7 +6,7 @@ import {
   rmSync
 } from "node:fs";
 import process from "node:process";
-import { renderTerminalScreenshot } from "@poe-code/terminal-screenshot";
+import { renderTerminalPng } from "terminal-png";
 import {
   buildScreenshotName,
   resolveScreenshotTimeoutMs,
@@ -22,8 +22,8 @@ vi.mock("node:fs", () => ({
   rmSync: vi.fn()
 }));
 
-vi.mock("@poe-code/terminal-screenshot", () => ({
-  renderTerminalScreenshot: vi.fn()
+vi.mock("terminal-png", () => ({
+  renderTerminalPng: vi.fn()
 }));
 
 function createSpawnProcess(options: {
@@ -65,7 +65,7 @@ function createSpawnProcess(options: {
 const spawnMock = vi.mocked(spawn);
 const mkdirSyncMock = vi.mocked(mkdirSync);
 const rmSyncMock = vi.mocked(rmSync);
-const renderTerminalScreenshotMock = vi.mocked(renderTerminalScreenshot);
+const renderTerminalPngMock = vi.mocked(renderTerminalPng);
 
 describe("resolveScreenshotTimeoutMs", () => {
   it("uses default when env is missing or invalid", () => {
@@ -96,9 +96,9 @@ describe("runScreenshot", () => {
     spawnMock.mockReset();
     mkdirSyncMock.mockReset();
     rmSyncMock.mockReset();
-    renderTerminalScreenshotMock.mockReset();
+    renderTerminalPngMock.mockReset();
 
-    renderTerminalScreenshotMock.mockResolvedValue(Buffer.from("png"));
+    renderTerminalPngMock.mockResolvedValue(Buffer.from("png"));
     stdoutWriteSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
   });
 
@@ -128,7 +128,7 @@ describe("runScreenshot", () => {
     expect(mkdirSyncMock).toHaveBeenCalledWith("screenshots", {
       recursive: true
     });
-    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith(
+    expect(renderTerminalPngMock).toHaveBeenCalledWith(
       "% poe-code --help\n\u001b[32mhelp\u001b[39m\nwarning\n",
       {
         output: "screenshots/help.png",
@@ -154,7 +154,7 @@ describe("runScreenshot", () => {
       })
     ).rejects.toThrow("echo oops failed with exit code 2");
 
-    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith("% echo oops\nbroken\n", {
+    expect(renderTerminalPngMock).toHaveBeenCalledWith("% echo oops\nbroken\n", {
       output: "screenshots/oops.png",
       padding: 20,
       window: true

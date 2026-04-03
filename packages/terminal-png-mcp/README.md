@@ -1,10 +1,10 @@
-# @poe-code/terminal-screenshot-mcp
+# terminal-png-mcp
 
-MCP server that exposes `@poe-code/terminal-screenshot` as a tool over stdio.
+MCP server that exposes `terminal-png` as a tool over stdio.
 
-## Tool: `render_terminal_screenshot`
+## Tool: `render_terminal_png`
 
-Renders ANSI terminal output as a PNG screenshot.
+Renders ANSI terminal output as a PNG image.
 
 | Input | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -19,8 +19,8 @@ Returns: PNG image content block.
 ```json
 {
   "mcpServers": {
-    "terminal-screenshot": {
-      "command": "terminal-screenshot-mcp"
+    "terminal-png": {
+      "command": "terminal-png-mcp"
     }
   }
 }

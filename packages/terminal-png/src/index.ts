@@ -3,15 +3,15 @@ import { parseAnsi } from "./ansi-parser.js";
 import { renderPng } from "./png-renderer.js";
 import { renderSvg } from "./svg-renderer.js";
 
-export interface TerminalScreenshotOptions {
+export interface TerminalPngOptions {
   padding?: number;
   window?: boolean;
   output?: string;
 }
 
-export async function renderTerminalScreenshot(
+export async function renderTerminalPng(
   ansiText: string,
-  options: TerminalScreenshotOptions = {}
+  options: TerminalPngOptions = {}
 ): Promise<Buffer> {
   const runs = parseAnsi(ansiText);
   const svg = renderSvg(runs, {

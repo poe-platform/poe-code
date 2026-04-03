@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { main } from "./cli.js";
-import { renderTerminalScreenshot } from "./index.js";
+import { renderTerminalPng } from "./index.js";
 import { readFile } from "node:fs/promises";
 
 vi.mock("./index.js", () => ({
-  renderTerminalScreenshot: vi.fn()
+  renderTerminalPng: vi.fn()
 }));
 
 vi.mock("node:fs/promises", () => ({
@@ -36,15 +36,15 @@ function createCapturedOutput(): CapturedOutput {
   };
 }
 
-const renderTerminalScreenshotMock = vi.mocked(renderTerminalScreenshot);
+const renderTerminalPngMock = vi.mocked(renderTerminalPng);
 const readFileMock = vi.mocked(readFile);
 
-describe("terminal-screenshot CLI", () => {
+describe("terminal-png CLI", () => {
   beforeEach(() => {
-    renderTerminalScreenshotMock.mockReset();
+    renderTerminalPngMock.mockReset();
     readFileMock.mockReset();
     readFileMock.mockResolvedValue("ansi output");
-    renderTerminalScreenshotMock.mockResolvedValue(Buffer.from("png"));
+    renderTerminalPngMock.mockResolvedValue(Buffer.from("png"));
   });
 
   it("reads the input file and renders the screenshot with parsed options", async () => {
@@ -56,7 +56,7 @@ describe("terminal-screenshot CLI", () => {
 
     expect(exitCode).toBe(0);
     expect(readFileMock).toHaveBeenCalledWith("example.ansi", "utf8");
-    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith("ansi output", {
+    expect(renderTerminalPngMock).toHaveBeenCalledWith("ansi output", {
       output: "example.png",
       padding: 16,
       window: false
@@ -69,7 +69,7 @@ describe("terminal-screenshot CLI", () => {
     const exitCode = await main(["example.ansi", "-o", "example.png"], output.io);
 
     expect(exitCode).toBe(0);
-    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith("ansi output", {
+    expect(renderTerminalPngMock).toHaveBeenCalledWith("ansi output", {
       output: "example.png",
       padding: undefined,
       window: true
@@ -88,7 +88,7 @@ describe("terminal-screenshot CLI", () => {
 
   it("returns exit code 1 and prints a clear error when rendering fails", async () => {
     const output = createCapturedOutput();
-    renderTerminalScreenshotMock.mockRejectedValueOnce(new Error("render failed"));
+    renderTerminalPngMock.mockRejectedValueOnce(new Error("render failed"));
 
     const exitCode = await main(["example.ansi", "-o", "example.png"], output.io);
 

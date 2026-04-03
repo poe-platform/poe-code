@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { Command, CommanderError, InvalidArgumentError } from "commander";
-import { renderTerminalScreenshot } from "./index.js";
+import { renderTerminalPng } from "./index.js";
 
 interface CliWriter {
   write(chunk: string | Uint8Array): boolean;
@@ -39,8 +39,8 @@ export async function main(
   const program = new Command();
 
   program
-    .name("terminal-screenshot")
-    .description("Render a PNG terminal screenshot from ANSI input")
+    .name("terminal-png")
+    .description("Render a PNG image from ANSI terminal output")
     .argument("<input>", "Path to the ANSI input file")
     .requiredOption("-o, --output <output>", "Path to the output PNG file")
     .option("--window", "Include terminal window chrome", true)
@@ -48,7 +48,7 @@ export async function main(
     .option("--padding <n>", "Padding around terminal content", parsePadding)
     .action(async (input: string, options: CliOptions) => {
       const ansiText = await readFile(input, "utf8");
-      await renderTerminalScreenshot(ansiText, {
+      await renderTerminalPng(ansiText, {
         output: options.output,
         padding: options.padding,
         window: options.window

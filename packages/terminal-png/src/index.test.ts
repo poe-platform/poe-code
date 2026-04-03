@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "./index.js";
-import { renderTerminalScreenshot } from "./index.js";
+import { renderTerminalPng } from "./index.js";
 import { parseAnsi } from "./ansi-parser.js";
 import { renderSvg } from "./svg-renderer.js";
 import { renderPng } from "./png-renderer.js";
@@ -27,7 +27,7 @@ const renderSvgMock = vi.mocked(renderSvg);
 const renderPngMock = vi.mocked(renderPng);
 const writeFileMock = vi.mocked(writeFile);
 
-describe("renderTerminalScreenshot", () => {
+describe("renderTerminalPng", () => {
   beforeEach(() => {
     parseAnsiMock.mockReset();
     renderSvgMock.mockReset();
@@ -50,7 +50,7 @@ describe("renderTerminalScreenshot", () => {
   });
 
   it("renders ANSI text to PNG using the three layers", async () => {
-    const png = await renderTerminalScreenshot("hello", {
+    const png = await renderTerminalPng("hello", {
       padding: 12,
       window: false
     });
@@ -66,7 +66,7 @@ describe("renderTerminalScreenshot", () => {
   });
 
   it("writes the rendered PNG when an output path is provided", async () => {
-    const png = await renderTerminalScreenshot("hello", {
+    const png = await renderTerminalPng("hello", {
       output: "/tmp/example.png"
     });
 
@@ -75,7 +75,7 @@ describe("renderTerminalScreenshot", () => {
   });
 
   it("keeps the lower-level helpers available from the public barrel", () => {
-    expect(api.renderTerminalScreenshot).toBe(renderTerminalScreenshot);
+    expect(api.renderTerminalPng).toBe(renderTerminalPng);
     expect(api.parseAnsi).toBe(parseAnsi);
     expect(api.renderSvg).toBe(renderSvg);
     expect(api.renderPng).toBe(renderPng);

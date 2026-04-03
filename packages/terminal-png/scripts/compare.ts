@@ -3,7 +3,7 @@ import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { renderTerminalScreenshot } from "../src/index.js";
+import { renderTerminalPng } from "../src/index.js";
 
 const NEW_OUTPUT_PATH = "/tmp/ts-compare-new.png";
 
@@ -97,7 +97,7 @@ export async function runCompare(output: CompareOutput = defaultOutput): Promise
     await createPoeCodeShim(tempDir);
 
     const ansiText = await capturePoeCodeHelp(tempDir);
-    await renderTerminalScreenshot(ansiText, {
+    await renderTerminalPng(ansiText, {
       window: true,
       padding: 20,
       output: NEW_OUTPUT_PATH

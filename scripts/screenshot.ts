@@ -6,7 +6,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { Command } from "commander";
-import { renderTerminalScreenshot } from "@poe-code/terminal-screenshot";
+import { renderTerminalPng } from "terminal-png";
 
 export function stripLeadingDashes(value: string): string {
   let cleaned = value;
@@ -308,7 +308,7 @@ export async function runScreenshot(
       : "";
   const transcript = `${header}${capturedChunks.join("")}`;
 
-  await renderTerminalScreenshot(transcript, {
+  await renderTerminalPng(transcript, {
     padding: 20,
     window: true,
     output: outputPath

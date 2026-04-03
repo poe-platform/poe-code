@@ -325,7 +325,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: screenshots-and-validate
     title: Screenshots, lint, and full regression run
@@ -342,7 +342,7 @@ tasks:
       All sections must exit 0 before this task is complete.
       Fix any remaining issues found.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

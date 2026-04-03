@@ -17,7 +17,8 @@ import type {
   PipelinePlan,
   PipelineRunOptions,
   PipelineRunResult,
-  ResolvedStepDefinitions,
+  ResolvedStepsConfig,
+  StepDefinition,
   StepMode
 } from "../types.js";
 import { assertNotAborted } from "../utils.js";
@@ -139,28 +140,103 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   let taskIndex = 0;
   let lastSeenTaskId: string | undefined;
   let lastGoodPlan: PipelinePlan | undefined;
-  let lastGoodSteps: ResolvedStepDefinitions | undefined;
+  let lastGoodStepsConfig: ResolvedStepsConfig | undefined;
   const pipelineStartTime = Date.now();
+
+  async function runPhase(
+    phaseDef: StepDefinition,
+    phase: "setup" | "teardown",
+    totalTasks: number,
+    mcp?: PipelinePlan["mcp"]
+  ): Promise<{ success: boolean; cancelled: boolean }> {
+    const phaseProgress = {
+      taskId: phase,
+      taskTitle: phase === "setup" ? "Setup" : "Teardown",
+      taskIndex: phase === "setup" ? 0 : totalTasks + 1,
+      totalTasks,
+      phase
+    };
+    options.onTaskStart?.(phaseProgress);
+    const startTime = Date.now();
+    let result: AgentRunResult;
+    try {
+      // runAgent is validated non-null at the top of runPipeline; TypeScript cannot narrow across closures
+      result = await runAgent!({
+        agent: phaseDef.agent ?? options.agent,
+        prompt: phaseDef.instruction,
+        mode: phaseDef.mode,
+        cwd: options.cwd,
+        logDir: options.logDir,
+        ...((phaseDef.model ?? options.model) ? { model: phaseDef.model ?? options.model } : {}),
+        ...(mcp ? { mcpServers: mcp } : {}),
+        ...(options.signal ? { signal: options.signal } : {})
+      });
+    } catch (error) {
+      if (isAbortError(error)) {
+        return { success: false, cancelled: true };
+      }
+      throw error;
+    }
+    const durationMs = Date.now() - startTime;
+    const success = result.exitCode === 0;
+    if (result.usage) {
+      metrics.totalInputTokens += result.usage.inputTokens;
+      metrics.totalOutputTokens += result.usage.outputTokens;
+      metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
+    }
+    metrics.stepsCompleted += 1;
+    options.onTaskComplete?.({
+      ...phaseProgress,
+      durationMs,
+      success,
+      ...(result.usage ? { usage: result.usage } : {})
+    });
+    return { success, cancelled: false };
+  }
+
+  const initialStepsConfig = await loadResolvedSteps({
+    cwd: options.cwd,
+    homeDir: options.homeDir,
+    fs
+  });
+  const initialContent = await fs.readFile(absolutePlanPath, "utf8");
+  const initialPlan = parsePlan(initialContent, { availableSteps: initialStepsConfig.steps });
+  const resolvedSetup = initialPlan.setup ?? initialStepsConfig.setup;
+  const resolvedTeardown = initialPlan.teardown ?? initialStepsConfig.teardown;
+  const initialTotalTasks = initialPlan.tasks.length;
+
+  if (resolvedSetup) {
+    const { success, cancelled } = await runPhase(resolvedSetup, "setup", initialTotalTasks, initialPlan.mcp);
+    if (cancelled || !success) {
+      return {
+        stopReason: cancelled ? "cancelled" : "failed",
+        planPath,
+        runsCompleted: 0,
+        totalDurationMs: Date.now() - pipelineStartTime,
+        metrics
+      };
+    }
+  }
 
   while (runsCompleted < maxRuns) {
     assertNotAborted(options.signal);
     const release = await lockFile(absolutePlanPath, { fs });
     try {
-      let steps: ResolvedStepDefinitions;
+      let stepsConfig: ResolvedStepsConfig;
       let plan: PipelinePlan;
 
       try {
-        steps = await loadResolvedSteps({
+        stepsConfig = await loadResolvedSteps({
           cwd: options.cwd,
           homeDir: options.homeDir,
           fs
         });
         const content = await fs.readFile(absolutePlanPath, "utf8");
-        plan = parsePlan(content, { availableSteps: steps });
+        plan = parsePlan(content, { availableSteps: stepsConfig.steps });
         lastGoodPlan = plan;
-        lastGoodSteps = steps;
+        lastGoodStepsConfig = stepsConfig;
       } catch (reloadError) {
-        if (!lastGoodPlan || !lastGoodSteps) {
+        if (!lastGoodPlan || !lastGoodStepsConfig) {
           throw reloadError;
         }
         options.onPlanReloadError?.(
@@ -169,7 +245,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
             : new Error(String(reloadError))
         );
         plan = lastGoodPlan;
-        steps = lastGoodSteps;
+        stepsConfig = lastGoodStepsConfig;
       }
 
       const totalTasks = plan.tasks.length;
@@ -177,6 +253,18 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       if (selection.kind === "completed") {
         if (runsCompleted > 0) {
+          if (resolvedTeardown) {
+            const { success, cancelled } = await runPhase(resolvedTeardown, "teardown", initialTotalTasks, plan.mcp);
+            if (cancelled || !success) {
+              return {
+                stopReason: cancelled ? "cancelled" : "failed",
+                planPath,
+                runsCompleted,
+                totalDurationMs: Date.now() - pipelineStartTime,
+                metrics
+              };
+            }
+          }
           await archivePlan(fs, absolutePlanPath);
         }
         return {
@@ -226,13 +314,13 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       const prompt = buildExecutionPrompt({
         selection,
-        steps,
+        steps: stepsConfig.steps,
         planPath
       });
-      const mode = resolveMode(selection.stepName, steps);
+      const mode = resolveMode(selection.stepName, stepsConfig.steps);
 
       const taskStartTime = Date.now();
-      const stepDef = selection.stepName ? steps[selection.stepName] : undefined;
+      const stepDef = selection.stepName ? stepsConfig.steps[selection.stepName] : undefined;
       const agent = stepDef?.agent ?? options.agent;
       const model = stepDef?.model ?? options.model;
 

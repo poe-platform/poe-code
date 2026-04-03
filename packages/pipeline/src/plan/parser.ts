@@ -5,7 +5,9 @@ import type {
   PipelinePlan,
   PipelineStatus,
   PipelineTask,
-  ResolvedStepDefinitions
+  ResolvedStepDefinitions,
+  StepDefinition,
+  StepMode
 } from "../types.js";
 import { isRecord } from "../utils.js";
 
@@ -50,6 +52,27 @@ function parseTaskStatus(
   }
 
   return statusMap;
+}
+
+function asStepMode(value: unknown): StepMode {
+  if (value === "edit" || value === "read") return value;
+  return "yolo";
+}
+
+function parseStepDef(value: unknown, label: string): StepDefinition {
+  if (!isRecord(value)) {
+    throw new Error(`Invalid plan YAML: "${label}" must be an object.`);
+  }
+  const instruction = value.instruction;
+  if (typeof instruction !== "string" || instruction.length === 0) {
+    throw new Error(`Invalid plan YAML: "${label}" is missing an instruction.`);
+  }
+  return {
+    mode: asStepMode(value.mode),
+    instruction,
+    ...(typeof value.agent === "string" && value.agent.length > 0 ? { agent: value.agent } : {}),
+    ...(typeof value.model === "string" && value.model.length > 0 ? { model: value.model } : {})
+  };
 }
 
 function parseMcpConfig(value: unknown): McpSpawnConfig {
@@ -123,8 +146,20 @@ export function parsePlan(
     } satisfies PipelineTask;
   });
 
+  const setup = document.setup !== undefined && document.setup !== null
+    ? parseStepDef(document.setup, "setup")
+    : undefined;
+  const teardown = document.teardown !== undefined && document.teardown !== null
+    ? parseStepDef(document.teardown, "teardown")
+    : undefined;
+
   const mcpValue = document.mcp;
   const mcp = mcpValue !== undefined ? parseMcpConfig(mcpValue) : undefined;
 
-  return { tasks, ...(mcp !== undefined ? { mcp } : {}) };
+  return {
+    tasks,
+    ...(setup !== undefined ? { setup } : {}),
+    ...(teardown !== undefined ? { teardown } : {}),
+    ...(mcp !== undefined ? { mcp } : {})
+  };
 }

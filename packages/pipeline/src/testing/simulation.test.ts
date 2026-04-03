@@ -299,6 +299,7 @@ describe("createPipelineSimulation", () => {
     const sim = createPipelineSimulation({
       projectSteps: {
         implement: {
+          mode: "yolo",
           instruction: "Implement {{id}}"
         },
         test: {
@@ -306,6 +307,7 @@ describe("createPipelineSimulation", () => {
           instruction: "Test {{id}}"
         },
         commit: {
+          mode: "yolo",
           instruction: "Commit {{id}}"
         }
       },
@@ -355,6 +357,7 @@ describe("createPipelineSimulation", () => {
     const sim = createPipelineSimulation({
       projectSteps: {
         implement: {
+          mode: "yolo",
           instruction: "Implement {{id}}"
         },
         test: {
@@ -362,6 +365,7 @@ describe("createPipelineSimulation", () => {
           instruction: "Test {{id}}"
         },
         commit: {
+          mode: "yolo",
           instruction: "Commit {{id}}"
         }
       },
@@ -681,5 +685,65 @@ describe("createPipelineSimulation", () => {
     expect(onReloadError).toHaveBeenCalled();
     expect(result.stopReason).toBe("completed");
     expect(result.runsCompleted).toBe(2);
+  });
+
+  it("runs setup before tasks and teardown after all tasks complete", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        setup: { mode: "yolo", instruction: "Prepare the workspace" },
+        teardown: { mode: "yolo", instruction: "Clean up" },
+        tasks: [
+          { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
+        ]
+      },
+      turns: [successTurn(), successTurn(), successTurn()]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual([
+      "Prepare the workspace",
+      "Do task 1",
+      "Clean up"
+    ]);
+    expect(result.metrics.stepsCompleted).toBe(3);
+    expect(result.metrics.tasksCompleted).toBe(1);
+  });
+
+  it("stops before tasks when setup fails", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        setup: { mode: "yolo", instruction: "Setup" },
+        tasks: [
+          { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
+        ]
+      },
+      turns: [failTurn("setup failed")]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("failed");
+    expect(result.runsCompleted).toBe(0);
+    expect(prompts).toEqual(["Setup"]);
+  });
+
+  it("returns failed when teardown fails after all tasks complete", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        teardown: { mode: "yolo", instruction: "Teardown" },
+        tasks: [
+          { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
+        ]
+      },
+      turns: [successTurn(), failTurn("teardown failed")]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("failed");
+    expect(result.runsCompleted).toBe(1);
+    expect(prompts).toEqual(["Do task 1", "Teardown"]);
   });
 });

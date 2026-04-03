@@ -14,6 +14,7 @@ export type {
   PipelineStatus,
   PipelineTask,
   ResolvedStepDefinitions,
+  ResolvedStepsConfig,
   StepDefinition,
   StepMode,
   TaskProgress,

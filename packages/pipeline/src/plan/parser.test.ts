@@ -190,4 +190,40 @@ describe("parsePlan", () => {
       ].join("\n"))
     ).toThrow(/command.*non-empty string/i);
   });
+
+  it("parses setup and teardown from plan", () => {
+    const plan = parsePlan([
+      "setup:",
+      "  instruction: Prepare workspace",
+      "teardown:",
+      "  mode: read",
+      "  instruction: Run final checks",
+      "tasks:",
+      "  - id: task-1",
+      "    title: Fix",
+      "    prompt: Fix it",
+      "    status: open",
+      ""
+    ].join("\n"));
+
+    expect(plan.setup).toEqual({ mode: "yolo", instruction: "Prepare workspace" });
+    expect(plan.teardown).toEqual({ mode: "read", instruction: "Run final checks" });
+  });
+
+  it("omits setup and teardown when not present", () => {
+    const plan = parsePlan("tasks: []\n");
+    expect(plan.setup).toBeUndefined();
+    expect(plan.teardown).toBeUndefined();
+  });
+
+  it("rejects setup missing instruction", () => {
+    expect(() =>
+      parsePlan([
+        "setup:",
+        "  mode: read",
+        "tasks: []",
+        ""
+      ].join("\n"))
+    ).toThrow(/setup.*missing an instruction/i);
+  });
 });

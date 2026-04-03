@@ -313,6 +313,10 @@ export function registerPipelineCommand(
               : null;
           },
           onTaskStart(progress: TaskProgress) {
+            if (progress.phase) {
+              resources.logger.info(`${progress.taskTitle}...`);
+              return;
+            }
             const step = progress.stepName ? ` (${progress.stepName})` : "";
             const stepCounter =
               progress.stepIndex !== undefined
@@ -332,6 +336,10 @@ export function registerPipelineCommand(
             const usage = progress.usage
               ? ` (tokens: ${progress.usage.inputTokens} in / ${progress.usage.outputTokens} out)`
               : "";
+            if (progress.phase) {
+              resources.logger.info(`${progress.taskTitle} ${status} in ${duration}${usage}`);
+              return;
+            }
             resources.logger.info(
               `Task ${progress.taskId} ${status} in ${duration}${usage}`
             );
@@ -412,8 +420,8 @@ export function registerPipelineCommand(
           fs: container.fs
         });
 
-        const hasSteps = Object.keys(steps).length > 0;
-        const plan = parsePlan(content, hasSteps ? { availableSteps: steps } : {});
+        const hasSteps = Object.keys(steps.steps).length > 0;
+        const plan = parsePlan(content, hasSteps ? { availableSteps: steps.steps } : {});
 
         const total = plan.tasks.length;
         const done = plan.tasks.filter((t) => {

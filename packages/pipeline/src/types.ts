@@ -18,6 +18,12 @@ export interface StepDefinition {
 
 export type ResolvedStepDefinitions = Record<string, StepDefinition>;
 
+export interface ResolvedStepsConfig {
+  steps: ResolvedStepDefinitions;
+  setup?: StepDefinition;
+  teardown?: StepDefinition;
+}
+
 export interface PipelineTask {
   id: string;
   title: string;
@@ -27,6 +33,8 @@ export interface PipelineTask {
 
 export interface PipelinePlan {
   tasks: PipelineTask[];
+  setup?: StepDefinition;
+  teardown?: StepDefinition;
   mcp?: McpSpawnConfig;
 }
 
@@ -112,6 +120,7 @@ export interface TaskProgress {
   totalTasks: number;
   stepIndex?: number;
   totalSteps?: number;
+  phase?: "setup" | "teardown";
 }
 
 export interface PlanSummary {

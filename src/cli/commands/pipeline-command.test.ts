@@ -160,8 +160,8 @@ describe("pipeline run command", () => {
         taskId: "task-1",
         taskTitle: "Task 1",
         stepName: "implement",
-        index: 1,
-        total: 1,
+        taskIndex: 1,
+        totalTasks: 1,
         durationMs: 2_500,
         success: true,
         usage: {

@@ -132,10 +132,10 @@ tasks:
       If a bug or missing feature is found in `@poe-code/cmdkit` during implementation,
       fix it directly in that package — do not work around it.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: wire-cli-sdk
     title: Wire ghGroup into CLI and SDK

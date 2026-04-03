@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts packages/github-workflows/src/prompts/prompts.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts packages/github-workflows/src/prompts/prompts.test.ts",
+    "test": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts packages/github-workflows/src/prompts/prompts.test.ts packages/github-workflows/src/commands.test.ts packages/github-workflows/src/exec/check-user-allow.test.ts packages/github-workflows/src/exec/require-comment-prefix.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts packages/github-workflows/src/prompts/prompts.test.ts packages/github-workflows/src/commands.test.ts packages/github-workflows/src/exec/check-user-allow.test.ts packages/github-workflows/src/exec/require-comment-prefix.test.ts",
     "lint": "cd ../.. && eslint packages/github-workflows/src --ext ts && tsc -p packages/github-workflows/tsconfig.json --noEmit"
   },
   "files": [
@@ -23,6 +23,8 @@
   "dependencies": {
     "@poe-code/agent-spawn": "*",
     "@poe-code/cmdkit": "*",
+    "@poe-code/cmdkit-schema": "*",
+    "mustache": "^4.2.0",
     "yaml": "^2.8.2"
   }
 }

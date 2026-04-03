@@ -748,12 +748,24 @@ function createNodeCommand<TServices extends object>(
   if (node.default !== undefined && node.default.scope.includes("cli")) {
     const defaultFields = assignPositionals(collectFields(node.default.params, casing), node.default.positional);
 
+    for (const field of defaultFields) {
+      if (field.positionalIndex !== undefined) {
+        group.argument(`[${field.displayPath}]`);
+        continue;
+      }
+
+      for (const option of createOption(field)) {
+        group.addOption(option);
+      }
+    }
+
     group.action(async (...args: unknown[]) => {
       const actionCommand = args[args.length - 1] as CommanderCommand;
+      const positionalValues = args.slice(0, -2).filter((value) => typeof value === "string") as string[];
       await execute({
         command: node.default as Command<TServices, any, any, any>,
         fields: defaultFields,
-        positionalValues: [],
+        positionalValues,
         actionCommand,
       });
     });
@@ -1708,12 +1720,25 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
   if (root.default !== undefined && root.default.scope.includes("cli")) {
     const fields = assignPositionals(collectFields(root.default.params, casing), root.default.positional);
+
+    for (const field of fields) {
+      if (field.positionalIndex !== undefined) {
+        program.argument(`[${field.displayPath}]`);
+        continue;
+      }
+
+      for (const option of createOption(field)) {
+        program.addOption(option);
+      }
+    }
+
     program.action(async (...args: unknown[]) => {
       const actionCommand = args[args.length - 1] as CommanderCommand;
+      const positionalValues = args.slice(0, -2).filter((value) => typeof value === "string") as string[];
       await execute({
         command: root.default as Command<TServices, any, any, any>,
         fields,
-        positionalValues: [],
+        positionalValues,
         actionCommand,
       });
     });

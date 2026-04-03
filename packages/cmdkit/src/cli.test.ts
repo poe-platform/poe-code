@@ -1026,6 +1026,42 @@ describe("runCLI", () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it("passes positional arguments to a nested group's default command", async () => {
+    const handler = vi.fn(async ({ params }: { params: { name: string } }) => params);
+
+    const run = defineCommand({
+      name: "run",
+      positional: ["name"],
+      params: S.Object({
+        name: S.String(),
+      }),
+      handler,
+    });
+
+    const githubWorkflows = defineGroup({
+      name: "github-workflows",
+      children: [run],
+      default: run,
+    });
+
+    const root = defineGroup({
+      name: "poe-code",
+      children: [githubWorkflows],
+    });
+
+    process.argv = ["node", "poe-code", "github-workflows", "demo", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          name: "demo",
+        },
+      })
+    );
+  });
+
   it("renders leaf help with inherited secrets", async () => {
     const textCommand = defineCommand({
       name: "text",

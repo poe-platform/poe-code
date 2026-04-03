@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,9 +9,19 @@ const spawnState = vi.hoisted(() => ({
   runCommand: vi.fn()
 }));
 
+const designSystemState = vi.hoisted(() => ({
+  select: vi.fn()
+}));
+
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: spawnState.spawn,
   runCommand: spawnState.runCommand
+}));
+
+vi.mock("@poe-code/design-system", () => ({
+  select: designSystemState.select,
+  isCancel: () => false,
+  cancel: vi.fn()
 }));
 
 vi.mock("node:fs/promises", async () => {
@@ -21,8 +32,12 @@ vi.mock("node:fs/promises", async () => {
 const { ghGroup } = await import("./commands.js");
 
 const promptDir = fileURLToPath(new URL("./prompts", import.meta.url));
-const repoRoot = path.resolve(fileURLToPath(new URL(".", import.meta.url)), "../../..");
-const workflowDir = path.join(repoRoot, ".github", "workflows");
+const workflowTemplateDir = fileURLToPath(new URL("./workflow-templates", import.meta.url));
+
+function seedWorkflowTemplate(name: string, variant: "caller" | "ejected"): void {
+  const filePath = path.join(workflowTemplateDir, `${name}.${variant}.yml`);
+  vol.fromJSON({ [filePath]: readFileSync(filePath, "utf8") });
+}
 
 function createEnv(values: Record<string, string | undefined>) {
   return {
@@ -291,6 +306,43 @@ describe("ghGroup", () => {
     ).rejects.toThrow('Automation "fix-vulnerabilities" source command must return a JSON array.');
   });
 
+  it("prompts for automation name when run is called without a name in a TTY", async () => {
+    writeBuiltInPrompt("github-issue-opened", "Fix {{url}}");
+    designSystemState.select.mockResolvedValue("github-issue-opened");
+    Object.defineProperty(process.stdin, "isTTY", { value: true, configurable: true });
+
+    const runCommand = getCommand(["run"]);
+
+    await runCommand.handler(
+      createContext(
+        { cwd: "/repo" },
+        { GITHUB_REPOSITORY: "acme/app", ISSUE_NUMBER: "7" },
+        { poeApiKey: "key" }
+      )
+    );
+
+    Object.defineProperty(process.stdin, "isTTY", { value: undefined, configurable: true });
+
+    expect(designSystemState.select).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Pick a workflow to run",
+        options: expect.arrayContaining([{ label: "GitHub: Issue Opened", value: "github-issue-opened" }])
+      })
+    );
+    expect(spawnState.spawn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ prompt: "Fix https://github.com/acme/app/issues/7" })
+    );
+  });
+
+  it("throws when run is called without a name outside a TTY", async () => {
+    const runCommand = getCommand(["run"]);
+
+    await expect(
+      runCommand.handler(createContext({ cwd: "/repo" }, {}, { poeApiKey: "key" }))
+    ).rejects.toThrow("Automation name is required.");
+  });
+
   it("lists discovered automations and renders them as a table", async () => {
     writeBuiltInPrompt("beta", ["---", "agent: codex", "---", "Prompt"].join("\n"));
     vol.fromJSON({
@@ -339,9 +391,7 @@ describe("ghGroup", () => {
 
   it("installs a thin caller workflow and copies the built-in prompt", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
-    vol.fromJSON({
-      [path.join(workflowDir, "gh-github-issue-opened.yml")]: "name: GitHub Issue Opened\n"
-    });
+    seedWorkflowTemplate("github-issue-opened", "caller");
 
     const installCommand = getCommand(["install"]);
 
@@ -359,9 +409,7 @@ describe("ghGroup", () => {
 
   it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {
     writeBuiltInPrompt("github-pull-request-opened", "# Prompt");
-    vol.fromJSON({
-      [path.join(workflowDir, "gh-github-pull-request-opened.yml")]: "name: GitHub Pull Request Opened\n"
-    });
+    seedWorkflowTemplate("github-pull-request-opened", "caller");
 
     const installCommand = getCommand(["install"]);
 
@@ -378,9 +426,7 @@ describe("ghGroup", () => {
 
   it("installs an ejected workflow copy when --eject is set", async () => {
     writeBuiltInPrompt("github-issue-comment-created", "# Prompt");
-    vol.fromJSON({
-      [path.join(workflowDir, "gh-github-issue-comment-created.yml")]: "name: GitHub Issue Comment Created\n"
-    });
+    seedWorkflowTemplate("github-issue-comment-created", "ejected");
 
     const installCommand = getCommand(["install"]);
 

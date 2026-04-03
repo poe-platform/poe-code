@@ -239,6 +239,16 @@ describe("@poe-code/cmdkit-schema", () => {
     } satisfies JsonSchema);
   });
 
+  it("stores labels on an enum schema and exposes them for lookup", () => {
+    const schema = S.Enum(["admin", "user"] as const, {
+      labels: { admin: "Administrator", user: "Regular User" }
+    });
+
+    expect(schema.labels).toEqual({ admin: "Administrator", user: "Regular User" });
+    expect(schema.labels?.["admin"]).toBe("Administrator");
+    expect(schema.labels?.["guest"]).toBeUndefined();
+  });
+
   it("rejects empty enums at runtime for JavaScript callers", () => {
     expect(() => S.Enum([] as unknown as [string])).toThrow("Enum schema requires at least one value");
   });

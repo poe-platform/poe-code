@@ -421,6 +421,38 @@ describe("runCLI", () => {
     });
   });
 
+  it("uses enum labels and schema description for the select prompt when provided", async () => {
+    const handler = vi.fn(async (ctx: { params: { mode: "safe" | "fast" } }) => ctx.params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        mode: S.Enum(["safe", "fast"] as const, {
+          description: "Pick a deployment mode",
+          labels: { safe: "Safe (slow)", fast: "Fast (risky)" }
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({ name: "cmdkit", children: [deploy] });
+
+    promptState.select.mockResolvedValueOnce("fast");
+
+    process.argv = ["node", "cmdkit", "deploy"];
+
+    await runCLI(root);
+
+    expect(promptState.select).toHaveBeenCalledWith({
+      message: "Pick a deployment mode",
+      options: [
+        { label: "Safe (slow)", value: "safe" },
+        { label: "Fast (risky)", value: "fast" },
+      ],
+      initialValue: undefined,
+    });
+  });
+
   it("merges preset values before CLI flags and only prompts for still-missing required params", async () => {
     const handler = vi.fn(async (ctx: {
       params: {

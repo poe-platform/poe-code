@@ -56,6 +56,7 @@ export type BooleanSchema = SchemaBase<"boolean", boolean>;
 export interface EnumSchema<TValues extends NonEmptyReadonlyArray<EnumValue>>
   extends SchemaBase<"enum", TValues[number]> {
   readonly values: TValues;
+  readonly labels?: Partial<Record<string, string>>;
 }
 
 export interface ArraySchema<TItem extends AnySchema>
@@ -170,7 +171,7 @@ export const S = {
 
   Enum<const TValues extends NonEmptyReadonlyArray<EnumValue>>(
     values: TValues,
-    options: SchemaOptions<TValues[number]> = {}
+    options: SchemaOptions<TValues[number]> & { labels?: Partial<Record<string, string>> } = {}
   ): EnumSchema<TValues> {
     assertValidEnumValues(values);
 

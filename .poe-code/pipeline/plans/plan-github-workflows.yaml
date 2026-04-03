@@ -50,7 +50,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: builtin-prompts
     title: Write 7 built-in automation prompt files
@@ -72,10 +72,10 @@ tasks:
       all built-in prompts parse without error and that every prompt with `allow` or `prefix`
       has valid values.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: reusable-workflows
     title: Add 7 reusable workflows to this repo

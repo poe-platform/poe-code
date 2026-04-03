@@ -1,0 +1,25 @@
+---
+source: >-
+  gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] |
+  select(.state=="open")]'
+agent: claude
+mcp:
+  github:
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-github"
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${{ GITHUB_TOKEN }}"
+# Available variables (each sourced Dependabot alert):
+#   {{number}}                                          - alert number
+#   {{dependency.package.name}}                         - vulnerable package name
+#   {{dependency.package.ecosystem}}                    - ecosystem (e.g. npm)
+#   {{dependency.manifest_path}}                        - path to manifest (e.g. package.json)
+#   {{security_advisory.ghsa_id}}                       - advisory ID
+#   {{security_advisory.summary}}                       - short description
+#   {{security_advisory.severity}}                      - low | medium | high | critical
+#   {{security_advisory.description}}                   - full advisory description
+#   {{security_vulnerability.first_patched_version.identifier}} - first safe version
+---
+Fix {{dependency.package.name}} ({{security_advisory.severity}}): {{security_advisory.summary}}

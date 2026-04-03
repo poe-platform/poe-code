@@ -3,6 +3,17 @@ import { join } from "node:path";
 import { parseFrontmatter } from "./frontmatter.js";
 import type { AutomationDefinition } from "./types.js";
 
+const VALID_AUTHOR_ASSOCIATIONS = new Set([
+  "COLLABORATOR",
+  "CONTRIBUTOR",
+  "FIRST_TIMER",
+  "FIRST_TIME_CONTRIBUTOR",
+  "MANNEQUIN",
+  "MEMBER",
+  "NONE",
+  "OWNER"
+]);
+
 export async function discoverAutomations(
   builtInDir: string,
   projectDir?: string
@@ -104,6 +115,12 @@ function readOptionalString(
     throw new Error(`Automation "${fileName}" has invalid "${field}" frontmatter. Expected a string.`);
   }
 
+  if (field === "prefix" && (value.length === 0 || value.trim() !== value)) {
+    throw new Error(
+      `Automation "${fileName}" has invalid "${field}" frontmatter. Expected a non-empty string without surrounding whitespace.`
+    );
+  }
+
   return value;
 }
 
@@ -120,6 +137,20 @@ function readOptionalStringArray(
     throw new Error(
       `Automation "${fileName}" has invalid "${field}" frontmatter. Expected an array of strings.`
     );
+  }
+
+  if (value.length === 0) {
+    throw new Error(
+      `Automation "${fileName}" has invalid "${field}" frontmatter. Expected at least one GitHub author association.`
+    );
+  }
+
+  for (const item of value) {
+    if (!VALID_AUTHOR_ASSOCIATIONS.has(item)) {
+      throw new Error(
+        `Automation "${fileName}" has invalid "${field}" frontmatter. Unsupported value "${item}".`
+      );
+    }
   }
 
   return value;

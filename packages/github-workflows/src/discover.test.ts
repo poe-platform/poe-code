@@ -157,6 +157,49 @@ describe("discoverAutomations", () => {
       'Automation "triage.md" has invalid "allow" frontmatter. Expected an array of strings.'
     );
   });
+
+  it("throws when allow contains unsupported GitHub author associations", async () => {
+    fsState.directories.set("/built-in", ["triage.md"]);
+    fsState.files.set(
+      "/built-in/triage.md",
+      ["---", "allow:", "  - OWNER", "  - RANDOM_USER", "---", "# Prompt"].join("\n")
+    );
+
+    await expect(discoverAutomations("/built-in")).rejects.toThrow(
+      'Automation "triage.md" has invalid "allow" frontmatter. Unsupported value "RANDOM_USER".'
+    );
+  });
+
+  it("throws when prefix is blank", async () => {
+    fsState.directories.set("/built-in", ["blank.md"]);
+    fsState.files.set("/built-in/blank.md", ["---", 'prefix: ""', "---", "# Prompt"].join("\n"));
+
+    await expect(discoverAutomations("/built-in")).rejects.toThrow(
+      'Automation "blank.md" has invalid "prefix" frontmatter. Expected a non-empty string without surrounding whitespace.'
+    );
+  });
+
+  it("throws when prefix has surrounding whitespace", async () => {
+    fsState.directories.set("/built-in", ["padded.md"]);
+    fsState.files.set(
+      "/built-in/padded.md",
+      ["---", 'prefix: " poe-code "', "---", "# Prompt"].join("\n")
+    );
+
+    await expect(discoverAutomations("/built-in")).rejects.toThrow(
+      'Automation "padded.md" has invalid "prefix" frontmatter. Expected a non-empty string without surrounding whitespace.'
+    );
+  });
+
+  it("throws when allow is an empty list", async () => {
+    fsState.directories.set("/built-in", ["blank.md", "padded.md"]);
+    fsState.files.set("/built-in/blank.md", ["---", "allow: []", "---", "# Prompt"].join("\n"));
+    fsState.files.set("/built-in/padded.md", "# Ignored");
+
+    await expect(discoverAutomations("/built-in")).rejects.toThrow(
+      'Automation "blank.md" has invalid "allow" frontmatter. Expected at least one GitHub author association.'
+    );
+  });
 });
 
 describe("loadAutomation", () => {

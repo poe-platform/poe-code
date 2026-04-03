@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts",
+    "test": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts packages/github-workflows/src/prompts/prompts.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts packages/github-workflows/src/prompts/prompts.test.ts",
     "lint": "cd ../.. && eslint packages/github-workflows/src --ext ts && tsc -p packages/github-workflows/tsconfig.json --noEmit"
   },
   "files": [

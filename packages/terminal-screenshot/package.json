@@ -1,0 +1,24 @@
+{
+  "name": "@poe-code/terminal-screenshot",
+  "version": "0.1.0",
+  "description": "Render terminal screenshots from ANSI input.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": "./dist/index.js",
+  "bin": {
+    "terminal-screenshot": "./bin/terminal-screenshot"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@resvg/resvg-js": "^2.6.2",
+    "commander": "^14.0.3"
+  }
+}

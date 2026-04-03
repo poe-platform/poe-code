@@ -134,7 +134,7 @@ text.heading("Available Commands")
 ```
 
 ```markdown
-- ## Available Commands
+## Available Commands
 ```
 
 ### section
@@ -147,7 +147,7 @@ text.section("Options:")
 ```
 
 ```markdown
-- **Options:**
+**Options:**
 ```
 
 ### command
@@ -160,7 +160,7 @@ text.command("poe-code configure")
 ```
 
 ```markdown
-- `poe-code configure`
+`poe-code configure`
 ```
 
 ### argument
@@ -173,7 +173,7 @@ text.argument("<provider>")
 ```
 
 ```markdown
-- <<provider>>
+<<provider>>
 ```
 
 ### option
@@ -186,7 +186,7 @@ text.option("--dry-run")
 ```
 
 ```markdown
-- `--dry-run`
+`--dry-run`
 ```
 
 ### example
@@ -199,7 +199,7 @@ text.example("$ poe-code configure claude")
 ```
 
 ```markdown
-- `$ poe-code configure claude`
+`$ poe-code configure claude`
 ```
 
 ### usageCommand
@@ -212,7 +212,7 @@ text.usageCommand("npm install -g poe-code")
 ```
 
 ```markdown
-- `npm install -g poe-code`
+`npm install -g poe-code`
 ```
 
 ### link
@@ -225,7 +225,7 @@ text.link("https://poe.com")
 ```
 
 ```markdown
-- [https://poe.com](https://poe.com)
+[https://poe.com](https://poe.com)
 ```
 
 ### muted
@@ -238,7 +238,7 @@ text.muted("(optional)")
 ```
 
 ```markdown
-- *(optional)*
+*(optional)*
 ```
 
 ## Symbols

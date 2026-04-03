@@ -49,7 +49,13 @@ type DemoType =
 function runTextDemo(style: string, content: string): void {
   const styleFn = text[style as keyof typeof text];
   if (typeof styleFn === "function") {
-    log.message(styleFn(content), { symbol: chalk.gray("│") });
+    const result = styleFn(content);
+    const format = resolveOutputFormat();
+    if (format === "terminal") {
+      log.message(result, { symbol: chalk.gray("│") });
+    } else {
+      process.stdout.write(result + "\n");
+    }
   } else {
     process.stderr.write(`Unknown style: ${style}\n`);
     process.exitCode = 1;

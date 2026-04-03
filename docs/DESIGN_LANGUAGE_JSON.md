@@ -123,7 +123,7 @@ text.heading("Available Commands")
 ```
 
 ```json
-{"level":"message","message":"Available Commands"}
+Available Commands
 ```
 
 ### section
@@ -136,7 +136,7 @@ text.section("Options:")
 ```
 
 ```json
-{"level":"message","message":"Options:"}
+Options:
 ```
 
 ### command
@@ -149,7 +149,7 @@ text.command("poe-code configure")
 ```
 
 ```json
-{"level":"message","message":"poe-code configure"}
+poe-code configure
 ```
 
 ### argument
@@ -162,7 +162,7 @@ text.argument("<provider>")
 ```
 
 ```json
-{"level":"message","message":"<provider>"}
+<provider>
 ```
 
 ### option
@@ -175,7 +175,7 @@ text.option("--dry-run")
 ```
 
 ```json
-{"level":"message","message":"--dry-run"}
+--dry-run
 ```
 
 ### example
@@ -188,7 +188,7 @@ text.example("$ poe-code configure claude")
 ```
 
 ```json
-{"level":"message","message":"$ poe-code configure claude"}
+$ poe-code configure claude
 ```
 
 ### usageCommand
@@ -201,7 +201,7 @@ text.usageCommand("npm install -g poe-code")
 ```
 
 ```json
-{"level":"message","message":"npm install -g poe-code"}
+npm install -g poe-code
 ```
 
 ### link
@@ -214,7 +214,7 @@ text.link("https://poe.com")
 ```
 
 ```json
-{"level":"message","message":"https://poe.com"}
+https://poe.com
 ```
 
 ### muted
@@ -227,7 +227,7 @@ text.muted("(optional)")
 ```
 
 ```json
-{"level":"message","message":"(optional)"}
+(optional)
 ```
 
 ## Symbols

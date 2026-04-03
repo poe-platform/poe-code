@@ -98,6 +98,7 @@ describe("TerminalPilot", () => {
     await first.waitFor("Hello, Ada!");
 
     expect(await first.close()).toBe(0);
+    pilot.deleteSession(first.id);
     expect(pilot.sessions()).toEqual([second]);
     expect(() => pilot.getSession(first.id)).toThrowError(`Session not found: ${first.id}`);
 
@@ -118,7 +119,11 @@ describe("TerminalPilot", () => {
     await session.waitFor("Hello, Ada!");
     await expect(session.close()).resolves.toBe(0);
 
+    // sessions() only returns running sessions (exitCode === null)
     expect(pilot.sessions()).toEqual([]);
+    // Session remains accessible via getSession until explicitly deleted
+    expect(pilot.getSession(session.id)).toBe(session);
+    pilot.deleteSession(session.id);
     expect(() => pilot.getSession(session.id)).toThrowError(`Session not found: ${session.id}`);
   });
 

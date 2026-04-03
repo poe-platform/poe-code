@@ -34,9 +34,6 @@ export class TerminalPilot {
     });
 
     this.sessionMap.set(session.id, session);
-    session.on("exit", () => {
-      this.sessionMap.delete(session.id);
-    });
     return session;
   }
 

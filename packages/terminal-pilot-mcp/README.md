@@ -90,10 +90,10 @@ Practical notes:
 - `terminal_wait_for_exit` blocks until the process exits and returns its exit code. Throws on timeout.
 - `terminal_read_screen` and `terminal_read_history` include `exitCode: number | null` so you can check whether the session is still running without a separate call.
 - `terminal_get_session` reads session metadata without any side effects — useful for checking `exitCode` before deciding whether to wait or close.
-- `terminal_close_session` closes the process and removes the session from the server's session map.
+- `terminal_close_session` kills the process (if still running) and removes the session from the server's session map. After this call, the session ID is invalid.
 - `terminal_read_screen` returns the **current visible screen**, not scrollback.
 - `terminal_read_history` returns ANSI-stripped output since session start.
-- `terminal_list_sessions` returns **active** sessions only.
+- `terminal_list_sessions` returns **running** sessions only (sessions whose process has exited are excluded from the list but remain accessible via `terminal_get_session` until `terminal_close_session` is called).
 - `observe: true` mirrors PTY output to `stderr`, useful when debugging MCP-driven runs.
 
 Minimal MCP flow:

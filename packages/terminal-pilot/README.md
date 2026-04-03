@@ -61,9 +61,9 @@ type NewSessionOptions = {
 class TerminalPilot {
   static launch(): Promise<TerminalPilot>;
   newSession(options: NewSessionOptions): Promise<TerminalSession>;
-  getSession(id: string): TerminalSession; // throws if missing
+  getSession(id: string): TerminalSession; // throws if not in map; works for exited sessions until deleteSession
   deleteSession(id: string): void; // explicit removal from session map
-  sessions(): TerminalSession[]; // active sessions only
+  sessions(): TerminalSession[]; // running sessions only (exitCode === null)
   close(): Promise<void>;
 }
 ```

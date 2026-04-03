@@ -28,19 +28,21 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 - `setup` and `teardown` defined in `steps.yaml` are inherited automatically.
 - To disable an inherited hook for a specific plan, set `setup: false` or `teardown: false`.
 - To override an inherited hook, define the full block with an `prompt` field.
-- If the user has an existing Markdown plan document, add a `vars` block and reference it as `{{plan_doc}}` in prompts instead of inlining or repeating `{{file '...'}}` in every task.
-- `vars` values are plain strings. Use `{{file 'path'}}` inside a value to load a file at runtime (path relative to project root).
+- If the user has an existing Markdown plan document, add a `vars` block with a `plan_doc` key pointing to the file path. The pipeline runtime reads the file and makes its contents available as a named placeholder in every prompt.
+- `vars` values are plain strings. Use the `file` include syntax inside a value to load a file at runtime (path relative to project root): write `var_name: "` followed by the file include tag and a closing `"`.
+- Each var name becomes a double-curly-brace placeholder usable in any task, step, setup, or teardown prompt.
 
 ## Output Format
 
 ```yaml
-# vars: define named values available as {{var_name}} in every prompt.
-# Use {{file 'path'}} inside a value to load a file (path relative to project root).
-# Omit if there are no shared values.
+# vars: optional. Define named values available as double-curly-brace placeholders in every prompt.
+# Each value is a plain string. To load a file at runtime, write the value using the
+# file include syntax: double-curly-brace file followed by a quoted path.
+# Omit this block if there are no shared values to inject.
 #
 # vars:
-#   plan_doc: "{{file 'docs/plans/my-feature.md'}}"
-#   env: production
+#   plan_doc: "(file include for docs/plans/my-feature.md)"  # loaded at runtime
+#   env: production                                           # literal string
 
 # setup/teardown are inherited from steps.yaml automatically.
 # Include them only to disable or override:
@@ -55,8 +57,8 @@ tasks:
   - id: auth-hardening
     title: Harden auth flow
     prompt: |
-      # {{plan_doc}} is available here if vars is defined above
       Improve auth validation and session handling.
+      # If vars defines plan_doc, reference it here using the double-curly-brace placeholder syntax.
     # scalar when no steps.yaml steps are defined:
     status: open
     # stepped when steps.yaml defines steps:

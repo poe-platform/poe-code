@@ -34,9 +34,12 @@ import {
   type TaskProgress
 } from "../../sdk/pipeline.js";
 import {
+  buildExecutionPrompt,
+  interpolate,
   loadResolvedSteps,
   parsePlan,
   resolveAbsolutePlanPath,
+  resolveFileIncludes,
   resolvePlanDirectory
 } from "@poe-code/pipeline";
 
@@ -395,6 +398,7 @@ export function registerPipelineCommand(
     .command("validate")
     .description("Validate a pipeline plan YAML file without running it.")
     .argument("<file>", "Path to the pipeline plan YAML file")
+    .option("--preview", "Expand and display all prompt content for each task and step.")
     .action(async function (this: Command, file: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(
@@ -432,9 +436,57 @@ export function registerPipelineCommand(
         resources.logger.resolved("Plan", file);
         resources.logger.resolved("Tasks", `${total} tasks (${done} done)`);
         if (hasSteps) {
-          resources.logger.resolved("Steps", Object.keys(steps).join(", "));
+          resources.logger.resolved("Steps", Object.keys(steps.steps).join(", "));
         }
         resources.logger.success("Plan is valid.");
+
+        const opts = this.opts<{ preview?: boolean }>();
+        if (opts.preview) {
+          const readFile = container.fs.readFile.bind(container.fs);
+          const resolvedVars: Record<string, string> = {};
+          for (const [key, value] of Object.entries(plan.vars ?? {})) {
+            resolvedVars[key] = await resolveFileIncludes(value, container.env.cwd, readFile);
+          }
+
+          const resolvedSetup = plan.setup === null ? undefined : (plan.setup ?? steps.setup);
+          const resolvedTeardown = plan.teardown === null ? undefined : (plan.teardown ?? steps.teardown);
+
+          if (resolvedSetup) {
+            const raw = Object.keys(resolvedVars).length > 0
+              ? interpolate(resolvedSetup.prompt, resolvedVars)
+              : resolvedSetup.prompt;
+            const expanded = await resolveFileIncludes(raw, container.env.cwd, readFile);
+            resources.logger.resolved("setup", expanded);
+          }
+
+          for (const task of plan.tasks) {
+            if (typeof task.status === "string") {
+              const expanded = await resolveFileIncludes(
+                buildExecutionPrompt({ selection: { kind: "run", task }, steps: steps.steps, planPath: file, vars: resolvedVars }),
+                container.env.cwd,
+                readFile
+              );
+              resources.logger.resolved(`task: ${task.id} — ${task.title}`, expanded);
+            } else {
+              for (const stepName of Object.keys(task.status)) {
+                const expanded = await resolveFileIncludes(
+                  buildExecutionPrompt({ selection: { kind: "run", task, stepName }, steps: steps.steps, planPath: file, vars: resolvedVars }),
+                  container.env.cwd,
+                  readFile
+                );
+                resources.logger.resolved(`task: ${task.id} / ${stepName}`, expanded);
+              }
+            }
+          }
+
+          if (resolvedTeardown) {
+            const raw = Object.keys(resolvedVars).length > 0
+              ? interpolate(resolvedTeardown.prompt, resolvedVars)
+              : resolvedTeardown.prompt;
+            const expanded = await resolveFileIncludes(raw, container.env.cwd, readFile);
+            resources.logger.resolved("teardown", expanded);
+          }
+        }
       } finally {
         resources.context.finalize();
       }

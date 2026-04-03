@@ -309,6 +309,178 @@ describe("pipeline validate command", () => {
       ])
     ).rejects.toThrow(/unknown step/i);
   });
+
+  it("--preview renders expanded prompt for a stepless task", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
+      [
+        "tasks:",
+        "  - id: deploy",
+        "    title: Deploy",
+        "    prompt: Deploy to production.",
+        "    status: open",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (msg) => logs.push(msg)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node", "cli", "pipeline", "validate",
+      "--preview", ".poe-code/pipeline/plans/plan-demo.yaml"
+    ]);
+
+    expect(logs.join("\n")).toContain("Deploy to production.");
+  });
+
+  it("--preview expands vars into prompts", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
+      [
+        "vars:",
+        "  env: staging",
+        "tasks:",
+        "  - id: deploy",
+        "    title: Deploy",
+        "    prompt: Deploy to {{env}}.",
+        "    status: open",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (msg) => logs.push(msg)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node", "cli", "pipeline", "validate",
+      "--preview", ".poe-code/pipeline/plans/plan-demo.yaml"
+    ]);
+
+    expect(logs.join("\n")).toContain("Deploy to staging.");
+    expect(logs.join("\n")).not.toContain("{{env}}");
+  });
+
+  it("--preview expands file-backed vars into prompts", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.mkdir("/repo/docs/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/docs/plans/feature.md",
+      "# Feature Plan\nBuild the thing.",
+      { encoding: "utf8" }
+    );
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
+      [
+        "vars:",
+        "  plan_doc: \"{{file 'docs/plans/feature.md'}}\"",
+        "tasks:",
+        "  - id: implement",
+        "    title: Implement",
+        "    prompt: |",
+        "      {{plan_doc}}",
+        "      Do the work.",
+        "    status: open",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (msg) => logs.push(msg)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node", "cli", "pipeline", "validate",
+      "--preview", ".poe-code/pipeline/plans/plan-demo.yaml"
+    ]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("# Feature Plan");
+    expect(output).toContain("Build the thing.");
+    expect(output).toContain("Do the work.");
+  });
+
+  it("--preview renders each step for a stepped task", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/steps.yaml",
+      [
+        "steps:",
+        "  implement:",
+        "    prompt: |",
+        "      {{id}}: {{title}}",
+        "      {{prompt}}",
+        "  test:",
+        "    prompt: |",
+        "      Test {{id}}.",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
+      [
+        "tasks:",
+        "  - id: auth",
+        "    title: Auth hardening",
+        "    prompt: Improve auth.",
+        "    status:",
+        "      implement: open",
+        "      test: open",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (msg) => logs.push(msg)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node", "cli", "pipeline", "validate",
+      "--preview", ".poe-code/pipeline/plans/plan-demo.yaml"
+    ]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("auth: Auth hardening");
+    expect(output).toContain("Improve auth.");
+    expect(output).toContain("Test auth.");
+  });
 });
 
 describe("pipeline plan-path command", () => {

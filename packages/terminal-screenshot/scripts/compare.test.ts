@@ -114,13 +114,11 @@ describe("terminal-screenshot compare script", () => {
     vi.restoreAllMocks();
   });
 
-  it("captures help output, renders both PNGs, and prints both paths", async () => {
+  it("captures help output, renders the PNG, and prints its path", async () => {
     const output = createCapturedOutput();
-    spawnMock
-      .mockReturnValueOnce(
-        createSpawnProcess({ stdoutData: "\u001b[31mhelp\u001b[39m\n" }) as never
-      )
-      .mockReturnValueOnce(createSpawnProcess() as never);
+    spawnMock.mockReturnValueOnce(
+      createSpawnProcess({ stdoutData: "\u001b[31mhelp\u001b[39m\n" }) as never
+    );
 
     await runCompare(output.io);
 
@@ -142,33 +140,12 @@ describe("terminal-screenshot compare script", () => {
       "utf8"
     );
     expect(chmodMock).toHaveBeenCalledWith("/tmp/ts-compare-dir/poe-code", 0o755);
-    expect(writeFileMock).toHaveBeenCalledWith(
-      "/tmp/ts-compare-dir/poe-code-help.ansi",
-      "\u001b[31mhelp\u001b[39m\n",
-      "utf8"
-    );
-    expect(spawnMock).toHaveBeenNthCalledWith(
-      2,
-      "freeze",
-      [
-        "/tmp/ts-compare-dir/poe-code-help.ansi",
-        "-o",
-        "/tmp/ts-compare-freeze.png",
-        "--window",
-        "--padding",
-        "20",
-        "--language",
-        "ansi"
-      ],
-      expect.any(Object)
-    );
     expect(renderTerminalScreenshotMock).toHaveBeenCalledWith("\u001b[31mhelp\u001b[39m\n", {
+      output: "/tmp/ts-compare-new.png",
       padding: 20,
       window: true
     });
-    expect(writeFileMock).toHaveBeenCalledWith("/tmp/ts-compare-new.png", Buffer.from("new-png"));
-    expect(output.stdout).toContain("FREEZE: /tmp/ts-compare-freeze.png");
-    expect(output.stdout).toContain("NEW:    /tmp/ts-compare-new.png");
+    expect(output.stdout).toContain("PNG: /tmp/ts-compare-new.png");
     expect(output.stderr).toBe("");
     expect(rmMock).toHaveBeenCalledWith("/tmp/ts-compare-dir", {
       force: true,
@@ -176,21 +153,17 @@ describe("terminal-screenshot compare script", () => {
     });
   });
 
-  it("prints FREEZE_UNAVAILABLE when freeze is missing and still renders the new PNG", async () => {
+  it("still renders the PNG when help output includes plain text", async () => {
     const output = createCapturedOutput();
-    const freezeUnavailable = Object.assign(new Error("spawn freeze ENOENT"), {
-      code: "ENOENT"
-    }) as NodeJS.ErrnoException;
-
-    spawnMock
-      .mockReturnValueOnce(createSpawnProcess({ stdoutData: "help\n" }) as never)
-      .mockReturnValueOnce(createSpawnProcess({ error: freezeUnavailable }) as never);
+    spawnMock.mockReturnValueOnce(createSpawnProcess({ stdoutData: "help\n" }) as never);
 
     await runCompare(output.io);
 
-    expect(output.stdout).toContain("FREEZE_UNAVAILABLE");
-    expect(output.stdout).toContain("NEW:    /tmp/ts-compare-new.png");
-    expect(output.stdout).not.toContain("FREEZE: /tmp/ts-compare-freeze.png");
-    expect(writeFileMock).toHaveBeenCalledWith("/tmp/ts-compare-new.png", Buffer.from("new-png"));
+    expect(output.stdout).toContain("PNG: /tmp/ts-compare-new.png");
+    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith("help\n", {
+      output: "/tmp/ts-compare-new.png",
+      padding: 20,
+      window: true
+    });
   });
 });

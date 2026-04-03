@@ -1,19 +1,12 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import {
-  mkdirSync,
-  existsSync,
-  accessSync,
-  constants,
-  mkdtempSync,
-  writeFileSync,
-  rmSync
+  mkdirSync
 } from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { Command } from "commander";
-import os from "node:os";
+import { renderTerminalScreenshot } from "@poe-code/terminal-screenshot";
 
 export function stripLeadingDashes(value: string): string {
   let cleaned = value;
@@ -28,7 +21,37 @@ export function normalizeArg(value: string): string {
   if (!withoutDashes) {
     return "";
   }
-  return withoutDashes.split(" ").join("-");
+
+  let normalized = "";
+  let previousWasDash = false;
+
+  for (const char of withoutDashes) {
+    const code = char.charCodeAt(0);
+    const isDigit = code >= 48 && code <= 57;
+    const isUpper = code >= 65 && code <= 90;
+    const isLower = code >= 97 && code <= 122;
+    const isSafe = isDigit || isUpper || isLower || char === "." || char === "_";
+
+    if (isSafe) {
+      normalized += char;
+      previousWasDash = false;
+      continue;
+    }
+
+    if (!previousWasDash) {
+      normalized += "-";
+      previousWasDash = true;
+    }
+  }
+
+  if (normalized.startsWith("-")) {
+    normalized = normalized.slice(1);
+  }
+  if (normalized.endsWith("-")) {
+    normalized = normalized.slice(0, -1);
+  }
+
+  return normalized;
 }
 
 export function buildScreenshotName(args: string[]): string {
@@ -127,9 +150,7 @@ export function sanitizeOutputChunk(chunk: string): string {
 
 const DEFAULT_SCREENSHOT_TIMEOUT_MS = 60000;
 
-export function resolveScreenshotTimeoutMs(
-  env: NodeJS.ProcessEnv
-): number {
+export function resolveScreenshotTimeoutMs(env: NodeJS.ProcessEnv): number {
   const raw = env.POE_SCREENSHOT_TIMEOUT_MS;
   if (typeof raw !== "string" || raw.trim().length === 0) {
     return DEFAULT_SCREENSHOT_TIMEOUT_MS;
@@ -139,122 +160,6 @@ export function resolveScreenshotTimeoutMs(
     return DEFAULT_SCREENSHOT_TIMEOUT_MS;
   }
   return Math.floor(parsed);
-}
-
-export function resolveFreezeCommand(
-  env: NodeJS.ProcessEnv
-): string {
-  const override = env.POE_FREEZE_PATH;
-  if (typeof override === "string" && override.trim().length > 0) {
-    if (!existsSync(override)) {
-      throw new Error(`POE_FREEZE_PATH points to missing binary: ${override}`);
-    }
-    return override;
-  }
-
-  const systemFreeze = resolveSystemFreeze();
-  if (systemFreeze) {
-    return systemFreeze;
-  }
-
-  const pathFreeze = resolveFreezeFromPath(env);
-  if (pathFreeze) {
-    return pathFreeze;
-  }
-
-  const require = createRequire(import.meta.url);
-  try {
-    return require.resolve("@poe-code/freeze-cli/bin/freeze");
-  } catch {
-    throw new Error(
-      "Unable to resolve @poe-code/freeze-cli. Install it or set POE_FREEZE_PATH."
-    );
-  }
-}
-
-function resolveSystemFreeze(): string | null {
-  const systemPath = buildSystemPath(process.env);
-  if (probeFreeze("freeze", systemPath)) {
-    return "freeze";
-  }
-  const candidates = ["/opt/homebrew/bin/freeze", "/usr/local/bin/freeze"];
-  for (const candidate of candidates) {
-    if (probeFreeze(candidate, systemPath)) {
-      return candidate;
-    }
-  }
-  return null;
-}
-
-function resolveFreezeFromPath(
-  env: NodeJS.ProcessEnv
-): string | null {
-  const pathValue = buildSystemPath(env);
-  const segments = pathValue.length > 0
-    ? pathValue.split(path.delimiter)
-    : [];
-  for (const segment of segments) {
-    if (segment.length === 0) {
-      continue;
-    }
-    const candidate = path.join(segment, "freeze");
-    const resolved = resolveExecutable(candidate);
-    if (resolved) {
-      return resolved;
-    }
-  }
-
-  const commonCandidates = [
-    "/opt/homebrew/bin/freeze",
-    "/usr/local/bin/freeze"
-  ];
-  for (const candidate of commonCandidates) {
-    const resolved = resolveExecutable(candidate);
-    if (resolved) {
-      return resolved;
-    }
-  }
-
-  return null;
-}
-
-function buildSystemPath(env: NodeJS.ProcessEnv): string {
-  const pathValue = typeof env.PATH === "string" ? env.PATH : "";
-  if (pathValue.length === 0) {
-    return "";
-  }
-  const segments = pathValue.split(path.delimiter);
-  const filtered = segments.filter((segment) => {
-    if (segment.length === 0) {
-      return false;
-    }
-    return !segment.includes("node_modules/.bin");
-  });
-  return filtered.join(path.delimiter);
-}
-
-function probeFreeze(command: string, systemPath: string): boolean {
-  const result = spawnSync(command, ["--help"], {
-    stdio: "ignore",
-    timeout: 1500,
-    env: {
-      ...process.env,
-      PATH: systemPath
-    }
-  });
-  return result.status === 0;
-}
-
-function resolveExecutable(candidate: string): string | null {
-  if (!existsSync(candidate)) {
-    return null;
-  }
-  try {
-    accessSync(candidate, constants.X_OK);
-    return candidate;
-  } catch {
-    return null;
-  }
 }
 
 type SpawnSpec = {
@@ -403,47 +308,15 @@ export async function runScreenshot(
       : "";
   const transcript = `${header}${capturedChunks.join("")}`;
 
-  const transcriptDir = mkdtempSync(
-    path.join(os.tmpdir(), "poe-code-screenshot-")
-  );
-  const transcriptPath = path.join(transcriptDir, "output.ansi");
-  writeFileSync(transcriptPath, transcript, { encoding: "utf8" });
+  await renderTerminalScreenshot(transcript, {
+    padding: 20,
+    window: true,
+    output: outputPath
+  });
 
-  const freezeEnv: NodeJS.ProcessEnv = {
-    ...process.env,
-    PATH: buildSystemPath(process.env)
-  };
-
-  const freezeProcess = spawn(
-    resolveFreezeCommand(process.env),
-    [
-      transcriptPath,
-      "-o",
-      outputPath,
-      "--window",
-      "--padding",
-      "20",
-      "--language",
-      "ansi"
-    ],
-    {
-      stdio: ["ignore", "inherit", "inherit"],
-      env: freezeEnv
-    }
-  );
-
-  const freezeCode = await waitForExit(freezeProcess);
-
-  try {
-    if (commandCode !== 0) {
-      const label = [target.command, ...target.args].join(" ");
-      throw new Error(`${label} failed with exit code ${commandCode}`);
-    }
-    if (freezeCode !== 0) {
-      throw new Error(`freeze failed with exit code ${freezeCode}`);
-    }
-  } finally {
-    rmSync(transcriptDir, { recursive: true, force: true });
+  if (commandCode !== 0) {
+    const label = [target.command, ...target.args].join(" ");
+    throw new Error(`${label} failed with exit code ${commandCode}`);
   }
 
   process.stdout.write(`${outputPath}\n`);

@@ -300,7 +300,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: integrate-screenshot
     title: Replace freeze with renderTerminalScreenshot
@@ -323,7 +323,7 @@ tasks:
 
       Visual validation: run `npm run screenshot-poe-code -- --help` and confirm the PNG renders correctly before committing.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

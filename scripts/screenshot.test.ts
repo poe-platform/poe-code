@@ -1,5 +1,71 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { resolveScreenshotTimeoutMs } from "./screenshot.js";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { EventEmitter } from "node:events";
+import { spawn } from "node:child_process";
+import {
+  mkdirSync,
+  rmSync
+} from "node:fs";
+import process from "node:process";
+import { renderTerminalScreenshot } from "@poe-code/terminal-screenshot";
+import {
+  buildScreenshotName,
+  resolveScreenshotTimeoutMs,
+  runScreenshot
+} from "./screenshot.js";
+
+vi.mock("node:child_process", () => ({
+  spawn: vi.fn()
+}));
+
+vi.mock("node:fs", () => ({
+  mkdirSync: vi.fn(),
+  rmSync: vi.fn()
+}));
+
+vi.mock("@poe-code/terminal-screenshot", () => ({
+  renderTerminalScreenshot: vi.fn()
+}));
+
+function createSpawnProcess(options: {
+  closeCode?: number;
+  error?: Error;
+  stdoutData?: string;
+  stderrData?: string;
+} = {}) {
+  const processEvents = new EventEmitter();
+  const stdout = new EventEmitter();
+  const stderr = new EventEmitter();
+
+  setTimeout(() => {
+    if (options.stdoutData) {
+      stdout.emit("data", Buffer.from(options.stdoutData));
+    }
+
+    if (options.stderrData) {
+      stderr.emit("data", Buffer.from(options.stderrData));
+    }
+
+    if (options.error) {
+      processEvents.emit("error", options.error);
+      return;
+    }
+
+    processEvents.emit("close", options.closeCode ?? 0);
+  }, 0);
+
+  return {
+    stdout,
+    stderr,
+    killed: false,
+    kill: vi.fn(),
+    on: processEvents.on.bind(processEvents)
+  };
+}
+
+const spawnMock = vi.mocked(spawn);
+const mkdirSyncMock = vi.mocked(mkdirSync);
+const rmSyncMock = vi.mocked(rmSync);
+const renderTerminalScreenshotMock = vi.mocked(renderTerminalScreenshot);
 
 describe("resolveScreenshotTimeoutMs", () => {
   it("uses default when env is missing or invalid", () => {
@@ -15,131 +81,84 @@ describe("resolveScreenshotTimeoutMs", () => {
   });
 });
 
-describe("resolveFreezeCommand", () => {
+describe("buildScreenshotName", () => {
+  it("strips shell punctuation from generated filenames", () => {
+    expect(buildScreenshotName(["sh", "-lc", 'printf "oops\\n"; exit 2'])).toBe(
+      "sh-lc-printf-oops-n-exit-2"
+    );
+  });
+});
+
+describe("runScreenshot", () => {
+  let stdoutWriteSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    spawnMock.mockReset();
+    mkdirSyncMock.mockReset();
+    rmSyncMock.mockReset();
+    renderTerminalScreenshotMock.mockReset();
+
+    renderTerminalScreenshotMock.mockResolvedValue(Buffer.from("png"));
+    stdoutWriteSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+  });
+
   afterEach(() => {
-    vi.unmock("node:child_process");
-    vi.unmock("node:fs");
-    vi.unmock("node:process");
-    vi.unmock("node:module");
+    stdoutWriteSpy.mockRestore();
   });
 
-  async function loadWithMocks({
-    exists,
-    access,
-    pathEnv,
-    resolveError,
-    spawnResults
-  }: {
-    exists: (value: string) => boolean;
-    access: (value: string) => void;
-    pathEnv?: string;
-    resolveError?: boolean;
-    spawnResults?: Record<string, number | null>;
-  }) {
-    vi.resetModules();
-    vi.doMock("node:fs", () => ({
-      existsSync: (value: string) => exists(value),
-      accessSync: (value: string) => access(value),
-      constants: { X_OK: 1 }
-    }));
-    vi.doMock("node:child_process", () => ({
-      spawnSync: (command: string) => ({
-        status: spawnResults?.[command] ?? null
+  it("renders the captured ANSI transcript directly to the requested PNG path", async () => {
+    spawnMock.mockReturnValue(
+      createSpawnProcess({
+        stdoutData: "\u001b[32mhelp\u001b[39m\n",
+        stderrData: "warning\n"
+      }) as never
+    );
+
+    await runScreenshot(["--poe-code", "--help"], {
+      output: "screenshots/help.png"
+    });
+
+    expect(spawnMock).toHaveBeenCalledWith(
+      "npm",
+      ["run", "dev", "--silent", "--", "--help"],
+      expect.objectContaining({
+        stdio: ["ignore", "pipe", "pipe"]
       })
-    }));
-    vi.doMock("node:process", () => ({
-      default: {
-        argv: ["node", "/tmp/not-screenshot.ts"],
-        env: { PATH: pathEnv ?? "" }
+    );
+    expect(mkdirSyncMock).toHaveBeenCalledWith("screenshots", {
+      recursive: true
+    });
+    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith(
+      "% poe-code --help\n\u001b[32mhelp\u001b[39m\nwarning\n",
+      {
+        output: "screenshots/help.png",
+        padding: 20,
+        window: true
       }
-    }));
-    if (resolveError) {
-      vi.doMock("node:module", () => ({
-        createRequire: () => ({
-          resolve: () => {
-            throw new Error("missing");
-          }
-        })
-      }));
-    }
-    return await import("./screenshot.js");
-  }
-
-  it("uses the override path when provided", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: () => true,
-      access: () => undefined,
-      spawnResults: { freeze: 1 }
-    });
-    expect(
-      resolveFreezeCommand({ POE_FREEZE_PATH: "/tmp/freeze" })
-    ).toBe("/tmp/freeze");
+    );
+    expect(stdoutWriteSpy).toHaveBeenCalledWith("screenshots/help.png\n");
+    expect(rmSyncMock).not.toHaveBeenCalled();
   });
 
-  it("throws when the override path is missing", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: () => false,
-      access: () => undefined,
-      spawnResults: { freeze: 1 }
-    });
-    expect(() =>
-      resolveFreezeCommand({ POE_FREEZE_PATH: "/tmp/missing" })
-    ).toThrow("POE_FREEZE_PATH");
-  });
+  it("fails when the captured command exits non-zero", async () => {
+    spawnMock.mockReturnValue(
+      createSpawnProcess({
+        closeCode: 2,
+        stdoutData: "broken\n"
+      }) as never
+    );
 
-  it("prefers a freeze binary on PATH", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: (value) => value === "/opt/bin/freeze",
-      access: () => undefined,
-      pathEnv: "/opt/bin:/usr/bin",
-      spawnResults: { freeze: 1 }
-    });
-    expect(resolveFreezeCommand({ PATH: "/opt/bin:/usr/bin" })).toBe("/opt/bin/freeze");
-  });
+    await expect(
+      runScreenshot(["echo", "oops"], {
+        output: "screenshots/oops.png"
+      })
+    ).rejects.toThrow("echo oops failed with exit code 2");
 
-  it("falls back to common system paths when PATH misses freeze", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: (value) => value === "/opt/homebrew/bin/freeze",
-      access: () => undefined,
-      pathEnv: "",
-      spawnResults: {
-        freeze: 1,
-        "/opt/homebrew/bin/freeze": 0
-      }
+    expect(renderTerminalScreenshotMock).toHaveBeenCalledWith("% echo oops\nbroken\n", {
+      output: "screenshots/oops.png",
+      padding: 20,
+      window: true
     });
-    expect(resolveFreezeCommand({})).toBe("/opt/homebrew/bin/freeze");
-  });
-
-  it("skips node_modules/.bin when resolving PATH", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: (value) =>
-        value === "/opt/bin/freeze" || value === "/repo/node_modules/.bin/freeze",
-      access: () => undefined,
-      pathEnv: "/repo/node_modules/.bin:/opt/bin:/usr/bin",
-      spawnResults: { freeze: 1 }
-    });
-    expect(
-      resolveFreezeCommand({ PATH: "/repo/node_modules/.bin:/opt/bin:/usr/bin" })
-    ).toBe("/opt/bin/freeze");
-  });
-
-  it("uses system freeze when available", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: () => false,
-      access: () => undefined,
-      spawnResults: { freeze: 0 }
-    });
-    expect(resolveFreezeCommand({})).toBe("freeze");
-  });
-
-  it("falls back to bundled freeze-cli binary", async () => {
-    const { resolveFreezeCommand } = await loadWithMocks({
-      exists: () => false,
-      access: () => undefined,
-      spawnResults: { freeze: 1 }
-    });
-    const resolved = resolveFreezeCommand({});
-    expect(resolved.includes("freeze-cli")).toBe(true);
-    expect(resolved.endsWith("bin/freeze")).toBe(true);
+    expect(rmSyncMock).not.toHaveBeenCalled();
   });
 });

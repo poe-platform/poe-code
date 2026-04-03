@@ -5,7 +5,6 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { renderTerminalScreenshot } from "../src/index.js";
 
-const FREEZE_OUTPUT_PATH = "/tmp/ts-compare-freeze.png";
 const NEW_OUTPUT_PATH = "/tmp/ts-compare-new.png";
 
 interface CompareWriter {
@@ -51,33 +50,13 @@ exec ${escapeShellArgument(process.execPath)} ${escapeShellArgument(cliPath)} "$
   await chmod(shimPath, 0o755);
 }
 
-function waitForExit(
-  child: ChildProcessWithoutNullStreams,
-  options: { allowMissingCommand?: boolean } = {}
-): Promise<number | "missing"> {
+function waitForExit(child: ChildProcessWithoutNullStreams): Promise<number> {
   return new Promise((resolve, reject) => {
-    let settled = false;
-
     child.once("error", (error: NodeJS.ErrnoException) => {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      if (options.allowMissingCommand && error.code === "ENOENT") {
-        resolve("missing");
-        return;
-      }
-
       reject(error);
     });
 
     child.once("close", (code) => {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
       resolve(typeof code === "number" ? code : 1);
     });
   });
@@ -111,62 +90,20 @@ async function capturePoeCodeHelp(tempDir: string): Promise<string> {
   return chunks.join("");
 }
 
-async function renderFreezeReference(inputPath: string): Promise<boolean> {
-  const child = spawn(
-    "freeze",
-    [
-      inputPath,
-      "-o",
-      FREEZE_OUTPUT_PATH,
-      "--window",
-      "--padding",
-      "20",
-      "--language",
-      "ansi"
-    ],
-    {
-      stdio: ["ignore", "inherit", "inherit"]
-    }
-  );
-
-  const exitCode = await waitForExit(child, { allowMissingCommand: true });
-
-  if (exitCode === "missing") {
-    return false;
-  }
-
-  if (exitCode !== 0) {
-    throw new Error(`freeze failed with exit code ${exitCode}`);
-  }
-
-  return true;
-}
-
 export async function runCompare(output: CompareOutput = defaultOutput): Promise<void> {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), "ts-compare-"));
-  const tempAnsiPath = path.join(tempDir, "poe-code-help.ansi");
 
   try {
     await createPoeCodeShim(tempDir);
 
     const ansiText = await capturePoeCodeHelp(tempDir);
-    await writeFile(tempAnsiPath, ansiText, "utf8");
-
-    const freezeAvailable = await renderFreezeReference(tempAnsiPath);
-    const newPng = await renderTerminalScreenshot(ansiText, {
+    await renderTerminalScreenshot(ansiText, {
       window: true,
-      padding: 20
+      padding: 20,
+      output: NEW_OUTPUT_PATH
     });
 
-    await writeFile(NEW_OUTPUT_PATH, newPng);
-
-    if (freezeAvailable) {
-      output.stdout.write(`FREEZE: ${FREEZE_OUTPUT_PATH}\n`);
-    } else {
-      output.stdout.write("FREEZE_UNAVAILABLE\n");
-    }
-
-    output.stdout.write(`NEW:    ${NEW_OUTPUT_PATH}\n`);
+    output.stdout.write(`PNG: ${NEW_OUTPUT_PATH}\n`);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

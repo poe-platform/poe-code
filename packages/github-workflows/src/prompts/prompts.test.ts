@@ -60,7 +60,7 @@ describe("built-in prompts", () => {
       name: "fix-vulnerabilities",
       source:
         `gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] | select(.state=="open")]'`,
-      agent: "claude"
+      agent: "claude-code"
     });
     expect(automation?.mcp).toBeUndefined();
 

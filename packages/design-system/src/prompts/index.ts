@@ -38,6 +38,22 @@ export async function select<Value>(
 
 export type MultiselectOptions<Value> = Parameters<typeof clack.multiselect<Value>>[0];
 
+/**
+ * Prompts the user to select one or more values from a list.
+ *
+ * Returns the selected values as an array, or a cancellation symbol if the
+ * user cancels. Use `isCancel` to check for cancellation.
+ *
+ * @example
+ * const result = await multiselect({
+ *   message: "Pick workflows to run",
+ *   options: [{ label: "Fix Vulnerabilities", value: "fix-vulnerabilities" }],
+ *   required: true
+ * });
+ * if (!isCancel(result)) {
+ *   // result is Value[]
+ * }
+ */
 export async function multiselect<Value>(
   opts: MultiselectOptions<Value>
 ): Promise<Value[] | symbol> {

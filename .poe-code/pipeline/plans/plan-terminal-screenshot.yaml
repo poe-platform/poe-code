@@ -129,7 +129,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: svg-renderer
     title: SVG renderer
@@ -175,10 +175,10 @@ tasks:
         - `window: true` includes traffic-light circles
         - Padding is reflected in the SVG viewBox / dimensions
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: png-renderer
     title: PNG rasterizer

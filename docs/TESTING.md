@@ -29,6 +29,18 @@ Verify workflow discovery with:
 act --list
 ```
 
+Local quick check:
+
+```sh
+npm run test:workflows:all
+```
+
+Full CI-grade workflow regression run (requires Docker):
+
+```sh
+npm run test:workflows:ci
+```
+
 If `act` fails while cloning public actions, remove the `GITHUB_TOKEN=test`
 line or replace it with a real GitHub token. The placeholder value is enough
 for secret interpolation, but some local runs treat it as an auth credential.

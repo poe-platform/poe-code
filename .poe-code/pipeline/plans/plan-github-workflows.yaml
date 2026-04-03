@@ -299,7 +299,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: regression-script
     title: Write workflow regression script
@@ -322,9 +322,9 @@ tasks:
         - Local quick check: `npm run test:workflows:all`
         - Full CI-grade (needs Docker): `npm run test:workflows:ci`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: screenshots-and-validate

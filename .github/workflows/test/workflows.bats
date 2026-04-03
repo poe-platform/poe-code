@@ -3,6 +3,7 @@
 setup_file() {
   export REPO_ROOT
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd)"
+  export TEST_WORKFLOWS_SCRIPT="$REPO_ROOT/scripts/test-workflows.sh"
   export NODE_IMAGE="node:20-bookworm"
 
   CHECK_USER_ALLOW_SCRIPT="$(cat <<'EOF'
@@ -92,6 +93,55 @@ const steps = workflow.jobs.run.steps
   .map((step) => step.run);
 
 process.stdout.write(steps.join("\n"));
+EOF
+}
+
+test_workflows_script_command() {
+  cat <<'EOF'
+npm() {
+  printf 'MOCK npm %s\n' "$*"
+  if [ "${ASSERT_REPO_ROOT:-0}" = "1" ] && [ "$PWD" != "$REPO_ROOT" ]; then
+    printf 'Expected repo root %s, got %s\n' "$REPO_ROOT" "$PWD" >&2
+    return 98
+  fi
+
+  case "$*" in
+    'run lint:workflows')
+      return "${MOCK_NPM_LINT_EXIT:-0}"
+      ;;
+    'run test:workflows:fast')
+      return "${MOCK_NPM_FAST_EXIT:-0}"
+      ;;
+    'run test:workflows')
+      return "${MOCK_NPM_FULL_EXIT:-0}"
+      ;;
+    *)
+      printf 'Unexpected npm invocation: %s\n' "$*" >&2
+      return 99
+      ;;
+  esac
+}
+
+act() {
+  printf 'MOCK act %s\n' "$*"
+  if [ "${ASSERT_REPO_ROOT:-0}" = "1" ] && [ "$PWD" != "$REPO_ROOT" ]; then
+    printf 'Expected repo root %s, got %s\n' "$REPO_ROOT" "$PWD" >&2
+    return 98
+  fi
+
+  case "$*" in
+    '--list')
+      return "${MOCK_ACT_LIST_EXIT:-0}"
+      ;;
+    *)
+      printf 'Unexpected act invocation: %s\n' "$*" >&2
+      return 99
+      ;;
+  esac
+}
+
+export -f npm act
+bash "$TEST_WORKFLOWS_SCRIPT"
 EOF
 }
 
@@ -188,6 +238,82 @@ run_guard_in_docker() {
   run yaml_eval ".github/workflows/pr-checks-pr.yml" 'Object.prototype.hasOwnProperty.call(workflow.on ?? {}, "pull_request")'
   [ "$status" -eq 0 ]
   [ "$output" = "true" ]
+}
+
+@test "dry-run workflow wrapper runs quick checks and skips Docker suite by default" {
+  local shell_command
+  shell_command="$(test_workflows_script_command)"
+
+  run env PATH="$PATH" ACT_FULL=0 bash -lc "$shell_command"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"PASSED lint:workflows"* ]]
+  [[ "$output" == *"PASSED act --list"* ]]
+  [[ "$output" == *"PASSED test:workflows:fast"* ]]
+  [[ "$output" == *"SKIPPED test:workflows"* ]]
+  [[ "$output" != *$'MOCK npm run test:workflows\n'* ]]
+}
+
+@test "dry-run workflow wrapper fails fast when lint:workflows fails" {
+  local shell_command
+  shell_command="$(test_workflows_script_command)"
+
+  run env PATH="$PATH" ACT_FULL=0 MOCK_NPM_LINT_EXIT=1 bash -lc "$shell_command"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"FAILED lint:workflows"* ]]
+  [[ "$output" == *"SKIPPED act --list"* ]]
+  [[ "$output" == *"SKIPPED test:workflows:fast"* ]]
+  [[ "$output" == *"SKIPPED test:workflows"* ]]
+  [[ "$output" != *"MOCK act --list"* ]]
+  [[ "$output" != *"MOCK npm run test:workflows:fast"* ]]
+  [[ "$output" != *$'MOCK npm run test:workflows\n'* ]]
+}
+
+@test "dry-run workflow wrapper fails fast when act --list fails" {
+  local shell_command
+  shell_command="$(test_workflows_script_command)"
+
+  run env PATH="$PATH" ACT_FULL=0 MOCK_ACT_LIST_EXIT=1 bash -lc "$shell_command"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"PASSED lint:workflows"* ]]
+  [[ "$output" == *"FAILED act --list"* ]]
+  [[ "$output" == *"SKIPPED test:workflows:fast"* ]]
+  [[ "$output" == *"SKIPPED test:workflows"* ]]
+  [[ "$output" != *"MOCK npm run test:workflows:fast"* ]]
+  [[ "$output" != *$'MOCK npm run test:workflows\n'* ]]
+}
+
+@test "dry-run workflow wrapper runs the Docker suite when ACT_FULL=1" {
+  local shell_command
+  shell_command="$(test_workflows_script_command)"
+
+  run env PATH="$PATH" ACT_FULL=1 bash -lc "$shell_command"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"PASSED test:workflows"* ]]
+  [[ "$output" == *$'MOCK npm run test:workflows\n'* ]]
+}
+
+@test "dry-run workflow wrapper reports full suite failure when ACT_FULL=1" {
+  local shell_command
+  shell_command="$(test_workflows_script_command)"
+
+  run env PATH="$PATH" ACT_FULL=1 MOCK_NPM_FULL_EXIT=1 bash -lc "$shell_command"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"PASSED lint:workflows"* ]]
+  [[ "$output" == *"PASSED act --list"* ]]
+  [[ "$output" == *"PASSED test:workflows:fast"* ]]
+  [[ "$output" == *"FAILED test:workflows"* ]]
+}
+
+@test "dry-run workflow wrapper runs from outside the repository root" {
+  local shell_command
+  shell_command="$(test_workflows_script_command)"
+
+  run env PATH="$PATH" ACT_FULL=0 ASSERT_REPO_ROOT=1 bash -lc "cd /tmp && $shell_command"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"PASSED lint:workflows"* ]]
+  [[ "$output" == *"PASSED act --list"* ]]
+  [[ "$output" == *"PASSED test:workflows:fast"* ]]
+  [[ "$output" == *"SKIPPED test:workflows"* ]]
 }
 
 @test "check-user-allow exits 0 for OWNER" {

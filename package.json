@@ -34,6 +34,8 @@
     "test:integration": "vitest run tests/integration/",
     "test:workflows": "bats .github/workflows/test/workflows.bats",
     "test:workflows:fast": "bats --filter 'dry-run' .github/workflows/test/workflows.bats",
+    "test:workflows:all": "bash scripts/test-workflows.sh",
+    "test:workflows:ci": "ACT_FULL=1 bash scripts/test-workflows.sh",
     "test:record": "POE_SNAPSHOT_MODE=record npm run test:integration",
     "test-generate": "tsx scripts/test-generate.ts",
     "snapshots": "tsx scripts/snapshots.ts",

@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   terminalCloseSessionTool,
   terminalCreateSessionTool,
+  terminalFillTool,
+  terminalGetSessionTool,
   terminalListSessionsTool,
   terminalPressKeyTool,
   terminalReadHistoryTool,
@@ -9,6 +11,7 @@ import {
   terminalResizeTool,
   terminalSendSignalTool,
   terminalTypeTool,
+  terminalWaitForExitTool,
   terminalWaitForTool
 } from "./mcp-tools.js";
 
@@ -17,10 +20,13 @@ function createSessionMock(overrides: Partial<SessionMock> = {}): SessionMock {
     id: "session-1",
     command: "poe-code",
     pid: 1234,
+    exitCode: null,
     fill: vi.fn().mockResolvedValue(undefined),
+    type: vi.fn().mockResolvedValue(undefined),
     press: vi.fn().mockResolvedValue(undefined),
     signal: vi.fn().mockResolvedValue(undefined),
     waitFor: vi.fn().mockResolvedValue("matched output"),
+    waitForExit: vi.fn().mockResolvedValue(0),
     screen: vi.fn().mockResolvedValue({
       lines: ["line 1", "line 2"],
       cursor: { row: 2, col: 3 },
@@ -37,7 +43,8 @@ function createPilotMock(session = createSessionMock()): TerminalPilotMock {
   return {
     newSession: vi.fn().mockResolvedValue(session),
     getSession: vi.fn().mockReturnValue(session),
-    sessions: vi.fn().mockReturnValue([session])
+    sessions: vi.fn().mockReturnValue([session]),
+    deleteSession: vi.fn()
   };
 }
 
@@ -45,10 +52,13 @@ type SessionMock = {
   id: string;
   command: string;
   pid: number;
+  exitCode: number | null;
   fill: ReturnType<typeof vi.fn>;
+  type: ReturnType<typeof vi.fn>;
   press: ReturnType<typeof vi.fn>;
   signal: ReturnType<typeof vi.fn>;
   waitFor: ReturnType<typeof vi.fn>;
+  waitForExit: ReturnType<typeof vi.fn>;
   screen: ReturnType<typeof vi.fn>;
   history: ReturnType<typeof vi.fn>;
   resize: ReturnType<typeof vi.fn>;
@@ -59,6 +69,7 @@ type TerminalPilotMock = {
   newSession: ReturnType<typeof vi.fn>;
   getSession: ReturnType<typeof vi.fn>;
   sessions: ReturnType<typeof vi.fn>;
+  deleteSession: ReturnType<typeof vi.fn>;
 };
 
 describe("mcp terminal tools", () => {
@@ -115,7 +126,28 @@ describe("mcp terminal tools", () => {
     expect(pilot.newSession).toHaveBeenCalledWith({ command: "bash" });
   });
 
-  it("types text via terminal_type", async () => {
+  it("fills text at once via terminal_fill", async () => {
+    const session = createSessionMock();
+    const pilot = createPilotMock(session);
+    const tool = terminalFillTool(pilot as never);
+
+    expect(tool.name).toBe("terminal_fill");
+    expect(tool.inputSchema).toEqual({
+      type: "object",
+      properties: {
+        sessionId: { type: "string", description: "Terminal session id" },
+        text: { type: "string", description: "Text to write to the session" }
+      },
+      required: ["sessionId", "text"]
+    });
+
+    await expect(tool.handler({ sessionId: "session-1", text: "hello" })).resolves.toBeUndefined();
+
+    expect(pilot.getSession).toHaveBeenCalledWith("session-1");
+    expect(session.fill).toHaveBeenCalledWith("hello");
+  });
+
+  it("types text character-by-character via terminal_type", async () => {
     const session = createSessionMock();
     const pilot = createPilotMock(session);
     const tool = terminalTypeTool(pilot as never);
@@ -133,7 +165,7 @@ describe("mcp terminal tools", () => {
     await expect(tool.handler({ sessionId: "session-1", text: "hello" })).resolves.toBeUndefined();
 
     expect(pilot.getSession).toHaveBeenCalledWith("session-1");
-    expect(session.fill).toHaveBeenCalledWith("hello");
+    expect(session.type).toHaveBeenCalledWith("hello");
   });
 
   it("presses a key via terminal_press_key", async () => {
@@ -180,7 +212,7 @@ describe("mcp terminal tools", () => {
     expect(session.signal).toHaveBeenCalledWith("SIGINT");
   });
 
-  it("waits for a pattern via terminal_wait_for", async () => {
+  it("waits for a regex pattern via terminal_wait_for", async () => {
     const session = createSessionMock({ waitFor: vi.fn().mockResolvedValue("Select an agent") });
     const pilot = createPilotMock(session);
     const tool = terminalWaitForTool(pilot as never);
@@ -191,7 +223,11 @@ describe("mcp terminal tools", () => {
       properties: {
         sessionId: { type: "string", description: "Terminal session id" },
         pattern: { type: "string", description: "Regular expression pattern to wait for" },
-        timeout: { type: "number", description: "Maximum wait time in milliseconds" }
+        timeout: { type: "number", description: "Maximum wait time in milliseconds" },
+        literal: {
+          type: "boolean",
+          description: "When true, treat pattern as a literal string instead of a regex"
+        }
       },
       required: ["sessionId", "pattern"]
     });
@@ -225,8 +261,57 @@ describe("mcp terminal tools", () => {
     expect(options).toBeUndefined();
   });
 
-  it("reads the screen via terminal_read_screen", async () => {
+  it("passes a literal string to waitFor when literal is true", async () => {
     const session = createSessionMock({
+      waitFor: vi.fn().mockResolvedValue("file.txt matched")
+    });
+    const pilot = createPilotMock(session);
+    const tool = terminalWaitForTool(pilot as never);
+
+    await expect(
+      tool.handler({ sessionId: "session-1", pattern: "file.txt", literal: true })
+    ).resolves.toEqual({ matched: true, line: "file.txt matched" });
+
+    const [pattern] = session.waitFor.mock.calls[0] as [string | RegExp];
+    expect(typeof pattern).toBe("string");
+    expect(pattern).toBe("file.txt");
+  });
+
+  it("waits for exit via terminal_wait_for_exit", async () => {
+    const session = createSessionMock({ waitForExit: vi.fn().mockResolvedValue(0) });
+    const pilot = createPilotMock(session);
+    const tool = terminalWaitForExitTool(pilot as never);
+
+    expect(tool.name).toBe("terminal_wait_for_exit");
+    expect(tool.inputSchema).toEqual({
+      type: "object",
+      properties: {
+        sessionId: { type: "string", description: "Terminal session id" },
+        timeout: { type: "number", description: "Maximum wait time in milliseconds" }
+      },
+      required: ["sessionId"]
+    });
+
+    await expect(tool.handler({ sessionId: "session-1", timeout: 5000 })).resolves.toEqual({
+      exitCode: 0
+    });
+
+    expect(pilot.getSession).toHaveBeenCalledWith("session-1");
+    expect(session.waitForExit).toHaveBeenCalledWith({ timeout: 5000 });
+  });
+
+  it("waits for exit without timeout when timeout is omitted", async () => {
+    const session = createSessionMock({ waitForExit: vi.fn().mockResolvedValue(1) });
+    const pilot = createPilotMock(session);
+    const tool = terminalWaitForExitTool(pilot as never);
+
+    await expect(tool.handler({ sessionId: "session-1" })).resolves.toEqual({ exitCode: 1 });
+    expect(session.waitForExit).toHaveBeenCalledWith(undefined);
+  });
+
+  it("reads the screen via terminal_read_screen and includes exitCode", async () => {
+    const session = createSessionMock({
+      exitCode: null,
       screen: vi.fn().mockResolvedValue({
         lines: ["menu", "  > item"],
         cursor: { row: 1, col: 4 },
@@ -248,15 +333,36 @@ describe("mcp terminal tools", () => {
     await expect(tool.handler({ sessionId: "session-1" })).resolves.toEqual({
       lines: ["menu", "  > item"],
       cursor: { row: 1, col: 4 },
-      size: { rows: 24, cols: 80 }
+      size: { rows: 24, cols: 80 },
+      exitCode: null
     });
 
     expect(pilot.getSession).toHaveBeenCalledWith("session-1");
     expect(session.screen).toHaveBeenCalledWith();
   });
 
-  it("reads history via terminal_read_history", async () => {
-    const session = createSessionMock({ history: vi.fn().mockResolvedValue(["first", "second"]) });
+  it("reads the screen and reflects a non-null exitCode", async () => {
+    const session = createSessionMock({
+      exitCode: 0,
+      screen: vi.fn().mockResolvedValue({
+        lines: [],
+        cursor: { row: 0, col: 0 },
+        size: { rows: 40, cols: 120 }
+      })
+    });
+    const pilot = createPilotMock(session);
+    const tool = terminalReadScreenTool(pilot as never);
+
+    await expect(tool.handler({ sessionId: "session-1" })).resolves.toMatchObject({
+      exitCode: 0
+    });
+  });
+
+  it("reads history via terminal_read_history and includes exitCode", async () => {
+    const session = createSessionMock({
+      exitCode: null,
+      history: vi.fn().mockResolvedValue(["first", "second"])
+    });
     const pilot = createPilotMock(session);
     const tool = terminalReadHistoryTool(pilot as never);
 
@@ -271,20 +377,25 @@ describe("mcp terminal tools", () => {
     });
 
     await expect(tool.handler({ sessionId: "session-1", last: 50 })).resolves.toEqual({
-      lines: ["first", "second"]
+      lines: ["first", "second"],
+      exitCode: null
     });
 
     expect(pilot.getSession).toHaveBeenCalledWith("session-1");
     expect(session.history).toHaveBeenCalledWith({ last: 50 });
   });
 
-  it("reads full history when last is omitted", async () => {
-    const session = createSessionMock({ history: vi.fn().mockResolvedValue(["line 1", "line 2"]) });
+  it("reads full history when last is omitted and includes exitCode", async () => {
+    const session = createSessionMock({
+      exitCode: 1,
+      history: vi.fn().mockResolvedValue(["line 1", "line 2"])
+    });
     const pilot = createPilotMock(session);
     const tool = terminalReadHistoryTool(pilot as never);
 
     await expect(tool.handler({ sessionId: "session-1" })).resolves.toEqual({
-      lines: ["line 1", "line 2"]
+      lines: ["line 1", "line 2"],
+      exitCode: 1
     });
 
     expect(session.history).toHaveBeenCalledWith({ last: undefined });
@@ -314,7 +425,7 @@ describe("mcp terminal tools", () => {
     expect(session.resize).toHaveBeenCalledWith(100, 40);
   });
 
-  it("closes a session via terminal_close_session", async () => {
+  it("closes a session and deletes it from the map via terminal_close_session", async () => {
     const session = createSessionMock({ close: vi.fn().mockResolvedValue(143) });
     const pilot = createPilotMock(session);
     const tool = terminalCloseSessionTool(pilot as never);
@@ -332,6 +443,41 @@ describe("mcp terminal tools", () => {
 
     expect(pilot.getSession).toHaveBeenCalledWith("session-1");
     expect(session.close).toHaveBeenCalledWith();
+    expect(pilot.deleteSession).toHaveBeenCalledWith("session-1");
+  });
+
+  it("gets session metadata without side effects via terminal_get_session", async () => {
+    const session = createSessionMock({ id: "session-1", pid: 9999, command: "vim", exitCode: null });
+    const pilot = createPilotMock(session);
+    const tool = terminalGetSessionTool(pilot as never);
+
+    expect(tool.name).toBe("terminal_get_session");
+    expect(tool.inputSchema).toEqual({
+      type: "object",
+      properties: {
+        sessionId: { type: "string", description: "Terminal session id" }
+      },
+      required: ["sessionId"]
+    });
+
+    await expect(tool.handler({ sessionId: "session-1" })).resolves.toEqual({
+      id: "session-1",
+      pid: 9999,
+      command: "vim",
+      exitCode: null
+    });
+
+    expect(pilot.getSession).toHaveBeenCalledWith("session-1");
+    expect(session.fill).not.toHaveBeenCalled();
+    expect(session.close).not.toHaveBeenCalled();
+  });
+
+  it("gets session metadata with a non-null exitCode", async () => {
+    const session = createSessionMock({ exitCode: 0 });
+    const pilot = createPilotMock(session);
+    const tool = terminalGetSessionTool(pilot as never);
+
+    await expect(tool.handler({ sessionId: "session-1" })).resolves.toMatchObject({ exitCode: 0 });
   });
 
   it("lists sessions via terminal_list_sessions", async () => {
@@ -340,7 +486,8 @@ describe("mcp terminal tools", () => {
     const pilot = {
       newSession: vi.fn(),
       getSession: vi.fn(),
-      sessions: vi.fn().mockReturnValue([first, second])
+      sessions: vi.fn().mockReturnValue([first, second]),
+      deleteSession: vi.fn()
     };
     const tool = terminalListSessionsTool(pilot as never);
 
@@ -365,7 +512,8 @@ describe("mcp terminal tools", () => {
     const pilot = {
       newSession: vi.fn(),
       getSession: vi.fn(),
-      sessions: vi.fn().mockReturnValue([])
+      sessions: vi.fn().mockReturnValue([]),
+      deleteSession: vi.fn()
     };
     const tool = terminalListSessionsTool(pilot as never);
 

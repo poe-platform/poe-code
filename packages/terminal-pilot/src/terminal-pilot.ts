@@ -33,11 +33,10 @@ export class TerminalPilot {
       observe: opts.observe ?? false
     });
 
+    this.sessionMap.set(session.id, session);
     session.on("exit", () => {
       this.sessionMap.delete(session.id);
     });
-
-    this.sessionMap.set(session.id, session);
     return session;
   }
 
@@ -51,8 +50,12 @@ export class TerminalPilot {
     return session;
   }
 
+  deleteSession(id: string): void {
+    this.sessionMap.delete(id);
+  }
+
   sessions(): TerminalSession[] {
-    return [...this.sessionMap.values()];
+    return [...this.sessionMap.values()].filter((s) => s.exitCode === null);
   }
 
   async close(): Promise<void> {

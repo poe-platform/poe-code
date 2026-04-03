@@ -69,20 +69,28 @@ await main();
 | Tool | Input | Output |
 | --- | --- | --- |
 | `terminal_create_session` | `{ command: string, args?: string[], cwd?: string, cols?: number, rows?: number, observe?: boolean }` | `{ sessionId: string, pid: number }` |
+| `terminal_fill` | `{ sessionId: string, text: string }` | `void` |
 | `terminal_type` | `{ sessionId: string, text: string }` | `void` |
 | `terminal_press_key` | `{ sessionId: string, key: TerminalKey }` | `void` |
 | `terminal_send_signal` | `{ sessionId: string, signal: string }` | `void` |
-| `terminal_wait_for` | `{ sessionId: string, pattern: string, timeout?: number }` | `{ matched: true, line: string }` |
-| `terminal_read_screen` | `{ sessionId: string }` | `{ lines: string[], cursor: { row: number, col: number }, size: { rows: number, cols: number } }` |
-| `terminal_read_history` | `{ sessionId: string, last?: number }` | `{ lines: string[] }` |
+| `terminal_wait_for` | `{ sessionId: string, pattern: string, timeout?: number, literal?: boolean }` | `{ matched: true, line: string }` |
+| `terminal_wait_for_exit` | `{ sessionId: string, timeout?: number }` | `{ exitCode: number }` |
+| `terminal_read_screen` | `{ sessionId: string }` | `{ lines: string[], cursor: { row: number, col: number }, size: { rows: number, cols: number }, exitCode: number \| null }` |
+| `terminal_read_history` | `{ sessionId: string, last?: number }` | `{ lines: string[], exitCode: number \| null }` |
 | `terminal_resize` | `{ sessionId: string, cols: number, rows: number }` | `void` |
 | `terminal_close_session` | `{ sessionId: string }` | `{ exitCode: number }` |
+| `terminal_get_session` | `{ sessionId: string }` | `{ id: string, pid: number, command: string, exitCode: number \| null }` |
 | `terminal_list_sessions` | `{}` | `{ sessions: Array<{ id: string, command: string, pid: number }> }` |
 
 Practical notes:
 
-- `terminal_wait_for.pattern` is compiled as a JavaScript `RegExp` on the server.
-- `terminal_type` maps to `session.fill(...)` for bulk text entry.
+- `terminal_fill` sends text all at once (`\n` → `\r`). Use for bulk text entry.
+- `terminal_type` sends text character-by-character with a small delay between keystrokes. Use for TUI apps that react to each keystroke (vim insert mode, readline, etc.).
+- `terminal_wait_for.pattern` is compiled as a JavaScript `RegExp` by default. Set `literal: true` to match the string exactly (no regex interpretation — safe for file names, dots, etc.).
+- `terminal_wait_for_exit` blocks until the process exits and returns its exit code. Throws on timeout.
+- `terminal_read_screen` and `terminal_read_history` include `exitCode: number | null` so you can check whether the session is still running without a separate call.
+- `terminal_get_session` reads session metadata without any side effects — useful for checking `exitCode` before deciding whether to wait or close.
+- `terminal_close_session` closes the process and removes the session from the server's session map.
 - `terminal_read_screen` returns the **current visible screen**, not scrollback.
 - `terminal_read_history` returns ANSI-stripped output since session start.
 - `terminal_list_sessions` returns **active** sessions only.

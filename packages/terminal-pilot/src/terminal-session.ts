@@ -1,13 +1,11 @@
 import { spawn as spawnChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
-import { createRequire } from "node:module";
 import * as nodePty from "node-pty";
 import { stripAnsi } from "./ansi.js";
+import { TerminalBuffer } from "./terminal-buffer.js";
 import { keyToSequence, type TerminalKey } from "./keys.js";
 import { TerminalScreen } from "./terminal-screen.js";
 
-const require = createRequire(import.meta.url);
-const HeadlessTerminal = require("headless-terminal") as HeadlessTerminalConstructor;
 const DEFAULT_COLS = 120;
 const DEFAULT_ROWS = 40;
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -34,18 +32,6 @@ export type HistoryOptions = {
   last?: number;
 };
 
-type HeadlessTerminalInstance = {
-  write(data: string): void;
-  resize(cols: number, rows: number): void;
-  displayBuffer: {
-    cursorX: number;
-    cursorY: number;
-    data: Array<Array<[number, string] | null> | undefined>;
-  };
-};
-
-type HeadlessTerminalConstructor = new (cols: number, rows: number) => HeadlessTerminalInstance;
-
 type PtyLike = {
   readonly pid: number;
   write(data: string): void;
@@ -62,7 +48,7 @@ export class TerminalSession {
   exitCode: number | null = null;
 
   private readonly pty: PtyLike;
-  private readonly terminal: HeadlessTerminalInstance;
+  private readonly terminal: TerminalBuffer;
   private readonly emitter = new EventEmitter();
   private readonly exitPromise: Promise<number>;
   private rawBuffer = "";
@@ -86,7 +72,7 @@ export class TerminalSession {
     this.command = command;
     this.currentCols = cols;
     this.currentRows = rows;
-    this.terminal = new HeadlessTerminal(cols, rows);
+    this.terminal = new TerminalBuffer(cols, rows);
     this.pty = createPtyProcess({ command, args, cwd, env, cols, rows });
     this.pid = this.pty.pid;
 
@@ -224,6 +210,22 @@ export class TerminalSession {
       this.pty.resize(cols, rows);
     }
     this.terminal.resize(cols, rows);
+  }
+
+  async waitForExit(opts?: { timeout?: number }): Promise<number> {
+    if (this.exitCode !== null) {
+      return this.exitCode;
+    }
+
+    if (opts?.timeout !== undefined) {
+      const result = await waitForExit(this.exitPromise, opts.timeout);
+      if (result === null) {
+        throw new Error(`Timed out waiting for process to exit after ${opts.timeout}ms`);
+      }
+      return result;
+    }
+
+    return this.exitPromise;
   }
 
   async close(): Promise<number> {

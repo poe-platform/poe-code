@@ -7,14 +7,17 @@ import type { TerminalPilot } from "terminal-pilot";
 
 const EXPECTED_TOOL_NAMES = [
   "terminal_create_session",
+  "terminal_fill",
   "terminal_type",
   "terminal_press_key",
   "terminal_send_signal",
   "terminal_wait_for",
+  "terminal_wait_for_exit",
   "terminal_read_screen",
   "terminal_read_history",
   "terminal_resize",
   "terminal_close_session",
+  "terminal_get_session",
   "terminal_list_sessions"
 ];
 
@@ -39,12 +42,12 @@ describe("terminal-pilot MCP server", () => {
     });
   });
 
-  it("registers all 10 terminal tools", async () => {
+  it("registers all 13 terminal tools", async () => {
     const server = createTerminalPilotMcpServer({} as TerminalPilot);
     testPair = await createTestPair(server);
 
     const result = await testPair.client.listTools();
-    expect(result.tools).toHaveLength(10);
+    expect(result.tools).toHaveLength(13);
     expect(result.tools.map((tool) => tool.name)).toEqual(EXPECTED_TOOL_NAMES);
   });
 

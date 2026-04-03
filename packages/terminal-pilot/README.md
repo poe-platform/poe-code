@@ -62,6 +62,7 @@ class TerminalPilot {
   static launch(): Promise<TerminalPilot>;
   newSession(options: NewSessionOptions): Promise<TerminalSession>;
   getSession(id: string): TerminalSession; // throws if missing
+  deleteSession(id: string): void; // explicit removal from session map
   sessions(): TerminalSession[]; // active sessions only
   close(): Promise<void>;
 }
@@ -122,12 +123,13 @@ class TerminalSession {
   readonly pid: number;
   exitCode: number | null;
 
-  type(text: string): Promise<void>; // character-by-character
-  fill(text: string): Promise<void>; // bulk write
+  type(text: string): Promise<void>; // character-by-character with delay
+  fill(text: string): Promise<void>; // bulk write (\n → \r)
   press(key: TerminalKey): Promise<void>;
   send(raw: string): Promise<void>; // raw bytes / escape sequences
   signal(signal: string): Promise<void>;
   waitFor(pattern: string | RegExp, options?: WaitForOptions): Promise<string>;
+  waitForExit(options?: { timeout?: number }): Promise<number>; // throws on timeout
   waitForQuiet(ms: number): Promise<void>;
   screen(): Promise<TerminalScreen>;
   history(options?: HistoryOptions): Promise<string[]>;

@@ -29,19 +29,37 @@ export function terminalCreateSessionTool(agent: TerminalPilot): TerminalPilotMc
   };
 }
 
-export function terminalTypeTool(agent: TerminalPilot): TerminalPilotMcpTool<{
+export function terminalFillTool(agent: TerminalPilot): TerminalPilotMcpTool<{
   sessionId: string;
   text: string;
 }> {
   return {
-    name: "terminal_type",
-    description: "Write text to an active terminal session",
+    name: "terminal_fill",
+    description: "Write text to an active terminal session all at once (replaces \\n with \\r)",
     inputSchema: defineSchema({
       sessionId: { type: "string", description: "Terminal session id" },
       text: { type: "string", description: "Text to write to the session" }
     }),
     async handler(input) {
       await agent.getSession(input.sessionId).fill(input.text);
+      return undefined;
+    }
+  };
+}
+
+export function terminalTypeTool(agent: TerminalPilot): TerminalPilotMcpTool<{
+  sessionId: string;
+  text: string;
+}> {
+  return {
+    name: "terminal_type",
+    description: "Write text to an active terminal session character-by-character with delay",
+    inputSchema: defineSchema({
+      sessionId: { type: "string", description: "Terminal session id" },
+      text: { type: "string", description: "Text to write to the session" }
+    }),
+    async handler(input) {
+      await agent.getSession(input.sessionId).type(input.text);
       return undefined;
     }
   };
@@ -87,6 +105,7 @@ export function terminalWaitForTool(agent: TerminalPilot): TerminalPilotMcpTool<
   sessionId: string;
   pattern: string;
   timeout?: number;
+  literal?: boolean;
 }> {
   return {
     name: "terminal_wait_for",
@@ -94,17 +113,43 @@ export function terminalWaitForTool(agent: TerminalPilot): TerminalPilotMcpTool<
     inputSchema: defineSchema({
       sessionId: { type: "string", description: "Terminal session id" },
       pattern: { type: "string", description: "Regular expression pattern to wait for" },
-      timeout: { type: "number", description: "Maximum wait time in milliseconds", optional: true }
+      timeout: { type: "number", description: "Maximum wait time in milliseconds", optional: true },
+      literal: {
+        type: "boolean",
+        description: "When true, treat pattern as a literal string instead of a regex",
+        optional: true
+      }
     }),
     async handler(input) {
       const session = agent.getSession(input.sessionId);
-      const pattern = new RegExp(input.pattern);
+      const pattern = input.literal === true ? input.pattern : new RegExp(input.pattern);
       const line =
         input.timeout === undefined
           ? await session.waitFor(pattern)
           : await session.waitFor(pattern, { timeout: input.timeout });
 
       return { matched: true, line };
+    }
+  };
+}
+
+export function terminalWaitForExitTool(agent: TerminalPilot): TerminalPilotMcpTool<{
+  sessionId: string;
+  timeout?: number;
+}> {
+  return {
+    name: "terminal_wait_for_exit",
+    description: "Wait for a terminal session process to finish",
+    inputSchema: defineSchema({
+      sessionId: { type: "string", description: "Terminal session id" },
+      timeout: { type: "number", description: "Maximum wait time in milliseconds", optional: true }
+    }),
+    async handler(input) {
+      const session = agent.getSession(input.sessionId);
+      const exitCode = await session.waitForExit(
+        input.timeout !== undefined ? { timeout: input.timeout } : undefined
+      );
+      return { exitCode };
     }
   };
 }
@@ -119,11 +164,13 @@ export function terminalReadScreenTool(agent: TerminalPilot): TerminalPilotMcpTo
       sessionId: { type: "string", description: "Terminal session id" }
     }),
     async handler(input) {
-      const screen = await agent.getSession(input.sessionId).screen();
+      const session = agent.getSession(input.sessionId);
+      const screen = await session.screen();
       return {
         lines: [...screen.lines],
         cursor: { ...screen.cursor },
-        size: { ...screen.size }
+        size: { ...screen.size },
+        exitCode: session.exitCode
       };
     }
   };
@@ -141,8 +188,9 @@ export function terminalReadHistoryTool(agent: TerminalPilot): TerminalPilotMcpT
       last: { type: "number", description: "Return only the last N lines", optional: true }
     }),
     async handler(input) {
-      const lines = await agent.getSession(input.sessionId).history({ last: input.last });
-      return { lines };
+      const session = agent.getSession(input.sessionId);
+      const lines = await session.history({ last: input.last });
+      return { lines, exitCode: session.exitCode };
     }
   };
 }
@@ -178,7 +226,24 @@ export function terminalCloseSessionTool(agent: TerminalPilot): TerminalPilotMcp
     }),
     async handler(input) {
       const exitCode = await agent.getSession(input.sessionId).close();
+      agent.deleteSession(input.sessionId);
       return { exitCode };
+    }
+  };
+}
+
+export function terminalGetSessionTool(agent: TerminalPilot): TerminalPilotMcpTool<{
+  sessionId: string;
+}> {
+  return {
+    name: "terminal_get_session",
+    description: "Get session metadata (pid, command, exitCode) without side effects",
+    inputSchema: defineSchema({
+      sessionId: { type: "string", description: "Terminal session id" }
+    }),
+    async handler(input) {
+      const session = agent.getSession(input.sessionId);
+      return { id: session.id, pid: session.pid, command: session.command, exitCode: session.exitCode };
     }
   };
 }
@@ -186,14 +251,17 @@ export function terminalCloseSessionTool(agent: TerminalPilot): TerminalPilotMcp
 export function terminalPilotMcpTools(agent: TerminalPilot): Array<TerminalPilotMcpTool<any>> {
   return [
     terminalCreateSessionTool(agent),
+    terminalFillTool(agent),
     terminalTypeTool(agent),
     terminalPressKeyTool(agent),
     terminalSendSignalTool(agent),
     terminalWaitForTool(agent),
+    terminalWaitForExitTool(agent),
     terminalReadScreenTool(agent),
     terminalReadHistoryTool(agent),
     terminalResizeTool(agent),
     terminalCloseSessionTool(agent),
+    terminalGetSessionTool(agent),
     terminalListSessionsTool(agent)
   ];
 }

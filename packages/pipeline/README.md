@@ -127,7 +127,7 @@ Project config overrides global config by step name.
 ```yaml
 steps:
   implement:
-    instruction: |
+    prompt: |
       {{id}}: {{title}}
       {{prompt}}
       Follow TDD. Add or update focused tests first, then implement.
@@ -136,7 +136,7 @@ steps:
 
   security_review:
     mode: read
-    instruction: |
+    prompt: |
       {{id}}: {{title}}
       Review changed code for auth, injection, secrets, and validation issues.
     agent: claude-code
@@ -154,6 +154,52 @@ If `mode` is omitted, it defaults to `yolo`.
 Each step can optionally override the pipeline-level `agent` and `model`. When set, the step runs with the specified agent/model instead of the one passed to `pipeline run --agent`.
 
 `steps.yaml` is intentionally editable. The scaffolded file is comment-only guidance, so leaving it untouched preserves the default no-step behavior. Uncomment or replace the example steps to opt into stepped execution, then make plans reference those step names exactly.
+
+## Lifecycle Hooks
+
+Two optional hooks run outside the task loop: `setup` runs once before any tasks, `teardown` runs once after all tasks complete successfully.
+
+Both follow the same format as a step definition:
+
+```yaml
+setup:
+  prompt: Prepare the workspace — install dependencies, run migrations, etc.
+  mode: yolo  # default
+
+teardown:
+  mode: read
+  prompt: Run final checks and report results.
+```
+
+Supported fields: `prompt` (required), `mode`, `agent`, `model`.
+
+### Resolution
+
+Hooks can be defined in either `steps.yaml` (as shared defaults) or `plan.yaml` (per-plan). Plan-level values take precedence:
+
+| `steps.yaml` | `plan.yaml` | Result |
+|---|---|---|
+| defined | absent | use steps.yaml hook |
+| defined | `false` | disabled for this plan |
+| defined | defined | plan overrides steps.yaml |
+| absent | defined | use plan hook |
+| absent | absent | no hook |
+
+To disable an inherited hook:
+
+```yaml
+setup: false
+tasks:
+  ...
+```
+
+### Failure behavior
+
+- If setup fails, the pipeline stops immediately — no tasks run.
+- If teardown fails, the pipeline returns `stopReason: "failed"` even if all tasks completed.
+- Abort during either phase returns `stopReason: "cancelled"`.
+
+Setup and teardown are not counted in `tasksCompleted` or `tasksFailed` but are counted in `stepsCompleted`.
 
 ## Execution Semantics
 
@@ -281,7 +327,7 @@ const sim = createPipelineSimulation({
   projectSteps: {
     implement: {
       mode: "yolo",
-      instruction: "Implement {{id}}"
+      prompt: "Implement {{id}}"
     }
   },
   plan: {

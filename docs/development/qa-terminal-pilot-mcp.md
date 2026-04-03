@@ -1,8 +1,8 @@
 # QA: terminal-pilot MCP tools
 
 Fixtures used throughout:
-- **test-cli**: `node_modules/.bin/tsx packages/terminal-pilot/src/testing/test-cli.ts` — prompts "What is your name?", reads input, prints "Hello, <name>!"
-- **menu-cli**: `node_modules/.bin/tsx packages/terminal-pilot/src/testing/menu-cli.ts` — shows "Select an option:", 3 items (Option 1/2/3), navigate with ArrowUp/ArrowDown, confirm with Enter, prints "You selected: Option <N>"
+- **test-cli**: `node_modules/.bin/tsx packages/terminal-pilot/src/testing/test-cli.js` — prompts "What is your name?", reads input, prints "Hello, <name>!"
+- **menu-cli**: `node_modules/.bin/tsx packages/terminal-pilot/src/testing/menu-cli.js` — shows "Select an option:", 3 items (Option 1/2/3), navigate with ArrowUp/ArrowDown, confirm with Enter, prints "You selected: Option <N>"
 
 ---
 
@@ -18,7 +18,7 @@ Assert: `sessions` is an empty array.
 ## 2. Create a session
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
 ```
 Assert: response contains `sessionId` (non-empty string) and `pid` (number > 0). Save `sessionId` as **S1**.
 
@@ -118,7 +118,7 @@ Assert: error response (session no longer exists).
 ## 12. terminal_type — character-by-character
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
 ```
 Save as **S2**.
 
@@ -139,7 +139,7 @@ terminal_close_session { sessionId: S2 }
 ## 13. terminal_wait_for with literal flag
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
 ```
 Save as **S3**.
 
@@ -163,7 +163,7 @@ terminal_close_session { sessionId: S3 }
 ## 14. terminal_wait_for regex
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
 ```
 Save as **S4**.
 
@@ -187,7 +187,7 @@ terminal_close_session { sessionId: S4 }
 ## 15. terminal_wait_for timeout exceeded
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
 ```
 Save as **S5**.
 
@@ -205,7 +205,7 @@ terminal_close_session { sessionId: S5 }
 ## 16. terminal_wait_for_exit — natural exit
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
 ```
 Save as **S6**.
 
@@ -235,7 +235,7 @@ terminal_close_session { sessionId: S6 }
 ## 17. terminal_wait_for_exit — timeout exceeded
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
 ```
 Save as **S7**.
 
@@ -254,7 +254,7 @@ terminal_close_session { sessionId: S7 }
 ## 18. terminal_send_signal — SIGINT
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
 ```
 Save as **S8**.
 
@@ -279,7 +279,7 @@ terminal_close_session { sessionId: S8 }
 ## 19. terminal_resize
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"], cols: 80, rows: 24 }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"], cols: 80, rows: 24 }
 ```
 Save as **S9**.
 
@@ -310,7 +310,7 @@ terminal_close_session { sessionId: S9 }
 ## 20. Full flow — menu-cli with ArrowDown navigation
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/menu-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/menu-cli.js"] }
 ```
 Save as **S10**.
 
@@ -337,7 +337,7 @@ terminal_close_session { sessionId: S10 }
 ## 21. Full flow — menu-cli ArrowUp wrap-around
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/menu-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/menu-cli.js"] }
 ```
 Save as **S11**.
 
@@ -358,9 +358,9 @@ terminal_close_session { sessionId: S11 }
 ## 22. Multiple concurrent sessions — isolation
 
 ```
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.ts"] }
-terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/menu-cli.ts"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/test-cli.js"] }
+terminal_create_session { command: "node_modules/.bin/tsx", args: ["packages/terminal-pilot/src/testing/menu-cli.js"] }
 ```
 Save as **SA**, **SB**, **SC**.
 

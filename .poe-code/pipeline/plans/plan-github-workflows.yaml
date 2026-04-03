@@ -19,7 +19,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: types-and-discovery
     title: Add AutomationDefinition type and discovery
@@ -47,9 +47,9 @@ tasks:
       If a bug or missing feature is found in `@poe-code/cmdkit` during implementation,
       fix it directly in that package — do not work around it.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: builtin-prompts

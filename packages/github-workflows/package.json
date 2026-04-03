@@ -13,14 +13,15 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts",
+    "test": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts",
     "lint": "cd ../.. && eslint packages/github-workflows/src --ext ts && tsc -p packages/github-workflows/tsconfig.json --noEmit"
   },
   "files": [
     "dist"
   ],
   "dependencies": {
+    "@poe-code/agent-spawn": "*",
     "@poe-code/cmdkit": "*",
     "yaml": "^2.8.2"
   }

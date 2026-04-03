@@ -45,13 +45,13 @@ function parseStepConfigDocument(
     if (!isRecord(value)) {
       throw new Error(`Invalid ${context} in "${filePath}": expected an object.`);
     }
-    const instruction = value.instruction;
-    if (typeof instruction !== "string" || instruction.length === 0) {
-      throw new Error(`Missing instruction for ${context} in "${filePath}".`);
+    const prompt = value.prompt;
+    if (typeof prompt !== "string" || prompt.length === 0) {
+      throw new Error(`Missing prompt for ${context} in "${filePath}".`);
     }
     return {
       mode: asStepMode(value.mode),
-      instruction,
+      prompt,
       ...(typeof value.agent === "string" && value.agent.length > 0 ? { agent: value.agent } : {}),
       ...(typeof value.model === "string" && value.model.length > 0 ? { model: value.model } : {})
     };

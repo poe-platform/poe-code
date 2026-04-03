@@ -11,7 +11,7 @@ export type McpSpawnConfig = Record<string, McpSpawnServer>;
 
 export interface StepDefinition {
   mode: StepMode;
-  instruction: string;
+  prompt: string;
   agent?: string;
   model?: string;
 }

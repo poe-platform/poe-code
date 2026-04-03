@@ -44,7 +44,7 @@ describe("loadResolvedSteps", () => {
         "/home/test/.poe-code/pipeline/steps.yaml": [
           "steps:",
           "  implement:",
-          "    instruction: |",
+          "    prompt: |",
           "      Implement {{id}}",
           ""
         ].join("\n")
@@ -54,7 +54,7 @@ describe("loadResolvedSteps", () => {
     expect(config.steps).toEqual({
       implement: {
         mode: "yolo",
-        instruction: "Implement {{id}}\n"
+        prompt: "Implement {{id}}\n"
       }
     });
   });
@@ -68,17 +68,17 @@ describe("loadResolvedSteps", () => {
           "steps:",
           "  implement:",
           "    mode: read",
-          "    instruction: Global instruction",
+          "    prompt: Global instruction",
           "  test:",
-          "    instruction: Run tests",
+          "    prompt: Run tests",
           ""
         ].join("\n"),
         "/repo/.poe-code/pipeline/steps.yaml": [
           "steps:",
           "  implement:",
-          "    instruction: Project instruction",
+          "    prompt: Project instruction",
           "  commit:",
-          "    instruction: Commit changes",
+          "    prompt: Commit changes",
           ""
         ].join("\n")
       })
@@ -87,15 +87,15 @@ describe("loadResolvedSteps", () => {
     expect(config.steps).toEqual({
       implement: {
         mode: "yolo",
-        instruction: "Project instruction"
+        prompt: "Project instruction"
       },
       test: {
         mode: "yolo",
-        instruction: "Run tests"
+        prompt: "Run tests"
       },
       commit: {
         mode: "yolo",
-        instruction: "Commit changes"
+        prompt: "Commit changes"
       }
     });
   });
@@ -120,10 +120,10 @@ describe("loadResolvedSteps", () => {
         "/repo/.poe-code/pipeline/steps.yaml": [
           "steps:",
           "  implement:",
-          "    instruction: Implement",
+          "    prompt: Implement",
           "  review:",
           "    mode: read",
-          "    instruction: Review",
+          "    prompt: Review",
           ""
         ].join("\n")
       })
@@ -132,11 +132,11 @@ describe("loadResolvedSteps", () => {
     expect(config.steps).toEqual({
       implement: {
         mode: "yolo",
-        instruction: "Implement"
+        prompt: "Implement"
       },
       review: {
         mode: "read",
-        instruction: "Review"
+        prompt: "Review"
       }
     });
 
@@ -150,12 +150,12 @@ describe("loadResolvedSteps", () => {
             "  implement:",
             "    mode: read",
             "  test:",
-            "    instruction: Run tests",
+            "    prompt: Run tests",
             ""
           ].join("\n")
         })
       })
-    ).rejects.toThrow(/missing instruction/i);
+    ).rejects.toThrow(/missing prompt/i);
   });
 
   it("parses per-step agent and model overrides", async () => {
@@ -166,14 +166,14 @@ describe("loadResolvedSteps", () => {
         "/repo/.poe-code/pipeline/steps.yaml": [
           "steps:",
           "  implement:",
-          "    instruction: Implement",
+          "    prompt: Implement",
           "    agent: codex",
           "    model: o3",
           "  review:",
-          "    instruction: Review",
+          "    prompt: Review",
           "    agent: claude-code",
           "  commit:",
-          "    instruction: Commit",
+          "    prompt: Commit",
           ""
         ].join("\n")
       })
@@ -182,18 +182,18 @@ describe("loadResolvedSteps", () => {
     expect(config.steps).toEqual({
       implement: {
         mode: "yolo",
-        instruction: "Implement",
+        prompt: "Implement",
         agent: "codex",
         model: "o3"
       },
       review: {
         mode: "yolo",
-        instruction: "Review",
+        prompt: "Review",
         agent: "claude-code"
       },
       commit: {
         mode: "yolo",
-        instruction: "Commit"
+        prompt: "Commit"
       }
     });
   });
@@ -205,21 +205,21 @@ describe("loadResolvedSteps", () => {
       fs: createFs({
         "/repo/.poe-code/pipeline/steps.yaml": [
           "setup:",
-          "  instruction: Prepare the workspace",
+          "  prompt: Prepare the workspace",
           "teardown:",
           "  mode: read",
-          "  instruction: Verify and clean up",
+          "  prompt: Verify and clean up",
           "steps:",
           "  commit:",
-          "    instruction: Commit changes",
+          "    prompt: Commit changes",
           ""
         ].join("\n")
       })
     });
 
-    expect(config.setup).toEqual({ mode: "yolo", instruction: "Prepare the workspace" });
-    expect(config.teardown).toEqual({ mode: "read", instruction: "Verify and clean up" });
-    expect(config.steps).toEqual({ commit: { mode: "yolo", instruction: "Commit changes" } });
+    expect(config.setup).toEqual({ mode: "yolo", prompt: "Prepare the workspace" });
+    expect(config.teardown).toEqual({ mode: "read", prompt: "Verify and clean up" });
+    expect(config.steps).toEqual({ commit: { mode: "yolo", prompt: "Commit changes" } });
   });
 
   it("project setup/teardown overrides global setup/teardown", async () => {
@@ -229,21 +229,21 @@ describe("loadResolvedSteps", () => {
       fs: createFs({
         "/home/test/.poe-code/pipeline/steps.yaml": [
           "setup:",
-          "  instruction: Global setup",
+          "  prompt: Global setup",
           "teardown:",
-          "  instruction: Global teardown",
+          "  prompt: Global teardown",
           ""
         ].join("\n"),
         "/repo/.poe-code/pipeline/steps.yaml": [
           "setup:",
-          "  instruction: Project setup",
+          "  prompt: Project setup",
           ""
         ].join("\n")
       })
     });
 
-    expect(config.setup).toEqual({ mode: "yolo", instruction: "Project setup" });
-    expect(config.teardown).toEqual({ mode: "yolo", instruction: "Global teardown" });
+    expect(config.setup).toEqual({ mode: "yolo", prompt: "Project setup" });
+    expect(config.teardown).toEqual({ mode: "yolo", prompt: "Global teardown" });
   });
 
   it("requires instruction for setup and teardown", async () => {
@@ -255,7 +255,7 @@ describe("loadResolvedSteps", () => {
           "/repo/.poe-code/pipeline/steps.yaml": "setup:\n  mode: read\n"
         })
       })
-    ).rejects.toThrow(/missing instruction for setup/i);
+    ).rejects.toThrow(/missing prompt for setup/i);
   });
 });
 

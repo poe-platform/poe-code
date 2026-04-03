@@ -16,7 +16,7 @@ describe("@poe-code/pipeline public exports", () => {
   it("exports SDK types", () => {
     const step: StepDefinition = {
       mode: "yolo",
-      instruction: "Implement {{id}}"
+      prompt: "Implement {{id}}"
     };
     const steps: ResolvedStepDefinitions = {
       implement: step

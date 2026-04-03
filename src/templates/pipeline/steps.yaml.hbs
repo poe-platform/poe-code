@@ -8,16 +8,16 @@
 # These can also be defined in plan.yaml to override the defaults below.
 #
 # setup:
-#   instruction: Prepare the workspace
+#   prompt: Prepare the workspace
 #   # mode: yolo
 #
 # teardown:
-#   instruction: Run final checks and clean up
+#   prompt: Run final checks and clean up
 #   # mode: read
 #
 # steps:
 #   implement:
-#     instruction: |
+#     prompt: |
 #       {{id}}: {{title}}
 #
 #       Implement
@@ -26,7 +26,7 @@
 #     # model: o3
 #
 #   refactor:
-#     instruction: |
+#     prompt: |
 #       {{id}}: {{title}}
 #       Original task:
 #       {{prompt}}
@@ -34,7 +34,7 @@
 #       Refactor and improve the code
 #
 #   test:
-#     instruction: |
+#     prompt: |
 #       {{id}}: {{title}}
 #       Original task:
 #       {{prompt}}
@@ -42,7 +42,7 @@
 #       Be a user and test all edge cases, fix bugs
 #
 #   commit:
-#     instruction: |
+#     prompt: |
 #       {{id}}: {{title}}
 #       Original task:
 #       {{prompt}}

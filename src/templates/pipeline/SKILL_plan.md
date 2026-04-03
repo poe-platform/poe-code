@@ -24,9 +24,9 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 - The available steps come from the `steps.yaml` file you found (project or global). Use the current step names instead of inventing hardcoded ones.
 - If no step configuration is present, use stepless tasks with scalar `status: open`.
 - If step configuration is present, start every configured step status at `open`.
-- `setup` and `teardown` defined in `steps.yaml` are inherited automatically — do not copy them into the plan unless the user wants to override or disable them.
+- `setup` and `teardown` defined in `steps.yaml` are inherited automatically.
 - To disable an inherited hook for a specific plan, set `setup: false` or `teardown: false`.
-- To override an inherited hook, define the full block with an `instruction` field.
+- To override an inherited hook, define the full block with an `prompt` field.
 
 ## Output Format
 
@@ -36,8 +36,8 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 #
 # setup: false              # disable the inherited setup hook
 # teardown: false           # disable the inherited teardown hook
-# setup:                    # override with a different instruction
-#   instruction: Custom setup
+# setup:                    # override with a different prompt
+#   prompt: Custom setup
 #   mode: yolo
 
 tasks:

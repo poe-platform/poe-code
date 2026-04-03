@@ -121,7 +121,7 @@ describe("buildExecutionPrompt", () => {
   const steps: ResolvedStepDefinitions = {
     implement: {
       mode: "edit",
-      instruction: "{{id}} {{title}}\n{{prompt}}\nPlan: {{plan_path}}"
+      prompt: "{{id}} {{title}}\n{{prompt}}\nPlan: {{plan_path}}"
     }
   };
 

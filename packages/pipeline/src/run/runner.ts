@@ -81,7 +81,7 @@ export function buildExecutionPrompt(input: {
     throw new Error(`Missing step definition for "${input.selection.stepName}".`);
   }
 
-  return interpolate(step.instruction, {
+  return interpolate(step.prompt, {
     id: input.selection.task.id,
     title: input.selection.task.title,
     prompt: input.selection.task.prompt,

@@ -271,7 +271,7 @@ describe("pipeline validate command", () => {
       [
         "steps:",
         "  implement:",
-        "    instruction: Implement {{id}}",
+        "    prompt: Implement {{id}}",
         ""
       ].join("\n"),
       { encoding: "utf8" }

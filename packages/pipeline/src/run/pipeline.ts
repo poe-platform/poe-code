@@ -163,7 +163,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       // runAgent is validated non-null at the top of runPipeline; TypeScript cannot narrow across closures
       result = await runAgent!({
         agent: phaseDef.agent ?? options.agent,
-        prompt: phaseDef.instruction,
+        prompt: phaseDef.prompt,
         mode: phaseDef.mode,
         cwd: options.cwd,
         logDir: options.logDir,

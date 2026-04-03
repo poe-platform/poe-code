@@ -63,13 +63,13 @@ function parseStepDef(value: unknown, label: string): StepDefinition {
   if (!isRecord(value)) {
     throw new Error(`Invalid plan YAML: "${label}" must be an object.`);
   }
-  const instruction = value.instruction;
-  if (typeof instruction !== "string" || instruction.length === 0) {
-    throw new Error(`Invalid plan YAML: "${label}" is missing an instruction.`);
+  const prompt = value.prompt;
+  if (typeof prompt !== "string" || prompt.length === 0) {
+    throw new Error(`Invalid plan YAML: "${label}" is missing a prompt.`);
   }
   return {
     mode: asStepMode(value.mode),
-    instruction,
+    prompt,
     ...(typeof value.agent === "string" && value.agent.length > 0 ? { agent: value.agent } : {}),
     ...(typeof value.model === "string" && value.model.length > 0 ? { model: value.model } : {})
   };

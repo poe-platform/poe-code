@@ -300,15 +300,15 @@ describe("createPipelineSimulation", () => {
       projectSteps: {
         implement: {
           mode: "yolo",
-          instruction: "Implement {{id}}"
+          prompt: "Implement {{id}}"
         },
         test: {
           mode: "read",
-          instruction: "Test {{id}}"
+          prompt: "Test {{id}}"
         },
         commit: {
           mode: "yolo",
-          instruction: "Commit {{id}}"
+          prompt: "Commit {{id}}"
         }
       },
       plan: {
@@ -358,15 +358,15 @@ describe("createPipelineSimulation", () => {
       projectSteps: {
         implement: {
           mode: "yolo",
-          instruction: "Implement {{id}}"
+          prompt: "Implement {{id}}"
         },
         test: {
           mode: "read",
-          instruction: "Test {{id}}"
+          prompt: "Test {{id}}"
         },
         commit: {
           mode: "yolo",
-          instruction: "Commit {{id}}"
+          prompt: "Commit {{id}}"
         }
       },
       plan: {
@@ -431,15 +431,15 @@ describe("createPipelineSimulation", () => {
       projectSteps: {
         implement: {
           mode: "edit",
-          instruction: "Implement {{id}}"
+          prompt: "Implement {{id}}"
         },
         test: {
           mode: "read",
-          instruction: "Test {{id}}"
+          prompt: "Test {{id}}"
         },
         commit: {
           mode: "edit",
-          instruction: "Commit {{id}}"
+          prompt: "Commit {{id}}"
         }
       },
       plan: {
@@ -591,13 +591,13 @@ describe("createPipelineSimulation", () => {
       projectSteps: {
         implement: {
           mode: "yolo",
-          instruction: "Implement {{id}}",
+          prompt: "Implement {{id}}",
           agent: "codex",
           model: "o3"
         },
         review: {
           mode: "read",
-          instruction: "Review {{id}}",
+          prompt: "Review {{id}}",
           agent: "claude-code"
         }
       },
@@ -660,7 +660,7 @@ describe("createPipelineSimulation", () => {
 
     const sim = createPipelineSimulation({
       projectSteps: {
-        implement: { mode: "yolo", instruction: "Implement {{id}}" }
+        implement: { mode: "yolo", prompt: "Implement {{id}}" }
       },
       plan: {
         tasks: [
@@ -690,8 +690,8 @@ describe("createPipelineSimulation", () => {
   it("runs setup before tasks and teardown after all tasks complete", async () => {
     const sim = createPipelineSimulation({
       plan: {
-        setup: { mode: "yolo", instruction: "Prepare the workspace" },
-        teardown: { mode: "yolo", instruction: "Clean up" },
+        setup: { mode: "yolo", prompt: "Prepare the workspace" },
+        teardown: { mode: "yolo", prompt: "Clean up" },
         tasks: [
           { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
         ]
@@ -714,7 +714,7 @@ describe("createPipelineSimulation", () => {
   it("stops before tasks when setup fails", async () => {
     const sim = createPipelineSimulation({
       plan: {
-        setup: { mode: "yolo", instruction: "Setup" },
+        setup: { mode: "yolo", prompt: "Setup" },
         tasks: [
           { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
         ]
@@ -731,7 +731,7 @@ describe("createPipelineSimulation", () => {
 
   it("disables steps.yaml setup when plan sets setup: null", async () => {
     const sim = createPipelineSimulation({
-      projectStepsSetup: { mode: "yolo", instruction: "Setup from steps.yaml" },
+      projectStepsSetup: { mode: "yolo", prompt: "Setup from steps.yaml" },
       plan: {
         setup: null,
         tasks: [{ id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }]
@@ -747,9 +747,9 @@ describe("createPipelineSimulation", () => {
 
   it("overrides steps.yaml setup when plan defines its own setup", async () => {
     const sim = createPipelineSimulation({
-      projectStepsSetup: { mode: "yolo", instruction: "Setup from steps.yaml" },
+      projectStepsSetup: { mode: "yolo", prompt: "Setup from steps.yaml" },
       plan: {
-        setup: { mode: "yolo", instruction: "Custom setup from plan" },
+        setup: { mode: "yolo", prompt: "Custom setup from plan" },
         tasks: [{ id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }]
       },
       turns: [successTurn(), successTurn()]
@@ -764,7 +764,7 @@ describe("createPipelineSimulation", () => {
   it("returns failed when teardown fails after all tasks complete", async () => {
     const sim = createPipelineSimulation({
       plan: {
-        teardown: { mode: "yolo", instruction: "Teardown" },
+        teardown: { mode: "yolo", prompt: "Teardown" },
         tasks: [
           { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
         ]

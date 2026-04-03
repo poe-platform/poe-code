@@ -39,9 +39,9 @@ describe("parsePlan", () => {
       ].join("\n"),
       {
         availableSteps: {
-          implement: { mode: "edit", instruction: "Implement" },
-          test: { mode: "edit", instruction: "Test" },
-          commit: { mode: "edit", instruction: "Commit" }
+          implement: { mode: "edit", prompt: "Implement" },
+          test: { mode: "edit", prompt: "Test" },
+          commit: { mode: "edit", prompt: "Commit" }
         }
       }
     );
@@ -70,7 +70,7 @@ describe("parsePlan", () => {
       ].join("\n"),
       {
         availableSteps: {
-          implement: { mode: "edit", instruction: "Implement" }
+          implement: { mode: "edit", prompt: "Implement" }
         }
       }
     );
@@ -122,7 +122,7 @@ describe("parsePlan", () => {
         ].join("\n"),
         {
           availableSteps: {
-            implement: { mode: "edit", instruction: "Implement" }
+            implement: { mode: "edit", prompt: "Implement" }
           }
         }
       )
@@ -194,10 +194,10 @@ describe("parsePlan", () => {
   it("parses setup and teardown from plan", () => {
     const plan = parsePlan([
       "setup:",
-      "  instruction: Prepare workspace",
+      "  prompt: Prepare workspace",
       "teardown:",
       "  mode: read",
-      "  instruction: Run final checks",
+      "  prompt: Run final checks",
       "tasks:",
       "  - id: task-1",
       "    title: Fix",
@@ -206,8 +206,8 @@ describe("parsePlan", () => {
       ""
     ].join("\n"));
 
-    expect(plan.setup).toEqual({ mode: "yolo", instruction: "Prepare workspace" });
-    expect(plan.teardown).toEqual({ mode: "read", instruction: "Run final checks" });
+    expect(plan.setup).toEqual({ mode: "yolo", prompt: "Prepare workspace" });
+    expect(plan.teardown).toEqual({ mode: "read", prompt: "Run final checks" });
   });
 
   it("omits setup and teardown when not present", () => {
@@ -224,7 +224,7 @@ describe("parsePlan", () => {
         "tasks: []",
         ""
       ].join("\n"))
-    ).toThrow(/setup.*missing an instruction/i);
+    ).toThrow(/setup.*missing a prompt/i);
   });
 
   it("maps setup: false to null (disabled)", () => {

@@ -98,6 +98,22 @@ describe("discoverAutomations", () => {
     await expect(discoverAutomations("/built-in", "/project")).resolves.toEqual([]);
   });
 
+  it("parses the label frontmatter field", async () => {
+    fsState.directories.set("/built-in", ["triage.md"]);
+    fsState.files.set(
+      "/built-in/triage.md",
+      ["---", 'label: "Scheduled: My Automation"', "---", "# Prompt"].join("\n")
+    );
+
+    await expect(discoverAutomations("/built-in")).resolves.toEqual([
+      {
+        name: "triage",
+        prompt: "# Prompt",
+        label: "Scheduled: My Automation"
+      }
+    ]);
+  });
+
   it("parses optional automation frontmatter fields", async () => {
     fsState.directories.set("/built-in", ["triage.md"]);
     fsState.files.set(

@@ -1,4 +1,6 @@
+import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { vol } from "memfs";
 import { S } from "@poe-code/cmdkit-schema";
 import { UserError, defineCommand, defineGroup } from "./index.js";
 
@@ -54,7 +56,71 @@ vi.mock("@poe-code/design-system", () => ({
   resetOutputFormatCache: promptState.resetOutputFormatCache,
 }));
 
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return fs.promises;
+});
+
 const { runCLI } = await import("./cli.js");
+
+const fixtureFilePath = fileURLToPath(new URL("./cli.test.fixture.json", import.meta.url));
+const fixtureFileContents = `[
+  {
+    "name": "first scenario",
+    "services": {
+      "fetch": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "https://example.com/items"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "scenario": "one"
+            }
+          }
+        }
+      ],
+      "fs": {
+        "readFile": {
+          "/config.json": "scenario one"
+        }
+      }
+    }
+  },
+  {
+    "name": "named scenario",
+    "services": {
+      "fetch": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "https://example.com/items"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "scenario": "named"
+            }
+          }
+        }
+      ],
+      "fs": {
+        "exists": {
+          "/config.json": true
+        },
+        "readFile": {
+          "/config.json": "named file"
+        }
+      }
+    }
+  },
+  {
+    "name": "no-op fallback",
+    "services": {}
+  }
+]`;
 
 type FixtureStoreService = {
   readValue(key: string): Promise<string | null>;
@@ -132,6 +198,10 @@ function readStdout(stdoutWrite: ReturnType<typeof vi.spyOn>): string {
 describe("runCLI", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vol.reset();
+    vol.fromJSON({
+      [fixtureFilePath]: fixtureFileContents,
+    });
     resetLoggerState();
     promptState.isCancel.mockImplementation((value: unknown) => typeof value === "symbol");
     process.argv = [...originalArgv];
@@ -349,6 +419,221 @@ describe("runCLI", () => {
       name: "demo-service",
       mode: "fast",
     });
+  });
+
+  it("merges preset values before CLI flags and only prompts for still-missing required params", async () => {
+    const handler = vi.fn(async (ctx: {
+      params: {
+        service: string;
+        region: string;
+        replicas: number;
+        mode: "safe" | "fast";
+      };
+    }) => ctx.params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String(),
+        region: S.String(),
+        replicas: S.Number(),
+        mode: S.Enum(["safe", "fast"] as const),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    vol.fromJSON({
+      "/presets/staging.json": JSON.stringify({
+        service: "api",
+        region: "us-east-1",
+        replicas: 1,
+      }),
+    });
+
+    promptState.select.mockResolvedValueOnce("fast");
+    process.argv = [
+      "node",
+      "cmdkit",
+      "deploy",
+      "--preset",
+      "/presets/staging.json",
+      "--replicas",
+      "5",
+    ];
+
+    await runCLI(root);
+
+    expect(promptState.text).not.toHaveBeenCalled();
+    expect(promptState.select).toHaveBeenCalledWith({
+      message: "mode",
+      options: [
+        { label: "safe", value: "safe" },
+        { label: "fast", value: "fast" },
+      ],
+      initialValue: undefined,
+    });
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0]?.[0].params).toEqual({
+      service: "api",
+      region: "us-east-1",
+      replicas: 5,
+      mode: "fast",
+    });
+  });
+
+  it("rejects preset files with unknown param keys", async () => {
+    const handler = vi.fn(async () => null);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String(),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    vol.fromJSON({
+      "/presets/invalid.json": JSON.stringify({
+        service: "api",
+        unknown: "value",
+      }),
+    });
+
+    process.argv = [
+      "node",
+      "cmdkit",
+      "deploy",
+      "--preset",
+      "/presets/invalid.json",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Preset file "/presets/invalid.json" contains unknown parameter "unknown".',
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("reports a clear error when the preset file does not exist", async () => {
+    const handler = vi.fn(async () => null);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String(),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    process.argv = [
+      "node",
+      "cmdkit",
+      "deploy",
+      "--preset",
+      "/presets/missing.json",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Preset file "/presets/missing.json" was not found.',
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("reports a clear error when the preset file is not valid JSON", async () => {
+    const handler = vi.fn(async () => null);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String(),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    vol.fromJSON({
+      "/presets/invalid-json.json": "{",
+    });
+
+    process.argv = [
+      "node",
+      "cmdkit",
+      "deploy",
+      "--preset",
+      "/presets/invalid-json.json",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Preset file "/presets/invalid-json.json" is not valid JSON.',
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("reports read errors other than file-not-found without masking them", async () => {
+    const handler = vi.fn(async () => null);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String(),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    vol.mkdirSync("/presets/directory", {
+      recursive: true,
+    });
+
+    process.argv = [
+      "node",
+      "cmdkit",
+      "deploy",
+      "--preset",
+      "/presets/directory",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toHaveLength(1);
+    expect(loggerState.error[0]).toContain('Preset file "/presets/directory" could not be read:');
+    expect(process.exitCode).toBe(1);
   });
 
   it("accepts the default when prompt text returns an empty string", async () => {
@@ -787,6 +1072,9 @@ describe("runCLI", () => {
     expect(output).toContain("Generation prompt (required)");
     expect(output).toContain("--model <string>");
     expect(output).toContain("Model identifier (default: GPT-4.1)");
+    expect(output).toContain("Global options:");
+    expect(output).toContain("--preset");
+    expect(output).toContain("--yes");
     expect(output).toContain("Secrets (via environment):");
     expect(output).toContain("POE_API_KEY");
     expect(output).toContain("Inherited from generate group");

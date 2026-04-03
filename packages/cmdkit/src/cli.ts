@@ -41,6 +41,7 @@ type ScalarSchema = Exclude<PrimitiveSchema, ArraySchema<any>>;
 type FieldSchema = Exclude<PrimitiveSchema, { kind: "optional" }>;
 
 interface GlobalFlags {
+  preset?: string;
   yes?: boolean;
   output?: OutputMode;
   verbose?: boolean;
@@ -549,6 +550,10 @@ function formatCommandRows<TServices extends object>(group: Group<TServices>, sc
 function formatGlobalOptionRows(showVersion: boolean): HelpOptionRow[] {
   const rows: HelpOptionRow[] = [
     {
+      flags: "--preset",
+      description: "Load parameter defaults from a JSON file",
+    },
+    {
       flags: "--yes",
       description: "Accept defaults, skip prompts",
     },
@@ -614,6 +619,8 @@ function renderLeafHelp<TServices extends object>(
   if (optionRows.length > 0) {
     sections.push(`${text.section("Options:")}\n${formatOptionList(optionRows)}`);
   }
+
+  sections.push(`${text.section("Global options:")}\n${formatOptionList(formatGlobalOptionRows(false))}`);
 
   const secretRows = formatSecretRows(command.secrets);
   if (secretRows.length > 0) {
@@ -757,6 +764,7 @@ function createNodeCommand<TServices extends object>(
 
 function addGlobalOptions(command: CommanderCommand): void {
   command
+    .option("--preset <path>", "Load parameter defaults from a JSON file.")
     .option("--yes", "Accept defaults and skip prompts.")
     .option("--output <format>", "Output format.", (value: string) => {
       if (value === "rich" || value === "md" || value === "json") {
@@ -925,6 +933,171 @@ function createEnv(values: Record<string, string | undefined> = process.env): Ha
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasFieldValue(value: unknown): boolean {
+  return value !== undefined;
+}
+
+function hasNestedField(fields: FieldDefinition[], path: string[]): boolean {
+  return fields.some(
+    (field) =>
+      path.length < field.path.length &&
+      path.every((segment, index) => field.path[index] === segment)
+  );
+}
+
+function describeExpectedPresetValue(schema: FieldSchema): string {
+  if (schema.kind === "array") {
+    return "an array";
+  }
+
+  if (schema.kind === "enum") {
+    return `one of: ${schema.values.map((value) => JSON.stringify(value)).join(", ")}`;
+  }
+
+  return `a ${schema.kind}`;
+}
+
+function validatePresetScalarValue(
+  value: unknown,
+  schema: ScalarSchema,
+  fieldPath: string,
+  presetPath: string
+): string | number | boolean {
+  switch (schema.kind) {
+    case "string":
+      if (typeof value !== "string") {
+        break;
+      }
+      return value;
+
+    case "number":
+      if (typeof value !== "number" || !Number.isFinite(value)) {
+        break;
+      }
+      return value;
+
+    case "boolean":
+      if (typeof value !== "boolean") {
+        break;
+      }
+      return value;
+
+    case "enum": {
+      const match = schema.values.find((candidate) => Object.is(candidate, value));
+      if (match !== undefined) {
+        return match;
+      }
+      break;
+    }
+
+    default:
+      throw new UserError(`Unsupported CLI schema kind "${schema.kind}".`);
+  }
+
+  throw new UserError(
+    `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected ${describeExpectedPresetValue(schema)}.`
+  );
+}
+
+function validatePresetFieldValue(
+  value: unknown,
+  field: FieldDefinition,
+  presetPath: string
+): unknown {
+  if (field.schema.kind !== "array") {
+    return validatePresetScalarValue(value, field.schema as ScalarSchema, field.displayPath, presetPath);
+  }
+
+  const itemSchema = unwrapOptional(field.schema.item);
+
+  if (itemSchema.kind === "array" || itemSchema.kind === "object") {
+    throw new UserError(`Array parameter "${field.displayPath}" must use scalar items.`);
+  }
+
+  if (!Array.isArray(value)) {
+    throw new UserError(
+      `Preset file "${presetPath}" has an invalid value for "${field.displayPath}". Expected an array.`
+    );
+  }
+
+  return value.map((item) =>
+    validatePresetScalarValue(item, itemSchema as ScalarSchema, field.displayPath, presetPath)
+  );
+}
+
+async function loadPresetValues(
+  fields: FieldDefinition[],
+  presetPath: string
+): Promise<Record<string, unknown>> {
+  let rawPreset: string;
+
+  try {
+    rawPreset = await readFile(presetPath, {
+      encoding: "utf8",
+    });
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      throw new UserError(`Preset file "${presetPath}" was not found.`);
+    }
+
+    const message =
+      error instanceof Error && error.message.length > 0
+        ? error.message
+        : "Unknown read error.";
+    throw new UserError(`Preset file "${presetPath}" could not be read: ${message}`);
+  }
+
+  let parsedPreset: unknown;
+
+  try {
+    parsedPreset = JSON.parse(rawPreset);
+  } catch {
+    throw new UserError(`Preset file "${presetPath}" is not valid JSON.`);
+  }
+
+  if (!isPlainObject(parsedPreset)) {
+    throw new UserError(`Preset file "${presetPath}" must contain a JSON object.`);
+  }
+
+  const fieldByPath = new Map(fields.map((field) => [field.displayPath, field]));
+  const presetValues: Record<string, unknown> = {};
+
+  function visitObject(current: Record<string, unknown>, path: string[]): void {
+    for (const [key, value] of Object.entries(current)) {
+      const nextPath = [...path, key];
+      const displayPath = toDisplayPath(nextPath);
+      const field = fieldByPath.get(displayPath);
+
+      if (field !== undefined) {
+        presetValues[field.optionAttribute] = validatePresetFieldValue(value, field, presetPath);
+        continue;
+      }
+
+      if (!hasNestedField(fields, nextPath)) {
+        throw new UserError(
+          `Preset file "${presetPath}" contains unknown parameter "${displayPath}".`
+        );
+      }
+
+      if (!isPlainObject(value)) {
+        throw new UserError(
+          `Preset file "${presetPath}" has an invalid value for "${displayPath}". Expected an object.`
+        );
+      }
+
+      visitObject(value, nextPath);
+    }
+  }
+
+  visitObject(parsedPreset, []);
+  return presetValues;
 }
 
 function isNumericFixtureSelector(value: string): boolean {
@@ -1320,9 +1493,14 @@ async function resolveParams(
   fields: FieldDefinition[],
   positionalValues: string[],
   optionValues: Record<string, unknown>,
+  presetPath: string | undefined,
   shouldPrompt: boolean
 ): Promise<Record<string, unknown>> {
   const params: Record<string, unknown> = {};
+  const presetValues =
+    typeof presetPath === "string" && presetPath.length > 0
+      ? await loadPresetValues(fields, presetPath)
+      : {};
 
   for (const field of fields) {
     let value: unknown;
@@ -1332,8 +1510,21 @@ async function resolveParams(
       if (typeof positionalValue === "string" && positionalValue.length > 0) {
         value = parseScalarValue(positionalValue, field.schema as ScalarSchema, field.displayPath);
       }
-    } else if (Object.prototype.hasOwnProperty.call(optionValues, field.optionAttribute)) {
+    }
+
+    if (
+      value === undefined &&
+      Object.prototype.hasOwnProperty.call(optionValues, field.optionAttribute) &&
+      hasFieldValue(optionValues[field.optionAttribute])
+    ) {
       value = optionValues[field.optionAttribute];
+    }
+
+    if (
+      value === undefined &&
+      Object.prototype.hasOwnProperty.call(presetValues, field.optionAttribute)
+    ) {
+      value = presetValues[field.optionAttribute];
     }
 
     if (value === undefined && shouldPrompt && !field.optional) {
@@ -1396,6 +1587,7 @@ async function executeCommand<TServices extends object>(
       state.fields,
       state.positionalValues,
       state.actionCommand.optsWithGlobals() as Record<string, unknown>,
+      globalFlags.preset,
       shouldPrompt
     );
 

@@ -359,7 +359,7 @@ tasks:
 
       Write unit tests for merge order, unknown key validation, and file-not-found error.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

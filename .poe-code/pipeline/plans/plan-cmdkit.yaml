@@ -280,7 +280,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: help-generation
     title: Auto-generated help text
@@ -329,10 +329,10 @@ tasks:
 
       Write unit tests for breadcrumb generation, secrets inheritance display, and scope filtering in help.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: presets
     title: Preset JSON file support

@@ -5,12 +5,15 @@ import {
   cancel,
   confirm,
   createLogger,
+  formatCommandList,
+  formatOptionList,
   getTheme,
   isCancel,
   promptText,
   renderTable,
   resetOutputFormatCache,
   select,
+  text,
 } from "@poe-code/design-system";
 import type {
   AnySchema,
@@ -22,6 +25,9 @@ import type {
   HandlerEnv,
   HandlerFs,
   ObjectSchema,
+  SecretDeclarations,
+  SecretDefinition,
+  Scope,
 } from "./index.js";
 import { UserError, assertCommandRequirements, getCommandSourcePath, resolveCommandSecrets } from "./index.js";
 import { renderResult } from "./renderer.js";
@@ -91,12 +97,29 @@ interface ResolvedFixtureRuntime<TServices extends object> {
   services: TServices;
 }
 
+interface ResolvedHelpTarget<TServices extends object> {
+  breadcrumb: string[];
+  node: Command<TServices, any, any, any> | Group<TServices>;
+}
+
+interface HelpCommandRow {
+  description: string;
+  name: string;
+}
+
+interface HelpOptionRow {
+  description: string;
+  flags: string;
+}
+
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
   apiVersion?: string;
   casing?: Casing;
   services?: TServices;
   version?: string;
 }
+
+const HELP_FLAGS = new Set(["--help", "-h"]);
 
 function unwrapOptional(schema: AnySchema): AnySchema {
   if (schema.kind === "optional") {
@@ -352,6 +375,303 @@ function createOption(field: FieldDefinition): Option[] {
   return [option];
 }
 
+function hasHelpFlag(argv: string[]): boolean {
+  return argv.some((token) => HELP_FLAGS.has(token));
+}
+
+function resolveHelpOutput(argv: string[]): OutputMode {
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index] ?? "";
+
+    if (token === "--output") {
+      const value = argv[index + 1];
+      if (value === "rich" || value === "md" || value === "json") {
+        return value;
+      }
+      continue;
+    }
+
+    if (token.startsWith("--output=")) {
+      const value = token.slice("--output=".length);
+      if (value === "rich" || value === "md" || value === "json") {
+        return value;
+      }
+    }
+  }
+
+  return process.stdout.isTTY ? "rich" : "json";
+}
+
+function isNodeVisibleInScope<TServices extends object>(
+  node: Command<TServices, any, any, any> | Group<TServices>,
+  scope: Scope
+): boolean {
+  if (node.kind === "command") {
+    return node.scope.includes(scope);
+  }
+
+  return getVisibleChildren(node, scope).length > 0 || Boolean(node.default && node.default.scope.includes(scope));
+}
+
+function getVisibleChildren<TServices extends object>(group: Group<TServices>, scope: Scope): Array<Command<TServices, any, any, any> | Group<TServices>> {
+  return group.children.filter((child) => isNodeVisibleInScope(child, scope));
+}
+
+function findVisibleChild<TServices extends object>(
+  group: Group<TServices>,
+  token: string,
+  scope: Scope
+): Command<TServices, any, any, any> | Group<TServices> | undefined {
+  return getVisibleChildren(group, scope).find(
+    (child) => child.name === token || child.aliases.includes(token)
+  );
+}
+
+function resolveHelpTarget<TServices extends object>(
+  root: Group<TServices>,
+  argv: string[],
+  scope: Scope
+): ResolvedHelpTarget<TServices> {
+  const breadcrumb = [root.name];
+  let current: Command<TServices, any, any, any> | Group<TServices> = root;
+
+  for (const token of argv.slice(2)) {
+    if (token.startsWith("-") || token === "help") {
+      break;
+    }
+
+    if (current.kind !== "group") {
+      break;
+    }
+
+    const child: Command<TServices, any, any, any> | Group<TServices> | undefined = findVisibleChild(
+      current,
+      token,
+      scope
+    );
+    if (child === undefined) {
+      break;
+    }
+
+    breadcrumb.push(child.name);
+    current = child;
+  }
+
+  return {
+    breadcrumb,
+    node: current,
+  };
+}
+
+function describeSchemaType(schema: FieldSchema): string {
+  switch (schema.kind) {
+    case "string":
+      return "string";
+
+    case "number":
+      return "number";
+
+    case "boolean":
+      return "boolean";
+
+    case "enum":
+      return "value";
+
+    case "array":
+      return `${describeSchemaType(unwrapOptional(schema.item) as FieldSchema)}...`;
+
+    default:
+      throw new UserError("Unsupported CLI schema kind.");
+  }
+}
+
+function formatHelpFieldFlags(field: FieldDefinition): string {
+  if (field.positionalIndex !== undefined) {
+    return `<${field.displayPath}>`;
+  }
+
+  if (field.schema.kind === "boolean") {
+    return field.optionFlag;
+  }
+
+  return `${field.optionFlag} <${describeSchemaType(field.schema)}>`;
+}
+
+function appendHelpMetadata(description: string, metadata: string[]): string {
+  if (metadata.length === 0) {
+    return description;
+  }
+
+  if (description.length === 0) {
+    return `(${metadata.join(", ")})`;
+  }
+
+  return `${description} (${metadata.join(", ")})`;
+}
+
+function formatHelpFieldDescription(field: FieldDefinition): string {
+  const description = field.description ?? field.displayPath;
+  const metadata: string[] = [];
+
+  if (!field.optional && !field.hasDefault) {
+    metadata.push("required");
+  }
+
+  if (field.hasDefault) {
+    metadata.push(`default: ${formatResolvedValue(field.defaultValue)}`);
+  }
+
+  return appendHelpMetadata(description, metadata);
+}
+
+function formatSecretRows(secrets: SecretDeclarations): HelpOptionRow[] {
+  return Object.values(secrets).map((secret) => ({
+    flags: secret.env,
+    description: formatSecretDescription(secret),
+  }));
+}
+
+function formatSecretDescription(secret: SecretDefinition): string {
+  if (secret.description !== undefined && secret.description.length > 0) {
+    return secret.description;
+  }
+
+  return secret.optional === true ? "Optional secret" : "Required secret";
+}
+
+function formatCommandRows<TServices extends object>(group: Group<TServices>, scope: Scope): HelpCommandRow[] {
+  return getVisibleChildren(group, scope).map((child) => ({
+    name: child.aliases.length === 0 ? child.name : `${child.name} (${child.aliases.join(", ")})`,
+    description: child.description ?? "",
+  }));
+}
+
+function formatGlobalOptionRows(showVersion: boolean): HelpOptionRow[] {
+  const rows: HelpOptionRow[] = [
+    {
+      flags: "--yes",
+      description: "Accept defaults, skip prompts",
+    },
+    {
+      flags: "--output",
+      description: "Output format (rich, md, json)",
+    },
+    {
+      flags: "--help",
+      description: "Show help",
+    },
+  ];
+
+  if (showVersion) {
+    rows.push({
+      flags: "--version",
+      description: "Show version",
+    });
+  }
+
+  return rows;
+}
+
+function renderHelpSections(sections: string[]): string {
+  return sections.filter((section) => section.length > 0).join("\n\n");
+}
+
+function renderGroupHelp<TServices extends object>(
+  group: Group<TServices>,
+  breadcrumb: string[],
+  scope: Scope,
+  showVersion: boolean
+): string {
+  const sections: string[] = [];
+  const commandRows = formatCommandRows(group, scope);
+
+  if (commandRows.length > 0) {
+    sections.push(`${text.section("Commands:")}\n${formatCommandList(commandRows)}`);
+  }
+
+  sections.push(`${text.section("Global options:")}\n${formatOptionList(formatGlobalOptionRows(showVersion))}`);
+
+  return renderHelpDocument({
+    breadcrumb,
+    description: group.description,
+    requiresAuth: group.requires?.auth === true,
+    sections,
+  });
+}
+
+function renderLeafHelp<TServices extends object>(
+  command: Command<TServices, any, any, any>,
+  breadcrumb: string[],
+  casing: Casing
+): string {
+  const sections: string[] = [];
+  const fields = assignPositionals(collectFields(command.params, casing), command.positional);
+  const optionRows = fields.map((field) => ({
+    flags: formatHelpFieldFlags(field),
+    description: formatHelpFieldDescription(field),
+  }));
+
+  if (optionRows.length > 0) {
+    sections.push(`${text.section("Options:")}\n${formatOptionList(optionRows)}`);
+  }
+
+  const secretRows = formatSecretRows(command.secrets);
+  if (secretRows.length > 0) {
+    sections.push(`${text.section("Secrets (via environment):")}\n${formatOptionList(secretRows)}`);
+  }
+
+  return renderHelpDocument({
+    breadcrumb,
+    description: command.description,
+    requiresAuth: command.requires?.auth === true,
+    sections,
+  });
+}
+
+function renderHelpDocument(input: {
+  breadcrumb: string[];
+  description?: string;
+  requiresAuth: boolean;
+  sections: string[];
+}): string {
+  const lines = [text.heading(input.breadcrumb.join(" ")), ""];
+
+  if (input.description !== undefined) {
+    lines.push(`  ${input.description}`);
+  }
+
+  if (input.requiresAuth) {
+    lines.push("  Requires: authentication");
+  }
+
+  if (input.description !== undefined || input.requiresAuth) {
+    lines.push("");
+  }
+
+  lines.push(renderHelpSections(input.sections));
+
+  return `${lines.join("\n").trimEnd()}\n`;
+}
+
+async function renderGeneratedHelp<TServices extends object>(
+  root: Group<TServices>,
+  argv: string[],
+  options: RunCLIOptions<TServices>
+): Promise<void> {
+  const target = resolveHelpTarget(root, argv, "cli");
+  const output = resolveHelpOutput(argv);
+  const casing = options.casing ?? "kebab";
+
+  await withOutputFormat(output, async () => {
+    const rendered =
+      target.node.kind === "group"
+        ? renderGroupHelp(target.node, target.breadcrumb, "cli", options.version !== undefined)
+        : renderLeafHelp(target.node, target.breadcrumb, casing);
+
+    process.stdout.write(rendered);
+  });
+}
+
 function createNodeCommand<TServices extends object>(
   node: Command<TServices, any, any, any> | Group<TServices>,
   casing: Casing,
@@ -370,6 +690,7 @@ function createNodeCommand<TServices extends object>(
     }
 
     node.aliases.forEach((alias) => command.alias(alias));
+    command.addHelpCommand(false);
     addGlobalOptions(command);
 
     for (const field of fields) {
@@ -413,6 +734,7 @@ function createNodeCommand<TServices extends object>(
   }
 
   node.aliases.forEach((alias) => group.alias(alias));
+  group.addHelpCommand(false);
   addGlobalOptions(group);
   visibleChildren.forEach((child) => group.addCommand(child));
 
@@ -1161,10 +1483,16 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
   validateServices(services as Record<string, unknown>);
 
+  if (hasHelpFlag(process.argv)) {
+    await renderGeneratedHelp(root, process.argv, options);
+    return;
+  }
+
   const program = new CommanderCommand();
   program.name(root.name);
   program.exitOverride();
   program.showHelpAfterError();
+  program.addHelpCommand(false);
   addGlobalOptions(program);
 
   if (options.version !== undefined) {

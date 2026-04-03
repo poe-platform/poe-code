@@ -37,6 +37,15 @@ vi.mock("@poe-code/design-system", () => ({
     header: (value: string) => value,
     muted: (value: string) => value,
   })),
+  text: {
+    heading: (value: string) => value,
+    section: (value: string) => value,
+    muted: (value: string) => value,
+  },
+  formatCommandList: (commands: Array<{ name: string; description: string }>) =>
+    commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),
+  formatOptionList: (options: Array<{ flags: string; description: string }>) =>
+    options.map((option) => `  ${option.flags}  ${option.description}`).join("\n"),
   promptText: promptState.text,
   select: promptState.select,
   confirm: promptState.confirm,
@@ -114,6 +123,10 @@ function setTTY(stream: NodeJS.WriteStream | NodeJS.ReadStream, value: boolean):
     configurable: true,
     value,
   });
+}
+
+function readStdout(stdoutWrite: ReturnType<typeof vi.spyOn>): string {
+  return stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
 }
 
 describe("runCLI", () => {
@@ -697,5 +710,123 @@ describe("runCLI", () => {
     });
     expect(realStore.readValue).not.toHaveBeenCalled();
     expect(realStore.writeValue).not.toHaveBeenCalled();
+  });
+
+  it("renders root help with breadcrumb path", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => null,
+    });
+
+    const generate = defineGroup({
+      name: "generate",
+      children: [deploy],
+    });
+
+    const root = defineGroup({
+      name: "poe-code",
+      children: [generate],
+    });
+
+    process.argv = ["node", "poe-code", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root, {
+      version: "1.2.3",
+    });
+
+    expect(readStdout(stdoutWrite)).toContain("poe-code\n");
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it("renders leaf help with inherited secrets", async () => {
+    const textCommand = defineCommand({
+      name: "text",
+      description: "Generate text.",
+      params: S.Object({
+        prompt: S.String({
+          description: "Generation prompt",
+        }),
+        model: S.String({
+          description: "Model identifier",
+          default: "GPT-4.1",
+        }),
+      }),
+      handler: async () => null,
+    });
+
+    const generate = defineGroup({
+      name: "generate",
+      description: "Generate content via Poe API.",
+      secrets: {
+        apiKey: {
+          env: "POE_API_KEY",
+          description: "Inherited from generate group",
+        },
+      },
+      children: [textCommand],
+    });
+
+    const root = defineGroup({
+      name: "poe-code",
+      children: [generate],
+    });
+
+    process.argv = ["node", "poe-code", "generate", "text", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("poe-code generate text");
+    expect(output).toContain("Options:");
+    expect(output).toContain("--prompt <string>");
+    expect(output).toContain("Generation prompt (required)");
+    expect(output).toContain("--model <string>");
+    expect(output).toContain("Model identifier (default: GPT-4.1)");
+    expect(output).toContain("Secrets (via environment):");
+    expect(output).toContain("POE_API_KEY");
+    expect(output).toContain("Inherited from generate group");
+  });
+
+  it("filters help command listings to the cli scope", async () => {
+    const visibleCommand = defineCommand({
+      name: "text",
+      description: "Generate text",
+      params: S.Object({}),
+      handler: async () => null,
+    });
+    const hiddenCommand = defineCommand({
+      name: "invoke",
+      description: "Internal SDK helper",
+      params: S.Object({}),
+      scope: ["sdk"],
+      handler: async () => null,
+    });
+
+    const generate = defineGroup({
+      name: "generate",
+      description: "Generate content via Poe API.",
+      children: [visibleCommand, hiddenCommand],
+    });
+
+    const root = defineGroup({
+      name: "poe-code",
+      children: [generate],
+    });
+
+    process.argv = ["node", "poe-code", "generate", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("Commands:");
+    expect(output).toContain("text");
+    expect(output).not.toContain("invoke");
   });
 });

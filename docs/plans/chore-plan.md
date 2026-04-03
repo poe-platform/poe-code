@@ -1,8 +1,8 @@
-# GitHub Automations Plan (`poe-code gh`)
+# GitHub Automations Plan (`poe-code github-workflows`)
 
 ## Overview
 
-Add a `poe-code gh <name>` command that runs predefined, prompt-driven automation tasks through a configured agent. The system follows a pipeline architecture: **prompt library → source → map(agent executor)**.
+Add a `poe-code github-workflows <name>` command (alias: `gh`) that runs predefined, prompt-driven automation tasks through a configured agent. The system follows a pipeline architecture: **prompt library → source → map(agent executor)**.
 
 Key motivator: automate GitHub-native tasks (issue triage, PR review, vulnerability fixes) and repo maintenance, installable into any repo.
 
@@ -18,13 +18,12 @@ Key motivator: automate GitHub-native tasks (issue triage, PR review, vulnerabil
 
 ## Architecture
 
-```
-┌─────────────┐    ┌──────────┐    ┌──────────────┐
-│ Prompt       │    │ Source   │    │ Agent        │
-│ Library      │───▶│ Command  │───▶│ Executor     │
-│ (discovery)  │    │ (JSON[]) │    │ (per item)   │
-└─────────────┘    └──────────┘    └──────────────┘
-packages/gh/       sh -c "source"   src/sdk/gh.ts
+```text
+┌──────────────────┐    ┌─────────────────┐    ┌──────────────────┐
+│ Prompt Library   │    │ Source Command  │    │ Agent Executor   │
+│ discover.ts      │───▶│ sh -c "source"  │───▶│ runCommand       │
+│ prompts/*.md     │    │ → JSON[]        │    │ (per item)       │
+└──────────────────┘    └─────────────────┘    └──────────────────┘
 ```
 
 **Two automation modes:**
@@ -34,12 +33,12 @@ packages/gh/       sh -c "source"   src/sdk/gh.ts
 
 ## Command Usage
 
-### `poe-code gh <name>`
+### `poe-code github-workflows <name>` (alias: `gh`)
 
 ```bash
-poe-code gh github-issue-opened
-poe-code gh fix-vulnerabilities
-poe-code gh update-dependencies
+poe-code github-workflows github-issue-opened
+poe-code github-workflows fix-vulnerabilities
+poe-code github-workflows update-dependencies
 ```
 
 ### Standard Agent Options
@@ -47,67 +46,78 @@ poe-code gh update-dependencies
 All automations accept the same agent params as spawn:
 
 ```bash
-poe-code gh github-issue-opened --agent claude --model Claude-Sonnet-4.5
-poe-code gh github-issue-opened -i              # interactive mode
-poe-code gh github-issue-opened --yes           # accept defaults
+poe-code github-workflows github-issue-opened --agent claude --model Claude-Sonnet-4.5
+poe-code github-workflows github-issue-opened -i              # interactive mode
+poe-code github-workflows github-issue-opened --yes           # accept defaults
 ```
 
-### `poe-code gh list`
+### `poe-code github-workflows list`
 
 Lists all available automations in a table (built-in + project-local).
 
-### `poe-code gh install <name>`
+### `poe-code github-workflows install <name>`
 
 Installs an automation into the current repo:
 
 ```bash
-poe-code gh install github-issue-opened
+poe-code github-workflows install github-issue-opened           # default: thin caller (reusable)
+poe-code github-workflows install github-issue-opened --eject   # full self-contained copy
 ```
 
 **Does two things:**
 
-1. Generates `.github/workflows/gh-<name>.yml` — self-contained workflow that calls `npx poe-code gh <name>`
-2. Copies `.md` prompt file into `.poe-code/gh/<name>.md` for local customization
+1. Generates `.github/workflows/gh-<name>.yml` — either a thin caller referencing the reusable workflow in this repo (default) or a full self-contained copy (`--eject`)
+2. Copies `.md` prompt file into `.poe-code/github-workflows/<name>.md` for local customization
 
-When the automation runs, it checks `.poe-code/gh/<name>.md` first, falls back to the built-in prompt.
+When the automation runs, it checks `.poe-code/github-workflows/<name>.md` first, falls back to the built-in prompt.
 
-### `poe-code gh uninstall <name>`
+**`--eject`**: copies the full workflow YAML inline — user owns it entirely, no longer coupled to poe-code updates.
+
+### `poe-code github-workflows uninstall <name>`
 
 ```bash
-poe-code gh uninstall github-issue-opened
+poe-code github-workflows uninstall github-issue-opened
 # deletes .github/workflows/gh-github-issue-opened.yml
-# leaves .poe-code/gh/github-issue-opened.md intact (user may have customized it)
+# leaves .poe-code/github-workflows/github-issue-opened.md intact (user may have customized it)
 ```
-
-### Workflow Step Helpers
-
-Scripts currently in `scripts/workflows/` are migrated into `poe-code gh` as direct subcommands, callable from workflow files:
-
-```yaml
-# Instead of: node scripts/workflows/check-eligible-user.cjs
-run: npx poe-code gh exec check-eligible-user
-```
-
-Migrated scripts:
-- `poe-code gh exec check-eligible-user`
-- `poe-code gh exec build-comment-prompt`
-- `poe-code gh exec build-issue-prompt`
-- `poe-code gh exec generate-pr-metadata`
-- `poe-code gh exec resolve-model-issue`
-- `poe-code gh exec select-service`
-- `poe-code gh exec discover-models`
-
-These are internal workflow helpers, not user-facing automations. They do not appear in `poe-code gh list`.
 
 ## Generated Workflow Examples
 
-All generated workflows are self-contained. Uses `GITHUB_TOKEN` (automatic, no setup) + `POE_API_KEY` (only secret users need). Attribution shows as `github-actions[bot]`.
+Two modes: **caller** (default) references a reusable workflow hosted in this repo; **ejected** is a full self-contained copy. Both use `GITHUB_TOKEN` (automatic) + `POE_API_KEY` (only secret users need).
+
+### Caller format (default)
+
+Generated in the user's repo. Delegates everything to the reusable workflow in poe-code:
+
+```yaml
+# Auto-generated by: poe-code github-workflows install github-issue-opened
+name: 'GitHub: Issue Opened'
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  run:
+    uses: poe-code/poe-setup-scripts/.github/workflows/gh-github-issue-opened.yml@main
+    secrets: inherit
+    with:
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+```
+
+### Reusable workflows (hosted in this repo)
+
+Each built-in automation has a corresponding reusable workflow at `.github/workflows/gh-<name>.yml` in this repo, using `on: workflow_call`. These are the workflows callers reference.
+
+### Ejected format (`--eject`)
+
+Full self-contained copy generated in the user's repo. No longer coupled to poe-code updates.
 
 ### `github-issue-opened`
 
 ```yaml
-# Auto-generated by: poe-code gh install github-issue-opened
-# Edit .poe-code/gh/github-issue-opened.md to customize the prompt.
+# Auto-generated by: poe-code github-workflows install github-issue-opened
+# Edit .poe-code/github-workflows/github-issue-opened.md to customize the prompt.
 name: 'GitHub: Issue Opened'
 on:
   issues:
@@ -126,7 +136,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - run: npx poe-code gh github-issue-opened --yes
+      - run: npx poe-code github-workflows github-issue-opened --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -137,8 +147,8 @@ jobs:
 ### `github-issue-comment-created`
 
 ```yaml
-# Auto-generated by: poe-code gh install github-issue-comment-created
-# Edit .poe-code/gh/github-issue-comment-created.md to customize the prompt.
+# Auto-generated by: poe-code github-workflows install github-issue-comment-created
+# Edit .poe-code/github-workflows/github-issue-comment-created.md to customize the prompt.
 name: 'GitHub: Issue Comment Created'
 on:
   issue_comment:
@@ -158,7 +168,13 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - run: npx poe-code gh github-issue-comment-created --yes
+      - run: npx poe-code github-workflows exec check-user-allow github-issue-comment-created
+        env:
+          COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+      - run: npx poe-code github-workflows exec require-comment-prefix github-issue-comment-created
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+      - run: npx poe-code github-workflows github-issue-comment-created --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -171,8 +187,8 @@ jobs:
 ### `github-pull-request-opened`
 
 ```yaml
-# Auto-generated by: poe-code gh install github-pull-request-opened
-# Edit .poe-code/gh/github-pull-request-opened.md to customize the prompt.
+# Auto-generated by: poe-code github-workflows install github-pull-request-opened
+# Edit .poe-code/github-workflows/github-pull-request-opened.md to customize the prompt.
 name: 'GitHub: Pull Request Opened'
 on:
   pull_request:
@@ -187,7 +203,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - run: npx poe-code gh github-pull-request-opened --yes
+      - run: npx poe-code github-workflows github-pull-request-opened --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -200,8 +216,8 @@ jobs:
 ### `github-pull-request-synchronized`
 
 ```yaml
-# Auto-generated by: poe-code gh install github-pull-request-synchronized
-# Edit .poe-code/gh/github-pull-request-synchronized.md to customize the prompt.
+# Auto-generated by: poe-code github-workflows install github-pull-request-synchronized
+# Edit .poe-code/github-workflows/github-pull-request-synchronized.md to customize the prompt.
 name: 'GitHub: Pull Request Synchronized'
 on:
   pull_request:
@@ -215,7 +231,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - run: npx poe-code gh github-pull-request-synchronized --yes
+      - run: npx poe-code github-workflows github-pull-request-synchronized --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -226,8 +242,8 @@ jobs:
 ### `fix-vulnerabilities`
 
 ```yaml
-# Auto-generated by: poe-code gh install fix-vulnerabilities
-# Edit .poe-code/gh/fix-vulnerabilities.md to customize the prompt.
+# Auto-generated by: poe-code github-workflows install fix-vulnerabilities
+# Edit .poe-code/github-workflows/fix-vulnerabilities.md to customize the prompt.
 name: 'Fix Vulnerabilities'
 on:
   schedule:
@@ -243,7 +259,7 @@ jobs:
       security-events: read
     steps:
       - uses: actions/checkout@v4
-      - run: npx poe-code gh fix-vulnerabilities --yes
+      - run: npx poe-code github-workflows fix-vulnerabilities --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -253,8 +269,8 @@ jobs:
 ### `update-dependencies`
 
 ```yaml
-# Auto-generated by: poe-code gh install update-dependencies
-# Edit .poe-code/gh/update-dependencies.md to customize the prompt.
+# Auto-generated by: poe-code github-workflows install update-dependencies
+# Edit .poe-code/github-workflows/update-dependencies.md to customize the prompt.
 name: 'Update Dependencies'
 on:
   schedule:
@@ -269,7 +285,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - run: npx poe-code gh update-dependencies --yes
+      - run: npx poe-code github-workflows update-dependencies --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -279,8 +295,8 @@ jobs:
 ### `update-documentation`
 
 ```yaml
-# Auto-generated by: poe-code gh install update-documentation
-# Edit .poe-code/gh/update-documentation.md to customize the prompt.
+# Auto-generated by: poe-code github-workflows install update-documentation
+# Edit .poe-code/github-workflows/update-documentation.md to customize the prompt.
 name: 'Update Documentation'
 on:
   push:
@@ -297,7 +313,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
-      - run: npx poe-code gh update-documentation --yes
+      - run: npx poe-code github-workflows update-documentation --yes
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -313,6 +329,8 @@ Each automation is a markdown file. Filename is the automation name. Frontmatter
 - `source` (optional): shell command whose stdout is parsed as JSON array; each item spawns its own agent
 - `agent` (optional): override the agent to use for this automation (e.g. `claude`, `opencode`)
 - `mcp` (optional): MCP servers to enable — same `Record<string, { command, args?, env? }>` shape as pipeline
+- `allow` (optional): list of `author_association` values permitted to trigger the automation; checked at runtime against `COMMENT_AUTHOR_ASSOCIATION` env var — if the caller is not in the list the command exits without spawning an agent (e.g. `[OWNER, MEMBER, COLLABORATOR]`)
+- `prefix` (optional): string that the comment body must start with to trigger the automation; checked at runtime against `COMMENT_BODY` env var — if the comment does not start with the prefix the command exits without spawning an agent (e.g. `poe-code`)
 
 Prompt body: mustache template rendered per source item, or used as-is.
 
@@ -335,6 +353,8 @@ Read {{url}} and implement the requested changes.
 
 ```markdown
 ---
+allow: [OWNER, MEMBER, COLLABORATOR]
+prefix: "poe-code"
 # Available variables:
 #   {{url}}            - full GitHub URL to the issue
 #   {{repo}}           - owner/repo (e.g. acme/my-app)
@@ -422,11 +442,11 @@ GitHub-native — no local state files. Each automation uses platform state:
 
 Priority order (later overrides by name):
 
-1. **Built-in**: `packages/gh/src/prompts/*.md` — ships with poe-code
-2. **Project-local**: `<cwd>/.poe-code/gh/*.md` — copied via `gh install` or user-created
+1. **Built-in**: `packages/github-workflows/src/prompts/*.md` — ships with poe-code
+2. **Project-local**: `<cwd>/.poe-code/github-workflows/*.md` — copied via `github-workflows install` or user-created
 
-```
-packages/gh/
+```text
+packages/github-workflows/
   src/
     prompts/
       github-issue-opened.md
@@ -436,18 +456,19 @@ packages/gh/
       fix-vulnerabilities.md
       update-dependencies.md
       update-documentation.md
-    workflow-helpers/
-      check-eligible-user.ts
-      build-comment-prompt.ts
-      build-issue-prompt.ts
-      generate-pr-metadata.ts
-      resolve-model-issue.ts
-      select-service.ts
-      discover-models.ts
-    index.ts                  # exports automation registry
+    commands.ts               # cmdkit command tree (ghGroup + subcommands)
+    commands.test.ts
+    exec/
+      check-user-allow.ts     # reads allow frontmatter, checks COMMENT_AUTHOR_ASSOCIATION
+      check-user-allow.test.ts
+      require-comment-prefix.ts   # reads prefix frontmatter, checks COMMENT_BODY starts with prefix
+      require-comment-prefix.test.ts
     discover.ts               # reads prompts dir, parses frontmatter, merges layers
+    discover.test.ts
     frontmatter.ts            # YAML frontmatter parser
+    frontmatter.test.ts
     types.ts                  # AutomationDefinition type
+    index.ts                  # public exports
 ```
 
 ### Automation Registry
@@ -459,6 +480,8 @@ interface AutomationDefinition {
   source?: string;            // shell command returning JSON array
   agent?: string;             // override agent for this automation
   mcp?: McpSpawnConfig;       // MCP servers (same shape as pipeline)
+  allow?: string[];           // author_association values; runtime check against COMMENT_AUTHOR_ASSOCIATION env var
+  prefix?: string;            // required comment body prefix; runtime check against COMMENT_BODY env var
 }
 
 function discoverAutomations(builtInDir, projectDir?): Promise<AutomationDefinition[]>
@@ -471,79 +494,164 @@ function loadAutomation(name, dirs): Promise<AutomationDefinition>
 
 1. Discover automation, match by name
 2. Resolve agent + model (frontmatter `agent` overrides CLI flag)
-3. Load prompt: check `.poe-code/gh/<name>.md`, fall back to built-in
+3. Load prompt: check `.poe-code/github-workflows/<name>.md`, fall back to built-in
 4. Spawn agent with prompt body + frontmatter `mcp` servers
 
 ### Sourced automation
 
 1. Discover automation, match by name
 2. Resolve agent + model (frontmatter `agent` overrides CLI flag)
-3. Load prompt: check `.poe-code/gh/<name>.md`, fall back to built-in
+3. Load prompt: check `.poe-code/github-workflows/<name>.md`, fall back to built-in
 4. Run source command: `commandRunner("sh", ["-c", source])`
 5. Parse stdout as JSON array
 6. For each item: `mustache.render(template, item)` → spawn agent with frontmatter `mcp` servers
 7. Collect results
 
-## SDK Integration
+## Command Tree
+
+`packages/github-workflows` exports a cmdkit group. The core wires it into both the CLI runner and the SDK — no separate wrapper.
 
 ```typescript
-// src/sdk/gh.ts
-export interface GhOptions {
-  name: string;
-  agent: string;
-  model?: string;
-  mode?: SpawnMode;
-  cwd?: string;
-}
+// packages/github-workflows/src/commands.ts
+import { defineCommand, defineGroup } from "@poe-code/cmdkit";
+import { S } from "@poe-code/cmdkit-schema";
 
-export async function runGh(
-  container: CliContainer,
-  options: GhOptions
-): Promise<{ results: SpawnResult[] }>
+const ghSecrets = {
+  poeApiKey:    { env: "POE_API_KEY" },
+  githubToken:  { env: "GITHUB_TOKEN" },
+};
+
+const runCommand = defineCommand({
+  name: "run",
+  description: "Run a GitHub automation.",
+  positional: ["name"],
+  params: S.Object({
+    name:  S.String(),
+    agent: S.Optional(S.String()),
+    model: S.Optional(S.String()),
+    mode:  S.Optional(S.String()),
+    cwd:   S.Optional(S.String()),
+  }),
+  scope: ["cli", "sdk"],
+  handler: async ({ params, secrets, env }) => { /* source → map → spawn */ },
+  render: { rich: (results, { logger }) => { /* print results */ } },
+});
+
+const listCommand = defineCommand({
+  name: "list",
+  description: "List available automations.",
+  params: S.Object({}),
+  scope: ["cli", "sdk"],
+  handler: async ({ fs, env }) => { /* discoverAutomations */ },
+  render: { rich: (items, { renderTable }) => { /* table */ } },
+});
+
+const installCommand = defineCommand({
+  name: "install",
+  description: "Install an automation workflow into the current repo.",
+  positional: ["name"],
+  params: S.Object({
+    name: S.String(),
+    eject: S.Optional(S.Boolean()),  // default false: thin caller; true: full self-contained copy
+  }),
+  scope: ["cli"],
+  handler: async ({ params, fs }) => { /* write caller or ejected workflow YAML + copy prompt */ },
+});
+
+const uninstallCommand = defineCommand({
+  name: "uninstall",
+  positional: ["name"],
+  params: S.Object({ name: S.String() }),
+  scope: ["cli"],
+  handler: async ({ params, fs }) => { /* delete workflow YAML */ },
+});
+
+// exec subgroup — workflow step helpers, not user-facing automations
+const checkUserAllowCommand = defineCommand({
+  name: "check-user-allow",
+  description: "Read allow frontmatter of an automation and exit non-zero if COMMENT_AUTHOR_ASSOCIATION is not permitted.",
+  positional: ["name"],
+  params: S.Object({ name: S.String() }),
+  scope: ["cli"],
+  handler: async ({ params, fs, env }) => { /* load automation, check allow vs COMMENT_AUTHOR_ASSOCIATION */ },
+});
+
+const requireCommentPrefixCommand = defineCommand({
+  name: "require-comment-prefix",
+  description: "Read prefix frontmatter of an automation and exit non-zero if COMMENT_BODY does not start with the prefix.",
+  positional: ["name"],
+  params: S.Object({ name: S.String() }),
+  scope: ["cli"],
+  handler: async ({ params, fs, env }) => { /* load automation, check COMMENT_BODY starts with prefix */ },
+});
+
+const execGroup = defineGroup({
+  name: "exec",
+  scope: ["cli"],
+  children: [checkUserAllowCommand, requireCommentPrefixCommand],
+});
+
+export const ghGroup = defineGroup({
+  name: "github-workflows",
+  aliases: ["gh"],
+  description: "GitHub automation commands.",
+  secrets: ghSecrets,
+  default: runCommand,
+  children: [runCommand, listCommand, installCommand, uninstallCommand, execGroup],
+});
 ```
+
+SDK callers import `ghGroup` directly and run it via the cmdkit SDK runner.
 
 ## Files to Create/Modify
 
 | File | Action |
 |------|--------|
-| `packages/gh/package.json` | New package `@poe-code/gh` |
-| `packages/gh/tsconfig.json` | Extends root |
-| `packages/gh/src/types.ts` | AutomationDefinition type |
-| `packages/gh/src/frontmatter.ts` | YAML frontmatter parser |
-| `packages/gh/src/frontmatter.test.ts` | Frontmatter unit tests |
-| `packages/gh/src/discover.ts` | Discovery + merge layers |
-| `packages/gh/src/discover.test.ts` | Discovery tests |
-| `packages/gh/src/index.ts` | Public exports |
-| `packages/gh/src/prompts/*.md` | 7 built-in automation prompts (4 event-driven + 3 cron) |
-| `packages/gh/src/prompts/prompts.test.ts` | Validate all prompts |
-| `packages/gh/src/workflow-helpers/*.ts` | Migrated from `scripts/workflows/` |
-| `packages/gh/src/workflow-helpers/*.test.ts` | Unit tests |
-| `src/sdk/gh.ts` | SDK executor (source → map → spawn) |
-| `src/cli/commands/gh.ts` | CLI command (run, list, install, uninstall + helpers) |
-| `src/cli/commands/gh.test.ts` | CLI tests |
-| `src/cli/program.ts` | Register `registerGhCommand()` |
-| `src/index.ts` | Export SDK `runGh()` |
-| `scripts/workflows/` | Delete after migration |
+| `.github/workflows/gh-github-issue-opened.yml` | Reusable workflow (`on: workflow_call`) — hosted here, referenced by caller installs |
+| `.github/workflows/gh-github-issue-comment-created.yml` | Reusable workflow |
+| `.github/workflows/gh-github-pull-request-opened.yml` | Reusable workflow |
+| `.github/workflows/gh-github-pull-request-synchronized.yml` | Reusable workflow |
+| `.github/workflows/gh-fix-vulnerabilities.yml` | Reusable workflow |
+| `.github/workflows/gh-update-dependencies.yml` | Reusable workflow |
+| `.github/workflows/gh-update-documentation.yml` | Reusable workflow |
+| `packages/github-workflows/package.json` | New package `@poe-code/github-workflows`; depends on `@poe-code/cmdkit` |
+| `packages/github-workflows/tsconfig.json` | Extends root |
+| `packages/github-workflows/src/types.ts` | AutomationDefinition type |
+| `packages/github-workflows/src/frontmatter.ts` | YAML frontmatter parser |
+| `packages/github-workflows/src/frontmatter.test.ts` | Frontmatter unit tests |
+| `packages/github-workflows/src/discover.ts` | Discovery + merge layers |
+| `packages/github-workflows/src/discover.test.ts` | Discovery tests |
+| `packages/github-workflows/src/commands.ts` | cmdkit command tree (`ghGroup` + all subcommands) |
+| `packages/github-workflows/src/commands.test.ts` | Command handler unit tests |
+| `packages/github-workflows/src/exec/check-user-allow.ts` | Reads `allow` frontmatter, checks `COMMENT_AUTHOR_ASSOCIATION`, exits non-zero if denied |
+| `packages/github-workflows/src/exec/check-user-allow.test.ts` | Unit tests |
+| `packages/github-workflows/src/exec/require-comment-prefix.ts` | Reads `prefix` frontmatter, checks `COMMENT_BODY` starts with prefix, exits non-zero if not |
+| `packages/github-workflows/src/exec/require-comment-prefix.test.ts` | Unit tests |
+| `packages/github-workflows/src/index.ts` | Public exports (`ghGroup`, `AutomationDefinition`) |
+| `packages/github-workflows/src/prompts/*.md` | 7 built-in automation prompts (4 event-driven + 3 cron) |
+| `packages/github-workflows/src/prompts/prompts.test.ts` | Validate all prompts |
+| `src/cli/program.ts` | Mount `ghGroup` via cmdkit CLI runner (no `registerGhCommand`) |
+| `src/index.ts` | Export `ghGroup` from SDK |
+
+## Implementation Notes
+
+If during implementation a bug or missing feature is discovered in `@poe-code/cmdkit`, fix it directly in that package — do not work around it in `github-workflows`.
 
 ## Implementation Steps
 
-1. Create `packages/gh` package with frontmatter parser (TDD)
+1. Create `packages/github-workflows` package with frontmatter parser (TDD)
 2. Add types and discovery with two-layer merge (TDD)
 3. Write 7 built-in automation prompt files + validation tests
-4. Migrate `scripts/workflows/*.cjs` → `packages/gh/src/workflow-helpers/*.ts` (TDD)
-5. Update existing `.github/workflows/` to call `npx poe-code gh <helper>` instead of `node scripts/`
-6. Implement SDK executor with source → map → spawn pipeline
-7. Implement CLI `gh` command (run + list + install + uninstall + helpers)
-8. Register command in `program.ts`, export from SDK
-9. Screenshots + E2E tests
+4. Add 7 reusable workflows (`.github/workflows/gh-*.yml`) using `on: workflow_call`
+5. Implement cmdkit command tree in `packages/github-workflows/src/commands.ts` — handlers for run (source → map → spawn), list, install (`--eject` flag), uninstall; exec subgroup with `check-user-allow` and `require-comment-prefix`
+6. Mount `ghGroup` in `src/cli/program.ts` via cmdkit runner; export from `src/index.ts`
+7. Screenshots + E2E tests
 
 ## Testing Strategy
 
 - **Frontmatter**: pure function tests, no mocking
 - **Discovery**: mock `node:fs/promises` via `vi.mock`
-- **Workflow helpers**: unit tests, mock external calls
-- **Executor**: mock `runGh` and `commandRunner` at boundary
-- **CLI**: mock `@poe-code/gh` and `../../sdk/spawn.js`
+- **Commands**: mock `@poe-code/github-workflows` discovery and `commandRunner` at handler boundary; test each `defineCommand` handler in isolation
 - **Prompts**: validate all built-in prompts have valid frontmatter
-- **Visual**: `npm run screenshot-poe-code -- gh --help`, `gh list`, `gh install --help`
+- **Visual**: `npm run screenshot-poe-code -- github-workflows --help`, `github-workflows list`, `github-workflows install --help`
 - **No LLM calls in tests**

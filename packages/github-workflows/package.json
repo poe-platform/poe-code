@@ -1,0 +1,27 @@
+{
+  "name": "@poe-code/github-workflows",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts",
+    "lint": "cd ../.. && eslint packages/github-workflows/src --ext ts && tsc -p packages/github-workflows/tsconfig.json --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/cmdkit": "*",
+    "yaml": "^2.8.2"
+  }
+}

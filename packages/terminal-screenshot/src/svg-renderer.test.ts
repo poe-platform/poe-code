@@ -35,7 +35,7 @@ describe("renderSvg", () => {
     expect(svg).toContain('fill="#D74E6F"');
   });
 
-  it("uses freeze ansi colors for ansi8 low palette indexes", () => {
+  it("maps ansi8 low palette indexes to the standard 8-color palette", () => {
     const svg = renderSvg([createRun({ fg: { type: "ansi8", index: 1 } })], { window: false });
 
     expect(svg).toContain('fill="#D74E6F"');
@@ -80,9 +80,29 @@ describe("renderSvg", () => {
     expect(svg).toContain("&lt;a &amp; \"b\"&gt;");
   });
 
-  it("uses the freeze default foreground color", () => {
+  it("uses #c4c4c4 as the default foreground color", () => {
     const svg = renderSvg([createRun()], { window: false });
 
     expect(svg).toContain('fill="#c4c4c4"');
+  });
+
+  it("measures CJK characters as 2 cells wide", () => {
+    const svg = renderSvg([createRun({ text: "测" })], { window: false });
+
+    // 2 cells * 8.412666... + 20 (left pad) + 40 (right pad) = 76.83
+    expect(svg).toContain('width="76.83"');
+  });
+
+  it("measures emoji as 2 cells wide", () => {
+    const svg = renderSvg([createRun({ text: "🎉" })], { window: false });
+
+    expect(svg).toContain('width="76.83"');
+  });
+
+  it("measures fullwidth latin characters as 2 cells wide", () => {
+    // Fullwidth A (U+FF21) is in the fullwidth block
+    const svg = renderSvg([createRun({ text: "\uFF21" })], { window: false });
+
+    expect(svg).toContain('width="76.83"');
   });
 });

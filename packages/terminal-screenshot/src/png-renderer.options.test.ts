@@ -21,7 +21,7 @@ describe("renderPng options", () => {
     renderMock.mockClear();
   });
 
-  it("renders at freeze-compatible scale", () => {
+  it("renders at 4x zoom scale", () => {
     const png = renderPng("<svg />");
 
     expect(Resvg).toHaveBeenCalledWith("<svg />", {

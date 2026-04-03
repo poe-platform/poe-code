@@ -132,8 +132,44 @@ function splitIntoLines(runs: StyledRun[]): StyledRun[][] {
 
 function measureLines(lines: StyledRun[][]): number {
   return Math.max(
-    ...lines.map(line => line.reduce((width, run) => width + (Array.from(run.text).length * CHARACTER_WIDTH), 0)),
+    ...lines.map(line => line.reduce((width, run) => width + (displayWidth(run.text) * CHARACTER_WIDTH), 0)),
     0
+  );
+}
+
+function displayWidth(text: string): number {
+  const segmenter = new Intl.Segmenter();
+  let width = 0;
+
+  for (const { segment } of segmenter.segment(text)) {
+    const cp = segment.codePointAt(0);
+    width += cp !== undefined && isWideCodePoint(cp) ? 2 : 1;
+  }
+
+  return width;
+}
+
+function isWideCodePoint(cp: number): boolean {
+  return (
+    (cp >= 0x1100 && cp <= 0x115F) ||  // Hangul Jamo
+    cp === 0x2329 || cp === 0x232A ||   // Angle brackets
+    (cp >= 0x2E80 && cp <= 0x303E) ||  // CJK Radicals, Kangxi
+    (cp >= 0x3041 && cp <= 0x33BF) ||  // Hiragana, Katakana, CJK symbols
+    (cp >= 0x3400 && cp <= 0x4DBF) ||  // CJK Extension A
+    (cp >= 0x4E00 && cp <= 0xA4CF) ||  // CJK Unified Ideographs
+    (cp >= 0xA960 && cp <= 0xA97F) ||  // Hangul Jamo Extended-A
+    (cp >= 0xAC00 && cp <= 0xD7AF) ||  // Hangul Syllables
+    (cp >= 0xF900 && cp <= 0xFAFF) ||  // CJK Compatibility Ideographs
+    (cp >= 0xFE10 && cp <= 0xFE19) ||  // Vertical Forms
+    (cp >= 0xFE30 && cp <= 0xFE6F) ||  // CJK Compatibility Forms
+    (cp >= 0xFF00 && cp <= 0xFF60) ||  // Fullwidth Latin, Halfwidth Katakana
+    (cp >= 0xFFE0 && cp <= 0xFFE6) ||  // Fullwidth Signs
+    (cp >= 0x1B000 && cp <= 0x1B0FF) || // Kana Supplement
+    (cp >= 0x1F004 && cp <= 0x1F004) || // Mahjong tile
+    (cp >= 0x1F0CF && cp <= 0x1F0CF) || // Playing card black joker
+    (cp >= 0x1F200 && cp <= 0x1FFFD) || // Enclosed CJK + Emoji
+    (cp >= 0x20000 && cp <= 0x2FFFD) || // CJK Extension B–F
+    (cp >= 0x30000 && cp <= 0x3FFFD)    // CJK Extension G–H
   );
 }
 

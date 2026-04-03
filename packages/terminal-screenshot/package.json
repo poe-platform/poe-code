@@ -19,8 +19,8 @@
     "assets"
   ],
   "dependencies": {
-    "@fontsource/jetbrains-mono": "^5.2.8",
     "@resvg/resvg-js": "^2.6.2",
-    "commander": "^14.0.3"
+    "commander": "^14.0.3",
+    "jetbrains-mono": "^1.0.6"
   }
 }

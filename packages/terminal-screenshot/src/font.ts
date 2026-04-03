@@ -5,12 +5,12 @@ import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 
-// Resolve the shipped woff2 asset from the installed package at import time.
-// This runs once and keeps the per-render path free of extra I/O.
-const fontPackageRoot = dirname(require.resolve("@fontsource/jetbrains-mono/package.json"));
-const fontPath = join(fontPackageRoot, "files", "jetbrains-mono-latin-400-normal.woff2");
+// Full JetBrains Mono (all Unicode blocks including box-drawing and geometric shapes).
+// The @fontsource subsets only cover Latin and miss characters used by the design system.
+const fontPackageRoot = dirname(require.resolve("jetbrains-mono/package.json"));
+const fontPath = join(fontPackageRoot, "fonts/webfonts/JetBrainsMono-Regular.woff2");
 const fontAssetPath = fileURLToPath(
-  new URL("../assets/jetbrains-mono-latin-400-normal.ttf", import.meta.url)
+  new URL("../assets/jetbrains-mono-400-normal.ttf", import.meta.url)
 );
 
 export const JETBRAINS_MONO_BASE64 = readFileSync(fontPath).toString("base64");

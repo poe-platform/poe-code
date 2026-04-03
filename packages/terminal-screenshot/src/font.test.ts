@@ -5,15 +5,11 @@ import { describe, expect, it } from "vitest";
 import { FONT_FACE_CSS, JETBRAINS_MONO_BASE64, JETBRAINS_MONO_TTF_PATH } from "./font.js";
 
 const require = createRequire(import.meta.url);
-const fontPackageRoot = dirname(require.resolve("@fontsource/jetbrains-mono/package.json"));
-const shippedFontPath = join(
-  fontPackageRoot,
-  "files",
-  "jetbrains-mono-latin-400-normal.woff2"
-);
+const fontPackageRoot = dirname(require.resolve("jetbrains-mono/package.json"));
+const shippedFontPath = join(fontPackageRoot, "fonts/webfonts/JetBrainsMono-Regular.woff2");
 
 describe("font", () => {
-  it("embeds the shipped JetBrains Mono latin 400 woff2 asset", () => {
+  it("embeds the full JetBrains Mono woff2 asset", () => {
     expect(Buffer.from(JETBRAINS_MONO_BASE64, "base64")).toEqual(readFileSync(shippedFontPath));
     expect(FONT_FACE_CSS).toContain("font-family: 'JetBrains Mono'");
     expect(FONT_FACE_CSS).toContain("font-style: normal");
@@ -22,8 +18,8 @@ describe("font", () => {
     expect(FONT_FACE_CSS).toContain("format('woff2')");
   });
 
-  it("ships a local JetBrains Mono ttf asset for resvg font loading", () => {
-    expect(JETBRAINS_MONO_TTF_PATH).toMatch(/jetbrains-mono-latin-400-normal\.ttf$/);
+  it("ships a full JetBrains Mono ttf asset for resvg font loading", () => {
+    expect(JETBRAINS_MONO_TTF_PATH).toMatch(/jetbrains-mono-400-normal\.ttf$/);
     expect(readFileSync(JETBRAINS_MONO_TTF_PATH).byteLength).toBeGreaterThan(0);
   });
 });

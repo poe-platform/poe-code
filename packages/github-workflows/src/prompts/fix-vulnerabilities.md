@@ -1,4 +1,5 @@
 ---
+label: "Scheduled: Fix Vulnerabilities"
 source: >-
   gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[] |
   select(.state=="open")]'

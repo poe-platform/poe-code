@@ -87,6 +87,7 @@ function readAutomationFields(
   frontmatter: Record<string, unknown>,
   fileName: string
 ): Omit<AutomationDefinition, "name" | "prompt"> {
+  const label = readOptionalString(frontmatter.label, "label", fileName);
   const source = readOptionalString(frontmatter.source, "source", fileName);
   const agent = readOptionalString(frontmatter.agent, "agent", fileName);
   const mcp = readOptionalMcp(frontmatter.mcp, fileName);
@@ -94,6 +95,7 @@ function readAutomationFields(
   const prefix = readOptionalString(frontmatter.prefix, "prefix", fileName);
 
   return {
+    ...(label === undefined ? {} : { label }),
     ...(source === undefined ? {} : { source }),
     ...(agent === undefined ? {} : { agent }),
     ...(mcp === undefined ? {} : { mcp }),
@@ -104,7 +106,7 @@ function readAutomationFields(
 
 function readOptionalString(
   value: unknown,
-  field: "source" | "agent" | "prefix",
+  field: "label" | "source" | "agent" | "prefix",
   fileName: string
 ): string | undefined {
   if (value === undefined) {

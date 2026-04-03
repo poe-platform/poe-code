@@ -1,4 +1,5 @@
 ---
+label: "GitHub: Issue Handler"
 # Available variables:
 #   {{url}}          - full GitHub URL to the issue
 #   {{repo}}         - owner/repo (e.g. acme/my-app)

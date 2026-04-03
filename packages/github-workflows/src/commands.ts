@@ -53,15 +53,6 @@ function formatLabel(name: string): string {
   return name.split("-").map(capitalize).join(" ");
 }
 
-const automationLabels: Partial<Record<string, string>> = {
-  "fix-vulnerabilities": "Scheduled: Fix Vulnerabilities",
-  "update-dependencies": "Scheduled: Update Dependencies",
-  "update-documentation": "Scheduled: Update Documentation",
-  "github-issue-comment-created": "GitHub: Issue Comment Handler",
-  "github-issue-opened": "GitHub: Issue Handler",
-  "github-pull-request-opened": "GitHub: Pull Request Handler",
-  "github-pull-request-synchronized": "GitHub: Pull Request Update Handler"
-};
 
 const runCommandDef = defineCommand({
   name: "run",
@@ -85,7 +76,7 @@ const runCommandDef = defineCommand({
       params.name ??
       (await selectAutomationName(
         "Pick a workflow to run",
-        (await discoverAutomations(await resolveBuiltInPromptsDir(), projectPromptsDir(cwd))).map((a) => a.name)
+        await discoverAutomations(await resolveBuiltInPromptsDir(), projectPromptsDir(cwd))
       ));
     const automation = await loadNamedAutomation(name, cwd);
     const agent = automation.agent ?? params.agent ?? "codex";
@@ -195,12 +186,17 @@ const installCommand = defineCommand({
   description: "Install an automation workflow into the current repo.",
   positional: ["name"],
   params: S.Object({
-    name: S.Enum(installableAutomations, { description: "Pick a GitHub workflow to install", labels: automationLabels }),
+    name: S.Optional(S.Enum(installableAutomations)),
     eject: S.Optional(S.Boolean())
   }),
   scope: ["cli"],
   handler: async ({ params }) => {
-    const name = params.name;
+    const name =
+      params.name ??
+      (await selectAutomationName(
+        "Pick a GitHub workflow to install",
+        await discoverAutomations(await resolveBuiltInPromptsDir())
+      ));
     const variant = params.eject === true ? "ejected" : "caller";
     const workflowTemplate = await readBuiltInWorkflowTemplate(name, variant);
     const rawPrompt = await readBuiltInPromptFile(name);
@@ -233,11 +229,16 @@ const uninstallCommand = defineCommand({
   description: "Remove an installed automation workflow from the current repo.",
   positional: ["name"],
   params: S.Object({
-    name: S.Enum(installableAutomations, { description: "Pick a GitHub workflow to uninstall", labels: automationLabels })
+    name: S.Optional(S.Enum(installableAutomations))
   }),
   scope: ["cli"],
   handler: async ({ params }) => {
-    const name = params.name;
+    const name =
+      params.name ??
+      (await selectAutomationName(
+        "Pick a GitHub workflow to uninstall",
+        await discoverAutomations(await resolveBuiltInPromptsDir())
+      ));
     const workflowPath = path.join(resolveCwd(), ".github", "workflows", `gh-${name}.yml`);
 
     try {
@@ -583,14 +584,14 @@ function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
-async function selectAutomationName(message: string, options: string[]): Promise<string> {
+async function selectAutomationName(message: string, automations: AutomationDefinition[]): Promise<string> {
   if (!process.stdin.isTTY) {
     throw new UserError("Automation name is required.");
   }
 
   const selected = await select({
     message,
-    options: options.map((name) => ({ label: formatLabel(name), value: name }))
+    options: automations.map((a) => ({ label: a.label ?? formatLabel(a.name), value: a.name }))
   });
 
   if (isCancel(selected)) {

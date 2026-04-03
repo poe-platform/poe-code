@@ -1,4 +1,5 @@
 ---
+label: "GitHub: Pull Request Update Handler"
 # Available variables:
 #   {{url}}       - full GitHub URL to the pull request
 #   {{repo}}      - owner/repo (e.g. acme/my-app)

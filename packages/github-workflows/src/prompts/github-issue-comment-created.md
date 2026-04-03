@@ -1,4 +1,5 @@
 ---
+label: "GitHub: Issue Comment Handler"
 allow:
   - OWNER
   - MEMBER

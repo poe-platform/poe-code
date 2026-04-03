@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildExecutionPrompt,
+  resolveFileIncludes,
   selectNextExecution,
   type ExecutionSelection
 } from "./runner.js";
@@ -164,5 +165,55 @@ describe("buildExecutionPrompt", () => {
     });
 
     expect(prompt).toBe("Fix the timeout regression");
+  });
+});
+
+describe("resolveFileIncludes", () => {
+  const readFile = async (filePath: string): Promise<string> => {
+    const files: Record<string, string> = {
+      "/repo/docs/context.md": "# Context\nSome context here.",
+      "/repo/notes.txt": "Important notes."
+    };
+    const content = files[filePath];
+    if (content === undefined) throw new Error(`File not found: ${filePath}`);
+    return content;
+  };
+
+  it("returns the template unchanged when there are no file includes", async () => {
+    const result = await resolveFileIncludes("plain prompt text", "/repo", readFile);
+    expect(result).toBe("plain prompt text");
+  });
+
+  it("replaces a single file include with file contents", async () => {
+    const result = await resolveFileIncludes(
+      "Preamble\n{{file 'docs/context.md'}}\nPostamble",
+      "/repo",
+      readFile
+    );
+    expect(result).toBe("Preamble\n# Context\nSome context here.\nPostamble");
+  });
+
+  it("supports double-quoted paths", async () => {
+    const result = await resolveFileIncludes(
+      '{{file "notes.txt"}}',
+      "/repo",
+      readFile
+    );
+    expect(result).toBe("Important notes.");
+  });
+
+  it("resolves paths relative to cwd", async () => {
+    const result = await resolveFileIncludes(
+      "{{file 'docs/context.md'}}",
+      "/repo",
+      readFile
+    );
+    expect(result).toBe("# Context\nSome context here.");
+  });
+
+  it("throws when the referenced file does not exist", async () => {
+    await expect(
+      resolveFileIncludes("{{file 'missing.md'}}", "/repo", readFile)
+    ).rejects.toThrow("File not found: /repo/missing.md");
   });
 });

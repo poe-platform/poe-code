@@ -1,3 +1,4 @@
+import path from "node:path";
 import type {
   ExecutionSelection,
   PipelinePlan,
@@ -65,6 +66,26 @@ function interpolate(template: string, values: Record<string, string>): string {
     output = output.split(`{{${key}}}`).join(value);
   }
   return output;
+}
+
+const FILE_INCLUDE_PATTERN = /\{\{file\s+['"]([^'"]+)['"]\s*\}\}/g;
+
+export async function resolveFileIncludes(
+  template: string,
+  cwd: string,
+  readFile: (filePath: string, encoding: BufferEncoding) => Promise<string>
+): Promise<string> {
+  const matches = [...template.matchAll(FILE_INCLUDE_PATTERN)];
+  if (matches.length === 0) {
+    return template;
+  }
+  let result = template;
+  for (const match of matches) {
+    const absolutePath = path.resolve(cwd, match[1]);
+    const content = await readFile(absolutePath, "utf8");
+    result = result.replace(match[0], content);
+  }
+  return result;
 }
 
 export function buildExecutionPrompt(input: {

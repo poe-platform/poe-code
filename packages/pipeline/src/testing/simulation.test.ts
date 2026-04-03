@@ -778,4 +778,48 @@ describe("createPipelineSimulation", () => {
     expect(result.runsCompleted).toBe(1);
     expect(prompts).toEqual(["Do task 1", "Teardown"]);
   });
+
+  it("expands {{file '...'}} in task prompts", async () => {
+    const sim = createPipelineSimulation({
+      files: {
+        "docs/context.md": "# Context\nUse this context."
+      },
+      plan: {
+        tasks: [
+          {
+            id: "task-1",
+            title: "Task 1",
+            prompt: "Preamble\n{{file 'docs/context.md'}}\nDo the work.",
+            status: "open"
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual(["Preamble\n# Context\nUse this context.\nDo the work."]);
+  });
+
+  it("expands {{file '...'}} in setup/teardown prompts", async () => {
+    const sim = createPipelineSimulation({
+      files: {
+        "docs/setup-instructions.md": "Install dependencies."
+      },
+      plan: {
+        setup: { mode: "yolo", prompt: "{{file 'docs/setup-instructions.md'}}" },
+        tasks: [
+          { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
+        ]
+      },
+      turns: [successTurn(), successTurn()]
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual(["Install dependencies.", "Do task 1"]);
+  });
 });

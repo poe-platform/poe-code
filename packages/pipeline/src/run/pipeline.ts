@@ -7,6 +7,7 @@ import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";
 import {
   buildExecutionPrompt,
+  resolveFileIncludes,
   selectNextExecution
 } from "./runner.js";
 import type {
@@ -160,10 +161,11 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     const startTime = Date.now();
     let result: AgentRunResult;
     try {
+      const phasePrompt = await resolveFileIncludes(phaseDef.prompt, options.cwd, fs.readFile.bind(fs));
       // runAgent is validated non-null at the top of runPipeline; TypeScript cannot narrow across closures
       result = await runAgent!({
         agent: phaseDef.agent ?? options.agent,
-        prompt: phaseDef.prompt,
+        prompt: phasePrompt,
         mode: phaseDef.mode,
         cwd: options.cwd,
         logDir: options.logDir,
@@ -312,11 +314,11 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       options.onTaskStart?.(taskProgress);
 
-      const prompt = buildExecutionPrompt({
-        selection,
-        steps: stepsConfig.steps,
-        planPath
-      });
+      const prompt = await resolveFileIncludes(
+        buildExecutionPrompt({ selection, steps: stepsConfig.steps, planPath }),
+        options.cwd,
+        fs.readFile.bind(fs)
+      );
       const mode = resolveMode(selection.stepName, stepsConfig.steps);
 
       const taskStartTime = Date.now();

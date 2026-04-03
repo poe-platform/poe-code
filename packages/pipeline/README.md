@@ -149,6 +149,19 @@ Supported placeholders:
 - `{{prompt}}`
 - `{{plan_path}}`
 
+Any prompt (step, setup, teardown, or task) can include an external file using `{{file 'path'}}`. The path is resolved relative to the project `cwd`:
+
+```yaml
+steps:
+  implement:
+    prompt: |
+      {{file 'docs/implement-instructions.md'}}
+      Task: {{id}} — {{title}}
+      {{prompt}}
+```
+
+The file contents replace the `{{file '...'}}` tag at runtime. Both single and double quotes are accepted. This keeps large instruction sets out of YAML and lets them be versioned as plain Markdown files.
+
 If `mode` is omitted, it defaults to `yolo`.
 
 Each step can optionally override the pipeline-level `agent` and `model`. When set, the step runs with the specified agent/model instead of the one passed to `pipeline run --agent`.

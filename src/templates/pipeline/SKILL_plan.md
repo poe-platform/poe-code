@@ -13,7 +13,7 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 
 1. Run `poe-code pipeline plan-path` to get the plans directory.
 2. Write the plan to `<plan-path>/plan-<name>.yaml`. If the plan path is under the global `~/.poe-code` directory, prefix the filename with the project name: `plan-<project>-<name>.yaml`.
-3. Check if a `steps.yaml` exists next to the plans directory (i.e. `<plan-path>/../steps.yaml`). If it does, read it to determine available steps. If not, use stepless tasks.
+3. Check if a `steps.yaml` exists next to the plans directory (i.e. `<plan-path>/../steps.yaml`). If it does, read it to determine available steps and any default `setup`/`teardown` hooks. If not, use stepless tasks with no lifecycle hooks.
 
 ## Rules
 
@@ -24,6 +24,7 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 - The available steps come from the `steps.yaml` file you found (project or global). Use the current step names instead of inventing hardcoded ones.
 - If no step configuration is present, use stepless tasks with scalar `status: open`.
 - If step configuration is present, start every configured step status at `open`.
+- Only add `setup` or `teardown` to the plan when you need to override the `steps.yaml` defaults or when the user explicitly asks for a lifecycle hook.
 
 ## Output Format
 
@@ -50,6 +51,22 @@ tasks:
       implement: open
       test: open
       review: open
+```
+
+Optional setup/teardown hooks (omit if not needed; can override `steps.yaml` defaults):
+
+```yaml
+setup:
+  instruction: Prepare the workspace before running tasks
+  # mode: yolo (default)
+
+teardown:
+  instruction: Run final checks and clean up
+  # mode: read
+
+tasks:
+  - id: auth-hardening
+    ...
 ```
 
 ## After Writing

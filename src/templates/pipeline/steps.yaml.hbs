@@ -4,6 +4,17 @@
 # Add `mode` only when you want to override the default `yolo`.
 # Add `agent` and/or `model` to override the pipeline-level defaults per step.
 #
+# Optional: setup runs once before any tasks, teardown runs once after all complete.
+# These can also be defined in plan.yaml to override the defaults below.
+#
+# setup:
+#   instruction: Prepare the workspace
+#   # mode: yolo
+#
+# teardown:
+#   instruction: Run final checks and clean up
+#   # mode: read
+#
 # steps:
 #   implement:
 #     instruction: |

@@ -57,6 +57,7 @@ export interface EnumSchema<TValues extends NonEmptyReadonlyArray<EnumValue>>
   extends SchemaBase<"enum", TValues[number]> {
   readonly values: TValues;
   readonly labels?: Partial<Record<string, string>>;
+  readonly loadOptions?: () => Array<{ label: string; value: string }> | Promise<Array<{ label: string; value: string }>>;
 }
 
 export interface ArraySchema<TItem extends AnySchema>
@@ -171,7 +172,10 @@ export const S = {
 
   Enum<const TValues extends NonEmptyReadonlyArray<EnumValue>>(
     values: TValues,
-    options: SchemaOptions<TValues[number]> & { labels?: Partial<Record<string, string>> } = {}
+    options: SchemaOptions<TValues[number]> & {
+      labels?: Partial<Record<string, string>>;
+      loadOptions?: () => Array<{ label: string; value: string }> | Promise<Array<{ label: string; value: string }>>;
+    } = {}
   ): EnumSchema<TValues> {
     assertValidEnumValues(values);
 

@@ -186,17 +186,18 @@ const installCommand = defineCommand({
   description: "Install an automation workflow into the current repo.",
   positional: ["name"],
   params: S.Object({
-    name: S.Optional(S.Enum(installableAutomations)),
+    name: S.Enum(installableAutomations, {
+      description: "Pick a GitHub workflow to install",
+      loadOptions: async () => {
+        const automations = await discoverAutomations(await resolveBuiltInPromptsDir());
+        return automations.map((a) => ({ label: a.label ?? formatLabel(a.name), value: a.name }));
+      }
+    }),
     eject: S.Optional(S.Boolean())
   }),
   scope: ["cli"],
   handler: async ({ params }) => {
-    const name =
-      params.name ??
-      (await selectAutomationName(
-        "Pick a GitHub workflow to install",
-        await discoverAutomations(await resolveBuiltInPromptsDir())
-      ));
+    const name = params.name;
     const variant = params.eject === true ? "ejected" : "caller";
     const workflowTemplate = await readBuiltInWorkflowTemplate(name, variant);
     const rawPrompt = await readBuiltInPromptFile(name);
@@ -229,16 +230,17 @@ const uninstallCommand = defineCommand({
   description: "Remove an installed automation workflow from the current repo.",
   positional: ["name"],
   params: S.Object({
-    name: S.Optional(S.Enum(installableAutomations))
+    name: S.Enum(installableAutomations, {
+      description: "Pick a GitHub workflow to uninstall",
+      loadOptions: async () => {
+        const automations = await discoverAutomations(await resolveBuiltInPromptsDir());
+        return automations.map((a) => ({ label: a.label ?? formatLabel(a.name), value: a.name }));
+      }
+    })
   }),
   scope: ["cli"],
   handler: async ({ params }) => {
-    const name =
-      params.name ??
-      (await selectAutomationName(
-        "Pick a GitHub workflow to uninstall",
-        await discoverAutomations(await resolveBuiltInPromptsDir())
-      ));
+    const name = params.name;
     const workflowPath = path.join(resolveCwd(), ".github", "workflows", `gh-${name}.yml`);
 
     try {

@@ -421,6 +421,41 @@ describe("runCLI", () => {
     });
   });
 
+  it("calls loadOptions to populate the select when provided (supports async and sync)", async () => {
+    const handler = vi.fn(async (ctx: { params: { mode: "safe" | "fast" } }) => ctx.params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        mode: S.Enum(["safe", "fast"] as const, {
+          loadOptions: async () => [
+            { label: "Safe (slow)", value: "safe" },
+            { label: "Fast (risky)", value: "fast" },
+          ],
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({ name: "cmdkit", children: [deploy] });
+
+    promptState.select.mockResolvedValueOnce("safe");
+
+    process.argv = ["node", "cmdkit", "deploy"];
+
+    await runCLI(root);
+
+    expect(promptState.select).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          { label: "Safe (slow)", value: "safe" },
+          { label: "Fast (risky)", value: "fast" },
+        ],
+      })
+    );
+    expect(handler.mock.calls[0]?.[0].params).toEqual({ mode: "safe" });
+  });
+
   it("uses enum labels and schema description for the select prompt when provided", async () => {
     const handler = vi.fn(async (ctx: { params: { mode: "safe" | "fast" } }) => ctx.params);
 

@@ -807,12 +807,15 @@ function formatResolvedValue(value: unknown): string {
 async function promptForField(field: FieldDefinition): Promise<unknown> {
   const schema = field.schema;
   if (schema.kind === "enum") {
+    const options = schema.loadOptions
+      ? await schema.loadOptions()
+      : schema.values.map((value) => ({
+          label: schema.labels?.[String(value)] ?? String(value),
+          value,
+        }));
     const selected = await select({
       message: field.description ?? field.displayPath,
-      options: schema.values.map((value) => ({
-        label: schema.labels?.[String(value)] ?? String(value),
-        value,
-      })),
+      options,
       initialValue: field.hasDefault ? field.defaultValue : undefined,
     });
 

@@ -61,6 +61,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    pool: "threads",
     include: [
       "src/**/*.test.ts",              // Collocated unit tests
       "tests/helpers/**/*.test.ts",    // Test helper tests

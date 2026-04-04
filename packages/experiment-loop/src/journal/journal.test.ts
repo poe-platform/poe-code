@@ -148,14 +148,14 @@ describe("ExperimentJournal", () => {
     await expect(journal.readAll()).resolves.toEqual([first, second]);
   });
 
-  it("handles crash entries with a null score", async () => {
+  it("handles discard entries with a null score", async () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
     const entry = createEntry({
-      commit: "cr4sh00",
-      status: "crash",
+      commit: "d1sc4rd",
+      status: "discard",
       score: null,
-      output: "SyntaxError: unexpected token",
+      output: "no improvement found",
       durationMs: 102,
       timestamp: "2026-03-30T10:05:30.000Z"
     });
@@ -164,7 +164,7 @@ describe("ExperimentJournal", () => {
 
     await expect(journal.readAll()).resolves.toEqual([entry]);
     await expect(journal.format()).resolves.toContain(
-      "cr4sh00\tcrash\tnull\t102\t2026-03-30T10:05:30.000Z\tSyntaxError: unexpected token\toptimized hot path"
+      "d1sc4rd\tdiscard\tnull\t102\t2026-03-30T10:05:30.000Z\tno improvement found\toptimized hot path"
     );
   });
 });

@@ -8,7 +8,6 @@ export interface ExperimentFileSystem {
 }
 
 export interface ExperimentGit {
-  commitAll(message: string, cwd: string): Promise<string>;
   reset(commitHash: string, cwd: string): Promise<void>;
   currentHash(cwd: string): Promise<string>;
 }
@@ -60,7 +59,6 @@ export interface ExperimentRunOptions {
   onMetricResult?: (metric: MetricDef, result: EvalResult) => void;
   onReset?: (targetHash: string) => void;
   onExperimentComplete?: (index: number, entry: JournalEntry) => void;
-  onRecoveryAttempt?: (error: string) => void;
   signal?: AbortSignal;
 }
 
@@ -82,8 +80,9 @@ export interface EvalResult {
 
 export interface JournalEntry {
   commit: string;
-  status: "keep" | "discard" | "crash";
+  status: "keep" | "discard";
   score: number | null;
+  scores?: Record<string, number>;
   output: string;
   agentOutput: string;
   durationMs: number;

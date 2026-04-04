@@ -1,11 +1,14 @@
 import path from "node:path";
 import matter from "gray-matter";
 import { Volume, createFsFromVolume } from "memfs";
-import { ExperimentJournal } from "../journal/journal.js";
+import { baselineFromEntry, ExperimentJournal } from "../journal/journal.js";
 import { runExperimentLoop } from "../run/loop.js";
+import { parseExperimentFrontmatter } from "../frontmatter/frontmatter.js";
+import { evaluateChain } from "../evaluator/evaluator.js";
 import type {
   AgentRunInput,
   AgentRunResult,
+  EvalResult,
   ExecFn,
   ExperimentFileSystem,
   ExperimentGit,
@@ -50,11 +53,6 @@ export type CreateExperimentDocOptions = {
   agent?: string | string[];
   metric?: MetricDef | MetricDef[];
   baseline?: Record<string, number> | null;
-  status?: {
-    state?: string;
-    experiment?: number;
-    kept?: number;
-  };
   body?: string;
 };
 
@@ -69,6 +67,7 @@ export type ExperimentLoopSimulationOptions = {
 };
 
 export type SimulationGit = ExperimentGit & {
+  commitAll: (message: string, cwd: string) => Promise<string>;
   currentHashCalls: string[];
   commitAllCalls: Array<{ message: string; cwd: string }>;
   resetCalls: Array<{ commitHash: string; cwd: string }>;
@@ -355,18 +354,44 @@ function isFileNotFoundError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
+function scoresPassBaseline(
+  metrics: MetricDef[],
+  results: EvalResult[],
+  baseline: Record<string, number>
+): boolean {
+  if (results.length !== metrics.length) {
+    return false;
+  }
+
+  return metrics.every((metric, i) => {
+    const result = results[i];
+    if (!result?.passed || result.score === null) {
+      return false;
+    }
+
+    const baselineScore = baseline[metric.name];
+    if (baselineScore === undefined) {
+      return true;
+    }
+
+    const delta = metric.delta ?? 0;
+    if (metric.direction === "maximize") {
+      return result.score > baselineScore - delta;
+    }
+    if (metric.direction === "minimize") {
+      return result.score < baselineScore + delta;
+    }
+    return Math.abs(result.score - baselineScore) <= delta;
+  });
+}
+
 export function createExperimentDoc(options: CreateExperimentDocOptions = {}): string {
   const body = options.body ?? "# Improve the implementation\n\nShip a better change.\n";
 
   return matter.stringify(body, {
     agent: options.agent ?? "claude-code",
     metric: options.metric ?? { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
-    baseline: options.baseline ?? null,
-    status: {
-      state: options.status?.state ?? "open",
-      experiment: options.status?.experiment ?? 0,
-      kept: options.status?.kept ?? 0
-    }
+    baseline: options.baseline ?? null
   });
 }
 
@@ -425,24 +450,6 @@ export function agentMakesChanges(
   );
 }
 
-export function agentCrash(options: {
-  stdout?: string;
-  stderr?: string;
-  assertPrompt?: AgentTurnSpec["assertPrompt"];
-  fileChanges?: Record<string, string>;
-} = {}): AgentTurnSpec {
-  return agentOutput(
-    {
-      stdout: options.stdout ?? "",
-      stderr: options.stderr ?? "Agent crashed",
-      exitCode: 1
-    },
-    {
-      ...(options.assertPrompt ? { assertPrompt: options.assertPrompt } : {}),
-      ...(options.fileChanges ? { fileChanges: options.fileChanges } : {})
-    }
-  );
-}
 
 export function createExperimentLoopSimulation(options: ExperimentLoopSimulationOptions): {
   run: () => Promise<SimulationResult>;
@@ -466,6 +473,8 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
       const readJournal = async (): Promise<JournalEntry[]> =>
         new ExperimentJournal(journalPath, fs).readAll();
 
+      let collectedBaseline: Record<string, number> | null = null;
+
       const result = await runExperimentLoop({
         cwd,
         homeDir,
@@ -475,6 +484,7 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
         fs,
         git,
         exec,
+        onBaselineCollected: (b) => { collectedBaseline = b; },
         runAgent: async (input) => {
           const turn = turns.shift();
 
@@ -498,6 +508,64 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
           if (turn.fileChanges) {
             await applyFileChanges(rawFs, cwd, homeDir, turn.fileChanges);
           }
+
+          // Simulate the agent evaluating metrics and writing a journal entry.
+          const docContent = await fs.readFile(docPath, "utf8");
+          const { frontmatter } = parseExperimentFrontmatter(docContent);
+          const metrics = Array.isArray(frontmatter.metric)
+            ? frontmatter.metric
+            : frontmatter.metric
+              ? [frontmatter.metric]
+              : [];
+
+          // Derive current baseline: journal's last keep → frontmatter seed → collected baseline.
+          const allJournalEntries = await new ExperimentJournal(journalPath, fs).readAll();
+          const lastKeep = allJournalEntries.filter((e) => e.status === "keep").at(-1);
+          const currentBaseline = lastKeep
+            ? baselineFromEntry(metrics, lastKeep)
+            : (frontmatter.baseline ?? collectedBaseline);
+
+          const experimentStart = Date.now();
+          const preHash = await git.currentHash(cwd);
+          const results = await evaluateChain(metrics, cwd, exec);
+          const passed =
+            currentBaseline !== null &&
+            scoresPassBaseline(metrics, results, currentBaseline);
+
+          let commitHash: string;
+          let status: "keep" | "discard";
+
+          if (passed) {
+            commitHash = await git.commitAll("simulation", cwd);
+            status = "keep";
+          } else {
+            commitHash = preHash;
+            status = "discard";
+          }
+
+          const singleScore = metrics.length === 1 ? (results[0]?.score ?? null) : null;
+          const multiScores =
+            metrics.length > 1
+              ? Object.fromEntries(
+                  metrics
+                    .map((m, i) => [m.name, results[i]?.score] as const)
+                    .filter((entry): entry is [string, number] => entry[1] !== undefined && entry[1] !== null)
+                )
+              : undefined;
+
+          const agentOutputStr = `${turn.output.stdout}${turn.output.stderr}`;
+          const entry: JournalEntry = {
+            commit: commitHash,
+            status,
+            score: singleScore,
+            ...(multiScores ? { scores: multiScores } : {}),
+            output: agentOutputStr,
+            agentOutput: agentOutputStr,
+            durationMs: Date.now() - experimentStart,
+            timestamp: new Date().toISOString()
+          };
+
+          await fs.appendFile(journalPath, JSON.stringify(entry) + "\n");
 
           return turn.output;
         }

@@ -18,7 +18,8 @@ import { ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import {
   runExperiment as sdkRunExperiment,
-  readExperimentJournal as sdkReadExperimentJournal
+  readExperimentJournal as sdkReadExperimentJournal,
+  appendExperimentJournalEntry as sdkAppendExperimentJournalEntry
 } from "../../sdk/experiment.js";
 
 const DEFAULT_EXPERIMENT_AGENT = "claude-code";
@@ -163,12 +164,6 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
         );
       }
     }
-  }
-
-  if (frontmatter.status.kept > frontmatter.status.experiment) {
-    errors.push(
-      `Status inconsistency: kept (${frontmatter.status.kept}) exceeds experiment count (${frontmatter.status.experiment})`
-    );
   }
 
   return errors;
@@ -471,7 +466,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       }
     });
 
-  experiment
+  const journalCommand = experiment
     .command("journal")
     .description("Display the experiment journal as a table.")
     .argument("[doc]", "Experiment doc path")
@@ -525,6 +520,84 @@ export function registerExperimentCommand(program: Command, container: CliContai
             rows
           })
         );
+      } finally {
+        resources.context.finalize();
+      }
+    });
+
+  journalCommand
+    .command("log")
+    .description("Append an entry to the experiment journal.")
+    .argument("[doc]", "Experiment doc path")
+    .requiredOption("--status <status>", "Entry status: keep or discard")
+    .requiredOption("--commit <hash>", "Git commit hash")
+    .option("--score <number>", "Metric score (for single-metric display)")
+    .option("--scores <json>", "Multi-metric scores as JSON object, e.g. '{\"tests\":2}'")
+    .option("--output <text>", "Metric output text", "")
+    .option("--duration-ms <number>", "Duration in milliseconds", "0")
+    .action(async function (this: Command, docArg?: string) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "experiment:journal:log");
+      const opts = this.opts<{
+        status: string;
+        commit: string;
+        score?: string;
+        scores?: string;
+        output: string;
+        durationMs: string;
+      }>();
+
+      try {
+        const docPath = await resolveDocPath({
+          container,
+          program,
+          providedDoc: docArg,
+          selectMessage: "Select the experiment doc to log to:",
+          cancelMessage: "Journal log cancelled."
+        });
+        if (!docPath) {
+          return;
+        }
+
+        const status = opts.status as "keep" | "discard";
+        if (status !== "keep" && status !== "discard") {
+          throw new ValidationError(`Invalid status "${opts.status}". Must be keep or discard.`);
+        }
+
+        const score = opts.score !== undefined ? Number.parseFloat(opts.score) : null;
+        let scores: Record<string, number> | undefined;
+        if (opts.scores) {
+          try {
+            scores = JSON.parse(opts.scores) as Record<string, number>;
+          } catch {
+            throw new ValidationError(`Invalid --scores JSON: ${opts.scores}`);
+          }
+        }
+
+        const entry = {
+          commit: opts.commit,
+          status,
+          score: score !== null && Number.isFinite(score) ? score : null,
+          ...(scores ? { scores } : {}),
+          output: opts.output,
+          agentOutput: "",
+          durationMs: Number.parseInt(opts.durationMs, 10) || 0,
+          timestamp: new Date().toISOString()
+        };
+
+        if (!flags.dryRun) {
+          await sdkAppendExperimentJournalEntry({
+            cwd: container.env.cwd,
+            homeDir: container.env.homeDir,
+            docPath,
+            entry
+          });
+        }
+
+        resources.context.complete({
+          success: `Logged ${status} entry (commit: ${opts.commit})`,
+          dry: `Would log ${status} entry (commit: ${opts.commit})`
+        });
       } finally {
         resources.context.finalize();
       }

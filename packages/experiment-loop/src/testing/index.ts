@@ -1,5 +1,4 @@
 export {
-  agentCrash,
   agentMakesChanges,
   agentOutput,
   createExperimentDoc,

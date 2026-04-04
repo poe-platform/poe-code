@@ -1,21 +1,8 @@
 import path from "node:path";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import type { ExperimentFileSystem, RunConfig } from "../types.js";
-
-const DEFAULT_PROMPT = `{{body}}
-
-## Metrics
-
-{{metrics}}
-
-## Journal
-
-{{journal}}
-
-{{crash_output}}
-
-You are autonomous, do not stop or ask for input.
-Do not write to the journal file or commit changes. Both are managed automatically after your run completes.`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -70,8 +57,24 @@ function parseRunConfigDocument(filePath: string, content: string): RunConfig | 
   return { prompt };
 }
 
-export function defaultRunConfig(): RunConfig {
-  return { prompt: DEFAULT_PROMPT };
+async function readBundledFile(name: string): Promise<string> {
+  const filePath = fileURLToPath(new URL(`./${name}`, import.meta.url));
+  return readFile(filePath, "utf8");
+}
+
+async function readDefaultRunConfig(): Promise<RunConfig> {
+  const content = await readBundledFile("default-run.yaml");
+  const config = parseRunConfigDocument("default-run.yaml", content);
+
+  if (!config) {
+    throw new Error("default-run.yaml is empty or invalid.");
+  }
+
+  return config;
+}
+
+export async function loadInstructions(): Promise<string> {
+  return readBundledFile("default-instructions.md");
 }
 
 export async function loadRunConfig(options: {
@@ -98,5 +101,5 @@ export async function loadRunConfig(options: {
     }
   }
 
-  return defaultRunConfig();
+  return readDefaultRunConfig();
 }

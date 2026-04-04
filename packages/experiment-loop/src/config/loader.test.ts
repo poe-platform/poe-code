@@ -19,7 +19,6 @@ describe("loadRunConfig", () => {
     expect(config.prompt).toContain("{{body}}");
     expect(config.prompt).toContain("{{journal}}");
     expect(config.prompt).toContain("{{metrics}}");
-    expect(config.prompt).toContain("{{crash_output}}");
   });
 
   it("loads project run.yaml", async () => {

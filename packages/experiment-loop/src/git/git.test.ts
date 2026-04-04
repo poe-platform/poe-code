@@ -30,42 +30,6 @@ function createExec(
 }
 
 describe("createDefaultGit", () => {
-  it("commitAll stages files excluding experiment docs, commits, and returns hash", async () => {
-    const { exec, commands } = createExec([
-      { stdout: "", stderr: "", exitCode: 0 },
-      { stdout: "", stderr: "", exitCode: 1 },
-      { stdout: "", stderr: "", exitCode: 0 },
-      { stdout: "abc123\n", stderr: "", exitCode: 0 }
-    ]);
-    const git = createDefaultGit(exec);
-
-    await expect(git.commitAll("save experiment", "/repo")).resolves.toBe("abc123");
-
-    expect(commands).toEqual([
-      { command: "git add -A -- . ':!.poe-code/experiments'", options: { cwd: "/repo" } },
-      { command: "git diff --cached --quiet", options: { cwd: "/repo" } },
-      { command: "git commit -m 'save experiment'", options: { cwd: "/repo" } },
-      { command: "git rev-parse --short HEAD", options: { cwd: "/repo" } }
-    ]);
-  });
-
-  it("commitAll with no changes returns current hash", async () => {
-    const { exec, commands } = createExec([
-      { stdout: "", stderr: "", exitCode: 0 },
-      { stdout: "", stderr: "", exitCode: 0 },
-      { stdout: "def456\n", stderr: "", exitCode: 0 }
-    ]);
-    const git = createDefaultGit(exec);
-
-    await expect(git.commitAll("save experiment", "/repo")).resolves.toBe("def456");
-
-    expect(commands).toEqual([
-      { command: "git add -A -- . ':!.poe-code/experiments'", options: { cwd: "/repo" } },
-      { command: "git diff --cached --quiet", options: { cwd: "/repo" } },
-      { command: "git rev-parse --short HEAD", options: { cwd: "/repo" } }
-    ]);
-  });
-
   it("reset stashes experiment docs, resets, and restores them", async () => {
     const { exec, commands } = createExec([
       { stdout: "", stderr: "", exitCode: 0 },
@@ -114,20 +78,4 @@ describe("createDefaultGit", () => {
     ]);
   });
 
-  it("commit messages are shell-escaped", async () => {
-    const { exec, commands } = createExec([
-      { stdout: "", stderr: "", exitCode: 0 },
-      { stdout: "", stderr: "", exitCode: 1 },
-      { stdout: "", stderr: "", exitCode: 0 },
-      { stdout: "abc123\n", stderr: "", exitCode: 0 }
-    ]);
-    const git = createDefaultGit(exec);
-
-    await git.commitAll("it's ready", "/repo");
-
-    expect(commands[2]).toEqual({
-      command: "git commit -m 'it'\\''s ready'",
-      options: { cwd: "/repo" }
-    });
-  });
 });

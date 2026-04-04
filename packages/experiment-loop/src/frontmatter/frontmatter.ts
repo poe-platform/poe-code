@@ -2,26 +2,13 @@ import matter from "gray-matter";
 import { dirname } from "node:path";
 import type { ExperimentFileSystem, MetricDef } from "../types.js";
 
-export interface ExperimentFrontmatterStatus {
-  state: string;
-  experiment: number;
-  kept: number;
-}
-
 export interface ExperimentFrontmatter {
   agent?: string | string[];
   metric?: MetricDef | MetricDef[];
   baseline: Record<string, number> | null;
   maxExperiments?: number;
   metricTimeout?: number;
-  status: ExperimentFrontmatterStatus;
 }
-
-const DEFAULT_STATUS: ExperimentFrontmatterStatus = {
-  state: "open",
-  experiment: 0,
-  kept: 0
-};
 
 export function parseExperimentFrontmatter(content: string): {
   frontmatter: ExperimentFrontmatter;
@@ -62,8 +49,7 @@ function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
     ...(metric !== undefined ? { metric } : {}),
     baseline: parseBaseline(parsed?.baseline),
     ...(maxExperiments !== undefined ? { maxExperiments } : {}),
-    ...(metricTimeout !== undefined ? { metricTimeout } : {}),
-    status: parseStatus(parsed?.status)
+    ...(metricTimeout !== undefined ? { metricTimeout } : {})
   };
 }
 
@@ -73,12 +59,7 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),
     baseline: frontmatter.baseline,
     ...(frontmatter.maxExperiments !== undefined ? { maxExperiments: frontmatter.maxExperiments } : {}),
-    ...(frontmatter.metricTimeout !== undefined ? { metricTimeout: frontmatter.metricTimeout } : {}),
-    status: {
-      state: frontmatter.status.state,
-      experiment: frontmatter.status.experiment,
-      kept: frontmatter.status.kept
-    }
+    ...(frontmatter.metricTimeout !== undefined ? { metricTimeout: frontmatter.metricTimeout } : {})
   };
 }
 
@@ -140,16 +121,6 @@ function parseBaseline(value: unknown): Record<string, number> | null {
   return baselineEntries.length === Object.keys(value).length
     ? Object.fromEntries(baselineEntries)
     : null;
-}
-
-function parseStatus(value: unknown): ExperimentFrontmatterStatus {
-  const parsed = isRecord(value) ? value : undefined;
-
-  return {
-    state: parseString(parsed?.state) ?? DEFAULT_STATUS.state,
-    experiment: parseNonNegativeInteger(parsed?.experiment) ?? DEFAULT_STATUS.experiment,
-    kept: parseNonNegativeInteger(parsed?.kept) ?? DEFAULT_STATUS.kept
-  };
 }
 
 function parseAgent(value: unknown): string | string[] | undefined {

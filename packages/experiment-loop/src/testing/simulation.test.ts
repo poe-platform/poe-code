@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseExperimentFrontmatter } from "../frontmatter/frontmatter.js";
 import {
-  agentCrash,
   agentMakesChanges,
   createExperimentDoc,
   createExperimentLoopSimulation,
@@ -28,8 +26,7 @@ describe("createExperimentLoopSimulation", () => {
       }
     });
 
-    const { result, readDoc, readFile, readJournal } = await sim.run();
-    const doc = parseExperimentFrontmatter(await readDoc());
+    const { result, readFile, readJournal } = await sim.run();
     const entries = await readJournal();
 
     expect(result).toMatchObject({
@@ -44,7 +41,6 @@ describe("createExperimentLoopSimulation", () => {
         score: 2
       })
     );
-    expect(doc.frontmatter.baseline).toEqual({ tests: 2 });
     expect(await readFile("src/index.ts")).toBe("export const value = 2;\n");
   });
 
@@ -91,8 +87,7 @@ describe("createExperimentLoopSimulation", () => {
       }
     });
 
-    const { result, git, readDoc, readFile, readJournal } = await sim.run();
-    const doc = parseExperimentFrontmatter(await readDoc());
+    const { result, git, readFile, readJournal } = await sim.run();
     const entries = await readJournal();
 
     expect(result.experimentsKept).toBe(0);
@@ -103,7 +98,6 @@ describe("createExperimentLoopSimulation", () => {
         score: 2
       })
     );
-    expect(doc.frontmatter.baseline).toEqual({ tests: 2 });
     expect(await readFile("src/index.ts")).toBe("export const value = 1;\n");
     expect(git.resetCalls).toEqual([{ commitHash: "base-1", cwd: "/repo" }]);
   });
@@ -132,21 +126,17 @@ describe("createExperimentLoopSimulation", () => {
       }
     });
 
-    const { result, execCalls, readDoc, readJournal } = await sim.run();
-    const doc = parseExperimentFrontmatter(await readDoc());
+    const { result, execCalls, readJournal } = await sim.run();
     const [entry] = await readJournal();
 
     expect(result.experimentsKept).toBe(1);
     expect(entry).toEqual(
       expect.objectContaining({
         status: "keep",
-        score: null
+        score: null,
+        scores: { tests: 2, test_duration: 9 }
       })
     );
-    expect(doc.frontmatter.baseline).toEqual({
-      tests: 2,
-      test_duration: 9
-    });
     expect(execCalls.map((call) => call.command)).toEqual([
       "node scripts/metric-tests.mjs",
       "node scripts/metric-duration.mjs"
@@ -208,40 +198,6 @@ describe("createExperimentLoopSimulation", () => {
       "node scripts/metric-tests.mjs",
       "node scripts/metric-duration.mjs"
     ]);
-  });
-
-  it("logs agent crashes to the journal and continues the loop", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 2,
-      docContent: createExperimentDoc({
-        baseline: { tests: 1 }
-      }),
-      turns: [
-        agentCrash({
-          stdout: "boom stdout\n",
-          stderr: "boom stderr\n"
-        }),
-        agentMakesChanges({
-          "src/index.ts": "export const fixed = true;\n"
-        })
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": [metricResult({ score: 2 })]
-      }
-    });
-
-    const { prompts, result, readJournal } = await sim.run();
-    const entries = await readJournal();
-
-    expect(result).toMatchObject({
-      experimentsCompleted: 2,
-      experimentsKept: 1
-    });
-    expect(entries.map((entry) => entry.status)).toEqual(["crash", "keep"]);
-    expect(entries[0]?.output).toContain("boom stdout");
-    expect(entries[0]?.output).toContain("boom stderr");
-    expect(prompts[1]).toContain("Last crash output");
-    expect(prompts[1]).toContain("boom stdout");
   });
 
   it("injects prior journal entries into later agent prompts", async () => {
@@ -390,10 +346,10 @@ describe("createExperimentLoopSimulation", () => {
       }
     });
 
-    const { result, readDoc } = await sim.run();
-    const doc = parseExperimentFrontmatter(await readDoc());
+    const { result, readJournal } = await sim.run();
+    const entries = await readJournal();
 
-    expect(doc.frontmatter.baseline).toEqual({ tests: 6 });
+    expect(entries.at(-1)).toEqual(expect.objectContaining({ status: "keep", score: 6 }));
     expect(result.experimentsKept).toBe(1);
   });
 

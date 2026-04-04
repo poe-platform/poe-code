@@ -1,13 +1,14 @@
-# Edit this file to control the prompt sent to the agent each experiment iteration.
-# Available variables:
-#   {{body}}             — experiment doc body (markdown below the frontmatter)
-#   {{journal}}          — formatted journal of prior attempts (TSV)
-#   {{metrics}}          — metric definitions with direction and baseline scores
-#   {{crash_output}}     — last crash stdout+stderr, or empty if no crash
-#   {{experiment_index}} — current experiment number (1-based)
-#   {{baseline}}         — current baseline scores as JSON, or empty
+# Edit this file to control the experiment context sent to the agent each iteration.
+# General instructions (commit, journal logging) are always appended automatically.
 #
-# The agent receives the result of replacing variables in the prompt template below.
+# Available variables:
+#   {{body}}                 — experiment doc body (markdown below the frontmatter)
+#   {{journal}}              — formatted journal of prior attempts
+#   {{metrics}}              — metric definitions with direction and baseline scores
+#   {{experiment_index}}     — current experiment number (1-based)
+#
+# The agent receives the result of replacing variables in the prompt template below,
+# followed by the general instructions.
 
 prompt: |
   {{body}}
@@ -19,8 +20,3 @@ prompt: |
   ## Journal
 
   {{journal}}
-
-  {{crash_output}}
-
-  You are autonomous, do not stop or ask for input.
-  Do not write to the journal file or commit changes. Both are managed automatically after your run completes.

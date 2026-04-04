@@ -17,10 +17,6 @@ describe("parseExperimentFrontmatter", () => {
       "  name: test_duration",
       "  script: node scripts/metric-test-duration.mjs",
       "  direction: minimize",
-      "status:",
-      "  state: open",
-      "  experiment: 0",
-      "  kept: 0",
       "---",
       "# Experiment",
       "",
@@ -167,25 +163,18 @@ describe("parseExperimentFrontmatter", () => {
     expect(result.frontmatter.baseline).toBeNull();
   });
 
-  it("returns defaults when the markdown has no frontmatter", () => {
+  it("returns null baseline when the markdown has no frontmatter", () => {
     const content = ["# Experiment", "", "Body"].join("\n");
 
     const result = parseExperimentFrontmatter(content);
 
     expect(result).toEqual({
-      frontmatter: {
-        baseline: null,
-        status: {
-          state: "open",
-          experiment: 0,
-          kept: 0
-        }
-      },
+      frontmatter: { baseline: null },
       body: "# Experiment\n\nBody"
     });
   });
 
-  it("returns all frontmatter fields with the expected types", () => {
+  it("returns all frontmatter config fields with the expected types", () => {
     const content = [
       "---",
       "agent: claude-code",
@@ -195,10 +184,6 @@ describe("parseExperimentFrontmatter", () => {
       "  direction: maximize",
       "baseline:",
       "  tests: 1",
-      "status:",
-      "  state: open",
-      "  experiment: 3",
-      "  kept: 2",
       "---",
       "# Experiment"
     ].join("\n");
@@ -214,13 +199,26 @@ describe("parseExperimentFrontmatter", () => {
       },
       baseline: {
         tests: 1
-      },
-      status: {
-        state: "open",
-        experiment: 3,
-        kept: 2
       }
     });
+  });
+
+  it("ignores legacy status fields", () => {
+    const content = [
+      "---",
+      "agent: claude-code",
+      "baseline: null",
+      "status:",
+      "  state: open",
+      "  experiment: 3",
+      "  kept: 2",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter).toEqual({ agent: "claude-code", baseline: null });
   });
 });
 
@@ -241,10 +239,6 @@ describe("writeExperimentFrontmatter", () => {
       "baseline:",
       "  tests: 1",
       "  test_duration: 42.5",
-      "status:",
-      "  state: open",
-      "  experiment: 3",
-      "  kept: 2",
       "---",
       "# Experiment",
       "",
@@ -261,20 +255,13 @@ describe("writeExperimentFrontmatter", () => {
     expect(reparsed).toEqual(parsed);
   });
 
-  it("writes a YAML frontmatter block for required fields even when values are defaults", async () => {
+  it("writes a YAML frontmatter block with baseline null and no status fields", async () => {
     const fs = createFs();
     const docPath = "/repo/experiment.md";
 
     await writeExperimentFrontmatter(
       docPath,
-      {
-        baseline: null,
-        status: {
-          state: "open",
-          experiment: 0,
-          kept: 0
-        }
-      },
+      { baseline: null },
       "# Experiment\n",
       fs
     );
@@ -283,7 +270,7 @@ describe("writeExperimentFrontmatter", () => {
 
     expect(written).toContain("---\n");
     expect(written).toContain("baseline: null\n");
-    expect(written).toContain("status:\n  state: open\n  experiment: 0\n  kept: 0\n");
+    expect(written).not.toContain("status");
     expect(written.endsWith("# Experiment\n")).toBe(true);
   });
 });

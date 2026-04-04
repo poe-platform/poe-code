@@ -1,14 +1,11 @@
 import { exec as execCallback } from "node:child_process";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
-import {
-  parseExperimentFrontmatter,
-  writeExperimentFrontmatter
-} from "../frontmatter/frontmatter.js";
+import { parseExperimentFrontmatter } from "../frontmatter/frontmatter.js";
 import { createDefaultGit } from "../git/git.js";
-import { ExperimentJournal } from "../journal/journal.js";
+import { baselineFromEntry, ExperimentJournal } from "../journal/journal.js";
 import { evaluateChain } from "../evaluator/evaluator.js";
-import { loadRunConfig } from "../config/loader.js";
+import { loadInstructions, loadRunConfig } from "../config/loader.js";
 import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
 import type {
   EvalResult,
@@ -138,10 +135,6 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
-function combineOutput(stdout: string, stderr: string): string {
-  return `${stdout}${stderr}`;
-}
-
 function interpolate(template: string, values: Record<string, string>): string {
   let output = template;
   for (const [key, value] of Object.entries(values)) {
@@ -169,68 +162,36 @@ function formatMetrics(metrics: MetricDef[], baseline: Record<string, number> | 
 
 function buildPrompt(options: {
   runConfig: RunConfig;
+  instructions: string;
   body: string;
   journal: string;
   metrics: MetricDef[];
-  lastCrashOutput?: string;
   experimentIndex: number;
   baseline: Record<string, number> | null;
+  docPath: string;
+  docName: string;
 }): string {
-  return interpolate(options.runConfig.prompt, {
+  const vars = {
     body: options.body.trim(),
     journal: options.journal,
     metrics: formatMetrics(options.metrics, options.baseline),
-    crash_output: options.lastCrashOutput
-      ? `## Last crash output\n\n${options.lastCrashOutput.trim()}`
-      : "",
     experiment_index: String(options.experimentIndex),
-    baseline: options.baseline ? JSON.stringify(options.baseline) : ""
-  }).trim();
+    baseline: options.baseline ? JSON.stringify(options.baseline) : "",
+    doc_path: options.docPath,
+    doc_name: options.docName
+  };
+
+  const context = interpolate(options.runConfig.prompt, vars).trim();
+  const instructions = interpolate(options.instructions, vars).trim();
+
+  return `${context}\n\n${instructions}`;
 }
 
 function allMetricsPassed(metrics: MetricDef[], results: EvalResult[]): boolean {
   return results.length === metrics.length && results.every((result) => result.passed);
 }
 
-function allScoresImproved(
-  metrics: MetricDef[],
-  results: EvalResult[],
-  baseline: Record<string, number> | null
-): boolean {
-  return metrics.every((metric, index) => {
-    const score = results[index]?.score;
-
-    if (score === null || score === undefined) {
-      return false;
-    }
-
-    const baselineScore = baseline?.[metric.name];
-
-    if (baselineScore === undefined) {
-      return true;
-    }
-
-    const delta = metric.delta;
-
-    if (metric.direction === "stable") {
-      return delta !== undefined
-        ? Math.abs(score - baselineScore) <= delta
-        : score === baselineScore;
-    }
-
-    if (metric.direction === "maximize") {
-      return delta !== undefined
-        ? score >= baselineScore - delta
-        : score > baselineScore;
-    }
-
-    return delta !== undefined
-      ? score <= baselineScore + delta
-      : score < baselineScore;
-  });
-}
-
-function updateBaseline(metrics: MetricDef[], results: EvalResult[]): Record<string, number> {
+function baselineFromResults(metrics: MetricDef[], results: EvalResult[]): Record<string, number> {
   return Object.fromEntries(
     metrics.map((metric, index) => {
       const score = results[index]?.score;
@@ -244,76 +205,24 @@ function updateBaseline(metrics: MetricDef[], results: EvalResult[]): Record<str
   );
 }
 
-function formatEvaluationOutput(metrics: MetricDef[], results: EvalResult[]): string {
-  return metrics
-    .map((metric, index) => {
-      const result = results[index];
-
-      if (!result) {
-        return `${metric.name}: not_run`;
-      }
-
-      return [
-        `${metric.name}: score=${result.score === null ? "null" : result.score}, passed=${String(result.passed)}`,
-        result.output.trim()
-      ]
-        .filter((entry) => entry.length > 0)
-        .join("\n");
-    })
-    .join("\n\n");
-}
-
-function selectJournalScore(metrics: MetricDef[], results: EvalResult[]): number | null {
-  if (metrics.length !== 1) {
-    return null;
-  }
-
-  return results[0]?.score ?? null;
-}
-
-function createEntry(options: {
-  commit: string;
-  status: JournalEntry["status"];
-  score: number | null;
-  output: string;
-  agentOutput: string;
-  durationMs: number;
-}): JournalEntry {
-  return {
-    commit: options.commit,
-    status: options.status,
-    score: options.score,
-    output: options.output,
-    agentOutput: options.agentOutput,
-    durationMs: options.durationMs,
-    timestamp: new Date().toISOString()
-  };
-}
-
-async function persistDoc(options: {
-  fs: ExperimentFileSystem;
-  docPath: string;
-  baseline: Record<string, number> | null;
+function deriveStateFromJournal(
+  entries: JournalEntry[],
+  metrics: MetricDef[]
+): {
   experimentsCompleted: number;
   experimentsKept: number;
-}): Promise<void> {
-  const rawContent = await options.fs.readFile(options.docPath, "utf8");
-  const { frontmatter, body } = parseExperimentFrontmatter(rawContent);
+  baseline: Record<string, number> | null;
+  baselineHash: string | undefined;
+} {
+  const keepEntries = entries.filter((e) => e.status === "keep");
+  const lastKeep = keepEntries[keepEntries.length - 1];
 
-  await writeExperimentFrontmatter(
-    options.docPath,
-    {
-      ...frontmatter,
-      baseline: options.baseline,
-      status: {
-        ...frontmatter.status,
-        experiment: options.experimentsCompleted,
-        kept: options.experimentsKept
-      }
-    },
-    body,
-    options.fs
-  );
+  return {
+    experimentsCompleted: entries.length,
+    experimentsKept: keepEntries.length,
+    baseline: lastKeep ? baselineFromEntry(metrics, lastKeep) : null,
+    baselineHash: lastKeep?.commit
+  };
 }
 
 export async function runExperimentLoop(
@@ -331,7 +240,10 @@ export async function runExperimentLoop(
   const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   await journal.init();
-  const runConfig = await loadRunConfig({ cwd: options.cwd, homeDir: options.homeDir, fs });
+  const [runConfig, instructions] = await Promise.all([
+    loadRunConfig({ cwd: options.cwd, homeDir: options.homeDir, fs }),
+    loadInstructions()
+  ]);
   const startTime = Date.now();
 
   async function readDoc(): Promise<{ frontmatter: ReturnType<typeof parseExperimentFrontmatter>["frontmatter"]; body: string }> {
@@ -339,30 +251,32 @@ export async function runExperimentLoop(
     return parseExperimentFrontmatter(rawContent);
   }
 
-  let { frontmatter, body } = await readDoc();
-  let experimentsCompleted = 0;
-  let experimentsKept = 0;
-  let lastCrashOutput: string | undefined;
-  let baselineHash: string | undefined;
+  const { frontmatter: initialFrontmatter } = await readDoc();
+  const initialMetrics = normalizeMetrics(initialFrontmatter.metric);
+  const journalEntries = await journal.readAll();
+  const journalState = deriveStateFromJournal(journalEntries, initialMetrics);
 
-  if (frontmatter.baseline === null) {
-    const metrics = normalizeMetrics(frontmatter.metric);
-    const metricTimeoutMs = frontmatter.metricTimeout ? frontmatter.metricTimeout * 1000 : undefined;
-    const baselineResults = await evaluateChain(metrics, options.cwd, exec, options.onMetricResult, metricTimeoutMs);
-    if (allMetricsPassed(metrics, baselineResults)) {
-      const baseline = updateBaseline(metrics, baselineResults);
+  let experimentsCompleted = journalState.experimentsCompleted;
+  let experimentsKept = journalState.experimentsKept;
+  let baselineHash: string | undefined = journalState.baselineHash;
+  // Journal's last keep takes priority; fall back to frontmatter seed if no keeps yet
+  let baseline: Record<string, number> | null =
+    journalState.baseline ?? initialFrontmatter.baseline;
+
+  if (baseline === null) {
+    const metricTimeoutMs = initialFrontmatter.metricTimeout
+      ? initialFrontmatter.metricTimeout * 1000
+      : undefined;
+    const baselineResults = await evaluateChain(
+      initialMetrics,
+      options.cwd,
+      exec,
+      options.onMetricResult,
+      metricTimeoutMs
+    );
+    if (allMetricsPassed(initialMetrics, baselineResults)) {
+      baseline = baselineFromResults(initialMetrics, baselineResults);
       options.onBaselineCollected?.(baseline);
-      frontmatter = {
-        ...frontmatter,
-        baseline
-      };
-      await persistDoc({
-        fs,
-        docPath: absoluteDocPath,
-        baseline: frontmatter.baseline,
-        experimentsCompleted,
-        experimentsKept
-      });
     }
   }
 
@@ -383,8 +297,7 @@ export async function runExperimentLoop(
       assertNotAborted(options.signal);
 
       const doc = await readDoc();
-      body = doc.body;
-      frontmatter = doc.frontmatter;
+      const { body, frontmatter } = doc;
 
       const maxExperiments = validateMaxExperiments(
         options.maxExperiments ?? frontmatter.maxExperiments
@@ -395,21 +308,24 @@ export async function runExperimentLoop(
 
       const metrics = normalizeMetrics(frontmatter.metric);
       const agents = normalizeAgents(options.agent ?? frontmatter.agent);
-      const metricTimeoutMs = frontmatter.metricTimeout ? frontmatter.metricTimeout * 1000 : undefined;
 
       const experimentIndex = experimentsCompleted + 1;
+      baselineHash ??= await git.currentHash(options.cwd);
+      const preExperimentHash = baselineHash;
+
+      const journalLengthBefore = (await journal.readAll()).length;
+
       const prompt = buildPrompt({
         runConfig,
+        instructions,
         body,
         journal: await journal.format(),
         metrics,
         experimentIndex,
-        baseline: frontmatter.baseline,
-        ...(lastCrashOutput ? { lastCrashOutput } : {})
+        baseline,
+        docPath: options.docPath,
+        docName: path.basename(absoluteDocPath, path.extname(absoluteDocPath))
       });
-      baselineHash ??= await git.currentHash(options.cwd);
-      const preExperimentHash = baselineHash;
-      const experimentStart = Date.now();
 
       const currentSpecifier = agents[(experimentIndex - 1) % agents.length]!;
       const model = currentSpecifier.model;
@@ -432,118 +348,30 @@ export async function runExperimentLoop(
         throw error;
       }
 
-      const agentOutput = combineOutput(agentResult.stdout, agentResult.stderr);
-
-      if (agentResult.exitCode !== 0) {
-        const entry = createEntry({
-          commit: preExperimentHash,
-          status: "crash",
-          score: null,
-          output: agentOutput,
-          agentOutput,
-          durationMs: Date.now() - experimentStart
-        });
-
-        experimentsCompleted += 1;
-        lastCrashOutput = entry.output;
-        await journal.log(entry);
-        await git.reset(preExperimentHash, options.cwd);
-        options.onReset?.(preExperimentHash);
-        options.onExperimentComplete?.(experimentIndex, entry);
-        await persistDoc({
-          fs,
-          docPath: absoluteDocPath,
-          baseline: frontmatter.baseline,
-          experimentsCompleted,
-          experimentsKept
-        });
-        continue;
-      }
-
-      const commitMessage = `experiment-loop: ${path.basename(absoluteDocPath, path.extname(absoluteDocPath))} #${experimentIndex}`;
-      let commitHash: string;
-      try {
-        commitHash = await git.commitAll(commitMessage, options.cwd);
-      } catch (commitError) {
-        const errorMessage =
-          commitError instanceof Error ? commitError.message : String(commitError);
-        options.onRecoveryAttempt?.(errorMessage);
-
-        const recoveryResult = await runAgent({
-          agent: currentSpecifier.agent,
-          prompt: `A git command failed. Fix the issue so the commit can succeed.\n\nError:\n${errorMessage}`,
-          cwd: options.cwd,
-          ...(model ? { model } : {}),
-          ...(options.signal ? { signal: options.signal } : {})
-        });
-
-        if (recoveryResult.exitCode !== 0) {
-          const entry = createEntry({
-            commit: preExperimentHash,
-            status: "crash",
-            score: null,
-            output: errorMessage,
-            agentOutput,
-            durationMs: Date.now() - experimentStart
-          });
-
-          experimentsCompleted += 1;
-          lastCrashOutput = entry.output;
-          await journal.log(entry);
-          await git.reset(preExperimentHash, options.cwd);
-          options.onReset?.(preExperimentHash);
-          options.onExperimentComplete?.(experimentIndex, entry);
-          await persistDoc({
-            fs,
-            docPath: absoluteDocPath,
-            baseline: frontmatter.baseline,
-            experimentsCompleted,
-            experimentsKept
-          });
-          continue;
-        }
-
-        commitHash = await git.commitAll(commitMessage, options.cwd);
-      }
-      options.onCommit?.(commitHash);
-      const evaluationResults = await evaluateChain(metrics, options.cwd, exec, options.onMetricResult, metricTimeoutMs);
-      const keep =
-        allMetricsPassed(metrics, evaluationResults) &&
-        allScoresImproved(metrics, evaluationResults, frontmatter.baseline);
-      const entry = createEntry({
-        commit: commitHash,
-        status: keep ? "keep" : "discard",
-        score: selectJournalScore(metrics, evaluationResults),
-        output: formatEvaluationOutput(metrics, evaluationResults),
-        agentOutput,
-        durationMs: Date.now() - experimentStart
-      });
+      const journalAfter = await journal.readAll();
+      const newEntry = journalAfter.length > journalLengthBefore
+        ? journalAfter[journalAfter.length - 1]!
+        : null;
 
       experimentsCompleted += 1;
-      await journal.log(entry);
 
-      if (keep) {
-        experimentsKept += 1;
-        frontmatter = {
-          ...frontmatter,
-          baseline: updateBaseline(metrics, evaluationResults)
-        };
-        baselineHash = commitHash;
-        lastCrashOutput = undefined;
+      if (newEntry) {
+        if (newEntry.status === "keep") {
+          experimentsKept += 1;
+          baselineHash = newEntry.commit;
+          baseline = baselineFromEntry(metrics, newEntry) ?? baseline;
+          options.onCommit?.(newEntry.commit);
+        } else {
+          await git.reset(newEntry.commit, options.cwd);
+          options.onReset?.(newEntry.commit);
+        }
+
+        options.onExperimentComplete?.(experimentIndex, newEntry);
       } else {
+        // Agent exited without writing a journal entry — reset silently.
         await git.reset(preExperimentHash, options.cwd);
         options.onReset?.(preExperimentHash);
-        lastCrashOutput = undefined;
       }
-
-      options.onExperimentComplete?.(experimentIndex, entry);
-      await persistDoc({
-        fs,
-        docPath: absoluteDocPath,
-        baseline: frontmatter.baseline,
-        experimentsCompleted,
-        experimentsKept
-      });
     }
   } catch (error) {
     if (isAbortError(error)) {

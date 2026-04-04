@@ -17,7 +17,6 @@ export type {
   EvalResult,
   ExperimentFileSystem,
   ExperimentFrontmatter,
-  ExperimentFrontmatterStatus,
   ExperimentRunOptions,
   ExperimentRunResult,
   ExperimentStopReason,
@@ -95,4 +94,18 @@ export async function readExperimentJournal(
   const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   return await journal.readAll();
+}
+
+export interface AppendJournalEntryOptions extends ExperimentJournalOptions {
+  entry: JournalEntry;
+}
+
+export async function appendExperimentJournalEntry(
+  options: AppendJournalEntryOptions
+): Promise<void> {
+  const fs = options.fs ?? createDefaultFs();
+  const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
+  const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
+  await journal.init();
+  await journal.log(options.entry);
 }

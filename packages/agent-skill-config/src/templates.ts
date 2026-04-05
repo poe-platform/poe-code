@@ -1,20 +1,21 @@
 import type { TemplateLoader } from "@poe-code/config-mutations";
 import { readFile } from "node:fs/promises";
 
+const TEMPLATE_NAMES = ["poe-generate.md", "terminal-pilot.md"] as const;
+
 let templatesCache: Record<string, string> | null = null;
 
 async function getTemplates(): Promise<Record<string, string>> {
   if (templatesCache) {
     return templatesCache;
   }
-  const poeGenerateTemplateUrl = new URL(
-    "./templates/poe-generate.md",
-    import.meta.url
+  const entries = await Promise.all(
+    TEMPLATE_NAMES.map(async (name) => {
+      const url = new URL(`./templates/${name}`, import.meta.url);
+      return [name, await readFile(url, "utf8")] as const;
+    })
   );
-  const poeGenerateTemplate = await readFile(poeGenerateTemplateUrl, "utf8");
-  templatesCache = {
-    "poe-generate.md": poeGenerateTemplate,
-  };
+  templatesCache = Object.fromEntries(entries);
   return templatesCache;
 }
 

@@ -133,7 +133,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: skill-template
     title: Create terminal-pilot skill template
@@ -149,9 +149,9 @@ tasks:
       - Include patterns: run command and read output, interactive TUI, send signals
       - Include tips about fill vs type, literal matching, default terminal size
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: qa-cli

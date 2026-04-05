@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && node scripts/copy-templates.mjs"
   },
   "files": [
     "dist"

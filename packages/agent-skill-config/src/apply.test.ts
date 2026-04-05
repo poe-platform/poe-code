@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "@poe-code/config-mutations";
-import { configure, unconfigure, UnsupportedAgentError } from "./apply.js";
+import { loadTemplate } from "./templates.js";
+import {
+  configure,
+  installSkill,
+  unconfigure,
+  UnsupportedAgentError
+} from "./apply.js";
 
 function createMemFs(): { fs: FileSystem; vol: Volume } {
   const vol = new Volume();
@@ -108,5 +114,67 @@ describe("unconfigure", () => {
     await unconfigure("claude-code", { fs, homeDir, cwd, scope: "local", force: true });
 
     await expect(fs.stat(`${cwd}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+});
+
+describe("installSkill", () => {
+  const homeDir = "/home/test";
+  const cwd = "/project";
+  let fs: FileSystem;
+  let vol: Volume;
+
+  beforeEach(() => {
+    ({ fs, vol } = createMemFs());
+    vol.mkdirSync(homeDir, { recursive: true });
+    vol.mkdirSync(cwd, { recursive: true });
+  });
+
+  it("installs the bundled terminal-pilot template into the agent skill directory", async () => {
+    const template = await loadTemplate("terminal-pilot.md");
+
+    const result = await installSkill(
+      "claude-code",
+      {
+        name: "terminal-pilot",
+        content: template
+      },
+      {
+        fs,
+        cwd,
+        homeDir,
+        scope: "local"
+      }
+    );
+
+    expect(result).toEqual({
+      skillPath: "~/.claude/skills/terminal-pilot/SKILL.md",
+      displayPath: ".claude/skills/terminal-pilot/SKILL.md"
+    });
+
+    const content = await fs.readFile(`${cwd}/.claude/skills/terminal-pilot/SKILL.md`, {
+      encoding: "utf8"
+    });
+    expect(content).toContain("name: terminal-pilot");
+    expect(content).toContain("# Terminal Pilot");
+    expect(content).toContain("terminal_create_session");
+    expect(content).toContain("terminal_send_signal");
+  });
+
+  it("throws UnsupportedAgentError for unknown agent", async () => {
+    await expect(
+      installSkill(
+        "invalid",
+        {
+          name: "terminal-pilot",
+          content: "test"
+        },
+        {
+          fs,
+          cwd,
+          homeDir,
+          scope: "local"
+        }
+      )
+    ).rejects.toBeInstanceOf(UnsupportedAgentError);
   });
 });

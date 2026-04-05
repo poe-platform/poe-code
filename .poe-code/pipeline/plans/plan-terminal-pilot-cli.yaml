@@ -152,7 +152,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: qa-cli
     title: Run QA test suite using the CLI
@@ -182,21 +182,22 @@ tasks:
 
       Skip tests 31–35 (poe-code and Claude Code integration tests) — those require external tools that may not be available.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: installer-command
-    title: Add poe-code terminal-pilot install/uninstall commands
+    title: Add terminal-pilot install/uninstall commands
     prompt: |
-      Add installer commands to the main poe-code CLI.
+      Add installer commands to the `terminal-pilot` CLI as defineCommand definitions.
 
       Plan: docs/plans/terminal-pilot-cli.md (section "Installer")
 
-      Create `src/cli/commands/terminal-pilot.ts` with `registerTerminalPilotCommand(program, container)`:
+      Create `packages/terminal-pilot/src/commands/install.ts` and `uninstall.ts`:
 
-      1. `poe-code terminal-pilot install [agent]`
+      1. `terminal-pilot install [agent]`
+         - scope: ["cli"] only
          - Options: `--local`, `--global`
          - Prompts for agent if not specified (unless --yes)
          - Calls `installSkill()` from `@poe-code/agent-skill-config` with the terminal-pilot skill template
@@ -204,12 +205,16 @@ tasks:
            - command: `npx terminal-pilot-mcp` (or resolved binary path)
            - transport: stdio
 
-      2. `poe-code terminal-pilot uninstall [agent]`
+      2. `terminal-pilot uninstall [agent]`
+         - scope: ["cli"] only
          - Removes the skill folder
          - Removes the MCP server registration
 
-      Follow the same patterns as existing `poe-code pipeline install` and `poe-code experiment install` commands.
-      Register the new command in `src/cli/program.ts`.
+      Add both to the `terminalPilotGroup` in `commands/index.ts`.
+
+      These commands use `@poe-code/agent-skill-config` and `@poe-code/agent-mcp-config` which are internal unpublished packages. They must be **bundled** into the terminal-pilot build output (not listed as external deps). This is the pattern for published packages in this repo that need internal deps.
+
+      Follow the same patterns as existing `poe-code pipeline install` and `poe-code experiment install` commands for the actual skill/MCP registration logic.
     status:
       implement: open
       refactor: open

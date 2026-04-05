@@ -72,6 +72,10 @@ export function keyToSequence(key: TerminalKey): string {
     }
   }
 
+  if ((key as string).length === 1) {
+    return key as string;
+  }
+
   throw unknownKeyError(key);
 }
 

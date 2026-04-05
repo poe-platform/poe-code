@@ -47,6 +47,7 @@ type PilotMock = {
   getSession: ReturnType<typeof vi.fn>;
   sessions: ReturnType<typeof vi.fn>;
   deleteSession: ReturnType<typeof vi.fn>;
+  close: ReturnType<typeof vi.fn>;
 };
 
 function createSessionMock(overrides: Partial<SessionMock> = {}): SessionMock {
@@ -109,7 +110,8 @@ function createPilotMock(
       if (index >= 0) {
         sessions.splice(index, 1);
       }
-    })
+    }),
+    close: vi.fn().mockResolvedValue(undefined)
   };
 }
 

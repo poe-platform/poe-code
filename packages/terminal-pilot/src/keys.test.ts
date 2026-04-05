@@ -73,6 +73,13 @@ describe("keyToSequence", () => {
     expect(keyToSequence(key as TerminalKey)).toBe(expected);
   });
 
+  it("maps a single printable character to itself", () => {
+    expect(keyToSequence("i" as TerminalKey)).toBe("i");
+    expect(keyToSequence("a" as TerminalKey)).toBe("a");
+    expect(keyToSequence("Z" as TerminalKey)).toBe("Z");
+    expect(keyToSequence("!" as TerminalKey)).toBe("!");
+  });
+
   it.each([
     "Unknown",
     "Control+",

@@ -24,6 +24,7 @@ type SessionLike = Pick<
 >;
 
 type PilotLike = Pick<TerminalPilot, "newSession" | "getSession" | "deleteSession" | "sessions">;
+type ClosablePilotLike = PilotLike & Pick<TerminalPilot, "close">;
 
 type NamedSession = {
   name: string;
@@ -39,6 +40,7 @@ export interface TerminalPilotRuntime {
   resolveSession(name: string | undefined, env?: HandlerEnv): Promise<NamedSession>;
   closeSession(name: string | undefined, env?: HandlerEnv): Promise<{ exitCode: number; name: string }>;
   listSessions(): Promise<NamedSession[]>;
+  close(): Promise<void>;
 }
 
 export interface TerminalPilotCommandServices {
@@ -46,7 +48,7 @@ export interface TerminalPilotCommandServices {
 }
 
 interface CreateTerminalPilotRuntimeOptions {
-  launchPilot?: () => Promise<PilotLike>;
+  launchPilot?: () => Promise<ClosablePilotLike>;
 }
 
 let sharedRuntime: TerminalPilotRuntime | undefined;
@@ -68,13 +70,13 @@ export function createTerminalPilotRuntime(
   const launchPilot = options.launchPilot ?? TerminalPilot.launch;
   const nameToId = new Map<string, string>();
   const idToName = new Map<string, string>();
-  let pilotPromise: Promise<PilotLike> | undefined;
+  let pilotPromise: Promise<ClosablePilotLike> | undefined;
 
   function getRequestedName(name: string | undefined, env?: HandlerEnv): string | undefined {
     return name ?? env?.get(SESSION_ENV_VAR);
   }
 
-  async function getPilot(): Promise<PilotLike> {
+  async function getPilot(): Promise<ClosablePilotLike> {
     pilotPromise ??= launchPilot();
     return pilotPromise;
   }
@@ -197,7 +199,27 @@ export function createTerminalPilotRuntime(
         name: namedSession.name
       };
     },
+    listSessions,
 
-    listSessions
+    async close(): Promise<void> {
+      if (pilotPromise === undefined) {
+        return;
+      }
+
+      const pilot = await pilotPromise;
+      await pilot.close();
+      pilotPromise = undefined;
+      nameToId.clear();
+      idToName.clear();
+    }
   };
+}
+
+export async function closeSharedTerminalPilotRuntime(): Promise<void> {
+  if (sharedRuntime === undefined) {
+    return;
+  }
+
+  await sharedRuntime.close();
+  sharedRuntime = undefined;
 }

@@ -1,6 +1,6 @@
 # Plan: terminal-pilot CLI
 
-Standalone `terminal-pilot` CLI binary (published as part of the `terminal-pilot` npm package). Mirrors the MCP tools 1:1 — every MCP tool gets a corresponding CLI subcommand with identical parameters. Plus a `screenshot` command leveraging `terminal-png`, and a skill installer in the main `poe-code` package.
+Standalone `terminal-pilot` CLI binary (published as part of the `terminal-pilot` npm package). Mirrors the MCP tools 1:1 — every MCP tool gets a corresponding CLI subcommand with identical parameters. Plus a `screenshot` command leveraging `terminal-png`, and a built-in skill installer.
 
 ## Analogy
 
@@ -20,8 +20,8 @@ Standalone `terminal-pilot` CLI binary (published as part of the `terminal-pilot
 | `terminal_get_session` | `terminal-pilot get-session` | Get session metadata |
 | `terminal_list_sessions` | `terminal-pilot list-sessions` | List active sessions |
 | *(new)* | `terminal-pilot screenshot` | Capture screen as PNG |
-| *(installer)* | `poe-code terminal-pilot install` | Install skill + MCP server |
-| *(installer)* | `poe-code terminal-pilot uninstall` | Remove skill + MCP server |
+| *(installer)* | `terminal-pilot install` | Install skill + MCP server |
+| *(installer)* | `terminal-pilot uninstall` | Remove skill + MCP server |
 
 ## Session Naming
 
@@ -443,25 +443,25 @@ terminal_send_signal({ sessionId, signal: "SIGINT" })
 - Sessions persist until explicitly closed or the MCP server exits
 ```
 
-### Installer: `poe-code terminal-pilot install [agent]`
+### Installer: `terminal-pilot install [agent]`
 
-Subcommand in the main `poe-code` CLI that installs both:
+Subcommand on the `terminal-pilot` CLI that installs both:
 1. The skill file (SKILL.md) via `installSkill()`
 2. The MCP server config via `@poe-code/agent-mcp-config`
 
 ```bash
 # Interactive — prompts for agent
-poe-code terminal-pilot install
+terminal-pilot install
 
 # Direct
-poe-code terminal-pilot install claude-code
+terminal-pilot install claude-code
 
 # Scope
-poe-code terminal-pilot install claude-code --local
-poe-code terminal-pilot install claude-code --global
+terminal-pilot install claude-code --local
+terminal-pilot install claude-code --global
 
 # Uninstall
-poe-code terminal-pilot uninstall claude-code
+terminal-pilot uninstall claude-code
 ```
 
 **What `install` does:**
@@ -523,11 +523,16 @@ packages/terminal-pilot/src/
 
 The `terminal-pilot-mcp` package stays separate but is rewritten to import definitions from `terminal-pilot/commands` and run them via `@poe-code/cmdkit/mcp`.
 
-### Main poe-code package — installer commands
+### Installer commands (part of `terminal-pilot` package)
+
+The `install`/`uninstall` commands are defined as `defineCommand` in the commands directory, scoped to `["cli"]`:
 
 ```
-src/cli/commands/terminal-pilot.ts            — registerTerminalPilotCommand (install/uninstall only)
+packages/terminal-pilot/src/commands/install.ts     — defineCommand for install
+packages/terminal-pilot/src/commands/uninstall.ts   — defineCommand for uninstall
 ```
+
+These commands use `@poe-code/agent-skill-config` (for SKILL.md installation) and `@poe-code/agent-mcp-config` (for MCP server registration). Since those are internal unpublished packages, they are **bundled** into the `terminal-pilot` build output. This is the pattern for any published package in this repo that needs internal deps — bundle them, don't publish them separately.
 
 ### New skill template
 
@@ -586,4 +591,4 @@ terminal-pilot-mcp         → @poe-code/cmdkit/mcp (@modelcontextprotocol/sdk)
 5. **Screenshot command** — CLI-only scope, uses terminal-png
 6. **QA** — run `docs/development/qa-terminal-pilot-mcp.md` test suite using CLI commands
 7. **Skill template** — `terminal-pilot.md` in agent-skill-config
-8. **Installer** — `poe-code terminal-pilot install/uninstall` in main package
+8. **Installer** — `terminal-pilot install/uninstall` in main package

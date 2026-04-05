@@ -187,6 +187,41 @@ describe("acp/renderer", () => {
     expect(acp.renderAgentMessage).toHaveBeenCalledWith("ab");
   });
 
+  it("renderAcpStream buffers consecutive reasoning events and flushes at end", async () => {
+    const { renderAcpStream } = await import("./renderer.js");
+    const { acp } = await import("@poe-code/design-system");
+
+    const events = [
+      { event: "reasoning", text: "thinking" },
+      { event: "reasoning", text: " about" },
+      { event: "reasoning", text: " this" }
+    ];
+
+    await renderAcpStream(fromArray(events as any[]));
+
+    expect(acp.renderReasoning).toHaveBeenCalledTimes(1);
+    expect(acp.renderReasoning).toHaveBeenCalledWith("thinking about this");
+  });
+
+  it("renderAcpStream flushes reasoning buffer when non-reasoning event arrives", async () => {
+    const { renderAcpStream } = await import("./renderer.js");
+    const { acp } = await import("@poe-code/design-system");
+
+    const events = [
+      { event: "reasoning", text: "Let me " },
+      { event: "reasoning", text: "think" },
+      { event: "tool_start", kind: "read", title: "file.txt" },
+      { event: "reasoning", text: "done thinking" }
+    ];
+
+    await renderAcpStream(fromArray(events as any[]));
+
+    expect(acp.renderReasoning).toHaveBeenCalledTimes(2);
+    expect(acp.renderReasoning).toHaveBeenNthCalledWith(1, "Let me think");
+    expect(acp.renderReasoning).toHaveBeenNthCalledWith(2, "done thinking");
+    expect(acp.renderToolStart).toHaveBeenCalledWith("read", "file.txt");
+  });
+
   it("renderAcpStream flushes buffer when non-agent_message event arrives", async () => {
     const { renderAcpStream } = await import("./renderer.js");
     const { acp } = await import("@poe-code/design-system");

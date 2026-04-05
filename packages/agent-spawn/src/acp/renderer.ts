@@ -63,21 +63,40 @@ export async function renderAcpStream(
   events: AsyncIterable<AcpEvent>
 ): Promise<void> {
   let messageBuffer = "";
+  let reasoningBuffer = "";
 
-  function flushBuffer(): void {
+  function flushMessageBuffer(): void {
     if (messageBuffer.length > 0) {
       acp.renderAgentMessage(messageBuffer);
       messageBuffer = "";
     }
   }
 
+  function flushReasoningBuffer(): void {
+    if (reasoningBuffer.length > 0) {
+      acp.renderReasoning(reasoningBuffer);
+      reasoningBuffer = "";
+    }
+  }
+
+  function flushAll(): void {
+    flushMessageBuffer();
+    flushReasoningBuffer();
+  }
+
   for await (const event of events) {
     if (event.event === "agent_message") {
+      flushReasoningBuffer();
       messageBuffer += (event as { text: string }).text;
       continue;
     }
-    flushBuffer();
+    if (event.event === "reasoning") {
+      flushMessageBuffer();
+      reasoningBuffer += (event as { text: string }).text;
+      continue;
+    }
+    flushAll();
     renderAcpEvent(event);
   }
-  flushBuffer();
+  flushAll();
 }

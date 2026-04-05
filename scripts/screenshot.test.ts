@@ -69,11 +69,11 @@ const renderTerminalPngMock = vi.mocked(renderTerminalPng);
 
 describe("resolveScreenshotTimeoutMs", () => {
   it("uses default when env is missing or invalid", () => {
-    expect(resolveScreenshotTimeoutMs({})).toBe(60000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "" })).toBe(60000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "0" })).toBe(60000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "-1" })).toBe(60000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "nope" })).toBe(60000);
+    expect(resolveScreenshotTimeoutMs({})).toBe(5000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "" })).toBe(5000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "0" })).toBe(5000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "-1" })).toBe(5000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "nope" })).toBe(5000);
   });
 
   it("uses the provided timeout when valid", () => {
@@ -104,6 +104,7 @@ describe("runScreenshot", () => {
 
   afterEach(() => {
     stdoutWriteSpy.mockRestore();
+    vi.useRealTimers();
   });
 
   it("renders the captured ANSI transcript directly to the requested PNG path", async () => {
@@ -140,7 +141,50 @@ describe("runScreenshot", () => {
     expect(rmSyncMock).not.toHaveBeenCalled();
   });
 
-  it("fails when the captured command exits non-zero", async () => {
+  it("renders screenshot with captured output on timeout", async () => {
+    vi.useFakeTimers();
+
+    const processEvents = new EventEmitter();
+    const stdout = new EventEmitter();
+    const stderr = new EventEmitter();
+
+    const fakeProcess = {
+      stdout,
+      stderr,
+      killed: false,
+      kill: vi.fn(() => {
+        fakeProcess.killed = true;
+      }),
+      on: processEvents.on.bind(processEvents)
+    };
+
+    spawnMock.mockReturnValue(fakeProcess as never);
+
+    const stderrWriteSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+
+    const promise = runScreenshot(["echo", "slow"], {
+      output: "screenshots/slow.png"
+    });
+
+    stdout.emit("data", Buffer.from("partial output\n"));
+
+    await vi.advanceTimersByTimeAsync(5000);
+
+    await promise;
+
+    expect(renderTerminalPngMock).toHaveBeenCalledWith(
+      expect.stringContaining("partial output"),
+      expect.objectContaining({ output: "screenshots/slow.png" })
+    );
+    expect(stdoutWriteSpy).toHaveBeenCalledWith("screenshots/slow.png\n");
+    expect(stderrWriteSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Timed out")
+    );
+
+    stderrWriteSpy.mockRestore();
+  });
+
+  it("renders screenshot and warns when command exits non-zero", async () => {
     spawnMock.mockReturnValue(
       createSpawnProcess({
         closeCode: 2,
@@ -148,17 +192,22 @@ describe("runScreenshot", () => {
       }) as never
     );
 
-    await expect(
-      runScreenshot(["echo", "oops"], {
-        output: "screenshots/oops.png"
-      })
-    ).rejects.toThrow("echo oops failed with exit code 2");
+    const stderrWriteSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+
+    await runScreenshot(["echo", "oops"], {
+      output: "screenshots/oops.png"
+    });
 
     expect(renderTerminalPngMock).toHaveBeenCalledWith("% echo oops\nbroken\n", {
       output: "screenshots/oops.png",
       padding: 20,
       window: true
     });
-    expect(rmSyncMock).not.toHaveBeenCalled();
+    expect(stdoutWriteSpy).toHaveBeenCalledWith("screenshots/oops.png\n");
+    expect(stderrWriteSpy).toHaveBeenCalledWith(
+      expect.stringContaining("exited with code 2")
+    );
+
+    stderrWriteSpy.mockRestore();
   });
 });

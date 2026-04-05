@@ -148,7 +148,7 @@ export function sanitizeOutputChunk(chunk: string): string {
   return result;
 }
 
-const DEFAULT_SCREENSHOT_TIMEOUT_MS = 60000;
+const DEFAULT_SCREENSHOT_TIMEOUT_MS = 5000;
 
 export function resolveScreenshotTimeoutMs(env: NodeJS.ProcessEnv): number {
   const raw = env.POE_SCREENSHOT_TIMEOUT_MS;
@@ -293,11 +293,15 @@ export async function runScreenshot(
   });
 
   let commandCode: number;
+  let timedOut = false;
   try {
     commandCode = (await Promise.race([
       waitForExit(commandProcess),
       timeout.promise
     ])) as number;
+  } catch {
+    timedOut = true;
+    commandCode = 1;
   } finally {
     timeout.cancel();
   }
@@ -314,12 +318,14 @@ export async function runScreenshot(
     output: outputPath
   });
 
-  if (commandCode !== 0) {
-    const label = [target.command, ...target.args].join(" ");
-    throw new Error(`${label} failed with exit code ${commandCode}`);
-  }
-
   process.stdout.write(`${outputPath}\n`);
+
+  if (timedOut) {
+    process.stderr.write(`Timed out after ${timeoutMs}ms — screenshot saved with captured output\n`);
+  } else if (commandCode !== 0) {
+    const label = [target.command, ...target.args].join(" ");
+    process.stderr.write(`${label} exited with code ${commandCode} — screenshot saved\n`);
+  }
 }
 
 const entry = process.argv[1];

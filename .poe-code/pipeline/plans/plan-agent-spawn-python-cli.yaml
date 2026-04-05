@@ -44,7 +44,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: python-types-codegen
     title: TypeScript-to-Python type codegen via ts-morph
@@ -69,9 +69,9 @@ tasks:
 
       See the expected output shape in docs/plans/agent-spawn-python-cli-plan.md (Step 2).
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: python-sdk-spawn

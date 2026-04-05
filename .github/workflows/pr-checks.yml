@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run codegen:check:agent-spawn-py
       - run: npm run build
       - run: npm run lint
       - run: npm run typecheck

@@ -1,0 +1,9 @@
+{
+  "name": "@poe-code/agent-spawn-py",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node --input-type=module -e \"import { access } from 'node:fs/promises'; await access('src/poe_code_spawn/types.py')\""
+  }
+}

@@ -15,8 +15,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "tsc"
+    "build": "rm -rf dist && tsc",
+    "prepublishOnly": "rm -rf dist && tsc"
   },
   "files": [
     "dist"
@@ -38,7 +38,7 @@
     "headless"
   ],
   "dependencies": {
-    "terminal-pilot": "*",
-    "tiny-stdio-mcp-server": "*"
+    "@poe-code/cmdkit": "*",
+    "terminal-pilot": "*"
   }
 }

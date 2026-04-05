@@ -86,7 +86,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: terminal-pilot-mcp-rewrite
     title: Rewrite terminal-pilot-mcp to use shared cmdkit definitions
@@ -108,9 +108,9 @@ tasks:
       4. Verify `npx terminal-pilot-mcp` still works — same MCP tools exposed, same behavior
       5. Delete the now-unused `mcp-tools.ts` and `mcp-server.ts` files
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: screenshot-command

@@ -172,9 +172,9 @@ tasks:
       - SS8: `delete(unknownId)` returns false
       - SS9: `has(unknownId)` returns false
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: implement-http-transport

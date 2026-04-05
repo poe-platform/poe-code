@@ -47,6 +47,25 @@ export class ExperimentJournal {
       .flatMap((line) => parseLine(line));
   }
 
+  async updateLast(updates: Partial<JournalEntry>): Promise<JournalEntry | null> {
+    const entries = await this.readAll();
+
+    if (entries.length === 0) {
+      return null;
+    }
+
+    const last = entries[entries.length - 1]!;
+    const updated = { ...last, ...updates };
+    entries[entries.length - 1] = updated;
+
+    await this.fs.writeFile(
+      this.journalPath,
+      entries.map((e) => JSON.stringify(e)).join("\n") + "\n"
+    );
+
+    return updated;
+  }
+
   async format(): Promise<string> {
     const entries = await this.readAll();
 

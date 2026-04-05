@@ -148,6 +148,36 @@ describe("ExperimentJournal", () => {
     await expect(journal.readAll()).resolves.toEqual([first, second]);
   });
 
+  it("updateLast patches the last entry and preserves earlier entries", async () => {
+    const fs = createFs();
+    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
+    const first = createEntry({ commit: "aaa1111" });
+    const second = createEntry({ commit: "bbb2222", score: null });
+
+    await journal.log(first);
+    await journal.log(second);
+
+    const updated = await journal.updateLast({ score: 42, scores: { tests: 42 } });
+
+    expect(updated).toEqual({ ...second, score: 42, scores: { tests: 42 } });
+
+    const entries = await journal.readAll();
+    expect(entries).toHaveLength(2);
+    expect(entries[0]).toEqual(first);
+    expect(entries[1]!.score).toBe(42);
+    expect(entries[1]!.scores).toEqual({ tests: 42 });
+  });
+
+  it("updateLast returns null on empty journal", async () => {
+    const fs = createFs();
+    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
+
+    await journal.init();
+    const result = await journal.updateLast({ score: 1 });
+
+    expect(result).toBeNull();
+  });
+
   it("handles discard entries with a null score", async () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);

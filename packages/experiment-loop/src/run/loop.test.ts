@@ -200,13 +200,13 @@ describe("runExperimentLoop", () => {
       [docPath]: createDoc({ baseline: 5 })
     });
     const git = createGit({
-      currentHash: vi.fn(async () => "base-5")
+      currentHash: vi.fn(async () => "baseline-abc")
     });
     const exec = createExec([]);
     const runAgent = vi.fn(
       async (): Promise<AgentRunResult> => {
         await appendJournalEntry(fs, docPath, {
-          commit: "base-5",
+          commit: "discard-xyz",
           status: "discard",
           score: 4,
           scores: { tests: 4 },
@@ -231,7 +231,7 @@ describe("runExperimentLoop", () => {
 
     expect(result.experimentsCompleted).toBe(1);
     expect(result.experimentsKept).toBe(0);
-    expect(git.reset).toHaveBeenCalledWith("base-5", "/repo");
+    expect(git.reset).toHaveBeenCalledWith("baseline-abc", "/repo");
 
     const [entry] = (
       await fs.readFile(journalFilePath(docPath), "utf8")
@@ -242,10 +242,113 @@ describe("runExperimentLoop", () => {
 
     expect(entry).toEqual(
       expect.objectContaining({
-        commit: "base-5",
+        commit: "discard-xyz",
         status: "discard",
         score: 4,
         agentOutput: "done"
+      })
+    );
+  });
+
+  it("computes score via evaluator when agent logs entry with score: null", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 5 })
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "baseline-abc")
+    });
+    const exec = createExec([
+      { stdout: "42\n", stderr: "", exitCode: 0 }
+    ]);
+    const runAgent = vi.fn(
+      async (): Promise<AgentRunResult> => {
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-1",
+          status: "keep",
+          score: null,
+          output: "done",
+          agentOutput: "done",
+          durationMs: 100
+        });
+        return { stdout: "done", stderr: "", exitCode: 0 };
+      }
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    const [entry] = (
+      await fs.readFile(journalFilePath(docPath), "utf8")
+    )
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as JournalEntry);
+
+    expect(entry).toEqual(
+      expect.objectContaining({
+        score: 42,
+        scores: { tests: 42 }
+      })
+    );
+  });
+
+  it("skips score computation when agent already provides a score", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 5 })
+    });
+    const git = createGit({
+      currentHash: vi.fn(async () => "baseline-abc")
+    });
+    const exec = createExec([]);
+    const runAgent = vi.fn(
+      async (): Promise<AgentRunResult> => {
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-1",
+          status: "keep",
+          score: 99,
+          scores: { tests: 99 },
+          output: "done",
+          agentOutput: "done",
+          durationMs: 100
+        });
+        return { stdout: "done", stderr: "", exitCode: 0 };
+      }
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(exec).not.toHaveBeenCalled();
+
+    const [entry] = (
+      await fs.readFile(journalFilePath(docPath), "utf8")
+    )
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as JournalEntry);
+
+    expect(entry).toEqual(
+      expect.objectContaining({
+        score: 99,
+        scores: { tests: 99 }
       })
     );
   });

@@ -349,11 +349,29 @@ export async function runExperimentLoop(
       }
 
       const journalAfter = await journal.readAll();
-      const newEntry = journalAfter.length > journalLengthBefore
+      let newEntry = journalAfter.length > journalLengthBefore
         ? journalAfter[journalAfter.length - 1]!
         : null;
 
       experimentsCompleted += 1;
+
+      if (newEntry && newEntry.score === null && !newEntry.scores && metrics.length > 0) {
+        const metricTimeoutMs = frontmatter.metricTimeout
+          ? frontmatter.metricTimeout * 1000
+          : undefined;
+        const results = await evaluateChain(
+          metrics,
+          options.cwd,
+          exec,
+          options.onMetricResult,
+          metricTimeoutMs
+        );
+        if (allMetricsPassed(metrics, results)) {
+          const scores = baselineFromResults(metrics, results);
+          const score = metrics.length === 1 ? results[0]!.score : null;
+          newEntry = (await journal.updateLast({ score, scores })) ?? newEntry;
+        }
+      }
 
       if (newEntry) {
         if (newEntry.status === "keep") {
@@ -362,8 +380,8 @@ export async function runExperimentLoop(
           baseline = baselineFromEntry(metrics, newEntry) ?? baseline;
           options.onCommit?.(newEntry.commit);
         } else {
-          await git.reset(newEntry.commit, options.cwd);
-          options.onReset?.(newEntry.commit);
+          await git.reset(preExperimentHash, options.cwd);
+          options.onReset?.(preExperimentHash);
         }
 
         options.onExperimentComplete?.(experimentIndex, newEntry);

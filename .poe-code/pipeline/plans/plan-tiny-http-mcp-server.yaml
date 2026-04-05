@@ -118,7 +118,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: implement-parse-body
     title: Implement JSON-RPC body parsing and classification
@@ -145,10 +145,10 @@ tasks:
       - P20: notification identified by method + no id
       - P21: response identified by result/error + id + no method
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: implement-session
     title: Implement session management module

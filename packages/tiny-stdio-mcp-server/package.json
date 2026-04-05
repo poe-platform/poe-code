@@ -10,6 +10,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./jsonrpc": {
+      "types": "./dist/jsonrpc.d.ts",
+      "import": "./dist/jsonrpc.js"
+    },
     "./testing": {
       "types": "./dist/testing.d.ts",
       "import": "./dist/testing.js"

@@ -75,7 +75,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: scaffold-http-package
     title: Scaffold tiny-http-mcp-server package
@@ -89,9 +89,9 @@ tasks:
 
       Verify the package builds with `tsc`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: implement-sse

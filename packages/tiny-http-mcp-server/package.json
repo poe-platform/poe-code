@@ -1,0 +1,53 @@
+{
+  "name": "tiny-http-mcp-server",
+  "version": "0.1.0",
+  "description": "Minimal MCP server over HTTP built on tiny-stdio-mcp-server",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tiny-http-mcp-server": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-http-mcp-server"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "tiny-stdio-mcp-server": "*"
+  },
+  "peerDependencies": {
+    "express": "^5.1.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@types/express": "^5.0.3",
+    "express": "^5.1.0"
+  }
+}

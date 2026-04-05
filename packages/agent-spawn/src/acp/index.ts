@@ -3,6 +3,7 @@ export type {
   AgentMessageChunk,
   AgentThoughtChunk,
   ContentChunk,
+  SpawnResultEvent,
   SessionUpdate,
   ToolCall,
   ToolCallStatus,

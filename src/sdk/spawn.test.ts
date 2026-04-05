@@ -143,6 +143,131 @@ describe("SDK spawn()", () => {
     expect(spawnCore).not.toHaveBeenCalled();
   });
 
+  it("falls back to middleware-captured usage in the streaming path", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0,
+        threadId: "thread_1",
+        sessionId: "thread_1"
+      })
+    }));
+
+    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+      ctx.usage = {
+        inputTokens: 10,
+        outputTokens: 4,
+        cachedTokens: 2,
+        costUsd: 0.03
+      };
+    });
+
+    const { result } = spawn("codex", "test prompt");
+
+    await expect(result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+      threadId: "thread_1",
+      sessionId: "thread_1",
+      usage: {
+        inputTokens: 10,
+        outputTokens: 4,
+        cachedTokens: 2,
+        costUsd: 0.03
+      }
+    });
+  });
+
+  it("accepts mcpConfig as the SDK option name", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("codex", "test prompt", {
+      mcpConfig: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
+    });
+
+    await result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server",
+            args: ["serve", "word-of-the-day"]
+          }
+        }
+      })
+    );
+  });
+
+  it("prefers mcpConfig over the deprecated mcpServers alias", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("codex", "test prompt", {
+      mcpConfig: {
+        preferred: {
+          command: "preferred-server"
+        }
+      },
+      mcpServers: {
+        deprecated: {
+          command: "deprecated-server"
+        }
+      }
+    });
+
+    await result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mcpServers: {
+          preferred: {
+            command: "preferred-server"
+          }
+        }
+      })
+    );
+  });
+
   it("falls back to agent-spawn non-streaming and returns empty events when no adapter", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

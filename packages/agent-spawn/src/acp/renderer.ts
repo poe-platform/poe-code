@@ -1,4 +1,4 @@
-import { acp, text } from "@poe-code/design-system";
+import { acp, resolveOutputFormat, text } from "@poe-code/design-system";
 import type { AcpEvent } from "./types.js";
 
 function writeLine(line: string): void {
@@ -47,6 +47,11 @@ export function renderAcpEvent(event: AcpEvent): void {
             : message;
         })()
       );
+      return;
+    case "spawn_result":
+      if (resolveOutputFormat() === "json") {
+        writeLine(JSON.stringify(event));
+      }
       return;
     default:
       writeLine(text.muted(event.event));

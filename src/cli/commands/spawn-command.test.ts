@@ -4,6 +4,7 @@ import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
 import { Command } from "commander";
+import { resetOutputFormatCache } from "@poe-code/design-system";
 import { DEFAULT_CLAUDE_CODE_MODEL, DEFAULT_CODEX_MODEL } from "../constants.js";
 import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
@@ -135,6 +136,7 @@ describe("spawn command", () => {
     fs = createMemFs();
     vi.clearAllMocks();
     process.env = { ...originalEnv, FORCE_COLOR: "1" };
+    resetOutputFormatCache();
 
     confirmMock.mockResolvedValue(true);
     isCancelMock.mockReturnValue(false);
@@ -147,6 +149,7 @@ describe("spawn command", () => {
 
   afterEach(() => {
     process.env = { ...originalEnv };
+    resetOutputFormatCache();
   });
 
   it("streams events via renderAcpStream()", async () => {
@@ -248,6 +251,129 @@ describe("spawn command", () => {
 
     expect(stripAnsi(chunks.join(""))).toBe("");
     expect(logs.some((line) => line.includes("Final output"))).toBe(true);
+  });
+
+  it("emits ACP NDJSON plus a final spawn_result event in json mode", async () => {
+    process.env.OUTPUT_FORMAT = "json";
+    resetOutputFormatCache();
+
+    vi.mocked(sdkSpawn).mockImplementation(() => ({
+      events: fromArray([{ event: "agent_message", text: "Hi" }]),
+      result: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0,
+        threadId: "thread_json",
+        usage: {
+          inputTokens: 12,
+          outputTokens: 3,
+          cachedTokens: 4,
+          costUsd: 0.05
+        }
+      })
+    }));
+
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    const chunks: string[] = [];
+    const spy = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(((chunk: unknown) => {
+        chunks.push(String(chunk));
+        return true;
+      }) as unknown as typeof process.stdout.write);
+
+    try {
+      await program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"]);
+    } finally {
+      spy.mockRestore();
+    }
+
+    const lines = chunks
+      .join("")
+      .trim()
+      .split("\n")
+      .filter((line) => line.length > 0)
+      .map((line) => JSON.parse(line));
+
+    expect(lines).toEqual([
+      { type: "agent", message: "Hi" },
+      {
+        event: "spawn_result",
+        exitCode: 0,
+        threadId: "thread_json",
+        usage: {
+          inputTokens: 12,
+          outputTokens: 3,
+          cachedTokens: 4,
+          costUsd: 0.05
+        },
+        protocolVersion: 1
+      }
+    ]);
+    expect(logs).toEqual([]);
+  });
+
+  it("does not throw on agent exit failure in json mode and ends with spawn_result", async () => {
+    process.env.OUTPUT_FORMAT = "json";
+    resetOutputFormatCache();
+
+    vi.mocked(sdkSpawn).mockImplementation(() => ({
+      events: emptyAsyncIterable(),
+      result: Promise.resolve({
+        stdout: "",
+        stderr: "spawn failed",
+        exitCode: 23
+      })
+    }));
+
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    const chunks: string[] = [];
+    const spy = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(((chunk: unknown) => {
+        chunks.push(String(chunk));
+        return true;
+      }) as unknown as typeof process.stdout.write);
+
+    try {
+      await expect(
+        program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"])
+      ).resolves.toBe(program);
+
+      expect(chunks.join("").trim().split("\n").map((line) => JSON.parse(line))).toEqual([
+        {
+          event: "spawn_result",
+          exitCode: 23,
+          protocolVersion: 1
+        }
+      ]);
+      expect(logs).toEqual([]);
+      expect(process.exitCode).toBe(23);
+    } finally {
+      spy.mockRestore();
+      process.exitCode = previousExitCode;
+    }
   });
 
   it("fails when spawn command exits with error", async () => {
@@ -441,13 +567,45 @@ describe("spawn command", () => {
       args: [],
       model: DEFAULT_CODEX_MODEL,
       cwd: undefined,
-      mcpServers: {
+      mcpConfig: {
         test: {
           command: "tiny-stdio-mcp-test-server",
           args: ["serve", "word-of-the-day"],
           env: { MCP_LOG_LEVEL: "debug" }
         }
       }
+    });
+  });
+
+  it("passes --log-dir and --activity-timeout-ms to SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--log-dir",
+      "/tmp/spawn-logs",
+      "--activity-timeout-ms",
+      "1500",
+      "codex",
+      "hello"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "hello",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      cwd: undefined,
+      logDir: "/tmp/spawn-logs",
+      activityTimeoutMs: 1500
     });
   });
 

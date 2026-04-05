@@ -12,7 +12,8 @@ vi.mock("@poe-code/design-system", () => {
     },
     text: {
       muted: (content: string) => `<muted>${content}</muted>`
-    }
+    },
+    resolveOutputFormat: () => (process.env.OUTPUT_FORMAT === "json" ? "json" : "terminal")
   };
 });
 
@@ -39,8 +40,11 @@ function captureStdout(run: () => void): string {
 }
 
 describe("acp/renderer", () => {
+  const originalEnv = { ...process.env };
+
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env = { ...originalEnv };
   });
 
   it("ignores session_start events (no output)", async () => {
@@ -140,6 +144,32 @@ describe("acp/renderer", () => {
 
     expect(output).toBe("<muted>some_future_event</muted>\n");
     expect(acp.renderAgentMessage).not.toHaveBeenCalled();
+  });
+
+  it("renders spawn_result as raw NDJSON in json mode", async () => {
+    process.env.OUTPUT_FORMAT = "json";
+
+    const { renderAcpEvent } = await import("./renderer.js");
+
+    const output = captureStdout(() =>
+      renderAcpEvent({
+        event: "spawn_result",
+        exitCode: 0,
+        threadId: "thread_123",
+        usage: { inputTokens: 10, outputTokens: 2, cachedTokens: 1, costUsd: 0.03 },
+        protocolVersion: 1
+      } as any)
+    );
+
+    expect(output).toBe(
+      `${JSON.stringify({
+        event: "spawn_result",
+        exitCode: 0,
+        threadId: "thread_123",
+        usage: { inputTokens: 10, outputTokens: 2, cachedTokens: 1, costUsd: 0.03 },
+        protocolVersion: 1
+      })}\n`
+    );
   });
 
   it("renderAcpStream buffers consecutive agent_message events and flushes at end", async () => {

@@ -144,6 +144,20 @@ export interface ErrorEvent {
   _meta?: Record<string, unknown>;
 }
 
+export interface SpawnResultEvent {
+  event: "spawn_result";
+  exitCode: number;
+  threadId?: string;
+  usage?: {
+    inputTokens: number;
+    outputTokens: number;
+    cachedTokens?: number;
+    costUsd?: number;
+  };
+  protocolVersion?: number;
+  _meta?: Record<string, unknown>;
+}
+
 export type KnownAcpEvent =
   | SessionStartEvent
   | AgentMessageEvent
@@ -151,7 +165,8 @@ export type KnownAcpEvent =
   | ToolCompleteEvent
   | ReasoningEvent
   | UsageEvent
-  | ErrorEvent;
+  | ErrorEvent
+  | SpawnResultEvent;
 
 export type UnknownAcpEvent = { event: string } & Record<string, unknown>;
 

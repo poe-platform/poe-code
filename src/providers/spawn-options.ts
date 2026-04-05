@@ -6,6 +6,8 @@ export interface SpawnCommandOptions {
   model?: string;
   mode?: SpawnMode;
   mcpServers?: McpSpawnConfig;
+  logDir?: string;
+  activityTimeoutMs?: number;
   cwd?: string;
   useStdin?: boolean;
   interactive?: boolean;

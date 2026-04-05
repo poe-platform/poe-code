@@ -67,6 +67,7 @@ export type {
   ReasoningEvent,
   SessionStartEvent,
   SessionUpdate,
+  SpawnResultEvent,
   ToolCall,
   ToolCallStatus,
   ToolCallUpdate,

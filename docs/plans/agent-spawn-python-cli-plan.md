@@ -12,32 +12,30 @@ Python SDK  ──subprocess──►  OUTPUT_FORMAT=jsonl poe-code spawn  ─�
 
 That's it. Python shells out to the CLI and reads JSONL from stdout.
 
-## Step 1: Add `jsonl` to `OUTPUT_FORMAT` env var
+## Step 1: Fix spawn CLI to emit clean NDJSON in `json` mode
 
-The design system already supports `OUTPUT_FORMAT` (`terminal | markdown | json`). Add `jsonl` as a new value.
+`OUTPUT_FORMAT=json` already exists and the ACP renderer (`design-system/src/acp/components.ts`) already emits proper NDJSON. The problem is `spawn.ts` leaks non-JSON output through `logger.intro()` and `logger.info()` calls.
 
-When `OUTPUT_FORMAT=jsonl`, the spawn command writes raw AcpEvents as JSONL to stdout instead of pretty rendering.
-
-Each line is one event, same shape the JS SDK yields:
+The existing `json` format already produces one JSON object per line:
 
 ```jsonl
-{"event":"session_start","threadId":"abc123"}
-{"event":"agent_message","text":"Hello"}
-{"event":"tool_start","kind":"edit","title":"src/auth.ts","id":"t1"}
-{"event":"tool_complete","kind":"edit","path":"src/auth.ts","id":"t1"}
-{"event":"usage","inputTokens":1200,"outputTokens":340}
+{"type":"agent","message":"Hello"}
+{"type":"tool_start","kind":"edit","title":"src/auth.ts"}
+{"type":"tool_complete","kind":"edit"}
+{"type":"usage","input":1200,"output":340,"cached":0,"costUsd":0}
 ```
 
-Final line after process completes:
+What needs fixing — suppress non-JSON logger output in `spawn.ts` when format is `json`:
+- `logger.intro()` (design headline)
+- `logger.info()` (stdout/stderr/completion/resume messages)
+
+Add a final `spawn_result` event emitted after the process completes:
 
 ```jsonl
-{"event":"spawn_result","exitCode":0,"threadId":"abc123","usage":{"inputTokens":1200,"outputTokens":340}}
+{"event":"spawn_result","exitCode":0,"threadId":"abc123","usage":{"inputTokens":1200,"outputTokens":340},"protocolVersion":1}
 ```
 
-When `jsonl`:
-- No design-system rendering
-- No interactive prompts (implies `--yes`)
-- Exit code still set on process
+The Python SDK passes `--yes` when invoking the CLI, so no format-aware logic is needed for interactive prompts.
 
 Also add missing CLI flags to reach parity with the SDK `SpawnOptions`:
 
@@ -54,7 +52,7 @@ Align naming across SDK, CLI, and Python:
 
 SDK rename `mcpServers` → `mcpConfig` with backward compat (keep `mcpServers` as deprecated alias).
 
-**Files touched**: `packages/design-system/src/internal/output-format.ts`, `src/cli/commands/spawn.ts`, `packages/agent-spawn/src/acp/renderer.ts`
+**Files touched**: `src/cli/commands/spawn.ts`, `packages/agent-spawn/src/acp/types.ts`, `packages/agent-spawn/src/acp/renderer.ts`
 
 ## Step 2: Python types (generated via `ts-morph`)
 
@@ -171,6 +169,8 @@ print(f"Exit: {result.exit_code}")
 `spawn()` returns a `SpawnHandle` with `.events` (iterator of `AcpEvent`) and `.result` (`SpawnResultEvent`, available after events consumed).
 
 `spawn.pretty()` runs with `OUTPUT_FORMAT=terminal` (default), inherits stdout rendering, returns `SpawnResultEvent`.
+
+The SDK always passes `--yes` to the CLI so interactive prompts are suppressed. The JSONL parser defensively skips lines that don't parse as JSON (in case of stray output from the CLI).
 
 Cancellation: `SpawnHandle.cancel()` sends SIGINT to the child process (same as ctrl+c). Python callers can also pass a `threading.Event` or similar to trigger cancellation from another thread.
 

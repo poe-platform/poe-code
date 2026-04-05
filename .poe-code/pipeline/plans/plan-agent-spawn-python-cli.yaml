@@ -1,40 +1,49 @@
 tasks:
-  - id: jsonl-output-format
-    title: Add JSONL output format to spawn CLI
+  - id: clean-json-spawn-output
+    title: Fix spawn CLI to emit clean NDJSON in json mode
     prompt: |
-      Add `jsonl` as a new value for the `OUTPUT_FORMAT` env var in the design system.
+      `OUTPUT_FORMAT=json` already exists and the ACP renderer emits proper NDJSON.
+      The problem is `spawn.ts` leaks non-JSON output through `logger.intro()` and
+      `logger.info()` calls. Fix this so `OUTPUT_FORMAT=json` produces clean, parseable NDJSON.
 
-      When `OUTPUT_FORMAT=jsonl`, the spawn command writes raw AcpEvents as JSONL to stdout
-      instead of pretty rendering. Each line is one JSON object representing an event:
+      Changes needed:
 
-      ```jsonl
-      {"event":"session_start","threadId":"abc123"}
-      {"event":"agent_message","text":"Hello"}
-      {"event":"tool_start","kind":"edit","title":"src/auth.ts","id":"t1"}
-      {"event":"tool_complete","kind":"edit","path":"src/auth.ts","id":"t1"}
-      {"event":"usage","inputTokens":1200,"outputTokens":340}
-      {"event":"spawn_result","exitCode":0,"threadId":"abc123","usage":{"inputTokens":1200,"outputTokens":340}}
-      ```
+      1. In `src/cli/commands/spawn.ts`, guard logger calls behind a format check —
+         when `OUTPUT_FORMAT=json`, skip:
+         - `logger.intro()` calls (lines 161, 185)
+         - `logger.info()` calls for stdout/stderr/completion/resume (lines 254-260, 271)
 
-      Behavior when `jsonl`:
-      - No design-system rendering
-      - No interactive prompts (implies `--yes`)
-      - Exit code still set on process
+      2. Add `SpawnResultEvent` to `packages/agent-spawn/src/acp/types.ts`:
+         ```ts
+         export interface SpawnResultEvent {
+           event: "spawn_result";
+           exitCode: number;
+           threadId?: string;
+           usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number; costUsd?: number };
+           protocolVersion?: number;
+           _meta?: Record<string, unknown>;
+         }
+         ```
+         Emit this as the final NDJSON line when `OUTPUT_FORMAT=json`.
 
-      Also add these missing CLI flags to reach parity with the SDK `SpawnOptions`:
-      - `--log-dir <path>` — directory override for ACP JSONL spawn logs
-      - `--activity-timeout-ms <ms>` — kill after N ms of inactivity
+      3. Add missing CLI flags for SDK parity:
+         - `--log-dir <path>` — directory override for ACP JSONL spawn logs
+         - `--activity-timeout-ms <ms>` — kill after N ms of inactivity
 
-      Rename SDK `mcpServers` to `mcpConfig` with backward compat (keep `mcpServers` as deprecated alias).
+      4. Rename SDK `mcpServers` to `mcpConfig` with backward compat (keep `mcpServers`
+         as deprecated alias).
 
-      Files to touch: `packages/design-system/src/internal/output-format.ts`,
-      `src/cli/commands/spawn.ts`, `packages/agent-spawn/src/acp/renderer.ts`
+      The Python SDK will pass `--yes` when invoking the CLI, so no format-aware
+      logic is needed in `confirmUnconfiguredService`.
+
+      Files to touch: `src/cli/commands/spawn.ts`, `packages/agent-spawn/src/acp/types.ts`,
+      `packages/agent-spawn/src/acp/renderer.ts`
 
       Reference plan: docs/plans/agent-spawn-python-cli-plan.md (Step 1)
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: python-types-codegen
@@ -89,6 +98,9 @@ tasks:
         - `.cancel()` — sends SIGINT to child process
       - `spawn.pretty(agent, prompt, **kwargs)` runs with `OUTPUT_FORMAT=terminal`,
         inherits stdout rendering, returns `SpawnResultEvent`
+
+      The SDK always passes `--yes` to the CLI so interactive prompts are suppressed.
+      The JSONL parser defensively skips lines that don't parse as JSON.
 
       CLI resolution order:
       1. `poe-code` on PATH

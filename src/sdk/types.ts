@@ -15,6 +15,8 @@ export interface SpawnOptions {
   /** Additional arguments forwarded to the CLI */
   args?: string[];
   /** MCP servers passed at spawn time */
+  mcpConfig?: McpSpawnConfig;
+  /** @deprecated Use mcpConfig instead. */
   mcpServers?: McpSpawnConfig;
   /** Directory override for ACP JSONL spawn logs */
   logDir?: string;
@@ -36,6 +38,7 @@ export interface SpawnUsage {
   inputTokens: number;
   outputTokens: number;
   cachedTokens?: number;
+  costUsd?: number;
 }
 
 /**

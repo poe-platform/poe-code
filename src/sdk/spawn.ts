@@ -14,7 +14,7 @@ import {
   type AcpSpawnContext,
   type AcpEvent
 } from "@poe-code/agent-spawn";
-import type { SpawnOptions, SpawnResult } from "./types.js";
+import type { SpawnOptions, SpawnResult, SpawnUsage } from "./types.js";
 
 /**
  * Spawns an agent with optional streaming.
@@ -55,6 +55,7 @@ export function spawn(
     typeof promptOrOptions === "string"
       ? { ...maybeOptions, prompt: promptOrOptions }
       : promptOrOptions;
+  const mcpConfig = options.mcpConfig ?? options.mcpServers;
 
   const emptyEvents: AsyncIterable<AcpEvent> = (async function* () {})();
 
@@ -113,7 +114,7 @@ export function spawn(
           mode: options.mode,
           signal: options.signal,
           args: options.args,
-          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
+          ...(mcpConfig ? { mcpServers: mcpConfig } : {})
         });
         return {
           stdout: interactiveResult.stdout,
@@ -139,8 +140,10 @@ export function spawn(
           mode: options.mode,
           args: options.args,
           signal: options.signal,
-          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
-          ...(options.activityTimeoutMs ? { activityTimeoutMs: options.activityTimeoutMs } : {}),
+          ...(mcpConfig ? { mcpServers: mcpConfig } : {}),
+          ...(options.activityTimeoutMs !== undefined
+            ? { activityTimeoutMs: options.activityTimeoutMs }
+            : {}),
           useStdin: false
         });
 
@@ -170,6 +173,7 @@ export function spawn(
           (middlewareContext.sessionId !== "unknown" ? middlewareContext.sessionId : undefined) ??
           final.sessionId ??
           threadId;
+        const usage = final.usage ?? getCapturedUsage(middlewareContext.usage);
 
         return {
           stdout: final.stdout,
@@ -177,7 +181,7 @@ export function spawn(
           exitCode: final.exitCode,
           ...(threadId ? { threadId } : {}),
           ...(sessionId ? { sessionId } : {}),
-          ...(final.usage ? { usage: final.usage } : {})
+          ...(usage ? { usage } : {})
         };
       }
 
@@ -191,8 +195,10 @@ export function spawn(
           mode: options.mode,
           args: options.args,
           signal: options.signal,
-          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
-          ...(options.activityTimeoutMs ? { activityTimeoutMs: options.activityTimeoutMs } : {}),
+          ...(mcpConfig ? { mcpServers: mcpConfig } : {}),
+          ...(options.activityTimeoutMs !== undefined
+            ? { activityTimeoutMs: options.activityTimeoutMs }
+            : {}),
           useStdin: false
         });
       }
@@ -206,7 +212,7 @@ export function spawn(
         model,
         mode: options.mode,
         args: options.args,
-        ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
+        ...(mcpConfig ? { mcpServers: mcpConfig } : {}),
         useStdin: false
       });
     } catch (error) {
@@ -216,6 +222,22 @@ export function spawn(
   })();
 
   return { events, result };
+}
+
+function getCapturedUsage(usage: SpawnUsage | undefined): SpawnUsage | undefined {
+  if (!usage) {
+    return undefined;
+  }
+
+  if (usage.inputTokens > 0 || usage.outputTokens > 0) {
+    return usage;
+  }
+
+  if (usage.cachedTokens !== undefined || usage.costUsd !== undefined) {
+    return usage;
+  }
+
+  return undefined;
 }
 
 /**

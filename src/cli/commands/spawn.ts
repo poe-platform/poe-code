@@ -2,6 +2,7 @@ import path from "node:path";
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import {
+  renderAcpEvent,
   renderAcpStream,
   spawnInteractive,
   getSpawnConfig,
@@ -11,7 +12,7 @@ import {
   type SpawnMode
 } from "@poe-code/agent-spawn";
 import { resolveAgentId } from "@poe-code/agent-defs";
-import { text, confirm, isCancel } from "@poe-code/design-system";
+import { text, confirm, isCancel, resolveOutputFormat } from "@poe-code/design-system";
 import { loadConfiguredServices } from "../../services/config.js";
 import {
   createExecutionResources,
@@ -65,6 +66,12 @@ export function registerSpawnCommand(
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
     .option("--mcp-config <json>", "MCP server config JSON: {name: {command, args?, env?}}")
+    .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
+    .option(
+      "--activity-timeout-ms <ms>",
+      "Kill the agent after N ms of inactivity",
+      (value: string) => parsePositiveInt(value, "--activity-timeout-ms")
+    )
     .argument("<agent>", serviceDescription)
     .argument("[prompt]", "Prompt text to send (or '-' / stdin)")
     .argument("[agentArgs...]", "Additional arguments forwarded to the agent CLI")
@@ -82,7 +89,10 @@ export function registerSpawnCommand(
         interactive?: boolean;
         mode?: string;
         mcpConfig?: string;
+        logDir?: string;
+        activityTimeoutMs?: number;
       }>();
+      const shouldEmitUiOutput = resolveOutputFormat() !== "json";
       const mcpServers = parseMcpSpawnConfig(commandOptions.mcpConfig);
       const cwdOverride = resolveSpawnWorkingDirectory(container.env.cwd, commandOptions.cwd);
 
@@ -151,6 +161,8 @@ export function registerSpawnCommand(
         mode: commandOptions.mode as SpawnMode | undefined,
         mcpServers,
         cwd: cwdOverride,
+        logDir: commandOptions.logDir,
+        activityTimeoutMs: commandOptions.activityTimeoutMs,
         useStdin: shouldReadFromStdin
       };
 
@@ -158,7 +170,9 @@ export function registerSpawnCommand(
       const directHandler = options.handlers?.[service];
       if (directHandler) {
         const resources = createExecutionResources(container, flags, `spawn:${service}`);
-        resources.logger.intro(`spawn ${service}`);
+        if (shouldEmitUiOutput) {
+          resources.logger.intro(`spawn ${service}`);
+        }
         await directHandler({
           container,
           service,
@@ -166,7 +180,9 @@ export function registerSpawnCommand(
           flags,
           resources
         });
-        resources.context.finalize();
+        if (shouldEmitUiOutput) {
+          resources.context.finalize();
+        }
         return;
       }
 
@@ -182,7 +198,9 @@ export function registerSpawnCommand(
         model
       };
       const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
-      resources.logger.intro(`spawn ${canonicalService}`);
+      if (shouldEmitUiOutput) {
+        resources.logger.intro(`spawn ${canonicalService}`);
+      }
       const canonicalHandler = options.handlers?.[canonicalService];
       if (canonicalHandler) {
         try {
@@ -195,7 +213,9 @@ export function registerSpawnCommand(
           });
           return;
         } finally {
-          resources.context.finalize();
+          if (shouldEmitUiOutput) {
+            resources.context.finalize();
+          }
         }
       }
 
@@ -234,14 +254,32 @@ export function registerSpawnCommand(
           model: spawnOptions.model,
           mode: spawnOptions.mode,
           cwd: spawnOptions.cwd,
-          ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {})
+          ...(spawnOptions.mcpServers ? { mcpConfig: spawnOptions.mcpServers } : {}),
+          ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
+          ...(spawnOptions.activityTimeoutMs !== undefined
+            ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
+            : {})
         });
 
         await renderAcpStream(events);
 
         const final = await result;
+        process.exitCode = final.exitCode;
+
+        if (!shouldEmitUiOutput) {
+          renderAcpEvent({
+            event: "spawn_result",
+            exitCode: final.exitCode,
+            ...(final.threadId ? { threadId: final.threadId } : {}),
+            ...(final.usage ? { usage: final.usage } : {}),
+            protocolVersion: 1
+          });
+        }
 
         if (final.exitCode !== 0) {
+          if (!shouldEmitUiOutput) {
+            return;
+          }
           const detail = final.stderr.trim() || final.stdout.trim();
           const suffix = detail ? `: ${detail}` : "";
           throw new Error(
@@ -249,19 +287,21 @@ export function registerSpawnCommand(
           );
         }
 
-        const trimmedStdout = final.stdout.trim();
-        if (trimmedStdout) {
-          resources.logger.info(trimmedStdout);
-        } else {
-          const trimmedStderr = final.stderr.trim();
-          if (trimmedStderr) {
-            resources.logger.info(trimmedStderr);
+        if (shouldEmitUiOutput) {
+          const trimmedStdout = final.stdout.trim();
+          if (trimmedStdout) {
+            resources.logger.info(trimmedStdout);
           } else {
-            resources.logger.info(`${adapter.label} spawn completed.`);
+            const trimmedStderr = final.stderr.trim();
+            if (trimmedStderr) {
+              resources.logger.info(trimmedStderr);
+            } else {
+              resources.logger.info(`${adapter.label} spawn completed.`);
+            }
           }
         }
 
-        if (final.threadId) {
+        if (shouldEmitUiOutput && final.threadId) {
           const resumeCommand = buildResumeCommand(
             canonicalService,
             final.threadId,
@@ -272,7 +312,9 @@ export function registerSpawnCommand(
           }
         }
       } finally {
-        resources.context.finalize();
+        if (shouldEmitUiOutput) {
+          resources.context.finalize();
+        }
       }
     });
 }
@@ -416,6 +458,14 @@ function assertMcpSpawnSupport(
     `${label} does not support MCP servers at spawn time.\n` +
       `Agents with spawn-time MCP support: ${supported.join(", ")}`
   );
+}
+
+function parsePositiveInt(value: string, fieldName: string): number {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a positive integer.`);
+  }
+  return parsed;
 }
 
 function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {

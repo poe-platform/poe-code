@@ -175,7 +175,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: implement-http-transport
     title: Implement StreamableHttpTransport core
@@ -208,10 +208,10 @@ tasks:
 
       See plan doc section 4.4 and 6.2 for full details.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: implement-http-server
     title: Implement createHttpServer wrapper and test helpers

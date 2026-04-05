@@ -13,6 +13,14 @@ function createAbortError(): Error {
   return error;
 }
 
+function createActivityTimeoutError(timeoutMs: number): Error {
+  const error = new Error(
+    `Agent spawn timed out after ${timeoutMs / 1000}s of inactivity`
+  );
+  error.name = "ActivityTimeoutError";
+  return error;
+}
+
 export interface SpawnStreamingOptions extends SpawnOptions {
   agentId: string;
 }
@@ -93,16 +101,31 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
       : undefined
   });
   let aborted = false;
+  let timedOut = false;
   const onAbort = () => {
     aborted = true;
     child.kill("SIGTERM");
   };
   options.signal?.addEventListener("abort", onAbort, { once: true });
 
+  let activityTimer: ReturnType<typeof setTimeout> | undefined;
+  const resetActivityTimer = options.activityTimeoutMs
+    ? () => {
+        if (activityTimer) clearTimeout(activityTimer);
+        activityTimer = setTimeout(() => {
+          timedOut = true;
+          child.kill("SIGTERM");
+        }, options.activityTimeoutMs);
+      }
+    : undefined;
+
+  resetActivityTimer?.();
+
   const result: SpawnResult = { stdout: "", stderr: "", exitCode: 1 };
   child.stderr.setEncoding("utf8");
   child.stderr.on("data", (chunk) => {
     result.stderr += chunk;
+    resetActivityTimer?.();
   });
 
   if (useStdin) {
@@ -115,6 +138,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   const events: AsyncIterable<AcpEvent> = (async function* () {
     for await (const output of adapter(readLines(child.stdout))) {
       if (!isAcpEvent(output)) continue;
+      resetActivityTimer?.();
       yield output;
     }
   })();
@@ -122,6 +146,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   const done = new Promise<SpawnResult>((resolve, reject) => {
     child.on("error", (error) => {
       options.signal?.removeEventListener("abort", onAbort);
+      if (activityTimer) clearTimeout(activityTimer);
       if (aborted) {
         reject(createAbortError());
         return;
@@ -131,8 +156,13 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
 
     child.on("close", (code) => {
       options.signal?.removeEventListener("abort", onAbort);
+      if (activityTimer) clearTimeout(activityTimer);
       if (aborted) {
         reject(createAbortError());
+        return;
+      }
+      if (timedOut) {
+        reject(createActivityTimeoutError(options.activityTimeoutMs!));
         return;
       }
       result.exitCode = code ?? 1;

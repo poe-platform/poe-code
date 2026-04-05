@@ -32,6 +32,7 @@ export {
 export { serializeOpenCodeMcpEnv } from "./configs/mcp.js";
 export {
   buildSpawnArgs,
+  isActivityTimeoutError,
   type BuildSpawnArgsOptions,
   type BuildSpawnArgsResult
 } from "./spawn.js";

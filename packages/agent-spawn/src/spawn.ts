@@ -18,6 +18,18 @@ function createAbortError(): Error {
   return error;
 }
 
+function createActivityTimeoutError(timeoutMs: number): Error {
+  const error = new Error(
+    `Agent spawn timed out after ${timeoutMs / 1000}s of inactivity`
+  );
+  error.name = "ActivityTimeoutError";
+  return error;
+}
+
+export function isActivityTimeoutError(error: unknown): boolean {
+  return error instanceof Error && error.name === "ActivityTimeoutError";
+}
+
 export interface BuildSpawnArgsOptions {
   prompt: string;
   model?: string;
@@ -157,6 +169,7 @@ export async function spawn(
     let stdout = "";
     let stderr = "";
     let aborted = false;
+    let timedOut = false;
 
     const onAbort = () => {
       aborted = true;
@@ -165,19 +178,35 @@ export async function spawn(
 
     options.signal?.addEventListener("abort", onAbort, { once: true });
 
+    let activityTimer: ReturnType<typeof setTimeout> | undefined;
+    const resetActivityTimer = options.activityTimeoutMs
+      ? () => {
+          if (activityTimer) clearTimeout(activityTimer);
+          activityTimer = setTimeout(() => {
+            timedOut = true;
+            child.kill("SIGTERM");
+          }, options.activityTimeoutMs);
+        }
+      : undefined;
+
+    resetActivityTimer?.();
+
     const cleanup = () => {
       options.signal?.removeEventListener("abort", onAbort);
+      if (activityTimer) clearTimeout(activityTimer);
     };
 
     stdoutStream.setEncoding("utf8");
     stdoutStream.on("data", (chunk) => {
       stdout += chunk;
+      resetActivityTimer?.();
       if (options.tee?.stdout) options.tee.stdout.write(chunk);
     });
 
     stderrStream.setEncoding("utf8");
     stderrStream.on("data", (chunk) => {
       stderr += chunk;
+      resetActivityTimer?.();
       if (options.tee?.stderr) options.tee.stderr.write(chunk);
     });
 
@@ -194,6 +223,10 @@ export async function spawn(
       cleanup();
       if (aborted) {
         reject(createAbortError());
+        return;
+      }
+      if (timedOut) {
+        reject(createActivityTimeoutError(options.activityTimeoutMs!));
         return;
       }
       resolve({

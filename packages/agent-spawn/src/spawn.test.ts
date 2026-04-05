@@ -362,4 +362,103 @@ describe("spawn", () => {
     const child = spawnMock.mock.results[0]?.value as any;
     expect(child.__capturedStdin()).toBe("");
   });
+
+  describe("activityTimeoutMs", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("kills process and rejects with ActivityTimeoutError after inactivity", async () => {
+      const child = createMockChildProcess({ autoClose: false });
+      const killSpy = vi.spyOn(child, "kill");
+      vi.mocked(spawnChildProcess).mockReturnValue(child);
+
+      const resultPromise = spawn("codex", {
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      const rejection = expect(resultPromise).rejects.toMatchObject({
+        name: "ActivityTimeoutError"
+      });
+
+      await vi.advanceTimersByTimeAsync(5000);
+
+      await rejection;
+      expect(killSpy).toHaveBeenCalledWith("SIGTERM");
+    });
+
+    it("resets timeout when stdout data is received", async () => {
+      const child = createMockChildProcess({ autoClose: false });
+      const streams = child as unknown as { stdout: PassThrough; stderr: PassThrough };
+      const killSpy = vi.spyOn(child, "kill");
+      vi.mocked(spawnChildProcess).mockReturnValue(child);
+
+      const resultPromise = spawn("codex", {
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      const rejection = expect(resultPromise).rejects.toMatchObject({
+        name: "ActivityTimeoutError"
+      });
+
+      // Advance 4s, send data, advance another 4s — should not timeout
+      await vi.advanceTimersByTimeAsync(4000);
+      streams.stdout.write("some output");
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(killSpy).not.toHaveBeenCalled();
+
+      // Now let it timeout
+      await vi.advanceTimersByTimeAsync(1001);
+      await rejection;
+    });
+
+    it("resets timeout when stderr data is received", async () => {
+      const child = createMockChildProcess({ autoClose: false });
+      const streams = child as unknown as { stdout: PassThrough; stderr: PassThrough };
+      const killSpy = vi.spyOn(child, "kill");
+      vi.mocked(spawnChildProcess).mockReturnValue(child);
+
+      const resultPromise = spawn("codex", {
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      const rejection = expect(resultPromise).rejects.toMatchObject({
+        name: "ActivityTimeoutError"
+      });
+
+      await vi.advanceTimersByTimeAsync(4000);
+      streams.stderr.write("progress info");
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(killSpy).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1001);
+      await rejection;
+    });
+
+    it("clears timeout when process exits normally", async () => {
+      const child = createMockChildProcess({ autoClose: false });
+      const streams = child as unknown as { stdout: PassThrough; stderr: PassThrough };
+      vi.mocked(spawnChildProcess).mockReturnValue(child);
+
+      const resultPromise = spawn("codex", {
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      // Process exits before timeout
+      streams.stdout.end();
+      streams.stderr.end();
+      child.emit("close", 0, null);
+
+      const result = await resultPromise;
+      expect(result.exitCode).toBe(0);
+    });
+  });
 });

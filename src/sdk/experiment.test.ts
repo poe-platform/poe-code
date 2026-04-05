@@ -99,7 +99,8 @@ describe("SDK experiment", () => {
       prompt: "Improve the metric",
       cwd: "/repo",
       model: "gpt-5.2",
-      mode: "yolo"
+      mode: "yolo",
+      activityTimeoutMs: 10 * 60 * 1000
     });
     expect(renderAcpStreamMock).toHaveBeenCalledWith(events);
     expect(agentResult).toEqual({

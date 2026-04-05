@@ -140,6 +140,7 @@ export function spawn(
           args: options.args,
           signal: options.signal,
           ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
+          ...(options.activityTimeoutMs ? { activityTimeoutMs: options.activityTimeoutMs } : {}),
           useStdin: false
         });
 
@@ -191,6 +192,7 @@ export function spawn(
           args: options.args,
           signal: options.signal,
           ...(options.mcpServers ? { mcpServers: options.mcpServers } : {}),
+          ...(options.activityTimeoutMs ? { activityTimeoutMs: options.activityTimeoutMs } : {}),
           useStdin: false
         });
       }

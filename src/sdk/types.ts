@@ -22,6 +22,11 @@ export interface SpawnOptions {
   interactive?: boolean;
   /** Abort signal used to terminate the spawned agent */
   signal?: AbortSignal;
+  /**
+   * Kill the spawned process after this many milliseconds of inactivity (no stdout data).
+   * Disabled when undefined.
+   */
+  activityTimeoutMs?: number;
 }
 
 /**

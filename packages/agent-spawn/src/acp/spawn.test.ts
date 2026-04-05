@@ -52,6 +52,8 @@ function createMockChildProcess(
   childStreams.stdout = stdout;
   childStreams.stderr = stderr;
   childStreams.kill = () => {
+    stdout.end();
+    stderr.end();
     child.emit("close", 1, "SIGTERM");
     return true;
   };
@@ -444,5 +446,94 @@ describe("acp/spawnStreaming", () => {
       name: "AbortError"
     });
     expect(killSpy).toHaveBeenCalledWith("SIGTERM");
+  });
+
+  describe("activityTimeoutMs", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("kills process and rejects done with ActivityTimeoutError after inactivity", async () => {
+      const mock = createMockChildProcess({ autoClose: false });
+      const killSpy = vi.spyOn(mock.child, "kill");
+      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+      const { events, done } = spawnStreaming({
+        agentId: "codex",
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      // Start consuming events (otherwise the generator never runs)
+      const eventsPromise = collect(events);
+      // Attach rejection handler before advancing timers to avoid unhandled rejection
+      const doneRejection = expect(done).rejects.toMatchObject({
+        name: "ActivityTimeoutError"
+      });
+
+      await vi.advanceTimersByTimeAsync(5000);
+
+      await doneRejection;
+      expect(killSpy).toHaveBeenCalledWith("SIGTERM");
+      // Events should complete (empty since no output was sent)
+      await expect(eventsPromise).resolves.toEqual([]);
+    });
+
+    it("resets timeout when stdout data is received", async () => {
+      const mock = createMockChildProcess({ autoClose: false });
+      const killSpy = vi.spyOn(mock.child, "kill");
+      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+      const { events, done } = spawnStreaming({
+        agentId: "codex",
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      const eventsPromise = collect(events);
+      // Attach rejection handler early to avoid unhandled rejection
+      const doneRejection = expect(done).rejects.toMatchObject({
+        name: "ActivityTimeoutError"
+      });
+
+      // Advance 4s, send data, advance another 4s — should not timeout
+      await vi.advanceTimersByTimeAsync(4000);
+      mock.child.stdout.write(
+        JSON.stringify({ type: "thread.started", thread_id: "t1" }) + "\n"
+      );
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(killSpy).not.toHaveBeenCalled();
+
+      // Now let it timeout
+      await vi.advanceTimersByTimeAsync(1001);
+      await doneRejection;
+      const collected = await eventsPromise;
+      expect(collected).toEqual([{ event: "session_start", threadId: "t1" }]);
+    });
+
+    it("clears timeout when process exits normally", async () => {
+      const mock = createMockChildProcess({ autoClose: false });
+      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+      const { events, done } = spawnStreaming({
+        agentId: "codex",
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      const eventsPromise = collect(events);
+
+      mock.child.stdout.end();
+      mock.child.stderr.end();
+      mock.child.emit("close", 0, null);
+
+      const result = await done;
+      expect(result.exitCode).toBe(0);
+      await eventsPromise;
+    });
   });
 });

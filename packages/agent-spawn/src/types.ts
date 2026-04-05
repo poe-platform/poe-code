@@ -24,6 +24,11 @@ export interface SpawnOptions {
     stdout?: { write(chunk: string): void };
     stderr?: { write(chunk: string): void };
   };
+  /**
+   * Kill the spawned process after this many milliseconds of inactivity (no stdout data).
+   * Resets on every chunk of stdout/stderr received. Disabled when undefined.
+   */
+  activityTimeoutMs?: number;
 }
 
 export interface SpawnUsage {

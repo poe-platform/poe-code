@@ -256,7 +256,11 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
 
   const done = (async (): Promise<SpawnResult> => {
     try {
-      await client.initialize();
+      const initResult = await client.initialize();
+
+      if (initResult.authMethods && initResult.authMethods.length > 0 && client.state !== "ready") {
+        await client.authenticate(initResult.authMethods[0].id);
+      }
 
       const session = await client.newSession(options.cwd ?? process.cwd(), []);
       sessionId = session.sessionId;

@@ -157,7 +157,6 @@ Automatically accept defaults
 
 ## Other recommendations
 
-- For cli args parsing use `commander` package, don't roll your own
 - When changing the visual language / design languge, make sure to run `npm run generate:design-docs`
 
 ## Figure it out

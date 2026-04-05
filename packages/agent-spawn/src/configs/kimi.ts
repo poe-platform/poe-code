@@ -1,4 +1,4 @@
-import type { CliSpawnConfig } from "../types.js";
+import type { AcpSpawnConfig, CliSpawnConfig } from "../types.js";
 import { serializeJsonMcpArgs } from "./mcp.js";
 
 export const kimiSpawnConfig: CliSpawnConfig = {
@@ -26,4 +26,11 @@ export const kimiSpawnConfig: CliSpawnConfig = {
     promptFlag: "-p"
   },
   resumeCommand: (threadId, cwd) => ["--session", threadId, "--work-dir", cwd]
+};
+
+export const kimiAcpSpawnConfig: AcpSpawnConfig = {
+  kind: "acp",
+  agentId: "kimi",
+  acpArgs: ["acp"],
+  skipAuth: true,
 };

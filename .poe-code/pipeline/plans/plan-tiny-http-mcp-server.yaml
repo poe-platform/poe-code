@@ -241,9 +241,9 @@ tasks:
 
       See plan doc sections 4.5, 4.8, and 6.2 for full details.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: implement-express-middleware

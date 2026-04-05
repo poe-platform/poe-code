@@ -81,6 +81,15 @@ export const kimiService = createProvider<
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.kimi" }),
+      fileMutation.ensureDirectory({ path: "~/.kimi/credentials" }),
+      configMutation.merge({
+        target: "~/.kimi/credentials/kimi-code.json",
+        value: () => ({
+          access_token: "poe-managed",
+          token_type: "Bearer",
+          expires_at: Math.floor(Date.now() / 1000) + 86400 * 365 * 10
+        })
+      }),
       configMutation.merge({
         target: "~/.kimi/config.toml",
         pruneByPrefix: { models: `${PROVIDER_NAME}/` },

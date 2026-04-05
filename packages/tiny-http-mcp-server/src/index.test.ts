@@ -1,20 +1,27 @@
 import { describe, expect, it } from "vitest";
 import {
-  createHttpHandler,
   createHttpServer,
   createServer,
-  HttpTransportNotImplementedError,
 } from "./index.js";
-import { createTestPair } from "./testing.js";
+import {
+  createHttpTestPair,
+  createHttpTestPairWithTinyClient,
+  createTestMcpServer,
+} from "./testing.js";
 
 describe("tiny-http-mcp-server", () => {
   it("re-exports stdio server helpers", () => {
     expect(createServer).toBeTypeOf("function");
-    expect(createTestPair).toBeTypeOf("function");
+    expect(createTestMcpServer).toBeTypeOf("function");
+    expect(createHttpTestPair).toBeTypeOf("function");
+    expect(createHttpTestPairWithTinyClient).toBeTypeOf("function");
   });
 
-  it("exposes placeholder HTTP helpers", () => {
-    expect(() => createHttpHandler()).toThrow(HttpTransportNotImplementedError);
-    expect(() => createHttpServer()).toThrow("HTTP transport is not implemented yet.");
+  it("creates an HTTP server with the runtime helpers attached", () => {
+    const server = createHttpServer({ name: "test-server", version: "1.0.0" });
+
+    expect(server.tool).toBeTypeOf("function");
+    expect(server.listenHttp).toBeTypeOf("function");
+    expect(server.handleRequest).toBeTypeOf("function");
   });
 });

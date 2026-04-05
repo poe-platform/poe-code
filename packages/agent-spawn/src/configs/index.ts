@@ -3,7 +3,7 @@ import type { AcpSpawnConfig, SpawnConfig } from "../types.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { codexSpawnConfig } from "./codex.js";
 import { openCodeSpawnConfig, openCodeAcpSpawnConfig } from "./opencode.js";
-import { kimiSpawnConfig } from "./kimi.js";
+import { kimiSpawnConfig, kimiAcpSpawnConfig } from "./kimi.js";
 
 // ACP adapter support (spawn streaming):
 // - Supported (has `adapter`): claude-code, codex, opencode, kimi
@@ -22,6 +22,7 @@ for (const config of allSpawnConfigs) {
 
 const acpLookup = new Map<string, AcpSpawnConfig>();
 acpLookup.set(openCodeAcpSpawnConfig.agentId, openCodeAcpSpawnConfig);
+acpLookup.set(kimiAcpSpawnConfig.agentId, kimiAcpSpawnConfig);
 
 export function getSpawnConfig(input: string): SpawnConfig | undefined {
   const resolvedId = resolveAgentId(input);

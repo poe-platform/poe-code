@@ -5,10 +5,17 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "terminal-pilot": "dist/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
     },
     "./commands": {
       "types": "./dist/commands/index.d.ts",
@@ -41,6 +48,7 @@
   ],
   "dependencies": {
     "@poe-code/cmdkit": "*",
+    "@poe-code/cmdkit-schema": "*",
     "node-pty": "^1.1.0"
   },
   "devDependencies": {}

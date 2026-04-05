@@ -63,7 +63,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: terminal-pilot-cli-entry
     title: Add CLI entry point using runCLI
@@ -83,9 +83,9 @@ tasks:
       6. The CLI supports `--output json` (or `--json`) for JSON output — this is handled by cmdkit's output format system
       7. Verify the CLI works: `npx terminal-pilot --help`, `npx terminal-pilot create-session --help`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: terminal-pilot-mcp-rewrite

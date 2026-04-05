@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+import { realpath } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { runCLI } from "@poe-code/cmdkit/cli";
+import { terminalPilotGroup } from "./commands/index.js";
+
+function normalizeArgv(argv: string[]): string[] {
+  if (
+    argv.includes("--json") &&
+    !argv.some((argument) => argument === "--output" || argument.startsWith("--output="))
+  ) {
+    return argv.flatMap((argument) => argument === "--json" ? ["--output", "json"] : [argument]);
+  }
+
+  return argv;
+}
+
+export async function main(argv: string[] = process.argv): Promise<void> {
+  const originalArgv = process.argv;
+  process.argv = normalizeArgv(argv);
+
+  try {
+    await runCLI(terminalPilotGroup);
+  } finally {
+    process.argv = originalArgv;
+  }
+}
+
+async function isDirectExecution(argv: string[]): Promise<boolean> {
+  const entryPoint = argv[1];
+
+  if (typeof entryPoint !== "string" || entryPoint.length === 0) {
+    return false;
+  }
+
+  try {
+    const modulePath = fileURLToPath(import.meta.url);
+    const [resolvedEntryPoint, resolvedModulePath] = await Promise.all([
+      realpath(path.resolve(entryPoint)),
+      realpath(modulePath)
+    ]);
+
+    return resolvedEntryPoint === resolvedModulePath;
+  } catch {
+    return false;
+  }
+}
+
+if (await isDirectExecution(process.argv)) {
+  await main();
+}

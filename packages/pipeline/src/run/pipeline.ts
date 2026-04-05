@@ -272,6 +272,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       if (selection.kind === "completed") {
         if (runsCompleted > 0) {
+          await archivePlan(fs, absolutePlanPath);
           if (resolvedTeardown) {
             const { success, cancelled } = await runPhase(resolvedTeardown, "teardown", initialTotalTasks, planVars, plan.mcp);
             if (cancelled || !success) {
@@ -284,7 +285,6 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
               };
             }
           }
-          await archivePlan(fs, absolutePlanPath);
         }
         return {
           stopReason: runsCompleted === 0 ? "nothing_to_run" : "completed",

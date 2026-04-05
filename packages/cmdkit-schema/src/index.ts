@@ -28,12 +28,14 @@ type InferObject<TShape extends ObjectShape> = {
 type SchemaOptions<TDefault> = {
   description?: string;
   default?: TDefault;
+  short?: string;
 };
 
 interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly kind: TKind;
   readonly description?: string;
   readonly default?: TStatic;
+  readonly short?: string;
   readonly __static?: TStatic;
 }
 

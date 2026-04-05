@@ -1093,6 +1093,77 @@ describe("runCLI", () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it("accepts short option flags defined on params", async () => {
+    const handler = vi.fn(async ({ params }: { params: { session?: string; literal?: boolean } }) => params);
+
+    const waitFor = defineCommand({
+      name: "wait-for",
+      params: S.Object({
+        session: S.Optional(
+          S.String({
+            short: "s",
+          })
+        ),
+        literal: S.Optional(
+          S.Boolean({
+            short: "l",
+          })
+        ),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [waitFor],
+    });
+
+    process.argv = ["node", "cmdkit", "wait-for", "-s", "tests", "-l", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          session: "tests",
+          literal: true,
+        },
+      })
+    );
+  });
+
+  it("accepts a trailing positional array", async () => {
+    const handler = vi.fn(async ({ params }: { params: { command: string; args?: string[] } }) => params);
+
+    const createSession = defineCommand({
+      name: "create-session",
+      positional: ["command", "args"],
+      params: S.Object({
+        command: S.String(),
+        args: S.Optional(S.Array(S.String())),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [createSession],
+    });
+
+    process.argv = ["node", "cmdkit", "create-session", "npm", "test", "--", "--runInBand"];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          command: "npm",
+          args: ["test", "--runInBand"],
+        },
+      })
+    );
+  });
+
   it("mounts multiple groups as top-level CLI commands", async () => {
     const deployHandler = vi.fn(async ({ params }: { params: { name: string } }) => params);
 

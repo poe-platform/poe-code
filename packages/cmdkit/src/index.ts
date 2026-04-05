@@ -171,7 +171,7 @@ export type CommandNode<TServices extends object = EmptyServices> =
   | Command<TServices, any, any, any>
   | Group<TServices>;
 
-interface CommandTypeInfo<
+export interface CommandTypeInfo<
   TName extends string = string,
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TResult = unknown,
@@ -183,7 +183,7 @@ interface CommandTypeInfo<
   ownScope: TOwnScope;
 }
 
-interface GroupTypeInfo<
+export interface GroupTypeInfo<
   TServices extends object = EmptyServices,
   TName extends string = string,
   TChildren extends readonly unknown[] = readonly CommandNode<TServices>[],
@@ -765,4 +765,5 @@ export function getCommandSourcePath(command: Command<any, any, any, any>): stri
   ];
 }
 
+export { S, toJsonSchema } from "@poe-code/cmdkit-schema";
 export type { AnySchema, ArraySchema, BooleanSchema, EnumSchema, JsonSchema, NumberSchema, ObjectSchema, OptionalSchema, Static, StringSchema } from "@poe-code/cmdkit-schema";

@@ -1,0 +1,203 @@
+import { UserError } from "@poe-code/cmdkit";
+import type { HandlerEnv } from "@poe-code/cmdkit";
+import { TerminalPilot, type NewSessionOptions } from "../terminal-pilot.js";
+import type { TerminalSession } from "../terminal-session.js";
+
+export const SESSION_ENV_VAR = "TERMINAL_PILOT_SESSION";
+
+type SessionLike = Pick<
+  TerminalSession,
+  | "id"
+  | "command"
+  | "pid"
+  | "exitCode"
+  | "fill"
+  | "type"
+  | "press"
+  | "signal"
+  | "waitFor"
+  | "waitForExit"
+  | "screen"
+  | "history"
+  | "resize"
+  | "close"
+>;
+
+type PilotLike = Pick<TerminalPilot, "newSession" | "getSession" | "deleteSession" | "sessions">;
+
+type NamedSession = {
+  name: string;
+  session: SessionLike;
+};
+
+type CreateSessionParams = NewSessionOptions & {
+  session?: string;
+};
+
+export interface TerminalPilotRuntime {
+  createSession(params: CreateSessionParams, env?: HandlerEnv): Promise<NamedSession>;
+  resolveSession(name: string | undefined, env?: HandlerEnv): Promise<NamedSession>;
+  closeSession(name: string | undefined, env?: HandlerEnv): Promise<{ exitCode: number; name: string }>;
+  listSessions(): Promise<NamedSession[]>;
+}
+
+export interface TerminalPilotCommandServices {
+  terminalPilotRuntime?: TerminalPilotRuntime;
+}
+
+interface CreateTerminalPilotRuntimeOptions {
+  launchPilot?: () => Promise<PilotLike>;
+}
+
+let sharedRuntime: TerminalPilotRuntime | undefined;
+
+export function getTerminalPilotRuntime(
+  runtime: TerminalPilotRuntime | undefined
+): TerminalPilotRuntime {
+  if (runtime !== undefined) {
+    return runtime;
+  }
+
+  sharedRuntime ??= createTerminalPilotRuntime();
+  return sharedRuntime;
+}
+
+export function createTerminalPilotRuntime(
+  options: CreateTerminalPilotRuntimeOptions = {}
+): TerminalPilotRuntime {
+  const launchPilot = options.launchPilot ?? TerminalPilot.launch;
+  const nameToId = new Map<string, string>();
+  const idToName = new Map<string, string>();
+  let pilotPromise: Promise<PilotLike> | undefined;
+
+  function getRequestedName(name: string | undefined, env?: HandlerEnv): string | undefined {
+    return name ?? env?.get(SESSION_ENV_VAR);
+  }
+
+  async function getPilot(): Promise<PilotLike> {
+    pilotPromise ??= launchPilot();
+    return pilotPromise;
+  }
+
+  function nextSessionName(): string {
+    let index = 1;
+
+    while (nameToId.has(`s${index}`)) {
+      index += 1;
+    }
+
+    return `s${index}`;
+  }
+
+  function rememberSession(name: string, session: SessionLike): NamedSession {
+    nameToId.set(name, session.id);
+    idToName.set(session.id, name);
+    return { name, session };
+  }
+
+  function forgetSession(name: string, sessionId: string): void {
+    nameToId.delete(name);
+    idToName.delete(sessionId);
+  }
+
+  function formatAvailableSessions(names: string[]): string {
+    if (names.length === 0) {
+      return "No active sessions are available.";
+    }
+
+    return `Available sessions: ${names.join(", ")}.`;
+  }
+
+  async function lookupNamedSession(name: string): Promise<NamedSession> {
+    const sessionId = nameToId.get(name);
+
+    if (sessionId === undefined) {
+      const active = await listSessions();
+      throw new UserError(`Session "${name}" was not found. ${formatAvailableSessions(active.map((entry) => entry.name))}`);
+    }
+
+    const pilot = await getPilot();
+
+    try {
+      return { name, session: pilot.getSession(sessionId) };
+    } catch {
+      forgetSession(name, sessionId);
+      const active = await listSessions();
+      throw new UserError(`Session "${name}" was not found. ${formatAvailableSessions(active.map((entry) => entry.name))}`);
+    }
+  }
+
+  async function listSessions(): Promise<NamedSession[]> {
+    const pilot = await getPilot();
+
+    return pilot.sessions().flatMap((session) => {
+      const name = idToName.get(session.id);
+
+      if (name === undefined) {
+        return [];
+      }
+
+      return [{ name, session }];
+    });
+  }
+
+  return {
+    async createSession(params: CreateSessionParams, env?: HandlerEnv): Promise<NamedSession> {
+      const requestedName = getRequestedName(params.session, env) ?? nextSessionName();
+
+      if (nameToId.has(requestedName)) {
+        throw new UserError(`Session "${requestedName}" already exists.`);
+      }
+
+      const pilot = await getPilot();
+      const session = await pilot.newSession({
+        command: params.command,
+        args: params.args,
+        cwd: params.cwd,
+        cols: params.cols,
+        rows: params.rows,
+        observe: params.observe
+      });
+
+      return rememberSession(requestedName, session);
+    },
+
+    async resolveSession(name: string | undefined, env?: HandlerEnv): Promise<NamedSession> {
+      const requestedName = getRequestedName(name, env);
+
+      if (requestedName !== undefined) {
+        return lookupNamedSession(requestedName);
+      }
+
+      const active = await listSessions();
+
+      if (active.length === 1) {
+        return active[0] as NamedSession;
+      }
+
+      if (active.length === 0) {
+        throw new UserError("No active sessions. Create one with create-session.");
+      }
+
+      throw new UserError(
+        `Multiple active sessions require an explicit session name. Pass --session or set ${SESSION_ENV_VAR}. ${formatAvailableSessions(active.map((entry) => entry.name))}`
+      );
+    },
+
+    async closeSession(name: string | undefined, env?: HandlerEnv): Promise<{ exitCode: number; name: string }> {
+      const namedSession = await this.resolveSession(name, env);
+      const exitCode = await namedSession.session.close();
+      const pilot = await getPilot();
+
+      pilot.deleteSession(namedSession.session.id);
+      forgetSession(namedSession.name, namedSession.session.id);
+
+      return {
+        exitCode,
+        name: namedSession.name
+      };
+    },
+
+    listSessions
+  };
+}

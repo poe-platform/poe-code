@@ -1,6 +1,7 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Command as CommanderCommand, CommanderError, InvalidArgumentError, Option } from "commander";
+import type { AnySchema, ArraySchema, ObjectSchema } from "@poe-code/cmdkit-schema";
 import {
   cancel,
   confirm,
@@ -16,15 +17,12 @@ import {
   text,
 } from "@poe-code/design-system";
 import type {
-  AnySchema,
-  ArraySchema,
   Command,
   CommandRequirementOptions,
   Group,
   HandlerContext,
   HandlerEnv,
   HandlerFs,
-  ObjectSchema,
   SecretDeclarations,
   SecretDefinition,
   Scope,
@@ -52,18 +50,20 @@ interface FieldDefinition {
   displayPath: string;
   optionAttribute: string;
   optionFlag: string;
+  shortFlag?: string;
   schema: FieldSchema;
   description?: string;
   optional: boolean;
   hasDefault: boolean;
   defaultValue: unknown;
   positionalIndex?: number;
+  variadicPosition?: boolean;
 }
 
 interface ExecutionState<TServices extends object> {
   command: Command<TServices, any, any, any>;
   fields: FieldDefinition[];
-  positionalValues: string[];
+  positionalValues: unknown[];
   actionCommand: CommanderCommand;
 }
 
@@ -253,6 +253,7 @@ function collectFields(
       displayPath: toDisplayPath(nextPath),
       optionAttribute: toOptionAttribute(nextPath, casing),
       optionFlag: toOptionFlag(nextPath, casing),
+      shortFlag: childSchema.short,
       schema: childSchema as FieldSchema,
       description: childSchema.description,
       optional,
@@ -270,6 +271,7 @@ function assignPositionals(fields: FieldDefinition[], positional: string[]): Fie
   }
 
   const byPath = new Map(fields.map((field) => [field.displayPath, field]));
+  let variadicPositionSeen = false;
 
   positional.forEach((name, index) => {
     const field = byPath.get(name);
@@ -279,13 +281,38 @@ function assignPositionals(fields: FieldDefinition[], positional: string[]): Fie
     }
 
     if (field.schema.kind === "array") {
-      throw new UserError(`Positional parameter "${name}" cannot be an array.`);
+      if (index !== positional.length - 1) {
+        throw new UserError(`Positional array parameter "${name}" must be the last positional.`);
+      }
+
+      variadicPositionSeen = true;
+    }
+
+    if (variadicPositionSeen && field.schema.kind !== "array") {
+      throw new UserError(`Positional parameter "${name}" cannot appear after a positional array.`);
     }
 
     field.positionalIndex = index;
+    field.variadicPosition = field.schema.kind === "array";
   });
 
   return fields;
+}
+
+function formatOptionFlags(field: FieldDefinition): string {
+  if (field.shortFlag === undefined) {
+    return field.optionFlag;
+  }
+
+  return `-${field.shortFlag}, ${field.optionFlag}`;
+}
+
+function formatPositionalToken(field: FieldDefinition): string {
+  if (field.variadicPosition === true) {
+    return field.optional ? `[${field.displayPath}...]` : `<${field.displayPath}...>`;
+  }
+
+  return field.optional ? `[${field.displayPath}]` : `<${field.displayPath}>`;
 }
 
 function parseBooleanText(value: string, label: string): boolean {
@@ -376,16 +403,18 @@ function parseArrayValue(value: string, schema: ArraySchema<any>, label: string)
 }
 
 function createOption(field: FieldDefinition): Option[] {
+  const flags = formatOptionFlags(field);
+
   if (field.schema.kind === "boolean") {
     return [
-      new Option(field.optionFlag, field.description),
+      new Option(flags, field.description),
       new Option(`--no-${field.optionFlag.slice(2)}`, field.description),
     ];
   }
 
   if (field.schema.kind === "array") {
     return [
-      new Option(`${field.optionFlag} <value...>`, field.description).argParser(
+      new Option(`${flags} <value...>`, field.description).argParser(
         (value: string, previous: unknown[] = []) => [
           ...previous,
           ...parseArrayValue(value, field.schema as ArraySchema<any>, field.displayPath),
@@ -394,7 +423,7 @@ function createOption(field: FieldDefinition): Option[] {
     ];
   }
 
-  const option = new Option(`${field.optionFlag} <value>`, field.description);
+  const option = new Option(`${flags} <value>`, field.description);
 
   if (field.schema.kind === "enum" && field.schema.values.every((value) => typeof value === "string")) {
     option.choices([...field.schema.values] as string[]);
@@ -516,14 +545,14 @@ function describeSchemaType(schema: FieldSchema): string {
 
 function formatHelpFieldFlags(field: FieldDefinition): string {
   if (field.positionalIndex !== undefined) {
-    return `<${field.displayPath}>`;
+    return formatPositionalToken(field);
   }
 
   if (field.schema.kind === "boolean") {
-    return field.optionFlag;
+    return formatOptionFlags(field);
   }
 
-  return `${field.optionFlag} <${describeSchemaType(field.schema)}>`;
+  return `${formatOptionFlags(field)} <${describeSchemaType(field.schema)}>`;
 }
 
 function appendHelpMetadata(description: string, metadata: string[]): string {
@@ -730,7 +759,7 @@ function createNodeCommand<TServices extends object>(
 
     for (const field of fields) {
       if (field.positionalIndex !== undefined) {
-        command.argument(`[${field.displayPath}]`);
+        command.argument(formatPositionalToken(field));
         continue;
       }
 
@@ -741,7 +770,7 @@ function createNodeCommand<TServices extends object>(
 
     command.action(async (...args: unknown[]) => {
       const actionCommand = args[args.length - 1] as CommanderCommand;
-      const positionalValues = args.slice(0, -2).filter((value) => typeof value === "string") as string[];
+      const positionalValues = args.slice(0, -2);
 
       await execute({
         command: node,
@@ -1516,7 +1545,7 @@ function validateServices(services: Record<string, unknown>): void {
 
 async function resolveParams(
   fields: FieldDefinition[],
-  positionalValues: string[],
+  positionalValues: unknown[],
   optionValues: Record<string, unknown>,
   presetPath: string | undefined,
   shouldPrompt: boolean
@@ -1532,7 +1561,20 @@ async function resolveParams(
 
     if (field.positionalIndex !== undefined) {
       const positionalValue = positionalValues[field.positionalIndex];
-      if (typeof positionalValue === "string" && positionalValue.length > 0) {
+
+      if (field.schema.kind === "array") {
+        if (Array.isArray(positionalValue) && positionalValue.length > 0) {
+          const itemSchema = unwrapOptional(field.schema.item);
+
+          if (itemSchema.kind === "array" || itemSchema.kind === "object") {
+            throw new UserError(`Array parameter "${field.displayPath}" must use scalar items.`);
+          }
+
+          value = positionalValue.map((item) =>
+            parseScalarValue(String(item), itemSchema as ScalarSchema, field.displayPath)
+          );
+        }
+      } else if (typeof positionalValue === "string" && positionalValue.length > 0) {
         value = parseScalarValue(positionalValue, field.schema as ScalarSchema, field.displayPath);
       }
     }

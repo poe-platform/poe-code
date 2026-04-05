@@ -9,10 +9,16 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./commands": {
+      "types": "./dist/commands/index.d.ts",
+      "import": "./dist/commands/index.js"
     }
   },
   "scripts": {
     "build": "tsc",
+    "test": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
+    "test:unit": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "prepublishOnly": "tsc",
     "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-*.tgz && rm -rf $TMPD"
   },
@@ -34,6 +40,7 @@
     "headless"
   ],
   "dependencies": {
+    "@poe-code/cmdkit": "*",
     "node-pty": "^1.1.0"
   },
   "devDependencies": {}

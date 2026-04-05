@@ -129,6 +129,7 @@ interface AcpClientSharedOptions {
   permissionHandler?: AcpClientPermissionHandler;
   fsHandler?: AcpClientFsHandler;
   terminalHandler?: AcpClientTerminalHandler;
+  skipAuth?: boolean;
 }
 
 export interface AcpClientProcessOptions extends AcpClientSharedOptions {
@@ -282,6 +283,7 @@ export class AcpClient {
   private readonly clientProtocolVersion: ProtocolVersion;
   private clientCapabilities?: ClientCapabilities;
   private readonly clientInfo?: Implementation | null;
+  private readonly skipAuth: boolean;
   private readonly permissionHandler?: AcpClientPermissionHandler;
   private readonly fsHandler?: AcpClientFsHandler;
   private readonly terminalHandler?: AcpClientTerminalHandler;
@@ -316,6 +318,7 @@ export class AcpClient {
     this.clientProtocolVersion = options.protocolVersion ?? 1;
     this.clientCapabilities = options.clientCapabilities;
     this.clientInfo = options.clientInfo;
+    this.skipAuth = options.skipAuth ?? false;
     this.permissionHandler = options.handlers?.permission ?? options.permissionHandler;
     this.fsHandler = options.handlers?.fs ?? options.fsHandler;
     this.terminalHandler = options.handlers?.terminal ?? options.terminalHandler;
@@ -394,7 +397,8 @@ export class AcpClient {
     this.negotiatedAgentInfo = response.agentInfo;
     this.availableAuthMethods = response.authMethods ? [...response.authMethods] : [];
 
-    this.lifecycleState = this.availableAuthMethods.length > 0 ? "initialized" : "ready";
+    const requiresAuth = this.availableAuthMethods.length > 0 && !this.skipAuth;
+    this.lifecycleState = requiresAuth ? "initialized" : "ready";
 
     return {
       protocolVersion: negotiatedProtocolVersion,

@@ -312,6 +312,24 @@ describe("AcpClient", () => {
     expect(sendRequestMock).toHaveBeenCalledTimes(1);
   });
 
+  it("skips auth enforcement when skipAuth is true", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock
+      .mockResolvedValueOnce({
+        protocolVersion: 1,
+        authMethods: [{ id: "oauth", name: "OAuth" }],
+      } satisfies InitializeResponse)
+      .mockResolvedValueOnce({ sessionId: "session-1" });
+
+    const client = new AcpClient({ transport, protocolVersion: 1, skipAuth: true });
+
+    await client.initialize();
+
+    expect(client.state).toBe("ready");
+    expect(client.authMethods).toEqual([{ id: "oauth", name: "OAuth" }]);
+    expect(() => client.assertReady("session/new")).not.toThrow();
+  });
+
   it("enforces lifecycle state violations", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     sendRequestMock

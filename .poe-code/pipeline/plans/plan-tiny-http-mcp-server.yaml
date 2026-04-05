@@ -46,7 +46,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: refactor-stdio-on-notification
     title: Add onNotification pub/sub to tiny-stdio-mcp-server Server
@@ -72,9 +72,9 @@ tasks:
       - R16: notification has correct JSON-RPC shape `{ jsonrpc: "2.0", method: "notifications/tools/list_changed" }`
       - R17: unsubscribe is idempotent (calling twice doesn't throw)
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: scaffold-http-package

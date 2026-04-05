@@ -20,7 +20,16 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
   workspacePackageNames.add(pkg.name);
   // Resolve workspace packages to source (Just-in-Time compilation)
-  workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src");
+  workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src/index.ts");
+  // Resolve sub-path exports (e.g. "@poe-code/cmdkit/cli" → "packages/cmdkit/src/cli.ts")
+  if (pkg.exports && typeof pkg.exports === "object") {
+    for (const subpath of Object.keys(pkg.exports)) {
+      if (subpath === ".") continue;
+      const clean = subpath.replace(/^\.\//, "");
+      const srcFile = path.join(packagesDir, dir.name, "src", `${clean}.ts`);
+      workspaceAliases[`${pkg.name}/${clean}`] = srcFile;
+    }
+  }
   // Collect workspace package dependencies for externalization
   for (const dep of Object.keys(pkg.dependencies || {})) {
     workspaceDeps.add(dep);

@@ -33,6 +33,9 @@ export interface Server {
     inputSchema: TypedSchema<T>,
     handler: ToolHandler<T>
   ): Server;
+  onNotification(
+    listener: (notification: JSONRPCNotification) => void
+  ): () => void;
   removeTool(name: string): boolean;
   notifyToolsChanged(): Promise<void>;
   handleMessage(
@@ -46,9 +49,10 @@ export interface Server {
 
 export function createServer(options: ServerOptions): Server {
   const tools = new Map<string, ToolDefinition>();
+  const notificationListeners = new Set<
+    (notification: JSONRPCNotification) => void
+  >();
   let initialized = false;
-  let activeTransport: Transport | null = null;
-  let activeSDKTransport: SDKTransport | null = null;
 
   const handleMessage = async (
     method: string,
@@ -182,16 +186,14 @@ export function createServer(options: ServerOptions): Server {
     }
   };
 
-  const sendNotification = async (method: string): Promise<void> => {
+  const broadcastNotification = (method: string): void => {
     const notification: JSONRPCNotification = {
       jsonrpc: "2.0",
       method,
     };
 
-    if (activeSDKTransport) {
-      await activeSDKTransport.send(notification);
-    } else if (activeTransport) {
-      activeTransport.writable.write(JSON.stringify(notification) + "\n");
+    for (const listener of notificationListeners) {
+      listener(notification);
     }
   };
 
@@ -211,13 +213,22 @@ export function createServer(options: ServerOptions): Server {
       return server;
     },
 
+    onNotification(
+      listener: (notification: JSONRPCNotification) => void
+    ): () => void {
+      notificationListeners.add(listener);
+      return () => {
+        notificationListeners.delete(listener);
+      };
+    },
+
     removeTool(name: string): boolean {
       return tools.delete(name);
     },
 
     async notifyToolsChanged(): Promise<void> {
       if (initialized) {
-        await sendNotification("notifications/tools/list_changed");
+        broadcastNotification("notifications/tools/list_changed");
       }
     },
 
@@ -231,10 +242,10 @@ export function createServer(options: ServerOptions): Server {
     },
 
     async connect(transport: Transport): Promise<void> {
-      activeTransport = transport;
-      activeSDKTransport = null;
-
       return new Promise((resolve) => {
+        const unsubscribe = server.onNotification((notification) => {
+          transport.writable.write(`${JSON.stringify(notification)}\n`);
+        });
         const rl = readline.createInterface({
           input: transport.readable,
           crlfDelay: Infinity,
@@ -245,17 +256,18 @@ export function createServer(options: ServerOptions): Server {
         });
 
         rl.on("close", () => {
-          activeTransport = null;
+          unsubscribe();
           resolve();
         });
       });
     },
 
     async connectSDK(transport: SDKTransport): Promise<void> {
-      activeSDKTransport = transport;
-      activeTransport = null;
-
       return new Promise<void>((resolve) => {
+        const unsubscribe = server.onNotification((notification) => {
+          void transport.send(notification);
+        });
+
         transport.onmessage = async (message: JSONRPCMessage) => {
           // Ignore responses (we only handle requests/notifications)
           if (!("method" in message)) {
@@ -292,7 +304,7 @@ export function createServer(options: ServerOptions): Server {
         };
 
         transport.onclose = () => {
-          activeSDKTransport = null;
+          unsubscribe();
           resolve();
         };
 

@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Readable, Writable } from "stream";
 import { createServer } from "./server.js";
+import type { JSONRPCNotification } from "./types.js";
 import { defineSchema } from "./schema.js";
 import { Image } from "./content/image.js";
 import { Audio } from "./content/audio.js";
@@ -280,6 +281,120 @@ describe("createServer", () => {
       expect(parsed.jsonrpc).toBe("2.0");
       expect(parsed.method).toBe("notifications/tools/list_changed");
       expect(parsed.id).toBeUndefined();
+    });
+  });
+
+  describe("onNotification", () => {
+    it("R11: listener receives notifications/tools/list_changed after notifyToolsChanged()", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+      const notifications: JSONRPCNotification[] = [];
+
+      server.onNotification((notification) => {
+        notifications.push(notification);
+      });
+
+      await server.handleMessage("initialize", {});
+      await server.notifyToolsChanged();
+
+      expect(notifications).toEqual([
+        {
+          jsonrpc: "2.0",
+          method: "notifications/tools/list_changed",
+        },
+      ]);
+    });
+
+    it("R12: multiple listeners all receive notification", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+      const first: JSONRPCNotification[] = [];
+      const second: JSONRPCNotification[] = [];
+
+      server.onNotification((notification) => {
+        first.push(notification);
+      });
+      server.onNotification((notification) => {
+        second.push(notification);
+      });
+
+      await server.handleMessage("initialize", {});
+      await server.notifyToolsChanged();
+
+      expect(first).toHaveLength(1);
+      expect(second).toHaveLength(1);
+      expect(first[0]).toEqual(second[0]);
+    });
+
+    it("R13: unsubscribe prevents further notifications", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+      const notifications: JSONRPCNotification[] = [];
+      const unsubscribe = server.onNotification((notification) => {
+        notifications.push(notification);
+      });
+
+      await server.handleMessage("initialize", {});
+      await server.notifyToolsChanged();
+
+      unsubscribe();
+      await server.notifyToolsChanged();
+
+      expect(notifications).toHaveLength(1);
+    });
+
+    it("R14: notifyToolsChanged() before initialize is silent", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+      const listener = vi.fn();
+
+      server.onNotification(listener);
+
+      await server.notifyToolsChanged();
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("R15: listener added after initialize receives future notifications", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+      const notifications: JSONRPCNotification[] = [];
+
+      await server.handleMessage("initialize", {});
+
+      server.onNotification((notification) => {
+        notifications.push(notification);
+      });
+
+      await server.notifyToolsChanged();
+
+      expect(notifications).toEqual([
+        {
+          jsonrpc: "2.0",
+          method: "notifications/tools/list_changed",
+        },
+      ]);
+    });
+
+    it("R16: notification has correct JSON-RPC shape", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+      const notifications: JSONRPCNotification[] = [];
+
+      server.onNotification((notification) => {
+        notifications.push(notification);
+      });
+
+      await server.handleMessage("initialize", {});
+      await server.notifyToolsChanged();
+
+      expect(notifications[0]).toEqual({
+        jsonrpc: "2.0",
+        method: "notifications/tools/list_changed",
+      });
+    });
+
+    it("R17: unsubscribe is idempotent", () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+      const unsubscribe = server.onNotification(() => undefined);
+
+      unsubscribe();
+
+      expect(() => unsubscribe()).not.toThrow();
     });
   });
 });

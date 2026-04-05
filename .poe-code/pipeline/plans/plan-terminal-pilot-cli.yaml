@@ -185,7 +185,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: installer-command
     title: Add terminal-pilot install/uninstall commands
@@ -216,7 +216,7 @@ tasks:
 
       Follow the same patterns as existing `poe-code pipeline install` and `poe-code experiment install` commands for the actual skill/MCP registration logic.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

@@ -7,6 +7,7 @@ import {
   createSession,
   fill,
   getSession,
+  install,
   listSessions,
   pressKey,
   readHistory,
@@ -16,6 +17,7 @@ import {
   sendSignal,
   terminalPilotGroup,
   type as typeCommand,
+  uninstall,
   waitFor,
   waitForExit
 } from "./index.js";
@@ -152,6 +154,8 @@ describe("terminal-pilot commands", () => {
     expect(terminalPilotGroup.name).toBe("terminal-pilot");
     expect(terminalPilotGroup.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(terminalPilotGroup.children.map((command) => command.name)).toEqual([
+      "install",
+      "uninstall",
       "create-session",
       "fill",
       "type",
@@ -167,6 +171,8 @@ describe("terminal-pilot commands", () => {
       "get-session",
       "list-sessions"
     ]);
+    expect(install.scope).toEqual(["cli"]);
+    expect(uninstall.scope).toEqual(["cli"]);
     expect(createSession.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(fill.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(typeCommand.scope).toEqual(["cli", "mcp", "sdk"]);

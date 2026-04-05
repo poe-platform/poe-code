@@ -1,5 +1,6 @@
 import { UserError } from "@poe-code/cmdkit";
 import type { HandlerEnv } from "@poe-code/cmdkit";
+import type { TerminalPilotInstallerServices } from "./installer.js";
 import { TerminalPilot, type NewSessionOptions } from "../terminal-pilot.js";
 import type { TerminalSession } from "../terminal-session.js";
 
@@ -45,6 +46,7 @@ export interface TerminalPilotRuntime {
 
 export interface TerminalPilotCommandServices {
   terminalPilotRuntime?: TerminalPilotRuntime;
+  terminalPilotInstaller?: TerminalPilotInstallerServices;
 }
 
 interface CreateTerminalPilotRuntimeOptions {

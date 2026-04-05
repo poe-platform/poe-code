@@ -1195,6 +1195,79 @@ describe("runCLI", () => {
     );
   });
 
+  it("treats a positional with a default as optional for parsing and uses the default with --yes", async () => {
+    const handler = vi.fn(async ({ params }: { params: { agent: string } }) => params);
+
+    const install = defineCommand({
+      name: "install",
+      positional: ["agent"],
+      params: S.Object({
+        agent: S.Enum(["claude-code", "codex"], {
+          default: "claude-code",
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [install],
+    });
+
+    process.argv = ["node", "cmdkit", "install", "--yes"];
+
+    await runCLI(root);
+
+    expect(promptState.select).not.toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          agent: "claude-code",
+        },
+      })
+    );
+  });
+
+  it("prompts for a missing positional when the schema has a default and prompts are enabled", async () => {
+    const handler = vi.fn(async ({ params }: { params: { agent: string } }) => params);
+
+    const install = defineCommand({
+      name: "install",
+      positional: ["agent"],
+      params: S.Object({
+        agent: S.Enum(["claude-code", "codex"], {
+          default: "claude-code",
+          description: "Select agent",
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [install],
+    });
+
+    promptState.select.mockResolvedValueOnce("codex");
+    process.argv = ["node", "cmdkit", "install"];
+
+    await runCLI(root);
+
+    expect(promptState.select).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Select agent",
+        initialValue: "claude-code",
+      })
+    );
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          agent: "codex",
+        },
+      })
+    );
+  });
+
   it("mounts multiple groups as top-level CLI commands", async () => {
     const deployHandler = vi.fn(async ({ params }: { params: { name: string } }) => params);
 

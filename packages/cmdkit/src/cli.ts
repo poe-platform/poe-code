@@ -333,11 +333,13 @@ function formatOptionFlags(field: FieldDefinition): string {
 }
 
 function formatPositionalToken(field: FieldDefinition): string {
+  const optionalPositional = field.optional || field.hasDefault;
+
   if (field.variadicPosition === true) {
-    return field.optional ? `[${field.displayPath}...]` : `<${field.displayPath}...>`;
+    return optionalPositional ? `[${field.displayPath}...]` : `<${field.displayPath}...>`;
   }
 
-  return field.optional ? `[${field.displayPath}]` : `<${field.displayPath}>`;
+  return optionalPositional ? `[${field.displayPath}]` : `<${field.displayPath}>`;
 }
 
 function parseBooleanText(value: string, label: string): boolean {

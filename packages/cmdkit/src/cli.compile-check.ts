@@ -28,4 +28,5 @@ const ignoredServiceOptions: RunCLIOptions<{ marker: string }> = {
 };
 
 void runCLI(ignoredRoot, ignoredOptions);
+void runCLI([ignoredRoot], ignoredOptions);
 void ignoredServiceOptions;

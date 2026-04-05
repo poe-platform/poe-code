@@ -120,6 +120,34 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   version?: string;
 }
 
+function inferProgramName(argv: string[]): string {
+  const entrypoint = argv[1];
+
+  if (typeof entrypoint !== "string" || entrypoint.length === 0) {
+    return "cmdkit";
+  }
+
+  const parsed = path.parse(entrypoint);
+  return parsed.name.length > 0 ? parsed.name : "cmdkit";
+}
+
+function normalizeRoots<TServices extends object>(
+  roots: Group<TServices> | Group<TServices>[],
+  argv: string[]
+): Group<TServices> {
+  if (!Array.isArray(roots)) {
+    return roots;
+  }
+
+  return {
+    kind: "group",
+    name: inferProgramName(argv),
+    aliases: [],
+    secrets: {},
+    children: roots,
+  };
+}
+
 const HELP_FLAGS = new Set(["--help", "-h"]);
 
 function unwrapOptional(schema: AnySchema): AnySchema {
@@ -1661,9 +1689,10 @@ function handleRunError(error: unknown, verbose: boolean): void {
 }
 
 export async function runCLI<TServices extends object = Record<string, unknown>>(
-  root: Group<TServices>,
+  roots: Group<TServices> | Group<TServices>[],
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
+  const root = normalizeRoots(roots, process.argv);
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
   const requirementOptions = {

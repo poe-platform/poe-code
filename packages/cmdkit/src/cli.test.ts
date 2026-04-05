@@ -1093,6 +1093,53 @@ describe("runCLI", () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it("mounts multiple groups as top-level CLI commands", async () => {
+    const deployHandler = vi.fn(async ({ params }: { params: { name: string } }) => params);
+
+    const renderHandler = vi.fn(async ({ params }: { params: { target: string } }) => params);
+
+    const terminalPilot = defineGroup({
+      name: "terminal-pilot",
+      children: [
+        defineCommand({
+          name: "deploy",
+          positional: ["name"],
+          params: S.Object({
+            name: S.String(),
+          }),
+          handler: deployHandler,
+        }),
+      ],
+    });
+
+    const terminalPng = defineGroup({
+      name: "terminal-png",
+      children: [
+        defineCommand({
+          name: "render",
+          positional: ["target"],
+          params: S.Object({
+            target: S.String(),
+          }),
+          handler: renderHandler,
+        }),
+      ],
+    });
+
+    process.argv = ["node", "poe-code", "terminal-png", "render", "screen.png", "--yes"];
+
+    await runCLI([terminalPilot, terminalPng]);
+
+    expect(renderHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          target: "screen.png",
+        },
+      })
+    );
+    expect(deployHandler).not.toHaveBeenCalled();
+  });
+
   it("passes positional arguments to a nested group's default command", async () => {
     const handler = vi.fn(async ({ params }: { params: { name: string } }) => params);
 

@@ -17,9 +17,9 @@ tasks:
       4. Also update any other packages in the monorepo that currently use the old `terminal-pilot-mcp` package — they should import from `terminal-pilot/mcp` after the migration is done
       5. Ensure `npm run build` and all existing cmdkit tests pass
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: terminal-pilot-commands

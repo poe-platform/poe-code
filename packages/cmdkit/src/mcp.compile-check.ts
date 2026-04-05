@@ -27,11 +27,15 @@ const ignoredOptions = {
 } satisfies RunMCPOptions;
 
 const ignoredServer = createMCPServer(ignoredRoot, ignoredOptions);
+const ignoredServerArray = createMCPServer([ignoredRoot], ignoredOptions);
 const ignoredRun = runMCP(ignoredRoot, ignoredOptions);
+const ignoredRunArray = runMCP([ignoredRoot], ignoredOptions);
 
 type ignoredOptionsExport = AssertAssignable<
   RunMCPOptions,
   typeof ignoredOptions
 >;
 type ignoredServerExport = AssertAssignable<object, typeof ignoredServer>;
+type ignoredServerArrayExport = AssertAssignable<object, typeof ignoredServerArray>;
 type ignoredRunExport = AssertAssignable<Promise<void>, typeof ignoredRun>;
+type ignoredRunArrayExport = AssertAssignable<Promise<void>, typeof ignoredRunArray>;

@@ -41,6 +41,22 @@ export interface RunMCPOptions<TServices extends object = Record<string, unknown
   casing?: Casing;
 }
 
+function normalizeRoots<TServices extends object>(
+  roots: Group<TServices> | Group<TServices>[]
+): Group<TServices> {
+  if (!Array.isArray(roots)) {
+    return roots;
+  }
+
+  return {
+    kind: "group",
+    name: "",
+    aliases: [],
+    secrets: {},
+    children: roots,
+  };
+}
+
 function splitWords(value: string): string[] {
   const words: string[] = [];
   let current = "";
@@ -434,9 +450,10 @@ function toMcpError(error: unknown): McpError {
 }
 
 export function createMCPServer<TServices extends object = Record<string, unknown>>(
-  root: Group<TServices>,
+  roots: Group<TServices> | Group<TServices>[],
   options: RunMCPOptions<TServices>
 ): CmdkitServer {
+  const root = normalizeRoots(roots);
   const casing = options.casing ?? "snake";
   const services = (options.services ?? {}) as TServices;
   validateServices(services as Record<string, unknown>);
@@ -496,10 +513,10 @@ export function createMCPServer<TServices extends object = Record<string, unknow
 }
 
 export async function runMCP<TServices extends object = Record<string, unknown>>(
-  root: Group<TServices>,
+  roots: Group<TServices> | Group<TServices>[],
   options: RunMCPOptions<TServices>
 ): Promise<void> {
-  const server = createMCPServer(root, options);
+  const server = createMCPServer(roots, options);
   const transport = new StdioServerTransport(process.stdin, process.stdout);
   await server.connect(transport);
 }

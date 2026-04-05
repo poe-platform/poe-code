@@ -204,6 +204,86 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("composes tools from multiple root groups", async () => {
+    const firstHandler = vi.fn(async ({ params }: { params: { name: string } }) => ({
+      group: "first",
+      name: params.name,
+    }));
+    const secondHandler = vi.fn(async () => ({
+      group: "second",
+    }));
+
+    const firstRoot = defineGroup({
+      name: "terminal-pilot",
+      children: [
+        defineCommand({
+          name: "create-session",
+          scope: ["mcp"],
+          params: S.Object({
+            name: S.String(),
+          }),
+          handler: firstHandler,
+        }),
+      ],
+    });
+
+    const secondRoot = defineGroup({
+      name: "terminal-png",
+      children: [
+        defineCommand({
+          name: "render",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: secondHandler,
+        }),
+      ],
+    });
+
+    const server = createMCPServer([firstRoot, secondRoot], {
+      name: "cmdkit-test",
+      version: "1.0.0",
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = await client.listTools();
+
+      expect(result.tools.map((tool) => tool.name)).toEqual([
+        "terminal-pilot.create-session",
+        "terminal-png.render",
+      ]);
+
+      const callResult = await client.callTool({
+        name: "terminal-pilot.create-session",
+        arguments: {
+          name: "demo",
+        },
+      });
+
+      expect(firstHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: {
+            name: "demo",
+          },
+        })
+      );
+      expect(secondHandler).not.toHaveBeenCalled();
+      expect(callResult).toEqual({
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              group: "first",
+              name: "demo",
+            }),
+          },
+        ],
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("maps secret resolution failures to invalid params", async () => {
     delete process.env.API_KEY;
 

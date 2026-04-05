@@ -55,6 +55,11 @@ export interface CallToolResult {
   isError?: boolean;
 }
 
+export interface HandleResult {
+  result?: unknown;
+  error?: { code: number; message: string };
+}
+
 // ContentItem is a union of all possible content block types
 export type ContentItem =
   | { type: "text"; text: string }

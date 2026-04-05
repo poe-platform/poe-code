@@ -33,6 +33,7 @@ export type {
   ToolDefinition,
   Tool,
   CallToolResult,
+  HandleResult,
   ContentItem,
   JSONSchema,
   JSONSchemaProperty,

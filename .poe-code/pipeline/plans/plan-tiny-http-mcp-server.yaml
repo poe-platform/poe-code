@@ -92,7 +92,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: implement-sse
     title: Implement SSE event formatting module
@@ -115,9 +115,9 @@ tasks:
       - S8: SSE_HEADERS contains cache-control `no-cache`
       - S9: SSE_HEADERS contains connection `keep-alive`
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: implement-parse-body

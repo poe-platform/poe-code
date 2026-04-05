@@ -84,6 +84,10 @@ Whenever making changes to agent definitions, use test command quickly verify
 
 `npm run dev -- <command> <args>`
 
+### QA
+
+QA is not a script e.g. typescript script. It's a plan in markdowon format that is executed by agent. If you spot any QA that is script, switch it over to markdown doc describing steps to execute.
+
 ### Visual testing - use screenshots to see
 
 You must test changes via screenshots

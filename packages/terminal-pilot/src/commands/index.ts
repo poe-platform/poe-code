@@ -9,6 +9,7 @@ import { pressKey } from "./press-key.js";
 import { readHistory } from "./read-history.js";
 import { readScreen } from "./read-screen.js";
 import { resize } from "./resize.js";
+import { screenshot } from "./screenshot.js";
 import { sendSignal } from "./send-signal.js";
 import { type } from "./type.js";
 import { waitFor } from "./wait-for.js";
@@ -23,6 +24,7 @@ export { pressKey } from "./press-key.js";
 export { readHistory } from "./read-history.js";
 export { readScreen } from "./read-screen.js";
 export { resize } from "./resize.js";
+export { screenshot } from "./screenshot.js";
 export { sendSignal } from "./send-signal.js";
 export { type } from "./type.js";
 export { waitFor } from "./wait-for.js";
@@ -39,6 +41,7 @@ const children = [
   waitFor,
   waitForExit,
   readScreen,
+  screenshot,
   readHistory,
   resize,
   closeSession,

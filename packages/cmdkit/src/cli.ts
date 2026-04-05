@@ -49,6 +49,7 @@ interface FieldDefinition {
   path: string[];
   displayPath: string;
   optionAttribute: string;
+  commanderOptionAttribute: string;
   optionFlag: string;
   shortFlag?: string;
   schema: FieldSchema;
@@ -252,6 +253,7 @@ function collectFields(
       path: nextPath,
       displayPath: toDisplayPath(nextPath),
       optionAttribute: toOptionAttribute(nextPath, casing),
+      commanderOptionAttribute: toCommanderOptionAttribute(nextPath, casing),
       optionFlag: toOptionFlag(nextPath, casing),
       shortFlag: childSchema.short,
       schema: childSchema as FieldSchema,
@@ -263,6 +265,17 @@ function collectFields(
   }
 
   return fields;
+}
+
+function toCommanderOptionAttribute(path: string[], casing: Casing): string {
+  const optionAttribute = toOptionAttribute(path, casing);
+  const optionFlag = toOptionFlag(path, casing);
+
+  if (!GLOBAL_LONG_OPTION_FLAGS.has(optionFlag)) {
+    return optionAttribute;
+  }
+
+  return `param_${optionAttribute}`;
 }
 
 function assignPositionals(fields: FieldDefinition[], positional: string[]): FieldDefinition[] {
@@ -300,6 +313,18 @@ function assignPositionals(fields: FieldDefinition[], positional: string[]): Fie
 }
 
 function formatOptionFlags(field: FieldDefinition): string {
+  const collidesWithGlobalFlag = GLOBAL_LONG_OPTION_FLAGS.has(field.optionFlag);
+
+  if (collidesWithGlobalFlag) {
+    if (field.shortFlag === undefined) {
+      throw new UserError(
+        `Parameter "${field.displayPath}" uses reserved CLI flag "${field.optionFlag}". Add a short flag or rename the parameter.`
+      );
+    }
+
+    return `-${field.shortFlag}`;
+  }
+
   if (field.shortFlag === undefined) {
     return field.optionFlag;
   }
@@ -404,17 +429,22 @@ function parseArrayValue(value: string, schema: ArraySchema<any>, label: string)
 
 function createOption(field: FieldDefinition): Option[] {
   const flags = formatOptionFlags(field);
+  const collidesWithGlobalFlag = GLOBAL_LONG_OPTION_FLAGS.has(field.optionFlag);
 
   if (field.schema.kind === "boolean") {
+    if (collidesWithGlobalFlag) {
+      return [createCommanderOption(flags, field.description, field)];
+    }
+
     return [
-      new Option(flags, field.description),
-      new Option(`--no-${field.optionFlag.slice(2)}`, field.description),
+      createCommanderOption(flags, field.description, field),
+      createCommanderOption(`--no-${field.optionFlag.slice(2)}`, field.description, field),
     ];
   }
 
   if (field.schema.kind === "array") {
     return [
-      new Option(`${flags} <value...>`, field.description).argParser(
+      createCommanderOption(`${flags} <value...>`, field.description, field).argParser(
         (value: string, previous: unknown[] = []) => [
           ...previous,
           ...parseArrayValue(value, field.schema as ArraySchema<any>, field.displayPath),
@@ -423,7 +453,7 @@ function createOption(field: FieldDefinition): Option[] {
     ];
   }
 
-  const option = new Option(`${flags} <value>`, field.description);
+  const option = createCommanderOption(`${flags} <value>`, field.description, field);
 
   if (field.schema.kind === "enum" && field.schema.values.every((value) => typeof value === "string")) {
     option.choices([...field.schema.values] as string[]);
@@ -431,6 +461,22 @@ function createOption(field: FieldDefinition): Option[] {
 
   option.argParser((value: string) => parseScalarValue(value, field.schema as ScalarSchema, field.displayPath));
   return [option];
+}
+
+const GLOBAL_LONG_OPTION_FLAGS = new Set(["--preset", "--yes", "--output", "--verbose"]);
+
+function createCommanderOption(
+  flags: string,
+  description: string | undefined,
+  field: FieldDefinition
+): Option {
+  const option = new Option(flags, description);
+
+  if (field.commanderOptionAttribute !== field.optionAttribute) {
+    option.attributeName = () => field.commanderOptionAttribute;
+  }
+
+  return option;
 }
 
 function hasHelpFlag(argv: string[]): boolean {
@@ -1581,6 +1627,15 @@ async function resolveParams(
 
     if (
       value === undefined &&
+      Object.prototype.hasOwnProperty.call(optionValues, field.commanderOptionAttribute) &&
+      hasFieldValue(optionValues[field.commanderOptionAttribute])
+    ) {
+      value = optionValues[field.commanderOptionAttribute];
+    }
+
+    if (
+      value === undefined &&
+      field.commanderOptionAttribute === field.optionAttribute &&
       Object.prototype.hasOwnProperty.call(optionValues, field.optionAttribute) &&
       hasFieldValue(optionValues[field.optionAttribute])
     ) {

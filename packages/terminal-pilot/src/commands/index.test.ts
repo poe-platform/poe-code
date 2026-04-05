@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
   closeSession,
@@ -9,6 +12,7 @@ import {
   readHistory,
   readScreen,
   resize,
+  screenshot,
   sendSignal,
   terminalPilotGroup,
   type as typeCommand,
@@ -154,6 +158,7 @@ describe("terminal-pilot commands", () => {
       "wait-for",
       "wait-for-exit",
       "read-screen",
+      "screenshot",
       "read-history",
       "resize",
       "close-session",
@@ -168,6 +173,7 @@ describe("terminal-pilot commands", () => {
     expect(waitFor.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(waitForExit.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(readScreen.scope).toEqual(["cli", "mcp", "sdk"]);
+    expect(screenshot.scope).toEqual(["cli"]);
     expect(readHistory.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(resize.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(closeSession.scope).toEqual(["cli", "mcp", "sdk"]);
@@ -571,5 +577,49 @@ describe("terminal-pilot commands", () => {
     ).resolves.toEqual({
       sessions: []
     });
+  });
+
+  it("captures a session screen as a non-empty PNG", async () => {
+    const outputDir = await mkdtemp(path.join(os.tmpdir(), "terminal-pilot-screenshot-"));
+    const outputPath = path.join(outputDir, "screen.png");
+    const runtime = createTerminalPilotRuntime();
+    const context = createCommandContext(runtime);
+
+    try {
+      const created = await createSession.handler({
+        ...context,
+        params: {
+          command: process.execPath,
+          args: [
+            "-e",
+            "process.stdout.write('\\u001b[36mcyan\\u001b[0m\\n'); setTimeout(() => {}, 10000);"
+          ],
+          session: "color"
+        }
+      });
+
+      expect(created.session).toBe("color");
+
+      const namedSession = await runtime.resolveSession("color");
+      await namedSession.session.waitFor("cyan");
+
+      await expect(
+        screenshot.handler({
+          ...context,
+          params: {
+            session: "color",
+            output: outputPath
+          }
+        })
+      ).resolves.toBeUndefined();
+
+      const png = await readFile(outputPath);
+      expect(png.byteLength).toBeGreaterThan(0);
+      expect(png.subarray(0, 8)).toEqual(
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+      );
+    } finally {
+      await rm(outputDir, { recursive: true, force: true });
+    }
   });
 });

@@ -1132,6 +1132,37 @@ describe("runCLI", () => {
     );
   });
 
+  it("falls back to a short option when a command param collides with a global flag", async () => {
+    const handler = vi.fn(async ({ params }: { params: { output: string } }) => params);
+
+    const screenshot = defineCommand({
+      name: "screenshot",
+      params: S.Object({
+        output: S.String({
+          short: "o",
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [screenshot],
+    });
+
+    process.argv = ["node", "cmdkit", "screenshot", "-o", "screen.png", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          output: "screen.png",
+        },
+      })
+    );
+  });
+
   it("accepts a trailing positional array", async () => {
     const handler = vi.fn(async ({ params }: { params: { command: string; args?: string[] } }) => params);
 

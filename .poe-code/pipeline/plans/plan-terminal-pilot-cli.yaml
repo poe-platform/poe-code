@@ -111,7 +111,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: screenshot-command
     title: Add screenshot command (CLI-only, session-based)
@@ -130,9 +130,9 @@ tasks:
 
       Test: create a session running a colorful command, take screenshot, verify PNG is written and non-empty.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: skill-template

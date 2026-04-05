@@ -49,7 +49,8 @@
   "dependencies": {
     "@poe-code/cmdkit": "*",
     "@poe-code/cmdkit-schema": "*",
-    "node-pty": "^1.1.0"
+    "node-pty": "^1.1.0",
+    "terminal-png": "*"
   },
   "devDependencies": {}
 }

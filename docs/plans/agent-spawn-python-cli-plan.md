@@ -1,147 +1,240 @@
-# Agent-Spawn Python SDK Plan
+# Python Spawn SDK
 
 ## Goal
 
-Ship a **thin** Python SDK for `@poe-code/agent-spawn` by shelling out to the existing `poe-code spawn` CLI, keeping Python logic minimal and provider-agnostic.
+Run `poe-code spawn` from Python, get typed events back.
 
-## Non-Goals
+## Architecture
 
-- No CLI surface in Python — SDK only.
-- No provider-specific branching in Python.
-- No full port of the spawn logic or ACP adapters to Python.
-- No changes to README without explicit approval.
+```
+Python SDK  ──subprocess──►  OUTPUT_FORMAT=jsonl poe-code spawn  ──stdout──►  parse JSONL → typed events
+```
 
-## JS SDK Parity
+That's it. Python shells out to the CLI and reads JSONL from stdout.
 
-The Python SDK mirrors the following JS SDK functions:
+## Step 1: Add `jsonl` to `OUTPUT_FORMAT` env var
 
-| JS SDK               | Python SDK            | Notes                         |
-| -------------------- | --------------------- | ----------------------------- |
-| `spawn()`            | `spawn()`             | Returns final result          |
-| `spawnStreaming()`   | `spawn_streaming()`   | Yields events, returns result |
-| `spawnInteractive()` | `spawn_interactive()` | Inherits stdio                |
+The design system already supports `OUTPUT_FORMAT` (`terminal | markdown | json`). Add `jsonl` as a new value.
 
-## Prerequisites
+When `OUTPUT_FORMAT=jsonl`, the spawn command writes raw AcpEvents as JSONL to stdout instead of pretty rendering.
 
-- **Standalone binary compilation** — required for bundling the binary into Python wheels. Use `pkg` (or `@vercel/ncc` + a Node.js shim) to produce self-contained binaries.
+Each line is one event, same shape the JS SDK yields:
 
-## Approach
+```jsonl
+{"event":"session_start","threadId":"abc123"}
+{"event":"agent_message","text":"Hello"}
+{"event":"tool_start","kind":"edit","title":"src/auth.ts","id":"t1"}
+{"event":"tool_complete","kind":"edit","path":"src/auth.ts","id":"t1"}
+{"event":"usage","inputTokens":1200,"outputTokens":340}
+```
 
-### 1) Implement stable JSON output contract for `poe-code spawn`
+Final line after process completes:
 
-`OUTPUT_FORMAT=json` exists as an enum value in the design system but is **not yet implemented** for spawn output. This step builds it.
+```jsonl
+{"event":"spawn_result","exitCode":0,"threadId":"abc123","usage":{"inputTokens":1200,"outputTokens":340}}
+```
 
-#### 1a) JSON Lines schema (ACP-compatible subset)
+When `jsonl`:
+- No design-system rendering
+- No interactive prompts (implies `--yes`)
+- Exit code still set on process
 
-Follow the [ACP spec](https://agentclientprotocol.com/) wire format using `sessionUpdate` as the discriminator. Only the events we need:
+Also add missing CLI flags to reach parity with the SDK `SpawnOptions`:
 
-- **`agent_message_chunk`** — streamed text content
-  ```jsonl
-  {
-    "sessionUpdate": "agent_message_chunk",
-    "content": {
-      "type": "text",
-      "text": "..."
-    }
-  }
-  ```
-- **`tool_call`** — tool invocation with status lifecycle
-  ```jsonl
-  {
-    "sessionUpdate": "tool_call",
-    "toolCallId": "...",
-    "title": "...",
-    "kind": "read",
-    "status": "pending"
-  }
-  ```
-- **`tool_call_update`** — tool result / status change
-  ```jsonl
-  {
-    "sessionUpdate": "tool_call_update",
-    "toolCallId": "...",
-    "status": "completed",
-    "rawOutput": "..."
-  }
-  ```
-- **`session_complete`** — final line, emitted once when spawn completes
-  ```jsonl
-  {
-    "sessionUpdate": "session_complete",
-    "exitCode": 0,
-    "threadId": "...",
-    "sessionId": "...",
-    "usage": {
-      "inputTokens": 0,
-      "outputTokens": 0
-    }
-  }
-  ```
+- `--log-dir <path>` — directory override for ACP JSONL spawn logs
+- `--activity-timeout-ms <ms>` — kill after N ms of inactivity
 
-No custom wrapper types — events are ACP objects directly, one per line. Python parses only these four `sessionUpdate` values.
+Align naming across SDK, CLI, and Python:
 
-#### 1b) Emit JSON lines in spawn
+| SDK | CLI | Python |
+|---|---|---|
+| `mcpServers` → rename to `mcpConfig` | `--mcp-config` (keep) | `mcp_config` |
+| `logDir` | `--log-dir` | `log_dir` |
+| `activityTimeoutMs` | `--activity-timeout-ms` | `activity_timeout_ms` |
 
-- When `resolveOutputFormat() === "json"`, suppress all human-facing rendering (design system, logger).
-- Pipe each ACP event through a new `json-output` middleware that writes `{"type":"event",...}` lines to stdout.
-- On spawn completion, emit the `{"type":"final",...}` line.
-- Always pass `--yes` to suppress interactive prompts (CI-safe by default).
+SDK rename `mcpServers` → `mcpConfig` with backward compat (keep `mcpServers` as deprecated alias).
 
-#### 1c) Tests
+**Files touched**: `packages/design-system/src/internal/output-format.ts`, `src/cli/commands/spawn.ts`, `packages/agent-spawn/src/acp/renderer.ts`
 
-- Unit test the middleware: feed known `AcpEvent` objects, assert correct JSONL output.
-- Integration-level: run `OUTPUT_FORMAT=json poe-code spawn ...` and assert parseable JSONL on stdout.
+## Step 2: Python types (generated via `ts-morph`)
 
-This keeps the CLI the single source of truth and prevents Python from needing to understand providers or adapter formats.
+A codegen script in the core package uses `ts-morph` to parse the TS AST and emit Python:
 
-### 2) Python package (SDK)
+- Reads `packages/agent-spawn/src/acp/types.ts` — walks exported interfaces, extracts field names/types/optionality
+- Reads `packages/agent-spawn/src/configs/index.ts` — imports `allSpawnConfigs`, emits `Agent` enum from their `agentId` fields (only spawnable agents)
+- Reads `packages/agent-spawn/src/types.ts` — extracts `SpawnMode` union
+- Maps TS types to Python: `string` → `str`, `number` → `int`/`float`, `T | undefined` → `Optional[T]`
+- Converts camelCase fields to snake_case
+- Writes `packages/agent-spawn-py/src/poe_code_spawn/types.py`
 
-Create a small Python package in `packages/agent-spawn-py` with:
+Runs as part of the core package build. Output is checked in, CI verifies it's up to date.
 
-- `spawn(...)` → runs `poe-code spawn` with `OUTPUT_FORMAT=json` and `--yes`, returns final result.
-- `spawn_streaming(...)` → yields events as they arrive, returns final result when stream ends.
-- `spawn_interactive(...)` → runs `poe-code spawn --interactive` with stdio inherit.
+Generated output:
 
-Only CLI args are constructed in Python; provider behavior remains in the JS CLI.
+```python
+from dataclasses import dataclass
+from enum import Enum
+from typing import Literal, Optional, Union
 
-### 3) Packaging + distribution
+class Agent(str, Enum):
+    CLAUDE_CODE = "claude-code"
+    CODEX = "codex"
+    OPENCODE = "opencode"
+    KIMI = "kimi"
 
-#### Standalone binary
+class SpawnMode(str, Enum):
+    YOLO = "yolo"
+    EDIT = "edit"
+    READ = "read"
 
-Compile the **full `poe-code` CLI** into a self-contained binary (no Node runtime required) using `pkg` or a similar Node.js bundler. This gives Python users the complete CLI, not just spawn. Produce one binary per platform:
+@dataclass
+class SessionStartEvent:
+    event: Literal["session_start"]
+    thread_id: Optional[str] = None
 
-- `poe-code-linux-x64`
-- `poe-code-linux-arm64`
-- `poe-code-darwin-x64`
-- `poe-code-darwin-arm64`
-- `poe-code-win-x64.exe`
+@dataclass
+class AgentMessageEvent:
+    event: Literal["agent_message"]
+    text: str
 
-#### Platform-specific wheels
+@dataclass
+class ToolStartEvent:
+    event: Literal["tool_start"]
+    kind: str
+    title: str
+    id: Optional[str] = None
 
-Publish platform-specific wheels (like `playwright` does), each containing the binary for that platform:
+@dataclass
+class ToolCompleteEvent:
+    event: Literal["tool_complete"]
+    kind: str
+    path: str
+    id: Optional[str] = None
 
-- `poe_code_spawn-0.1.0-py3-none-manylinux_2_17_x86_64.whl`
-- `poe_code_spawn-0.1.0-py3-none-macosx_11_0_arm64.whl`
-- etc.
+@dataclass
+class ReasoningEvent:
+    event: Literal["reasoning"]
+    text: str
 
-The binary is shipped as package data and exposed via a wrapper entry point or resolved at runtime by the SDK.
+@dataclass
+class UsageEvent:
+    event: Literal["usage"]
+    input_tokens: int
+    output_tokens: int
+    cached_tokens: Optional[int] = None
+    cost_usd: Optional[float] = None
 
-#### Package layout
+@dataclass
+class ErrorEvent:
+    event: Literal["error"]
+    message: str
+    stack: Optional[str] = None
 
-- `pyproject.toml` with `src/` layout.
-- Package README documenting all env variables and config options.
-- `pip install poe-code-spawn` gives you the SDK + binary — zero external dependencies.
-- Fallback: if `poe-code` is already on PATH, use that instead of the bundled binary (allows overriding).
+@dataclass
+class SpawnResultEvent:
+    event: Literal["spawn_result"]
+    exit_code: int
+    thread_id: Optional[str] = None
+    usage: Optional[UsageEvent] = None
 
-### 4) Testing
+AcpEvent = Union[
+    SessionStartEvent, AgentMessageEvent, ToolStartEvent,
+    ToolCompleteEvent, ReasoningEvent, UsageEvent, ErrorEvent,
+]
+```
 
-- Unit tests mock the subprocess runner.
-- Verify:
-  - argument construction
-  - JSON-line parsing
-  - streaming iteration + final result handling
-  - exit code propagation
+Zero dependencies. Generated as part of core package build.
+
+## Step 3: Python SDK
+
+Same API shape as the JS SDK — `spawn()` returns `{ events, result }`, `spawn.pretty()` renders to stdout.
+
+```python
+from poe_code_spawn import spawn, Agent
+
+# streaming — mirrors JS: spawn("codex", "Fix the bug")
+s = spawn(Agent.CLAUDE_CODE, "Fix the auth bug", cwd="/my/project")
+
+for event in s.events:
+    match event:
+        case AgentMessageEvent(text=text):
+            print(text, end="")
+
+result = s.result
+print(f"Exit: {result.exit_code}")
+
+# pretty — mirrors JS: spawn.pretty("codex", "Fix the bug")
+result = spawn.pretty(Agent.CLAUDE_CODE, "Fix the auth bug")
+print(f"Exit: {result.exit_code}")
+```
+
+`spawn()` returns a `SpawnHandle` with `.events` (iterator of `AcpEvent`) and `.result` (`SpawnResultEvent`, available after events consumed).
+
+`spawn.pretty()` runs with `OUTPUT_FORMAT=terminal` (default), inherits stdout rendering, returns `SpawnResultEvent`.
+
+Cancellation: `SpawnHandle.cancel()` sends SIGINT to the child process (same as ctrl+c). Python callers can also pass a `threading.Event` or similar to trigger cancellation from another thread.
+
+Requires `poe-code` on PATH. When binary not found, raise a diagnostic error:
+
+```
+PoeCodeNotFoundError: poe-code CLI not found on PATH.
+
+Environment:
+  Python: 3.12.3 (/usr/bin/python3)
+  PATH: /usr/local/bin:/usr/bin:...
+  Node: v22.1.0 (or "not found")
+  npm: 10.7.0 (or "not found")
+
+Install with:
+  npm install -g poe-code
+```
+
+Include Node/npm versions (or "not found") to help debug env issues.
+
+## Step 4: Package
+
+```
+packages/agent-spawn-py/
+  pyproject.toml
+  README.md
+  src/poe_code_spawn/
+    __init__.py
+    types.py          # generated
+    _spawn.py         # spawn() implementation
+    _parse.py         # JSONL → typed events
+```
+
+`pip install poe-code-spawn` — zero deps, stdlib only.
+
+## Step 5: Publishing
+
+Follow the same pattern as existing package releases (e.g. `release-tiny-mcp.yml`):
+
+**GitHub workflow:** `.github/workflows/release-agent-spawn-py.yml`
+- Triggers on: push to `main` affecting `packages/agent-spawn-py/**`
+- Uses OIDC trusted publisher (no tokens in secrets) — set up on PyPI
+- Auto-bumps patch version in `pyproject.toml`
+- Builds with `python -m build`
+- Publishes via `pypa/gh-action-pypi-publish` (handles OIDC auth automatically, no tokens needed)
+
+**PyPI trusted publisher setup:**
+1. Create project on PyPI
+2. Add GitHub as trusted publisher: owner `poe-code`, repo `poe-code`, workflow `release-agent-spawn-py.yml`
+
+**Version strategy:** Python package versions independently from the CLI. The JSONL output format is the stability contract between them. The `spawn_result` event includes a `protocolVersion` field (e.g. `1`) — if the Python SDK sees a version it doesn't recognize, it warns but still attempts to parse.
+
+**CLI resolution order:**
+1. `poe-code` on PATH (user's own install)
+2. `npx poe-code` fallback (Node is expected to be present)
+3. Fail with diagnostic error
+
+This means `pip install poe-code-spawn` just works if Node is available — no separate `npm install -g` step needed. The `npx` fallback handles CI environments where `poe-code` isn't globally installed.
+
+## Status
+
+Plan finalized. Ready for implementation.
 
 ## Open Questions
 
-- None (decisions captured: SDK-only, JS-parity functions, `packages/agent-spawn-py`).
+- async API from day one? (`async for event in spawn(...)`)
+- PyPI name: `poe-code-spawn` or `poe-code`?

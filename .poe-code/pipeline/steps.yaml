@@ -23,3 +23,7 @@ steps:
   commit:
     prompt: |
       Make sure tests run, and commit all changes
+
+teardown:
+  prompt: |
+    Make sure tests run, and commit all changes

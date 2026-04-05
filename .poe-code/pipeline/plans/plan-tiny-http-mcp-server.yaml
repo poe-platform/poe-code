@@ -299,9 +299,9 @@ tasks:
       - C7: `-h`/`--help` shows help and exits with code 0
       - C8: SIGINT triggers graceful shutdown
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: implement-spec-conformance

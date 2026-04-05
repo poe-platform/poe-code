@@ -32,6 +32,16 @@ function toRenderKind(kind: ToolKind | undefined | null): string {
   return "other";
 }
 
+function toToolTitle(
+  title: string,
+  locations?: Array<{ path: string }> | null
+): string {
+  if (locations && locations.length > 0 && locations[0].path) {
+    return locations[0].path;
+  }
+  return title;
+}
+
 function toToolOutput(value: unknown): string {
   if (typeof value === "string") return value;
   if (value === undefined) return "";
@@ -77,8 +87,9 @@ function toEventsFromSessionUpdate(
 
   if (update.sessionUpdate === "tool_call") {
     const renderKind = toRenderKind(update.kind);
+    const title = toToolTitle(update.title, update.locations);
     state.toolCallKinds.set(update.toolCallId, renderKind);
-    state.toolCallTitles.set(update.toolCallId, update.title);
+    state.toolCallTitles.set(update.toolCallId, title);
 
     if (state.startedToolCalls.has(update.toolCallId)) {
       return [];
@@ -88,7 +99,7 @@ function toEventsFromSessionUpdate(
     return [{
       event: "tool_start",
       kind: renderKind,
-      title: update.title,
+      title,
       id: update.toolCallId,
     }];
   }
@@ -100,7 +111,11 @@ function toEventsFromSessionUpdate(
     state.toolCallKinds.set(update.toolCallId, renderKind);
 
     const events: AcpEvent[] = [];
-    const toolTitle = state.toolCallTitles.get(update.toolCallId) ?? update.toolCallId;
+    const toolTitle = toToolTitle(
+      state.toolCallTitles.get(update.toolCallId) ?? update.toolCallId,
+      update.locations
+    );
+    state.toolCallTitles.set(update.toolCallId, toolTitle);
     const status = update.status;
 
     const shouldStart = !state.startedToolCalls.has(update.toolCallId)

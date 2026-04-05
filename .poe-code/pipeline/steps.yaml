@@ -1,25 +1,25 @@
 steps:
   implement:
-    instruction: |
+    prompt: |
       Implement
 
       {{prompt}}
 
   refactor:
     agent: claude-code
-    instruction: |
+    prompt: |
       Original task:
       {{prompt}}
 
       Refactor and simplify the code if you can, don't sweat it though.
 
   test:
-    instruction: |
+    prompt: |
       Original task:
       {{prompt}}
 
       Be a user and test all edge cases, fix bugs if needed
 
   commit:
-    instruction: |
+    prompt: |
       Make sure tests run, and commit all changes

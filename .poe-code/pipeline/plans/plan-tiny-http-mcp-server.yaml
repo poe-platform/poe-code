@@ -244,7 +244,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: implement-express-middleware
     title: Implement Express middleware adapter
@@ -272,10 +272,10 @@ tasks:
 
       Tests spin up real Express apps with `createExpressMiddleware`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: implement-cli
     title: Implement standalone CLI entry point

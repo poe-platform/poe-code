@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createExpressMiddleware,
   createHttpServer,
   createServer,
 } from "./index.js";
@@ -12,6 +13,7 @@ import {
 describe("tiny-http-mcp-server", () => {
   it("re-exports stdio server helpers", () => {
     expect(createServer).toBeTypeOf("function");
+    expect(createExpressMiddleware).toBeTypeOf("function");
     expect(createTestMcpServer).toBeTypeOf("function");
     expect(createHttpTestPair).toBeTypeOf("function");
     expect(createHttpTestPairWithTinyClient).toBeTypeOf("function");

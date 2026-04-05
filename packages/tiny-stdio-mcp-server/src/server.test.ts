@@ -285,6 +285,174 @@ describe("createServer", () => {
 });
 
 describe("server protocol handlers", () => {
+  describe("handleMessage", () => {
+    it("R1: handleMessage(\"ping\") returns { result: {} }", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await expect(server.handleMessage("ping")).resolves.toEqual({
+        result: {},
+      });
+    });
+
+    it("R2: handleMessage(\"initialize\", {}) returns InitializeResult", async () => {
+      const server = createServer({ name: "test-server", version: "2.0.0" });
+
+      const response = await server.handleMessage("initialize", {});
+
+      expect(response.error).toBeUndefined();
+      expect(response.result).toEqual({
+        protocolVersion: expect.any(String),
+        capabilities: {
+          tools: {
+            listChanged: true,
+          },
+        },
+        serverInfo: {
+          name: "test-server",
+          version: "2.0.0",
+        },
+      });
+    });
+
+    it("R3: handleMessage(\"tools/list\") after initialize returns tool list", async () => {
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "greet",
+        "Greets",
+        schema,
+        async () => "hello"
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(server.handleMessage("tools/list")).resolves.toEqual({
+        result: {
+          tools: [
+            {
+              name: "greet",
+              description: "Greets",
+              inputSchema: schema,
+            },
+          ],
+        },
+      });
+    });
+
+    it("R4: handleMessage(\"tools/list\") before initialize returns error", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await expect(server.handleMessage("tools/list")).resolves.toEqual({
+        error: {
+          code: -32600,
+          message: "Server not initialized",
+        },
+      });
+    });
+
+    it("R5: handleMessage(\"tools/call\", { name, arguments }) invokes handler", async () => {
+      const schema = defineSchema({ name: { type: "string" } });
+      const handler = async ({ name }: { name: string }) => `Hello, ${name}!`;
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "greet",
+        "Greets",
+        schema,
+        handler
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "greet",
+          arguments: { name: "World" },
+        })
+      ).resolves.toEqual({
+        result: {
+          content: [{ type: "text", text: "Hello, World!" }],
+        },
+      });
+    });
+
+    it("R6: handleMessage(\"tools/call\", { name: \"missing\" }) returns tool not found error", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", { name: "missing" })
+      ).resolves.toEqual({
+        error: {
+          code: -32602,
+          message: "Tool not found: missing",
+        },
+      });
+    });
+
+    it("R7: handleMessage(\"tools/call\", {}) returns tool name required error", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await server.handleMessage("initialize", {});
+
+      await expect(server.handleMessage("tools/call", {})).resolves.toEqual({
+        error: {
+          code: -32602,
+          message: "Tool name required",
+        },
+      });
+    });
+
+    it("R8: handleMessage(\"unknown/method\") returns METHOD_NOT_FOUND (-32601)", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("unknown/method")
+      ).resolves.toEqual({
+        error: {
+          code: -32601,
+          message: "Method not found",
+        },
+      });
+    });
+
+    it("R9: handleMessage(\"notifications/initialized\") returns { result: undefined }", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await expect(
+        server.handleMessage("notifications/initialized")
+      ).resolves.toEqual({
+        result: undefined,
+      });
+    });
+
+    it("R10: handleMessage with throwing tool handler returns isError result", async () => {
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "fail",
+        "Fails",
+        schema,
+        async () => {
+          throw new Error("boom");
+        }
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "fail",
+          arguments: {},
+        })
+      ).resolves.toEqual({
+        result: {
+          content: [{ type: "text", text: "Error: boom" }],
+          isError: true,
+        },
+      });
+    });
+  });
+
   describe("ping", () => {
     it("responds to ping", async () => {
       const transport = createTestTransport();

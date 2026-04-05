@@ -2,8 +2,10 @@ import { getPoeApiKey } from "./credentials.js";
 import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
 import {
+  getAcpSpawnConfig,
   getSpawnConfig,
   spawn as spawnNonStreaming,
+  spawnAcp,
   spawnInteractive,
   spawnStreaming,
   renderAcpStream,
@@ -121,6 +123,56 @@ export function spawn(
           stderr: interactiveResult.stderr,
           exitCode: interactiveResult.exitCode,
           ...(interactiveResult.usage ? { usage: interactiveResult.usage } : {})
+        };
+      }
+
+      const acpSpawnConfig = getAcpSpawnConfig(service);
+      if (acpSpawnConfig) {
+        const model = await resolveModel();
+        const { events: rawEvents, done } = spawnAcp({
+          agentId: service,
+          prompt: options.prompt,
+          cwd: options.cwd,
+          model,
+          mode: options.mode,
+          mcpServers: options.mcpServers,
+          signal: options.signal,
+        });
+
+        const middlewareContext: AcpSpawnContext = {
+          sessionId: "unknown",
+          agent: service,
+          logDir: options.logDir,
+          events: [],
+          usage: {
+            inputTokens: 0,
+            outputTokens: 0
+          },
+          eventStream: rawEvents,
+          prompt: options.prompt,
+          model,
+          mode: options.mode,
+          cwd: options.cwd,
+          startedAt: new Date()
+        };
+
+        await applyMiddlewares([sessionCapture, usageCapture, spawnLog], middlewareContext);
+
+        resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
+        const final = await done;
+        const threadId = middlewareContext.threadId ?? final.threadId;
+        const sessionId =
+          (middlewareContext.sessionId !== "unknown" ? middlewareContext.sessionId : undefined) ??
+          final.sessionId ??
+          threadId;
+
+        return {
+          stdout: final.stdout,
+          stderr: final.stderr,
+          exitCode: final.exitCode,
+          ...(threadId ? { threadId } : {}),
+          ...(sessionId ? { sessionId } : {}),
+          ...(final.usage ? { usage: final.usage } : {})
         };
       }
 

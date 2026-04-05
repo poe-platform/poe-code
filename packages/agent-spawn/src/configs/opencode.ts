@@ -1,4 +1,4 @@
-import type { CliSpawnConfig } from "../types.js";
+import type { AcpSpawnConfig, CliSpawnConfig } from "../types.js";
 import { serializeOpenCodeMcpEnv } from "./mcp.js";
 
 /**
@@ -86,4 +86,12 @@ export const openCodeSpawnConfig: CliSpawnConfig = {
   },
   resumeCommand: (threadId, cwd) => [cwd, "--session", threadId],
   mcpEnv: serializeOpenCodeMcpEnv
+};
+
+export const openCodeAcpSpawnConfig: AcpSpawnConfig = {
+  kind: "acp",
+  agentId: "opencode",
+  acpArgs: ["acp"],
+  skipAuth: true,
+  mcpEnv: serializeOpenCodeMcpEnv,
 };

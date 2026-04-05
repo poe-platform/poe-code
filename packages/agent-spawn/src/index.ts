@@ -8,6 +8,7 @@ export {
 } from "./run-command.js";
 
 export type {
+  AcpSpawnConfig,
   CliSpawnConfig,
   FileSpawnConfig,
   InteractiveSpawnConfig,
@@ -25,6 +26,7 @@ export type {
 
 export {
   allSpawnConfigs,
+  getAcpSpawnConfig,
   getSpawnConfig,
   listMcpSupportedAgents,
   supportsMcpAtSpawn
@@ -42,6 +44,8 @@ export { spawnInteractive } from "./spawn-interactive.js";
 export { renderAcpEvent, renderAcpStream } from "./acp/renderer.js";
 export type { SpawnStreamingOptions, SpawnStreamingResult } from "./acp/spawn.js";
 export { spawnStreaming } from "./acp/spawn.js";
+export type { SpawnAcpOptions, SpawnAcpResult } from "./acp/spawn-acp.js";
+export { spawnAcp } from "./acp/spawn-acp.js";
 export { readLines } from "./acp/line-reader.js";
 export {
   applyMiddlewares

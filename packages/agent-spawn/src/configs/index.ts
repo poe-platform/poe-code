@@ -1,8 +1,8 @@
 import { resolveAgentId } from "@poe-code/agent-defs";
-import type { SpawnConfig } from "../types.js";
+import type { AcpSpawnConfig, SpawnConfig } from "../types.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { codexSpawnConfig } from "./codex.js";
-import { openCodeSpawnConfig } from "./opencode.js";
+import { openCodeSpawnConfig, openCodeAcpSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig } from "./kimi.js";
 
 // ACP adapter support (spawn streaming):
@@ -20,12 +20,23 @@ for (const config of allSpawnConfigs) {
   lookup.set(config.agentId, config);
 }
 
+const acpLookup = new Map<string, AcpSpawnConfig>();
+acpLookup.set(openCodeAcpSpawnConfig.agentId, openCodeAcpSpawnConfig);
+
 export function getSpawnConfig(input: string): SpawnConfig | undefined {
   const resolvedId = resolveAgentId(input);
   if (!resolvedId) {
     return undefined;
   }
   return lookup.get(resolvedId);
+}
+
+export function getAcpSpawnConfig(input: string): AcpSpawnConfig | undefined {
+  const resolvedId = resolveAgentId(input);
+  if (!resolvedId) {
+    return undefined;
+  }
+  return acpLookup.get(resolvedId);
 }
 
 export function supportsMcpAtSpawn(input: string): boolean {

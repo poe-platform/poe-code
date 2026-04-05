@@ -19,6 +19,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-defs": "*",
-    "@poe-code/design-system": "*"
+    "@poe-code/design-system": "*",
+    "@poe-code/poe-acp-client": "*"
   }
 }

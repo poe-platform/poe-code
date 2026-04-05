@@ -114,4 +114,15 @@ export interface FileSpawnConfig {
   launchArgs?: string[];
 }
 
-export type SpawnConfig = CliSpawnConfig | FileSpawnConfig;
+export interface AcpSpawnConfig {
+  kind: "acp";
+  agentId: string;
+  /** Args passed to the agent binary to start its ACP server (e.g. ["acp"]). */
+  acpArgs: string[];
+  /** Whether to skip the ACP authenticate step (workaround for servers that advertise but don't implement auth). */
+  skipAuth?: boolean;
+  /** MCP server env serializer, same as CliSpawnConfig. */
+  mcpEnv?: (servers: McpSpawnConfig) => Record<string, string>;
+}
+
+export type SpawnConfig = CliSpawnConfig | FileSpawnConfig | AcpSpawnConfig;

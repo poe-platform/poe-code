@@ -11,8 +11,10 @@ const spawnLogMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: vi.fn(),
+  spawnAcp: vi.fn(),
   spawnStreaming: vi.fn(),
   spawnInteractive: vi.fn(),
+  getAcpSpawnConfig: vi.fn(),
   getSpawnConfig: vi.fn(),
   renderAcpStream: vi.fn(),
   applyMiddlewares: applyMiddlewaresMock,
@@ -35,8 +37,10 @@ vi.mock("./container.js", () => ({
 
 import { spawn } from "./spawn.js";
 import {
+  getAcpSpawnConfig,
   getSpawnConfig,
   spawn as agentSpawn,
+  spawnAcp,
   spawnStreaming,
   spawnInteractive,
   renderAcpStream,
@@ -63,11 +67,14 @@ beforeEach(() => {
   vi.mocked(spawnStreaming).mockReset();
   vi.mocked(spawnInteractive).mockReset();
   vi.mocked(agentSpawn).mockReset();
+  vi.mocked(spawnAcp).mockReset();
+  vi.mocked(getAcpSpawnConfig).mockReset();
   vi.mocked(getSpawnConfig).mockReset();
   vi.mocked(spawnCore).mockReset();
   vi.mocked(createSdkContainer).mockReset();
   vi.mocked(renderAcpStream).mockReset();
   vi.mocked(applyMiddlewares).mockReset();
+  vi.mocked(getAcpSpawnConfig).mockReturnValue(undefined);
   vi.mocked(renderAcpStream).mockResolvedValue(undefined);
   vi.mocked(createSdkContainer).mockImplementation(() => ({
     fs: createMemFs(),
@@ -598,6 +605,75 @@ describe("SDK spawn()", () => {
 
     expect(spawnInteractive).not.toHaveBeenCalled();
     expect(spawnStreaming).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses ACP spawn flow when an ACP config exists", async () => {
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "opencode",
+      acpArgs: ["acp"],
+      skipAuth: true
+    } as any);
+
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {
+        yield { event: "agent_message", text: "raw acp event" };
+      })(),
+      done: Promise.resolve({
+        stdout: "acp out",
+        stderr: "",
+        exitCode: 0,
+        threadId: "thread_acp",
+        sessionId: "session_acp"
+      })
+    }));
+
+    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+      ctx.threadId = "thread_via_acp_middleware";
+      ctx.sessionId = "session_via_acp_middleware";
+      ctx.eventStream = (async function* () {
+        yield { event: "agent_message", text: "from acp middleware" };
+      })();
+    });
+
+    const { events, result } = spawn("opencode", "test prompt", {
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server"
+        }
+      }
+    });
+
+    const received: unknown[] = [];
+    for await (const event of events) {
+      received.push(event);
+    }
+
+    expect(received).toEqual([{ event: "agent_message", text: "from acp middleware" }]);
+    await expect(result).resolves.toEqual({
+      stdout: "acp out",
+      stderr: "",
+      exitCode: 0,
+      threadId: "thread_via_acp_middleware",
+      sessionId: "session_via_acp_middleware"
+    });
+
+    expect(spawnAcp).toHaveBeenCalledWith({
+      agentId: "opencode",
+      prompt: "test prompt",
+      cwd: undefined,
+      model: undefined,
+      mode: undefined,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server"
+        }
+      },
+      signal: undefined
+    });
+    expect(spawnStreaming).not.toHaveBeenCalled();
+    expect(agentSpawn).not.toHaveBeenCalled();
+    expect(spawnCore).not.toHaveBeenCalled();
   });
 
   it("composes ACP middlewares in SDK streaming path", async () => {

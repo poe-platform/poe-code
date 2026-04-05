@@ -4,12 +4,14 @@ import {
   adaptCodex,
   adaptNative,
   agentSpawn,
+  getAcpSpawnConfig,
   getAdapter,
   readLines,
   renderAcpStream,
   listMcpSupportedAgents,
   supportsMcpAtSpawn,
   spawn,
+  spawnAcp,
   spawnInteractive,
   spawnStreaming
 } from "@poe-code/agent-spawn";
@@ -21,8 +23,10 @@ describe("@poe-code/agent-spawn", () => {
 
   it("exports streaming + adapters API", () => {
     expect(typeof spawn).toBe("function");
+    expect(typeof spawnAcp).toBe("function");
     expect(typeof spawnInteractive).toBe("function");
     expect(typeof spawnStreaming).toBe("function");
+    expect(typeof getAcpSpawnConfig).toBe("function");
     expect(typeof readLines).toBe("function");
     expect(typeof renderAcpStream).toBe("function");
     expect(typeof adaptCodex).toBe("function");

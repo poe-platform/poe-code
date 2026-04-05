@@ -4,6 +4,7 @@ import type {
   ToolDefinition,
   ToolHandler,
   CallToolResult,
+  HandleResult,
   InitializeResult,
   Tool,
   Transport,
@@ -34,6 +35,10 @@ export interface Server {
   ): Server;
   removeTool(name: string): boolean;
   notifyToolsChanged(): Promise<void>;
+  handleMessage(
+    method: string,
+    params?: Record<string, unknown>
+  ): Promise<HandleResult>;
   listen(): Promise<void>;
   connect(transport: Transport): Promise<void>;
   connectSDK(transport: SDKTransport): Promise<void>;
@@ -45,10 +50,10 @@ export function createServer(options: ServerOptions): Server {
   let activeTransport: Transport | null = null;
   let activeSDKTransport: SDKTransport | null = null;
 
-  const handleRequest = async (
+  const handleMessage = async (
     method: string,
     params?: Record<string, unknown>
-  ): Promise<{ result?: unknown; error?: { code: number; message: string } }> => {
+  ): Promise<HandleResult> => {
     // Allow ping and initialize before initialization
     if (method === "ping") {
       return { result: {} };
@@ -159,7 +164,10 @@ export function createServer(options: ServerOptions): Server {
     }
 
     const { request, isNotification } = parsed;
-    const { result, error } = await handleRequest(request.method, request.params);
+    const { result, error } = await server.handleMessage(
+      request.method,
+      request.params
+    );
 
     if (isNotification) {
       return;
@@ -213,6 +221,8 @@ export function createServer(options: ServerOptions): Server {
       }
     },
 
+    handleMessage,
+
     async listen(): Promise<void> {
       return server.connect({
         readable: process.stdin,
@@ -254,12 +264,15 @@ export function createServer(options: ServerOptions): Server {
 
           // Handle notifications (no id) - don't respond
           if (!("id" in message) || message.id === undefined) {
-            await handleRequest(message.method, message.params);
+            await server.handleMessage(message.method, message.params);
             return;
           }
 
           const request = message as JSONRPCRequest;
-          const { result, error } = await handleRequest(request.method, request.params);
+          const { result, error } = await server.handleMessage(
+            request.method,
+            request.params
+          );
 
           if (error) {
             const response: JSONRPCResponse = {

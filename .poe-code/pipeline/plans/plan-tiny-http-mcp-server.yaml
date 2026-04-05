@@ -18,7 +18,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: refactor-stdio-handle-message
     title: Expose handleMessage on Server interface in tiny-stdio-mcp-server
@@ -43,9 +43,9 @@ tasks:
       - R9: `handleMessage("notifications/initialized")` returns `{ result: undefined }`
       - R10: `handleMessage` with throwing tool handler returns isError result
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: refactor-stdio-on-notification

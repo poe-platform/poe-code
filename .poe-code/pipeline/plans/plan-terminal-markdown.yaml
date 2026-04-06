@@ -844,10 +844,10 @@ tasks:
 
       Fix any crashes, broken output, or performance issues found.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 9: Integration tests — real-world documents

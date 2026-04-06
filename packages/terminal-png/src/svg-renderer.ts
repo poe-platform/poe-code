@@ -199,6 +199,7 @@ function renderLines(
 function renderRun(run: StyledRun): string {
   const attributes = ['xml:space="preserve"'];
   const color = resolveColor(run.fg);
+  const textDecorations: string[] = [];
 
   if (color !== DEFAULT_FOREGROUND) {
     attributes.push(`fill="${escapeXmlAttribute(color)}"`);
@@ -213,7 +214,15 @@ function renderRun(run: StyledRun): string {
   }
 
   if (run.underline) {
-    attributes.push('text-decoration="underline"');
+    textDecorations.push("underline");
+  }
+
+  if (run.strikethrough) {
+    textDecorations.push("line-through");
+  }
+
+  if (textDecorations.length > 0) {
+    attributes.push(`text-decoration="${textDecorations.join(" ")}"`);
   }
 
   if (run.dim) {

@@ -606,7 +606,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: screenshot-headings-text
     title: Screenshot test — headings and text styling
@@ -631,9 +631,9 @@ tasks:
 
       If any visual issues are found, fix them in the renderer and re-take the screenshots.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: screenshot-blocks

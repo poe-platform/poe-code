@@ -10,6 +10,7 @@ function createRun(overrides: Partial<StyledRun> = {}): StyledRun {
     bold: false,
     italic: false,
     underline: false,
+    strikethrough: false,
     dim: false,
     ...overrides
   };
@@ -27,6 +28,12 @@ describe("renderSvg", () => {
     const svg = renderSvg([createRun({ bold: true })], { window: false });
 
     expect(svg).toContain('font-weight="bold"');
+  });
+
+  it("adds line-through decoration for strikethrough runs", () => {
+    const svg = renderSvg([createRun({ strikethrough: true })], { window: false });
+
+    expect(svg).toContain('text-decoration="line-through"');
   });
 
   it("applies foreground color as fill", () => {

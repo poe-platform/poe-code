@@ -42,6 +42,7 @@ describe("renderTerminalPng", () => {
         bold: false,
         italic: false,
         underline: false,
+        strikethrough: false,
         dim: false
       }
     ]);

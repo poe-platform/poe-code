@@ -11,6 +11,7 @@ function createRun(overrides: Partial<StyledRun> = {}): StyledRun {
     bold: false,
     italic: false,
     underline: false,
+    strikethrough: false,
     dim: false,
     ...overrides
   };

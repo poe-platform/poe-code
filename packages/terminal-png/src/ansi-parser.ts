@@ -10,6 +10,7 @@ export type StyledRun = {
   bold: boolean;
   italic: boolean;
   underline: boolean;
+  strikethrough: boolean;
   dim: boolean;
 };
 
@@ -24,19 +25,13 @@ function createDefaultStyle(): StyleState {
     bold: false,
     italic: false,
     underline: false,
+    strikethrough: false,
     dim: false
   };
 }
 
 function cloneStyle(style: StyleState): StyleState {
-  return {
-    fg: style.fg,
-    bg: style.bg,
-    bold: style.bold,
-    italic: style.italic,
-    underline: style.underline,
-    dim: style.dim
-  };
+  return { ...style };
 }
 
 function stylesEqual(left: StyleState, right: StyleState): boolean {
@@ -44,6 +39,7 @@ function stylesEqual(left: StyleState, right: StyleState): boolean {
     left.bold === right.bold &&
     left.italic === right.italic &&
     left.underline === right.underline &&
+    left.strikethrough === right.strikethrough &&
     left.dim === right.dim &&
     colorsEqual(left.fg, right.fg) &&
     colorsEqual(left.bg, right.bg)
@@ -88,12 +84,9 @@ function pushRun(runs: StyledRun[], style: StyleState, text: string): void {
     bold: style.bold,
     italic: style.italic,
     underline: style.underline,
+    strikethrough: style.strikethrough,
     dim: style.dim
   });
-}
-
-function isDigit(char: string): boolean {
-  return char >= "0" && char <= "9";
 }
 
 function parseCsi(input: string, start: number): { end: number; final: string | null; params: string } {
@@ -125,7 +118,7 @@ function toInteger(value: string | undefined): number | null {
   }
 
   for (const char of value) {
-    if (!isDigit(char)) {
+    if (char < "0" || char > "9") {
       return null;
     }
   }
@@ -211,13 +204,49 @@ function applySgr(style: StyleState, paramsText: string): StyleState {
       continue;
     }
 
+    if (value === 22) {
+      nextStyle.bold = false;
+      nextStyle.dim = false;
+      continue;
+    }
+
     if (value === 3) {
       nextStyle.italic = true;
       continue;
     }
 
+    if (value === 23) {
+      nextStyle.italic = false;
+      continue;
+    }
+
     if (value === 4) {
       nextStyle.underline = true;
+      continue;
+    }
+
+    if (value === 24) {
+      nextStyle.underline = false;
+      continue;
+    }
+
+    if (value === 9) {
+      nextStyle.strikethrough = true;
+      continue;
+    }
+
+    if (value === 29) {
+      nextStyle.strikethrough = false;
+      continue;
+    }
+
+    if (value === 39) {
+      nextStyle.fg = null;
+      continue;
+    }
+
+    if (value === 49) {
+      nextStyle.bg = null;
       continue;
     }
 

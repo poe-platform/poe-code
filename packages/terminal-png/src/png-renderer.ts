@@ -1,11 +1,11 @@
 import { Resvg } from "@resvg/resvg-js";
-import { JETBRAINS_MONO_TTF_PATH } from "./font.js";
+import { JETBRAINS_MONO_FONT_FILES } from "./font.js";
 
 export function renderPng(svg: string): Buffer {
   const resvg = new Resvg(svg, {
     font: {
       defaultFontFamily: "JetBrains Mono",
-      fontFiles: [JETBRAINS_MONO_TTF_PATH],
+      fontFiles: [...JETBRAINS_MONO_FONT_FILES],
       loadSystemFonts: false,
       monospaceFamily: "JetBrains Mono"
     },

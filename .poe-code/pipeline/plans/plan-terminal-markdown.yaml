@@ -752,7 +752,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: terminal-pilot-width-wrapping
     title: Terminal-pilot test — width and wrapping behavior
@@ -785,10 +785,10 @@ tasks:
 
       Fix any wrapping or width-related issues found.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: terminal-pilot-malformed-input
     title: Terminal-pilot test — malformed and edge case inputs

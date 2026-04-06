@@ -258,6 +258,20 @@ describe("terminal markdown renderer", () => {
     );
   });
 
+  it("falls back to stacked rows when a table exceeds the available width", () => {
+    const ast = parse(
+      [
+        "| Column One | Column Two | Column Three |",
+        "|---|---|---|",
+        "| value 1 | value 2 | value 3 |"
+      ].join("\n")
+    ).ast;
+
+    expect(stripAnsi(render(ast, { width: 40 }))).toBe(
+      "Column One: value 1\nColumn Two: value 2\nColumn Three: value 3\n\n"
+    );
+  });
+
   it("styles the table header row separately from data rows", () => {
     const theme = getTheme();
     const ast: MdNode = {

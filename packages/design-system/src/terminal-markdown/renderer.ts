@@ -204,6 +204,10 @@ function renderTable(node: Extract<MdNode, { type: "table" }>, context: RenderCo
     Math.max(...renderedRows.map((row) => stripAnsi(row[columnIndex] ?? "").length), 0)
   );
 
+  if (getRenderedTableWidth(columnWidths) > context.width) {
+    return renderStackedTable(rows, columnCount, context);
+  }
+
   const lines = renderedRows.map((row, rowIndex) =>
     row.map((cell, columnIndex) =>
       alignTableCell(
@@ -233,6 +237,38 @@ function renderTable(node: Extract<MdNode, { type: "table" }>, context: RenderCo
   });
 
   return `${outputLines.join("\n")}\n\n`;
+}
+
+function renderStackedTable(
+  rows: readonly Extract<MdNode, { type: "tableRow" }>[],
+  columnCount: number,
+  context: RenderContext
+): string {
+  const headerRow = rows[0];
+  if (headerRow === undefined) {
+    return "";
+  }
+
+  const dataRows = rows.slice(1);
+  if (dataRows.length === 0) {
+    const headerLines = Array.from({ length: columnCount }, (_, columnIndex) =>
+      tokenizeText(getStackedTableLabel(headerRow.children[columnIndex], columnIndex, context), [typography.bold])
+    ).flatMap((tokens) => wrapTokens(tokens, context.width));
+
+    return headerLines.length === 0 ? "" : `${headerLines.join("\n")}\n\n`;
+  }
+
+  const blocks = dataRows
+    .map((row) =>
+      Array.from({ length: columnCount }, (_, columnIndex) =>
+        renderStackedTableField(headerRow.children[columnIndex], row.children[columnIndex], columnIndex, context)
+      )
+        .filter((field) => field.length > 0)
+        .join("\n")
+    )
+    .filter((block) => block.length > 0);
+
+  return blocks.length === 0 ? "" : `${blocks.join("\n\n")}\n\n`;
 }
 
 function renderListItem(
@@ -596,12 +632,12 @@ function wrapTokens(tokens: readonly WrapToken[], width: number): string[] {
     }
 
     const chunks = splitWord(token.value, width);
-    chunks.forEach((chunk, index) => {
+    for (let index = 0; index < chunks.length; index++) {
+      const chunk = chunks[index]!;
       const gap = index === 0 ? pendingSpace : "";
       const gapWidth = gap.length;
-      const nextWidth = chunk.length + (currentWidth === 0 ? 0 : gapWidth);
 
-      if (currentWidth > 0 && currentWidth + nextWidth > width) {
+      if (currentWidth > 0 && currentWidth + chunk.length + gapWidth > width) {
         flushLine();
       }
 
@@ -617,7 +653,7 @@ function wrapTokens(tokens: readonly WrapToken[], width: number): string[] {
       if (index < chunks.length - 1) {
         flushLine();
       }
-    });
+    }
   }
 
   if (currentLine.length > 0) {
@@ -699,6 +735,51 @@ function formatAlertLabel(
 
 function renderTableCell(node: Extract<MdNode, { type: "tableCell" }>, context: RenderContext): string {
   return wrapTokens(tokenizeInline(node.children, context), Number.MAX_SAFE_INTEGER).join(" ");
+}
+
+function renderStackedTableField(
+  headerCell: MdNode | undefined,
+  cell: MdNode | undefined,
+  columnIndex: number,
+  context: RenderContext
+): string {
+  const tokens = [
+    ...tokenizeText(getStackedTableLabel(headerCell, columnIndex, context), [typography.bold]),
+    createWordToken(":", [typography.bold]),
+    { type: "space", value: " " } as const,
+    ...getStackedTableValueTokens(cell, context)
+  ];
+
+  return wrapTokens(tokens, context.width).join("\n");
+}
+
+function getStackedTableLabel(
+  headerCell: MdNode | undefined,
+  columnIndex: number,
+  context: RenderContext
+): string {
+  if (headerCell?.type !== "tableCell") {
+    return `Column ${columnIndex + 1}`;
+  }
+
+  const label = stripAnsi(renderTableCell(headerCell, context)).trim();
+  return label.length > 0 ? label : `Column ${columnIndex + 1}`;
+}
+
+function getStackedTableValueTokens(cell: MdNode | undefined, context: RenderContext): WrapToken[] {
+  if (cell?.type !== "tableCell") {
+    return [createWordToken("—", [context.theme.muted])];
+  }
+
+  const tokens = trimTrailingSpaces(tokenizeInline(cell.children, context));
+  return tokens.length > 0 ? tokens : [createWordToken("—", [context.theme.muted])];
+}
+
+function getRenderedTableWidth(columnWidths: readonly number[]): number {
+  return columnWidths.reduce(
+    (totalWidth, width) => totalWidth + width + spacing.sm * 2,
+    columnWidths.length + 1
+  );
 }
 
 function alignTableCell(

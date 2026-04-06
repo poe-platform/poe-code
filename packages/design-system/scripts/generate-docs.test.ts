@@ -1,11 +1,26 @@
 import { describe, expect, it } from "vitest";
-import {
-  captureTextOutput,
-  renderTextDocument,
-  sections
-} from "./generate-docs.js";
+import { stripAnsi } from "../src/internal/strip-ansi.js";
+import { captureTextOutput, renderTextDocument, sections } from "./generate-docs.js";
 
 describe("generate-docs", () => {
+  it("lists the current demo types in the no-argument usage output", () => {
+    let output = "";
+
+    try {
+      captureTextOutput("", "markdown");
+    } catch (error) {
+      output = String(error);
+    }
+
+    expect(output).toContain("Usage: demo <type> [value...]");
+    expect(output).toContain("layout");
+    expect(output).toContain("layout-expanded");
+    expect(output).toContain("table");
+    expect(output).toContain("table-markdown");
+    expect(output).toContain("markdown");
+    expect(output).toContain("markdown-minimal");
+  });
+
   it("renders markdown docs with fenced markdown output blocks", () => {
     const output = renderTextDocument("markdown", (demoArgs, format) => {
       expect(format).toBe("markdown");
@@ -58,6 +73,40 @@ describe("generate-docs", () => {
     expect(output).toContain("| Model | Context | $/MTok In/Out |");
     expect(output).not.toContain("┌");
     expect(output).not.toContain("\u001b[");
+  });
+
+  it("captures the full markdown renderer demo output", () => {
+    const output = stripAnsi(captureTextOutput("markdown", "markdown"));
+
+    expect(output).toContain("Design System Markdown");
+    expect(output).toContain("Overview");
+    expect(output).toContain("Renderer Features");
+    expect(output).toContain("Paragraph with bold, italic, strikethrough, code");
+    expect(output).toContain("span, a docs link");
+    expect(output).toContain('const agent = "poe-code";');
+    expect(output).toContain("| Outer quote");
+    expect(output).toContain("| | Nested quote");
+    expect(output).toContain("• unordered item");
+    expect(output).toContain("1. ordered item");
+    expect(output).toContain("completed task");
+    expect(output).toContain("pending task");
+    expect(output).toContain("| Feature  | Alignment | Status |");
+    expect(output).toContain("docs link");
+    expect(output).toContain("(https://example.com/docs)");
+    expect(output).toContain("[image: System diagram]");
+    expect(output).toContain("| Note");
+    expect(output).toContain("reference[1].");
+    expect(output).toContain("Footnote definition for the markdown demo.");
+  });
+
+  it("captures the minimal markdown renderer demo output", () => {
+    const output = stripAnsi(captureTextOutput("markdown-minimal", "markdown"));
+
+    expect(output).toContain("Markdown Minimal");
+    expect(output).toContain("Quick validation");
+    expect(output).toContain('console.log("demo");');
+    expect(output).not.toContain("| Feature |");
+    expect(output).not.toContain("> Note");
   });
 
   it("captures format-aware json menu output", () => {

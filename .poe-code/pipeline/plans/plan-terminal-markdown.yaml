@@ -570,7 +570,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 7: Demo script + visual testing with screenshots
@@ -603,9 +603,9 @@ tasks:
 
       Update the DemoType union and the switch statement in `main()`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: screenshot-headings-text

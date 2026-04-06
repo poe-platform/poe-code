@@ -16,6 +16,7 @@ import {
   renderSpinnerStopped,
   renderMenu,
   renderTable,
+  renderMarkdown,
   getTheme,
   resolveOutputFormat,
   resetOutputFormatCache
@@ -44,7 +45,59 @@ type DemoType =
   | "layout"
   | "layout-expanded"
   | "table"
-  | "table-markdown";
+  | "table-markdown"
+  | "markdown"
+  | "markdown-minimal";
+
+const MARKDOWN_DEMO = [
+  "# Design System Markdown",
+  "",
+  "## Overview",
+  "",
+  "### Renderer Features",
+  "",
+  "Paragraph with **bold**, *italic*, ~~strikethrough~~, `code span`, a [docs link](https://example.com/docs), an image ![System diagram](https://example.com/system.png), and a footnote reference[^demo].",
+  "",
+  "```ts",
+  'const agent = "poe-code";',
+  "console.log(agent);",
+  "```",
+  "",
+  "> Outer quote",
+  ">",
+  "> > Nested quote",
+  "",
+  "- unordered item",
+  "- another unordered item",
+  "",
+  "1. ordered item",
+  "2. another ordered item",
+  "",
+  "- [x] completed task",
+  "- [ ] pending task",
+  "",
+  "| Feature | Alignment | Status |",
+  "| :------ | :-------: | -----: |",
+  "| Headings | center | Ready |",
+  "| Tables | aligned | 100% |",
+  "",
+  "> [!NOTE]",
+  "> Alerts are rendered as styled notes.",
+  "",
+  "---",
+  "",
+  "[^demo]: Footnote definition for the markdown demo."
+].join("\n");
+
+const MINIMAL_MARKDOWN_DEMO = [
+  "# Markdown Minimal",
+  "",
+  "Quick validation paragraph.",
+  "",
+  "```ts",
+  'console.log("demo");',
+  "```"
+].join("\n");
 
 function runTextDemo(style: string, content: string): void {
   const styleFn = text[style as keyof typeof text];
@@ -126,10 +179,7 @@ function runIntroDemo(content: string): void {
 }
 
 function runNoteDemo(): void {
-  note(
-    "Run the following command to test:\n  poe-code test claude-code",
-    "Next steps."
-  );
+  note("Run the following command to test:\n  poe-code test claude-code", "Next steps.");
 }
 
 function runOutroDemo(): void {
@@ -186,13 +236,13 @@ function runTableDemo(): void {
     columns: [
       { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
       { name: "Context", title: "Context", alignment: "right", maxLen: 9 },
-      { name: "Price", title: "$/MTok In/Out", alignment: "right", maxLen: 15 },
+      { name: "Price", title: "$/MTok In/Out", alignment: "right", maxLen: 15 }
     ],
     rows: [
       { Model: "anthropic/claude-sonnet-4", Context: "200K", Price: "$3.00/$15.00" },
       { Model: "openai/gpt-4o", Context: "128K", Price: "$2.50/$10.00" },
-      { Model: "google/gemini-2.0-flash", Context: "1M", Price: "$0.10/$0.40" },
-    ],
+      { Model: "google/gemini-2.0-flash", Context: "1M", Price: "$0.10/$0.40" }
+    ]
   });
   process.stdout.write(output + "\n");
 }
@@ -205,13 +255,13 @@ function runTableMarkdownDemo(): void {
     columns: [
       { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
       { name: "Context", title: "Context", alignment: "right", maxLen: 9 },
-      { name: "Price", title: "$/MTok In/Out", alignment: "right", maxLen: 15 },
+      { name: "Price", title: "$/MTok In/Out", alignment: "right", maxLen: 15 }
     ],
     rows: [
       { Model: "anthropic/claude-sonnet-4", Context: "200K", Price: "$3.00/$15.00" },
       { Model: "openai/gpt-4o", Context: "128K", Price: "$2.50/$10.00" },
-      { Model: "google/gemini-2.0-flash", Context: "1M", Price: "$0.10/$0.40" },
-    ],
+      { Model: "google/gemini-2.0-flash", Context: "1M", Price: "$0.10/$0.40" }
+    ]
   });
   process.stdout.write(md + "\n");
 }
@@ -235,13 +285,12 @@ async function main(): Promise<void> {
 
   if (!type) {
     process.stderr.write("Usage: demo <type> [value...]\n");
-    process.stderr.write(
-      "Types: intro, heading, section, command, argument, option, example,\n"
-    );
+    process.stderr.write("Types: intro, heading, section, command, argument, option, example,\n");
     process.stderr.write(
       "       usageCommand, link, muted, symbol, log, diff, menu, note, outro,\n"
     );
-    process.stderr.write("       resolved, errorResolved, spinner\n");
+    process.stderr.write("       resolved, errorResolved, spinner, layout, layout-expanded,\n");
+    process.stderr.write("       table, table-markdown, markdown, markdown-minimal\n");
     process.exitCode = 1;
     return;
   }
@@ -299,6 +348,12 @@ async function main(): Promise<void> {
       break;
     case "table-markdown":
       runTableMarkdownDemo();
+      break;
+    case "markdown":
+      process.stdout.write(renderMarkdown(MARKDOWN_DEMO));
+      break;
+    case "markdown-minimal":
+      process.stdout.write(renderMarkdown(MINIMAL_MARKDOWN_DEMO));
       break;
     default:
       process.stderr.write(`Unknown demo type: ${type}\n`);

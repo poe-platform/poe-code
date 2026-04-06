@@ -1,12 +1,12 @@
-name: Release agent-spawn-py
+name: Release py-poe-spawn
 on:
   push:
     branches:
       - main
     paths:
-      - 'packages/agent-spawn-py/**'
+      - 'packages/py-poe-spawn/**'
 concurrency:
-  group: release-agent-spawn-py
+  group: release-py-poe-spawn
   cancel-in-progress: false
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
       - name: Install build dependencies
         run: python -m pip install --upgrade build tomlkit
       - name: Auto-bump patch version from PyPI
-        working-directory: packages/agent-spawn-py
+        working-directory: packages/py-poe-spawn
         run: |
           python <<'PY'
           from pathlib import Path
@@ -32,7 +32,7 @@ jobs:
 
           import tomlkit
 
-          package_name = "poe-code-spawn"
+          package_name = "poe-spawn"
           pyproject_path = Path("pyproject.toml")
           pyproject = tomlkit.parse(pyproject_path.read_text(encoding="utf-8"))
 
@@ -54,9 +54,9 @@ jobs:
           print(f"Next version: {next_version}")
           PY
       - name: Build
-        working-directory: packages/agent-spawn-py
+        working-directory: packages/py-poe-spawn
         run: python -m build
       - name: Publish
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: packages/agent-spawn-py/dist
+          packages-dir: packages/py-poe-spawn/dist

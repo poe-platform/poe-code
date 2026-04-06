@@ -17,9 +17,9 @@ import {
 // Template imports are lazy to avoid breaking tsc output when imported
 // by generate-bin-wrappers.mjs (Node.js can't resolve .hbs as ESM modules)
 const templateImports: Record<string, () => Promise<{ default: string }>> = {
-  "python/env.hbs": () => import("../templates/python/env.hbs"),
-  "python/main.py.hbs": () => import("../templates/python/main.py.hbs"),
-  "python/requirements.txt.hbs": () => import("../templates/python/requirements.txt.hbs"),
+  "py-poe-spawn/env.hbs": () => import("../templates/py-poe-spawn/env.hbs"),
+  "py-poe-spawn/main.py.hbs": () => import("../templates/py-poe-spawn/main.py.hbs"),
+  "py-poe-spawn/requirements.txt.hbs": () => import("../templates/py-poe-spawn/requirements.txt.hbs"),
   "codex/config.toml.hbs": () => import("../templates/codex/config.toml.hbs"),
 };
 

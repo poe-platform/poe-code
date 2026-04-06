@@ -1,7 +1,7 @@
 import unittest
 
-from poe_code_spawn._parse import parse_jsonl_line
-from poe_code_spawn.types import AgentMessageEvent, SpawnResultEvent, UsageEvent
+from poe_spawn._parse import parse_jsonl_line
+from poe_spawn.types import AgentMessageEvent, SpawnResultEvent, UsageEvent
 
 
 class ParseJsonlLineTest(unittest.TestCase):

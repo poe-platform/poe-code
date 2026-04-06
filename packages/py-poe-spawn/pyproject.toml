@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "poe-code-spawn"
+name = "poe-spawn"
 version = "0.0.1"
 description = "Stdlib-only Python SDK for poe-code spawn."
 readme = "README.md"

@@ -1,10 +1,10 @@
 {
-  "name": "@poe-code/agent-spawn-py",
+  "name": "@poe-code/py-poe-spawn",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "python3 -m compileall src/poe_code_spawn",
+    "build": "python3 -m compileall src/poe_spawn",
     "test:unit": "python3 -m unittest discover -s tests -t ."
   }
 }

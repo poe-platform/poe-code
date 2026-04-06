@@ -4,9 +4,9 @@ import unittest
 import warnings
 from unittest import mock
 
-from poe_code_spawn import PoeCodeNotFoundError, SessionStartEvent, UsageEvent, spawn
-from poe_code_spawn import AgentMessageEvent
-from poe_code_spawn._spawn import _resolve_cli_command
+from poe_spawn import PoeCodeNotFoundError, SessionStartEvent, UsageEvent, spawn
+from poe_spawn import AgentMessageEvent
+from poe_spawn._spawn import _resolve_cli_command
 
 
 class FakeProcess:
@@ -29,20 +29,20 @@ class FakeProcess:
 
 class ResolveCliCommandTest(unittest.TestCase):
     def test_prefers_poe_code_on_path(self) -> None:
-        with mock.patch("poe_code_spawn._spawn.shutil.which") as which:
+        with mock.patch("poe_spawn._spawn.shutil.which") as which:
             which.side_effect = lambda name: "/usr/local/bin/poe-code" if name == "poe-code" else None
 
             self.assertEqual(_resolve_cli_command(), ["/usr/local/bin/poe-code"])
 
     def test_falls_back_to_npx(self) -> None:
-        with mock.patch("poe_code_spawn._spawn.shutil.which") as which:
+        with mock.patch("poe_spawn._spawn.shutil.which") as which:
             which.side_effect = lambda name: "/usr/local/bin/npx" if name == "npx" else None
 
             self.assertEqual(_resolve_cli_command(), ["/usr/local/bin/npx", "--yes", "poe-code"])
 
     def test_raises_diagnostic_when_no_cli_can_be_found(self) -> None:
-        with mock.patch("poe_code_spawn._spawn.shutil.which", return_value=None), mock.patch(
-            "poe_code_spawn._spawn._read_command_version"
+        with mock.patch("poe_spawn._spawn.shutil.which", return_value=None), mock.patch(
+            "poe_spawn._spawn._read_command_version"
         ) as read_version:
             read_version.side_effect = lambda name: {"node": "v22.1.0", "npm": "10.7.0"}[name]
 
@@ -78,8 +78,8 @@ class SpawnTest(unittest.TestCase):
             popen_calls.append((args, kwargs))
             return fake_process
 
-        with mock.patch("poe_code_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
-            "poe_code_spawn._spawn.subprocess.Popen", side_effect=fake_popen
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", side_effect=fake_popen
         ):
             handle = spawn("codex", "Fix the bug", model="gpt-5", activity_timeout_ms=2500)
 
@@ -122,8 +122,8 @@ class SpawnTest(unittest.TestCase):
     def test_cancel_sends_interrupt_signal_to_child(self) -> None:
         fake_process = FakeProcess("")
 
-        with mock.patch("poe_code_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
-            "poe_code_spawn._spawn.subprocess.Popen", return_value=fake_process
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", return_value=fake_process
         ):
             handle = spawn("codex", "Stop now")
             handle.cancel()
@@ -142,8 +142,8 @@ class SpawnTest(unittest.TestCase):
             wait_code=7,
         )
 
-        with mock.patch("poe_code_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
-            "poe_code_spawn._spawn.subprocess.Popen", return_value=fake_process
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", return_value=fake_process
         ):
             handle = spawn("codex", "Fix the bug")
             events = list(handle.events)
@@ -161,8 +161,8 @@ class SpawnTest(unittest.TestCase):
             popen_calls.append((args, kwargs))
             return fake_process
 
-        with mock.patch("poe_code_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
-            "poe_code_spawn._spawn.subprocess.Popen", side_effect=fake_popen
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", side_effect=fake_popen
         ):
             result = spawn.pretty("codex", "Show output", log_dir="/tmp/spawn-log")
 
@@ -189,8 +189,8 @@ class SpawnTest(unittest.TestCase):
         fake_process = FakeProcess('{"event":"agent_message","text":"done"}\n')
         cancel_event = threading.Event()
 
-        with mock.patch("poe_code_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
-            "poe_code_spawn._spawn.subprocess.Popen", return_value=fake_process
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", return_value=fake_process
         ):
             handle = spawn("codex", "Finish normally", cancel_event=cancel_event)
             self.assertIsNotNone(handle._cancel_watcher)
@@ -208,8 +208,8 @@ class SpawnTest(unittest.TestCase):
             popen_calls.append((args, kwargs))
             return fake_process
 
-        with mock.patch("poe_code_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
-            "poe_code_spawn._spawn.subprocess.Popen", side_effect=fake_popen
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", side_effect=fake_popen
         ), warnings.catch_warnings(record=True) as caught_warnings:
             warnings.simplefilter("always")
             handle = spawn(

@@ -1,11 +1,11 @@
-# `poe-code-spawn`
+# `poe-spawn`
 
 Stdlib-only Python SDK for `poe-code spawn`.
 
 ## Install
 
 ```bash
-pip install poe-code-spawn
+pip install poe-spawn
 ```
 
 The package does not bundle the CLI. It resolves the executable in this order:
@@ -17,7 +17,7 @@ The package does not bundle the CLI. It resolves the executable in this order:
 ## Usage
 
 ```python
-from poe_code_spawn import Agent, AgentMessageEvent, spawn
+from poe_spawn import Agent, AgentMessageEvent, spawn
 
 handle = spawn(Agent.CODEX, "Fix the auth bug", cwd="/repo")
 
@@ -33,7 +33,7 @@ print(result.exit_code)
 record is stored on `handle.result` after the iterator is fully consumed.
 
 ```python
-from poe_code_spawn import Agent, spawn
+from poe_spawn import Agent, spawn
 
 result = spawn.pretty(Agent.CLAUDE_CODE, "Summarize the failing tests")
 print(result.exit_code)

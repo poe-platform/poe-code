@@ -46,9 +46,9 @@ interface PythonClass {
 
 const GENERATED_TYPES_OUTPUT_PATH = [
   "packages",
-  "agent-spawn-py",
+  "py-poe-spawn",
   "src",
-  "poe_code_spawn",
+  "poe_spawn",
   "types.py"
 ];
 
@@ -115,7 +115,7 @@ export async function runAgentSpawnPythonTypeCodegen(
   if (options.check) {
     if (existing !== generated) {
       throw new Error(
-        `Generated Python types are out of date. Run \`npm run codegen:agent-spawn-py\`.`
+        `Generated Python types are out of date. Run \`npm run codegen:python-types\`.`
       );
     }
     return;

@@ -229,6 +229,19 @@ describe("parseBlocks", () => {
     expect(parseBlocks("- - -")).toEqual([{ type: "thematicBreak" }]);
   });
 
+  it("parses block-level HTML content as an html node", () => {
+    expect(parseBlocks("<div>\nalpha\n</div>\n\nbeta")).toEqual([
+      { type: "html", value: "<div>\nalpha\n</div>" },
+      { type: "paragraph", children: [{ type: "text", value: "beta" }] }
+    ]);
+  });
+
+  it("renders HTML-like content with an invalid tag name as text (test 136)", () => {
+    expect(parseBlocks("<not a tag>")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "<not a tag>" }] }
+    ]);
+  });
+
   it("parses a simple 2-column GFM pipe table (test 56)", () => {
     expect(parseBlocks("| Name | Value |\n| --- | --- |\n| alpha | beta |")).toEqual([
       {
@@ -686,6 +699,54 @@ describe("parseBlocks", () => {
             ]
           }
         ]
+      }
+    ]);
+  });
+
+  it("parses a simple footnote definition (test 103)", () => {
+    expect(parseBlocks("[^1]: alpha")).toEqual([
+      {
+        type: "footnoteDefinition",
+        label: "1",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses footnote definitions with multi-line content (test 104)", () => {
+    expect(parseBlocks("[^1]: alpha\n    beta\n\n    gamma")).toEqual([
+      {
+        type: "footnoteDefinition",
+        label: "1",
+        children: [
+          { type: "paragraph", children: [{ type: "text", value: "alpha\nbeta" }] },
+          { type: "paragraph", children: [{ type: "text", value: "gamma" }] }
+        ]
+      }
+    ]);
+  });
+
+  it("parses multiple footnote definitions in a document (test 105)", () => {
+    expect(parseBlocks("[^1]: alpha\n[^2]: beta")).toEqual([
+      {
+        type: "footnoteDefinition",
+        label: "1",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      },
+      {
+        type: "footnoteDefinition",
+        label: "2",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "beta" }] }]
+      }
+    ]);
+  });
+
+  it("parses footnote definitions with alphanumeric labels (test 109)", () => {
+    expect(parseBlocks("[^note1]: alpha")).toEqual([
+      {
+        type: "footnoteDefinition",
+        label: "note1",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
       }
     ]);
   });

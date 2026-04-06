@@ -51,6 +51,93 @@ type ParsedAlertMarker = {
 
 type TableAlignment = Extract<MdNode, { type: "table" }>["align"][number];
 
+type ParsedFootnoteDefinition = {
+  label: string;
+  contentStart: number;
+};
+
+type ParsedHtmlTagStart = {
+  tagName: string;
+  tagEnd: number;
+  closing: boolean;
+  selfClosing: boolean;
+};
+
+const BLOCK_HTML_TAGS = new Set([
+  "address",
+  "article",
+  "aside",
+  "base",
+  "basefont",
+  "blockquote",
+  "body",
+  "caption",
+  "center",
+  "col",
+  "colgroup",
+  "dd",
+  "details",
+  "dialog",
+  "dir",
+  "div",
+  "dl",
+  "dt",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "frame",
+  "frameset",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "head",
+  "header",
+  "hr",
+  "html",
+  "iframe",
+  "legend",
+  "li",
+  "link",
+  "main",
+  "menu",
+  "menuitem",
+  "nav",
+  "noframes",
+  "ol",
+  "optgroup",
+  "option",
+  "p",
+  "param",
+  "search",
+  "section",
+  "summary",
+  "table",
+  "tbody",
+  "td",
+  "tfoot",
+  "th",
+  "thead",
+  "title",
+  "tr",
+  "track",
+  "ul"
+]);
+
+const VOID_BLOCK_HTML_TAGS = new Set([
+  "base",
+  "basefont",
+  "col",
+  "hr",
+  "link",
+  "param",
+  "track"
+]);
+
 export function parseBlocks(input: string): MdNode[] {
   return parseBlocksWithOptions(input, { preferListToThematicBreak: false });
 }
@@ -94,27 +181,16 @@ function parseBlocksWithOptions(input: string, options: ParseOptions): MdNode[] 
 }
 
 function createBlockRules(preferListToThematicBreak: boolean): BlockRule[] {
-  if (preferListToThematicBreak) {
-    return [
-      parseFencedCodeBlock,
-      parseAtxHeading,
-      parseAlert,
-      parseBlockquote,
-      parseList,
-      parseThematicBreak,
-      parseTable,
-      parseSetextHeading
-    ];
-  }
+  const middleRules: BlockRule[] = preferListToThematicBreak
+    ? [parseAlert, parseBlockquote, parseList, parseHtmlBlock, parseThematicBreak]
+    : [parseThematicBreak, parseAlert, parseBlockquote, parseList, parseHtmlBlock];
 
   return [
     parseFencedCodeBlock,
     parseAtxHeading,
-    parseThematicBreak,
-    parseAlert,
-    parseBlockquote,
-    parseList,
+    ...middleRules,
     parseTable,
+    parseFootnoteDefinition,
     parseSetextHeading
   ];
 }
@@ -329,6 +405,83 @@ function parseTable(state: ParserState): MdNode | null {
   };
 }
 
+function parseHtmlBlock(state: ParserState): MdNode | null {
+  const firstLine = readLine(state.input, state.position);
+  const openingTag = parseBlockHtmlTagStart(firstLine.text);
+
+  if (openingTag === null) {
+    return null;
+  }
+
+  state.position = firstLine.nextPosition;
+  const lines = [firstLine.text];
+
+  const isSelfContained =
+    openingTag.closing ||
+    openingTag.selfClosing ||
+    VOID_BLOCK_HTML_TAGS.has(openingTag.tagName) ||
+    containsClosingHtmlTag(firstLine.text, openingTag.tagName, openingTag.tagEnd);
+
+  if (!isSelfContained) {
+    while (state.position < state.input.length) {
+      const line = readLine(state.input, state.position);
+
+      lines.push(line.text);
+      state.position = line.nextPosition;
+
+      if (containsClosingHtmlTag(line.text, openingTag.tagName)) {
+        break;
+      }
+    }
+  }
+
+  return { type: "html", value: lines.join("\n") };
+}
+
+function parseFootnoteDefinition(state: ParserState): MdNode | null {
+  const firstLine = readLine(state.input, state.position);
+  const definition = parseFootnoteDefinitionMarker(firstLine.text);
+
+  if (definition === null) {
+    return null;
+  }
+
+  state.position = firstLine.nextPosition;
+
+  const continuationLines: string[] = [];
+  const pendingBlankLines: string[] = [];
+
+  while (state.position < state.input.length) {
+    const line = readLine(state.input, state.position);
+
+    if (isBlankLine(line.text)) {
+      pendingBlankLines.push("");
+      state.position = line.nextPosition;
+      continue;
+    }
+
+    const strippedLine = stripIndent(line.text, 4);
+
+    if (strippedLine === null) {
+      break;
+    }
+
+    state.position = line.nextPosition;
+    continuationLines.push(...pendingBlankLines, strippedLine);
+    pendingBlankLines.length = 0;
+  }
+
+  return {
+    type: "footnoteDefinition",
+    label: definition.label,
+    children: parseListItemChildren(
+      firstLine.text.slice(definition.contentStart),
+      continuationLines,
+      state.preferListToThematicBreak
+    )
+  };
+}
+
 function parseParagraph(state: ParserState): MdNode {
   const lines: string[] = [];
 
@@ -410,7 +563,12 @@ function startsBlockInLines(
 }
 
 function startsSimpleBlock(line: string, preferListToThematicBreak: boolean): boolean {
-  if (parseOpeningFence(line) !== null || parseAtxHeadingLine(line) !== null) {
+  if (
+    parseOpeningFence(line) !== null ||
+    parseAtxHeadingLine(line) !== null ||
+    parseBlockHtmlTagStart(line) !== null ||
+    parseFootnoteDefinitionMarker(line) !== null
+  ) {
     return true;
   }
 
@@ -864,6 +1022,202 @@ function parseAlertMarker(content: string): ParsedAlertMarker | null {
   };
 }
 
+function parseFootnoteDefinitionMarker(line: string): ParsedFootnoteDefinition | null {
+  const markerStart = skipLeadingBlockIndent(line);
+
+  if (
+    markerStart === -1 ||
+    markerStart + 3 >= line.length ||
+    line[markerStart] !== "[" ||
+    line[markerStart + 1] !== "^"
+  ) {
+    return null;
+  }
+
+  let labelEnd = markerStart + 2;
+
+  while (labelEnd < line.length && line[labelEnd] !== "]") {
+    if (!isFootnoteLabelChar(line[labelEnd])) {
+      return null;
+    }
+
+    labelEnd += 1;
+  }
+
+  if (labelEnd === markerStart + 2 || labelEnd + 1 >= line.length || line[labelEnd + 1] !== ":") {
+    return null;
+  }
+
+  let contentStart = labelEnd + 2;
+
+  while (contentStart < line.length && (line[contentStart] === " " || line[contentStart] === "\t")) {
+    contentStart += 1;
+  }
+
+  return {
+    label: line.slice(markerStart + 2, labelEnd),
+    contentStart
+  };
+}
+
+function parseBlockHtmlTagStart(line: string): ParsedHtmlTagStart | null {
+  const start = skipLeadingBlockIndent(line);
+
+  if (start === -1 || start >= line.length || line[start] !== "<") {
+    return null;
+  }
+
+  let index = start + 1;
+  let closing = false;
+
+  if (index < line.length && line[index] === "/") {
+    closing = true;
+    index += 1;
+  }
+
+  if (index >= line.length || !isAsciiLetter(line[index])) {
+    return null;
+  }
+
+  const tagNameStart = index;
+
+  while (index < line.length && isHtmlTagNameChar(line[index])) {
+    index += 1;
+  }
+
+  const tagName = line.slice(tagNameStart, index).toLowerCase();
+
+  if (!BLOCK_HTML_TAGS.has(tagName)) {
+    return null;
+  }
+
+  if (closing) {
+    index = skipHtmlWhitespace(line, index);
+
+    if (index >= line.length || line[index] !== ">") {
+      return null;
+    }
+
+    return {
+      tagName,
+      tagEnd: index + 1,
+      closing: true,
+      selfClosing: false
+    };
+  }
+
+  while (index < line.length) {
+    index = skipHtmlWhitespace(line, index);
+
+    if (index >= line.length) {
+      return null;
+    }
+
+    if (line[index] === ">") {
+      return {
+        tagName,
+        tagEnd: index + 1,
+        closing: false,
+        selfClosing: false
+      };
+    }
+
+    if (line[index] === "/") {
+      const selfClosingStart = skipHtmlWhitespace(line, index + 1);
+
+      if (selfClosingStart >= line.length || line[selfClosingStart] !== ">") {
+        return null;
+      }
+
+      return {
+        tagName,
+        tagEnd: selfClosingStart + 1,
+        closing: false,
+        selfClosing: true
+      };
+    }
+
+    if (!isHtmlAttributeNameStartChar(line[index])) {
+      return null;
+    }
+
+    index += 1;
+
+    while (index < line.length && isHtmlAttributeNameChar(line[index])) {
+      index += 1;
+    }
+
+    index = skipHtmlWhitespace(line, index);
+
+    if (index >= line.length || line[index] !== "=") {
+      continue;
+    }
+
+    index = skipHtmlWhitespace(line, index + 1);
+
+    if (index >= line.length) {
+      return null;
+    }
+
+    const quote = line[index];
+
+    if (quote === "\"" || quote === "'") {
+      index += 1;
+
+      while (index < line.length && line[index] !== quote) {
+        index += 1;
+      }
+
+      if (index >= line.length) {
+        return null;
+      }
+
+      index += 1;
+      continue;
+    }
+
+    while (index < line.length && !isHtmlWhitespace(line[index]) && line[index] !== ">") {
+      const char = line[index];
+
+      if (char === "\"" || char === "'" || char === "<" || char === "=" || char === "`") {
+        return null;
+      }
+
+      index += 1;
+    }
+  }
+
+  return null;
+}
+
+function containsClosingHtmlTag(line: string, tagName: string, fromIndex = 0): boolean {
+  const lowerLine = line.toLowerCase();
+  const needle = `</${tagName}`;
+  let searchIndex = fromIndex;
+
+  while (searchIndex < lowerLine.length) {
+    const matchIndex = lowerLine.indexOf(needle, searchIndex);
+
+    if (matchIndex === -1) {
+      return false;
+    }
+
+    let endIndex = matchIndex + needle.length;
+
+    while (endIndex < lowerLine.length && isHtmlWhitespace(lowerLine[endIndex])) {
+      endIndex += 1;
+    }
+
+    if (endIndex < lowerLine.length && lowerLine[endIndex] === ">") {
+      return true;
+    }
+
+    searchIndex = matchIndex + 1;
+  }
+
+  return false;
+}
+
 function parseListMarker(line: string): ParsedListMarker | null {
   const markerStart = skipLeadingBlockIndent(line);
 
@@ -1039,8 +1393,47 @@ function findWhitespaceIndex(value: string): number {
   return -1;
 }
 
+function skipHtmlWhitespace(line: string, start: number): number {
+  let index = start;
+
+  while (index < line.length && isHtmlWhitespace(line[index])) {
+    index += 1;
+  }
+
+  return index;
+}
+
 function isDigit(value: string): boolean {
   return value >= "0" && value <= "9";
+}
+
+function isAsciiLetter(value: string): boolean {
+  return (value >= "a" && value <= "z") || (value >= "A" && value <= "Z");
+}
+
+function isHtmlTagNameChar(value: string): boolean {
+  return isAsciiLetter(value) || isDigit(value) || value === "-";
+}
+
+function isHtmlAttributeNameStartChar(value: string): boolean {
+  return isAsciiLetter(value) || value === ":" || value === "_";
+}
+
+function isHtmlAttributeNameChar(value: string): boolean {
+  return (
+    isHtmlAttributeNameStartChar(value) ||
+    isDigit(value) ||
+    value === "-" ||
+    value === "."
+  );
+}
+
+function isHtmlWhitespace(value: string): boolean {
+  return value === " " || value === "\t";
+}
+
+function isFootnoteLabelChar(value: string): boolean {
+  return isAsciiLetter(value) || isDigit(value) || value === "-" || value === "_";
 }
 
 function isAlertKind(value: string): value is AlertKind {

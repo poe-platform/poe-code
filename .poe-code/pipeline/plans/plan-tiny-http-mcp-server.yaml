@@ -302,7 +302,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: implement-spec-conformance
     title: Implement spec conformance test harness
@@ -326,9 +326,9 @@ tasks:
 
       See plan doc section 6.3 for the full test matrix and shared runner pattern.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: write-readme

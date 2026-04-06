@@ -14,7 +14,7 @@ import { createHttpServer, type HttpServer, type HttpServerHandle } from "./http
 const TEST_PNG_BASE64 = "iVBORw0KGgo=";
 const TEST_MP3_BASE64 = "SUQzBAAAAAA=";
 
-async function nodeFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
+export async function nodeFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
   const url = new URL(String(input));
   const client = url.protocol === "https:" ? https : http;
   const headers = new Headers(init.headers);

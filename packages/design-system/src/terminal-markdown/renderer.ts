@@ -98,13 +98,7 @@ function renderRoot(node: Extract<MdNode, { type: "root" }>, context: RenderCont
 }
 
 function renderChildren(children: MdNode[], context: RenderContext): string {
-  let output = "";
-
-  for (const child of children) {
-    output += renderNode(child, context);
-  }
-
-  return output;
+  return children.map((child) => renderNode(child, context)).join("");
 }
 
 function renderParagraph(node: Extract<MdNode, { type: "paragraph" }>, context: RenderContext): string {
@@ -354,15 +348,13 @@ function renderReferencedFootnotes(context: RenderContext): string {
   const rendered: string[] = [];
 
   for (let index = 0; index < footnotes.labelsInOrder.length; index += 1) {
-    const label = footnotes.labelsInOrder[index];
-    const definition = label === undefined ? undefined : footnotes.definitions.get(label);
-    const number = label === undefined ? undefined : footnotes.numbers.get(label);
+    const label = footnotes.labelsInOrder[index]!;
+    const definition = footnotes.definitions.get(label);
+    const number = footnotes.numbers.get(label);
 
-    if (definition === undefined || number === undefined) {
-      continue;
+    if (definition !== undefined && number !== undefined) {
+      rendered.push(renderFootnoteDefinition(definition, number, context));
     }
-
-    rendered.push(renderFootnoteDefinition(definition, number, context));
   }
 
   if (rendered.length === 0) {
@@ -565,29 +557,16 @@ function trimTrailingSpaces(tokens: readonly WrapToken[]): WrapToken[] {
 }
 
 function tokenizeText(value: string, formatters: readonly TextFormatter[]): WrapToken[] {
-  const tokens: WrapToken[] = [];
   const lines = value.split("\n");
-
-  lines.forEach((line, lineIndex) => {
-    for (const piece of line.split(/([ \t]+)/)) {
-      if (piece.length === 0) {
-        continue;
-      }
-
-      if (/^[ \t]+$/.test(piece)) {
-        tokens.push({ type: "space", value: piece });
-        continue;
-      }
-
-      tokens.push({ type: "word", value: piece, formatters });
-    }
-
-    if (lineIndex < lines.length - 1) {
-      tokens.push({ type: "break" });
-    }
+  return lines.flatMap((line, lineIndex): WrapToken[] => {
+    const pieces = line
+      .split(/([ \t]+)/)
+      .filter((piece) => piece.length > 0)
+      .map((piece): WrapToken =>
+        /^[ \t]+$/.test(piece) ? { type: "space", value: piece } : { type: "word", value: piece, formatters }
+      );
+    return lineIndex < lines.length - 1 ? [...pieces, { type: "break" }] : pieces;
   });
-
-  return tokens;
 }
 
 function wrapTokens(tokens: readonly WrapToken[], width: number): string[] {

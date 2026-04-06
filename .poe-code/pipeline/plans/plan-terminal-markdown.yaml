@@ -690,7 +690,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 8: Interactive terminal-pilot testing
@@ -749,9 +749,9 @@ tasks:
 
       If any rendering issues are found, fix them and re-test.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: terminal-pilot-width-wrapping

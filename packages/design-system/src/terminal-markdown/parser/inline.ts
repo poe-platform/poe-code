@@ -5,8 +5,28 @@ type ParsedInlineNode = {
   end: number;
 };
 
+type InlineTextNode = Extract<MdNode, { type: "text" }>;
+type DelimiterMarker = "*" | "_" | "~";
+
+type Delimiter = {
+  marker: DelimiterMarker;
+  length: number;
+  canOpen: boolean;
+  canClose: boolean;
+  node: InlineTextNode;
+  position: number;
+};
+
+type DelimiterPair = {
+  opener: Delimiter;
+  closer: Delimiter;
+  kind: "emphasis" | "strong" | "strikethrough";
+  sequence: number;
+};
+
 export function parseInline(raw: string): MdNode[] {
   const nodes: MdNode[] = [];
+  const delimiters: Delimiter[] = [];
   let textBuffer = "";
   let index = 0;
 
@@ -81,13 +101,379 @@ export function parseInline(raw: string): MdNode[] {
       }
     }
 
+    if (char === "*" || char === "_" || char === "~") {
+      const delimiter = parseDelimiter(raw, index, char);
+
+      if (delimiter !== null) {
+        flushText();
+
+        const node: InlineTextNode = {
+          type: "text",
+          value: raw.slice(index, index + delimiter.length)
+        };
+
+        nodes.push(node);
+        delimiters.push({
+          ...delimiter,
+          node,
+          position: nodes.length - 1
+        });
+        index += delimiter.length;
+        continue;
+      }
+    }
+
     textBuffer += char;
     index += 1;
   }
 
   flushText();
 
-  return nodes;
+  if (delimiters.length === 0) {
+    return normalizeInlineNodes(nodes);
+  }
+
+  const pairs = matchDelimiterPairs(delimiters);
+
+  if (pairs.length === 0) {
+    return normalizeInlineNodes(nodes);
+  }
+
+  return buildInlineNodes(nodes, delimiters, pairs);
+}
+
+function parseDelimiter(
+  input: string,
+  start: number,
+  marker: DelimiterMarker
+): Omit<Delimiter, "node" | "position"> | null {
+  const length = readRunLength(input, start, marker);
+  const before = start === 0 ? null : input[start - 1];
+  const after = start + length >= input.length ? null : input[start + length];
+  const leftFlanking =
+    !isDelimiterWhitespace(after) &&
+    (!isDelimiterPunctuation(after) ||
+      isDelimiterWhitespace(before) ||
+      isDelimiterPunctuation(before));
+  const rightFlanking =
+    !isDelimiterWhitespace(before) &&
+    (!isDelimiterPunctuation(before) ||
+      isDelimiterWhitespace(after) ||
+      isDelimiterPunctuation(after));
+
+  if (marker === "~") {
+    if (length < 2) {
+      return null;
+    }
+
+    return {
+      marker,
+      length,
+      canOpen: leftFlanking,
+      canClose: rightFlanking
+    };
+  }
+
+  if (marker === "_") {
+    return {
+      marker,
+      length,
+      canOpen: leftFlanking && (!rightFlanking || isDelimiterPunctuation(before)),
+      canClose: rightFlanking && (!leftFlanking || isDelimiterPunctuation(after))
+    };
+  }
+
+  return {
+    marker,
+    length,
+    canOpen: leftFlanking,
+    canClose: rightFlanking
+  };
+}
+
+function matchDelimiterPairs(delimiters: Delimiter[]): DelimiterPair[] {
+  const pairs: DelimiterPair[] = [];
+  const previous = delimiters.map((_, index) => index - 1);
+  const next = delimiters.map((_, index) => (index + 1 < delimiters.length ? index + 1 : -1));
+  const active = delimiters.map(() => true);
+  let sequence = 0;
+  let closerIndex = 0;
+
+  const unlinkDelimiter = (index: number) => {
+    if (!active[index]) {
+      return;
+    }
+
+    const previousIndex = previous[index];
+    const nextIndex = next[index];
+
+    if (previousIndex !== -1) {
+      next[previousIndex] = nextIndex;
+    }
+
+    if (nextIndex !== -1) {
+      previous[nextIndex] = previousIndex;
+    }
+
+    active[index] = false;
+  };
+
+  const pruneDelimiter = (index: number) => {
+    const delimiter = delimiters[index];
+
+    if (delimiter.length === 0) {
+      unlinkDelimiter(index);
+      return;
+    }
+
+    if (delimiter.marker === "~" && delimiter.length < 2) {
+      delimiter.canOpen = false;
+      delimiter.canClose = false;
+      unlinkDelimiter(index);
+    }
+  };
+
+  while (closerIndex !== -1) {
+    const closer = delimiters[closerIndex];
+
+    if (!closer.canClose || closer.length === 0) {
+      closerIndex = next[closerIndex];
+      continue;
+    }
+
+    const openerIndex = findMatchingOpener(delimiters, previous, closerIndex);
+
+    if (openerIndex === null) {
+      const nextCloserIndex = next[closerIndex];
+
+      if (!closer.canOpen) {
+        unlinkDelimiter(closerIndex);
+      }
+
+      closerIndex = nextCloserIndex;
+      continue;
+    }
+
+    const opener = delimiters[openerIndex];
+    const pairLength = getPairLength(opener, closer);
+
+    if (pairLength === 0 || opener.position + 1 >= closer.position) {
+      closerIndex = next[closerIndex];
+      continue;
+    }
+
+    pairs.push({
+      opener,
+      closer,
+      kind: getPairKind(opener.marker, pairLength),
+      sequence
+    });
+
+    opener.length -= pairLength;
+    closer.length -= pairLength;
+
+    let trappedIndex = next[openerIndex];
+
+    while (trappedIndex !== -1 && trappedIndex !== closerIndex) {
+      const nextTrappedIndex = next[trappedIndex];
+      unlinkDelimiter(trappedIndex);
+      trappedIndex = nextTrappedIndex;
+    }
+
+    pruneDelimiter(openerIndex);
+    pruneDelimiter(closerIndex);
+
+    if (!active[closerIndex] || !closer.canClose || closer.length === 0) {
+      closerIndex = next[closerIndex];
+    }
+
+    sequence += 1;
+  }
+
+  return pairs;
+}
+
+function findMatchingOpener(
+  delimiters: Delimiter[],
+  previous: number[],
+  closerIndex: number
+): number | null {
+  const closer = delimiters[closerIndex];
+  let openerIndex = previous[closerIndex];
+
+  while (openerIndex !== -1) {
+    const opener = delimiters[openerIndex];
+
+    if (
+      opener.marker === closer.marker &&
+      opener.canOpen &&
+      opener.length > 0 &&
+      !violatesMultipleOfThreeRule(opener, closer)
+    ) {
+      return openerIndex;
+    }
+
+    openerIndex = previous[openerIndex];
+  }
+
+  return null;
+}
+
+function violatesMultipleOfThreeRule(opener: Delimiter, closer: Delimiter): boolean {
+  if (opener.marker === "~") {
+    return false;
+  }
+
+  if (!opener.canClose || !closer.canOpen) {
+    return false;
+  }
+
+  return (
+    (opener.length + closer.length) % 3 === 0 &&
+    (opener.length % 3 !== 0 || closer.length % 3 !== 0)
+  );
+}
+
+function getPairLength(opener: Delimiter, closer: Delimiter): 0 | 1 | 2 {
+  if (opener.marker === "~") {
+    return opener.length >= 2 && closer.length >= 2 ? 2 : 0;
+  }
+
+  return opener.length >= 2 && closer.length >= 2 ? 2 : 1;
+}
+
+function getPairKind(
+  marker: DelimiterMarker,
+  pairLength: 1 | 2
+): "emphasis" | "strong" | "strikethrough" {
+  if (marker === "~") {
+    return "strikethrough";
+  }
+
+  return pairLength === 2 ? "strong" : "emphasis";
+}
+
+function buildInlineNodes(
+  nodes: MdNode[],
+  delimiters: Delimiter[],
+  pairs: DelimiterPair[]
+): MdNode[] {
+  const delimiterEntries = new Map<
+    InlineTextNode,
+    {
+      delimiter: Delimiter;
+      opens: DelimiterPair[];
+      closes: DelimiterPair[];
+    }
+  >();
+
+  for (const delimiter of delimiters) {
+    delimiterEntries.set(delimiter.node, {
+      delimiter,
+      opens: [],
+      closes: []
+    });
+  }
+
+  for (const pair of pairs) {
+    delimiterEntries.get(pair.opener.node)?.opens.push(pair);
+    delimiterEntries.get(pair.closer.node)?.closes.push(pair);
+  }
+
+  const root: MdNode[] = [];
+  const stack: Array<{ pair?: DelimiterPair; children: MdNode[] }> = [{ children: root }];
+
+  const appendNode = (node: MdNode) => {
+    stack[stack.length - 1]?.children.push(node);
+  };
+
+  for (const node of nodes) {
+    if (node.type !== "text") {
+      appendNode(node);
+      continue;
+    }
+
+    const delimiterEntry = delimiterEntries.get(node);
+
+    if (delimiterEntry === undefined) {
+      appendNode(node);
+      continue;
+    }
+
+    delimiterEntry.closes.sort((left, right) => left.sequence - right.sequence);
+
+    for (const pair of delimiterEntry.closes) {
+      const current = stack[stack.length - 1];
+
+      if (current?.pair === pair) {
+        stack.pop();
+      }
+    }
+
+    if (delimiterEntry.delimiter.length > 0) {
+      appendNode({
+        type: "text",
+        value: delimiterEntry.delimiter.marker.repeat(delimiterEntry.delimiter.length)
+      });
+    }
+
+    delimiterEntry.opens.sort((left, right) => right.sequence - left.sequence);
+
+    for (const pair of delimiterEntry.opens) {
+      const wrapper = createDelimiterNode(pair.kind);
+      appendNode(wrapper);
+      stack.push({ pair, children: wrapper.children });
+    }
+  }
+
+  return normalizeInlineNodes(root);
+}
+
+function createDelimiterNode(kind: DelimiterPair["kind"]): Extract<
+  MdNode,
+  { type: "emphasis" | "strong" | "strikethrough" }
+> {
+  return { type: kind, children: [] };
+}
+
+function normalizeInlineNodes(nodes: MdNode[]): MdNode[] {
+  const normalized: MdNode[] = [];
+
+  for (const node of nodes) {
+    const nextNode = normalizeInlineNode(node);
+
+    if (nextNode === null) {
+      continue;
+    }
+
+    const previousNode = normalized[normalized.length - 1];
+
+    if (previousNode?.type === "text" && nextNode.type === "text") {
+      previousNode.value += nextNode.value;
+      continue;
+    }
+
+    normalized.push(nextNode);
+  }
+
+  return normalized;
+}
+
+function normalizeInlineNode(node: MdNode): MdNode | null {
+  if (node.type === "text") {
+    return node.value.length === 0 ? null : node;
+  }
+
+  if (
+    node.type === "emphasis" ||
+    node.type === "strong" ||
+    node.type === "strikethrough" ||
+    node.type === "link"
+  ) {
+    return { ...node, children: normalizeInlineNodes(node.children) };
+  }
+
+  return node;
 }
 
 function parseInlineCode(input: string, start: number): ParsedInlineNode | null {
@@ -617,6 +1003,14 @@ function isEscapable(value: string): boolean {
 
 function isAsciiWhitespace(value: string): boolean {
   return value === " " || value === "\t";
+}
+
+function isDelimiterWhitespace(value: string | null): boolean {
+  return value === null || /\s/u.test(value);
+}
+
+function isDelimiterPunctuation(value: string | null): boolean {
+  return value !== null && /[\p{P}\p{S}]/u.test(value);
 }
 
 function isHtmlWhitespace(value: string): boolean {

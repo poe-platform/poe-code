@@ -209,6 +209,109 @@ describe("parseInline", () => {
       { type: "html", value: "<br/>" }
     ]);
   });
+
+  it("parses emphasis and strong with asterisks and underscores (tests 31-34)", () => {
+    expect(parseInline("*em* _em_ **strong** __strong__")).toEqual([
+      { type: "emphasis", children: [{ type: "text", value: "em" }] },
+      { type: "text", value: " " },
+      { type: "emphasis", children: [{ type: "text", value: "em" }] },
+      { type: "text", value: " " },
+      { type: "strong", children: [{ type: "text", value: "strong" }] },
+      { type: "text", value: " " },
+      { type: "strong", children: [{ type: "text", value: "strong" }] }
+    ]);
+  });
+
+  it("parses nested delimiter combinations requested by the inline spec cases", () => {
+    expect(parseInline("***both***")).toEqual([
+      {
+        type: "emphasis",
+        children: [{ type: "strong", children: [{ type: "text", value: "both" }] }]
+      }
+    ]);
+
+    expect(parseInline("*foo **bar** baz*")).toEqual([
+      {
+        type: "emphasis",
+        children: [
+          { type: "text", value: "foo " },
+          { type: "strong", children: [{ type: "text", value: "bar" }] },
+          { type: "text", value: " baz" }
+        ]
+      }
+    ]);
+  });
+
+  it("applies asterisk emphasis inside words but not underscore emphasis (tests 36-37)", () => {
+    expect(parseInline("foo*bar*baz")).toEqual([
+      { type: "text", value: "foo" },
+      { type: "emphasis", children: [{ type: "text", value: "bar" }] },
+      { type: "text", value: "baz" }
+    ]);
+
+    expect(parseInline("foo_bar_baz")).toEqual([{ type: "text", value: "foo_bar_baz" }]);
+  });
+
+  it("parses emphasis across line boundaries and next to punctuation (tests 54, 151)", () => {
+    expect(parseInline("*foo\nbar*")).toEqual([
+      { type: "emphasis", children: [{ type: "text", value: "foo\nbar" }] }
+    ]);
+
+    expect(parseInline("\"*hello*\"")).toEqual([
+      { type: "text", value: "\"" },
+      { type: "emphasis", children: [{ type: "text", value: "hello" }] },
+      { type: "text", value: "\"" }
+    ]);
+  });
+
+  it("treats invalid or unresolved delimiter runs as literal text (tests 116-118, 123-124, 144)", () => {
+    expect(parseInline("*hello")).toEqual([{ type: "text", value: "*hello" }]);
+    expect(parseInline("**hello")).toEqual([{ type: "text", value: "**hello" }]);
+    expect(parseInline("~~hello")).toEqual([{ type: "text", value: "~~hello" }]);
+    expect(parseInline("* spaced *")).toEqual([{ type: "text", value: "* spaced *" }]);
+    expect(parseInline("*foo **bar")).toEqual([{ type: "text", value: "*foo **bar" }]);
+    expect(parseInline("*hello_")).toEqual([{ type: "text", value: "*hello_" }]);
+  });
+
+  it("parses strikethrough with double tildes (test 52)", () => {
+    expect(parseInline("~~deleted~~")).toEqual([
+      { type: "strikethrough", children: [{ type: "text", value: "deleted" }] }
+    ]);
+  });
+
+  it("does not cross emphasis delimiters across mismatched runs", () => {
+    expect(parseInline("*foo _bar* baz_")).toEqual([
+      { type: "emphasis", children: [{ type: "text", value: "foo _bar" }] },
+      { type: "text", value: " baz_" }
+    ]);
+
+    expect(parseInline("_a *b_ c*")).toEqual([
+      { type: "emphasis", children: [{ type: "text", value: "a *b" }] },
+      { type: "text", value: " c*" }
+    ]);
+
+    expect(parseInline("*foo __bar* baz__")).toEqual([
+      { type: "emphasis", children: [{ type: "text", value: "foo __bar" }] },
+      { type: "text", value: " baz__" }
+    ]);
+
+    expect(parseInline("__foo *bar__ baz*")).toEqual([
+      { type: "strong", children: [{ type: "text", value: "foo *bar" }] },
+      { type: "text", value: " baz*" }
+    ]);
+  });
+
+  it("does not cross strikethrough delimiters over emphasis", () => {
+    expect(parseInline("*a ~~b* c~~")).toEqual([
+      { type: "emphasis", children: [{ type: "text", value: "a ~~b" }] },
+      { type: "text", value: " c~~" }
+    ]);
+
+    expect(parseInline("~~a *b~~ c*")).toEqual([
+      { type: "strikethrough", children: [{ type: "text", value: "a *b" }] },
+      { type: "text", value: " c*" }
+    ]);
+  });
 });
 
 describe("parseBlocks", () => {

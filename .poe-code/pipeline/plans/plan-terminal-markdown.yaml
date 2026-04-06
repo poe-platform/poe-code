@@ -285,7 +285,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: inline-parser-emphasis
     title: Add emphasis, strong, strikethrough via delimiter stack
@@ -313,10 +313,10 @@ tasks:
 
       Write tests in `packages/design-system/src/terminal-markdown/parser.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: inline-parser-autolinks-footnotes-breaks
     title: Add autolink literals, footnote refs, line breaks

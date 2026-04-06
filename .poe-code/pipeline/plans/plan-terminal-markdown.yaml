@@ -453,7 +453,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: renderer-blocks
     title: Renderer — blockquotes, code blocks, lists, task lists
@@ -478,9 +478,9 @@ tasks:
 
       Write tests in `packages/design-system/src/terminal-markdown/renderer.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: renderer-links-images-html

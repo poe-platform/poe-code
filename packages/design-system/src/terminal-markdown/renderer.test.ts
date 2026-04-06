@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { symbols } from "../components/symbols.js";
 import { resetThemeCache, getTheme } from "../internal/theme-detect.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
 import { typography } from "../tokens/typography.js";
@@ -152,5 +153,105 @@ describe("terminal markdown renderer", () => {
     };
 
     expect(stripAnsi(render(ast))).toBe("Hello world\n───────────\n\n");
+  });
+
+  it("indents nested blockquotes correctly (test 173)", () => {
+    const ast: MdNode = {
+      type: "blockquote",
+      children: [
+        {
+          type: "blockquote",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "nested" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(`${symbols.bar} ${symbols.bar} nested\n\n`);
+  });
+
+  it("numbers ordered lists correctly (test 175)", () => {
+    const ast: MdNode = {
+      type: "list",
+      ordered: true,
+      start: 7,
+      children: [
+        {
+          type: "listItem",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+        },
+        {
+          type: "listItem",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(" 7. first\n 8. second\n\n");
+  });
+
+  it("code blocks render with visible boundaries (test 176)", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "code",
+        value: "alpha\nbeta"
+      })
+    ).toBe(`${theme.muted(" ─────")}\n alpha\n beta\n${theme.muted(" ─────")}\n\n`);
+  });
+
+  it("renders task lists with active and inactive symbols", () => {
+    const ast: MdNode = {
+      type: "list",
+      ordered: false,
+      children: [
+        {
+          type: "listItem",
+          checked: true,
+          children: [{ type: "paragraph", children: [{ type: "text", value: "done" }] }]
+        },
+        {
+          type: "listItem",
+          checked: false,
+          children: [{ type: "paragraph", children: [{ type: "text", value: "todo" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(` ${symbols.active} done\n ${symbols.inactive} todo\n\n`);
+  });
+
+  it("wraps blockquotes within the available width", () => {
+    const ast: MdNode = {
+      type: "blockquote",
+      children: [
+        {
+          type: "paragraph",
+          children: [{ type: "text", value: "alpha beta gamma" }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast, { width: 10 }))).toBe(`${symbols.bar} alpha\n${symbols.bar} beta\n${symbols.bar} gamma\n\n`);
+  });
+
+  it("wraps list items within the available width", () => {
+    const ast: MdNode = {
+      type: "list",
+      ordered: true,
+      children: [
+        {
+          type: "listItem",
+          children: [
+            {
+              type: "paragraph",
+              children: [{ type: "text", value: "alpha beta gamma" }]
+            }
+          ]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast, { width: 10 }))).toBe(" 1. alpha\n    beta\n    gamma\n\n");
   });
 });

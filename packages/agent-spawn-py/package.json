@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node --input-type=module -e \"import { access } from 'node:fs/promises'; await access('src/poe_code_spawn/types.py')\""
+    "build": "python3 -m compileall src/poe_code_spawn",
+    "test:unit": "python3 -m unittest discover -s tests -t ."
   }
 }

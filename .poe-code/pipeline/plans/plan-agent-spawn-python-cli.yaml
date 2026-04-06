@@ -72,7 +72,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: python-sdk-spawn
     title: Implement Python spawn() SDK
@@ -115,9 +115,9 @@ tasks:
 
       Reference plan: docs/plans/agent-spawn-python-cli-plan.md (Steps 3-4)
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: python-sdk-publish

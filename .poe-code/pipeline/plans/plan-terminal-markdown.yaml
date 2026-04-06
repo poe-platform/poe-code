@@ -398,7 +398,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 5: Renderer — built incrementally
@@ -450,9 +450,9 @@ tasks:
 
       Write tests in `packages/design-system/src/terminal-markdown/renderer.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: renderer-blocks

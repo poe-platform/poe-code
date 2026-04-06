@@ -320,7 +320,7 @@ describe("spawn command", () => {
       .map((line) => JSON.parse(line));
 
     expect(lines).toEqual([
-      { type: "agent", message: "Hi" },
+      { event: "agent_message", text: "Hi" },
       {
         event: "spawn_result",
         exitCode: 0,

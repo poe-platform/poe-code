@@ -44,7 +44,7 @@ export function renderAgentMessage(text: string): void {
   }
 
   if (format === "json") {
-    writeLine(JSON.stringify({ type: "agent", message: text }));
+    writeLine(JSON.stringify({ event: "agent_message", text }));
     return;
   }
 
@@ -60,7 +60,7 @@ export function renderToolStart(kind: string, title: string): void {
   }
 
   if (format === "json") {
-    writeLine(JSON.stringify({ type: "tool_start", kind, title }));
+    writeLine(JSON.stringify({ event: "tool_start", kind, title }));
     return;
   }
 
@@ -77,7 +77,7 @@ export function renderToolComplete(kind: string): void {
   }
 
   if (format === "json") {
-    writeLine(JSON.stringify({ type: "tool_complete", kind }));
+    writeLine(JSON.stringify({ event: "tool_complete", kind }));
     return;
   }
 
@@ -94,7 +94,7 @@ export function renderReasoning(text: string): void {
   }
 
   if (format === "json") {
-    writeLine(JSON.stringify({ type: "reasoning", text }));
+    writeLine(JSON.stringify({ event: "reasoning", text }));
     return;
   }
 
@@ -124,10 +124,10 @@ export function renderUsage(tokens: {
   if (format === "json") {
     writeLine(
       JSON.stringify({
-        type: "usage",
-        input: tokens.input,
-        output: tokens.output,
-        cached: tokens.cached ?? 0,
+        event: "usage",
+        inputTokens: tokens.input,
+        outputTokens: tokens.output,
+        cachedTokens: tokens.cached ?? 0,
         costUsd: tokens.costUsd ?? 0
       })
     );
@@ -146,7 +146,7 @@ export function renderError(message: string): void {
   }
 
   if (format === "json") {
-    writeLine(JSON.stringify({ type: "error", message }));
+    writeLine(JSON.stringify({ event: "error", message }));
     return;
   }
 

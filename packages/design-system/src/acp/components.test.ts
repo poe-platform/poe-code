@@ -159,18 +159,18 @@ describe("acp/components", () => {
 
     expect(output).toBe(
       [
-        JSON.stringify({ type: "agent", message: "hello" }),
-        JSON.stringify({ type: "tool_start", kind: "exec", title: "npm test" }),
-        JSON.stringify({ type: "tool_complete", kind: "exec" }),
-        JSON.stringify({ type: "reasoning", text: "thinking" }),
+        JSON.stringify({ event: "agent_message", text: "hello" }),
+        JSON.stringify({ event: "tool_start", kind: "exec", title: "npm test" }),
+        JSON.stringify({ event: "tool_complete", kind: "exec" }),
+        JSON.stringify({ event: "reasoning", text: "thinking" }),
         JSON.stringify({
-          type: "usage",
-          input: 1000,
-          output: 500,
-          cached: 0,
+          event: "usage",
+          inputTokens: 1000,
+          outputTokens: 500,
+          cachedTokens: 0,
           costUsd: 0
         }),
-        JSON.stringify({ type: "error", message: "boom" }),
+        JSON.stringify({ event: "error", message: "boom" }),
         ""
       ].join("\n")
     );

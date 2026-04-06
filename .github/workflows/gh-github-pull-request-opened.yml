@@ -31,8 +31,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
-      - run: npx poe-code github-workflows github-pull-request-opened --yes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g poe-code@latest
+      - run: poe-code github-workflows exec setup-agent github-pull-request-opened --verbose
         env:
+          POE_CODE_STDERR_LOGS: "1"
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+      - run: poe-code github-workflows github-pull-request-opened --yes --verbose
+        env:
+          POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ inputs.PR_NUMBER }}

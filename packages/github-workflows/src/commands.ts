@@ -11,6 +11,7 @@ import { cancel, isCancel, select } from "@poe-code/design-system";
 import { discoverAutomations, loadAutomation } from "./discover.js";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
+import { setupWorkflowAgent } from "./setup-agent.js";
 import type { AutomationDefinition } from "./types.js";
 
 const UPSTREAM_REPO = "poe-platform/poe-code";
@@ -313,6 +314,28 @@ const requireCommentPrefixCommand = defineCommand({
   }
 });
 
+const setupAgentCommand = defineCommand({
+  name: "setup-agent",
+  description: "Install and configure the agent required by a workflow automation.",
+  positional: ["name"],
+  params: S.Object({
+    name: S.String()
+  }),
+  scope: ["cli"],
+  handler: async ({ params }) => {
+    const cwd = resolveCwd();
+    const automation = await loadNamedAutomation(params.name, cwd);
+    const agent = await setupWorkflowAgent(automation, cwd);
+    return { agent, automation: automation.name };
+  },
+  render: {
+    rich: (result: { agent: string; automation: string }, { logger }) => {
+      logger.success(`Prepared agent "${result.agent}" for automation "${result.automation}".`);
+    },
+    json: (result: { agent: string; automation: string }) => result
+  }
+});
+
 const promptPreviewCommand = defineCommand({
   name: "prompt-preview",
   description: "Preview the resolved prompt for an automation.",
@@ -337,7 +360,7 @@ const execGroup = defineGroup({
   name: "exec",
   description: "Workflow step helpers.",
   scope: ["cli"],
-  children: [checkUserAllowCommand, requireCommentPrefixCommand]
+  children: [checkUserAllowCommand, requireCommentPrefixCommand, setupAgentCommand]
 });
 
 export const ghGroup: Group = defineGroup({

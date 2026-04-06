@@ -306,6 +306,86 @@ describe("ghGroup", () => {
     ).rejects.toThrow('Automation "fix-vulnerabilities" source command must return a JSON array.');
   });
 
+  it("installs and configures the resolved workflow agent", async () => {
+    writeBuiltInPrompt(
+      "fix-vulnerabilities",
+      ["---", "agent: claude-code", "---", "Fix dependencies"].join("\n")
+    );
+
+    const setupAgentCommand = getCommand(["exec", "setup-agent"]);
+
+    await setupAgentCommand.handler(
+      createContext({
+        name: "fix-vulnerabilities"
+      })
+    );
+
+    expect(spawnState.runCommand).toHaveBeenNthCalledWith(
+      1,
+      "poe-code",
+      ["install", "claude-code", "--yes", "--verbose"],
+      expect.objectContaining({ cwd: "/repo" })
+    );
+    expect(spawnState.runCommand).toHaveBeenNthCalledWith(
+      2,
+      "poe-code",
+      ["configure", "claude-code", "--yes", "--verbose"],
+      expect.objectContaining({ cwd: "/repo" })
+    );
+  });
+
+  it("defaults setup-agent to codex when the automation does not declare an agent", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+
+    const setupAgentCommand = getCommand(["exec", "setup-agent"]);
+
+    await setupAgentCommand.handler(
+      createContext({
+        name: "github-issue-opened"
+      })
+    );
+
+    expect(spawnState.runCommand).toHaveBeenNthCalledWith(
+      1,
+      "poe-code",
+      ["install", "codex", "--yes", "--verbose"],
+      expect.objectContaining({ cwd: "/repo" })
+    );
+    expect(spawnState.runCommand).toHaveBeenNthCalledWith(
+      2,
+      "poe-code",
+      ["configure", "codex", "--yes", "--verbose"],
+      expect.objectContaining({ cwd: "/repo" })
+    );
+  });
+
+  it("surfaces install failures from setup-agent with command output", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    spawnState.runCommand.mockResolvedValueOnce({
+      stdout: "partial output\n",
+      stderr: "missing binary\n",
+      exitCode: 127
+    });
+
+    const setupAgentCommand = getCommand(["exec", "setup-agent"]);
+
+    await expect(
+      setupAgentCommand.handler(
+        createContext({
+          name: "github-issue-opened"
+        })
+      )
+    ).rejects.toThrow(
+      [
+        "Command failed with exit code 127: poe-code install codex --yes --verbose",
+        "stderr:",
+        "missing binary",
+        "stdout:",
+        "partial output"
+      ].join("\n")
+    );
+  });
+
   it("prompts for automation name when run is called without a name in a TTY", async () => {
     writeBuiltInPrompt("github-issue-opened", "Fix {{url}}");
     designSystemState.select.mockResolvedValue("github-issue-opened");
@@ -479,7 +559,10 @@ describe("ghGroup", () => {
     const workflow = readRepoFile("/repo/.github/workflows/poe-code-github-issue-comment-created.yml");
     expect(workflow).toContain("issue_comment:");
     expect(workflow).toContain(
-      "npx poe-code github-workflows exec check-user-allow poe-code-github-issue-comment-created"
+      "poe-code github-workflows exec check-user-allow poe-code-github-issue-comment-created --verbose"
+    );
+    expect(workflow).toContain(
+      "poe-code github-workflows exec setup-agent poe-code-github-issue-comment-created --verbose"
     );
     expect(workflow).not.toContain("workflow_call:");
   });

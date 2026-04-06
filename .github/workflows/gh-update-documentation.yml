@@ -23,8 +23,17 @@ jobs:
         with:
           fetch-depth: 20
           token: ${{ steps.app-token.outputs.token }}
-      - run: npx poe-code github-workflows update-documentation --yes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g poe-code@latest
+      - run: poe-code github-workflows exec setup-agent update-documentation --verbose
         env:
+          POE_CODE_STDERR_LOGS: "1"
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+      - run: poe-code github-workflows update-documentation --yes --verbose
+        env:
+          POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_REPOSITORY: ${{ inputs.GITHUB_REPOSITORY }}

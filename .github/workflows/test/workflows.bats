@@ -255,15 +255,15 @@ run_guard_in_docker() {
   [ "$status" -eq 0 ]
 
   local allow_line
-  allow_line="$(printf '%s\n' "$output" | grep -nF 'npx poe-code github-workflows exec check-user-allow github-issue-comment-created' | cut -d: -f1)"
+  allow_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows exec check-user-allow github-issue-comment-created --verbose' | cut -d: -f1)"
   [ -n "$allow_line" ]
 
   local prefix_line
-  prefix_line="$(printf '%s\n' "$output" | grep -nF 'npx poe-code github-workflows exec require-comment-prefix github-issue-comment-created' | cut -d: -f1)"
+  prefix_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows exec require-comment-prefix github-issue-comment-created --verbose' | cut -d: -f1)"
   [ -n "$prefix_line" ]
 
   local agent_line
-  agent_line="$(printf '%s\n' "$output" | grep -nF 'npx poe-code github-workflows github-issue-comment-created --yes' | cut -d: -f1)"
+  agent_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows github-issue-comment-created --yes --verbose' | cut -d: -f1)"
   [ -n "$agent_line" ]
 
   [ "$allow_line" -lt "$prefix_line" ]
@@ -343,6 +343,42 @@ run_guard_in_docker() {
 
     run grep -qF 'secrets.APP_PRIVATE_KEY' "$workflow_file"
     [ "$status" -ne 0 ]
+  done
+}
+
+@test "dry-run GitHub workflow automations install poe-code@latest and set up the workflow agent" {
+  shopt -s nullglob
+  local workflow_files=(
+    .github/workflows/gh-*.yml
+    packages/github-workflows/src/workflow-templates/*.ejected.yml
+  )
+
+  [ "${#workflow_files[@]}" -gt 0 ]
+
+  local workflow_file
+  local steps
+  local install_line
+  local setup_line
+  local run_line
+
+  for workflow_file in "${workflow_files[@]}"; do
+    run workflow_run_steps "$workflow_file"
+    [ "$status" -eq 0 ]
+    steps="$output"
+
+    install_line="$(printf '%s\n' "$steps" | grep -nF 'npm install -g poe-code@latest' | cut -d: -f1)"
+    [ -n "$install_line" ]
+
+    setup_line="$(printf '%s\n' "$steps" | grep -nF 'poe-code github-workflows exec setup-agent' | cut -d: -f1 | head -n1)"
+    [ -n "$setup_line" ]
+
+    run_line="$(printf '%s\n' "$steps" | grep -nF 'poe-code github-workflows ' | grep -F -- '--yes --verbose' | cut -d: -f1 | head -n1)"
+    [ -n "$run_line" ]
+
+    [ "$install_line" -lt "$setup_line" ]
+    [ "$setup_line" -lt "$run_line" ]
+    [[ "$steps" != *'npx poe-code github-workflows'* ]]
+    [[ "$steps" != *'npm run dev -- github-workflows'* ]]
   done
 }
 

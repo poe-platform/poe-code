@@ -24,14 +24,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
-      - run: npx poe-code github-workflows exec check-user-allow github-issue-comment-created
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g poe-code@latest
+      - run: poe-code github-workflows exec setup-agent github-issue-comment-created --verbose
         env:
+          POE_CODE_STDERR_LOGS: "1"
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+      - run: poe-code github-workflows exec check-user-allow github-issue-comment-created --verbose
+        env:
+          POE_CODE_STDERR_LOGS: "1"
           COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
-      - run: npx poe-code github-workflows exec require-comment-prefix github-issue-comment-created
+      - run: poe-code github-workflows exec require-comment-prefix github-issue-comment-created --verbose
         env:
+          POE_CODE_STDERR_LOGS: "1"
           COMMENT_BODY: ${{ github.event.comment.body }}
-      - run: npx poe-code github-workflows github-issue-comment-created --yes
+      - run: poe-code github-workflows github-issue-comment-created --yes --verbose
         env:
+          POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}

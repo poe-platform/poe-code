@@ -13,7 +13,7 @@ import type {
   PipelineRunResult,
   PipelineTask,
   ResolvedStepDefinitions,
-  StepDefinition
+  StepDefinition,
 } from "../types.js";
 
 type SimulationFs = PipelineFileSystem;
@@ -52,6 +52,7 @@ export type SimulationOptions = {
     maxRuns?: number;
     logDir?: string;
   };
+  onBlocked?: PipelineRunOptions["onBlocked"];
   onPlanReloadError?: (error: Error) => void;
 };
 
@@ -221,6 +222,7 @@ export function createPipelineSimulation(options: SimulationOptions): {
         plan: ".poe-code/pipeline/plans/plan.yaml",
         maxRuns: options.config?.maxRuns,
         logDir: options.config?.logDir,
+        onBlocked: options.onBlocked,
         onPlanReloadError: options.onPlanReloadError,
         fs,
         onTaskComplete: (progress) => {

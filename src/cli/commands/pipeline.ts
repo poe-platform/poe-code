@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import {
   cancel,
+  confirm,
   isCancel,
   promptText,
   select
@@ -279,6 +280,20 @@ export function registerPipelineCommand(
             ? { maxRuns: resolveMaxRuns(options.maxRuns) }
             : {}),
           assumeYes: flags.assumeYes,
+          async onBlocked({ taskId, stepName }) {
+            if (flags.assumeYes) {
+              return true;
+            }
+            const label = stepName ? `${taskId} (${stepName})` : taskId;
+            const result = await confirm({
+              message: `Previous run failed at ${label}. Retry?`,
+              initialValue: true
+            });
+            if (isCancel(result)) {
+              return false;
+            }
+            return result === true;
+          },
           onPlanReloadError(error: Error) {
             resources.logger.warn(`Plan reload failed, using last good state: ${error.message}`);
           },

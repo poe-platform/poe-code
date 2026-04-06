@@ -533,6 +533,108 @@ describe("createPipelineSimulation", () => {
     expect((await readPlan()).tasks[0]?.status).toBe("failed");
   });
 
+  it("retries a blocked stepless task when onBlocked returns true", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix the timeout regression",
+            status: "failed"
+          }
+        ]
+      },
+      turns: [successTurn()],
+      onBlocked: vi.fn().mockResolvedValue(true)
+    });
+
+    const { result, readPlan, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual(["Fix the timeout regression"]);
+    expect((await readPlan()).tasks[0]?.status).toBe("done");
+  });
+
+  it("retries a blocked step when onBlocked returns true", async () => {
+    const sim = createPipelineSimulation({
+      globalSteps: {
+        implement: { mode: "edit", prompt: "Implement {{id}}" },
+        test: { mode: "edit", prompt: "Test {{id}}" },
+        commit: { mode: "edit", prompt: "Commit {{id}}" }
+      },
+      plan: {
+        tasks: [
+          {
+            id: "auth",
+            title: "Auth",
+            prompt: "Auth work",
+            status: {
+              implement: "done",
+              test: "failed",
+              commit: "open"
+            }
+          }
+        ]
+      },
+      turns: [successTurn(), successTurn()],
+      onBlocked: vi.fn().mockResolvedValue(true)
+    });
+
+    const { result, readPlan, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(prompts).toEqual(["Test auth", "Commit auth"]);
+    expect((await readPlan()).tasks[0]?.status).toEqual({
+      implement: "done",
+      test: "done",
+      commit: "done"
+    });
+  });
+
+  it("stops at a blocked task when onBlocked returns false", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix it",
+            status: "failed"
+          }
+        ]
+      },
+      turns: [],
+      onBlocked: vi.fn().mockResolvedValue(false)
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("failed");
+    expect(prompts).toEqual([]);
+  });
+
+  it("stops at a blocked task when onBlocked is not provided", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        tasks: [
+          {
+            id: "quick-fix",
+            title: "Quick fix",
+            prompt: "Fix it",
+            status: "failed"
+          }
+        ]
+      },
+      turns: []
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("failed");
+    expect(prompts).toEqual([]);
+  });
+
   it("archives the plan file after all tasks complete", async () => {
     const sim = createPipelineSimulation({
       plan: {

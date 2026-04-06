@@ -157,6 +157,7 @@ export interface PipelineRunOptions {
     success: boolean;
     usage?: AgentRunUsage;
   }) => void;
+  onBlocked?: (info: { taskId: string; stepName?: string }) => Promise<boolean>;
   onPlanReloadError?: (error: Error) => void;
   signal?: AbortSignal;
 }

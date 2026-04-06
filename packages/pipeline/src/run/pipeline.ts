@@ -296,6 +296,36 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       }
 
       if (selection.kind === "blocked") {
+        const retry = options.onBlocked
+          ? await options.onBlocked({
+              taskId: selection.task.id,
+              ...(selection.stepName ? { stepName: selection.stepName } : {})
+            })
+          : false;
+
+        if (retry) {
+          await writeTaskStatus({
+            fs,
+            planPath: absolutePlanPath,
+            taskId: selection.task.id,
+            ...(selection.stepName ? { stepName: selection.stepName } : {}),
+            status: "open"
+          });
+
+          if (lastGoodPlan) {
+            const cachedTask = lastGoodPlan.tasks.find((t) => t.id === selection.task.id);
+            if (cachedTask) {
+              if (selection.stepName && typeof cachedTask.status === "object") {
+                cachedTask.status[selection.stepName] = "open";
+              } else {
+                cachedTask.status = "open";
+              }
+            }
+          }
+
+          continue;
+        }
+
         return {
           stopReason: "failed",
           planPath,

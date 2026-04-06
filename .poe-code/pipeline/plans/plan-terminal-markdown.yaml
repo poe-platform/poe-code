@@ -481,7 +481,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: renderer-links-images-html
     title: Renderer — links, images, HTML, frontmatter
@@ -504,10 +504,10 @@ tasks:
 
       Write tests in `packages/design-system/src/terminal-markdown/renderer.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: renderer-tables-alerts-footnotes
     title: Renderer — tables, alerts, footnotes

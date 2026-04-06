@@ -4,6 +4,7 @@ import { resetThemeCache, getTheme } from "../internal/theme-detect.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
 import { typography } from "../tokens/typography.js";
 import type { MdNode } from "./ast.js";
+import { parse } from "./index.js";
 import { render } from "./renderer.js";
 
 describe("terminal markdown renderer", () => {
@@ -121,7 +122,7 @@ describe("terminal markdown renderer", () => {
     );
   });
 
-  it("renders frontmatter only when enabled", () => {
+  it("hides frontmatter by default (test 171)", () => {
     const ast: MdNode = {
       type: "root",
       children: [
@@ -131,8 +132,19 @@ describe("terminal markdown renderer", () => {
     };
 
     expect(stripAnsi(render(ast))).toBe("Body\n\n");
-    expect(stripAnsi(render(ast, { showFrontmatter: true }))).toBe(
-      "Frontmatter\n title: Renderer\n draft: false\n\nBody\n\n"
+  });
+
+  it("shows frontmatter when showFrontmatter is enabled (test 172)", () => {
+    const ast: MdNode = {
+      type: "root",
+      children: [
+        { type: "frontmatter", data: { title: "Renderer", draft: false } },
+        { type: "paragraph", children: [{ type: "text", value: "Body" }] }
+      ]
+    };
+
+    expect(render(ast, { showFrontmatter: true })).toBe(
+      `${typography.dim("title: Renderer")}\n${typography.dim("draft: false")}\n\nBody\n\n`
     );
   });
 
@@ -200,6 +212,30 @@ describe("terminal markdown renderer", () => {
     ).toBe(`${theme.muted(" ─────")}\n alpha\n beta\n${theme.muted(" ─────")}\n\n`);
   });
 
+  it("renders links as text followed by a colored url (test 177)", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "paragraph",
+        children: [
+          {
+            type: "link",
+            url: "https://example.com",
+            children: [{ type: "text", value: "docs" }]
+          }
+        ]
+      })
+    ).toBe(`docs ${theme.accent("(https://example.com)")}\n\n`);
+  });
+
+  it("normalizes trailing link label whitespace before appending the url (test 180)", () => {
+    const theme = getTheme();
+    const { ast } = parse("[docs ](https://example.com)");
+
+    expect(render(ast)).toBe(`docs ${theme.accent("(https://example.com)")}\n\n`);
+  });
+
   it("renders task lists with active and inactive symbols", () => {
     const ast: MdNode = {
       type: "list",
@@ -253,5 +289,44 @@ describe("terminal markdown renderer", () => {
     };
 
     expect(stripAnsi(render(ast, { width: 10 }))).toBe(" 1. alpha\n    beta\n    gamma\n\n");
+  });
+
+  it("renders autolinks as their colored destination", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "paragraph",
+        children: [
+          {
+            type: "link",
+            url: "https://example.com",
+            children: [{ type: "text", value: "https://example.com" }]
+          }
+        ]
+      })
+    ).toBe(`${theme.accent("https://example.com")}\n\n`);
+  });
+
+  it("renders images as muted placeholders", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "paragraph",
+        children: [{ type: "image", url: "https://example.com/image.png", alt: "Example image" }]
+      })
+    ).toBe(`${theme.muted("[image: Example image]")}\n\n`);
+  });
+
+  it("renders html nodes as plain text", () => {
+    expect(
+      stripAnsi(
+        render({
+          type: "root",
+          children: [{ type: "html", value: "<div>Hello <strong>world</strong></div>" }]
+        })
+      )
+    ).toBe("Hello world\n\n");
   });
 });

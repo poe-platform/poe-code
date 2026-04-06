@@ -50,11 +50,15 @@ function renderNode(node: MdNode, context: RenderContext): string {
       return renderCodeBlock(node, context);
     case "list":
       return renderList(node, context);
+    case "html":
+      return renderHtml(node, context);
     case "text":
     case "strong":
     case "emphasis":
     case "strikethrough":
     case "inlineCode":
+    case "link":
+    case "image":
     case "break":
       return renderInline([node], context).join("\n");
     case "thematicBreak":
@@ -183,14 +187,13 @@ function renderFrontmatter(data: Record<string, unknown>, context: RenderContext
     return "";
   }
 
-  const indent = " ".repeat(spacing.sm);
   const lines = entries.flatMap(([key, value]) =>
-    wrapText(`${key}: ${formatFrontmatterValue(value)}`, context.width - spacing.sm).map((line) =>
-      context.theme.muted(typography.dim(`${indent}${line}`))
+    wrapText(`${key}: ${formatFrontmatterValue(value)}`, context.width).map((line) =>
+      typography.dim(line)
     )
   );
 
-  return `${context.theme.muted(typography.dim("Frontmatter"))}\n${lines.join("\n")}\n\n`;
+  return `${lines.join("\n")}\n\n`;
 }
 
 function formatFrontmatterValue(value: unknown): string {
@@ -207,6 +210,20 @@ function formatFrontmatterValue(value: unknown): string {
   }
 
   return JSON.stringify(value);
+}
+
+function renderHtml(node: Extract<MdNode, { type: "html" }>, context: RenderContext): string {
+  const value = stripHtmlTags(node.value).trim();
+  if (value.length === 0) {
+    return "";
+  }
+
+  const lines = wrapText(value, context.width);
+  if (lines.length === 0) {
+    return "";
+  }
+
+  return `${lines.join("\n")}\n\n`;
 }
 
 function renderBlockChildren(children: MdNode[], context: RenderContext): string {
@@ -290,6 +307,21 @@ function collectInlineTokens(
     case "inlineCode":
       tokens.push(...tokenizeText(node.value, [...formatters, context.theme.accent]));
       return;
+    case "link":
+      collectLinkTokens(node, formatters, context, tokens);
+      return;
+    case "image":
+      tokens.push(createWordToken(formatImagePlaceholder(node.alt), [...formatters, context.theme.muted]));
+      return;
+    case "html": {
+      const value = stripHtmlTags(node.value);
+
+      if (value.length > 0) {
+        tokens.push(...tokenizeText(value, formatters));
+      }
+
+      return;
+    }
     case "break":
       tokens.push({ type: "break" });
       return;
@@ -309,6 +341,62 @@ function collectChildren(
   for (const child of children) {
     collectInlineTokens(child, formatters, context, tokens);
   }
+}
+
+function collectLinkTokens(
+  node: Extract<MdNode, { type: "link" }>,
+  formatters: readonly TextFormatter[],
+  context: RenderContext,
+  tokens: WrapToken[]
+): void {
+  if (isAutolink(node)) {
+    tokens.push(createWordToken(node.url, [...formatters, context.theme.accent]));
+    return;
+  }
+
+  const childTokens: WrapToken[] = [];
+  collectChildren(node.children, formatters, context, childTokens);
+  const trimmedChildTokens = trimTrailingSpaces(childTokens);
+
+  tokens.push(...trimmedChildTokens);
+
+  if (trimmedChildTokens.some((token) => token.type === "word")) {
+    tokens.push({ type: "space", value: " " });
+  }
+
+  tokens.push(createWordToken(`(${node.url})`, [...formatters, context.theme.accent]));
+}
+
+function isAutolink(node: Extract<MdNode, { type: "link" }>): boolean {
+  if (node.children.length !== 1 || node.children[0]?.type !== "text") {
+    return false;
+  }
+
+  const label = node.children[0].value;
+
+  return (
+    label === node.url ||
+    (node.url.startsWith("http://") && label === node.url.slice("http://".length)) ||
+    (node.url.startsWith("mailto:") && label === node.url.slice("mailto:".length))
+  );
+}
+
+function formatImagePlaceholder(alt: string): string {
+  return alt.length > 0 ? `[image: ${alt}]` : "[image]";
+}
+
+function createWordToken(value: string, formatters: readonly TextFormatter[]): WrapToken {
+  return { type: "word", value, formatters };
+}
+
+function trimTrailingSpaces(tokens: readonly WrapToken[]): WrapToken[] {
+  let end = tokens.length;
+
+  while (end > 0 && tokens[end - 1]?.type === "space") {
+    end -= 1;
+  }
+
+  return tokens.slice(0, end);
 }
 
 function tokenizeText(value: string, formatters: readonly TextFormatter[]): WrapToken[] {
@@ -416,4 +504,27 @@ function applyFormatters(value: string, formatters: readonly TextFormatter[]): s
 function wrapText(value: string, width: number): string[] {
   const tokens = tokenizeText(value, []);
   return wrapTokens(tokens, Math.max(1, width));
+}
+
+function stripHtmlTags(value: string): string {
+  let output = "";
+  let inTag = false;
+
+  for (const char of value) {
+    if (char === "<") {
+      inTag = true;
+      continue;
+    }
+
+    if (char === ">" && inTag) {
+      inTag = false;
+      continue;
+    }
+
+    if (!inTag) {
+      output += char;
+    }
+  }
+
+  return output;
 }

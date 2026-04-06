@@ -21,6 +21,8 @@ jobs:
           node-version: 22.14.0
       - name: Upgrade npm for trusted publishing
         run: npm install --global npm@^11.5.1
+      - name: Install dependencies
+        run: npm clean-install
       - name: Build
         working-directory: packages/tiny-stdio-mcp-server
         run: npm run build

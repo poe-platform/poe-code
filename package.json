@@ -9,7 +9,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run codegen:python-types && turbo run build && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
+    "build": "turbo run build && npm run codegen:python-types && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
     "build:deps": "node scripts/list-workspace-deps.mjs",
     "codegen:python-types": "tsx scripts/generate-agent-spawn-py-types.ts",
     "codegen:check:python-types": "tsx scripts/generate-agent-spawn-py-types.ts --check",

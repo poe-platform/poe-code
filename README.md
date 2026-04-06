@@ -4,7 +4,7 @@
   <h1>Poe Code ⚡</h1>
 
 <a href="https://poe.com"><img src="https://img.shields.io/badge/Poe-Sign up-purple?logo=poe&logoColor=white&color=5D5CDE&style=for-the-badge" alt="Discord"></a>
-<a href="https://www.npmjs.com/package/poe-code"><img alt="NPM version" src="https://img.shields.io/npm/v/next.svg?&style=for-the-badge&color=09B16B"></a>
+<a href="https://www.npmjs.com/package/poe-code"><img alt="NPM version" src="https://img.shields.io/npm/v/poe-code.svg?&style=for-the-badge&color=09B16B"></a>
 <a href="https://discord.gg/joinpoe"><img src="https://img.shields.io/badge/Discord-Join-purple?logo=discord&logoColor=white&color=FF44D3&style=for-the-badge" alt="Discord"></a>
 
 </div>
@@ -42,9 +42,25 @@ npx poe-code@latest configure codex # (or claude, opencode, kimi)
 npx poe-code@latest unconfigure claude
 ```
 
-### Logout (remove config + credentials)
+## Authentication
+
+Poe Code uses your [Poe API key](https://poe.com/api) for authentication. On first run, you'll be prompted to log in via your browser (OAuth). You can also provide your key directly:
 
 ```bash
+# Interactive login (opens browser)
+npx poe-code@latest login
+
+# Or pass your API key directly
+npx poe-code@latest login --api-key <your-key>
+
+# Or set it as an environment variable
+export POE_API_KEY=<your-key>
+```
+
+Credentials are stored locally in `~/.poe-code/`. Use `poe-code auth status` to check your login state.
+
+```bash
+# Remove all configuration and credentials
 npx poe-code@latest logout
 ```
 

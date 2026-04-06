@@ -28,10 +28,10 @@ tasks:
       Write a basic type-level test in `packages/design-system/src/terminal-markdown/parser.test.ts`
       that creates nodes of each type to verify the type definitions compile correctly.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 2: Block parser — incremental rule additions

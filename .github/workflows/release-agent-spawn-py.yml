@@ -1,0 +1,62 @@
+name: Release agent-spawn-py
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/agent-spawn-py/**'
+concurrency:
+  group: release-agent-spawn-py
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install build dependencies
+        run: python -m pip install --upgrade build tomlkit
+      - name: Auto-bump patch version from PyPI
+        working-directory: packages/agent-spawn-py
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import json
+          from urllib.error import HTTPError
+          from urllib.request import urlopen
+
+          import tomlkit
+
+          package_name = "poe-code-spawn"
+          pyproject_path = Path("pyproject.toml")
+          pyproject = tomlkit.parse(pyproject_path.read_text(encoding="utf-8"))
+
+          published_version = "0.0.0"
+          try:
+              with urlopen(f"https://pypi.org/pypi/{package_name}/json") as response:
+                  published_version = json.load(response)["info"]["version"]
+          except HTTPError as error:
+              if error.code != 404:
+                  raise
+
+          major, minor, patch = (int(part) for part in published_version.split("."))
+          next_version = f"{major}.{minor}.{patch + 1}"
+
+          pyproject["project"]["version"] = next_version
+          pyproject_path.write_text(tomlkit.dumps(pyproject), encoding="utf-8")
+
+          print(f"Published version: {published_version}")
+          print(f"Next version: {next_version}")
+          PY
+      - name: Build
+        working-directory: packages/agent-spawn-py
+        run: python -m build
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: packages/agent-spawn-py/dist

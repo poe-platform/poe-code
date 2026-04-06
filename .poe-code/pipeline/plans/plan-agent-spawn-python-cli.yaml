@@ -118,7 +118,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: python-sdk-publish
     title: Add GitHub workflow for PyPI publishing
@@ -140,7 +140,7 @@ tasks:
 
       Reference plan: docs/plans/agent-spawn-python-cli-plan.md (Step 5)
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

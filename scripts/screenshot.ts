@@ -177,6 +177,9 @@ export function buildColorEnv(
     CLICOLOR_FORCE: "1",
     POE_NO_SPINNER: "1"
   };
+  if (!env.NPM_CONFIG_LOGLEVEL) {
+    env.NPM_CONFIG_LOGLEVEL = "silent";
+  }
   if (!env.TERM) {
     env.TERM = "xterm-256color";
   }
@@ -192,6 +195,14 @@ export function buildSpawnSpec(
   forceTtyPath: string
 ): SpawnSpec {
   const env = buildColorEnv(baseEnv);
+  let args = target.args;
+  if (
+    target.command === "npm" &&
+    args[0] === "run" &&
+    !args.includes("--silent")
+  ) {
+    args = ["run", "--silent", ...args.slice(1)];
+  }
   if (target.forceTty) {
     const requireFlag = `--require ${forceTtyPath}`;
     env.NODE_OPTIONS = env.NODE_OPTIONS
@@ -200,7 +211,7 @@ export function buildSpawnSpec(
   }
   return {
     command: target.command,
-    args: target.args,
+    args,
     env
   };
 }

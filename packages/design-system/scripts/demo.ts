@@ -4,7 +4,10 @@
  * Usage: tsx scripts/demo.ts <type> [value...]
  */
 import chalk from "chalk";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import {
   intro,
   log,
@@ -17,6 +20,7 @@ import {
   renderMenu,
   renderTable,
   renderMarkdown,
+  type RenderOptions,
   getTheme,
   resolveOutputFormat,
   resetOutputFormatCache
@@ -49,7 +53,22 @@ type DemoType =
   | "table-markdown"
   | "markdown"
   | "markdown-minimal"
-  | "markdown-blocks";
+  | "markdown-blocks"
+  | "markdown-file";
+
+type MarkdownDemoSource =
+  | { kind: "preset"; name?: MarkdownDemoName }
+  | { kind: "file"; filePath: string };
+
+type DemoContext = {
+  cwd?: string;
+  env?: NodeJS.ProcessEnv;
+};
+
+type ParsedMarkdownDemoArgs = {
+  positional: string[];
+  renderOptions: RenderOptions;
+};
 
 function runTextDemo(style: string, content: string): void {
   const styleFn = text[style as keyof typeof text];
@@ -168,11 +187,6 @@ function runSpinnerDemo(indicator: "dots" | "timer"): void {
   process.stdout.write(stopped + "\n");
 }
 
-function setOutputFormat(format: "terminal" | "markdown" | "json"): void {
-  resetOutputFormatCache();
-  resolveOutputFormat({ OUTPUT_FORMAT: format });
-}
-
 function runLayoutDemo(): void {
   intro("Configure");
   log.info("Configuring claude-code...");
@@ -200,7 +214,8 @@ function runTableDemo(): void {
 }
 
 function runTableMarkdownDemo(): void {
-  setOutputFormat("markdown");
+  resetOutputFormatCache();
+  resolveOutputFormat({ OUTPUT_FORMAT: "markdown" });
   const theme = getTheme();
   const md = renderTable({
     theme,
@@ -231,12 +246,73 @@ function runLayoutExpandedDemo(): void {
   outro(chalk.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
 }
 
-function runMarkdownDemo(name?: MarkdownDemoName): void {
-  process.stdout.write(renderMarkdown(getMarkdownDemo(name)));
+export function resolveDemoWorkingDirectory(env: NodeJS.ProcessEnv, cwd: string): string {
+  const initCwd = env.INIT_CWD?.trim();
+  if (initCwd) {
+    return path.resolve(initCwd);
+  }
+  return cwd;
 }
 
-async function main(): Promise<void> {
-  const [type, ...values] = process.argv.slice(2);
+function resolveMarkdownFilePath(filePath: string, context: DemoContext): string {
+  const normalizedPath = filePath.trim();
+  if (!normalizedPath) {
+    throw new Error("markdown-file requires a markdown file path.");
+  }
+
+  if (path.isAbsolute(normalizedPath)) {
+    return normalizedPath;
+  }
+
+  const cwd = context.cwd ?? process.cwd();
+  const env = context.env ?? process.env;
+  const workingDirectory = resolveDemoWorkingDirectory(env, cwd);
+
+  return path.resolve(workingDirectory, normalizedPath);
+}
+
+export function loadMarkdownDemoDocument(source: MarkdownDemoSource, context: DemoContext = {}): string {
+  if (source.kind === "preset") {
+    return getMarkdownDemo(source.name);
+  }
+
+  const resolvedPath = resolveMarkdownFilePath(source.filePath, context);
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`Markdown file not found: ${resolvedPath}`);
+  }
+
+  return readFileSync(resolvedPath, "utf8");
+}
+
+export function parseMarkdownDemoArgs(args: string[]): ParsedMarkdownDemoArgs {
+  const positional: string[] = [];
+  let showFrontmatter = false;
+
+  for (const arg of args) {
+    if (arg === "--show-frontmatter") {
+      showFrontmatter = true;
+      continue;
+    }
+
+    positional.push(arg);
+  }
+
+  return {
+    positional,
+    renderOptions: showFrontmatter ? { showFrontmatter: true } : {}
+  };
+}
+
+function runMarkdownDemo(
+  source: MarkdownDemoSource,
+  renderOptions: RenderOptions,
+  context: DemoContext
+): void {
+  process.stdout.write(renderMarkdown(loadMarkdownDemoDocument(source, context), renderOptions));
+}
+
+export async function main(argv = process.argv.slice(2), context: DemoContext = {}): Promise<void> {
+  const [type, ...values] = argv;
   const value = values.join(" ");
 
   if (!type) {
@@ -246,7 +322,9 @@ async function main(): Promise<void> {
       "       usageCommand, link, muted, symbol, log, diff, menu, note, outro,\n"
     );
     process.stderr.write("       resolved, errorResolved, spinner, layout, layout-expanded,\n");
-    process.stderr.write("       table, table-markdown, markdown, markdown-minimal, markdown-blocks\n");
+    process.stderr.write(
+      "       table, table-markdown, markdown, markdown-minimal, markdown-blocks, markdown-file\n"
+    );
     process.exitCode = 1;
     return;
   }
@@ -305,19 +383,48 @@ async function main(): Promise<void> {
     case "table-markdown":
       runTableMarkdownDemo();
       break;
-    case "markdown":
-      runMarkdownDemo();
+    case "markdown": {
+      const { renderOptions } = parseMarkdownDemoArgs(values);
+      runMarkdownDemo({ kind: "preset" }, renderOptions, context);
       break;
-    case "markdown-minimal":
-      runMarkdownDemo("minimal");
+    }
+    case "markdown-minimal": {
+      const { renderOptions } = parseMarkdownDemoArgs(values);
+      runMarkdownDemo({ kind: "preset", name: "minimal" }, renderOptions, context);
       break;
-    case "markdown-blocks":
-      runMarkdownDemo((values[0] as MarkdownDemoName | undefined) ?? "code-blocks");
+    }
+    case "markdown-blocks": {
+      const { positional, renderOptions } = parseMarkdownDemoArgs(values);
+      runMarkdownDemo(
+        {
+          kind: "preset",
+          name: (positional[0] as MarkdownDemoName | undefined) ?? "code-blocks"
+        },
+        renderOptions,
+        context
+      );
       break;
+    }
+    case "markdown-file": {
+      const { positional, renderOptions } = parseMarkdownDemoArgs(values);
+      runMarkdownDemo({ kind: "file", filePath: positional.join(" ") }, renderOptions, context);
+      break;
+    }
     default:
       process.stderr.write(`Unknown demo type: ${type}\n`);
       process.exitCode = 1;
   }
 }
 
-main();
+const entry = process.argv[1];
+const isMain =
+  typeof entry === "string" &&
+  path.resolve(entry) === fileURLToPath(import.meta.url);
+
+if (isMain) {
+  main().catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`${message}\n`);
+    process.exitCode = 1;
+  });
+}

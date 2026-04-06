@@ -158,7 +158,8 @@ function renderAlert(node: Extract<MdNode, { type: "alert" }>, context: RenderCo
 function renderCodeBlock(node: Extract<MdNode, { type: "code" }>, context: RenderContext): string {
   const indent = " ".repeat(spacing.sm);
   const lines = node.value.split("\n");
-  const borderWidth = Math.max(3, ...lines.map((line) => line.length));
+  const longestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
+  const borderWidth = Math.max(3, Math.min(context.width - indent.length, longestLine));
   const border = context.theme.muted(`${indent}${lineChar.repeat(borderWidth)}`);
   const content = lines.map((line) => `${indent}${line}`).join("\n");
 

@@ -916,7 +916,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 10: Final visual validation + design docs
@@ -947,9 +947,9 @@ tasks:
 
       Fix any issues and re-screenshot. This is the final visual quality gate.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: terminal-pilot-theme-validation

@@ -9,6 +9,9 @@ import process from "node:process";
 import { renderTerminalPng } from "terminal-png";
 import {
   buildScreenshotName,
+  buildColorEnv,
+  buildSpawnSpec,
+  resolveScreenshotTarget,
   resolveScreenshotTimeoutMs,
   runScreenshot
 } from "./screenshot.js";
@@ -86,6 +89,43 @@ describe("buildScreenshotName", () => {
     expect(buildScreenshotName(["sh", "-lc", 'printf "oops\\n"; exit 2'])).toBe(
       "sh-lc-printf-oops-n-exit-2"
     );
+  });
+});
+
+describe("buildColorEnv", () => {
+  it("forces colored output and silences npm script prelude noise", () => {
+    expect(buildColorEnv({ TERM: "screen" })).toMatchObject({
+      TERM: "screen",
+      FORCE_COLOR: "1",
+      CLICOLOR_FORCE: "1",
+      POE_NO_SPINNER: "1",
+      NPM_CONFIG_LOGLEVEL: "silent"
+    });
+  });
+
+  it("preserves an explicit npm loglevel override", () => {
+    expect(buildColorEnv({ NPM_CONFIG_LOGLEVEL: "verbose" }).NPM_CONFIG_LOGLEVEL).toBe("verbose");
+  });
+});
+
+describe("buildSpawnSpec", () => {
+  it("injects --silent for npm run targets so screenshots omit npm script banners", () => {
+    const target = resolveScreenshotTarget(["npm", "run", "demo", "--", "markdown"]);
+
+    expect(buildSpawnSpec(target, {}, "/tmp/force-tty.cjs")).toMatchObject({
+      command: "npm",
+      args: ["run", "--silent", "demo", "--", "markdown"]
+    });
+  });
+
+  it("does not duplicate --silent when npm run already includes it", () => {
+    const target = resolveScreenshotTarget(["npm", "run", "--silent", "demo"]);
+
+    expect(buildSpawnSpec(target, {}, "/tmp/force-tty.cjs").args).toEqual([
+      "run",
+      "--silent",
+      "demo"
+    ]);
   });
 });
 

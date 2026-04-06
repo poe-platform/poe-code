@@ -152,7 +152,11 @@ describe("createHostRunner", () => {
       command: process.execPath,
       args: [
         "-e",
+<<<<<<< HEAD
         "process.stdout.write('default-out'); setTimeout(() => { process.stderr.write('default-err', () => process.exit(0)); }, 10);"
+=======
+        "process.stdout.write('default-out', () => process.stderr.write('default-err', () => process.exit(0)));"
+>>>>>>> 787baa69 (fix(design-system): support repo markdown demos)
       ]
     });
 

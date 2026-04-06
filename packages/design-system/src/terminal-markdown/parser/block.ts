@@ -24,6 +24,12 @@ type ParsedHeading = {
   text: string;
 };
 
+type ParsedListMarker = {
+  ordered: boolean;
+  start?: number;
+  contentStart: number;
+};
+
 export function parseBlocks(input: string): MdNode[] {
   const state: ParserState = {
     input: stripBom(input),
@@ -34,6 +40,8 @@ export function parseBlocks(input: string): MdNode[] {
     parseFencedCodeBlock,
     parseAtxHeading,
     parseThematicBreak,
+    parseBlockquote,
+    parseList,
     parseSetextHeading
   ];
 
@@ -149,6 +157,69 @@ function parseSetextHeading(state: ParserState): MdNode | null {
   };
 }
 
+function parseBlockquote(state: ParserState): MdNode | null {
+  const firstLine = readLine(state.input, state.position);
+
+  if (stripBlockquoteMarker(firstLine.text) === null) {
+    return null;
+  }
+
+  const contentLines: string[] = [];
+
+  while (state.position < state.input.length) {
+    const line = readLine(state.input, state.position);
+    const content = stripBlockquoteMarker(line.text);
+
+    if (content === null) {
+      break;
+    }
+
+    contentLines.push(content);
+    state.position = line.nextPosition;
+  }
+
+  return {
+    type: "blockquote",
+    children: parseBlocks(contentLines.join("\n"))
+  };
+}
+
+function parseList(state: ParserState): MdNode | null {
+  const firstLine = readLine(state.input, state.position);
+  const firstMarker = parseListMarker(firstLine.text);
+
+  if (firstMarker === null) {
+    return null;
+  }
+
+  const children: MdNode[] = [];
+  const ordered = firstMarker.ordered;
+  const start = firstMarker.start;
+
+  while (state.position < state.input.length) {
+    const line = readLine(state.input, state.position);
+    const marker = parseListMarker(line.text);
+
+    if (marker === null || marker.ordered !== ordered) {
+      break;
+    }
+
+    state.position = line.nextPosition;
+
+    children.push({
+      type: "listItem",
+      children: parseBlocks(line.text.slice(marker.contentStart))
+    });
+  }
+
+  return {
+    type: "list",
+    ordered,
+    ...(ordered && start !== undefined ? { start } : {}),
+    children
+  };
+}
+
 function parseParagraph(state: ParserState): MdNode {
   const lines: string[] = [];
 
@@ -190,7 +261,9 @@ function startsBlock(line: string): boolean {
   return (
     parseOpeningFence(line) !== null ||
     parseAtxHeadingLine(line) !== null ||
-    isThematicBreakLine(line)
+    isThematicBreakLine(line) ||
+    stripBlockquoteMarker(line) !== null ||
+    parseListMarker(line) !== null
   );
 }
 
@@ -400,6 +473,87 @@ function parseSetextUnderline(line: string): 1 | 2 | null {
   return marker === "=" ? 1 : 2;
 }
 
+function stripBlockquoteMarker(line: string): string | null {
+  const markerStart = skipLeadingBlockIndent(line);
+
+  if (markerStart === -1 || markerStart >= line.length || line[markerStart] !== ">") {
+    return null;
+  }
+
+  let contentStart = markerStart + 1;
+
+  if (contentStart < line.length && (line[contentStart] === " " || line[contentStart] === "\t")) {
+    contentStart += 1;
+  }
+
+  return line.slice(contentStart);
+}
+
+function parseListMarker(line: string): ParsedListMarker | null {
+  const markerStart = skipLeadingBlockIndent(line);
+
+  if (markerStart === -1 || markerStart >= line.length) {
+    return null;
+  }
+
+  const marker = line[markerStart];
+
+  if (marker === "-" || marker === "+" || marker === "*") {
+    return parseBulletListMarker(line, markerStart);
+  }
+
+  if (isDigit(marker)) {
+    return parseOrderedListMarker(line, markerStart);
+  }
+
+  return null;
+}
+
+function parseBulletListMarker(line: string, markerStart: number): ParsedListMarker | null {
+  let contentStart = markerStart + 1;
+
+  if (contentStart >= line.length || (line[contentStart] !== " " && line[contentStart] !== "\t")) {
+    return null;
+  }
+
+  while (contentStart < line.length && (line[contentStart] === " " || line[contentStart] === "\t")) {
+    contentStart += 1;
+  }
+
+  return {
+    ordered: false,
+    contentStart
+  };
+}
+
+function parseOrderedListMarker(line: string, markerStart: number): ParsedListMarker | null {
+  let markerEnd = markerStart;
+
+  while (markerEnd < line.length && isDigit(line[markerEnd])) {
+    markerEnd += 1;
+  }
+
+  if (markerEnd >= line.length || (line[markerEnd] !== "." && line[markerEnd] !== ")")) {
+    return null;
+  }
+
+  let contentStart = markerEnd + 1;
+
+  if (contentStart >= line.length || (line[contentStart] !== " " && line[contentStart] !== "\t")) {
+    return null;
+  }
+
+  while (contentStart < line.length && (line[contentStart] === " " || line[contentStart] === "\t")) {
+    contentStart += 1;
+  }
+
+  return {
+    ordered: true,
+    start: Number.parseInt(line.slice(markerStart, markerEnd), 10),
+    contentStart
+  };
+}
+
 function readLine(input: string, position: number): Line {
   let index = position;
 
@@ -498,6 +652,10 @@ function findWhitespaceIndex(value: string): number {
   }
 
   return -1;
+}
+
+function isDigit(value: string): boolean {
+  return value >= "0" && value <= "9";
 }
 
 function stripBom(input: string): string {

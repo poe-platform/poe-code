@@ -107,7 +107,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: block-parser-blockquotes
     title: Add blockquote parsing with nesting
@@ -129,9 +129,9 @@ tasks:
 
       Write tests in `packages/design-system/src/terminal-markdown/parser.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: block-parser-lists

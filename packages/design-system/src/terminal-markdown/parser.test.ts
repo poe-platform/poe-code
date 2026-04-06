@@ -215,6 +215,199 @@ describe("parseBlocks", () => {
     expect(parseBlocks("- - -")).toEqual([{ type: "thematicBreak" }]);
   });
 
+  it("parses a single-line blockquote (spec example 20)", () => {
+    expect(parseBlocks("> alpha")).toEqual([
+      {
+        type: "blockquote",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses a multi-line blockquote as a nested paragraph (spec example 21)", () => {
+    expect(parseBlocks("> alpha\n> beta")).toEqual([
+      {
+        type: "blockquote",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha\nbeta" }] }]
+      }
+    ]);
+  });
+
+  it("parses blockquotes without a space after the marker", () => {
+    expect(parseBlocks(">alpha")).toEqual([
+      {
+        type: "blockquote",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses blockquotes indented by up to three spaces", () => {
+    expect(parseBlocks("   > alpha")).toEqual([
+      {
+        type: "blockquote",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses nested blockquotes (spec example 22)", () => {
+    expect(parseBlocks("> > nested")).toEqual([
+      {
+        type: "blockquote",
+        children: [
+          {
+            type: "blockquote",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "nested" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses blockquotes containing headings, lists, and code blocks (spec example 23)", () => {
+    expect(
+      parseBlocks(
+        "> ## heading\n>\n> - first\n> - second\n>\n> ```ts\n> const value = 1;\n> ```"
+      )
+    ).toEqual([
+      {
+        type: "blockquote",
+        children: [
+          { type: "heading", depth: 2, children: [{ type: "text", value: "heading" }] },
+          {
+            type: "list",
+            ordered: false,
+            children: [
+              {
+                type: "listItem",
+                children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+              },
+              {
+                type: "listItem",
+                children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+              }
+            ]
+          },
+          { type: "code", lang: "ts", value: "const value = 1;" }
+        ]
+      }
+    ]);
+  });
+
+  it("parses fenced code blocks inside blockquotes (spec example 87)", () => {
+    expect(parseBlocks("> ```\n> const value = 1;\n> ```")).toEqual([
+      {
+        type: "blockquote",
+        children: [{ type: "code", value: "const value = 1;" }]
+      }
+    ]);
+  });
+
+  it("parses deeply nested blockquotes beyond four levels (spec example 89)", () => {
+    expect(parseBlocks("> > > > > deep")).toEqual([
+      {
+        type: "blockquote",
+        children: [
+          {
+            type: "blockquote",
+            children: [
+              {
+                type: "blockquote",
+                children: [
+                  {
+                    type: "blockquote",
+                    children: [
+                      {
+                        type: "blockquote",
+                        children: [
+                          {
+                            type: "paragraph",
+                            children: [{ type: "text", value: "deep" }]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses trailing empty quote markers as an empty blockquote (spec example 132)", () => {
+    expect(parseBlocks(">\n>")).toEqual([{ type: "blockquote", children: [] }]);
+  });
+
+  it("splits blockquote paragraphs on quoted blank lines", () => {
+    expect(parseBlocks("> alpha\n>\n> beta")).toEqual([
+      {
+        type: "blockquote",
+        children: [
+          { type: "paragraph", children: [{ type: "text", value: "alpha" }] },
+          { type: "paragraph", children: [{ type: "text", value: "beta" }] }
+        ]
+      }
+    ]);
+  });
+
+  it("parses ordered lists inside blockquotes", () => {
+    expect(parseBlocks("> 1. first\n> 2. second")).toEqual([
+      {
+        type: "blockquote",
+        children: [
+          {
+            type: "list",
+            ordered: true,
+            start: 1,
+            children: [
+              {
+                type: "listItem",
+                children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+              },
+              {
+                type: "listItem",
+                children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("lets blockquotes interrupt a paragraph without a blank line", () => {
+    expect(parseBlocks("before\n> after")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "before" }] },
+      {
+        type: "blockquote",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "after" }] }]
+      }
+    ]);
+  });
+
+  it("parses simple unordered lists", () => {
+    expect(parseBlocks("- first\n- second")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+          },
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
   it("parses setext level-1 headings", () => {
     expect(parseBlocks("Heading\n===")).toEqual([
       { type: "heading", depth: 1, children: [{ type: "text", value: "Heading" }] }

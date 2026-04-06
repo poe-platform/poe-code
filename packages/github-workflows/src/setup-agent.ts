@@ -47,8 +47,8 @@ export async function setupWorkflowAgent(
 ): Promise<string> {
   const agent = resolveWorkflowAgent(automation);
 
-  await runPoeCodeCommand(["install", agent, "--yes", "--verbose"], cwd, runner);
-  await runPoeCodeCommand(["configure", agent, "--yes", "--verbose"], cwd, runner);
+  await runPoeCodeCommand(["install", agent, "--yes"], cwd, runner);
+  await runPoeCodeCommand(["configure", agent, "--yes"], cwd, runner);
 
   return agent;
 }

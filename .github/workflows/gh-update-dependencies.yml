@@ -26,11 +26,11 @@ jobs:
         with:
           node-version: 20
       - run: npm install -g poe-code@latest
-      - run: poe-code github-workflows exec setup-agent update-dependencies --verbose
+      - run: poe-code github-workflows prepare update-dependencies
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
-      - run: poe-code github-workflows update-dependencies --yes --verbose
+      - run: poe-code github-workflows update-dependencies --yes
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}

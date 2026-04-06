@@ -24,11 +24,11 @@ jobs:
         with:
           node-version: 20
       - run: npm install -g poe-code@latest
-      - run: poe-code github-workflows exec setup-agent fix-vulnerabilities --verbose
+      - run: poe-code github-workflows prepare fix-vulnerabilities
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
-      - run: poe-code github-workflows fix-vulnerabilities --yes --verbose
+      - run: poe-code github-workflows fix-vulnerabilities --yes
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}

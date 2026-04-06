@@ -195,14 +195,12 @@ const installCommand = defineCommand({
         const automations = await discoverAutomations(await resolveBuiltInPromptsDir());
         return automations.map((a) => ({ label: a.label ?? formatLabel(a.name), value: a.name }));
       }
-    }),
-    eject: S.Optional(S.Boolean())
+    })
   }),
   scope: ["cli"],
   handler: async ({ params }) => {
     const name = params.name;
-    const isEject = params.eject === true;
-    const variant = isEject ? "ejected" : "caller";
+    const variant = "ejected";
     const [workflowTemplate, rawPrompt] = await Promise.all([
       readBuiltInWorkflowTemplate(name, variant),
       readBuiltInPromptFile(name)
@@ -213,36 +211,27 @@ const installCommand = defineCommand({
     await mkdir(path.dirname(workflowPath), { recursive: true });
     await writeFile(workflowPath, workflowTemplate, "utf8");
 
-    let promptPath: string | undefined;
-    if (isEject) {
-      promptPath = path.join(projectPromptsDir(cwd), `poe-code-${name}.md`);
-      await mkdir(path.dirname(promptPath), { recursive: true });
-      await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
-    }
+    const promptPath = path.join(projectPromptsDir(cwd), `poe-code-${name}.md`);
+    await mkdir(path.dirname(promptPath), { recursive: true });
+    await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
 
     return {
       name,
       workflowPath,
       promptPath,
-      ejected: isEject,
       promptContent: rawPrompt
     };
   },
   render: {
     rich: (
-      result: { name: string; workflowPath: string; promptPath?: string; ejected: boolean; promptContent: string },
+      result: { name: string; workflowPath: string; promptPath: string; promptContent: string },
       { logger, note }
     ) => {
       logger.success(`Installed workflow at ${result.workflowPath}`);
-      if (result.promptPath !== undefined) {
-        logger.message(`Prompt copied to ${result.promptPath}`);
-      }
+      logger.message(`Prompt copied to ${result.promptPath}`);
       note(result.promptContent, "Default prompt");
-      if (!result.ejected) {
-        logger.message(`To customize the prompt, run: poe-code github-workflows install ${result.name} --eject`);
-      }
     },
-    json: (result: { name: string; workflowPath: string; promptPath?: string; ejected: boolean; promptContent: string }) => result
+    json: (result: { name: string; workflowPath: string; promptPath: string; promptContent: string }) => result
   }
 });
 
@@ -284,8 +273,8 @@ const uninstallCommand = defineCommand({
   }
 });
 
-const checkUserAllowCommand = defineCommand({
-  name: "check-user-allow",
+const requireUserAllowCommand = defineCommand({
+  name: "require-user-allow",
   description: "Fail when COMMENT_AUTHOR_ASSOCIATION is not allowed by the automation frontmatter.",
   positional: ["name"],
   params: S.Object({
@@ -314,8 +303,8 @@ const requireCommentPrefixCommand = defineCommand({
   }
 });
 
-const setupAgentCommand = defineCommand({
-  name: "setup-agent",
+const prepareCommand = defineCommand({
+  name: "prepare",
   description: "Install and configure the agent required by a workflow automation.",
   positional: ["name"],
   params: S.Object({
@@ -356,18 +345,20 @@ const promptPreviewCommand = defineCommand({
   }
 });
 
-const execGroup = defineGroup({
-  name: "exec",
-  description: "Workflow step helpers.",
-  scope: ["cli"],
-  children: [checkUserAllowCommand, requireCommentPrefixCommand, setupAgentCommand]
-});
-
 export const ghGroup: Group = defineGroup({
   name: "github-workflows",
   aliases: ["gh"],
   description: "GitHub workflow automations.",
-  children: [runCommandDef, listCommand, installCommand, uninstallCommand, promptPreviewCommand, execGroup],
+  children: [
+    runCommandDef,
+    prepareCommand,
+    requireUserAllowCommand,
+    requireCommentPrefixCommand,
+    listCommand,
+    installCommand,
+    uninstallCommand,
+    promptPreviewCommand
+  ],
   default: runCommandDef
 });
 

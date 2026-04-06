@@ -250,20 +250,20 @@ run_guard_in_docker() {
   done
 }
 
-@test "dry-run issue comment workflow runs guard steps before the agent step" {
+@test "dry-run issue comment workflow runs require steps before the agent step" {
   run workflow_run_steps ".github/workflows/gh-github-issue-comment-created.yml"
   [ "$status" -eq 0 ]
 
   local allow_line
-  allow_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows exec check-user-allow github-issue-comment-created --verbose' | cut -d: -f1)"
+  allow_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows require-user-allow github-issue-comment-created' | cut -d: -f1)"
   [ -n "$allow_line" ]
 
   local prefix_line
-  prefix_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows exec require-comment-prefix github-issue-comment-created --verbose' | cut -d: -f1)"
+  prefix_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows require-comment-prefix github-issue-comment-created' | cut -d: -f1)"
   [ -n "$prefix_line" ]
 
   local agent_line
-  agent_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows github-issue-comment-created --yes --verbose' | cut -d: -f1)"
+  agent_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows github-issue-comment-created --yes' | cut -d: -f1)"
   [ -n "$agent_line" ]
 
   [ "$allow_line" -lt "$prefix_line" ]
@@ -290,34 +290,31 @@ run_guard_in_docker() {
   done
 }
 
-@test "dry-run caller workflows keep permissions in sync with reusable workflows" {
+@test "dry-run installed workflows are standalone and do not depend on upstream reusable workflows" {
   shopt -s nullglob
-  local caller_workflows=(
+  local installed_workflows=(
     .github/workflows/poe-code-*.yml
-    packages/github-workflows/src/workflow-templates/*.caller.yml
   )
 
-  [ "${#caller_workflows[@]}" -gt 0 ]
+  [ "${#installed_workflows[@]}" -gt 0 ]
 
-  local caller_path
-  local reusable_path
-  local caller_permissions
-  local reusable_permissions
+  local workflow_path
 
-  for caller_path in "${caller_workflows[@]}"; do
-    run workflow_reusable_path "$caller_path"
+  for workflow_path in "${installed_workflows[@]}"; do
+    run grep -qF 'npm install -g poe-code@latest' "$workflow_path"
     [ "$status" -eq 0 ]
-    reusable_path="$output"
 
-    run workflow_permissions "$caller_path" 'workflow.permissions'
+    run grep -qF 'poe-code github-workflows prepare ' "$workflow_path"
     [ "$status" -eq 0 ]
-    caller_permissions="$output"
 
-    run workflow_permissions "$reusable_path" 'workflow.jobs.run.permissions'
-    [ "$status" -eq 0 ]
-    reusable_permissions="$output"
+    run grep -qF 'uses: poe-platform/poe-code/.github/workflows/' "$workflow_path"
+    [ "$status" -ne 0 ]
 
-    [ "$caller_permissions" = "$reusable_permissions" ]
+    run grep -qF '@main' "$workflow_path"
+    [ "$status" -ne 0 ]
+
+    run grep -qF -- '--verbose' "$workflow_path"
+    [ "$status" -ne 0 ]
   done
 }
 
@@ -346,7 +343,7 @@ run_guard_in_docker() {
   done
 }
 
-@test "dry-run GitHub workflow automations install poe-code@latest and set up the workflow agent" {
+@test "dry-run GitHub workflow automations install poe-code@latest and prepare the workflow agent" {
   shopt -s nullglob
   local workflow_files=(
     .github/workflows/gh-*.yml
@@ -369,16 +366,17 @@ run_guard_in_docker() {
     install_line="$(printf '%s\n' "$steps" | grep -nF 'npm install -g poe-code@latest' | cut -d: -f1)"
     [ -n "$install_line" ]
 
-    setup_line="$(printf '%s\n' "$steps" | grep -nF 'poe-code github-workflows exec setup-agent' | cut -d: -f1 | head -n1)"
+    setup_line="$(printf '%s\n' "$steps" | grep -nF 'poe-code github-workflows prepare ' | cut -d: -f1 | head -n1)"
     [ -n "$setup_line" ]
 
-    run_line="$(printf '%s\n' "$steps" | grep -nF 'poe-code github-workflows ' | grep -F -- '--yes --verbose' | cut -d: -f1 | head -n1)"
+    run_line="$(printf '%s\n' "$steps" | grep -nF 'poe-code github-workflows ' | grep -F -- '--yes' | cut -d: -f1 | head -n1)"
     [ -n "$run_line" ]
 
     [ "$install_line" -lt "$setup_line" ]
     [ "$setup_line" -lt "$run_line" ]
     [[ "$steps" != *'npx poe-code github-workflows'* ]]
     [[ "$steps" != *'npm run dev -- github-workflows'* ]]
+    [[ "$steps" != *'--verbose'* ]]
   done
 }
 

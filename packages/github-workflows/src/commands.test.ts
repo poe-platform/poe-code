@@ -312,7 +312,7 @@ describe("ghGroup", () => {
       ["---", "agent: claude-code", "---", "Fix dependencies"].join("\n")
     );
 
-    const setupAgentCommand = getCommand(["exec", "setup-agent"]);
+    const setupAgentCommand = getCommand(["prepare"]);
 
     await setupAgentCommand.handler(
       createContext({
@@ -323,21 +323,21 @@ describe("ghGroup", () => {
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
       1,
       "poe-code",
-      ["install", "claude-code", "--yes", "--verbose"],
+      ["install", "claude-code", "--yes"],
       expect.objectContaining({ cwd: "/repo" })
     );
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
       2,
       "poe-code",
-      ["configure", "claude-code", "--yes", "--verbose"],
+      ["configure", "claude-code", "--yes"],
       expect.objectContaining({ cwd: "/repo" })
     );
   });
 
-  it("defaults setup-agent to codex when the automation does not declare an agent", async () => {
+  it("defaults prepare to codex when the automation does not declare an agent", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
 
-    const setupAgentCommand = getCommand(["exec", "setup-agent"]);
+    const setupAgentCommand = getCommand(["prepare"]);
 
     await setupAgentCommand.handler(
       createContext({
@@ -348,18 +348,18 @@ describe("ghGroup", () => {
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
       1,
       "poe-code",
-      ["install", "codex", "--yes", "--verbose"],
+      ["install", "codex", "--yes"],
       expect.objectContaining({ cwd: "/repo" })
     );
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
       2,
       "poe-code",
-      ["configure", "codex", "--yes", "--verbose"],
+      ["configure", "codex", "--yes"],
       expect.objectContaining({ cwd: "/repo" })
     );
   });
 
-  it("surfaces install failures from setup-agent with command output", async () => {
+  it("surfaces install failures from prepare with command output", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     spawnState.runCommand.mockResolvedValueOnce({
       stdout: "partial output\n",
@@ -367,7 +367,7 @@ describe("ghGroup", () => {
       exitCode: 127
     });
 
-    const setupAgentCommand = getCommand(["exec", "setup-agent"]);
+    const setupAgentCommand = getCommand(["prepare"]);
 
     await expect(
       setupAgentCommand.handler(
@@ -377,7 +377,7 @@ describe("ghGroup", () => {
       )
     ).rejects.toThrow(
       [
-        "Command failed with exit code 127: poe-code install codex --yes --verbose",
+        "Command failed with exit code 127: poe-code install codex --yes",
         "stderr:",
         "missing binary",
         "stdout:",
@@ -470,9 +470,9 @@ describe("ghGroup", () => {
     expect(logger.message).toHaveBeenCalledWith("automation table");
   });
 
-  it("installs a thin caller workflow without writing a prompt file", async () => {
+  it("installs a standalone workflow and prompt copy that use the published CLI", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
-    seedWorkflowTemplate("github-issue-opened", "caller");
+    seedWorkflowTemplate("github-issue-opened", "ejected");
 
     const installCommand = getCommand(["install"]);
 
@@ -482,21 +482,26 @@ describe("ghGroup", () => {
       })
     );
 
-    expect(vol.existsSync("/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md")).toBe(false);
+    expect(vol.existsSync("/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md")).toBe(true);
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toContain(
-      "uses: poe-platform/poe-code/.github/workflows/gh-github-issue-opened.yml@main"
+      "npm install -g poe-code@latest"
+    );
+    expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toContain(
+      "poe-code github-workflows prepare poe-code-github-issue-opened"
+    );
+    expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).not.toContain(
+      "uses: poe-platform/poe-code/.github/workflows/"
     );
     expect(result).toMatchObject({
       name: "github-issue-opened",
       promptContent: "# Prompt",
-      promptPath: undefined,
-      ejected: false
+      promptPath: "/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md"
     });
   });
 
-  it("shows the default prompt in a note and suggests eject on non-ejected install", async () => {
+  it("shows the default prompt in a note and reports the copied prompt path", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
-    seedWorkflowTemplate("github-issue-opened", "caller");
+    seedWorkflowTemplate("github-issue-opened", "ejected");
 
     const installCommand = getCommand(["install"]);
     const result = await installCommand.handler(createContext({ name: "github-issue-opened" }));
@@ -520,15 +525,15 @@ describe("ghGroup", () => {
     });
 
     expect(logger.success).toHaveBeenCalledWith(expect.stringContaining("poe-code-github-issue-opened.yml"));
-    expect(note).toHaveBeenCalledWith("# Prompt", "Default prompt");
     expect(logger.message).toHaveBeenCalledWith(
-      expect.stringContaining("poe-code github-workflows install github-issue-opened --eject")
+      "Prompt copied to /repo/.poe-code/github-workflows/poe-code-github-issue-opened.md"
     );
+    expect(note).toHaveBeenCalledWith("# Prompt", "Default prompt");
   });
 
   it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {
     writeBuiltInPrompt("github-pull-request-opened", "# Prompt");
-    seedWorkflowTemplate("github-pull-request-opened", "caller");
+    seedWorkflowTemplate("github-pull-request-opened", "ejected");
 
     const installCommand = getCommand(["install"]);
 
@@ -543,7 +548,7 @@ describe("ghGroup", () => {
     expect(workflow).not.toContain("workflow_dispatch:");
   });
 
-  it("installs an ejected workflow copy when --eject is set", async () => {
+  it("installs the issue comment workflow with standalone guard and prepare steps", async () => {
     writeBuiltInPrompt("github-issue-comment-created", "# Prompt");
     seedWorkflowTemplate("github-issue-comment-created", "ejected");
 
@@ -551,18 +556,17 @@ describe("ghGroup", () => {
 
     await installCommand.handler(
       createContext({
-        name: "github-issue-comment-created",
-        eject: true
+        name: "github-issue-comment-created"
       })
     );
 
     const workflow = readRepoFile("/repo/.github/workflows/poe-code-github-issue-comment-created.yml");
     expect(workflow).toContain("issue_comment:");
     expect(workflow).toContain(
-      "poe-code github-workflows exec check-user-allow poe-code-github-issue-comment-created --verbose"
+      "poe-code github-workflows require-user-allow poe-code-github-issue-comment-created"
     );
     expect(workflow).toContain(
-      "poe-code github-workflows exec setup-agent poe-code-github-issue-comment-created --verbose"
+      "poe-code github-workflows prepare poe-code-github-issue-comment-created"
     );
     expect(workflow).not.toContain("workflow_call:");
   });
@@ -611,7 +615,7 @@ describe("ghGroup", () => {
     });
   });
 
-  it("wires exec commands that enforce allow and prefix frontmatter from the local prompt copy", async () => {
+  it("wires public require commands that enforce allow and prefix frontmatter from the local prompt copy", async () => {
     vol.fromJSON({
       "/repo/.poe-code/github-workflows/poe-code-github-issue-comment-created.md": [
         "---",
@@ -623,8 +627,8 @@ describe("ghGroup", () => {
       ].join("\n")
     });
 
-    const checkUserAllowCommand = getCommand(["exec", "check-user-allow"]);
-    const requireCommentPrefixCommand = getCommand(["exec", "require-comment-prefix"]);
+    const checkUserAllowCommand = getCommand(["require-user-allow"]);
+    const requireCommentPrefixCommand = getCommand(["require-comment-prefix"]);
 
     await expect(
       checkUserAllowCommand.handler(

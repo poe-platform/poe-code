@@ -6,4 +6,4 @@ label: "GitHub: Issue Handler"
 #   {{issue.number}} - issue number
 #   {{issue.title}}  - issue title
 ---
-Read {{url}} and implement the requested changes.
+Read {{url}} and answer, triage, or implement the requested changes.

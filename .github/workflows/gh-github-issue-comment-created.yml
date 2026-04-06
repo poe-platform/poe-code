@@ -49,19 +49,19 @@ jobs:
         with:
           node-version: 20
       - run: npm install -g poe-code@latest
-      - run: poe-code github-workflows exec setup-agent github-issue-comment-created --verbose
+      - run: poe-code github-workflows prepare github-issue-comment-created
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
-      - run: poe-code github-workflows exec check-user-allow github-issue-comment-created --verbose
+      - run: poe-code github-workflows require-user-allow github-issue-comment-created
         env:
           POE_CODE_STDERR_LOGS: "1"
           COMMENT_AUTHOR_ASSOCIATION: ${{ inputs.COMMENT_AUTHOR_ASSOCIATION }}
-      - run: poe-code github-workflows exec require-comment-prefix github-issue-comment-created --verbose
+      - run: poe-code github-workflows require-comment-prefix github-issue-comment-created
         env:
           POE_CODE_STDERR_LOGS: "1"
           COMMENT_BODY: ${{ inputs.COMMENT_BODY }}
-      - run: poe-code github-workflows github-issue-comment-created --yes --verbose
+      - run: poe-code github-workflows github-issue-comment-created --yes
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}

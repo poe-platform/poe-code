@@ -379,6 +379,109 @@ describe("parseBlocks", () => {
     ]);
   });
 
+  it("parses NOTE alerts before regular blockquotes (test 95)", () => {
+    expect(parseBlocks("> [!NOTE]\n> alpha")).toEqual([
+      {
+        type: "alert",
+        kind: "NOTE",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses TIP alerts before regular blockquotes (test 96)", () => {
+    expect(parseBlocks("> [!TIP]\n> alpha")).toEqual([
+      {
+        type: "alert",
+        kind: "TIP",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses IMPORTANT alerts before regular blockquotes (test 97)", () => {
+    expect(parseBlocks("> [!IMPORTANT]\n> alpha")).toEqual([
+      {
+        type: "alert",
+        kind: "IMPORTANT",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses WARNING alerts before regular blockquotes (test 98)", () => {
+    expect(parseBlocks("> [!WARNING]\n> alpha")).toEqual([
+      {
+        type: "alert",
+        kind: "WARNING",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses CAUTION alerts before regular blockquotes (test 99)", () => {
+    expect(parseBlocks("> [!CAUTION]\n> alpha")).toEqual([
+      {
+        type: "alert",
+        kind: "CAUTION",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "alpha" }] }]
+      }
+    ]);
+  });
+
+  it("parses multi-line alert content as nested blocks (test 100)", () => {
+    expect(parseBlocks("> [!NOTE]\n> alpha\n>\n> beta")).toEqual([
+      {
+        type: "alert",
+        kind: "NOTE",
+        children: [
+          { type: "paragraph", children: [{ type: "text", value: "alpha" }] },
+          { type: "paragraph", children: [{ type: "text", value: "beta" }] }
+        ]
+      }
+    ]);
+  });
+
+  it("leaves inline formatting inside alerts as raw text for now (test 101)", () => {
+    expect(parseBlocks("> [!TIP]\n> use *care* and `focus`")).toEqual([
+      {
+        type: "alert",
+        kind: "TIP",
+        children: [
+          {
+            type: "paragraph",
+            children: [{ type: "text", value: "use *care* and `focus`" }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses nested block elements inside alerts (test 102)", () => {
+    expect(parseBlocks("> [!WARNING]\n> - first\n> - second")).toEqual([
+      {
+        type: "alert",
+        kind: "WARNING",
+        children: [
+          {
+            type: "list",
+            ordered: false,
+            children: [
+              {
+                type: "listItem",
+                children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+              },
+              {
+                type: "listItem",
+                children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
   it("lets blockquotes interrupt a paragraph without a blank line", () => {
     expect(parseBlocks("before\n> after")).toEqual([
       { type: "paragraph", children: [{ type: "text", value: "before" }] },
@@ -547,6 +650,15 @@ describe("parseBlocks", () => {
             ]
           }
         ]
+      }
+    ]);
+  });
+
+  it("treats unknown alert kinds as regular blockquotes (test 137)", () => {
+    expect(parseBlocks("> [!UNKNOWN]\n> alpha")).toEqual([
+      {
+        type: "blockquote",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "[!UNKNOWN]\nalpha" }] }]
       }
     ]);
   });

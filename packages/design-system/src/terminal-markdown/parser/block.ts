@@ -42,6 +42,13 @@ type ParsedTaskMarker = {
   content: string;
 };
 
+type AlertKind = Extract<MdNode, { type: "alert" }>["kind"];
+
+type ParsedAlertMarker = {
+  kind: AlertKind;
+  content: string;
+};
+
 export function parseBlocks(input: string): MdNode[] {
   return parseBlocksWithOptions(input, { preferListToThematicBreak: false });
 }
@@ -89,6 +96,7 @@ function createBlockRules(preferListToThematicBreak: boolean): BlockRule[] {
     return [
       parseFencedCodeBlock,
       parseAtxHeading,
+      parseAlert,
       parseBlockquote,
       parseList,
       parseThematicBreak,
@@ -100,6 +108,7 @@ function createBlockRules(preferListToThematicBreak: boolean): BlockRule[] {
     parseFencedCodeBlock,
     parseAtxHeading,
     parseThematicBreak,
+    parseAlert,
     parseBlockquote,
     parseList,
     parseSetextHeading
@@ -212,6 +221,46 @@ function parseBlockquote(state: ParserState): MdNode | null {
 
   return {
     type: "blockquote",
+    children: parseBlocksWithOptions(contentLines.join("\n"), {
+      preferListToThematicBreak: state.preferListToThematicBreak
+    })
+  };
+}
+
+function parseAlert(state: ParserState): MdNode | null {
+  const firstLine = readLine(state.input, state.position);
+  const firstLineContent = stripBlockquoteMarker(firstLine.text);
+
+  if (firstLineContent === null) {
+    return null;
+  }
+
+  const alertMarker = parseAlertMarker(firstLineContent);
+
+  if (alertMarker === null) {
+    return null;
+  }
+
+  state.position = firstLine.nextPosition;
+
+  const contentLines =
+    alertMarker.content.length === 0 ? [] : [alertMarker.content];
+
+  while (state.position < state.input.length) {
+    const line = readLine(state.input, state.position);
+    const content = stripBlockquoteMarker(line.text);
+
+    if (content === null) {
+      break;
+    }
+
+    contentLines.push(content);
+    state.position = line.nextPosition;
+  }
+
+  return {
+    type: "alert",
+    kind: alertMarker.kind,
     children: parseBlocksWithOptions(contentLines.join("\n"), {
       preferListToThematicBreak: state.preferListToThematicBreak
     })
@@ -528,6 +577,25 @@ function stripBlockquoteMarker(line: string): string | null {
   return line.slice(contentStart);
 }
 
+function parseAlertMarker(content: string): ParsedAlertMarker | null {
+  const endOfKind = content.indexOf("]");
+
+  if (content.length === 0 || !content.startsWith("[!") || endOfKind === -1) {
+    return null;
+  }
+
+  const kind = content.slice(2, endOfKind);
+
+  if (!isAlertKind(kind)) {
+    return null;
+  }
+
+  return {
+    kind,
+    content: trimAsciiWhitespaceStart(content.slice(endOfKind + 1))
+  };
+}
+
 function parseListMarker(line: string): ParsedListMarker | null {
   const markerStart = skipLeadingBlockIndent(line);
 
@@ -705,6 +773,16 @@ function findWhitespaceIndex(value: string): number {
 
 function isDigit(value: string): boolean {
   return value >= "0" && value <= "9";
+}
+
+function isAlertKind(value: string): value is AlertKind {
+  return (
+    value === "NOTE" ||
+    value === "TIP" ||
+    value === "IMPORTANT" ||
+    value === "WARNING" ||
+    value === "CAUTION"
+  );
 }
 
 function stripBom(input: string): string {

@@ -884,9 +884,9 @@ tasks:
       and assert the result is a non-empty string without thrown errors. For the performance
       test, use a timing assertion.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: integration-tests-edge-cases

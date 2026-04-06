@@ -200,7 +200,39 @@ class SpawnTest(unittest.TestCase):
         self.assertEqual(events, [AgentMessageEvent(event="agent_message", text="done")])
         self.assertFalse(handle._cancel_watcher.is_alive())
 
-    def test_spawn_serializes_mcp_config_and_aliases_mcp_servers(self) -> None:
+    def test_spawn_serializes_mcp_servers(self) -> None:
+        fake_process = FakeProcess("")
+        popen_calls = []
+
+        def fake_popen(*args, **kwargs):
+            popen_calls.append((args, kwargs))
+            return fake_process
+
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", side_effect=fake_popen
+        ):
+            handle = spawn(
+                "codex",
+                "Run with MCP",
+                mcp_servers={"local": {"command": "server", "args": ["--stdio"]}},
+            )
+            list(handle.events)
+
+        args, _ = popen_calls[0]
+        self.assertEqual(
+            args[0],
+            [
+                "poe-code",
+                "--yes",
+                "spawn",
+                "--mcp-servers",
+                '{"local":{"command":"server","args":["--stdio"]}}',
+                "codex",
+                "Run with MCP",
+            ],
+        )
+
+    def test_spawn_accepts_deprecated_mcp_config_alias(self) -> None:
         fake_process = FakeProcess("")
         popen_calls = []
 
@@ -215,12 +247,12 @@ class SpawnTest(unittest.TestCase):
             handle = spawn(
                 "codex",
                 "Run with MCP",
-                mcp_servers={"local": {"command": "server", "args": ["--stdio"]}},
+                mcp_config={"local": {"command": "server", "args": ["--stdio"]}},
             )
             list(handle.events)
 
         self.assertEqual(len(caught_warnings), 1)
-        self.assertIn("mcp_servers is deprecated", str(caught_warnings[0].message))
+        self.assertIn("mcp_config is deprecated", str(caught_warnings[0].message))
         args, _ = popen_calls[0]
         self.assertEqual(
             args[0],
@@ -228,20 +260,20 @@ class SpawnTest(unittest.TestCase):
                 "poe-code",
                 "--yes",
                 "spawn",
-                "--mcp-config",
+                "--mcp-servers",
                 '{"local":{"command":"server","args":["--stdio"]}}',
                 "codex",
                 "Run with MCP",
             ],
         )
 
-    def test_spawn_rejects_conflicting_mcp_config_options(self) -> None:
+    def test_spawn_rejects_conflicting_mcp_options(self) -> None:
         with self.assertRaises(ValueError):
             spawn(
                 "codex",
                 "Conflicting MCP config",
-                mcp_config={"one": {"command": "server-a"}},
-                mcp_servers={"two": {"command": "server-b"}},
+                mcp_servers={"one": {"command": "server-a"}},
+                mcp_config={"two": {"command": "server-b"}},
             )
 
 

@@ -100,7 +100,7 @@ export interface CliSpawnConfig {
   mcpEnv?: (servers: McpSpawnConfig) => Record<string, string>;
   /**
    * When true, MCP args are placed before the subcommand (e.g. `codex -c ... exec "prompt"`).
-   * When false/undefined, they are placed after defaultArgs (e.g. `claude -p "prompt" --mcp-config ...`).
+   * When false/undefined, they are placed after defaultArgs (e.g. `claude -p "prompt" --mcp-servers ...`).
    */
   mcpArgsBeforeCommand?: boolean;
   interactive?: InteractiveSpawnConfig;

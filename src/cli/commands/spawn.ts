@@ -65,7 +65,8 @@ export function registerSpawnCommand(
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
-    .option("--mcp-config <json>", "MCP server config JSON: {name: {command, args?, env?}}")
+    .option("--mcp-servers <json>", "MCP server config JSON: {name: {command, args?, env?}}")
+    .option("--mcp-config <json>", "[deprecated: use --mcp-servers]")
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
     .option(
       "--activity-timeout-ms <ms>",
@@ -88,12 +89,13 @@ export function registerSpawnCommand(
         stdin?: boolean;
         interactive?: boolean;
         mode?: string;
+        mcpServers?: string;
         mcpConfig?: string;
         logDir?: string;
         activityTimeoutMs?: number;
       }>();
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
-      const mcpServers = parseMcpSpawnConfig(commandOptions.mcpConfig);
+      const mcpServers = parseMcpSpawnConfig(commandOptions.mcpServers ?? commandOptions.mcpConfig);
 
       const wantsStdinFlag = commandOptions.stdin === true;
       const shouldReadFromStdin =
@@ -263,7 +265,7 @@ export function registerSpawnCommand(
             model: spawnOptions.model,
             mode: spawnOptions.mode,
             cwd: spawnOptions.cwd,
-            ...(spawnOptions.mcpServers ? { mcpConfig: spawnOptions.mcpServers } : {}),
+            ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
             ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
             ...(spawnOptions.activityTimeoutMs !== undefined
               ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
@@ -372,13 +374,13 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     parsed = JSON.parse(input);
   } catch {
     throw new ValidationError(
-      "--mcp-config must be valid JSON in this shape: {name: {command, args?, env?}}"
+      "--mcp-servers must be valid JSON in this shape: {name: {command, args?, env?}}"
     );
   }
 
   if (!isObjectRecord(parsed)) {
     throw new ValidationError(
-      "--mcp-config must be an object in this shape: {name: {command, args?, env?}}"
+      "--mcp-servers must be an object in this shape: {name: {command, args?, env?}}"
     );
   }
 
@@ -386,28 +388,28 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
   for (const [name, value] of Object.entries(parsed)) {
     if (!isObjectRecord(value)) {
       throw new ValidationError(
-        `--mcp-config entry "${name}" must be an object: {command, args?, env?}`
+        `--mcp-servers entry "${name}" must be an object: {command, args?, env?}`
       );
     }
 
     const command = value.command;
     if (typeof command !== "string" || command.trim().length === 0) {
       throw new ValidationError(
-        `--mcp-config entry "${name}" must include a non-empty string "command"`
+        `--mcp-servers entry "${name}" must include a non-empty string "command"`
       );
     }
 
     let args: string[] | undefined;
     if ("args" in value && value.args !== undefined) {
       if (!Array.isArray(value.args)) {
-        throw new ValidationError(`--mcp-config entry "${name}".args must be an array of strings`);
+        throw new ValidationError(`--mcp-servers entry "${name}".args must be an array of strings`);
       }
 
       args = [];
       for (const arg of value.args) {
         if (typeof arg !== "string") {
           throw new ValidationError(
-            `--mcp-config entry "${name}".args must be an array of strings`
+            `--mcp-servers entry "${name}".args must be an array of strings`
           );
         }
         args.push(arg);
@@ -418,14 +420,14 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     if ("env" in value && value.env !== undefined) {
       if (!isObjectRecord(value.env)) {
         throw new ValidationError(
-          `--mcp-config entry "${name}".env must be an object of string values`
+          `--mcp-servers entry "${name}".env must be an object of string values`
         );
       }
       env = {};
       for (const [envKey, envValue] of Object.entries(value.env)) {
         if (typeof envValue !== "string") {
           throw new ValidationError(
-            `--mcp-config entry "${name}".env must be an object of string values`
+            `--mcp-servers entry "${name}".env must be an object of string values`
           );
         }
         env[envKey] = envValue;

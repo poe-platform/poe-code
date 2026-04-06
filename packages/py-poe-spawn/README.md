@@ -55,8 +55,8 @@ Keyword options:
 - `model: str | None` - Passed to `--model`
 - `mode: SpawnMode | str | None` - Passed to `--mode`
 - `args: Sequence[str] | None` - Extra agent CLI args appended after the prompt
-- `mcp_config: Mapping[str, Any] | None` - Serialized to `--mcp-config`
-- `mcp_servers: Mapping[str, Any] | None` - Deprecated alias for `mcp_config`
+- `mcp_servers: Mapping[str, Any] | None` - Serialized to `--mcp-servers`
+- `mcp_config: Mapping[str, Any] | None` - Deprecated alias for `mcp_servers`
 - `log_dir: str | None` - Passed to `--log-dir`
 - `activity_timeout_ms: int | None` - Passed to `--activity-timeout-ms`
 - `cancel_event` - Optional event-like object with `wait()` or `is_set()`; when triggered, sends `SIGINT` to the child

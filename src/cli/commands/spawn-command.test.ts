@@ -578,7 +578,7 @@ describe("spawn command", () => {
     });
   });
 
-  it("passes --mcp-config to SDK spawn for MCP-capable agents", async () => {
+  it("passes --mcp-servers to SDK spawn for MCP-capable agents", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -587,7 +587,7 @@ describe("spawn command", () => {
       commandRunner: runner,
       logger: () => {}
     });
-    const mcpConfig = JSON.stringify({
+    const mcpServersJson = JSON.stringify({
       test: {
         command: "tiny-stdio-mcp-test-server",
         args: ["serve", "word-of-the-day"],
@@ -599,8 +599,8 @@ describe("spawn command", () => {
       "node",
       "cli",
       "spawn",
-      "--mcp-config",
-      mcpConfig,
+      "--mcp-servers",
+      mcpServersJson,
       "codex",
       "Use word_of_the_day"
     ]);
@@ -610,7 +610,7 @@ describe("spawn command", () => {
       args: [],
       model: DEFAULT_CODEX_MODEL,
       cwd: undefined,
-      mcpConfig: {
+      mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
           args: ["serve", "word-of-the-day"],
@@ -652,7 +652,7 @@ describe("spawn command", () => {
     });
   });
 
-  it("rejects invalid --mcp-config JSON", async () => {
+  it("rejects invalid --mcp-servers JSON", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -667,17 +667,17 @@ describe("spawn command", () => {
         "node",
         "cli",
         "spawn",
-        "--mcp-config",
+        "--mcp-servers",
         "{nope",
         "codex",
         "hello"
       ])
-    ).rejects.toThrow("--mcp-config");
+    ).rejects.toThrow("--mcp-servers");
 
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
-  it("rejects --mcp-config for agents without spawn-time MCP support", async () => {
+  it("rejects --mcp-servers for agents without spawn-time MCP support", async () => {
     vi.mocked(supportsMcpAtSpawn).mockReturnValueOnce(false);
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
@@ -693,7 +693,7 @@ describe("spawn command", () => {
         "node",
         "cli",
         "spawn",
-        "--mcp-config",
+        "--mcp-servers",
         JSON.stringify({
           test: {
             command: "tiny-stdio-mcp-test-server",

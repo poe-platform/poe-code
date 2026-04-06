@@ -82,12 +82,12 @@ describe("poe-agent CLI", () => {
     );
   });
 
-  it("passes --mcp-config option", async () => {
-    const mcpConfig = JSON.stringify({
+  it("passes --mcp-servers option", async () => {
+    const mcpServersJson = JSON.stringify({
       "test-server": { command: "test-mcp", args: ["serve"] },
     });
 
-    await runProgram(["--mcp-config", mcpConfig, "Test prompt"]);
+    await runProgram(["--mcp-servers", mcpServersJson, "Test prompt"]);
 
     expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -98,17 +98,17 @@ describe("poe-agent CLI", () => {
     );
   });
 
-  it("throws on invalid --mcp-config JSON", async () => {
+  it("throws on invalid --mcp-servers JSON", async () => {
     await expect(
-      runProgram(["--mcp-config", "not-json", "Test"])
-    ).rejects.toThrow("--mcp-config must be valid JSON");
+      runProgram(["--mcp-servers", "not-json", "Test"])
+    ).rejects.toThrow("--mcp-servers must be valid JSON");
   });
 
-  it("throws on --mcp-config with missing command", async () => {
-    const mcpConfig = JSON.stringify({ server: {} });
+  it("throws on --mcp-servers with missing command", async () => {
+    const mcpServersJson = JSON.stringify({ server: {} });
 
     await expect(
-      runProgram(["--mcp-config", mcpConfig, "Test"])
+      runProgram(["--mcp-servers", mcpServersJson, "Test"])
     ).rejects.toThrow('must include a non-empty string "command"');
   });
 

@@ -15,13 +15,13 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     parsed = JSON.parse(input);
   } catch {
     throw new ValidationError(
-      "--mcp-config must be valid JSON in this shape: {name: {command, args?, env?}}"
+      "--mcp-servers must be valid JSON in this shape: {name: {command, args?, env?}}"
     );
   }
 
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new ValidationError(
-      "--mcp-config must be an object in this shape: {name: {command, args?, env?}}"
+      "--mcp-servers must be an object in this shape: {name: {command, args?, env?}}"
     );
   }
 
@@ -29,7 +29,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
   for (const [name, value] of Object.entries(parsed as Record<string, unknown>)) {
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
       throw new ValidationError(
-        `--mcp-config entry "${name}" must be an object: {command, args?, env?}`
+        `--mcp-servers entry "${name}" must be an object: {command, args?, env?}`
       );
     }
 
@@ -37,7 +37,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     const command = entry.command;
     if (typeof command !== "string" || command.trim().length === 0) {
       throw new ValidationError(
-        `--mcp-config entry "${name}" must include a non-empty string "command"`
+        `--mcp-servers entry "${name}" must include a non-empty string "command"`
       );
     }
 
@@ -45,7 +45,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     if ("args" in entry && entry.args !== undefined) {
       if (!Array.isArray(entry.args) || entry.args.some((a: unknown) => typeof a !== "string")) {
         throw new ValidationError(
-          `--mcp-config entry "${name}".args must be an array of strings`
+          `--mcp-servers entry "${name}".args must be an array of strings`
         );
       }
       args = entry.args as string[];
@@ -55,14 +55,14 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     if ("env" in entry && entry.env !== undefined) {
       if (typeof entry.env !== "object" || entry.env === null || Array.isArray(entry.env)) {
         throw new ValidationError(
-          `--mcp-config entry "${name}".env must be an object of string values`
+          `--mcp-servers entry "${name}".env must be an object of string values`
         );
       }
       env = {};
       for (const [envKey, envValue] of Object.entries(entry.env as Record<string, unknown>)) {
         if (typeof envValue !== "string") {
           throw new ValidationError(
-            `--mcp-config entry "${name}".env must be an object of string values`
+            `--mcp-servers entry "${name}".env must be an object of string values`
           );
         }
         env[envKey] = envValue;
@@ -103,9 +103,10 @@ export function createPoeAgentProgram(): Command {
     .option("-C, --cwd <path>", "Working directory for the agent")
     .option("--stdin", "Read the prompt from stdin")
     .option(
-      "--mcp-config <json>",
+      "--mcp-servers <json>",
       "MCP server config JSON: {name: {command, args?, env?}}"
     )
+    .option("--mcp-config <json>", "[deprecated: use --mcp-servers]")
     .argument("[prompt]", "Prompt text to send (or '-' / stdin)")
     .argument("[args...]", "Additional arguments forwarded to the agent")
     .action(async function (
@@ -117,10 +118,11 @@ export function createPoeAgentProgram(): Command {
         model?: string;
         cwd?: string;
         stdin?: boolean;
+        mcpServers?: string;
         mcpConfig?: string;
       }>();
 
-      const mcpServers = parseMcpSpawnConfig(commandOptions.mcpConfig);
+      const mcpServers = parseMcpSpawnConfig(commandOptions.mcpServers ?? commandOptions.mcpConfig);
       const cwdOverride = resolveWorkingDirectory(
         process.cwd(),
         commandOptions.cwd

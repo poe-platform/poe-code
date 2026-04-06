@@ -220,7 +220,7 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
-  it("adds claude-code MCP config as --mcp-config JSON before mode args", () => {
+  it("adds claude-code MCP config as --mcp-servers JSON before mode args", () => {
     const result = buildSpawnArgs("claude-code", {
       prompt: "hello",
       mcpServers: {
@@ -232,7 +232,7 @@ describe("buildSpawnArgs", () => {
       }
     });
 
-    const mcpIndex = result.args.indexOf("--mcp-config");
+    const mcpIndex = result.args.indexOf("--mcp-servers");
     expect(mcpIndex).toBeGreaterThan(-1);
     expect(JSON.parse(result.args[mcpIndex + 1] ?? "{}")).toEqual({
       mcpServers: {
@@ -274,7 +274,7 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
-  it("adds kimi MCP config as --mcp-config JSON before mode args", () => {
+  it("adds kimi MCP config as --mcp-servers JSON before mode args", () => {
     const result = buildSpawnArgs("kimi", {
       prompt: "hello",
       mcpServers: {
@@ -285,7 +285,7 @@ describe("buildSpawnArgs", () => {
       }
     });
 
-    const mcpIndex = result.args.indexOf("--mcp-config");
+    const mcpIndex = result.args.indexOf("--mcp-servers");
     expect(mcpIndex).toBeGreaterThan(-1);
     expect(JSON.parse(result.args[mcpIndex + 1] ?? "{}")).toEqual({
       mcpServers: {

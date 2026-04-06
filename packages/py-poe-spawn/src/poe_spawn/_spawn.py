@@ -109,8 +109,8 @@ class _SpawnInvoker:
         model: Optional[str] = None,
         mode: SpawnMode | str | None = None,
         args: Optional[Sequence[str]] = None,
-        mcp_config: Optional[Mapping[str, Any]] = None,
         mcp_servers: Optional[Mapping[str, Any]] = None,
+        mcp_config: Optional[Mapping[str, Any]] = None,
         log_dir: Optional[str] = None,
         activity_timeout_ms: Optional[int] = None,
         cancel_event: Any = None,
@@ -122,8 +122,8 @@ class _SpawnInvoker:
             model=model,
             mode=mode,
             args=args,
-            mcp_config=mcp_config,
             mcp_servers=mcp_servers,
+            mcp_config=mcp_config,
             log_dir=log_dir,
             activity_timeout_ms=activity_timeout_ms,
         )
@@ -146,8 +146,8 @@ class _SpawnInvoker:
         model: Optional[str] = None,
         mode: SpawnMode | str | None = None,
         args: Optional[Sequence[str]] = None,
-        mcp_config: Optional[Mapping[str, Any]] = None,
         mcp_servers: Optional[Mapping[str, Any]] = None,
+        mcp_config: Optional[Mapping[str, Any]] = None,
         log_dir: Optional[str] = None,
         activity_timeout_ms: Optional[int] = None,
         cancel_event: Any = None,
@@ -159,8 +159,8 @@ class _SpawnInvoker:
             model=model,
             mode=mode,
             args=args,
-            mcp_config=mcp_config,
             mcp_servers=mcp_servers,
+            mcp_config=mcp_config,
             log_dir=log_dir,
             activity_timeout_ms=activity_timeout_ms,
         )
@@ -199,8 +199,8 @@ def _build_spawn_command(
     model: Optional[str],
     mode: SpawnMode | str | None,
     args: Optional[Sequence[str]],
-    mcp_config: Optional[Mapping[str, Any]],
     mcp_servers: Optional[Mapping[str, Any]],
+    mcp_config: Optional[Mapping[str, Any]],
     log_dir: Optional[str],
     activity_timeout_ms: Optional[int],
 ) -> list[str]:
@@ -215,9 +215,9 @@ def _build_spawn_command(
     if mode is not None:
         command.extend(["--mode", _enum_value(mode)])
 
-    resolved_mcp_config = _resolve_mcp_config(mcp_config, mcp_servers)
-    if resolved_mcp_config is not None:
-        command.extend(["--mcp-config", json.dumps(resolved_mcp_config, separators=(",", ":"))])
+    resolved_mcp_servers = _resolve_mcp_servers(mcp_servers, mcp_config)
+    if resolved_mcp_servers is not None:
+        command.extend(["--mcp-servers", json.dumps(resolved_mcp_servers, separators=(",", ":"))])
 
     if log_dir is not None:
         command.extend(["--log-dir", log_dir])
@@ -236,22 +236,22 @@ def _build_spawn_command(
     return command
 
 
-def _resolve_mcp_config(
-    mcp_config: Optional[Mapping[str, Any]],
+def _resolve_mcp_servers(
     mcp_servers: Optional[Mapping[str, Any]],
+    mcp_config: Optional[Mapping[str, Any]],
 ) -> Optional[Mapping[str, Any]]:
-    if mcp_config is not None and mcp_servers is not None:
-        raise ValueError("Pass either mcp_config or mcp_servers, not both.")
+    if mcp_servers is not None and mcp_config is not None:
+        raise ValueError("Pass either mcp_servers or mcp_config, not both.")
 
-    if mcp_servers is not None:
+    if mcp_config is not None:
         warnings.warn(
-            "mcp_servers is deprecated; use mcp_config instead.",
+            "mcp_config is deprecated; use mcp_servers instead.",
             DeprecationWarning,
             stacklevel=3,
         )
-        return mcp_servers
+        return mcp_config
 
-    return mcp_config
+    return mcp_servers
 
 
 def _resolve_cli_command() -> list[str]:

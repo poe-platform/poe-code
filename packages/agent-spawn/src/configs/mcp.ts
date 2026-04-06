@@ -41,7 +41,7 @@ function toTomlInlineTable(values: Record<string, string>): string {
 }
 
 export function serializeJsonMcpArgs(servers: McpSpawnConfig): string[] {
-  return ["--mcp-config", JSON.stringify({ mcpServers: toJsonMcpServers(servers) })];
+  return ["--mcp-servers", JSON.stringify({ mcpServers: toJsonMcpServers(servers) })];
 }
 
 export function serializeOpenCodeMcpEnv(servers: McpSpawnConfig): Record<string, string> {

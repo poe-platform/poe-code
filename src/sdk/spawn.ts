@@ -61,7 +61,7 @@ export function spawn(
     typeof promptOrOptions === "string"
       ? { ...maybeOptions, prompt: promptOrOptions }
       : promptOrOptions;
-  const mcpConfig = options.mcpConfig ?? options.mcpServers;
+  const resolvedMcpServers = options.mcpServers ?? options.mcpConfig;
 
   const emptyEvents: AsyncIterable<AcpEvent> = (async function* () {})();
 
@@ -138,7 +138,7 @@ export function spawn(
           mode: options.mode,
           signal: options.signal,
           args: options.args,
-          ...(mcpConfig ? { mcpServers: mcpConfig } : {})
+          ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {})
         });
         return {
           stdout: interactiveResult.stdout,
@@ -214,7 +214,7 @@ export function spawn(
           mode: options.mode,
           args: options.args,
           signal: options.signal,
-          ...(mcpConfig ? { mcpServers: mcpConfig } : {}),
+          ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
           ...(options.activityTimeoutMs !== undefined
             ? { activityTimeoutMs: options.activityTimeoutMs }
             : {}),
@@ -269,7 +269,7 @@ export function spawn(
           mode: options.mode,
           args: options.args,
           signal: options.signal,
-          ...(mcpConfig ? { mcpServers: mcpConfig } : {}),
+          ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
           ...(options.activityTimeoutMs !== undefined
             ? { activityTimeoutMs: options.activityTimeoutMs }
             : {}),
@@ -286,7 +286,7 @@ export function spawn(
         model,
         mode: options.mode,
         args: options.args,
-        ...(mcpConfig ? { mcpServers: mcpConfig } : {}),
+        ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
         useStdin: false
       });
     } catch (error) {

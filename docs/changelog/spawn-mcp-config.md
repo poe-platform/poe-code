@@ -1,21 +1,21 @@
 # Spawn-time MCP Server Injection
 
-Pass MCP servers directly at spawn time via `--mcp-config`, removing the need to pre-configure agent config files.
+Pass MCP servers directly at spawn time via `--mcp-servers`, removing the need to pre-configure agent config files.
 
 ## Supported Agents
 
 | Agent | Serialization |
 |-------|---------------|
-| Claude Code | `--mcp-config` JSON |
+| Claude Code | `--mcp-servers` JSON |
 | Codex | `-c` TOML overrides |
-| Kimi | `--mcp-config` JSON |
+| Kimi | `--mcp-servers` JSON |
 
 Unsupported agents receive a clear error listing which agents do support it.
 
 ## CLI
 
 ```bash
-poe-code spawn --mcp-config '{
+poe-code spawn --mcp-servers '{
   "my-server": {
     "command": "my-mcp-server",
     "args": ["--port", "3000"],

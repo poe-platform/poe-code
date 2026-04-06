@@ -210,7 +210,7 @@ describe("SDK spawn()", () => {
     });
   });
 
-  it("accepts mcpConfig as the SDK option name", async () => {
+  it("accepts deprecated mcpConfig as the SDK option name", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
       agentId: "codex",
@@ -249,7 +249,7 @@ describe("SDK spawn()", () => {
     );
   });
 
-  it("prefers mcpConfig over the deprecated mcpServers alias", async () => {
+  it("prefers mcpServers over the deprecated mcpConfig alias", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
       agentId: "codex",
@@ -266,12 +266,12 @@ describe("SDK spawn()", () => {
     }));
 
     const { result } = spawn("codex", "test prompt", {
-      mcpConfig: {
+      mcpServers: {
         preferred: {
           command: "preferred-server"
         }
       },
-      mcpServers: {
+      mcpConfig: {
         deprecated: {
           command: "deprecated-server"
         }

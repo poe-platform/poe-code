@@ -408,6 +408,399 @@ describe("parseBlocks", () => {
     ]);
   });
 
+  it("parses unordered lists with asterisk markers (spec test 25)", () => {
+    expect(parseBlocks("* first\n* second")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+          },
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses unordered lists with plus markers (spec test 26)", () => {
+    expect(parseBlocks("+ first\n+ second")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+          },
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses ordered lists starting at 1 (spec test 27)", () => {
+    expect(parseBlocks("1. first\n2. second")).toEqual([
+      {
+        type: "list",
+        ordered: true,
+        start: 1,
+        children: [
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+          },
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses ordered lists starting at an arbitrary number (spec test 28)", () => {
+    expect(parseBlocks("7. first\n8. second")).toEqual([
+      {
+        type: "list",
+        ordered: true,
+        start: 7,
+        children: [
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+          },
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses nested unordered lists inside unordered lists (spec test 29)", () => {
+    expect(parseBlocks("- parent\n  - child")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              { type: "paragraph", children: [{ type: "text", value: "parent" }] },
+              {
+                type: "list",
+                ordered: false,
+                children: [
+                  {
+                    type: "listItem",
+                    children: [
+                      { type: "paragraph", children: [{ type: "text", value: "child" }] }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses ordered lists nested inside unordered lists (spec test 30)", () => {
+    expect(parseBlocks("- parent\n  1. child\n  2. second")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              { type: "paragraph", children: [{ type: "text", value: "parent" }] },
+              {
+                type: "list",
+                ordered: true,
+                start: 1,
+                children: [
+                  {
+                    type: "listItem",
+                    children: [
+                      { type: "paragraph", children: [{ type: "text", value: "child" }] }
+                    ]
+                  },
+                  {
+                    type: "listItem",
+                    children: [
+                      { type: "paragraph", children: [{ type: "text", value: "second" }] }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses checked task list items (spec test 74)", () => {
+    expect(parseBlocks("- [x] done")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            checked: true,
+            children: [{ type: "paragraph", children: [{ type: "text", value: "done" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses unchecked task list items (spec test 75)", () => {
+    expect(parseBlocks("- [ ] todo")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            checked: false,
+            children: [{ type: "paragraph", children: [{ type: "text", value: "todo" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses mixed task lists (spec test 76)", () => {
+    expect(parseBlocks("- [x] done\n- [ ] todo\n- plain")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            checked: true,
+            children: [{ type: "paragraph", children: [{ type: "text", value: "done" }] }]
+          },
+          {
+            type: "listItem",
+            checked: false,
+            children: [{ type: "paragraph", children: [{ type: "text", value: "todo" }] }]
+          },
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "plain" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("leaves inline formatting inside task list items as raw text for now (spec test 77)", () => {
+    expect(parseBlocks("- [x] *done*")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            checked: true,
+            children: [{ type: "paragraph", children: [{ type: "text", value: "*done*" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses nested task lists (spec test 78)", () => {
+    expect(parseBlocks("- parent\n  - [x] child")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              { type: "paragraph", children: [{ type: "text", value: "parent" }] },
+              {
+                type: "list",
+                ordered: false,
+                children: [
+                  {
+                    type: "listItem",
+                    checked: true,
+                    children: [
+                      { type: "paragraph", children: [{ type: "text", value: "child" }] }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses list items with multiple paragraphs separated by a blank line (spec test 85)", () => {
+    expect(parseBlocks("- first paragraph\n\n  second paragraph")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              { type: "paragraph", children: [{ type: "text", value: "first paragraph" }] },
+              { type: "paragraph", children: [{ type: "text", value: "second paragraph" }] }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses list item continuation from indented text (spec test 86)", () => {
+    expect(parseBlocks("- first line\n  second line")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              {
+                type: "paragraph",
+                children: [{ type: "text", value: "first line\nsecond line" }]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("preserves non-sequential numbers inside ordered lists (spec test 134)", () => {
+    expect(parseBlocks("3. first\n1. second\n8. third")).toEqual([
+      {
+        type: "list",
+        ordered: true,
+        start: 3,
+        children: [
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+          },
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+          },
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "third" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("lets lists interrupt a paragraph without a blank line (spec test 143)", () => {
+    expect(parseBlocks("alpha\n- beta")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "alpha" }] },
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [{ type: "paragraph", children: [{ type: "text", value: "beta" }] }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("normalizes tabs to four spaces while parsing list indentation (spec test 145)", () => {
+    expect(parseBlocks("- parent\n \t- child")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              { type: "paragraph", children: [{ type: "text", value: "parent" }] },
+              {
+                type: "list",
+                ordered: false,
+                children: [
+                  {
+                    type: "listItem",
+                    children: [
+                      { type: "paragraph", children: [{ type: "text", value: "child" }] }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("parses empty list items (spec test 133)", () => {
+    expect(parseBlocks("- \n- \n")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          { type: "listItem", children: [] },
+          { type: "listItem", children: [] }
+        ]
+      }
+    ]);
+  });
+
+  it("parses sub-items that would otherwise look like thematic breaks (spec test 153)", () => {
+    expect(parseBlocks("- parent\n  - - -")).toEqual([
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              { type: "paragraph", children: [{ type: "text", value: "parent" }] },
+              {
+                type: "list",
+                ordered: false,
+                children: [
+                  {
+                    type: "listItem",
+                    children: [{ type: "paragraph", children: [{ type: "text", value: "- -" }] }]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
   it("parses setext level-1 headings", () => {
     expect(parseBlocks("Heading\n===")).toEqual([
       { type: "heading", depth: 1, children: [{ type: "text", value: "Heading" }] }

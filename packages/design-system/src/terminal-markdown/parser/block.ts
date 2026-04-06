@@ -3,6 +3,7 @@ import type { MdNode } from "../ast.js";
 type ParserState = {
   input: string;
   position: number;
+  preferListToThematicBreak: boolean;
 };
 
 type Line = {
@@ -27,23 +28,32 @@ type ParsedHeading = {
 type ParsedListMarker = {
   ordered: boolean;
   start?: number;
+  indent: number;
+  contentIndent: number;
   contentStart: number;
 };
 
+type ParseOptions = {
+  preferListToThematicBreak: boolean;
+};
+
+type ParsedTaskMarker = {
+  checked: boolean;
+  content: string;
+};
+
 export function parseBlocks(input: string): MdNode[] {
+  return parseBlocksWithOptions(input, { preferListToThematicBreak: false });
+}
+
+function parseBlocksWithOptions(input: string, options: ParseOptions): MdNode[] {
   const state: ParserState = {
     input: stripBom(input),
-    position: 0
+    position: 0,
+    preferListToThematicBreak: options.preferListToThematicBreak
   };
   const blocks: MdNode[] = [];
-  const rules: BlockRule[] = [
-    parseFencedCodeBlock,
-    parseAtxHeading,
-    parseThematicBreak,
-    parseBlockquote,
-    parseList,
-    parseSetextHeading
-  ];
+  const rules = createBlockRules(state.preferListToThematicBreak);
 
   while (state.position < state.input.length) {
     const line = readLine(state.input, state.position);
@@ -72,6 +82,28 @@ export function parseBlocks(input: string): MdNode[] {
   }
 
   return blocks;
+}
+
+function createBlockRules(preferListToThematicBreak: boolean): BlockRule[] {
+  if (preferListToThematicBreak) {
+    return [
+      parseFencedCodeBlock,
+      parseAtxHeading,
+      parseBlockquote,
+      parseList,
+      parseThematicBreak,
+      parseSetextHeading
+    ];
+  }
+
+  return [
+    parseFencedCodeBlock,
+    parseAtxHeading,
+    parseThematicBreak,
+    parseBlockquote,
+    parseList,
+    parseSetextHeading
+  ];
 }
 
 function parseFencedCodeBlock(state: ParserState): MdNode | null {
@@ -180,7 +212,9 @@ function parseBlockquote(state: ParserState): MdNode | null {
 
   return {
     type: "blockquote",
-    children: parseBlocks(contentLines.join("\n"))
+    children: parseBlocksWithOptions(contentLines.join("\n"), {
+      preferListToThematicBreak: state.preferListToThematicBreak
+    })
   };
 }
 
@@ -195,21 +229,20 @@ function parseList(state: ParserState): MdNode | null {
   const children: MdNode[] = [];
   const ordered = firstMarker.ordered;
   const start = firstMarker.start;
+  const indent = firstMarker.indent;
 
   while (state.position < state.input.length) {
-    const line = readLine(state.input, state.position);
-    const marker = parseListMarker(line.text);
+    const item = parseListItem(state, {
+      ordered,
+      indent,
+      preferListToThematicBreak: true
+    });
 
-    if (marker === null || marker.ordered !== ordered) {
+    if (item === null) {
       break;
     }
 
-    state.position = line.nextPosition;
-
-    children.push({
-      type: "listItem",
-      children: parseBlocks(line.text.slice(marker.contentStart))
-    });
+    children.push(item);
   }
 
   return {
@@ -230,7 +263,7 @@ function parseParagraph(state: ParserState): MdNode {
       break;
     }
 
-    if (lines.length > 0 && startsBlock(line.text)) {
+    if (lines.length > 0 && startsBlock(line.text, state.preferListToThematicBreak)) {
       break;
     }
 
@@ -257,14 +290,20 @@ function createTextChildren(value: string): MdNode[] {
   return value.length === 0 ? [] : [{ type: "text", value }];
 }
 
-function startsBlock(line: string): boolean {
-  return (
-    parseOpeningFence(line) !== null ||
-    parseAtxHeadingLine(line) !== null ||
-    isThematicBreakLine(line) ||
-    stripBlockquoteMarker(line) !== null ||
-    parseListMarker(line) !== null
-  );
+function startsBlock(line: string, preferListToThematicBreak: boolean): boolean {
+  if (parseOpeningFence(line) !== null || parseAtxHeadingLine(line) !== null) {
+    return true;
+  }
+
+  if (stripBlockquoteMarker(line) !== null) {
+    return true;
+  }
+
+  if (preferListToThematicBreak) {
+    return parseListMarker(line) !== null || isThematicBreakLine(line);
+  }
+
+  return isThematicBreakLine(line) || parseListMarker(line) !== null;
 }
 
 function parseOpeningFence(line: string): Fence | null {
@@ -510,18 +549,16 @@ function parseListMarker(line: string): ParsedListMarker | null {
 }
 
 function parseBulletListMarker(line: string, markerStart: number): ParsedListMarker | null {
-  let contentStart = markerStart + 1;
+  const contentStart = parseContentStart(line, markerStart + 1);
 
-  if (contentStart >= line.length || (line[contentStart] !== " " && line[contentStart] !== "\t")) {
+  if (contentStart === null) {
     return null;
-  }
-
-  while (contentStart < line.length && (line[contentStart] === " " || line[contentStart] === "\t")) {
-    contentStart += 1;
   }
 
   return {
     ordered: false,
+    indent: measureColumns(line.slice(0, markerStart)),
+    contentIndent: measureColumns(line.slice(0, contentStart)),
     contentStart
   };
 }
@@ -537,21 +574,37 @@ function parseOrderedListMarker(line: string, markerStart: number): ParsedListMa
     return null;
   }
 
-  let contentStart = markerEnd + 1;
+  const contentStart = parseContentStart(line, markerEnd + 1);
 
-  if (contentStart >= line.length || (line[contentStart] !== " " && line[contentStart] !== "\t")) {
+  if (contentStart === null) {
     return null;
-  }
-
-  while (contentStart < line.length && (line[contentStart] === " " || line[contentStart] === "\t")) {
-    contentStart += 1;
   }
 
   return {
     ordered: true,
     start: Number.parseInt(line.slice(markerStart, markerEnd), 10),
+    indent: measureColumns(line.slice(0, markerStart)),
+    contentIndent: measureColumns(line.slice(0, contentStart)),
     contentStart
   };
+}
+
+function parseContentStart(line: string, afterMarker: number): number | null {
+  if (afterMarker >= line.length) {
+    return afterMarker;
+  }
+
+  if (line[afterMarker] !== " " && line[afterMarker] !== "\t") {
+    return null;
+  }
+
+  let pos = afterMarker;
+
+  while (pos < line.length && (line[pos] === " " || line[pos] === "\t")) {
+    pos += 1;
+  }
+
+  return pos;
 }
 
 function readLine(input: string, position: number): Line {
@@ -593,17 +646,13 @@ function isBlankLine(line: string): boolean {
 }
 
 function skipLeadingBlockIndent(line: string): number {
-  let index = 0;
+  const leadingWhitespace = readLeadingWhitespace(line);
 
-  while (index < line.length && index < 3 && line[index] === " ") {
-    index += 1;
-  }
-
-  if (index < line.length && line[index] === " ") {
+  if (leadingWhitespace.columns > 3) {
     return -1;
   }
 
-  return index;
+  return leadingWhitespace.offset;
 }
 
 function trimAsciiWhitespace(value: string): string {
@@ -660,4 +709,195 @@ function isDigit(value: string): boolean {
 
 function stripBom(input: string): string {
   return input[0] === "\uFEFF" ? input.slice(1) : input;
+}
+
+function parseListItem(
+  state: ParserState,
+  list: { ordered: boolean; indent: number; preferListToThematicBreak: boolean }
+): MdNode | null {
+  const firstLine = readLine(state.input, state.position);
+  const marker = parseListMarker(firstLine.text);
+
+  if (marker === null || marker.ordered !== list.ordered || marker.indent !== list.indent) {
+    return null;
+  }
+
+  state.position = firstLine.nextPosition;
+
+  let firstLineContent = firstLine.text.slice(marker.contentStart);
+  let checked: boolean | undefined;
+  const taskMarker = parseTaskMarker(firstLineContent);
+
+  if (taskMarker !== null) {
+    checked = taskMarker.checked;
+    firstLineContent = taskMarker.content;
+  }
+
+  const continuationLines: string[] = [];
+  const pendingBlankLines: string[] = [];
+
+  while (state.position < state.input.length) {
+    const line = readLine(state.input, state.position);
+
+    if (isBlankLine(line.text)) {
+      pendingBlankLines.push("");
+      state.position = line.nextPosition;
+      continue;
+    }
+
+    const nextMarker = parseListMarker(line.text);
+
+    if (
+      nextMarker !== null &&
+      nextMarker.ordered === list.ordered &&
+      nextMarker.indent === list.indent
+    ) {
+      break;
+    }
+
+    const strippedLine = stripIndent(line.text, marker.contentIndent);
+
+    if (strippedLine === null) {
+      break;
+    }
+
+    state.position = line.nextPosition;
+    continuationLines.push(...pendingBlankLines, strippedLine);
+    pendingBlankLines.length = 0;
+  }
+
+  const children = parseListItemChildren(
+    firstLineContent,
+    continuationLines,
+    list.preferListToThematicBreak
+  );
+
+  return {
+    type: "listItem",
+    ...(checked === undefined ? {} : { checked }),
+    children
+  };
+}
+
+function parseListItemChildren(
+  firstLineContent: string,
+  continuationLines: string[],
+  preferListToThematicBreak: boolean
+): MdNode[] {
+  const blocks: MdNode[] = [];
+  let paragraphLines = firstLineContent.length === 0 ? [] : [firstLineContent];
+  let lineIndex = 0;
+
+  while (lineIndex < continuationLines.length) {
+    const line = continuationLines[lineIndex];
+
+    if (isBlankLine(line)) {
+      if (paragraphLines.length > 0) {
+        blocks.push(createParagraphNode(paragraphLines));
+        paragraphLines = [];
+      }
+
+      lineIndex += 1;
+      continue;
+    }
+
+    if (startsBlock(line, preferListToThematicBreak)) {
+      if (paragraphLines.length > 0) {
+        blocks.push(createParagraphNode(paragraphLines));
+      }
+
+      blocks.push(
+        ...parseBlocksWithOptions(continuationLines.slice(lineIndex).join("\n"), {
+          preferListToThematicBreak
+        })
+      );
+
+      return blocks;
+    }
+
+    paragraphLines.push(line);
+    lineIndex += 1;
+  }
+
+  if (paragraphLines.length > 0) {
+    blocks.push(createParagraphNode(paragraphLines));
+  }
+
+  return blocks;
+}
+
+function createParagraphNode(lines: string[]): MdNode {
+  return {
+    type: "paragraph",
+    children: [{ type: "text", value: lines.join("\n") }]
+  };
+}
+
+function parseTaskMarker(content: string): ParsedTaskMarker | null {
+  if (content.length < 3 || content[0] !== "[" || content[2] !== "]") {
+    return null;
+  }
+
+  const marker = content[1];
+
+  if (marker !== " " && marker !== "x" && marker !== "X") {
+    return null;
+  }
+
+  if (content.length > 3 && content[3] !== " " && content[3] !== "\t") {
+    return null;
+  }
+
+  return {
+    checked: marker === "x" || marker === "X",
+    content: trimAsciiWhitespaceStart(content.slice(3))
+  };
+}
+
+function stripIndent(line: string, columns: number): string | null {
+  const leadingWhitespace = readLeadingWhitespace(line);
+
+  if (leadingWhitespace.columns < columns) {
+    return null;
+  }
+
+  return leadingWhitespace.normalized.slice(columns) + line.slice(leadingWhitespace.offset);
+}
+
+function readLeadingWhitespace(line: string): { columns: number; offset: number; normalized: string } {
+  let columns = 0;
+  let offset = 0;
+  let normalized = "";
+
+  while (offset < line.length) {
+    const char = line[offset];
+
+    if (char === " ") {
+      columns += 1;
+      normalized += " ";
+      offset += 1;
+      continue;
+    }
+
+    if (char === "\t") {
+      columns += 4;
+      normalized += "    ";
+      offset += 1;
+      continue;
+    }
+
+    break;
+  }
+
+  return { columns, offset, normalized };
+}
+
+function measureColumns(value: string): number {
+  let columns = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    columns += value[index] === "\t" ? 4 : 1;
+  }
+
+  return columns;
 }

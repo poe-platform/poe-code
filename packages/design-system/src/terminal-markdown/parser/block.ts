@@ -1,4 +1,5 @@
 import type { MdNode } from "../ast.js";
+import { extractFrontmatter } from "./frontmatter.js";
 import { parseInline } from "./inline.js";
 
 type ParserState = {
@@ -129,18 +130,22 @@ const BLOCK_HTML_TAGS = new Set([
   "ul"
 ]);
 
-const VOID_BLOCK_HTML_TAGS = new Set([
-  "base",
-  "basefont",
-  "col",
-  "hr",
-  "link",
-  "param",
-  "track"
-]);
+const VOID_BLOCK_HTML_TAGS = new Set(["base", "basefont", "col", "hr", "link", "param", "track"]);
 
 export function parseBlocks(input: string): MdNode[] {
-  return applyInlineParsing(parseBlocksWithOptions(input, { preferListToThematicBreak: false }));
+  return parseBlockDocument(input).children;
+}
+
+export function parseBlockDocument(input: string): {
+  frontmatter?: Record<string, unknown>;
+  children: MdNode[];
+} {
+  const { frontmatter, body } = extractFrontmatter(input);
+  const children = applyInlineParsing(
+    parseBlocksWithOptions(body, { preferListToThematicBreak: false })
+  );
+
+  return frontmatter === undefined ? { children } : { frontmatter, children };
 }
 
 function parseBlocksWithOptions(input: string, options: ParseOptions): MdNode[] {
@@ -411,8 +416,7 @@ function parseAlert(state: ParserState): MdNode | null {
 
   state.position = firstLine.nextPosition;
 
-  const contentLines =
-    alertMarker.content.length === 0 ? [] : [alertMarker.content];
+  const contentLines = alertMarker.content.length === 0 ? [] : [alertMarker.content];
 
   while (state.position < state.input.length) {
     const line = readLine(state.input, state.position);
@@ -471,11 +475,7 @@ function parseList(state: ParserState): MdNode | null {
 }
 
 function parseTable(state: ParserState): MdNode | null {
-  const table = parseTableAt(
-    state.input,
-    state.position,
-    state.preferListToThematicBreak
-  );
+  const table = parseTableAt(state.input, state.position, state.preferListToThematicBreak);
 
   if (table === null) {
     return null;
@@ -580,7 +580,10 @@ function parseParagraph(state: ParserState): MdNode {
       break;
     }
 
-    if (lines.length > 0 && startsBlockAt(state.input, state.position, state.preferListToThematicBreak)) {
+    if (
+      lines.length > 0 &&
+      startsBlockAt(state.input, state.position, state.preferListToThematicBreak)
+    ) {
       break;
     }
 
@@ -617,7 +620,11 @@ function createTableRowNode(values: string[]): MdNode {
   };
 }
 
-function startsBlockAt(input: string, position: number, preferListToThematicBreak: boolean): boolean {
+function startsBlockAt(
+  input: string,
+  position: number,
+  preferListToThematicBreak: boolean
+): boolean {
   const line = readLine(input, position);
 
   if (startsSimpleBlock(line.text, preferListToThematicBreak)) {
@@ -704,8 +711,7 @@ function parseOpeningFence(line: string): Fence | null {
 
   const languageEnd = findWhitespaceIndex(info);
   const lang = languageEnd === -1 ? info : info.slice(0, languageEnd);
-  const meta =
-    languageEnd === -1 ? undefined : trimAsciiWhitespaceStart(info.slice(languageEnd));
+  const meta = languageEnd === -1 ? undefined : trimAsciiWhitespaceStart(info.slice(languageEnd));
 
   return {
     char,
@@ -889,7 +895,10 @@ function parseTableAt(
 } | null {
   const headerLine = readLine(input, position);
 
-  if (parseListMarker(headerLine.text) !== null || stripBlockquoteMarker(headerLine.text) !== null) {
+  if (
+    parseListMarker(headerLine.text) !== null ||
+    stripBlockquoteMarker(headerLine.text) !== null
+  ) {
     return null;
   }
 
@@ -1138,7 +1147,10 @@ function parseFootnoteDefinitionMarker(line: string): ParsedFootnoteDefinition |
 
   let contentStart = labelEnd + 2;
 
-  while (contentStart < line.length && (line[contentStart] === " " || line[contentStart] === "\t")) {
+  while (
+    contentStart < line.length &&
+    (line[contentStart] === " " || line[contentStart] === "\t")
+  ) {
     contentStart += 1;
   }
 
@@ -1249,7 +1261,7 @@ function parseBlockHtmlTagStart(line: string): ParsedHtmlTagStart | null {
 
     const quote = line[index];
 
-    if (quote === "\"" || quote === "'") {
+    if (quote === '"' || quote === "'") {
       index += 1;
 
       while (index < line.length && line[index] !== quote) {
@@ -1267,7 +1279,7 @@ function parseBlockHtmlTagStart(line: string): ParsedHtmlTagStart | null {
     while (index < line.length && !isHtmlWhitespace(line[index]) && line[index] !== ">") {
       const char = line[index];
 
-      if (char === "\"" || char === "'" || char === "<" || char === "=" || char === "`") {
+      if (char === '"' || char === "'" || char === "<" || char === "=" || char === "`") {
         return null;
       }
 
@@ -1508,12 +1520,7 @@ function isHtmlAttributeNameStartChar(value: string): boolean {
 }
 
 function isHtmlAttributeNameChar(value: string): boolean {
-  return (
-    isHtmlAttributeNameStartChar(value) ||
-    isDigit(value) ||
-    value === "-" ||
-    value === "."
-  );
+  return isHtmlAttributeNameStartChar(value) || isDigit(value) || value === "-" || value === ".";
 }
 
 function isHtmlWhitespace(value: string): boolean {
@@ -1691,7 +1698,11 @@ function stripIndent(line: string, columns: number): string | null {
   return leadingWhitespace.normalized.slice(columns) + line.slice(leadingWhitespace.offset);
 }
 
-function readLeadingWhitespace(line: string): { columns: number; offset: number; normalized: string } {
+function readLeadingWhitespace(line: string): {
+  columns: number;
+  offset: number;
+  normalized: string;
+} {
   let columns = 0;
   let offset = 0;
   let normalized = "";

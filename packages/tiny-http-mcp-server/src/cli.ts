@@ -148,7 +148,7 @@ export async function runCli(
   const createServer = dependencies.createServer ?? createHttpServer;
   const stdout = dependencies.stdout ?? process.stdout;
   const stderr = dependencies.stderr ?? process.stderr;
-  const waitForShutdownImpl = dependencies.waitForShutdown ?? waitForShutdown;
+  const customWaitForShutdown = dependencies.waitForShutdown;
   let handle: Awaited<ReturnType<HttpServer["listenHttp"]>> | undefined;
 
   try {
@@ -172,10 +172,18 @@ export async function runCli(
       path: options.path,
     });
 
-    stdout.write(`${handle.url}\n`);
-    await waitForShutdownImpl(async () => {
+    const shutdown = async () => {
       await handle?.close();
-    });
+    };
+    const shutdownPromise =
+      customWaitForShutdown === undefined ? waitForShutdown(shutdown) : undefined;
+
+    stdout.write(`${handle.url}\n`);
+    if (customWaitForShutdown === undefined) {
+      await shutdownPromise;
+    } else {
+      await customWaitForShutdown(shutdown);
+    }
 
     return 0;
   } catch (error) {

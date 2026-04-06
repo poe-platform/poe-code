@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import type { MdNode } from "./index.js";
+import { parse, type MdNode } from "./index.js";
 import { parseBlocks } from "./parser/block.js";
+import { extractFrontmatter } from "./parser/frontmatter.js";
 import { parseInline } from "./parser/inline.js";
 
 type NodeOf<TType extends MdNode["type"]> = Extract<MdNode, { type: TType }>;
@@ -136,13 +137,16 @@ describe("parseInline", () => {
   });
 
   it("supports empty link text and recursive parsing in link children (tests 43, 47)", () => {
-    expect(parseInline('[](https://example.com) [see `code`](/docs)')).toEqual([
+    expect(parseInline("[](https://example.com) [see `code`](/docs)")).toEqual([
       { type: "link", url: "https://example.com", children: [] },
       { type: "text", value: " " },
       {
         type: "link",
         url: "/docs",
-        children: [{ type: "text", value: "see " }, { type: "inlineCode", value: "code" }]
+        children: [
+          { type: "text", value: "see " },
+          { type: "inlineCode", value: "code" }
+        ]
       }
     ]);
   });
@@ -257,10 +261,10 @@ describe("parseInline", () => {
       { type: "emphasis", children: [{ type: "text", value: "foo\nbar" }] }
     ]);
 
-    expect(parseInline("\"*hello*\"")).toEqual([
-      { type: "text", value: "\"" },
+    expect(parseInline('"*hello*"')).toEqual([
+      { type: "text", value: '"' },
       { type: "emphasis", children: [{ type: "text", value: "hello" }] },
-      { type: "text", value: "\"" }
+      { type: "text", value: '"' }
     ]);
   });
 
@@ -314,13 +318,13 @@ describe("parseInline", () => {
   });
 
   it("parses footnote references only when the definition label exists (tests 103, 106, 108, 138)", () => {
-    expect(parseInline("See [^note] and [^missing].", { footnoteLabels: new Set(["note"]) })).toEqual(
-      [
-        { type: "text", value: "See " },
-        { type: "footnoteReference", label: "note" },
-        { type: "text", value: " and [^missing]." }
-      ]
-    );
+    expect(
+      parseInline("See [^note] and [^missing].", { footnoteLabels: new Set(["note"]) })
+    ).toEqual([
+      { type: "text", value: "See " },
+      { type: "footnoteReference", label: "note" },
+      { type: "text", value: " and [^missing]." }
+    ]);
   });
 
   it("parses bare URL and email autolink literals (tests 110-113)", () => {
@@ -354,28 +358,29 @@ describe("parseInline", () => {
   });
 
   it("trims trailing punctuation from literal autolinks but keeps balanced delimiters", () => {
-    expect(parseInline("See www.example.com, https://example.com/path(ok). and user@example.com."))
-      .toEqual([
-        { type: "text", value: "See " },
-        {
-          type: "link",
-          url: "http://www.example.com",
-          children: [{ type: "text", value: "www.example.com" }]
-        },
-        { type: "text", value: ", " },
-        {
-          type: "link",
-          url: "https://example.com/path(ok)",
-          children: [{ type: "text", value: "https://example.com/path(ok)" }]
-        },
-        { type: "text", value: ". and " },
-        {
-          type: "link",
-          url: "mailto:user@example.com",
-          children: [{ type: "text", value: "user@example.com" }]
-        },
-        { type: "text", value: "." }
-      ]);
+    expect(
+      parseInline("See www.example.com, https://example.com/path(ok). and user@example.com.")
+    ).toEqual([
+      { type: "text", value: "See " },
+      {
+        type: "link",
+        url: "http://www.example.com",
+        children: [{ type: "text", value: "www.example.com" }]
+      },
+      { type: "text", value: ", " },
+      {
+        type: "link",
+        url: "https://example.com/path(ok)",
+        children: [{ type: "text", value: "https://example.com/path(ok)" }]
+      },
+      { type: "text", value: ". and " },
+      {
+        type: "link",
+        url: "mailto:user@example.com",
+        children: [{ type: "text", value: "user@example.com" }]
+      },
+      { type: "text", value: "." }
+    ]);
   });
 
   it("does not trigger literal autolinks inside code spans or links (test 114)", () => {
@@ -398,6 +403,160 @@ describe("parseInline", () => {
       { type: "break" },
       { type: "text", value: "gamma\ndelta" }
     ]);
+  });
+});
+
+describe("extractFrontmatter", () => {
+  it("parses simple key-value pairs and typed scalar values (tests 66, 69)", () => {
+    expect(
+      extractFrontmatter(
+        [
+          "---",
+          "title: Hello",
+          "views: 42",
+          "published: true",
+          "draft: false",
+          "summary: null",
+          "---",
+          "# Heading"
+        ].join("\n")
+      )
+    ).toEqual({
+      frontmatter: {
+        title: "Hello",
+        views: 42,
+        published: true,
+        draft: false,
+        summary: null
+      },
+      body: "# Heading"
+    });
+  });
+
+  it("parses nested objects and arrays by indentation (tests 67-68)", () => {
+    expect(
+      extractFrontmatter(
+        [
+          "---",
+          "meta:",
+          "  title: Example",
+          "  tags:",
+          "    - cli",
+          "    - markdown",
+          "  stats:",
+          "    views: 7",
+          "    featured: false",
+          "---",
+          "Body"
+        ].join("\n")
+      )
+    ).toEqual({
+      frontmatter: {
+        meta: {
+          title: "Example",
+          tags: ["cli", "markdown"],
+          stats: {
+            views: 7,
+            featured: false
+          }
+        }
+      },
+      body: "Body"
+    });
+  });
+
+  it("supports quoted values and special characters in scalars (test 73)", () => {
+    expect(
+      extractFrontmatter(
+        [
+          "---",
+          'title: "Hello: world"',
+          "path: /docs/[slug]?q=1&mode=test",
+          "literal: '#hash & [brackets] {braces}'",
+          "---",
+          "Body"
+        ].join("\n")
+      )
+    ).toEqual({
+      frontmatter: {
+        title: "Hello: world",
+        path: "/docs/[slug]?q=1&mode=test",
+        literal: "#hash & [brackets] {braces}"
+      },
+      body: "Body"
+    });
+  });
+
+  it("preserves backslashes in double-quoted scalars while decoding supported escapes", () => {
+    expect(
+      extractFrontmatter(
+        [
+          "---",
+          'windowsPath: "C:\\\\tools\\\\bin"',
+          'message: "line 1\\nline 2"',
+          'quoted: "say \\"hello\\""',
+          "---",
+          "Body"
+        ].join("\n")
+      )
+    ).toEqual({
+      frontmatter: {
+        windowsPath: "C:\\tools\\bin",
+        message: "line 1\nline 2",
+        quoted: 'say "hello"'
+      },
+      body: "Body"
+    });
+  });
+
+  it("decodes common escaped characters in double-quoted scalars", () => {
+    expect(
+      extractFrontmatter(
+        [
+          "---",
+          'unicode: "\\u263A"',
+          'control: "a\\bb\\fc"',
+          "---",
+          "Body"
+        ].join("\n")
+      )
+    ).toEqual({
+      frontmatter: {
+        unicode: "☺",
+        control: "a\bb\fc"
+      },
+      body: "Body"
+    });
+  });
+
+  it("returns the original body when no frontmatter exists and parses empty frontmatter (tests 70-71)", () => {
+    expect(extractFrontmatter("# Heading\n\nBody")).toEqual({
+      body: "# Heading\n\nBody"
+    });
+
+    expect(extractFrontmatter(["---", "---"].join("\n"))).toEqual({
+      frontmatter: {},
+      body: ""
+    });
+  });
+
+  it("does not treat non-leading or unclosed fences as frontmatter (tests 72, 130)", () => {
+    expect(extractFrontmatter(["# Heading", "---", "title: Example", "---"].join("\n"))).toEqual({
+      body: "# Heading\n---\ntitle: Example\n---"
+    });
+
+    expect(extractFrontmatter(["---", "title: Example"].join("\n"))).toEqual({
+      body: "---\ntitle: Example"
+    });
+  });
+
+  it("falls back to raw data when the yaml subset is invalid (test 131)", () => {
+    expect(extractFrontmatter(["---", "title: hello: world", "---", "Body"].join("\n"))).toEqual({
+      frontmatter: {
+        raw: "title: hello: world"
+      },
+      body: "Body"
+    });
   });
 });
 
@@ -465,11 +624,11 @@ describe("parseBlocks", () => {
   });
 
   it("treats an unclosed fence as code through the end of the document", () => {
-    expect(parseBlocks("```json\n{\n  \"key\": true\n}\n\ntrailing text")).toEqual([
+    expect(parseBlocks('```json\n{\n  "key": true\n}\n\ntrailing text')).toEqual([
       {
         type: "code",
         lang: "json",
-        value: "{\n  \"key\": true\n}\n\ntrailing text"
+        value: '{\n  "key": true\n}\n\ntrailing text'
       }
     ]);
   });
@@ -479,7 +638,9 @@ describe("parseBlocks", () => {
   });
 
   it("normalizes BOM and CRLF input while parsing blocks", () => {
-    expect(parseBlocks("\uFEFF```ts title=demo\r\nconst value = 1;\r\n```\r\n\r\nnext\r\n")).toEqual([
+    expect(
+      parseBlocks("\uFEFF```ts title=demo\r\nconst value = 1;\r\n```\r\n\r\nnext\r\n")
+    ).toEqual([
       { type: "code", lang: "ts", meta: "title=demo", value: "const value = 1;" },
       { type: "paragraph", children: [{ type: "text", value: "next" }] }
     ]);
@@ -592,33 +753,34 @@ describe("parseBlocks", () => {
   });
 
   it("applies inline parsing inside table cells (test 58)", () => {
-    expect(parseBlocks("| Name | Notes |\n| --- | --- |\n| *alpha* | `beta` and **gamma** |"))
-      .toEqual([
-        {
-          type: "table",
-          align: [null, null],
-          children: [
-            createTableRow("Name", "Notes"),
-            {
-              type: "tableRow",
-              children: [
-                {
-                  type: "tableCell",
-                  children: [{ type: "emphasis", children: [{ type: "text", value: "alpha" }] }]
-                },
-                {
-                  type: "tableCell",
-                  children: [
-                    { type: "inlineCode", value: "beta" },
-                    { type: "text", value: " and " },
-                    { type: "strong", children: [{ type: "text", value: "gamma" }] }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]);
+    expect(
+      parseBlocks("| Name | Notes |\n| --- | --- |\n| *alpha* | `beta` and **gamma** |")
+    ).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [
+          createTableRow("Name", "Notes"),
+          {
+            type: "tableRow",
+            children: [
+              {
+                type: "tableCell",
+                children: [{ type: "emphasis", children: [{ type: "text", value: "alpha" }] }]
+              },
+              {
+                type: "tableCell",
+                children: [
+                  { type: "inlineCode", value: "beta" },
+                  { type: "text", value: " and " },
+                  { type: "strong", children: [{ type: "text", value: "gamma" }] }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
   });
 
   it("parses empty cells in GFM pipe tables (test 59)", () => {
@@ -831,9 +993,7 @@ describe("parseBlocks", () => {
 
   it("parses blockquotes containing headings, lists, and code blocks (spec example 23)", () => {
     expect(
-      parseBlocks(
-        "> ## heading\n>\n> - first\n> - second\n>\n> ```ts\n> const value = 1;\n> ```"
-      )
+      parseBlocks("> ## heading\n>\n> - first\n> - second\n>\n> ```ts\n> const value = 1;\n> ```")
     ).toEqual([
       {
         type: "blockquote",
@@ -1222,9 +1382,7 @@ describe("parseBlocks", () => {
                 children: [
                   {
                     type: "listItem",
-                    children: [
-                      { type: "paragraph", children: [{ type: "text", value: "child" }] }
-                    ]
+                    children: [{ type: "paragraph", children: [{ type: "text", value: "child" }] }]
                   }
                 ]
               }
@@ -1252,15 +1410,11 @@ describe("parseBlocks", () => {
                 children: [
                   {
                     type: "listItem",
-                    children: [
-                      { type: "paragraph", children: [{ type: "text", value: "child" }] }
-                    ]
+                    children: [{ type: "paragraph", children: [{ type: "text", value: "child" }] }]
                   },
                   {
                     type: "listItem",
-                    children: [
-                      { type: "paragraph", children: [{ type: "text", value: "second" }] }
-                    ]
+                    children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
                   }
                 ]
               }
@@ -1360,29 +1514,31 @@ describe("parseBlocks", () => {
 
   it("applies inline parsing across supported block children and keeps code/html raw", () => {
     expect(
-      parseBlocks([
-        "Alpha [^note] and https://example.com  ",
-        "next",
-        "",
-        "> quote *em*",
-        "",
-        "- item with user@example.com",
-        "",
-        "| Head | Value |",
-        "| --- | --- |",
-        "| `code` | www.example.com |",
-        "",
-        "> [!NOTE]",
-        "> alert with [link](https://example.com)",
-        "",
-        "[^note]: footnote with **strong**",
-        "",
-        "```",
-        "literal https://example.com [^note]",
-        "```",
-        "",
-        "<div>*literal*</div>"
-      ].join("\n"))
+      parseBlocks(
+        [
+          "Alpha [^note] and https://example.com  ",
+          "next",
+          "",
+          "> quote *em*",
+          "",
+          "- item with user@example.com",
+          "",
+          "| Head | Value |",
+          "| --- | --- |",
+          "| `code` | www.example.com |",
+          "",
+          "> [!NOTE]",
+          "> alert with [link](https://example.com)",
+          "",
+          "[^note]: footnote with **strong**",
+          "",
+          "```",
+          "literal https://example.com [^note]",
+          "```",
+          "",
+          "<div>*literal*</div>"
+        ].join("\n")
+      )
     ).toEqual([
       {
         type: "paragraph",
@@ -1499,16 +1655,18 @@ describe("parseBlocks", () => {
 
   it("keeps unresolved footnotes literal and applies hard breaks inside alerts and footnotes", () => {
     expect(
-      parseBlocks([
-        "See [^missing].",
-        "",
-        "> [!NOTE]",
-        "> line  ",
-        "> next",
-        "",
-        "[^note]: footnote line  ",
-        "    next"
-      ].join("\n"))
+      parseBlocks(
+        [
+          "See [^missing].",
+          "",
+          "> [!NOTE]",
+          "> line  ",
+          "> next",
+          "",
+          "[^note]: footnote line  ",
+          "    next"
+        ].join("\n")
+      )
     ).toEqual([
       {
         type: "paragraph",
@@ -1562,9 +1720,7 @@ describe("parseBlocks", () => {
                   {
                     type: "listItem",
                     checked: true,
-                    children: [
-                      { type: "paragraph", children: [{ type: "text", value: "child" }] }
-                    ]
+                    children: [{ type: "paragraph", children: [{ type: "text", value: "child" }] }]
                   }
                 ]
               }
@@ -1669,9 +1825,7 @@ describe("parseBlocks", () => {
                 children: [
                   {
                     type: "listItem",
-                    children: [
-                      { type: "paragraph", children: [{ type: "text", value: "child" }] }
-                    ]
+                    children: [{ type: "paragraph", children: [{ type: "text", value: "child" }] }]
                   }
                 ]
               }
@@ -1763,5 +1917,46 @@ describe("parseBlocks", () => {
       { type: "code", lang: "ts", value: "const value = 1;" },
       { type: "paragraph", children: [{ type: "text", value: "beta" }] }
     ]);
+  });
+
+  it("strips leading frontmatter before block parsing", () => {
+    expect(parseBlocks(["---", "title: Example", "---", "# Heading"].join("\n"))).toEqual([
+      { type: "heading", depth: 1, children: [{ type: "text", value: "Heading" }] }
+    ]);
+  });
+});
+
+describe("parse", () => {
+  it("returns a root node and prepends frontmatter when present", () => {
+    expect(parse(["---", "title: Example", "---", "# Heading"].join("\n"))).toEqual({
+      frontmatter: {
+        title: "Example"
+      },
+      ast: {
+        type: "root",
+        children: [
+          {
+            type: "frontmatter",
+            data: {
+              title: "Example"
+            }
+          },
+          {
+            type: "heading",
+            depth: 1,
+            children: [{ type: "text", value: "Heading" }]
+          }
+        ]
+      }
+    });
+  });
+
+  it("returns a root node without frontmatter for plain markdown", () => {
+    expect(parse("Body")).toEqual({
+      ast: {
+        type: "root",
+        children: [{ type: "paragraph", children: [{ type: "text", value: "Body" }] }]
+      }
+    });
   });
 });

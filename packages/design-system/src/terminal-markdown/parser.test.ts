@@ -4,6 +4,20 @@ import { parseBlocks } from "./parser/block.js";
 
 type NodeOf<TType extends MdNode["type"]> = Extract<MdNode, { type: TType }>;
 
+function createTableCell(value: string): MdNode {
+  return {
+    type: "tableCell",
+    children: value.length === 0 ? [] : [{ type: "text", value }]
+  };
+}
+
+function createTableRow(...values: string[]): MdNode {
+  return {
+    type: "tableRow",
+    children: values.map((value) => createTableCell(value))
+  };
+}
+
 describe("MdNode", () => {
   it("matches the planned discriminated union", () => {
     expectTypeOf<NodeOf<"heading">["depth"]>().toEqualTypeOf<1 | 2 | 3 | 4 | 5 | 6>();
@@ -213,6 +227,200 @@ describe("parseBlocks", () => {
 
   it("parses thematic breaks with spaces between markers", () => {
     expect(parseBlocks("- - -")).toEqual([{ type: "thematicBreak" }]);
+  });
+
+  it("parses a simple 2-column GFM pipe table (test 56)", () => {
+    expect(parseBlocks("| Name | Value |\n| --- | --- |\n| alpha | beta |")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("Name", "Value"), createTableRow("alpha", "beta")]
+      }
+    ]);
+  });
+
+  it("parses table alignment from the separator row (test 57)", () => {
+    expect(
+      parseBlocks("| Left | Center | Right |\n| :--- | :---: | ---: |\n| a | b | c |")
+    ).toEqual([
+      {
+        type: "table",
+        align: ["left", "center", "right"],
+        children: [createTableRow("Left", "Center", "Right"), createTableRow("a", "b", "c")]
+      }
+    ]);
+  });
+
+  it("leaves inline formatting inside table cells as raw text for now (test 58)", () => {
+    expect(parseBlocks("| Name | Notes |\n| --- | --- |\n| *alpha* | `beta` and **gamma** |"))
+      .toEqual([
+        {
+          type: "table",
+          align: [null, null],
+          children: [
+            createTableRow("Name", "Notes"),
+            createTableRow("*alpha*", "`beta` and **gamma**")
+          ]
+        }
+      ]);
+  });
+
+  it("parses empty cells in GFM pipe tables (test 59)", () => {
+    expect(parseBlocks("| A | B | C |\n| --- | --- | --- |\n| | mid | |")).toEqual([
+      {
+        type: "table",
+        align: [null, null, null],
+        children: [createTableRow("A", "B", "C"), createTableRow("", "mid", "")]
+      }
+    ]);
+  });
+
+  it("pads short rows to the header column count (test 60)", () => {
+    expect(parseBlocks("| A | B | C |\n| --- | --- | --- |\n| 1 | 2 |")).toEqual([
+      {
+        type: "table",
+        align: [null, null, null],
+        children: [createTableRow("A", "B", "C"), createTableRow("1", "2", "")]
+      }
+    ]);
+  });
+
+  it("unescapes escaped pipes inside cells (test 61)", () => {
+    expect(parseBlocks("| A | B |\n| --- | --- |\n| left \\| right | keep |")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("A", "B"), createTableRow("left | right", "keep")]
+      }
+    ]);
+  });
+
+  it("does not parse a pipe table without an alignment row (test 62)", () => {
+    expect(parseBlocks("| A | B |\n| C | D |")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "| A | B |\n| C | D |" }] }
+    ]);
+  });
+
+  it("parses a minimal table with a header, separator, and one row (test 63)", () => {
+    expect(parseBlocks("A | B\n--- | ---\nC | D")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("A", "B"), createTableRow("C", "D")]
+      }
+    ]);
+  });
+
+  it("parses tables with leading and trailing pipes (test 64)", () => {
+    expect(parseBlocks("| A | B |\n| --- | --- |\n| C | D |")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("A", "B"), createTableRow("C", "D")]
+      }
+    ]);
+  });
+
+  it("parses tables without leading or trailing pipes (test 65)", () => {
+    expect(parseBlocks("A | B\n--- | ---\nC | D")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("A", "B"), createTableRow("C", "D")]
+      }
+    ]);
+  });
+
+  it("pads and truncates inconsistent row widths to match the header (test 127)", () => {
+    expect(parseBlocks("| A | B |\n| --- | --- |\n| one | two | three |\n| solo |")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [
+          createTableRow("A", "B"),
+          createTableRow("one", "two"),
+          createTableRow("solo", "")
+        ]
+      }
+    ]);
+  });
+
+  it("parses header-only tables without requiring data rows (test 128)", () => {
+    expect(parseBlocks("| A | B |\n| --- | --- |")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("A", "B")]
+      }
+    ]);
+  });
+
+  it("does not parse tables with invalid separator rows (test 129)", () => {
+    expect(parseBlocks("| A | B |\n| --- | nope |\n| C | D |")).toEqual([
+      {
+        type: "paragraph",
+        children: [{ type: "text", value: "| A | B |\n| --- | nope |\n| C | D |" }]
+      }
+    ]);
+  });
+
+  it("stops a table before a following blockquote that contains pipes", () => {
+    expect(parseBlocks("| A | B |\n| --- | --- |\n> quoted | row")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("A", "B")]
+      },
+      {
+        type: "blockquote",
+        children: [
+          {
+            type: "paragraph",
+            children: [{ type: "text", value: "quoted | row" }]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("stops a table before a following heading that contains pipes", () => {
+    expect(parseBlocks("| A | B |\n| --- | --- |\n# heading | pipe")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("A", "B")]
+      },
+      {
+        type: "heading",
+        depth: 1,
+        children: [{ type: "text", value: "heading | pipe" }]
+      }
+    ]);
+  });
+
+  it("stops a table before a following list item that contains pipes", () => {
+    expect(parseBlocks("| A | B |\n| --- | --- |\n- item | value")).toEqual([
+      {
+        type: "table",
+        align: [null, null],
+        children: [createTableRow("A", "B")]
+      },
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              {
+                type: "paragraph",
+                children: [{ type: "text", value: "item | value" }]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
   });
 
   it("parses a single-line blockquote (spec example 20)", () => {

@@ -49,6 +49,8 @@ type ParsedAlertMarker = {
   content: string;
 };
 
+type TableAlignment = Extract<MdNode, { type: "table" }>["align"][number];
+
 export function parseBlocks(input: string): MdNode[] {
   return parseBlocksWithOptions(input, { preferListToThematicBreak: false });
 }
@@ -100,6 +102,7 @@ function createBlockRules(preferListToThematicBreak: boolean): BlockRule[] {
       parseBlockquote,
       parseList,
       parseThematicBreak,
+      parseTable,
       parseSetextHeading
     ];
   }
@@ -111,6 +114,7 @@ function createBlockRules(preferListToThematicBreak: boolean): BlockRule[] {
     parseAlert,
     parseBlockquote,
     parseList,
+    parseTable,
     parseSetextHeading
   ];
 }
@@ -302,6 +306,29 @@ function parseList(state: ParserState): MdNode | null {
   };
 }
 
+function parseTable(state: ParserState): MdNode | null {
+  const table = parseTableAt(
+    state.input,
+    state.position,
+    state.preferListToThematicBreak
+  );
+
+  if (table === null) {
+    return null;
+  }
+
+  state.position = table.nextPosition;
+
+  return {
+    type: "table",
+    align: table.align,
+    children: [
+      createTableRowNode(table.headerCells),
+      ...table.rows.map((row) => createTableRowNode(row))
+    ]
+  };
+}
+
 function parseParagraph(state: ParserState): MdNode {
   const lines: string[] = [];
 
@@ -312,7 +339,7 @@ function parseParagraph(state: ParserState): MdNode {
       break;
     }
 
-    if (lines.length > 0 && startsBlock(line.text, state.preferListToThematicBreak)) {
+    if (lines.length > 0 && startsBlockAt(state.input, state.position, state.preferListToThematicBreak)) {
       break;
     }
 
@@ -339,7 +366,50 @@ function createTextChildren(value: string): MdNode[] {
   return value.length === 0 ? [] : [{ type: "text", value }];
 }
 
-function startsBlock(line: string, preferListToThematicBreak: boolean): boolean {
+function createTableRowNode(values: string[]): MdNode {
+  return {
+    type: "tableRow",
+    children: values.map((value) => ({
+      type: "tableCell",
+      children: createTextChildren(value)
+    }))
+  };
+}
+
+function startsBlockAt(input: string, position: number, preferListToThematicBreak: boolean): boolean {
+  const line = readLine(input, position);
+
+  if (startsSimpleBlock(line.text, preferListToThematicBreak)) {
+    return true;
+  }
+
+  if (line.nextPosition >= input.length) {
+    return false;
+  }
+
+  const nextLine = readLine(input, line.nextPosition);
+
+  return parseTableHeaderAndSeparator(line.text, nextLine.text) !== null;
+}
+
+function startsBlockInLines(
+  lines: string[],
+  lineIndex: number,
+  preferListToThematicBreak: boolean
+): boolean {
+  const line = lines[lineIndex];
+
+  if (startsSimpleBlock(line, preferListToThematicBreak)) {
+    return true;
+  }
+
+  return (
+    lineIndex + 1 < lines.length &&
+    parseTableHeaderAndSeparator(line, lines[lineIndex + 1]) !== null
+  );
+}
+
+function startsSimpleBlock(line: string, preferListToThematicBreak: boolean): boolean {
   if (parseOpeningFence(line) !== null || parseAtxHeadingLine(line) !== null) {
     return true;
   }
@@ -559,6 +629,204 @@ function parseSetextUnderline(line: string): 1 | 2 | null {
   }
 
   return marker === "=" ? 1 : 2;
+}
+
+function parseTableAt(
+  input: string,
+  position: number,
+  preferListToThematicBreak: boolean
+): {
+  align: TableAlignment[];
+  headerCells: string[];
+  rows: string[][];
+  nextPosition: number;
+} | null {
+  const headerLine = readLine(input, position);
+
+  if (parseListMarker(headerLine.text) !== null || stripBlockquoteMarker(headerLine.text) !== null) {
+    return null;
+  }
+
+  if (headerLine.nextPosition >= input.length) {
+    return null;
+  }
+
+  const separatorLine = readLine(input, headerLine.nextPosition);
+  const header = parseTableHeaderAndSeparator(headerLine.text, separatorLine.text);
+
+  if (header === null) {
+    return null;
+  }
+
+  const rows: string[][] = [];
+  let nextPosition = separatorLine.nextPosition;
+
+  while (nextPosition < input.length) {
+    const rowLine = readLine(input, nextPosition);
+
+    if (isBlankLine(rowLine.text)) {
+      break;
+    }
+
+    if (startsSimpleBlock(rowLine.text, preferListToThematicBreak)) {
+      break;
+    }
+
+    const cells = parsePipeTableCells(rowLine.text);
+
+    if (cells === null) {
+      break;
+    }
+
+    rows.push(normalizeTableCells(cells, header.headerCells.length));
+    nextPosition = rowLine.nextPosition;
+  }
+
+  return {
+    align: header.align,
+    headerCells: header.headerCells,
+    rows,
+    nextPosition
+  };
+}
+
+function parseTableHeaderAndSeparator(
+  headerLine: string,
+  separatorLine: string
+): { align: TableAlignment[]; headerCells: string[] } | null {
+  const headerCells = parsePipeTableCells(headerLine);
+
+  if (headerCells === null || headerCells.length === 0) {
+    return null;
+  }
+
+  const align = parsePipeTableSeparator(separatorLine);
+
+  if (align === null || align.length !== headerCells.length) {
+    return null;
+  }
+
+  return { align, headerCells };
+}
+
+function parsePipeTableCells(line: string): string[] | null {
+  const start = skipLeadingBlockIndent(line);
+
+  if (start === -1 || start >= line.length) {
+    return null;
+  }
+
+  const content = trimAsciiWhitespaceEnd(line.slice(start));
+  let hasPipe = false;
+  const cells: string[] = [];
+  let cell = "";
+  let index = 0;
+
+  while (index < content.length) {
+    const char = content[index];
+
+    if (char === "\\" && index + 1 < content.length && content[index + 1] === "|") {
+      cell += "|";
+      index += 2;
+      continue;
+    }
+
+    if (char === "|") {
+      cells.push(trimAsciiWhitespace(cell));
+      cell = "";
+      hasPipe = true;
+      index += 1;
+      continue;
+    }
+
+    cell += char;
+    index += 1;
+  }
+
+  if (!hasPipe) {
+    return null;
+  }
+
+  cells.push(trimAsciiWhitespace(cell));
+
+  if (content[0] === "|") {
+    cells.shift();
+  }
+
+  if (content[content.length - 1] === "|") {
+    cells.pop();
+  }
+
+  return cells.length === 0 ? null : cells;
+}
+
+function parsePipeTableSeparator(line: string): TableAlignment[] | null {
+  const cells = parsePipeTableCells(line);
+
+  if (cells === null || cells.length === 0) {
+    return null;
+  }
+
+  const alignments: TableAlignment[] = [];
+
+  for (const cell of cells) {
+    const alignment = parseTableAlignmentCell(cell);
+
+    if (alignment === undefined) {
+      return null;
+    }
+
+    alignments.push(alignment);
+  }
+
+  return alignments;
+}
+
+function parseTableAlignmentCell(value: string): TableAlignment | undefined {
+  if (value.length === 0) {
+    return undefined;
+  }
+
+  const hasLeadingColon = value[0] === ":";
+  const hasTrailingColon = value[value.length - 1] === ":";
+  const dashStart = hasLeadingColon ? 1 : 0;
+  const dashEnd = hasTrailingColon ? value.length - 1 : value.length;
+
+  if (dashEnd - dashStart < 3) {
+    return undefined;
+  }
+
+  for (let index = dashStart; index < dashEnd; index += 1) {
+    if (value[index] !== "-") {
+      return undefined;
+    }
+  }
+
+  if (hasLeadingColon && hasTrailingColon) {
+    return "center";
+  }
+
+  if (hasLeadingColon) {
+    return "left";
+  }
+
+  if (hasTrailingColon) {
+    return "right";
+  }
+
+  return null;
+}
+
+function normalizeTableCells(cells: string[], columnCount: number): string[] {
+  if (cells.length === columnCount) {
+    return cells;
+  }
+
+  if (cells.length > columnCount) {
+    return cells.slice(0, columnCount);
+  }
+
+  return [...cells, ...Array.from({ length: columnCount - cells.length }, () => "")];
 }
 
 function stripBlockquoteMarker(line: string): string | null {
@@ -879,7 +1147,7 @@ function parseListItemChildren(
       continue;
     }
 
-    if (startsBlock(line, preferListToThematicBreak)) {
+    if (startsBlockInLines(continuationLines, lineIndex, preferListToThematicBreak)) {
       if (paragraphLines.length > 0) {
         blocks.push(createParagraphNode(paragraphLines));
       }

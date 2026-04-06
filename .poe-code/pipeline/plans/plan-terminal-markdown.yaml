@@ -197,7 +197,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: block-parser-tables
     title: Add GFM pipe table parsing
@@ -221,10 +221,10 @@ tasks:
 
       Write tests in `packages/design-system/src/terminal-markdown/parser.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: block-parser-footnotes-html
     title: Add footnote definitions and HTML block parsing

@@ -7,6 +7,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "test": "cd ../.. && vitest run $(rg --files packages/design-system/src -g '*.test.ts' | sort | tr '\\n' ' ')",
     "demo": "tsx scripts/demo.ts",
     "generate:docs": "tsx scripts/generate-docs.ts terminal",
     "generate:design-docs:markdown": "tsx scripts/generate-docs.ts markdown",

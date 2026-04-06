@@ -534,7 +534,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ═══════════════════════════════════════════════════════════════════════
   # Phase 6: Public API + design-system exports
@@ -567,9 +567,9 @@ tasks:
       Verify the design-system builds cleanly with `npm run build -w @poe-code/design-system`.
       Verify existing tests still pass with `npm test -w @poe-code/design-system`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ═══════════════════════════════════════════════════════════════════════

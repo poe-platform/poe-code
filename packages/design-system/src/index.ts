@@ -32,6 +32,10 @@ export * as staticRender from "./static/index.js";
 export { SPINNER_FRAMES, renderSpinnerFrame, renderSpinnerStopped, renderMenu } from "./static/index.js";
 export type { SpinnerFrameOptions, SpinnerStoppedOptions, MenuOption, RenderMenuOptions } from "./static/index.js";
 
+// Terminal markdown
+export { parse, render, renderMarkdown } from "./terminal-markdown/index.js";
+export type { MdNode, RenderOptions } from "./terminal-markdown/index.js";
+
 // Internal utilities (for advanced use)
 export { getTheme, resolveThemeName, resetThemeCache } from "./internal/theme-detect.js";
 export type { ThemeEnv } from "./internal/theme-detect.js";

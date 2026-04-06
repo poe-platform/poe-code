@@ -1,22 +1,12 @@
-import type { MdNode } from "./ast.js";
-import { parseBlockDocument } from "./parser/block.js";
+import { parse } from "./parser.js";
+import { render, type RenderOptions } from "./renderer.js";
 
 export type { MdNode } from "./ast.js";
-export { parseBlocks } from "./parser/block.js";
-export { parseInline } from "./parser/inline.js";
-export { render, type RenderOptions } from "./renderer.js";
+export { parse } from "./parser.js";
+export { render } from "./renderer.js";
+export type { RenderOptions } from "./renderer.js";
 
-export function parse(markdown: string): { frontmatter?: Record<string, unknown>; ast: MdNode } {
-  const { frontmatter, children } = parseBlockDocument(markdown);
-
-  return {
-    ...(frontmatter === undefined ? {} : { frontmatter }),
-    ast: {
-      type: "root",
-      children:
-        frontmatter === undefined
-          ? children
-          : [{ type: "frontmatter", data: frontmatter }, ...children]
-    }
-  };
+export function renderMarkdown(markdown: string, options?: RenderOptions): string {
+  const { ast } = parse(markdown);
+  return render(ast, options);
 }

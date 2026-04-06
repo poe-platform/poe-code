@@ -350,7 +350,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: update-index-exports
     title: Finalize index.ts exports and verify full build
@@ -364,7 +364,7 @@ tasks:
 
       Run full build of both packages. Run all tests across both `tiny-stdio-mcp-server` and `tiny-http-mcp-server`. Ensure everything passes.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

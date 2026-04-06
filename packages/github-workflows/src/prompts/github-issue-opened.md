@@ -5,5 +5,16 @@ label: "GitHub: Issue Handler"
 #   {{repo}}         - owner/repo (e.g. acme/my-app)
 #   {{issue.number}} - issue number
 #   {{issue.title}}  - issue title
+#   {{issue.body}}   - issue body
 ---
-Read {{url}} and answer, triage, or implement the requested changes.
+Read {{url}} and leave a visible GitHub response.
+
+- If the issue is a question or needs only guidance, post a concise comment that directly answers it.
+- If the issue needs code changes, implement them, open or update a PR, and comment with the result.
+- If you cannot complete the request, comment with the blocker and the next concrete step.
+
+Make the visible response clean and easy to scan:
+
+- Start with a direct answer or decision.
+- Keep it concise.
+- Use short Markdown sections only when they improve clarity.

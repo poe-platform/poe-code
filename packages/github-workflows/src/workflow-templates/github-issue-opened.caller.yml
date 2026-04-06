@@ -15,4 +15,6 @@ jobs:
     secrets: inherit
     with:
       ISSUE_NUMBER: ${{ github.event.issue.number }}
+      ISSUE_TITLE: ${{ github.event.issue.title }}
+      ISSUE_BODY: ${{ github.event.issue.body }}
       GITHUB_REPOSITORY: ${{ github.repository }}

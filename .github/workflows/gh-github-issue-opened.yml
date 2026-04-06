@@ -7,6 +7,12 @@ on:
       ISSUE_NUMBER:
         required: true
         type: number
+      ISSUE_TITLE:
+        required: true
+        type: string
+      ISSUE_BODY:
+        required: true
+        type: string
       GITHUB_REPOSITORY:
         required: true
         type: string
@@ -43,4 +49,6 @@ jobs:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           ISSUE_NUMBER: ${{ inputs.ISSUE_NUMBER }}
+          ISSUE_TITLE: ${{ inputs.ISSUE_TITLE }}
+          ISSUE_BODY: ${{ inputs.ISSUE_BODY }}
           GITHUB_REPOSITORY: ${{ inputs.GITHUB_REPOSITORY }}

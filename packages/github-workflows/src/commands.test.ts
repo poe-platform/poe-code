@@ -154,6 +154,43 @@ describe("ghGroup", () => {
     );
   });
 
+  it("renders issue title and body variables for issue-opened automations", async () => {
+    writeBuiltInPrompt(
+      "github-issue-opened",
+      "Answer {{issue.title}} in {{repo}}: {{issue.body}}"
+    );
+
+    const runCommand = getCommand(["run"]);
+
+    await runCommand.handler(
+      createContext(
+        {
+          name: "github-issue-opened",
+          agent: "codex",
+          cwd: "/repo"
+        },
+        {
+          GITHUB_REPOSITORY: "acme/app",
+          ISSUE_NUMBER: "42",
+          ISSUE_TITLE: "How do I configure this?",
+          ISSUE_BODY: "I want the exact path."
+        },
+        {
+          poeApiKey: "poe-key",
+          githubToken: "gh-token"
+        }
+      )
+    );
+
+    expect(spawnState.spawn).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({
+        cwd: "/repo",
+        prompt: "Answer How do I configure this? in acme/app: I want the exact path."
+      })
+    );
+  });
+
   it("runs source commands, renders each item, and resolves MCP env references before spawning", async () => {
     writeBuiltInPrompt(
       "fix-vulnerabilities",

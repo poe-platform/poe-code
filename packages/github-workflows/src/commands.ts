@@ -472,6 +472,7 @@ function buildCommandEnv(
     "GITHUB_REPOSITORY",
     "ISSUE_NUMBER",
     "ISSUE_TITLE",
+    "ISSUE_BODY",
     "COMMENT_AUTHOR",
     "COMMENT_BODY",
     "PR_NUMBER",
@@ -499,7 +500,8 @@ function buildTemplateContext(env: { get(key: string): string | undefined }): Re
       : { url: buildUrl(repo, issueNumber, prNumber) }),
     issue: pruneUndefined({
       number: issueNumber,
-      title: env.get("ISSUE_TITLE")
+      title: env.get("ISSUE_TITLE"),
+      body: env.get("ISSUE_BODY")
     }),
     comment: pruneUndefined({
       author: env.get("COMMENT_AUTHOR"),

@@ -270,6 +270,17 @@ run_guard_in_docker() {
   [ "$prefix_line" -lt "$agent_line" ]
 }
 
+@test "dry-run issue opened workflows pass issue title and body to the automation" {
+  local workflow_file
+  for workflow_file in ".github/workflows/gh-github-issue-opened.yml" ".github/workflows/poe-code-github-issue-opened.yml"; do
+    run grep -qF 'ISSUE_TITLE:' "$workflow_file"
+    [ "$status" -eq 0 ]
+
+    run grep -qF 'ISSUE_BODY:' "$workflow_file"
+    [ "$status" -eq 0 ]
+  done
+}
+
 @test "dry-run reusable workflows declare workflow_call" {
   local reusable_workflows=(
     ".github/workflows/gh-fix-vulnerabilities.yml"

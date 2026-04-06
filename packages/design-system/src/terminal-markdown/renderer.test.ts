@@ -215,6 +215,7 @@ describe("terminal markdown renderer", () => {
 
     expect(stripAnsi(render(ast))).toBe(
       `${symbols.bar} Name  ${symbols.bar} Count ${symbols.bar} Status ${symbols.bar}\n` +
+        `├───────┼───────┼────────┤\n` +
         `${symbols.bar} alpha ${symbols.bar}     2 ${symbols.bar}   ok   ${symbols.bar}\n` +
         `${symbols.bar} beta  ${symbols.bar}    12 ${symbols.bar}  busy  ${symbols.bar}\n\n`
     );
@@ -251,8 +252,41 @@ describe("terminal markdown renderer", () => {
 
     expect(stripAnsi(render(ast))).toBe(
       `${symbols.bar} Label ${symbols.bar} Value ${symbols.bar}\n` +
+        `├───────┼───────┤\n` +
         `${symbols.bar} alpha ${symbols.bar}     7 ${symbols.bar}\n` +
         `${symbols.bar} beta  ${symbols.bar}       ${symbols.bar}\n\n`
+    );
+  });
+
+  it("styles the table header row separately from data rows", () => {
+    const theme = getTheme();
+    const ast: MdNode = {
+      type: "table",
+      align: ["left", "center", "right"],
+      children: [
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "Column" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Center" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Right" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "alpha" }] },
+            { type: "tableCell", children: [{ type: "text", value: "beta" }] },
+            { type: "tableCell", children: [{ type: "text", value: "42" }] }
+          ]
+        }
+      ]
+    };
+
+    expect(render(ast)).toBe(
+      `${symbols.bar} ${theme.header(typography.bold("Column"))} ${symbols.bar} ${theme.header(typography.bold("Center"))} ${symbols.bar} ${theme.header(typography.bold("Right"))} ${symbols.bar}\n` +
+        `${theme.muted("├────────┼────────┼───────┤")}\n` +
+        `${symbols.bar} alpha  ${symbols.bar}  beta  ${symbols.bar}    42 ${symbols.bar}\n\n`
     );
   });
 

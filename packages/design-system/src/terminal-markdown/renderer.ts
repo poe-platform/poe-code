@@ -210,21 +210,35 @@ function renderTable(node: Extract<MdNode, { type: "table" }>, context: RenderCo
     Math.max(...renderedRows.map((row) => stripAnsi(row[columnIndex] ?? "").length), 0)
   );
 
-  const lines = renderedRows.map((row) =>
-    `${symbols.bar}${row
-      .map((cell, columnIndex) => {
-        const aligned = alignTableCell(
-          cell,
-          columnWidths[columnIndex] ?? 0,
-          node.align[columnIndex] ?? null
-        );
-
-        return `${" ".repeat(spacing.sm)}${aligned}${" ".repeat(spacing.sm)}`;
-      })
-      .join(symbols.bar)}${symbols.bar}`
+  const lines = renderedRows.map((row, rowIndex) =>
+    row.map((cell, columnIndex) =>
+      alignTableCell(
+        rowIndex === 0 ? context.theme.header(typography.bold(cell)) : cell,
+        columnWidths[columnIndex] ?? 0,
+        node.align[columnIndex] ?? null
+      )
+    )
   );
 
-  return `${lines.join("\n")}\n\n`;
+  const outputLines = lines.map((row, rowIndex) => {
+    const line = `${symbols.bar}${row
+      .map((cell) => `${" ".repeat(spacing.sm)}${cell}${" ".repeat(spacing.sm)}`)
+      .join(symbols.bar)}${symbols.bar}`;
+
+    if (rowIndex !== 0 || lines.length === 1) {
+      return line;
+    }
+
+    const divider = context.theme.muted(
+      `├${columnWidths
+        .map((width) => lineChar.repeat(width + spacing.sm * 2))
+        .join("┼")}┤`
+    );
+
+    return `${line}\n${divider}`;
+  });
+
+  return `${outputLines.join("\n")}\n\n`;
 }
 
 function renderListItem(

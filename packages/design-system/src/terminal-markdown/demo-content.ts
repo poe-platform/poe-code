@@ -3,7 +3,9 @@ export type MarkdownDemoName =
   | "minimal"
   | "code-blocks"
   | "blockquotes"
-  | "lists";
+  | "lists"
+  | "tables"
+  | "alerts";
 
 export function getMarkdownDemo(name: MarkdownDemoName = "default"): string {
   switch (name) {
@@ -62,6 +64,45 @@ export function getMarkdownDemo(name: MarkdownDemoName = "default"): string {
         "- [ ] pending task",
         "  - [x] nested done task",
         "  - [ ] nested pending task"
+      ].join("\n");
+    case "tables":
+      return [
+        "# Tables",
+        "",
+        "| Column | Left | Center | Right |",
+        "| :----- | :--- | :----: | ----: |",
+        "| Alignment | alpha | beta | 42 |",
+        "| Separators | left | mid | 9000 |",
+        "| Header | visible | x | 7 |"
+      ].join("\n");
+    case "alerts":
+      return [
+        "# Alerts",
+        "",
+        "> [!NOTE]",
+        "> Note labels use info styling.",
+        ">",
+        "> Wrapped content stays aligned beneath the bar.",
+        "",
+        "> [!TIP]",
+        "> Tip labels use success styling.",
+        ">",
+        "> Multi-line content keeps its indentation.",
+        "",
+        "> [!IMPORTANT]",
+        "> Important labels reuse the info color.",
+        ">",
+        "> The follow-up line stays under the same prefix.",
+        "",
+        "> [!WARNING]",
+        "> Warning labels use warning styling.",
+        ">",
+        "> Additional detail remains aligned.",
+        "",
+        "> [!CAUTION]",
+        "> Caution labels use error styling.",
+        ">",
+        "> The final alert confirms the red variant."
       ].join("\n");
     case "default":
       return [

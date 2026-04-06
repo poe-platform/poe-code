@@ -38,4 +38,24 @@ describe("terminal markdown demo content", () => {
     expect(markdown).toContain("- [x] completed task");
     expect(markdown).toContain("  - nested item");
   });
+
+  it("returns a focused tables demo", () => {
+    const markdown = getMarkdownDemo("tables");
+
+    expect(markdown).toContain("| Column | Left | Center | Right |");
+    expect(markdown).toContain("| :----- | :--- | :----: | ----: |");
+    expect(markdown).toContain("| Alignment | alpha | beta | 42 |");
+    expect(markdown).toContain("| Separators | left | mid | 9000 |");
+  });
+
+  it("returns a focused alerts demo", () => {
+    const markdown = getMarkdownDemo("alerts");
+
+    expect(markdown).toContain("> [!NOTE]");
+    expect(markdown).toContain("> [!TIP]");
+    expect(markdown).toContain("> [!IMPORTANT]");
+    expect(markdown).toContain("> [!WARNING]");
+    expect(markdown).toContain("> [!CAUTION]");
+    expect(markdown).toContain("> Wrapped content stays aligned beneath the bar.");
+  });
 });

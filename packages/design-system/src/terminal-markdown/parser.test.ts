@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import type { MdNode } from "./index.js";
+import { parseBlocks } from "./parser/block.js";
 
 type NodeOf<TType extends MdNode["type"]> = Extract<MdNode, { type: TType }>;
 
@@ -63,5 +64,90 @@ describe("MdNode", () => {
     ];
 
     expect(nodes).toHaveLength(36);
+  });
+});
+
+describe("parseBlocks", () => {
+  it("returns no nodes for empty or whitespace-only input", () => {
+    expect(parseBlocks("")).toEqual([]);
+    expect(parseBlocks("   \n\t\n")).toEqual([]);
+    expect(parseBlocks("\n")).toEqual([]);
+  });
+
+  it("groups consecutive non-blank lines into paragraph text nodes", () => {
+    expect(parseBlocks("alpha\nbeta\n\ngamma")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "alpha\nbeta" }] },
+      { type: "paragraph", children: [{ type: "text", value: "gamma" }] }
+    ]);
+  });
+
+  it("parses backtick fenced code blocks", () => {
+    expect(parseBlocks("```ts\nconst value = 1;\n```")).toEqual([
+      { type: "code", lang: "ts", value: "const value = 1;" }
+    ]);
+  });
+
+  it("parses tilde fenced code blocks", () => {
+    expect(parseBlocks("~~~bash\nnpm test\n~~~")).toEqual([
+      { type: "code", lang: "bash", value: "npm test" }
+    ]);
+  });
+
+  it("only closes fenced code blocks with the matching fence marker", () => {
+    expect(parseBlocks("```\n~~~\n```\n\n~~~\n```\n~~~")).toEqual([
+      { type: "code", value: "~~~" },
+      { type: "code", value: "```" }
+    ]);
+  });
+
+  it("parses code fences with language and meta string", () => {
+    expect(parseBlocks("```ts title=example.ts linenos\nconst value = 1;\n```")).toEqual([
+      {
+        type: "code",
+        lang: "ts",
+        meta: "title=example.ts linenos",
+        value: "const value = 1;"
+      }
+    ]);
+  });
+
+  it("keeps markdown-like content inside fenced code blocks as raw text", () => {
+    expect(parseBlocks("```\n# heading\n- list item\n\n> quote\n```")).toEqual([
+      { type: "code", value: "# heading\n- list item\n\n> quote" }
+    ]);
+  });
+
+  it("treats indented code-style lines as paragraph content for now", () => {
+    expect(parseBlocks("    const value = 1;\n    console.log(value);")).toEqual([
+      {
+        type: "paragraph",
+        children: [{ type: "text", value: "    const value = 1;\n    console.log(value);" }]
+      }
+    ]);
+  });
+
+  it("supports empty fenced code blocks", () => {
+    expect(parseBlocks("```\n```")).toEqual([{ type: "code", value: "" }]);
+  });
+
+  it("treats an unclosed fence as code through the end of the document", () => {
+    expect(parseBlocks("```json\n{\n  \"key\": true\n}\n\ntrailing text")).toEqual([
+      {
+        type: "code",
+        lang: "json",
+        value: "{\n  \"key\": true\n}\n\ntrailing text"
+      }
+    ]);
+  });
+
+  it("allows closing fences with trailing spaces", () => {
+    expect(parseBlocks("```\nvalue\n```   ")).toEqual([{ type: "code", value: "value" }]);
+  });
+
+  it("normalizes BOM and CRLF input while parsing blocks", () => {
+    expect(parseBlocks("\uFEFF```ts title=demo\r\nconst value = 1;\r\n```\r\n\r\nnext\r\n")).toEqual([
+      { type: "code", lang: "ts", meta: "title=demo", value: "const value = 1;" },
+      { type: "paragraph", children: [{ type: "text", value: "next" }] }
+    ]);
   });
 });

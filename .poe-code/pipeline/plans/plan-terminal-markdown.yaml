@@ -68,9 +68,9 @@ tasks:
 
       Write tests in `packages/design-system/src/terminal-markdown/parser.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: block-parser-headings-breaks

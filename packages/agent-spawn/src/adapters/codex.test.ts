@@ -184,9 +184,30 @@ describe("adaptCodex", () => {
     ]);
   });
 
-  it("emits turn.failed as ErrorEvent", async () => {
+  it("emits turn.failed as ErrorEvent with fallback message", async () => {
     const updates = await collect(adaptCodex(fromArray(['{"type":"turn.failed"}'])));
     expect(updates).toEqual([{ event: "error", message: "Turn failed" }]);
+  });
+
+  it("emits turn.failed with message from payload", async () => {
+    const updates = await collect(
+      adaptCodex(fromArray([JSON.stringify({ type: "turn.failed", message: "rate limit exceeded" })]))
+    );
+    expect(updates).toEqual([{ event: "error", message: "rate limit exceeded" }]);
+  });
+
+  it("emits turn.failed with error string from payload", async () => {
+    const updates = await collect(
+      adaptCodex(fromArray([JSON.stringify({ type: "turn.failed", error: "context window full" })]))
+    );
+    expect(updates).toEqual([{ event: "error", message: "context window full" }]);
+  });
+
+  it("emits turn.failed with nested error.message from payload", async () => {
+    const updates = await collect(
+      adaptCodex(fromArray([JSON.stringify({ type: "turn.failed", error: { message: "API timeout" } })]))
+    );
+    expect(updates).toEqual([{ event: "error", message: "API timeout" }]);
   });
 
   it("truncates command title to 80 characters", async () => {

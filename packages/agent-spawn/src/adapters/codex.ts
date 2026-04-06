@@ -11,6 +11,9 @@ type CodexEvent = {
   sessionID?: unknown;
   usage?: unknown;
   item?: unknown;
+  error?: unknown;
+  message?: unknown;
+  reason?: unknown;
 };
 
 type CodexItem = {
@@ -80,7 +83,8 @@ export async function* adaptCodex(
     }
 
     if (eventType === "turn.failed") {
-      yield { event: "error", message: "Turn failed" };
+      const message = extractErrorMessage(event) ?? "Turn failed";
+      yield { event: "error", message };
       continue;
     }
 
@@ -166,4 +170,18 @@ export async function* adaptCodex(
       }
     }
   }
+}
+
+function extractErrorMessage(event: CodexEvent): string | undefined {
+  if (isNonEmptyString(event.message)) return event.message;
+
+  const error = event.error;
+  if (isNonEmptyString(error)) return error;
+  if (typeof error === "object" && error !== null) {
+    const errorObj = error as { message?: unknown };
+    if (isNonEmptyString(errorObj.message)) return errorObj.message;
+  }
+
+  if (isNonEmptyString(event.reason)) return event.reason;
+  return undefined;
 }

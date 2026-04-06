@@ -96,6 +96,62 @@ process.stdout.write(steps.join("\n"));
 EOF
 }
 
+workflow_permissions() {
+  local file_path="$1"
+  local expression="$2"
+
+  node --input-type=module - "$file_path" "$expression" <<'EOF'
+import fs from "node:fs";
+import YAML from "yaml";
+
+const [, , filePath, expression] = process.argv;
+const workflow = YAML.parse(fs.readFileSync(filePath, "utf8"));
+const result = Function("workflow", `return (${expression});`)(workflow);
+
+process.stdout.write(JSON.stringify(result ?? {}));
+EOF
+}
+
+workflow_reusable_path() {
+  local file_path="$1"
+
+  node --input-type=module - "$file_path" <<'EOF'
+import fs from "node:fs";
+import path from "node:path";
+import YAML from "yaml";
+
+const [, , filePath] = process.argv;
+const workflow = YAML.parse(fs.readFileSync(filePath, "utf8"));
+const uses = workflow.jobs?.run?.uses;
+
+if (typeof uses !== "string") {
+  throw new Error(`${filePath} does not declare jobs.run.uses.`);
+}
+
+const marker = ".github/workflows/";
+const markerIndex = uses.indexOf(marker);
+
+if (markerIndex === -1) {
+  throw new Error(`${filePath} does not reference a reusable workflow.`);
+}
+
+const reusableWithRef = uses.slice(markerIndex + marker.length);
+const refIndex = reusableWithRef.indexOf("@");
+
+if (refIndex === -1) {
+  throw new Error(`${filePath} does not pin a reusable workflow ref.`);
+}
+
+const reusableFileName = reusableWithRef.slice(0, refIndex);
+
+if (!reusableFileName.startsWith("gh-")) {
+  throw new Error(`${filePath} does not reference a gh-* reusable workflow.`);
+}
+
+process.stdout.write(path.posix.join(".github/workflows", reusableFileName));
+EOF
+}
+
 test_workflows_script_command() {
   cat <<'EOF'
 npm() {
@@ -231,6 +287,37 @@ run_guard_in_docker() {
     run yaml_eval "$workflow" 'Object.prototype.hasOwnProperty.call(workflow.on ?? {}, "workflow_call")'
     [ "$status" -eq 0 ]
     [ "$output" = "true" ]
+  done
+}
+
+@test "dry-run caller workflows keep permissions in sync with reusable workflows" {
+  shopt -s nullglob
+  local caller_workflows=(
+    .github/workflows/poe-code-*.yml
+    packages/github-workflows/src/workflow-templates/*.caller.yml
+  )
+
+  [ "${#caller_workflows[@]}" -gt 0 ]
+
+  local caller_path
+  local reusable_path
+  local caller_permissions
+  local reusable_permissions
+
+  for caller_path in "${caller_workflows[@]}"; do
+    run workflow_reusable_path "$caller_path"
+    [ "$status" -eq 0 ]
+    reusable_path="$output"
+
+    run workflow_permissions "$caller_path" 'workflow.permissions'
+    [ "$status" -eq 0 ]
+    caller_permissions="$output"
+
+    run workflow_permissions "$reusable_path" 'workflow.jobs.run.permissions'
+    [ "$status" -eq 0 ]
+    reusable_permissions="$output"
+
+    [ "$caller_permissions" = "$reusable_permissions" ]
   done
 }
 

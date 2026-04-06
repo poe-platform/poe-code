@@ -4,6 +4,11 @@ on:
     - cron: '0 6 * * 1'
   workflow_dispatch:
 
+# Keep these permissions in sync with the reusable workflow referenced below.
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   run:
     uses: __UPSTREAM_REPO__/.github/workflows/gh-update-dependencies.yml@main

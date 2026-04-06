@@ -321,6 +321,31 @@ run_guard_in_docker() {
   done
 }
 
+@test "dry-run GitHub App workflows use POE_CODE_AGENT secrets" {
+  shopt -s nullglob
+  local workflow_files=(
+    .github/workflows/gh-*.yml
+    packages/github-workflows/src/workflow-templates/*.ejected.yml
+  )
+
+  [ "${#workflow_files[@]}" -gt 0 ]
+
+  local workflow_file
+  for workflow_file in "${workflow_files[@]}"; do
+    run grep -qF 'secrets.POE_CODE_AGENT_APP_ID' "$workflow_file"
+    [ "$status" -eq 0 ]
+
+    run grep -qF 'secrets.POE_CODE_AGENT_PRIVATE_KEY' "$workflow_file"
+    [ "$status" -eq 0 ]
+
+    run grep -qF 'secrets.APP_ID' "$workflow_file"
+    [ "$status" -ne 0 ]
+
+    run grep -qF 'secrets.APP_PRIVATE_KEY' "$workflow_file"
+    [ "$status" -ne 0 ]
+  done
+}
+
 @test "dry-run PR checks entrypoint triggers on pull_request" {
   run yaml_eval ".github/workflows/pr-checks-pr.yml" 'Object.prototype.hasOwnProperty.call(workflow.on ?? {}, "pull_request")'
   [ "$status" -eq 0 ]

@@ -11,8 +11,8 @@ Go to your repository **Settings → Secrets and variables → Actions** and add
 | Secret | Description |
 |--------|-------------|
 | `POE_API_KEY` | Your Poe API key — required for all automations |
-| `APP_ID` | GitHub App ID — used to generate a scoped token for each run |
-| `APP_PRIVATE_KEY` | GitHub App private key (PEM format) |
+| `POE_CODE_AGENT_APP_ID` | GitHub App ID — used to generate a scoped token for each run |
+| `POE_CODE_AGENT_PRIVATE_KEY` | GitHub App private key (PEM format) |
 
 ### 2. Install a workflow
 
@@ -126,8 +126,8 @@ Variables available in the prompt body depend on the trigger:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `POE_API_KEY` | Yes | Poe API key — must be set as a repository secret |
-| `APP_ID` | Yes | GitHub App ID — must be set as a repository secret |
-| `APP_PRIVATE_KEY` | Yes | GitHub App private key (PEM) — must be set as a repository secret |
+| `POE_CODE_AGENT_APP_ID` | Yes | GitHub App ID — must be set as a repository secret |
+| `POE_CODE_AGENT_PRIVATE_KEY` | Yes | GitHub App private key (PEM) — must be set as a repository secret |
 
 `GITHUB_TOKEN` is generated at runtime from the GitHub App credentials using `actions/create-github-app-token`. Pass it to MCP servers via `${{ GITHUB_TOKEN }}` in the frontmatter `mcp.env` block when needed.
 

@@ -366,6 +366,40 @@ describe("terminal markdown renderer", () => {
     expect(stripAnsi(render(ast, { width: 10 }))).toBe(" 1. alpha\n    beta\n    gamma\n\n");
   });
 
+  it("keeps nested lists attached to the parent list item", () => {
+    const ast: MdNode = {
+      type: "list",
+      ordered: false,
+      children: [
+        {
+          type: "listItem",
+          children: [
+            {
+              type: "paragraph",
+              children: [{ type: "text", value: "parent" }]
+            },
+            {
+              type: "list",
+              ordered: false,
+              children: [
+                {
+                  type: "listItem",
+                  children: [{ type: "paragraph", children: [{ type: "text", value: "nested" }] }]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          type: "listItem",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "sibling" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(" • parent\n    • nested\n • sibling\n\n");
+  });
+
   it("renders autolinks as their colored destination", () => {
     const theme = getTheme();
 

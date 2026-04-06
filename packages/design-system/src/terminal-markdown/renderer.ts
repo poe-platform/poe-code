@@ -308,10 +308,27 @@ function renderHtml(node: Extract<MdNode, { type: "html" }>, context: RenderCont
 }
 
 function renderBlockChildren(children: MdNode[], context: RenderContext): string {
-  return children
-    .map((child) => renderNode(child, context).trimEnd())
-    .filter((child) => child.length > 0)
-    .join("\n\n");
+  const renderedChildren = children
+    .map((child) => ({
+      type: child.type,
+      value: renderNode(child, context).trimEnd()
+    }))
+    .filter((child) => child.value.length > 0);
+
+  if (renderedChildren.length === 0) {
+    return "";
+  }
+
+  let output = renderedChildren[0]!.value;
+
+  for (let index = 1; index < renderedChildren.length; index += 1) {
+    const previous = renderedChildren[index - 1]!;
+    const current = renderedChildren[index]!;
+    const separator = previous.type === "paragraph" && current.type === "list" ? "\n" : "\n\n";
+    output += `${separator}${current.value}`;
+  }
+
+  return output;
 }
 
 function renderReferencedFootnotes(context: RenderContext): string {

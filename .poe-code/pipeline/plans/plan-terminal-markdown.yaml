@@ -634,7 +634,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: screenshot-blocks
     title: Screenshot test — blockquotes, code blocks, lists
@@ -663,9 +663,9 @@ tasks:
 
       Review each screenshot PNG. Fix any visual issues and re-screenshot.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: screenshot-tables-alerts

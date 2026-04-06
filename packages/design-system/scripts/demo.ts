@@ -21,6 +21,7 @@ import {
   resolveOutputFormat,
   resetOutputFormatCache
 } from "../src/index.js";
+import { getMarkdownDemo, type MarkdownDemoName } from "../src/terminal-markdown/demo-content.js";
 
 type DemoType =
   | "intro"
@@ -47,57 +48,8 @@ type DemoType =
   | "table"
   | "table-markdown"
   | "markdown"
-  | "markdown-minimal";
-
-const MARKDOWN_DEMO = [
-  "# Design System Markdown",
-  "",
-  "## Overview",
-  "",
-  "### Renderer Features",
-  "",
-  "Paragraph with **bold**, *italic*, ~~strikethrough~~, `code span`, a [docs link](https://example.com/docs), an image ![System diagram](https://example.com/system.png), and a footnote reference[^demo].",
-  "",
-  "```ts",
-  'const agent = "poe-code";',
-  "console.log(agent);",
-  "```",
-  "",
-  "> Outer quote",
-  ">",
-  "> > Nested quote",
-  "",
-  "- unordered item",
-  "- another unordered item",
-  "",
-  "1. ordered item",
-  "2. another ordered item",
-  "",
-  "- [x] completed task",
-  "- [ ] pending task",
-  "",
-  "| Feature | Alignment | Status |",
-  "| :------ | :-------: | -----: |",
-  "| Headings | center | Ready |",
-  "| Tables | aligned | 100% |",
-  "",
-  "> [!NOTE]",
-  "> Alerts are rendered as styled notes.",
-  "",
-  "---",
-  "",
-  "[^demo]: Footnote definition for the markdown demo."
-].join("\n");
-
-const MINIMAL_MARKDOWN_DEMO = [
-  "# Markdown Minimal",
-  "",
-  "Quick validation paragraph.",
-  "",
-  "```ts",
-  'console.log("demo");',
-  "```"
-].join("\n");
+  | "markdown-minimal"
+  | "markdown-blocks";
 
 function runTextDemo(style: string, content: string): void {
   const styleFn = text[style as keyof typeof text];
@@ -279,6 +231,10 @@ function runLayoutExpandedDemo(): void {
   outro(chalk.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
 }
 
+function runMarkdownDemo(name?: MarkdownDemoName): void {
+  process.stdout.write(renderMarkdown(getMarkdownDemo(name)));
+}
+
 async function main(): Promise<void> {
   const [type, ...values] = process.argv.slice(2);
   const value = values.join(" ");
@@ -290,7 +246,7 @@ async function main(): Promise<void> {
       "       usageCommand, link, muted, symbol, log, diff, menu, note, outro,\n"
     );
     process.stderr.write("       resolved, errorResolved, spinner, layout, layout-expanded,\n");
-    process.stderr.write("       table, table-markdown, markdown, markdown-minimal\n");
+    process.stderr.write("       table, table-markdown, markdown, markdown-minimal, markdown-blocks\n");
     process.exitCode = 1;
     return;
   }
@@ -350,10 +306,13 @@ async function main(): Promise<void> {
       runTableMarkdownDemo();
       break;
     case "markdown":
-      process.stdout.write(renderMarkdown(MARKDOWN_DEMO));
+      runMarkdownDemo();
       break;
     case "markdown-minimal":
-      process.stdout.write(renderMarkdown(MINIMAL_MARKDOWN_DEMO));
+      runMarkdownDemo("minimal");
+      break;
+    case "markdown-blocks":
+      runMarkdownDemo((values[0] as MarkdownDemoName | undefined) ?? "code-blocks");
       break;
     default:
       process.stderr.write(`Unknown demo type: ${type}\n`);

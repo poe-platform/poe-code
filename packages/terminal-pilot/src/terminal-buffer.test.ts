@@ -252,11 +252,15 @@ describe("TerminalBuffer", () => {
   });
 
   describe("SGR and OSC passthrough", () => {
-    it("SGR sequences are ignored and don't write characters", () => {
+    it("preserves SGR styling when reconstructing the visible line", () => {
       const buf = new TerminalBuffer(10, 5);
-      buf.write("\x1b[1;31mAB\x1b[0m");
+      buf.write("\x1b[1;31mAB\x1b[0m C\x1b[38;2;162;0;255mD");
       expect(readLine(buf, 0).slice(0, 2)).toBe("AB");
-      expect(buf.displayBuffer.cursorX).toBe(2);
+      expect(readLine(buf, 0).slice(0, 4)).toBe("AB C");
+      expect(buf.displayBuffer.cursorX).toBe(5);
+      expect(buf.renderLine(0)).toBe(
+        "\x1b[1;31mAB\x1b[0m C\x1b[38;2;162;0;255mD\x1b[0m"
+      );
     });
 
     it("OSC sequences are consumed without writing characters", () => {

@@ -950,7 +950,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: terminal-pilot-theme-validation
     title: Terminal-pilot test — dark and light theme rendering
@@ -981,10 +981,10 @@ tasks:
 
       Verify both themes produce readable, visually distinct output. Fix any issues.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: generate-design-docs
     title: Regenerate design-system docs with terminal-markdown showcase

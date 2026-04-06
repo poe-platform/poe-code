@@ -20,6 +20,14 @@ describe("theme-detect", () => {
       expect(resolveThemeName({ POE_CODE_THEME: "dark" })).toBe("dark");
     });
 
+    it("respects POE_THEME=light", () => {
+      expect(resolveThemeName({ POE_THEME: "light" })).toBe("light");
+    });
+
+    it("respects POE_THEME=dark", () => {
+      expect(resolveThemeName({ POE_THEME: "dark" })).toBe("dark");
+    });
+
     it("POE_CODE_THEME is case insensitive", () => {
       expect(resolveThemeName({ POE_CODE_THEME: "LIGHT" })).toBe("light");
       expect(resolveThemeName({ POE_CODE_THEME: "Dark" })).toBe("dark");
@@ -55,6 +63,13 @@ describe("theme-detect", () => {
         APPLE_INTERFACE_STYLE: "Dark"
       })).toBe("light");
     });
+
+    it("POE_CODE_THEME takes precedence over POE_THEME", () => {
+      expect(resolveThemeName({
+        POE_CODE_THEME: "light",
+        POE_THEME: "dark"
+      })).toBe("light");
+    });
   });
 
   describe("getTheme", () => {
@@ -65,6 +80,11 @@ describe("theme-detect", () => {
 
     it("returns light palette when POE_CODE_THEME=light", () => {
       const theme = getTheme({ POE_CODE_THEME: "light" });
+      expect(theme).toBe(light);
+    });
+
+    it("returns light palette when POE_THEME=light", () => {
+      const theme = getTheme({ POE_THEME: "light" });
       expect(theme).toBe(light);
     });
 

@@ -2,6 +2,7 @@ import { dark, light, type ThemeName, type ThemePalette } from "../tokens/colors
 
 export interface ThemeEnv {
   POE_CODE_THEME?: string;
+  POE_THEME?: string;
   APPLE_INTERFACE_STYLE?: string;
   VSCODE_COLOR_THEME_KIND?: string;
   COLORFGBG?: string;
@@ -37,7 +38,7 @@ function detectThemeFromEnv(env: ThemeEnv): ThemeName | undefined {
 }
 
 export function resolveThemeName(env: ThemeEnv = process.env as ThemeEnv): ThemeName {
-  const raw = env.POE_CODE_THEME?.toLowerCase();
+  const raw = (env.POE_CODE_THEME ?? env.POE_THEME)?.toLowerCase();
   if (raw === "light" || raw === "dark") {
     return raw;
   }

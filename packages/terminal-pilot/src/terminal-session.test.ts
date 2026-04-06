@@ -158,4 +158,24 @@ describe("TerminalSession", () => {
       /Timed out waiting for pattern/
     );
   });
+
+  it("preserves ANSI styling in raw screen snapshots", async () => {
+    const session = new TerminalSession({
+      id: "session-ansi",
+      command: process.execPath,
+      args: ["-e", 'process.stdout.write("\\u001b[38;2;162;0;255mhello\\u001b[0m world\\n")'],
+      cwd: process.cwd(),
+      env: process.env,
+      cols: 80,
+      rows: 24,
+      observe: false
+    });
+    sessions.push(session);
+
+    await session.waitFor("hello world");
+
+    const screen = await session.screen();
+    expect(screen.lines[0]).toContain("hello world");
+    expect(screen.rawLines[0]).toContain("\u001b[38;2;162;0;255mhello\u001b[0m world");
+  });
 });

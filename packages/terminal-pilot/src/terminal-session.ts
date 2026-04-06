@@ -168,14 +168,7 @@ export class TerminalSession {
     const rawLines: string[] = [];
 
     for (let row = 0; row < this.currentRows; row += 1) {
-      const cells = this.terminal.displayBuffer.data[row] ?? [];
-      let rawLine = "";
-
-      for (const cell of cells) {
-        rawLine += cell?.[1] ?? " ";
-      }
-
-      rawLines.push(trimTrailingSpaces(rawLine));
+      rawLines.push(this.terminal.renderLine(row));
     }
 
     return new TerminalScreen({
@@ -445,16 +438,6 @@ function normalizeHistoryBuffer(input: string): string {
   }
 
   return output;
-}
-
-function trimTrailingSpaces(input: string): string {
-  let end = input.length;
-
-  while (end > 0 && input[end - 1] === " ") {
-    end -= 1;
-  }
-
-  return input.slice(0, end);
 }
 
 function sleep(ms: number): Promise<void> {

@@ -1,5 +1,8 @@
+import path from "node:path";
 import { performance } from "node:perf_hooks";
+import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { TerminalPilot } from "@poe-code/terminal-pilot";
 import { resetThemeCache } from "../internal/theme-detect.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
 import { renderMarkdown } from "./index.js";
@@ -76,17 +79,46 @@ function createLargeDocument(): string {
 describe("terminal markdown integration", () => {
   const originalForceColor = process.env.FORCE_COLOR;
   const originalTheme = process.env.POE_CODE_THEME;
+  const originalThemeAlias = process.env.POE_THEME;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
     process.env.POE_CODE_THEME = "dark";
+    delete process.env.POE_THEME;
     resetThemeCache();
   });
 
   afterEach(() => {
     process.env.FORCE_COLOR = originalForceColor;
-    process.env.POE_CODE_THEME = originalTheme;
+    if (originalTheme === undefined) {
+      delete process.env.POE_CODE_THEME;
+    } else {
+      process.env.POE_CODE_THEME = originalTheme;
+    }
+    if (originalThemeAlias === undefined) {
+      delete process.env.POE_THEME;
+    } else {
+      process.env.POE_THEME = originalThemeAlias;
+    }
     resetThemeCache();
+  });
+
+  it("switches renderer palettes when POE_THEME changes and the theme cache is reset", () => {
+    const markdown = ["# Theme", "", "`code`", "", "> [!WARNING]", "> Pay attention"].join("\n");
+
+    process.env.POE_CODE_THEME = "light";
+    delete process.env.POE_THEME;
+    resetThemeCache();
+    const canonicalLightOutput = renderMarkdown(markdown);
+
+    delete process.env.POE_CODE_THEME;
+    process.env.POE_THEME = "light";
+    resetThemeCache();
+    const aliasLightOutput = renderMarkdown(markdown);
+
+    expect(aliasLightOutput).toBe(canonicalLightOutput);
+    expect(stripAnsi(aliasLightOutput)).toContain("Pay attention");
+    expect(aliasLightOutput.includes("\u001B[")).toBe(true);
   });
 
   it("renders README-style markdown with badges, headings, code blocks, and links (test 155)", () => {
@@ -498,4 +530,38 @@ describe("terminal markdown integration", () => {
     expect(output.includes("\u001B[")).toBe(true);
     expect(elapsed).toBeLessThan(200);
   });
+});
+
+describe("terminal markdown theme validation via terminal-pilot", () => {
+  const fixturePath = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "testing",
+    "theme-render-fixture.ts"
+  );
+  const tsxPath = path.resolve("node_modules/.bin/tsx");
+
+  it("dark and light themes render readable, visually distinct ANSI output", async () => {
+    const pilot = await TerminalPilot.launch();
+
+    try {
+      const session = await pilot.newSession({
+        command: tsxPath,
+        args: [fixturePath],
+        cwd: process.cwd(),
+        env: { ...process.env }
+      });
+
+      await session.waitFor("THEMES_VALIDATED", { timeout: 15_000 });
+      await session.waitForExit({ timeout: 5_000 });
+
+      const history = await session.history();
+      const output = history.join("\n");
+
+      expect(session.exitCode).toBe(0);
+      expect(output).toContain("Dark Theme");
+      expect(output).toContain("Light Theme");
+    } finally {
+      await pilot.close();
+    }
+  }, 25_000);
 });

@@ -1,5 +1,18 @@
-type Cell = [number, string] | null;
+type Cell = ([number, string] & { style?: string }) | null;
 type Row = Cell[];
+
+interface SgrStyleState {
+  bold: boolean;
+  dim: boolean;
+  italic: boolean;
+  underline: boolean;
+  inverse: boolean;
+  strikethrough: boolean;
+  fg?: number[];
+  bg?: number[];
+}
+
+const RESET_SGR = "\x1b[0m";
 
 const enum State {
   Normal,
@@ -23,6 +36,8 @@ export class TerminalBuffer {
   private _state = State.Normal;
   private _csiParams = "";
   private _csiPrivate = "";
+  private _style: SgrStyleState = createDefaultStyleState();
+  private _styleSequence = "";
 
   readonly displayBuffer: {
     readonly cursorX: number;
@@ -50,6 +65,43 @@ export class TerminalBuffer {
     for (const ch of data) {
       this._feed(ch);
     }
+  }
+
+  renderLine(row: number): string {
+    const cells = this._screen[row] ?? [];
+    let lastVisibleCell = -1;
+
+    for (let index = cells.length - 1; index >= 0; index -= 1) {
+      if (cells[index] !== null) {
+        lastVisibleCell = index;
+        break;
+      }
+    }
+
+    if (lastVisibleCell === -1) {
+      return "";
+    }
+
+    let line = "";
+    let activeStyle = "";
+
+    for (let index = 0; index <= lastVisibleCell; index += 1) {
+      const cell = cells[index];
+      const cellStyle = cell?.style ?? "";
+
+      if (cellStyle !== activeStyle) {
+        line += cellStyle.length > 0 ? cellStyle : RESET_SGR;
+        activeStyle = cellStyle;
+      }
+
+      line += cell?.[1] ?? " ";
+    }
+
+    if (activeStyle.length > 0) {
+      line += RESET_SGR;
+    }
+
+    return line;
   }
 
   resize(cols: number, rows: number): void {
@@ -90,7 +142,17 @@ export class TerminalBuffer {
   private _setChar(y: number, x: number, ch: string): void {
     const row = this._screen[y];
     if (row && x >= 0 && x < this._cols) {
-      row[x] = [ch.charCodeAt(0), ch];
+      const cell = [ch.charCodeAt(0), ch] as Exclude<Cell, null>;
+
+      if (this._styleSequence.length > 0) {
+        Object.defineProperty(cell, "style", {
+          value: this._styleSequence,
+          writable: true,
+          configurable: true
+        });
+      }
+
+      row[x] = cell;
     }
   }
 
@@ -147,6 +209,7 @@ export class TerminalBuffer {
             this._cursorX = 0;
             this._cursorY = 0;
           }
+          this._resetStyle();
         }
       }
       return;
@@ -278,7 +341,8 @@ export class TerminalBuffer {
         this._cursorX = this._clamp(this._savedCursor.x, 0, this._cols - 1);
         this._cursorY = this._clamp(this._savedCursor.y, 0, this._rows - 1);
         break;
-      case "m": // SGR — ignore (we don't track attributes)
+      case "m":
+        this._applySgr(params);
         break;
       default:
         break;
@@ -425,6 +489,7 @@ export class TerminalBuffer {
       this._savedCursor = { x: 0, y: 0 };
       this._scrollTop = 0;
       this._scrollBottom = this._rows - 1;
+      this._resetStyle();
     }
     // All other ESC sequences: two-char, already consumed — ignore
   }
@@ -443,4 +508,146 @@ export class TerminalBuffer {
     }
     // Other bytes ignored
   }
+
+  private _resetStyle(): void {
+    this._style = createDefaultStyleState();
+    this._styleSequence = "";
+  }
+
+  private _applySgr(params: number[]): void {
+    const normalizedParams = params.length === 0 ? [0] : params;
+
+    for (let index = 0; index < normalizedParams.length; index += 1) {
+      const value = normalizedParams[index] ?? 0;
+
+      switch (value) {
+        case 0:
+          this._resetStyle();
+          break;
+        case 1:
+          this._style.bold = true;
+          break;
+        case 2:
+          this._style.dim = true;
+          break;
+        case 3:
+          this._style.italic = true;
+          break;
+        case 4:
+          this._style.underline = true;
+          break;
+        case 7:
+          this._style.inverse = true;
+          break;
+        case 9:
+          this._style.strikethrough = true;
+          break;
+        case 21:
+        case 22:
+          this._style.bold = false;
+          this._style.dim = false;
+          break;
+        case 23:
+          this._style.italic = false;
+          break;
+        case 24:
+          this._style.underline = false;
+          break;
+        case 27:
+          this._style.inverse = false;
+          break;
+        case 29:
+          this._style.strikethrough = false;
+          break;
+        case 39:
+          this._style.fg = undefined;
+          break;
+        case 49:
+          this._style.bg = undefined;
+          break;
+        case 38:
+        case 48:
+          index = this._applyExtendedColor(value, normalizedParams, index);
+          break;
+        default:
+          if ((value >= 30 && value <= 37) || (value >= 90 && value <= 97)) {
+            this._style.fg = [value];
+          } else if ((value >= 40 && value <= 47) || (value >= 100 && value <= 107)) {
+            this._style.bg = [value];
+          }
+          break;
+      }
+    }
+
+    this._styleSequence = serializeStyleState(this._style);
+  }
+
+  private _applyExtendedColor(control: 38 | 48, params: number[], index: number): number {
+    const mode = params[index + 1];
+    const target = control === 38 ? "fg" : "bg";
+
+    if (mode === 5) {
+      const paletteIndex = params[index + 2];
+      if (paletteIndex !== undefined) {
+        this._style[target] = [control, 5, paletteIndex];
+        return index + 2;
+      }
+
+      return index;
+    }
+
+    if (mode === 2) {
+      const red = params[index + 2];
+      const green = params[index + 3];
+      const blue = params[index + 4];
+      if (red !== undefined && green !== undefined && blue !== undefined) {
+        this._style[target] = [control, 2, red, green, blue];
+        return index + 4;
+      }
+    }
+
+    return index;
+  }
+}
+
+function createDefaultStyleState(): SgrStyleState {
+  return {
+    bold: false,
+    dim: false,
+    italic: false,
+    underline: false,
+    inverse: false,
+    strikethrough: false
+  };
+}
+
+function serializeStyleState(state: SgrStyleState): string {
+  const codes: number[] = [];
+
+  if (state.bold) {
+    codes.push(1);
+  }
+  if (state.dim) {
+    codes.push(2);
+  }
+  if (state.italic) {
+    codes.push(3);
+  }
+  if (state.underline) {
+    codes.push(4);
+  }
+  if (state.inverse) {
+    codes.push(7);
+  }
+  if (state.strikethrough) {
+    codes.push(9);
+  }
+  if (state.fg !== undefined) {
+    codes.push(...state.fg);
+  }
+  if (state.bg !== undefined) {
+    codes.push(...state.bg);
+  }
+
+  return codes.length === 0 ? "" : `\x1b[${codes.join(";")}m`;
 }

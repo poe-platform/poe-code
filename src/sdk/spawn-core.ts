@@ -1,4 +1,3 @@
-import path from "node:path";
 import chalk from "chalk";
 import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
 import { resolveConfigModel } from "@poe-code/poe-code-config";
@@ -11,11 +10,12 @@ import {
 import type { SpawnCommandOptions } from "../providers/spawn-options.js";
 import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 import type { CommandRunnerResult } from "../utils/command-checks.js";
+import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 
 export interface SpawnCoreOptions {
   /** The prompt to send to the provider */
   prompt: string;
-  /** Working directory for the service CLI */
+  /** Working directory or workspace locator for the service CLI */
   cwd?: string;
   /** Model identifier override */
   model?: string;
@@ -50,83 +50,84 @@ export async function spawnCore(
   }
 
   const model = await resolveConfiguredModel(container, service, options.model);
-
-  // Resolve working directory
-  const cwdOverride = resolveSpawnWorkingDirectory(
-    container.env.cwd,
-    options.cwd
-  );
-
-  // Build spawn command options (internal format)
-  const spawnOptions: SpawnCommandOptions = {
-    prompt: options.prompt,
-    args: options.args,
-    model,
+  const workspace = await resolveSpawnWorkspace(options.cwd, {
+    baseDir: container.env.cwd,
+    homeDir: container.env.homeDir,
     mode: options.mode,
-    mcpServers: options.mcpServers,
-    cwd: cwdOverride,
-    useStdin: options.useStdin ?? false
-  };
+    resolveRemoteLocators: !flags.dryRun,
+    fs: container.fs,
+    exec: container.commandRunner
+  });
+  const cwdOverride = workspace.cwd;
 
-  // Create execution resources (logger, context)
-  const commandFlags = { dryRun: flags.dryRun, assumeYes: true, verbose: flags.verbose };
-  const resources = createExecutionResources(
-    container,
-    commandFlags,
-    `spawn:${service}`
-  );
-
-  // Handle dry run
-  if (flags.dryRun) {
-    const summary = formatSpawnDryRunMessage(adapter.label, spawnOptions);
-    resources.logger.dryRun(summary);
-    return {
-      stdout: "",
-      stderr: "",
-      exitCode: 0
+  try {
+    const spawnOptions: SpawnCommandOptions = {
+      prompt: options.prompt,
+      args: options.args,
+      model,
+      mode: options.mode,
+      mcpServers: options.mcpServers,
+      cwd: cwdOverride,
+      useStdin: options.useStdin ?? false
     };
-  }
 
-  if (typeof adapter.spawn !== "function") {
-    throw new Error(`${adapter.label} does not support spawn.`);
-  }
-
-  if (spawnOptions.useStdin && !adapter.supportsStdinPrompt) {
-    throw new Error(
-      `${adapter.label} does not support stdin prompts. Use a different service (e.g. "codex") or pass the prompt as an argument.`
+    const commandFlags = { dryRun: flags.dryRun, assumeYes: true, verbose: flags.verbose };
+    const resources = createExecutionResources(
+      container,
+      commandFlags,
+      `spawn:${service}`
     );
-  }
 
-  // Build provider context
-  const providerContext = buildProviderContext(container, adapter, resources);
-
-  // Invoke spawn through registry
-  const result = (await container.registry.invoke(
-    adapter.name,
-    "spawn",
-    async (entry) => {
-      if (!entry.spawn) {
-        throw new Error(`${adapter.label} does not support spawn.`);
-      }
-      const output = await entry.spawn(providerContext, spawnOptions);
-      return output as CommandRunnerResult | void;
+    if (flags.dryRun) {
+      const summary = formatSpawnDryRunMessage(adapter.label, spawnOptions);
+      resources.logger.dryRun(summary);
+      return {
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      };
     }
-  )) as CommandRunnerResult | void;
 
-  // Return normalized result
-  if (!result) {
+    if (typeof adapter.spawn !== "function") {
+      throw new Error(`${adapter.label} does not support spawn.`);
+    }
+
+    if (spawnOptions.useStdin && !adapter.supportsStdinPrompt) {
+      throw new Error(
+        `${adapter.label} does not support stdin prompts. Use a different service (e.g. "codex") or pass the prompt as an argument.`
+      );
+    }
+
+    const providerContext = buildProviderContext(container, adapter, resources);
+
+    const result = (await container.registry.invoke(
+      adapter.name,
+      "spawn",
+      async (entry) => {
+        if (!entry.spawn) {
+          throw new Error(`${adapter.label} does not support spawn.`);
+        }
+        const output = await entry.spawn(providerContext, spawnOptions);
+        return output as CommandRunnerResult | void;
+      }
+    )) as CommandRunnerResult | void;
+
+    if (!result) {
+      return {
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      };
+    }
+
     return {
-      stdout: "",
-      stderr: "",
-      exitCode: 0
+      stdout: result.stdout,
+      stderr: result.stderr,
+      exitCode: result.exitCode
     };
+  } finally {
+    await workspace.cleanup?.();
   }
-
-  return {
-    stdout: result.stdout,
-    stderr: result.stderr,
-    exitCode: result.exitCode
-  };
 }
 
 export async function resolveConfiguredModel(
@@ -193,17 +194,4 @@ function formatSpawnArg(arg: string): string {
 
 function formatQuoted(value: string): string {
   return JSON.stringify(value);
-}
-
-function resolveSpawnWorkingDirectory(
-  baseDir: string,
-  candidate?: string
-): string | undefined {
-  if (!candidate || candidate.trim().length === 0) {
-    return undefined;
-  }
-  if (path.isAbsolute(candidate)) {
-    return candidate;
-  }
-  return path.resolve(baseDir, candidate);
 }

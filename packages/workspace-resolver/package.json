@@ -1,0 +1,22 @@
+{
+  "name": "@poe-code/workspace-resolver",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run --config vitest.config.ts packages/workspace-resolver/src/**/*.test.ts",
+    "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/workspace-resolver/src/**/*.test.ts"
+  },
+  "files": [
+    "dist"
+  ]
+}

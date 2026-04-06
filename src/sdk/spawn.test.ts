@@ -8,6 +8,7 @@ const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
 const sessionCaptureMock = vi.hoisted(() => vi.fn());
 const usageCaptureMock = vi.hoisted(() => vi.fn());
 const spawnLogMock = vi.hoisted(() => vi.fn());
+const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: vi.fn(),
@@ -16,6 +17,7 @@ vi.mock("@poe-code/agent-spawn", () => ({
   spawnInteractive: vi.fn(),
   getAcpSpawnConfig: vi.fn(),
   getSpawnConfig: vi.fn(),
+  runCommand: vi.fn(),
   renderAcpStream: vi.fn(),
   applyMiddlewares: applyMiddlewaresMock,
   sessionCapture: sessionCaptureMock,
@@ -35,6 +37,14 @@ vi.mock("./container.js", () => ({
   createSdkContainer: vi.fn()
 }));
 
+vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/workspace-resolver")>();
+  return {
+    ...actual,
+    resolveWorkspace: resolveWorkspaceMock
+  };
+});
+
 import { spawn } from "./spawn.js";
 import {
   getAcpSpawnConfig,
@@ -51,6 +61,7 @@ import {
 } from "@poe-code/agent-spawn";
 import { spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
+import { resolveWorkspace } from "@poe-code/workspace-resolver";
 
 const originalEnv = { ...process.env };
 const homeDir = "/home/test";
@@ -75,7 +86,12 @@ beforeEach(() => {
   vi.mocked(renderAcpStream).mockReset();
   vi.mocked(applyMiddlewares).mockReset();
   vi.mocked(getAcpSpawnConfig).mockReturnValue(undefined);
+  vi.mocked(resolveWorkspace).mockReset();
   vi.mocked(renderAcpStream).mockResolvedValue(undefined);
+  vi.mocked(resolveWorkspace).mockImplementation(async (input) => ({
+    cwd: input,
+    locator: { scheme: "local", path: input }
+  }));
   vi.mocked(createSdkContainer).mockImplementation(() => ({
     fs: createMemFs(),
     env: { configPath: resolveConfigPath(homeDir) },
@@ -585,6 +601,77 @@ describe("SDK spawn()", () => {
       model: "gpt-4",
       args: ["--extra"]
     });
+  });
+
+  it("resolves workspace locators before spawning streaming agents", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("codex", "inspect the repo", {
+      cwd: "github://poe-platform/poe-code",
+      mode: "read"
+    });
+
+    await result;
+
+    expect(resolveWorkspace).toHaveBeenCalledWith(
+      "github://poe-platform/poe-code",
+      expect.objectContaining({
+        mode: "read"
+      })
+    );
+    expect(createSdkContainer).toHaveBeenCalledWith({ cwd: "/tmp/workspaces/poe-code" });
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/tmp/workspaces/poe-code"
+      })
+    );
+  });
+
+  it("cleans up writable resolved workspaces after the spawn completes", async () => {
+    const cleanup = vi.fn(async () => {});
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      cleanup,
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("codex", "inspect the repo", {
+      cwd: "github://poe-platform/poe-code",
+      mode: "edit"
+    });
+
+    await result;
+
+    expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
   it("uses normal spawn flow when interactive is false", async () => {

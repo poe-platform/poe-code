@@ -1,5 +1,6 @@
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { parseLocator } from "@poe-code/workspace-resolver";
 import {
   followManagedLogs,
   listManagedProcesses,
@@ -68,10 +69,11 @@ export async function startLaunch(options: StartLaunchOptions): Promise<ManagedP
   const variables = options.variables ?? process.env;
   const executionContext = getCurrentExecutionContext(import.meta.url);
   const runner = createHostRunner({ detached: true });
+  const spec = normalizeLaunchSpec(options.spec, cwd);
 
   return await startManagedProcess({
     baseDir: resolveLaunchBaseDir(homeDir),
-    spec: options.spec,
+    spec,
     spawnDaemon: async (id) => {
       const handle = runner.exec({
         args: [...executionContext.command.args, "launch", "__run", id],
@@ -183,6 +185,23 @@ function resolveHomeDir(homeDir: string | undefined): string {
     return homeDir;
   }
   return process.env.HOME ?? process.cwd();
+}
+
+function normalizeLaunchSpec(spec: ProcessSpec, baseDir: string): ProcessSpec {
+  if (!spec.cwd) {
+    return spec;
+  }
+
+  const locator = parseLocator(spec.cwd);
+  if (locator.scheme !== "local") {
+    return spec;
+  }
+
+  const cwd = path.isAbsolute(locator.path) ? locator.path : path.resolve(baseDir, locator.path);
+  return {
+    ...spec,
+    cwd
+  };
 }
 
 function sendSignalToManagedProcess(pid: number, signal: NodeJS.Signals): void {

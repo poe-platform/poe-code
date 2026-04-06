@@ -146,6 +146,23 @@ describe("root command", () => {
     expect(hasVerbose).toBe(true);
   });
 
+  it("does not register the legacy research command", () => {
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    const command = program.commands.find((entry) => entry.name() === "research");
+    expect(command).toBeUndefined();
+  });
+
   it("registers the github-workflows command with the gh alias", () => {
     const fs = createMemFs();
     const prompts = vi.fn().mockResolvedValue({});

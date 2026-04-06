@@ -1,4 +1,3 @@
-import path from "node:path";
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import {
@@ -27,6 +26,7 @@ import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
+import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -61,7 +61,7 @@ export function registerSpawnCommand(
     .alias("s")
     .description("Run a single prompt through a configured agent CLI.")
     .option("--model <model>", "Model identifier override passed to the agent CLI")
-    .option("-C, --cwd <path>", "Working directory for the agent CLI")
+    .option("-C, --cwd <path>", "Working directory or workspace locator for the agent CLI")
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
@@ -94,7 +94,6 @@ export function registerSpawnCommand(
       }>();
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
       const mcpServers = parseMcpSpawnConfig(commandOptions.mcpConfig);
-      const cwdOverride = resolveSpawnWorkingDirectory(container.env.cwd, commandOptions.cwd);
 
       const wantsStdinFlag = commandOptions.stdin === true;
       const shouldReadFromStdin =
@@ -112,36 +111,6 @@ export function registerSpawnCommand(
         promptText = undefined;
       }
 
-      if (commandOptions.interactive) {
-        const adapter = resolveServiceAdapter(container, service);
-        const canonicalService = adapter.name;
-        assertInteractiveSupport(adapter.label, canonicalService);
-        const proceed = await confirmUnconfiguredService(
-          container,
-          canonicalService,
-          adapter.label,
-          flags
-        );
-        if (!proceed) {
-          return;
-        }
-        const model = await resolveConfiguredModel(
-          container,
-          canonicalService,
-          commandOptions.model
-        );
-        const result = await spawnInteractive(canonicalService, {
-          prompt: promptText ?? "",
-          args: forwardedArgs,
-          model,
-          mode: commandOptions.mode as SpawnMode | undefined,
-          ...(mcpServers ? { mcpServers } : {}),
-          cwd: cwdOverride
-        });
-        process.exitCode = result.exitCode;
-        return;
-      }
-
       if (!promptText && shouldReadFromStdin) {
         const chunks: Buffer[] = [];
         for await (const chunk of process.stdin) {
@@ -150,171 +119,214 @@ export function registerSpawnCommand(
         promptText = Buffer.concat(chunks).toString("utf8").trim();
       }
 
-      if (!promptText) {
+      if (!promptText && !commandOptions.interactive) {
         throw new Error("No prompt provided via argument or stdin");
       }
+      const prompt = promptText ?? "";
 
-      const directSpawnOptions: SpawnCommandOptions = {
-        prompt: promptText,
-        args: forwardedArgs,
-        model: commandOptions.model,
+      const workspace = await resolveSpawnWorkspace(commandOptions.cwd, {
+        baseDir: container.env.cwd,
+        homeDir: container.env.homeDir,
         mode: commandOptions.mode as SpawnMode | undefined,
-        mcpServers,
-        cwd: cwdOverride,
-        logDir: commandOptions.logDir,
-        activityTimeoutMs: commandOptions.activityTimeoutMs,
-        useStdin: shouldReadFromStdin
-      };
+        resolveRemoteLocators: !flags.dryRun,
+        fs: container.fs,
+        exec: container.commandRunner
+      });
+      const cwdOverride = workspace.cwd;
 
-      // Check for custom handlers first
-      const directHandler = options.handlers?.[service];
-      if (directHandler) {
-        const resources = createExecutionResources(container, flags, `spawn:${service}`);
-        if (shouldEmitUiOutput) {
-          resources.logger.intro(`spawn ${service}`);
-        }
-        await directHandler({
-          container,
-          service,
-          options: directSpawnOptions,
-          flags,
-          resources
-        });
-        if (shouldEmitUiOutput) {
-          resources.context.finalize();
-        }
-        return;
-      }
-
-      const adapter = resolveServiceAdapter(container, service);
-      const canonicalService = adapter.name;
-      const model = await resolveConfiguredModel(
-        container,
-        canonicalService,
-        commandOptions.model
-      );
-      const spawnOptions: SpawnCommandOptions = {
-        ...directSpawnOptions,
-        model
-      };
-      const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
-      if (shouldEmitUiOutput) {
-        resources.logger.intro(`spawn ${canonicalService}`);
-      }
-      const canonicalHandler = options.handlers?.[canonicalService];
-      if (canonicalHandler) {
-        try {
-          await canonicalHandler({
+      try {
+        if (commandOptions.interactive) {
+          const adapter = resolveServiceAdapter(container, service);
+          const canonicalService = adapter.name;
+          assertInteractiveSupport(adapter.label, canonicalService);
+          const proceed = await confirmUnconfiguredService(
             container,
-            service: canonicalService,
-            options: spawnOptions,
+            canonicalService,
+            adapter.label,
+            flags
+          );
+          if (!proceed) {
+            return;
+          }
+          const model = await resolveConfiguredModel(
+            container,
+            canonicalService,
+            commandOptions.model
+          );
+          const result = await spawnInteractive(canonicalService, {
+            prompt,
+            args: forwardedArgs,
+            model,
+            mode: commandOptions.mode as SpawnMode | undefined,
+            ...(mcpServers ? { mcpServers } : {}),
+            cwd: cwdOverride
+          });
+          process.exitCode = result.exitCode;
+          return;
+        }
+
+        const directSpawnOptions: SpawnCommandOptions = {
+          prompt,
+          args: forwardedArgs,
+          model: commandOptions.model,
+          mode: commandOptions.mode as SpawnMode | undefined,
+          mcpServers,
+          cwd: cwdOverride,
+          logDir: commandOptions.logDir,
+          activityTimeoutMs: commandOptions.activityTimeoutMs,
+          useStdin: shouldReadFromStdin
+        };
+
+        const directHandler = options.handlers?.[service];
+        if (directHandler) {
+          const resources = createExecutionResources(container, flags, `spawn:${service}`);
+          if (shouldEmitUiOutput) {
+            resources.logger.intro(`spawn ${service}`);
+          }
+          await directHandler({
+            container,
+            service,
+            options: directSpawnOptions,
             flags,
             resources
           });
+          if (shouldEmitUiOutput) {
+            resources.context.finalize();
+          }
           return;
+        }
+
+        const adapter = resolveServiceAdapter(container, service);
+        const canonicalService = adapter.name;
+        const model = await resolveConfiguredModel(
+          container,
+          canonicalService,
+          commandOptions.model
+        );
+        const spawnOptions: SpawnCommandOptions = {
+          ...directSpawnOptions,
+          model
+        };
+        const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
+        if (shouldEmitUiOutput) {
+          resources.logger.intro(`spawn ${canonicalService}`);
+        }
+        const canonicalHandler = options.handlers?.[canonicalService];
+        if (canonicalHandler) {
+          try {
+            await canonicalHandler({
+              container,
+              service: canonicalService,
+              options: spawnOptions,
+              flags,
+              resources
+            });
+            return;
+          } finally {
+            if (shouldEmitUiOutput) {
+              resources.context.finalize();
+            }
+          }
+        }
+
+        try {
+          assertSpawnSupport(adapter.label, canonicalService, typeof adapter.spawn === "function");
+
+          assertMcpSpawnSupport(
+            adapter.label,
+            canonicalService,
+            adapter.supportsMcpSpawn === true,
+            mcpServers
+          );
+
+          if (flags.dryRun) {
+            await spawnCore(container, canonicalService, spawnOptions, {
+              dryRun: true,
+              verbose: flags.verbose
+            });
+            return;
+          }
+
+          const proceed = await confirmUnconfiguredService(
+            container,
+            canonicalService,
+            adapter.label,
+            flags
+          );
+          if (!proceed) {
+            return;
+          }
+
+          const { events, result } = spawnSdk(canonicalService, {
+            prompt: spawnOptions.prompt,
+            args: spawnOptions.args,
+            model: spawnOptions.model,
+            mode: spawnOptions.mode,
+            cwd: spawnOptions.cwd,
+            ...(spawnOptions.mcpServers ? { mcpConfig: spawnOptions.mcpServers } : {}),
+            ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
+            ...(spawnOptions.activityTimeoutMs !== undefined
+              ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
+              : {})
+          });
+
+          await renderAcpStream(events);
+
+          const final = await result;
+          process.exitCode = final.exitCode;
+
+          if (!shouldEmitUiOutput) {
+            renderAcpEvent({
+              event: "spawn_result",
+              exitCode: final.exitCode,
+              ...(final.threadId ? { threadId: final.threadId } : {}),
+              ...(final.usage ? { usage: final.usage } : {}),
+              protocolVersion: 1
+            });
+          }
+
+          if (final.exitCode !== 0) {
+            if (!shouldEmitUiOutput) {
+              return;
+            }
+            const detail = final.stderr.trim() || final.stdout.trim();
+            const suffix = detail ? `: ${detail}` : "";
+            throw new Error(
+              `${adapter.label} spawn failed with exit code ${final.exitCode}${suffix}`
+            );
+          }
+
+          if (shouldEmitUiOutput) {
+            const trimmedStdout = final.stdout.trim();
+            if (trimmedStdout) {
+              resources.logger.info(trimmedStdout);
+            } else {
+              const trimmedStderr = final.stderr.trim();
+              if (trimmedStderr) {
+                resources.logger.info(trimmedStderr);
+              } else {
+                resources.logger.info(`${adapter.label} spawn completed.`);
+              }
+            }
+          }
+
+          if (shouldEmitUiOutput && final.threadId) {
+            const resumeCommand = buildResumeCommand(
+              canonicalService,
+              final.threadId,
+              spawnOptions.cwd ?? process.cwd()
+            );
+            if (resumeCommand) {
+              resources.logger.info(text.muted(`\nResume: ${resumeCommand}`));
+            }
+          }
         } finally {
           if (shouldEmitUiOutput) {
             resources.context.finalize();
           }
         }
-      }
-
-      try {
-        assertSpawnSupport(adapter.label, canonicalService, typeof adapter.spawn === "function");
-
-        assertMcpSpawnSupport(
-          adapter.label,
-          canonicalService,
-          adapter.supportsMcpSpawn === true,
-          mcpServers
-        );
-
-        if (flags.dryRun) {
-          // spawnCore already logs the dry run details.
-          await spawnCore(container, canonicalService, spawnOptions, {
-            dryRun: true,
-            verbose: flags.verbose
-          });
-          return;
-        }
-
-        const proceed = await confirmUnconfiguredService(
-          container,
-          canonicalService,
-          adapter.label,
-          flags
-        );
-        if (!proceed) {
-          return;
-        }
-
-        const { events, result } = spawnSdk(canonicalService, {
-          prompt: spawnOptions.prompt,
-          args: spawnOptions.args,
-          model: spawnOptions.model,
-          mode: spawnOptions.mode,
-          cwd: spawnOptions.cwd,
-          ...(spawnOptions.mcpServers ? { mcpConfig: spawnOptions.mcpServers } : {}),
-          ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
-          ...(spawnOptions.activityTimeoutMs !== undefined
-            ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
-            : {})
-        });
-
-        await renderAcpStream(events);
-
-        const final = await result;
-        process.exitCode = final.exitCode;
-
-        if (!shouldEmitUiOutput) {
-          renderAcpEvent({
-            event: "spawn_result",
-            exitCode: final.exitCode,
-            ...(final.threadId ? { threadId: final.threadId } : {}),
-            ...(final.usage ? { usage: final.usage } : {}),
-            protocolVersion: 1
-          });
-        }
-
-        if (final.exitCode !== 0) {
-          if (!shouldEmitUiOutput) {
-            return;
-          }
-          const detail = final.stderr.trim() || final.stdout.trim();
-          const suffix = detail ? `: ${detail}` : "";
-          throw new Error(
-            `${adapter.label} spawn failed with exit code ${final.exitCode}${suffix}`
-          );
-        }
-
-        if (shouldEmitUiOutput) {
-          const trimmedStdout = final.stdout.trim();
-          if (trimmedStdout) {
-            resources.logger.info(trimmedStdout);
-          } else {
-            const trimmedStderr = final.stderr.trim();
-            if (trimmedStderr) {
-              resources.logger.info(trimmedStderr);
-            } else {
-              resources.logger.info(`${adapter.label} spawn completed.`);
-            }
-          }
-        }
-
-        if (shouldEmitUiOutput && final.threadId) {
-          const resumeCommand = buildResumeCommand(
-            canonicalService,
-            final.threadId,
-            spawnOptions.cwd ?? process.cwd()
-          );
-          if (resumeCommand) {
-            resources.logger.info(text.muted(`\nResume: ${resumeCommand}`));
-          }
-        }
       } finally {
-        if (shouldEmitUiOutput) {
-          resources.context.finalize();
-        }
+        await workspace.cleanup?.();
       }
     });
 }
@@ -348,16 +360,6 @@ async function confirmUnconfiguredService(
   }
 
   return shouldProceed === true;
-}
-
-function resolveSpawnWorkingDirectory(baseDir: string, candidate?: string): string | undefined {
-  if (!candidate || candidate.trim().length === 0) {
-    return undefined;
-  }
-  if (path.isAbsolute(candidate)) {
-    return candidate;
-  }
-  return path.resolve(baseDir, candidate);
 }
 
 function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {

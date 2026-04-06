@@ -19,10 +19,19 @@ import type {
 
 const confirmMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
+const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
 }));
+
+vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/workspace-resolver")>();
+  return {
+    ...actual,
+    resolveWorkspace: resolveWorkspaceMock
+  };
+});
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
@@ -45,6 +54,7 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { getSpawnConfig, spawnInteractive, supportsMcpAtSpawn } from "@poe-code/agent-spawn";
+import { resolveWorkspace } from "@poe-code/workspace-resolver";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -144,6 +154,11 @@ describe("spawn command", () => {
     vi.mocked(sdkSpawn).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+    vi.mocked(resolveWorkspace).mockReset();
+    vi.mocked(resolveWorkspace).mockImplementation(async (input, options) => ({
+      cwd: path.isAbsolute(input) ? input : path.join(options.baseDir, input),
+      locator: { scheme: "local", path: input }
     }));
   });
 
@@ -429,6 +444,34 @@ describe("spawn command", () => {
     );
     expect(dryRunLog).toBeTruthy();
     expect(dryRunLog).toContain("Prompt:");
+  });
+
+  it("does not resolve workspace locators during dry run spawn", async () => {
+    const logs: string[] = [];
+    const { runner, calls } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "spawn",
+      "--cwd",
+      "github://poe-platform/poe-code",
+      "claude-code",
+      "Dry run prompt"
+    ]);
+
+    expect(calls).toHaveLength(0);
+    expect(sdkSpawn).not.toHaveBeenCalled();
+    expect(resolveWorkspace).not.toHaveBeenCalled();
+    expect(logs.some((line) => line.includes("github://poe-platform/poe-code"))).toBe(true);
   });
 
   it("invokes custom spawn handlers when provided", async () => {
@@ -724,6 +767,55 @@ describe("spawn command", () => {
       model: DEFAULT_CODEX_MODEL,
       cwd: resolved
     });
+  });
+
+  it("resolves workspace locators before interactive spawns", async () => {
+    const cleanup = vi.fn(async () => {});
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      cleanup,
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    vi.mocked(spawnInteractive).mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--interactive",
+      "--cwd",
+      "github://poe-platform/poe-code",
+      "codex",
+      "Inspect the repo"
+    ]);
+
+    expect(resolveWorkspace).toHaveBeenCalledWith(
+      "github://poe-platform/poe-code",
+      expect.objectContaining({
+        baseDir: cwd,
+        homeDir
+      })
+    );
+    expect(spawnInteractive).toHaveBeenCalledWith("codex", {
+      prompt: "Inspect the repo",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      cwd: "/tmp/workspaces/poe-code",
+      mode: undefined
+    });
+    expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
   it("consumes prompt text from stdin when no prompt argument is provided", async () => {

@@ -21,6 +21,9 @@ from poe_spawn import Agent, AgentMessageEvent, spawn
 
 handle = spawn(Agent.CODEX, "Fix the auth bug", cwd="/repo")
 
+# or spawn against a GitHub repository
+handle = spawn(Agent.CODEX, "Fix the auth bug", cwd="github://owner/repo#main")
+
 for event in handle.events:
     if isinstance(event, AgentMessageEvent):
         print(event.text, end="")
@@ -48,7 +51,7 @@ and returns a synthesized `SpawnResultEvent` with the child exit code.
 
 Keyword options:
 
-- `cwd: str | None` - Passed to `poe-code spawn --cwd`
+- `cwd: str | None` - Working directory or workspace locator. Supports local paths and `github://owner/repo[#ref[:subdir]]`. Passed to `poe-code spawn --cwd`
 - `model: str | None` - Passed to `--model`
 - `mode: SpawnMode | str | None` - Passed to `--mode`
 - `args: Sequence[str] | None` - Extra agent CLI args appended after the prompt

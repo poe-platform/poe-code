@@ -6,7 +6,7 @@ import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 export interface SpawnOptions {
   /** The prompt to send to the provider */
   prompt: string;
-  /** Working directory for the service CLI */
+  /** Working directory or workspace locator for the service CLI */
   cwd?: string;
   /** Model identifier override */
   model?: string;

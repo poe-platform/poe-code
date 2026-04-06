@@ -73,6 +73,54 @@ describe("launch sdk", () => {
     );
   });
 
+  it("resolves relative local spec.cwd before persisting the launch spec", async () => {
+    startManagedProcessMock.mockResolvedValue({ id: "api" });
+
+    await startLaunch({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      spec: {
+        id: "api",
+        command: "npm",
+        args: ["run", "dev"],
+        cwd: "./apps/api",
+        restart: "on-failure"
+      }
+    });
+
+    expect(startManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spec: expect.objectContaining({
+          cwd: "/repo/apps/api"
+        })
+      })
+    );
+  });
+
+  it("preserves remote workspace locators in the persisted launch spec", async () => {
+    startManagedProcessMock.mockResolvedValue({ id: "api" });
+
+    await startLaunch({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      spec: {
+        id: "api",
+        command: "npm",
+        args: ["run", "dev"],
+        cwd: "github://poe-platform/poe-code",
+        restart: "on-failure"
+      }
+    });
+
+    expect(startManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spec: expect.objectContaining({
+          cwd: "github://poe-platform/poe-code"
+        })
+      })
+    );
+  });
+
   it("forwards the remaining launch operations", async () => {
     await stopLaunch({ homeDir: "/home/test", id: "api" });
     await restartLaunch({ homeDir: "/home/test", id: "api" });

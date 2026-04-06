@@ -1,3 +1,8 @@
+---
+status:
+  state: completed
+  iteration: 10
+---
 # Workspace Locators
 
 Replace the `research` command with a workspace locator abstraction in `spawn`.

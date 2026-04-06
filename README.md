@@ -68,6 +68,13 @@ Utilities are especially useful for scripting and CI/CD.
 npx poe-code@latest spawn codex "Say hello"
 ```
 
+#### Spawn against a GitHub repository
+
+```bash
+npx poe-code@latest spawn codex "Fix the failing tests" --cwd github://owner/repo
+npx poe-code@latest spawn codex "Review the auth module" --cwd github://owner/repo#main:packages/auth
+```
+
 #### Spawn a prompt via stdin
 
 ```bash
@@ -176,6 +183,12 @@ const result = await spawn("claude-code", {
   model: "claude-sonnet-4-6"
 });
 
+// Spawn against a GitHub repository
+const { events, result: ghResult } = spawn("codex", {
+  prompt: "Review the auth module",
+  cwd: "github://owner/repo#main:packages/auth"
+});
+
 console.log(result.stdout);
 ```
 
@@ -185,8 +198,9 @@ Runs a single prompt through a configured service CLI.
 
 - `service` – Service identifier (`claude-code`, `codex`, `opencode`)
 - `options.prompt` – The prompt to send
-- `options.cwd` – Working directory for the service CLI (optional)
+- `options.cwd` – Working directory or workspace locator (optional). Supports local paths and `github://owner/repo[#ref[:subdir]]` locators. See [@poe-code/workspace-resolver](packages/workspace-resolver/) for the full locator syntax.
 - `options.model` – Model identifier override (optional)
+- `options.mode` – Permission mode: `yolo`, `edit`, or `read` (optional)
 - `options.args` – Additional arguments forwarded to the CLI (optional)
 
 Returns `{ stdout, stderr, exitCode }`.

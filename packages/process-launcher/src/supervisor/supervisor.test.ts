@@ -8,6 +8,17 @@ import type {
   ProcessState,
   SupervisorOptions
 } from "../types.js";
+
+const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/workspace-resolver")>();
+  return {
+    ...actual,
+    resolveWorkspace: resolveWorkspaceMock
+  };
+});
+
 import { createSupervisor } from "./supervisor.js";
 import { createSupervisor as createSupervisorFromIndex } from "../index.js";
 
@@ -483,6 +494,81 @@ describe("createSupervisor", () => {
     ]);
     expect(await fs.readFile("/state/process/logs/stdout.log", "utf8")).toBe("hello\n");
     expect(await fs.readFile("/state/process/logs/stderr.log", "utf8")).toBe("warn\n");
+  });
+
+  it("resolves workspace locators once and reuses the resolved cwd across restarts", async () => {
+    vi.useFakeTimers();
+    const first = createControllableHandle(11);
+    const second = createControllableHandle(22);
+    const execSpecs: Array<{ cwd?: string }> = [];
+    resolveWorkspaceMock.mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    const runner = {
+      name: "host",
+      exec: vi
+        .fn()
+        .mockImplementationOnce((spec) => {
+          execSpecs.push({ cwd: spec.cwd });
+          return first;
+        })
+        .mockImplementationOnce((spec) => {
+          execSpecs.push({ cwd: spec.cwd });
+          return second;
+        })
+    };
+    const { fs } = createMemFs();
+    const supervisor = createSupervisor({
+      fs,
+      runner,
+      spec: createSpec({
+        cwd: "github://poe-platform/poe-code",
+        restart: "on-failure"
+      }),
+      stateDir: "/home/test/.poe-code/launch"
+    });
+
+    await supervisor.start();
+    first.finish({ exitCode: 1 });
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(resolveWorkspaceMock).toHaveBeenCalledTimes(1);
+    expect(execSpecs).toEqual([
+      { cwd: "/tmp/workspaces/poe-code" },
+      { cwd: "/tmp/workspaces/poe-code" }
+    ]);
+
+    second.finish({ exitCode: 0 });
+    await supervisor.stop();
+  });
+
+  it("cleans up resolved workspaces when the supervisor stops", async () => {
+    const cleanup = vi.fn(async () => {});
+    resolveWorkspaceMock.mockResolvedValue({
+      cleanup,
+      cwd: "/tmp/workspaces/poe-code",
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    const handle = createControllableHandle();
+    const runner = {
+      name: "host",
+      exec: vi.fn(() => handle)
+    };
+    const { fs } = createMemFs();
+    const supervisor = createSupervisor({
+      fs,
+      runner,
+      spec: createSpec({ cwd: "github://poe-platform/poe-code" }),
+      stateDir: "/home/test/.poe-code/launch"
+    });
+
+    await supervisor.start();
+    const stopPromise = supervisor.stop();
+    handle.finish({ exitCode: 0 });
+    await stopPromise;
+
+    expect(cleanup).toHaveBeenCalledTimes(1);
   });
 });
 

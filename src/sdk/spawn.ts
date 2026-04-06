@@ -1,3 +1,5 @@
+import * as nodeFs from "node:fs/promises";
+import os from "node:os";
 import { getPoeApiKey } from "./credentials.js";
 import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
@@ -13,10 +15,12 @@ import {
   sessionCapture,
   usageCapture,
   spawnLog,
+  runCommand,
   type AcpSpawnContext,
   type AcpEvent
 } from "@poe-code/agent-spawn";
 import type { SpawnOptions, SpawnResult, SpawnUsage } from "./types.js";
+import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 
 /**
  * Spawns an agent with optional streaming.
@@ -95,12 +99,30 @@ export function spawn(
   })();
 
   const result = (async (): Promise<SpawnResult> => {
+    let workspace:
+      | Awaited<ReturnType<typeof resolveSpawnWorkspace>>
+      | undefined;
+
     try {
+      workspace = await resolveSpawnWorkspace(options.cwd, {
+        baseDir: process.cwd(),
+        homeDir: os.homedir(),
+        mode: options.mode,
+        fs: {
+          mkdir: async (target, resolveOptions) =>
+            await nodeFs.mkdir(target, resolveOptions).then(() => undefined),
+          stat: async (target) => await nodeFs.stat(target),
+          rm: async (target, resolveOptions) => await nodeFs.rm(target, resolveOptions)
+        },
+        exec: runCommand
+      });
+      const cwd = workspace.cwd;
+
       await getPoeApiKey();
 
       let container: ReturnType<typeof createSdkContainer> | undefined;
       const getContainer = () => {
-        container ??= createSdkContainer({ cwd: options.cwd });
+        container ??= createSdkContainer({ cwd });
         return container;
       };
       const resolveModel = async () =>
@@ -111,7 +133,7 @@ export function spawn(
         const model = await resolveModel();
         const interactiveResult = await spawnInteractive(service, {
           prompt: options.prompt,
-          cwd: options.cwd,
+          cwd,
           model,
           mode: options.mode,
           signal: options.signal,
@@ -187,7 +209,7 @@ export function spawn(
         const { events: rawEvents, done } = spawnStreaming({
           agentId: service,
           prompt: options.prompt,
-          cwd: options.cwd,
+          cwd,
           model,
           mode: options.mode,
           args: options.args,
@@ -212,7 +234,7 @@ export function spawn(
           prompt: options.prompt,
           model,
           mode: options.mode,
-          cwd: options.cwd,
+          cwd,
           startedAt: new Date()
         };
 
@@ -242,7 +264,7 @@ export function spawn(
         const model = await resolveModel();
         return spawnNonStreaming(service, {
           prompt: options.prompt,
-          cwd: options.cwd,
+          cwd,
           model,
           mode: options.mode,
           args: options.args,
@@ -260,7 +282,7 @@ export function spawn(
       const model = await resolveModel();
       return spawnCore(getContainer(), service, {
         prompt: options.prompt,
-        cwd: options.cwd,
+        cwd,
         model,
         mode: options.mode,
         args: options.args,
@@ -270,6 +292,8 @@ export function spawn(
     } catch (error) {
       resolveEventsOnce(emptyEvents);
       throw error;
+    } finally {
+      await workspace?.cleanup?.();
     }
   })();
 

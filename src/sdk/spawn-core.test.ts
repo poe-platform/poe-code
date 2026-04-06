@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer, type CliDependencies } from "../cli/container.js";
 import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
@@ -10,6 +11,18 @@ import type {
   CommandRunnerOptions,
   CommandRunnerResult
 } from "../utils/command-checks.js";
+
+const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/workspace-resolver")>();
+  return {
+    ...actual,
+    resolveWorkspace: resolveWorkspaceMock
+  };
+});
+
+import { resolveWorkspace } from "@poe-code/workspace-resolver";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -69,6 +82,11 @@ describe("spawnCore", () => {
   beforeEach(() => {
     fs = createMemFs();
     vi.clearAllMocks();
+    vi.mocked(resolveWorkspace).mockReset();
+    vi.mocked(resolveWorkspace).mockImplementation(async (input, options) => ({
+      cwd: path.isAbsolute(input) ? input : path.join(options.baseDir, input),
+      locator: { scheme: "local", path: input }
+    }));
   });
 
   it("prefers explicit model over configured values", async () => {
@@ -230,6 +248,29 @@ describe("spawnCore", () => {
     expect(logs.some((log) => log.includes("Dry run"))).toBe(true);
   });
 
+  it("does not resolve workspace locators during dry run", async () => {
+    const { container, logs } = createContainerWithDependencies({ fs });
+    await ensureIsolatedConfig("opencode");
+
+    const result = await spawnCore(
+      container,
+      "codex",
+      {
+        prompt: "test prompt",
+        cwd: "github://poe-platform/poe-code"
+      },
+      { dryRun: true, verbose: false }
+    );
+
+    expect(result).toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    expect(resolveWorkspace).not.toHaveBeenCalled();
+    expect(logs.some((log) => log.includes("github://poe-platform/poe-code"))).toBe(true);
+  });
+
   it("resolves relative cwd to absolute path", async () => {
     const { runner, calls } = createCommandRunnerStub({
       stdout: "",
@@ -272,6 +313,38 @@ describe("spawnCore", () => {
     expect(calls.length).toBeGreaterThan(0);
     const lastCall = calls[calls.length - 1];
     expect(lastCall.options?.cwd).toBe("/absolute/path");
+  });
+
+  it("resolves workspace locators before invoking providers", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    const { runner, calls } = createCommandRunnerStub({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test",
+      cwd: "github://poe-platform/poe-code",
+      mode: "read"
+    });
+
+    expect(resolveWorkspace).toHaveBeenCalledWith(
+      "github://poe-platform/poe-code",
+      expect.objectContaining({
+        baseDir: cwd,
+        homeDir
+      })
+    );
+    expect(calls.at(-1)?.options?.cwd).toBe("/tmp/workspaces/poe-code");
   });
 
   it("returns empty result when provider returns void", async () => {

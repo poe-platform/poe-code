@@ -1,3 +1,6 @@
+import { spawnSync } from "node:child_process";
+import * as nodeFs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import {
   createDockerRunner,
@@ -6,6 +9,7 @@ import {
   type RunSpec,
   type Runner
 } from "@poe-code/process-runner";
+import { resolveWorkspace } from "@poe-code/workspace-resolver";
 import { waitForReady } from "../health/health-check.js";
 import { createLogWriter } from "../logs/log-writer.js";
 import { createStateStore } from "../state/state-store.js";
@@ -35,6 +39,8 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
   let activeReadyController: AbortController | null = null;
   let stableTimer: NodeJS.Timeout | null = null;
   let stopRequested = false;
+  let workspacePromise: Promise<{ cwd?: string; cleanup?: () => Promise<void> }> | null = null;
+  let workspaceCleanupPromise: Promise<void> | null = null;
 
   const onAbort = () => {
     void stop();
@@ -85,6 +91,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     state.pid = null;
     state.lastStoppedAt = new Date().toISOString();
     await transitionTo("stopped");
+    await cleanupWorkspace();
   }
 
   async function restart(): Promise<void> {
@@ -102,7 +109,14 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
   async function launch(isRestart: boolean): Promise<void> {
     const nextRunId = runId + 1;
     runId = nextRunId;
-    const nextHandle = runner.exec(createRunSpec(spec));
+    const workspace = await ensureWorkspace();
+    let nextHandle: RunHandle;
+    try {
+      nextHandle = runner.exec(createRunSpec(spec, workspace.cwd));
+    } catch (error) {
+      await cleanupWorkspace();
+      throw error;
+    }
     handle = nextHandle;
     state.pid = nextHandle.pid;
     state.lastExitCode = null;
@@ -164,11 +178,13 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
 
     if (stopRequested || options.signal?.aborted) {
       await transitionTo("stopped");
+      await cleanupWorkspace();
       return;
     }
 
     if (!shouldRestart(result.exitCode, spec.restart)) {
       await transitionTo("stopped");
+      await cleanupWorkspace();
       return;
     }
 
@@ -176,6 +192,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
 
     if (maxRestarts > 0 && state.restartCount >= maxRestarts) {
       await transitionTo("crashed");
+      await cleanupWorkspace();
       return;
     }
 
@@ -234,6 +251,44 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     }
   }
 
+  async function ensureWorkspace(): Promise<{ cwd?: string; cleanup?: () => Promise<void> }> {
+    if (workspacePromise !== null) {
+      return await workspacePromise;
+    }
+
+    workspacePromise = resolveProcessWorkspace(spec.cwd, options.stateDir);
+
+    try {
+      return await workspacePromise;
+    } catch (error) {
+      workspacePromise = null;
+      throw error;
+    }
+  }
+
+  async function cleanupWorkspace(): Promise<void> {
+    if (workspacePromise === null) {
+      return;
+    }
+
+    const workspace = await workspacePromise;
+    if (!workspace.cleanup) {
+      return;
+    }
+
+    if (workspaceCleanupPromise !== null) {
+      await workspaceCleanupPromise;
+      return;
+    }
+
+    workspaceCleanupPromise = workspace.cleanup().finally(() => {
+      workspaceCleanupPromise = null;
+      workspacePromise = null;
+    });
+
+    await workspaceCleanupPromise;
+  }
+
   return {
     start,
     stop,
@@ -269,11 +324,11 @@ function createInitialState(spec: SupervisorOptions["spec"], runner: Runner): Pr
   };
 }
 
-function createRunSpec(spec: SupervisorOptions["spec"]): RunSpec {
+function createRunSpec(spec: SupervisorOptions["spec"], cwdOverride?: string): RunSpec {
   return {
     command: spec.command,
     args: spec.args,
-    cwd: spec.cwd,
+    cwd: cwdOverride ?? spec.cwd,
     env: spec.env,
     stderr: "pipe",
     stdout: "pipe"
@@ -397,6 +452,72 @@ function pipeOutput(
     });
     stream.once("error", reject);
   });
+}
+
+async function resolveProcessWorkspace(
+  cwd: string | undefined,
+  stateDir: string
+): Promise<{ cwd?: string; cleanup?: () => Promise<void> }> {
+  if (!cwd) {
+    return {};
+  }
+
+  const resolved = await resolveWorkspace(cwd, {
+    baseDir: process.cwd(),
+    homeDir: resolveWorkspaceHomeDir(stateDir),
+    mode: "edit",
+    exec: async (command, args, options) => execWorkspaceCommand(command, args, options?.cwd),
+    fs: {
+      mkdir: async (target, options) => {
+        await nodeFs.mkdir(target, options);
+      },
+      stat: async (target) => await nodeFs.stat(target),
+      rm: async (target, options) => {
+        await nodeFs.rm(target, options);
+      }
+    }
+  });
+
+  return {
+    cwd: resolved.cwd,
+    cleanup: resolved.cleanup
+  };
+}
+
+function resolveWorkspaceHomeDir(stateDir: string): string {
+  if (
+    path.basename(stateDir) === "launch" &&
+    path.basename(path.dirname(stateDir)) === ".poe-code"
+  ) {
+    return path.dirname(path.dirname(stateDir));
+  }
+
+  return os.homedir();
+}
+
+function execWorkspaceCommand(
+  command: string,
+  args: string[],
+  cwd?: string
+): { stdout: string; stderr: string; exitCode: number } {
+  const result = spawnSync(command, args, {
+    cwd,
+    encoding: "utf8"
+  });
+
+  if (result.error) {
+    return {
+      stdout: result.stdout ?? "",
+      stderr: result.error.message,
+      exitCode: typeof result.status === "number" ? result.status : 1
+    };
+  }
+
+  return {
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    exitCode: result.status ?? 0
+  };
 }
 
 function resolveReadyCheck(check: ReadyCheck, spec: SupervisorOptions["spec"]): ReadyCheck {

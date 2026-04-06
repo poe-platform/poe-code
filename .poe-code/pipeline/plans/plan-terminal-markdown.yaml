@@ -71,7 +71,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: block-parser-headings-breaks
     title: Add ATX/setext headings and thematic breaks
@@ -104,9 +104,9 @@ tasks:
 
       Write tests for all above in `packages/design-system/src/terminal-markdown/parser.test.ts`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: block-parser-blockquotes

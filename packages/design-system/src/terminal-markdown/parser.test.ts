@@ -150,4 +150,111 @@ describe("parseBlocks", () => {
       { type: "paragraph", children: [{ type: "text", value: "next" }] }
     ]);
   });
+
+  it("parses ATX headings from level 1 through 6", () => {
+    expect(parseBlocks("# one\n## two\n### three\n#### four\n##### five\n###### six")).toEqual([
+      { type: "heading", depth: 1, children: [{ type: "text", value: "one" }] },
+      { type: "heading", depth: 2, children: [{ type: "text", value: "two" }] },
+      { type: "heading", depth: 3, children: [{ type: "text", value: "three" }] },
+      { type: "heading", depth: 4, children: [{ type: "text", value: "four" }] },
+      { type: "heading", depth: 5, children: [{ type: "text", value: "five" }] },
+      { type: "heading", depth: 6, children: [{ type: "text", value: "six" }] }
+    ]);
+  });
+
+  it("parses ATX headings with closing hashes", () => {
+    expect(parseBlocks("## Heading ##")).toEqual([
+      { type: "heading", depth: 2, children: [{ type: "text", value: "Heading" }] }
+    ]);
+  });
+
+  it("keeps ATX heading content as raw text for inline formatting placeholders", () => {
+    expect(parseBlocks("## Hello *world*")).toEqual([
+      { type: "heading", depth: 2, children: [{ type: "text", value: "Hello *world*" }] }
+    ]);
+  });
+
+  it("parses an ATX heading with no text as an empty heading node", () => {
+    expect(parseBlocks("#")).toEqual([{ type: "heading", depth: 1, children: [] }]);
+    expect(parseBlocks("###   ")).toEqual([{ type: "heading", depth: 3, children: [] }]);
+  });
+
+  it("treats ATX headings made only of closing hashes as empty headings", () => {
+    expect(parseBlocks("## ##")).toEqual([{ type: "heading", depth: 2, children: [] }]);
+    expect(parseBlocks("### ###")).toEqual([{ type: "heading", depth: 3, children: [] }]);
+  });
+
+  it("treats 7 or more leading hashes as paragraph content", () => {
+    expect(parseBlocks("####### not a heading")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "####### not a heading" }] }
+    ]);
+  });
+
+  it("parses ATX headings indented by up to three spaces", () => {
+    expect(parseBlocks("   ### spaced")).toEqual([
+      { type: "heading", depth: 3, children: [{ type: "text", value: "spaced" }] }
+    ]);
+  });
+
+  it("lets ATX headings interrupt a paragraph without a blank line", () => {
+    expect(parseBlocks("before\n## after")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "before" }] },
+      { type: "heading", depth: 2, children: [{ type: "text", value: "after" }] }
+    ]);
+  });
+
+  it("parses thematic breaks with dashes, asterisks, and underscores", () => {
+    expect(parseBlocks("---\n***\n___")).toEqual([
+      { type: "thematicBreak" },
+      { type: "thematicBreak" },
+      { type: "thematicBreak" }
+    ]);
+  });
+
+  it("parses thematic breaks with spaces between markers", () => {
+    expect(parseBlocks("- - -")).toEqual([{ type: "thematicBreak" }]);
+  });
+
+  it("parses setext level-1 headings", () => {
+    expect(parseBlocks("Heading\n===")).toEqual([
+      { type: "heading", depth: 1, children: [{ type: "text", value: "Heading" }] }
+    ]);
+  });
+
+  it("parses setext level-2 headings", () => {
+    expect(parseBlocks("Heading\n---")).toEqual([
+      { type: "heading", depth: 2, children: [{ type: "text", value: "Heading" }] }
+    ]);
+  });
+
+  it("does not treat spaced marker lines as setext underlines", () => {
+    expect(parseBlocks("text\n- - -")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "text" }] },
+      { type: "thematicBreak" }
+    ]);
+    expect(parseBlocks("text\n= = =")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "text\n= = =" }] }
+    ]);
+  });
+
+  it("collapses multiple blank lines between blocks", () => {
+    expect(parseBlocks("alpha\n\n\nbeta")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "alpha" }] },
+      { type: "paragraph", children: [{ type: "text", value: "beta" }] }
+    ]);
+  });
+
+  it("continues a paragraph across adjacent non-blank lines", () => {
+    expect(parseBlocks("alpha\nbeta\ngamma")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "alpha\nbeta\ngamma" }] }
+    ]);
+  });
+
+  it("lets block-level content interrupt a paragraph", () => {
+    expect(parseBlocks("alpha\n```ts\nconst value = 1;\n```\nbeta")).toEqual([
+      { type: "paragraph", children: [{ type: "text", value: "alpha" }] },
+      { type: "code", lang: "ts", value: "const value = 1;" },
+      { type: "paragraph", children: [{ type: "text", value: "beta" }] }
+    ]);
+  });
 });

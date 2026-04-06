@@ -181,6 +181,81 @@ describe("terminal markdown renderer", () => {
     expect(stripAnsi(render(ast))).toBe(`${symbols.bar} ${symbols.bar} nested\n\n`);
   });
 
+  it("aligns table columns (test 174)", () => {
+    const ast: MdNode = {
+      type: "table",
+      align: ["left", "right", "center"],
+      children: [
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "Name" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Count" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Status" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "alpha" }] },
+            { type: "tableCell", children: [{ type: "text", value: "2" }] },
+            { type: "tableCell", children: [{ type: "text", value: "ok" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "beta" }] },
+            { type: "tableCell", children: [{ type: "text", value: "12" }] },
+            { type: "tableCell", children: [{ type: "text", value: "busy" }] }
+          ]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(
+      `${symbols.bar} Name  ${symbols.bar} Count ${symbols.bar} Status ${symbols.bar}\n` +
+        `${symbols.bar} alpha ${symbols.bar}     2 ${symbols.bar}   ok   ${symbols.bar}\n` +
+        `${symbols.bar} beta  ${symbols.bar}    12 ${symbols.bar}  busy  ${symbols.bar}\n\n`
+    );
+  });
+
+  it("aligns styled table cells by visible width and preserves empty trailing cells", () => {
+    const ast: MdNode = {
+      type: "table",
+      align: ["left", "right"],
+      children: [
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "Label" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Value" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [
+            {
+              type: "tableCell",
+              children: [{ type: "strong", children: [{ type: "text", value: "alpha" }] }]
+            },
+            { type: "tableCell", children: [{ type: "inlineCode", value: "7" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [{ type: "tableCell", children: [{ type: "text", value: "beta" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(
+      `${symbols.bar} Label ${symbols.bar} Value ${symbols.bar}\n` +
+        `${symbols.bar} alpha ${symbols.bar}     7 ${symbols.bar}\n` +
+        `${symbols.bar} beta  ${symbols.bar}       ${symbols.bar}\n\n`
+    );
+  });
+
   it("numbers ordered lists correctly (test 175)", () => {
     const ast: MdNode = {
       type: "list",
@@ -328,5 +403,76 @@ describe("terminal markdown renderer", () => {
         })
       )
     ).toBe("Hello world\n\n");
+  });
+
+  it("renders alerts with the correct label styling", () => {
+    const theme = getTheme();
+    const ast: MdNode = {
+      type: "root",
+      children: [
+        {
+          type: "alert",
+          kind: "NOTE",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Read this" }] }]
+        },
+        {
+          type: "alert",
+          kind: "TIP",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Try this" }] }]
+        },
+        {
+          type: "alert",
+          kind: "IMPORTANT",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Remember this" }] }]
+        },
+        {
+          type: "alert",
+          kind: "WARNING",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Watch out" }] }]
+        },
+        {
+          type: "alert",
+          kind: "CAUTION",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Stop here" }] }]
+        }
+      ]
+    };
+
+    expect(render(ast)).toBe(
+      `${symbols.bar} ${theme.info("Note")}\n${symbols.bar} Read this\n\n` +
+        `${symbols.bar} ${theme.success("Tip")}\n${symbols.bar} Try this\n\n` +
+        `${symbols.bar} ${theme.info("Important")}\n${symbols.bar} Remember this\n\n` +
+        `${symbols.bar} ${theme.warning("Warning")}\n${symbols.bar} Watch out\n\n` +
+        `${symbols.bar} ${theme.error("Caution")}\n${symbols.bar} Stop here\n\n`
+    );
+  });
+
+  it("renders numbered footnote references inline and definitions at the bottom", () => {
+    const { ast } = parse(
+      [
+        "Intro[^beta] then[^alpha] and again[^beta].",
+        "",
+        "[^alpha]: First footnote",
+        "[^beta]: Second footnote"
+      ].join("\n")
+    );
+
+    expect(render(ast)).toBe(
+      `Intro${typography.dim("[1]")} then${typography.dim("[2]")} and again${typography.dim("[1]")}.\n\n` +
+        ` ${typography.dim("[1]")} Second footnote\n` +
+        ` ${typography.dim("[2]")} First footnote\n\n`
+    );
+  });
+
+  it("renders footnotes discovered while rendering earlier footnote definitions", () => {
+    const { ast } = parse(
+      ["Intro[^alpha].", "", "[^alpha]: First[^beta]", "[^beta]: Second footnote"].join("\n")
+    );
+
+    expect(render(ast)).toBe(
+      `Intro${typography.dim("[1]")}.\n\n` +
+        ` ${typography.dim("[1]")} First${typography.dim("[2]")}\n` +
+        ` ${typography.dim("[2]")} Second footnote\n\n`
+    );
   });
 });

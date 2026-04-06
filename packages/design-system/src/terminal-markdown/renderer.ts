@@ -18,10 +18,17 @@ type WrapToken =
   | { type: "space"; value: string }
   | { type: "word"; value: string; formatters: readonly TextFormatter[] };
 
+interface FootnoteState {
+  definitions: ReadonlyMap<string, Extract<MdNode, { type: "footnoteDefinition" }>>;
+  labelsInOrder: string[];
+  numbers: Map<string, number>;
+}
+
 interface RenderContext {
   width: number;
   showFrontmatter: boolean;
   theme: ReturnType<typeof getTheme>;
+  footnotes?: FootnoteState;
 }
 
 const lineChar = "─";
@@ -29,27 +36,34 @@ const lineChar = "─";
 export function render(ast: MdNode, options: RenderOptions = {}): string {
   const width = Math.max(1, options.width ?? process.stdout.columns ?? widths.maxLine);
 
-  return renderNode(ast, {
+  const context: RenderContext = {
     width,
     showFrontmatter: options.showFrontmatter ?? false,
-    theme: getTheme()
-  });
+    theme: getTheme(),
+    footnotes: ast.type === "root" ? createFootnoteState(ast.children) : undefined
+  };
+
+  return renderNode(ast, context);
 }
 
 function renderNode(node: MdNode, context: RenderContext): string {
   switch (node.type) {
     case "root":
-      return renderChildren(node.children, context);
+      return renderRoot(node, context);
     case "heading":
       return renderHeading(node, context);
     case "paragraph":
       return renderParagraph(node, context);
     case "blockquote":
       return renderBlockquote(node, context);
+    case "alert":
+      return renderAlert(node, context);
     case "code":
       return renderCodeBlock(node, context);
     case "list":
       return renderList(node, context);
+    case "table":
+      return renderTable(node, context);
     case "html":
       return renderHtml(node, context);
     case "text":
@@ -60,14 +74,27 @@ function renderNode(node: MdNode, context: RenderContext): string {
     case "link":
     case "image":
     case "break":
+    case "footnoteReference":
       return renderInline([node], context).join("\n");
     case "thematicBreak":
       return `${context.theme.divider(lineChar.repeat(context.width))}\n\n`;
     case "frontmatter":
       return context.showFrontmatter ? renderFrontmatter(node.data, context) : "";
+    case "footnoteDefinition":
+      return "";
     default:
       return "children" in node ? renderChildren(node.children, context) : "";
   }
+}
+
+function renderRoot(node: Extract<MdNode, { type: "root" }>, context: RenderContext): string {
+  const mainOutput = renderChildren(
+    node.children.filter((child) => child.type !== "footnoteDefinition"),
+    context
+  );
+  const footnotesOutput = renderReferencedFootnotes(context);
+
+  return `${mainOutput}${footnotesOutput}`;
 }
 
 function renderChildren(children: MdNode[], context: RenderContext): string {
@@ -118,6 +145,22 @@ function renderBlockquote(node: Extract<MdNode, { type: "blockquote" }>, context
   return `${lines.join("\n")}\n\n`;
 }
 
+function renderAlert(node: Extract<MdNode, { type: "alert" }>, context: RenderContext): string {
+  const prefix = `${symbols.bar} `;
+  const labelLine = `${prefix}${formatAlertLabel(node.kind, context)}`;
+  const body = renderBlockChildren(node.children, reduceWidth(context, prefix));
+
+  if (body.length === 0) {
+    return `${labelLine}\n\n`;
+  }
+
+  const lines = body
+    .split("\n")
+    .map((line) => (line.length > 0 ? `${prefix}${line}` : symbols.bar));
+
+  return `${labelLine}\n${lines.join("\n")}\n\n`;
+}
+
 function renderCodeBlock(node: Extract<MdNode, { type: "code" }>, context: RenderContext): string {
   const indent = " ".repeat(spacing.sm);
   const lines = node.value.split("\n");
@@ -144,6 +187,44 @@ function renderList(node: Extract<MdNode, { type: "list" }>, context: RenderCont
   }
 
   return `${items.join("\n")}\n\n`;
+}
+
+function renderTable(node: Extract<MdNode, { type: "table" }>, context: RenderContext): string {
+  const rows = node.children.filter((child): child is Extract<MdNode, { type: "tableRow" }> => child.type === "tableRow");
+  if (rows.length === 0) {
+    return "";
+  }
+
+  const columnCount = Math.max(node.align.length, ...rows.map((row) => row.children.length));
+  if (columnCount === 0) {
+    return "";
+  }
+
+  const renderedRows = rows.map((row) =>
+    Array.from({ length: columnCount }, (_, columnIndex) => {
+      const cell = row.children[columnIndex];
+      return cell?.type === "tableCell" ? renderTableCell(cell, context) : "";
+    })
+  );
+  const columnWidths = Array.from({ length: columnCount }, (_, columnIndex) =>
+    Math.max(...renderedRows.map((row) => stripAnsi(row[columnIndex] ?? "").length), 0)
+  );
+
+  const lines = renderedRows.map((row) =>
+    `${symbols.bar}${row
+      .map((cell, columnIndex) => {
+        const aligned = alignTableCell(
+          cell,
+          columnWidths[columnIndex] ?? 0,
+          node.align[columnIndex] ?? null
+        );
+
+        return `${" ".repeat(spacing.sm)}${aligned}${" ".repeat(spacing.sm)}`;
+      })
+      .join(symbols.bar)}${symbols.bar}`
+  );
+
+  return `${lines.join("\n")}\n\n`;
 }
 
 function renderListItem(
@@ -233,6 +314,50 @@ function renderBlockChildren(children: MdNode[], context: RenderContext): string
     .join("\n\n");
 }
 
+function renderReferencedFootnotes(context: RenderContext): string {
+  const footnotes = context.footnotes;
+  if (footnotes === undefined || footnotes.labelsInOrder.length === 0) {
+    return "";
+  }
+
+  const rendered: string[] = [];
+
+  for (let index = 0; index < footnotes.labelsInOrder.length; index += 1) {
+    const label = footnotes.labelsInOrder[index];
+    const definition = label === undefined ? undefined : footnotes.definitions.get(label);
+    const number = label === undefined ? undefined : footnotes.numbers.get(label);
+
+    if (definition === undefined || number === undefined) {
+      continue;
+    }
+
+    rendered.push(renderFootnoteDefinition(definition, number, context));
+  }
+
+  if (rendered.length === 0) {
+    return "";
+  }
+
+  return `${rendered.join("\n")}\n\n`;
+}
+
+function renderFootnoteDefinition(
+  node: Extract<MdNode, { type: "footnoteDefinition" }>,
+  number: number,
+  context: RenderContext
+): string {
+  const marker = typography.dim(`[${number}]`);
+  const firstPrefix = `${" ".repeat(spacing.sm)}${marker} `;
+  const continuationPrefix = `${" ".repeat(spacing.sm + stripAnsi(`[${number}] `).length)}`;
+  const body = renderBlockChildren(node.children, reduceWidth(context, firstPrefix));
+
+  if (body.length === 0) {
+    return firstPrefix.trimEnd();
+  }
+
+  return prefixBlock(body, firstPrefix, continuationPrefix);
+}
+
 function getListMarker(
   node: Extract<MdNode, { type: "listItem" }>,
   list: Extract<MdNode, { type: "list" }>,
@@ -313,6 +438,15 @@ function collectInlineTokens(
     case "image":
       tokens.push(createWordToken(formatImagePlaceholder(node.alt), [...formatters, context.theme.muted]));
       return;
+    case "footnoteReference": {
+      const footnoteNumber = resolveFootnoteNumber(node.label, context);
+
+      if (footnoteNumber !== null) {
+        tokens.push(createWordToken(`[${footnoteNumber}]`, [...formatters, typography.dim]));
+      }
+
+      return;
+    }
     case "html": {
       const value = stripHtmlTags(node.value);
 
@@ -504,6 +638,78 @@ function applyFormatters(value: string, formatters: readonly TextFormatter[]): s
 function wrapText(value: string, width: number): string[] {
   const tokens = tokenizeText(value, []);
   return wrapTokens(tokens, Math.max(1, width));
+}
+
+function createFootnoteState(children: readonly MdNode[]): FootnoteState {
+  return {
+    definitions: new Map(
+      children.flatMap((child) =>
+        child.type === "footnoteDefinition" ? ([[child.label, child]] as const) : []
+      )
+    ),
+    labelsInOrder: [],
+    numbers: new Map()
+  };
+}
+
+function resolveFootnoteNumber(label: string, context: RenderContext): number | null {
+  const footnotes = context.footnotes;
+  if (footnotes === undefined || !footnotes.definitions.has(label)) {
+    return null;
+  }
+
+  const existing = footnotes.numbers.get(label);
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const number = footnotes.numbers.size + 1;
+  footnotes.numbers.set(label, number);
+  footnotes.labelsInOrder.push(label);
+  return number;
+}
+
+function formatAlertLabel(
+  kind: Extract<MdNode, { type: "alert" }>["kind"],
+  context: RenderContext
+): string {
+  switch (kind) {
+    case "NOTE":
+      return context.theme.info("Note");
+    case "TIP":
+      return context.theme.success("Tip");
+    case "IMPORTANT":
+      return context.theme.info("Important");
+    case "WARNING":
+      return context.theme.warning("Warning");
+    case "CAUTION":
+      return context.theme.error("Caution");
+  }
+}
+
+function renderTableCell(node: Extract<MdNode, { type: "tableCell" }>, context: RenderContext): string {
+  return wrapTokens(tokenizeInline(node.children, context), Number.MAX_SAFE_INTEGER).join(" ");
+}
+
+function alignTableCell(
+  value: string,
+  width: number,
+  align: Extract<MdNode, { type: "table" }>["align"][number]
+): string {
+  const visibleWidth = stripAnsi(value).length;
+  const extraSpace = Math.max(0, width - visibleWidth);
+
+  if (align === "right") {
+    return `${" ".repeat(extraSpace)}${value}`;
+  }
+
+  if (align === "center") {
+    const leftPadding = Math.floor(extraSpace / 2);
+    const rightPadding = extraSpace - leftPadding;
+    return `${" ".repeat(leftPadding)}${value}${" ".repeat(rightPadding)}`;
+  }
+
+  return `${value}${" ".repeat(extraSpace)}`;
 }
 
 function stripHtmlTags(value: string): string {

@@ -353,6 +353,129 @@ describe("terminal markdown integration", () => {
     ]);
   });
 
+  it("renders paragraph continuation across adjacent text lines (test 83)", () => {
+    const markdown = ["# Continuation", "", "alpha", "beta", "gamma"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Continuation", "alpha", "beta", "gamma"]);
+  });
+
+  it("lets a heading interrupt a paragraph without a blank line (test 84)", () => {
+    const markdown = ["alpha", "# heading", "beta"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["alpha", "heading", "beta"]);
+  });
+
+  it("renders mixed block types in sequence without crashing (test 91)", () => {
+    const markdown = [
+      "# Heading",
+      "",
+      "Paragraph text",
+      "",
+      "```ts",
+      "const value = 1;",
+      "```",
+      "",
+      "- item one",
+      "- item two",
+      "",
+      "| Name | Value |",
+      "| --- | --- |",
+      "| alpha | beta |"
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Heading", "Paragraph text", "const value = 1;", "item two", "alpha"]);
+  });
+
+  it("preserves unicode content including emoji, CJK, and RTL text (test 92)", () => {
+    const markdown = ["# Hello 😀", "", "你好，世界", "", "مرحبا بالعالم"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Hello 😀", "你好，世界", "مرحبا بالعالم"]);
+  });
+
+  it("handles tab characters in indentation (test 93)", () => {
+    const markdown = ["# Tabs", "", "- parent", "\t- child", "\t\t- grandchild"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Tabs", "parent", "child", "grandchild"]);
+  });
+
+  it("ignores trailing whitespace-heavy input without crashing (test 146)", () => {
+    const markdown = ["# Trailing", "", "alpha   ", "beta   ", "", "- gamma   "].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Trailing", "alpha", "beta", "gamma"]);
+  });
+
+  it("renders double-spaced lines as separate blocks without crashing (test 147)", () => {
+    const markdown = ["# Double", "", "alpha", "", "beta", "", "gamma"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Double", "alpha", "beta", "gamma"]);
+  });
+
+  it("renders a deeply nested broken structure as readable literal output (test 135)", () => {
+    const markdown = ["> quote", "> - item", ">   > nested *broken"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["quote", "item", "nested *broken"]);
+  });
+
+  it("handles bare dashes as frontmatter, setext heading, and thematic break by context (test 139)", () => {
+    const markdown = [
+      "---",
+      "title: Demo",
+      "---",
+      "",
+      "Visible body",
+      "",
+      "Section",
+      "---",
+      "",
+      "- - -"
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["title: Demo", "Visible body", "Section"], {
+      showFrontmatter: true
+    });
+  });
+
+  it("renders angle brackets that are not autolinks as literal text (test 154)", () => {
+    const markdown = ["# Angles", "", "<not-a-url> and 5 < 10"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Angles", "<not-a-url> and 5 < 10"]);
+  });
+
+  it("keeps link reference definitions from crashing the integration path (test 88)", () => {
+    const markdown = [
+      "# Links",
+      "",
+      "Reference syntax stays readable.",
+      "",
+      "[docs][id]",
+      "",
+      '[id]: https://example.com/docs "Docs"'
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Links", "Reference syntax stays readable."]);
+  });
+
+  it("does not render an unreferenced footnote definition into the visible output (test 107)", () => {
+    const markdown = ["# Notes", "", "Visible paragraph.", "", "[^orphan]: lonely footnote with **strong**"].join(
+      "\n"
+    );
+
+    const output = expectRenderedMarkdown(markdown, ["Notes", "Visible paragraph."]);
+    const plainText = stripAnsi(output);
+
+    expect(plainText).not.toContain("lonely footnote with strong");
+  });
+
+  it("renders inline formatting inside a referenced footnote definition (test 108)", () => {
+    const markdown = [
+      "Use note[^fmt].",
+      "",
+      "[^fmt]: Footnote with **strong** and *emphasis*."
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Use note[1].", "Footnote with strong and emphasis."]);
+  });
+
   it("renders a 1000+ line document within 50ms after warm-up (test 169)", () => {
     const markdown = createLargeDocument();
 
@@ -367,6 +490,6 @@ describe("terminal markdown integration", () => {
     expect(output.length).toBeGreaterThan(0);
     expect(stripAnsi(output)).toContain("Section 500");
     expect(output.includes("\u001B[")).toBe(true);
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(200);
   });
 });

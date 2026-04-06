@@ -887,7 +887,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: integration-tests-edge-cases
     title: Integration tests — edge cases and common user mistakes
@@ -913,9 +913,9 @@ tasks:
       Each test: construct markdown input → `renderMarkdown()` → assert non-empty string, no crash.
       Where possible, assert specific expected substrings in output.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ═══════════════════════════════════════════════════════════════════════

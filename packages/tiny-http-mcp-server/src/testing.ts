@@ -14,6 +14,14 @@ import { createHttpServer, type HttpServer, type HttpServerHandle } from "./http
 const TEST_PNG_BASE64 = "iVBORw0KGgo=";
 const TEST_MP3_BASE64 = "SUQzBAAAAAA=";
 
+function normalizeRequestHostname(hostname: string): string {
+  if (hostname.startsWith("[") && hostname.endsWith("]")) {
+    return hostname.slice(1, -1);
+  }
+
+  return hostname;
+}
+
 export async function nodeFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
   const url = new URL(String(input));
   const client = url.protocol === "https:" ? https : http;
@@ -23,7 +31,7 @@ export async function nodeFetch(input: string | URL, init: RequestInit = {}): Pr
     const request = client.request(
       {
         method: init.method ?? "GET",
-        hostname: url.hostname,
+        hostname: normalizeRequestHostname(url.hostname),
         port: url.port.length > 0 ? Number(url.port) : url.protocol === "https:" ? 443 : 80,
         path: `${url.pathname}${url.search}`,
         headers: Object.fromEntries(headers.entries()),
@@ -132,12 +140,8 @@ export function createTestMcpServer(
   return createHttpServer({
     name: options.name ?? "conformance-test-server",
     version: options.version ?? "1.0.0",
-    ...(Object.prototype.hasOwnProperty.call(options, "enableJsonResponse")
-      ? { enableJsonResponse: options.enableJsonResponse }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(options, "sessionIdGenerator")
-      ? { sessionIdGenerator: options.sessionIdGenerator }
-      : {}),
+    ...("enableJsonResponse" in options ? { enableJsonResponse: options.enableJsonResponse } : {}),
+    ...("sessionIdGenerator" in options ? { sessionIdGenerator: options.sessionIdGenerator } : {}),
   })
     .tool("echo", "Echo input text", textSchema, ({ text }) => String(text))
     .tool("reverse", "Reverse input text", textSchema, ({ text }) =>

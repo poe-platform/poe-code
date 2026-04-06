@@ -1,7 +1,5 @@
 import http from "node:http";
 import { createRequire } from "node:module";
-import https from "node:https";
-import { Readable } from "node:stream";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -10,6 +8,7 @@ import {
   createHttpTestPair,
   createHttpTestPairWithTinyClient,
   createTestMcpServer,
+  nodeFetch,
 } from "./testing.js";
 
 const require = createRequire(import.meta.url);
@@ -68,6 +67,34 @@ async function getFreePort(): Promise<number> {
   return port;
 }
 
+async function supportsIpv6Loopback(): Promise<boolean> {
+  const server = http.createServer();
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(0, "::1", () => resolve());
+    });
+
+    return true;
+  } catch {
+    return false;
+  } finally {
+    if (server.listening) {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => {
+          if (error !== undefined) {
+            reject(error);
+            return;
+          }
+
+          resolve();
+        });
+      });
+    }
+  }
+}
+
 async function connectSdkClient(url: string): Promise<{
   client: Client;
   transport: StreamableHTTPClientTransport;
@@ -87,75 +114,6 @@ async function connectSdkClient(url: string): Promise<{
       await client.close();
     },
   };
-}
-
-async function nodeFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
-  const url = new URL(String(input));
-  const client = url.protocol === "https:" ? https : http;
-  const headers = new Headers(init.headers);
-
-  return new Promise<Response>((resolve, reject) => {
-    const request = client.request(
-      {
-        method: init.method ?? "GET",
-        hostname: url.hostname,
-        port: url.port.length > 0 ? Number(url.port) : url.protocol === "https:" ? 443 : 80,
-        path: `${url.pathname}${url.search}`,
-        headers: Object.fromEntries(headers.entries()),
-      },
-      (response) => {
-        const responseHeaders = new Headers();
-
-        for (const [key, value] of Object.entries(response.headers)) {
-          if (typeof value === "string") {
-            responseHeaders.set(key, value);
-            continue;
-          }
-
-          if (Array.isArray(value)) {
-            responseHeaders.set(key, value.join(", "));
-          }
-        }
-
-        const body =
-          response.statusCode === 204
-            ? null
-            : (Readable.toWeb(response) as ReadableStream<Uint8Array>);
-
-        resolve(
-          new Response(body, {
-            status: response.statusCode ?? 0,
-            statusText: response.statusMessage ?? "",
-            headers: responseHeaders,
-          })
-        );
-      }
-    );
-
-    request.on("error", reject);
-
-    if (init.signal !== undefined) {
-      const onAbort = () => {
-        request.destroy(new Error("Request aborted"));
-      };
-
-      if (init.signal.aborted) {
-        onAbort();
-        return;
-      }
-
-      init.signal.addEventListener("abort", onAbort, { once: true });
-      request.once("close", () => {
-        init.signal?.removeEventListener("abort", onAbort);
-      });
-    }
-
-    if (typeof init.body === "string" || init.body instanceof Uint8Array) {
-      request.write(init.body);
-    }
-
-    request.end();
-  });
 }
 
 async function postJsonRpc(
@@ -551,7 +509,29 @@ describe("HttpServer integration", () => {
       expect(new URL(handle.url).hostname).toBe("127.0.0.1");
     });
 
-    it("I21 returns 404 for non-MCP paths", async () => {
+    it("I21 returns a usable bracketed URL for IPv6 loopback listeners", async () => {
+      if (!(await supportsIpv6Loopback())) {
+        return;
+      }
+
+      const handle = await createTestMcpServer().listenHttp({
+        hostname: "::1",
+      });
+      trackCleanup(handle.close);
+
+      expect(handle.url).toBe(`http://[::1]:${handle.port}/mcp`);
+
+      const response = await postJsonRpc(handle.url, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      });
+
+      expect(response.status).toBe(200);
+    });
+
+    it("I22 returns 404 for non-MCP paths", async () => {
       const handle = await createTestMcpServer().listenHttp();
       trackCleanup(handle.close);
 
@@ -562,7 +542,7 @@ describe("HttpServer integration", () => {
   });
 
   describe("Stateless mode", () => {
-    it("I22 omits Mcp-Session-Id headers in stateless mode", async () => {
+    it("I23 omits Mcp-Session-Id headers in stateless mode", async () => {
       const handle = await createTestMcpServer({
         sessionIdGenerator: undefined,
       }).listenHttp();
@@ -584,7 +564,7 @@ describe("HttpServer integration", () => {
       expect(toolsResponse.headers.get("mcp-session-id")).toBeNull();
     });
 
-    it("I23 accepts requests without session headers in stateless mode", async () => {
+    it("I24 accepts requests without session headers in stateless mode", async () => {
       const handle = await createTestMcpServer({
         sessionIdGenerator: undefined,
       }).listenHttp();
@@ -614,7 +594,7 @@ describe("HttpServer integration", () => {
       });
     });
 
-    it("I24 rejects DELETE in stateless mode", async () => {
+    it("I25 rejects DELETE in stateless mode", async () => {
       const handle = await createTestMcpServer({
         sessionIdGenerator: undefined,
       }).listenHttp();
@@ -625,7 +605,7 @@ describe("HttpServer integration", () => {
       expect(response.status).toBe(405);
     });
 
-    it("I25 rejects GET in stateless mode", async () => {
+    it("I26 rejects GET in stateless mode", async () => {
       const handle = await createTestMcpServer({
         sessionIdGenerator: undefined,
       }).listenHttp();
@@ -641,7 +621,7 @@ describe("HttpServer integration", () => {
   });
 
   describe("Multiple clients and concurrency", () => {
-    it("I26 supports two SDK clients with independent sessions", async () => {
+    it("I27 supports two SDK clients with independent sessions", async () => {
       const handle = await createTestMcpServer().listenHttp();
       trackCleanup(handle.close);
 
@@ -661,7 +641,7 @@ describe("HttpServer integration", () => {
       expect(firstTools.tools).toHaveLength(secondTools.tools.length);
     });
 
-    it("I27 handles concurrent tool calls on the same session", async () => {
+    it("I28 handles concurrent tool calls on the same session", async () => {
       const pair = await createHttpTestPair(createTestMcpServer());
       trackCleanup(pair.cleanup);
 
@@ -680,7 +660,7 @@ describe("HttpServer integration", () => {
       expect(upperResult.content).toEqual([{ type: "text", text: "PARALLEL-B" }]);
     });
 
-    it("I28 keeps sessions isolated when one client deletes its own session", async () => {
+    it("I29 keeps sessions isolated when one client deletes its own session", async () => {
       const handle = await createTestMcpServer().listenHttp();
       trackCleanup(handle.close);
 
@@ -709,7 +689,7 @@ describe("HttpServer integration", () => {
   });
 
   describe("Edge cases", () => {
-    it("I29 handles a 100KB+ JSON-RPC request body", async () => {
+    it("I30 handles a 100KB+ JSON-RPC request body", async () => {
       const handle = await createTestMcpServer({
         sessionIdGenerator: undefined,
       }).listenHttp();
@@ -737,7 +717,7 @@ describe("HttpServer integration", () => {
       expect(payload.result.content[0].text).toHaveLength(120_000);
     });
 
-    it("I30 survives rapid connect and disconnect cycles", async () => {
+    it("I31 survives rapid connect and disconnect cycles", async () => {
       const handle = await createTestMcpServer().listenHttp();
       trackCleanup(handle.close);
 
@@ -755,7 +735,7 @@ describe("HttpServer integration", () => {
       expect(tools.tools.some((tool) => tool.name === "large_output")).toBe(true);
     });
 
-    it("I31 closes cleanly while a request is in flight", async () => {
+    it("I32 closes cleanly while a request is in flight", async () => {
       const handle = await createTestMcpServer({
         sessionIdGenerator: undefined,
       }).listenHttp();
@@ -782,7 +762,7 @@ describe("HttpServer integration", () => {
       );
     });
 
-    it("I32 transmits image content blocks correctly", async () => {
+    it("I33 transmits image content blocks correctly", async () => {
       const pair = await createHttpTestPair(createTestMcpServer());
       trackCleanup(pair.cleanup);
 
@@ -800,7 +780,7 @@ describe("HttpServer integration", () => {
       ]);
     });
 
-    it("I33 transmits multiple mixed content blocks correctly", async () => {
+    it("I34 transmits multiple mixed content blocks correctly", async () => {
       const pair = await createHttpTestPair(createTestMcpServer());
       trackCleanup(pair.cleanup);
 

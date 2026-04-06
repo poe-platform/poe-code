@@ -50,9 +50,17 @@ function normalizePath(path: string): string {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
+function formatHostnameForUrl(hostname: string): string {
+  if (hostname.includes(":") && !hostname.startsWith("[")) {
+    return `[${hostname}]`;
+  }
+
+  return hostname;
+}
+
 function buildUrl(hostname: string, port: number, path: string): string {
   const url = new URL("http://127.0.0.1");
-  url.hostname = hostname;
+  url.hostname = formatHostnameForUrl(hostname);
   url.port = String(port);
   url.pathname = path;
   url.search = "";

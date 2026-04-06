@@ -329,7 +329,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: write-readme
     title: Write README for tiny-http-mcp-server
@@ -347,9 +347,9 @@ tasks:
       - Environment variables (if any)
       - Config options via options objects
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: update-index-exports

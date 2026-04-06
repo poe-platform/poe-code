@@ -29,7 +29,7 @@ export class StreamableHttpTransport {
     options: StreamableHttpTransportOptions = {}
   ) {
     this.sessionIdGenerator =
-      Object.prototype.hasOwnProperty.call(options, "sessionIdGenerator")
+      "sessionIdGenerator" in options
         ? options.sessionIdGenerator
         : defaultSessionIdGenerator;
     this.enableJsonResponse = options.enableJsonResponse ?? false;

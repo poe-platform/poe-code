@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import type { MdNode } from "./index.js";
 import { parseBlocks } from "./parser/block.js";
+import { parseInline } from "./parser/inline.js";
 
 type NodeOf<TType extends MdNode["type"]> = Extract<MdNode, { type: TType }>;
 
@@ -78,6 +79,135 @@ describe("MdNode", () => {
     ];
 
     expect(nodes).toHaveLength(36);
+  });
+});
+
+describe("parseInline", () => {
+  it("returns a single text node for plain inline text", () => {
+    expect(parseInline("plain text")).toEqual([{ type: "text", value: "plain text" }]);
+  });
+
+  it("parses backslash escapes for markdown punctuation (tests 48-49)", () => {
+    expect(parseInline("\\[link\\] and \\`code\\`")).toEqual([
+      { type: "text", value: "[link] and `code`" }
+    ]);
+  });
+
+  it("parses single-backtick inline code without trimming spaces (test 38)", () => {
+    expect(parseInline("before `  code  ` after")).toEqual([
+      { type: "text", value: "before " },
+      { type: "inlineCode", value: "  code  " },
+      { type: "text", value: " after" }
+    ]);
+  });
+
+  it("parses double-backtick inline code and keeps inner markdown literal (tests 39-40)", () => {
+    expect(parseInline("``**bold** `code` ``")).toEqual([
+      { type: "inlineCode", value: "**bold** `code` " }
+    ]);
+  });
+
+  it("parses links, images, and autolinks (tests 41-46)", () => {
+    expect(
+      parseInline(
+        '[link](https://example.com "Example") ![alt](https://example.com/image.png "Image") <https://example.com>'
+      )
+    ).toEqual([
+      {
+        type: "link",
+        url: "https://example.com",
+        title: "Example",
+        children: [{ type: "text", value: "link" }]
+      },
+      { type: "text", value: " " },
+      {
+        type: "image",
+        url: "https://example.com/image.png",
+        alt: "alt",
+        title: "Image"
+      },
+      { type: "text", value: " " },
+      {
+        type: "link",
+        url: "https://example.com",
+        children: [{ type: "text", value: "https://example.com" }]
+      }
+    ]);
+  });
+
+  it("supports empty link text and recursive parsing in link children (tests 43, 47)", () => {
+    expect(parseInline('[](https://example.com) [see `code`](/docs)')).toEqual([
+      { type: "link", url: "https://example.com", children: [] },
+      { type: "text", value: " " },
+      {
+        type: "link",
+        url: "/docs",
+        children: [{ type: "text", value: "see " }, { type: "inlineCode", value: "code" }]
+      }
+    ]);
+  });
+
+  it("treats malformed links with missing closers as literal text", () => {
+    expect(parseInline("[text")).toEqual([{ type: "text", value: "[text" }]);
+    expect(parseInline("[text](https://example.com")).toEqual([
+      { type: "text", value: "[text](https://example.com" }
+    ]);
+  });
+
+  it("treats unclosed link syntax as literal text and supports empty destinations (tests 119-122)", () => {
+    expect(parseInline("[text]( [text](url [text]() ![]()")).toEqual([
+      {
+        type: "text",
+        value: "[text]( [text](url "
+      },
+      { type: "link", url: "", children: [{ type: "text", value: "text" }] },
+      { type: "text", value: " " },
+      { type: "image", url: "", alt: "" }
+    ]);
+  });
+
+  it("preserves escaped punctuation inside labels, alt text, and destinations", () => {
+    expect(parseInline(String.raw`[a\]b](https://example.com/a\)) ![\[alt\]](img\))`)).toEqual([
+      {
+        type: "link",
+        url: "https://example.com/a)",
+        children: [{ type: "text", value: "a]b" }]
+      },
+      { type: "text", value: " " },
+      {
+        type: "image",
+        url: "img)",
+        alt: "[alt]"
+      }
+    ]);
+  });
+
+  it("preserves spaces and balanced parentheses in link destinations (tests 149-150)", () => {
+    expect(
+      parseInline("[spacey](https://example.com/a path) [paren](https://example.com/a_(b))")
+    ).toEqual([
+      {
+        type: "link",
+        url: "https://example.com/a path",
+        children: [{ type: "text", value: "spacey" }]
+      },
+      { type: "text", value: " " },
+      {
+        type: "link",
+        url: "https://example.com/a_(b)",
+        children: [{ type: "text", value: "paren" }]
+      }
+    ]);
+  });
+
+  it("parses inline HTML tags as html nodes (test 53)", () => {
+    expect(parseInline("<kbd>Ctrl</kbd> + <br/>")).toEqual([
+      { type: "html", value: "<kbd>" },
+      { type: "text", value: "Ctrl" },
+      { type: "html", value: "</kbd>" },
+      { type: "text", value: " + " },
+      { type: "html", value: "<br/>" }
+    ]);
   });
 });
 

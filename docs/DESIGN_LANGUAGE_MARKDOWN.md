@@ -542,3 +542,100 @@ log.message(diffLines.join("\n"), { symbol: chalk.yellow("~") });
 +  "maxTokens": 4096
  }
 ```
+
+## Terminal Markdown
+
+Reference demos for the terminal markdown renderer, covering both the full showcase and a minimal validation sample.
+
+### terminal-markdown
+
+Full markdown renderer showcase with headings, lists, tables, blockquotes, alerts, links, and footnotes.
+
+```typescript
+import { renderMarkdown } from "@poe-code/design-system";
+
+const markdown = [
+  "# Design System Markdown",
+  "",
+  "Paragraph with **bold** text and a [docs link](https://example.com/docs).",
+  "",
+  "- unordered item",
+  "1. ordered item"
+].join("\n");
+
+process.stdout.write(renderMarkdown(markdown));
+```
+
+```markdown
+Design System Markdown
+──────────────────────
+
+Overview
+
+Renderer Features
+
+Paragraph with bold, italic, strikethrough, code span, a docs link
+(https://example.com/docs), an image [image: System diagram], and a footnote
+reference[1].
+
+ ─────────────────────────
+ const agent = "poe-code";
+ console.log(agent);
+ ─────────────────────────
+
+| Outer quote
+|
+| | Nested quote
+
+ • unordered item
+ • another unordered item
+
+ 1. ordered item
+ 2. another ordered item
+
+ [x] completed task
+ [ ] pending task
+
+| Feature  | Alignment | Status |
+├──────────┼───────────┼────────┤
+| Headings |  center   |  Ready |
+| Tables   |  aligned  |   100% |
+
+| Note
+| Alerts are rendered as styled notes.
+
+────────────────────────────────────────────────────────────────────────────────
+
+ [1] Footnote definition for the markdown demo.
+```
+
+### terminal-markdown-minimal
+
+Compact markdown renderer sample for quick validation of headings, prose, and fenced code blocks.
+
+```typescript
+import { renderMarkdown } from "@poe-code/design-system";
+
+const markdown = [
+  "# Markdown Minimal",
+  "",
+  "Quick validation",
+  "",
+  "```js",
+  'console.log("demo");',
+  "```"
+].join("\n");
+
+process.stdout.write(renderMarkdown(markdown));
+```
+
+```markdown
+Markdown Minimal
+────────────────
+
+Quick validation paragraph.
+
+ ────────────────────
+ console.log("demo");
+ ────────────────────
+```

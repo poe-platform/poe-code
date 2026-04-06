@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { stripAnsi } from "../src/internal/strip-ansi.js";
-import { captureTextOutput, renderTextDocument, sections } from "./generate-docs.js";
+import {
+  captureTextOutput,
+  renderTerminalDocument,
+  renderTextDocument,
+  sections
+} from "./generate-docs.js";
 
 describe("generate-docs", () => {
   it("lists the current demo types in the no-argument usage output", () => {
@@ -57,6 +62,29 @@ describe("generate-docs", () => {
     expect(output.match(/^### /gm)).toHaveLength(elementCount);
     expect(output.match(/^```typescript$/gm)).toHaveLength(elementCount + 2);
     expect(output.match(/^```markdown$/gm)).toHaveLength(elementCount);
+  });
+
+  it("includes markdown demo entries in generated markdown docs", () => {
+    const output = renderTextDocument("markdown", (demoArgs, format) => {
+      expect(format).toBe("markdown");
+      return `captured ${format}: ${demoArgs}\n`;
+    });
+
+    expect(output).toContain("### terminal-markdown");
+    expect(output).toContain("captured markdown: markdown");
+    expect(output).toContain("### terminal-markdown-minimal");
+    expect(output).toContain("captured markdown: markdown-minimal");
+  });
+
+  it("includes terminal-markdown screenshot references in the terminal doc", () => {
+    const output = renderTerminalDocument();
+
+    expect(output).toContain("### terminal-markdown");
+    expect(output).toContain("![terminal-markdown](design-language/terminal-markdown.png)");
+    expect(output).toContain("### terminal-markdown-minimal");
+    expect(output).toContain(
+      "![terminal-markdown-minimal](design-language/terminal-markdown-minimal.png)"
+    );
   });
 
   it("captures only demo output for text variants", () => {

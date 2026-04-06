@@ -525,3 +525,100 @@ log.message(diffLines.join("\n"), { symbol: chalk.yellow("~") });
 ```json
 {"level":"message","message":"--- config.json\n+++ config.json\n@@ -1,3 +1,5 @@\n {\n-  \"model\": \"gpt-4\",\n+  \"model\": \"claude-sonnet-4\",\n   \"temperature\": 0.7\n+  \"maxTokens\": 4096\n }"}
 ```
+
+## Terminal Markdown
+
+Reference demos for the terminal markdown renderer, covering both the full showcase and a minimal validation sample.
+
+### terminal-markdown
+
+Full markdown renderer showcase with headings, lists, tables, blockquotes, alerts, links, and footnotes.
+
+```typescript
+import { renderMarkdown } from "@poe-code/design-system";
+
+const markdown = [
+  "# Design System Markdown",
+  "",
+  "Paragraph with **bold** text and a [docs link](https://example.com/docs).",
+  "",
+  "- unordered item",
+  "1. ordered item"
+].join("\n");
+
+process.stdout.write(renderMarkdown(markdown));
+```
+
+```json
+Design System Markdown
+──────────────────────
+
+Overview
+
+Renderer Features
+
+Paragraph with bold, italic, strikethrough, code span, a docs link
+(https://example.com/docs), an image [image: System diagram], and a footnote
+reference[1].
+
+ ─────────────────────────
+ const agent = "poe-code";
+ console.log(agent);
+ ─────────────────────────
+
+ Outer quote
+
+  Nested quote
+
+ • unordered item
+ • another unordered item
+
+ 1. ordered item
+ 2. another ordered item
+
+ active completed task
+ inactive pending task
+
+ Feature   Alignment  Status 
+├──────────┼───────────┼────────┤
+ Headings   center     Ready 
+ Tables     aligned     100% 
+
+ Note
+ Alerts are rendered as styled notes.
+
+────────────────────────────────────────────────────────────────────────────────
+
+ [1] Footnote definition for the markdown demo.
+```
+
+### terminal-markdown-minimal
+
+Compact markdown renderer sample for quick validation of headings, prose, and fenced code blocks.
+
+```typescript
+import { renderMarkdown } from "@poe-code/design-system";
+
+const markdown = [
+  "# Markdown Minimal",
+  "",
+  "Quick validation",
+  "",
+  "```js",
+  'console.log("demo");',
+  "```"
+].join("\n");
+
+process.stdout.write(renderMarkdown(markdown));
+```
+
+```json
+Markdown Minimal
+────────────────
+
+Quick validation paragraph.
+
+ ────────────────────
+ console.log("demo");
+ ────────────────────
+```

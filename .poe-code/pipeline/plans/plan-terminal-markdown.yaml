@@ -1003,7 +1003,7 @@ tasks:
 
       Fix any issues that surface.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done

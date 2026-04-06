@@ -1,7 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as clack from "@clack/prompts";
-import { confirmOrCancel, PromptCancelledError } from "./index.js";
-import * as cancelPrimitive from "./primitives/cancel.js";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 vi.mock("@clack/prompts", () => ({
   confirm: vi.fn(),
@@ -15,14 +12,22 @@ vi.mock("./primitives/cancel.js", () => ({
   isCancel: vi.fn()
 }));
 
-const clackConfirm = vi.mocked(clack.confirm);
-const primitiveCancel = vi.mocked(cancelPrimitive.cancel);
-const primitiveIsCancel = vi.mocked(cancelPrimitive.isCancel);
-
 describe("confirmOrCancel", () => {
+  let clackConfirm: Mock;
+  let primitiveCancel: Mock;
+  let primitiveIsCancel: Mock;
+  let confirmOrCancel: typeof import("./index.js").confirmOrCancel;
+  let PromptCancelledError: typeof import("./index.js").PromptCancelledError;
   let stdoutSpy: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
+    const clack = await import("@clack/prompts");
+    const cancelPrimitive = await import("./primitives/cancel.js");
+    ({ confirmOrCancel, PromptCancelledError } = await import("./index.js"));
+    clackConfirm = vi.mocked(clack.confirm);
+    primitiveCancel = vi.mocked(cancelPrimitive.cancel);
+    primitiveIsCancel = vi.mocked(cancelPrimitive.isCancel);
     vi.clearAllMocks();
     primitiveIsCancel.mockReturnValue(false);
     stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);

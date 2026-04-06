@@ -437,3 +437,50 @@ log.message(diffLines.join("\n"), { symbol: chalk.yellow("~") });
 ```
 
 ![diff](design-language/diff.png)
+
+## Terminal Markdown
+
+Reference demos for the terminal markdown renderer, covering both the full showcase and a minimal validation sample.
+
+### terminal-markdown
+
+Full markdown renderer showcase with headings, lists, tables, blockquotes, alerts, links, and footnotes.
+
+```typescript
+import { renderMarkdown } from "@poe-code/design-system";
+
+const markdown = [
+  "# Design System Markdown",
+  "",
+  "Paragraph with **bold** text and a [docs link](https://example.com/docs).",
+  "",
+  "- unordered item",
+  "1. ordered item"
+].join("\n");
+
+process.stdout.write(renderMarkdown(markdown));
+```
+
+![terminal-markdown](design-language/terminal-markdown.png)
+
+### terminal-markdown-minimal
+
+Compact markdown renderer sample for quick validation of headings, prose, and fenced code blocks.
+
+```typescript
+import { renderMarkdown } from "@poe-code/design-system";
+
+const markdown = [
+  "# Markdown Minimal",
+  "",
+  "Quick validation",
+  "",
+  "```js",
+  'console.log("demo");',
+  "```"
+].join("\n");
+
+process.stdout.write(renderMarkdown(markdown));
+```
+
+![terminal-markdown-minimal](design-language/terminal-markdown-minimal.png)

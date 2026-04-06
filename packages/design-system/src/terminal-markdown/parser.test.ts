@@ -312,6 +312,93 @@ describe("parseInline", () => {
       { type: "text", value: " c*" }
     ]);
   });
+
+  it("parses footnote references only when the definition label exists (tests 103, 106, 108, 138)", () => {
+    expect(parseInline("See [^note] and [^missing].", { footnoteLabels: new Set(["note"]) })).toEqual(
+      [
+        { type: "text", value: "See " },
+        { type: "footnoteReference", label: "note" },
+        { type: "text", value: " and [^missing]." }
+      ]
+    );
+  });
+
+  it("parses bare URL and email autolink literals (tests 110-113)", () => {
+    expect(
+      parseInline("https://example.com http://example.com www.example.com user@example.com")
+    ).toEqual([
+      {
+        type: "link",
+        url: "https://example.com",
+        children: [{ type: "text", value: "https://example.com" }]
+      },
+      { type: "text", value: " " },
+      {
+        type: "link",
+        url: "http://example.com",
+        children: [{ type: "text", value: "http://example.com" }]
+      },
+      { type: "text", value: " " },
+      {
+        type: "link",
+        url: "http://www.example.com",
+        children: [{ type: "text", value: "www.example.com" }]
+      },
+      { type: "text", value: " " },
+      {
+        type: "link",
+        url: "mailto:user@example.com",
+        children: [{ type: "text", value: "user@example.com" }]
+      }
+    ]);
+  });
+
+  it("trims trailing punctuation from literal autolinks but keeps balanced delimiters", () => {
+    expect(parseInline("See www.example.com, https://example.com/path(ok). and user@example.com."))
+      .toEqual([
+        { type: "text", value: "See " },
+        {
+          type: "link",
+          url: "http://www.example.com",
+          children: [{ type: "text", value: "www.example.com" }]
+        },
+        { type: "text", value: ", " },
+        {
+          type: "link",
+          url: "https://example.com/path(ok)",
+          children: [{ type: "text", value: "https://example.com/path(ok)" }]
+        },
+        { type: "text", value: ". and " },
+        {
+          type: "link",
+          url: "mailto:user@example.com",
+          children: [{ type: "text", value: "user@example.com" }]
+        },
+        { type: "text", value: "." }
+      ]);
+  });
+
+  it("does not trigger literal autolinks inside code spans or links (test 114)", () => {
+    expect(parseInline("`https://example.com` [www.example.com](https://outer.test)")).toEqual([
+      { type: "inlineCode", value: "https://example.com" },
+      { type: "text", value: " " },
+      {
+        type: "link",
+        url: "https://outer.test",
+        children: [{ type: "text", value: "www.example.com" }]
+      }
+    ]);
+  });
+
+  it("parses hard line breaks from trailing spaces and backslashes (tests 50-51)", () => {
+    expect(parseInline("alpha  \nbeta\\\ngamma\ndelta")).toEqual([
+      { type: "text", value: "alpha" },
+      { type: "break" },
+      { type: "text", value: "beta" },
+      { type: "break" },
+      { type: "text", value: "gamma\ndelta" }
+    ]);
+  });
 });
 
 describe("parseBlocks", () => {
@@ -415,9 +502,16 @@ describe("parseBlocks", () => {
     ]);
   });
 
-  it("keeps ATX heading content as raw text for inline formatting placeholders", () => {
+  it("applies inline parsing inside ATX headings", () => {
     expect(parseBlocks("## Hello *world*")).toEqual([
-      { type: "heading", depth: 2, children: [{ type: "text", value: "Hello *world*" }] }
+      {
+        type: "heading",
+        depth: 2,
+        children: [
+          { type: "text", value: "Hello " },
+          { type: "emphasis", children: [{ type: "text", value: "world" }] }
+        ]
+      }
     ]);
   });
 
@@ -497,7 +591,7 @@ describe("parseBlocks", () => {
     ]);
   });
 
-  it("leaves inline formatting inside table cells as raw text for now (test 58)", () => {
+  it("applies inline parsing inside table cells (test 58)", () => {
     expect(parseBlocks("| Name | Notes |\n| --- | --- |\n| *alpha* | `beta` and **gamma** |"))
       .toEqual([
         {
@@ -505,7 +599,23 @@ describe("parseBlocks", () => {
           align: [null, null],
           children: [
             createTableRow("Name", "Notes"),
-            createTableRow("*alpha*", "`beta` and **gamma**")
+            {
+              type: "tableRow",
+              children: [
+                {
+                  type: "tableCell",
+                  children: [{ type: "emphasis", children: [{ type: "text", value: "alpha" }] }]
+                },
+                {
+                  type: "tableCell",
+                  children: [
+                    { type: "inlineCode", value: "beta" },
+                    { type: "text", value: " and " },
+                    { type: "strong", children: [{ type: "text", value: "gamma" }] }
+                  ]
+                }
+              ]
+            }
           ]
         }
       ]);
@@ -896,7 +1006,7 @@ describe("parseBlocks", () => {
     ]);
   });
 
-  it("leaves inline formatting inside alerts as raw text for now (test 101)", () => {
+  it("applies inline parsing inside alerts (test 101)", () => {
     expect(parseBlocks("> [!TIP]\n> use *care* and `focus`")).toEqual([
       {
         type: "alert",
@@ -904,7 +1014,12 @@ describe("parseBlocks", () => {
         children: [
           {
             type: "paragraph",
-            children: [{ type: "text", value: "use *care* and `focus`" }]
+            children: [
+              { type: "text", value: "use " },
+              { type: "emphasis", children: [{ type: "text", value: "care" }] },
+              { type: "text", value: " and " },
+              { type: "inlineCode", value: "focus" }
+            ]
           }
         ]
       }
@@ -1222,7 +1337,7 @@ describe("parseBlocks", () => {
     ]);
   });
 
-  it("leaves inline formatting inside task list items as raw text for now (spec test 77)", () => {
+  it("applies inline parsing inside task list items (spec test 77)", () => {
     expect(parseBlocks("- [x] *done*")).toEqual([
       {
         type: "list",
@@ -1231,7 +1346,199 @@ describe("parseBlocks", () => {
           {
             type: "listItem",
             checked: true,
-            children: [{ type: "paragraph", children: [{ type: "text", value: "*done*" }] }]
+            children: [
+              {
+                type: "paragraph",
+                children: [{ type: "emphasis", children: [{ type: "text", value: "done" }] }]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it("applies inline parsing across supported block children and keeps code/html raw", () => {
+    expect(
+      parseBlocks([
+        "Alpha [^note] and https://example.com  ",
+        "next",
+        "",
+        "> quote *em*",
+        "",
+        "- item with user@example.com",
+        "",
+        "| Head | Value |",
+        "| --- | --- |",
+        "| `code` | www.example.com |",
+        "",
+        "> [!NOTE]",
+        "> alert with [link](https://example.com)",
+        "",
+        "[^note]: footnote with **strong**",
+        "",
+        "```",
+        "literal https://example.com [^note]",
+        "```",
+        "",
+        "<div>*literal*</div>"
+      ].join("\n"))
+    ).toEqual([
+      {
+        type: "paragraph",
+        children: [
+          { type: "text", value: "Alpha " },
+          { type: "footnoteReference", label: "note" },
+          { type: "text", value: " and " },
+          {
+            type: "link",
+            url: "https://example.com",
+            children: [{ type: "text", value: "https://example.com" }]
+          },
+          { type: "break" },
+          { type: "text", value: "next" }
+        ]
+      },
+      {
+        type: "blockquote",
+        children: [
+          {
+            type: "paragraph",
+            children: [
+              { type: "text", value: "quote " },
+              { type: "emphasis", children: [{ type: "text", value: "em" }] }
+            ]
+          }
+        ]
+      },
+      {
+        type: "list",
+        ordered: false,
+        children: [
+          {
+            type: "listItem",
+            children: [
+              {
+                type: "paragraph",
+                children: [
+                  { type: "text", value: "item with " },
+                  {
+                    type: "link",
+                    url: "mailto:user@example.com",
+                    children: [{ type: "text", value: "user@example.com" }]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: "table",
+        align: [null, null],
+        children: [
+          createTableRow("Head", "Value"),
+          {
+            type: "tableRow",
+            children: [
+              { type: "tableCell", children: [{ type: "inlineCode", value: "code" }] },
+              {
+                type: "tableCell",
+                children: [
+                  {
+                    type: "link",
+                    url: "http://www.example.com",
+                    children: [{ type: "text", value: "www.example.com" }]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: "alert",
+        kind: "NOTE",
+        children: [
+          {
+            type: "paragraph",
+            children: [
+              { type: "text", value: "alert with " },
+              {
+                type: "link",
+                url: "https://example.com",
+                children: [{ type: "text", value: "link" }]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: "footnoteDefinition",
+        label: "note",
+        children: [
+          {
+            type: "paragraph",
+            children: [
+              { type: "text", value: "footnote with " },
+              { type: "strong", children: [{ type: "text", value: "strong" }] }
+            ]
+          }
+        ]
+      },
+      {
+        type: "code",
+        value: "literal https://example.com [^note]"
+      },
+      {
+        type: "html",
+        value: "<div>*literal*</div>"
+      }
+    ]);
+  });
+
+  it("keeps unresolved footnotes literal and applies hard breaks inside alerts and footnotes", () => {
+    expect(
+      parseBlocks([
+        "See [^missing].",
+        "",
+        "> [!NOTE]",
+        "> line  ",
+        "> next",
+        "",
+        "[^note]: footnote line  ",
+        "    next"
+      ].join("\n"))
+    ).toEqual([
+      {
+        type: "paragraph",
+        children: [{ type: "text", value: "See [^missing]." }]
+      },
+      {
+        type: "alert",
+        kind: "NOTE",
+        children: [
+          {
+            type: "paragraph",
+            children: [
+              { type: "text", value: "line" },
+              { type: "break" },
+              { type: "text", value: "next" }
+            ]
+          }
+        ]
+      },
+      {
+        type: "footnoteDefinition",
+        label: "note",
+        children: [
+          {
+            type: "paragraph",
+            children: [
+              { type: "text", value: "footnote line" },
+              { type: "break" },
+              { type: "text", value: "next" }
+            ]
           }
         ]
       }

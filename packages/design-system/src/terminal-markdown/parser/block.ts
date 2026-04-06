@@ -1,4 +1,5 @@
 import type { MdNode } from "../ast.js";
+import { parseInline } from "./inline.js";
 
 type ParserState = {
   input: string;
@@ -139,7 +140,7 @@ const VOID_BLOCK_HTML_TAGS = new Set([
 ]);
 
 export function parseBlocks(input: string): MdNode[] {
-  return parseBlocksWithOptions(input, { preferListToThematicBreak: false });
+  return applyInlineParsing(parseBlocksWithOptions(input, { preferListToThematicBreak: false }));
 }
 
 function parseBlocksWithOptions(input: string, options: ParseOptions): MdNode[] {
@@ -178,6 +179,93 @@ function parseBlocksWithOptions(input: string, options: ParseOptions): MdNode[] 
   }
 
   return blocks;
+}
+
+function applyInlineParsing(nodes: MdNode[]): MdNode[] {
+  const footnoteLabels = collectFootnoteLabels(nodes);
+  return nodes.map((node) => applyInlineParsingToNode(node, footnoteLabels));
+}
+
+function collectFootnoteLabels(nodes: MdNode[]): Set<string> {
+  const labels = new Set<string>();
+
+  for (const node of nodes) {
+    collectFootnoteLabelsFromNode(node, labels);
+  }
+
+  return labels;
+}
+
+function collectFootnoteLabelsFromNode(node: MdNode, labels: Set<string>): void {
+  if (node.type === "footnoteDefinition") {
+    labels.add(node.label);
+  }
+
+  if (hasBlockChildren(node)) {
+    for (const child of node.children) {
+      collectFootnoteLabelsFromNode(child, labels);
+    }
+  }
+}
+
+function applyInlineParsingToNode(node: MdNode, footnoteLabels: ReadonlySet<string>): MdNode {
+  if (node.type === "paragraph" || node.type === "heading" || node.type === "tableCell") {
+    return {
+      ...node,
+      children: applyInlineParsingToTextChildren(node.children, footnoteLabels)
+    };
+  }
+
+  if (hasBlockChildren(node)) {
+    return {
+      ...node,
+      children: node.children.map((child) => applyInlineParsingToNode(child, footnoteLabels))
+    };
+  }
+
+  return node;
+}
+
+function applyInlineParsingToTextChildren(
+  children: MdNode[],
+  footnoteLabels: ReadonlySet<string>
+): MdNode[] {
+  let rawText = "";
+
+  for (const child of children) {
+    if (child.type !== "text") {
+      return children;
+    }
+
+    rawText += child.value;
+  }
+
+  return parseInline(rawText, { footnoteLabels });
+}
+
+function hasBlockChildren(
+  node: MdNode
+): node is Extract<
+  MdNode,
+  | { type: "root" }
+  | { type: "blockquote" }
+  | { type: "list" }
+  | { type: "listItem" }
+  | { type: "table" }
+  | { type: "tableRow" }
+  | { type: "alert" }
+  | { type: "footnoteDefinition" }
+> {
+  return (
+    node.type === "root" ||
+    node.type === "blockquote" ||
+    node.type === "list" ||
+    node.type === "listItem" ||
+    node.type === "table" ||
+    node.type === "tableRow" ||
+    node.type === "alert" ||
+    node.type === "footnoteDefinition"
+  );
 }
 
 function createBlockRules(preferListToThematicBreak: boolean): BlockRule[] {

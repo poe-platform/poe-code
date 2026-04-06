@@ -24,9 +24,110 @@ type DelimiterPair = {
   sequence: number;
 };
 
-export function parseInline(raw: string): MdNode[] {
+const INLINE_HTML_TAGS = new Set([
+  "a",
+  "abbr",
+  "address",
+  "article",
+  "aside",
+  "b",
+  "base",
+  "basefont",
+  "bdi",
+  "bdo",
+  "blockquote",
+  "body",
+  "br",
+  "button",
+  "caption",
+  "center",
+  "cite",
+  "code",
+  "col",
+  "colgroup",
+  "data",
+  "dd",
+  "del",
+  "details",
+  "dfn",
+  "dialog",
+  "div",
+  "dl",
+  "dt",
+  "em",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "head",
+  "header",
+  "hr",
+  "html",
+  "i",
+  "img",
+  "input",
+  "ins",
+  "kbd",
+  "label",
+  "legend",
+  "li",
+  "link",
+  "main",
+  "mark",
+  "menu",
+  "nav",
+  "ol",
+  "option",
+  "p",
+  "param",
+  "pre",
+  "q",
+  "rp",
+  "rt",
+  "rtc",
+  "ruby",
+  "s",
+  "samp",
+  "search",
+  "section",
+  "small",
+  "span",
+  "strong",
+  "sub",
+  "summary",
+  "sup",
+  "table",
+  "tbody",
+  "td",
+  "tfoot",
+  "th",
+  "thead",
+  "time",
+  "title",
+  "tr",
+  "u",
+  "ul",
+  "var",
+  "wbr"
+]);
+
+export type ParseInlineOptions = {
+  footnoteLabels?: ReadonlySet<string>;
+  allowLiteralAutolinks?: boolean;
+};
+
+export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNode[] {
   const nodes: MdNode[] = [];
   const delimiters: Delimiter[] = [];
+  const footnoteLabels = options.footnoteLabels;
+  const allowLiteralAutolinks = options.allowLiteralAutolinks ?? true;
   let textBuffer = "";
   let index = 0;
 
@@ -71,7 +172,16 @@ export function parseInline(raw: string): MdNode[] {
     }
 
     if (char === "[") {
-      const link = parseLink(raw, index);
+      const footnoteReference = parseFootnoteReference(raw, index, footnoteLabels);
+
+      if (footnoteReference !== null) {
+        flushText();
+        nodes.push(footnoteReference.node);
+        index = footnoteReference.end;
+        continue;
+      }
+
+      const link = parseLink(raw, index, footnoteLabels);
 
       if (link !== null) {
         flushText();
@@ -97,6 +207,37 @@ export function parseInline(raw: string): MdNode[] {
         flushText();
         nodes.push(html.node);
         index = html.end;
+        continue;
+      }
+    }
+
+    if (char === "\n") {
+      if (textBuffer.endsWith("\\")) {
+        textBuffer = textBuffer.slice(0, -1);
+        flushText();
+        nodes.push({ type: "break" });
+        index += 1;
+        continue;
+      }
+
+      const trailingSpaceStart = findTrailingHardBreakSpaceStart(textBuffer);
+
+      if (trailingSpaceStart !== -1) {
+        textBuffer = textBuffer.slice(0, trailingSpaceStart);
+        flushText();
+        nodes.push({ type: "break" });
+        index += 1;
+        continue;
+      }
+    }
+
+    if (allowLiteralAutolinks) {
+      const literalAutolink = parseLiteralAutolink(raw, index);
+
+      if (literalAutolink !== null) {
+        flushText();
+        nodes.push(literalAutolink.node);
+        index = literalAutolink.end;
         continue;
       }
     }
@@ -504,7 +645,11 @@ function parseInlineCode(input: string, start: number): ParsedInlineNode | null 
   return null;
 }
 
-function parseLink(input: string, start: number): ParsedInlineNode | null {
+function parseLink(
+  input: string,
+  start: number,
+  footnoteLabels?: ReadonlySet<string>
+): ParsedInlineNode | null {
   const label = parseBracketedLabel(input, start);
 
   if (label === null || label.end >= input.length || input[label.end] !== "(") {
@@ -522,7 +667,10 @@ function parseLink(input: string, start: number): ParsedInlineNode | null {
       type: "link",
       url: destination.url,
       ...(destination.title === undefined ? {} : { title: destination.title }),
-      children: parseInline(label.value)
+      children: parseInline(label.value, {
+        footnoteLabels,
+        allowLiteralAutolinks: false
+      })
     },
     end: destination.end
   };
@@ -747,6 +895,142 @@ function parseAutolink(input: string, start: number): ParsedInlineNode | null {
   };
 }
 
+function parseFootnoteReference(
+  input: string,
+  start: number,
+  footnoteLabels: ReadonlySet<string> | undefined
+): ParsedInlineNode | null {
+  if (
+    footnoteLabels === undefined ||
+    start + 3 >= input.length ||
+    input[start] !== "[" ||
+    input[start + 1] !== "^"
+  ) {
+    return null;
+  }
+
+  let labelEnd = start + 2;
+
+  while (labelEnd < input.length && input[labelEnd] !== "]") {
+    if (!isFootnoteLabelChar(input[labelEnd])) {
+      return null;
+    }
+
+    labelEnd += 1;
+  }
+
+  if (labelEnd === start + 2 || labelEnd >= input.length) {
+    return null;
+  }
+
+  const label = input.slice(start + 2, labelEnd);
+
+  if (!footnoteLabels.has(label)) {
+    return null;
+  }
+
+  return {
+    node: { type: "footnoteReference", label },
+    end: labelEnd + 1
+  };
+}
+
+function parseLiteralAutolink(input: string, start: number): ParsedInlineNode | null {
+  if (!isLiteralAutolinkBoundaryBefore(input, start)) {
+    return null;
+  }
+
+  const urlLiteral = parseLiteralUrlAutolink(input, start);
+
+  if (urlLiteral !== null) {
+    return createLiteralAutolinkNode(urlLiteral.text, urlLiteral.url, urlLiteral.end);
+  }
+
+  const wwwLiteral = parseLiteralWwwAutolink(input, start);
+
+  if (wwwLiteral !== null) {
+    return createLiteralAutolinkNode(wwwLiteral.text, `http://${wwwLiteral.text}`, wwwLiteral.end);
+  }
+
+  const emailLiteral = parseLiteralEmailAutolink(input, start);
+
+  if (emailLiteral !== null) {
+    return createLiteralAutolinkNode(
+      emailLiteral.text,
+      `mailto:${emailLiteral.text}`,
+      emailLiteral.end
+    );
+  }
+
+  return null;
+}
+
+function createLiteralAutolinkNode(text: string, url: string, end: number): ParsedInlineNode {
+  return {
+    node: {
+      type: "link",
+      url,
+      children: [{ type: "text", value: text }]
+    },
+    end
+  };
+}
+
+function parseLiteralUrlAutolink(
+  input: string,
+  start: number
+): { text: string; url: string; end: number } | null {
+  const hasHttp = input.startsWith("http://", start);
+  const hasHttps = input.startsWith("https://", start);
+
+  if (!hasHttp && !hasHttps) {
+    return null;
+  }
+
+  const end = scanLiteralAutolinkEnd(input, start);
+  const text = trimLiteralAutolinkText(input.slice(start, end));
+  const prefixLength = hasHttps ? "https://".length : "http://".length;
+
+  if (text.length <= prefixLength) {
+    return null;
+  }
+
+  return { text, url: text, end: start + text.length };
+}
+
+function parseLiteralWwwAutolink(input: string, start: number): { text: string; end: number } | null {
+  if (!input.startsWith("www.", start)) {
+    return null;
+  }
+
+  const end = scanLiteralAutolinkEnd(input, start);
+  const text = trimLiteralAutolinkText(input.slice(start, end));
+
+  if (!hasDotAfterPrefix(text, 4)) {
+    return null;
+  }
+
+  return { text, end: start + text.length };
+}
+
+function parseLiteralEmailAutolink(
+  input: string,
+  start: number
+): { text: string; end: number } | null {
+  if (!isEmailLocalPartChar(input[start] ?? "")) {
+    return null;
+  }
+
+  const end = scanLiteralAutolinkEnd(input, start);
+  const text = trimLiteralAutolinkText(input.slice(start, end));
+
+  if (!isValidLiteralEmail(text)) {
+    return null;
+  }
+
+  return { text, end: start + text.length };
+}
+
 function parseInlineHtmlTag(input: string, start: number): ParsedInlineNode | null {
   if (input[start] !== "<") {
     return null;
@@ -768,6 +1052,12 @@ function parseInlineHtmlTag(input: string, start: number): ParsedInlineNode | nu
 
   while (index < input.length && isHtmlTagNameChar(input[index])) {
     index += 1;
+  }
+
+  const tagName = input.slice(start + (closing ? 2 : 1), index).toLowerCase();
+
+  if (!INLINE_HTML_TAGS.has(tagName)) {
+    return null;
   }
 
   if (closing) {
@@ -881,6 +1171,16 @@ function decodeEscapes(value: string): string {
   return result;
 }
 
+function findTrailingHardBreakSpaceStart(value: string): number {
+  let start = value.length;
+
+  while (start > 0 && (value[start - 1] === " " || value[start - 1] === "\t")) {
+    start -= 1;
+  }
+
+  return value.length - start >= 2 ? start : -1;
+}
+
 function readRunLength(input: string, start: number, char: string): number {
   let index = start;
 
@@ -940,6 +1240,138 @@ function isAutolinkUrl(value: string): boolean {
   }
 
   return false;
+}
+
+function scanLiteralAutolinkEnd(input: string, start: number): number {
+  let index = start;
+
+  while (index < input.length) {
+    const char = input[index];
+
+    if (char === "\n" || isAsciiWhitespace(char) || char === "<") {
+      break;
+    }
+
+    index += 1;
+  }
+
+  return index;
+}
+
+function trimLiteralAutolinkText(value: string): string {
+  let end = value.length;
+
+  while (end > 0) {
+    const lastChar = value[end - 1];
+
+    if (
+      lastChar === "." ||
+      lastChar === "," ||
+      lastChar === ":" ||
+      lastChar === ";" ||
+      lastChar === "!" ||
+      lastChar === "?"
+    ) {
+      end -= 1;
+      continue;
+    }
+
+    if (
+      (lastChar === ")" && hasMoreClosersThanOpeners(value.slice(0, end), "(", ")")) ||
+      (lastChar === "]" && hasMoreClosersThanOpeners(value.slice(0, end), "[", "]")) ||
+      (lastChar === "}" && hasMoreClosersThanOpeners(value.slice(0, end), "{", "}"))
+    ) {
+      end -= 1;
+      continue;
+    }
+
+    break;
+  }
+
+  return value.slice(0, end);
+}
+
+function hasMoreClosersThanOpeners(value: string, opener: string, closer: string): boolean {
+  let balance = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    if (value[index] === opener) {
+      balance += 1;
+      continue;
+    }
+
+    if (value[index] === closer) {
+      balance -= 1;
+    }
+  }
+
+  return balance < 0;
+}
+
+function isLiteralAutolinkBoundaryBefore(input: string, start: number): boolean {
+  if (start === 0) {
+    return true;
+  }
+
+  const previous = input[start - 1];
+
+  if (previous === "(" && start >= 2 && input[start - 2] === "]") {
+    return false;
+  }
+
+  return (
+    !isAsciiLetter(previous) &&
+    !isDigit(previous) &&
+    previous !== "_" &&
+    previous !== "." &&
+    previous !== "+" &&
+    previous !== "-" &&
+    previous !== "@" &&
+    previous !== "/"
+  );
+}
+
+function hasDotAfterPrefix(value: string, prefixLength: number): boolean {
+  if (value.length <= prefixLength) {
+    return false;
+  }
+
+  for (let index = prefixLength; index < value.length; index += 1) {
+    if (value[index] === ".") {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isValidLiteralEmail(value: string): boolean {
+  const atIndex = value.indexOf("@");
+
+  if (atIndex <= 0 || atIndex === value.length - 1 || value.indexOf("@", atIndex + 1) !== -1) {
+    return false;
+  }
+
+  const localPart = value.slice(0, atIndex);
+  const domain = value.slice(atIndex + 1);
+
+  if (domain[0] === "." || domain[domain.length - 1] === "." || !hasDotAfterPrefix(domain, 0)) {
+    return false;
+  }
+
+  for (let index = 0; index < localPart.length; index += 1) {
+    if (!isEmailLocalPartChar(localPart[index])) {
+      return false;
+    }
+  }
+
+  for (let index = 0; index < domain.length; index += 1) {
+    if (!isEmailDomainChar(domain[index])) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function isEscaped(value: string, index: number): boolean {
@@ -1023,6 +1455,18 @@ function isAsciiLetter(value: string): boolean {
 
 function isDigit(value: string): boolean {
   return value >= "0" && value <= "9";
+}
+
+function isEmailLocalPartChar(value: string): boolean {
+  return isAsciiLetter(value) || isDigit(value) || value === "." || value === "_" || value === "%" || value === "+" || value === "-";
+}
+
+function isEmailDomainChar(value: string): boolean {
+  return isAsciiLetter(value) || isDigit(value) || value === "." || value === "-";
+}
+
+function isFootnoteLabelChar(value: string): boolean {
+  return isAsciiLetter(value) || isDigit(value) || value === "-" || value === "_";
 }
 
 function isHtmlTagNameChar(value: string): boolean {

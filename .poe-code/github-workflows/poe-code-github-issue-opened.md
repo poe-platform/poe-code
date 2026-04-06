@@ -1,4 +1,6 @@
 ---
+# Installed by: poe-code github-workflows install github-issue-opened
+# Edit this file to customize the automation prompt and configuration.
 label: "GitHub: Issue Handler"
 # Available variables:
 #   {{url}}          - full GitHub URL to the issue

@@ -16,7 +16,7 @@ const VALID_AUTHOR_ASSOCIATIONS = new Set([
 
 export async function discoverAutomations(
   builtInDir: string,
-  projectDir?: string
+  ...projectDirs: string[]
 ): Promise<AutomationDefinition[]> {
   const automationsByName = new Map<string, AutomationDefinition>();
 
@@ -24,7 +24,7 @@ export async function discoverAutomations(
     automationsByName.set(automation.name, automation);
   }
 
-  if (projectDir !== undefined) {
+  for (const projectDir of projectDirs) {
     for (const automation of await readAutomationsFromDirectory(projectDir)) {
       automationsByName.set(automation.name, automation);
     }

@@ -315,6 +315,9 @@ run_guard_in_docker() {
 
     run grep -qF -- '--verbose' "$workflow_path"
     [ "$status" -ne 0 ]
+
+    run grep -qF 'poe-code github-workflows prepare poe-code-' "$workflow_path"
+    [ "$status" -ne 0 ]
   done
 }
 

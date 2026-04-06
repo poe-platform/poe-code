@@ -87,6 +87,26 @@ describe("discoverAutomations", () => {
     ]);
   });
 
+  it("merges multiple project directories in order", async () => {
+    fsState.directories.set("/built-in", ["triage.md"]);
+    fsState.directories.set("/github-workflows", ["triage.md"]);
+    fsState.directories.set("/poe-code", ["local-only.md"]);
+    fsState.files.set("/built-in/triage.md", "# Built-in triage");
+    fsState.files.set("/github-workflows/triage.md", "# Ejected triage");
+    fsState.files.set("/poe-code/local-only.md", "# Legacy local only");
+
+    await expect(discoverAutomations("/built-in", "/github-workflows", "/poe-code")).resolves.toEqual([
+      {
+        name: "local-only",
+        prompt: "# Legacy local only"
+      },
+      {
+        name: "triage",
+        prompt: "# Ejected triage"
+      }
+    ]);
+  });
+
   it("ignores missing built-in and project directories", async () => {
     const missingBuiltIn = new Error("missing built-in") as NodeJS.ErrnoException;
     missingBuiltIn.code = "ENOENT";

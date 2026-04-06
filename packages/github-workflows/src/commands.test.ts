@@ -470,7 +470,7 @@ describe("ghGroup", () => {
     expect(logger.message).toHaveBeenCalledWith("automation table");
   });
 
-  it("installs a standalone workflow and prompt copy that use the published CLI", async () => {
+  it("installs a standalone workflow that uses the published CLI without copying a prompt file", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     seedWorkflowTemplate("github-issue-opened", "ejected");
 
@@ -482,12 +482,12 @@ describe("ghGroup", () => {
       })
     );
 
-    expect(vol.existsSync("/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md")).toBe(true);
+    expect(vol.existsSync("/repo/.github/workflows/poe-code-github-issue-opened.md")).toBe(false);
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toContain(
       "npm install -g poe-code@latest"
     );
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toContain(
-      "poe-code github-workflows prepare poe-code-github-issue-opened"
+      "poe-code github-workflows prepare github-issue-opened"
     );
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).not.toContain(
       "uses: poe-platform/poe-code/.github/workflows/"
@@ -495,11 +495,12 @@ describe("ghGroup", () => {
     expect(result).toMatchObject({
       name: "github-issue-opened",
       promptContent: "# Prompt",
-      promptPath: "/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md"
+      promptPath: undefined,
+      ejected: false
     });
   });
 
-  it("shows the default prompt in a note and reports the copied prompt path", async () => {
+  it("shows the default prompt in a note and suggests eject for customization", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     seedWorkflowTemplate("github-issue-opened", "ejected");
 
@@ -525,10 +526,10 @@ describe("ghGroup", () => {
     });
 
     expect(logger.success).toHaveBeenCalledWith(expect.stringContaining("poe-code-github-issue-opened.yml"));
-    expect(logger.message).toHaveBeenCalledWith(
-      "Prompt copied to /repo/.poe-code/github-workflows/poe-code-github-issue-opened.md"
-    );
     expect(note).toHaveBeenCalledWith("# Prompt", "Default prompt");
+    expect(logger.message).toHaveBeenCalledWith(
+      "To customize the prompt, run: poe-code github-workflows install github-issue-opened --eject"
+    );
   });
 
   it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {
@@ -563,12 +564,35 @@ describe("ghGroup", () => {
     const workflow = readRepoFile("/repo/.github/workflows/poe-code-github-issue-comment-created.yml");
     expect(workflow).toContain("issue_comment:");
     expect(workflow).toContain(
+      "poe-code github-workflows require-user-allow github-issue-comment-created"
+    );
+    expect(workflow).toContain(
+      "poe-code github-workflows prepare github-issue-comment-created"
+    );
+    expect(workflow).not.toContain("workflow_call:");
+  });
+
+  it("installs an ejected workflow and prompt next to the yaml file", async () => {
+    writeBuiltInPrompt("github-issue-comment-created", "# Prompt");
+    seedWorkflowTemplate("github-issue-comment-created", "ejected");
+
+    const installCommand = getCommand(["install"]);
+
+    await installCommand.handler(
+      createContext({
+        name: "github-issue-comment-created",
+        eject: true
+      })
+    );
+
+    const workflow = readRepoFile("/repo/.github/workflows/poe-code-github-issue-comment-created.yml");
+    expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-comment-created.md")).toContain("# Prompt");
+    expect(workflow).toContain(
       "poe-code github-workflows require-user-allow poe-code-github-issue-comment-created"
     );
     expect(workflow).toContain(
       "poe-code github-workflows prepare poe-code-github-issue-comment-created"
     );
-    expect(workflow).not.toContain("workflow_call:");
   });
 
   it("fails to install automations that do not have install templates", async () => {
@@ -586,7 +610,7 @@ describe("ghGroup", () => {
   it("uninstalls the workflow file and leaves the prompt copy intact", async () => {
     vol.fromJSON({
       "/repo/.github/workflows/poe-code-github-issue-opened.yml": "workflow",
-      "/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md": "prompt"
+      "/repo/.github/workflows/poe-code-github-issue-opened.md": "prompt"
     });
 
     const uninstallCommand = getCommand(["uninstall"]);
@@ -598,7 +622,7 @@ describe("ghGroup", () => {
     );
 
     expect(vol.existsSync("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toBe(false);
-    expect(readRepoFile("/repo/.poe-code/github-workflows/poe-code-github-issue-opened.md")).toBe("prompt");
+    expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.md")).toBe("prompt");
   });
 
   it("treats uninstalling a missing workflow as a no-op", async () => {
@@ -617,7 +641,7 @@ describe("ghGroup", () => {
 
   it("wires public require commands that enforce allow and prefix frontmatter from the local prompt copy", async () => {
     vol.fromJSON({
-      "/repo/.poe-code/github-workflows/poe-code-github-issue-comment-created.md": [
+      "/repo/.github/workflows/poe-code-github-issue-comment-created.md": [
         "---",
         "allow:",
         "  - OWNER",

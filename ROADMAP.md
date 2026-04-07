@@ -1,11 +1,9 @@
 # Roadmap
 
-- [ ] Unified Spawn via ACP
-- [x] [MCP Server](docs/mcp-server-spec.md)
-- [ ] [Usage Command](docs/usage-command-plan.md)
-- [ ] [Spawn Modes](docs/spawn-modes-plan.md)
-- [ ] [Spawn Interactive](docs/spawn-interactive-plan.md)
-- [ ] [Spawn MCP Support](docs/spawn-mcp-plan.md)
-- [ ] [Spawn GitHub](docs/spawn-github.md)
-- [ ] [GitHub App](docs/poe-code-github-app.md)
-- [ ] [Skill Command](docs/skill-plan.md)
+Active plans live in `docs/plans/`. Completed or superseded plans live in `docs/plans/archive/`.
+
+- [ ] [CLI polish and visual QA](docs/plans/autonomous-cli-improvement.md)
+- [ ] [Migrate models, generate, and `poe-agent` to `ai-sdk-provider-poe`](docs/plans/ai-sdk-provider-poe-integration.md)
+- [ ] [Run spawn inside project-defined Docker runtimes](docs/plans/spawn-docker-integration.md)
+- [ ] [Add read-only spawn hooks/plugins](docs/plans/spawn-hooks.md)
+- [ ] [Ship the `poe-code` GitHub App flow](docs/plans/poe-code-github-app.md)

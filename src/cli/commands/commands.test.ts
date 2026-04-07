@@ -1,0 +1,1535 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { Command } from "commander";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { executeConfigure } from "./configure.js";
+import { registerInstallCommand } from "./install.js";
+import { registerLogoutCommand } from "./logout.js";
+import { registerUnconfigureCommand } from "./unconfigure.js";
+import { registerTestCommand } from "./test.js";
+import { createProgram } from "../program.js";
+import { createCliContainer } from "../container.js";
+import { setGlobalClient } from "../../services/client-instance.js";
+import { createSecretStore } from "auth-store";
+import { createCommandExpectationCheck } from "../../utils/command-checks.js";
+import { createHomeFs, createTestProgram, storeTestApiKey } from "../../../tests/test-helpers.js";
+import { createProviderStub } from "../../../tests/provider-stub.js";
+import { SilentError } from "../errors.js";
+import type { FileSystem } from "../utils/file-system.js";
+import type { ProviderService } from "../service-registry.js";
+import type { CommandRunner } from "../../utils/command-checks.js";
+import type { LoggerFn } from "../types.js";
+import type { HttpClient } from "../http.js";
+import type { LlmClient, LlmRequest } from "../services/llm-client.js";
+import type { MutationDetails, MutationOutcome } from "@poe-code/config-mutations";
+import {
+  DEFAULT_TEXT_MODEL,
+  DEFAULT_IMAGE_BOT,
+  DEFAULT_VIDEO_BOT,
+  DEFAULT_AUDIO_BOT
+} from "../constants.js";
+import packageJson from "../../../package.json" with { type: "json" };
+
+const cwd = "/repo";
+const homeDir = "/home/test";
+const configPath = resolveConfigPath(homeDir);
+
+function createMemFs(): FileSystem {
+  const vol = new Volume();
+  vol.mkdirSync(homeDir, { recursive: true });
+  vol.mkdirSync(cwd, { recursive: true });
+  return createFsFromVolume(vol).promises as unknown as FileSystem;
+}
+
+// ─── configure command ──────────────────────────────────────────────────────
+
+describe("configure command", () => {
+  let fs: FileSystem;
+
+  beforeEach(() => {
+    fs = createHomeFs(homeDir);
+  });
+
+  function createContainer(
+    overrides: {
+      commandRunner?: CommandRunner;
+      logger?: LoggerFn;
+    } = {}
+  ) {
+    const prompts = vi.fn().mockResolvedValue({});
+    const commandRunner: CommandRunner =
+      overrides.commandRunner ??
+      vi.fn(async (command, args) => {
+        if (command === "codex" && args.includes("exec")) {
+          return { stdout: "CODEX_OK\n", stderr: "", exitCode: 0 };
+        }
+        if (command === "opencode" && args.includes("run")) {
+          return { stdout: "OPEN_CODE_OK\n", stderr: "", exitCode: 0 };
+        }
+        if (command === "claude" && args[0] === "-p") {
+          return { stdout: "CLAUDE_CODE_OK\n", stderr: "", exitCode: 0 };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      });
+    const logger = overrides.logger ?? (() => {});
+    const container = createCliContainer({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      logger,
+      commandRunner
+    });
+    return { container, prompts, commandRunner };
+  }
+
+  it("does not invoke install when configuring a service", async () => {
+    const { container } = createContainer();
+
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveModel").mockResolvedValue(
+      "test-model"
+    );
+    vi.spyOn(container.options, "resolveReasoning").mockResolvedValue("none");
+
+    const invokeSpy = vi.spyOn(container.registry, "invoke");
+    const program = createTestProgram();
+
+    await executeConfigure(program, container, "codex", {});
+
+    expect(invokeSpy).toHaveBeenCalledTimes(1);
+    const [, operation] = invokeSpy.mock.calls[0]!;
+    expect(operation).toBe("configure");
+  });
+
+  it("stores configured service metadata", async () => {
+    const { container } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code/opencode/.config/opencode`, {
+      recursive: true
+    });
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-opencode");
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "opencode", {});
+
+    const content = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(content.configured_services.opencode).toEqual({
+      files: [
+        homeDir + "/.config/opencode/config.json",
+        homeDir + "/.local/share/opencode/auth.json"
+      ]
+    });
+  });
+
+  it("skips metadata persistence during dry run", async () => {
+    const { container } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code/opencode/.config/opencode`, {
+      recursive: true
+    });
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-opencode");
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const program = createTestProgram(["node", "cli", "--dry-run"]);
+    await executeConfigure(program, container, "opencode", {});
+
+    await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
+  });
+
+  it("uses provider-defined prompt metadata for configure flows", async () => {
+    const { container } = createContainer();
+    const provider = container.registry.require("codex") as any;
+    provider.configurePrompts = {
+      model: {
+        label: "Custom Codex model",
+        defaultValue: "custom-model",
+        choices: [{ title: "Custom", value: "custom-model" }]
+      },
+      reasoningEffort: {
+        label: "Custom reasoning label",
+        defaultValue: "extra"
+      }
+    };
+
+    const resolveModel = vi
+      .spyOn(container.options, "resolveModel")
+      .mockImplementation(async (input) => {
+        expect(input.label).toBe("Custom Codex model");
+        expect(input.defaultValue).toBe("custom-model");
+        return input.defaultValue;
+      });
+    const resolveReasoning = vi
+      .spyOn(container.options, "resolveReasoning")
+      .mockImplementation(async (input) => {
+        expect(input.label).toBe("Custom reasoning label");
+        expect(input.defaultValue).toBe("extra");
+        return input.defaultValue;
+      });
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "codex", {});
+
+    expect(resolveModel).toHaveBeenCalled();
+    expect(resolveReasoning).toHaveBeenCalled();
+  });
+
+  it("prefills the configure model prompt from stored agent config", async () => {
+    const { container } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ models: { codex: "openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const resolveModel = vi
+      .spyOn(container.options, "resolveModel")
+      .mockImplementation(async (input) => {
+        expect(input.defaultValue).toBe("openai/gpt-5.4");
+        return input.defaultValue;
+      });
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "codex", {});
+
+    expect(resolveModel).toHaveBeenCalled();
+  });
+
+  it("prefills the configure model prompt from the stored global model config", async () => {
+    const { container } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.6" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const resolveModel = vi
+      .spyOn(container.options, "resolveModel")
+      .mockImplementation(async (input) => {
+        expect(input.defaultValue).toBe("anthropic/claude-opus-4.6");
+        return input.defaultValue;
+      });
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "codex", {});
+
+    expect(resolveModel).toHaveBeenCalled();
+  });
+
+  it("resolves the model when configuring kimi", async () => {
+    const { container } = createContainer();
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-kimi");
+    const resolvedModel = "Kimi-Custom";
+    const resolveModel = vi
+      .spyOn(container.options, "resolveModel")
+      .mockResolvedValue(resolvedModel);
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "kimi", {});
+
+    expect(resolveModel).toHaveBeenCalled();
+  });
+
+  it("accepts --model option to set a model without prompting", async () => {
+    const { container } = createContainer();
+    const customModel = "Custom-Model";
+
+    const resolveModel = vi.spyOn(container.options, "resolveModel");
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "opencode", {
+      model: customModel
+    });
+
+    expect(resolveModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: customModel
+      })
+    );
+
+    const configPath = homeDir + "/.config/opencode/config.json";
+    const settings = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(settings.model).toBe(`poe/${customModel}`);
+  });
+
+  it("accepts the `claude` alias for Claude Code", async () => {
+    const { container } = createContainer();
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "claude", {});
+
+    const content = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(content.configured_services["claude-code"]).toBeDefined();
+    expect(content.configured_services.claude).toBeUndefined();
+  });
+
+  it("prints a VSCode post-configure hint for Claude Code after configure", async () => {
+    const logs: string[] = [];
+    const { container } = createContainer({
+      logger: (message) => logs.push(message),
+    });
+
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "claude-code", {});
+
+    expect(logs).toEqual([
+      "configure claude-code",
+      "Configured Claude Code.",
+      "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt",
+      "Problems? https://github.com/poe-platform/poe-code/issues"
+    ]);
+  });
+});
+
+// ─── generate command ───────────────────────────────────────────────────────
+
+function createGenerateProgram(options?: {
+  fs?: FileSystem;
+  variables?: Record<string, string | undefined>;
+}) {
+  const fs = options?.fs ?? createMemFs();
+  const program = createProgram({
+    fs,
+    prompts: vi.fn(),
+    env: { cwd, homeDir, variables: options?.variables ?? {} },
+    logger: () => {},
+    suppressCommanderOutput: true
+  });
+  return { program, fs };
+}
+
+describe("generate command", () => {
+  let stdoutSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    stdoutSpy = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    stdoutSpy.mockRestore();
+  });
+
+  it("generates text with default command", async () => {
+    const { program } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async (request: LlmRequest) => ({
+        content: `model:${request.model} prompt:${request.prompt}`
+      })),
+      media: vi.fn(async () => ({}))
+    };
+    setGlobalClient(client);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "generate",
+      "What is 2+2?"
+    ]);
+
+    expect(client.text).toHaveBeenCalledWith({
+      model: DEFAULT_TEXT_MODEL,
+      prompt: "What is 2+2?",
+      params: {}
+    });
+
+    // Verify the response content appears in the output (as subtext)
+    const output = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join("");
+    expect(output).toContain(`model:${DEFAULT_TEXT_MODEL} prompt:What is 2+2?`);
+  });
+
+  it("uses explicit text subcommand with params", async () => {
+    const { program } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({}))
+    };
+    setGlobalClient(client);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "generate",
+      "text",
+      "--model",
+      "Custom-Text-Model",
+      "--param",
+      "thinking_budget=28672",
+      "--param",
+      "web_search=true",
+      "Explain AI"
+    ]);
+
+    expect(client.text).toHaveBeenCalledWith({
+      model: "Custom-Text-Model",
+      prompt: "Explain AI",
+      params: {
+        thinking_budget: "28672",
+        web_search: "true"
+      }
+    });
+  });
+
+  it("uses model from config file when no flag or env var is set", async () => {
+    const fs = createMemFs();
+    const cfgPath = `${homeDir}/.poe-code/config.json`;
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      cfgPath,
+      JSON.stringify({ models: { "generate-text": "config/text-model" } }),
+      "utf8"
+    );
+    const { program } = createGenerateProgram({ fs });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({}))
+    };
+    setGlobalClient(client);
+
+    await program.parseAsync(["node", "cli", "generate", "Hello"]);
+
+    expect(client.text).toHaveBeenCalledWith({
+      model: "config/text-model",
+      prompt: "Hello",
+      params: {}
+    });
+  });
+
+  it("uses model from config for image generation", async () => {
+    const fs = createMemFs();
+    const cfgPath = `${homeDir}/.poe-code/config.json`;
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      cfgPath,
+      JSON.stringify({ models: { "generate-image": "config/image-model" } }),
+      "utf8"
+    );
+    const { program } = createGenerateProgram({ fs });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/image.png",
+        mimeType: "image/png"
+      }))
+    };
+    setGlobalClient(client);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([1]).buffer
+    } as unknown as Response);
+
+    await program.parseAsync(["node", "cli", "generate", "image", "A bird"]);
+
+    expect(client.media).toHaveBeenCalledWith("image", {
+      model: "config/image-model",
+      prompt: "A bird",
+      params: {}
+    });
+  });
+
+  it("prefers env var over config file model", async () => {
+    const fs = createMemFs();
+    const cfgPath = `${homeDir}/.poe-code/config.json`;
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      cfgPath,
+      JSON.stringify({ models: { "generate-text": "config/text-model" } }),
+      "utf8"
+    );
+    const { program } = createGenerateProgram({
+      fs,
+      variables: { POE_TEXT_MODEL: "Env-Model" }
+    });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({}))
+    };
+    setGlobalClient(client);
+
+    await program.parseAsync(["node", "cli", "generate", "Hello"]);
+
+    expect(client.text).toHaveBeenCalledWith({
+      model: "Env-Model",
+      prompt: "Hello",
+      params: {}
+    });
+  });
+
+  it("respects POE_TEXT_MODEL override", async () => {
+    const { program } = createGenerateProgram({
+      variables: { POE_TEXT_MODEL: "Env-Model" }
+    });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({}))
+    };
+    setGlobalClient(client);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "generate",
+      "Hello"
+    ]);
+
+    expect(client.text).toHaveBeenCalledWith({
+      model: "Env-Model",
+      prompt: "Hello",
+      params: {}
+    });
+  });
+
+  it("downloads image output to cwd when no output path is provided", async () => {
+    const { program, fs } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/image.png",
+        mimeType: "image/png"
+      }))
+    };
+    setGlobalClient(client);
+
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(1737984000);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer
+    } as unknown as Response);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "generate",
+      "image",
+      "A sunset"
+    ]);
+
+    const saved = await fs.readFile("/repo/image-1737984000.png");
+    expect(saved).toEqual(Buffer.from([1, 2, 3]));
+
+    // Verify the saved path appears in stdout (via outro)
+    const output = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join("");
+    expect(output).toContain("./image-1737984000.png");
+
+    nowSpy.mockRestore();
+  });
+
+  it("uses provided output path for image generation", async () => {
+    const { program, fs } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/image.png",
+        mimeType: "image/png"
+      }))
+    };
+    setGlobalClient(client);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([9, 8, 7]).buffer
+    } as unknown as Response);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "generate",
+      "image",
+      "-o",
+      "custom.png",
+      "A cat"
+    ]);
+
+    const saved = await fs.readFile("/repo/custom.png");
+    expect(saved).toEqual(Buffer.from([9, 8, 7]));
+
+    // Verify the saved path appears in stdout (via outro)
+    const output = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join("");
+    expect(output).toContain("./custom.png");
+  });
+
+  it("downloads video output to cwd when no output path is provided", async () => {
+    const { program, fs } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/video.mp4",
+        mimeType: "video/mp4"
+      }))
+    };
+    setGlobalClient(client);
+
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(1737984000);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([4, 5, 6]).buffer
+    } as unknown as Response);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "generate",
+      "video",
+      "A rocket launch"
+    ]);
+
+    const saved = await fs.readFile("/repo/video-1737984000.mp4");
+    expect(saved).toEqual(Buffer.from([4, 5, 6]));
+    expect(client.media).toHaveBeenCalledWith("video", {
+      model: DEFAULT_VIDEO_BOT,
+      prompt: "A rocket launch",
+      params: {}
+    });
+
+    // Verify the saved path appears in stdout (via outro)
+    const output = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join("");
+    expect(output).toContain("./video-1737984000.mp4");
+
+    nowSpy.mockRestore();
+  });
+
+  it("uses provided output path for audio generation", async () => {
+    const { program, fs } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/audio.mp3",
+        mimeType: "audio/mp3"
+      }))
+    };
+    setGlobalClient(client);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([7, 8, 9]).buffer
+    } as unknown as Response);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "generate",
+      "audio",
+      "-o",
+      "clip.mp3",
+      "Hello world"
+    ]);
+
+    const saved = await fs.readFile("/repo/clip.mp3");
+    expect(saved).toEqual(Buffer.from([7, 8, 9]));
+    expect(client.media).toHaveBeenCalledWith("audio", {
+      model: DEFAULT_AUDIO_BOT,
+      prompt: "Hello world",
+      params: {}
+    });
+
+    // Verify the saved path appears in stdout (via outro)
+    const output = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join("");
+    expect(output).toContain("./clip.mp3");
+  });
+
+  it("uses the default image model when none is provided", async () => {
+    const { program } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/image.png",
+        mimeType: "image/png"
+      }))
+    };
+    setGlobalClient(client);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([1]).buffer
+    } as unknown as Response);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "generate",
+      "image",
+      "A bird"
+    ]);
+
+    expect(client.media).toHaveBeenCalledWith("image", {
+      model: DEFAULT_IMAGE_BOT,
+      prompt: "A bird",
+      params: {}
+    });
+  });
+
+  it("rejects invalid --param values", async () => {
+    const { program } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({}))
+    };
+    setGlobalClient(client);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "generate",
+        "--param",
+        "missing-equals",
+        "Hello"
+      ])
+    ).rejects.toThrow("Invalid param format");
+  });
+
+  it("includes raw response content when media URL is missing", async () => {
+    const { program } = createGenerateProgram();
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({ content: "RAW-RESPONSE" }))
+    };
+    setGlobalClient(client);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "generate",
+        "image",
+        "A cat"
+      ])
+    ).rejects.toThrow("RAW-RESPONSE");
+  });
+});
+
+// ─── install command ─────────────────────────────────────────────────────────
+
+describe("install command", () => {
+  function createBaseProgram(): Command {
+    const program = new Command();
+    program.exitOverride();
+    program
+      .name("poe-code")
+      .option("-y, --yes")
+      .option("--dry-run");
+    return program;
+  }
+
+  it("installs a registered provider", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const callOrder: string[] = [];
+    const adapter: ProviderService = createProviderStub({
+      name: "test-service",
+      label: "Test Service",
+      async install() {
+        callOrder.push("install");
+      }
+    });
+
+    container.registry.register(adapter);
+
+    const program = createBaseProgram();
+    registerInstallCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "install",
+      "test-service"
+    ]);
+
+    expect(callOrder).toEqual(["install"]);
+    expect(logs.some((line) => line.includes("Installed Test Service"))).toBe(
+      true
+    );
+  });
+
+  it("resolves the install alias", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    const install = vi.fn(async () => {});
+    const adapter: ProviderService = createProviderStub({
+      name: "test-service",
+      label: "Test Service",
+      install
+    });
+
+    container.registry.register(adapter);
+
+    const program = createBaseProgram();
+    registerInstallCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "i",
+      "test-service"
+    ]);
+
+    expect(install).toHaveBeenCalledOnce();
+  });
+});
+
+// ─── logout command ──────────────────────────────────────────────────────────
+
+function readStoredApiKey(fs: FileSystem): Promise<string | null> {
+  const authFs = {
+    readFile: (filePath: string, encoding: BufferEncoding) => fs.readFile(filePath, encoding),
+    writeFile: (
+      filePath: string,
+      data: string | NodeJS.ArrayBufferView,
+      opts?: { encoding?: BufferEncoding }
+    ) => fs.writeFile(filePath, data, opts),
+    mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
+      fs.mkdir(directoryPath, opts).then(() => undefined),
+    unlink: (filePath: string) => fs.unlink(filePath),
+    chmod: (filePath: string, mode: number) =>
+      fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()
+  };
+  const { store } = createSecretStore({
+    backendEnvVar: "POE_AUTH_BACKEND",
+    fileStore: {
+      fs: authFs,
+      salt: "poe-code:encrypted-file-auth-store:v1",
+      defaultDirectory: ".poe-code",
+      defaultFileName: "credentials.enc",
+      getHomeDirectory: () => homeDir
+    }
+  });
+  return store.get();
+}
+
+describe("logout command", () => {
+  function createBaseProgram(): Command {
+    const program = new Command();
+    program
+      .name("poe-code")
+      .option("-y, --yes")
+      .option("--dry-run")
+      .option("--verbose")
+      .exitOverride();
+    return program;
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("deletes config file when no services are configured", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, JSON.stringify({ apiKey: "test-key" }), { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
+    expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
+  });
+
+  it("unconfigures all configured services then deletes config", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const unconfigureSpy = vi.fn();
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const adapter: ProviderService = createProviderStub({
+      name: "test-service",
+      label: "Test Service",
+      async unconfigure(context) {
+        unconfigureSpy(context.options);
+        return true;
+      }
+    });
+
+    container.registry.register(adapter);
+
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({
+        apiKey: "test-key",
+        configured_services: {
+          "test-service": { files: ["/some/file.json"] }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    expect(unconfigureSpy).toHaveBeenCalledTimes(1);
+    await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
+    expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
+  });
+
+  it("skips deletion during dry run", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, JSON.stringify({ apiKey: "test-key" }), { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: false, dryRun: true } as any);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "logout"]);
+
+    const raw = await fs.readFile(configPath, "utf8");
+    expect(JSON.parse(raw)).toEqual(expect.objectContaining({ apiKey: "test-key" }));
+    expect(logs.some((line) => line.includes("Dry run:"))).toBe(true);
+  });
+
+  it("deletes stored API key during logout", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await container.writeApiKey("sk-poe-TestKeyForLogoutDeletion1234567890abcdefg");
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    const storedKey = await readStoredApiKey(fs);
+    expect(storedKey).toBeNull();
+  });
+
+  it("handles missing config file gracefully", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    expect(logs.some((line) => line.includes("Already logged out."))).toBe(true);
+  });
+});
+
+// ─── skill command ───────────────────────────────────────────────────────────
+
+function stripAnsi(str: string): string {
+  return str.replace(/\x1B\[[0-9;]*m/g, "");
+}
+
+describe("skill command", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("shows help text and lists subcommands", async () => {
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    let helpOutput = "";
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    const outputConfig = {
+      writeOut: (str: string) => {
+        helpOutput += str;
+      },
+      writeErr: (str: string) => {
+        helpOutput += str;
+      }
+    };
+    program.configureOutput(outputConfig);
+    for (const cmd of program.commands) {
+      cmd.configureOutput(outputConfig);
+    }
+
+    try {
+      await program.parseAsync(["node", "cli", "skill"]);
+    } catch {
+      // Commander exits after displaying help text.
+    }
+
+    const plain = stripAnsi(helpOutput);
+    expect(plain).toContain("Usage:");
+    expect(plain).toContain("poe-code skill");
+    expect(plain).toContain("Commands:");
+    expect(plain).toContain("configure [options] [agent]");
+    expect(plain).toContain("unconfigure [options] [agent]");
+    expect(plain).toContain("Install skill directories");
+  });
+});
+
+// ─── test command (isolated) ─────────────────────────────────────────────────
+
+describe("test command (isolated)", () => {
+  function createBaseProgram(): Command {
+    const program = new Command();
+    program.exitOverride();
+    program
+      .name("poe-code")
+      .option("-y, --yes")
+      .option("--dry-run");
+    return program;
+  }
+
+  it("runs checks with isolated env variables", async () => {
+    const fs = createMemFs();
+    await storeTestApiKey(fs, homeDir, "sk-test");
+
+    const commandRunner = vi.fn(async (_command, _args, options) => {
+      expect(options?.env?.DEMO_HOME).toBe(`${homeDir}/.poe-code/demo-service`);
+      return { stdout: "OK\n", stderr: "", exitCode: 0 };
+    });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      commandRunner
+    });
+
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        isolatedEnv: {
+          agentBinary: "demo",
+          configProbe: { kind: "isolatedFile", relativePath: "probe.txt" },
+          env: { DEMO_HOME: { kind: "isolatedDir" } }
+        },
+        async configure(context) {
+          const mapped =
+            context.pathMapper?.mapTargetDirectory({ targetDirectory: "~/.demo" }) ??
+            `${homeDir}/.poe-code/demo-service`;
+          await context.fs.mkdir(mapped, { recursive: true });
+          await context.fs.writeFile(`${mapped}/probe.txt`, "ok", {
+            encoding: "utf8"
+          });
+        },
+        async test(context) {
+          await context.runCheck(
+            createCommandExpectationCheck({
+              id: "demo-check",
+              command: "demo",
+              args: ["--version"],
+              expectedOutput: "OK"
+            })
+          );
+        }
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "test",
+      "demo-service",
+      "--isolated"
+    ]);
+  });
+});
+
+// ─── test command ─────────────────────────────────────────────────────────────
+
+function createTestContainer(logs: string[] = []) {
+  const fs = createMemFs();
+  return createCliContainer({
+    fs,
+    prompts: vi.fn().mockResolvedValue({}),
+    env: { cwd, homeDir },
+    commandRunner: vi.fn().mockResolvedValue({
+      stdout: "STDIN_OK\n",
+      stderr: "",
+      exitCode: 0
+    }),
+    logger: (message) => {
+      logs.push(message);
+    }
+  });
+}
+
+describe("test command", () => {
+  function createBaseProgram(): Command {
+    const program = new Command();
+    program.exitOverride();
+    program
+      .name("poe-code")
+      .option("-y, --yes")
+      .option("--dry-run");
+    return program;
+  }
+
+  it("runs the provider test routine and logs success", async () => {
+    const logs: string[] = [];
+    const container = createTestContainer(logs);
+    const testFn = vi.fn();
+    const adapter = createProviderStub({
+      name: "demo-service",
+      label: "Demo Service",
+      async test(context) {
+        expect(context.logger).toBeDefined();
+        testFn();
+      }
+    });
+    container.registry.register(adapter);
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "test", "demo-service"]);
+
+    expect(testFn).toHaveBeenCalled();
+    expect(logs.some((line) => line.includes("Tested Demo Service"))).toBe(true);
+  });
+
+  it("fails when the provider does not support the test command", async () => {
+    const container = createTestContainer();
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service"
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "test", "demo-service"])
+    ).rejects.toThrow(/does not support test/i);
+  });
+
+  it("propagates provider test failures", async () => {
+    const container = createTestContainer();
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test() {
+          throw new Error("health check failed");
+        }
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "test", "demo-service"])
+    ).rejects.toThrow(/health check failed/);
+  });
+
+  it("passes --model to provider context", async () => {
+    const container = createTestContainer();
+    let receivedModel: string | undefined;
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test(context) {
+          receivedModel = context.model;
+        }
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "test", "demo-service", "--model", "claude-opus-4-6"]);
+
+    expect(receivedModel).toBe("claude-opus-4-6");
+  });
+
+  it("model is undefined when --model is not provided", async () => {
+    const container = createTestContainer();
+    let receivedModel: string | undefined = "sentinel";
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test(context) {
+          receivedModel = context.model;
+        }
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "test", "demo-service"]);
+
+    expect(receivedModel).toBeUndefined();
+  });
+});
+
+// ─── unconfigure command ──────────────────────────────────────────────────────
+
+describe("unconfigure command", () => {
+  function createBaseProgram(): Command {
+    const program = new Command();
+    program
+      .name("poe-code")
+      .option("-y, --yes")
+      .option("--dry-run")
+      .option("--verbose")
+      .exitOverride();
+    return program;
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("invokes provider unconfigure and reports the result", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const unconfigureSpy = vi.fn();
+
+    const adapter: ProviderService = createProviderStub({
+      name: "test-service",
+      label: "Test Service",
+      async unconfigure(context) {
+        unconfigureSpy(context.options);
+        return true;
+      }
+    });
+
+    container.registry.register(adapter);
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "unconfigure",
+      "test-service"
+    ]);
+
+    expect(unconfigureSpy).toHaveBeenCalledTimes(1);
+    expect(
+      logs.some((line) =>
+        line.includes("Removed Test Service configuration.")
+      )
+    ).toBe(true);
+  });
+
+  it("logs mutation outcomes when provider reports them", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const details: MutationDetails = {
+      manifestId: "test-service",
+      kind: "transformFile",
+      label: "Transform file /home/test/.config/opencode/config.json",
+      targetPath: "/home/test/.config/opencode/config.json"
+    };
+    const outcome: MutationOutcome = {
+      changed: true,
+      effect: "delete",
+      detail: "delete"
+    };
+
+    const adapter: ProviderService = createProviderStub({
+      name: "test-service",
+      label: "Test Service",
+      async unconfigure(_context, runOptions) {
+        runOptions?.observers?.onComplete?.(details, outcome);
+        return true;
+      }
+    });
+
+    container.registry.register(adapter);
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--verbose",
+      "unconfigure",
+      "test-service"
+    ]);
+
+    expect(
+      logs.some((line) =>
+        line.includes(
+          "Transform file /home/test/.config/opencode/config.json: delete"
+        )
+      )
+    ).toBe(true);
+  });
+});
+
+// ─── version command ──────────────────────────────────────────────────────────
+
+async function parseWithVersionExit(
+  program: ReturnType<typeof createProgram>,
+  args: string[]
+): Promise<void> {
+  try {
+    await program.parseAsync(args);
+  } catch (error) {
+    if (error instanceof SilentError) {
+      return;
+    }
+    throw error;
+  }
+}
+
+describe("version command", () => {
+  let fs: FileSystem;
+  let logs: string[];
+  let prompts: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fs = createMemFs();
+    logs = [];
+    prompts = vi.fn();
+  });
+
+  it("displays current version", async () => {
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ "dist-tags": { latest: "1.0.0" } })
+    }));
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await parseWithVersionExit(program, ["node", "cli", "--version"]);
+
+    expect(logs.some((log) => log.includes("poe-code"))).toBe(true);
+    expect(logs.some((log) => log.includes(packageJson.version))).toBe(true);
+  });
+
+  it("shows update available message when newer version exists", async () => {
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ "dist-tags": { latest: "99.0.0" } })
+    }));
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await parseWithVersionExit(program, ["node", "cli", "--version"]);
+
+    expect(logs.some((log) => log.includes("99.0.0"))).toBe(true);
+    expect(
+      logs.some((log) => log.includes("npm install -g poe-code@latest"))
+    ).toBe(true);
+  });
+
+  it("does not show update message when version is current", async () => {
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ "dist-tags": { latest: "0.0.0-dev" } })
+    }));
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await parseWithVersionExit(program, ["node", "cli", "--version"]);
+
+    expect(
+      logs.some((log) => log.includes("npm install -g poe-code@latest"))
+    ).toBe(false);
+  });
+
+  it("shows local build indicator for dev version", async () => {
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ "dist-tags": { latest: "1.0.0" } })
+    }));
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await parseWithVersionExit(program, ["node", "cli", "--version"]);
+
+    expect(logs.some((log) => log.includes("local build"))).toBe(true);
+  });
+
+  it("handles update check failure gracefully", async () => {
+    const httpClient: HttpClient = vi.fn(async () => {
+      throw new Error("Network error");
+    });
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await parseWithVersionExit(program, ["node", "cli", "--version"]);
+
+    expect(logs.some((log) => log.includes("poe-code"))).toBe(true);
+    expect(logs.some((log) => log.includes("Network error"))).toBe(false);
+  });
+});

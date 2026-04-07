@@ -68,4 +68,13 @@ describe("built-in prompts", () => {
       "Fix {{dependency.package.name}} ({{security_advisory.severity}}): {{security_advisory.summary}}"
     );
   });
+
+  it("tells the documentation updater to review the full day and reuse its open PR", async () => {
+    const automations = await discoverAutomations(promptsDir);
+    const automation = automations.find(({ name }) => name === "update-documentation");
+
+    expect(automation?.prompt).toContain("last 24 hours");
+    expect(automation?.prompt).toContain("agent/update-documentation");
+    expect(automation?.prompt).toContain("update that existing PR");
+  });
 });

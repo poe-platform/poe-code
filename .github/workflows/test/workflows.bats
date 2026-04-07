@@ -296,6 +296,33 @@ run_guard_in_docker() {
   done
 }
 
+@test "dry-run documentation update workflows run daily instead of on push" {
+  local workflow_file
+  for workflow_file in \
+    ".github/workflows/poe-code-update-documentation.yml" \
+    "packages/github-workflows/src/workflow-templates/update-documentation.caller.yml" \
+    "packages/github-workflows/src/workflow-templates/update-documentation.ejected.yml"; do
+    run yaml_eval "$workflow_file" 'workflow.on.schedule?.[0]?.cron'
+    [ "$status" -eq 0 ]
+    [ "$output" = "0 0 * * *" ]
+
+    run yaml_eval "$workflow_file" 'Object.prototype.hasOwnProperty.call(workflow.on ?? {}, "push")'
+    [ "$status" -eq 0 ]
+    [ "$output" = "false" ]
+  done
+}
+
+@test "dry-run documentation update runners fetch full history" {
+  local workflow_file
+  for workflow_file in \
+    ".github/workflows/gh-update-documentation.yml" \
+    ".github/workflows/poe-code-update-documentation.yml" \
+    "packages/github-workflows/src/workflow-templates/update-documentation.ejected.yml"; do
+    run grep -qF 'fetch-depth: 0' "$workflow_file"
+    [ "$status" -eq 0 ]
+  done
+}
+
 @test "dry-run reusable workflows declare workflow_call" {
   local reusable_workflows=(
     ".github/workflows/gh-fix-vulnerabilities.yml"

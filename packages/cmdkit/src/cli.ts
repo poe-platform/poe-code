@@ -118,6 +118,7 @@ interface HelpOptionRow {
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
   apiVersion?: string;
   casing?: Casing;
+  rootDisplayName?: string;
   services?: TServices;
   version?: string;
 }
@@ -537,9 +538,10 @@ function findVisibleChild<TServices extends object>(
 function resolveHelpTarget<TServices extends object>(
   root: Group<TServices>,
   argv: string[],
-  scope: Scope
+  scope: Scope,
+  rootDisplayName?: string
 ): ResolvedHelpTarget<TServices> {
-  const breadcrumb = [root.name];
+  const breadcrumb = [rootDisplayName ?? root.name];
   let current: Command<TServices, any, any, any> | Group<TServices> = root;
 
   for (const token of argv.slice(2)) {
@@ -771,7 +773,7 @@ async function renderGeneratedHelp<TServices extends object>(
   argv: string[],
   options: RunCLIOptions<TServices>
 ): Promise<void> {
-  const target = resolveHelpTarget(root, argv, "cli");
+  const target = resolveHelpTarget(root, argv, "cli", options.rootDisplayName);
   const output = resolveHelpOutput(argv);
   const casing = options.casing ?? "kebab";
 

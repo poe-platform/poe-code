@@ -441,7 +441,7 @@ function bootstrapProgram(container: CliContainer): Command {
       const originalArgv = [...process.argv];
       process.argv = buildCmdkitArgv(originalArgv, ghGroup);
       try {
-        await runCLI(ghGroup);
+        await runCLI(ghGroup, { rootDisplayName: `Poe - ${ghGroup.name}` });
       } finally {
         process.argv = originalArgv;
       }

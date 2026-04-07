@@ -79,11 +79,11 @@ const runCommandDef = defineCommand({
   description: "Run a GitHub automation.",
   positional: ["name"],
   params: S.Object({
-    name: S.Optional(S.String()),
-    agent: S.Optional(S.String()),
-    model: S.Optional(S.String()),
-    mode: S.Optional(S.Enum(["yolo", "edit", "read"] as const)),
-    cwd: S.Optional(S.String())
+    name: S.Optional(S.String({ description: "Automation name to run" })),
+    agent: S.Optional(S.String({ description: "Agent to run the automation with" })),
+    model: S.Optional(S.String({ description: "Model override for the agent" })),
+    mode: S.Optional(S.Enum(["yolo", "edit", "read"] as const, { description: "Permission mode (yolo | edit | read)" })),
+    cwd: S.Optional(S.String({ description: "Working directory for the automation" }))
   }),
   secrets: {
     poeApiKey: { env: "POE_API_KEY" },

@@ -1,7 +1,7 @@
 {
   "name": "terminal-pilot",
   "version": "0.0.1",
-  "description": "Playwright-like SDK for automating interactive CLI apps through a real PTY",
+  "description": "Playwright-like SDK and CLI for automating interactive CLI apps through a real PTY",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

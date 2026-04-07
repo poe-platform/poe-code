@@ -58,6 +58,28 @@ describe("acp/components", () => {
     expect(output).toContain("\u001b[1m");
   });
 
+  it("renderAgentMessage renders markdown formatting for terminal", async () => {
+    const { renderAgentMessage } = await import("./components.js");
+    const markdown = "## Summary\n\nHere are the changes:\n\n- File A updated\n- File B created";
+    const output = captureStdout(() => renderAgentMessage(markdown));
+    const plain = stripAnsi(output);
+
+    expect(plain).toContain("Summary");
+    expect(plain).toContain("• File A updated");
+    expect(plain).toContain("• File B created");
+    expect(plain).toContain("✓ agent:");
+  });
+
+  it("renderAgentMessage renders code blocks with markdown formatting", async () => {
+    const { renderAgentMessage } = await import("./components.js");
+    const markdown = "Here is the code:\n\n```js\nconst x = 1;\n```";
+    const output = captureStdout(() => renderAgentMessage(markdown));
+    const plain = stripAnsi(output);
+
+    expect(plain).toContain("const x = 1;");
+    expect(plain).toContain("─");
+  });
+
   it("renderToolStart prints a colored arrow based on kind", async () => {
     const { renderToolStart } = await import("./components.js");
     const output = captureStdout(() => renderToolStart("exec", "npm test"));

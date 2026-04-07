@@ -11,7 +11,7 @@ import {
   type SpawnMode
 } from "@poe-code/agent-spawn";
 import { resolveAgentId } from "@poe-code/agent-defs";
-import { text, confirm, isCancel, resolveOutputFormat } from "@poe-code/design-system";
+import { text, confirm, isCancel, resolveOutputFormat, renderMarkdown } from "@poe-code/design-system";
 import { loadConfiguredServices } from "../../services/config.js";
 import {
   createExecutionResources,
@@ -301,11 +301,11 @@ export function registerSpawnCommand(
           if (shouldEmitUiOutput) {
             const trimmedStdout = final.stdout.trim();
             if (trimmedStdout) {
-              resources.logger.info(trimmedStdout);
+              resources.logger.info(renderMarkdown(trimmedStdout).trimEnd());
             } else {
               const trimmedStderr = final.stderr.trim();
               if (trimmedStderr) {
-                resources.logger.info(trimmedStderr);
+                resources.logger.info(renderMarkdown(trimmedStderr).trimEnd());
               } else {
                 resources.logger.info(`${adapter.label} spawn completed.`);
               }

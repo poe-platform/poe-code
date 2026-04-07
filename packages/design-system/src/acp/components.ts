@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import { resolveOutputFormat } from "../internal/output-format.js";
+import { renderMarkdown } from "../terminal-markdown/index.js";
 
 function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
@@ -48,7 +49,8 @@ export function renderAgentMessage(text: string): void {
     return;
   }
 
-  writeLine(`${AGENT_PREFIX}${text}`);
+  const rendered = renderMarkdown(text).trimEnd();
+  writeLine(`${AGENT_PREFIX}${rendered}`);
 }
 
 export function renderToolStart(kind: string, title: string): void {

@@ -89,7 +89,7 @@ describe("built-in prompts", () => {
 
     expect(automation?.prompt).toContain("open or update a PR");
     expect(automation?.prompt).toContain("leave a visible GitHub response");
-    expect(automation?.prompt).toContain("current PR branch");
+    expect(automation?.prompt).toContain("check for existing open PRs");
   });
 
   it("uses shared response variables in the GitHub issue prompts", async () => {

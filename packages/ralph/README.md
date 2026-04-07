@@ -77,6 +77,21 @@ Docs are auto-discovered from `.poe-code/ralph/plans/` — you almost never need
 3. Multiple — prompt for selection
 4. None — fail
 
+## Custom Plan Directory
+
+By default docs are discovered from `.poe-code/ralph/plans/`. To use a different directory:
+
+```bash
+# Set plan directory in project config (.poe-code/config.json)
+# { "ralph": { "plan_directory": "docs/plans" } }
+
+# Or via env
+POE_RALPH_PLAN_DIRECTORY=docs/plans poe-code ralph run
+
+# Or point to a specific doc directly
+poe-code ralph run docs/plans/refactor-auth.md
+```
+
 ## CLI
 
 ```bash

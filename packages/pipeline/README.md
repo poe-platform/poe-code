@@ -159,6 +159,21 @@ Plans are auto-discovered from `.poe-code/pipeline/plans/` — you almost never 
 4. Multiple — prompt with completion stats
 5. None — prompt for path (or fail with `--yes`)
 
+## Custom Plan Directory
+
+By default plans are discovered from `.poe-code/pipeline/plans/`. To use a different directory:
+
+```bash
+# Set plan directory in project config (.poe-code/config.json)
+# { "pipeline": { "plan_directory": "docs/plans" } }
+
+# Or via env
+POE_PIPELINE_PLAN_DIRECTORY=docs/plans poe-code pipeline run
+
+# Or point to a specific file directly
+poe-code pipeline run --plan docs/plans/my-feature.yaml
+```
+
 ## CLI
 
 ```bash

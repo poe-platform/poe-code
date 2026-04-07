@@ -21,6 +21,8 @@ import {
   readExperimentJournal as sdkReadExperimentJournal,
   appendExperimentJournalEntry as sdkAppendExperimentJournalEntry
 } from "../../sdk/experiment.js";
+import { experimentConfigScope } from "../../services/config.js";
+import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 
 const DEFAULT_EXPERIMENT_AGENT = "claude-code";
 const DEFAULT_EXPERIMENT_SCOPE: SkillScope = "local";
@@ -204,6 +206,23 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
   return Number.parseInt(trimmed, 10);
 }
 
+async function resolveExperimentPlanDirectory(
+  container: CliContainer
+): Promise<string | undefined> {
+  const configDoc = await readMergedDocument(
+    container.fs,
+    container.env.configPath,
+    container.env.projectConfigPath
+  );
+  const experimentConfig = resolveScope(
+    experimentConfigScope.schema,
+    configDoc[experimentConfigScope.scope],
+    container.env.variables
+  );
+  const dir = experimentConfig.plan_directory?.trim();
+  return dir || undefined;
+}
+
 function resolveAbsoluteDocPath(container: CliContainer, docPath: string): string {
   if (docPath.startsWith("~/")) {
     return path.join(container.env.homeDir, docPath.slice(2));
@@ -212,14 +231,21 @@ function resolveAbsoluteDocPath(container: CliContainer, docPath: string): strin
   return path.isAbsolute(docPath) ? docPath : path.resolve(container.env.cwd, docPath);
 }
 
-async function discoverExperimentDocs(
-  container: CliContainer
-): Promise<Array<{ path: string; displayPath: string }>> {
-  const directoryPath = path.join(container.env.cwd, EXPERIMENTS_DIRECTORY);
+function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): string {
+  if (dir.startsWith("~/")) {
+    return path.join(homeDir, dir.slice(2));
+  }
+  return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
+}
 
+async function scanExperimentDir(
+  container: CliContainer,
+  absoluteDir: string,
+  displayDir: string
+): Promise<Array<{ path: string; displayPath: string }>> {
   let names: string[];
   try {
-    names = await container.fs.readdir(directoryPath);
+    names = await container.fs.readdir(absoluteDir);
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
       return [];
@@ -233,26 +259,41 @@ async function discoverExperimentDocs(
       continue;
     }
 
-    const relativePath = path.join(EXPERIMENTS_DIRECTORY, name);
-    const absolutePath = path.join(directoryPath, name);
-    const stat = await container.fs.stat(absolutePath);
-    if (!stat.isFile()) {
+    const absolutePath = path.join(absoluteDir, name);
+    const fileStat = await container.fs.stat(absolutePath);
+    if (!fileStat.isFile()) {
       continue;
     }
 
-    docs.push({
-      path: relativePath,
-      displayPath: relativePath
-    });
+    const displayPath = path.join(displayDir, name);
+    docs.push({ path: displayPath, displayPath });
   }
 
   return docs;
+}
+
+async function discoverExperimentDocs(
+  container: CliContainer,
+  planDirectory?: string
+): Promise<Array<{ path: string; displayPath: string }>> {
+  const customDir = planDirectory?.trim();
+  if (customDir) {
+    const absoluteDir = resolveAbsoluteDirectory(customDir, container.env.cwd, container.env.homeDir);
+    return scanExperimentDir(container, absoluteDir, customDir);
+  }
+
+  return scanExperimentDir(
+    container,
+    path.join(container.env.cwd, EXPERIMENTS_DIRECTORY),
+    EXPERIMENTS_DIRECTORY
+  );
 }
 
 async function resolveDocPath(options: {
   container: CliContainer;
   program: Command;
   providedDoc?: string;
+  planDirectory?: string;
   selectMessage: string;
   cancelMessage: string;
 }): Promise<string | null> {
@@ -260,7 +301,7 @@ async function resolveDocPath(options: {
     return options.providedDoc.trim();
   }
 
-  const docs = await discoverExperimentDocs(options.container);
+  const docs = await discoverExperimentDocs(options.container, options.planDirectory);
   if (docs.length === 0) {
     throw new ValidationError(
       "No markdown doc found under .poe-code/experiments/. Provide a doc path."
@@ -389,10 +430,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
       resources.logger.intro("experiment run");
 
       try {
+        const planDirectory = await resolveExperimentPlanDirectory(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
+          planDirectory,
           selectMessage: "Select the experiment doc to run:",
           cancelMessage: "Experiment run cancelled."
         });
@@ -478,10 +521,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
       resources.logger.intro("experiment journal");
 
       try {
+        const planDirectory = await resolveExperimentPlanDirectory(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
+          planDirectory,
           selectMessage: "Select the experiment doc journal to view:",
           cancelMessage: "Experiment journal cancelled."
         });
@@ -550,10 +595,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
       }>();
 
       try {
+        const planDirectory = await resolveExperimentPlanDirectory(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
+          planDirectory,
           selectMessage: "Select the experiment doc to log to:",
           cancelMessage: "Journal log cancelled."
         });
@@ -618,10 +665,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
       try {
         resources.logger.intro("experiment validate");
 
+        const planDirectory = await resolveExperimentPlanDirectory(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
+          planDirectory,
           selectMessage: "Select the experiment doc to validate:",
           cancelMessage: "Experiment validate cancelled."
         });

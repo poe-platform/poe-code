@@ -9,7 +9,7 @@ import { TerminalScreen } from "./terminal-screen.js";
 const DEFAULT_COLS = 120;
 const DEFAULT_ROWS = 40;
 const DEFAULT_TIMEOUT_MS = 10_000;
-const WAIT_FOR_POLL_MS = 100;
+const WAIT_FOR_POLL_MS = 10;
 const TYPE_DELAY_MS = 15;
 const CLOSE_AFTER_SIGNAL_GRACE_MS = 250;
 const CLOSE_AFTER_SIGTERM_MS = 1000;

@@ -5,7 +5,7 @@ on:
     types: [created]
 
 concurrency:
-  group: agent-issue-${{ github.event.issue.number }}
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
   cancel-in-progress: true
 
 jobs:

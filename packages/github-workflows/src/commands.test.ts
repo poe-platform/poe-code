@@ -191,6 +191,41 @@ describe("ghGroup", () => {
     );
   });
 
+  it("renders prompt-preview with environment-derived issue context", async () => {
+    writeBuiltInPrompt(
+      "github-issue-opened",
+      [
+        "Issue URL: {{url}}",
+        "Issue title: {{issue.title}}",
+        "{{#issue.body}}Issue body: {{issue.body}}{{/issue.body}}"
+      ].join("\n")
+    );
+
+    const promptPreviewCommand = getCommand(["prompt-preview"]);
+
+    await expect(
+      promptPreviewCommand.handler(
+        createContext(
+          {
+            name: "github-issue-opened"
+          },
+          {
+            GITHUB_REPOSITORY: "acme/app",
+            ISSUE_NUMBER: "188",
+            ISSUE_TITLE: "Can I configure paths for planning docs on ralph?"
+          }
+        )
+      )
+    ).resolves.toEqual({
+      name: "github-issue-opened",
+      prompt: [
+        "Issue URL: https://github.com/acme/app/issues/188",
+        "Issue title: Can I configure paths for planning docs on ralph?",
+        ""
+      ].join("\n")
+    });
+  });
+
   it("runs source commands, renders each item, and resolves MCP env references before spawning", async () => {
     writeBuiltInPrompt(
       "fix-vulnerabilities",

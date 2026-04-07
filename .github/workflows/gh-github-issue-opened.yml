@@ -17,7 +17,7 @@ on:
         required: true
         type: string
 concurrency:
-  group: agent-issue-${{ inputs.ISSUE_NUMBER }}
+  group: ${{ github.workflow }}-${{ inputs.ISSUE_NUMBER }}
   cancel-in-progress: true
 jobs:
   run:

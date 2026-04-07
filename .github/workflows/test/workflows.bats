@@ -281,6 +281,21 @@ run_guard_in_docker() {
   done
 }
 
+@test "dry-run issue workflows namespace concurrency by workflow name" {
+  local workflow_file
+  for workflow_file in \
+    ".github/workflows/gh-github-issue-opened.yml" \
+    ".github/workflows/poe-code-github-issue-opened.yml" \
+    ".github/workflows/gh-github-issue-comment-created.yml" \
+    ".github/workflows/poe-code-github-issue-comment-created.yml"; do
+    run grep -qF 'group: ${{ github.workflow }}-' "$workflow_file"
+    [ "$status" -eq 0 ]
+
+    run grep -qF 'group: agent-issue-' "$workflow_file"
+    [ "$status" -ne 0 ]
+  done
+}
+
 @test "dry-run reusable workflows declare workflow_call" {
   local reusable_workflows=(
     ".github/workflows/gh-fix-vulnerabilities.yml"

@@ -344,9 +344,12 @@ const promptPreviewCommand = defineCommand({
     name: S.String()
   }),
   scope: ["cli", "sdk"],
-  handler: async ({ params }) => {
+  handler: async ({ params, env }) => {
     const automation = await loadNamedAutomation(params.name, resolveCwd());
-    return { name: automation.name, prompt: automation.prompt };
+    return {
+      name: automation.name,
+      prompt: renderPrompt(automation.prompt, buildTemplateContext(env))
+    };
   },
   render: {
     rich: (result: { name: string; prompt: string }, { logger }) => {

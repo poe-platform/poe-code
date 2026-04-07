@@ -300,7 +300,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integrate-gh-variables
     title: Integrate config-extends into github-workflows variables.yaml
@@ -332,9 +332,9 @@ tasks:
       - Project adds custom variable → appears in result
       - No project file → built-in defaults used (backward compatible)
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: integrate-ralph
     title: Integrate config-extends into ralph

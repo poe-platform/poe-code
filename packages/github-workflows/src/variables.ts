@@ -1,8 +1,10 @@
 import path from "node:path";
 import { readFile } from "node:fs/promises";
+import { resolve } from "@poe-code/config-extends";
 import { isMap, parseDocument, stringify } from "yaml";
 
 const VARIABLES_FILE_NAME = "variables.yaml";
+const EXTENDS_FIELD_NAME = "extends";
 
 const PROJECT_VARIABLES_HEADER = [
   "# Preview rendered prompt: poe-code github-workflows prompt-preview <name>",
@@ -21,7 +23,11 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function normalizeVariables(filePath: string, value: unknown): Record<string, string> {
+function normalizeVariables(
+  filePath: string,
+  value: unknown,
+  options: { allowExtends?: boolean } = {}
+): Record<string, string> {
   if (value === null || value === undefined) {
     return {};
   }
@@ -33,6 +39,13 @@ function normalizeVariables(filePath: string, value: unknown): Record<string, st
   const result: Record<string, string> = {};
 
   for (const [key, itemValue] of Object.entries(value)) {
+    if (options.allowExtends === true && key === EXTENDS_FIELD_NAME) {
+      if (typeof itemValue !== "boolean") {
+        throw new Error(`Invalid GitHub workflow variables in "${filePath}": "${key}" must be a boolean.`);
+      }
+      continue;
+    }
+
     if (typeof itemValue !== "string") {
       throw new Error(`Invalid GitHub workflow variables in "${filePath}": "${key}" must be a string.`);
     }
@@ -65,21 +78,35 @@ function parseVariables(filePath: string, content: string): Record<string, strin
   return normalizeVariables(filePath, parseVariablesDocument(filePath, content).toJS());
 }
 
+function parseProjectVariables(
+  filePath: string,
+  content: string
+): { extendsBuiltIns: boolean; variables: Record<string, string> } {
+  const parsed = parseVariablesDocument(filePath, content).toJS();
+
+  return {
+    extendsBuiltIns: !isRecord(parsed) || parsed[EXTENDS_FIELD_NAME] !== false,
+    variables: normalizeVariables(filePath, parsed, { allowExtends: true })
+  };
+}
+
 function extractUserOverrideBlocks(
   filePath: string,
   content: string
-): { variables: Record<string, string>; blocks: Record<string, string> } {
+): { metadataBlocks: string[]; variables: Record<string, string>; blocks: Record<string, string> } {
   const document = parseVariablesDocument(filePath, content);
-  const variables = normalizeVariables(filePath, document.toJS());
+  const parsed = document.toJS();
+  const variables = normalizeVariables(filePath, parsed, { allowExtends: true });
 
   if (document.contents === null) {
-    return { variables, blocks: {} };
+    return { metadataBlocks: [], variables, blocks: {} };
   }
 
   if (!isMap(document.contents)) {
     throw new Error(`Invalid GitHub workflow variables in "${filePath}": expected a top-level object.`);
   }
 
+  const metadataBlocks: string[] = [];
   const blocks: Record<string, string> = {};
   const items = document.contents.items;
 
@@ -91,32 +118,57 @@ function extractUserOverrideBlocks(
 
     const start = item.key.range?.[0];
     const nextStart = items[index + 1]?.key?.range?.[0];
+    const parsedValue = isRecord(parsed) ? parsed[key] : undefined;
+    const block =
+      typeof start === "number"
+        ? content.slice(start, typeof nextStart === "number" ? nextStart : content.length).trimEnd()
+        : formatYamlBlock(key, typeof parsedValue === "string" || typeof parsedValue === "boolean" ? parsedValue : "");
+
+    if (key === EXTENDS_FIELD_NAME) {
+      metadataBlocks.push(block);
+      continue;
+    }
+
     if (typeof start !== "number") {
       blocks[key] = formatVariableBlock(key, variables[key]);
       continue;
     }
 
-    const end = typeof nextStart === "number" ? nextStart : content.length;
-    blocks[key] = content.slice(start, end).trimEnd();
+    blocks[key] = block;
   }
 
-  return { variables, blocks };
+  return { metadataBlocks, variables, blocks };
 }
 
-async function readOptionalVariables(projectDir: string): Promise<Record<string, string>> {
-  const filePath = path.join(projectDir, VARIABLES_FILE_NAME);
-
+async function readOptionalVariablesContent(filePath: string): Promise<string | undefined> {
   try {
-    return parseVariables(filePath, await readFile(filePath, "utf8"));
+    return await readFile(filePath, "utf8");
   } catch (error) {
     if (error instanceof Error && (error as NodeJS.ErrnoException).code === "ENOENT") {
-      return {};
+      return undefined;
     }
     throw error;
   }
 }
 
+function filterDisabledVariables(variables: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(variables)) {
+    if (value === "") {
+      continue;
+    }
+    result[key] = value;
+  }
+
+  return result;
+}
+
 function formatVariableBlock(name: string, value: string): string {
+  return formatYamlBlock(name, value);
+}
+
+function formatYamlBlock(name: string, value: boolean | string | undefined): string {
   return stringify({ [name]: value }).trimEnd();
 }
 
@@ -130,12 +182,27 @@ function formatCommentedBlock(name: string, value: string): string {
 async function loadVariableSources(
   builtInDir: string,
   projectDir?: string
-): Promise<{ builtInVariables: Record<string, string>; projectVariables: Record<string, string> }> {
+): Promise<{
+  builtInVariables: Record<string, string>;
+  extendsBuiltIns: boolean;
+  projectVariables: Record<string, string>;
+}> {
   const builtInPath = path.join(builtInDir, VARIABLES_FILE_NAME);
   const builtInVariables = parseVariables(builtInPath, await readFile(builtInPath, "utf8"));
-  const projectVariables = projectDir === undefined ? {} : await readOptionalVariables(projectDir);
+  const projectVariablesPath = projectDir === undefined ? undefined : path.join(projectDir, VARIABLES_FILE_NAME);
+  const projectVariablesContent =
+    projectVariablesPath === undefined ? undefined : await readOptionalVariablesContent(projectVariablesPath);
 
-  return { builtInVariables, projectVariables };
+  if (projectVariablesPath === undefined || projectVariablesContent === undefined) {
+    return { builtInVariables, extendsBuiltIns: true, projectVariables: {} };
+  }
+
+  const { extendsBuiltIns, variables: projectVariables } = parseProjectVariables(
+    projectVariablesPath,
+    projectVariablesContent
+  );
+
+  return { builtInVariables, extendsBuiltIns, projectVariables };
 }
 
 export type VariableStatus = "default" | "overridden" | "disabled" | "custom";
@@ -150,28 +217,54 @@ export async function loadVariables(
   builtInDir: string,
   projectDir?: string
 ): Promise<Record<string, string>> {
-  const { builtInVariables, projectVariables } = await loadVariableSources(builtInDir, projectDir);
-  const merged = { ...builtInVariables, ...projectVariables };
-  const result: Record<string, string> = {};
+  const builtInPath = path.join(builtInDir, VARIABLES_FILE_NAME);
+  const builtInContent = await readFile(builtInPath, "utf8");
+  const builtInVariables = parseVariables(builtInPath, builtInContent);
 
-  for (const [key, value] of Object.entries(merged)) {
-    if (value === "") {
-      continue;
-    }
-    result[key] = value;
+  if (projectDir === undefined) {
+    return filterDisabledVariables(builtInVariables);
   }
 
-  return result;
+  const projectVariablesPath = path.join(projectDir, VARIABLES_FILE_NAME);
+  const projectVariablesContent = await readOptionalVariablesContent(projectVariablesPath);
+
+  if (projectVariablesContent === undefined) {
+    return filterDisabledVariables(builtInVariables);
+  }
+
+  parseProjectVariables(projectVariablesPath, projectVariablesContent);
+
+  const resolved = await resolve(
+    [
+      {
+        source: "document",
+        filePath: projectVariablesPath,
+        content: projectVariablesContent
+      },
+      {
+        source: "base",
+        path: builtInDir
+      }
+    ],
+    {
+      fs: { readFile },
+      autoExtend: true
+    }
+  );
+
+  return filterDisabledVariables(normalizeVariables(projectVariablesPath, resolved.data));
 }
 
 export async function loadVariableStatuses(
   builtInDir: string,
   projectDir?: string
 ): Promise<VariableStatusEntry[]> {
-  const { builtInVariables, projectVariables } = await loadVariableSources(builtInDir, projectDir);
+  const { builtInVariables, extendsBuiltIns, projectVariables } = await loadVariableSources(builtInDir, projectDir);
   const orderedNames = [
-    ...Object.keys(builtInVariables),
-    ...Object.keys(projectVariables).filter((key) => !Object.prototype.hasOwnProperty.call(builtInVariables, key))
+    ...(extendsBuiltIns ? Object.keys(builtInVariables) : []),
+    ...Object.keys(projectVariables).filter(
+      (key) => !extendsBuiltIns || !Object.prototype.hasOwnProperty.call(builtInVariables, key)
+    )
   ];
   const projectVariablesPath = projectDir === undefined ? undefined : path.join(projectDir, VARIABLES_FILE_NAME);
 
@@ -206,10 +299,10 @@ export function generateProjectVariablesFile(
 ): string {
   const userOverrides =
     existingProjectFileContent === undefined
-      ? { variables: {}, blocks: {} }
+      ? { metadataBlocks: [], variables: {}, blocks: {} }
       : extractUserOverrideBlocks(VARIABLES_FILE_NAME, existingProjectFileContent);
 
-  const sections = [PROJECT_VARIABLES_HEADER];
+  const sections = [PROJECT_VARIABLES_HEADER, ...userOverrides.metadataBlocks];
 
   for (const [key, value] of Object.entries(builtInVariables)) {
     if (Object.prototype.hasOwnProperty.call(userOverrides.blocks, key)) {

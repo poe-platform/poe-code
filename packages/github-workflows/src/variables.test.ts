@@ -17,7 +17,7 @@ describe("variables", () => {
     vi.restoreAllMocks();
   });
 
-  it("loads built-in defaults when there is no project variables file", async () => {
+  it("loads built-in defaults when the project variables file is missing", async () => {
     vol.fromJSON({
       "/built-in/variables.yaml": [
         "response_style: |",
@@ -28,7 +28,7 @@ describe("variables", () => {
       ].join("\n")
     });
 
-    await expect(loadVariables("/built-in")).resolves.toEqual({
+    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
       response_style: "- Start with a direct answer.\n",
       verify_before_responding: "Verify against the repo.\n"
     });
@@ -58,7 +58,7 @@ describe("variables", () => {
     });
   });
 
-  it("lets project overrides replace built-ins and add custom keys", async () => {
+  it("lets a project override replace a built-in variable", async () => {
     vol.fromJSON({
       "/built-in/variables.yaml": [
         "response_style: |",
@@ -70,16 +70,13 @@ describe("variables", () => {
       "/repo/.poe-code/github-workflows/variables.yaml": [
         "response_style: |",
         "  - Answer in the house style.",
-        "custom_project_rules: |",
-        "  Check docs/internal.md first.",
         ""
       ].join("\n")
     });
 
     await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
       response_style: "- Answer in the house style.\n",
-      verify_before_responding: "Verify against the repo.\n",
-      custom_project_rules: "Check docs/internal.md first.\n"
+      verify_before_responding: "Verify against the repo.\n"
     });
   });
 
@@ -97,6 +94,51 @@ describe("variables", () => {
 
     await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
       response_style: "- Start with a direct answer.\n"
+    });
+  });
+
+  it("includes custom project variables in the resolved result", async () => {
+    vol.fromJSON({
+      "/built-in/variables.yaml": [
+        "response_style: |",
+        "  - Start with a direct answer.",
+        "verify_before_responding: |",
+        "  Verify against the repo.",
+        ""
+      ].join("\n"),
+      "/repo/.poe-code/github-workflows/variables.yaml": [
+        "custom_project_rules: |",
+        "  Check docs/internal.md first.",
+        ""
+      ].join("\n")
+    });
+
+    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
+      response_style: "- Start with a direct answer.\n",
+      verify_before_responding: "Verify against the repo.\n",
+      custom_project_rules: "Check docs/internal.md first.\n"
+    });
+  });
+
+  it("lets a project opt out of built-in defaults with extends: false", async () => {
+    vol.fromJSON({
+      "/built-in/variables.yaml": [
+        "response_style: |",
+        "  - Start with a direct answer.",
+        "verify_before_responding: |",
+        "  Verify against the repo.",
+        ""
+      ].join("\n"),
+      "/repo/.poe-code/github-workflows/variables.yaml": [
+        "extends: false",
+        "custom_project_rules: |",
+        "  Check docs/internal.md first.",
+        ""
+      ].join("\n")
+    });
+
+    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
+      custom_project_rules: "Check docs/internal.md first.\n"
     });
   });
 
@@ -132,6 +174,39 @@ describe("variables", () => {
         name: "skill_github_cli",
         source: "/repo/.poe-code/github-workflows/variables.yaml",
         status: "disabled"
+      },
+      {
+        name: "custom_project_rules",
+        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        status: "custom"
+      }
+    ]);
+  });
+
+  it("reports only project-defined variables when extends: false disables built-in inheritance", async () => {
+    vol.fromJSON({
+      "/built-in/variables.yaml": [
+        "response_style: |",
+        "  - Start with a direct answer.",
+        "verify_before_responding: |",
+        "  Verify against the repo.",
+        ""
+      ].join("\n"),
+      "/repo/.poe-code/github-workflows/variables.yaml": [
+        "extends: false",
+        "response_style: |",
+        "  - Answer in the house style.",
+        "custom_project_rules: |",
+        "  Follow docs/internal.md.",
+        ""
+      ].join("\n")
+    });
+
+    await expect(loadVariableStatuses("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual([
+      {
+        name: "response_style",
+        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        status: "overridden"
       },
       {
         name: "custom_project_rules",
@@ -245,6 +320,39 @@ describe("variables", () => {
         "  Verify against the changed files first.",
         "",
         "skill_github_cli: ''",
+        ""
+      ].join("\n")
+    );
+  });
+
+  it("preserves extends: false when regenerating the project file", () => {
+    const content = generateProjectVariablesFile(
+      {
+        response_style: "Be direct.\n",
+        verify_before_responding: "Check the repo.\n"
+      },
+      ["extends: false", "", "custom_project_rules: |", "  Follow docs/internal.md.", ""].join("\n")
+    );
+
+    expect(content).toBe(
+      [
+        "# Preview rendered prompt: poe-code github-workflows prompt-preview <name>",
+        "#",
+        "# Built-in defaults are shown below as comments.",
+        "# To override a variable, uncomment it and replace the value.",
+        '# To disable a variable, uncomment it and set it to empty string: ""',
+        "# Variables left commented out keep the built-in default.",
+        "",
+        "extends: false",
+        "",
+        "# response_style: |",
+        "#   Be direct.",
+        "",
+        "# verify_before_responding: |",
+        "#   Check the repo.",
+        "",
+        "custom_project_rules: |",
+        "  Follow docs/internal.md.",
         ""
       ].join("\n")
     );

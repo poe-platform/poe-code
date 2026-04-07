@@ -41,6 +41,7 @@ export interface PipelinePlan {
 
 export interface PipelineConfig {
   planPath?: string;
+  [key: string]: unknown;
 }
 
 export interface PipelineFileStat {

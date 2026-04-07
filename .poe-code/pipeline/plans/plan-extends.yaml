@@ -372,7 +372,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integrate-pipeline-config
     title: Integrate config-extends into pipeline config.yaml
@@ -401,8 +401,8 @@ tasks:
       - No project config → global used (backward compatible)
       - Both exist → deep merge
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integrate-pipeline-steps

@@ -352,13 +352,119 @@ describe("loadResolvedSteps", () => {
 });
 
 describe("loadPipelineConfig", () => {
-  it("returns merged global and project config with project precedence", async () => {
+  it("lets the project config override planPath", async () => {
     const config = await loadPipelineConfig({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
         "/home/test/.poe-code/pipeline/config.yaml": "planPath: global-plan.yaml\n",
         "/repo/.poe-code/pipeline/config.yaml": "planPath: local-plan.yaml\n"
+      })
+    });
+
+    expect(config).toEqual({
+      planPath: "local-plan.yaml"
+    });
+  });
+
+  it("uses the global config when no project config exists", async () => {
+    const config = await loadPipelineConfig({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/config.yaml": "planPath: global-plan.yaml\n"
+      })
+    });
+
+    expect(config).toEqual({
+      planPath: "global-plan.yaml"
+    });
+  });
+
+  it("deep merges project config with global config", async () => {
+    const config = await loadPipelineConfig({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/config.yaml": [
+          "planPath: global-plan.yaml",
+          "defaults:",
+          "  agent: codex",
+          "  execution:",
+          "    mode: read",
+          "    retries: 1",
+          ""
+        ].join("\n"),
+        "/repo/.poe-code/pipeline/config.yaml": [
+          "planPath: local-plan.yaml",
+          "defaults:",
+          "  execution:",
+          "    retries: 3",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(config).toEqual({
+      planPath: "local-plan.yaml",
+      defaults: {
+        agent: "codex",
+        execution: {
+          mode: "read",
+          retries: 3
+        }
+      }
+    });
+  });
+
+  it("keeps the global planPath when the project planPath is blank", async () => {
+    const config = await loadPipelineConfig({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/config.yaml": [
+          "planPath: global-plan.yaml",
+          "defaults:",
+          "  agent: codex",
+          ""
+        ].join("\n"),
+        "/repo/.poe-code/pipeline/config.yaml": [
+          "planPath: '   '",
+          "defaults:",
+          "  execution:",
+          "    retries: 3",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(config).toEqual({
+      planPath: "global-plan.yaml",
+      defaults: {
+        agent: "codex",
+        execution: {
+          retries: 3
+        }
+      }
+    });
+  });
+
+  it("does not auto-extend when the project config sets extends to false", async () => {
+    const config = await loadPipelineConfig({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/config.yaml": [
+          "planPath: global-plan.yaml",
+          "defaults:",
+          "  agent: codex",
+          ""
+        ].join("\n"),
+        "/repo/.poe-code/pipeline/config.yaml": [
+          "extends: false",
+          "planPath: local-plan.yaml",
+          ""
+        ].join("\n")
       })
     });
 

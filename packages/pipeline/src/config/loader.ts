@@ -1,4 +1,5 @@
 import path from "node:path";
+import { resolve } from "@poe-code/config-extends";
 import { parse } from "yaml";
 import type {
   PipelineConfig,
@@ -80,7 +81,10 @@ function parseStepConfigDocument(
 }
 
 function parseConfigDocument(filePath: string, content: string): PipelineConfig {
-  const document = parseYamlDocument(filePath, content);
+  return parseConfigData(filePath, parseYamlDocument(filePath, content));
+}
+
+function parseConfigData(filePath: string, document: unknown): PipelineConfig {
   if (document === null || document === undefined) {
     return {};
   }
@@ -93,22 +97,16 @@ function parseConfigDocument(filePath: string, content: string): PipelineConfig 
     throw new Error(`Invalid planPath in "${filePath}": expected a string.`);
   }
 
-  return {
-    ...(typeof planPath === "string" && planPath.trim().length > 0
-      ? { planPath: planPath.trim() }
-      : {})
-  };
-}
+  const config = { ...document } as PipelineConfig;
+  delete config.extends;
 
-async function loadConfigFile(
-  fs: Pick<PipelineFileSystem, "readFile">,
-  filePath: string
-): Promise<PipelineConfig> {
-  const content = await readOptionalFile(fs, filePath);
-  if (content == null) {
-    return {};
+  if (typeof planPath === "string" && planPath.trim().length > 0) {
+    config.planPath = planPath.trim();
+  } else {
+    delete config.planPath;
   }
-  return parseConfigDocument(filePath, content);
+
+  return config;
 }
 
 async function loadStepsFile(
@@ -127,17 +125,40 @@ export async function loadPipelineConfig(options: {
   homeDir: string;
   fs: Pick<PipelineFileSystem, "readFile">;
 }): Promise<PipelineConfig> {
-  const globalPath = path.join(options.homeDir, ".poe-code", "pipeline", "config.yaml");
+  const globalDir = path.join(options.homeDir, ".poe-code", "pipeline");
+  const globalPath = path.join(globalDir, "config.yaml");
   const projectPath = path.join(options.cwd, ".poe-code", "pipeline", "config.yaml");
-  const [globalConfig, projectConfig] = await Promise.all([
-    loadConfigFile(options.fs, globalPath),
-    loadConfigFile(options.fs, projectPath)
+  const [globalContent, projectContent] = await Promise.all([
+    readOptionalFile(options.fs, globalPath),
+    readOptionalFile(options.fs, projectPath)
   ]);
 
-  return {
-    ...globalConfig,
-    ...projectConfig
-  };
+  const globalConfig =
+    globalContent == null ? undefined : parseConfigDocument(globalPath, globalContent);
+
+  if (projectContent == null) {
+    return globalConfig ?? {};
+  }
+
+  const projectConfig = parseConfigDocument(projectPath, projectContent);
+
+  const resolved = await resolve(
+    [
+      { source: "document", filePath: projectPath, content: projectContent },
+      { source: "base", path: globalDir }
+    ],
+    { fs: options.fs, autoExtend: true }
+  );
+
+  const config = parseConfigData(projectPath, resolved.data);
+
+  if (projectConfig.planPath !== undefined) {
+    config.planPath = projectConfig.planPath;
+  } else if (config.planPath === undefined && globalConfig?.planPath !== undefined && resolved.chain.length > 1) {
+    config.planPath = globalConfig.planPath;
+  }
+
+  return config;
 }
 
 export async function loadResolvedSteps(options: {

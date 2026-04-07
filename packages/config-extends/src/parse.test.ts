@@ -12,7 +12,8 @@ describe("parseDocument", () => {
         prompt: "Write something"
       },
       format: "markdown",
-      extends: false
+      extends: false,
+      hasExtendsField: false
     });
   });
 
@@ -23,7 +24,8 @@ describe("parseDocument", () => {
         prompt: "Write something"
       },
       format: "yaml",
-      extends: false
+      extends: false,
+      hasExtendsField: false
     });
   });
 
@@ -36,7 +38,8 @@ describe("parseDocument", () => {
         prompt: "Write something"
       },
       format: "json",
-      extends: false
+      extends: false,
+      hasExtendsField: false
     });
   });
 
@@ -47,7 +50,8 @@ describe("parseDocument", () => {
         prompt: ""
       },
       format: "markdown",
-      extends: false
+      extends: false,
+      hasExtendsField: false
     });
   });
 
@@ -67,22 +71,39 @@ describe("parseDocument", () => {
         title: "Hello"
       },
       format: "yaml",
-      extends: true
+      extends: true,
+      hasExtendsField: true
     });
   });
 
-  it("ignores non-boolean extends values, strips them, and returns extends false", () => {
+  it("ignores non-boolean extends values, strips them, and marks extends as explicitly configured", () => {
     expect(parseDocument('extends: "something"\ntitle: Hello', "/tmp/config.yaml")).toEqual({
       data: {
         title: "Hello"
       },
       format: "yaml",
-      extends: false
+      extends: false,
+      hasExtendsField: true
     });
   });
 
   it("returns extends false when the field is missing", () => {
     expect(parseDocument("title: Hello", "/tmp/config.yaml").extends).toBe(false);
+  });
+
+  it("marks extends as missing when the field is absent", () => {
+    expect(parseDocument("title: Hello", "/tmp/config.yaml").hasExtendsField).toBe(false);
+  });
+
+  it("marks extends as explicitly configured when false", () => {
+    expect(parseDocument("extends: false\ntitle: Hello", "/tmp/config.yaml")).toEqual({
+      data: {
+        title: "Hello"
+      },
+      format: "yaml",
+      extends: false,
+      hasExtendsField: true
+    });
   });
 
   it("supports a BOM when detecting markdown by content", () => {
@@ -94,7 +115,8 @@ describe("parseDocument", () => {
         prompt: "Write something"
       },
       format: "markdown",
-      extends: false
+      extends: false,
+      hasExtendsField: false
     });
   });
 
@@ -105,7 +127,8 @@ describe("parseDocument", () => {
         prompt: "Write something"
       },
       format: "markdown",
-      extends: false
+      extends: false,
+      hasExtendsField: false
     });
   });
 
@@ -140,7 +163,8 @@ describe("parseDocument", () => {
         title: "Hello"
       },
       format: "yaml",
-      extends: false
+      extends: false,
+      hasExtendsField: false
     });
   });
 });

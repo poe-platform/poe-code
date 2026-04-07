@@ -35,4 +35,5 @@ export interface ParsedDocument {
   data: Record<string, unknown>;
   format: "markdown" | "yaml" | "json";
   extends: boolean;
+  hasExtendsField: boolean;
 }

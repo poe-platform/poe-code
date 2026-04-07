@@ -131,7 +131,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: resolver
     title: Chain resolver with extends and autoExtend
@@ -189,8 +189,8 @@ tasks:
 
       Export `resolve` from `src/index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integrate-experiment-docs

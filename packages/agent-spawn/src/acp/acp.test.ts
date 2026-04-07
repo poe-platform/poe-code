@@ -12,7 +12,6 @@ import { codexSpawnConfig } from "../configs/codex.js";
 import { openCodeSpawnConfig } from "../configs/opencode.js";
 import { getMcpArgs } from "../mcp-args.js";
 import type { CliSpawnConfig } from "../types.js";
-import type { AcpEvent } from "./types.js";
 
 vi.mock("@poe-code/design-system", () => {
   return {

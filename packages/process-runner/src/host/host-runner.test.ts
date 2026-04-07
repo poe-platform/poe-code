@@ -8,7 +8,10 @@ describe("createHostRunner", () => {
 
     const handle = runner.exec({
       command: process.execPath,
-      args: ["-e", "process.stdout.write('hello'); process.stderr.write('warn');"],
+      args: [
+        "-e",
+        "process.stdout.write('hello'); process.stderr.write('warn', () => process.exit(0));"
+      ],
       stdin: "pipe",
       stdout: "pipe",
       stderr: "pipe"
@@ -142,7 +145,10 @@ describe("createHostRunner", () => {
     const runner = createHostRunner();
     const handle = runner.exec({
       command: process.execPath,
-      args: ["-e", "process.stdout.write('default-out'); process.stderr.write('default-err');"]
+      args: [
+        "-e",
+        "process.stdout.write('default-out'); process.stderr.write('default-err', () => process.exit(0));"
+      ]
     });
 
     expect(handle.stdin).toBeNull();

@@ -69,11 +69,11 @@ const renderTerminalPngMock = vi.mocked(renderTerminalPng);
 
 describe("resolveScreenshotTimeoutMs", () => {
   it("uses default when env is missing or invalid", () => {
-    expect(resolveScreenshotTimeoutMs({})).toBe(5000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "" })).toBe(5000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "0" })).toBe(5000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "-1" })).toBe(5000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "nope" })).toBe(5000);
+    expect(resolveScreenshotTimeoutMs({})).toBe(15000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "" })).toBe(15000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "0" })).toBe(15000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "-1" })).toBe(15000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "nope" })).toBe(15000);
   });
 
   it("uses the provided timeout when valid", () => {
@@ -168,7 +168,7 @@ describe("runScreenshot", () => {
 
     stdout.emit("data", Buffer.from("partial output\n"));
 
-    await vi.advanceTimersByTimeAsync(5000);
+    await vi.advanceTimersByTimeAsync(15000);
 
     await promise;
 

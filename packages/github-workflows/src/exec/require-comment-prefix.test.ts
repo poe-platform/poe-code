@@ -13,6 +13,15 @@ describe("requireCommentPrefix", () => {
     ).not.toThrow();
   });
 
+  it("allows matching any configured comment prefix alias", () => {
+    expect(() =>
+      requireCommentPrefix(
+        { name: "triage", prefix: ["poe-code", "poe-code-agent", "@poe-code-agent"] },
+        "@poe-code-agent review this"
+      )
+    ).not.toThrow();
+  });
+
   it("throws when COMMENT_BODY is missing for a prefixed automation", () => {
     expect(() =>
       requireCommentPrefix({ name: "triage", prefix: "poe-code" }, undefined)
@@ -26,6 +35,19 @@ describe("requireCommentPrefix", () => {
       requireCommentPrefix({ name: "triage", prefix: "poe-code" }, "/poe please help")
     ).toThrowError(
       new UserError('Automation "triage" requires COMMENT_BODY to start with "poe-code".')
+    );
+  });
+
+  it("lists all accepted prefixes when multiple aliases are configured", () => {
+    expect(() =>
+      requireCommentPrefix(
+        { name: "triage", prefix: ["poe-code", "poe-code-agent", "@poe-code-agent"] },
+        "/poe please help"
+      )
+    ).toThrowError(
+      new UserError(
+        'Automation "triage" requires COMMENT_BODY to start with one of: "poe-code", "poe-code-agent", "@poe-code-agent".'
+      )
     );
   });
 });

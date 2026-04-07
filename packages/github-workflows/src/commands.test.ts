@@ -154,6 +154,47 @@ describe("ghGroup", () => {
     );
   });
 
+  it("renders pull request comment context with the pull request URL when PR env is present", async () => {
+    writeBuiltInPrompt(
+      "github-issue-comment-created",
+      "Read {{url}} from {{comment.author}} on PR {{pr.number}} by {{pr.author}}: {{comment.body}}"
+    );
+
+    const runCommand = getCommand(["run"]);
+
+    await runCommand.handler(
+      createContext(
+        {
+          name: "github-issue-comment-created",
+          agent: "codex",
+          cwd: "/repo"
+        },
+        {
+          GITHUB_REPOSITORY: "acme/app",
+          ISSUE_NUMBER: "42",
+          PR_NUMBER: "42",
+          PR_TITLE: "Fix auth flow",
+          PR_AUTHOR: "alice",
+          COMMENT_AUTHOR: "bob",
+          COMMENT_BODY: "poe-code-agent please apply this"
+        },
+        {
+          poeApiKey: "poe-key",
+          githubToken: "gh-token"
+        }
+      )
+    );
+
+    expect(spawnState.spawn).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({
+        cwd: "/repo",
+        prompt:
+          "Read https://github.com/acme/app/pull/42 from bob on PR 42 by alice: poe-code-agent please apply this"
+      })
+    );
+  });
+
   it("renders issue title and body variables for issue-opened automations", async () => {
     writeBuiltInPrompt(
       "github-issue-opened",

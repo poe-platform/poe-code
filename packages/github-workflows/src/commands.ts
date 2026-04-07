@@ -482,7 +482,7 @@ function buildCommandEnv(
     "PR_TITLE",
     "PR_AUTHOR"
   ]) {
-    const value = env.get(key);
+    const value = getOptionalEnvValue(env, key);
     if (value !== undefined) {
       values[key] = value;
     }
@@ -492,9 +492,9 @@ function buildCommandEnv(
 }
 
 function buildTemplateContext(env: { get(key: string): string | undefined }): Record<string, unknown> {
-  const repo = env.get("GITHUB_REPOSITORY");
-  const issueNumber = env.get("ISSUE_NUMBER");
-  const prNumber = env.get("PR_NUMBER");
+  const repo = getOptionalEnvValue(env, "GITHUB_REPOSITORY");
+  const issueNumber = getOptionalEnvValue(env, "ISSUE_NUMBER");
+  const prNumber = getOptionalEnvValue(env, "PR_NUMBER");
 
   return {
     ...(repo === undefined ? {} : { repo }),
@@ -503,17 +503,17 @@ function buildTemplateContext(env: { get(key: string): string | undefined }): Re
       : { url: buildUrl(repo, issueNumber, prNumber) }),
     issue: pruneUndefined({
       number: issueNumber,
-      title: env.get("ISSUE_TITLE"),
-      body: env.get("ISSUE_BODY")
+      title: getOptionalEnvValue(env, "ISSUE_TITLE"),
+      body: getOptionalEnvValue(env, "ISSUE_BODY")
     }),
     comment: pruneUndefined({
-      author: env.get("COMMENT_AUTHOR"),
-      body: env.get("COMMENT_BODY")
+      author: getOptionalEnvValue(env, "COMMENT_AUTHOR"),
+      body: getOptionalEnvValue(env, "COMMENT_BODY")
     }),
     pr: pruneUndefined({
       number: prNumber,
-      title: env.get("PR_TITLE"),
-      author: env.get("PR_AUTHOR")
+      title: getOptionalEnvValue(env, "PR_TITLE"),
+      author: getOptionalEnvValue(env, "PR_AUTHOR")
     })
   };
 }
@@ -527,15 +527,26 @@ function buildUrl(
     return undefined;
   }
 
-  if (issueNumber !== undefined) {
-    return `https://github.com/${repo}/issues/${issueNumber}`;
-  }
-
   if (prNumber !== undefined) {
     return `https://github.com/${repo}/pull/${prNumber}`;
   }
 
+  if (issueNumber !== undefined) {
+    return `https://github.com/${repo}/issues/${issueNumber}`;
+  }
+
   return undefined;
+}
+
+function getOptionalEnvValue(
+  env: { get(key: string): string | undefined },
+  key: string
+): string | undefined {
+  const value = env.get(key);
+  if (value === undefined || value === "") {
+    return undefined;
+  }
+  return value;
 }
 
 function pruneUndefined(record: Record<string, string | undefined>): Record<string, string> {

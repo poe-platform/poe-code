@@ -46,8 +46,12 @@ describe("built-in prompts", () => {
       }
 
       if (automation.prefix !== undefined) {
-        expect(automation.prefix.length).toBeGreaterThan(0);
-        expect(automation.prefix.trim()).toBe(automation.prefix);
+        const prefixes = Array.isArray(automation.prefix) ? automation.prefix : [automation.prefix];
+        expect(prefixes.length).toBeGreaterThan(0);
+        for (const prefix of prefixes) {
+          expect(prefix.length).toBeGreaterThan(0);
+          expect(prefix.trim()).toBe(prefix);
+        }
       }
     }
   });
@@ -76,5 +80,14 @@ describe("built-in prompts", () => {
     expect(automation?.prompt).toContain("last 24 hours");
     expect(automation?.prompt).toContain("agent/update-documentation");
     expect(automation?.prompt).toContain("update that existing PR");
+  });
+
+  it("tells the issue comment handler to open or update a PR for code changes", async () => {
+    const automations = await discoverAutomations(promptsDir);
+    const automation = automations.find(({ name }) => name === "github-issue-comment-created");
+
+    expect(automation?.prompt).toContain("open or update a PR");
+    expect(automation?.prompt).toContain("leave a visible GitHub response");
+    expect(automation?.prompt).toContain("current PR branch");
   });
 });

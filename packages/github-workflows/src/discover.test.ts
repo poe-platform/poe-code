@@ -227,6 +227,42 @@ describe("discoverAutomations", () => {
     );
   });
 
+  it("parses prefix aliases declared as a string array", async () => {
+    fsState.directories.set("/built-in", ["triage.md"]);
+    fsState.files.set(
+      "/built-in/triage.md",
+      [
+        "---",
+        "prefix:",
+        "  - poe-code",
+        "  - poe-code-agent",
+        '  - "@poe-code-agent"',
+        "---",
+        "# Prompt"
+      ].join("\n")
+    );
+
+    await expect(discoverAutomations("/built-in")).resolves.toEqual([
+      {
+        name: "triage",
+        prompt: "# Prompt",
+        prefix: ["poe-code", "poe-code-agent", "@poe-code-agent"]
+      }
+    ]);
+  });
+
+  it("throws when a prefix alias list contains a blank entry", async () => {
+    fsState.directories.set("/built-in", ["blank.md"]);
+    fsState.files.set(
+      "/built-in/blank.md",
+      ["---", "prefix:", "  - poe-code", '  - ""', "---", "# Prompt"].join("\n")
+    );
+
+    await expect(discoverAutomations("/built-in")).rejects.toThrow(
+      'Automation "blank.md" has invalid "prefix" frontmatter. Expected non-empty strings without surrounding whitespace.'
+    );
+  });
+
   it("throws when allow is an empty list", async () => {
     fsState.directories.set("/built-in", ["blank.md", "padded.md"]);
     fsState.files.set("/built-in/blank.md", ["---", "allow: []", "---", "# Prompt"].join("\n"));

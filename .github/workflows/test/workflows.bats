@@ -250,24 +250,112 @@ run_guard_in_docker() {
   done
 }
 
-@test "dry-run issue comment workflow runs require steps before the agent step" {
-  run workflow_run_steps ".github/workflows/gh-github-issue-comment-created.yml"
-  [ "$status" -eq 0 ]
+@test "dry-run issue comment workflow evaluates guards before the run job" {
+  local workflow_file
+  for workflow_file in \
+    ".github/workflows/gh-github-issue-comment-created.yml" \
+    ".github/workflows/poe-code-github-issue-comment-created.yml" \
+    "packages/github-workflows/src/workflow-templates/github-issue-comment-created.ejected.yml"; do
+    run yaml_eval "$workflow_file" 'workflow.jobs.guard.steps.find((step) => step.id === "allow_check").run'
+    [ "$status" -eq 0 ]
+    [ "$output" = "poe-code github-workflows require-user-allow github-issue-comment-created" ]
 
-  local allow_line
-  allow_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows require-user-allow github-issue-comment-created' | cut -d: -f1)"
-  [ -n "$allow_line" ]
+    run yaml_eval "$workflow_file" 'workflow.jobs.guard.steps.find((step) => step.id === "prefix_check").run'
+    [ "$status" -eq 0 ]
+    [ "$output" = "poe-code github-workflows require-comment-prefix github-issue-comment-created" ]
 
-  local prefix_line
-  prefix_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows require-comment-prefix github-issue-comment-created' | cut -d: -f1)"
-  [ -n "$prefix_line" ]
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.run === "poe-code github-workflows prepare github-issue-comment-created").run'
+    [ "$status" -eq 0 ]
+    [ "$output" = "poe-code github-workflows prepare github-issue-comment-created" ]
+  done
+}
 
-  local agent_line
-  agent_line="$(printf '%s\n' "$output" | grep -nF 'poe-code github-workflows github-issue-comment-created --yes' | cut -d: -f1)"
-  [ -n "$agent_line" ]
+@test "dry-run issue comment workflow skips the run job when guard steps fail" {
+  local workflow_file
+  for workflow_file in \
+    ".github/workflows/gh-github-issue-comment-created.yml" \
+    ".github/workflows/poe-code-github-issue-comment-created.yml" \
+    "packages/github-workflows/src/workflow-templates/github-issue-comment-created.ejected.yml"; do
+    run yaml_eval "$workflow_file" 'workflow.jobs.guard.steps.find((step) => step.id === "allow_check")["continue-on-error"]'
+    [ "$status" -eq 0 ]
+    [ "$output" = "true" ]
 
-  [ "$allow_line" -lt "$prefix_line" ]
-  [ "$prefix_line" -lt "$agent_line" ]
+    run yaml_eval "$workflow_file" 'workflow.jobs.guard.steps.find((step) => step.id === "prefix_check")["continue-on-error"]'
+    [ "$status" -eq 0 ]
+    [ "$output" = "true" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.needs'
+    [ "$status" -eq 0 ]
+    [ "$output" = "guard" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.if'
+    [ "$status" -eq 0 ]
+    [ "$output" = "needs.guard.outputs.should_run == 'true'" ]
+  done
+}
+
+@test "dry-run issue comment workflow adds and removes an eyes reaction around the run job" {
+  local workflow_file
+  for workflow_file in \
+    ".github/workflows/gh-github-issue-comment-created.yml" \
+    ".github/workflows/poe-code-github-issue-comment-created.yml" \
+    "packages/github-workflows/src/workflow-templates/github-issue-comment-created.ejected.yml"; do
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.id === "add_in_progress_reaction").uses'
+    [ "$status" -eq 0 ]
+    [ "$output" = "actions/github-script@v7" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.id === "add_in_progress_reaction")["continue-on-error"]'
+    [ "$status" -eq 0 ]
+    [ "$output" = "true" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.id === "remove_in_progress_reaction").uses'
+    [ "$status" -eq 0 ]
+    [ "$output" = "actions/github-script@v7" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.id === "remove_in_progress_reaction").if'
+    [ "$status" -eq 0 ]
+    [ "$output" = "always() && steps.add_in_progress_reaction.outputs.reaction_id != ''" ]
+  done
+}
+
+@test "dry-run issue comment workflow forces terminal output format" {
+  local workflow_file
+  for workflow_file in \
+    ".github/workflows/gh-github-issue-comment-created.yml" \
+    ".github/workflows/poe-code-github-issue-comment-created.yml" \
+    "packages/github-workflows/src/workflow-templates/github-issue-comment-created.ejected.yml"; do
+    run yaml_eval "$workflow_file" 'workflow.jobs.guard.env.OUTPUT_FORMAT'
+    [ "$status" -eq 0 ]
+    [ "$output" = "terminal" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.env.OUTPUT_FORMAT'
+    [ "$status" -eq 0 ]
+    [ "$output" = "terminal" ]
+  done
+}
+
+@test "dry-run issue comment workflow resolves PR context and executes on the PR branch" {
+  local workflow_file
+  for workflow_file in \
+    ".github/workflows/gh-github-issue-comment-created.yml" \
+    ".github/workflows/poe-code-github-issue-comment-created.yml" \
+    "packages/github-workflows/src/workflow-templates/github-issue-comment-created.ejected.yml"; do
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.id === "pr_context").uses'
+    [ "$status" -eq 0 ]
+    [ "$output" = "actions/github-script@v7" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.id === "checkout_pr_branch").if'
+    [ "$status" -eq 0 ]
+    [ "$output" = "steps.pr_context.outputs.head_ref != ''" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.id === "checkout_default_branch").if'
+    [ "$status" -eq 0 ]
+    [ "$output" = "steps.pr_context.outputs.head_ref == ''" ]
+
+    run yaml_eval "$workflow_file" 'workflow.jobs.run.steps.find((step) => step.run === "poe-code github-workflows github-issue-comment-created --yes").env.PR_NUMBER'
+    [ "$status" -eq 0 ]
+    [ "$output" = '${{ steps.pr_context.outputs.pr_number }}' ]
+  done
 }
 
 @test "dry-run issue opened workflows pass issue title and body to the automation" {
@@ -559,6 +647,18 @@ run_guard_in_docker() {
 @test "require-comment-prefix exits 0 for body exactly poe-code" {
   require_docker
   run run_guard_in_docker "require-comment-prefix" ".github/workflows/test/fixtures/comment-prefix-only.json"
+  [ "$status" -eq 0 ]
+}
+
+@test "require-comment-prefix exits 0 for body starting with poe-code-agent" {
+  require_docker
+  run run_guard_in_docker "require-comment-prefix" ".github/workflows/test/fixtures/comment-agent-prefixed.json"
+  [ "$status" -eq 0 ]
+}
+
+@test "require-comment-prefix exits 0 for body starting with @poe-code-agent" {
+  require_docker
+  run run_guard_in_docker "require-comment-prefix" ".github/workflows/test/fixtures/comment-agent-mentioned.json"
   [ "$status" -eq 0 ]
 }
 

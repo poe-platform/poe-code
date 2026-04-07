@@ -92,7 +92,7 @@ function readAutomationFields(
   const agent = readOptionalString(frontmatter.agent, "agent", fileName);
   const mcp = readOptionalMcp(frontmatter.mcp, fileName);
   const allow = readOptionalStringArray(frontmatter.allow, "allow", fileName);
-  const prefix = readOptionalString(frontmatter.prefix, "prefix", fileName);
+  const prefix = readOptionalPrefix(frontmatter.prefix, fileName);
 
   return {
     ...(label === undefined ? {} : { label }),
@@ -106,7 +106,7 @@ function readAutomationFields(
 
 function readOptionalString(
   value: unknown,
-  field: "label" | "source" | "agent" | "prefix",
+  field: "label" | "source" | "agent",
   fileName: string
 ): string | undefined {
   if (value === undefined) {
@@ -116,14 +116,51 @@ function readOptionalString(
   if (typeof value !== "string") {
     throw new Error(`Automation "${fileName}" has invalid "${field}" frontmatter. Expected a string.`);
   }
+  return value;
+}
 
-  if (field === "prefix" && (value.length === 0 || value.trim() !== value)) {
+function readOptionalPrefix(
+  value: unknown,
+  fileName: string
+): AutomationDefinition["prefix"] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === "string") {
+    validatePrefixValue(value, fileName, "Expected a non-empty string without surrounding whitespace.");
+    return value;
+  }
+
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
     throw new Error(
-      `Automation "${fileName}" has invalid "${field}" frontmatter. Expected a non-empty string without surrounding whitespace.`
+      `Automation "${fileName}" has invalid "prefix" frontmatter. Expected a string or an array of strings.`
     );
   }
 
+  if (value.length === 0) {
+    throw new Error(
+      `Automation "${fileName}" has invalid "prefix" frontmatter. Expected at least one string.`
+    );
+  }
+
+  for (const item of value) {
+    validatePrefixValue(item, fileName, "Expected non-empty strings without surrounding whitespace.");
+  }
+
   return value;
+}
+
+function validatePrefixValue(
+  value: string,
+  fileName: string,
+  expectation: string
+): void {
+  if (value.length === 0 || value.trim() !== value) {
+    throw new Error(
+      `Automation "${fileName}" has invalid "prefix" frontmatter. ${expectation}`
+    );
+  }
 }
 
 function readOptionalStringArray(

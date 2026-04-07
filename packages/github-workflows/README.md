@@ -37,7 +37,7 @@ The workflow triggers automatically on the configured event.
 | Name | Trigger | Description |
 |------|---------|-------------|
 | `github-issue-opened` | Issue opened | Reads the issue and implements the requested changes |
-| `github-issue-comment-created` | Issue comment created | Acts on comments with a required prefix, restricted to allowed roles |
+| `github-issue-comment-created` | Issue or PR comment created | Acts on prefixed comments, restricted to allowed roles; updates the current PR when the comment is on a same-repo PR |
 | `github-pull-request-opened` | PR opened | Reviews the pull request |
 | `github-pull-request-synchronized` | PR updated | Re-reviews the PR after new commits are pushed |
 | `fix-vulnerabilities` | Scheduled | Fetches open Dependabot alerts and fixes them one by one |
@@ -84,7 +84,10 @@ allow:                                # GitHub author associations allowed to tr
   - MEMBER
   - COLLABORATOR
 
-prefix: "poe-code"                    # Required comment prefix (comment workflows only)
+prefix:                               # Required comment prefix or aliases (comment workflows only)
+  - "poe-code"
+  - "poe-code-agent"
+  - "@poe-code-agent"
 
 source: "gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[]]'"
                                       # Command to fetch items; must output a JSON array.
@@ -106,6 +109,13 @@ mcp:                                  # MCP servers to make available to the age
 
 `OWNER`, `MEMBER`, `COLLABORATOR`, `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, `FIRST_TIMER`, `MANNEQUIN`, `NONE`
 
+### `prefix`
+
+`prefix` may be either:
+
+- A single string such as `prefix: "poe-code"`
+- A list of accepted aliases such as `poe-code`, `poe-code-agent`, and `@poe-code-agent`
+
 ### Template variables
 
 Variables available in the prompt body depend on the trigger:
@@ -118,6 +128,24 @@ Variables available in the prompt body depend on the trigger:
 | `{{pr.number}}`, `{{pr.title}}`, `{{pr.author}}` | PR workflows |
 | `{{comment.author}}`, `{{comment.body}}` | Comment workflows |
 | `{{<field>}}` | Sourced automations — any field from the JSON item |
+
+For issue-comment workflows, `{{url}}` resolves to the PR URL and `{{pr.*}}` values are populated when the triggering comment is on a pull request.
+
+---
+
+## Issue Comment Workflow Behavior
+
+The built-in `github-issue-comment-created` workflow behaves differently depending on where the comment was posted:
+
+- On an issue, prefixed comments can make code changes and open or update a PR.
+- On a same-repo pull request, prefixed comments execute against the current PR branch and update that existing PR.
+- On a fork-based pull request, PR metadata is still passed to the agent, but the workflow does not switch onto the contributor branch.
+
+The workflow also:
+
+- Marks non-matching comments as skipped instead of failed.
+- Adds an `eyes` reaction while work is in progress and removes it after the response is posted.
+- Forces `OUTPUT_FORMAT=terminal` in GitHub Actions so the logs use the rich terminal renderer instead of JSON-style output.
 
 ---
 

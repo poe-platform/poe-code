@@ -16,6 +16,8 @@ jobs:
     with:
       ISSUE_NUMBER: ${{ github.event.issue.number }}
       ISSUE_STATE: ${{ github.event.issue.state }}
+      COMMENT_IS_PULL_REQUEST: ${{ github.event.issue.pull_request != null }}
+      COMMENT_ID: ${{ github.event.comment.id }}
       COMMENT_BODY: ${{ github.event.comment.body }}
       COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
       COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}

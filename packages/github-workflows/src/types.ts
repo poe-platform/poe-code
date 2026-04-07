@@ -8,5 +8,5 @@ export interface AutomationDefinition {
   agent?: string;
   mcp?: McpSpawnConfig;
   allow?: string[];
-  prefix?: string;
+  prefix?: string | string[];
 }

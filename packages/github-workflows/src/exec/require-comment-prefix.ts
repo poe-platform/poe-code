@@ -15,11 +15,18 @@ export function requireCommentPrefix(
     );
   }
 
-  if (commentBody.startsWith(automation.prefix)) {
+  const prefixes = Array.isArray(automation.prefix) ? automation.prefix : [automation.prefix];
+
+  if (prefixes.some((prefix) => commentBody.startsWith(prefix))) {
     return;
   }
 
+  const expectedPrefixes =
+    prefixes.length === 1
+      ? `"${prefixes[0]}"`
+      : `one of: ${prefixes.map((prefix) => `"${prefix}"`).join(", ")}`;
+
   throw new UserError(
-    `Automation "${automation.name}" requires COMMENT_BODY to start with "${automation.prefix}".`
+    `Automation "${automation.name}" requires COMMENT_BODY to start with ${expectedPrefixes}.`
   );
 }

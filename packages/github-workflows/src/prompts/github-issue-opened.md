@@ -9,8 +9,8 @@ label: "GitHub: Issue Handler"
 ---
 Read {{url}} and leave a visible GitHub response.
 
-- If the issue is a question or needs only guidance, post a concise comment that directly answers it.
 - If the issue needs code changes, implement them, open or update a PR, and comment with the result.
+- If the issue is a question or needs only guidance, post a concise comment that directly answers it. Be practical, give examples.
 - If you cannot complete the request, comment with the blocker and the next concrete step.
 
 - Start with a direct answer or decision.

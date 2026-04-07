@@ -183,7 +183,7 @@ describe("waitForReady", () => {
 
     setTimeout(() => {
       void listen(server, port);
-    }, 650);
+    }, 250);
 
     await expect(result).resolves.toBe(true);
 

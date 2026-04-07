@@ -135,7 +135,7 @@ function waitForTcp(
         return;
       }
 
-      retryTimer = setTimeout(attemptConnection, Math.min(500, remainingMs));
+      retryTimer = setTimeout(attemptConnection, Math.min(100, remainingMs));
     }
 
     function clearActiveSocket(socket: net.Socket): void {

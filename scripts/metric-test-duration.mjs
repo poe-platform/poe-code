@@ -15,6 +15,7 @@ try {
   const output = execSync("npx vitest run --reporter=json 2>/dev/null", {
     encoding: "utf8",
     timeout: 120_000,
+    maxBuffer: 32 * 1024 * 1024,
   });
 
   const json = extractJson(output);

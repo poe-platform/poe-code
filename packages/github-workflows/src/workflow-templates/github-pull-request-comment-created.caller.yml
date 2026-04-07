@@ -1,0 +1,25 @@
+name: 'GitHub: Pull Request Comment Created'
+on:
+  issue_comment:
+    types: [created]
+
+# Keep these permissions in sync with the reusable workflow referenced below.
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  run:
+    if: github.event.issue.pull_request != null
+    uses: __UPSTREAM_REPO__/.github/workflows/gh-github-pull-request-comment-created.yml@main
+    secrets: inherit
+    with:
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      ISSUE_STATE: ${{ github.event.issue.state }}
+      COMMENT_ID: ${{ github.event.comment.id }}
+      COMMENT_BODY: ${{ github.event.comment.body }}
+      COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+      COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+      COMMENT_USER_TYPE: ${{ github.event.comment.user.type }}
+      GITHUB_REPOSITORY: ${{ github.repository }}

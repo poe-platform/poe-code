@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
+import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -160,14 +161,14 @@ await Promise.all([
   )
 ]);
 
-const ghPromptsDestDir = path.join(rootDir, "dist", "prompts");
-const ghPromptsSrcDir = path.join(rootDir, "packages", "github-workflows", "src", "prompts");
-await mkdir(ghPromptsDestDir, { recursive: true });
-const ghPromptFiles = (await readdir(ghPromptsSrcDir)).filter((f) => f.endsWith(".md"));
 await Promise.all(
-  ghPromptFiles.map((file) =>
-    copyFile(path.join(ghPromptsSrcDir, file), path.join(ghPromptsDestDir, file))
-  )
+  resolveGithubWorkflowAssetCopies(rootDir).map(async ({ sourceDir, targetDir, extension }) => {
+    await mkdir(targetDir, { recursive: true });
+    const files = (await readdir(sourceDir)).filter((file) => file.endsWith(extension));
+    await Promise.all(
+      files.map((file) => copyFile(path.join(sourceDir, file), path.join(targetDir, file)))
+    );
+  })
 );
 
 console.log("Bundle complete: dist/index.js + dist/bin.cjs");

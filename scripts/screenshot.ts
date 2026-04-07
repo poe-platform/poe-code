@@ -148,7 +148,7 @@ export function sanitizeOutputChunk(chunk: string): string {
   return result;
 }
 
-const DEFAULT_SCREENSHOT_TIMEOUT_MS = 5000;
+const DEFAULT_SCREENSHOT_TIMEOUT_MS = 15000;
 
 export function resolveScreenshotTimeoutMs(env: NodeJS.ProcessEnv): number {
   const raw = env.POE_SCREENSHOT_TIMEOUT_MS;

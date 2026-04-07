@@ -56,7 +56,7 @@ async function fileExists(fs: FileSystem, filePath: string): Promise<boolean> {
 }
 
 describe("resolveGithubWorkflowAssetCopies", () => {
-  it("includes prompts and workflow templates for the bundled github-workflows runtime", () => {
+  it("includes prompts, workflow templates, and variables for the bundled github-workflows runtime", () => {
     const rootDir = path.join("/repo");
 
     expect(resolveGithubWorkflowAssetCopies(rootDir)).toEqual([
@@ -69,6 +69,11 @@ describe("resolveGithubWorkflowAssetCopies", () => {
         sourceDir: path.join("/repo", "packages", "github-workflows", "src", "workflow-templates"),
         targetDir: path.join("/repo", "dist", "workflow-templates"),
         extension: ".yml"
+      },
+      {
+        sourceDir: path.join("/repo", "packages", "github-workflows", "src"),
+        targetDir: path.join("/repo", "dist"),
+        extension: ".yaml"
       }
     ]);
   });

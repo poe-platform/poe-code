@@ -97,7 +97,7 @@ tasks:
       - dist/prompts/*.md still present
       - dist/workflow-templates/*.yml still present
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

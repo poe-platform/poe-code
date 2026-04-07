@@ -5,7 +5,7 @@ agent:
 iterations: 50
 status:
   state: in_progress
-  iteration: 1
+  iteration: 2
 ---
 
 Run autonomously, improve the design of cli commands, start with spawn and expand. And then also double-check other commands. Systematically test and improve all commands.
@@ -22,24 +22,12 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
-- [x] enforce sentence-style command descriptions across visible CLI commands
-  - added `src/cli/ui/help-format.test.ts` audit to require sentence-style punctuation for visible commands
-  - normalized visible descriptions in `generate`, `mcp`, and `skill`
-- [x] remove snake_case from visible command names while preserving compatibility
-  - renamed public command to `auth api-key`
-  - preserved the legacy `auth api_key` spelling as a hidden compatibility command so help output stays clean
-
-## Verification
-
-- `npm run test:unit -- src/cli/commands/root-command.test.ts src/cli/ui/help-format.test.ts src/cli/commands/auth-command.test.ts src/cli/commands/generate-command.test.ts src/cli/commands/mcp-command.test.ts src/cli/commands/skill-command.test.ts`
-- `npm run lint:types`
-- `npm run test:unit`
-- `terminal-pilot` in-process CLI REPL screenshots captured to:
-  - `/tmp/poe-auth-help.png`
-  - `/tmp/poe-generate-help.png`
-  - `/tmp/poe-mcp-help.png`
-  - `/tmp/poe-skill-help.png`
-- note: top-level `mcp --help` naturally overflows the viewport because it appends the tool catalog, so the screenshot lands at the bottom of the scrollback even though text verification passed
+- [x] remove spurious `help [command]` from ralph, pipeline, experiment, launch, utils subcommand lists
+  - Root cause: Commander.js v14 adds `help [command]` to commands with subcommands but no parent `.action()`
+  - Fix: added `.addHelpCommand(false)` to ralph, pipeline, experiment, launch, utils
+- [x] reduce `mcp --help` verbosity — tool docs moved to `mcp serve --help` only
+  - `mcp --help`: concise with config section only
+  - `mcp serve --help`: config + Available Tools (tools are relevant when setting up the serve command)
 
 ## Constraints
 

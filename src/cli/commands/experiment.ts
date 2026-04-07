@@ -411,7 +411,8 @@ function formatJournalOutput(output: string): string {
 export function registerExperimentCommand(program: Command, container: CliContainer): void {
   const experiment = program
     .command("experiment")
-    .description("Run autonomous experiment loop workflows.");
+    .description("Run autonomous experiment loop workflows.")
+    .addHelpCommand(false);
 
   experiment
     .command("run")

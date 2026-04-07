@@ -395,7 +395,8 @@ export function registerRalphCommand(
 ): void {
   const ralph = program
     .command("ralph")
-    .description("Run a simple iterative markdown loop.");
+    .description("Run a simple iterative markdown loop.")
+    .addHelpCommand(false);
 
   ralph
     .command("init")

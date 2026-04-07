@@ -218,7 +218,8 @@ export function registerPipelineCommand(
 ): void {
   const pipeline = program
     .command("pipeline")
-    .description("Run a fixed-step task pipeline plan.");
+    .description("Run a fixed-step task pipeline plan.")
+    .addHelpCommand(false);
 
   pipeline
     .command("run")

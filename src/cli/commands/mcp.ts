@@ -42,9 +42,7 @@ function buildHelpText(): string {
   const lines: string[] = [
     "",
     "Configuration:",
-    JSON.stringify({ [server.name]: server.config }, null, 2),
-    "",
-    formatMcpToolsDocs()
+    JSON.stringify({ [server.name]: server.config }, null, 2)
   ];
   return lines.join("\n");
 }
@@ -78,7 +76,7 @@ export function registerMcpCommand(
       "--output-format <format>",
       'Preferred MCP media output format(s): "url", "base64", "markdown", or comma-separated list (default: "url"). Note: "markdown" cannot be combined with other formats.'
     )
-    .addHelpText("after", buildHelpText())
+    .addHelpText("after", `${buildHelpText()}\n\n${formatMcpToolsDocs()}`)
     .action(async (options: { outputFormat?: string }) => {
       await runMcpServer(container, { outputFormat: options.outputFormat });
     });

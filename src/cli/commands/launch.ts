@@ -39,7 +39,8 @@ interface LogsCommandOptions {
 export function registerLaunchCommand(program: Command, container: CliContainer): Command {
   const launch = program
     .command("launch")
-    .description("Manage long-running host and Docker processes.");
+    .description("Manage long-running host and Docker processes.")
+    .addHelpCommand(false);
 
   launch
     .command("start [id] [commandArgs...]")

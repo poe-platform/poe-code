@@ -10,6 +10,7 @@ const automations = [
   "fix-vulnerabilities",
   "github-issue-comment-created",
   "github-issue-opened",
+  "github-pull-request-comment-created",
   "github-pull-request-opened",
   "github-pull-request-synchronized",
   "update-dependencies",

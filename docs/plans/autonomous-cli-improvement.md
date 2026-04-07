@@ -22,22 +22,15 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
-- [x] remove spurious `help [command]` from ralph, pipeline, experiment, launch, utils subcommand lists
-  - Root cause: Commander.js v14 adds `help [command]` to commands with subcommands but no parent `.action()`
-  - Fix: added `.addHelpCommand(false)` to ralph, pipeline, experiment, launch, utils
-- [x] reduce `mcp --help` verbosity — tool docs moved to `mcp serve --help` only
-  - `mcp --help`: concise with config section only
-  - `mcp serve --help`: config + Available Tools (tools are relevant when setting up the serve command)
-- [x] align root and subcommand help with live command metadata
-  - [x] root help command rows now derive names, aliases, args, and descriptions from registered commands
-  - [x] subcommand usage lines now use canonical command paths instead of Commander alias pipes like `spawn|s`
-- [x] expand agent alias visibility beyond spawn
-  - [x] shared service lists now include accepted aliases from the registry
-  - [x] verified in `spawn`, `wrap`, `configure`, and `install` help output
-- [x] rerun focused command verification
-  - [x] `npx vitest run src/cli/ui/help-format.test.ts src/cli/commands/root-command.test.ts src/cli/commands/spawn-command.test.ts src/cli/isolated-services.test.ts src/cli/commands/configure-command.test.ts src/cli/commands/install-command.test.ts src/cli/commands/unconfigure-command.test.ts src/cli/commands/test-command.test.ts src/cli/commands/test-command-isolated.test.ts`
-  - [x] `npm run lint:types`
-  - [x] screenshot audit: `--help`, `spawn --help`, `wrap --help`, `configure --help`, `install --help`
+- [x] audit all commands systematically
+  - [x] github-workflows --help was missing Usage: line, had 2-space description indent, missing value hints, wrong --help flag format
+    - Added `rootUsageName` option to `RunCLIOptions` in cmdkit
+    - `renderHelpDocument` now renders `Usage:` line when `usageLine` is provided
+    - Removed 2-space indent from description in `renderHelpDocument`
+    - Fixed global options: `--preset <path>`, `--output <format>`, `-h, --help`
+    - Pass `rootUsageName` from `program.ts` to `runCLI` for github-workflows
+  - [x] mcp configure --yes description hardcoded "use claude-code" → "Accept defaults, skip prompts"
+  - [x] all other commands verified clean: install, configure, unconfigure, login, logout, auth, agent, spawn, wrap, generate, models, usage, ralph, skill, pipeline, experiment, launch, utils
 
 ## Constraints
 

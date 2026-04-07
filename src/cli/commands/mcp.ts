@@ -84,7 +84,7 @@ export function registerMcpCommand(
   mcp
     .command("configure [agent]")
     .description("Configure MCP client to use poe-code.")
-    .option("-y, --yes", "Skip prompt, use claude-code")
+    .option("-y, --yes", "Accept defaults, skip prompts")
     .action(async (agentArg, options) => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");

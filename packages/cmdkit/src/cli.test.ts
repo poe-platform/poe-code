@@ -43,6 +43,7 @@ vi.mock("@poe-code/design-system", () => ({
     heading: (value: string) => value,
     section: (value: string) => value,
     muted: (value: string) => value,
+    usageCommand: (value: string) => value,
   },
   formatCommandList: (commands: Array<{ name: string; description: string }>) =>
     commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),

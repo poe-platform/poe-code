@@ -119,6 +119,7 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   apiVersion?: string;
   casing?: Casing;
   rootDisplayName?: string;
+  rootUsageName?: string;
   services?: TServices;
   version?: string;
 }
@@ -658,7 +659,7 @@ function formatCommandRows<TServices extends object>(group: Group<TServices>, sc
 function formatGlobalOptionRows(showVersion: boolean): HelpOptionRow[] {
   const rows: HelpOptionRow[] = [
     {
-      flags: "--preset",
+      flags: "--preset <path>",
       description: "Load parameter defaults from a JSON file",
     },
     {
@@ -666,11 +667,11 @@ function formatGlobalOptionRows(showVersion: boolean): HelpOptionRow[] {
       description: "Accept defaults, skip prompts",
     },
     {
-      flags: "--output",
+      flags: "--output <format>",
       description: "Output format (rich, md, json)",
     },
     {
-      flags: "--help",
+      flags: "-h, --help",
       description: "Show help",
     },
   ];
@@ -689,11 +690,20 @@ function renderHelpSections(sections: string[]): string {
   return sections.filter((section) => section.length > 0).join("\n\n");
 }
 
+function buildUsageLine(breadcrumb: string[], rootUsageName: string | undefined, suffix: string): string | undefined {
+  if (rootUsageName === undefined) {
+    return undefined;
+  }
+  const subPath = breadcrumb.slice(1).join(" ");
+  return subPath ? `${rootUsageName} ${subPath} ${suffix}` : `${rootUsageName} ${suffix}`;
+}
+
 function renderGroupHelp<TServices extends object>(
   group: Group<TServices>,
   breadcrumb: string[],
   scope: Scope,
-  showVersion: boolean
+  showVersion: boolean,
+  rootUsageName?: string
 ): string {
   const sections: string[] = [];
   const commandRows = formatCommandRows(group, scope);
@@ -706,6 +716,7 @@ function renderGroupHelp<TServices extends object>(
 
   return renderHelpDocument({
     breadcrumb,
+    usageLine: buildUsageLine(breadcrumb, rootUsageName, "[options] [command]"),
     description: group.description,
     requiresAuth: group.requires?.auth === true,
     sections,
@@ -715,7 +726,8 @@ function renderGroupHelp<TServices extends object>(
 function renderLeafHelp<TServices extends object>(
   command: Command<TServices, any, any, any>,
   breadcrumb: string[],
-  casing: Casing
+  casing: Casing,
+  rootUsageName?: string
 ): string {
   const sections: string[] = [];
   const fields = assignPositionals(collectFields(command.params, casing), command.positional);
@@ -735,8 +747,14 @@ function renderLeafHelp<TServices extends object>(
     sections.push(`${text.section("Secrets (via environment):")}\n${formatOptionList(secretRows)}`);
   }
 
+  const positionalFields = fields.filter((f) => f.positionalIndex !== undefined);
+  const usageSuffix = positionalFields.length > 0
+    ? `[options] ${positionalFields.map(formatPositionalToken).join(" ")}`
+    : "[options]";
+
   return renderHelpDocument({
     breadcrumb,
+    usageLine: buildUsageLine(breadcrumb, rootUsageName, usageSuffix),
     description: command.description,
     requiresAuth: command.requires?.auth === true,
     sections,
@@ -745,18 +763,23 @@ function renderLeafHelp<TServices extends object>(
 
 function renderHelpDocument(input: {
   breadcrumb: string[];
+  usageLine?: string;
   description?: string;
   requiresAuth: boolean;
   sections: string[];
 }): string {
   const lines = [text.heading(input.breadcrumb.join(" ")), ""];
 
+  if (input.usageLine !== undefined) {
+    lines.push(`${text.section("Usage:")} ${text.usageCommand(input.usageLine)}`, "");
+  }
+
   if (input.description !== undefined) {
-    lines.push(`  ${input.description}`);
+    lines.push(input.description);
   }
 
   if (input.requiresAuth) {
-    lines.push("  Requires: authentication");
+    lines.push("Requires: authentication");
   }
 
   if (input.description !== undefined || input.requiresAuth) {
@@ -780,8 +803,8 @@ async function renderGeneratedHelp<TServices extends object>(
   await withOutputFormat(output, async () => {
     const rendered =
       target.node.kind === "group"
-        ? renderGroupHelp(target.node, target.breadcrumb, "cli", options.version !== undefined)
-        : renderLeafHelp(target.node, target.breadcrumb, casing);
+        ? renderGroupHelp(target.node, target.breadcrumb, "cli", options.version !== undefined, options.rootUsageName)
+        : renderLeafHelp(target.node, target.breadcrumb, casing, options.rootUsageName);
 
     process.stdout.write(rendered);
   });

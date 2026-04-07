@@ -136,6 +136,7 @@ export function renderUsage(tokens: {
     return;
   }
 
+  process.stdout.write("\n");
   writeLine(chalk.green(`✓ tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`));
 }
 

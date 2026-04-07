@@ -112,7 +112,7 @@ describe("acp/components", () => {
     const { renderUsage } = await import("./components.js");
     const output = captureStdout(() => renderUsage({ input: 1500, output: 350, cached: 800 }));
 
-    expect(stripAnsi(output)).toBe("✓ tokens: 1500 in (800 cached) → 350 out\n");
+    expect(stripAnsi(output)).toBe("\n✓ tokens: 1500 in (800 cached) → 350 out\n");
     expect(output).toContain("\u001b[32m");
   });
 

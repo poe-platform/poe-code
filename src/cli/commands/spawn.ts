@@ -306,8 +306,6 @@ export function registerSpawnCommand(
               const trimmedStderr = final.stderr.trim();
               if (trimmedStderr) {
                 resources.logger.info(renderMarkdown(trimmedStderr).trimEnd());
-              } else {
-                resources.logger.info(`${adapter.label} spawn completed.`);
               }
             }
           }

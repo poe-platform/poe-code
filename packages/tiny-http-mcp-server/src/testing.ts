@@ -183,7 +183,7 @@ export function createTestMcpServer(
     })
     .tool("empty_result", "Return undefined", emptySchema, () => undefined)
     .tool("slow", "Resolve slowly", emptySchema, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       return "done";
     })
     .tool("large_output", "Return 100KB of text", emptySchema, () =>

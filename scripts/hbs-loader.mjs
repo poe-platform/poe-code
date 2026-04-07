@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
  * Used by the dev script (tsx) to match the behavior of esbuild's text loader in production.
  */
 export async function load(url, context, nextLoad) {
-  if (url.endsWith(".hbs")) {
+  if (url.endsWith(".hbs") || url.endsWith(".md")) {
     const filePath = fileURLToPath(url);
     const content = await readFile(filePath, "utf-8");
     return {

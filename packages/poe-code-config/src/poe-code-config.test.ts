@@ -1,0 +1,1043 @@
+import { createMockFs } from "@poe-code/config-mutations/testing";
+import path from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createConfigStore } from "./config.js";
+import { collectEnvOverrides, initProjectConfig, resolveEditTarget } from "./inspect.js";
+import { deepMergeDocuments } from "./merge.js";
+import {
+  loadAgentModel,
+  loadDefaultModel,
+  resolveModel,
+  saveAgentModel,
+  saveDefaultModel
+} from "./models.js";
+import { resolveScope } from "./resolve.js";
+import { defineScope } from "./schema.js";
+import { readDocument, readMergedDocument, resolveProjectConfigPath, writeScope } from "./store.js";
+
+const homeDir = "/home/test";
+const configPath = `${homeDir}/.poe-code/config.json`;
+
+describe("createConfigStore", () => {
+  const projectConfigPath = `${homeDir}/workspace/.poe-code/config.json`;
+
+  const coreScope = defineScope("core", {
+    apiKey: {
+      type: "string" as const,
+      default: "",
+      env: "POE_API_KEY",
+      doc: "Poe API key"
+    },
+    poeBaseUrl: {
+      type: "string" as const,
+      default: "https://api.poe.com/v1",
+      env: "POE_BASE_URL",
+      doc: "Poe API base URL"
+    }
+  });
+
+  const uiScope = defineScope("ui", {
+    darkMode: {
+      type: "boolean" as const,
+      default: false,
+      env: "POE_DARK_MODE",
+      doc: "Enable dark mode"
+    }
+  });
+
+  it("supports get, set, and getAll for a typed scope", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const store = createConfigStore({ fs, filePath: configPath });
+    const core = store.scope(coreScope);
+
+    await core.set("apiKey", "stored-key");
+
+    await expect(core.get("apiKey")).resolves.toBe("stored-key");
+    await expect(core.getAll()).resolves.toEqual({
+      apiKey: "stored-key",
+      poeBaseUrl: "https://api.poe.com/v1"
+    });
+  });
+
+  it("applies env overrides without mutating stored values", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      env: {
+        POE_API_KEY: "env-key",
+        POE_BASE_URL: "https://env.example.test"
+      }
+    });
+    const core = store.scope(coreScope);
+
+    await core.set("apiKey", "stored-key");
+
+    await expect(core.get("apiKey")).resolves.toBe("env-key");
+    await expect(core.getAll()).resolves.toEqual({
+      apiKey: "env-key",
+      poeBaseUrl: "https://env.example.test"
+    });
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      core: {
+        apiKey: "stored-key"
+      }
+    });
+  });
+
+  it("keeps scopes isolated from each other", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const store = createConfigStore({ fs, filePath: configPath });
+    const core = store.scope(coreScope);
+    const ui = store.scope(uiScope);
+
+    await core.set("apiKey", "stored-key");
+    await ui.set("darkMode", true);
+
+    await expect(core.getAll()).resolves.toEqual({
+      apiKey: "stored-key",
+      poeBaseUrl: "https://api.poe.com/v1"
+    });
+    await expect(ui.getAll()).resolves.toEqual({
+      darkMode: true
+    });
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      core: {
+        apiKey: "stored-key"
+      },
+      ui: {
+        darkMode: true
+      }
+    });
+  });
+
+  it("prefers project config values on get", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "global-key",
+              poeBaseUrl: "https://global.example.test"
+            }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "project-key"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await expect(store.scope(coreScope).get("apiKey")).resolves.toBe("project-key");
+  });
+
+  it("merges project config with global for getAll", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "global-key"
+            }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              poeBaseUrl: "https://project.example.test"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await expect(store.scope(coreScope).getAll()).resolves.toEqual({
+      apiKey: "global-key",
+      poeBaseUrl: "https://project.example.test"
+    });
+  });
+
+  it("writes updates to the global config file only", async () => {
+    const fs = createMockFs(
+      {
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "project-key"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await store.scope(coreScope).set("apiKey", "global-key");
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      core: {
+        apiKey: "global-key"
+      }
+    });
+    expect(JSON.parse(fs.getContent("~/workspace/.poe-code/config.json") as string)).toEqual({
+      core: {
+        apiKey: "project-key"
+      }
+    });
+  });
+
+  it("falls back to the global config when the project file is missing", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "global-key"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await expect(store.scope(coreScope).getAll()).resolves.toEqual({
+      apiKey: "global-key",
+      poeBaseUrl: "https://api.poe.com/v1"
+    });
+  });
+
+  it("uses the global scope when the project scope is absent", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "global-key"
+            }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            ui: {
+              darkMode: true
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+    const store = createConfigStore({
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    });
+
+    await expect(store.scope(coreScope).getAll()).resolves.toEqual({
+      apiKey: "global-key",
+      poeBaseUrl: "https://api.poe.com/v1"
+    });
+  });
+});
+
+describe("collectEnvOverrides", () => {
+  const coreScope = defineScope("core", {
+    apiKey: {
+      type: "string",
+      default: "",
+      env: "POE_API_KEY",
+      doc: "Poe API key"
+    },
+    poeBaseUrl: {
+      type: "string",
+      default: "https://api.poe.com/v1",
+      env: "POE_BASE_URL",
+      doc: "Poe API base URL"
+    }
+  });
+
+  const extraScope = defineScope("extra", {
+    timeout: {
+      type: "number",
+      default: 30,
+      env: "POE_TIMEOUT",
+      doc: "Timeout in seconds"
+    },
+    enabled: {
+      type: "boolean",
+      default: false,
+      doc: "Whether feature is enabled"
+    }
+  });
+
+  it("returns empty results when no env vars are set", () => {
+    const result = collectEnvOverrides([coreScope], {});
+
+    expect(result.document).toEqual({});
+    expect(result.entries).toEqual([]);
+  });
+
+  it("collects env overrides for a single scope", () => {
+    const result = collectEnvOverrides([coreScope], {
+      POE_API_KEY: "sk-env"
+    });
+
+    expect(result.document).toEqual({
+      core: { apiKey: "sk-env" }
+    });
+    expect(result.entries).toEqual(["  POE_API_KEY = sk-env"]);
+  });
+
+  it("collects env overrides across multiple scopes", () => {
+    const result = collectEnvOverrides([coreScope, extraScope], {
+      POE_API_KEY: "sk-env",
+      POE_TIMEOUT: "60"
+    });
+
+    expect(result.document).toEqual({
+      core: { apiKey: "sk-env" },
+      extra: { timeout: 60 }
+    });
+    expect(result.entries).toEqual([
+      "  POE_API_KEY = sk-env",
+      "  POE_TIMEOUT = 60"
+    ]);
+  });
+
+  it("ignores fields without env mapping", () => {
+    const result = collectEnvOverrides([extraScope], {
+      POE_TIMEOUT: "60"
+    });
+
+    expect(result.document).toEqual({
+      extra: { timeout: 60 }
+    });
+    expect(result.entries).toHaveLength(1);
+  });
+
+  it("ignores env vars that fail coercion", () => {
+    const result = collectEnvOverrides([extraScope], {
+      POE_TIMEOUT: "not-a-number"
+    });
+
+    expect(result.document).toEqual({});
+    expect(result.entries).toEqual([]);
+  });
+
+  it("coerces boolean env values", () => {
+    const boolScope = defineScope("flags", {
+      verbose: {
+        type: "boolean",
+        default: false,
+        env: "VERBOSE",
+        doc: "Verbose output"
+      }
+    });
+
+    expect(collectEnvOverrides([boolScope], { VERBOSE: "true" }).document).toEqual({
+      flags: { verbose: true }
+    });
+    expect(collectEnvOverrides([boolScope], { VERBOSE: "1" }).document).toEqual({
+      flags: { verbose: true }
+    });
+    expect(collectEnvOverrides([boolScope], { VERBOSE: "false" }).document).toEqual({
+      flags: { verbose: false }
+    });
+    expect(collectEnvOverrides([boolScope], { VERBOSE: "0" }).document).toEqual({
+      flags: { verbose: false }
+    });
+    expect(collectEnvOverrides([boolScope], { VERBOSE: "maybe" }).document).toEqual({});
+  });
+
+  it("skips empty number strings", () => {
+    const result = collectEnvOverrides([extraScope], {
+      POE_TIMEOUT: ""
+    });
+
+    expect(result.document).toEqual({});
+    expect(result.entries).toEqual([]);
+  });
+});
+
+describe("resolveEditTarget", () => {
+  const projectConfigPath = "/repo/.poe-code/config.json";
+
+  it("returns global config path when --global is set", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    const result = await resolveEditTarget(fs, configPath, projectConfigPath, {
+      global: true
+    });
+
+    expect(result).toBe(configPath);
+  });
+
+  it("returns project config path when --project is set", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    const result = await resolveEditTarget(fs, configPath, projectConfigPath, {
+      project: true
+    });
+
+    expect(result).toBe(projectConfigPath);
+  });
+
+  it("returns project config when it exists and no flag is set", async () => {
+    const fs = createMockFs(
+      {
+        "/repo/.poe-code/config.json": "{}\n"
+      },
+      homeDir
+    );
+
+    const result = await resolveEditTarget(fs, configPath, projectConfigPath, {});
+
+    expect(result).toBe(projectConfigPath);
+  });
+
+  it("returns global config when project config is missing and no flag is set", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    const result = await resolveEditTarget(fs, configPath, projectConfigPath, {});
+
+    expect(result).toBe(configPath);
+  });
+
+  it("throws when both --global and --project are set", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await expect(
+      resolveEditTarget(fs, configPath, projectConfigPath, {
+        global: true,
+        project: true
+      })
+    ).rejects.toThrow("Choose either --global or --project, not both.");
+  });
+});
+
+describe("initProjectConfig", () => {
+  const projectConfigPath = "/repo/.poe-code/config.json";
+
+  it("creates an empty config file at the target path", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    fs.directories.add("/repo");
+
+    const result = await initProjectConfig(fs, projectConfigPath);
+
+    expect(result).toBe("created");
+    expect(fs.getContent(projectConfigPath)).toBe("{}\n");
+  });
+
+  it("returns already-exists when the file is already present", async () => {
+    const fs = createMockFs(
+      {
+        "/repo/.poe-code/config.json": '{ "core": {} }\n'
+      },
+      homeDir
+    );
+
+    const result = await initProjectConfig(fs, projectConfigPath);
+
+    expect(result).toBe("already-exists");
+    expect(fs.getContent(projectConfigPath)).toBe('{ "core": {} }\n');
+  });
+});
+
+describe("deepMergeDocuments", () => {
+  it("returns the base document when override is empty", () => {
+    const base = {
+      core: { apiKey: "global-key" }
+    };
+
+    expect(deepMergeDocuments(base, {})).toEqual(base);
+  });
+
+  it("returns the override document when base is empty", () => {
+    const override = {
+      core: { apiKey: "project-key" }
+    };
+
+    expect(deepMergeDocuments({}, override)).toEqual(override);
+  });
+
+  it("unions disjoint scopes", () => {
+    expect(
+      deepMergeDocuments({ core: { apiKey: "global-key" } }, { ui: { darkMode: true } })
+    ).toEqual({
+      core: { apiKey: "global-key" },
+      ui: { darkMode: true }
+    });
+  });
+
+  it("merges disjoint keys within the same scope", () => {
+    expect(
+      deepMergeDocuments(
+        {
+          models: { default: "anthropic/claude-sonnet-4.6" }
+        },
+        {
+          models: { codex: "openai/gpt-5.3-codex" }
+        }
+      )
+    ).toEqual({
+      models: {
+        default: "anthropic/claude-sonnet-4.6",
+        codex: "openai/gpt-5.3-codex"
+      }
+    });
+  });
+
+  it("prefers override values for overlapping keys", () => {
+    expect(
+      deepMergeDocuments(
+        {
+          models: { default: "anthropic/claude-sonnet-4.6" }
+        },
+        {
+          models: { default: "anthropic/claude-opus-4.6" }
+        }
+      )
+    ).toEqual({
+      models: { default: "anthropic/claude-opus-4.6" }
+    });
+  });
+
+  it("does not let undefined override clobber base values", () => {
+    expect(
+      deepMergeDocuments(
+        {
+          models: { default: "anthropic/claude-sonnet-4.6" }
+        },
+        {
+          models: { default: undefined, codex: "openai/gpt-5.3-codex" }
+        }
+      )
+    ).toEqual({
+      models: {
+        default: "anthropic/claude-sonnet-4.6",
+        codex: "openai/gpt-5.3-codex"
+      }
+    });
+  });
+
+  it("returns the base document unchanged when override scope is empty", () => {
+    const base = {
+      core: { apiKey: "global-key" }
+    };
+
+    expect(deepMergeDocuments(base, { core: {} })).toEqual(base);
+  });
+});
+
+describe("models config", () => {
+  it("returns null for agent model when config is missing", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await expect(loadAgentModel({ fs, filePath: configPath }, "codex")).resolves.toBeNull();
+  });
+
+  it("returns the stored agent-specific model", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            models: {
+              codex: "openai/gpt-5.4",
+              default: "anthropic/claude-sonnet-4.6"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(loadAgentModel({ fs, filePath: configPath }, "codex")).resolves.toBe(
+      "openai/gpt-5.4"
+    );
+  });
+
+  it("returns null for the global default model when config is missing", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await expect(loadDefaultModel({ fs, filePath: configPath })).resolves.toBeNull();
+  });
+
+  it("returns the stored global default model", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            models: {
+              default: "anthropic/claude-sonnet-4.6"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(loadDefaultModel({ fs, filePath: configPath })).resolves.toBe(
+      "anthropic/claude-sonnet-4.6"
+    );
+  });
+
+  it("prefers the agent-specific model when both agent and global defaults exist", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            models: {
+              default: "anthropic/claude-sonnet-4.6",
+              codex: "openai/gpt-5.4"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(resolveModel({ fs, filePath: configPath }, "codex")).resolves.toBe(
+      "openai/gpt-5.4"
+    );
+  });
+
+  it("falls back to the global default when no agent-specific model exists", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            models: {
+              default: "anthropic/claude-sonnet-4.6"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(resolveModel({ fs, filePath: configPath }, "codex")).resolves.toBe(
+      "anthropic/claude-sonnet-4.6"
+    );
+  });
+
+  it("returns null when neither agent nor global defaults exist", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await expect(resolveModel({ fs, filePath: configPath }, "codex")).resolves.toBeNull();
+  });
+
+  it("writes only the agent key without clobbering other model entries", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: {
+              apiKey: "stored-key"
+            },
+            models: {
+              default: "anthropic/claude-sonnet-4.6",
+              "claude-code": "anthropic/claude-opus-4.6"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await saveAgentModel({ fs, filePath: configPath }, "codex", "openai/gpt-5.4");
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      core: {
+        apiKey: "stored-key"
+      },
+      models: {
+        default: "anthropic/claude-sonnet-4.6",
+        "claude-code": "anthropic/claude-opus-4.6",
+        codex: "openai/gpt-5.4"
+      }
+    });
+  });
+
+  it("writes the default key without clobbering agent model entries", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            models: {
+              codex: "openai/gpt-5.4"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await saveDefaultModel(
+      { fs, filePath: configPath },
+      "anthropic/claude-sonnet-4.6"
+    );
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      models: {
+        codex: "openai/gpt-5.4",
+        default: "anthropic/claude-sonnet-4.6"
+      }
+    });
+  });
+});
+
+describe("resolveScope", () => {
+  const schema = {
+    apiKey: {
+      type: "string" as const,
+      default: "",
+      env: "POE_API_KEY",
+      doc: "Poe API key"
+    },
+    timeout: {
+      type: "number" as const,
+      default: 30,
+      env: "POE_TIMEOUT",
+      doc: "Timeout in seconds"
+    },
+    enabled: {
+      type: "boolean" as const,
+      default: false,
+      env: "POE_ENABLED",
+      doc: "Whether feature is enabled"
+    }
+  };
+
+  it("returns defaults when file and env are empty", () => {
+    expect(resolveScope(schema)).toEqual({
+      apiKey: "",
+      timeout: 30,
+      enabled: false
+    });
+  });
+
+  it("prefers file values over defaults", () => {
+    expect(
+      resolveScope(schema, {
+        apiKey: "file-key",
+        timeout: 45,
+        enabled: true
+      })
+    ).toEqual({
+      apiKey: "file-key",
+      timeout: 45,
+      enabled: true
+    });
+  });
+
+  it("prefers env values over file values", () => {
+    expect(
+      resolveScope(
+        schema,
+        {
+          apiKey: "file-key",
+          timeout: 45,
+          enabled: false
+        },
+        {
+          POE_API_KEY: "env-key",
+          POE_TIMEOUT: "90",
+          POE_ENABLED: "true"
+        }
+      )
+    ).toEqual({
+      apiKey: "env-key",
+      timeout: 90,
+      enabled: true
+    });
+  });
+
+  it("coerces number and boolean env values", () => {
+    expect(
+      resolveScope(schema, undefined, {
+        POE_TIMEOUT: "5",
+        POE_ENABLED: "1"
+      })
+    ).toEqual({
+      apiKey: "",
+      timeout: 5,
+      enabled: true
+    });
+
+    expect(
+      resolveScope(schema, undefined, {
+        POE_ENABLED: "0"
+      })
+    ).toEqual({
+      apiKey: "",
+      timeout: 30,
+      enabled: false
+    });
+  });
+
+  it("falls back to file values when env coercion fails", () => {
+    expect(
+      resolveScope(
+        schema,
+        {
+          apiKey: "file-key",
+          timeout: 45,
+          enabled: true
+        },
+        {
+          POE_TIMEOUT: "not-a-number",
+          POE_ENABLED: "maybe"
+        }
+      )
+    ).toEqual({
+      apiKey: "file-key",
+      timeout: 45,
+      enabled: true
+    });
+  });
+});
+
+describe("defineScope", () => {
+  it("returns scope metadata for later store binding", () => {
+    const schema = {
+      apiKey: {
+        type: "string" as const,
+        default: "",
+        env: "POE_API_KEY",
+        doc: "Poe API key"
+      }
+    };
+
+    expect(defineScope("core", schema)).toEqual({
+      scope: "core",
+      schema
+    });
+  });
+});
+
+describe("store", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("returns an empty document when config file is missing", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await expect(readDocument(fs, configPath)).resolves.toEqual({});
+  });
+
+  it("reads an existing scoped document", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "stored-key" },
+            configured_services: {
+              codex: { files: ["/tmp/config.toml"] }
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(readDocument(fs, configPath)).resolves.toEqual({
+      core: { apiKey: "stored-key" },
+      configured_services: {
+        codex: { files: ["/tmp/config.toml"] }
+      }
+    });
+  });
+
+  it("backs up invalid JSON and resets the document", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-23T12:34:56.789Z"));
+
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": "not json\n"
+      },
+      homeDir
+    );
+
+    await expect(readDocument(fs, configPath)).resolves.toEqual({});
+
+    const directoryEntries = await fs.readdir(path.dirname(configPath));
+    expect(directoryEntries).toContain("config.json.invalid-2026-03-23T12-34-56-789Z.json");
+    expect(fs.getContent("~/.poe-code/config.json.invalid-2026-03-23T12-34-56-789Z.json")).toBe(
+      "not json\n"
+    );
+    expect(fs.getContent("~/.poe-code/config.json")).toBe("{}\n");
+  });
+
+  it("writes a scope while preserving unrelated scopes", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "stored-key" },
+            configured_services: {
+              codex: { files: ["/tmp/config.toml"] }
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await writeScope(fs, configPath, "core", {
+      apiKey: "updated-key",
+      poeBaseUrl: "https://api.poe.com/v1"
+    });
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      core: {
+        apiKey: "updated-key",
+        poeBaseUrl: "https://api.poe.com/v1"
+      },
+      configured_services: {
+        codex: { files: ["/tmp/config.toml"] }
+      }
+    });
+  });
+
+  it("removes a scope when writing an empty object", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "stored-key" },
+            configured_services: {
+              codex: { files: ["/tmp/config.toml"] }
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await writeScope(fs, configPath, "configured_services", {});
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      core: { apiKey: "stored-key" }
+    });
+  });
+
+  it("merges global and project documents with project overrides", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "global-key", poeBaseUrl: "https://global.example.test" },
+            ui: { darkMode: false }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "project-key" },
+            models: { default: "anthropic/claude-opus-4.6" }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(
+      readMergedDocument(fs, configPath, `${homeDir}/workspace/.poe-code/config.json`)
+    ).resolves.toEqual({
+      core: {
+        apiKey: "project-key",
+        poeBaseUrl: "https://global.example.test"
+      },
+      ui: { darkMode: false },
+      models: { default: "anthropic/claude-opus-4.6" }
+    });
+  });
+
+  it("uses only the global document when project config is missing", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "global-key" }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(
+      readMergedDocument(fs, configPath, `${homeDir}/workspace/.poe-code/config.json`)
+    ).resolves.toEqual({
+      core: { apiKey: "global-key" }
+    });
+  });
+
+  it("resolves the project config path from the current working directory", () => {
+    expect(resolveProjectConfigPath("/workspace/app")).toBe("/workspace/app/.poe-code/config.json");
+  });
+});

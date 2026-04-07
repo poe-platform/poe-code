@@ -1,0 +1,811 @@
+import { beforeEach, describe, it, expect, vi, afterEach } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { Command } from "commander";
+import { createProgram } from "../program.js";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import { createCliContainer } from "../container.js";
+import { registerUtilsCommand } from "./utils.js";
+import { SilentError } from "../errors.js";
+import type { FileSystem } from "../utils/file-system.js";
+
+// ---------------------------------------------------------------------------
+// agent-command hoisted mocks
+// ---------------------------------------------------------------------------
+
+const createAgentSessionMock = vi.hoisted(() => vi.fn());
+const sendMessageMock = vi.hoisted(() => vi.fn());
+const disposeMock = vi.hoisted(() => vi.fn());
+const renderAcpEventMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@poe-code/poe-agent", () => ({
+  createAgentSession: createAgentSessionMock
+}));
+
+vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
+  return { ...actual, renderAcpEvent: renderAcpEventMock };
+});
+
+// ---------------------------------------------------------------------------
+// config-command mocks
+// ---------------------------------------------------------------------------
+
+vi.mock("node:child_process", () => ({
+  execSync: vi.fn()
+}));
+
+// ---------------------------------------------------------------------------
+// root-command hoisted mocks
+// ---------------------------------------------------------------------------
+
+const runCliState = vi.hoisted(() => ({
+  argvSnapshots: [] as string[][]
+}));
+
+vi.mock("@poe-code/cmdkit/cli", async () => {
+  const actual = await vi.importActual<typeof import("@poe-code/cmdkit/cli")>("@poe-code/cmdkit/cli");
+  return {
+    ...actual,
+    runCLI: vi.fn(async () => {
+      runCliState.argvSnapshots.push([...process.argv]);
+    })
+  };
+});
+
+// ---------------------------------------------------------------------------
+// Shared constants
+// ---------------------------------------------------------------------------
+
+const cwd = "/repo";
+const homeDir = "/home/test";
+const globalConfigPath = resolveConfigPath(homeDir);
+const projectConfigPath = resolveProjectConfigPath(cwd);
+
+// ---------------------------------------------------------------------------
+// agent-command.test.ts — agent command
+// ---------------------------------------------------------------------------
+
+describe("agent command", () => {
+  function createMemFs(): FileSystem {
+    const volume = new Volume();
+    volume.mkdirSync(homeDir, { recursive: true });
+    return createFsFromVolume(volume).promises as unknown as FileSystem;
+  }
+
+  beforeEach(() => {
+    createAgentSessionMock.mockReset();
+    sendMessageMock.mockReset();
+    disposeMock.mockReset();
+    renderAcpEventMock.mockReset();
+    createAgentSessionMock.mockResolvedValue({
+      sendMessage: sendMessageMock,
+      dispose: disposeMock
+    });
+    sendMessageMock.mockResolvedValue({
+      role: "assistant",
+      content: "Hello from Poe agent"
+    });
+    disposeMock.mockResolvedValue(undefined);
+  });
+
+  it("creates a session, sends prompt, prints response, and disposes", async () => {
+    const logs: string[] = [];
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "agent",
+      "Say hello",
+      "--model",
+      "Claude-Sonnet-4.5",
+      "--api-key",
+      "test-api-key"
+    ]);
+
+    expect(createAgentSessionMock).toHaveBeenCalledWith({
+      model: "Claude-Sonnet-4.5",
+      apiKey: "test-api-key",
+      cwd
+    });
+    expect(sendMessageMock).toHaveBeenCalledWith("Say hello", expect.objectContaining({
+      onSessionUpdate: expect.any(Function)
+    }));
+    expect(disposeMock).toHaveBeenCalledTimes(1);
+    expect(logs.some((line) => line.includes("Hello from Poe agent"))).toBe(true);
+  });
+
+  it("supports global dry-run mode", async () => {
+    const logs: string[] = [];
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "agent",
+      "Dry run prompt",
+      "--model",
+      "Claude-Sonnet-4.5",
+      "--api-key",
+      "test-api-key"
+    ]);
+
+    expect(createAgentSessionMock).not.toHaveBeenCalled();
+    expect(logs.some((line) => line.includes("Dry run:"))).toBe(true);
+  });
+
+  it("renders tool events via renderAcpEvent", async () => {
+    sendMessageMock.mockImplementation(
+      (_prompt: string, opts?: { onSessionUpdate?: (update: unknown) => void }) => {
+        opts?.onSessionUpdate?.({
+          sessionUpdate: "tool_call",
+          toolCallId: "call-1",
+          title: "list_files",
+          kind: "execute",
+          status: "pending"
+        });
+        opts?.onSessionUpdate?.({
+          sessionUpdate: "tool_call_update",
+          toolCallId: "call-1",
+          kind: "execute",
+          status: "completed",
+          rawOutput: "src/\npackage.json"
+        });
+        opts?.onSessionUpdate?.({
+          sessionUpdate: "agent_message_chunk",
+          content: { type: "text", text: "Here are the files." }
+        });
+        return Promise.resolve({ role: "assistant", content: "Here are the files." });
+      }
+    );
+
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node", "cli", "agent", "List files",
+      "--model", "Claude-Sonnet-4.5", "--api-key", "key"
+    ]);
+
+    const events = renderAcpEventMock.mock.calls.map(
+      (call: unknown[]) => (call[0] as { event: string }).event
+    );
+    expect(events).toEqual(["tool_start", "tool_complete"]);
+  });
+
+  it("disposes the session when message send fails", async () => {
+    sendMessageMock.mockRejectedValue(new Error("message failed"));
+
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "agent",
+        "Trigger failure",
+        "--model",
+        "Claude-Sonnet-4.5"
+      ])
+    ).rejects.toThrow("message failed");
+
+    expect(disposeMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// config.test.ts — config command
+// ---------------------------------------------------------------------------
+
+describe("config command", () => {
+  function createMemFs(): FileSystem {
+    const volume = new Volume();
+    volume.mkdirSync(homeDir, { recursive: true });
+    volume.mkdirSync(cwd, { recursive: true });
+    return createFsFromVolume(volume).promises as unknown as FileSystem;
+  }
+
+  function createBaseProgram(): Command {
+    const program = new Command();
+    program.exitOverride();
+    program
+      .name("poe-code")
+      .option("-y, --yes")
+      .option("--dry-run")
+      .option("--verbose");
+    return program;
+  }
+
+  let fs: FileSystem;
+  let logs: string[];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fs = createMemFs();
+    logs = [];
+  });
+
+  it("shows global and project config paths with status", async () => {
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(globalConfigPath, "{}\n", { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config"]);
+
+    expect(logs.some((message) => message.includes(`Global config: ${globalConfigPath} (exists)`)))
+      .toBe(true);
+    expect(logs.some((message) => message.includes(`Project config: ${projectConfigPath} (missing)`)))
+      .toBe(true);
+    expect(logs.some((message) => message.includes('Run "poe-code utils config show" to see resolved configuration')))
+      .toBe(true);
+  });
+
+  it("shows global, project, env, and resolved config", async () => {
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      globalConfigPath,
+      `${JSON.stringify({ core: { apiKey: "sk-global", poeBaseUrl: "https://global.example.test" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    await fs.writeFile(
+      projectConfigPath,
+      `${JSON.stringify({ core: { apiKey: "sk-project" }, models: { default: "anthropic/claude-sonnet-4.5" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd,
+        homeDir,
+        variables: {
+          POE_API_KEY: "sk-env"
+        }
+      },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "show"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Global config");
+    expect(output).toContain("Project config");
+    expect(output).toContain("Environment variable overrides");
+    expect(output).toContain("Resolved (merged)");
+    expect(output).toContain('"apiKey": "sk-global"');
+    expect(output).toContain('"apiKey": "sk-project"');
+    expect(output).toContain("POE_API_KEY = sk-env");
+    expect(output).toContain('"apiKey": "sk-env"');
+    expect(output).toContain('"poeBaseUrl": "https://global.example.test"');
+    expect(output).toContain('"default": "anthropic/claude-sonnet-4.5"');
+  });
+
+  it("shows empty sections when config files are missing", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: {} },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "show"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Global config");
+    expect(output).toContain("Project config");
+    expect(output).toContain("Environment variable overrides");
+    expect(output).toContain("Resolved (merged)");
+    expect(output.match(/\(empty\)/g)?.length ?? 0).toBeGreaterThanOrEqual(4);
+  });
+
+  it("creates an empty project config file", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "init"]);
+
+    await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toBe("{}\n");
+    expect(logs.some((message) => message.includes(`Created project config at ${projectConfigPath}`)))
+      .toBe(true);
+  });
+
+  it("does nothing when project config already exists", async () => {
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(projectConfigPath, '{\n  "core": {\n    "apiKey": "sk-project"\n  }\n}\n', {
+      encoding: "utf8"
+    });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "init"]);
+
+    await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toContain("sk-project");
+    expect(logs.some((message) => message.includes(`Project config already exists at ${projectConfigPath}`)))
+      .toBe(true);
+  });
+
+  it("does not write files in dry-run init mode", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "utils", "config", "init"]);
+
+    await expect(fs.stat(projectConfigPath)).rejects.toBeTruthy();
+    expect(logs.some((message) => message.includes(`Dry run: would create project config at ${projectConfigPath}`)))
+      .toBe(true);
+  });
+
+  it("opens the project config in the configured editor", async () => {
+    const { execSync } = await import("node:child_process");
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(projectConfigPath, "{}\n", { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd,
+        homeDir,
+        variables: {
+          EDITOR: "vim"
+        }
+      },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "edit"]);
+
+    expect(execSync).toHaveBeenCalledWith(`vim ${projectConfigPath}`, {
+      stdio: "inherit"
+    });
+    await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toBe("{}\n");
+  });
+
+  it("opens the global config when --global is passed", async () => {
+    const { execSync } = await import("node:child_process");
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd,
+        homeDir,
+        variables: {
+          VISUAL: "code -w"
+        }
+      },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "edit", "--global"]);
+
+    expect(execSync).toHaveBeenCalledWith(`code -w ${globalConfigPath}`, {
+      stdio: "inherit"
+    });
+    await expect(fs.readFile(globalConfigPath, "utf8")).resolves.toBe("{}\n");
+  });
+
+  it("fails when no editor is configured", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: {} },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "utils", "config", "edit"])
+    ).rejects.toThrow("Set $EDITOR to use this command");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// root-command.test.ts — root command
+// ---------------------------------------------------------------------------
+
+describe("root command", () => {
+  function createMemFs(): FileSystem {
+    const vol = new Volume();
+    vol.mkdirSync("/home/test", { recursive: true });
+    return createFsFromVolume(vol).promises as unknown as FileSystem;
+  }
+
+  function stripAnsi(str: string): string {
+    let result = "";
+    let index = 0;
+    while (index < str.length) {
+      const char = str[index];
+      if (char === "\u001b" && str[index + 1] === "[") {
+        index += 2;
+        while (index < str.length && str[index] !== "m") {
+          index += 1;
+        }
+        if (index < str.length) {
+          index += 1;
+        }
+        continue;
+      }
+      result += char;
+      index += 1;
+    }
+    return result;
+  }
+
+  const originalArgv = [...process.argv];
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    process.argv = [...originalArgv];
+    runCliState.argvSnapshots = [];
+  });
+
+  it("shows help when invoked without arguments", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+
+    let helpOutput = "";
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test",
+        variables: {}
+      },
+      logger: () => {}
+    });
+
+    program.configureOutput({
+      writeOut: (str) => {
+        helpOutput += str;
+      }
+    });
+
+    await program.parseAsync(["node", "cli"]);
+
+    const plainOutput = stripAnsi(helpOutput);
+    expect(plainOutput).toContain("Poe - poe-code");
+    expect(plainOutput).toContain("Configure coding agents to use the Poe API");
+    expect(plainOutput).toContain("Usage:");
+    expect(plainOutput).toContain("poe-code <command> [...args]");
+    expect(plainOutput).toContain("<command>");
+    expect(plainOutput).toContain("Commands:");
+    expect(plainOutput).toContain("install, i");
+    expect(plainOutput).toContain("configure, c");
+    expect(plainOutput).toContain("unconfigure, uc");
+    expect(plainOutput).toContain("spawn, s");
+    expect(plainOutput).toContain("wrap, w");
+    expect(plainOutput).toContain("models, m");
+    expect(plainOutput).toContain("usage, u");
+    expect(plainOutput).toContain("generate, g");
+    expect(plainOutput).toContain("Configure a coding agent");
+    expect(plainOutput).toContain("Install agent binary for a configured agent");
+    expect(plainOutput).toContain("mcp configure");
+    expect(plainOutput).toContain("mcp unconfigure");
+    expect(plainOutput).toContain("experiment install");
+    expect(plainOutput).toContain("login");
+    expect(plainOutput).toContain("config");
+    expect(plainOutput).toContain("auth status");
+    expect(plainOutput).toContain("agent");
+    expect(plainOutput).toContain("Run a one-shot Poe agent prompt");
+    expect(plainOutput).toContain("pipeline");
+    expect(plainOutput).toContain("ralph");
+    expect(plainOutput).toContain("experiment");
+    expect(plainOutput).toContain("github-workflows, gh");
+    expect(plainOutput).toContain("GitHub workflow automations");
+    expect(plainOutput).not.toContain("auth api_key");
+    expect(plainOutput).not.toContain("auth login");
+    expect(plainOutput).not.toContain("auth logout");
+    expect(plainOutput).not.toContain("research");
+    expect(plainOutput).toContain("[agent]");
+    expect(plainOutput).toContain("<agent>");
+    expect(plainOutput).toContain("skill configure");
+    expect(plainOutput).toContain("skill unconfigure");
+    expect(plainOutput).toContain("Configure agent skills");
+    expect(plainOutput).not.toContain("poe-code configure claude-code");
+    expect(plainOutput).not.toContain('poe-code spawn codex "Say hello"');
+    expect(plainOutput).toContain("Run poe-code <command> --help for command options.");
+    expect(plainOutput).not.toContain("test");
+    expect(plainOutput).not.toContain("Options:");
+    expect(plainOutput).not.toContain("[service]");
+    expect(plainOutput).not.toContain("<service>");
+    expect(plainOutput).not.toContain("unconfigure<agent>");
+  });
+
+  it("registers a --verbose flag", () => {
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    const hasVerbose = program.options.some((option) => option.long === "--verbose");
+    expect(hasVerbose).toBe(true);
+  });
+
+  it("does not register the legacy research command", () => {
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    const command = program.commands.find((entry) => entry.name() === "research");
+    expect(command).toBeUndefined();
+  });
+
+  it("registers the github-workflows command with the gh alias", () => {
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    const command = program.commands.find((entry) => entry.name() === "github-workflows");
+    expect(command).toBeDefined();
+    expect(command?.aliases()).toContain("gh");
+  });
+
+  it("shows github-workflows help when invoked without an automation name", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code", "github-workflows"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "github-workflows"]);
+
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "--help"]]);
+    expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "github-workflows"]);
+  });
+
+  it("preserves forwarded root flags when showing github-workflows help", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code", "--yes", "github-workflows"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "github-workflows"]);
+
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "--yes", "--help"]]);
+    expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "--yes", "github-workflows"]);
+  });
+
+  it("shows a short heading when invoked as poe", async () => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+
+    let helpOutput = "";
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test",
+        variables: {}
+      },
+      logger: () => {}
+    });
+
+    program.configureOutput({
+      writeOut: (str) => {
+        helpOutput += str;
+      }
+    });
+
+    await program.parseAsync(["node", "cli"]);
+
+    const plainOutput = stripAnsi(helpOutput);
+    expect(plainOutput).toContain("Poe\n");
+    expect(plainOutput).not.toContain("Poe - poe-code");
+  });
+
+  it("errors for unknown commands without printing help", async () => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+
+    let loggerOutput = "";
+    let commanderOut = "";
+    let commanderErr = "";
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test",
+        variables: {}
+      },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+
+    program.configureOutput({
+      writeOut: (str) => {
+        commanderOut += str;
+      },
+      writeErr: (str) => {
+        commanderErr += str;
+      }
+    });
+
+    await expect(program.parseAsync(["node", "cli", "nope"])).rejects.toBeInstanceOf(SilentError);
+
+    const plainLogger = stripAnsi(loggerOutput);
+    expect(plainLogger).toContain("Unknown command:");
+    expect(plainLogger).toContain("nope");
+    expect(plainLogger).toContain("poe --help");
+
+    const plainCommander = stripAnsi(`${commanderOut}${commanderErr}`);
+    expect(plainCommander).not.toContain("Usage:");
+    expect(plainCommander).not.toContain("Commands:");
+  });
+
+  it("suggests the correct help scope for unknown subcommands", async () => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+
+    let loggerOutput = "";
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test",
+        variables: {}
+      },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+
+    await expect(program.parseAsync(["node", "cli", "mcp", "nope"])).rejects.toBeInstanceOf(
+      SilentError
+    );
+
+    const plainLogger = stripAnsi(loggerOutput);
+    expect(plainLogger).toContain("Unknown command:");
+    expect(plainLogger).toContain("nope");
+    expect(plainLogger).toContain("poe mcp --help");
+  });
+
+  it("uses the development invocation in help hints when running via npm run dev", async () => {
+    const previousLifecycleEvent = process.env.npm_lifecycle_event;
+    process.env.npm_lifecycle_event = "dev";
+    try {
+      const fs = createMemFs();
+      const prompts = vi.fn().mockResolvedValue({});
+
+      let loggerOutput = "";
+      const program = createProgram({
+        fs,
+        prompts,
+        env: {
+          cwd: "/repo",
+          homeDir: "/home/test"
+        },
+        logger: (message) => {
+          loggerOutput += `${message}\n`;
+        }
+      });
+
+      await expect(program.parseAsync(["node", "cli", "nope"])).rejects.toBeInstanceOf(SilentError);
+
+      const plainLogger = stripAnsi(loggerOutput);
+      expect(plainLogger).toContain("Unknown command:");
+      expect(plainLogger).toContain("npm run dev -- --help");
+    } finally {
+      if (previousLifecycleEvent === undefined) {
+        delete process.env.npm_lifecycle_event;
+      } else {
+        process.env.npm_lifecycle_event = previousLifecycleEvent;
+      }
+    }
+  });
+});

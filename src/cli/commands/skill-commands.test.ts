@@ -34,6 +34,10 @@ function createMemFs(): { fs: FileSystem; vol: Volume } {
   return { fs, vol };
 }
 
+// ---------------------------------------------------------------------------
+// skill-unconfigure-command.test.ts
+// ---------------------------------------------------------------------------
+
 describe("skill unconfigure command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -161,5 +165,141 @@ describe("skill unconfigure command", () => {
       "Removed skill directory for claude-code at ~/.claude/skills"
     );
     await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// skill-configure-command.test.ts
+// ---------------------------------------------------------------------------
+
+describe("skill configure command", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    selectMock.mockReset();
+    cancelMock.mockReset();
+  });
+
+  it("errors for unknown agent", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "skill",
+      "configure",
+      "--agent",
+      "invalid-provider"
+    ]);
+
+    expect(logs).toContain("Unknown agent: invalid-provider");
+  });
+
+  it("configures skills for an agent and reports the target path", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "skill",
+      "configure",
+      "--agent",
+      "claude-code",
+      "--global"
+    ]);
+
+    expect(logs).toContain("Configured skills for claude-code at ~/.claude/skills");
+    await expect(fs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
+    await expect(
+      fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)
+    ).resolves.toBeDefined();
+  });
+
+  it("prompts for agent and scope when not provided", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    selectMock.mockResolvedValueOnce("claude-code").mockResolvedValueOnce("global");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill", "configure"]);
+
+    expect(selectMock).toHaveBeenCalledTimes(2);
+    expect(logs).toContain("Configured skills for claude-code at ~/.claude/skills");
+    await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
+  });
+
+  it("uses defaults with --yes and does not prompt", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "skill", "configure"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Configured skills for claude-code at ~/.claude/skills");
+    await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
+  });
+
+  it("prompts for agent when --local is provided and reports local path", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    selectMock.mockResolvedValueOnce("claude-code");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill", "configure", "--local"]);
+
+    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(logs).toContain("Configured skills for claude-code at ./.claude/skills");
+    await expect(fs.stat(`${cwd}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 });

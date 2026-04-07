@@ -1,0 +1,403 @@
+import path from "node:path";
+import os from "node:os";
+import fs from "node:fs/promises";
+import { beforeEach, describe, expect, it } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import type { FileSystem } from "@poe-code/config-mutations";
+import * as agentSkillConfig from "@poe-code/agent-skill-config";
+import {
+  getAgentConfig,
+  resolveAgentSupport,
+  resolveSkillDir,
+  supportedAgents,
+} from "./configs.js";
+import {
+  configure,
+  installSkill,
+  unconfigure,
+  UnsupportedAgentError,
+} from "./apply.js";
+import { loadTemplate, createTemplateLoader } from "./templates.js";
+
+function createMemFs(): { fs: FileSystem; vol: Volume } {
+  const vol = new Volume();
+  const fsMem = createFsFromVolume(vol).promises as unknown as FileSystem;
+  return { fs: fsMem, vol };
+}
+
+function normalizeNewlines(value: string): string {
+  return value.replaceAll("\r\n", "\n");
+}
+
+function stripQuotes(value: string): string {
+  if (value.length >= 2 && value.startsWith("'") && value.endsWith("'")) {
+    return value.slice(1, -1);
+  }
+  if (value.length >= 2 && value.startsWith('"') && value.endsWith('"')) {
+    return value.slice(1, -1);
+  }
+  return value;
+}
+
+function parseYamlFrontmatter(markdown: string): Record<string, string> {
+  const normalized = normalizeNewlines(markdown);
+  const lines = normalized.split("\n");
+
+  if (lines.length === 0 || lines[0] !== "---") {
+    throw new Error("Missing YAML frontmatter start delimiter (---).");
+  }
+
+  let endIndex = -1;
+  for (let i = 1; i < lines.length; i += 1) {
+    if (lines[i] === "---") {
+      endIndex = i;
+      break;
+    }
+  }
+  if (endIndex === -1) {
+    throw new Error("Missing YAML frontmatter end delimiter (---).");
+  }
+
+  const frontmatterLines = lines.slice(1, endIndex);
+  const result: Record<string, string> = {};
+  for (const rawLine of frontmatterLines) {
+    const line = rawLine.trim();
+    if (line.length === 0 || line.startsWith("#")) {
+      continue;
+    }
+    const colonIndex = line.indexOf(":");
+    if (colonIndex === -1) {
+      throw new Error(`Invalid frontmatter line: "${rawLine}"`);
+    }
+    const key = line.slice(0, colonIndex).trim();
+    const value = stripQuotes(line.slice(colonIndex + 1).trim());
+    if (key.length === 0) {
+      throw new Error(`Invalid frontmatter key in line: "${rawLine}"`);
+    }
+    if (Object.prototype.hasOwnProperty.call(result, key)) {
+      throw new Error(`Duplicate frontmatter key: "${key}"`);
+    }
+    result[key] = value;
+  }
+
+  return result;
+}
+
+function extractBodyAfterFrontmatter(markdown: string): string {
+  const normalized = normalizeNewlines(markdown);
+  const lines = normalized.split("\n");
+
+  if (lines.length === 0 || lines[0] !== "---") {
+    return normalized;
+  }
+
+  for (let i = 1; i < lines.length; i += 1) {
+    if (lines[i] === "---") {
+      return lines.slice(i + 1).join("\n");
+    }
+  }
+
+  return "";
+}
+
+// --- configs.test.ts ---
+
+describe("supportedAgents", () => {
+  it("includes supported agent ids", () => {
+    expect(supportedAgents).toEqual(["claude-code", "codex", "opencode"]);
+  });
+});
+
+describe("resolveAgentSupport", () => {
+  it("returns supported for direct agent id", () => {
+    const result = resolveAgentSupport("claude-code");
+    expect(result.status).toBe("supported");
+    expect(result.id).toBe("claude-code");
+    expect(result.config).toEqual({
+      globalSkillDir: "~/.claude/skills",
+      localSkillDir: ".claude/skills",
+    });
+  });
+
+  it("returns supported for aliases resolved via resolveAgentId", () => {
+    const result = resolveAgentSupport("CLAUDE");
+    expect(result.status).toBe("supported");
+    expect(result.id).toBe("claude-code");
+  });
+
+  it("returns unknown when no agent matches", () => {
+    const result = resolveAgentSupport("unknown");
+    expect(result).toEqual({ status: "unknown", input: "unknown" });
+  });
+});
+
+describe("getAgentConfig", () => {
+  it("returns config for supported agent id", () => {
+    expect(getAgentConfig("codex")).toEqual({
+      globalSkillDir: "~/.codex/skills",
+      localSkillDir: ".codex/skills",
+    });
+  });
+
+  it("returns undefined for unknown input", () => {
+    expect(getAgentConfig("unknown")).toBeUndefined();
+  });
+});
+
+describe("resolveSkillDir", () => {
+  it("resolves local path relative to cwd", () => {
+    const config = getAgentConfig("claude-code");
+    expect(config).toBeDefined();
+
+    const cwd = "/repo";
+    const result = resolveSkillDir(config!, "local", cwd);
+    expect(result).toBe(path.resolve(cwd, ".claude/skills"));
+  });
+
+  it("resolves global path relative to the home directory", () => {
+    const config = getAgentConfig("opencode");
+    expect(config).toBeDefined();
+
+    const result = resolveSkillDir(config!, "global", "/repo");
+    expect(result).toBe(path.resolve(path.join(os.homedir(), ".config/opencode/skills")));
+  });
+});
+
+// --- index.test.ts ---
+
+describe("@poe-code/agent-skill-config", () => {
+  it("exports configure SDK surface", () => {
+    expect(agentSkillConfig.supportedAgents.length).toBeGreaterThan(0);
+    expect(typeof agentSkillConfig.resolveAgentSupport).toBe("function");
+    expect(typeof agentSkillConfig.getAgentConfig).toBe("function");
+    expect(typeof agentSkillConfig.resolveSkillDir).toBe("function");
+    expect(typeof agentSkillConfig.configure).toBe("function");
+    expect(typeof agentSkillConfig.unconfigure).toBe("function");
+    expect(typeof agentSkillConfig.UnsupportedAgentError).toBe("function");
+  });
+});
+
+// --- apply.test.ts ---
+
+describe("configure", () => {
+  const homeDir = "/home/test";
+  const cwd = "/project";
+  let memFs: FileSystem;
+  let vol: Volume;
+
+  beforeEach(() => {
+    ({ fs: memFs, vol } = createMemFs());
+    vol.mkdirSync(homeDir, { recursive: true });
+    vol.mkdirSync(cwd, { recursive: true });
+  });
+
+  it("throws UnsupportedAgentError for unknown agent", async () => {
+    await expect(configure("invalid", { fs: memFs, homeDir, cwd })).rejects.toBeInstanceOf(
+      UnsupportedAgentError
+    );
+  });
+
+  it("creates global skill directory by default and writes bundled skills", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd });
+
+    await expect(memFs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
+    const content = await memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, {
+      encoding: "utf8",
+    });
+    expect(content).toContain("name: poe-generate");
+    expect(content).toContain("# poe-code generate");
+  });
+
+  it("creates local skill directory in cwd and writes bundled skills", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd, scope: "local" });
+
+    await expect(memFs.stat(`${cwd}/.claude/skills`)).resolves.toBeDefined();
+    const content = await memFs.readFile(`${cwd}/.claude/skills/poe-generate.md`, {
+      encoding: "utf8",
+    });
+    expect(content).toContain("name: poe-generate");
+    expect(content).toContain("# poe-code generate");
+  });
+});
+
+describe("unconfigure", () => {
+  const homeDir = "/home/test";
+  const cwd = "/project";
+  let memFs: FileSystem;
+  let vol: Volume;
+
+  beforeEach(() => {
+    ({ fs: memFs, vol } = createMemFs());
+    vol.mkdirSync(homeDir, { recursive: true });
+    vol.mkdirSync(cwd, { recursive: true });
+  });
+
+  it("throws UnsupportedAgentError for unknown agent", async () => {
+    await expect(
+      unconfigure("unknown", { fs: memFs, homeDir, cwd })
+    ).rejects.toBeInstanceOf(UnsupportedAgentError);
+  });
+
+  it("removes global skill directory by default when force is set", async () => {
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    await memFs.writeFile(`${homeDir}/.claude/skills/a.txt`, "hello", { encoding: "utf8" });
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd, force: true });
+
+    await expect(memFs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+
+  it("does nothing for non-empty global skill directory without force", async () => {
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    await memFs.writeFile(`${homeDir}/.claude/skills/a.txt`, "hello", { encoding: "utf8" });
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd });
+
+    await expect(memFs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
+    await expect(memFs.readdir(`${homeDir}/.claude/skills`)).resolves.toContain("a.txt");
+  });
+
+  it("removes empty global skill directory without force", async () => {
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd });
+
+    await expect(memFs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+
+  it("removes local skill directory in cwd when force is set", async () => {
+    vol.mkdirSync(`${cwd}/.claude/skills`, { recursive: true });
+    await memFs.writeFile(`${cwd}/.claude/skills/a.txt`, "hello", { encoding: "utf8" });
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd, scope: "local", force: true });
+
+    await expect(memFs.stat(`${cwd}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+});
+
+describe("installSkill", () => {
+  const homeDir = "/home/test";
+  const cwd = "/project";
+  let memFs: FileSystem;
+  let vol: Volume;
+
+  beforeEach(() => {
+    ({ fs: memFs, vol } = createMemFs());
+    vol.mkdirSync(homeDir, { recursive: true });
+    vol.mkdirSync(cwd, { recursive: true });
+  });
+
+  it("installs the bundled terminal-pilot template into the agent skill directory", async () => {
+    const template = await loadTemplate("terminal-pilot.md");
+
+    const result = await installSkill(
+      "claude-code",
+      { name: "terminal-pilot", content: template },
+      { fs: memFs, cwd, homeDir, scope: "local" }
+    );
+
+    expect(result).toEqual({
+      skillPath: "~/.claude/skills/terminal-pilot/SKILL.md",
+      displayPath: ".claude/skills/terminal-pilot/SKILL.md",
+    });
+
+    const content = await memFs.readFile(`${cwd}/.claude/skills/terminal-pilot/SKILL.md`, {
+      encoding: "utf8",
+    });
+    expect(content).toContain("name: terminal-pilot");
+    expect(content).toContain("# Terminal Pilot");
+    expect(content).toContain("terminal-pilot create-session");
+    expect(content).not.toContain("MCP");
+  });
+
+  it("throws UnsupportedAgentError for unknown agent", async () => {
+    await expect(
+      installSkill(
+        "invalid",
+        { name: "terminal-pilot", content: "test" },
+        { fs: memFs, cwd, homeDir, scope: "local" }
+      )
+    ).rejects.toBeInstanceOf(UnsupportedAgentError);
+  });
+});
+
+// --- templates.test.ts ---
+
+describe("createTemplateLoader", () => {
+  it("loads bundled templates by id", async () => {
+    const loader = createTemplateLoader();
+    const template = await loader("poe-generate.md");
+
+    expect(template).toContain("# poe-code generate");
+    expect(template).toContain("poe-code generate");
+  });
+
+  it("loads the terminal-pilot bundled template by id", async () => {
+    const loader = createTemplateLoader();
+    const template = await loader("terminal-pilot.md");
+
+    expect(template).toContain("# Terminal Pilot");
+    expect(template).toContain("terminal-pilot create-session");
+    expect(template).not.toContain("MCP");
+  });
+
+  it("throws when template does not exist", async () => {
+    const loader = createTemplateLoader();
+    await expect(loader("nonexistent.md")).rejects.toThrow();
+  });
+});
+
+// --- templates/poe-generate.test.ts ---
+
+describe("bundled skill template: poe-generate.md", () => {
+  it("renders valid markdown with YAML frontmatter", async () => {
+    const templateUrl = new URL("./templates/poe-generate.md", import.meta.url);
+    const template = await fs.readFile(templateUrl, "utf8");
+
+    const frontmatter = parseYamlFrontmatter(template);
+    expect(frontmatter).toMatchObject({
+      name: "poe-generate",
+      description: "Poe code generation skill",
+    });
+
+    const body = extractBodyAfterFrontmatter(template);
+    expect(body.trim().length).toBeGreaterThan(0);
+    expect(body).toContain("poe-code generate");
+  });
+
+  it("fails validation when frontmatter is malformed", () => {
+    expect(() =>
+      parseYamlFrontmatter(["---", "name: poe-generate"].join("\n"))
+    ).toThrow("Missing YAML frontmatter end delimiter");
+  });
+});
+
+// --- templates/terminal-pilot.test.ts ---
+
+describe("bundled skill template: terminal-pilot.md", () => {
+  it("renders valid markdown with YAML frontmatter and terminal-pilot guidance", async () => {
+    const templateUrl = new URL("./templates/terminal-pilot.md", import.meta.url);
+    const template = await fs.readFile(templateUrl, "utf8");
+
+    const frontmatter = parseYamlFrontmatter(template);
+    expect(frontmatter).toMatchObject({
+      name: "terminal-pilot",
+      description: "Terminal automation skill using the terminal-pilot CLI",
+    });
+
+    const body = extractBodyAfterFrontmatter(template);
+    expect(body.trim().length).toBeGreaterThan(0);
+    expect(body).toContain("terminal-pilot create-session");
+    expect(body).toContain("terminal-pilot fill");
+    expect(body).toContain("terminal-pilot type");
+    expect(body).toContain("terminal-pilot press-key");
+    expect(body).toContain("terminal-pilot read-screen");
+    expect(body).toContain("terminal-pilot read-history");
+    expect(body).toContain("terminal-pilot wait-for");
+    expect(body).toContain("terminal-pilot wait-for-exit");
+    expect(body).toContain("terminal-pilot list-sessions");
+    expect(body).toContain("terminal-pilot close-session");
+    expect(body).toContain("Default terminal size is 120x40");
+    expect(body).not.toContain("MCP");
+  });
+});

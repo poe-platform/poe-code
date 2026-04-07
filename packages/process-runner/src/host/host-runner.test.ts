@@ -10,7 +10,7 @@ describe("createHostRunner", () => {
       command: process.execPath,
       args: [
         "-e",
-        "process.stdout.write('hello'); process.stderr.write('warn', () => process.exit(0));"
+        "process.stdout.write('hello'); setTimeout(() => { process.stderr.write('warn', () => process.exit(0)); }, 10);"
       ],
       stdin: "pipe",
       stdout: "pipe",
@@ -22,9 +22,14 @@ describe("createHostRunner", () => {
     expect(handle.stdin).not.toBeNull();
     expect(handle.stdout).not.toBeNull();
     expect(handle.stderr).not.toBeNull();
-    await expect(readStream(handle.stdout)).resolves.toBe("hello");
-    await expect(readStream(handle.stderr)).resolves.toBe("warn");
-    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    const [stdout, stderr, result] = await Promise.all([
+      readStream(handle.stdout),
+      readStream(handle.stderr),
+      handle.result
+    ]);
+    expect(stdout).toBe("hello");
+    expect(stderr).toBe("warn");
+    expect(result).toEqual({ exitCode: 0 });
   });
 
   it("spawns in inherit mode and exposes null streams on the run handle", async () => {
@@ -147,16 +152,21 @@ describe("createHostRunner", () => {
       command: process.execPath,
       args: [
         "-e",
-        "process.stdout.write('default-out'); process.stderr.write('default-err', () => process.exit(0));"
+        "process.stdout.write('default-out'); setTimeout(() => { process.stderr.write('default-err', () => process.exit(0)); }, 10);"
       ]
     });
 
     expect(handle.stdin).toBeNull();
     expect(handle.stdout).not.toBeNull();
     expect(handle.stderr).not.toBeNull();
-    await expect(readStream(handle.stdout)).resolves.toBe("default-out");
-    await expect(readStream(handle.stderr)).resolves.toBe("default-err");
-    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    const [stdout, stderr, result] = await Promise.all([
+      readStream(handle.stdout),
+      readStream(handle.stderr),
+      handle.result
+    ]);
+    expect(stdout).toBe("default-out");
+    expect(stderr).toBe("default-err");
+    expect(result).toEqual({ exitCode: 0 });
   });
 
   it("passes cwd to child_process.spawn", async () => {

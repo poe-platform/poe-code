@@ -43,9 +43,11 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     .addHelpCommand(false);
 
   launch
-    .command("start [id] [commandArgs...]")
+    .command("start")
     .usage("<id> -- <command> [args...]")
     .description("Start and supervise a managed process.")
+    .argument("[id]", "Managed process identifier")
+    .argument("[command...]", "Command and arguments to run after --")
     .addOption(createChoiceOption("--restart <policy>", "Restart policy", ["never", "on-failure", "always"], "on-failure"))
     .option("--max-restarts <n>", "Max consecutive restarts", "5")
     .option("--ready-pattern <string>", "Log substring to wait for before reporting running")
@@ -76,8 +78,9 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     });
 
   launch
-    .command("stop <id>")
+    .command("stop")
     .description("Stop a managed process.")
+    .argument("<id>", "Managed process identifier")
     .option("--force", "Stop immediately with SIGKILL / docker kill")
     .action(async function (this: Command, id: string) {
       const result = await stopLaunch({
@@ -91,8 +94,9 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     });
 
   launch
-    .command("restart <id>")
+    .command("restart")
     .description("Restart a managed process.")
+    .argument("<id>", "Managed process identifier")
     .action(async function (id: string) {
       await restartLaunch({ homeDir: container.env.homeDir, id });
     });
@@ -126,8 +130,9 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     });
 
   launch
-    .command("logs <id>")
+    .command("logs")
     .description("Show managed process logs.")
+    .argument("<id>", "Managed process identifier")
     .option("--follow", "Follow log output")
     .option("--lines <n>", "Number of lines to show", "50")
     .option("--stderr", "Show stderr instead of stdout")
@@ -175,14 +180,16 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     });
 
   launch
-    .command("rm <id>")
+    .command("rm")
     .description("Remove managed process state and logs.")
+    .argument("<id>", "Managed process identifier")
     .action(async function (id: string) {
       await removeLaunch({ homeDir: container.env.homeDir, id });
     });
 
   launch
-    .command("__run <id>", { hidden: true })
+    .command("__run", { hidden: true })
+    .argument("<id>", "Managed process identifier")
     .action(async function (id: string) {
       await runLaunchDaemon({ homeDir: container.env.homeDir, id });
     });

@@ -45,8 +45,9 @@ export function registerSkillCommand(
     });
 
   skill
-    .command("configure [agent]")
+    .command("configure")
     .description("Install skill directories for an agent.")
+    .argument("[agent]", `Agent to configure skills for (${supportedAgents.join(" | ")})`)
     .option("--agent <name>", "Agent to configure skills for")
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")
@@ -148,8 +149,9 @@ export function registerSkillCommand(
     });
 
   skill
-    .command("unconfigure [agent]")
+    .command("unconfigure")
     .description("Remove skill directories for an agent.")
+    .argument("[agent]", `Agent to unconfigure skills for (${supportedAgents.join(" | ")})`)
     .option("--agent <name>", "Agent to unconfigure skills for")
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")

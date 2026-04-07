@@ -5,7 +5,7 @@ agent:
 iterations: 50
 status:
   state: in_progress
-  iteration: 4
+  iteration: 6
 ---
 
 Run autonomously, improve the design of cli commands, start with spawn and expand. And then also double-check other commands. Systematically test and improve all commands.
@@ -22,15 +22,20 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
-- [x] audit all commands systematically
-  - [x] github-workflows --help was missing Usage: line, had 2-space description indent, missing value hints, wrong --help flag format
-    - Added `rootUsageName` option to `RunCLIOptions` in cmdkit
-    - `renderHelpDocument` now renders `Usage:` line when `usageLine` is provided
-    - Removed 2-space indent from description in `renderHelpDocument`
-    - Fixed global options: `--preset <path>`, `--output <format>`, `-h, --help`
-    - Pass `rootUsageName` from `program.ts` to `runCLI` for github-workflows
-  - [x] mcp configure --yes description hardcoded "use claude-code" → "Accept defaults, skip prompts"
-  - [x] all other commands verified clean: install, configure, unconfigure, login, logout, auth, agent, spawn, wrap, generate, models, usage, ralph, skill, pipeline, experiment, launch, utils
+- [x] audit nested command help screens and fix missing argument descriptions
+  - [x] `mcp configure` / `mcp unconfigure`
+    - Switched from inline commander signatures to explicit `.argument(...)` metadata
+    - Added supported agent lists to the help text so the positional argument is self-describing
+  - [x] `skill configure` / `skill unconfigure`
+    - Switched from inline commander signatures to explicit `.argument(...)` metadata
+    - Added supported agent lists to the positional help so it no longer relies on the fallback `--agent` option copy
+  - [x] `launch start` / `stop` / `restart` / `logs` / `rm`
+    - Switched from inline commander signatures to explicit `.argument(...)` metadata
+    - Clarified `launch start` so the help screen explains the command passed after `--`
+- [x] re-run targeted command help validation
+  - [x] unit tests: `root-command`, `mcp-command`, `skill-command`, `launch-command`
+  - [x] typecheck: `npm run lint:types`
+  - [x] screenshots: `mcp configure`, `skill configure`, `launch start`, `launch stop`
 
 ## Constraints
 

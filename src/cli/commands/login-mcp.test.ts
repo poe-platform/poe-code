@@ -424,6 +424,49 @@ describe("mcp command", () => {
     });
   });
 
+  it("shows argument descriptions for configure and unconfigure help", async () => {
+    const { program } = await createMcpProgram();
+    let helpOutput = "";
+    const outputConfig = {
+      writeOut: (str: string) => {
+        helpOutput += str;
+      },
+      writeErr: (str: string) => {
+        helpOutput += str;
+      }
+    };
+    program.configureOutput(outputConfig);
+    for (const cmd of program.commands) {
+      cmd.configureOutput(outputConfig);
+      for (const sub of cmd.commands) {
+        sub.configureOutput(outputConfig);
+      }
+    }
+
+    try {
+      await program.parseAsync(["node", "cli", "mcp", "configure", "--help"]);
+    } catch {
+      // Commander exits on --help.
+    }
+
+    expect(helpOutput).toContain("Usage: poe-code mcp configure [options] [agent]");
+    expect(helpOutput).toContain("Arguments:");
+    expect(helpOutput).toContain("agent");
+    expect(helpOutput).toContain("Agent to configure");
+
+    helpOutput = "";
+
+    try {
+      await program.parseAsync(["node", "cli", "mcp", "unconfigure", "--help"]);
+    } catch {
+      // Commander exits on --help.
+    }
+
+    expect(helpOutput).toContain("Usage: poe-code mcp unconfigure [options] <agent>");
+    expect(helpOutput).toContain("Arguments:");
+    expect(helpOutput).toContain("Agent to unconfigure");
+  });
+
   it("rejects --agent with unknown option error", async () => {
     const { program } = await createMcpProgram();
     const exitSpy = vi.spyOn(process, "exit").mockImplementation((code?: number) => {

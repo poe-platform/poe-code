@@ -82,8 +82,9 @@ export function registerMcpCommand(
     });
 
   mcp
-    .command("configure [agent]")
+    .command("configure")
     .description("Configure MCP client to use poe-code.")
+    .argument("[agent]", `Agent to configure (${supportedAgents.join(" | ")})`)
     .option("-y, --yes", "Accept defaults, skip prompts")
     .action(async (agentArg, options) => {
       const flags = resolveCommandFlags(program);
@@ -154,8 +155,9 @@ export function registerMcpCommand(
     });
 
   mcp
-    .command("unconfigure <agent>")
+    .command("unconfigure")
     .description("Remove poe-code from MCP client.")
+    .argument("<agent>", `Agent to unconfigure (${supportedAgents.join(" | ")})`)
     .action(async (agent) => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");

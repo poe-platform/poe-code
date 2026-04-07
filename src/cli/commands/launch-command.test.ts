@@ -310,11 +310,67 @@ describe("launch command", () => {
     }
 
     expect(helpOutput).toContain("launch start");
+    expect(helpOutput).toContain("Arguments:");
+    expect(helpOutput).toContain("id");
+    expect(helpOutput).toContain("Managed process identifier");
+    expect(helpOutput).toContain("command");
+    expect(helpOutput).toContain("Command and arguments to run after --");
     expect(helpOutput).toContain("--restart <policy>");
     expect(helpOutput).toContain("--max-restarts <n>");
     expect(helpOutput).toContain("--ready-pattern <string>");
     expect(helpOutput).toContain("--ready-port <port>");
     expect(helpOutput).toContain("--image <image>");
+  });
+
+  it("shows argument descriptions for launch subcommands with process ids", async () => {
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer());
+
+    for (const argv of [
+      ["node", "cli", "launch", "stop", "--help"],
+      ["node", "cli", "launch", "restart", "--help"],
+      ["node", "cli", "launch", "logs", "--help"],
+      ["node", "cli", "launch", "rm", "--help"]
+    ]) {
+      let helpOutput = "";
+      program.configureOutput({
+        writeOut: (value) => {
+          helpOutput += value;
+        },
+        writeErr: (value) => {
+          helpOutput += value;
+        }
+      });
+      for (const command of program.commands) {
+        command.configureOutput({
+          writeOut: (value) => {
+            helpOutput += value;
+          },
+          writeErr: (value) => {
+            helpOutput += value;
+          }
+        });
+        for (const subcommand of command.commands) {
+          subcommand.configureOutput({
+            writeOut: (value) => {
+              helpOutput += value;
+            },
+            writeErr: (value) => {
+              helpOutput += value;
+            }
+          });
+        }
+      }
+
+      try {
+        await program.parseAsync(argv);
+      } catch {
+        // commander exits after help
+      }
+
+      expect(helpOutput).toContain("Arguments:");
+      expect(helpOutput).toContain("Managed process identifier");
+    }
   });
 });
 

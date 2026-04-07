@@ -1,0 +1,848 @@
+import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
+import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
+import { Volume, createFsFromVolume } from "memfs";
+import path from "node:path";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { createCliContainer, type CliDependencies } from "../cli/container.js";
+import { DEFAULT_FRONTIER_MODEL, DEFAULT_TEXT_MODEL } from "../cli/constants.js";
+import type { FileSystem } from "../utils/file-system.js";
+import type {
+  CommandRunner,
+  CommandRunnerOptions,
+  CommandRunnerResult
+} from "../utils/command-checks.js";
+
+// container.test.ts
+const createSecretStoreMock = vi.hoisted(() => vi.fn());
+const createOptionResolversMock = vi.hoisted(() => vi.fn());
+
+// launch.test.ts
+const {
+  followManagedLogsMock,
+  listManagedProcessesMock,
+  readManagedLogsMock,
+  removeManagedProcessMock,
+  restartManagedProcessMock,
+  runManagedProcessMock,
+  startManagedProcessMock,
+  stopManagedProcessMock
+} = vi.hoisted(() => ({
+  followManagedLogsMock: vi.fn(),
+  listManagedProcessesMock: vi.fn(),
+  readManagedLogsMock: vi.fn(),
+  removeManagedProcessMock: vi.fn(),
+  restartManagedProcessMock: vi.fn(),
+  runManagedProcessMock: vi.fn(),
+  startManagedProcessMock: vi.fn(),
+  stopManagedProcessMock: vi.fn()
+}));
+
+// spawn-core.test.ts
+const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
+
+// experiment.test.ts
+const runExperimentLoopMock = vi.hoisted(() => vi.fn());
+const renderAcpStreamMock = vi.hoisted(() => vi.fn(async () => {}));
+const spawnMock = vi.hoisted(() => vi.fn());
+
+vi.mock("auth-store", () => ({
+  createSecretStore: createSecretStoreMock
+}));
+
+vi.mock("../cli/options.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../cli/options.js")>();
+  return {
+    ...actual,
+    createOptionResolvers: createOptionResolversMock
+  };
+});
+
+vi.mock("@poe-code/process-launcher", () => ({
+  followManagedLogs: followManagedLogsMock,
+  listManagedProcesses: listManagedProcessesMock,
+  readManagedLogs: readManagedLogsMock,
+  removeManagedProcess: removeManagedProcessMock,
+  restartManagedProcess: restartManagedProcessMock,
+  runManagedProcess: runManagedProcessMock,
+  startManagedProcess: startManagedProcessMock,
+  stopManagedProcess: stopManagedProcessMock
+}));
+
+vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/workspace-resolver")>();
+  return {
+    ...actual,
+    resolveWorkspace: resolveWorkspaceMock
+  };
+});
+
+vi.mock("@poe-code/experiment-loop", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/experiment-loop")>();
+  return {
+    ...actual,
+    runExperimentLoop: runExperimentLoopMock
+  };
+});
+
+vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
+  return {
+    ...actual,
+    renderAcpStream: renderAcpStreamMock
+  };
+});
+
+vi.mock("./spawn.js", () => ({
+  spawn: spawnMock
+}));
+
+import { createSdkContainer } from "./container.js";
+import {
+  followLaunchLogs,
+  listLaunches,
+  readLaunchLogs,
+  removeLaunch,
+  restartLaunch,
+  runLaunchDaemon,
+  startLaunch,
+  stopLaunch
+} from "./launch.js";
+import { resolveWorkspace } from "@poe-code/workspace-resolver";
+import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
+import { runExperiment } from "./experiment.js";
+import { generate, generateAudio, generateImage, generateVideo } from "./generate.js";
+import { setGlobalClient } from "../services/client-instance.js";
+import type { LlmClient } from "../services/llm-client.js";
+
+const originalEnv = { ...process.env };
+afterEach(() => {
+  process.env = { ...originalEnv };
+});
+
+// ─── container.test.ts ───────────────────────────────────────────────────────
+
+describe("createSdkContainer", () => {
+  beforeEach(() => {
+    createSecretStoreMock.mockReset();
+    createOptionResolversMock.mockReset();
+    createOptionResolversMock.mockReturnValue({
+      ensure: vi.fn(),
+      resolveModel: vi.fn(),
+      resolveReasoning: vi.fn(),
+      resolveConfigName: vi.fn(),
+      resolveApiKey: vi.fn()
+    });
+  });
+
+  it("uses auth store for SDK apiKeyStore read and write", async () => {
+    const authStore = {
+      get: vi.fn<() => Promise<string | null>>().mockResolvedValue("stored-key"),
+      set: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      delete: vi.fn<() => Promise<void>>().mockResolvedValue(undefined)
+    };
+
+    createSecretStoreMock.mockReturnValue({
+      backend: "file",
+      store: authStore
+    });
+
+    const variables = { POE_AUTH_BACKEND: "file" };
+    createSdkContainer({
+      homeDir: "/sdk-home",
+      variables
+    });
+
+    expect(createSecretStoreMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        env: variables,
+        platform: process.platform
+      })
+    );
+
+    const createOptionResolversInput = createOptionResolversMock.mock.calls[0]?.[0];
+    expect(createOptionResolversInput).toBeDefined();
+
+    const storedKey = await createOptionResolversInput.apiKeyStore.read();
+    expect(storedKey).toBe("stored-key");
+    expect(authStore.get).toHaveBeenCalledTimes(1);
+
+    await createOptionResolversInput.apiKeyStore.write("new-key");
+    expect(authStore.set).toHaveBeenCalledWith("new-key");
+  });
+});
+
+// ─── launch.test.ts ──────────────────────────────────────────────────────────
+
+describe("launch sdk", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("forwards start options to the process-launcher package", async () => {
+    startManagedProcessMock.mockResolvedValue({ id: "api" });
+
+    await startLaunch({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      spec: {
+        id: "api",
+        command: "npm",
+        args: ["run", "dev"],
+        restart: "on-failure"
+      }
+    });
+
+    expect(startManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        baseDir: "/home/test/.poe-code/launch",
+        spec: expect.objectContaining({
+          command: "npm",
+          id: "api"
+        }),
+        spawnDaemon: expect.any(Function)
+      })
+    );
+  });
+
+  it("resolves relative local spec.cwd before persisting the launch spec", async () => {
+    startManagedProcessMock.mockResolvedValue({ id: "api" });
+
+    await startLaunch({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      spec: {
+        id: "api",
+        command: "npm",
+        args: ["run", "dev"],
+        cwd: "./apps/api",
+        restart: "on-failure"
+      }
+    });
+
+    expect(startManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spec: expect.objectContaining({
+          cwd: "/repo/apps/api"
+        })
+      })
+    );
+  });
+
+  it("preserves remote workspace locators in the persisted launch spec", async () => {
+    startManagedProcessMock.mockResolvedValue({ id: "api" });
+
+    await startLaunch({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      spec: {
+        id: "api",
+        command: "npm",
+        args: ["run", "dev"],
+        cwd: "github://poe-platform/poe-code",
+        restart: "on-failure"
+      }
+    });
+
+    expect(startManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spec: expect.objectContaining({
+          cwd: "github://poe-platform/poe-code"
+        })
+      })
+    );
+  });
+
+  it("forwards the remaining launch operations", async () => {
+    await stopLaunch({ homeDir: "/home/test", id: "api" });
+    await restartLaunch({ homeDir: "/home/test", id: "api" });
+    await listLaunches({ homeDir: "/home/test" });
+    await readLaunchLogs({ homeDir: "/home/test", id: "api" });
+    followLaunchLogs({ homeDir: "/home/test", id: "api" });
+    await removeLaunch({ homeDir: "/home/test", id: "api" });
+    await runLaunchDaemon({ homeDir: "/home/test", id: "api" });
+
+    expect(stopManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({ baseDir: "/home/test/.poe-code/launch", id: "api" })
+    );
+    expect(restartManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({ baseDir: "/home/test/.poe-code/launch", id: "api" })
+    );
+    expect(listManagedProcessesMock).toHaveBeenCalledWith(
+      expect.objectContaining({ baseDir: "/home/test/.poe-code/launch" })
+    );
+    expect(readManagedLogsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ baseDir: "/home/test/.poe-code/launch", id: "api" })
+    );
+    expect(followManagedLogsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ baseDir: "/home/test/.poe-code/launch", id: "api" })
+    );
+    expect(removeManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({ baseDir: "/home/test/.poe-code/launch", id: "api" })
+    );
+    expect(runManagedProcessMock).toHaveBeenCalledWith(
+      expect.objectContaining({ baseDir: "/home/test/.poe-code/launch", id: "api" })
+    );
+  });
+
+  it("falls back to direct pid signaling when the detached process group is missing", async () => {
+    await stopLaunch({ homeDir: "/home/test", id: "api" });
+
+    const stopOptions = stopManagedProcessMock.mock.calls[0]?.[0];
+    expect(stopOptions?.signalProcess).toBeTypeOf("function");
+
+    const error = new Error("kill ESRCH") as Error & { code?: string };
+    error.code = "ESRCH";
+    const killSpy = vi
+      .spyOn(process, "kill")
+      .mockImplementationOnce(() => {
+        throw error;
+      })
+      .mockImplementationOnce(() => true);
+
+    stopOptions.signalProcess(123, "SIGTERM");
+
+    expect(killSpy).toHaveBeenNthCalledWith(1, -123, "SIGTERM");
+    expect(killSpy).toHaveBeenNthCalledWith(2, 123, "SIGTERM");
+  });
+});
+
+// ─── spawn-core.test.ts ───────────────────────────────────────────────────────
+
+const cwd = "/repo";
+const homeDir = "/home/test";
+
+function createMemFs(): FileSystem {
+  const vol = new Volume();
+  vol.mkdirSync(homeDir, { recursive: true });
+  vol.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
+  return createFsFromVolume(vol).promises as unknown as FileSystem;
+}
+
+interface CommandCall {
+  command: string;
+  args: string[];
+  options?: CommandRunnerOptions;
+}
+
+function createCommandRunnerStub(
+  result: CommandRunnerResult = { stdout: "", stderr: "", exitCode: 0 }
+): { runner: CommandRunner; calls: CommandCall[] } {
+  const calls: CommandCall[] = [];
+  const runner: CommandRunner = async (command, args, options) => {
+    const call: CommandCall = { command, args };
+    if (options) {
+      call.options = options;
+    }
+    calls.push(call);
+    return { ...result };
+  };
+  return { runner, calls };
+}
+
+function createContainerWithDependencies(
+  overrides: Partial<CliDependencies> = {}
+): {
+  container: ReturnType<typeof createCliContainer>;
+  logs: string[];
+  commandCalls: CommandCall[];
+} {
+  const logs: string[] = [];
+  const { runner, calls } = createCommandRunnerStub();
+  const container = createCliContainer({
+    fs: overrides.fs ?? createMemFs(),
+    prompts: overrides.prompts ?? vi.fn().mockResolvedValue({}),
+    env: overrides.env ?? { cwd, homeDir },
+    commandRunner: overrides.commandRunner ?? runner,
+    logger: overrides.logger ?? ((message) => {
+      logs.push(message);
+    })
+  });
+  return { container, logs, commandCalls: calls };
+}
+
+describe("spawnCore", () => {
+  let fs: FileSystem;
+
+  beforeEach(() => {
+    fs = createMemFs();
+    vi.clearAllMocks();
+    vi.mocked(resolveWorkspace).mockReset();
+    vi.mocked(resolveWorkspace).mockImplementation(async (input, options) => ({
+      cwd: path.isAbsolute(input) ? input : path.join(options.baseDir, input),
+      locator: { scheme: "local", path: input }
+    }));
+  });
+
+  it("prefers explicit model over configured values", async () => {
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.6", opencode: "openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const { container } = createContainerWithDependencies({ fs });
+
+    await expect(
+      resolveConfiguredModel(container, "opencode", "google/gemini-3-pro")
+    ).resolves.toBe("google/gemini-3-pro");
+  });
+
+  it("falls back to the global configured model when no agent override exists", async () => {
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.6" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const { container } = createContainerWithDependencies({ fs });
+
+    await expect(resolveConfiguredModel(container, "opencode")).resolves.toBe(
+      "anthropic/claude-opus-4.6"
+    );
+  });
+
+  it("falls back to the provider default when config has no matching model", async () => {
+    const { container } = createContainerWithDependencies({ fs });
+
+    await expect(resolveConfiguredModel(container, "opencode")).resolves.toBe(
+      DEFAULT_FRONTIER_MODEL
+    );
+  });
+
+  async function ensureIsolatedConfig(service: string): Promise<void> {
+    if (service === "codex") {
+      await fs.mkdir(`${homeDir}/.poe-code/codex`, { recursive: true });
+      await fs.writeFile(
+        `${homeDir}/.poe-code/codex/config.toml`,
+        "",
+        { encoding: "utf8" }
+      );
+      return;
+    }
+    if (service === "opencode") {
+      await fs.mkdir(`${homeDir}/.poe-code/opencode/.config/opencode`, {
+        recursive: true
+      });
+      await fs.writeFile(
+        `${homeDir}/.poe-code/opencode/.config/opencode/config.json`,
+        "{}",
+        { encoding: "utf8" }
+      );
+    }
+  }
+
+  it("throws error for unknown service", async () => {
+    const { container } = createContainerWithDependencies({ fs });
+
+    await expect(
+      spawnCore(container, "unknown-service", { prompt: "test" })
+    ).rejects.toThrow('Unknown service "unknown-service".');
+  });
+
+  it("returns SpawnResult with stdout, stderr, exitCode", async () => {
+    const { runner } = createCommandRunnerStub({
+      stdout: "output text",
+      stderr: "error text",
+      exitCode: 0
+    });
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    const result = await spawnCore(container, "opencode", {
+      prompt: "test prompt"
+    });
+
+    expect(result).toEqual({
+      stdout: "output text",
+      stderr: "error text",
+      exitCode: 0
+    });
+  });
+
+  it("uses the configured model when no explicit model is provided", async () => {
+    const { runner, calls } = createCommandRunnerStub({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({ models: { opencode: "openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test prompt"
+    });
+
+    expect(calls.length).toBeGreaterThan(0);
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall.args).toContain("poe/openai/gpt-5.4");
+  });
+
+  it("passes prompt and args to provider", async () => {
+    const { runner, calls } = createCommandRunnerStub({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "fix the bug",
+      args: ["--extra", "arg"]
+    });
+
+    expect(calls.length).toBeGreaterThan(0);
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall.args).toContain("fix the bug");
+    expect(lastCall.args).toContain("--extra");
+    expect(lastCall.args).toContain("arg");
+  });
+
+  it("handles dry run mode", async () => {
+    const { container, logs } = createContainerWithDependencies({ fs });
+    await ensureIsolatedConfig("opencode");
+
+    const result = await spawnCore(
+      container,
+      "codex",
+      { prompt: "test prompt" },
+      { dryRun: true, verbose: false }
+    );
+
+    expect(result).toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    expect(logs.some((log) => log.includes("Dry run"))).toBe(true);
+  });
+
+  it("does not resolve workspace locators during dry run", async () => {
+    const { container, logs } = createContainerWithDependencies({ fs });
+    await ensureIsolatedConfig("opencode");
+
+    const result = await spawnCore(
+      container,
+      "codex",
+      {
+        prompt: "test prompt",
+        cwd: "github://poe-platform/poe-code"
+      },
+      { dryRun: true, verbose: false }
+    );
+
+    expect(result).toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    expect(resolveWorkspace).not.toHaveBeenCalled();
+    expect(logs.some((log) => log.includes("github://poe-platform/poe-code"))).toBe(true);
+  });
+
+  it("resolves relative cwd to absolute path", async () => {
+    const { runner, calls } = createCommandRunnerStub({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test",
+      cwd: "subdir"
+    });
+
+    expect(calls.length).toBeGreaterThan(0);
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall.options?.cwd).toBe("/repo/subdir");
+  });
+
+  it("preserves absolute cwd path", async () => {
+    const { runner, calls } = createCommandRunnerStub({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test",
+      cwd: "/absolute/path"
+    });
+
+    expect(calls.length).toBeGreaterThan(0);
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall.options?.cwd).toBe("/absolute/path");
+  });
+
+  it("resolves workspace locators before invoking providers", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    const { runner, calls } = createCommandRunnerStub({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test",
+      cwd: "github://poe-platform/poe-code",
+      mode: "read"
+    });
+
+    expect(resolveWorkspace).toHaveBeenCalledWith(
+      "github://poe-platform/poe-code",
+      expect.objectContaining({
+        baseDir: cwd,
+        homeDir
+      })
+    );
+    expect(calls.at(-1)?.options?.cwd).toBe("/tmp/workspaces/poe-code");
+  });
+
+  it("returns empty result when provider returns void", async () => {
+    const { container } = createContainerWithDependencies({ fs });
+
+    const originalGet = container.registry.get.bind(container.registry);
+    vi.spyOn(container.registry, "get").mockImplementation((name) => {
+      const adapter = originalGet(name);
+      if (adapter && name === "opencode") {
+        return {
+          ...adapter,
+          spawn: async () => undefined
+        };
+      }
+      return adapter;
+    });
+    await ensureIsolatedConfig("opencode");
+
+    const result = await spawnCore(container, "opencode", {
+      prompt: "test"
+    });
+
+    expect(result).toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+  });
+});
+
+// ─── experiment.test.ts ───────────────────────────────────────────────────────
+
+describe("SDK experiment", () => {
+  beforeEach(() => {
+    runExperimentLoopMock.mockReset();
+    renderAcpStreamMock.mockReset();
+    spawnMock.mockReset();
+  });
+
+  it("forwards CLI-parity options and wires the default agent runner", async () => {
+    const expectedResult = {
+      stopReason: "max_experiments" as const,
+      docPath: "docs/loop.md",
+      experimentsCompleted: 3,
+      experimentsKept: 2,
+      totalDurationMs: 1200
+    };
+    const onExperimentStart = vi.fn();
+    const onExperimentComplete = vi.fn();
+    let capturedOptions: ExperimentRunOptions | undefined;
+
+    runExperimentLoopMock.mockImplementationOnce(async (options: ExperimentRunOptions) => {
+      capturedOptions = options;
+      return expectedResult;
+    });
+
+    const events = [{ type: "token" }];
+    const resultPromise = Promise.resolve({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    spawnMock.mockReturnValue({
+      events,
+      result: resultPromise
+    });
+
+    const result = await runExperiment({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "docs/loop.md",
+      agent: "codex",
+      model: "gpt-5.2",
+      maxExperiments: 3,
+      onExperimentStart,
+      onExperimentComplete
+    });
+
+    expect(result).toEqual(expectedResult);
+    expect(capturedOptions).toEqual(
+      expect.objectContaining({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: "docs/loop.md",
+        agent: "codex",
+        model: "gpt-5.2",
+        maxExperiments: 3,
+        onExperimentStart,
+        onExperimentComplete,
+        runAgent: expect.any(Function)
+      })
+    );
+
+    const agentResult = await capturedOptions?.runAgent?.({
+      agent: "codex",
+      prompt: "Improve the metric",
+      cwd: "/repo",
+      model: "gpt-5.2"
+    });
+
+    expect(spawnMock).toHaveBeenCalledWith("codex", {
+      prompt: "Improve the metric",
+      cwd: "/repo",
+      model: "gpt-5.2",
+      mode: "yolo",
+      activityTimeoutMs: 10 * 60 * 1000
+    });
+    expect(renderAcpStreamMock).toHaveBeenCalledWith(events);
+    expect(agentResult).toEqual({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+  });
+});
+
+// ─── generate.test.ts ─────────────────────────────────────────────────────────
+
+describe("SDK generate", () => {
+  it("returns text content using the global client", async () => {
+    delete process.env.POE_TEXT_MODEL;
+    const client: LlmClient = {
+      text: vi.fn(async (request) => ({
+        content: `model:${request.model} prompt:${request.prompt}`
+      })),
+      media: vi.fn(async () => ({ url: "unused" }))
+    };
+    setGlobalClient(client);
+
+    const response = await generate("Hello", { model: "custom" });
+
+    expect(response).toEqual({
+      content: "model:custom prompt:Hello"
+    });
+  });
+
+  it("uses explicit model option over env var", async () => {
+    process.env.POE_TEXT_MODEL = "env-model";
+
+    const client: LlmClient = {
+      text: vi.fn(async (request) => ({ content: request.model })),
+      media: vi.fn(async () => ({ url: "unused" }))
+    };
+    setGlobalClient(client);
+
+    const response = await generate("Hello", { model: "option-model" });
+
+    expect(response).toEqual({ content: "option-model" });
+  });
+
+  it("uses env var when no model option provided", async () => {
+    process.env.POE_TEXT_MODEL = "env-model";
+
+    const client: LlmClient = {
+      text: vi.fn(async (request) => ({ content: request.model })),
+      media: vi.fn(async () => ({ url: "unused" }))
+    };
+    setGlobalClient(client);
+
+    const response = await generate("Hello");
+
+    expect(response).toEqual({ content: "env-model" });
+  });
+
+  it("uses default model when no option or env var", async () => {
+    delete process.env.POE_TEXT_MODEL;
+
+    const client: LlmClient = {
+      text: vi.fn(async (request) => ({ content: request.model })),
+      media: vi.fn(async () => ({ url: "unused" }))
+    };
+    setGlobalClient(client);
+
+    const response = await generate("Hello");
+
+    expect(response).toEqual({ content: DEFAULT_TEXT_MODEL });
+  });
+
+  it("uses media helpers with params", async () => {
+    delete process.env.POE_IMAGE_MODEL;
+    delete process.env.POE_VIDEO_MODEL;
+    delete process.env.POE_AUDIO_MODEL;
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "unused" })),
+      media: vi.fn(async (_type, request) => ({
+        url: `url:${request.model}`,
+        mimeType: "image/png"
+      }))
+    };
+    setGlobalClient(client);
+
+    const image = await generateImage("A sunset", {
+      model: "image-model",
+      params: { aspect_ratio: "16:9" }
+    });
+    const video = await generateVideo("Ocean waves", {
+      model: "video-model"
+    });
+    const audio = await generateAudio("Hello", {
+      model: "audio-model"
+    });
+
+    expect(image).toEqual({ url: "url:image-model", mimeType: "image/png" });
+    expect(video).toEqual({ url: "url:video-model", mimeType: "image/png" });
+    expect(audio).toEqual({ url: "url:audio-model", mimeType: "image/png" });
+  });
+
+  it("throws when prompt is empty", async () => {
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({ url: "ok" }))
+    };
+    setGlobalClient(client);
+
+    await expect(generate("")).rejects.toThrow("Prompt is required");
+  });
+});

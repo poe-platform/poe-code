@@ -15,7 +15,8 @@ describe("createTemplateLoader", () => {
     const template = await loader("terminal-pilot.md");
 
     expect(template).toContain("# Terminal Pilot");
-    expect(template).toContain("terminal_create_session");
+    expect(template).toContain("terminal-pilot create-session");
+    expect(template).not.toContain("MCP");
   });
 
   it("throws when template does not exist", async () => {

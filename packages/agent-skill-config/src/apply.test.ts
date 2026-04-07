@@ -156,8 +156,8 @@ describe("installSkill", () => {
     });
     expect(content).toContain("name: terminal-pilot");
     expect(content).toContain("# Terminal Pilot");
-    expect(content).toContain("terminal_create_session");
-    expect(content).toContain("terminal_send_signal");
+    expect(content).toContain("terminal-pilot create-session");
+    expect(content).not.toContain("MCP");
   });
 
   it("throws UnsupportedAgentError for unknown agent", async () => {

@@ -462,6 +462,23 @@ run_guard_in_docker() {
   done
 }
 
+@test "dry-run GitHub App workflows include a Preflight step before create-github-app-token" {
+  shopt -s nullglob
+  local workflow_files=(
+    .github/workflows/gh-*.yml
+    .github/workflows/poe-code-*.yml
+    packages/github-workflows/src/workflow-templates/*.ejected.yml
+  )
+
+  [ "${#workflow_files[@]}" -gt 0 ]
+
+  local workflow_file
+  for workflow_file in "${workflow_files[@]}"; do
+    run grep -qF 'name: Preflight' "$workflow_file"
+    [ "$status" -eq 0 ]
+  done
+}
+
 @test "dry-run GitHub App workflows use POE_CODE_AGENT secrets" {
   shopt -s nullglob
   local workflow_files=(

@@ -11,6 +11,7 @@ import { cancel, isCancel, select } from "@poe-code/design-system";
 import { discoverAutomations, loadAutomation } from "./discover.js";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
+import { runPreflightChecks } from "./preflight.js";
 import { setupWorkflowAgent } from "./setup-agent.js";
 import type { AutomationDefinition } from "./types.js";
 
@@ -322,7 +323,8 @@ const prepareCommand = defineCommand({
     name: S.String()
   }),
   scope: ["cli"],
-  handler: async ({ params }) => {
+  handler: async ({ params, env }) => {
+    runPreflightChecks({ env, nodeVersion: process.version });
     const cwd = resolveCwd();
     const automation = await loadNamedAutomation(params.name, cwd);
     const agent = await setupWorkflowAgent(automation, cwd);

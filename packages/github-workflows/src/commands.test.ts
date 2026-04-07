@@ -419,6 +419,16 @@ describe("ghGroup", () => {
     ).rejects.toThrow('Automation "fix-vulnerabilities" source command must return a JSON array.');
   });
 
+  it("prepare fails when POE_API_KEY is missing", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+
+    const setupAgentCommand = getCommand(["prepare"]);
+
+    await expect(
+      setupAgentCommand.handler(createContext({ name: "github-issue-opened" }))
+    ).rejects.toThrow("Missing required environment variable: POE_API_KEY");
+  });
+
   it("installs and configures the resolved workflow agent", async () => {
     writeBuiltInPrompt(
       "fix-vulnerabilities",
@@ -428,9 +438,10 @@ describe("ghGroup", () => {
     const setupAgentCommand = getCommand(["prepare"]);
 
     await setupAgentCommand.handler(
-      createContext({
-        name: "fix-vulnerabilities"
-      })
+      createContext(
+        { name: "fix-vulnerabilities" },
+        { POE_API_KEY: "key" }
+      )
     );
 
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
@@ -453,9 +464,10 @@ describe("ghGroup", () => {
     const setupAgentCommand = getCommand(["prepare"]);
 
     await setupAgentCommand.handler(
-      createContext({
-        name: "github-issue-opened"
-      })
+      createContext(
+        { name: "github-issue-opened" },
+        { POE_API_KEY: "key" }
+      )
     );
 
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
@@ -484,9 +496,10 @@ describe("ghGroup", () => {
 
     await expect(
       setupAgentCommand.handler(
-        createContext({
-          name: "github-issue-opened"
-        })
+        createContext(
+          { name: "github-issue-opened" },
+          { POE_API_KEY: "key" }
+        )
       )
     ).rejects.toThrow(
       [

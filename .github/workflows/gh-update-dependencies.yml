@@ -14,6 +14,22 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Preflight
+        env:
+          POE_CODE_AGENT_APP_ID: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+          POE_CODE_AGENT_PRIVATE_KEY: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+          POE_API_KEY: ${{ secrets.POE_API_KEY }}
+        run: |
+          missing=()
+          [ -z "$POE_CODE_AGENT_APP_ID" ] && missing+=("POE_CODE_AGENT_APP_ID")
+          [ -z "$POE_CODE_AGENT_PRIVATE_KEY" ] && missing+=("POE_CODE_AGENT_PRIVATE_KEY")
+          [ -z "$POE_API_KEY" ] && missing+=("POE_API_KEY")
+          if [ ${#missing[@]} -gt 0 ]; then
+            for name in "${missing[@]}"; do
+              echo "::error::Missing required secret: $name — add it in Settings → Secrets and variables → Actions"
+            done
+            exit 1
+          fi
       - uses: actions/create-github-app-token@v1
         id: app-token
         with:

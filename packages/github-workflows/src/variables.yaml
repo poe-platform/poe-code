@@ -12,6 +12,9 @@ verify_before_responding: |
 
 skill_github_cli: |
   Use the `gh` CLI for all GitHub operations (issues, PRs, reviews, checks).
+  When posting GitHub bodies, comments, or reviews that contain Markdown, code fences, backticks, `$`, or multiple lines, do not inline that text in a double-quoted shell argument.
+  Write the content with a quoted heredoc and pass it via `--body-file` so the shell cannot mangle it.
+  After posting or editing, verify the rendered result with `gh issue view` / `gh pr view`.
 
 pull_request_guidelines: |
   - One logical change per PR. Feel free to open multiple PRs.

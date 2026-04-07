@@ -364,6 +364,31 @@ describe("ghGroup", () => {
     });
   });
 
+  it("renders built-in gh guidance that avoids shell-mangled GitHub bodies", async () => {
+    writeBuiltInPrompt(
+      "github-issue-opened",
+      readFileSync(path.join(promptDir, "github-issue-opened.md"), "utf8")
+    );
+
+    const promptPreviewCommand = getCommand(["prompt-preview"]);
+    const result = await promptPreviewCommand.handler(
+      createContext(
+        {
+          name: "github-issue-opened"
+        },
+        {
+          GITHUB_REPOSITORY: "acme/app",
+          ISSUE_NUMBER: "188"
+        }
+      )
+    );
+
+    expect(result.prompt).toContain("Use the `gh` CLI for all GitHub operations");
+    expect(result.prompt).toContain("--body-file");
+    expect(result.prompt).toContain("quoted heredoc");
+    expect(result.prompt).toContain("gh issue view");
+  });
+
   it("runs source commands, renders each item, and resolves MCP env references before spawning", async () => {
     writeBuiltInPrompt(
       "fix-vulnerabilities",

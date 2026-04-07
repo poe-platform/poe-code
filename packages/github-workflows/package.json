@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-spawn": "*",
+    "@poe-code/config-extends": "*",
     "@poe-code/cmdkit": "*",
     "@poe-code/cmdkit-schema": "*",
     "@poe-code/design-system": "*",

@@ -432,7 +432,11 @@ export const ghGroup: Group = defineGroup({
 });
 
 async function loadNamedAutomation(name: string, cwd: string): Promise<AutomationDefinition> {
-  const automation = await loadAutomation(name, [...projectPromptDirs(cwd), await resolveBuiltInPromptsDir()]);
+  const builtInPromptsDir = await resolveBuiltInPromptsDir();
+  const automation = await loadAutomation(
+    name,
+    [...projectPromptDirs(cwd)].reverse().concat(builtInPromptsDir)
+  );
   if (automation === undefined) {
     throw new UserError(`Automation "${name}" was not found.`);
   }

@@ -263,7 +263,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integrate-gh-workflows
     title: Integrate config-extends into github-workflows prompts
@@ -298,8 +298,8 @@ tasks:
       - Defaults layer provides agent when neither document nor base defines it
       - No extends → backward compatible
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integrate-gh-variables

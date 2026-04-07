@@ -84,15 +84,18 @@ describe("discoverAutomations", () => {
     await expect(discoverAutomations("/built-in", "/project")).resolves.toEqual([
       {
         name: "fix",
-        prompt: "# Built-in fix"
+        prompt: "# Built-in fix",
+        agent: "codex"
       },
       {
         name: "local-only",
-        prompt: "# Local only"
+        prompt: "# Local only",
+        agent: "codex"
       },
       {
         name: "triage",
         prompt: "# Project triage",
+        agent: "codex",
         prefix: "/poe"
       }
     ]);
@@ -109,11 +112,13 @@ describe("discoverAutomations", () => {
     await expect(discoverAutomations("/built-in", "/github-workflows", "/poe-code")).resolves.toEqual([
       {
         name: "local-only",
-        prompt: "# Legacy local only"
+        prompt: "# Legacy local only",
+        agent: "codex"
       },
       {
         name: "triage",
-        prompt: "# Ejected triage"
+        prompt: "# Ejected triage",
+        agent: "codex"
       }
     ]);
   });
@@ -140,6 +145,7 @@ describe("discoverAutomations", () => {
       {
         name: "triage",
         prompt: "# Prompt",
+        agent: "codex",
         label: "Scheduled: My Automation"
       }
     ]);
@@ -257,6 +263,7 @@ describe("discoverAutomations", () => {
       {
         name: "triage",
         prompt: "# Prompt",
+        agent: "codex",
         prefix: ["poe-code", "poe-code-agent", "@poe-code-agent"]
       }
     ]);
@@ -293,6 +300,100 @@ describe("loadAutomation", () => {
     fsState.readFileErrors.clear();
   });
 
+  it("inherits the built-in prompt body and frontmatter when a project prompt extends it", async () => {
+    fsState.directories.set("/project", ["triage.md"]);
+    fsState.directories.set("/built-in", ["triage.md"]);
+    fsState.files.set(
+      "/project/triage.md",
+      ["---", "extends: true", "---"].join("\n")
+    );
+    fsState.files.set(
+      "/built-in/triage.md",
+      [
+        "---",
+        "agent: claude-code",
+        "allow:",
+        "  - OWNER",
+        "prefix: /poe",
+        "---",
+        "# Built-in triage",
+        "",
+        "Body"
+      ].join("\n")
+    );
+
+    await expect(loadAutomation("triage", ["/project", "/built-in"])).resolves.toEqual({
+      name: "triage",
+      prompt: "# Built-in triage\n\nBody",
+      agent: "claude-code",
+      allow: ["OWNER"],
+      prefix: "/poe"
+    });
+  });
+
+  it("lets a project prompt override agent while inheriting the remaining built-in config", async () => {
+    fsState.directories.set("/project", ["triage.md"]);
+    fsState.directories.set("/built-in", ["triage.md"]);
+    fsState.files.set(
+      "/project/triage.md",
+      ["---", "extends: true", "agent: claude-code", "---"].join("\n")
+    );
+    fsState.files.set(
+      "/built-in/triage.md",
+      [
+        "---",
+        "agent: codex",
+        "source: gh api repos/{owner}/{repo}/issues",
+        "allow:",
+        "  - OWNER",
+        "prefix: /poe",
+        "---",
+        "# Built-in triage"
+      ].join("\n")
+    );
+
+    await expect(loadAutomation("triage", ["/project", "/built-in"])).resolves.toEqual({
+      name: "triage",
+      prompt: "# Built-in triage",
+      agent: "claude-code",
+      source: "gh api repos/{owner}/{repo}/issues",
+      allow: ["OWNER"],
+      prefix: "/poe"
+    });
+  });
+
+  it("provides the default agent when neither the project document nor its base defines one", async () => {
+    fsState.directories.set("/project", ["triage.md"]);
+    fsState.directories.set("/built-in", ["triage.md"]);
+    fsState.files.set(
+      "/project/triage.md",
+      ["---", "extends: true", "---"].join("\n")
+    );
+    fsState.files.set("/built-in/triage.md", "# Built-in triage");
+
+    await expect(loadAutomation("triage", ["/project", "/built-in"])).resolves.toEqual({
+      name: "triage",
+      prompt: "# Built-in triage",
+      agent: "codex"
+    });
+  });
+
+  it("keeps project prompts backward compatible when they do not opt into extends", async () => {
+    fsState.directories.set("/project", ["triage.md"]);
+    fsState.directories.set("/built-in", ["triage.md"]);
+    fsState.files.set("/project/triage.md", "# Project triage");
+    fsState.files.set(
+      "/built-in/triage.md",
+      ["---", "allow:", "  - OWNER", "---", "# Built-in triage"].join("\n")
+    );
+
+    await expect(loadAutomation("triage", ["/project", "/built-in"])).resolves.toEqual({
+      name: "triage",
+      prompt: "# Project triage",
+      agent: "codex"
+    });
+  });
+
   it("loads the first matching automation name from the provided directories", async () => {
     fsState.directories.set("/project", ["triage.md"]);
     fsState.directories.set("/built-in", ["triage.md"]);
@@ -301,7 +402,8 @@ describe("loadAutomation", () => {
 
     await expect(loadAutomation("triage", ["/project", "/built-in"])).resolves.toEqual({
       name: "triage",
-      prompt: "# Project triage"
+      prompt: "# Project triage",
+      agent: "codex"
     });
   });
 
@@ -321,7 +423,8 @@ describe("loadAutomation", () => {
 
     await expect(loadAutomation("triage", ["/project", "/built-in"])).resolves.toEqual({
       name: "triage",
-      prompt: "# Built-in triage"
+      prompt: "# Built-in triage",
+      agent: "codex"
     });
   });
 });

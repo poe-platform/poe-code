@@ -322,6 +322,27 @@ describe("ghGroup", () => {
     });
   });
 
+  it("prefers the project .poe-code prompt copy over .github/workflows when the project file does not extend", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Built-in prompt");
+    vol.fromJSON({
+      "/repo/.github/workflows/github-issue-opened.md": "# Ejected prompt",
+      "/repo/.poe-code/github-workflows/github-issue-opened.md": "# Project override"
+    });
+
+    const promptPreviewCommand = getCommand(["prompt-preview"]);
+
+    await expect(
+      promptPreviewCommand.handler(
+        createContext({
+          name: "github-issue-opened"
+        })
+      )
+    ).resolves.toEqual({
+      name: "github-issue-opened",
+      prompt: "# Project override"
+    });
+  });
+
   it("renders prompt-preview with resolved shared variables", async () => {
     writeBuiltInPrompt(
       "github-issue-opened",
@@ -710,7 +731,7 @@ describe("ghGroup", () => {
           expect.objectContaining({ name: "source", title: "Source" })
         ],
         rows: [
-          { name: "alpha", agent: "", source: "direct" },
+          { name: "alpha", agent: "codex", source: "direct" },
           { name: "beta", agent: "codex", source: "direct" }
         ]
       })

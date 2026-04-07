@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { parseFrontmatter } from "./frontmatter.js";
+import { resolve } from "@poe-code/config-extends";
 import type { AutomationDefinition } from "./types.js";
 
 const VALID_AUTHOR_ASSOCIATIONS = new Set([
@@ -18,42 +18,41 @@ export async function discoverAutomations(
   builtInDir: string,
   ...projectDirs: string[]
 ): Promise<AutomationDefinition[]> {
-  const automationsByName = new Map<string, AutomationDefinition>();
+  const directories = [builtInDir, ...projectDirs];
+  const fileNamesByDirectory = await Promise.all(
+    directories.map(async (dir) => [dir, await listMarkdownFiles(dir)] as const)
+  );
+  const names = new Set<string>();
 
-  for (const automation of await readAutomationsFromDirectory(builtInDir)) {
-    automationsByName.set(automation.name, automation);
-  }
-
-  for (const projectDir of projectDirs) {
-    for (const automation of await readAutomationsFromDirectory(projectDir)) {
-      automationsByName.set(automation.name, automation);
+  for (const [, fileNames] of fileNamesByDirectory) {
+    for (const fileName of fileNames) {
+      names.add(fileName.slice(0, -3));
     }
   }
 
-  return [...automationsByName.values()].sort((left, right) => left.name.localeCompare(right.name));
+  const precedenceDirs = [...projectDirs].reverse().concat(builtInDir);
+  const automations = await Promise.all([...names].map((name) => loadAutomation(name, precedenceDirs)));
+
+  return automations
+    .filter((automation): automation is AutomationDefinition => automation !== undefined)
+    .sort((left, right) => left.name.localeCompare(right.name));
 }
 
 export async function loadAutomation(
   name: string,
   dirs: string[]
 ): Promise<AutomationDefinition | undefined> {
-  for (const dir of dirs) {
+  for (const [index, dir] of dirs.entries()) {
     const fileNames = await listMarkdownFiles(dir);
 
     if (!fileNames.includes(`${name}.md`)) {
       continue;
     }
 
-    return readAutomation(dir, `${name}.md`);
+    return readAutomation(dir, `${name}.md`, dirs.slice(index + 1));
   }
 
   return undefined;
-}
-
-async function readAutomationsFromDirectory(dir: string): Promise<AutomationDefinition[]> {
-  const fileNames = await listMarkdownFiles(dir);
-  const automations = await Promise.all(fileNames.map((fileName) => readAutomation(dir, fileName)));
-  return automations.sort((left, right) => left.name.localeCompare(right.name));
 }
 
 async function listMarkdownFiles(dir: string): Promise<string[]> {
@@ -71,16 +70,54 @@ async function listMarkdownFiles(dir: string): Promise<string[]> {
   }
 }
 
-async function readAutomation(dir: string, fileName: string): Promise<AutomationDefinition> {
-  const content = await readFile(join(dir, fileName), "utf8");
-  const { frontmatter, body } = parseFrontmatter(content);
+async function readAutomation(
+  dir: string,
+  fileName: string,
+  baseDirs: string[]
+): Promise<AutomationDefinition> {
+  const filePath = join(dir, fileName);
+  const content = await readFile(filePath, "utf8");
+  const resolved = await resolve(
+    [
+      {
+        source: "document",
+        filePath,
+        content
+      },
+      ...baseDirs.map((baseDir) => ({
+        source: "base",
+        path: baseDir
+      })),
+      {
+        source: "defaults",
+        data: {
+          agent: "codex"
+        }
+      }
+    ],
+    {
+      fs: { readFile }
+    }
+  );
   const name = fileName.slice(0, -3);
 
   return {
     name,
-    prompt: body,
-    ...readAutomationFields(frontmatter, fileName)
+    prompt: readPrompt(resolved.data.prompt, fileName),
+    ...readAutomationFields(resolved.data, fileName)
   };
+}
+
+function readPrompt(value: unknown, fileName: string): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value === undefined) {
+    return "";
+  }
+
+  throw new Error(`Automation "${fileName}" has invalid "prompt" content. Expected a string.`);
 }
 
 function readAutomationFields(

@@ -47,4 +47,4 @@ export type {
   InitializeResult,
 } from "./types.js";
 
-export { JSON_RPC_ERROR_CODES } from "./types.js";
+export { JSON_RPC_ERROR_CODES, ToolError } from "./types.js";

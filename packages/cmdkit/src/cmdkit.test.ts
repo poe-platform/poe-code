@@ -1065,7 +1065,7 @@ describe("createMCPServer", () => {
         expect(error).toMatchObject({
           code: ERROR_INVALID_PARAMS,
         });
-        expect((error as Error).message).toContain("Unknown tool: missing");
+        expect((error as Error).message).toContain("missing");
         return true;
       });
     } finally {

@@ -28,6 +28,16 @@ export const JSON_RPC_ERROR_CODES = {
   INTERNAL_ERROR: -32603
 } as const;
 
+export class ToolError extends Error {
+  constructor(
+    public readonly code: number,
+    message: string
+  ) {
+    super(message);
+    this.name = "ToolError";
+  }
+}
+
 // MCP protocol types
 export interface ToolsCapability {
   listChanged?: boolean;

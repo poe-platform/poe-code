@@ -7,6 +7,7 @@ import {
   formatSuccessResponse,
   formatErrorResponse,
 } from "./jsonrpc.js";
+import { ToolError } from "./index.js";
 import { JSON_RPC_ERROR_CODES } from "./types.js";
 import type { JSONRPCNotification } from "./types.js";
 import { defineSchema } from "./schema.js";
@@ -1804,6 +1805,35 @@ describe("server protocol handlers", () => {
         result: {
           content: [{ type: "text", text: "Error: boom" }],
           isError: true,
+        },
+      });
+    });
+
+    it("R11: handleMessage with ToolError returns JSON-RPC error", async () => {
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "invalid",
+        "Fails with invalid params",
+        schema,
+        async () => {
+          throw new ToolError(
+            JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+            "Missing required parameter"
+          );
+        }
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "invalid",
+          arguments: {},
+        })
+      ).resolves.toEqual({
+        error: {
+          code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+          message: "Missing required parameter",
         },
       });
     });

@@ -15,7 +15,7 @@ import type {
   JSONRPCResponse,
   JSONRPCNotification,
 } from "./types.js";
-import { JSON_RPC_ERROR_CODES } from "./types.js";
+import { JSON_RPC_ERROR_CODES, ToolError } from "./types.js";
 import {
   parseMessage,
   formatSuccessResponse,
@@ -138,6 +138,15 @@ export function createServer(options: ServerOptions): Server {
         const result: CallToolResult = { content: toContentBlocks(handlerResult) };
         return { result };
       } catch (err) {
+        if (err instanceof ToolError) {
+          return {
+            error: {
+              code: err.code,
+              message: err.message,
+            },
+          };
+        }
+
         const errorMessage =
           err instanceof Error ? err.message : String(err);
         const result: CallToolResult = {

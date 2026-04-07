@@ -1,12 +1,12 @@
 import { access, readFile, writeFile } from "node:fs/promises";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
-  CallToolRequestSchema,
-  ErrorCode,
-  ListToolsRequestSchema,
-  McpError,
-} from "@modelcontextprotocol/sdk/types.js";
+  createServer,
+  JSON_RPC_ERROR_CODES,
+  ToolError,
+  type SDKTransport,
+  type Server as TinyServer,
+  type TypedSchema,
+} from "tiny-stdio-mcp-server";
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "@poe-code/cmdkit-schema";
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
@@ -14,7 +14,9 @@ import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./i
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
 
 type Casing = "snake" | "camel";
-type CmdkitServer = Server;
+type CmdkitServer = Omit<TinyServer, "connect"> & {
+  connect(transport: SDKTransport): Promise<void>;
+};
 type ToolContent =
   | { type: "text"; text: string }
   | { type: "image"; data: string; mimeType: string }
@@ -433,20 +435,20 @@ function toToolContent(result: unknown): ToolContent[] {
   return [{ type: "text", text: JSON.stringify(result) }];
 }
 
-function toMcpError(error: unknown): McpError {
-  if (error instanceof McpError) {
+function toToolError(error: unknown): ToolError {
+  if (error instanceof ToolError) {
     return error;
   }
 
   if (error instanceof UserError) {
-    return new McpError(ErrorCode.InvalidParams, error.message);
+    return new ToolError(JSON_RPC_ERROR_CODES.INVALID_PARAMS, error.message);
   }
 
   if (error instanceof Error) {
-    return new McpError(ErrorCode.InternalError, error.message);
+    return new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR, error.message);
   }
 
-  return new McpError(ErrorCode.InternalError, String(error));
+  return new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR, String(error));
 }
 
 export function createMCPServer<TServices extends object = Record<string, unknown>>(
@@ -459,57 +461,49 @@ export function createMCPServer<TServices extends object = Record<string, unknow
   validateServices(services as Record<string, unknown>);
 
   const tools = enumerateTools(root, casing, options.tools);
-  const toolByName = new Map(tools.map((tool) => [tool.name, tool]));
-  const server = new Server(
-    { name: options.name, version: options.version },
-    { capabilities: { tools: {} } }
-  );
+  const server = createServer({ name: options.name, version: options.version });
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: tools.map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      inputSchema: tool.inputSchema,
-    })),
-  }));
+  for (const tool of tools) {
+    server.tool(
+      tool.name,
+      tool.description,
+      tool.inputSchema as TypedSchema<Record<string, unknown>>,
+      async (argumentsValue) => {
+        try {
+          const secrets = resolveCommandSecrets(tool.command);
+          const baseContext = {
+            ...services,
+            secrets,
+            fetch: globalThis.fetch,
+            fs: createFs(),
+            env: createEnv(),
+            progress(): void {
+              return undefined;
+            },
+          };
 
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const tool = toolByName.get(request.params.name);
+          await assertCommandRequirements(tool.command, { ...baseContext, params: undefined });
 
-    if (tool === undefined) {
-      throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${request.params.name}`);
-    }
+          const params = validateToolArguments(tool.command.params, argumentsValue, casing);
+          const result = await tool.command.handler({
+            ...baseContext,
+            params,
+          } as Parameters<typeof tool.command.handler>[0]);
 
-    try {
-      const secrets = resolveCommandSecrets(tool.command);
-      const baseContext = {
-        ...services,
-        secrets,
-        fetch: globalThis.fetch,
-        fs: createFs(),
-        env: createEnv(),
-        progress(): void {
-          return undefined;
-        },
-      };
+          return toToolContent(result);
+        } catch (error) {
+          throw toToolError(error);
+        }
+      }
+    );
+  }
 
-      await assertCommandRequirements(tool.command, { ...baseContext, params: undefined });
-
-      const params = validateToolArguments(tool.command.params, request.params.arguments, casing);
-      const result = await tool.command.handler({
-        ...baseContext,
-        params,
-      } as Parameters<typeof tool.command.handler>[0]);
-
-      return {
-        content: toToolContent(result),
-      };
-    } catch (error) {
-      throw toMcpError(error);
-    }
-  });
-
-  return server;
+  return {
+    ...server,
+    connect(transport: SDKTransport): Promise<void> {
+      return server.connectSDK(transport);
+    },
+  };
 }
 
 export async function runMCP<TServices extends object = Record<string, unknown>>(
@@ -517,6 +511,5 @@ export async function runMCP<TServices extends object = Record<string, unknown>>
   options: RunMCPOptions<TServices>
 ): Promise<void> {
   const server = createMCPServer(roots, options);
-  const transport = new StdioServerTransport(process.stdin, process.stdout);
-  await server.connect(transport);
+  await server.listen();
 }

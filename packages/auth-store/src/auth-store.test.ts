@@ -1,0 +1,386 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { createSecretStore } from "./index.js";
+import type { EncryptedFileStoreFileSystem } from "./encrypted-file-store.js";
+import {
+  EncryptedFileStore,
+} from "./encrypted-file-store.js";
+import { KeychainStore } from "./keychain-store.js";
+
+// --- createSecretStore ---
+
+function createMemFs(): EncryptedFileStoreFileSystem {
+  const volume = new Volume();
+  return createFsFromVolume(volume).promises as unknown as EncryptedFileStoreFileSystem;
+}
+
+function createKeychainCommandRunner() {
+  return vi.fn(async (_command: string, args: string[]) => {
+    if (args[0] === "find-generic-password") {
+      return {
+        stdout: "keychain-secret\n",
+        stderr: "",
+        exitCode: 0
+      };
+    }
+
+    return {
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    };
+  });
+}
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+describe("createSecretStore", () => {
+  it("creates file backend store by default", async () => {
+    const filePath = "/home/test/.app/credentials.enc";
+    const fs = createMemFs();
+    const result = createSecretStore({
+      fileStore: {
+        fs,
+        filePath,
+        salt: "test-app:store:v1",
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+      }
+    });
+
+    expect(result.backend).toBe("file");
+    expect(await result.store.get()).toBeNull();
+
+    await result.store.set("test-secret");
+    expect(await result.store.get()).toBe("test-secret");
+    expect(await fs.readFile(filePath, "utf8")).not.toContain("test-secret");
+
+    await result.store.delete();
+    expect(await result.store.get()).toBeNull();
+  });
+
+  it("uses file backend when env var is set to file", async () => {
+    const filePath = "/home/test/.app/credentials.enc";
+    const fs = createMemFs();
+    const result = createSecretStore({
+      backendEnvVar: "MY_AUTH_BACKEND",
+      env: { MY_AUTH_BACKEND: "file" },
+      platform: "linux",
+      fileStore: {
+        fs,
+        filePath,
+        salt: "test-app:store:v1",
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+      }
+    });
+
+    expect(result.backend).toBe("file");
+    await result.store.set("test-secret");
+    expect(await result.store.get()).toBe("test-secret");
+  });
+
+  it("uses keychain backend when env var is set to keychain on macOS", async () => {
+    const runCommand = createKeychainCommandRunner();
+
+    const result = createSecretStore({
+      backendEnvVar: "MY_AUTH_BACKEND",
+      env: { MY_AUTH_BACKEND: "keychain" },
+      platform: "darwin",
+      keychainStore: {
+        runCommand,
+        service: "my-app",
+        account: "secret"
+      }
+    });
+
+    expect(result.backend).toBe("keychain");
+    await result.store.set("keychain-secret");
+    expect(await result.store.get()).toBe("keychain-secret");
+
+    expect(runCommand).toHaveBeenCalledWith("security", [
+      "add-generic-password",
+      "-s",
+      "my-app",
+      "-a",
+      "secret",
+      "-w",
+      "keychain-secret",
+      "-U"
+    ]);
+  });
+
+  it("throws when keychain backend is requested on non-macOS", () => {
+    expect(() => {
+      createSecretStore({
+        backend: "keychain",
+        platform: "linux",
+        keychainStore: {
+          service: "my-app",
+          account: "secret"
+        }
+      });
+    }).toThrowError(
+      "Keychain backend is only supported on macOS. Current platform: linux"
+    );
+  });
+
+  it("reads backend from process.env using custom env var", async () => {
+    vi.stubEnv("CUSTOM_BACKEND", "keychain");
+    const runCommand = createKeychainCommandRunner();
+
+    const result = createSecretStore({
+      backendEnvVar: "CUSTOM_BACKEND",
+      platform: "darwin",
+      keychainStore: {
+        runCommand,
+        service: "my-app",
+        account: "secret"
+      }
+    });
+
+    expect(result.backend).toBe("keychain");
+  });
+});
+
+// --- EncryptedFileStore ---
+
+interface StatFileSystem extends EncryptedFileStoreFileSystem {
+  stat(path: string): Promise<{ mode: number }>;
+}
+
+function createStatMemFs(): StatFileSystem {
+  const volume = new Volume();
+  return createFsFromVolume(volume).promises as unknown as StatFileSystem;
+}
+
+const ENCRYPTED_STORE_SALT = "test-app:encrypted-store:v1";
+
+describe("EncryptedFileStore", () => {
+  it("encrypts values with AES-256-GCM and uses a random IV per write", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await store.set("secret-value");
+    const firstPayload = await fs.readFile(filePath, "utf8");
+    const firstDocument = JSON.parse(firstPayload) as {
+      version: number;
+      iv: string;
+      authTag: string;
+      ciphertext: string;
+    };
+
+    expect(firstPayload).not.toContain("secret-value");
+    expect(firstDocument.version).toBe(1);
+    expect(Buffer.from(firstDocument.iv, "base64")).toHaveLength(12);
+    expect(Buffer.from(firstDocument.authTag, "base64")).toHaveLength(16);
+    expect(firstDocument.ciphertext.length).toBeGreaterThan(0);
+
+    await store.set("secret-value");
+    const secondPayload = await fs.readFile(filePath, "utf8");
+
+    expect(secondPayload).not.toBe(firstPayload);
+    await expect(store.get()).resolves.toBe("secret-value");
+  });
+
+  it("derives machine-bound key using hostname and username", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const writerStore = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "writer-host", username: "writer-user" })
+    });
+    const readerStore = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "reader-host", username: "writer-user" })
+    });
+
+    await writerStore.set("machine-bound-secret");
+
+    await expect(readerStore.get()).resolves.toBeNull();
+  });
+
+  it("uses configurable default directory and file name", async () => {
+    const fs = createStatMemFs();
+    const store = new EncryptedFileStore({
+      fs,
+      salt: ENCRYPTED_STORE_SALT,
+      defaultDirectory: ".my-app",
+      defaultFileName: "secret.enc",
+      getHomeDirectory: () => "/home/custom",
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await store.set("default-path-value");
+
+    await expect(
+      fs.readFile("/home/custom/.my-app/secret.enc", "utf8")
+    ).resolves.toContain("ciphertext");
+    await expect(store.get()).resolves.toBe("default-path-value");
+  });
+
+  it("sets 0600 permissions when writing credentials", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await store.set("permissioned-value");
+
+    const stats = await fs.stat(filePath);
+    expect(stats.mode & 0o777).toBe(0o600);
+  });
+
+  it("returns null instead of throwing when decryption fails", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await fs.mkdir("/home/test/.app", { recursive: true });
+    await fs.writeFile(
+      filePath,
+      "{\"version\":1,\"iv\":\"aQ==\",\"authTag\":\"Yg==\",\"ciphertext\":\"Yw==\"}",
+      { encoding: "utf8" }
+    );
+
+    await expect(store.get()).resolves.toBeNull();
+  });
+
+  it("deletes encrypted file", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await store.set("delete-me");
+
+    await store.delete();
+
+    await expect(store.get()).resolves.toBeNull();
+    await expect(fs.readFile(filePath, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+});
+
+// --- KeychainStore ---
+
+describe("KeychainStore", () => {
+  it("stores secret with security add-generic-password", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await store.set("my-secret-value");
+
+    expect(runCommand).toHaveBeenCalledWith("security", [
+      "add-generic-password",
+      "-s",
+      "my-app",
+      "-a",
+      "secret",
+      "-w",
+      "my-secret-value",
+      "-U"
+    ]);
+  });
+
+  it("reads secret with security find-generic-password", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "my-secret-value\n",
+      stderr: "",
+      exitCode: 0
+    }));
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await expect(store.get()).resolves.toBe("my-secret-value");
+    expect(runCommand).toHaveBeenCalledWith("security", [
+      "find-generic-password",
+      "-s",
+      "my-app",
+      "-a",
+      "secret",
+      "-w"
+    ]);
+  });
+
+  it("returns null when keychain entry is not found", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "security: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\n",
+      exitCode: 44
+    }));
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await expect(store.get()).resolves.toBeNull();
+  });
+
+  it("deletes secret with security delete-generic-password", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await store.delete();
+
+    expect(runCommand).toHaveBeenCalledWith("security", [
+      "delete-generic-password",
+      "-s",
+      "my-app",
+      "-a",
+      "secret"
+    ]);
+  });
+
+  it("does not throw when deleting a missing keychain entry", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "item not found",
+      exitCode: 44
+    }));
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await expect(store.delete()).resolves.toBeUndefined();
+  });
+
+  it("throws helpful error for security CLI failures", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "operation failed",
+      exitCode: 1
+    }));
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await expect(store.set("value")).rejects.toThrow(
+      "Failed to store secret in macOS Keychain"
+    );
+  });
+});

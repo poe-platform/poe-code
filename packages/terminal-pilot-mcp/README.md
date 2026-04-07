@@ -2,6 +2,14 @@
 
 MCP server that wraps [terminal-pilot](../terminal-pilot) and exposes terminal automation as MCP tools.
 
+To install the companion CLI skill that teaches agents how to use these tools, see the [terminal-pilot CLI skill installer](../terminal-pilot/README.md#skill-installation).
+
+## Install
+
+```sh
+npm install -g terminal-pilot-mcp
+```
+
 ## Run it
 
 Development:
@@ -57,6 +65,19 @@ await main();
   "mcpServers": {
     "terminal-pilot": {
       "command": "terminal-pilot-mcp"
+    }
+  }
+}
+```
+
+**Without a global install** — use npx in any of the configs above:
+
+```json
+{
+  "mcpServers": {
+    "terminal-pilot": {
+      "command": "npx",
+      "args": ["terminal-pilot-mcp"]
     }
   }
 }

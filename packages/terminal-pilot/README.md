@@ -8,6 +8,46 @@ For design rationale and scope, see `docs/plans/terminal-pilot.md`.
 
 For the MCP server, see [terminal-pilot-mcp](../terminal-pilot-mcp).
 
+## CLI
+
+The `terminal-pilot` package ships a CLI binary. After installing globally or via npx, all SDK commands and the skill installer are available from the command line.
+
+### Install globally
+
+```sh
+npm install -g terminal-pilot
+```
+
+Or run directly with npx:
+
+```sh
+npx terminal-pilot <command> [options]
+```
+
+### Skill installation
+
+The CLI can install a Claude Code skill that teaches the agent how to use terminal-pilot's MCP tools. Supported agents: `claude-code`, `codex`, `opencode`.
+
+**Install the skill (local project, default):**
+
+```sh
+terminal-pilot install claude-code
+```
+
+**Install the skill globally (user home):**
+
+```sh
+terminal-pilot install claude-code --global
+```
+
+**Uninstall the skill:**
+
+```sh
+terminal-pilot uninstall claude-code
+```
+
+By default, `install` targets the current project (`--local`). Use `--global` to install in the user's home directory. You cannot pass both `--local` and `--global`.
+
 ## What it includes
 
 - **SDK:** `TerminalPilot` → `TerminalSession` → `TerminalScreen`

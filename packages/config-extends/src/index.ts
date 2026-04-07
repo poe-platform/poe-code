@@ -8,3 +8,4 @@ export type {
   ResolvedDocument,
   ResolveOptions
 } from "./types.js";
+export { parseDocument } from "./parse.js";

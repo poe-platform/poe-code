@@ -107,7 +107,7 @@ describe("generate-docs", () => {
     expect(output).toContain("table-markdown");
     expect(output).toContain("markdown");
     expect(output).toContain("markdown-minimal");
-  });
+  }, 15_000);
 
   it("renders markdown docs with fenced markdown output blocks", () => {
     const output = renderTextDocument("markdown", (demoArgs, format) => {

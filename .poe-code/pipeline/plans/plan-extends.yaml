@@ -24,7 +24,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: parser
     title: Document parser for md, yaml, and json
@@ -61,8 +61,8 @@ tasks:
 
       Export `parseDocument` from `src/index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: discovery

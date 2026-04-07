@@ -896,7 +896,7 @@ describe("createMockSlowToolServer", () => {
   });
 
   it("stops processing after notifications/cancelled and records cancellation", async () => {
-    const server = await createMockSlowToolServer({ delayMs: 50, pollIntervalMs: 5 });
+    const server = await createMockSlowToolServer({ delayMs: 1_000, pollIntervalMs: 5 });
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const client = new Client({ name: "test-client", version: "1.0.0" }, {});
     const abortController = new AbortController();
@@ -917,7 +917,7 @@ describe("createMockSlowToolServer", () => {
         { signal: abortController.signal }
       );
 
-      await new Promise((resolve) => setTimeout(resolve, 25));
+      await waitFor(() => server.wasStarted());
       abortController.abort("test cancellation");
 
       await expect(callPromise).rejects.toThrow();

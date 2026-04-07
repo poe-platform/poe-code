@@ -2702,13 +2702,19 @@ describe("async handlers", () => {
     transport.send(
       '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"delay","arguments":{}}}'
     );
-    // Wait for async handler to complete before closing
-    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    let responses = getResponsesWithId(transport.getAllResponses());
+    for (let attempts = 0; responses.length < 2 && attempts < 100; attempts += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      responses = getResponsesWithId(transport.getAllResponses());
+    }
+
     transport.close();
 
     await connectPromise;
 
-    const responses = getResponsesWithId(transport.getAllResponses());
+    responses = getResponsesWithId(transport.getAllResponses());
+    expect(responses).toHaveLength(2);
     expect(responses[1].result.content[0].text).toBe("delayed");
   });
 

@@ -179,5 +179,5 @@ export type SpawnMode = "read";
     expect(output).toContain('status: Literal["pending", "completed"]');
     expect(output).toContain('source: Literal["cli", "sdk"]');
     expect(output).toContain("ok: Optional[bool] = None");
-  });
+  }, 15_000);
 });

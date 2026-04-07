@@ -1606,6 +1606,8 @@ export async function createMockSlowToolServer(
   options: MockSlowToolServerOptions = {}
 ): Promise<
   SdkServerConnection & {
+    wasStarted: () => boolean;
+    getStartedRequestIds: () => RequestId[];
     wasCancelled: () => boolean;
     getCancelledRequestIds: () => RequestId[];
   }
@@ -1629,6 +1631,7 @@ export async function createMockSlowToolServer(
     { name: "mock-slow-tool-server", version: "1.0.0" },
     { capabilities: { tools: {} } }
   );
+  const startedRequestIds = new Set<RequestId>();
   const cancelledRequestIds = new Set<RequestId>();
   const tool = {
     name: "slow",
@@ -1652,6 +1655,7 @@ export async function createMockSlowToolServer(
     if (request.params.name !== "slow") {
       throw new Error(`Unknown tool: ${request.params.name}`);
     }
+    startedRequestIds.add(extra.requestId);
 
     const delayArgument = request.params.arguments?.delayMs;
     const delayMs =
@@ -1694,6 +1698,8 @@ export async function createMockSlowToolServer(
   });
 
   return Object.assign(server, {
+    wasStarted: (): boolean => startedRequestIds.size > 0,
+    getStartedRequestIds: (): RequestId[] => Array.from(startedRequestIds),
     wasCancelled: (): boolean => cancelledRequestIds.size > 0,
     getCancelledRequestIds: (): RequestId[] => Array.from(cancelledRequestIds),
   });

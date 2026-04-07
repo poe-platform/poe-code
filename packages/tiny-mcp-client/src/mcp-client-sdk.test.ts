@@ -258,7 +258,7 @@ describe("McpClient SDK integration callTool", () => {
   });
 
   it("cancels an in-flight slow tool call and surfaces abort rejection", async () => {
-    const server = await createMockSlowToolServer({ delayMs: 50, pollIntervalMs: 5 });
+    const server = await createMockSlowToolServer({ delayMs: 1_000, pollIntervalMs: 5 });
     const { client, cleanup } = await createSdkTestPair(server, () =>
       new McpClient({
         clientInfo: {
@@ -281,7 +281,7 @@ describe("McpClient SDK integration callTool", () => {
         { signal: abortController.signal }
       );
 
-      await new Promise((resolve) => setTimeout(resolve, 25));
+      await waitFor(() => server.wasStarted(), "Timed out waiting for slow tool to start");
       abortController.abort(abortReason);
 
       await expect(callPromise).rejects.toBe(abortReason);

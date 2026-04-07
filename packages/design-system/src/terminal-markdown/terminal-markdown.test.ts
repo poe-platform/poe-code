@@ -1,8 +1,700 @@
-import { describe, expect, expectTypeOf, it } from "vitest";
-import { parse, type MdNode } from "./index.js";
+import path from "node:path";
+import { performance } from "node:perf_hooks";
+import { fileURLToPath } from "node:url";
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from "vitest";
+import { TerminalPilot } from "@poe-code/terminal-pilot";
+import { symbols } from "../components/symbols.js";
+import { stripAnsi } from "../internal/strip-ansi.js";
+import { resetThemeCache, getTheme } from "../internal/theme-detect.js";
+import { typography } from "../tokens/typography.js";
+import { getMarkdownDemo } from "./demo-content.js";
+import { parse, render, renderMarkdown, type MdNode } from "./index.js";
 import { parseBlocks } from "./parser/block.js";
 import { extractFrontmatter } from "./parser/frontmatter.js";
 import { parseInline } from "./parser/inline.js";
+
+describe("terminal markdown demo content", () => {
+  it("returns the default markdown demo", () => {
+    expect(getMarkdownDemo()).toContain("# Design System Markdown");
+  });
+
+  it("returns the minimal markdown demo", () => {
+    expect(getMarkdownDemo("minimal")).toBe(
+      ["# Markdown Minimal", "", "Quick validation paragraph.", "", "```ts", 'console.log("demo");', "```"].join(
+        "\n"
+      )
+    );
+  });
+
+  it("returns a focused code block demo", () => {
+    const markdown = getMarkdownDemo("code-blocks");
+
+    expect(markdown).toContain("```ts");
+    expect(markdown).toContain('const sample = "**still literal**";');
+    expect(markdown).toContain("  return value + 1;");
+  });
+
+  it("returns a focused blockquote demo", () => {
+    const markdown = getMarkdownDemo("blockquotes");
+
+    expect(markdown).toContain("> Outer quote");
+    expect(markdown).toContain("> > Nested quote");
+    expect(markdown).toContain("> > > Deep quote");
+  });
+
+  it("returns a focused lists demo", () => {
+    const markdown = getMarkdownDemo("lists");
+
+    expect(markdown).toContain("- unordered item");
+    expect(markdown).toContain("1. ordered item");
+    expect(markdown).toContain("- [x] completed task");
+    expect(markdown).toContain("  - nested item");
+  });
+
+  it("returns a focused tables demo", () => {
+    const markdown = getMarkdownDemo("tables");
+
+    expect(markdown).toContain("| Column | Left | Center | Right |");
+    expect(markdown).toContain("| :----- | :--- | :----: | ----: |");
+    expect(markdown).toContain("| Alignment | alpha | beta | 42 |");
+    expect(markdown).toContain("| Separators | left | mid | 9000 |");
+  });
+
+  it("returns a focused alerts demo", () => {
+    const markdown = getMarkdownDemo("alerts");
+
+    expect(markdown).toContain("> [!NOTE]");
+    expect(markdown).toContain("> [!TIP]");
+    expect(markdown).toContain("> [!IMPORTANT]");
+    expect(markdown).toContain("> [!WARNING]");
+    expect(markdown).toContain("> [!CAUTION]");
+    expect(markdown).toContain("> Wrapped content stays aligned beneath the bar.");
+  });
+});
+
+describe("terminal markdown entrypoint", () => {
+  it("renders markdown via the combined helper", () => {
+    expect(renderMarkdown("Body")).toBe(render(parse("Body").ast));
+  });
+
+  it("returns frontmatter metadata and prepends a frontmatter node to the AST", () => {
+    const parsed = parse(["---", "title: Demo", "draft: false", "---", "", "Body"].join("\n"));
+
+    expect(parsed.frontmatter).toEqual({ title: "Demo", draft: false });
+    expect(parsed.ast).toMatchObject({
+      type: "root",
+      children: [
+        { type: "frontmatter", data: { title: "Demo", draft: false } },
+        { type: "paragraph" }
+      ]
+    });
+  });
+
+  it("passes render options through the helper", () => {
+    const markdown = ["---", "title: Demo", "---", "", "alpha beta gamma"].join("\n");
+    const options = { width: 10, showFrontmatter: true } as const;
+
+    expect(renderMarkdown(markdown, options)).toBe(render(parse(markdown).ast, options));
+  });
+
+  it("renders malformed markdown inputs as readable literal output without crashing", () => {
+    expect(() => renderMarkdown("```js\nconst x = 1;\nno closing fence")).not.toThrow();
+    expect(stripAnsi(renderMarkdown("```js\nconst x = 1;\nno closing fence"))).toContain(
+      " const x = 1;\n no closing fence\n"
+    );
+
+    expect(
+      stripAnsi(renderMarkdown("This has *unclosed emphasis and **unclosed strong"))
+    ).toBe("This has *unclosed emphasis and **unclosed strong\n\n");
+
+    expect(stripAnsi(renderMarkdown("[broken link(no close paren"))).toBe(
+      "[broken link(no close paren\n\n"
+    );
+  });
+
+  it("returns empty output for empty or whitespace-only documents", () => {
+    expect(renderMarkdown("")).toBe("");
+    expect(renderMarkdown("   \n\n  \n")).toBe("");
+  });
+
+  it("preserves unicode content and nested blockquote prefixes", () => {
+    const unicodeOutput = stripAnsi(renderMarkdown("# 你好世界 🌍\n\nParagraph with émojis 🎉 and ñ"));
+    expect(unicodeOutput).toContain("你好世界 🌍\n");
+    expect(unicodeOutput).toContain("Paragraph with émojis 🎉 and ñ\n\n");
+
+    expect(stripAnsi(renderMarkdown("> > > > deeply nested\n> > > > blockquote"))).toBe(
+      `${symbols.bar} ${symbols.bar} ${symbols.bar} ${symbols.bar} deeply nested\n${symbols.bar} ${symbols.bar} ${symbols.bar} ${symbols.bar} blockquote\n\n`
+    );
+  });
+
+  it("renders long fenced code blocks completely", () => {
+    const lines = Array.from({ length: 100 }, (_, index) => `line ${index + 1}`);
+    const markdown = ["```txt", ...lines, "```"].join("\n");
+    const output = stripAnsi(renderMarkdown(markdown));
+
+    expect(output).toContain(" line 1\n");
+    expect(output).toContain(" line 100\n");
+  });
+});
+
+function expectRenderedMarkdown(
+  markdown: string,
+  expectedFragments: readonly string[],
+  options: { width?: number; showFrontmatter?: boolean } = {}
+): string {
+  let output = "";
+
+  expect(() => {
+    output = renderMarkdown(markdown, { width: 120, ...options });
+  }).not.toThrow();
+
+  expect(output.length).toBeGreaterThan(0);
+  expect(stripAnsi(output).trim().length).toBeGreaterThan(0);
+  expect(output.includes("\u001B[")).toBe(true);
+
+  const plainText = stripAnsi(output);
+
+  for (const fragment of expectedFragments) {
+    expect(plainText).toContain(fragment);
+  }
+
+  return output;
+}
+
+function createLongCodeBlockDocument(): string {
+  const lines = Array.from({ length: 60 }, (_, index) => `console.log("line ${index + 1}");`);
+
+  return ["# Long Snippet", "", "```ts", ...lines, "```"].join("\n");
+}
+
+function createFootnoteDocument(): string {
+  const references = Array.from(
+    { length: 12 },
+    (_, index) => `Reference ${index + 1} uses note [^note-${index + 1}].`
+  );
+  const definitions = Array.from(
+    { length: 12 },
+    (_, index) => `[^note-${index + 1}]: Footnote ${index + 1} explanation.`
+  );
+
+  return ["# Footnote Index", "", ...references, "", ...definitions].join("\n");
+}
+
+function createTableHeavyDocument(): string {
+  const sections = Array.from({ length: 5 }, (_, index) =>
+    [
+      `## Table ${index + 1}`,
+      "",
+      "| Column | Left | Center | Right |",
+      "| :----- | :--- | :----: | ----: |",
+      `| Row ${index + 1}A | alpha | beta | ${index + 10} |`,
+      `| Row ${index + 1}B | gamma | delta | ${index + 20} |`
+    ].join("\n")
+  );
+
+  return ["# Dashboard Export", "", ...sections].join("\n\n");
+}
+
+function createLargeDocument(): string {
+  const lines = ["# Large Markdown Fixture"];
+
+  for (let index = 1; index <= 500; index += 1) {
+    lines.push(`## Section ${index}`);
+    lines.push(`Paragraph ${index} keeps the renderer busy without adding exotic syntax.`);
+  }
+
+  return lines.join("\n");
+}
+
+describe("terminal markdown integration", () => {
+  const originalForceColor = process.env.FORCE_COLOR;
+  const originalTheme = process.env.POE_CODE_THEME;
+  const originalThemeAlias = process.env.POE_THEME;
+
+  beforeEach(() => {
+    process.env.FORCE_COLOR = "1";
+    process.env.POE_CODE_THEME = "dark";
+    delete process.env.POE_THEME;
+    resetThemeCache();
+  });
+
+  afterEach(() => {
+    process.env.FORCE_COLOR = originalForceColor;
+    if (originalTheme === undefined) {
+      delete process.env.POE_CODE_THEME;
+    } else {
+      process.env.POE_CODE_THEME = originalTheme;
+    }
+    if (originalThemeAlias === undefined) {
+      delete process.env.POE_THEME;
+    } else {
+      process.env.POE_THEME = originalThemeAlias;
+    }
+    resetThemeCache();
+  });
+
+  it("switches renderer palettes when POE_THEME changes and the theme cache is reset", () => {
+    const markdown = ["# Theme", "", "`code`", "", "> [!WARNING]", "> Pay attention"].join("\n");
+
+    process.env.POE_CODE_THEME = "light";
+    delete process.env.POE_THEME;
+    resetThemeCache();
+    const canonicalLightOutput = renderMarkdown(markdown);
+
+    delete process.env.POE_CODE_THEME;
+    process.env.POE_THEME = "light";
+    resetThemeCache();
+    const aliasLightOutput = renderMarkdown(markdown);
+
+    expect(aliasLightOutput).toBe(canonicalLightOutput);
+    expect(stripAnsi(aliasLightOutput)).toContain("Pay attention");
+    expect(aliasLightOutput.includes("\u001B[")).toBe(true);
+  });
+
+  it("renders README-style markdown with badges, headings, code blocks, and links (test 155)", () => {
+    const markdown = [
+      "# Poe Setup Scripts [![build](https://img.shields.io/badge/build-passing-brightgreen)](https://example.com/build)",
+      "[![npm](https://img.shields.io/npm/v/poe-code)](https://npmjs.com/package/poe-code)",
+      "",
+      "Provision terminal agents with sensible defaults.",
+      "",
+      "## Quick Start",
+      "",
+      "See [documentation](https://example.com/docs) and [examples](https://example.com/examples).",
+      "",
+      "```bash",
+      "npm install -g poe-code",
+      "poe-code configure --provider openai",
+      "```"
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, [
+      "Poe Setup Scripts",
+      "Quick Start",
+      "https://example.com/docs",
+      "npm install -g poe-code"
+    ]);
+  });
+
+  it("renders API documentation with headings, parameter tables, and code examples (test 156)", () => {
+    const markdown = [
+      "# `renderMarkdown()`",
+      "",
+      "## Parameters",
+      "",
+      "| Name | Type | Description |",
+      "| --- | --- | --- |",
+      "| `markdown` | `string` | Raw markdown input. |",
+      "| `showFrontmatter` | `boolean` | Includes parsed YAML metadata. |",
+      "",
+      "## Example",
+      "",
+      "```ts",
+      'const output = renderMarkdown("# Title", { showFrontmatter: true });',
+      "```"
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, [
+      "renderMarkdown()",
+      "Parameters",
+      "showFrontmatter",
+      'const output = renderMarkdown("# Title", { showFrontmatter: true });'
+    ]);
+  });
+
+  it("renders changelog headings with nested lists (test 157)", () => {
+    const markdown = [
+      "# Changelog",
+      "",
+      "## [1.2.3] - 2024-01-15",
+      "",
+      "- Added terminal markdown footnotes.",
+      "  - Includes nested list rendering in changelog notes.",
+      "- Fixed paragraph wrapping around wide tables."
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, [
+      "Changelog",
+      "[1.2.3] - 2024-01-15",
+      "Includes nested list rendering in changelog notes."
+    ]);
+  });
+
+  it("renders a blog post with frontmatter, images, code, and blockquotes (test 158)", () => {
+    const markdown = [
+      "---",
+      "title: Terminal Markdown in Practice",
+      "author: Casey Example",
+      "---",
+      "",
+      "# Shipping the Renderer",
+      "",
+      "Teams often need a readable terminal view before a web preview exists.",
+      "",
+      "![Architecture sketch](https://example.com/diagram.png)",
+      "",
+      "> Good terminal copy is documentation, not decoration.",
+      "",
+      "```ts",
+      'console.log(renderMarkdown("# hello"));',
+      "```"
+    ].join("\n");
+
+    expectRenderedMarkdown(
+      markdown,
+      [
+        "title: Terminal Markdown in Practice",
+        "Shipping the Renderer",
+        "[image: Architecture sketch]",
+        'console.log(renderMarkdown("# hello"));'
+      ],
+      { showFrontmatter: true }
+    );
+  });
+
+  it("renders a GitHub issue template with frontmatter, task list, and code (test 159)", () => {
+    const markdown = [
+      "---",
+      'name: "Bug report"',
+      'about: "Report a reproducible renderer issue"',
+      "---",
+      "",
+      "# Bug Report",
+      "",
+      "## Checklist",
+      "",
+      "- [x] I searched existing issues.",
+      "- [ ] I attached a minimal reproduction.",
+      "",
+      "## Reproduction",
+      "",
+      "```bash",
+      "npm run test -- packages/design-system",
+      "```"
+    ].join("\n");
+
+    expectRenderedMarkdown(
+      markdown,
+      ["name: Bug report", "Checklist", "I searched existing issues.", "npm run test -- packages/design-system"],
+      { showFrontmatter: true }
+    );
+  });
+
+  it("renders CLI help pasted as indented code without crashing (test 160)", () => {
+    const markdown = [
+      "# CLI Help",
+      "",
+      "    poe-code configure [options]",
+      "    --provider <name>    Select a provider",
+      "    --yes                Accept defaults for CI",
+      "",
+      "Use the snippet above during onboarding."
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, [
+      "CLI Help",
+      "poe-code configure [options]",
+      "--yes                Accept defaults for CI"
+    ]);
+  });
+
+  it("renders LLM-generated markdown with inconsistent headings and extra blank lines (test 161)", () => {
+    const markdown = [
+      "# Overview",
+      "",
+      "",
+      "### Jumped Heading",
+      "",
+      "This paragraph has too much spacing.",
+      "",
+      "",
+      "###### Tiny Heading",
+      "",
+      "Another paragraph after extra blank lines."
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, [
+      "Overview",
+      "Jumped Heading",
+      "Tiny Heading",
+      "Another paragraph after extra blank lines."
+    ]);
+  });
+
+  it("renders a pipeline plan with YAML frontmatter and a structured body (test 162)", () => {
+    const markdown = [
+      "---",
+      "owner: platform",
+      "status: draft",
+      "---",
+      "",
+      "# Release Pipeline",
+      "",
+      "## Stages",
+      "",
+      "1. Build the package.",
+      "2. Run smoke tests.",
+      "3. Publish from GitHub."
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["owner: platform", "Release Pipeline", "Run smoke tests."], {
+      showFrontmatter: true
+    });
+  });
+
+  it("renders mixed inline formatting together (test 163)", () => {
+    const markdown = "**bold _italic_** [link](https://example.com) `code` ~~strike~~";
+
+    expectRenderedMarkdown(markdown, ["bold italic", "https://example.com", "code", "strike"]);
+  });
+
+  it("renders a long fenced code block with a language tag (test 164)", () => {
+    const markdown = createLongCodeBlockDocument();
+
+    expectRenderedMarkdown(markdown, ["Long Snippet", 'console.log("line 1");', 'console.log("line 60");']);
+  });
+
+  it("renders a document with many scattered footnotes (test 165)", () => {
+    const markdown = createFootnoteDocument();
+
+    expectRenderedMarkdown(markdown, ["Footnote Index", "Reference 1 uses note [1].", "Footnote 12 explanation."]);
+  });
+
+  it("renders a deeply nested blockquote conversation (test 166)", () => {
+    const markdown = [
+      "# Incident Review",
+      "",
+      "> Agent: I saw the deploy fail.",
+      "> > CI: The publish step timed out.",
+      "> > > Maintainer: Retry after refreshing tokens.",
+      "> > > > Bot: Secrets rotation finished.",
+      "> > > > > Agent: Re-running now.",
+      "> > > > > > CI: Success."
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, [
+      "Incident Review",
+      "Agent: I saw the deploy fail.",
+      "CI: Success."
+    ]);
+  });
+
+  it("renders a table-heavy document with multiple tables (test 167)", () => {
+    const markdown = createTableHeavyDocument();
+
+    expectRenderedMarkdown(markdown, ["Dashboard Export", "Table 5", "Row 5B", "gamma"]);
+  });
+
+  it("renders a document mixing all GitHub alert types (test 168)", () => {
+    const markdown = [
+      "# Alerts",
+      "",
+      "> [!NOTE]",
+      "> Keep the terminal output concise.",
+      "",
+      "> [!TIP]",
+      "> Prefer a focused fixture over a giant blob.",
+      "",
+      "> [!IMPORTANT]",
+      "> Preserve ANSI styling for rendered emphasis.",
+      "",
+      "> [!WARNING]",
+      "> Avoid brittle width-sensitive expectations.",
+      "",
+      "> [!CAUTION]",
+      "> Do not crash on malformed markdown."
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, [
+      "Alerts",
+      "Note",
+      "Tip",
+      "Important",
+      "Warning",
+      "Caution"
+    ]);
+  });
+
+  it("renders paragraph continuation across adjacent text lines (test 83)", () => {
+    const markdown = ["# Continuation", "", "alpha", "beta", "gamma"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Continuation", "alpha", "beta", "gamma"]);
+  });
+
+  it("lets a heading interrupt a paragraph without a blank line (test 84)", () => {
+    const markdown = ["alpha", "# heading", "beta"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["alpha", "heading", "beta"]);
+  });
+
+  it("renders mixed block types in sequence without crashing (test 91)", () => {
+    const markdown = [
+      "# Heading",
+      "",
+      "Paragraph text",
+      "",
+      "```ts",
+      "const value = 1;",
+      "```",
+      "",
+      "- item one",
+      "- item two",
+      "",
+      "| Name | Value |",
+      "| --- | --- |",
+      "| alpha | beta |"
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Heading", "Paragraph text", "const value = 1;", "item two", "alpha"]);
+  });
+
+  it("preserves unicode content including emoji, CJK, and RTL text (test 92)", () => {
+    const markdown = ["# Hello 😀", "", "你好，世界", "", "مرحبا بالعالم"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Hello 😀", "你好，世界", "مرحبا بالعالم"]);
+  });
+
+  it("handles tab characters in indentation (test 93)", () => {
+    const markdown = ["# Tabs", "", "- parent", "\t- child", "\t\t- grandchild"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Tabs", "parent", "child", "grandchild"]);
+  });
+
+  it("ignores trailing whitespace-heavy input without crashing (test 146)", () => {
+    const markdown = ["# Trailing", "", "alpha   ", "beta   ", "", "- gamma   "].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Trailing", "alpha", "beta", "gamma"]);
+  });
+
+  it("renders double-spaced lines as separate blocks without crashing (test 147)", () => {
+    const markdown = ["# Double", "", "alpha", "", "beta", "", "gamma"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Double", "alpha", "beta", "gamma"]);
+  });
+
+  it("renders a deeply nested broken structure as readable literal output (test 135)", () => {
+    const markdown = ["> quote", "> - item", ">   > nested *broken"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["quote", "item", "nested *broken"]);
+  });
+
+  it("handles bare dashes as frontmatter, setext heading, and thematic break by context (test 139)", () => {
+    const markdown = [
+      "---",
+      "title: Demo",
+      "---",
+      "",
+      "Visible body",
+      "",
+      "Section",
+      "---",
+      "",
+      "- - -"
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["title: Demo", "Visible body", "Section"], {
+      showFrontmatter: true
+    });
+  });
+
+  it("renders angle brackets that are not autolinks as literal text (test 154)", () => {
+    const markdown = ["# Angles", "", "<not-a-url> and 5 < 10"].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Angles", "<not-a-url> and 5 < 10"]);
+  });
+
+  it("keeps link reference definitions from crashing the integration path (test 88)", () => {
+    const markdown = [
+      "# Links",
+      "",
+      "Reference syntax stays readable.",
+      "",
+      "[docs][id]",
+      "",
+      '[id]: https://example.com/docs "Docs"'
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Links", "Reference syntax stays readable."]);
+  });
+
+  it("does not render an unreferenced footnote definition into the visible output (test 107)", () => {
+    const markdown = ["# Notes", "", "Visible paragraph.", "", "[^orphan]: lonely footnote with **strong**"].join(
+      "\n"
+    );
+
+    const output = expectRenderedMarkdown(markdown, ["Notes", "Visible paragraph."]);
+    const plainText = stripAnsi(output);
+
+    expect(plainText).not.toContain("lonely footnote with strong");
+  });
+
+  it("renders inline formatting inside a referenced footnote definition (test 108)", () => {
+    const markdown = [
+      "Use note[^fmt].",
+      "",
+      "[^fmt]: Footnote with **strong** and *emphasis*."
+    ].join("\n");
+
+    expectRenderedMarkdown(markdown, ["Use note[1].", "Footnote with strong and emphasis."]);
+  });
+
+  it("renders a 1000+ line document within 200ms after warm-up (test 169)", () => {
+    const markdown = createLargeDocument();
+
+    expect(markdown.split("\n").length).toBeGreaterThan(1000);
+
+    renderMarkdown(markdown, { width: 120 });
+    renderMarkdown(markdown, { width: 120 });
+
+    const measurements: number[] = [];
+    let output = "";
+    for (let index = 0; index < 3; index += 1) {
+      const startedAt = performance.now();
+      output = renderMarkdown(markdown, { width: 120 });
+      measurements.push(performance.now() - startedAt);
+    }
+    const elapsed = Math.min(...measurements);
+
+    expect(output.length).toBeGreaterThan(0);
+    expect(stripAnsi(output)).toContain("Section 500");
+    expect(output.includes("\u001B[")).toBe(true);
+    expect(elapsed).toBeLessThan(200);
+  });
+});
+
+describe("terminal markdown theme validation via terminal-pilot", () => {
+  const fixturePath = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "testing",
+    "theme-render-fixture.ts"
+  );
+  const tsxPath = path.resolve("node_modules/.bin/tsx");
+
+  it("dark and light themes render readable, visually distinct ANSI output", async () => {
+    const pilot = await TerminalPilot.launch();
+
+    try {
+      const session = await pilot.newSession({
+        command: tsxPath,
+        args: [fixturePath],
+        cwd: process.cwd(),
+        env: { ...process.env }
+      });
+
+      await session.waitFor("THEMES_VALIDATED", { timeout: 15_000 });
+      await session.waitForExit({ timeout: 5_000 });
+
+      const history = await session.history();
+      const output = history.join("\n");
+
+      expect(session.exitCode).toBe(0);
+      expect(output).toContain("Dark Theme");
+      expect(output).toContain("Light Theme");
+    } finally {
+      await pilot.close();
+    }
+  }, 25_000);
+});
 
 type NodeOf<TType extends MdNode["type"]> = Extract<MdNode, { type: TType }>;
 
@@ -1958,5 +2650,557 @@ describe("parse", () => {
         children: [{ type: "paragraph", children: [{ type: "text", value: "Body" }] }]
       }
     });
+  });
+});
+
+describe("terminal markdown renderer", () => {
+  const originalForceColor = process.env.FORCE_COLOR;
+  const originalTheme = process.env.POE_CODE_THEME;
+
+  beforeEach(() => {
+    process.env.FORCE_COLOR = "1";
+    process.env.POE_CODE_THEME = "dark";
+    resetThemeCache();
+  });
+
+  afterEach(() => {
+    process.env.FORCE_COLOR = originalForceColor;
+    process.env.POE_CODE_THEME = originalTheme;
+    resetThemeCache();
+  });
+
+  it("respects width option for line wrapping (test 170)", () => {
+    const ast: MdNode = {
+      type: "root",
+      children: [
+        {
+          type: "paragraph",
+          children: [{ type: "text", value: "alpha beta gamma delta" }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast, { width: 10 }))).toBe("alpha beta\ngamma\ndelta\n\n");
+  });
+
+  it("heading renders with appropriate visual weight per level (test 178)", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "heading",
+        depth: 1,
+        children: [{ type: "text", value: "Heading" }]
+      })
+    ).toBe(`${theme.header(typography.bold("Heading"))}\n${theme.header("─".repeat(7))}\n\n`);
+
+    expect(
+      render({
+        type: "heading",
+        depth: 2,
+        children: [{ type: "text", value: "Heading" }]
+      })
+    ).toBe(`${theme.header(typography.bold("Heading"))}\n\n`);
+
+    expect(
+      render({
+        type: "heading",
+        depth: 3,
+        children: [{ type: "text", value: "Heading" }]
+      })
+    ).toBe(`${typography.bold("Heading")}\n\n`);
+
+    expect(
+      render({
+        type: "heading",
+        depth: 4,
+        children: [{ type: "text", value: "Heading" }]
+      })
+    ).toBe(`${typography.bold("Heading")}\n\n`);
+
+    expect(
+      render({
+        type: "heading",
+        depth: 5,
+        children: [{ type: "text", value: "Heading" }]
+      })
+    ).toBe(`${theme.muted(typography.bold("Heading"))}\n\n`);
+
+    expect(
+      render({
+        type: "heading",
+        depth: 6,
+        children: [{ type: "text", value: "Heading" }]
+      })
+    ).toBe(`${theme.muted(typography.bold("Heading"))}\n\n`);
+  });
+
+  it("empty nodes produce no output (test 179)", () => {
+    expect(render({ type: "root", children: [] })).toBe("");
+    expect(render({ type: "paragraph", children: [] })).toBe("");
+    expect(render({ type: "heading", depth: 2, children: [] })).toBe("");
+    expect(render({ type: "root", children: [{ type: "frontmatter", data: { title: "Hidden" } }] })).toBe(
+      ""
+    );
+  });
+
+  it("renders inline styles, code spans, and breaks", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "paragraph",
+        children: [
+          { type: "text", value: "before " },
+          { type: "strong", children: [{ type: "text", value: "bold" }] },
+          { type: "text", value: " " },
+          { type: "emphasis", children: [{ type: "text", value: "italic" }] },
+          { type: "text", value: " " },
+          { type: "strikethrough", children: [{ type: "text", value: "gone" }] },
+          { type: "text", value: " " },
+          { type: "inlineCode", value: "code" },
+          { type: "break" },
+          { type: "text", value: "after" }
+        ]
+      })
+    ).toBe(
+      `before ${typography.bold("bold")} ${typography.italic("italic")} ${typography.strikethrough("gone")} ${theme.accent("code")}\nafter\n\n`
+    );
+  });
+
+  it("hides frontmatter by default (test 171)", () => {
+    const ast: MdNode = {
+      type: "root",
+      children: [
+        { type: "frontmatter", data: { title: "Renderer", draft: false } },
+        { type: "paragraph", children: [{ type: "text", value: "Body" }] }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe("Body\n\n");
+  });
+
+  it("shows frontmatter when showFrontmatter is enabled (test 172)", () => {
+    const ast: MdNode = {
+      type: "root",
+      children: [
+        { type: "frontmatter", data: { title: "Renderer", draft: false } },
+        { type: "paragraph", children: [{ type: "text", value: "Body" }] }
+      ]
+    };
+
+    expect(render(ast, { showFrontmatter: true })).toBe(
+      `${typography.dim("title: Renderer")}\n${typography.dim("draft: false")}\n\nBody\n\n`
+    );
+  });
+
+  it("renders thematic breaks to the requested width", () => {
+    const theme = getTheme();
+
+    expect(render({ type: "thematicBreak" }, { width: 5 })).toBe(`${theme.divider("─".repeat(5))}\n\n`);
+  });
+
+  it("sizes h1 underlines by visible content width", () => {
+    const ast: MdNode = {
+      type: "heading",
+      depth: 1,
+      children: [
+        { type: "text", value: "Hello " },
+        { type: "strong", children: [{ type: "text", value: "world" }] }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe("Hello world\n───────────\n\n");
+  });
+
+  it("indents nested blockquotes correctly (test 173)", () => {
+    const ast: MdNode = {
+      type: "blockquote",
+      children: [
+        {
+          type: "blockquote",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "nested" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(`${symbols.bar} ${symbols.bar} nested\n\n`);
+  });
+
+  it("aligns table columns (test 174)", () => {
+    const ast: MdNode = {
+      type: "table",
+      align: ["left", "right", "center"],
+      children: [
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "Name" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Count" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Status" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "alpha" }] },
+            { type: "tableCell", children: [{ type: "text", value: "2" }] },
+            { type: "tableCell", children: [{ type: "text", value: "ok" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "beta" }] },
+            { type: "tableCell", children: [{ type: "text", value: "12" }] },
+            { type: "tableCell", children: [{ type: "text", value: "busy" }] }
+          ]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(
+      `${symbols.bar} Name  ${symbols.bar} Count ${symbols.bar} Status ${symbols.bar}\n` +
+        `├───────┼───────┼────────┤\n` +
+        `${symbols.bar} alpha ${symbols.bar}     2 ${symbols.bar}   ok   ${symbols.bar}\n` +
+        `${symbols.bar} beta  ${symbols.bar}    12 ${symbols.bar}  busy  ${symbols.bar}\n\n`
+    );
+  });
+
+  it("aligns styled table cells by visible width and preserves empty trailing cells", () => {
+    const ast: MdNode = {
+      type: "table",
+      align: ["left", "right"],
+      children: [
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "Label" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Value" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [
+            {
+              type: "tableCell",
+              children: [{ type: "strong", children: [{ type: "text", value: "alpha" }] }]
+            },
+            { type: "tableCell", children: [{ type: "inlineCode", value: "7" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [{ type: "tableCell", children: [{ type: "text", value: "beta" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(
+      `${symbols.bar} Label ${symbols.bar} Value ${symbols.bar}\n` +
+        `├───────┼───────┤\n` +
+        `${symbols.bar} alpha ${symbols.bar}     7 ${symbols.bar}\n` +
+        `${symbols.bar} beta  ${symbols.bar}       ${symbols.bar}\n\n`
+    );
+  });
+
+  it("falls back to stacked rows when a table exceeds the available width", () => {
+    const ast = parse(
+      [
+        "| Column One | Column Two | Column Three |",
+        "|---|---|---|",
+        "| value 1 | value 2 | value 3 |"
+      ].join("\n")
+    ).ast;
+
+    expect(stripAnsi(render(ast, { width: 40 }))).toBe(
+      "Column One: value 1\nColumn Two: value 2\nColumn Three: value 3\n\n"
+    );
+  });
+
+  it("styles the table header row separately from data rows", () => {
+    const theme = getTheme();
+    const ast: MdNode = {
+      type: "table",
+      align: ["left", "center", "right"],
+      children: [
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "Column" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Center" }] },
+            { type: "tableCell", children: [{ type: "text", value: "Right" }] }
+          ]
+        },
+        {
+          type: "tableRow",
+          children: [
+            { type: "tableCell", children: [{ type: "text", value: "alpha" }] },
+            { type: "tableCell", children: [{ type: "text", value: "beta" }] },
+            { type: "tableCell", children: [{ type: "text", value: "42" }] }
+          ]
+        }
+      ]
+    };
+
+    expect(render(ast)).toBe(
+      `${symbols.bar} ${theme.header(typography.bold("Column"))} ${symbols.bar} ${theme.header(typography.bold("Center"))} ${symbols.bar} ${theme.header(typography.bold("Right"))} ${symbols.bar}\n` +
+        `${theme.muted("├────────┼────────┼───────┤")}\n` +
+        `${symbols.bar} alpha  ${symbols.bar}  beta  ${symbols.bar}    42 ${symbols.bar}\n\n`
+    );
+  });
+
+  it("numbers ordered lists correctly (test 175)", () => {
+    const ast: MdNode = {
+      type: "list",
+      ordered: true,
+      start: 7,
+      children: [
+        {
+          type: "listItem",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "first" }] }]
+        },
+        {
+          type: "listItem",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "second" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(" 7. first\n 8. second\n\n");
+  });
+
+  it("code blocks render with visible boundaries (test 176)", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "code",
+        value: "alpha\nbeta"
+      })
+    ).toBe(`${theme.muted(" ─────")}\n alpha\n beta\n${theme.muted(" ─────")}\n\n`);
+  });
+
+  it("renders links as text followed by a colored url (test 177)", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "paragraph",
+        children: [
+          {
+            type: "link",
+            url: "https://example.com",
+            children: [{ type: "text", value: "docs" }]
+          }
+        ]
+      })
+    ).toBe(`docs ${theme.accent("(https://example.com)")}\n\n`);
+  });
+
+  it("normalizes trailing link label whitespace before appending the url (test 180)", () => {
+    const theme = getTheme();
+    const { ast } = parse("[docs ](https://example.com)");
+
+    expect(render(ast)).toBe(`docs ${theme.accent("(https://example.com)")}\n\n`);
+  });
+
+  it("renders task lists with active and inactive symbols", () => {
+    const ast: MdNode = {
+      type: "list",
+      ordered: false,
+      children: [
+        {
+          type: "listItem",
+          checked: true,
+          children: [{ type: "paragraph", children: [{ type: "text", value: "done" }] }]
+        },
+        {
+          type: "listItem",
+          checked: false,
+          children: [{ type: "paragraph", children: [{ type: "text", value: "todo" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(` ${symbols.active} done\n ${symbols.inactive} todo\n\n`);
+  });
+
+  it("wraps blockquotes within the available width", () => {
+    const ast: MdNode = {
+      type: "blockquote",
+      children: [
+        {
+          type: "paragraph",
+          children: [{ type: "text", value: "alpha beta gamma" }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast, { width: 10 }))).toBe(`${symbols.bar} alpha\n${symbols.bar} beta\n${symbols.bar} gamma\n\n`);
+  });
+
+  it("wraps list items within the available width", () => {
+    const ast: MdNode = {
+      type: "list",
+      ordered: true,
+      children: [
+        {
+          type: "listItem",
+          children: [
+            {
+              type: "paragraph",
+              children: [{ type: "text", value: "alpha beta gamma" }]
+            }
+          ]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast, { width: 10 }))).toBe(" 1. alpha\n    beta\n    gamma\n\n");
+  });
+
+  it("keeps nested lists attached to the parent list item", () => {
+    const ast: MdNode = {
+      type: "list",
+      ordered: false,
+      children: [
+        {
+          type: "listItem",
+          children: [
+            {
+              type: "paragraph",
+              children: [{ type: "text", value: "parent" }]
+            },
+            {
+              type: "list",
+              ordered: false,
+              children: [
+                {
+                  type: "listItem",
+                  children: [{ type: "paragraph", children: [{ type: "text", value: "nested" }] }]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          type: "listItem",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "sibling" }] }]
+        }
+      ]
+    };
+
+    expect(stripAnsi(render(ast))).toBe(" • parent\n    • nested\n • sibling\n\n");
+  });
+
+  it("renders autolinks as their colored destination", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "paragraph",
+        children: [
+          {
+            type: "link",
+            url: "https://example.com",
+            children: [{ type: "text", value: "https://example.com" }]
+          }
+        ]
+      })
+    ).toBe(`${theme.accent("https://example.com")}\n\n`);
+  });
+
+  it("renders images as muted placeholders", () => {
+    const theme = getTheme();
+
+    expect(
+      render({
+        type: "paragraph",
+        children: [{ type: "image", url: "https://example.com/image.png", alt: "Example image" }]
+      })
+    ).toBe(`${theme.muted("[image: Example image]")}\n\n`);
+  });
+
+  it("renders html nodes as plain text", () => {
+    expect(
+      stripAnsi(
+        render({
+          type: "root",
+          children: [{ type: "html", value: "<div>Hello <strong>world</strong></div>" }]
+        })
+      )
+    ).toBe("Hello world\n\n");
+  });
+
+  it("renders alerts with the correct label styling", () => {
+    const theme = getTheme();
+    const ast: MdNode = {
+      type: "root",
+      children: [
+        {
+          type: "alert",
+          kind: "NOTE",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Read this" }] }]
+        },
+        {
+          type: "alert",
+          kind: "TIP",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Try this" }] }]
+        },
+        {
+          type: "alert",
+          kind: "IMPORTANT",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Remember this" }] }]
+        },
+        {
+          type: "alert",
+          kind: "WARNING",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Watch out" }] }]
+        },
+        {
+          type: "alert",
+          kind: "CAUTION",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "Stop here" }] }]
+        }
+      ]
+    };
+
+    expect(render(ast)).toBe(
+      `${symbols.bar} ${theme.info("Note")}\n${symbols.bar} Read this\n\n` +
+        `${symbols.bar} ${theme.success("Tip")}\n${symbols.bar} Try this\n\n` +
+        `${symbols.bar} ${theme.info("Important")}\n${symbols.bar} Remember this\n\n` +
+        `${symbols.bar} ${theme.warning("Warning")}\n${symbols.bar} Watch out\n\n` +
+        `${symbols.bar} ${theme.error("Caution")}\n${symbols.bar} Stop here\n\n`
+    );
+  });
+
+  it("renders numbered footnote references inline and definitions at the bottom", () => {
+    const { ast } = parse(
+      [
+        "Intro[^beta] then[^alpha] and again[^beta].",
+        "",
+        "[^alpha]: First footnote",
+        "[^beta]: Second footnote"
+      ].join("\n")
+    );
+
+    expect(render(ast)).toBe(
+      `Intro${typography.dim("[1]")} then${typography.dim("[2]")} and again${typography.dim("[1]")}.\n\n` +
+        ` ${typography.dim("[1]")} Second footnote\n` +
+        ` ${typography.dim("[2]")} First footnote\n\n`
+    );
+  });
+
+  it("renders footnotes discovered while rendering earlier footnote definitions", () => {
+    const { ast } = parse(
+      ["Intro[^alpha].", "", "[^alpha]: First[^beta]", "[^beta]: Second footnote"].join("\n")
+    );
+
+    expect(render(ast)).toBe(
+      `Intro${typography.dim("[1]")}.\n\n` +
+        ` ${typography.dim("[1]")} First${typography.dim("[2]")}\n` +
+        ` ${typography.dim("[2]")} Second footnote\n\n`
+    );
   });
 });

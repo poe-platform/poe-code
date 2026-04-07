@@ -1,21 +1,180 @@
-import { PassThrough } from "node:stream";
-import { describe, expect, it, vi } from "vitest";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
+import { EventEmitter } from "node:events";
+import path from "node:path";
+import { PassThrough, Readable } from "node:stream";
+import { fileURLToPath } from "node:url";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ERROR_INVALID_REQUEST,
   ERROR_METHOD_NOT_FOUND,
+  ERROR_PARSE,
+  HttpTransport,
   JsonRpcMessageLayer,
   McpClient,
   McpError,
+  SseParser,
   StdioTransport,
+  parseJsonRpcMessage,
   readLines,
   type CreateMessageParams,
   type CreateMessageResult,
   type McpClientOptions,
+  type McpTransport,
+  type McpTransportClosedEvent,
   type ProgressParams,
   type ServerCapabilities,
-  type McpTransportClosedEvent,
-  type McpTransport,
+  type StdioSpawn,
 } from "./internal.js";
+
+// --- helpers from jsonrpc-message-layer.test.ts ---
+
+const cleanup: Array<() => void> = [];
+
+afterEach(() => {
+  while (cleanup.length > 0) {
+    cleanup.pop()?.();
+  }
+});
+
+class TrackingReadable extends Readable {
+  asyncIteratorStarted = false;
+
+  constructor() {
+    super({
+      read() {},
+    });
+  }
+
+  override [Symbol.asyncIterator](): AsyncIterableIterator<unknown> {
+    this.asyncIteratorStarted = true;
+    return super[Symbol.asyncIterator]() as AsyncIterableIterator<unknown>;
+  }
+}
+
+function trackForCleanup(...streams: Array<PassThrough | TrackingReadable>): void {
+  cleanup.push(() => {
+    for (const stream of streams) {
+      stream.destroy();
+    }
+  });
+}
+
+function createLargePayload(sizeInBytes: number): string {
+  return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_"
+    .repeat(Math.ceil(sizeInBytes / 64))
+    .slice(0, sizeInBytes);
+}
+
+// --- helpers from stdio-transport.test.ts ---
+
+const testServerCli = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../tiny-stdio-mcp-test-server/dist/cli.js"
+);
+
+const streamsForCleanup: PassThrough[] = [];
+
+afterEach(() => {
+  while (streamsForCleanup.length > 0) {
+    streamsForCleanup.pop()?.destroy();
+  }
+});
+
+interface MockChildProcess extends ChildProcessWithoutNullStreams {
+  emitExit: (code?: number | null, signal?: NodeJS.Signals | null) => void;
+  emitError: (error: Error) => void;
+}
+
+async function readSingleLineWithTimeout(
+  transport: StdioTransport,
+  timeoutMs: number
+): Promise<string> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`Timed out waiting for stdout line after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  const nextLine = (async () => {
+    for await (const line of readLines(transport.readable)) {
+      return line;
+    }
+    throw new Error("Stdio transport stdout ended before any response line was read");
+  })();
+
+  const closedBeforeLine = transport.closed.then((closedEvent) => {
+    throw new Error(
+      `Process closed before stdout response: ${closedEvent.reason.message}`
+    );
+  });
+
+  try {
+    return await Promise.race([nextLine, timeout, closedBeforeLine]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+}
+
+function createMockChildProcess(): MockChildProcess {
+  const stdin = new PassThrough();
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+
+  streamsForCleanup.push(stdin, stdout, stderr);
+
+  const child = new EventEmitter() as unknown as MockChildProcess & {
+    stdin: PassThrough;
+    stdout: PassThrough;
+    stderr: PassThrough;
+    exitCode: number | null;
+    killed: boolean;
+    kill: (signal?: NodeJS.Signals) => boolean;
+    signalCode: NodeJS.Signals | null;
+  };
+
+  child.stdin = stdin;
+  child.stdout = stdout;
+  child.stderr = stderr;
+  child.exitCode = null;
+  child.killed = false;
+  child.kill = vi.fn((signal?: NodeJS.Signals) => {
+    child.killed = true;
+    child.emitExit(null, signal ?? "SIGTERM");
+    return true;
+  });
+  child.signalCode = null;
+  child.emitExit = (code = null, signal = null) => {
+    child.exitCode = code;
+    child.signalCode = signal;
+    child.emit("exit", code, signal);
+  };
+  child.emitError = (error: Error) => {
+    child.emit("error", error);
+  };
+
+  return child;
+}
+
+// --- helper from http-transport.test.ts ---
+
+async function readLineCount(stream: Readable, count: number): Promise<string[]> {
+  const lines: string[] = [];
+
+  for await (const line of readLines(stream)) {
+    lines.push(line);
+    if (lines.length === count) {
+      return lines;
+    }
+  }
+
+  throw new Error(`Stream ended before reading ${count} line(s)`);
+}
+
+// --- helper from mcp-client.test.ts ---
 
 const getMessageLayerOrThrow = (client: McpClient): JsonRpcMessageLayer =>
   (
@@ -24,6 +183,2448 @@ const getMessageLayerOrThrow = (client: McpClient): JsonRpcMessageLayer =>
     }
   ).getMessageLayerOrThrow();
 
+describe("HttpTransport constructor", () => {
+  it("accepts url, headers, and injected fetch", () => {
+    const mockFetch = async (): Promise<Response> => new Response(null, { status: 202 });
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      headers: {
+        Authorization: "Bearer token-123",
+      },
+      fetch: mockFetch,
+    });
+
+    const asTransport: McpTransport = transport;
+
+    expect(asTransport).toBe(transport);
+    expect(typeof transport.writable.write).toBe("function");
+    expect(typeof transport.readable.read).toBe("function");
+
+    transport.dispose();
+  });
+
+  it("resolves closed when disposed", async () => {
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+    });
+
+    transport.dispose();
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.any(Error),
+    });
+  });
+
+  it("does not throw when dispose is called twice", () => {
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+    });
+
+    expect(() => {
+      transport.dispose();
+      transport.dispose();
+    }).not.toThrow();
+  });
+
+  it("sends each written line as a POST request with JSON headers", async () => {
+    const firstBody = '{"jsonrpc":"2.0","id":1,"method":"ping"}';
+    const secondBody = '{"jsonrpc":"2.0","id":2,"method":"ping"}';
+    const mockFetch = vi.fn(async (): Promise<Response> => new Response(null, { status: 202 }));
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      headers: {
+        Authorization: "Bearer token-123",
+      },
+      fetch: mockFetch,
+    });
+
+    transport.writable.write(`${firstBody}\n`);
+    transport.writable.write(`${secondBody}\n`);
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] ?? [];
+    const headers = new Headers(init?.headers);
+
+    expect(url).toBe("https://example.com/mcp");
+    expect(init?.method).toBe("POST");
+    expect(headers.get("accept")).toBe("application/json, text/event-stream");
+    expect(headers.get("content-type")).toBe("application/json");
+    expect(headers.get("authorization")).toBe("Bearer token-123");
+    expect(init?.body).toBe(firstBody);
+    expect(mockFetch.mock.calls[1]?.[1]?.body).toBe(secondBody);
+
+    transport.dispose();
+  });
+
+  it("captures session ID from initialize response and sends it on subsequent requests", async () => {
+    const mockFetch = vi
+      .fn(async (): Promise<Response> => new Response(null, { status: 202 }))
+      .mockResolvedValueOnce(
+        new Response('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}', {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Mcp-Session-Id": "session-abc",
+          },
+        })
+      )
+      .mockResolvedValue(
+        new Response('{"jsonrpc":"2.0","id":2,"result":{"ok":true}}', {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+      );
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+    transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n');
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    const postCalls = mockFetch.mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(postCalls).toHaveLength(2);
+
+    const firstRequestHeaders = new Headers(postCalls[0]?.[1]?.headers);
+    const secondRequestHeaders = new Headers(postCalls[1]?.[1]?.headers);
+
+    expect(firstRequestHeaders.get("mcp-session-id")).toBeNull();
+    expect(secondRequestHeaders.get("mcp-session-id")).toBe("session-abc");
+
+    transport.dispose();
+  });
+
+  it("closes transport when a session-scoped POST request returns 404", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+
+      const headers = new Headers(init?.headers);
+      if (headers.get("mcp-session-id") === null) {
+        return new Response('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}', {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Mcp-Session-Id": "session-expiring",
+          },
+        });
+      }
+
+      return new Response(null, { status: 404 });
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+    transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n');
+
+    const closedEvent = await transport.closed;
+    expect(closedEvent.reason.message).toContain("session");
+    expect(closedEvent.reason.message).toContain("404");
+
+    const postCalls = mockFetch.mock.calls.filter(([, init]) => init?.method === "POST");
+    const secondPostHeaders = new Headers(postCalls[1]?.[1]?.headers);
+    expect(secondPostHeaders.get("mcp-session-id")).toBe("session-expiring");
+  });
+
+  it("closes transport with transport error when POST fetch fails due to network error", async () => {
+    const mockFetch = vi.fn(async (): Promise<Response> => {
+      throw new Error("network failure");
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+
+    const closedEvent = await transport.closed;
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(closedEvent.reason.message).toContain("network failure");
+  });
+
+  it("closes transport with HTTP 400 error including response body", async () => {
+    const mockFetch = vi.fn(
+      async (): Promise<Response> =>
+        new Response('{"error":"invalid request body"}', {
+          status: 400,
+          statusText: "Bad Request",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+    );
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+
+    const closedEvent = await transport.closed;
+    expect(closedEvent.reason.message).toContain("400");
+    expect(closedEvent.reason.message).toContain("Bad Request");
+    expect(closedEvent.reason.message).toContain("invalid request body");
+  });
+
+  it("closes transport with transport error when POST returns HTTP 500", async () => {
+    const mockFetch = vi.fn(
+      async (): Promise<Response> =>
+        new Response("server exploded", {
+          status: 500,
+          statusText: "Internal Server Error",
+          headers: {
+            "Content-Type": "text/plain",
+          },
+        })
+    );
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+
+    const closedEvent = await transport.closed;
+    expect(closedEvent.reason.message).toContain("500");
+    expect(closedEvent.reason.message).toContain("Internal Server Error");
+  });
+
+  it("does not push readable messages when notification POST returns 202 with no body", async () => {
+    const mockFetch = vi.fn(async (): Promise<Response> => new Response(null, { status: 202 }));
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    expect(transport.readable.read()).toBeNull();
+
+    transport.dispose();
+  });
+
+  it("parses SSE response data fields and pushes JSON-RPC lines to readable", async () => {
+    const mockFetch = vi.fn(
+      async (): Promise<Response> =>
+        new Response(
+          [
+            'event: message\ndata: {"jsonrpc":"2.0","id":1,"result":{"ok":true}}\n\n',
+            'event: message\ndata: {"jsonrpc":"2.0","method":"notifications/ping"}\n\n',
+          ].join(""),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "text/event-stream; charset=utf-8",
+            },
+          }
+        )
+    );
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+
+    await expect(readLineCount(transport.readable, 2)).resolves.toEqual([
+      '{"jsonrpc":"2.0","id":1,"result":{"ok":true}}',
+      '{"jsonrpc":"2.0","method":"notifications/ping"}',
+    ]);
+
+    transport.dispose();
+  });
+
+  it("pushes JSON response body as a single line to readable", async () => {
+    const responseBody = '{"jsonrpc":"2.0","id":1,"result":{"ok":true}}';
+    const mockFetch = vi.fn(
+      async (): Promise<Response> =>
+        new Response(responseBody, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        })
+    );
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+
+    await expect(readLineCount(transport.readable, 1)).resolves.toEqual([responseBody]);
+
+    transport.dispose();
+  });
+
+  it("opens GET stream with SSE accept header after session initialization", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response('data: {"jsonrpc":"2.0","method":"notifications/ping"}\n\n', {
+          status: 200,
+          headers: {
+            "Content-Type": "text/event-stream",
+          },
+        });
+      }
+
+      return new Response(null, {
+        status: 200,
+        headers: {
+          "Mcp-Session-Id": "session-from-initialize",
+        },
+      });
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    const getRequest = mockFetch.mock.calls.find(([, init]) => init?.method === "GET");
+    const getHeaders = new Headers(getRequest?.[1]?.headers);
+
+    expect(getHeaders.get("accept")).toBe("text/event-stream");
+    expect(getHeaders.get("mcp-session-id")).toBe("session-from-initialize");
+    await expect(readLineCount(transport.readable, 1)).resolves.toEqual([
+      '{"jsonrpc":"2.0","method":"notifications/ping"}',
+    ]);
+
+    transport.dispose();
+  });
+
+  it("tracks SSE event IDs and sends Last-Event-ID on GET reconnect", async () => {
+    let getRequests = 0;
+    const encoder = new TextEncoder();
+    let firstGetController: ReadableStreamDefaultController<Uint8Array> | undefined;
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        getRequests += 1;
+
+        if (getRequests === 1) {
+          return new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                firstGetController = controller;
+                controller.enqueue(
+                  encoder.encode(
+                    'event: message\nid: evt-1\ndata: {"jsonrpc":"2.0","method":"notifications/ping"}\n\n'
+                  )
+                );
+              },
+            }),
+            {
+              status: 200,
+              headers: {
+                "Content-Type": "text/event-stream",
+              },
+            },
+          );
+        }
+
+        return new Response(null, { status: 405 });
+      }
+
+      return new Response(null, {
+        status: 202,
+        headers: {
+          "Mcp-Session-Id": "session-resume-1",
+        },
+      });
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await expect(readLineCount(transport.readable, 1)).resolves.toEqual([
+      '{"jsonrpc":"2.0","method":"notifications/ping"}',
+    ]);
+
+    firstGetController?.close();
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n');
+
+    await vi.waitFor(() => {
+      expect(getRequests).toBe(2);
+    });
+
+    const getCalls = mockFetch.mock.calls.filter(([, init]) => init?.method === "GET");
+    const firstGetHeaders = new Headers(getCalls[0]?.[1]?.headers);
+    const secondGetHeaders = new Headers(getCalls[1]?.[1]?.headers);
+
+    expect(firstGetHeaders.get("last-event-id")).toBeNull();
+    expect(secondGetHeaders.get("last-event-id")).toBe("evt-1");
+
+    transport.dispose();
+  });
+
+  it("handles GET stream 405 responses without failing transport", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+
+      return new Response(null, {
+        status: 202,
+        headers: {
+          "Mcp-Session-Id": "session-no-get-support",
+        },
+      });
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+    transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n');
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    expect(mockFetch.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(mockFetch.mock.calls[1]?.[1]?.method).toBe("GET");
+    expect(mockFetch.mock.calls[2]?.[1]?.method).toBe("POST");
+
+    transport.dispose();
+  });
+
+  it("sends DELETE with session ID when disposed after initialization", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+
+      if (init?.method === "DELETE") {
+        return new Response(null, { status: 204 });
+      }
+
+      return new Response(null, {
+        status: 202,
+        headers: {
+          "Mcp-Session-Id": "session-close-delete",
+        },
+      });
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    transport.dispose();
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    const deleteRequest = mockFetch.mock.calls.find(([, init]) => init?.method === "DELETE");
+    expect(deleteRequest).toBeDefined();
+    expect(deleteRequest?.[0]).toBe("https://example.com/mcp");
+
+    const deleteHeaders = new Headers(deleteRequest?.[1]?.headers);
+    expect(deleteHeaders.get("mcp-session-id")).toBe("session-close-delete");
+  });
+
+  it("handles DELETE 405 responses without failing close", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+
+      if (init?.method === "DELETE") {
+        return new Response(null, { status: 405 });
+      }
+
+      return new Response(null, {
+        status: 202,
+        headers: {
+          "Mcp-Session-Id": "session-delete-405",
+        },
+      });
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    expect(() => {
+      transport.dispose();
+    }).not.toThrow();
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  it("aborts in-flight POST fetch when disposed", async () => {
+    let postSignal: AbortSignal | undefined;
+    let postAborted = false;
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+
+      return await new Promise<Response>((_resolve, reject) => {
+        postSignal = init?.signal;
+        const onAbort = () => {
+          postAborted = true;
+          reject(new Error("POST aborted"));
+        };
+
+        if (postSignal?.aborted === true) {
+          onAbort();
+          return;
+        }
+
+        postSignal?.addEventListener("abort", onAbort, { once: true });
+      });
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    transport.dispose();
+
+    await vi.waitFor(() => {
+      expect(postAborted).toBe(true);
+    });
+    expect(postSignal?.aborted).toBe(true);
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.any(Error),
+    });
+  });
+
+  it("closes open GET SSE stream when disposed", async () => {
+    const encoder = new TextEncoder();
+    const cancelSpy = vi.fn();
+
+    const openSseStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode('data: {"jsonrpc":"2.0","method":"notifications/ping"}\n\n')
+        );
+      },
+      cancel() {
+        cancelSpy();
+      },
+    });
+
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(openSseStream, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/event-stream",
+          },
+        });
+      }
+
+      if (init?.method === "DELETE") {
+        return new Response(null, { status: 204 });
+      }
+
+      return new Response(null, {
+        status: 202,
+        headers: {
+          "Mcp-Session-Id": "session-open-sse",
+        },
+      });
+    });
+
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: mockFetch,
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    transport.dispose();
+
+    await vi.waitFor(() => {
+      expect(cancelSpy).toHaveBeenCalledTimes(1);
+    });
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.any(Error),
+    });
+  });
+});
+describe("JsonRpcMessageLayer constructor", () => {
+  it("takes input/output streams and supports custom requestTimeoutMs", () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+
+    const layer = new JsonRpcMessageLayer(input, output, 12_345);
+
+    expect(layer).toBeInstanceOf(JsonRpcMessageLayer);
+    expect(layer.requestTimeoutMs).toBe(12_345);
+  });
+
+  it("defaults requestTimeoutMs to 30000", () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    expect(layer.requestTimeoutMs).toBe(30_000);
+  });
+
+  it("starts consuming input lines immediately", async () => {
+    const input = new TrackingReadable();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+
+    new JsonRpcMessageLayer(input, output);
+
+    await vi.waitFor(() => {
+      expect(input.asyncIteratorStarted).toBe(true);
+    });
+  });
+
+  it.each([
+    { label: "negative number", value: -1 },
+    { label: "positive infinity", value: Number.POSITIVE_INFINITY },
+    { label: "negative infinity", value: Number.NEGATIVE_INFINITY },
+    { label: "NaN", value: Number.NaN },
+  ])("rejects $label requestTimeoutMs values", ({ value }) => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+
+    expect(() => new JsonRpcMessageLayer(input, output, value)).toThrow(
+      "requestTimeoutMs must be a non-negative finite number"
+    );
+  });
+});
+
+describe("JsonRpcMessageLayer sendRequest", () => {
+  it("writes request with id=1 to output", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    const responsePromise = layer.sendRequest("tools/list", { cursor: "next" });
+
+    const firstLine = await outputIterator.next();
+    expect(firstLine.done).toBe(false);
+    expect(firstLine.value).toBe(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/list",
+        params: { cursor: "next" },
+      })
+    );
+
+    input.write(`${JSON.stringify({ jsonrpc: "2.0", id: 1, result: { tools: [] } })}\n`);
+    await expect(responsePromise).resolves.toEqual({ tools: [] });
+    await outputIterator.return?.();
+  });
+
+  it("sends request with a 100KB params object without truncation", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const largePayload = createLargePayload(100 * 1024);
+    const largeParams = {
+      payload: largePayload,
+      metadata: {
+        length: largePayload.length,
+        prefix: largePayload.slice(0, 32),
+        suffix: largePayload.slice(-32),
+      },
+    };
+
+    const responsePromise = layer.sendRequest("tools/call", largeParams);
+    const requestLine = await outputIterator.next();
+    expect(requestLine.done).toBe(false);
+    const outbound = JSON.parse(requestLine.value!) as {
+      jsonrpc: "2.0";
+      id: number;
+      method: string;
+      params: typeof largeParams;
+    };
+
+    expect(outbound).toEqual({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: largeParams,
+    });
+    expect(outbound.params.payload.length).toBe(100 * 1024);
+    expect(outbound.params.payload).toBe(largePayload);
+
+    input.write(`${JSON.stringify({ jsonrpc: "2.0", id: outbound.id, result: { ok: true } })}\n`);
+    await expect(responsePromise).resolves.toEqual({ ok: true });
+    await outputIterator.return?.();
+  });
+
+  it("receives large response payloads without truncation", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const responsePromise = layer.sendRequest("tools/call", {
+      name: "echo",
+    });
+    const requestLine = await outputIterator.next();
+
+    expect(requestLine.done).toBe(false);
+    const outbound = JSON.parse(requestLine.value!) as {
+      id: number;
+    };
+    const largePayload = createLargePayload(100 * 1024);
+    const largeResult = {
+      content: [
+        {
+          type: "text",
+          text: largePayload,
+        },
+      ],
+      metadata: {
+        length: largePayload.length,
+      },
+    };
+    const responseLine = `${JSON.stringify({
+      jsonrpc: "2.0",
+      id: outbound.id,
+      result: largeResult,
+    })}\n`;
+
+    for (let index = 0; index < responseLine.length; index += 4093) {
+      input.write(responseLine.slice(index, index + 4093));
+    }
+
+    await expect(responsePromise).resolves.toEqual(largeResult);
+    await outputIterator.return?.();
+  });
+
+  it("keeps 100KB payload content exact with no truncation or corruption", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const largePayload = createLargePayload(100 * 1024);
+    const requestParams = { payload: largePayload };
+
+    const responsePromise = layer.sendRequest("tools/call", requestParams);
+    const requestLine = await outputIterator.next();
+    expect(requestLine.done).toBe(false);
+    const outbound = JSON.parse(requestLine.value!) as {
+      id: number;
+      params: typeof requestParams;
+    };
+
+    expect(outbound.params.payload).toBe(largePayload);
+    expect(outbound.params.payload.length).toBe(largePayload.length);
+    expect(outbound.params.payload.slice(0, 64)).toBe(largePayload.slice(0, 64));
+    expect(outbound.params.payload.slice(-64)).toBe(largePayload.slice(-64));
+
+    const responseResult = { payload: outbound.params.payload };
+    input.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: outbound.id,
+        result: responseResult,
+      })}\n`
+    );
+
+    await expect(responsePromise).resolves.toEqual(responseResult);
+    await expect(responsePromise).resolves.toMatchObject({
+      payload: largePayload,
+    });
+    await outputIterator.return?.();
+  });
+
+  it("sends 10 concurrent requests and assigns each a unique id", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    const responsePromises = Array.from({ length: 10 }, (_, index) =>
+      layer.sendRequest("tools/list", { cursor: `cursor-${index + 1}` })
+    );
+
+    const outboundRequests: Array<{
+      jsonrpc: "2.0";
+      id: number;
+      method: string;
+      params: { cursor: string };
+    }> = [];
+    for (let index = 0; index < 10; index += 1) {
+      const requestLine = await outputIterator.next();
+      expect(requestLine.done).toBe(false);
+      outboundRequests.push(JSON.parse(requestLine.value!) as (typeof outboundRequests)[number]);
+    }
+
+    expect(outboundRequests).toEqual(
+      Array.from({ length: 10 }, (_, index) => ({
+        jsonrpc: "2.0" as const,
+        id: index + 1,
+        method: "tools/list",
+        params: { cursor: `cursor-${index + 1}` },
+      }))
+    );
+    expect(new Set(outboundRequests.map((request) => request.id)).size).toBe(10);
+
+    for (const request of outboundRequests) {
+      input.write(
+        `${JSON.stringify({
+          jsonrpc: "2.0",
+          id: request.id,
+          result: { cursor: request.params.cursor },
+        })}\n`
+      );
+    }
+
+    await expect(Promise.all(responsePromises)).resolves.toEqual(
+      outboundRequests.map((request) => ({
+        cursor: request.params.cursor,
+      }))
+    );
+    await outputIterator.return?.();
+  });
+
+  it("correlates concurrent requests when responses arrive out of order", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    const responsePromises = Array.from({ length: 10 }, (_, index) =>
+      layer.sendRequest("tools/call", { name: `tool-${index + 1}` })
+    );
+
+    const outboundRequests: Array<{
+      id: number;
+      params: { name: string };
+    }> = [];
+    for (let index = 0; index < 10; index += 1) {
+      const requestLine = await outputIterator.next();
+      expect(requestLine.done).toBe(false);
+      outboundRequests.push(
+        JSON.parse(requestLine.value!) as { id: number; params: { name: string } }
+      );
+    }
+
+    for (const request of [...outboundRequests].reverse()) {
+      input.write(
+        `${JSON.stringify({
+          jsonrpc: "2.0",
+          id: request.id,
+          result: { handledById: request.id },
+        })}\n`
+      );
+    }
+
+    await expect(Promise.all(responsePromises)).resolves.toEqual(
+      outboundRequests.map((request) => ({
+        handledById: request.id,
+      }))
+    );
+    await outputIterator.return?.();
+  });
+
+  it("keeps concurrent requests isolated so one error does not affect others", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const pendingCount = () =>
+      (
+        layer as unknown as {
+          pendingRequests: Map<unknown, unknown>;
+        }
+      ).pendingRequests.size;
+
+    const responsePromises = Array.from({ length: 10 }, (_, index) =>
+      layer.sendRequest("tools/call", { name: `tool-${index + 1}` })
+    );
+
+    const outboundRequests: Array<{
+      id: number;
+      params: { name: string };
+    }> = [];
+    for (let index = 0; index < 10; index += 1) {
+      const requestLine = await outputIterator.next();
+      expect(requestLine.done).toBe(false);
+      outboundRequests.push(
+        JSON.parse(requestLine.value!) as { id: number; params: { name: string } }
+      );
+    }
+    expect(pendingCount()).toBe(10);
+
+    const failedRequestId = outboundRequests[3]!.id;
+    const responseOrder = [
+      outboundRequests[7]!,
+      outboundRequests[3]!,
+      outboundRequests[0]!,
+      outboundRequests[9]!,
+      outboundRequests[1]!,
+      outboundRequests[5]!,
+      outboundRequests[8]!,
+      outboundRequests[2]!,
+      outboundRequests[4]!,
+      outboundRequests[6]!,
+    ];
+
+    for (const request of responseOrder) {
+      if (request.id === failedRequestId) {
+        input.write(
+          `${JSON.stringify({
+            jsonrpc: "2.0",
+            id: request.id,
+            error: {
+              code: -32001,
+              message: "tool failure",
+              data: { id: request.id },
+            },
+          })}\n`
+        );
+        continue;
+      }
+
+      input.write(
+        `${JSON.stringify({
+          jsonrpc: "2.0",
+          id: request.id,
+          result: { name: request.params.name, id: request.id },
+        })}\n`
+      );
+    }
+
+    const settled = await Promise.allSettled(responsePromises);
+    expect(pendingCount()).toBe(0);
+
+    for (let index = 0; index < settled.length; index += 1) {
+      const request = outboundRequests[index]!;
+      const result = settled[index]!;
+      if (request.id === failedRequestId) {
+        expect(result.status).toBe("rejected");
+        if (result.status === "rejected") {
+          expect(result.reason).toBeInstanceOf(McpError);
+          expect(result.reason).toMatchObject({
+            code: -32001,
+            message: "tool failure",
+            data: { id: request.id },
+          });
+        }
+        continue;
+      }
+
+      expect(result).toEqual({
+        status: "fulfilled",
+        value: {
+          name: request.params.name,
+          id: request.id,
+        },
+      });
+    }
+
+    await outputIterator.return?.();
+  });
+
+  it("rejects request with McpError when server responds with error", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    const responsePromise = layer.sendRequest("tools/call", {
+      name: "explode",
+    });
+
+    const requestLine = await outputIterator.next();
+    expect(requestLine.done).toBe(false);
+    expect(JSON.parse(requestLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: {
+        name: "explode",
+      },
+    });
+
+    input.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        error: {
+          code: -32001,
+          message: "Tool execution failed",
+          data: { tool: "explode", retryable: false },
+        },
+      })}\n`
+    );
+
+    await expect(responsePromise).rejects.toBeInstanceOf(McpError);
+    await expect(responsePromise).rejects.toMatchObject({
+      code: -32001,
+      message: "Tool execution failed",
+      data: { tool: "explode", retryable: false },
+    });
+
+    await outputIterator.return?.();
+  });
+
+  it("rejects request when default timeout elapses", async () => {
+    vi.useFakeTimers();
+    try {
+      const input = new PassThrough();
+      const output = new PassThrough();
+      trackForCleanup(input, output);
+      const layer = new JsonRpcMessageLayer(input, output, 25);
+
+      const pendingCount = () =>
+        (
+          layer as unknown as {
+            pendingRequests: Map<unknown, unknown>;
+          }
+        ).pendingRequests.size;
+
+      const responsePromise = layer.sendRequest("slow/method");
+      expect(pendingCount()).toBe(1);
+
+      const timeoutPromise = expect(responsePromise).rejects.toThrow(
+        'JSON-RPC request "slow/method" timed out after 25ms'
+      );
+
+      await vi.advanceTimersByTimeAsync(25);
+
+      await timeoutPromise;
+      expect(pendingCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("uses per-request timeout override when options.timeoutMs is provided", async () => {
+    vi.useFakeTimers();
+    try {
+      const input = new PassThrough();
+      const output = new PassThrough();
+      trackForCleanup(input, output);
+      const layer = new JsonRpcMessageLayer(input, output, 1_000);
+      const pendingCount = () =>
+        (
+          layer as unknown as {
+            pendingRequests: Map<unknown, unknown>;
+          }
+        ).pendingRequests.size;
+
+      const responsePromise = layer.sendRequest(
+        "custom/timeout",
+        undefined,
+        { timeoutMs: 15 }
+      );
+      const timeoutPromise = expect(responsePromise).rejects.toThrow(
+        'JSON-RPC request "custom/timeout" timed out after 15ms'
+      );
+
+      await vi.advanceTimersByTimeAsync(14);
+      expect(pendingCount()).toBe(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await timeoutPromise;
+      expect(pendingCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("JsonRpcMessageLayer sendNotification", () => {
+  it("writes notification without id and does not create pending request entry", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const pendingCount = () =>
+      (
+        layer as unknown as {
+          pendingRequests: Map<unknown, unknown>;
+        }
+      ).pendingRequests.size;
+
+    expect(pendingCount()).toBe(0);
+    layer.sendNotification("notifications/tools/list_changed");
+    expect(pendingCount()).toBe(0);
+
+    const notificationLine = await outputIterator.next();
+    expect(notificationLine.done).toBe(false);
+    const notification = JSON.parse(notificationLine.value!) as {
+      id?: unknown;
+      method: string;
+      params?: unknown;
+    };
+
+    expect(notification).toEqual({
+      jsonrpc: "2.0",
+      method: "notifications/tools/list_changed",
+    });
+    expect(notification.id).toBeUndefined();
+
+    await outputIterator.return?.();
+  });
+
+  it("includes params when provided", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    layer.sendNotification("notifications/message", {
+      level: "info",
+      data: { event: "ready" },
+    });
+
+    const notificationLine = await outputIterator.next();
+    expect(notificationLine.done).toBe(false);
+    expect(JSON.parse(notificationLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      method: "notifications/message",
+      params: {
+        level: "info",
+        data: { event: "ready" },
+      },
+    });
+
+    await outputIterator.return?.();
+  });
+
+  it("omits params when not provided", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    layer.sendNotification("notifications/initialized");
+
+    const notificationLine = await outputIterator.next();
+    expect(notificationLine.done).toBe(false);
+    const notification = JSON.parse(notificationLine.value!) as {
+      params?: unknown;
+    };
+    expect(notification).toEqual({
+      jsonrpc: "2.0",
+      method: "notifications/initialized",
+    });
+    expect("params" in notification).toBe(false);
+
+    await outputIterator.return?.();
+  });
+});
+
+describe("JsonRpcMessageLayer dispose", () => {
+  it("rejects all pending requests with provided error and clears their timeouts", async () => {
+    vi.useFakeTimers();
+    try {
+      const input = new PassThrough();
+      const output = new PassThrough();
+      trackForCleanup(input, output);
+      const layer = new JsonRpcMessageLayer(input, output, 5_000);
+      const pendingCount = () =>
+        (
+          layer as unknown as {
+            pendingRequests: Map<unknown, unknown>;
+          }
+        ).pendingRequests.size;
+
+      const disposalError = new Error("disposed by client");
+      const firstRequest = layer.sendRequest("first/request");
+      const secondRequest = layer.sendRequest("second/request");
+
+      expect(pendingCount()).toBe(2);
+      expect(vi.getTimerCount()).toBe(2);
+
+      layer.dispose(disposalError);
+
+      expect(pendingCount()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
+      await expect(firstRequest).rejects.toBe(disposalError);
+      await expect(secondRequest).rejects.toBe(disposalError);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("rejects pending requests with default disposal error when no reason is provided", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const layer = new JsonRpcMessageLayer(input, output, 1_000);
+    const request = layer.sendRequest("slow/request");
+
+    layer.dispose();
+
+    await expect(request).rejects.toThrow("JSON-RPC message layer disposed");
+  });
+
+  it("throws on sendRequest and sendNotification after dispose and remains idempotent", () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    layer.dispose();
+    layer.dispose();
+
+    expect(() => layer.sendRequest("tools/list")).toThrow("JSON-RPC message layer disposed");
+    expect(() => layer.sendNotification("notifications/initialized")).toThrow(
+      "JSON-RPC message layer disposed"
+    );
+  });
+
+  it("auto-disposes on input stream close and rejects pending requests with stream closed error", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const layer = new JsonRpcMessageLayer(input, output, 100);
+    const pendingRequest = layer.sendRequest("slow/request");
+
+    input.end();
+
+    await expect(pendingRequest).rejects.toThrow("stream closed");
+    expect(() => layer.sendRequest("tools/list")).toThrow("stream closed");
+    expect(() => layer.sendNotification("notifications/initialized")).toThrow(
+      "stream closed"
+    );
+  });
+});
+
+describe("JsonRpcMessageLayer onRequest", () => {
+  it("registers request handler and writes success response with handler result", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const handler = vi.fn((params: unknown, context: unknown) => ({
+      params,
+      context,
+    }));
+
+    layer.onRequest("tools/call", handler);
+    input.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 7,
+        method: "tools/call",
+        params: { name: "echo", arguments: { text: "hello" } },
+      })}\n`
+    );
+
+    await vi.waitFor(() => {
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+    expect(handler).toHaveBeenCalledWith(
+      { name: "echo", arguments: { text: "hello" } },
+      { id: 7, method: "tools/call" }
+    );
+
+    const responseLine = await outputIterator.next();
+    expect(responseLine.done).toBe(false);
+    expect(JSON.parse(responseLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: 7,
+      result: {
+        params: { name: "echo", arguments: { text: "hello" } },
+        context: { id: 7, method: "tools/call" },
+      },
+    });
+
+    await outputIterator.return?.();
+  });
+
+  it("writes error response when registered request handler throws", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const handler = vi.fn(() => {
+      throw new Error("handler exploded");
+    });
+
+    layer.onRequest("tools/call", handler);
+    input.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: "req-1",
+        method: "tools/call",
+        params: { name: "explode" },
+      })}\n`
+    );
+
+    await vi.waitFor(() => {
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    const responseLine = await outputIterator.next();
+    expect(responseLine.done).toBe(false);
+    expect(JSON.parse(responseLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: "req-1",
+      error: {
+        code: -32603,
+        message: "handler exploded",
+      },
+    });
+
+    await outputIterator.return?.();
+  });
+
+  it("writes method-not-found error for unregistered request methods", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    new JsonRpcMessageLayer(input, output);
+    const writeSpy = vi.spyOn(output, "write");
+
+    input.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 23,
+        method: "tools/unknown",
+        params: { value: "ignored" },
+      })}\n`
+    );
+
+    await vi.waitFor(() => {
+      expect(writeSpy).toHaveBeenCalledTimes(1);
+    });
+
+    const [line] = writeSpy.mock.calls[0] as [string];
+    const response = JSON.parse(line) as {
+      jsonrpc: "2.0";
+      id: number;
+      error: {
+        code: number;
+        message: string;
+      };
+    };
+
+    expect(response.jsonrpc).toBe("2.0");
+    expect(response.id).toBe(23);
+    expect(response.error.code).toBe(-32601);
+    expect(response.error.message).toContain("tools/unknown");
+  });
+});
+
+describe("JsonRpcMessageLayer invalid input handling", () => {
+  it("writes parse error response for malformed JSON input", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    new JsonRpcMessageLayer(input, output);
+
+    input.write('{"jsonrpc":"2.0","id":1\n');
+
+    const responseLine = await outputIterator.next();
+    expect(responseLine.done).toBe(false);
+    expect(JSON.parse(responseLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: null,
+      error: {
+        code: ERROR_PARSE,
+        message: "Parse error",
+      },
+    });
+
+    await outputIterator.return?.();
+  });
+
+  it("writes invalid-request response and preserves id when present", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    new JsonRpcMessageLayer(input, output);
+
+    input.write(`${JSON.stringify({ jsonrpc: "2.0", id: "req-17" })}\n`);
+
+    const responseLine = await outputIterator.next();
+    expect(responseLine.done).toBe(false);
+    expect(JSON.parse(responseLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: "req-17",
+      error: {
+        code: ERROR_INVALID_REQUEST,
+        message: "Invalid Request",
+      },
+    });
+
+    await outputIterator.return?.();
+  });
+
+  it("parses CR+LF-delimited responses correctly", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+
+    const responsePromise = layer.sendRequest("tools/list");
+    const requestLine = await outputIterator.next();
+    expect(requestLine.done).toBe(false);
+    expect(JSON.parse(requestLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/list",
+    });
+
+    input.write(`${JSON.stringify({ jsonrpc: "2.0", id: 1, result: { tools: [] } })}\r\n`);
+
+    await expect(responsePromise).resolves.toEqual({ tools: [] });
+    await outputIterator.return?.();
+  });
+
+  it("ignores empty input lines instead of treating them as invalid messages", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const layer = new JsonRpcMessageLayer(input, output);
+    const writeSpy = vi.spyOn(output, "write");
+    const handler = vi.fn();
+
+    layer.onNotification("notifications/message", handler);
+    input.write(
+      `\n\r\n${JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/message",
+        params: { level: "info" },
+      })}\n\r\n`
+    );
+
+    await vi.waitFor(() => {
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(writeSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  it("parses messages split across multiple input stream chunks", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const handler = vi.fn(() => ({ ok: true }));
+
+    layer.onRequest("tools/call", handler);
+
+    const request = JSON.stringify({
+      jsonrpc: "2.0",
+      id: 42,
+      method: "tools/call",
+      params: { name: "echo", arguments: { text: "hello" } },
+    });
+
+    input.write(request.slice(0, 18));
+    input.write(request.slice(18));
+    input.write("\n");
+
+    await vi.waitFor(() => {
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    const responseLine = await outputIterator.next();
+    expect(responseLine.done).toBe(false);
+    expect(JSON.parse(responseLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: 42,
+      result: { ok: true },
+    });
+
+    await outputIterator.return?.();
+  });
+});
+
+describe("JsonRpcMessageLayer onNotification", () => {
+  it("handles batch containing response and notification", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const notificationHandler = vi.fn();
+
+    layer.onNotification("notifications/message", notificationHandler);
+    const responsePromise = layer.sendRequest("tools/list");
+
+    const requestLine = await outputIterator.next();
+    expect(requestLine.done).toBe(false);
+    expect(JSON.parse(requestLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/list",
+    });
+
+    input.write(
+      `${JSON.stringify([
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          result: { tools: [{ name: "batch-tool" }] },
+        },
+        {
+          jsonrpc: "2.0",
+          method: "notifications/message",
+          params: { level: "info", data: { source: "batch" } },
+        },
+      ])}\n`
+    );
+
+    await expect(responsePromise).resolves.toEqual({
+      tools: [{ name: "batch-tool" }],
+    });
+    await vi.waitFor(() => {
+      expect(notificationHandler).toHaveBeenCalledTimes(1);
+    });
+    expect(notificationHandler).toHaveBeenCalledWith(
+      { level: "info", data: { source: "batch" } },
+      { method: "notifications/message" }
+    );
+
+    await outputIterator.return?.();
+  });
+
+  it("dispatches batch containing request and notification", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const requestHandler = vi.fn(() => ({ ok: true }));
+    const notificationHandler = vi.fn();
+
+    layer.onRequest("tools/call", requestHandler);
+    layer.onNotification("notifications/message", notificationHandler);
+
+    input.write(
+      `${JSON.stringify([
+        {
+          jsonrpc: "2.0",
+          id: "server-request-1",
+          method: "tools/call",
+          params: { name: "echo", arguments: { text: "from-batch" } },
+        },
+        {
+          jsonrpc: "2.0",
+          method: "notifications/message",
+          params: { level: "info", data: { source: "batch" } },
+        },
+      ])}\n`
+    );
+
+    await vi.waitFor(() => {
+      expect(requestHandler).toHaveBeenCalledTimes(1);
+      expect(notificationHandler).toHaveBeenCalledTimes(1);
+    });
+    expect(requestHandler).toHaveBeenCalledWith(
+      { name: "echo", arguments: { text: "from-batch" } },
+      { id: "server-request-1", method: "tools/call" }
+    );
+    expect(notificationHandler).toHaveBeenCalledWith(
+      { level: "info", data: { source: "batch" } },
+      { method: "notifications/message" }
+    );
+
+    const requestResponseLine = await outputIterator.next();
+    expect(requestResponseLine.done).toBe(false);
+    expect(JSON.parse(requestResponseLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: "server-request-1",
+      result: { ok: true },
+    });
+
+    await outputIterator.return?.();
+  });
+
+  it("ignores an empty batch array", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const layer = new JsonRpcMessageLayer(input, output);
+    const writeSpy = vi.spyOn(output, "write");
+    const notificationHandler = vi.fn();
+
+    layer.onNotification("notifications/message", notificationHandler);
+    input.write("[]\n");
+    input.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/message",
+      })}\n`
+    );
+
+    await vi.waitFor(() => {
+      expect(notificationHandler).toHaveBeenCalledTimes(1);
+    });
+    expect(notificationHandler).toHaveBeenCalledWith(undefined, {
+      method: "notifications/message",
+    });
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+
+  it("processes each message when a single input line contains a JSON-RPC batch", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const requestHandler = vi.fn(() => ({ ok: true }));
+    const notificationHandler = vi.fn();
+
+    layer.onRequest("tools/call", requestHandler);
+    layer.onNotification("notifications/message", notificationHandler);
+
+    const responsePromise = layer.sendRequest("tools/list");
+    const requestLine = await outputIterator.next();
+    expect(requestLine.done).toBe(false);
+    expect(JSON.parse(requestLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/list",
+    });
+
+    input.write(
+      `${JSON.stringify([
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          result: { tools: [{ name: "batch-tool" }] },
+        },
+        {
+          jsonrpc: "2.0",
+          id: "server-request-1",
+          method: "tools/call",
+          params: { name: "echo", arguments: { text: "from-batch" } },
+        },
+        {
+          jsonrpc: "2.0",
+          method: "notifications/message",
+          params: { level: "info", data: { source: "batch" } },
+        },
+      ])}\n`
+    );
+
+    await expect(responsePromise).resolves.toEqual({
+      tools: [{ name: "batch-tool" }],
+    });
+
+    await vi.waitFor(() => {
+      expect(requestHandler).toHaveBeenCalledTimes(1);
+      expect(notificationHandler).toHaveBeenCalledTimes(1);
+    });
+    expect(requestHandler).toHaveBeenCalledWith(
+      { name: "echo", arguments: { text: "from-batch" } },
+      { id: "server-request-1", method: "tools/call" }
+    );
+    expect(notificationHandler).toHaveBeenCalledWith(
+      { level: "info", data: { source: "batch" } },
+      { method: "notifications/message" }
+    );
+
+    const requestResponseLine = await outputIterator.next();
+    expect(requestResponseLine.done).toBe(false);
+    expect(JSON.parse(requestResponseLine.value!)).toEqual({
+      jsonrpc: "2.0",
+      id: "server-request-1",
+      result: { ok: true },
+    });
+
+    await outputIterator.return?.();
+  });
+
+  it("registers notification handler and calls it with params and context", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const layer = new JsonRpcMessageLayer(input, output);
+    const writeSpy = vi.spyOn(output, "write");
+    const handler = vi.fn();
+
+    layer.onNotification("notifications/message", handler);
+    input.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/message",
+        params: { level: "info", data: { text: "hello" } },
+      })}\n`
+    );
+
+    await vi.waitFor(() => {
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+    expect(handler).toHaveBeenCalledWith(
+      { level: "info", data: { text: "hello" } },
+      { method: "notifications/message" }
+    );
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+
+  it("silently ignores unregistered notification methods", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    trackForCleanup(input, output);
+    const layer = new JsonRpcMessageLayer(input, output);
+    const writeSpy = vi.spyOn(output, "write");
+    const handler = vi.fn();
+
+    layer.onNotification("notifications/known", handler);
+    input.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/unknown",
+        params: { ignored: true },
+      })}\n`
+    );
+    input.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/known" })}\n`);
+
+    await vi.waitFor(() => {
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+    expect(handler).toHaveBeenCalledWith(undefined, {
+      method: "notifications/known",
+    });
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+});
+describe("parseJsonRpcMessage", () => {
+  it("parses a request with numeric id", () => {
+    const parsed = parseJsonRpcMessage('{"jsonrpc":"2.0","id":1,"method":"tools/list"}');
+
+    expect(parsed).toEqual({
+      type: "request",
+      message: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/list",
+      },
+    });
+  });
+
+  it("parses a request with string id", () => {
+    const parsed = parseJsonRpcMessage(
+      '{"jsonrpc":"2.0","id":"request-1","method":"tools/list"}'
+    );
+
+    expect(parsed).toEqual({
+      type: "request",
+      message: {
+        jsonrpc: "2.0",
+        id: "request-1",
+        method: "tools/list",
+      },
+    });
+  });
+
+  it("parses a request with params", () => {
+    const parsed = parseJsonRpcMessage(
+      '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"echo","arguments":{"text":"hello"}}}'
+    );
+
+    expect(parsed).toEqual({
+      type: "request",
+      message: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: {
+          name: "echo",
+          arguments: {
+            text: "hello",
+          },
+        },
+      },
+    });
+  });
+
+  it("parses a request without params", () => {
+    const parsed = parseJsonRpcMessage(
+      '{"jsonrpc":"2.0","id":"request-2","method":"tools/list"}'
+    );
+
+    expect(parsed).toEqual({
+      type: "request",
+      message: {
+        jsonrpc: "2.0",
+        id: "request-2",
+        method: "tools/list",
+      },
+    });
+  });
+
+  it("parses a notification with params", () => {
+    const parsed = parseJsonRpcMessage(
+      '{"jsonrpc":"2.0","method":"notifications/progress","params":{"progressToken":"token-1","progress":0.5}}'
+    );
+
+    expect(parsed).toEqual({
+      type: "notification",
+      message: {
+        jsonrpc: "2.0",
+        method: "notifications/progress",
+        params: {
+          progressToken: "token-1",
+          progress: 0.5,
+        },
+      },
+    });
+  });
+
+  it("parses a notification without params", () => {
+    const parsed = parseJsonRpcMessage(
+      '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+    );
+
+    expect(parsed).toEqual({
+      type: "notification",
+      message: {
+        jsonrpc: "2.0",
+        method: "notifications/initialized",
+      },
+    });
+  });
+
+  it("parses a success response", () => {
+    const parsed = parseJsonRpcMessage('{"jsonrpc":"2.0","id":"req-1","result":{}}');
+
+    expect(parsed).toEqual({
+      type: "response",
+      message: {
+        jsonrpc: "2.0",
+        id: "req-1",
+        result: {},
+      },
+    });
+  });
+
+  it("parses an error response with data", () => {
+    const parsed = parseJsonRpcMessage(
+      '{"jsonrpc":"2.0","id":"req-2","error":{"code":-32601,"message":"Method not found","data":{"method":"tools/missing"}}}'
+    );
+
+    expect(parsed).toEqual({
+      type: "response",
+      message: {
+        jsonrpc: "2.0",
+        id: "req-2",
+        error: {
+          code: -32601,
+          message: "Method not found",
+          data: {
+            method: "tools/missing",
+          },
+        },
+      },
+    });
+  });
+
+  it("parses an error response without data", () => {
+    const parsed = parseJsonRpcMessage(
+      '{"jsonrpc":"2.0","id":"req-3","error":{"code":-32000,"message":"Boom"}}'
+    );
+
+    expect(parsed).toEqual({
+      type: "response",
+      message: {
+        jsonrpc: "2.0",
+        id: "req-3",
+        error: {
+          code: -32000,
+          message: "Boom",
+        },
+      },
+    });
+  });
+
+  it("returns parse error for malformed JSON", () => {
+    const parsed = parseJsonRpcMessage('{"jsonrpc":"2.0","id":1');
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_PARSE);
+    expect(parsed.id).toBeNull();
+  });
+
+  it("returns invalid request for array payload", () => {
+    const parsed = parseJsonRpcMessage("[]");
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_INVALID_REQUEST);
+    expect(parsed.id).toBeNull();
+  });
+
+  it("returns invalid request for string payload", () => {
+    const parsed = parseJsonRpcMessage('"not-an-object"');
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_INVALID_REQUEST);
+    expect(parsed.id).toBeNull();
+  });
+
+  it("returns invalid request when jsonrpc field is missing", () => {
+    const parsed = parseJsonRpcMessage('{"id":1,"method":"tools/list"}');
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_INVALID_REQUEST);
+    expect(parsed.id).toBe(1);
+  });
+
+  it("returns invalid request when jsonrpc field has wrong value", () => {
+    const parsed = parseJsonRpcMessage('{"jsonrpc":"1.0","id":1,"method":"tools/list"}');
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_INVALID_REQUEST);
+    expect(parsed.id).toBe(1);
+  });
+
+  it("returns invalid request when method is not a string", () => {
+    const parsed = parseJsonRpcMessage('{"jsonrpc":"2.0","id":1,"method":123}');
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_INVALID_REQUEST);
+    expect(parsed.id).toBe(1);
+  });
+
+  it("returns invalid request for response containing both result and error", () => {
+    const parsed = parseJsonRpcMessage(
+      '{"jsonrpc":"2.0","id":1,"result":{},"error":{"code":-32601,"message":"Method not found"}}'
+    );
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_INVALID_REQUEST);
+    expect(parsed.id).toBe(1);
+  });
+
+  it("returns invalid request for response containing neither result nor error", () => {
+    const parsed = parseJsonRpcMessage('{"jsonrpc":"2.0","id":1}');
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_INVALID_REQUEST);
+    expect(parsed.id).toBe(1);
+  });
+
+  it("returns invalid with error code and id metadata", () => {
+    const parsed = parseJsonRpcMessage('{"jsonrpc":"2.0","id":"bad"}');
+
+    expect(parsed.type).toBe("invalid");
+    if (parsed.type !== "invalid") {
+      throw new Error("expected invalid parse result");
+    }
+
+    expect(parsed.error.code).toBe(ERROR_INVALID_REQUEST);
+    expect(parsed.id).toBe("bad");
+  });
+});
+describe("SseParser", () => {
+  it("parses event: message with data payload", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push('event: message\ndata: {"jsonrpc":"2.0"}\n\n');
+
+    expect(parsed).toEqual([
+      {
+        data: '{"jsonrpc":"2.0"}',
+      },
+    ]);
+  });
+
+  it("defaults missing event field to message", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push('data: {"jsonrpc":"2.0"}\n\n');
+
+    expect(parsed).toEqual([
+      {
+        data: '{"jsonrpc":"2.0"}',
+      },
+    ]);
+  });
+
+  it("extracts data-only event correctly", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push("data: payload-only\n\n");
+
+    expect(parsed).toEqual([
+      {
+        data: "payload-only",
+      },
+    ]);
+  });
+
+  it("parses two events in sequence independently", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push(
+      "event: message\ndata: first\n\nevent: message\ndata: second\n\n"
+    );
+
+    expect(parsed).toEqual([
+      {
+        data: "first",
+      },
+      {
+        data: "second",
+      },
+    ]);
+  });
+
+  it("handles empty lines between events", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push(
+      "event: message\ndata: first\n\n\n\nevent: message\ndata: second\n\n"
+    );
+
+    expect(parsed).toEqual([
+      {
+        data: "first",
+      },
+      {
+        data: "second",
+      },
+    ]);
+  });
+
+  it("concatenates multi-line data fields with newlines", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push("event: message\ndata: line-1\ndata: line-2\n\n");
+
+    expect(parsed).toEqual([
+      {
+        data: "line-1\nline-2",
+      },
+    ]);
+  });
+
+  it("ignores comment lines", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push(": keepalive\nevent: message\ndata: pong\n\n");
+
+    expect(parsed).toEqual([
+      {
+        data: "pong",
+      },
+    ]);
+  });
+
+  it("ignores non-message events", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push("event: ping\ndata: should-not-emit\n\n");
+
+    expect(parsed).toEqual([]);
+  });
+
+  it("extracts lastEventId from event with id field", () => {
+    const parser = new SseParser();
+
+    const parsed = parser.push("event: message\nid: evt-1\ndata: payload\n\n");
+
+    expect(parsed).toEqual([
+      {
+        data: "payload",
+        id: "evt-1",
+      },
+    ]);
+    expect(parser.lastEventId).toBe("evt-1");
+  });
+
+  it("handles event split across stream chunks", () => {
+    const parser = new SseParser();
+
+    expect(parser.push("event: messa")).toEqual([]);
+    expect(parser.push("ge\ndata: {\"jsonrpc\":\"2.0\"}")).toEqual([]);
+    expect(parser.push("\n\n")).toEqual([
+      {
+        data: '{"jsonrpc":"2.0"}',
+      },
+    ]);
+  });
+});
+describe("StdioTransport constructor", () => {
+  it("calls spawn with command and args", () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+
+    new StdioTransport({
+      command: "tiny-stdio-mcp-test-server",
+      args: ["--mode", "stdio"],
+      spawn,
+    });
+
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(spawn).toHaveBeenCalledWith(
+      "tiny-stdio-mcp-test-server",
+      ["--mode", "stdio"],
+      {
+        cwd: undefined,
+        env: undefined,
+        stdio: ["pipe", "pipe", "pipe"],
+      }
+    );
+  });
+
+  it("passes cwd and env through to spawn", () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+    const env: NodeJS.ProcessEnv = { MCP_TOKEN: "token-123" };
+
+    new StdioTransport({
+      command: "node",
+      args: ["server.js"],
+      cwd: "/tmp/mcp",
+      env,
+      spawn,
+    });
+
+    expect(spawn).toHaveBeenCalledWith("node", ["server.js"], {
+      cwd: "/tmp/mcp",
+      env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  });
+
+  it("sets readable and writable to child stdout and stdin", () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+
+    expect(transport.readable).toBe(child.stdout);
+    expect(transport.writable).toBe(child.stdin);
+  });
+
+  it("uses provided custom spawn function", () => {
+    const child = createMockChildProcess();
+    const customSpawn = vi.fn<StdioSpawn>(() => child);
+
+    new StdioTransport({
+      command: "custom-bin",
+      spawn: customSpawn,
+    });
+
+    expect(customSpawn).toHaveBeenCalledTimes(1);
+    expect(customSpawn).toHaveBeenCalledWith("custom-bin", [], {
+      cwd: undefined,
+      env: undefined,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  });
+});
+
+describe("StdioTransport stderr capture", () => {
+  it("returns concatenated stderr chunks", () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+
+    child.stderr.write("first");
+    child.stderr.write(" second");
+
+    expect(transport.getStderrOutput()).toBe("first second");
+  });
+
+  it("caps stderr at 64KB keeping the tail", () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+
+    const chunk = "x".repeat(40_000);
+    child.stderr.write(chunk);
+    child.stderr.write(chunk);
+
+    const output = transport.getStderrOutput();
+    expect(output.length).toBe(65_536);
+    expect(output).toBe((chunk + chunk).slice(-65_536));
+  });
+});
+
+describe("StdioTransport closed promise", () => {
+  it("resolves when the process exits with code 0", async () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+
+    child.emitExit(0, null);
+
+    const closed = await transport.closed;
+    expect(closed.reason).toBeInstanceOf(Error);
+    expect(closed.code).toBe(0);
+    expect(closed.signal).toBeUndefined();
+  });
+
+  it("resolves with code 1 when the process crashes", async () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+
+    child.emitExit(1, null);
+
+    const closed = await transport.closed;
+    expect(closed.reason).toBeInstanceOf(Error);
+    expect(closed.reason.message).toBe("Stdio transport process exited");
+    expect(closed.code).toBe(1);
+    expect(closed.signal).toBeUndefined();
+  });
+
+  it("resolves with signal when the process exits from SIGTERM", async () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+
+    child.emitExit(null, "SIGTERM");
+
+    const closed = await transport.closed;
+    expect(closed.reason).toBeInstanceOf(Error);
+    expect(closed.code).toBeUndefined();
+    expect(closed.signal).toBe("SIGTERM");
+  });
+
+  it("resolves with process error reason when process emits error", async () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+    const processError = new Error("spawn failed");
+
+    child.emitError(processError);
+
+    const closed = await transport.closed;
+    expect(closed.reason).toBe(processError);
+    expect(closed.code).toBeUndefined();
+    expect(closed.signal).toBeUndefined();
+  });
+});
+
+describe("StdioTransport dispose", () => {
+  it("ends stdin, sends SIGTERM, and resolves closed", async () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+    const endSpy = vi.spyOn(child.stdin, "end");
+
+    transport.dispose();
+
+    expect(endSpy).toHaveBeenCalledTimes(1);
+    expect(child.kill).toHaveBeenCalledTimes(1);
+    expect(child.kill).toHaveBeenCalledWith("SIGTERM");
+
+    const closed = await transport.closed;
+    expect(closed.signal).toBe("SIGTERM");
+  });
+
+  it("does not throw when dispose is called twice", () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+    const endSpy = vi.spyOn(child.stdin, "end");
+
+    expect(() => {
+      transport.dispose();
+      transport.dispose();
+    }).not.toThrow();
+
+    expect(endSpy).toHaveBeenCalledTimes(1);
+    expect(child.kill).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("StdioTransport real process smoke test", () => {
+  it("spawns tiny-stdio-mcp-test-server and round-trips initialize over stdio", async () => {
+    const transport = new StdioTransport({
+      command: process.execPath,
+      args: [testServerCli, "serve", "word-of-the-day"],
+    });
+
+    try {
+      transport.writable.write(
+        `${JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2025-03-26",
+            capabilities: {},
+            clientInfo: {
+              name: "tiny-mcp-client-smoke-test",
+              version: "0.0.0-test",
+            },
+          },
+        })}\n`
+      );
+
+      const line = await readSingleLineWithTimeout(transport, 5000);
+      const response = JSON.parse(line) as {
+        jsonrpc: string;
+        id: number;
+        result: {
+          protocolVersion: string;
+          serverInfo: { name: string; version: string };
+          capabilities: { tools: { listChanged: boolean } };
+        };
+      };
+
+      expect(response.jsonrpc).toBe("2.0");
+      expect(response.id).toBe(1);
+      expect(response.result.protocolVersion).toBe("2025-03-26");
+      expect(response.result.serverInfo).toEqual({
+        name: "tiny-stdio-mcp-test-server",
+        version: "0.0.1",
+      });
+      expect(response.result.capabilities.tools.listChanged).toBe(true);
+    } finally {
+      transport.dispose();
+      const closed = await transport.closed;
+      expect(closed.reason).toBeInstanceOf(Error);
+      expect(closed.signal ?? closed.code).toBeDefined();
+    }
+  });
+});
 describe("McpClient constructor", () => {
   it("accepts required and optional options", () => {
     const onToolsChanged = vi.fn();

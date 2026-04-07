@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
+import { spawnSync } from "node:child_process";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import type { AcpModel, AcpModelResponse } from "./runtime/acp-core.js";
 import { agent } from "./agent.js";
 import type { AcpEvent } from "./runtime/types.js";
+import { loadSystemPrompt, loadSystemPromptSync } from "./system-prompt.js";
 
 const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
 const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown) => Promise<void>>());
@@ -1146,5 +1150,36 @@ describe("agent builder", () => {
         'Unknown plugin dependency "alpha" for plugin "needs-alpha".',
       );
     }
+  });
+});
+
+// === system-prompt.test.ts ===
+
+describe("poe-agent system prompt", () => {
+  it("returns the bundled prompt asynchronously", async () => {
+    const prompt = await loadSystemPrompt();
+
+    expect(prompt).toContain("You are a Poe agent, built by Poe");
+    expect(prompt).toContain("Assist with defensive security only");
+  });
+
+  it("returns the bundled prompt synchronously", () => {
+    const prompt = loadSystemPromptSync();
+
+    expect(prompt).toContain("You are a Poe agent, built by Poe");
+    expect(prompt).toContain("Assist with defensive security only");
+  });
+
+  it("can import built system-prompt module in plain node", () => {
+    const modulePath = path.resolve(process.cwd(), "packages/poe-agent/dist/system-prompt.js");
+    const moduleUrl = pathToFileURL(modulePath).href;
+    const command = `await import(${JSON.stringify(moduleUrl)});`;
+
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", command], {
+      encoding: "utf8",
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe("");
   });
 });

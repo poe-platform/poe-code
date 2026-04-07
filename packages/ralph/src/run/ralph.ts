@@ -4,7 +4,6 @@ import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
 import {
   parseFrontmatter,
   writeFrontmatter,
-  type RalphFrontmatter,
   type RalphPlanStatus
 } from "../frontmatter/frontmatter.js";
 import type {
@@ -35,34 +34,20 @@ export async function runRalph(
     options.homeDir
   );
   const rawContent = await fs.readFile(absoluteDocPath, "utf8");
-  const { data: frontmatter, body: rawBody } = parseFrontmatter(rawContent);
+  const { body: rawBody } = parseFrontmatter(rawContent);
   const prompt = interpolateVariables(rawBody, {
     current_file: absoluteDocPath
   });
   const startTime = Date.now();
   let iterationsCompleted = 0;
 
-  await updateFrontmatter(
-    fs,
-    absoluteDocPath,
-    rawBody,
-    frontmatter,
-    "in_progress",
-    0
-  );
+  await updateFrontmatter(fs, absoluteDocPath, "in_progress", 0);
 
   async function finalize(
     stopReason: RalphRunResult["stopReason"]
   ): Promise<RalphRunResult> {
     const status = stopReasonToStatus(stopReason);
-    await updateFrontmatter(
-      fs,
-      absoluteDocPath,
-      rawBody,
-      frontmatter,
-      status,
-      iterationsCompleted
-    );
+    await updateFrontmatter(fs, absoluteDocPath, status, iterationsCompleted);
     if (stopReason === "max_iterations" && iterationsCompleted > 0) {
       await archivePlan(fs, absoluteDocPath);
     }
@@ -105,14 +90,7 @@ export async function runRalph(
       const success = result.exitCode === 0;
       iterationsCompleted += 1;
 
-      await updateFrontmatter(
-        fs,
-        absoluteDocPath,
-        rawBody,
-        frontmatter,
-        "in_progress",
-        iterationsCompleted
-      );
+      await updateFrontmatter(fs, absoluteDocPath, "in_progress", iterationsCompleted);
 
       options.onIterationComplete?.(
         iteration,
@@ -204,23 +182,26 @@ function isAbortError(error: unknown): boolean {
 async function updateFrontmatter(
   fs: RalphFileSystem,
   absoluteDocPath: string,
-  body: string,
-  frontmatter: RalphFrontmatter,
   state: RalphPlanStatus,
   iteration: number
 ): Promise<void> {
+  const currentContent = await fs.readFile(absoluteDocPath, "utf8");
+  const { data: currentFrontmatter, body: currentBody } =
+    parseFrontmatter(currentContent);
   const content = writeFrontmatter(
     {
-      ...(frontmatter.agent !== undefined ? { agent: frontmatter.agent } : {}),
-      ...(frontmatter.iterations !== undefined
-        ? { iterations: frontmatter.iterations }
+      ...(currentFrontmatter.agent !== undefined
+        ? { agent: currentFrontmatter.agent }
+        : {}),
+      ...(currentFrontmatter.iterations !== undefined
+        ? { iterations: currentFrontmatter.iterations }
         : {}),
       status: {
         state,
         iteration
       }
     },
-    body
+    currentBody
   );
   await fs.writeFile(absoluteDocPath, content);
 }

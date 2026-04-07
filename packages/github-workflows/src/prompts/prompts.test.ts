@@ -104,4 +104,22 @@ describe("built-in prompts", () => {
       expect(automation?.prompt).not.toContain("Before answering:");
     }
   });
+
+
+  it("tells GitHub responders to use body files for multiline gh content", async () => {
+    const automations = await discoverAutomations(promptsDir);
+
+    for (const name of [
+      "github-issue-opened",
+      "github-issue-comment-created",
+      "github-pull-request-opened",
+      "github-pull-request-comment-created",
+      "github-pull-request-synchronized"
+    ]) {
+      const automation = automations.find((candidate) => candidate.name === name);
+
+      expect(automation?.prompt).toContain("--body-file");
+      expect(automation?.prompt).toContain("quoted heredoc");
+    }
+  });
 });

@@ -491,7 +491,7 @@ describe("createRalphSimulation", () => {
     );
   });
 
-  it("reads the markdown doc once even if it changes mid-run", async () => {
+  it("uses the prompt from initial read even if body changes mid-run", async () => {
     const sim = createRalphSimulation({
       docContent: "Version one",
       maxIterations: 2,
@@ -506,6 +506,82 @@ describe("createRalphSimulation", () => {
     const { prompts } = await sim.run();
 
     expect(prompts).toEqual(["Version one", "Version one"]);
+  });
+
+  it("preserves external body changes when updating frontmatter", async () => {
+    const sim = createRalphSimulation({
+      docContent: "Original body",
+      maxIterations: 2,
+      turns: [
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const current = await ctx.readFile(
+              ".poe-code/ralph/plans/plan.md"
+            );
+            const { data } = parseFrontmatter(current);
+            const updated = writeFrontmatter(data, "Body changed by another agent");
+            await ctx.writeFile(".poe-code/ralph/plans/plan.md", updated);
+          },
+          output: { stdout: "", exitCode: 0 }
+        },
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const content = await ctx.readFile(
+              ".poe-code/ralph/plans/plan.md"
+            );
+            const { body } = parseFrontmatter(content);
+            expect(body).toBe("Body changed by another agent");
+          },
+          output: { stdout: "", exitCode: 0 }
+        }
+      ]
+    });
+
+    await sim.run();
+  });
+
+  it("preserves externally added frontmatter fields when updating status", async () => {
+    const sim = createRalphSimulation({
+      docContent: [
+        "---",
+        "agent: codex",
+        "iterations: 3",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# Plan"
+      ].join("\n"),
+      maxIterations: 2,
+      turns: [
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const current = await ctx.readFile(
+              ".poe-code/ralph/plans/plan.md"
+            );
+            const { data, body } = parseFrontmatter(current);
+            const updated = writeFrontmatter(
+              { ...data, iterations: 10 },
+              body
+            );
+            await ctx.writeFile(".poe-code/ralph/plans/plan.md", updated);
+          },
+          output: { stdout: "", exitCode: 0 }
+        },
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const content = await ctx.readFile(
+              ".poe-code/ralph/plans/plan.md"
+            );
+            const { data } = parseFrontmatter(content);
+            expect(data.iterations).toBe(10);
+          },
+          output: { stdout: "", exitCode: 0 }
+        }
+      ]
+    });
+
+    await sim.run();
   });
 
   it("writes nested frontmatter with in_progress status on start", async () => {

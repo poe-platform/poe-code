@@ -541,6 +541,14 @@ describe("parseExperimentFrontmatter", () => {
     expect(result.frontmatter.metricTimeout).toBe(120);
   });
 
+  it("parses extends from frontmatter", () => {
+    const content = ["---", "extends: true", "baseline: null", "---", "Body"].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.extends).toBe(true);
+  });
+
   it("parses agent as a single string", () => {
     const content = ["---", "agent: claude-code", "baseline: null", "---", "Body"].join("\n");
 
@@ -1310,6 +1318,290 @@ describe("runExperimentLoop", () => {
         model: "anthropic/claude-opus-4.6"
       })
     );
+  });
+
+  it("inherits metric and body from a matching base when extends is true", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: ["---", "extends: true", "baseline: { tests: 1 }", "---", ""].join("\n"),
+      "/repo/.poe-code/experiments/bases/test-duration.md": [
+        "---",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "---",
+        "# Base prompt",
+        "",
+        "Use the shared instructions."
+      ].join("\n")
+    });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const exec = createLoopExec([]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => {
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-1",
+          status: "keep",
+          scores: { tests: 2 },
+          output: "tests: score=2, passed=true",
+          agentOutput: "done",
+          durationMs: 100
+        });
+        return { stdout: "done", stderr: "", exitCode: 0 };
+      }
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code"
+      })
+    );
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Base prompt");
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Use the shared instructions.");
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the home base when no matching project base exists", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: ["---", "extends: true", "baseline: { tests: 1 }", "---", ""].join("\n"),
+      "/home/user/.poe-code/experiments/bases/test-duration.md": [
+        "---",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "---",
+        "# Global base prompt",
+        "",
+        "Use the home-level instructions."
+      ].join("\n")
+    });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const exec = createLoopExec([]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => {
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-1",
+          status: "keep",
+          scores: { tests: 2 },
+          output: "tests: score=2, passed=true",
+          agentOutput: "done",
+          durationMs: 100
+        });
+        return { stdout: "done", stderr: "", exitCode: 0 };
+      }
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code"
+      })
+    );
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Global base prompt");
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Use the home-level instructions.");
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("keeps the document body while inheriting missing frontmatter from the base", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "extends: true",
+        "baseline: { tests: 1 }",
+        "---",
+        "# Document prompt",
+        "",
+        "Prefer the local instructions."
+      ].join("\n"),
+      "/repo/.poe-code/experiments/bases/test-duration.md": [
+        "---",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "---",
+        "# Base prompt",
+        "",
+        "This body should stay a fallback only."
+      ].join("\n")
+    });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const exec = createLoopExec([]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => {
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-1",
+          status: "keep",
+          scores: { tests: 2 },
+          output: "tests: score=2, passed=true",
+          agentOutput: "done",
+          durationMs: 100
+        });
+        return { stdout: "done", stderr: "", exitCode: 0 };
+      }
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code"
+      })
+    );
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Document prompt");
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Prefer the local instructions.");
+    expect(runAgent.mock.calls[0]?.[0].prompt).not.toContain("# Base prompt");
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("lets document agent override the defaults agent", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: codex",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "---",
+        "# Improve the tests"
+      ].join("\n")
+    });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const exec = createLoopExec([]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => {
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-1",
+          status: "keep",
+          scores: { tests: 2 },
+          output: "tests: score=2, passed=true",
+          agentOutput: "done",
+          durationMs: 100
+        });
+        return { stdout: "done", stderr: "", exitCode: 0 };
+      }
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex"
+      })
+    );
+  });
+
+  it("ignores matching bases when the document does not set extends", async () => {
+    const docPath = "/repo/.poe-code/experiments/test-duration.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  script: node scripts/metric-tests.mjs",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "---",
+        "# Document prompt",
+        "",
+        "Use the local instructions."
+      ].join("\n"),
+      "/repo/.poe-code/experiments/bases/test-duration.md": [
+        "---",
+        "agent: codex",
+        "metric:",
+        "  name: duration",
+        "  script: node scripts/metric-duration.mjs",
+        "  direction: minimize",
+        "---",
+        "# Base prompt",
+        "",
+        "This should not be used."
+      ].join("\n")
+    });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const exec = createLoopExec([]);
+    const runAgent = vi.fn(
+      async (_input: AgentRunInput): Promise<AgentRunResult> => {
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-1",
+          status: "keep",
+          scores: { tests: 2 },
+          output: "tests: score=2, passed=true",
+          agentOutput: "done",
+          durationMs: 100
+        });
+        return { stdout: "done", stderr: "", exitCode: 0 };
+      }
+    );
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code"
+      })
+    );
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Document prompt");
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Use the local instructions.");
+    expect(runAgent.mock.calls[0]?.[0].prompt).not.toContain("# Base prompt");
+    expect(exec).not.toHaveBeenCalled();
   });
 
   it("initializes the journal file even when no experiments are run", async () => {

@@ -4,6 +4,7 @@ import type { ExperimentFileSystem, MetricDef } from "../types.js";
 
 export interface ExperimentFrontmatter {
   agent?: string | string[];
+  extends?: boolean;
   metric?: MetricDef | MetricDef[];
   baseline: Record<string, number> | null;
   maxExperiments?: number;
@@ -17,7 +18,7 @@ export function parseExperimentFrontmatter(content: string): {
   const parsed = matter(content);
 
   return {
-    frontmatter: parseFrontmatterData(parsed.data),
+    frontmatter: parseExperimentFrontmatterData(parsed.data),
     body: parsed.content
   };
 }
@@ -37,15 +38,17 @@ export async function writeExperimentFrontmatter(
   await fs.writeFile(docPath, content);
 }
 
-function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
+export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontmatter {
   const parsed = isRecord(value) ? value : undefined;
   const agent = parseAgent(parsed?.agent);
+  const extendsValue = parseBoolean(parsed?.extends);
   const metric = parseMetric(parsed?.metric);
   const maxExperiments = parseNonNegativeInteger(parsed?.maxExperiments);
   const metricTimeout = parseNonNegativeInteger(parsed?.metricTimeout);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
+    ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(metric !== undefined ? { metric } : {}),
     baseline: parseBaseline(parsed?.baseline),
     ...(maxExperiments !== undefined ? { maxExperiments } : {}),
@@ -56,6 +59,7 @@ function parseFrontmatterData(value: unknown): ExperimentFrontmatter {
 function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string, unknown> {
   return {
     ...(frontmatter.agent !== undefined ? { agent: frontmatter.agent } : {}),
+    ...(frontmatter.extends !== undefined ? { extends: frontmatter.extends } : {}),
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),
     baseline: frontmatter.baseline,
     ...(frontmatter.maxExperiments !== undefined ? { maxExperiments: frontmatter.maxExperiments } : {}),
@@ -155,6 +159,10 @@ function parseString(value: unknown): string | undefined {
 
 function parseNonNegativeInteger(value: unknown): number | undefined {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
+}
+
+function parseBoolean(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

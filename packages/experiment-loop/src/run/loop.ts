@@ -1,7 +1,11 @@
 import { exec as execCallback } from "node:child_process";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
-import { parseExperimentFrontmatter } from "../frontmatter/frontmatter.js";
+import { resolve } from "@poe-code/config-extends";
+import {
+  parseExperimentFrontmatterData,
+  type ExperimentFrontmatter
+} from "../frontmatter/frontmatter.js";
 import { createDefaultGit } from "../git/git.js";
 import { baselineFromEntry, ExperimentJournal } from "../journal/journal.js";
 import { evaluateChain } from "../evaluator/evaluator.js";
@@ -115,6 +119,18 @@ function validateMaxExperiments(maxExperiments: number | undefined): number {
   }
 
   return maxExperiments;
+}
+
+function normalizeResolvedBody(prompt: unknown): string {
+  if (prompt === undefined) {
+    return "";
+  }
+
+  if (typeof prompt !== "string") {
+    throw new Error("Experiment doc prompt must be a string.");
+  }
+
+  return prompt;
 }
 
 function assertNotAborted(signal: AbortSignal | undefined): void {
@@ -245,9 +261,24 @@ export async function runExperimentLoop(
   ]);
   const startTime = Date.now();
 
-  async function readDoc(): Promise<{ frontmatter: ReturnType<typeof parseExperimentFrontmatter>["frontmatter"]; body: string }> {
+  async function readDoc(): Promise<{ frontmatter: ExperimentFrontmatter; body: string }> {
     const rawContent = await fs.readFile(absoluteDocPath, "utf8");
-    return parseExperimentFrontmatter(rawContent);
+    const resolved = await resolve(
+      [
+        { source: "cli", data: { agent: options.agent } },
+        { source: "document", filePath: absoluteDocPath, content: rawContent },
+        { source: "base", path: path.join(options.cwd, ".poe-code/experiments/bases") },
+        { source: "base", path: path.join(options.homeDir, ".poe-code/experiments/bases") },
+        { source: "defaults", data: { agent: "claude-code" } }
+      ],
+      { fs }
+    );
+    const { prompt, ...frontmatterData } = resolved.data;
+
+    return {
+      frontmatter: parseExperimentFrontmatterData(frontmatterData),
+      body: normalizeResolvedBody(prompt)
+    };
   }
 
   const { frontmatter: initialFrontmatter } = await readDoc();

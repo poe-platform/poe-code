@@ -191,7 +191,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integrate-experiment-docs
     title: Integrate config-extends into experiment-loop docs
@@ -228,8 +228,8 @@ tasks:
       - Document agent overrides defaults agent
       - No extends → backward compatible, works exactly as before
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integrate-experiment-runyaml

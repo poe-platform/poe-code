@@ -130,6 +130,12 @@ interface AcpClientSharedOptions {
   fsHandler?: AcpClientFsHandler;
   terminalHandler?: AcpClientTerminalHandler;
   skipAuth?: boolean;
+  /**
+   * Automatically approve all permission requests (selects the first
+   * "allow_always" or "allow_once" option). Ignored when a custom
+   * `permissionHandler` is provided.
+   */
+  autoApprove?: boolean;
 }
 
 export interface AcpClientProcessOptions extends AcpClientSharedOptions {
@@ -323,20 +329,29 @@ export class AcpClient {
     this.fsHandler = options.handlers?.fs ?? options.fsHandler;
     this.terminalHandler = options.handlers?.terminal ?? options.terminalHandler;
 
+    const autoApprove = options.autoApprove === true && !this.permissionHandler;
+
     this.transport.onRequest(
       "session/request_permission",
       async (params: RequestPermissionRequest): Promise<RequestPermissionResponse> => {
-        if (!this.permissionHandler) {
-          return {
-            outcome: { outcome: "cancelled" },
-          };
+        if (this.permissionHandler) {
+          const outcome = await this.permissionHandler({
+            toolCall: params.toolCall,
+            options: params.options,
+          });
+          return { outcome };
         }
 
-        const outcome = await this.permissionHandler({
-          toolCall: params.toolCall,
-          options: params.options,
-        });
-        return { outcome };
+        if (autoApprove) {
+          const allow =
+            params.options.find((o: PermissionOption) => o.kind === "allow_always") ??
+            params.options.find((o: PermissionOption) => o.kind === "allow_once");
+          if (allow) {
+            return { outcome: { outcome: "selected", optionId: allow.optionId } };
+          }
+        }
+
+        return { outcome: { outcome: "cancelled" } };
       }
     );
 

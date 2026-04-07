@@ -30,32 +30,37 @@ vi.mock("@poe-code/design-system", () => {
   };
 });
 
+let lastMockAcpClient: any;
+let mockPromptNotifications: any[] | null = null;
+
 vi.mock("@poe-code/poe-acp-client", () => {
   const initResponse = { protocolVersion: 1 };
   const newSessionResponse = { sessionId: "ses_test_123" };
+
+  const defaultNotifications = [
+    {
+      params: {
+        update: {
+          sessionUpdate: "agent_message_chunk",
+          content: { type: "text", text: "Hello " },
+        },
+      },
+    },
+    {
+      params: {
+        update: {
+          sessionUpdate: "agent_message_chunk",
+          content: { type: "text", text: "world!" },
+        },
+      },
+    },
+  ];
 
   class MockAcpClient {
     initialize = vi.fn().mockResolvedValue(initResponse);
     newSession = vi.fn().mockResolvedValue(newSessionResponse);
     prompt = vi.fn().mockImplementation(() => {
-      const notifications = [
-        {
-          params: {
-            update: {
-              sessionUpdate: "agent_message_chunk",
-              content: { type: "text", text: "Hello " },
-            },
-          },
-        },
-        {
-          params: {
-            update: {
-              sessionUpdate: "agent_message_chunk",
-              content: { type: "text", text: "world!" },
-            },
-          },
-        },
-      ];
+      const notifications = mockPromptNotifications ?? defaultNotifications;
 
       return {
         response: Promise.resolve({ stopReason: "completed" }),
@@ -65,6 +70,9 @@ vi.mock("@poe-code/poe-acp-client", () => {
       };
     });
     dispose = vi.fn().mockResolvedValue(undefined);
+    constructor() {
+      lastMockAcpClient = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    }
   }
 
   return { AcpClient: MockAcpClient };
@@ -591,6 +599,7 @@ describe("acp/renderer", () => {
 describe("spawnAcp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPromptNotifications = null;
   });
 
   it("streams agent message events and resolves with exit code 0", async () => {
@@ -611,6 +620,72 @@ describe("spawnAcp", () => {
     expect(result.stdout).toBe("Hello world!\n");
     expect(result.sessionId).toBe("ses_test_123");
     expect(result.threadId).toBe("ses_test_123");
+  });
+
+  it("passes MCP servers to newSession", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "test",
+      cwd: "/tmp/test",
+      mcpServers: {
+        "tiny-test": {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" },
+        },
+      },
+    });
+
+    await collect(events);
+    await done;
+
+    expect(lastMockAcpClient.newSession).toHaveBeenCalledWith("/tmp/test", [
+      {
+        name: "tiny-test",
+        command: "tiny-stdio-mcp-test-server",
+        args: ["serve", "word-of-the-day"],
+        env: [{ name: "MCP_LOG_LEVEL", value: "debug" }],
+      },
+    ]);
+  });
+
+  it("passes empty MCP array when no servers specified", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "test",
+      cwd: "/tmp/test",
+    });
+
+    await collect(events);
+    await done;
+
+    expect(lastMockAcpClient.newSession).toHaveBeenCalledWith("/tmp/test", []);
+  });
+
+  it("uses last tool output as stdout when no agent message is sent", async () => {
+    mockPromptNotifications = [
+      {
+        params: {
+          update: {
+            sessionUpdate: "tool_call_update",
+            toolCallId: "tc_1",
+            status: "completed",
+            rawOutput: "bumfuzzle",
+          },
+        },
+      },
+    ];
+
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "test",
+      cwd: "/tmp/test",
+    });
+
+    await collect(events);
+    const result = await done;
+
+    expect(result.stdout).toBe("bumfuzzle\n");
   });
 
   it("throws for agents without ACP spawn config", () => {

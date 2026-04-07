@@ -1,5 +1,5 @@
 import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
-import { AcpClient, type SessionUpdateNotification, type ToolKind } from "@poe-code/poe-acp-client";
+import { AcpClient, type McpServer, type SessionUpdateNotification, type ToolKind } from "@poe-code/poe-acp-client";
 import { getAcpSpawnConfig } from "../configs/index.js";
 import type { McpSpawnConfig, SpawnMode, SpawnResult } from "../types.js";
 import type { AcpEvent } from "./types.js";
@@ -44,12 +44,25 @@ function toToolTitle(
 
 function toToolOutput(value: unknown): string {
   if (typeof value === "string") return value;
-  if (value === undefined) return "";
+  if (value === undefined || value === null) return "";
   try {
     return JSON.stringify(value);
   } catch {
     return String(value);
   }
+}
+
+function extractToolOutputText(update: {
+  rawOutput?: unknown;
+  content?: Array<{ type: string; text?: string }> | null;
+}): string {
+  const raw = toToolOutput(update.rawOutput);
+  if (raw) return raw;
+  if (!update.content) return "";
+  return update.content
+    .filter((c) => c.type === "text" && c.text)
+    .map((c) => c.text!)
+    .join("");
 }
 
 function toEventsFromSessionUpdate(
@@ -144,7 +157,7 @@ function toEventsFromSessionUpdate(
       events.push({
         event: "tool_complete",
         kind: renderKind,
-        path: toToolOutput(update.rawOutput),
+        path: extractToolOutputText(update),
         id: update.toolCallId,
       });
     }
@@ -153,6 +166,18 @@ function toEventsFromSessionUpdate(
   }
 
   return [];
+}
+
+function toAcpMcpServers(servers?: McpSpawnConfig): McpServer[] {
+  if (!servers) return [];
+  return Object.entries(servers).map(([name, server]) => ({
+    name,
+    command: server.command,
+    args: server.args ?? [],
+    env: server.env
+      ? Object.entries(server.env).map(([k, v]) => ({ name: k, value: v }))
+      : [],
+  }));
 }
 
 function createAbortError(): Error {
@@ -196,6 +221,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
     env,
     requestTimeoutMs: 300_000,
     skipAuth: acpConfig.skipAuth ?? false,
+    autoApprove: (options.mode ?? "yolo") === "yolo",
   });
 
   let aborted = false;
@@ -213,6 +239,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
 
   let sessionId = "";
   let assistantText = "";
+  let lastToolOutput = "";
 
   const eventQueue: AcpEvent[] = [];
   const waiters: Array<(result: IteratorResult<AcpEvent>) => void> = [];
@@ -262,7 +289,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
         await client.authenticate(initResult.authMethods[0].id);
       }
 
-      const session = await client.newSession(options.cwd ?? process.cwd(), []);
+      const session = await client.newSession(options.cwd ?? process.cwd(), toAcpMcpServers(options.mcpServers));
       sessionId = session.sessionId;
 
       pushEvent({ event: "session_start", threadId: sessionId });
@@ -278,6 +305,12 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
         }
 
         for (const event of toEventsFromSessionUpdate(notification, toolState)) {
+          if (event.event === "tool_complete") {
+            const output = (event as { path?: string }).path;
+            if (output) {
+              lastToolOutput = output;
+            }
+          }
           pushEvent(event);
         }
       }
@@ -287,8 +320,9 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
       const meta = (promptResponse._meta ?? {}) as Record<string, unknown>;
       const metaUsage = meta.usage as { inputTokens?: number; outputTokens?: number } | undefined;
 
+      const responseText = assistantText || lastToolOutput;
       return {
-        stdout: assistantText.length > 0 ? `${assistantText}\n` : "",
+        stdout: responseText.length > 0 ? `${responseText}\n` : "",
         stderr: "",
         exitCode: stopReason === "completed" || stopReason === "end_turn" ? 0 : 1,
         threadId: sessionId,

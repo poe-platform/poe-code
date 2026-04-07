@@ -160,6 +160,11 @@ export class AcpTransport {
       this.stderrChunks.push(String(chunk));
     });
 
+    this.child.stdin.on("error", (error) => {
+      const reason = error instanceof Error ? error : new Error(String(error));
+      this.close(reason, this.child.exitCode ?? null, this.child.signalCode ?? null);
+    });
+
     this.layer = new JsonRpcMessageLayer({
       input: this.child.stdout,
       output: this.child.stdin,

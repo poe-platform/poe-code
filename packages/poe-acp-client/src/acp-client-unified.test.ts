@@ -1529,6 +1529,46 @@ describe("AcpClient", () => {
     expect(response).toEqual({ outcome: { outcome: "cancelled" } });
   });
 
+  it("auto-approves permission requests when autoApprove is true", async () => {
+    const { transport, emitRequest } = createTransportMock();
+    new AcpClient({ transport, protocolVersion: 1, autoApprove: true });
+
+    const response = await emitRequest("session/request_permission", {
+      sessionId: "session-1",
+      toolCall: {
+        sessionUpdate: "tool_call_update",
+        toolCallId: "tool-1",
+        title: "Run MCP tool",
+      },
+      options: [
+        { optionId: "reject", kind: "reject_once", name: "Reject" },
+        { optionId: "allow-once", kind: "allow_once", name: "Allow once" },
+        { optionId: "allow-always", kind: "allow_always", name: "Allow always" },
+      ],
+    } satisfies RequestPermissionRequest);
+
+    expect(response).toEqual({ outcome: { outcome: "selected", optionId: "allow-always" } });
+  });
+
+  it("falls back to cancelled when autoApprove is true but no allow option exists", async () => {
+    const { transport, emitRequest } = createTransportMock();
+    new AcpClient({ transport, protocolVersion: 1, autoApprove: true });
+
+    const response = await emitRequest("session/request_permission", {
+      sessionId: "session-1",
+      toolCall: {
+        sessionUpdate: "tool_call_update",
+        toolCallId: "tool-1",
+        title: "Dangerous action",
+      },
+      options: [
+        { optionId: "reject", kind: "reject_once", name: "Reject" },
+      ],
+    } satisfies RequestPermissionRequest);
+
+    expect(response).toEqual({ outcome: { outcome: "cancelled" } });
+  });
+
   it("sends session/prompt, streams session/update notifications, and resolves stopReason", async () => {
     const { transport, sendRequestMock, emitNotification, onNotificationMock } =
       createTransportMock();

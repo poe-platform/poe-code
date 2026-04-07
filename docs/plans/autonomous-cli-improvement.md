@@ -22,6 +22,19 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
+- [x] skill --help had redundant "Skill directories:" section (just repeated the Commands section)
+  - Removed `buildHelpText()` and `addHelpText("after", ...)` from `src/cli/commands/skill.ts`
+- [x] main help showed `auth status` instead of the `auth` parent command
+  - Changed ROOT_HELP_COMMAND_SPECS to use `{ path: ["auth"] }` — shows "Authentication and account commands."
+  - Updated test in `misc-commands.test.ts` to assert on description instead of command path
+- [x] experiment commands were split in main help (install at top, run/journal at bottom with skill/pipeline/ralph in between)
+  - Reordered ROOT_HELP_COMMAND_SPECS to group experiment commands together
+- [x] experiment validate and pipeline validate missing from main help
+  - Added both to ROOT_HELP_COMMAND_SPECS in logical order
+- [x] description inconsistencies: pipeline run "cap", auth login/logout descriptions
+  - pipeline run: "cap" → "max runs"
+  - auth login: aligned with top-level login description
+  - logout: "Remove all Poe API configuration" → "Remove all configuration and credentials" (more accurate)
 
 ## Constraints
 

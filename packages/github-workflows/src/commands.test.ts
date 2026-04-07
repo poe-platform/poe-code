@@ -973,6 +973,7 @@ describe("ghGroup", () => {
         status: "disabled"
       },
       { name: "pull_request_guidelines", source: "built-in", status: "default" },
+      { name: "code_review_guidelines", source: "built-in", status: "default" },
       {
         name: "custom_project_rules",
         source: ".poe-code/github-workflows/variables.yaml",

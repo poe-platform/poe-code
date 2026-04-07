@@ -1,6 +1,6 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
-import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const packageDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -21,7 +21,7 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   workspacePackageNames.add(pkg.name);
   workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src");
 
-  // Resolve sub-path exports (e.g. "@poe-code/cmdkit/cli" → "packages/cmdkit/src/cli.ts")
+  // Resolve sub-path exports (e.g. "@poe-code/cmdkit/mcp" → "packages/cmdkit/src/mcp.ts")
   if (pkg.exports && typeof pkg.exports === "object") {
     for (const [subpath, value] of Object.entries(pkg.exports)) {
       if (subpath === ".") continue;
@@ -101,9 +101,3 @@ const cliContents = await readFile(cliPath, "utf8");
 if (!cliContents.startsWith("#!/usr/bin/env node")) {
   await writeFile(cliPath, `#!/usr/bin/env node\n${cliContents}`, "utf8");
 }
-
-await mkdir(path.join(distDir, "templates"), { recursive: true });
-await cp(
-  path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "terminal-pilot.md"),
-  path.join(distDir, "templates", "terminal-pilot.md")
-);

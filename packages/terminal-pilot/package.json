@@ -28,7 +28,9 @@
     "test:unit": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "qa:cli": "cd ../.. && tsx packages/terminal-pilot/src/testing/qa-cli.ts",
     "prepublishOnly": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
-    "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-*.tgz && rm -rf $TMPD"
+    "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-*.tgz && rm -rf $TMPD",
+    "smoke": "cd ../.. && tsx packages/terminal-pilot/scripts/smoke-test.ts",
+    "smoke:verbose": "cd ../.. && tsx packages/terminal-pilot/scripts/smoke-test.ts --verbose"
   },
   "files": [
     "dist"
@@ -48,14 +50,21 @@
     "headless"
   ],
   "dependencies": {
-    "@poe-code/agent-skill-config": "*",
-    "@poe-code/cmdkit": "*",
-    "@poe-code/cmdkit-schema": "*",
+    "@clack/prompts": "^1.0.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "console-table-printer": "^2.15.0",
+    "jetbrains-mono": "^1.0.6",
     "jsonc-parser": "^3.3.1",
     "mustache": "^4.2.0",
     "node-pty": "^1.1.0",
-    "smol-toml": "^1.6.0",
-    "terminal-png": "*"
+    "smol-toml": "^1.6.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@poe-code/agent-skill-config": "*",
+    "@poe-code/cmdkit": "*",
+    "@poe-code/cmdkit-schema": "*",
+    "terminal-png": "*"
+  }
 }

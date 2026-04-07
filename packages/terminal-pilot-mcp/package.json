@@ -15,8 +15,11 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && tsc",
-    "prepublishOnly": "rm -rf dist && tsc"
+    "build": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "prepublishOnly": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-mcp-*.tgz && rm -rf $TMPD",
+    "smoke": "cd ../.. && tsx packages/terminal-pilot-mcp/scripts/smoke-test.ts",
+    "smoke:verbose": "cd ../.. && tsx packages/terminal-pilot-mcp/scripts/smoke-test.ts --verbose"
   },
   "files": [
     "dist"
@@ -38,6 +41,18 @@
     "headless"
   ],
   "dependencies": {
+    "@clack/prompts": "^1.0.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "console-table-printer": "^2.15.0",
+    "jetbrains-mono": "^1.0.6",
+    "jsonc-parser": "^3.3.1",
+    "mustache": "^4.2.0",
+    "node-pty": "^1.1.0",
+    "smol-toml": "^1.6.0"
+  },
+  "devDependencies": {
     "@poe-code/cmdkit": "*",
     "terminal-pilot": "*"
   }

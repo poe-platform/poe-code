@@ -1,7 +1,7 @@
 import { dirname } from "node:path";
-import type { ExperimentFileSystem, JournalEntry, MetricDef } from "../types.js";
+import type { ExperimentFileSystem, JournalEntry } from "../types.js";
 
-const TSV_HEADER = ["commit", "status", "score", "durationMs", "timestamp", "output", "agentOutput"].join("\t");
+const TSV_HEADER = ["commit", "status", "scores", "durationMs", "timestamp", "output", "agentOutput"].join("\t");
 
 export class ExperimentJournal {
   constructor(
@@ -75,7 +75,7 @@ export class ExperimentJournal {
         [
           entry.commit,
           entry.status,
-          entry.score === null ? "null" : String(entry.score),
+          entry.scores ? JSON.stringify(entry.scores) : "-",
           String(entry.durationMs),
           entry.timestamp,
           formatOutput(entry.output),
@@ -86,19 +86,8 @@ export class ExperimentJournal {
   }
 }
 
-export function baselineFromEntry(
-  metrics: MetricDef[],
-  entry: JournalEntry
-): Record<string, number> | null {
-  if (entry.scores) {
-    return entry.scores;
-  }
-
-  if (entry.score !== null && metrics.length === 1) {
-    return { [metrics[0]!.name]: entry.score };
-  }
-
-  return null;
+export function baselineFromEntry(entry: JournalEntry): Record<string, number> | null {
+  return entry.scores ?? null;
 }
 
 function parseLine(line: string): JournalEntry[] {

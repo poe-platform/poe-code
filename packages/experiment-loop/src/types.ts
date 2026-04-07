@@ -81,7 +81,6 @@ export interface EvalResult {
 export interface JournalEntry {
   commit: string;
   status: "keep" | "discard";
-  score: number | null;
   scores?: Record<string, number>;
   output: string;
   agentOutput: string;

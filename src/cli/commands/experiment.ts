@@ -438,9 +438,11 @@ export function registerExperimentCommand(program: Command, container: CliContai
             resources.logger.info(`  Reset to ${targetHash.slice(0, 7)}`);
           },
           onExperimentComplete(index, entry) {
-            const score = entry.score === null ? "-" : String(entry.score);
+            const scores = entry.scores
+              ? Object.entries(entry.scores).map(([k, v]) => `${k}=${v}`).join(", ")
+              : "-";
             resources.logger.info(
-              `Experiment ${index} ${entry.status} in ${formatDuration(entry.durationMs)} · score ${score}`
+              `Experiment ${index} ${entry.status} in ${formatDuration(entry.durationMs)} · scores: ${scores}`
             );
           }
         });
@@ -497,7 +499,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
         const columns = [
           { name: "index", title: "#", alignment: "right", maxLen: 4 },
           { name: "status", title: "status", alignment: "left", maxLen: 8 },
-          { name: "score", title: "score", alignment: "right", maxLen: 10 },
+          { name: "scores", title: "scores", alignment: "left", maxLen: 40 },
           { name: "duration", title: "duration", alignment: "right", maxLen: 10 },
           { name: "timestamp", title: "timestamp", alignment: "left", maxLen: 24 },
           { name: "commit", title: "commit", alignment: "left", maxLen: 10 },
@@ -506,7 +508,9 @@ export function registerExperimentCommand(program: Command, container: CliContai
         const rows = entries.map((entry, index) => ({
           index: String(index + 1),
           status: entry.status,
-          score: entry.score === null ? "-" : String(entry.score),
+          scores: entry.scores
+            ? Object.entries(entry.scores).map(([k, v]) => `${k}=${v}`).join(", ")
+            : "-",
           duration: formatDuration(entry.durationMs),
           timestamp: entry.timestamp,
           commit: entry.commit,
@@ -531,8 +535,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .argument("[doc]", "Experiment doc path")
     .requiredOption("--status <status>", "Entry status: keep or discard")
     .requiredOption("--commit <hash>", "Git commit hash")
-    .option("--score <number>", "Metric score (for single-metric display)")
-    .option("--scores <json>", "Multi-metric scores as JSON object, e.g. '{\"tests\":2}'")
+    .option("--scores <json>", "Metric scores as JSON object, e.g. '{\"tests\":2}'")
     .option("--output <text>", "Metric output text", "")
     .option("--duration-ms <number>", "Duration in milliseconds", "0")
     .action(async function (this: Command, docArg?: string) {
@@ -541,7 +544,6 @@ export function registerExperimentCommand(program: Command, container: CliContai
       const opts = this.opts<{
         status: string;
         commit: string;
-        score?: string;
         scores?: string;
         output: string;
         durationMs: string;
@@ -564,7 +566,6 @@ export function registerExperimentCommand(program: Command, container: CliContai
           throw new ValidationError(`Invalid status "${opts.status}". Must be keep or discard.`);
         }
 
-        const score = opts.score !== undefined ? Number.parseFloat(opts.score) : null;
         let scores: Record<string, number> | undefined;
         if (opts.scores) {
           try {
@@ -577,7 +578,6 @@ export function registerExperimentCommand(program: Command, container: CliContai
         const entry = {
           commit: opts.commit,
           status,
-          score: score !== null && Number.isFinite(score) ? score : null,
           ...(scores ? { scores } : {}),
           output: opts.output,
           agentOutput: "",

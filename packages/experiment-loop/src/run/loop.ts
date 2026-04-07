@@ -206,8 +206,7 @@ function baselineFromResults(metrics: MetricDef[], results: EvalResult[]): Recor
 }
 
 function deriveStateFromJournal(
-  entries: JournalEntry[],
-  metrics: MetricDef[]
+  entries: JournalEntry[]
 ): {
   experimentsCompleted: number;
   experimentsKept: number;
@@ -220,7 +219,7 @@ function deriveStateFromJournal(
   return {
     experimentsCompleted: entries.length,
     experimentsKept: keepEntries.length,
-    baseline: lastKeep ? baselineFromEntry(metrics, lastKeep) : null,
+    baseline: lastKeep ? baselineFromEntry(lastKeep) : null,
     baselineHash: lastKeep?.commit
   };
 }
@@ -254,7 +253,7 @@ export async function runExperimentLoop(
   const { frontmatter: initialFrontmatter } = await readDoc();
   const initialMetrics = normalizeMetrics(initialFrontmatter.metric);
   const journalEntries = await journal.readAll();
-  const journalState = deriveStateFromJournal(journalEntries, initialMetrics);
+  const journalState = deriveStateFromJournal(journalEntries);
 
   let experimentsCompleted = journalState.experimentsCompleted;
   let experimentsKept = journalState.experimentsKept;
@@ -355,7 +354,7 @@ export async function runExperimentLoop(
 
       experimentsCompleted += 1;
 
-      if (newEntry && newEntry.score === null && !newEntry.scores && metrics.length > 0) {
+      if (newEntry && !newEntry.scores && metrics.length > 0) {
         const metricTimeoutMs = frontmatter.metricTimeout
           ? frontmatter.metricTimeout * 1000
           : undefined;
@@ -368,8 +367,7 @@ export async function runExperimentLoop(
         );
         if (allMetricsPassed(metrics, results)) {
           const scores = baselineFromResults(metrics, results);
-          const score = metrics.length === 1 ? results[0]!.score : null;
-          newEntry = (await journal.updateLast({ score, scores })) ?? newEntry;
+          newEntry = (await journal.updateLast({ scores })) ?? newEntry;
         }
       }
 
@@ -377,7 +375,7 @@ export async function runExperimentLoop(
         if (newEntry.status === "keep") {
           experimentsKept += 1;
           baselineHash = newEntry.commit;
-          baseline = baselineFromEntry(metrics, newEntry) ?? baseline;
+          baseline = baselineFromEntry(newEntry) ?? baseline;
           options.onCommit?.(newEntry.commit);
         } else {
           await git.reset(preExperimentHash, options.cwd);

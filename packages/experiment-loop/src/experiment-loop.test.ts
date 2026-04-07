@@ -138,7 +138,7 @@ function createJournalEntry(overrides: Partial<JournalEntry> = {}): JournalEntry
   return {
     commit: "a1b2c3d",
     status: "keep",
-    score: 1.04,
+    scores: { tests: 1.04 },
     output: "test_duration: 1.04",
     agentOutput: "optimized hot path",
     durationMs: 5023,
@@ -840,7 +840,7 @@ describe("ExperimentJournal", () => {
     const second = createJournalEntry({
       commit: "e4f5g6h",
       status: "discard",
-      score: 1.12,
+      scores: { tests: 1.12 },
       output: "test_duration: 1.12",
       durationMs: 4987,
       timestamp: "2026-03-30T10:11:00.000Z"
@@ -848,7 +848,7 @@ describe("ExperimentJournal", () => {
     const third = createJournalEntry({
       commit: "f7g8h9i",
       status: "keep",
-      score: 0.98,
+      scores: { tests: 0.98 },
       output: "test_duration: 0.98",
       durationMs: 4700,
       timestamp: "2026-03-30T10:22:00.000Z"
@@ -881,7 +881,7 @@ describe("ExperimentJournal", () => {
       createJournalEntry({
         commit: "e4f5g6h",
         status: "discard",
-        score: 1.12,
+        scores: { tests: 1.12 },
         output: "test_duration: 1.12",
         durationMs: 4987,
         timestamp: "2026-03-30T10:11:00.000Z"
@@ -890,9 +890,9 @@ describe("ExperimentJournal", () => {
 
     await expect(journal.format()).resolves.toBe(
       [
-        "commit\tstatus\tscore\tdurationMs\ttimestamp\toutput\tagentOutput",
-        "a1b2c3d\tkeep\t1.04\t5023\t2026-03-30T10:00:00.000Z\tline 1\\nline\\t2\toptimized hot path",
-        "e4f5g6h\tdiscard\t1.12\t4987\t2026-03-30T10:11:00.000Z\ttest_duration: 1.12\toptimized hot path"
+        "commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput",
+        `a1b2c3d\tkeep\t${JSON.stringify({ tests: 1.04 })}\t5023\t2026-03-30T10:00:00.000Z\tline 1\\nline\\t2\toptimized hot path`,
+        `e4f5g6h\tdiscard\t${JSON.stringify({ tests: 1.12 })}\t4987\t2026-03-30T10:11:00.000Z\ttest_duration: 1.12\toptimized hot path`
       ].join("\n")
     );
   });
@@ -902,7 +902,7 @@ describe("ExperimentJournal", () => {
     const journal = new ExperimentJournal("/repo/missing.journal.jsonl", fs);
 
     await expect(journal.format()).resolves.toBe(
-      "commit\tstatus\tscore\tdurationMs\ttimestamp\toutput\tagentOutput"
+      "commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput"
     );
   });
 
@@ -917,7 +917,7 @@ describe("ExperimentJournal", () => {
     );
 
     await expect(journal.format()).resolves.toContain(
-      "a1b2c3d\tkeep\t1.04\t5023\t2026-03-30T10:00:00.000Z\tpath\\\\to\\\\file\\\\rnext line\toptimized hot path"
+      `a1b2c3d\tkeep\t${JSON.stringify({ tests: 1.04 })}\t5023\t2026-03-30T10:00:00.000Z\tpath\\\\to\\\\file\\\\rnext line\toptimized hot path`
     );
   });
 
@@ -936,19 +936,18 @@ describe("ExperimentJournal", () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
     const first = createJournalEntry({ commit: "aaa1111" });
-    const second = createJournalEntry({ commit: "bbb2222", score: null });
+    const second = createJournalEntry({ commit: "bbb2222", scores: undefined });
 
     await journal.log(first);
     await journal.log(second);
 
-    const updated = await journal.updateLast({ score: 42, scores: { tests: 42 } });
+    const updated = await journal.updateLast({ scores: { tests: 42 } });
 
-    expect(updated).toEqual({ ...second, score: 42, scores: { tests: 42 } });
+    expect(updated).toEqual({ ...second, scores: { tests: 42 } });
 
     const entries = await journal.readAll();
     expect(entries).toHaveLength(2);
     expect(entries[0]).toEqual(first);
-    expect(entries[1]!.score).toBe(42);
     expect(entries[1]!.scores).toEqual({ tests: 42 });
   });
 
@@ -957,18 +956,18 @@ describe("ExperimentJournal", () => {
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
 
     await journal.init();
-    const result = await journal.updateLast({ score: 1 });
+    const result = await journal.updateLast({ scores: { tests: 1 } });
 
     expect(result).toBeNull();
   });
 
-  it("handles discard entries with a null score", async () => {
+  it("handles discard entries without scores", async () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
     const entry = createJournalEntry({
       commit: "d1sc4rd",
       status: "discard",
-      score: null,
+      scores: undefined,
       output: "no improvement found",
       durationMs: 102,
       timestamp: "2026-03-30T10:05:30.000Z"
@@ -978,7 +977,7 @@ describe("ExperimentJournal", () => {
 
     await expect(journal.readAll()).resolves.toEqual([entry]);
     await expect(journal.format()).resolves.toContain(
-      "d1sc4rd\tdiscard\tnull\t102\t2026-03-30T10:05:30.000Z\tno improvement found\toptimized hot path"
+      "d1sc4rd\tdiscard\t-\t102\t2026-03-30T10:05:30.000Z\tno improvement found\toptimized hot path"
     );
   });
 });
@@ -998,7 +997,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 2,
           scores: { tests: 2 },
           output: "tests: score=2, passed=true",
           agentOutput: "done",
@@ -1046,7 +1044,7 @@ describe("runExperimentLoop", () => {
 
     const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
     expect(prompt).toContain("# Improve the tests");
-    expect(prompt).toContain("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput\tagentOutput");
+    expect(prompt).toContain("commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput");
     expect(prompt).toContain("You are autonomous, do not stop or ask for input.");
 
     expect(git.currentHash).toHaveBeenCalledWith("/repo");
@@ -1061,7 +1059,7 @@ describe("runExperimentLoop", () => {
       expect.objectContaining({
         commit: "keep-1",
         status: "keep",
-        score: 2
+        scores: { tests: 2 }
       })
     );
     expect(entry?.output).toContain("tests: score=2, passed=true");
@@ -1119,7 +1117,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "discard-xyz",
           status: "discard",
-          score: 4,
           scores: { tests: 4 },
           output: "tests: score=4, passed=false",
           agentOutput: "done",
@@ -1155,13 +1152,13 @@ describe("runExperimentLoop", () => {
       expect.objectContaining({
         commit: "discard-xyz",
         status: "discard",
-        score: 4,
+        scores: { tests: 4 },
         agentOutput: "done"
       })
     );
   });
 
-  it("computes score via evaluator when agent logs entry with score: null", async () => {
+  it("computes scores via evaluator when agent logs entry without scores", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({
       [docPath]: createDoc({ baseline: 5 })
@@ -1177,7 +1174,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: null,
           output: "done",
           agentOutput: "done",
           durationMs: 100
@@ -1206,13 +1202,12 @@ describe("runExperimentLoop", () => {
 
     expect(entry).toEqual(
       expect.objectContaining({
-        score: 42,
         scores: { tests: 42 }
       })
     );
   });
 
-  it("skips score computation when agent already provides a score", async () => {
+  it("skips score computation when agent already provides scores", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({
       [docPath]: createDoc({ baseline: 5 })
@@ -1226,7 +1221,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 99,
           scores: { tests: 99 },
           output: "done",
           agentOutput: "done",
@@ -1258,7 +1252,6 @@ describe("runExperimentLoop", () => {
 
     expect(entry).toEqual(
       expect.objectContaining({
-        score: 99,
         scores: { tests: 99 }
       })
     );
@@ -1290,7 +1283,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 2,
           scores: { tests: 2 },
           output: "tests: score=2, passed=true",
           agentOutput: "done",
@@ -1413,7 +1405,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 100,
           scores: { test_count: 100 },
           output: "test_count: score=100, passed=true",
           agentOutput: "done",
@@ -1463,7 +1454,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "base-1",
           status: "discard",
-          score: 99,
           scores: { test_count: 99 },
           output: "test_count: score=99, passed=false",
           agentOutput: "done",
@@ -1515,7 +1505,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 103,
           scores: { test_count: 103 },
           output: "test_count: score=103, passed=true",
           agentOutput: "done",
@@ -1566,7 +1555,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "base-1",
           status: "discard",
-          score: 106,
           scores: { test_count: 106 },
           output: "test_count: score=106, passed=false",
           agentOutput: "done",
@@ -1618,7 +1606,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 9,
           scores: { tests: 9 },
           output: "tests: score=9, passed=true",
           agentOutput: "done",
@@ -1668,7 +1655,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 2,
           scores: { tests: 2 },
           output: "tests: score=2, passed=true",
           agentOutput: "done",
@@ -1727,7 +1713,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: `keep-${callIndex}`,
           status: "keep",
-          score: callIndex + 1,
           scores: { tests: callIndex + 1 },
           output: `tests: score=${callIndex + 1}, passed=true`,
           agentOutput: "done",
@@ -1788,7 +1773,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 2,
           scores: { tests: 2 },
           output: "tests: score=2, passed=true",
           agentOutput: "done",
@@ -1841,7 +1825,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 5050,
           scores: { duration: 5050 },
           output: "duration: score=5050, passed=true",
           agentOutput: "done",
@@ -1879,7 +1862,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 7,
           scores: { tests: 7 },
           output: "tests: score=7, passed=true",
           agentOutput: "done",
@@ -1906,7 +1888,7 @@ describe("runExperimentLoop", () => {
     const keepEntry = JSON.parse(
       (await fs.readFile(journalFilePath(docPath), "utf8")).trim()
     ) as JournalEntry;
-    expect(keepEntry.score).toBe(7);
+    expect(keepEntry.scores).toEqual({ tests: 7 });
   });
 
   it("uses maxExperiments from frontmatter when not provided via options", async () => {
@@ -1934,7 +1916,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: `keep-${callIndex}`,
           status: "keep",
-          score: callIndex + 1,
           scores: { tests: callIndex + 1 },
           output: `tests: score=${callIndex + 1}, passed=true`,
           agentOutput: "done",
@@ -1972,7 +1953,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: `keep-${callIndex}`,
           status: "keep",
-          score: callIndex + 1,
           scores: { tests: callIndex + 1 },
           output: `tests: score=${callIndex + 1}, passed=true`,
           agentOutput: "I refactored the parser module to reduce allocations",
@@ -2015,7 +1995,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 2,
           scores: { tests: 2 },
           output: "tests: score=2, passed=true",
           agentOutput: "done",
@@ -2054,7 +2033,6 @@ describe("runExperimentLoop", () => {
         await appendJournalEntry(fs, docPath, {
           commit: "keep-1",
           status: "keep",
-          score: 2,
           scores: { tests: 2 },
           output: "tests: score=2, passed=true",
           agentOutput: "done",
@@ -2112,7 +2090,7 @@ describe("createExperimentLoopSimulation", () => {
     expect(entries[0]).toEqual(
       expect.objectContaining({
         status: "keep",
-        score: 2
+        scores: { tests: 2 }
       })
     );
     expect(await readFile("src/index.ts")).toBe("export const value = 2;\n");
@@ -2169,7 +2147,7 @@ describe("createExperimentLoopSimulation", () => {
     expect(entries[0]).toEqual(
       expect.objectContaining({
         status: "discard",
-        score: 2
+        scores: { tests: 2 }
       })
     );
     expect(await readFile("src/index.ts")).toBe("export const value = 1;\n");
@@ -2207,7 +2185,6 @@ describe("createExperimentLoopSimulation", () => {
     expect(entry).toEqual(
       expect.objectContaining({
         status: "keep",
-        score: null,
         scores: { tests: 2, test_duration: 9 }
       })
     );
@@ -2290,8 +2267,8 @@ describe("createExperimentLoopSimulation", () => {
           },
           {
             assertPrompt: (prompt) => {
-              expect(prompt).toContain("commit\tstatus\tscore\tdurationMs\ttimestamp\toutput\tagentOutput");
-              expect(prompt).toContain("commit-1\tkeep\t2");
+              expect(prompt).toContain("commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput");
+              expect(prompt).toContain("commit-1\tkeep\t{");
             }
           }
         )
@@ -2423,7 +2400,7 @@ describe("createExperimentLoopSimulation", () => {
     const { result, readJournal } = await sim.run();
     const entries = await readJournal();
 
-    expect(entries.at(-1)).toEqual(expect.objectContaining({ status: "keep", score: 6 }));
+    expect(entries.at(-1)).toEqual(expect.objectContaining({ status: "keep", scores: { tests: 6 } }));
     expect(result.experimentsKept).toBe(1);
   });
 

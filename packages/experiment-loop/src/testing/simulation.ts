@@ -522,7 +522,7 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
           const allJournalEntries = await new ExperimentJournal(journalPath, fs).readAll();
           const lastKeep = allJournalEntries.filter((e) => e.status === "keep").at(-1);
           const currentBaseline = lastKeep
-            ? baselineFromEntry(metrics, lastKeep)
+            ? baselineFromEntry(lastKeep)
             : (frontmatter.baseline ?? collectedBaseline);
 
           const experimentStart = Date.now();
@@ -543,22 +543,17 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
             status = "discard";
           }
 
-          const singleScore = metrics.length === 1 ? (results[0]?.score ?? null) : null;
-          const multiScores =
-            metrics.length > 1
-              ? Object.fromEntries(
-                  metrics
-                    .map((m, i) => [m.name, results[i]?.score] as const)
-                    .filter((entry): entry is [string, number] => entry[1] !== undefined && entry[1] !== null)
-                )
-              : undefined;
+          const scores = Object.fromEntries(
+            metrics
+              .map((m, i) => [m.name, results[i]?.score] as const)
+              .filter((entry): entry is [string, number] => entry[1] !== undefined && entry[1] !== null)
+          );
 
           const agentOutputStr = `${turn.output.stdout}${turn.output.stderr}`;
           const entry: JournalEntry = {
             commit: commitHash,
             status,
-            score: singleScore,
-            ...(multiScores ? { scores: multiScores } : {}),
+            ...(Object.keys(scores).length > 0 ? { scores } : {}),
             output: agentOutputStr,
             agentOutput: agentOutputStr,
             durationMs: Date.now() - experimentStart,

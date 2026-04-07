@@ -43,7 +43,7 @@ function createCommandContext(fileSystem: FileSystem) {
 }
 
 describe("terminal-pilot install/uninstall commands", () => {
-  it("installs the terminal-pilot skill and MCP server for an explicit local agent install", async () => {
+  it("installs the terminal-pilot skill for an explicit local agent install", async () => {
     const { fs, vol } = createMemFs();
     vol.mkdirSync(HOME_DIR, { recursive: true });
     vol.mkdirSync(CWD, { recursive: true });
@@ -58,7 +58,6 @@ describe("terminal-pilot install/uninstall commands", () => {
       })
     ).resolves.toEqual({
       agent: "claude-code",
-      mcpServerName: "terminal-pilot-mcp",
       scope: "local",
       skillPath: ".claude/skills/terminal-pilot/SKILL.md"
     });
@@ -68,19 +67,12 @@ describe("terminal-pilot install/uninstall commands", () => {
       "utf8"
     );
     expect(skill).toContain("name: terminal-pilot");
-    expect(skill).toContain("terminal_create_session");
+    expect(skill).toContain("terminal-pilot create-session");
+    expect(skill).not.toContain("MCP");
 
-    const mcpConfig = JSON.parse(
-      await fs.readFile(path.join(HOME_DIR, ".claude.json"), "utf8")
-    );
-    expect(mcpConfig).toEqual({
-      mcpServers: {
-        "terminal-pilot-mcp": {
-          command: "npx",
-          args: ["terminal-pilot-mcp"]
-        }
-      }
-    });
+    await expect(
+      fs.readFile(path.join(HOME_DIR, ".claude.json"), "utf8")
+    ).rejects.toThrow("ENOENT");
   });
 
   it("defaults install scope to local when no scope flag is provided", async () => {
@@ -97,7 +89,6 @@ describe("terminal-pilot install/uninstall commands", () => {
       })
     ).resolves.toEqual({
       agent: "codex",
-      mcpServerName: "terminal-pilot-mcp",
       scope: "local",
       skillPath: ".codex/skills/terminal-pilot/SKILL.md"
     });
@@ -118,7 +109,6 @@ describe("terminal-pilot install/uninstall commands", () => {
       })
     ).resolves.toEqual({
       agent: "claude-code",
-      mcpServerName: "terminal-pilot-mcp",
       scope: "global",
       skillPath: "~/.claude/skills/terminal-pilot/SKILL.md"
     });
@@ -128,7 +118,7 @@ describe("terminal-pilot install/uninstall commands", () => {
         path.join(HOME_DIR, ".claude/skills/terminal-pilot/SKILL.md"),
         "utf8"
       )
-    ).resolves.toContain("name: terminal-pilot");
+    ).resolves.toContain("terminal-pilot create-session");
   });
 
   it("rejects conflicting local/global scope flags", async () => {
@@ -163,7 +153,7 @@ describe("terminal-pilot install/uninstall commands", () => {
     ).rejects.toThrow("Unsupported agent: kimi");
   });
 
-  it("removes both terminal-pilot skill folders and unregisters the MCP server", async () => {
+  it("removes both terminal-pilot skill folders", async () => {
     const { fs, vol } = createMemFs();
     vol.mkdirSync(path.join(HOME_DIR, ".claude/skills/terminal-pilot"), { recursive: true });
     vol.mkdirSync(path.join(CWD, ".claude/skills/terminal-pilot"), { recursive: true });
@@ -179,22 +169,6 @@ describe("terminal-pilot install/uninstall commands", () => {
       "local",
       { encoding: "utf8" }
     );
-    await fs.writeFile(
-      path.join(HOME_DIR, ".claude.json"),
-      JSON.stringify({
-        mcpServers: {
-          "terminal-pilot-mcp": {
-            command: "npx",
-            args: ["terminal-pilot-mcp"]
-          },
-          existing: {
-            command: "test"
-          }
-        }
-      }),
-      { encoding: "utf8" }
-    );
-
     await expect(
       uninstall.handler({
         ...createCommandContext(fs),
@@ -204,7 +178,6 @@ describe("terminal-pilot install/uninstall commands", () => {
       })
     ).resolves.toEqual({
       agent: "claude-code",
-      mcpServerName: "terminal-pilot-mcp",
       removedSkillPaths: [
         ".claude/skills/terminal-pilot",
         "~/.claude/skills/terminal-pilot"
@@ -218,16 +191,6 @@ describe("terminal-pilot install/uninstall commands", () => {
       fs.stat(path.join(HOME_DIR, ".claude/skills/terminal-pilot"))
     ).rejects.toThrow("ENOENT");
 
-    const mcpConfig = JSON.parse(
-      await fs.readFile(path.join(HOME_DIR, ".claude.json"), "utf8")
-    );
-    expect(mcpConfig).toEqual({
-      mcpServers: {
-        existing: {
-          command: "test"
-        }
-      }
-    });
   });
 
   it("is a no-op when uninstalling an agent without terminal-pilot configured", async () => {
@@ -244,7 +207,6 @@ describe("terminal-pilot install/uninstall commands", () => {
       })
     ).resolves.toEqual({
       agent: "codex",
-      mcpServerName: "terminal-pilot-mcp",
       removedSkillPaths: []
     });
   });

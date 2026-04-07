@@ -84,22 +84,22 @@ describe("bundled skill template: terminal-pilot.md", () => {
     const frontmatter = parseYamlFrontmatter(template);
     expect(frontmatter).toMatchObject({
       name: "terminal-pilot",
-      description: "Terminal automation skill using poe-code terminal-pilot MCP"
+      description: "Terminal automation skill using the terminal-pilot CLI"
     });
 
     const body = extractBodyAfterFrontmatter(template);
     expect(body.trim().length).toBeGreaterThan(0);
-    expect(body).toContain("terminal_create_session");
-    expect(body).toContain("terminal_fill");
-    expect(body).toContain("terminal_type");
-    expect(body).toContain("terminal_press_key");
-    expect(body).toContain("terminal_read_screen");
-    expect(body).toContain("terminal_read_history");
-    expect(body).toContain("terminal_wait_for");
-    expect(body).toContain("terminal_wait_for_exit");
-    expect(body).toContain("terminal_list_sessions");
-    expect(body).toContain("terminal_close_session");
-    expect(body).toContain("terminal_send_signal");
+    expect(body).toContain("terminal-pilot create-session");
+    expect(body).toContain("terminal-pilot fill");
+    expect(body).toContain("terminal-pilot type");
+    expect(body).toContain("terminal-pilot press-key");
+    expect(body).toContain("terminal-pilot read-screen");
+    expect(body).toContain("terminal-pilot read-history");
+    expect(body).toContain("terminal-pilot wait-for");
+    expect(body).toContain("terminal-pilot wait-for-exit");
+    expect(body).toContain("terminal-pilot list-sessions");
+    expect(body).toContain("terminal-pilot close-session");
     expect(body).toContain("Default terminal size is 120x40");
+    expect(body).not.toContain("MCP");
   });
 });

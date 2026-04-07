@@ -8,10 +8,6 @@ import {
   resolveAgentSupport as resolveSkillAgentSupport,
   supportedAgents as skillSupportedAgents
 } from "@poe-code/agent-skill-config";
-import {
-  resolveAgentSupport as resolveMcpAgentSupport,
-  supportedAgents as mcpSupportedAgents
-} from "@poe-code/agent-mcp-config";
 
 export type TerminalPilotInstallerFileSystem = {
   readFile(path: string, encoding: "utf8"): Promise<string>;
@@ -34,25 +30,10 @@ export type TerminalPilotInstallerFileSystem = {
 export type TerminalPilotInstallScope = "global" | "local";
 export type TerminalPilotInstallerPlatform = "darwin" | "linux" | "win32";
 
-export type TerminalPilotMcpServerEntry = {
-  name: string;
-  config: {
-    transport: "stdio";
-    command: string;
-    args?: string[];
-    env?: Record<string, string>;
-  };
-  enabled?: boolean;
-};
-
 export const DEFAULT_INSTALL_AGENT = "claude-code";
 export const DEFAULT_INSTALL_SCOPE: TerminalPilotInstallScope = "local";
 export const TERMINAL_PILOT_SKILL_NAME = "terminal-pilot";
-export const TERMINAL_PILOT_MCP_SERVER_NAME = "terminal-pilot-mcp";
-
-export const installableAgents = skillSupportedAgents.filter((agent) =>
-  mcpSupportedAgents.includes(agent)
-);
+export const installableAgents = skillSupportedAgents;
 
 export type TerminalPilotInstallerServices = {
   fs?: TerminalPilotInstallerFileSystem;
@@ -87,13 +68,10 @@ function throwUnsupportedAgent(agent: string): never {
 
 export function resolveInstallableAgent(agent: string): string {
   const skillSupport = resolveSkillAgentSupport(agent);
-  const mcpSupport = resolveMcpAgentSupport(agent);
 
   if (
     skillSupport.status !== "supported" ||
-    mcpSupport.status !== "supported" ||
-    !skillSupport.id ||
-    skillSupport.id !== mcpSupport.id
+    !skillSupport.id
   ) {
     throwUnsupportedAgent(agent);
   }
@@ -145,17 +123,6 @@ export async function loadTerminalPilotTemplate(): Promise<string> {
   }
 
   throw new UserError("terminal-pilot skill template is missing.");
-}
-
-export function createTerminalPilotMcpServer(): TerminalPilotMcpServerEntry {
-  return {
-    name: TERMINAL_PILOT_MCP_SERVER_NAME,
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["terminal-pilot-mcp"]
-    }
-  };
 }
 
 function resolveHomeRelativePath(targetPath: string, homeDir: string): string {

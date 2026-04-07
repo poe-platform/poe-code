@@ -1,4 +1,3 @@
-import { unconfigure as unconfigureMcp } from "@poe-code/agent-mcp-config";
 import { defineCommand, S } from "@poe-code/cmdkit";
 import type { TerminalPilotCommandServices } from "./runtime.js";
 import {
@@ -7,8 +6,7 @@ import {
   installableAgents,
   removeSkillFolder,
   resolveInstallableAgent,
-  resolveInstallerServices,
-  TERMINAL_PILOT_MCP_SERVER_NAME
+  resolveInstallerServices
 } from "./installer.js";
 
 const params = S.Object({
@@ -26,12 +24,11 @@ export const uninstall = defineCommand<
   {
     agent: string;
     removedSkillPaths: string[];
-    mcpServerName: string;
   },
   readonly ["cli"]
 >({
   name: "uninstall",
-  description: "Remove the terminal-pilot skill and MCP server registration.",
+  description: "Remove the terminal-pilot CLI skill.",
   scope: ["cli"],
   positional: ["agent"],
   params,
@@ -60,16 +57,9 @@ export const uninstall = defineCommand<
       removedSkillPaths.push(globalSkill.displayPath);
     }
 
-    await unconfigureMcp(agent, TERMINAL_PILOT_MCP_SERVER_NAME, {
-      fs: services.fs,
-      homeDir: services.homeDir,
-      platform: services.platform
-    });
-
     return {
       agent,
-      removedSkillPaths,
-      mcpServerName: TERMINAL_PILOT_MCP_SERVER_NAME
+      removedSkillPaths
     };
   }
 });

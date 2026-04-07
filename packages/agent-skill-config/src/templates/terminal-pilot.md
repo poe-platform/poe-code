@@ -1,64 +1,45 @@
 ---
 name: terminal-pilot
-description: 'Terminal automation skill using poe-code terminal-pilot MCP'
+description: 'Terminal automation skill using the terminal-pilot CLI'
 ---
 
 # Terminal Pilot
 
-Use the terminal-pilot MCP tools to automate and interact with CLI applications
-through real PTY sessions.
+Use the `terminal-pilot` CLI when you need to automate or inspect interactive
+CLI applications through a real PTY session.
 
-## Quick start
+## Commands
 
-1. Create a session:
-   Use `terminal_create_session` with the command to run.
+- `terminal-pilot create-session` - start a PTY-backed command
+- `terminal-pilot fill` - paste text into a session
+- `terminal-pilot type` - type character-by-character for TUIs and readline
+- `terminal-pilot press-key` - send named keys such as `Enter` or `ArrowDown`
+- `terminal-pilot wait-for` - wait for terminal output to match a pattern
+- `terminal-pilot wait-for-exit` - block until a session exits
+- `terminal-pilot read-screen` - inspect the current visible terminal screen
+- `terminal-pilot read-history` - read scrollback output
+- `terminal-pilot list-sessions` - list active sessions
+- `terminal-pilot close-session` - close a session and return its exit code
 
-2. Interact:
-   - `terminal_fill` — paste text (fast, for non-interactive input)
-   - `terminal_type` — type character by character (for TUI apps, readline)
-   - `terminal_press_key` — press special keys (Enter, Tab, ArrowUp, Escape, Control+c)
+## Examples
 
-3. Observe:
-   - `terminal_read_screen` — get current visible screen (lines, cursor, size)
-   - `terminal_read_history` — get scrollback buffer
-   - `terminal_wait_for` — block until pattern appears (regex or literal)
-   - `terminal_wait_for_exit` — block until process exits
-
-4. Manage:
-   - `terminal_list_sessions` — list active sessions
-   - `terminal_close_session` — close a session and get exit code
-
-## Patterns
-
-### Run a command and read output
-
-```text
-terminal_create_session({ command: "git", args: ["status"] })
-terminal_wait_for_exit({ sessionId })
-terminal_read_screen({ sessionId })
+```bash
+terminal-pilot --help
+terminal-pilot create-session --help
+terminal-pilot read-screen --help
 ```
 
-### Interactive TUI
+Use JSON output when another tool or script needs to read the result:
 
-```text
-terminal_create_session({ command: "vim", args: ["file.txt"] })
-terminal_wait_for({ sessionId, pattern: "file.txt" })
-terminal_type({ sessionId, text: "iHello World" })
-terminal_press_key({ sessionId, key: "Escape" })
-terminal_type({ sessionId, text: ":wq" })
-terminal_press_key({ sessionId, key: "Enter" })
-```
-
-### Send signals
-
-```text
-terminal_send_signal({ sessionId, signal: "SIGINT" })
+```bash
+terminal-pilot list-sessions --output json
+terminal-pilot read-screen --session s1 --output json
 ```
 
 ## Tips
 
-- Use `terminal_fill` for pasting multi-line text or non-interactive input
-- Use `terminal_type` when the app reacts to individual keystrokes (vim, fzf, readline)
-- Use `terminal_wait_for` with `literal: true` for exact string matching
-- Default terminal size is 120x40; resize with `terminal_resize`
-- Sessions persist until explicitly closed or the MCP server exits
+- Use `fill` for pasted text and multi-line input.
+- Use `type` when the app reacts to individual keystrokes.
+- Use `press-key` for Enter, Tab, arrow keys, Escape, and control-key chords.
+- Use `wait-for --literal` for exact string matching.
+- Default terminal size is 120x40.

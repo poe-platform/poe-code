@@ -5,7 +5,7 @@ agent:
 iterations: 50
 status:
   state: in_progress
-  iteration: 10
+  iteration: 11
 ---
 
 Run autonomously, improve the design of cli commands, start with spawn and expand. And then also double-check other commands. Systematically test and improve all commands.
@@ -35,6 +35,11 @@ Maintain todo lists in {{ current_file }}
   - pipeline run: "cap" → "max runs"
   - auth login: aligned with top-level login description
   - logout: "Remove all Poe API configuration" → "Remove all configuration and credentials" (more accurate)
+- [x] pre-existing lint warnings fixed (zero warnings on every commit going forward)
+  - loop.ts: unused `agentResult` variable removed
+  - tiny-http-mcp-server.test.ts: unused `https` import removed
+  - tests/setup.ts: unnecessary eslint-disable directive removed
+- [x] full visual audit of all ~35 command help pages — all clean after above fixes
 
 ## Constraints
 

@@ -5,7 +5,7 @@ agent:
 iterations: 50
 status:
   state: in_progress
-  iteration: 8
+  iteration: 9
 ---
 
 Run autonomously, improve the design of cli commands, start with spawn and expand. And then also double-check other commands. Systematically test and improve all commands.
@@ -22,13 +22,15 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
-- [x] fix help layout overflow at the formatter level
-  - Root help now falls back to stacked command descriptions when the inline table gets too narrow.
-  - Shared subcommand help rows now wrap argument and option descriptions to terminal width.
-- [x] audit visible command help output at 80 columns
-  - Swept root and visible command help output; no lines exceed 80 columns after the formatter fix.
-- [x] re-spot-check spawn dry-run across providers
-  - Verified `--dry-run spawn` output still reads cleanly for `claude`, `codex`, `opencode`, and `kimi`.
+- [x] full audit of all CLI commands (configure, spawn, install, unconfigure, login, logout, auth, agent, wrap, generate, models, mcp, skill, pipeline, ralph, experiment, launch, usage, utils config)
+  - [x] `usage balance` was redundant subcommand (same as `usage` default) but showed in `usage --help`
+    - Hidden with `{ hidden: true }` in `src/cli/commands/usage.ts`
+  - [x] `generate` subcommand descriptions included default model names causing wrapping
+    - Simplified to `Generate text content.` etc. in `src/cli/commands/generate.ts`
+  - [x] fixed 7 pre-existing failing tests in 3 test files
+    - `cli-utilities.test.ts`: updated isolated provider list to include claude and kimi-cli
+    - `misc-commands.test.ts`: updated stale description assertions for configure and skill
+    - `skill-commands.test.ts`: updated skill unconfigure tests to use positional agent arg (not --agent flag)
 
 ## Constraints
 

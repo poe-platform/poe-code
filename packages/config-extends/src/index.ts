@@ -11,3 +11,4 @@ export type {
 export type { DiscoveredBase } from "./discover.js";
 export { findBase } from "./discover.js";
 export { parseDocument } from "./parse.js";
+export { mergeLayers } from "./merge.js";

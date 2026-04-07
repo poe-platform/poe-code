@@ -129,8 +129,8 @@ tasks:
 
       Export `mergeLayers` from `src/index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: resolver

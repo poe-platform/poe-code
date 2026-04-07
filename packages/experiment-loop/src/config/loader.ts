@@ -1,6 +1,7 @@
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { resolve } from "@poe-code/config-extends";
 import { parse } from "yaml";
 import type { ExperimentFileSystem, RunConfig } from "../types.js";
 
@@ -27,15 +28,16 @@ async function readOptionalFile(
   }
 }
 
-function parseRunConfigDocument(filePath: string, content: string): RunConfig | null {
-  let document: unknown;
+function parseRunConfigYaml(filePath: string, content: string): unknown {
   try {
-    document = parse(content);
+    return parse(content);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Invalid experiment run config YAML in "${filePath}": ${message}`);
   }
+}
 
+function parseRunConfigData(filePath: string, document: unknown): RunConfig | null {
   if (document === null || document === undefined) {
     return null;
   }
@@ -57,6 +59,10 @@ function parseRunConfigDocument(filePath: string, content: string): RunConfig | 
   return { prompt };
 }
 
+function parseRunConfigDocument(filePath: string, content: string): RunConfig | null {
+  return parseRunConfigData(filePath, parseRunConfigYaml(filePath, content));
+}
+
 async function readBundledFile(name: string): Promise<string> {
   const filePath = fileURLToPath(new URL(`./${name}`, import.meta.url));
   return readFile(filePath, "utf8");
@@ -73,6 +79,22 @@ async function readDefaultRunConfig(): Promise<RunConfig> {
   return config;
 }
 
+function createRunConfigResolveFs(
+  fs: Pick<ExperimentFileSystem, "readFile">
+): Pick<ExperimentFileSystem, "readFile"> {
+  const bundledRunPath = fileURLToPath(new URL("./run.yaml", import.meta.url));
+
+  return {
+    async readFile(filePath, encoding) {
+      if (filePath === bundledRunPath) {
+        return readBundledFile("default-run.yaml");
+      }
+
+      return fs.readFile(filePath, encoding);
+    }
+  };
+}
+
 export async function loadInstructions(): Promise<string> {
   return readBundledFile("default-instructions.md");
 }
@@ -83,23 +105,31 @@ export async function loadRunConfig(options: {
   fs: Pick<ExperimentFileSystem, "readFile">;
 }): Promise<RunConfig> {
   const projectPath = path.join(options.cwd, ".poe-code", "experiments", "run.yaml");
-  const globalPath = path.join(options.homeDir, ".poe-code", "experiments", "run.yaml");
-
   const projectContent = await readOptionalFile(options.fs, projectPath);
-  if (projectContent != null) {
-    const config = parseRunConfigDocument(projectPath, projectContent);
-    if (config) {
-      return config;
-    }
+  if (projectContent == null) {
+    return readDefaultRunConfig();
   }
 
-  const globalContent = await readOptionalFile(options.fs, globalPath);
-  if (globalContent != null) {
-    const config = parseRunConfigDocument(globalPath, globalContent);
-    if (config) {
-      return config;
-    }
+  const projectDocument = parseRunConfigYaml(projectPath, projectContent);
+  if (projectDocument === null || projectDocument === undefined) {
+    return readDefaultRunConfig();
   }
 
-  return readDefaultRunConfig();
+  const bundledConfigDir = path.resolve(fileURLToPath(new URL(".", import.meta.url)));
+  const globalConfigDir = path.resolve(path.join(options.homeDir, ".poe-code", "experiments"));
+  const resolved = await resolve(
+    [
+      { source: "document", filePath: projectPath, content: projectContent },
+      { source: "base", path: globalConfigDir },
+      { source: "base", path: bundledConfigDir }
+    ],
+    { fs: createRunConfigResolveFs(options.fs) }
+  );
+  const config = parseRunConfigData(projectPath, resolved.data);
+
+  if (!config) {
+    throw new Error(`Invalid experiment run config in "${projectPath}": expected a top-level object.`);
+  }
+
+  return config;
 }

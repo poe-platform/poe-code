@@ -148,11 +148,17 @@ function createJournalEntry(overrides: Partial<JournalEntry> = {}): JournalEntry
 }
 
 describe("loadRunConfig", () => {
-  it("returns default prompt template when no run.yaml exists", async () => {
+  it("uses bundled default when no project run.yaml exists", async () => {
     const config = await loadRunConfig({
       cwd: "/repo",
       homeDir: "/home/test",
-      fs: createFs()
+      fs: createFs({
+        "/home/test/.poe-code/experiments/run.yaml": [
+          "prompt: |",
+          "  Global: {{body}}",
+          ""
+        ].join("\n")
+      })
     });
 
     expect(config.prompt).toContain("{{body}}");
@@ -160,11 +166,17 @@ describe("loadRunConfig", () => {
     expect(config.prompt).toContain("{{metrics}}");
   });
 
-  it("loads project run.yaml", async () => {
+  it("fully replaces bundled default when project run.yaml does not extend", async () => {
     const config = await loadRunConfig({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
+        "/home/test/.poe-code/experiments/run.yaml": [
+          "prompt: |",
+          "  Global: {{body}}",
+          "  Journal: {{journal}}",
+          ""
+        ].join("\n"),
         "/repo/.poe-code/experiments/run.yaml": [
           "prompt: |",
           "  Do this: {{body}}",
@@ -177,23 +189,21 @@ describe("loadRunConfig", () => {
     expect(config.prompt).toBe("Do this: {{body}}\nHistory: {{journal}}\n");
   });
 
-  it("loads global run.yaml when no project file exists", async () => {
+  it("merges with bundled default when project run.yaml sets extends true", async () => {
     const config = await loadRunConfig({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/home/test/.poe-code/experiments/run.yaml": [
-          "prompt: |",
-          "  Global: {{body}}",
-          ""
-        ].join("\n")
+        "/repo/.poe-code/experiments/run.yaml": "extends: true\n"
       })
     });
 
-    expect(config.prompt).toBe("Global: {{body}}\n");
+    expect(config.prompt).toContain("{{body}}");
+    expect(config.prompt).toContain("{{journal}}");
+    expect(config.prompt).toContain("{{metrics}}");
   });
 
-  it("project run.yaml takes precedence over global", async () => {
+  it("uses global run.yaml as the base when project run.yaml extends", async () => {
     const config = await loadRunConfig({
       cwd: "/repo",
       homeDir: "/home/test",
@@ -201,17 +211,14 @@ describe("loadRunConfig", () => {
         "/home/test/.poe-code/experiments/run.yaml": [
           "prompt: |",
           "  Global: {{body}}",
+          "  Journal: {{journal}}",
           ""
         ].join("\n"),
-        "/repo/.poe-code/experiments/run.yaml": [
-          "prompt: |",
-          "  Project: {{body}}",
-          ""
-        ].join("\n")
+        "/repo/.poe-code/experiments/run.yaml": "extends: true\n"
       })
     });
 
-    expect(config.prompt).toBe("Project: {{body}}\n");
+    expect(config.prompt).toBe("Global: {{body}}\nJournal: {{journal}}\n");
   });
 
   it("returns default when run.yaml is comment-only", async () => {

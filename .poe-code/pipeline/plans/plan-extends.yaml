@@ -230,7 +230,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integrate-experiment-runyaml
     title: Integrate config-extends into experiment run.yaml
@@ -261,8 +261,8 @@ tasks:
       - Project run.yaml WITH `extends: true` → merges with bundled default
       - No project run.yaml → bundled default used as-is (backward compatible)
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integrate-gh-workflows

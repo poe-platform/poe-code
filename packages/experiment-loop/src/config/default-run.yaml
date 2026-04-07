@@ -1,5 +1,6 @@
 # Default experiment context template.
-# Override by placing a run.yaml in .poe-code/experiments/ (project) or ~/.poe-code/experiments/ (global).
+# Override by placing a project run.yaml in .poe-code/experiments/.
+# Add extends: true there to inherit from ~/.poe-code/experiments/run.yaml or this bundled default.
 #
 # Available variables:
 #   {{body}}                 — experiment doc body (markdown below the frontmatter)

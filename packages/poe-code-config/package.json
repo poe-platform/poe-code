@@ -18,6 +18,7 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/config-extends": "*",
     "@poe-code/config-mutations": "*"
   }
 }

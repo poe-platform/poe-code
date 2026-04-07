@@ -439,7 +439,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integrate-config
     title: Integrate config-extends into poe-code-config
@@ -468,6 +468,6 @@ tasks:
 
       All existing tests in `packages/poe-code-config/` must still pass — behavior should be identical.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done

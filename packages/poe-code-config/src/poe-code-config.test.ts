@@ -1016,6 +1016,85 @@ describe("store", () => {
     });
   });
 
+  it("deep merges nested scope objects across global and project documents", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            configured_services: {
+              codex: {
+                files: ["/tmp/global.toml"],
+                env: {
+                  GLOBAL_ONLY: "true"
+                }
+              }
+            }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            configured_services: {
+              codex: {
+                env: {
+                  PROJECT_ONLY: "true"
+                }
+              }
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(
+      readMergedDocument(fs, configPath, `${homeDir}/workspace/.poe-code/config.json`)
+    ).resolves.toEqual({
+      configured_services: {
+        codex: {
+          files: ["/tmp/global.toml"],
+          env: {
+            GLOBAL_ONLY: "true",
+            PROJECT_ONLY: "true"
+          }
+        }
+      }
+    });
+  });
+
+  it("does not auto-inherit from global when project config sets extends false", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            core: { apiKey: "global-key" },
+            ui: { darkMode: true }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            extends: false,
+            core: { apiKey: "project-key" }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(
+      readMergedDocument(fs, configPath, `${homeDir}/workspace/.poe-code/config.json`)
+    ).resolves.toEqual({
+      core: { apiKey: "project-key" }
+    });
+  });
+
   it("uses only the global document when project config is missing", async () => {
     const fs = createMockFs(
       {

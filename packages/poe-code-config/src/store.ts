@@ -1,18 +1,11 @@
 import path from "node:path";
+import { resolve, type FileSystem as ResolveFileSystem } from "@poe-code/config-extends";
 import { createTimestamp, isNotFound, type FileSystem } from "@poe-code/config-mutations";
-import { deepMergeDocuments } from "./merge.js";
 import type { ConfigDocument } from "./types.js";
 
 export async function readDocument(fs: FileSystem, filePath: string): Promise<ConfigDocument> {
-  try {
-    const raw = await fs.readFile(filePath, "utf8");
-    return await parseDocument(fs, filePath, raw);
-  } catch (error) {
-    if (isNotFound(error)) {
-      return {};
-    }
-    throw error;
-  }
+  const document = await readStoredDocument(fs, filePath);
+  return document.data;
 }
 
 export async function writeScope(
@@ -38,26 +31,69 @@ export async function readMergedDocument(
   globalPath: string,
   projectPath?: string
 ): Promise<ConfigDocument> {
-  const globalDocument = await readDocument(fs, globalPath);
+  const globalDocument = await readStoredDocument(fs, globalPath);
   if (!projectPath) {
-    return globalDocument;
+    return globalDocument.data;
   }
 
-  const projectDocument = await readDocument(fs, projectPath);
-  return deepMergeDocuments(globalDocument, projectDocument);
+  const projectDocument = await readStoredDocument(fs, projectPath);
+  const resolved = await resolve(
+    [
+      {
+        source: "project",
+        filePath: projectPath,
+        content: projectDocument.content
+      },
+      {
+        source: "base",
+        path: path.dirname(globalPath)
+      }
+    ],
+    {
+      fs: createResolvedConfigFs(fs, globalPath, globalDocument.content),
+      autoExtend: true
+    }
+  );
+
+  return normalizeDocument(resolved.data);
 }
 
-async function parseDocument(
+async function readStoredDocument(
+  fs: FileSystem,
+  filePath: string
+): Promise<{ content: string; data: ConfigDocument }> {
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return await parseStoredDocument(fs, filePath, raw);
+  } catch (error) {
+    if (isNotFound(error)) {
+      return {
+        content: EMPTY_DOCUMENT,
+        data: {}
+      };
+    }
+
+    throw error;
+  }
+}
+
+async function parseStoredDocument(
   fs: FileSystem,
   filePath: string,
   raw: string
-): Promise<ConfigDocument> {
+): Promise<{ content: string; data: ConfigDocument }> {
   try {
-    return normalizeDocument(JSON.parse(raw));
+    return {
+      content: raw,
+      data: normalizeDocument(JSON.parse(raw))
+    };
   } catch (error) {
     if (error instanceof SyntaxError) {
       await recoverInvalidDocument(fs, filePath, raw);
-      return {};
+      return {
+        content: EMPTY_DOCUMENT,
+        data: {}
+      };
     }
     throw error;
   }
@@ -92,6 +128,22 @@ function normalizeScopeValues(value: unknown): Record<string, unknown> {
   }
 
   return normalized;
+}
+
+function createResolvedConfigFs(
+  fs: FileSystem,
+  globalPath: string,
+  globalContent: string
+): ResolveFileSystem {
+  return {
+    readFile(filePath: string, _encoding: BufferEncoding) {
+      if (filePath === globalPath) {
+        return Promise.resolve(globalContent);
+      }
+
+      return fs.readFile(filePath, "utf8");
+    }
+  };
 }
 
 async function writeDocument(

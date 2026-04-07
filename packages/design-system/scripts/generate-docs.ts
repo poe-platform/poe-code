@@ -5,12 +5,16 @@
  */
 import { execSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 const ROOT_DIR = path.resolve(import.meta.dirname, "../../..");
 const SCREENSHOTS_DIR = path.join(ROOT_DIR, "docs/design-language");
+const require = createRequire(import.meta.url);
+const tsxCliPath = require.resolve("tsx/cli");
+const demoScriptPath = path.join(import.meta.dirname, "demo.ts");
 const OUTPUT_DOCS = {
   terminal: path.join(ROOT_DIR, "docs/DESIGN_LANGUAGE.md"),
   markdown: path.join(ROOT_DIR, "docs/DESIGN_LANGUAGE_MARKDOWN.md"),
@@ -379,7 +383,7 @@ export function captureTextOutput(
   format: Extract<OutputMode, "markdown" | "json">
 ): string {
   const result = execSync(
-    `npm run --silent demo -w @poe-code/design-system -- ${demoArgs}`,
+    `"${process.execPath}" "${tsxCliPath}" "${demoScriptPath}" ${demoArgs}`,
     {
       cwd: ROOT_DIR,
       env: { ...process.env, OUTPUT_FORMAT: format }

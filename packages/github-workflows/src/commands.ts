@@ -495,7 +495,7 @@ async function resolveBuiltInWorkflowTemplatesDir(): Promise<string> {
 }
 
 function projectPromptDirs(cwd: string): string[] {
-  return [projectWorkflowDir(cwd), projectGitHubWorkflowsDir(cwd)];
+  return [projectWorkflowDir(cwd)];
 }
 
 function projectWorkflowDir(cwd: string): string {

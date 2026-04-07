@@ -32,7 +32,7 @@ export async function resolve(
   const parsedDocument = parseDocument(documentLayer.content, documentLayer.filePath);
   const resolvedBase = shouldResolveBase(parsedDocument, options.autoExtend)
     ? await resolveBaseChain({
-        name: getBaseName(documentLayer.filePath),
+        name: documentLayer.baseName ?? getBaseName(documentLayer.filePath),
         baseLayers,
         options,
         optional: !parsedDocument.extends,

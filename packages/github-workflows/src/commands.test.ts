@@ -322,11 +322,10 @@ describe("ghGroup", () => {
     });
   });
 
-  it("prefers the project .poe-code prompt copy over .github/workflows when the project file does not extend", async () => {
+  it("prefers the poe-code-prefixed prompt file in .github/workflows over the built-in", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Built-in prompt");
     vol.fromJSON({
-      "/repo/.github/workflows/github-issue-opened.md": "# Ejected prompt",
-      "/repo/.poe-code/github-workflows/github-issue-opened.md": "# Project override"
+      "/repo/.github/workflows/poe-code-github-issue-opened.md": "# Project override"
     });
 
     const promptPreviewCommand = getCommand(["prompt-preview"]);
@@ -695,7 +694,7 @@ describe("ghGroup", () => {
   it("lists discovered automations and renders them as a table", async () => {
     writeBuiltInPrompt("beta", ["---", "agent: codex", "---", "Prompt"].join("\n"));
     vol.fromJSON({
-      "/repo/.poe-code/github-workflows/alpha.md": "# Local"
+      "/repo/.github/workflows/poe-code-alpha.md": "# Local"
     });
 
     const listCommand = getCommand(["list"]);
@@ -958,7 +957,7 @@ describe("ghGroup", () => {
           { COMMENT_AUTHOR_ASSOCIATION: "MEMBER" }
         )
       )
-    ).rejects.toThrow('Automation "poe-code-github-issue-comment-created" does not allow COMMENT_AUTHOR_ASSOCIATION "MEMBER". Allowed values: OWNER.');
+    ).rejects.toThrow('Automation "github-issue-comment-created" does not allow COMMENT_AUTHOR_ASSOCIATION "MEMBER". Allowed values: OWNER.');
 
     await expect(
       requireCommentPrefixCommand.handler(
@@ -968,7 +967,7 @@ describe("ghGroup", () => {
         )
       )
     ).rejects.toThrow(
-      'Automation "poe-code-github-issue-comment-created" requires COMMENT_BODY to start with "poe-code".'
+      'Automation "github-issue-comment-created" requires COMMENT_BODY to start with "poe-code".'
     );
   });
 

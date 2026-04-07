@@ -26,7 +26,7 @@ export async function discoverAutomations(
 
   for (const [, fileNames] of fileNamesByDirectory) {
     for (const fileName of fileNames) {
-      names.add(fileName.slice(0, -3));
+      names.add(stripPrefix(fileName.slice(0, -3)));
     }
   }
 
@@ -44,12 +44,16 @@ export async function loadAutomation(
 ): Promise<AutomationDefinition | undefined> {
   for (const [index, dir] of dirs.entries()) {
     const fileNames = await listMarkdownFiles(dir);
+    const prefixed = `poe-code-${name}.md`;
+    const unprefixed = `${name}.md`;
+    const fileName = fileNames.includes(prefixed) ? prefixed : fileNames.includes(unprefixed) ? unprefixed : undefined;
 
-    if (!fileNames.includes(`${name}.md`)) {
+    if (fileName === undefined) {
       continue;
     }
 
-    return readAutomation(dir, `${name}.md`, dirs.slice(index + 1));
+    const baseName = fileName === prefixed ? name : undefined;
+    return readAutomation(dir, fileName, baseName, dirs.slice(index + 1));
   }
 
   return undefined;
@@ -73,6 +77,7 @@ async function listMarkdownFiles(dir: string): Promise<string[]> {
 async function readAutomation(
   dir: string,
   fileName: string,
+  baseName: string | undefined,
   baseDirs: string[]
 ): Promise<AutomationDefinition> {
   const filePath = join(dir, fileName);
@@ -82,7 +87,8 @@ async function readAutomation(
       {
         source: "document",
         filePath,
-        content
+        content,
+        ...(baseName !== undefined ? { baseName } : {})
       },
       ...baseDirs.map((baseDir) => ({
         source: "base",
@@ -99,7 +105,7 @@ async function readAutomation(
       fs: { readFile }
     }
   );
-  const name = fileName.slice(0, -3);
+  const name = stripPrefix(fileName.slice(0, -3));
 
   return {
     name,
@@ -302,4 +308,10 @@ function isStringRecord(value: unknown): value is Record<string, string> {
   }
 
   return Object.values(value).every((item) => typeof item === "string");
+}
+
+const POE_CODE_PREFIX = "poe-code-";
+
+function stripPrefix(name: string): string {
+  return name.startsWith(POE_CODE_PREFIX) ? name.slice(POE_CODE_PREFIX.length) : name;
 }

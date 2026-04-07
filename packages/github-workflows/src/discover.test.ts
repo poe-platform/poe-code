@@ -51,31 +51,25 @@ describe("discoverAutomations", () => {
     fsState.readFileErrors.clear();
   });
 
-  it("prefers the .github/workflows prompt as the document while inheriting shared config from .poe-code and built-ins", async () => {
+  it("discovers a prefixed project prompt and inherits built-in config via extends", async () => {
     writeMarkdown(
       "/built-in",
       "triage.md",
       ["---", "source: gh api repos/{owner}/{repo}/issues", "---", "# Built-in triage", "", "Built-in body"].join("\n")
     );
     writeMarkdown(
-      "/poe-code",
-      "triage.md",
+      "/github-workflows",
+      "poe-code-triage.md",
       ["---", "extends: true", "agent: claude-code", "allow:", "  - OWNER", "---"].join("\n")
     );
-    writeMarkdown(
-      "/github-workflows",
-      "triage.md",
-      ["---", "extends: true", "prefix: /poe", "---", "# Repo triage", "", "Repo body"].join("\n")
-    );
 
-    await expect(discoverAutomations("/built-in", "/github-workflows", "/poe-code")).resolves.toEqual([
+    await expect(discoverAutomations("/built-in", "/github-workflows")).resolves.toEqual([
       {
         name: "triage",
-        prompt: "# Repo triage\n\nRepo body",
+        prompt: "# Built-in triage\n\nBuilt-in body",
         source: "gh api repos/{owner}/{repo}/issues",
         agent: "claude-code",
-        allow: ["OWNER"],
-        prefix: "/poe"
+        allow: ["OWNER"]
       }
     ]);
   });
@@ -90,7 +84,7 @@ describe("loadAutomation", () => {
   });
 
   it("inherits the built-in prompt body and frontmatter when a project prompt extends it", async () => {
-    writeMarkdown("/project", "triage.md", ["---", "extends: true", "---"].join("\n"));
+    writeMarkdown("/project", "poe-code-triage.md", ["---", "extends: true", "---"].join("\n"));
     writeMarkdown(
       "/built-in",
       "triage.md",
@@ -107,7 +101,7 @@ describe("loadAutomation", () => {
   });
 
   it("lets a project prompt override agent while inheriting everything else", async () => {
-    writeMarkdown("/project", "triage.md", ["---", "extends: true", "agent: claude-code", "---"].join("\n"));
+    writeMarkdown("/project", "poe-code-triage.md", ["---", "extends: true", "agent: claude-code", "---"].join("\n"));
     writeMarkdown(
       "/built-in",
       "triage.md",
@@ -125,7 +119,7 @@ describe("loadAutomation", () => {
   });
 
   it("provides the default agent when neither the document nor its base defines one", async () => {
-    writeMarkdown("/project", "triage.md", ["---", "extends: true", "---"].join("\n"));
+    writeMarkdown("/project", "poe-code-triage.md", ["---", "extends: true", "---"].join("\n"));
     writeMarkdown("/built-in", "triage.md", "# Built-in triage");
 
     await expect(loadAutomation("triage", ["/project", "/built-in"])).resolves.toEqual({
@@ -135,7 +129,7 @@ describe("loadAutomation", () => {
     });
   });
 
-  it("keeps prompts backward compatible when they do not opt into extends", async () => {
+  it("falls back to unprefixed filename for backward compatibility", async () => {
     writeMarkdown("/project", "triage.md", "# Project triage");
     writeMarkdown("/built-in", "triage.md", ["---", "allow:", "  - OWNER", "---", "# Built-in triage"].join("\n"));
 

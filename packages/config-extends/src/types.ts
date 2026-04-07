@@ -7,6 +7,7 @@ export interface DocumentLayer {
   source: string;
   filePath: string;
   content: string;
+  baseName?: string;
 }
 
 export interface BaseLayer {

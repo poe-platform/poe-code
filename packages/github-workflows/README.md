@@ -66,17 +66,74 @@ poe-code gh install <name> --eject
 poe-code gh uninstall <name>
 ```
 
-Use `--eject` when you need a local prompt copy or need to modify the workflow YAML itself.
+Use `--eject` when you need full control over the workflow YAML itself.
 
 With `--eject`, poe-code writes:
 - `.github/workflows/poe-code-<name>.yml`
 - `.github/workflows/poe-code-<name>.md`
 
+For most customizations, **prefer `extends`** over `--eject` — see below.
+
+---
+
+## Customizing with `extends`
+
+You can override specific automation fields (agent, allowed roles, prompt, etc.) without ejecting. Create a `.md` file alongside the workflow `.yml` with the same base name and set `extends: true` in the frontmatter. Fields you define override the built-in; everything else is inherited.
+
+### Change the agent
+
+`.github/workflows/poe-code-github-issue-opened.md`:
+```yaml
+---
+extends: true
+agent: claude-code
+---
+```
+
+This keeps the built-in prompt, template variables, and all other settings — only the agent changes.
+
+### Override multiple fields
+
+`.github/workflows/poe-code-github-issue-opened.md`:
+```yaml
+---
+extends: true
+agent: claude-code
+allow:
+  - OWNER
+  - MEMBER
+---
+```
+
+### Add a custom prompt while inheriting config
+
+`.github/workflows/poe-code-github-issue-opened.md`:
+```yaml
+---
+extends: true
+agent: claude-code
+---
+Read {{url}} and implement the requested changes.
+
+Always add tests for new functionality.
+```
+
+When a prompt body is provided, it replaces the built-in prompt. When omitted, the built-in prompt is inherited.
+
+### `extends` vs `--eject`
+
+| | `extends` | `--eject` |
+|---|---|---|
+| Receives upstream prompt updates | Yes (unless you provide a body) | No |
+| Receives upstream workflow YAML updates | Yes | No |
+| Can change agent/allow/prefix/mcp | Yes | Yes |
+| Can modify the workflow YAML | No | Yes |
+
 ---
 
 ## Prompt Frontmatter Options
 
-The copied prompt file created by `--eject` supports the following frontmatter:
+Automation prompts support the following frontmatter (both in ejected files and `extends` overrides):
 
 ```yaml
 ---

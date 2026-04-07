@@ -758,4 +758,35 @@ describe("resolve", () => {
       chain: ["/workspace/review.yaml", "/bases/review.yaml"]
     });
   });
+
+  it("uses baseName to find the base when the document has a different filename", async () => {
+    const fs = createMemFs({
+      "/bases/review.yaml": ["prompt: Base prompt", "tone: base"].join("\n")
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/poe-code-review.yaml",
+            content: ["extends: true", "title: Document"].join("\n"),
+            baseName: "review"
+          },
+          {
+            source: "base",
+            path: "/bases"
+          }
+        ],
+        { fs }
+      )
+    ).resolves.toMatchObject({
+      data: {
+        title: "Document",
+        prompt: "Base prompt",
+        tone: "base"
+      },
+      chain: ["/workspace/poe-code-review.yaml", "/bases/review.yaml"]
+    });
+  });
 });

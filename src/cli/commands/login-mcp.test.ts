@@ -11,6 +11,10 @@ import * as clientInstance from "../../services/client-instance.js";
 import * as mcpServer from "../mcp-server.js";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
+function stripAnsi(value: string): string {
+  return value.replace(/\u001b\[[0-9;]*m/g, "");
+}
+
 const {
   configureMock,
   unconfigureMock,
@@ -408,19 +412,20 @@ describe("mcp command", () => {
         // Commander exits on --help
       }
 
-      expect(helpOutput).toContain("poe-code");
-      expect(helpOutput).toContain("mcp");
-      expect(helpOutput).not.toContain("Available Agents");
-      expect(helpOutput).not.toContain("--agent");
-      expect(helpOutput).toContain("--output-format");
-      expect(helpOutput).toContain('Preferred MCP media output format');
-      expect(helpOutput).toContain('"markdown"');
-      expect(helpOutput).toContain("cannot be combined");
-      expect(helpOutput).toContain("Available Tools");
-      expect(helpOutput).toContain("generate_text");
-      expect(helpOutput).toContain("generate_image");
-      expect(helpOutput).toContain("generate_video");
-      expect(helpOutput).toContain("generate_audio");
+      const plain = stripAnsi(helpOutput);
+      expect(plain).toContain("poe-code");
+      expect(plain).toContain("mcp");
+      expect(plain).not.toContain("Available Agents");
+      expect(plain).not.toContain("--agent");
+      expect(plain).toContain("--output-format");
+      expect(plain).toContain('Preferred MCP media output format');
+      expect(plain).toContain('"markdown"');
+      expect(plain.replace(/\s+/g, " ")).toContain("cannot be combined");
+      expect(plain).toContain("Available Tools");
+      expect(plain).toContain("generate_text");
+      expect(plain).toContain("generate_image");
+      expect(plain).toContain("generate_video");
+      expect(plain).toContain("generate_audio");
     });
   });
 

@@ -13,6 +13,7 @@ import type {
   RalphRunOptions,
   RalphRunResult
 } from "../types.js";
+import { interpolateVariables } from "../variables/variables.js";
 
 export async function runRalph(
   options: RalphRunOptions
@@ -34,14 +35,17 @@ export async function runRalph(
     options.homeDir
   );
   const rawContent = await fs.readFile(absoluteDocPath, "utf8");
-  const { data: frontmatter, body: prompt } = parseFrontmatter(rawContent);
+  const { data: frontmatter, body: rawBody } = parseFrontmatter(rawContent);
+  const prompt = interpolateVariables(rawBody, {
+    current_file: absoluteDocPath
+  });
   const startTime = Date.now();
   let iterationsCompleted = 0;
 
   await updateFrontmatter(
     fs,
     absoluteDocPath,
-    prompt,
+    rawBody,
     frontmatter,
     "in_progress",
     0
@@ -54,7 +58,7 @@ export async function runRalph(
     await updateFrontmatter(
       fs,
       absoluteDocPath,
-      prompt,
+      rawBody,
       frontmatter,
       status,
       iterationsCompleted
@@ -104,7 +108,7 @@ export async function runRalph(
       await updateFrontmatter(
         fs,
         absoluteDocPath,
-        prompt,
+        rawBody,
         frontmatter,
         "in_progress",
         iterationsCompleted

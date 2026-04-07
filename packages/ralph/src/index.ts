@@ -14,3 +14,5 @@ export type {
 export { parseFrontmatter, writeFrontmatter } from "./frontmatter/frontmatter.js";
 export { discoverDocs } from "./discovery/discovery.js";
 export { runRalph } from "./run/ralph.js";
+export { interpolateVariables } from "./variables/variables.js";
+export type { VariableMap } from "./variables/variables.js";

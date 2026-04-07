@@ -307,6 +307,36 @@ describe("createRalphSimulation", () => {
     });
   });
 
+  it("interpolates {{ current_file }} in the prompt with the doc path", async () => {
+    const sim = createRalphSimulation({
+      docContent: "Fix issues in {{ current_file }}",
+      maxIterations: 1,
+      turns: [successTurn()]
+    });
+
+    const { prompts } = await sim.run();
+
+    expect(prompts[0]).toBe(
+      "Fix issues in /repo/.poe-code/ralph/plans/plan.md"
+    );
+  });
+
+  it("preserves {{ current_file }} template in the file after run", async () => {
+    const sim = createRalphSimulation({
+      docContent: "Fix {{ current_file }}",
+      maxIterations: 1,
+      turns: [successTurn()]
+    });
+
+    const { readFile } = await sim.run();
+
+    const archived = await readFile(
+      ".poe-code/ralph/plans/archive/plan.md"
+    );
+    const { body } = parseFrontmatter(archived);
+    expect(body).toBe("Fix {{ current_file }}");
+  });
+
   it("stops on first failed iteration", async () => {
     const sim = createRalphSimulation({
       docContent: "Keep trying",

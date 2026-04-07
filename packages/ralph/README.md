@@ -50,6 +50,24 @@ Use `agent:provider/model` notation:
 agent: claude-code:anthropic/claude-opus-4.6
 ```
 
+## Template Variables
+
+Ralph supports `{{ variable }}` syntax in doc bodies. Variables are interpolated before the prompt is sent to the agent but preserved as-is in the file.
+
+| Variable | Resolves to |
+|---|---|
+| `{{ current_file }}` | Absolute path of the Ralph doc being run |
+
+```markdown
+---
+agent: claude-code
+iterations: 3
+---
+# Improve {{ current_file }}
+
+Review and improve the plan in this file.
+```
+
 ## Doc Discovery
 
 Docs are auto-discovered from `.poe-code/ralph/plans/` — you almost never need to pass a path manually.

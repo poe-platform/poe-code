@@ -2673,7 +2673,7 @@ describe("async handlers", () => {
       '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"delay","arguments":{}}}'
     );
     // Wait for async handler to complete before closing
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 20));
     transport.close();
 
     await connectPromise;
@@ -3653,7 +3653,7 @@ describe("SDK Client integration", () => {
         "Delayed",
         schema,
         async () => {
-          await new Promise((resolve) => setTimeout(resolve, 50));
+          await new Promise((resolve) => setTimeout(resolve, 10));
           return "delayed";
         }
       );

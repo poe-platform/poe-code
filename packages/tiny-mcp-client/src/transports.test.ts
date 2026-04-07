@@ -3158,16 +3158,12 @@ describe("McpClient connect", () => {
     await vi.waitFor(
       () => {
         expect(onSamplingRequest).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledTimes(2);
       },
       {
         timeout: 100,
       }
     );
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, 50);
-    });
-
-    expect(writeSpy).toHaveBeenCalledTimes(2);
 
     await client.close();
   });

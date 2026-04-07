@@ -33,7 +33,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: refactor-prompts
     title: Refactor built-in prompts to use shared variables
@@ -49,10 +49,10 @@ tasks:
 
       The prompt body should still make sense when read with the variables expanded. Keep all other content (frontmatter, issue/PR-specific instructions) unchanged.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: wire-into-commands
     title: Wire variables into commands (context, install, prompt-preview)

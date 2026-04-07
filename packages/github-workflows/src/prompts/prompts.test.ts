@@ -90,4 +90,17 @@ describe("built-in prompts", () => {
     expect(automation?.prompt).toContain("leave a visible GitHub response");
     expect(automation?.prompt).toContain("current PR branch");
   });
+
+  it("uses shared response variables in the GitHub issue prompts", async () => {
+    const automations = await discoverAutomations(promptsDir);
+
+    for (const name of ["github-issue-opened", "github-issue-comment-created"]) {
+      const automation = automations.find((candidate) => candidate.name === name);
+
+      expect(automation?.prompt).toContain("{{response_style}}");
+      expect(automation?.prompt).toContain("{{verify_before_responding}}");
+      expect(automation?.prompt).not.toContain("- Start with a direct answer or decision.");
+      expect(automation?.prompt).not.toContain("Before answering:");
+    }
+  });
 });

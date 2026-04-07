@@ -29,11 +29,6 @@ Read {{url}} and leave a visible GitHub response to the comment from {{comment.a
 - If the comment only needs guidance or clarification, reply directly and concisely.
 - If you cannot complete the request, comment with the blocker and the next concrete step.
 
-- Start with a direct answer or decision.
-- Keep it concise.
-- Use short Markdown sections only when they improve clarity.
+{{response_style}}
 
-Before answering:
-
-- Inspect the checked-out repository
-- Verify every claim against the repo before you post it.
+{{verify_before_responding}}

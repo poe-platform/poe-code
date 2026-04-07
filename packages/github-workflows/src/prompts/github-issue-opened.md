@@ -13,11 +13,6 @@ Read {{url}} and leave a visible GitHub response.
 - If the issue is a question or needs only guidance, post a concise comment that directly answers it. Be practical, give examples.
 - If you cannot complete the request, comment with the blocker and the next concrete step.
 
-- Start with a direct answer or decision.
-- Keep it concise.
-- Use short Markdown sections only when they improve clarity.
+{{response_style}}
 
-Before answering:
-
-- Inspect the checked-out repository
-- Verify every claim against the repo before you post it.
+{{verify_before_responding}}

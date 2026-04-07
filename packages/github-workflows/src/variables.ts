@@ -109,12 +109,7 @@ async function readOptionalVariables(projectDir: string): Promise<Record<string,
   try {
     return parseVariables(filePath, await readFile(filePath, "utf8"));
   } catch (error) {
-    if (
-      !!error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: unknown }).code === "ENOENT"
-    ) {
+    if (error instanceof Error && (error as NodeJS.ErrnoException).code === "ENOENT") {
       return {};
     }
     throw error;

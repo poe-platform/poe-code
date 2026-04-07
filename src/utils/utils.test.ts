@@ -1,0 +1,730 @@
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import path from "node:path";
+import type { FileSystem } from "./file-system.js";
+import { createBackup, restoreLatestBackup } from "./backup.js";
+import { createMockFs } from "@poe-code/config-mutations/testing";
+import {
+  extractSettingsFromArgs,
+  mergeCliSettings,
+  buildArgsWithMergedSettings
+} from "./cli-settings-merge.js";
+import {
+  createBinaryExistsCheck,
+  createCommandExpectationCheck,
+  createSpawnHealthCheck,
+  stdoutMatchesExpected
+} from "./command-checks.js";
+import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { renderUnifiedDiff } from "./dry-run.js";
+import {
+  detectExecutionContext,
+  formatCliHelpCommand,
+  formatCliUsageCommand,
+  toMcpServerCommand,
+  toOpenCodeMcpCommand
+} from "./execution-context.js";
+
+// ── backup ────────────────────────────────────────────────────────────────────
+
+describe("backup utilities", () => {
+  let fs: FileSystem;
+  const root = "/home/user";
+  const filePath = path.join(root, ".bashrc");
+
+  beforeEach(async () => {
+    fs = createMockFs({ [filePath]: "export FOO=bar" }, root);
+  });
+
+  it("creates timestamped backup when file exists", async () => {
+    const backupPath = await createBackup(fs, filePath, () => "20240101T010101");
+
+    expect(backupPath).toBe(`${filePath}.backup.20240101T010101`);
+    const backupContent = await fs.readFile(backupPath!, "utf8");
+    expect(backupContent).toBe("export FOO=bar");
+  });
+
+  it("skips backup when file is missing", async () => {
+    await fs.unlink(filePath);
+
+    const backupPath = await createBackup(fs, filePath, () => "20240101T010101");
+    expect(backupPath).toBeNull();
+  });
+
+  it("restores most recent backup", async () => {
+    await createBackup(fs, filePath, () => "20240101T010101");
+    await fs.writeFile(filePath, "changed", { encoding: "utf8" });
+    await createBackup(fs, filePath, () => "20240201T020202");
+    await fs.writeFile(filePath, "changed again", { encoding: "utf8" });
+
+    const restored = await restoreLatestBackup(fs, filePath);
+    expect(restored).toBe(true);
+    const content = await fs.readFile(filePath, "utf8");
+    expect(content).toBe("changed");
+  });
+
+  it("returns false when no backups exist", async () => {
+    await fs.unlink(filePath);
+    const restored = await restoreLatestBackup(fs, filePath);
+    expect(restored).toBe(false);
+  });
+});
+
+// ── cli-settings-merge ────────────────────────────────────────────────────────
+
+describe("cli-settings-merge", () => {
+  describe("extractSettingsFromArgs", () => {
+    it("returns null settings when --settings not present", () => {
+      const args = ["-p", "query", "--model", "opus"];
+      const result = extractSettingsFromArgs(args);
+
+      expect(result.userSettings).toBeNull();
+      expect(result.argsWithoutSettings).toEqual(args);
+    });
+
+    it("extracts JSON settings from args", () => {
+      const args = ["-p", "--settings", '{"model":"opus"}', "query"];
+      const result = extractSettingsFromArgs(args);
+
+      expect(result.userSettings).toEqual({ model: "opus" });
+      expect(result.argsWithoutSettings).toEqual(["-p", "query"]);
+    });
+
+    it("handles --settings at end of args", () => {
+      const args = ["-p", "query", "--settings", '{"verbose":true}'];
+      const result = extractSettingsFromArgs(args);
+
+      expect(result.userSettings).toEqual({ verbose: true });
+      expect(result.argsWithoutSettings).toEqual(["-p", "query"]);
+    });
+
+    it("handles --settings at start of args", () => {
+      const args = ["--settings", '{"model":"sonnet"}', "-p", "query"];
+      const result = extractSettingsFromArgs(args);
+
+      expect(result.userSettings).toEqual({ model: "sonnet" });
+      expect(result.argsWithoutSettings).toEqual(["-p", "query"]);
+    });
+
+    it("returns null for file path settings (non-JSON)", () => {
+      const args = ["-p", "--settings", "./settings.json", "query"];
+      const result = extractSettingsFromArgs(args);
+
+      expect(result.userSettings).toBeNull();
+      expect(result.settingsFilePath).toBe("./settings.json");
+      expect(result.argsWithoutSettings).toEqual(["-p", "query"]);
+    });
+
+    it("handles --settings without value", () => {
+      const args = ["-p", "query", "--settings"];
+      const result = extractSettingsFromArgs(args);
+
+      expect(result.userSettings).toBeNull();
+      expect(result.argsWithoutSettings).toEqual(args);
+    });
+
+    it("extracts nested settings objects", () => {
+      const args = ["--settings", '{"env":{"MY_VAR":"foo"},"model":"opus"}'];
+      const result = extractSettingsFromArgs(args);
+
+      expect(result.userSettings).toEqual({
+        env: { MY_VAR: "foo" },
+        model: "opus"
+      });
+    });
+  });
+
+  describe("mergeCliSettings", () => {
+    it("returns required settings when user settings is null", () => {
+      const required = { apiKeyHelper: "echo $KEY" };
+      const result = mergeCliSettings(null, required);
+
+      expect(result).toEqual(required);
+    });
+
+    it("preserves user settings not in required", () => {
+      const user = { model: "opus", verbose: true };
+      const required = { apiKeyHelper: "echo $KEY" };
+      const result = mergeCliSettings(user, required);
+
+      expect(result).toEqual({
+        model: "opus",
+        verbose: true,
+        apiKeyHelper: "echo $KEY"
+      });
+    });
+
+    it("required settings override user settings", () => {
+      const user = { apiKeyHelper: "my-script.sh", model: "opus" };
+      const required = { apiKeyHelper: "echo $KEY" };
+      const result = mergeCliSettings(user, required);
+
+      expect(result).toEqual({
+        model: "opus",
+        apiKeyHelper: "echo $KEY"
+      });
+    });
+
+    it("deep merges env objects", () => {
+      const user = { env: { MY_VAR: "foo", OTHER: "bar" } };
+      const required = { env: { ANTHROPIC_BASE_URL: "https://api.poe.com" } };
+      const result = mergeCliSettings(user, required);
+
+      expect(result).toEqual({
+        env: {
+          MY_VAR: "foo",
+          OTHER: "bar",
+          ANTHROPIC_BASE_URL: "https://api.poe.com"
+        }
+      });
+    });
+
+    it("required env values override user env values", () => {
+      const user = { env: { ANTHROPIC_BASE_URL: "https://custom.com" } };
+      const required = { env: { ANTHROPIC_BASE_URL: "https://api.poe.com" } };
+      const result = mergeCliSettings(user, required);
+
+      expect(result).toEqual({
+        env: { ANTHROPIC_BASE_URL: "https://api.poe.com" }
+      });
+    });
+
+    it("handles user with env and required without env", () => {
+      const user = { env: { MY_VAR: "foo" } };
+      const required = { apiKeyHelper: "echo $KEY" };
+      const result = mergeCliSettings(user, required);
+
+      expect(result).toEqual({
+        env: { MY_VAR: "foo" },
+        apiKeyHelper: "echo $KEY"
+      });
+    });
+
+    it("handles user without env and required with env", () => {
+      const user = { model: "opus" };
+      const required = { env: { ANTHROPIC_BASE_URL: "https://api.poe.com" } };
+      const result = mergeCliSettings(user, required);
+
+      expect(result).toEqual({
+        model: "opus",
+        env: { ANTHROPIC_BASE_URL: "https://api.poe.com" }
+      });
+    });
+  });
+
+  describe("buildArgsWithMergedSettings", () => {
+    it("adds --settings when not present in args", () => {
+      const args = ["-p", "query"];
+      const required = { apiKeyHelper: "echo $KEY" };
+      const result = buildArgsWithMergedSettings(args, required);
+
+      expect(result).toEqual([
+        "-p",
+        "query",
+        "--settings",
+        '{"apiKeyHelper":"echo $KEY"}'
+      ]);
+    });
+
+    it("merges with existing --settings JSON", () => {
+      const args = ["-p", "--settings", '{"model":"opus"}', "query"];
+      const required = { apiKeyHelper: "echo $KEY" };
+      const result = buildArgsWithMergedSettings(args, required);
+
+      expect(result).toEqual([
+        "-p",
+        "query",
+        "--settings",
+        '{"model":"opus","apiKeyHelper":"echo $KEY"}'
+      ]);
+    });
+
+    it("replaces file path --settings with merged JSON", () => {
+      const args = ["-p", "--settings", "./settings.json", "query"];
+      const required = { apiKeyHelper: "echo $KEY" };
+      const result = buildArgsWithMergedSettings(args, required);
+
+      // File path is removed, only our settings applied
+      // (file reading would need to be handled separately)
+      expect(result).toEqual([
+        "-p",
+        "query",
+        "--settings",
+        '{"apiKeyHelper":"echo $KEY"}'
+      ]);
+    });
+
+    it("preserves other args order", () => {
+      const args = ["--model", "opus", "-p", "query", "--verbose"];
+      const required = { apiKeyHelper: "echo $KEY" };
+      const result = buildArgsWithMergedSettings(args, required);
+
+      expect(result).toEqual([
+        "--model",
+        "opus",
+        "-p",
+        "query",
+        "--verbose",
+        "--settings",
+        '{"apiKeyHelper":"echo $KEY"}'
+      ]);
+    });
+
+    it("handles complex merge with env", () => {
+      const args = [
+        "--settings",
+        '{"model":"opus","env":{"MY_VAR":"foo"}}',
+        "-p",
+        "query"
+      ];
+      const required = {
+        apiKeyHelper: "echo $POE_API_KEY",
+        env: { ANTHROPIC_BASE_URL: "https://api.poe.com" }
+      };
+      const result = buildArgsWithMergedSettings(args, required);
+
+      const parsed = JSON.parse(result[result.indexOf("--settings") + 1]);
+      expect(parsed).toEqual({
+        model: "opus",
+        env: {
+          MY_VAR: "foo",
+          ANTHROPIC_BASE_URL: "https://api.poe.com"
+        },
+        apiKeyHelper: "echo $POE_API_KEY"
+      });
+    });
+  });
+});
+
+// ── command-checks ────────────────────────────────────────────────────────────
+
+function createRunner(responses: Record<string, { stdout?: string; stderr?: string; exitCode: number }>) {
+  return vi.fn(async (command: string, args: string[]) => {
+    const key = [command, ...args].join(" ");
+    const response = responses[key];
+    if (!response) {
+      throw new Error(`Unexpected command: ${key}`);
+    }
+    return {
+      stdout: response.stdout ?? "",
+      stderr: response.stderr ?? "",
+      exitCode: response.exitCode
+    };
+  });
+}
+
+describe("createBinaryExistsCheck", () => {
+  it("passes after locating the binary", async () => {
+    const runCommand = createRunner({
+      "which demo": { stdout: "/usr/bin/demo\n", exitCode: 0 }
+    });
+
+    const check = createBinaryExistsCheck("demo", "demo-id", "demo desc");
+    await check.run({ isDryRun: false, runCommand });
+
+    expect(runCommand).toHaveBeenCalledWith("which", ["demo"]);
+  });
+
+  it("falls back through detection strategies", async () => {
+    const runCommand = createRunner({
+      "which demo": { stdout: "", exitCode: 1 },
+      "where demo": { stdout: "/usr/bin/demo\n", exitCode: 0 }
+    });
+
+    const check = createBinaryExistsCheck("demo", "demo-id", "demo desc");
+    await check.run({ isDryRun: false, runCommand });
+
+    expect(runCommand).toHaveBeenCalledWith("which", ["demo"]);
+    expect(runCommand).toHaveBeenCalledWith("where", ["demo"]);
+  });
+});
+
+describe("createSpawnHealthCheck", () => {
+  it("runs the agent via runCommand with built spawn args", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: '{"type":"text","text":"DEMO_OK"}\n',
+      stderr: "",
+      exitCode: 0
+    });
+
+    const check = createSpawnHealthCheck("claude-code", {
+      model: "test-model",
+      expectedOutput: "DEMO_OK"
+    });
+    await check.run({ isDryRun: false, runCommand });
+
+    expect(runCommand).toHaveBeenCalledWith(
+      "claude",
+      expect.arrayContaining([
+        "-p", "Output exactly: DEMO_OK",
+        "--model", "test-model"
+      ])
+    );
+  });
+
+  it("passes when expected output is found in stdout", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: '{"type":"text","text":"DEMO_OK"}\n',
+      stderr: "",
+      exitCode: 0
+    });
+
+    const check = createSpawnHealthCheck("claude-code", {
+      expectedOutput: "DEMO_OK"
+    });
+    await expect(
+      check.run({ isDryRun: false, runCommand })
+    ).resolves.toBeUndefined();
+  });
+
+  it("throws when exit code is non-zero", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: "",
+      stderr: "error",
+      exitCode: 1
+    });
+
+    const check = createSpawnHealthCheck("claude-code", {
+      expectedOutput: "DEMO_OK"
+    });
+    await expect(
+      check.run({ isDryRun: false, runCommand })
+    ).rejects.toThrow(/exit code 1/);
+  });
+
+  it("throws when expected output not found in stdout", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: '{"type":"text","text":"WRONG"}\n',
+      stderr: "",
+      exitCode: 0
+    });
+
+    const check = createSpawnHealthCheck("claude-code", {
+      expectedOutput: "DEMO_OK"
+    });
+    await expect(
+      check.run({ isDryRun: false, runCommand })
+    ).rejects.toThrow(/DEMO_OK/);
+  });
+
+  it("skips runCommand and logs dry run message when isDryRun is true", async () => {
+    const runCommand = vi.fn();
+    const logDryRun = vi.fn();
+
+    const check = createSpawnHealthCheck("claude-code", {
+      expectedOutput: "DEMO_OK"
+    });
+    await check.run({ isDryRun: true, runCommand, logDryRun });
+
+    expect(runCommand).not.toHaveBeenCalled();
+    expect(logDryRun).toHaveBeenCalledWith(
+      expect.stringContaining("DEMO_OK")
+    );
+  });
+});
+
+describe("stdoutMatchesExpected", () => {
+  it("matches plain text output", () => {
+    expect(stdoutMatchesExpected("DEMO_OK\n", "DEMO_OK")).toBe(true);
+  });
+
+  it("matches when expected text is one of many plain lines", () => {
+    expect(stdoutMatchesExpected("foo\nDEMO_OK\nbar\n", "DEMO_OK")).toBe(true);
+  });
+
+  it("rejects when no line matches", () => {
+    expect(stdoutMatchesExpected("foo\nbar\n", "DEMO_OK")).toBe(false);
+  });
+
+  it("matches JSON streaming output with result event", () => {
+    const stdout = [
+      '{"type":"system","subtype":"init","session_id":"abc"}',
+      '{"type":"assistant","message":{"content":[{"type":"text","text":"DEMO_OK"}]}}',
+      '{"type":"result","subtype":"success","result":"DEMO_OK"}'
+    ].join("\n");
+    expect(stdoutMatchesExpected(stdout, "DEMO_OK")).toBe(true);
+  });
+
+  it("rejects JSON streaming output when result does not match", () => {
+    const stdout = [
+      '{"type":"system","subtype":"init","session_id":"abc"}',
+      '{"type":"result","subtype":"success","result":"WRONG"}'
+    ].join("\n");
+    expect(stdoutMatchesExpected(stdout, "DEMO_OK")).toBe(false);
+  });
+});
+
+describe("createCommandExpectationCheck", () => {
+  it("derives a description based on the command and expected output", () => {
+    const check = createCommandExpectationCheck({
+      id: "demo-health",
+      command: "demo",
+      args: ["run", 'Output exactly: "DEMO_OK"'],
+      expectedOutput: "DEMO_OK"
+    });
+
+    expect(check.description).toBe(
+      'demo run "Output exactly: \\"DEMO_OK\\"" (expecting "DEMO_OK")'
+    );
+  });
+});
+
+// ── dry-run ───────────────────────────────────────────────────────────────────
+
+describe("dry run diff redaction", () => {
+  it("redacts api key values in JSON diffs", () => {
+    const diff = renderUnifiedDiff(
+      resolveConfigPath("/home/test"),
+      null,
+      "{\n  \"apiKey\": \"sk-test\"\n}\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("sk-test");
+    expect(output).toContain("<redacted>");
+  });
+
+  it("redacts api key helper commands in JSON diffs", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.claude/settings.json",
+      null,
+      "{\n  \"apiKeyHelper\": \"echo sk-test\"\n}\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("sk-test");
+    expect(output).toContain("echo <redacted>");
+  });
+
+  it("redacts auth keys and bearer tokens in auth diffs", () => {
+    const authDiff = renderUnifiedDiff(
+      "/home/test/.config/opencode/auth.json",
+      null,
+      "{\n  \"type\": \"api\",\n  \"key\": \"sk-test\"\n}\n"
+    );
+    const authOutput = authDiff.join("\n");
+    expect(authOutput).not.toContain("sk-test");
+    expect(authOutput).toContain("\"key\": \"<redacted>\"");
+
+    const tomlDiff = renderUnifiedDiff(
+      "/home/test/.codex/config.toml",
+      null,
+      "experimental_bearer_token = \"sk-test\"\n"
+    );
+    const tomlOutput = tomlDiff.join("\n");
+    expect(tomlOutput).not.toContain("sk-test");
+    expect(tomlOutput).toContain("<redacted>");
+  });
+});
+
+// ── execution-context ─────────────────────────────────────────────────────────
+
+describe("detectExecutionContext", () => {
+  const baseEnv: Record<string, string | undefined> = {};
+  const moduleUrl = "file:///workspace/poe-code/src/index.ts";
+
+  describe("development mode detection", () => {
+    it("detects tsx execution via .ts extension in argv", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/workspace/poe-code/src/index.ts", "mcp"],
+        env: baseEnv,
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("development");
+      expect(result.command.command).toBe("npm");
+      expect(result.command.args).toEqual(["--silent", "--prefix", "/workspace/poe-code", "run", "dev", "--"]);
+    });
+
+    it("detects npm run dev via lifecycle event", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/workspace/poe-code/dist/index.js", "mcp"],
+        env: { npm_lifecycle_event: "dev" },
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("development");
+    });
+
+    it("detects tsx loader via NODE_OPTIONS", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/workspace/poe-code/dist/index.js", "mcp"],
+        env: { NODE_OPTIONS: "--import tsx/esm" },
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("development");
+    });
+  });
+
+  describe("npx execution detection", () => {
+    it("detects basic npx execution", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/home/user/.npm/_npx/12345/node_modules/.bin/poe-code", "mcp"],
+        env: {
+          npm_command: "exec",
+          npm_execpath: "/usr/lib/node_modules/npm/bin/npx-cli.js"
+        },
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("npx");
+      expect(result.command.command).toBe("npx");
+      expect(result.command.args).toEqual(["--yes", "poe-code"]);
+    });
+
+    it("detects npx@beta execution", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/home/user/.npm/_npx/12345/node_modules/.bin/poe-code", "mcp"],
+        env: {
+          npm_command: "exec",
+          npm_execpath: "/usr/lib/node_modules/npm/bin/npx-cli.js",
+          npm_package_version: "1.0.0-beta.1"
+        },
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("npx-beta");
+      expect(result.command.args).toEqual(["--yes", "poe-code@beta"]);
+    });
+
+    it("detects npx@latest execution", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/home/user/.npm/_npx/12345/node_modules/.bin/poe-code", "mcp"],
+        env: {
+          npm_command: "exec",
+          npm_execpath: "/usr/lib/node_modules/npm/bin/npx-cli.js",
+          npm_package_json: "/home/user/.npm/_npx/poe-code@latest/package.json"
+        },
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("npx-latest");
+      expect(result.command.args).toEqual(["--yes", "poe-code@latest"]);
+    });
+  });
+
+  describe("global installation detection", () => {
+    it("uses poe when invoked as poe", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/usr/local/bin/poe"],
+        env: {},
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("global");
+      expect(result.command.command).toBe("poe");
+      expect(result.command.args).toEqual([]);
+    });
+
+    it("uses poe-code when invoked as poe-code", () => {
+      const result = detectExecutionContext({
+        argv: ["/usr/bin/node", "/usr/lib/node_modules/poe-code/dist/index.js", "mcp"],
+        env: {},
+        moduleUrl
+      });
+
+      expect(result.mode).toBe("global");
+      expect(result.command.command).toBe("poe-code");
+      expect(result.command.args).toEqual([]);
+    });
+  });
+});
+
+describe("toMcpServerCommand", () => {
+  it("appends subcommand to args", () => {
+    const result = toMcpServerCommand(
+      { command: "npx", args: ["--yes", "poe-code"] },
+      "mcp"
+    );
+
+    expect(result).toEqual({
+      command: "npx",
+      args: ["--yes", "poe-code", "mcp"]
+    });
+  });
+
+  it("works with global command", () => {
+    const result = toMcpServerCommand(
+      { command: "poe", args: [] },
+      "mcp"
+    );
+
+    expect(result).toEqual({
+      command: "poe",
+      args: ["mcp"]
+    });
+  });
+});
+
+describe("toOpenCodeMcpCommand", () => {
+  it("returns command as array for opencode format", () => {
+    const result = toOpenCodeMcpCommand(
+      { command: "npx", args: ["-y", "poe-code"] },
+      "mcp"
+    );
+
+    expect(result).toEqual(["npx", "-y", "poe-code", "mcp"]);
+  });
+
+  it("works with npm run dev for development", () => {
+    const result = toOpenCodeMcpCommand(
+      { command: "npm", args: ["--silent", "--prefix", "/workspace/poe-code", "run", "dev", "--"] },
+      "mcp"
+    );
+
+    expect(result).toEqual(["npm", "--silent", "--prefix", "/workspace/poe-code", "run", "dev", "--", "mcp"]);
+  });
+});
+
+describe("formatCliHelpCommand", () => {
+  it("formats global help command as poe invocation", () => {
+    const help = formatCliHelpCommand(
+      { mode: "global", command: { command: "poe", args: [] } },
+      ["--help"]
+    );
+    expect(help).toBe("poe --help");
+  });
+
+  it("formats npx help command with package spec", () => {
+    const help = formatCliHelpCommand(
+      { mode: "npx-beta", command: { command: "npx", args: ["--yes", "poe-code@beta"] } },
+      ["mcp", "--help"]
+    );
+    expect(help).toBe("npx poe-code@beta mcp --help");
+  });
+
+  it("formats development help command as npm run dev", () => {
+    const help = formatCliHelpCommand(
+      { mode: "development", command: { command: "npm", args: [] } },
+      ["--help"]
+    );
+    expect(help).toBe("npm run dev -- --help");
+  });
+});
+
+describe("formatCliUsageCommand", () => {
+  it("formats global usage as poe", () => {
+    expect(
+      formatCliUsageCommand({ mode: "global", command: { command: "poe", args: [] } })
+    ).toBe("poe");
+  });
+
+  it("formats global usage as poe-code when invoked as poe-code", () => {
+    expect(
+      formatCliUsageCommand({ mode: "global", command: { command: "poe-code", args: [] } })
+    ).toBe("poe-code");
+  });
+
+  it("formats development usage as npm run dev", () => {
+    expect(
+      formatCliUsageCommand({ mode: "development", command: { command: "npm", args: [] } })
+    ).toBe("npm run dev --");
+  });
+
+  it("formats npx-beta usage with channel", () => {
+    expect(
+      formatCliUsageCommand({
+        mode: "npx-beta",
+        command: { command: "npx", args: ["--yes", "poe-code@beta"] }
+      })
+    ).toBe("npx poe-code@beta");
+  });
+});

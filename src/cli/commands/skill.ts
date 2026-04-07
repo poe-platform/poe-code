@@ -48,7 +48,7 @@ export function registerSkillCommand(
     .command("configure")
     .description("Install skill directories for an agent.")
     .argument("[agent]", `Agent to configure skills for (${supportedAgents.join(" | ")})`)
-    .option("--agent <name>", "Agent to configure skills for")
+    .option("-y, --yes", "Accept defaults, skip prompts")
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")
     .action(async (agentArg, options) => {
@@ -60,7 +60,7 @@ export function registerSkillCommand(
         return;
       }
 
-      let agent: string | undefined = options.agent ?? agentArg;
+      let agent: string | undefined = agentArg;
       if (!agent) {
         if (flags.assumeYes) {
           agent = DEFAULT_SKILL_AGENT;
@@ -152,7 +152,6 @@ export function registerSkillCommand(
     .command("unconfigure")
     .description("Remove skill directories for an agent.")
     .argument("[agent]", `Agent to unconfigure skills for (${supportedAgents.join(" | ")})`)
-    .option("--agent <name>", "Agent to unconfigure skills for")
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")
     .option("--force", "Remove directory even if it contains files")
@@ -165,7 +164,7 @@ export function registerSkillCommand(
         return;
       }
 
-      let agent: string | undefined = options.agent ?? agentArg;
+      let agent: string | undefined = agentArg;
       if (!agent) {
         const selected = await select({
           message: "Select agent to unconfigure:",

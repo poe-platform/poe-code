@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { Option } from "commander";
 import type { CliContainer } from "../container.js";
 import {
   renderAcpEvent,
@@ -65,7 +66,7 @@ export function registerSpawnCommand(
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
     .option("--mcp-servers <json>", "MCP server config JSON: {name: {command, args?, env?}}")
-    .option("--mcp-config <json>", "[deprecated: use --mcp-servers]")
+    .addOption(new Option("--mcp-config <json>", "[deprecated: use --mcp-servers]").hideHelp())
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
     .option(
       "--activity-timeout-ms <ms>",

@@ -198,7 +198,6 @@ describe("skill configure command", () => {
       "cli",
       "skill",
       "configure",
-      "--agent",
       "invalid-provider"
     ]);
 
@@ -224,7 +223,6 @@ describe("skill configure command", () => {
       "cli",
       "skill",
       "configure",
-      "--agent",
       "claude-code",
       "--global"
     ]);

@@ -449,7 +449,7 @@ describe("mcp command", () => {
       // Commander exits on --help.
     }
 
-    expect(helpOutput).toContain("Usage: poe-code mcp configure [options] [agent]");
+    expect(helpOutput).toContain("poe-code mcp configure [options] [agent]");
     expect(helpOutput).toContain("Arguments:");
     expect(helpOutput).toContain("agent");
     expect(helpOutput).toContain("Agent to configure");
@@ -462,7 +462,7 @@ describe("mcp command", () => {
       // Commander exits on --help.
     }
 
-    expect(helpOutput).toContain("Usage: poe-code mcp unconfigure [options] <agent>");
+    expect(helpOutput).toContain("poe-code mcp unconfigure [options] <agent>");
     expect(helpOutput).toContain("Arguments:");
     expect(helpOutput).toContain("Agent to unconfigure");
   });

@@ -35,6 +35,7 @@ export function registerConfigureCommand(program: Command, container: CliContain
     .alias("c")
     .description("Configure developer tooling for Poe API.")
     .argument("[agent]", serviceDescription)
+    .option("-y, --yes", "Accept defaults, skip prompts")
     .option("--api-key <key>", "Poe API key")
     .option("--model <model>", "Model identifier")
     .option("--reasoning-effort <level>", "Reasoning effort level")

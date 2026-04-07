@@ -22,20 +22,11 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
-- [x] audit nested command help screens and fix missing argument descriptions
-  - [x] `mcp configure` / `mcp unconfigure`
-    - Switched from inline commander signatures to explicit `.argument(...)` metadata
-    - Added supported agent lists to the help text so the positional argument is self-describing
-  - [x] `skill configure` / `skill unconfigure`
-    - Switched from inline commander signatures to explicit `.argument(...)` metadata
-    - Added supported agent lists to the positional help so it no longer relies on the fallback `--agent` option copy
-  - [x] `launch start` / `stop` / `restart` / `logs` / `rm`
-    - Switched from inline commander signatures to explicit `.argument(...)` metadata
-    - Clarified `launch start` so the help screen explains the command passed after `--`
-- [x] re-run targeted command help validation
-  - [x] unit tests: `root-command`, `mcp-command`, `skill-command`, `launch-command`
-  - [x] typecheck: `npm run lint:types`
-  - [x] screenshots: `mcp configure`, `skill configure`, `launch start`, `launch stop`
+- [x] skill configure/unconfigure: removed redundant `--agent` option (duplicated positional `[agent]` arg)
+  - Added `-y, --yes` to `skill configure` for consistency (logic already used `flags.assumeYes`)
+- [x] spawn: hid deprecated `--mcp-config` from help output using Commander `.hideHelp()`
+- [x] configure: added `-y, --yes` to help (matches `mcp configure` pattern, CLAUDE.md documents `configure --yes`)
+- [x] mcp-command.test.ts: fixed ANSI-aware usage string assertion (`Usage:` has bold codes)
 
 ## Constraints
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, expect, vi, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { Command } from "commander";
+import { Command, CommanderError } from "commander";
 import { createProgram } from "../program.js";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer } from "../container.js";
@@ -493,21 +493,12 @@ describe("root command", () => {
     return result;
   }
 
-  const originalArgv = [...process.argv];
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    process.argv = [...originalArgv];
-    runCliState.argvSnapshots = [];
-  });
-
-  it("shows help when invoked without arguments", async () => {
-    process.argv = ["node", "/usr/local/bin/poe-code"];
+  async function renderHelp(argv: string[], binPath = "/usr/local/bin/poe-code"): Promise<string> {
+    process.argv = ["node", binPath, ...argv];
 
     const fs = createMemFs();
     const prompts = vi.fn().mockResolvedValue({});
 
-    let helpOutput = "";
     const program = createProgram({
       fs,
       prompts,
@@ -519,15 +510,37 @@ describe("root command", () => {
       logger: () => {}
     });
 
-    program.configureOutput({
-      writeOut: (str) => {
-        helpOutput += str;
+    const chunks: string[] = [];
+    const stdoutSpy = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(((chunk: unknown) => {
+        chunks.push(String(chunk));
+        return true;
+      }) as unknown as typeof process.stdout.write);
+
+    try {
+      await program.parseAsync(["node", "cli", ...argv]);
+    } catch (error) {
+      if (!(error instanceof CommanderError) || error.code !== "commander.helpDisplayed") {
+        stdoutSpy.mockRestore();
+        throw error;
       }
-    });
+    }
 
-    await program.parseAsync(["node", "cli"]);
+    stdoutSpy.mockRestore();
+    return stripAnsi(chunks.join(""));
+  }
 
-    const plainOutput = stripAnsi(helpOutput);
+  const originalArgv = [...process.argv];
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    process.argv = [...originalArgv];
+    runCliState.argvSnapshots = [];
+  });
+
+  it("shows help when invoked without arguments", async () => {
+    const plainOutput = await renderHelp([]);
     expect(plainOutput).toContain("Poe - poe-code");
     expect(plainOutput).toContain("Configure coding agents to use the Poe API");
     expect(plainOutput).toContain("Usage:");
@@ -542,6 +555,7 @@ describe("root command", () => {
     expect(plainOutput).toContain("models, m");
     expect(plainOutput).toContain("usage, u");
     expect(plainOutput).toContain("generate, g");
+    expect(plainOutput).toContain("test");
     expect(plainOutput).toContain("Configure developer tooling for Poe API");
     expect(plainOutput).toContain("Install agent binary for a configured agent");
     expect(plainOutput).toContain("mcp configure");
@@ -569,11 +583,32 @@ describe("root command", () => {
     expect(plainOutput).not.toContain("poe-code configure claude-code");
     expect(plainOutput).not.toContain('poe-code spawn codex "Say hello"');
     expect(plainOutput).toContain("Run poe-code <command> --help for command options.");
-    expect(plainOutput).not.toContain("test");
     expect(plainOutput).not.toContain("Options:");
     expect(plainOutput).not.toContain("[service]");
     expect(plainOutput).not.toContain("<service>");
     expect(plainOutput).not.toContain("unconfigure<agent>");
+  });
+
+  it("omits the raw [command] placeholder from parent command help usage", async () => {
+    const generateHelp = await renderHelp(["generate", "--help"]);
+    expect(generateHelp).toContain("Usage: poe-code generate [options] [prompt]");
+    expect(generateHelp).not.toContain("[command]");
+
+    const usageHelp = await renderHelp(["usage", "--help"]);
+    expect(usageHelp).toContain("Usage: poe-code usage [options]");
+    expect(usageHelp).not.toContain("[command]");
+
+    const launchHelp = await renderHelp(["launch", "--help"]);
+    expect(launchHelp).toContain("Usage: poe-code launch [options]");
+    expect(launchHelp).not.toContain("[command]");
+
+    const utilsConfigHelp = await renderHelp(["utils", "config", "--help"]);
+    expect(utilsConfigHelp).toContain("Usage: poe-code utils config [options]");
+    expect(utilsConfigHelp).not.toContain("[command]");
+
+    const experimentJournalHelp = await renderHelp(["experiment", "journal", "--help"]);
+    expect(experimentJournalHelp).toContain("Usage: poe-code experiment journal [options] [doc]");
+    expect(experimentJournalHelp).not.toContain("[command]");
   });
 
   it("registers a --verbose flag", () => {
@@ -671,32 +706,7 @@ describe("root command", () => {
   });
 
   it("shows a short heading when invoked as poe", async () => {
-    process.argv = ["node", "/usr/local/bin/poe"];
-
-    const fs = createMemFs();
-    const prompts = vi.fn().mockResolvedValue({});
-
-    let helpOutput = "";
-    const program = createProgram({
-      fs,
-      prompts,
-      env: {
-        cwd: "/repo",
-        homeDir: "/home/test",
-        variables: {}
-      },
-      logger: () => {}
-    });
-
-    program.configureOutput({
-      writeOut: (str) => {
-        helpOutput += str;
-      }
-    });
-
-    await program.parseAsync(["node", "cli"]);
-
-    const plainOutput = stripAnsi(helpOutput);
+    const plainOutput = await renderHelp([], "/usr/local/bin/poe");
     expect(plainOutput).toContain("Poe\n");
     expect(plainOutput).not.toContain("Poe - poe-code");
   });

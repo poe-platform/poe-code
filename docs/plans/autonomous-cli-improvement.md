@@ -5,7 +5,7 @@ agent:
 iterations: 50
 status:
   state: in_progress
-  iteration: 9
+  iteration: 10
 ---
 
 Run autonomously, improve the design of cli commands, start with spawn and expand. And then also double-check other commands. Systematically test and improve all commands.
@@ -22,15 +22,18 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
-- [x] full audit of all CLI commands (configure, spawn, install, unconfigure, login, logout, auth, agent, wrap, generate, models, mcp, skill, pipeline, ralph, experiment, launch, usage, utils config)
-  - [x] `usage balance` was redundant subcommand (same as `usage` default) but showed in `usage --help`
-    - Hidden with `{ hidden: true }` in `src/cli/commands/usage.ts`
-  - [x] `generate` subcommand descriptions included default model names causing wrapping
-    - Simplified to `Generate text content.` etc. in `src/cli/commands/generate.ts`
-  - [x] fixed 7 pre-existing failing tests in 3 test files
-    - `cli-utilities.test.ts`: updated isolated provider list to include claude and kimi-cli
-    - `misc-commands.test.ts`: updated stale description assertions for configure and skill
-    - `skill-commands.test.ts`: updated skill unconfigure tests to use positional agent arg (not --agent flag)
+- [x] sweep root and parent command help screens (`--help`, `generate`, `usage`, `launch`, `utils config`, `experiment journal`, `test`)
+  - [x] root help was missing `test`
+    - Added `test` to `ROOT_HELP_COMMAND_SPECS` in `src/cli/program.ts`
+    - Added regression coverage in `src/cli/commands/misc-commands.test.ts`
+  - [x] parent command help leaked Commander’s raw `[command]` placeholder
+    - Centralized usage token filtering in `src/cli/program.ts`
+    - Parent help usage now omits `[command]` while still listing subcommands below
+  - [x] screenshot pass for representative help screens
+    - Captured `screenshots/help.png`, `screenshots/spawn-help.png`, `screenshots/generate-help.png`, `screenshots/usage-help.png`, `screenshots/launch-help.png`, `screenshots/test-help.png`
+  - [x] full verification
+    - `npm run test:unit`
+    - `npm run lint:types`
 
 ## Constraints
 

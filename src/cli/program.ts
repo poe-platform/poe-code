@@ -65,6 +65,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["agent"] },
   { path: ["spawn"] },
   { path: ["wrap"] },
+  { path: ["test"] },
   { path: ["generate"] },
   { path: ["models"] },
   { path: ["mcp", "configure"] },
@@ -106,22 +107,21 @@ function formatRootHelpCommandName(path: readonly string[], command: Command): s
   return path.length > 1 ? [...path.slice(0, -1), leaf].join(" ") : leaf;
 }
 
-function formatRootHelpCommandArgs(command: Command): string {
-  const parts = command
-    .usage()
+function splitUsageParts(usage: string): string[] {
+  return usage
     .split(" ")
     .map((part) => part.trim())
     .filter((part) => part.length > 0);
-  const filtered: string[] = [];
+}
 
-  for (const part of parts) {
-    if (part === "[options]" || part === "[command]") {
-      continue;
-    }
-    filtered.push(part);
-  }
+function formatUsage(usage: string, excludedParts: readonly string[]): string {
+  return splitUsageParts(usage)
+    .filter((part) => !excludedParts.includes(part))
+    .join(" ");
+}
 
-  return filtered.join(" ");
+function formatRootHelpCommandArgs(command: Command): string {
+  return formatUsage(command.usage(), ["[options]", "[command]"]);
 }
 
 function buildRootHelpRows(root: Command): Array<{
@@ -158,7 +158,7 @@ function formatCanonicalCommandPath(cmd: Command): string {
 }
 
 function formatCanonicalCommandUsage(cmd: Command): string {
-  const usage = cmd.usage().trim();
+  const usage = formatUsage(cmd.usage(), ["[command]"]);
   const commandPath = formatCanonicalCommandPath(cmd);
   return usage.length > 0 ? `${commandPath} ${usage}` : commandPath;
 }

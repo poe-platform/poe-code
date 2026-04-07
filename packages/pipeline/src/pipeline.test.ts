@@ -151,7 +151,7 @@ describe("loadResolvedSteps", () => {
     });
   });
 
-  it("lets project steps override global steps by name", async () => {
+  it("replaces a global step entirely when the project defines the same step", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
       homeDir: "/home/test",
@@ -161,6 +161,8 @@ describe("loadResolvedSteps", () => {
           "  implement:",
           "    mode: read",
           "    prompt: Global instruction",
+          "    agent: codex",
+          "    model: o3",
           "  test:",
           "    prompt: Run tests",
           ""
@@ -180,6 +182,90 @@ describe("loadResolvedSteps", () => {
       implement: {
         mode: "yolo",
         prompt: "Project instruction"
+      },
+      test: {
+        mode: "yolo",
+        prompt: "Run tests"
+      },
+      commit: {
+        mode: "yolo",
+        prompt: "Commit changes"
+      }
+    });
+  });
+
+  it("keeps global steps and adds project-only steps", async () => {
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/steps.yaml": [
+          "steps:",
+          "  implement:",
+          "    prompt: Global instruction",
+          "  test:",
+          "    prompt: Run tests",
+          ""
+        ].join("\n"),
+        "/repo/.poe-code/pipeline/steps.yaml": [
+          "steps:",
+          "  commit:",
+          "    prompt: Commit changes",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(config.steps).toEqual({
+      implement: {
+        mode: "yolo",
+        prompt: "Global instruction"
+      },
+      test: {
+        mode: "yolo",
+        prompt: "Run tests"
+      },
+      commit: {
+        mode: "yolo",
+        prompt: "Commit changes"
+      }
+    });
+  });
+
+  it("deep merges steps with the global config when the project opts into extends", async () => {
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/steps.yaml": [
+          "steps:",
+          "  implement:",
+          "    mode: read",
+          "    prompt: Global instruction",
+          "    agent: codex",
+          "    model: o3",
+          "  test:",
+          "    prompt: Run tests",
+          ""
+        ].join("\n"),
+        "/repo/.poe-code/pipeline/steps.yaml": [
+          "extends: true",
+          "steps:",
+          "  implement:",
+          "    prompt: Project instruction",
+          "  commit:",
+          "    prompt: Commit changes",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(config.steps).toEqual({
+      implement: {
+        mode: "read",
+        prompt: "Project instruction",
+        agent: "codex",
+        model: "o3"
       },
       test: {
         mode: "yolo",
@@ -314,14 +400,17 @@ describe("loadResolvedSteps", () => {
     expect(config.steps).toEqual({ commit: { mode: "yolo", prompt: "Commit changes" } });
   });
 
-  it("project setup/teardown overrides global setup/teardown", async () => {
+  it("project setup overrides global setup entirely while keeping inherited teardown", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
         "/home/test/.poe-code/pipeline/steps.yaml": [
           "setup:",
+          "  mode: read",
           "  prompt: Global setup",
+          "  agent: codex",
+          "  model: o3",
           "teardown:",
           "  prompt: Global teardown",
           ""

@@ -403,7 +403,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integrate-pipeline-steps
     title: Integrate config-extends into pipeline steps.yaml
@@ -437,8 +437,8 @@ tasks:
       - Project defines setup → overrides global setup
       - No project steps → global used (backward compatible)
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integrate-config

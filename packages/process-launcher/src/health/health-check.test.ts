@@ -144,10 +144,10 @@ describe("waitForReady", () => {
     await closeServer(server);
   });
 
-  it("tcp resolves false on timeout when port is not open", async () => {
-    const port = await getAvailablePort();
-
-    await expect(waitForReady({ kind: "tcp", port, timeoutMs: 50 }, {})).resolves.toBe(false);
+  it("tcp resolves false on timeout when the target is unreachable", async () => {
+    await expect(
+      waitForReady({ kind: "tcp", host: "192.0.2.1", port: 42_424, timeoutMs: 50 }, {})
+    ).resolves.toBe(false);
   });
 
   it("tcp resolves false when signal aborted", async () => {

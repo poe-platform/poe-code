@@ -1,6 +1,6 @@
 import path from "node:path";
 import { resolve } from "@poe-code/config-extends";
-import { parse } from "yaml";
+import { parse, stringify } from "yaml";
 import type {
   PipelineConfig,
   PipelineFileSystem,
@@ -30,11 +30,22 @@ function parseYamlDocument(filePath: string, content: string): unknown {
   }
 }
 
-function parseStepConfigDocument(
+function parseStepConfigSource(
   filePath: string,
   content: string
-): ResolvedStepsConfig {
+): { config: ResolvedStepsConfig; extendsBase: boolean } {
   const document = parseYamlDocument(filePath, content);
+
+  return {
+    config: parseStepConfigData(filePath, document),
+    extendsBase: isRecord(document) && document.extends === true
+  };
+}
+
+function parseStepConfigData(
+  filePath: string,
+  document: unknown
+): ResolvedStepsConfig {
   if (document === null || document === undefined) {
     return { steps: {} };
   }
@@ -80,6 +91,84 @@ function parseStepConfigDocument(
   return result;
 }
 
+function encodeShallowStepsConfig(config: ResolvedStepsConfig): Record<string, unknown> {
+  const data: Record<string, unknown> = {};
+
+  if (Object.keys(config.steps).length > 0) {
+    data.steps = Object.fromEntries(
+      Object.entries(config.steps).map(([stepName, definition]) => [
+        stepName,
+        JSON.stringify(definition)
+      ])
+    );
+  }
+
+  if (config.setup !== undefined) {
+    data.setup = JSON.stringify(config.setup);
+  }
+
+  if (config.teardown !== undefined) {
+    data.teardown = JSON.stringify(config.teardown);
+  }
+
+  return data;
+}
+
+function decodeShallowStepsConfig(
+  filePath: string,
+  document: Record<string, unknown>
+): Record<string, unknown> {
+  const decoded: Record<string, unknown> = {};
+
+  if (document.steps !== undefined) {
+    if (!isRecord(document.steps)) {
+      throw new Error(`Invalid pipeline step config in "${filePath}": "steps" must be an object.`);
+    }
+
+    decoded.steps = Object.fromEntries(
+      Object.entries(document.steps).map(([stepName, definition]) => [
+        stepName,
+        decodeEncodedDefinition(filePath, definition, `step "${stepName}"`)
+      ])
+    );
+  }
+
+  if (document.setup !== undefined) {
+    decoded.setup = decodeEncodedDefinition(filePath, document.setup, "setup");
+  }
+
+  if (document.teardown !== undefined) {
+    decoded.teardown = decodeEncodedDefinition(filePath, document.teardown, "teardown");
+  }
+
+  return decoded;
+}
+
+function decodeEncodedDefinition(
+  filePath: string,
+  value: unknown,
+  context: string
+): Record<string, unknown> {
+  if (typeof value !== "string") {
+    throw new Error(`Invalid ${context} in "${filePath}": expected an object.`);
+  }
+
+  let decoded: unknown;
+
+  try {
+    decoded = JSON.parse(value);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid ${context} in "${filePath}": ${message}`);
+  }
+
+  if (!isRecord(decoded)) {
+    throw new Error(`Invalid ${context} in "${filePath}": expected an object.`);
+  }
+
+  return decoded;
+}
+
 function parseConfigDocument(filePath: string, content: string): PipelineConfig {
   return parseConfigData(filePath, parseYamlDocument(filePath, content));
 }
@@ -107,17 +196,6 @@ function parseConfigData(filePath: string, document: unknown): PipelineConfig {
   }
 
   return config;
-}
-
-async function loadStepsFile(
-  fs: Pick<PipelineFileSystem, "readFile">,
-  filePath: string
-): Promise<ResolvedStepsConfig> {
-  const content = await readOptionalFile(fs, filePath);
-  if (content == null) {
-    return { steps: {} };
-  }
-  return parseStepConfigDocument(filePath, content);
 }
 
 export async function loadPipelineConfig(options: {
@@ -166,16 +244,52 @@ export async function loadResolvedSteps(options: {
   homeDir: string;
   fs: Pick<PipelineFileSystem, "readFile">;
 }): Promise<ResolvedStepsConfig> {
-  const globalPath = path.join(options.homeDir, ".poe-code", "pipeline", "steps.yaml");
+  const globalDir = path.join(options.homeDir, ".poe-code", "pipeline");
+  const globalPath = path.join(globalDir, "steps.yaml");
   const projectPath = path.join(options.cwd, ".poe-code", "pipeline", "steps.yaml");
-  const [globalConfig, projectConfig] = await Promise.all([
-    loadStepsFile(options.fs, globalPath),
-    loadStepsFile(options.fs, projectPath)
+  const [globalContent, projectContent] = await Promise.all([
+    readOptionalFile(options.fs, globalPath),
+    readOptionalFile(options.fs, projectPath)
   ]);
+  const globalSource =
+    globalContent == null ? undefined : parseStepConfigSource(globalPath, globalContent);
 
-  return {
-    steps: { ...globalConfig.steps, ...projectConfig.steps },
-    ...(projectConfig.setup ?? globalConfig.setup ? { setup: projectConfig.setup ?? globalConfig.setup } : {}),
-    ...(projectConfig.teardown ?? globalConfig.teardown ? { teardown: projectConfig.teardown ?? globalConfig.teardown } : {})
-  };
+  if (projectContent == null) {
+    return globalSource?.config ?? { steps: {} };
+  }
+
+  const projectSource = parseStepConfigSource(projectPath, projectContent);
+
+  if (projectSource.extendsBase) {
+    const resolved = await resolve(
+      [
+        { source: "document", filePath: projectPath, content: projectContent },
+        { source: "base", path: globalDir }
+      ],
+      { fs: options.fs }
+    );
+
+    return parseStepConfigData(projectPath, resolved.data);
+  }
+
+  if (globalSource == null) {
+    return projectSource.config;
+  }
+
+  const resolved = await resolve(
+    [
+      {
+        source: "document",
+        filePath: projectPath,
+        content: stringify(encodeShallowStepsConfig(projectSource.config))
+      },
+      {
+        source: "global",
+        data: encodeShallowStepsConfig(globalSource.config)
+      }
+    ],
+    { fs: options.fs }
+  );
+
+  return parseStepConfigData(projectPath, decodeShallowStepsConfig(projectPath, resolved.data));
 }

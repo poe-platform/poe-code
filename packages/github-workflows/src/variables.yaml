@@ -1,0 +1,21 @@
+# Preview rendered prompt: poe-code github-workflows prompt-preview <name>
+
+response_style: |
+  - Start with a direct answer or decision.
+  - Keep it concise.
+  - Use short Markdown sections only when they improve clarity.
+
+verify_before_responding: |
+  Before answering:
+  - Inspect the checked-out repository.
+  - Verify every claim against the repo before you post it.
+
+skill_github_cli: |
+  Use the `gh` CLI for all GitHub operations (issues, PRs, reviews, checks).
+  Prefer `gh api` for data queries and `gh pr`/`gh issue` for mutations.
+
+pull_request_guidelines: |
+  - PR title: short, imperative, under 70 chars.
+  - One logical change per PR.
+  - Include a test plan in the PR body.
+  - Request review from CODEOWNERS.

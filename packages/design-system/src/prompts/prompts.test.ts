@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { withSpinner } from "./index.js";
 import { resetOutputFormatCache, resolveOutputFormat } from "../internal/output-format.js";
 import { spinner as primitiveSpinner } from "./primitives/spinner.js";
@@ -7,7 +7,21 @@ vi.mock("./primitives/spinner.js", () => ({
   spinner: vi.fn()
 }));
 
+vi.mock("@clack/prompts", () => ({
+  confirm: vi.fn(),
+  select: vi.fn(),
+  text: vi.fn(),
+  password: vi.fn()
+}));
+
+vi.mock("./primitives/cancel.js", () => ({
+  cancel: vi.fn(),
+  isCancel: vi.fn()
+}));
+
 const spinnerFactory = vi.mocked(primitiveSpinner);
+
+// === with-spinner.test.ts ===
 
 describe("withSpinner", () => {
   let stdoutSpy: ReturnType<typeof vi.spyOn>;
@@ -223,5 +237,61 @@ describe("withSpinner", () => {
 
     expect(result).toBe("value");
     expect(stdoutSpy).not.toHaveBeenCalled();
+  });
+});
+
+// === index.test.ts ===
+
+describe("confirmOrCancel", () => {
+  let clackConfirm: Mock;
+  let primitiveCancel: Mock;
+  let primitiveIsCancel: Mock;
+  let confirmOrCancel: typeof import("./index.js").confirmOrCancel;
+  let PromptCancelledError: typeof import("./index.js").PromptCancelledError;
+  let stdoutSpy2: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const clack = await import("@clack/prompts");
+    const cancelPrimitive = await import("./primitives/cancel.js");
+    ({ confirmOrCancel, PromptCancelledError } = await import("./index.js"));
+    clackConfirm = vi.mocked(clack.confirm);
+    primitiveCancel = vi.mocked(cancelPrimitive.cancel);
+    primitiveIsCancel = vi.mocked(cancelPrimitive.isCancel);
+    vi.clearAllMocks();
+    primitiveIsCancel.mockReturnValue(false);
+    stdoutSpy2 = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    stdoutSpy2.mockRestore();
+  });
+
+  it("returns true when user confirms", async () => {
+    clackConfirm.mockResolvedValueOnce(true as any);
+
+    await expect(
+      confirmOrCancel({ message: "Proceed?" })
+    ).resolves.toBe(true);
+  });
+
+  it("returns false when user declines", async () => {
+    clackConfirm.mockResolvedValueOnce(false as any);
+
+    await expect(
+      confirmOrCancel({ message: "Proceed?" })
+    ).resolves.toBe(false);
+  });
+
+  it("throws PromptCancelledError when user cancels", async () => {
+    const cancelled = Symbol("cancelled");
+    clackConfirm.mockResolvedValueOnce(cancelled as any);
+    primitiveIsCancel.mockReturnValue(true);
+
+    await expect(
+      confirmOrCancel({ message: "Proceed?" })
+    ).rejects.toBeInstanceOf(PromptCancelledError);
+    expect(primitiveCancel).toHaveBeenCalledWith("Operation cancelled.");
+    expect(stdoutSpy2).not.toHaveBeenCalled();
   });
 });

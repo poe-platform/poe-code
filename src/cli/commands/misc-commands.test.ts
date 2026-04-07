@@ -542,7 +542,7 @@ describe("root command", () => {
     expect(plainOutput).toContain("models, m");
     expect(plainOutput).toContain("usage, u");
     expect(plainOutput).toContain("generate, g");
-    expect(plainOutput).toContain("Configure a coding agent");
+    expect(plainOutput).toContain("Configure developer tooling for Poe API");
     expect(plainOutput).toContain("Install agent binary for a configured agent");
     expect(plainOutput).toContain("mcp configure");
     expect(plainOutput).toContain("mcp unconfigure");
@@ -565,7 +565,7 @@ describe("root command", () => {
     expect(plainOutput).toContain("<agent>");
     expect(plainOutput).toContain("skill configure");
     expect(plainOutput).toContain("skill unconfigure");
-    expect(plainOutput).toContain("Configure agent skills");
+    expect(plainOutput).toContain("Install skill directories for an agent");
     expect(plainOutput).not.toContain("poe-code configure claude-code");
     expect(plainOutput).not.toContain('poe-code spawn codex "Say hello"');
     expect(plainOutput).toContain("Run poe-code <command> --help for command options.");

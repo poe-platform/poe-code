@@ -64,7 +64,6 @@ describe("skill unconfigure command", () => {
       "cli",
       "skill",
       "unconfigure",
-      "--agent",
       "unknown"
     ]);
 
@@ -93,7 +92,6 @@ describe("skill unconfigure command", () => {
       "cli",
       "skill",
       "unconfigure",
-      "--agent",
       "claude-code",
       "--global"
     ]);
@@ -128,7 +126,6 @@ describe("skill unconfigure command", () => {
       "cli",
       "skill",
       "unconfigure",
-      "--agent",
       "claude-code",
       "--global",
       "--force"

@@ -264,8 +264,10 @@ describe("listIsolatedServiceIds", () => {
 
     expect(listIsolatedServiceIds(container)).toEqual([
       "claude-code",
+      "claude",
       "codex",
       "kimi",
+      "kimi-cli",
       "opencode"
     ]);
   });
@@ -292,8 +294,10 @@ describe("listIsolatedServiceIds", () => {
 
     expect(listIsolatedServiceIds(container)).toEqual([
       "claude-code",
+      "claude",
       "codex",
       "kimi",
+      "kimi-cli",
       "opencode",
       "custom-isolated"
     ]);

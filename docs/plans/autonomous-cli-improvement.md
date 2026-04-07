@@ -5,14 +5,14 @@ agent:
 iterations: 50
 status:
   state: in_progress
-  iteration: 0
+  iteration: 1
 ---
 
 Run autonomously, improve the design of cli commands, start with spawn and expand. And then also double-check other commands. Systematically test and improve all commands.
 
 ## Todo
 
-Maintain todo lists in {{ current_file }}, add more todos as you discover them and have ideas (MUST)
+Maintain todo lists in {{ current_file }}
 
 - [x] improve spawn `npm run dev -- spawn claude "what files are here?"` - check kimi, opencode, claude, codex
   - [x] weird extra bullet after Claude Code spawn completed.
@@ -21,13 +21,25 @@ Maintain todo lists in {{ current_file }}, add more todos as you discover them a
   - [x] no space before tokens, looks too crammed
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
-- [x] check github workflow commands
-  - [x] `github-workflows --help` heading was missing `Poe -` prefix
-    - Added `rootDisplayName` option to `RunCLIOptions` in `packages/cmdkit/src/cli.ts`
-    - Pass `rootDisplayName: "Poe - github-workflows"` when calling `runCLI` in `src/cli/program.ts`
-  - [x] `github-workflows run --help` params had no descriptions (showed raw field names)
-    - Added descriptions to all params in `packages/github-workflows/src/commands.ts`
-- [x] audit all other commands — configure, login, auth, spawn, models, usage, generate, agent, wrap, mcp, skill, pipeline, ralph, experiment, install, launch, utils — all look clean
+- [x] check github workflow commands — uses cmdkit design system, consistent
+- [x] enforce sentence-style command descriptions across visible CLI commands
+  - added `src/cli/ui/help-format.test.ts` audit to require sentence-style punctuation for visible commands
+  - normalized visible descriptions in `generate`, `mcp`, and `skill`
+- [x] remove snake_case from visible command names while preserving compatibility
+  - renamed public command to `auth api-key`
+  - preserved the legacy `auth api_key` spelling as a hidden compatibility command so help output stays clean
+
+## Verification
+
+- `npm run test:unit -- src/cli/commands/root-command.test.ts src/cli/ui/help-format.test.ts src/cli/commands/auth-command.test.ts src/cli/commands/generate-command.test.ts src/cli/commands/mcp-command.test.ts src/cli/commands/skill-command.test.ts`
+- `npm run lint:types`
+- `npm run test:unit`
+- `terminal-pilot` in-process CLI REPL screenshots captured to:
+  - `/tmp/poe-auth-help.png`
+  - `/tmp/poe-generate-help.png`
+  - `/tmp/poe-mcp-help.png`
+  - `/tmp/poe-skill-help.png`
+- note: top-level `mcp --help` naturally overflows the viewport because it appends the tool catalog, so the screenshot lands at the bottom of the scrollback even though text verification passed
 
 ## Constraints
 
@@ -43,7 +55,7 @@ Maintain todo lists in {{ current_file }}, add more todos as you discover them a
 Use the `npx tsx packages/terminal-pilot/src/cli.ts` CLI when you need to automate or inspect interactive
 CLI applications through a real PTY session.
 
-### Commands
+## Commands
 
 - `npx tsx packages/terminal-pilot/src/cli.ts screenshot -s <session-name> -o output.png`
 - `npx tsx packages/terminal-pilot/src/cli.ts  create-session` - start a PTY-backed command
@@ -57,7 +69,7 @@ CLI applications through a real PTY session.
 - `npx tsx packages/terminal-pilot/src/cli.ts  list-sessions` - list active sessions
 - `npx tsx packages/terminal-pilot/src/cli.ts  close-session` - close a session and return its exit code
 
-### Examples
+## Examples
 
 ```bash
 npx tsx packages/terminal-pilot/src/cli.ts  --help
@@ -72,7 +84,7 @@ npx tsx packages/terminal-pilot/src/cli.ts  list-sessions --output json
 npx tsx packages/terminal-pilot/src/cli.ts  read-screen --session s1 --output json
 ```
 
-### Tips
+## Tips
 
 - Use `fill` for pasted text and multi-line input.
 - Use `type` when the app reacts to individual keystrokes.

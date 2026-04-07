@@ -220,7 +220,26 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Problems?"))).toBe(true);
   });
 
-  it("outputs only the raw API key with auth api_key", async () => {
+  it("outputs only the raw API key with auth api-key", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "api-key"]);
+
+    expect(stdoutSpy).toHaveBeenCalledWith("stored-key");
+    stdoutSpy.mockRestore();
+  });
+
+  it("keeps auth api_key working as a compatibility alias", async () => {
     await storeApiKey(fs, "stored-key");
 
     const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -249,7 +268,7 @@ describe("auth command", () => {
     });
 
     process.exitCode = 0;
-    await program.parseAsync(["node", "cli", "auth", "api_key"]);
+    await program.parseAsync(["node", "cli", "auth", "api-key"]);
 
     expect(process.exitCode).toBe(1);
     process.exitCode = 0;

@@ -46,7 +46,7 @@ export function registerGenerateCommand(
   const generate = program
     .command("generate")
     .alias("g")
-    .description("Generate content via Poe API")
+    .description("Generate content via Poe API.")
     .option("--model <model>", `Model identifier (default: ${DEFAULT_TEXT_MODEL})`)
     .option(
       "--param <key=value>",
@@ -88,7 +88,7 @@ export function registerGenerateCommand(
 
   generate
     .command("text")
-    .description(`Generate text (default model: ${DEFAULT_TEXT_MODEL})`)
+    .description("Generate text content.")
     .option("--model <model>", `Model identifier (default: ${DEFAULT_TEXT_MODEL})`)
     .option(
       "--param <key=value>",
@@ -140,7 +140,7 @@ function registerMediaSubcommand(
   const defaultModel = DEFAULT_MODELS[type];
   generate
     .command(type)
-    .description(`Generate ${type} (default model: ${defaultModel})`)
+    .description(`Generate ${type} content.`)
     .option("--model <model>", `Model identifier (default: ${defaultModel})`)
     .option(
       "--param <key=value>",

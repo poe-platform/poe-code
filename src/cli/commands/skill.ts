@@ -28,7 +28,7 @@ export function registerSkillCommand(
 ): void {
   const skill = program
     .command("skill")
-    .description("Skill directory commands")
+    .description("Skill directory commands.")
     .addHelpText("after", buildHelpText())
     .allowExcessArguments()
     .action(function (this: Command) {
@@ -46,7 +46,7 @@ export function registerSkillCommand(
 
   skill
     .command("configure [agent]")
-    .description("Install skill directories for an agent")
+    .description("Install skill directories for an agent.")
     .option("--agent <name>", "Agent to configure skills for")
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")
@@ -149,7 +149,7 @@ export function registerSkillCommand(
 
   skill
     .command("unconfigure [agent]")
-    .description("Remove skill directories for an agent")
+    .description("Remove skill directories for an agent.")
     .option("--agent <name>", "Agent to unconfigure skills for")
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")

@@ -22,8 +22,14 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
     });
 
   auth
-    .command("api_key")
+    .command("api-key")
     .description("Display stored API key.")
+    .action(async () => {
+      await executeApiKey(program, container);
+    });
+
+  auth
+    .command("api_key", { hidden: true })
     .action(async () => {
       await executeApiKey(program, container);
     });

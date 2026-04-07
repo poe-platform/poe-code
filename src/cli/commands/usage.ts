@@ -138,7 +138,7 @@ export function registerUsageCommand(
     });
 
   usage
-    .command("balance")
+    .command("balance", { hidden: true })
     .description("Display current point balance.")
     .action(async () => {
       await executeBalance(program, container);

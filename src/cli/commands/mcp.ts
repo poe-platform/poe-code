@@ -55,7 +55,7 @@ export function registerMcpCommand(
 ): void {
   const mcp = program
     .command("mcp")
-    .description("MCP server commands")
+    .description("MCP server commands.")
     .addHelpText("after", buildHelpText())
     .allowExcessArguments()
     .action(function (this: Command) {
@@ -73,7 +73,7 @@ export function registerMcpCommand(
 
   mcp
     .command("serve")
-    .description("Run MCP server on stdin/stdout")
+    .description("Run MCP server on stdin/stdout.")
     .option(
       "--output-format <format>",
       'Preferred MCP media output format(s): "url", "base64", "markdown", or comma-separated list (default: "url"). Note: "markdown" cannot be combined with other formats.'
@@ -85,7 +85,7 @@ export function registerMcpCommand(
 
   mcp
     .command("configure [agent]")
-    .description("Configure MCP client to use poe-code")
+    .description("Configure MCP client to use poe-code.")
     .option("-y, --yes", "Skip prompt, use claude-code")
     .action(async (agentArg, options) => {
       const flags = resolveCommandFlags(program);
@@ -157,7 +157,7 @@ export function registerMcpCommand(
 
   mcp
     .command("unconfigure <agent>")
-    .description("Remove poe-code from MCP client")
+    .description("Remove poe-code from MCP client.")
     .action(async (agent) => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");

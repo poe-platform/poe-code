@@ -58,6 +58,23 @@ function createAdapter(
   });
 }
 
+function walkVisibleCommands(program: ReturnType<typeof createProgram>) {
+  const commands: ReturnType<typeof createProgram>["commands"] = [];
+
+  const visit = (command: ReturnType<typeof createProgram>) => {
+    for (const child of command.commands) {
+      if (Reflect.get(child, "_hidden") === true || child.name() === "__run") {
+        continue;
+      }
+      commands.push(child);
+      visit(child);
+    }
+  };
+
+  visit(program);
+  return commands;
+}
+
 describe("command help formatting", () => {
   it("shows root command aliases inline in the command list", () => {
     const program = createHelpProgram();
@@ -109,6 +126,39 @@ describe("command help formatting", () => {
     expect(help).toContain("claude-code");
     expect(help).toContain("codex");
     expect(help).toContain("opencode");
+  });
+
+  it("uses sentence-style descriptions for every visible command", () => {
+    const program = createHelpProgram();
+
+    const descriptions = walkVisibleCommands(program).map((command) => ({
+      name: command.name(),
+      description: command.description()
+    }));
+
+    expect(
+      descriptions.filter(
+        ({ description }) => description.length > 0 && !description.endsWith(".")
+      )
+    ).toEqual([]);
+  });
+
+  it("uses kebab-case command names for every visible command", () => {
+    const program = createHelpProgram();
+
+    const commandNames = walkVisibleCommands(program).map((command) => command.name());
+
+    expect(commandNames.filter((name) => name.includes("_"))).toEqual([]);
+  });
+
+  it("hides legacy snake_case compatibility commands from help output", () => {
+    const program = createHelpProgram();
+    const authCommand = program.commands.find((command) => command.name() === "auth");
+    expect(authCommand).toBeDefined();
+
+    const help = stripAnsi(authCommand?.helpInformation() ?? "");
+    expect(help).toContain("api-key");
+    expect(help).not.toContain("api_key");
   });
 });
 

@@ -127,13 +127,30 @@ function formatCommentedBlock(name: string, value: string): string {
     .join("\n");
 }
 
+async function loadVariableSources(
+  builtInDir: string,
+  projectDir?: string
+): Promise<{ builtInVariables: Record<string, string>; projectVariables: Record<string, string> }> {
+  const builtInPath = path.join(builtInDir, VARIABLES_FILE_NAME);
+  const builtInVariables = parseVariables(builtInPath, await readFile(builtInPath, "utf8"));
+  const projectVariables = projectDir === undefined ? {} : await readOptionalVariables(projectDir);
+
+  return { builtInVariables, projectVariables };
+}
+
+export type VariableStatus = "default" | "overridden" | "disabled" | "custom";
+
+export interface VariableStatusEntry {
+  name: string;
+  source: string;
+  status: VariableStatus;
+}
+
 export async function loadVariables(
   builtInDir: string,
   projectDir?: string
 ): Promise<Record<string, string>> {
-  const builtInPath = path.join(builtInDir, VARIABLES_FILE_NAME);
-  const builtInVariables = parseVariables(builtInPath, await readFile(builtInPath, "utf8"));
-  const projectVariables = projectDir === undefined ? {} : await readOptionalVariables(projectDir);
+  const { builtInVariables, projectVariables } = await loadVariableSources(builtInDir, projectDir);
   const merged = { ...builtInVariables, ...projectVariables };
   const result: Record<string, string> = {};
 
@@ -145,6 +162,42 @@ export async function loadVariables(
   }
 
   return result;
+}
+
+export async function loadVariableStatuses(
+  builtInDir: string,
+  projectDir?: string
+): Promise<VariableStatusEntry[]> {
+  const { builtInVariables, projectVariables } = await loadVariableSources(builtInDir, projectDir);
+  const orderedNames = [
+    ...Object.keys(builtInVariables),
+    ...Object.keys(projectVariables).filter((key) => !Object.prototype.hasOwnProperty.call(builtInVariables, key))
+  ];
+  const projectVariablesPath = projectDir === undefined ? undefined : path.join(projectDir, VARIABLES_FILE_NAME);
+
+  return orderedNames.map((name) => {
+    if (!Object.prototype.hasOwnProperty.call(projectVariables, name)) {
+      return {
+        name,
+        source: "built-in",
+        status: "default"
+      };
+    }
+
+    if (projectVariables[name] === "") {
+      return {
+        name,
+        source: projectVariablesPath ?? "built-in",
+        status: "disabled"
+      };
+    }
+
+    return {
+      name,
+      source: projectVariablesPath ?? "built-in",
+      status: Object.prototype.hasOwnProperty.call(builtInVariables, name) ? "overridden" : "custom"
+    };
+  });
 }
 
 export function generateProjectVariablesFile(

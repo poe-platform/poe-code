@@ -6,7 +6,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-const { generateProjectVariablesFile, loadVariables } = await import("./variables.js");
+const { generateProjectVariablesFile, loadVariableStatuses, loadVariables } = await import("./variables.js");
 
 describe("variables", () => {
   beforeEach(() => {
@@ -98,6 +98,47 @@ describe("variables", () => {
     await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
       response_style: "- Start with a direct answer.\n"
     });
+  });
+
+  it("reports default, overridden, disabled, and custom variable statuses", async () => {
+    vol.fromJSON({
+      "/built-in/variables.yaml": [
+        "response_style: |",
+        "  - Start with a direct answer.",
+        "verify_before_responding: |",
+        "  Verify against the repo.",
+        "skill_github_cli: |",
+        "  Use gh for GitHub operations.",
+        ""
+      ].join("\n"),
+      "/repo/.poe-code/github-workflows/variables.yaml": [
+        "verify_before_responding: |",
+        "  Check the changed files first.",
+        'skill_github_cli: ""',
+        "custom_project_rules: |",
+        "  Follow docs/internal.md.",
+        ""
+      ].join("\n")
+    });
+
+    await expect(loadVariableStatuses("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual([
+      { name: "response_style", source: "built-in", status: "default" },
+      {
+        name: "verify_before_responding",
+        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        status: "overridden"
+      },
+      {
+        name: "skill_github_cli",
+        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        status: "disabled"
+      },
+      {
+        name: "custom_project_rules",
+        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        status: "custom"
+      }
+    ]);
   });
 
   it("generates a fully commented project file when no existing content is provided", () => {

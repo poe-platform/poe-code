@@ -75,10 +75,10 @@ tasks:
       - Rich output: formatted table
       - JSON output: array of objects
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: bundling
     title: Ensure variables.yaml is bundled in dist

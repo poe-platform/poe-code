@@ -32,7 +32,18 @@ vi.mock("node:fs/promises", async () => {
 const { ghGroup } = await import("./commands.js");
 
 const promptDir = fileURLToPath(new URL("./prompts", import.meta.url));
+const builtInDir = path.dirname(promptDir);
 const workflowTemplateDir = fileURLToPath(new URL("./workflow-templates", import.meta.url));
+const builtInVariablesPath = path.join(builtInDir, "variables.yaml");
+const installableAutomationNames = [
+  "fix-vulnerabilities",
+  "github-issue-comment-created",
+  "github-issue-opened",
+  "github-pull-request-opened",
+  "github-pull-request-synchronized",
+  "update-dependencies",
+  "update-documentation"
+] as const;
 
 function seedWorkflowTemplate(name: string, variant: "caller" | "ejected"): void {
   const filePath = path.join(workflowTemplateDir, `${name}.${variant}.yml`);
@@ -91,6 +102,9 @@ function readRepoFile(filePath: string): string {
 describe("ghGroup", () => {
   beforeEach(() => {
     vol.reset();
+    vol.fromJSON({
+      [builtInVariablesPath]: readFileSync(builtInVariablesPath, "utf8")
+    });
     vi.restoreAllMocks();
     vi.clearAllMocks();
     vi.spyOn(process, "cwd").mockReturnValue("/repo");
@@ -150,6 +164,46 @@ describe("ghGroup", () => {
         cwd: "/repo",
         model: "openai/gpt-5.4",
         prompt: "Read https://github.com/acme/app/issues/42 from alice in acme/app: please fix this"
+      })
+    );
+  });
+
+  it("merges shared variables into run prompts while keeping env context higher priority", async () => {
+    writeBuiltInPrompt(
+      "github-issue-opened",
+      ["Repo from env: {{repo}}", "Style:", "{{response_style}}"].join("\n")
+    );
+    vol.fromJSON({
+      "/repo/.poe-code/github-workflows/variables.yaml": [
+        "repo: overridden-by-project",
+        "response_style: |",
+        "  - Use the repository house style.",
+        ""
+      ].join("\n")
+    });
+
+    const runCommand = getCommand(["run"]);
+
+    await runCommand.handler(
+      createContext(
+        {
+          name: "github-issue-opened",
+          agent: "codex",
+          cwd: "/repo"
+        },
+        {
+          GITHUB_REPOSITORY: "acme/app"
+        },
+        {
+          poeApiKey: "poe-key"
+        }
+      )
+    );
+
+    expect(spawnState.spawn).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({
+        prompt: ["Repo from env: acme/app", "Style:", "- Use the repository house style.", ""].join("\n")
       })
     );
   });
@@ -262,6 +316,48 @@ describe("ghGroup", () => {
       prompt: [
         "Issue URL: https://github.com/acme/app/issues/188",
         "Issue title: Can I configure paths for planning docs on ralph?",
+        ""
+      ].join("\n")
+    });
+  });
+
+  it("renders prompt-preview with resolved shared variables", async () => {
+    writeBuiltInPrompt(
+      "github-issue-opened",
+      ["Issue URL: {{url}}", "Rules:", "{{custom_project_rules}}", "{{response_style}}"].join("\n")
+    );
+    vol.fromJSON({
+      "/repo/.poe-code/github-workflows/variables.yaml": [
+        "custom_project_rules: |",
+        "  Check docs/internal.md first.",
+        ""
+      ].join("\n")
+    });
+
+    const promptPreviewCommand = getCommand(["prompt-preview"]);
+
+    await expect(
+      promptPreviewCommand.handler(
+        createContext(
+          {
+            name: "github-issue-opened"
+          },
+          {
+            GITHUB_REPOSITORY: "acme/app",
+            ISSUE_NUMBER: "188"
+          }
+        )
+      )
+    ).resolves.toEqual({
+      name: "github-issue-opened",
+      prompt: [
+        "Issue URL: https://github.com/acme/app/issues/188",
+        "Rules:",
+        "Check docs/internal.md first.",
+        "",
+        "- Start with a direct answer or decision.",
+        "- Keep it concise.",
+        "- Use short Markdown sections only when they improve clarity.",
         ""
       ].join("\n")
     });
@@ -615,11 +711,23 @@ describe("ghGroup", () => {
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).not.toContain(
       "npm install -g poe-code@latest"
     );
+    expect(readRepoFile("/repo/.poe-code/github-workflows/variables.yaml")).toContain(
+      "# response_style: |"
+    );
+    expect(readRepoFile("/repo/.poe-code/github-workflows/README.md")).toContain(
+      "| `poe-code github-workflows variables` | List shared prompt variables and where each value comes from |"
+    );
     expect(result).toMatchObject({
-      name: "github-issue-opened",
-      promptContent: "# Prompt",
-      promptPath: undefined,
-      ejected: false
+      installations: [
+        {
+          name: "github-issue-opened",
+          promptContent: "# Prompt",
+          promptPath: undefined,
+          ejected: false
+        }
+      ],
+      readmePath: "/repo/.poe-code/github-workflows/README.md",
+      variablesPath: "/repo/.poe-code/github-workflows/variables.yaml"
     });
   });
 
@@ -653,6 +761,25 @@ describe("ghGroup", () => {
     expect(logger.message).toHaveBeenCalledWith(
       "To customize the prompt, run: poe-code github-workflows install github-issue-opened --eject"
     );
+  });
+
+  it("installs all automations when install is called without a name", async () => {
+    for (const name of installableAutomationNames) {
+      writeBuiltInPrompt(name, `# Prompt for ${name}`);
+      seedWorkflowTemplate(name, "caller");
+    }
+
+    const installCommand = getCommand(["install"]);
+
+    const result = await installCommand.handler(createContext({}));
+
+    for (const name of installableAutomationNames) {
+      expect(vol.existsSync(`/repo/.github/workflows/poe-code-${name}.yml`)).toBe(true);
+    }
+
+    expect(result.installations).toHaveLength(installableAutomationNames.length);
+    expect(result.variablesPath).toBe("/repo/.poe-code/github-workflows/variables.yaml");
+    expect(result.readmePath).toBe("/repo/.poe-code/github-workflows/README.md");
   });
 
   it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {
@@ -796,5 +923,71 @@ describe("ghGroup", () => {
     ).rejects.toThrow(
       'Automation "poe-code-github-issue-comment-created" requires COMMENT_BODY to start with "poe-code".'
     );
+  });
+
+  it("lists resolved variable statuses with sources", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/github-workflows/variables.yaml": [
+        "verify_before_responding: |",
+        "  Check changed files first.",
+        'skill_github_cli: ""',
+        "custom_project_rules: |",
+        "  Follow docs/internal.md.",
+        ""
+      ].join("\n")
+    });
+
+    const variablesCommand = getCommand(["variables"]);
+    const result = await variablesCommand.handler(createContext({}));
+    const renderTable = vi.fn(() => "variable table");
+    const logger = {
+      info: vi.fn(),
+      success: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      resolved: vi.fn(),
+      errorResolved: vi.fn(),
+      message: vi.fn()
+    };
+
+    variablesCommand.render.rich(result, {
+      logger,
+      note: vi.fn(),
+      renderTable,
+      getTheme: () => ({
+        header: (value: string) => value,
+        muted: (value: string) => value
+      })
+    });
+
+    expect(result).toEqual([
+      { name: "response_style", source: "built-in", status: "default" },
+      {
+        name: "verify_before_responding",
+        source: ".poe-code/github-workflows/variables.yaml",
+        status: "overridden"
+      },
+      {
+        name: "skill_github_cli",
+        source: ".poe-code/github-workflows/variables.yaml",
+        status: "disabled"
+      },
+      { name: "pull_request_guidelines", source: "built-in", status: "default" },
+      {
+        name: "custom_project_rules",
+        source: ".poe-code/github-workflows/variables.yaml",
+        status: "custom"
+      }
+    ]);
+    expect(renderTable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        columns: [
+          expect.objectContaining({ name: "name", title: "Name" }),
+          expect.objectContaining({ name: "status", title: "Status" }),
+          expect.objectContaining({ name: "source", title: "Source" })
+        ]
+      })
+    );
+    expect(logger.message).toHaveBeenCalledWith("variable table");
   });
 });

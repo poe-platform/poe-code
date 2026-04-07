@@ -14,6 +14,7 @@ import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
 import { runPreflightChecks } from "./preflight.js";
 import { setupWorkflowAgent } from "./setup-agent.js";
 import type { AutomationDefinition } from "./types.js";
+import { generateProjectVariablesFile, loadVariableStatuses, loadVariables } from "./variables.js";
 
 const UPSTREAM_REPO = "poe-platform/poe-code";
 
@@ -37,6 +38,20 @@ interface RunAutomationResult {
   agent: string;
   automation: string;
   items: RunItemResult[];
+}
+
+interface InstalledAutomationResult {
+  name: string;
+  workflowPath: string;
+  promptPath?: string;
+  ejected: boolean;
+  promptContent: string;
+}
+
+interface InstallCommandResult {
+  installations: InstalledAutomationResult[];
+  readmePath: string;
+  variablesPath: string;
 }
 
 const installableAutomations = [
@@ -84,7 +99,8 @@ const runCommandDef = defineCommand({
       ));
     const automation = await loadNamedAutomation(name, cwd);
     const agent = automation.agent ?? params.agent ?? "codex";
-    const sharedTemplateContext = buildTemplateContext(env);
+    const variables = await loadVariables(await resolveBuiltInAssetsDir(), projectGitHubWorkflowsDir(cwd));
+    const sharedTemplateContext = { ...variables, ...buildTemplateContext(env) };
 
     if (automation.source === undefined) {
       const prompt = renderPrompt(automation.prompt, sharedTemplateContext);
@@ -187,63 +203,64 @@ const listCommand = defineCommand({
 
 const installCommand = defineCommand({
   name: "install",
-  description: "Install an automation workflow into the current repo.",
+  description: "Install one or all automation workflows into the current repo.",
   positional: ["name"],
   params: S.Object({
-    name: S.Enum(installableAutomations, {
-      description: "Pick a GitHub workflow to install",
-      loadOptions: async () => {
-        const automations = await discoverAutomations(await resolveBuiltInPromptsDir());
-        return automations.map((a) => ({ label: a.label ?? formatLabel(a.name), value: a.name }));
-      }
-    }),
+    name: S.Optional(
+      S.Enum(installableAutomations, {
+        description: "Pick a GitHub workflow to install",
+        loadOptions: async () => {
+          const automations = await discoverAutomations(await resolveBuiltInPromptsDir());
+          return automations.map((a) => ({ label: a.label ?? formatLabel(a.name), value: a.name }));
+        }
+      })
+    ),
     eject: S.Optional(S.Boolean())
   }),
   scope: ["cli"],
   handler: async ({ params }) => {
-    const name = params.name;
-    const isEject = params.eject === true;
-    const variant = isEject ? "ejected" : "caller";
     const cwd = resolveCwd();
-    const localAutomationName = isEject ? `poe-code-${name}` : name;
-    const promptPath = isEject ? path.join(projectWorkflowDir(cwd), `${localAutomationName}.md`) : undefined;
-    const [workflowTemplate, rawPrompt] = await Promise.all([
-      readBuiltInWorkflowTemplate(name, variant, localAutomationName, promptPath),
-      readBuiltInPromptFile(name)
-    ]);
-    const workflowPath = path.join(cwd, ".github", "workflows", `poe-code-${name}.yml`);
+    const names = params.name === undefined ? [...installableAutomations] : [params.name];
+    const installations: InstalledAutomationResult[] = [];
 
-    await mkdir(path.dirname(workflowPath), { recursive: true });
-    await writeFile(workflowPath, workflowTemplate, "utf8");
-
-    if (promptPath !== undefined) {
-      await mkdir(path.dirname(promptPath), { recursive: true });
-      await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
+    for (const name of names) {
+      installations.push(await installAutomation(name, cwd, params.eject === true));
     }
 
+    const supportFiles = await ensureProjectSupportFiles(
+      cwd,
+      await loadVariables(await resolveBuiltInAssetsDir())
+    );
+
     return {
-      name,
-      workflowPath,
-      promptPath,
-      ejected: isEject,
-      promptContent: rawPrompt
-    };
+      installations,
+      ...supportFiles
+    } satisfies InstallCommandResult;
   },
   render: {
-    rich: (
-      result: { name: string; workflowPath: string; promptPath?: string; ejected: boolean; promptContent: string },
-      { logger, note }
-    ) => {
-      logger.success(`Installed workflow at ${result.workflowPath}`);
-      if (result.promptPath !== undefined) {
-        logger.message(`Prompt copied to ${result.promptPath}`);
+    rich: (result: InstallCommandResult, { logger, note }) => {
+      if (result.installations.length === 1) {
+        const [installation] = result.installations;
+        logger.success(`Installed workflow at ${installation.workflowPath}`);
+        if (installation.promptPath !== undefined) {
+          logger.message(`Prompt copied to ${installation.promptPath}`);
+        }
+        note(installation.promptContent, "Default prompt");
+        if (!installation.ejected) {
+          logger.message(
+            `To customize the prompt, run: poe-code github-workflows install ${installation.name} --eject`
+          );
+        }
+      } else {
+        logger.success(`Installed ${result.installations.length} workflows.`);
+        for (const installation of result.installations) {
+          logger.message(installation.workflowPath);
+        }
       }
-      note(result.promptContent, "Default prompt");
-      if (!result.ejected) {
-        logger.message(`To customize the prompt, run: poe-code github-workflows install ${result.name} --eject`);
-      }
+      logger.message(`Shared variables written to ${result.variablesPath}`);
+      logger.message(`Command reference written to ${result.readmePath}`);
     },
-    json: (result: { name: string; workflowPath: string; promptPath?: string; ejected: boolean; promptContent: string }) => result
+    json: (result: InstallCommandResult) => result
   }
 });
 
@@ -347,10 +364,12 @@ const promptPreviewCommand = defineCommand({
   }),
   scope: ["cli", "sdk"],
   handler: async ({ params, env }) => {
-    const automation = await loadNamedAutomation(params.name, resolveCwd());
+    const cwd = resolveCwd();
+    const automation = await loadNamedAutomation(params.name, cwd);
+    const variables = await loadVariables(await resolveBuiltInAssetsDir(), projectGitHubWorkflowsDir(cwd));
     return {
       name: automation.name,
-      prompt: renderPrompt(automation.prompt, buildTemplateContext(env))
+      prompt: renderPrompt(automation.prompt, { ...variables, ...buildTemplateContext(env) })
     };
   },
   render: {
@@ -358,6 +377,38 @@ const promptPreviewCommand = defineCommand({
       logger.message(result.prompt);
     },
     json: (result: { name: string; prompt: string }) => result
+  }
+});
+
+const variablesCommand = defineCommand({
+  name: "variables",
+  description: "List shared prompt variables and where each value comes from.",
+  params: S.Object({}),
+  scope: ["cli", "sdk"],
+  handler: async () => {
+    const cwd = resolveCwd();
+    return (await loadVariableStatuses(await resolveBuiltInAssetsDir(), projectGitHubWorkflowsDir(cwd))).map(
+      (status) => ({
+        ...status,
+        source: status.source === "built-in" ? status.source : path.relative(cwd, status.source)
+      })
+    );
+  },
+  render: {
+    rich: (result: { name: string; source: string; status: string }[], { logger, renderTable, getTheme }) => {
+      logger.message(
+        renderTable({
+          theme: getTheme(),
+          columns: [
+            { name: "name", title: "Name", alignment: "left", maxLen: 32 },
+            { name: "status", title: "Status", alignment: "left", maxLen: 12 },
+            { name: "source", title: "Source", alignment: "left", maxLen: 48 }
+          ],
+          rows: result
+        })
+      );
+    },
+    json: (result: { name: string; source: string; status: string }[]) => result
   }
 });
 
@@ -373,7 +424,8 @@ export const ghGroup: Group = defineGroup({
     listCommand,
     installCommand,
     uninstallCommand,
-    promptPreviewCommand
+    promptPreviewCommand,
+    variablesCommand
   ],
   default: runCommandDef
 });
@@ -438,11 +490,15 @@ async function resolveBuiltInWorkflowTemplatesDir(): Promise<string> {
 }
 
 function projectPromptDirs(cwd: string): string[] {
-  return [projectWorkflowDir(cwd), path.join(cwd, ".poe-code", "github-workflows")];
+  return [projectWorkflowDir(cwd), projectGitHubWorkflowsDir(cwd)];
 }
 
 function projectWorkflowDir(cwd: string): string {
   return path.join(cwd, ".github", "workflows");
+}
+
+function projectGitHubWorkflowsDir(cwd: string): string {
+  return path.join(cwd, ".poe-code", "github-workflows");
 }
 
 async function resolveBuiltInPromptsDir(): Promise<string> {
@@ -458,6 +514,10 @@ async function resolveBuiltInPromptsDir(): Promise<string> {
   }
 
   return builtInPromptsDirCandidates[0];
+}
+
+async function resolveBuiltInAssetsDir(): Promise<string> {
+  return path.dirname(await resolveBuiltInPromptsDir());
 }
 
 function resolveCwd(cwd?: string): string {
@@ -663,6 +723,90 @@ function addPromptHeader(content: string, name: string): string {
     return "---\n" + comment + content.slice(4);
   }
   return content;
+}
+
+async function installAutomation(
+  name: string,
+  cwd: string,
+  isEject: boolean
+): Promise<InstalledAutomationResult> {
+  const variant = isEject ? "ejected" : "caller";
+  const localAutomationName = isEject ? `poe-code-${name}` : name;
+  const promptPath = isEject ? path.join(projectWorkflowDir(cwd), `${localAutomationName}.md`) : undefined;
+  const [workflowTemplate, rawPrompt] = await Promise.all([
+    readBuiltInWorkflowTemplate(name, variant, localAutomationName, promptPath),
+    readBuiltInPromptFile(name)
+  ]);
+  const workflowPath = path.join(cwd, ".github", "workflows", `poe-code-${name}.yml`);
+
+  await mkdir(path.dirname(workflowPath), { recursive: true });
+  await writeFile(workflowPath, workflowTemplate, "utf8");
+
+  if (promptPath !== undefined) {
+    await mkdir(path.dirname(promptPath), { recursive: true });
+    await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
+  }
+
+  return {
+    name,
+    workflowPath,
+    promptPath,
+    ejected: isEject,
+    promptContent: rawPrompt
+  };
+}
+
+async function ensureProjectSupportFiles(
+  cwd: string,
+  builtInVariables: Record<string, string>
+): Promise<{ readmePath: string; variablesPath: string }> {
+  const projectDir = projectGitHubWorkflowsDir(cwd);
+  const variablesPath = path.join(projectDir, "variables.yaml");
+  const readmePath = path.join(projectDir, "README.md");
+
+  await mkdir(projectDir, { recursive: true });
+  await writeFile(
+    variablesPath,
+    generateProjectVariablesFile(builtInVariables, await readOptionalFile(variablesPath)),
+    "utf8"
+  );
+  await writeFile(readmePath, renderProjectReadme(), "utf8");
+
+  return { readmePath, variablesPath };
+}
+
+async function readOptionalFile(filePath: string): Promise<string | undefined> {
+  try {
+    return await readFile(filePath, "utf8");
+  } catch (error) {
+    if (isMissingPathError(error)) {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+function renderProjectReadme(): string {
+  return [
+    "# GitHub Workflows",
+    "",
+    "## Commands",
+    "",
+    "| Command | Description |",
+    "|---------|-------------|",
+    "| `poe-code github-workflows list` | List available automations |",
+    "| `poe-code github-workflows install <name>` | Install a workflow (use `--eject` to customize the prompt) |",
+    "| `poe-code github-workflows uninstall <name>` | Remove an installed workflow |",
+    "| `poe-code github-workflows prompt-preview <name>` | Preview the rendered prompt with variables resolved |",
+    "| `poe-code github-workflows run <name>` | Run an automation locally |",
+    "| `poe-code github-workflows variables` | List shared prompt variables and where each value comes from |",
+    "",
+    "## Customization",
+    "",
+    "Edit `variables.yaml` to override shared prompt variables.",
+    'Uncomment a variable and change its value. Set to `""` to disable.',
+    ""
+  ].join("\n");
 }
 
 function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {

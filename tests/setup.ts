@@ -6,7 +6,6 @@ import { afterAll, beforeAll, beforeEach, vi } from "vitest";
 // across 52 call sites without affecting test correctness.
 {
   const _originalWaitFor = vi.waitFor.bind(vi);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (vi as any).waitFor = (callback: any, options?: any): any => {
     const normalized = typeof options === "number" ? { timeout: options } : options ?? {};
     return _originalWaitFor(callback, { interval: 10, ...normalized });

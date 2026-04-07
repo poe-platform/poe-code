@@ -330,9 +330,8 @@ export async function runExperimentLoop(
       const model = currentSpecifier.model;
       options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
 
-      let agentResult;
       try {
-        agentResult = await runAgent({
+        await runAgent({
           agent: currentSpecifier.agent,
           prompt,
           cwd: options.cwd,

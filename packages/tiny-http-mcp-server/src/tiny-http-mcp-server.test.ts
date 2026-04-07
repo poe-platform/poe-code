@@ -1,5 +1,4 @@
 import http, { type IncomingMessage } from "node:http";
-import https from "node:https";
 import type { AddressInfo } from "node:net";
 import { createRequire } from "node:module";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";

@@ -25,15 +25,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
-      - name: Build tiny-stdio-mcp-server
-        working-directory: packages/tiny-stdio-mcp-server
-        run: npm run build
-      - name: Build terminal-pilot
-        working-directory: packages/terminal-pilot
-        run: npm run build
-      - name: Build terminal-pilot-mcp
-        working-directory: packages/terminal-pilot-mcp
-        run: npm run build
+      - name: Build terminal-pilot, terminal-pilot-mcp and dependencies
+        run: npx turbo build --filter=terminal-pilot-mcp...
       - name: Compute next version
         id: version
         run: |

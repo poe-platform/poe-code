@@ -22,18 +22,6 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
-- [x] sweep root and parent command help screens (`--help`, `generate`, `usage`, `launch`, `utils config`, `experiment journal`, `test`)
-  - [x] root help was missing `test`
-    - Added `test` to `ROOT_HELP_COMMAND_SPECS` in `src/cli/program.ts`
-    - Added regression coverage in `src/cli/commands/misc-commands.test.ts`
-  - [x] parent command help leaked Commander’s raw `[command]` placeholder
-    - Centralized usage token filtering in `src/cli/program.ts`
-    - Parent help usage now omits `[command]` while still listing subcommands below
-  - [x] screenshot pass for representative help screens
-    - Captured `screenshots/help.png`, `screenshots/spawn-help.png`, `screenshots/generate-help.png`, `screenshots/usage-help.png`, `screenshots/launch-help.png`, `screenshots/test-help.png`
-  - [x] full verification
-    - `npm run test:unit`
-    - `npm run lint:types`
 
 ## Constraints
 

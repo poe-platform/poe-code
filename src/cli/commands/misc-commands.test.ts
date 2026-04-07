@@ -563,7 +563,7 @@ describe("root command", () => {
     expect(plainOutput).toContain("experiment install");
     expect(plainOutput).toContain("login");
     expect(plainOutput).toContain("config");
-    expect(plainOutput).toContain("auth status");
+    expect(plainOutput).toContain("Authentication and account commands");
     expect(plainOutput).toContain("agent");
     expect(plainOutput).toContain("Run a one-shot Poe agent prompt");
     expect(plainOutput).toContain("pipeline");

@@ -13,15 +13,6 @@ import { throwCommandNotFound } from "../command-not-found.js";
 
 const DEFAULT_SKILL_AGENT = "claude-code";
 
-function buildHelpText(): string {
-  return [
-    "",
-    "Skill directories:",
-    "- poe-code skill configure installs skill directories for supported agents.",
-    "- poe-code skill unconfigure removes skill directories."
-  ].join("\n");
-}
-
 export function registerSkillCommand(
   program: Command,
   container: CliContainer
@@ -29,7 +20,6 @@ export function registerSkillCommand(
   const skill = program
     .command("skill")
     .description("Skill directory commands.")
-    .addHelpText("after", buildHelpText())
     .allowExcessArguments()
     .action(function (this: Command) {
       if (this.args.length > 0) {

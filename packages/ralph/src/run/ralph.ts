@@ -1,8 +1,10 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
+import { resolve } from "@poe-code/config-extends";
 import {
   parseFrontmatter,
+  parseFrontmatterData,
   writeFrontmatter,
   type RalphPlanStatus
 } from "../frontmatter/frontmatter.js";
@@ -23,19 +25,45 @@ export async function runRalph(
     throw new Error("runRalph requires a runAgent implementation.");
   }
 
-  if (!Number.isInteger(options.maxIterations) || options.maxIterations < 1) {
-    throw new Error("maxIterations must be a positive integer.");
-  }
-
-  const agents = normalizeAgents(options.agent);
   const absoluteDocPath = resolveAbsoluteDocPath(
     options.docPath,
     options.cwd,
     options.homeDir
   );
   const rawContent = await fs.readFile(absoluteDocPath, "utf8");
-  const { body: rawBody } = parseFrontmatter(rawContent);
-  const prompt = interpolateVariables(rawBody, {
+  const resolved = await resolve(
+    [
+      {
+        source: "cli",
+        data: resolveCliOverrides(options)
+      },
+      {
+        source: "document",
+        filePath: absoluteDocPath,
+        content: rawContent
+      },
+      {
+        source: "base",
+        path: path.join(options.cwd, ".poe-code/ralph/bases")
+      },
+      {
+        source: "base",
+        path: path.join(options.homeDir, ".poe-code/ralph/bases")
+      },
+      {
+        source: "defaults",
+        data: {
+          agent: "claude-code",
+          iterations: 3
+        }
+      }
+    ],
+    { fs }
+  );
+  const frontmatter = parseFrontmatterData(resolved.data);
+  const agents = normalizeAgents(frontmatter.agent);
+  const maxIterations = normalizeMaxIterations(frontmatter.iterations);
+  const prompt = interpolateVariables(normalizeResolvedPrompt(resolved.data.prompt), {
     current_file: absoluteDocPath
   });
   const startTime = Date.now();
@@ -62,13 +90,13 @@ export async function runRalph(
   try {
     for (
       let iteration = 1;
-      iteration <= options.maxIterations;
+      iteration <= maxIterations;
       iteration += 1
     ) {
       assertNotAborted(options.signal);
       const currentSpecifier = agents[(iteration - 1) % agents.length]!;
       const model = currentSpecifier.model;
-      options.onIterationStart?.(iteration, options.maxIterations, currentSpecifier.agent);
+      options.onIterationStart?.(iteration, maxIterations, currentSpecifier.agent);
 
       const iterationStart = Date.now();
       let result;
@@ -132,7 +160,13 @@ function createDefaultFs(): RalphFileSystem {
   };
 }
 
-function normalizeAgents(agent: RalphRunOptions["agent"]): AgentSpecifier[] {
+function normalizeAgents(
+  agent: RalphRunOptions["agent"] | ReturnType<typeof parseFrontmatterData>["agent"]
+): AgentSpecifier[] {
+  if (agent === undefined) {
+    throw new Error("Ralph doc is missing agent frontmatter.");
+  }
+
   const raw = typeof agent === "string" ? [agent] : agent;
 
   if (raw.length === 0) {
@@ -148,6 +182,33 @@ function normalizeAgents(agent: RalphRunOptions["agent"]): AgentSpecifier[] {
   });
 
   return specifiers;
+}
+
+function resolveCliOverrides(options: RalphRunOptions): Record<string, unknown> {
+  const data: Record<string, unknown> = {};
+
+  if (options.agent !== undefined) {
+    normalizeAgents(options.agent);
+    data.agent = options.agent;
+  }
+
+  if (options.maxIterations !== undefined) {
+    if (!Number.isInteger(options.maxIterations) || options.maxIterations < 1) {
+      throw new Error("maxIterations must be a positive integer.");
+    }
+
+    data.iterations = options.maxIterations;
+  }
+
+  return data;
+}
+
+function normalizeMaxIterations(iterations: number | undefined): number {
+  if (iterations === undefined) {
+    throw new Error("Ralph doc is missing iterations frontmatter.");
+  }
+
+  return iterations;
 }
 
 function resolveAbsoluteDocPath(
@@ -179,6 +240,18 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
+function normalizeResolvedPrompt(prompt: unknown): string {
+  if (prompt === undefined) {
+    return "";
+  }
+
+  if (typeof prompt !== "string") {
+    throw new Error("Ralph doc prompt must be a string.");
+  }
+
+  return prompt;
+}
+
 async function updateFrontmatter(
   fs: RalphFileSystem,
   absoluteDocPath: string,
@@ -192,6 +265,9 @@ async function updateFrontmatter(
     {
       ...(currentFrontmatter.agent !== undefined
         ? { agent: currentFrontmatter.agent }
+        : {}),
+      ...(currentFrontmatter.extends !== undefined
+        ? { extends: currentFrontmatter.extends }
         : {}),
       ...(currentFrontmatter.iterations !== undefined
         ? { iterations: currentFrontmatter.iterations }

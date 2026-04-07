@@ -23,6 +23,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-defs": "*",
+    "@poe-code/config-extends": "*",
     "@poe-code/design-system": "*",
     "yaml": "^2.8.3"
   }

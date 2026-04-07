@@ -1,8 +1,10 @@
-import { describe, expect, it } from "vitest";
+import path from "node:path";
+import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { discoverDocs } from "./discovery/discovery.js";
 import { parseFrontmatter, writeFrontmatter } from "./frontmatter/frontmatter.js";
 import type { RalphFrontmatter } from "./frontmatter/frontmatter.js";
+import { runRalph } from "./run/ralph.js";
 import { createRalphSimulation, failTurn, successTurn } from "./testing/simulation.js";
 import { interpolateVariables } from "./variables/variables.js";
 import type {
@@ -25,6 +27,43 @@ function createFs(files: Record<string, string>) {
         isFile: () => stat.isFile(),
         mtimeMs: Number(stat.mtimeMs)
       };
+    }
+  };
+}
+
+function createRunFs(files: Record<string, string>) {
+  const volume = Volume.fromJSON(files, "/");
+  const rawFs = createFsFromVolume(volume).promises;
+
+  return {
+    rawFs,
+    fs: {
+      readFile: (filePath: string, encoding: BufferEncoding) =>
+        rawFs.readFile(filePath, encoding) as Promise<string>,
+      writeFile: async (filePath: string, content: string) => {
+        await rawFs.mkdir(path.dirname(filePath), {
+          recursive: true
+        });
+        await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+      },
+      readdir: (filePath: string) =>
+        rawFs.readdir(filePath) as Promise<string[]>,
+      stat: async (filePath: string) => {
+        const stat = await rawFs.stat(filePath);
+        return {
+          isFile: () => stat.isFile(),
+          mtimeMs: Number(stat.mtimeMs)
+        };
+      },
+      mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
+        await rawFs.mkdir(filePath, options);
+      },
+      rename: async (oldPath: string, newPath: string) => {
+        await rawFs.mkdir(path.dirname(newPath), {
+          recursive: true
+        });
+        await rawFs.rename(oldPath, newPath);
+      }
     }
   };
 }
@@ -308,6 +347,20 @@ describe("parseFrontmatter", () => {
 
     expect(result.data).toEqual({
       agent: [],
+      status: {
+        state: "open",
+        iteration: 0
+      }
+    });
+  });
+
+  it("parses extends for config resolution", () => {
+    const doc = ["---", "extends: true", "---", "Body"].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(result.data).toEqual({
+      extends: true,
       status: {
         state: "open",
         iteration: 0
@@ -827,6 +880,145 @@ describe("createRalphSimulation", () => {
       iterationsCompleted: 1
     });
     expect(runs).toHaveLength(1);
+  });
+});
+
+describe("runRalph config resolution", () => {
+  it("inherits base prompt and config when the doc sets extends true", async () => {
+    const { fs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": [
+        "---",
+        "extends: true",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/.poe-code/ralph/bases/plan.md": [
+        "---",
+        "agent: codex",
+        "iterations: 2",
+        "---",
+        "# Base prompt"
+      ].join("\n")
+    });
+    const runAgent = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    const result = await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: ".poe-code/ralph/plans/plan.md",
+      fs,
+      runAgent
+    });
+
+    expect(result).toMatchObject({
+      stopReason: "max_iterations",
+      iterationsCompleted: 2
+    });
+    expect(runAgent).toHaveBeenCalledTimes(2);
+    expect(runAgent.mock.calls[0]?.[0]).toMatchObject({
+      agent: "codex",
+      prompt: "# Base prompt"
+    });
+  });
+
+  it("lets CLI iterations override the document iterations", async () => {
+    const { fs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": [
+        "---",
+        "extends: true",
+        "iterations: 5",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/.poe-code/ralph/bases/plan.md": [
+        "---",
+        "agent: codex",
+        "iterations: 4",
+        "---",
+        "# Base prompt"
+      ].join("\n")
+    });
+    const runAgent = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    const result = await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: ".poe-code/ralph/plans/plan.md",
+      maxIterations: 2,
+      fs,
+      runAgent
+    });
+
+    expect(result.iterationsCompleted).toBe(2);
+    expect(runAgent).toHaveBeenCalledTimes(2);
+    expect(runAgent.mock.calls[0]?.[0].prompt).toBe("# Base prompt");
+  });
+
+  it("fills defaults when the doc and bases do not specify config", async () => {
+    const { fs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": "# Document prompt"
+    });
+    const runAgent = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    const result = await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: ".poe-code/ralph/plans/plan.md",
+      fs,
+      runAgent
+    });
+
+    expect(result.iterationsCompleted).toBe(3);
+    expect(runAgent).toHaveBeenCalledTimes(3);
+    expect(runAgent.mock.calls[0]?.[0]).toMatchObject({
+      agent: "claude-code",
+      prompt: "# Document prompt"
+    });
+  });
+
+  it("stays backward compatible when extends is not set", async () => {
+    const { fs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": "# Document prompt",
+      "/repo/.poe-code/ralph/bases/plan.md": [
+        "---",
+        "agent: codex",
+        "iterations: 9",
+        "---",
+        "# Base prompt"
+      ].join("\n")
+    });
+    const runAgent = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    const result = await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: ".poe-code/ralph/plans/plan.md",
+      fs,
+      runAgent
+    });
+
+    expect(result.iterationsCompleted).toBe(3);
+    expect(runAgent).toHaveBeenCalledTimes(3);
+    expect(runAgent.mock.calls[0]?.[0]).toMatchObject({
+      agent: "claude-code",
+      prompt: "# Document prompt"
+    });
   });
 });
 

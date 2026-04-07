@@ -4,6 +4,7 @@ export type RalphPlanStatus = "open" | "in_progress" | "completed" | "failed";
 
 export interface RalphFrontmatter {
   agent?: string | string[];
+  extends?: boolean;
   iterations?: number;
   status: {
     state: RalphPlanStatus;
@@ -52,6 +53,7 @@ export function writeFrontmatter(
 ): string {
   const serialized: RalphFrontmatter = {
     ...(data.agent !== undefined ? { agent: data.agent } : {}),
+    ...(data.extends !== undefined ? { extends: data.extends } : {}),
     ...(data.iterations !== undefined ? { iterations: data.iterations } : {}),
     status: {
       state: data.status.state,
@@ -71,7 +73,7 @@ function createDefaultFrontmatter(): RalphFrontmatter {
   };
 }
 
-function parseFrontmatterData(value: unknown): RalphFrontmatter {
+export function parseFrontmatterData(value: unknown): RalphFrontmatter {
   const defaults = createDefaultFrontmatter();
   const parsed = isRecord(value) ? value : undefined;
   const parsedStatus = isRecord(parsed?.status) ? parsed.status : undefined;
@@ -84,10 +86,12 @@ function parseFrontmatterData(value: unknown): RalphFrontmatter {
     parseNonNegativeInteger(parsed?.iteration) ??
     defaults.status.iteration;
   const agent = parseAgent(parsed?.agent);
+  const extendsValue = parseBoolean(parsed?.extends);
   const iterations = parsePositiveInteger(parsed?.iterations);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
+    ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(iterations !== undefined ? { iterations } : {}),
     status: {
       state,
@@ -162,6 +166,10 @@ function parsePositiveInteger(value: unknown): number | undefined {
   return typeof value === "number" && Number.isInteger(value) && value >= 1
     ? value
     : undefined;
+}
+
+function parseBoolean(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

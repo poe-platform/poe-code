@@ -370,8 +370,8 @@ tasks:
       - Defaults fill in when document and base don't specify
       - No extends → backward compatible
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integrate-pipeline-config

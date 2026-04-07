@@ -36,11 +36,11 @@ export interface RalphRunResult {
 }
 
 export interface RalphRunOptions {
-  agent: string | string[];
+  agent?: string | string[];
   cwd: string;
   homeDir: string;
   docPath: string;
-  maxIterations: number;
+  maxIterations?: number;
   fs?: RalphFileSystem;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   onIterationStart?: (

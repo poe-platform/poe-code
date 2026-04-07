@@ -5,7 +5,7 @@ agent:
 iterations: 50
 status:
   state: in_progress
-  iteration: 6
+  iteration: 8
 ---
 
 Run autonomously, improve the design of cli commands, start with spawn and expand. And then also double-check other commands. Systematically test and improve all commands.
@@ -22,11 +22,13 @@ Maintain todo lists in {{ current_file }}
     - Added blank line separator before `✓ tokens:` in `packages/design-system/src/acp/components.ts`
 - [x] check wrap — looks clean, no issues
 - [x] check github workflow commands — uses cmdkit design system, consistent
-- [x] skill configure/unconfigure: removed redundant `--agent` option (duplicated positional `[agent]` arg)
-  - Added `-y, --yes` to `skill configure` for consistency (logic already used `flags.assumeYes`)
-- [x] spawn: hid deprecated `--mcp-config` from help output using Commander `.hideHelp()`
-- [x] configure: added `-y, --yes` to help (matches `mcp configure` pattern, CLAUDE.md documents `configure --yes`)
-- [x] mcp-command.test.ts: fixed ANSI-aware usage string assertion (`Usage:` has bold codes)
+- [x] fix help layout overflow at the formatter level
+  - Root help now falls back to stacked command descriptions when the inline table gets too narrow.
+  - Shared subcommand help rows now wrap argument and option descriptions to terminal width.
+- [x] audit visible command help output at 80 columns
+  - Swept root and visible command help output; no lines exceed 80 columns after the formatter fix.
+- [x] re-spot-check spawn dry-run across providers
+  - Verified `--dry-run spawn` output still reads cleanly for `claude`, `codex`, `opencode`, and `kimi`.
 
 ## Constraints
 

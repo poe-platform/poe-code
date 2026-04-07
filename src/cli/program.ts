@@ -163,11 +163,50 @@ function formatCanonicalCommandUsage(cmd: Command): string {
   return usage.length > 0 ? `${commandPath} ${usage}` : commandPath;
 }
 
+function formatHelpItem(input: {
+  term: string;
+  termWidth: number;
+  description: string;
+  helper: Help;
+}): string {
+  const itemIndent = 2;
+  const spacerWidth = 2;
+  const indent = " ".repeat(itemIndent);
+
+  if (!input.description) {
+    return `${indent}${input.term}`;
+  }
+
+  const paddedTerm = input.term.padEnd(
+    input.termWidth + input.term.length - input.helper.displayWidth(input.term)
+  );
+  const remainingWidth = (input.helper.helpWidth ?? 80) - input.termWidth - spacerWidth - itemIndent;
+  const descriptionIndent = `${indent}${" ".repeat(spacerWidth)}`;
+
+  if (remainingWidth < input.helper.minWidthToWrap) {
+    const descriptionWidth = Math.max(1, (input.helper.helpWidth ?? 80) - itemIndent - spacerWidth);
+    const formattedDescription = input.helper.preformatted(input.description)
+      ? input.description
+      : input.helper.boxWrap(input.description, descriptionWidth);
+    return `${indent}${input.term}\n${descriptionIndent}${formattedDescription.replace(/\n/g, `\n${descriptionIndent}`)}`;
+  }
+
+  let formattedDescription = input.description;
+  if (!input.helper.preformatted(input.description)) {
+    formattedDescription = input.helper
+      .boxWrap(input.description, remainingWidth)
+      .replace(/\n/g, `\n${" ".repeat(input.termWidth + spacerWidth)}`);
+  }
+
+  return `${indent}${paddedTerm}${" ".repeat(spacerWidth)}${formattedDescription.replace(/\n/g, `\n${indent}`)}`;
+}
+
 function formatHelpText(input: {
   command: Command;
   heading: string;
   usageCommand: string;
   helpCommand: string;
+  helper: Help;
 }): string {
   const commandRows = buildRootHelpRows(input.command);
   const nameWidth = Math.max(
@@ -175,11 +214,17 @@ function formatHelpText(input: {
     ...commandRows.map((row) => row.name.length)
   );
   const argsWidth = Math.max(0, ...commandRows.map((row) => row.args.length));
+  const termWidth = nameWidth + 1 + argsWidth;
   const cmd = (row: (typeof commandRows)[number]) => {
     const name = text.command(row.name.padEnd(nameWidth));
     const args =
       row.args.length > 0 ? text.argument(row.args.padEnd(argsWidth)) : " ".repeat(argsWidth);
-    return `  ${name} ${args}  ${row.description}`;
+    return formatHelpItem({
+      term: `${name} ${args}`,
+      termWidth,
+      description: row.description,
+      helper: input.helper
+    });
   };
 
   return [
@@ -201,31 +246,15 @@ function formatHelpText(input: {
 
 function formatSubcommandHelp(cmd: Command, helper: Help): string {
   const termWidth = helper.padWidth(cmd, helper);
-  const itemIndentWidth = 2;
-  const itemSeparatorWidth = 2;
-  const padWidth = termWidth + itemSeparatorWidth;
-  const indent = " ".repeat(itemIndentWidth);
+  const formatItem = (term: string, description: string, style: (value: string) => string): string =>
+    formatHelpItem({
+      term: style(term),
+      termWidth,
+      description,
+      helper
+    });
 
-  const formatItem = (
-    term: string,
-    description: string,
-    style: (value: string) => string
-  ): string => {
-    const padding = " ".repeat(Math.max(0, padWidth - term.length));
-    const styledTerm = `${style(term)}${padding}`;
-    if (!description) {
-      return style(term);
-    }
-    return `${styledTerm}${description}`;
-  };
-
-  const indentBlock = (value: string): string =>
-    value
-      .split("\n")
-      .map((line) => `${indent}${line}`)
-      .join("\n");
-
-  const formatList = (items: string[]): string => items.map(indentBlock).join("\n");
+  const formatList = (items: string[]): string => items.join("\n");
 
   const output: string[] = [];
   output.push(text.heading(formatCommandHeader(cmd)), "");
@@ -349,7 +378,7 @@ function bootstrapProgram(container: CliContainer): Command {
     .configureHelp({
       formatHelp: (cmd, helper) => {
         if (cmd.name() === "poe-code") {
-          return formatHelpText({ command: cmd, heading, usageCommand, helpCommand });
+          return formatHelpText({ command: cmd, heading, usageCommand, helpCommand, helper });
         }
         return formatSubcommandHelp(cmd, helper);
       }

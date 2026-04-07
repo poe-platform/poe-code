@@ -58,6 +58,25 @@ function createAdapter(
   });
 }
 
+function setHelpWidth(program: ReturnType<typeof createProgram>, width: number): void {
+  program.configureOutput({
+    getOutHelpWidth: () => width
+  });
+
+  for (const command of program.commands) {
+    setHelpWidth(command as ReturnType<typeof createProgram>, width);
+  }
+}
+
+function maxLineLength(value: string): number {
+  return Math.max(
+    0,
+    ...stripAnsi(value)
+      .split("\n")
+      .map((line) => line.length)
+  );
+}
+
 function walkVisibleCommands(program: ReturnType<typeof createProgram>) {
   const commands: ReturnType<typeof createProgram>["commands"] = [];
 
@@ -143,6 +162,13 @@ describe("command help formatting", () => {
     expect(help).toContain(loginCommand?.description() ?? "");
   });
 
+  it("wraps root help rows to the configured terminal width", () => {
+    const program = createHelpProgram();
+    setHelpWidth(program, 80);
+
+    expect(maxLineLength(program.helpInformation())).toBeLessThanOrEqual(80);
+  });
+
   it("uses canonical command names in subcommand usage output", () => {
     const program = createHelpProgram();
     const spawnCommand = program.commands.find(
@@ -166,6 +192,15 @@ describe("command help formatting", () => {
 
     const help = stripAnsi(spawnCommand?.helpInformation() ?? "");
     expect(help).toContain("claude-code | claude");
+  });
+
+  it("wraps spawn help rows to the configured terminal width", () => {
+    const program = createHelpProgram();
+    setHelpWidth(program, 80);
+    const spawnCommand = program.commands.find((command) => command.name() === "spawn");
+    expect(spawnCommand).toBeDefined();
+
+    expect(maxLineLength(spawnCommand?.helpInformation() ?? "")).toBeLessThanOrEqual(80);
   });
 
   it("uses sentence-style descriptions for every visible command", () => {

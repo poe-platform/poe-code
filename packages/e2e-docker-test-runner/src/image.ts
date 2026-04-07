@@ -97,10 +97,17 @@ function matchesPattern(filePath: string, pattern: string, baseDir: string): boo
   return new RegExp(`^${regexPattern}$`).test(relativePath);
 }
 
+const sourceHashCache = new Map<string, string>();
+
 /**
  * Compute hash of source files for cache invalidation
  */
 export function getSourceHash(workspaceRoot: string): string {
+  const cached = sourceHashCache.get(workspaceRoot);
+  if (cached !== undefined) {
+    return cached;
+  }
+
   const patterns = [
     "package-lock.json",
     "tsconfig.json",
@@ -130,7 +137,9 @@ export function getSourceHash(workspaceRoot: string): string {
     }
   }
 
-  return hash.digest("hex").slice(0, 12);
+  const result = hash.digest("hex").slice(0, 12);
+  sourceHashCache.set(workspaceRoot, result);
+  return result;
 }
 
 /**

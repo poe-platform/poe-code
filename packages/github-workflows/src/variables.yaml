@@ -6,16 +6,18 @@ response_style: |
   - Use short Markdown sections only when they improve clarity.
 
 verify_before_responding: |
-  Before answering:
+  Before responding:
   - Inspect the checked-out repository.
   - Verify every claim against the repo before you post it.
 
 skill_github_cli: |
   Use the `gh` CLI for all GitHub operations (issues, PRs, reviews, checks).
-  Prefer `gh api` for data queries and `gh pr`/`gh issue` for mutations.
 
 pull_request_guidelines: |
-  - PR title: short, imperative, under 70 chars.
-  - One logical change per PR.
-  - Include a test plan in the PR body.
-  - Request review from CODEOWNERS.
+  - One logical change per PR. Feel free to open multiple PRs.
+  - Follow the repo guidelines
+
+code_review_guidelines: |
+  - Review every changed file, not just the diff summary.
+  - Verify the change follows existing patterns in the codebase. New abstractions need justification.
+  - Don't rubber-stamp. Request changes when there are real issues.

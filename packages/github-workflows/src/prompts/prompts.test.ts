@@ -68,7 +68,7 @@ describe("built-in prompts", () => {
     });
     expect(automation?.mcp).toBeUndefined();
 
-    expect(automation?.prompt.trimEnd()).toBe(
+    expect(automation?.prompt).toContain(
       "Fix {{dependency.package.name}} ({{security_advisory.severity}}): {{security_advisory.summary}}"
     );
   });

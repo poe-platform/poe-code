@@ -1,26 +1,13 @@
 import type { TemplateLoader } from "@poe-code/config-mutations";
-import { readFile } from "node:fs/promises";
+import poeGenerateTemplate from "./templates/poe-generate.md";
+import terminalPilotTemplate from "./templates/terminal-pilot.md";
 
-const TEMPLATE_NAMES = ["poe-generate.md", "terminal-pilot.md"] as const;
-
-let templatesCache: Record<string, string> | null = null;
-
-async function getTemplates(): Promise<Record<string, string>> {
-  if (templatesCache) {
-    return templatesCache;
-  }
-  const entries = await Promise.all(
-    TEMPLATE_NAMES.map(async (name) => {
-      const url = new URL(`./templates/${name}`, import.meta.url);
-      return [name, await readFile(url, "utf8")] as const;
-    })
-  );
-  templatesCache = Object.fromEntries(entries);
-  return templatesCache;
-}
+const templates: Record<string, string> = {
+  "poe-generate.md": poeGenerateTemplate,
+  "terminal-pilot.md": terminalPilotTemplate,
+};
 
 export async function loadTemplate(templateId: string): Promise<string> {
-  const templates = await getTemplates();
   const template = templates[templateId];
   if (!template) {
     throw new Error(`Template not found: ${templateId}`);

@@ -1,0 +1,27 @@
+{
+  "name": "@poe-code/plan-browser",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/design-system": "*",
+    "@poe-code/experiment-loop": "*",
+    "@poe-code/pipeline": "*",
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/ralph": "*"
+  }
+}

@@ -108,6 +108,7 @@
     "@poe-code/e2e-docker-test-runner": "*",
     "@poe-code/experiment-loop": "*",
     "@poe-code/github-workflows": "*",
+    "@poe-code/plan-browser": "*",
     "@poe-code/pipeline": "*",
     "@poe-code/poe-acp-client": "*",
     "@poe-code/poe-agent": "*",

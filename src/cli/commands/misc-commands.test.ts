@@ -567,6 +567,7 @@ describe("root command", () => {
     expect(plainOutput).toContain("agent");
     expect(plainOutput).toContain("Run a one-shot Poe agent prompt");
     expect(plainOutput).toContain("pipeline");
+    expect(plainOutput).toContain("plan");
     expect(plainOutput).toContain("ralph");
     expect(plainOutput).toContain("experiment");
     expect(plainOutput).toContain("github-workflows, gh");

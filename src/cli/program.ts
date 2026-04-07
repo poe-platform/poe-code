@@ -23,6 +23,7 @@ import { registerVersionOption } from "./commands/version.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerModelsCommand } from "./commands/models.js";
 import { registerPipelineCommand } from "./commands/pipeline.js";
+import { registerPlanCommand } from "./commands/plan.js";
 import { registerRalphCommand } from "./commands/ralph.js";
 import { registerExperimentCommand } from "./commands/experiment.js";
 import { registerLaunchCommand } from "./commands/launch.js";
@@ -75,6 +76,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["pipeline", "install"] },
   { path: ["pipeline", "run"] },
   { path: ["pipeline", "validate"] },
+  { path: ["plan"] },
   { path: ["experiment", "install"] },
   { path: ["experiment", "run"] },
   { path: ["experiment", "journal"] },
@@ -402,6 +404,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerMcpCommand(program, container);
   registerSkillCommand(program, container);
   registerPipelineCommand(program, container);
+  registerPlanCommand(program, container);
   registerRalphCommand(program, container);
   registerExperimentCommand(program, container);
   registerLaunchCommand(program, container);

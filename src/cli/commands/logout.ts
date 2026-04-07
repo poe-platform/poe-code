@@ -7,7 +7,7 @@ import { executeUnconfigure } from "./unconfigure.js";
 export function registerLogoutCommand(program: Command, container: CliContainer): void {
   program
     .command("logout")
-    .description("Remove all Poe API configuration.")
+    .description("Remove all configuration and credentials.")
     .action(async () => {
       await executeLogout(program, container);
     });

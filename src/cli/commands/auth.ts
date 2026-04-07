@@ -36,7 +36,7 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
 
   auth
     .command("login")
-    .description("Store a Poe API key.")
+    .description("Store a Poe API key for reuse across commands.")
     .option("--api-key <key>", "Poe API key")
     .action(async (options: LoginCommandOptions) => {
       await executeLogin(program, container, options);

@@ -223,7 +223,7 @@ export function registerPipelineCommand(
 
   pipeline
     .command("run")
-    .description("Run the selected pipeline plan until completion, failure, cancellation, or cap.")
+    .description("Run the selected pipeline plan until completion, failure, cancellation, or max runs.")
     .option("--agent <name>", "Agent to run each pipeline step with")
     .option("--model <model>", "Model override passed to the agent")
     .option("--task <id>", "Run only the specified task")

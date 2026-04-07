@@ -11,14 +11,8 @@ prefix:
 ---
 Read {{url}} and leave a visible GitHub response to the comment from {{comment.author}}: {{comment.body}}
 
-{{#pr.number}}
-- This comment is on pull request #{{pr.number}}.
-- If the comment asks for code changes, implement them on the current PR branch, update the existing PR, and comment with the result.
-- Do not open a new PR unless updating the existing PR is impossible.
-{{/pr.number}}
-{{^pr.number}}
 - If the comment asks for code changes, open or update a PR and comment with the result.
-{{/pr.number}}
+- Before starting new work, check for existing open PRs by the agent that relate to this issue. If any exist and need updating based on the new instructions, update them instead of opening a new PR.
 - If blocked, comment with the blocker and next step.
 
 {{skill_github_cli}}

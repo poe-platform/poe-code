@@ -764,7 +764,7 @@ describe("runCLI", () => {
     });
   });
 
-  it("auto-switches output to json when stdout is not a TTY", async () => {
+  it("keeps rich output as the default when stdout is not a TTY", async () => {
     const renderRich = vi.fn();
     const renderJson = vi.fn((result: unknown) => result);
 
@@ -792,8 +792,7 @@ describe("runCLI", () => {
 
     await runCLI(root);
 
-    expect(renderRich).not.toHaveBeenCalled();
-    expect(renderJson).toHaveBeenCalledWith(
+    expect(renderRich).toHaveBeenCalledWith(
       {
         ok: true,
       },
@@ -803,7 +802,8 @@ describe("runCLI", () => {
         getTheme: expect.any(Function),
       })
     );
-    expect(stdoutWrite).toHaveBeenCalledWith('{\n  "ok": true\n}\n');
+    expect(renderJson).not.toHaveBeenCalled();
+    expect(stdoutWrite).not.toHaveBeenCalled();
   });
 
   it("reports validation errors when prompts are skipped and required params are missing", async () => {

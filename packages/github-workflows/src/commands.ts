@@ -202,7 +202,7 @@ const installCommand = defineCommand({
   handler: async ({ params }) => {
     const name = params.name;
     const isEject = params.eject === true;
-    const variant = "ejected";
+    const variant = isEject ? "ejected" : "caller";
     const cwd = resolveCwd();
     const localAutomationName = isEject ? `poe-code-${name}` : name;
     const promptPath = isEject ? path.join(projectWorkflowDir(cwd), `${localAutomationName}.md`) : undefined;

@@ -583,9 +583,9 @@ describe("ghGroup", () => {
     expect(logger.message).toHaveBeenCalledWith("automation table");
   });
 
-  it("installs a standalone workflow that uses the published CLI without copying a prompt file", async () => {
+  it("installs a caller workflow without copying a prompt file", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
-    seedWorkflowTemplate("github-issue-opened", "ejected");
+    seedWorkflowTemplate("github-issue-opened", "caller");
 
     const installCommand = getCommand(["install"]);
 
@@ -597,13 +597,10 @@ describe("ghGroup", () => {
 
     expect(vol.existsSync("/repo/.github/workflows/poe-code-github-issue-opened.md")).toBe(false);
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toContain(
-      "npm install -g poe-code@latest"
-    );
-    expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toContain(
-      "poe-code github-workflows prepare github-issue-opened"
+      "uses: poe-platform/poe-code/.github/workflows/gh-github-issue-opened.yml@main"
     );
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).not.toContain(
-      "uses: poe-platform/poe-code/.github/workflows/"
+      "npm install -g poe-code@latest"
     );
     expect(result).toMatchObject({
       name: "github-issue-opened",
@@ -615,7 +612,7 @@ describe("ghGroup", () => {
 
   it("shows the default prompt in a note and suggests eject for customization", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
-    seedWorkflowTemplate("github-issue-opened", "ejected");
+    seedWorkflowTemplate("github-issue-opened", "caller");
 
     const installCommand = getCommand(["install"]);
     const result = await installCommand.handler(createContext({ name: "github-issue-opened" }));
@@ -647,7 +644,7 @@ describe("ghGroup", () => {
 
   it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {
     writeBuiltInPrompt("github-pull-request-opened", "# Prompt");
-    seedWorkflowTemplate("github-pull-request-opened", "ejected");
+    seedWorkflowTemplate("github-pull-request-opened", "caller");
 
     const installCommand = getCommand(["install"]);
 
@@ -662,9 +659,9 @@ describe("ghGroup", () => {
     expect(workflow).not.toContain("workflow_dispatch:");
   });
 
-  it("installs the issue comment workflow with standalone guard and prepare steps", async () => {
+  it("installs the issue comment workflow as a caller workflow", async () => {
     writeBuiltInPrompt("github-issue-comment-created", "# Prompt");
-    seedWorkflowTemplate("github-issue-comment-created", "ejected");
+    seedWorkflowTemplate("github-issue-comment-created", "caller");
 
     const installCommand = getCommand(["install"]);
 
@@ -677,10 +674,10 @@ describe("ghGroup", () => {
     const workflow = readRepoFile("/repo/.github/workflows/poe-code-github-issue-comment-created.yml");
     expect(workflow).toContain("issue_comment:");
     expect(workflow).toContain(
-      "poe-code github-workflows require-user-allow github-issue-comment-created"
+      "uses: poe-platform/poe-code/.github/workflows/gh-github-issue-comment-created.yml@main"
     );
     expect(workflow).toContain(
-      "poe-code github-workflows prepare github-issue-comment-created"
+      "COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}"
     );
     expect(workflow).not.toContain("workflow_call:");
   });

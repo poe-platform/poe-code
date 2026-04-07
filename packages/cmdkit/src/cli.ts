@@ -506,7 +506,7 @@ function resolveHelpOutput(argv: string[]): OutputMode {
     }
   }
 
-  return process.stdout.isTTY ? "rich" : "json";
+  return "rich";
 }
 
 function isNodeVisibleInScope<TServices extends object>(
@@ -980,7 +980,7 @@ function resolveOutput(globalFlags: GlobalFlags): OutputMode {
     return globalFlags.output;
   }
 
-  return process.stdout.isTTY ? "rich" : "json";
+  return "rich";
 }
 
 function toDesignSystemOutput(output: OutputMode): "terminal" | "markdown" | "json" {

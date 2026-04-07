@@ -24,7 +24,8 @@ poe-code gh install <name>
 
 This creates:
 - `.github/workflows/poe-code-<name>.yml` — the GitHub Actions workflow
-- `.poe-code/github-workflows/poe-code-<name>.md` — the prompt file (customize this)
+
+This does not copy a local prompt file. The default install stays thin and references the built-in automation.
 
 ### 3. Push to GitHub
 
@@ -58,20 +59,24 @@ poe-code gh list
 # Default — thin caller workflow that references upstream
 poe-code gh install <name>
 
-# Ejected — full workflow definition copied into your repo
+# Ejected — full workflow definition copied into your repo, plus a prompt file next to the workflow YAML
 poe-code gh install <name> --eject
 
 # Uninstall
 poe-code gh uninstall <name>
 ```
 
-Use `--eject` when you need to modify the workflow YAML itself. The prompt file (`.poe-code/github-workflows/`) can be customized in both modes.
+Use `--eject` when you need a local prompt copy or need to modify the workflow YAML itself.
+
+With `--eject`, poe-code writes:
+- `.github/workflows/poe-code-<name>.yml`
+- `.github/workflows/poe-code-<name>.md`
 
 ---
 
 ## Prompt Frontmatter Options
 
-Each automation's prompt file supports the following frontmatter:
+The copied prompt file created by `--eject` supports the following frontmatter:
 
 ```yaml
 ---

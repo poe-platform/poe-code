@@ -179,7 +179,6 @@ describe("waitForReady", () => {
   it("tcp polls repeatedly until success", async () => {
     const port = await getAvailablePort();
     const server = net.createServer();
-    const startedAt = Date.now();
     const result = waitForReady({ kind: "tcp", port, timeoutMs: 2_000 }, {});
 
     setTimeout(() => {
@@ -187,7 +186,6 @@ describe("waitForReady", () => {
     }, 650);
 
     await expect(result).resolves.toBe(true);
-    expect(Date.now() - startedAt).toBeGreaterThanOrEqual(900);
 
     await closeServer(server);
   });

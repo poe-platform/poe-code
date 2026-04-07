@@ -2382,11 +2382,13 @@ describe("HttpServer integration", () => {
         expect(postMethods).toContain("notifications/initialized");
       });
 
-      expect(
-        pair.requests.some(
-          (request) => request.method === "GET" && request.sessionId !== null
-        )
-      ).toBe(true);
+      await vi.waitFor(() => {
+        expect(
+          pair.requests.some(
+            (request) => request.method === "GET" && request.sessionId !== null
+          )
+        ).toBe(true);
+      });
     });
 
     it("I10 lists tools with tiny-mcp-client", async () => {

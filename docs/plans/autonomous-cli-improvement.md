@@ -5,7 +5,7 @@ agent:
 iterations: 50
 status:
   state: in_progress
-  iteration: 2
+  iteration: 4
 ---
 
 Run autonomously, improve the design of cli commands, start with spawn and expand. And then also double-check other commands. Systematically test and improve all commands.
@@ -28,6 +28,16 @@ Maintain todo lists in {{ current_file }}
 - [x] reduce `mcp --help` verbosity — tool docs moved to `mcp serve --help` only
   - `mcp --help`: concise with config section only
   - `mcp serve --help`: config + Available Tools (tools are relevant when setting up the serve command)
+- [x] align root and subcommand help with live command metadata
+  - [x] root help command rows now derive names, aliases, args, and descriptions from registered commands
+  - [x] subcommand usage lines now use canonical command paths instead of Commander alias pipes like `spawn|s`
+- [x] expand agent alias visibility beyond spawn
+  - [x] shared service lists now include accepted aliases from the registry
+  - [x] verified in `spawn`, `wrap`, `configure`, and `install` help output
+- [x] rerun focused command verification
+  - [x] `npx vitest run src/cli/ui/help-format.test.ts src/cli/commands/root-command.test.ts src/cli/commands/spawn-command.test.ts src/cli/isolated-services.test.ts src/cli/commands/configure-command.test.ts src/cli/commands/install-command.test.ts src/cli/commands/unconfigure-command.test.ts src/cli/commands/test-command.test.ts src/cli/commands/test-command-isolated.test.ts`
+  - [x] `npm run lint:types`
+  - [x] screenshot audit: `--help`, `spawn --help`, `wrap --help`, `configure --help`, `install --help`
 
 ## Constraints
 

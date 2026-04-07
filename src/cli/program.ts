@@ -50,188 +50,133 @@ function formatCommandHeader(cmd: Command): string {
   return `Poe - ${parts.reverse().join(" ")}`;
 }
 
+interface RootHelpCommandSpec {
+  path: readonly string[];
+  args?: string;
+}
+
+const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
+  { path: ["install"] },
+  { path: ["configure"] },
+  { path: ["unconfigure"] },
+  { path: ["login"] },
+  { path: ["logout"] },
+  { path: ["auth", "status"] },
+  { path: ["agent"] },
+  { path: ["spawn"] },
+  { path: ["wrap"] },
+  { path: ["generate"] },
+  { path: ["models"] },
+  { path: ["mcp", "configure"] },
+  { path: ["mcp", "unconfigure"] },
+  { path: ["experiment", "install"] },
+  { path: ["skill", "configure"] },
+  { path: ["skill", "unconfigure"] },
+  { path: ["pipeline", "install"] },
+  { path: ["pipeline", "run"] },
+  { path: ["ralph", "init"] },
+  { path: ["ralph", "run"] },
+  { path: ["experiment", "run"] },
+  { path: ["experiment", "journal"] },
+  { path: ["launch"] },
+  { path: ["github-workflows"], args: "[automation]" },
+  { path: ["usage"] },
+  { path: ["usage", "list"] },
+  { path: ["utils", "config"] }
+] as const;
+
+function findCommandByPath(root: Command, path: readonly string[]): Command {
+  let current = root;
+
+  for (const segment of path) {
+    const next = current.commands.find(
+      (command) => Reflect.get(command, "_hidden") !== true && command.name() === segment
+    );
+    if (!next) {
+      throw new Error(`Root help command is missing: ${path.join(" ")}`);
+    }
+    current = next;
+  }
+
+  return current;
+}
+
+function formatRootHelpCommandName(path: readonly string[], command: Command): string {
+  const leaf = [command.name(), ...command.aliases()].join(", ");
+  return path.length > 1 ? [...path.slice(0, -1), leaf].join(" ") : leaf;
+}
+
+function formatRootHelpCommandArgs(command: Command): string {
+  const parts = command
+    .usage()
+    .split(" ")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  const filtered: string[] = [];
+
+  for (const part of parts) {
+    if (part === "[options]" || part === "[command]") {
+      continue;
+    }
+    filtered.push(part);
+  }
+
+  return filtered.join(" ");
+}
+
+function buildRootHelpRows(root: Command): Array<{
+  name: string;
+  args: string;
+  description: string;
+}> {
+  return ROOT_HELP_COMMAND_SPECS.map((spec) => {
+    const command = findCommandByPath(root, spec.path);
+    return {
+      name: formatRootHelpCommandName(spec.path, command),
+      args: spec.args ?? formatRootHelpCommandArgs(command),
+      description: command.description()
+    };
+  });
+}
+
+function formatCanonicalCommandPath(cmd: Command): string {
+  const parts: string[] = [];
+  let current: Command | null = cmd;
+
+  while (current) {
+    const name = current.name();
+    if (name.length > 0) {
+      parts.push(name);
+    }
+    if (name === "poe-code") {
+      break;
+    }
+    current = current.parent ?? null;
+  }
+
+  return parts.reverse().join(" ");
+}
+
+function formatCanonicalCommandUsage(cmd: Command): string {
+  const usage = cmd.usage().trim();
+  const commandPath = formatCanonicalCommandPath(cmd);
+  return usage.length > 0 ? `${commandPath} ${usage}` : commandPath;
+}
+
 function formatHelpText(input: {
+  command: Command;
   heading: string;
   usageCommand: string;
   helpCommand: string;
 }): string {
-  const commandRows: Array<{
-    name: string;
-    aliases: string[];
-    args: string;
-    description: string;
-  }> = [
-    {
-      name: "install",
-      aliases: ["i"],
-      args: "[agent]",
-      description: "Install agent binary for a configured agent"
-    },
-    {
-      name: "configure",
-      aliases: ["c"],
-      args: "[agent]",
-      description: "Configure a coding agent"
-    },
-    {
-      name: "unconfigure",
-      aliases: ["uc"],
-      args: "<agent>",
-      description: "Remove a previously applied configuration"
-    },
-    {
-      name: "login",
-      aliases: [],
-      args: "",
-      description: "Store a Poe API key"
-    },
-    {
-      name: "logout",
-      aliases: [],
-      args: "",
-      description: "Remove all configuration"
-    },
-    {
-      name: "auth status",
-      aliases: [],
-      args: "",
-      description: "Show login status"
-    },
-    {
-      name: "agent",
-      aliases: [],
-      args: "<prompt>",
-      description: "Run a one-shot Poe agent prompt"
-    },
-    {
-      name: "spawn",
-      aliases: ["s"],
-      args: "<agent> [prompt]",
-      description: "Launch a coding agent"
-    },
-    {
-      name: "wrap",
-      aliases: ["w"],
-      args: "<agent> [agentArgs...]",
-      description: "Run an agent with Poe isolated configuration"
-    },
-    {
-      name: "generate",
-      aliases: ["g"],
-      args: "[type]",
-      description: "Call Poe models via CLI (text/image/video/audio)"
-    },
-    {
-      name: "models",
-      aliases: ["m"],
-      args: "",
-      description: "List available Poe API models"
-    },
-    {
-      name: "mcp configure",
-      aliases: [],
-      args: "[agent]",
-      description: "Configure Poe MCP for your coding agent"
-    },
-    {
-      name: "mcp unconfigure",
-      aliases: [],
-      args: "<agent>",
-      description: "Remove Poe MCP configuration from your agent"
-    },
-    {
-      name: "experiment install",
-      aliases: [],
-      args: "[agent]",
-      description: "Install the experiment skill into agent configuration"
-    },
-    {
-      name: "skill configure",
-      aliases: [],
-      args: "[agent]",
-      description: "Configure agent skills to call Poe models"
-    },
-    {
-      name: "skill unconfigure",
-      aliases: [],
-      args: "[agent]",
-      description: "Remove agent skills configuration"
-    },
-    {
-      name: "pipeline install",
-      aliases: [],
-      args: "[agent]",
-      description: "Install pipeline skill into agent configuration"
-    },
-    {
-      name: "pipeline run",
-      aliases: [],
-      args: "",
-      description: "Run a fixed-step task pipeline plan"
-    },
-    {
-      name: "ralph init",
-      aliases: [],
-      args: "[doc]",
-      description: "Write Ralph config into a markdown doc frontmatter"
-    },
-    {
-      name: "ralph run",
-      aliases: [],
-      args: "[doc]",
-      description: "Run a markdown doc through repeated agent iterations"
-    },
-    {
-      name: "experiment run",
-      aliases: [],
-      args: "[doc]",
-      description: "Run an experiment doc through the autonomous experiment loop"
-    },
-    {
-      name: "experiment journal",
-      aliases: [],
-      args: "[doc]",
-      description: "Display an experiment journal as a formatted table"
-    },
-    {
-      name: "launch",
-      aliases: [],
-      args: "",
-      description: "Manage long-running host and Docker processes"
-    },
-    {
-      name: "github-workflows",
-      aliases: ["gh"],
-      args: "[automation]",
-      description: "GitHub workflow automations"
-    },
-    {
-      name: "usage",
-      aliases: ["u"],
-      args: "",
-      description: "Display current Poe compute points balance"
-    },
-    {
-      name: "usage list",
-      aliases: [],
-      args: "",
-      description: "Display usage history"
-    },
-    {
-      name: "utils config",
-      aliases: [],
-      args: "",
-      description: "Show config file paths and usage hints"
-    }
-  ];
+  const commandRows = buildRootHelpRows(input.command);
   const nameWidth = Math.max(
     0,
-    ...commandRows.map((row) => [row.name, ...row.aliases].join(", ").length)
+    ...commandRows.map((row) => row.name.length)
   );
   const argsWidth = Math.max(0, ...commandRows.map((row) => row.args.length));
   const cmd = (row: (typeof commandRows)[number]) => {
-    const displayName = [row.name, ...row.aliases].join(", ");
-    const name = text.command(displayName.padEnd(nameWidth));
+    const name = text.command(row.name.padEnd(nameWidth));
     const args =
       row.args.length > 0 ? text.argument(row.args.padEnd(argsWidth)) : " ".repeat(argsWidth);
     return `  ${name} ${args}  ${row.description}`;
@@ -284,7 +229,7 @@ function formatSubcommandHelp(cmd: Command, helper: Help): string {
 
   const output: string[] = [];
   output.push(text.heading(formatCommandHeader(cmd)), "");
-  output.push(`${text.section("Usage:")} ${text.usageCommand(helper.commandUsage(cmd))}`, "");
+  output.push(`${text.section("Usage:")} ${text.usageCommand(formatCanonicalCommandUsage(cmd))}`, "");
 
   const commandDescription = helper.commandDescription(cmd);
   if (commandDescription.length > 0) {
@@ -404,7 +349,7 @@ function bootstrapProgram(container: CliContainer): Command {
     .configureHelp({
       formatHelp: (cmd, helper) => {
         if (cmd.name() === "poe-code") {
-          return formatHelpText({ heading, usageCommand, helpCommand });
+          return formatHelpText({ command: cmd, heading, usageCommand, helpCommand });
         }
         return formatSubcommandHelp(cmd, helper);
       }

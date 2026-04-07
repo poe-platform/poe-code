@@ -5,7 +5,8 @@ import {
   createExecutionResources,
   resolveCommandFlags,
   resolveServiceAdapter,
-  formatServiceList
+  formatServiceList,
+  listServiceNames
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
 
@@ -15,10 +16,9 @@ export function registerInstallCommand(
 ): Command {
   const serviceNames = container.registry
     .list()
-    .filter((service) => typeof service.install === "function")
-    .map((service) => service.name);
+    .filter((service) => typeof service.install === "function");
   const serviceDescription =
-    `Agent to install${formatServiceList(serviceNames)}`;
+    `Agent to install${formatServiceList(listServiceNames(serviceNames))}`;
   return program
     .command("install")
     .alias("i")

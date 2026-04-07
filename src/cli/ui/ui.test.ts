@@ -124,8 +124,48 @@ describe("command help formatting", () => {
 
     const help = stripAnsi(wrapCommand?.helpInformation() ?? "");
     expect(help).toContain("claude-code");
+    expect(help).toContain("claude-code | claude");
     expect(help).toContain("codex");
     expect(help).toContain("opencode");
+  });
+
+  it("uses live command descriptions in root help output", () => {
+    const program = createHelpProgram();
+    const configureCommand = program.commands.find(
+      (command) => command.name() === "configure"
+    );
+    const loginCommand = program.commands.find((command) => command.name() === "login");
+
+    const help = stripAnsi(program.helpInformation());
+    expect(configureCommand).toBeDefined();
+    expect(loginCommand).toBeDefined();
+    expect(help).toContain(configureCommand?.description() ?? "");
+    expect(help).toContain(loginCommand?.description() ?? "");
+  });
+
+  it("uses canonical command names in subcommand usage output", () => {
+    const program = createHelpProgram();
+    const spawnCommand = program.commands.find(
+      (command) => command.name() === "spawn"
+    );
+    expect(spawnCommand).toBeDefined();
+
+    const help = stripAnsi(spawnCommand?.helpInformation() ?? "");
+    expect(help).toContain(
+      "Usage: poe-code spawn [options] <agent> [prompt] [agentArgs...]"
+    );
+    expect(help).not.toContain("spawn|s");
+  });
+
+  it("lists accepted agent aliases in spawn help output", () => {
+    const program = createHelpProgram();
+    const spawnCommand = program.commands.find(
+      (command) => command.name() === "spawn"
+    );
+    expect(spawnCommand).toBeDefined();
+
+    const help = stripAnsi(spawnCommand?.helpInformation() ?? "");
+    expect(help).toContain("claude-code | claude");
   });
 
   it("uses sentence-style descriptions for every visible command", () => {

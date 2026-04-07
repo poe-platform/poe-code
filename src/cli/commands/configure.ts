@@ -4,6 +4,7 @@ import {
   buildProviderContext,
   createExecutionResources,
   formatServiceList,
+  listServiceNames,
   resolveCommandFlags,
   resolveServiceAdapter,
   applyIsolatedConfiguration
@@ -27,7 +28,7 @@ export interface ConfigureCommandOptions {
 }
 
 export function registerConfigureCommand(program: Command, container: CliContainer): Command {
-  const serviceNames = container.registry.list().map((service) => service.name);
+  const serviceNames = listServiceNames(container.registry.list());
   const serviceDescription = `Agent to configure${formatServiceList(serviceNames)}`;
   const configureCommand = program
     .command("configure")

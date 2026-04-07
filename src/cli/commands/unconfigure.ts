@@ -9,7 +9,8 @@ import {
   createExecutionResources,
   resolveCommandFlags,
   resolveServiceAdapter,
-  formatServiceList
+  formatServiceList,
+  listServiceNames
 } from "./shared.js";
 
 export interface UnconfigureCommandOptions {
@@ -17,7 +18,7 @@ export interface UnconfigureCommandOptions {
 }
 
 export function registerUnconfigureCommand(program: Command, container: CliContainer): Command {
-  const serviceNames = container.registry.list().map((service) => service.name);
+  const serviceNames = listServiceNames(container.registry.list());
   const serviceDescription = `Agent to unconfigure${formatServiceList(serviceNames)}`;
   return program
     .command("unconfigure")

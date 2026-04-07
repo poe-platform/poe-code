@@ -89,10 +89,34 @@ function createCheckRunner(
 }
 
 export function listIsolatedServiceIds(container: CliContainer): string[] {
-  return container.registry
-    .list()
-    .filter((provider) => Boolean(provider.isolatedEnv))
-    .map((provider) => provider.name);
+  return listServiceNames(
+    container.registry
+      .list()
+      .filter((provider) => Boolean(provider.isolatedEnv))
+  );
+}
+
+export function listServiceNames(
+  services: Array<{ name: string; aliases?: string[] }>
+): string[] {
+  const names: string[] = [];
+
+  const add = (value: string | undefined): void => {
+    const normalized = value?.trim();
+    if (!normalized || names.includes(normalized)) {
+      return;
+    }
+    names.push(normalized);
+  };
+
+  for (const service of services) {
+    add(service.name);
+    for (const alias of service.aliases ?? []) {
+      add(alias);
+    }
+  }
+
+  return names;
 }
 
 export function resolveServiceAdapter(

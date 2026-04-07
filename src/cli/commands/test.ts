@@ -5,7 +5,8 @@ import {
   createExecutionResources,
   resolveCommandFlags,
   resolveServiceAdapter,
-  formatServiceList
+  formatServiceList,
+  listServiceNames
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
 import { resolveIsolatedEnvDetails } from "../isolated-env.js";
@@ -20,10 +21,9 @@ export function registerTestCommand(
 ): Command {
   const serviceNames = container.registry
     .list()
-    .filter((service) => typeof service.test === "function")
-    .map((service) => service.name);
+    .filter((service) => typeof service.test === "function");
   const serviceDescription =
-    `Agent to test${formatServiceList(serviceNames)}`;
+    `Agent to test${formatServiceList(listServiceNames(serviceNames))}`;
   return program
     .command("test")
     .description("Run agent health checks.")

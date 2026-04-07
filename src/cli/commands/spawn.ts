@@ -50,10 +50,9 @@ export function registerSpawnCommand(
 ): void {
   const spawnServices = container.registry
     .list()
-    .filter((service) => typeof service.spawn === "function" || getSpawnConfig(service.name))
-    .map((service) => service.name);
+    .filter((service) => typeof service.spawn === "function" || getSpawnConfig(service.name));
   const extraServices = options.extraServices ?? [];
-  const serviceList = [...spawnServices, ...extraServices];
+  const serviceList = listSpawnServiceNames(spawnServices, extraServices);
   const serviceDescription = `Agent to spawn${formatServiceList(serviceList)}`;
 
   program
@@ -329,6 +328,34 @@ export function registerSpawnCommand(
         await workspace.cleanup?.();
       }
     });
+}
+
+function listSpawnServiceNames(
+  services: Array<{ name: string; aliases?: string[] }>,
+  extraServices: string[]
+): string[] {
+  const names: string[] = [];
+
+  const add = (value: string | undefined): void => {
+    const normalized = value?.trim();
+    if (!normalized || names.includes(normalized)) {
+      return;
+    }
+    names.push(normalized);
+  };
+
+  for (const service of services) {
+    add(service.name);
+    for (const alias of service.aliases ?? []) {
+      add(alias);
+    }
+  }
+
+  for (const service of extraServices) {
+    add(service);
+  }
+
+  return names;
 }
 
 async function confirmUnconfiguredService(

@@ -86,9 +86,7 @@ function createCommandRunnerStub(
   return { runner, calls };
 }
 
-function createContainerWithDependencies(
-  overrides: Partial<CliDependencies> = {}
-): {
+function createContainerWithDependencies(overrides: Partial<CliDependencies> = {}): {
   container: ReturnType<typeof createCliContainer>;
   logs: string[];
   commandCalls: CommandCall[];
@@ -100,9 +98,11 @@ function createContainerWithDependencies(
     prompts: overrides.prompts ?? vi.fn().mockResolvedValue({}),
     env: overrides.env ?? { cwd, homeDir },
     commandRunner: overrides.commandRunner ?? runner,
-    logger: overrides.logger ?? ((message) => {
-      logs.push(message);
-    })
+    logger:
+      overrides.logger ??
+      ((message) => {
+        logs.push(message);
+      })
   });
   return { container, logs, commandCalls: calls };
 }
@@ -190,21 +190,13 @@ describe("spawn command", () => {
     vi.useFakeTimers();
 
     const chunks: string[] = [];
-    const spy = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(((chunk: unknown) => {
-        chunks.push(String(chunk));
-        return true;
-      }) as unknown as typeof process.stdout.write);
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+      chunks.push(String(chunk));
+      return true;
+    }) as unknown as typeof process.stdout.write);
 
     try {
-      const parsePromise = program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "claude",
-        "hello"
-      ]);
+      const parsePromise = program.parseAsync(["node", "cli", "spawn", "claude", "hello"]);
       await vi.runAllTimersAsync();
       await parsePromise;
     } finally {
@@ -222,11 +214,7 @@ describe("spawn command", () => {
     });
 
     const plainChunks = chunks.map((chunk) => stripAnsi(chunk));
-    expect(plainChunks).toEqual([
-      "  → exec: npm test\n",
-      "  ✓ exec\n",
-      "✓ agent: Hi\n"
-    ]);
+    expect(plainChunks).toEqual(["  → exec: npm test\n", "  ✓ exec\n", "✓ agent: Hi\n"]);
     expect(logs.length).toBeGreaterThan(0);
   });
 
@@ -247,21 +235,13 @@ describe("spawn command", () => {
     });
 
     const chunks: string[] = [];
-    const spy = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(((chunk: unknown) => {
-        chunks.push(String(chunk));
-        return true;
-      }) as unknown as typeof process.stdout.write);
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+      chunks.push(String(chunk));
+      return true;
+    }) as unknown as typeof process.stdout.write);
 
     try {
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "codex",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "codex", "hello"]);
     } finally {
       spy.mockRestore();
     }
@@ -301,12 +281,10 @@ describe("spawn command", () => {
     });
 
     const chunks: string[] = [];
-    const spy = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(((chunk: unknown) => {
-        chunks.push(String(chunk));
-        return true;
-      }) as unknown as typeof process.stdout.write);
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+      chunks.push(String(chunk));
+      return true;
+    }) as unknown as typeof process.stdout.write);
 
     try {
       await program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"]);
@@ -366,19 +344,23 @@ describe("spawn command", () => {
     });
 
     const chunks: string[] = [];
-    const spy = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(((chunk: unknown) => {
-        chunks.push(String(chunk));
-        return true;
-      }) as unknown as typeof process.stdout.write);
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+      chunks.push(String(chunk));
+      return true;
+    }) as unknown as typeof process.stdout.write);
 
     try {
       await expect(
         program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"])
       ).resolves.toBe(program);
 
-      expect(chunks.join("").trim().split("\n").map((line) => JSON.parse(line))).toEqual([
+      expect(
+        chunks
+          .join("")
+          .trim()
+          .split("\n")
+          .map((line) => JSON.parse(line))
+      ).toEqual([
         {
           event: "spawn_result",
           exitCode: 23,
@@ -445,13 +427,7 @@ describe("spawn command", () => {
     });
 
     await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "claude-code",
-        "Explain the change"
-      ])
+      program.parseAsync(["node", "cli", "spawn", "claude-code", "Explain the change"])
     ).rejects.toThrow(/spawn failed/i);
   });
 
@@ -477,9 +453,7 @@ describe("spawn command", () => {
 
     expect(calls).toHaveLength(0);
     expect(sdkSpawn).not.toHaveBeenCalled();
-    const dryRunLog = logs.find((line) =>
-      line.includes("Dry run: would spawn Claude Code.")
-    );
+    const dryRunLog = logs.find((line) => line.includes("Dry run: would spawn Claude Code."));
     expect(dryRunLog).toBeTruthy();
     expect(dryRunLog).toContain("Prompt:");
   });
@@ -602,13 +576,7 @@ describe("spawn command", () => {
       logger: () => {}
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "spawn",
-      "codex",
-      "List files"
-    ]);
+    await program.parseAsync(["node", "cli", "spawn", "codex", "List files"]);
 
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "List files",
@@ -708,15 +676,7 @@ describe("spawn command", () => {
     });
 
     await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--mcp-servers",
-        "{nope",
-        "codex",
-        "hello"
-      ])
+      program.parseAsync(["node", "cli", "spawn", "--mcp-servers", "{nope", "codex", "hello"])
     ).rejects.toThrow("--mcp-servers");
 
     expect(sdkSpawn).not.toHaveBeenCalled();
@@ -748,9 +708,7 @@ describe("spawn command", () => {
         "kimi",
         "hello"
       ])
-    ).rejects.toThrow(
-      "does not support MCP servers at spawn time."
-    );
+    ).rejects.toThrow("does not support MCP servers at spawn time.");
 
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
@@ -916,16 +874,7 @@ describe("spawn command", () => {
       .mockReturnValue(stdinStream as NodeJS.ReadStream);
 
     try {
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--stdin",
-        "codex",
-        "--",
-        "--foo",
-        "bar"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "--stdin", "codex", "--", "--foo", "bar"]);
     } finally {
       stdinSpy.mockRestore();
     }
@@ -964,18 +913,10 @@ describe("spawn command", () => {
         logger: (message) => logs.push(message)
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "codex",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "codex", "hello"]);
 
       const plainLog = stripAnsi(logs.join("\n"));
-      expect(plainLog).toContain(
-        "Resume: codex resume -C /projects/demo thread_abc123"
-      );
+      expect(plainLog).toContain("Resume: codex resume -C /projects/demo thread_abc123");
     } finally {
       processCwdSpy.mockRestore();
     }
@@ -1013,9 +954,7 @@ describe("spawn command", () => {
     ]);
 
     const plainLog = stripAnsi(logs.join("\n"));
-    expect(plainLog).toContain(
-      "Resume: codex resume -C '/projects/demo repo' thread_abc123"
-    );
+    expect(plainLog).toContain("Resume: codex resume -C '/projects/demo repo' thread_abc123");
   });
 
   it("does not print a resume command when threadId is missing", async () => {
@@ -1038,13 +977,7 @@ describe("spawn command", () => {
       logger: (message) => logs.push(message)
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "spawn",
-      "codex",
-      "hello"
-    ]);
+    await program.parseAsync(["node", "cli", "spawn", "codex", "hello"]);
 
     const plainLog = stripAnsi(logs.join("\n"));
     expect(plainLog).not.toContain("Resume:");
@@ -1074,18 +1007,10 @@ describe("spawn command", () => {
         logger: (message) => logs.push(message)
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"]);
 
       const plainLog = stripAnsi(logs.join("\n"));
-      expect(plainLog).toContain(
-        "Resume: cd /projects/demo && claude --resume thread_abc123"
-      );
+      expect(plainLog).toContain("Resume: cd /projects/demo && claude --resume thread_abc123");
     } finally {
       processCwdSpy.mockRestore();
     }
@@ -1115,18 +1040,10 @@ describe("spawn command", () => {
         logger: (message) => logs.push(message)
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "opencode",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "opencode", "hello"]);
 
       const plainLog = stripAnsi(logs.join("\n"));
-      expect(plainLog).toContain(
-        "Resume: opencode /projects/demo --session thread_abc123"
-      );
+      expect(plainLog).toContain("Resume: opencode /projects/demo --session thread_abc123");
     } finally {
       processCwdSpy.mockRestore();
     }
@@ -1156,18 +1073,10 @@ describe("spawn command", () => {
         logger: (message) => logs.push(message)
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "kimi",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "kimi", "hello"]);
 
       const plainLog = stripAnsi(logs.join("\n"));
-      expect(plainLog).toContain(
-        "Resume: kimi --session thread_abc123 --work-dir /projects/demo"
-      );
+      expect(plainLog).toContain("Resume: kimi --session thread_abc123 --work-dir /projects/demo");
     } finally {
       processCwdSpy.mockRestore();
     }
@@ -1204,13 +1113,7 @@ describe("spawn command", () => {
       logger: (message) => logs.push(message)
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "spawn",
-      "codex",
-      "hello"
-    ]);
+    await program.parseAsync(["node", "cli", "spawn", "codex", "hello"]);
 
     const plainLog = stripAnsi(logs.join("\n"));
     expect(plainLog).not.toContain("Resume:");
@@ -1233,14 +1136,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--interactive",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
 
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "hello",
@@ -1267,14 +1163,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "-i",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "-i", "claude-code", "hello"]);
 
       expect(spawnInteractive).toHaveBeenCalled();
       expect(sdkSpawn).not.toHaveBeenCalled();
@@ -1298,14 +1187,7 @@ describe("spawn command", () => {
 
       const savedExitCode = process.exitCode;
       try {
-        await program.parseAsync([
-          "node",
-          "cli",
-          "spawn",
-          "--interactive",
-          "claude-code",
-          "hello"
-        ]);
+        await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
         expect(process.exitCode).toBe(42);
       } finally {
         process.exitCode = savedExitCode;
@@ -1327,15 +1209,25 @@ describe("spawn command", () => {
       });
 
       await expect(
-        program.parseAsync([
-          "node",
-          "cli",
-          "spawn",
-          "--interactive",
-          "codex",
-          "hello"
-        ])
+        program.parseAsync(["node", "cli", "spawn", "--interactive", "codex", "hello"])
       ).rejects.toThrow("does not support interactive mode");
+    });
+
+    it("rejects interactive goose spawns before calling spawnInteractive", async () => {
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await expect(
+        program.parseAsync(["node", "cli", "spawn", "--interactive", "goose", "hello"])
+      ).rejects.toThrow("Goose does not support interactive mode");
+
+      expect(spawnInteractive).not.toHaveBeenCalled();
     });
 
     it("does not render ACP events in interactive mode", async () => {
@@ -1346,12 +1238,10 @@ describe("spawn command", () => {
       });
 
       const chunks: string[] = [];
-      const spy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(((chunk: unknown) => {
-          chunks.push(String(chunk));
-          return true;
-        }) as unknown as typeof process.stdout.write);
+      const spy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+        chunks.push(String(chunk));
+        return true;
+      }) as unknown as typeof process.stdout.write);
 
       const { runner } = createCommandRunnerStub();
       const program = createProgram({
@@ -1363,14 +1253,7 @@ describe("spawn command", () => {
       });
 
       try {
-        await program.parseAsync([
-          "node",
-          "cli",
-          "spawn",
-          "--interactive",
-          "claude-code",
-          "hello"
-        ]);
+        await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
       } finally {
         spy.mockRestore();
       }
@@ -1395,13 +1278,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--interactive",
-        "claude-code"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code"]);
 
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "",
@@ -1434,14 +1311,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--interactive",
-        "claude",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude", "hello"]);
 
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "hello",
@@ -1496,11 +1366,9 @@ describe("spawn command", () => {
       fileSystem: FileSystem,
       services: Record<string, { files: string[] }>
     ): Promise<void> {
-      await fileSystem.writeFile(
-        configPath,
-        JSON.stringify({ configured_services: services }),
-        { encoding: "utf8" }
-      );
+      await fileSystem.writeFile(configPath, JSON.stringify({ configured_services: services }), {
+        encoding: "utf8"
+      });
     }
 
     it("skips prompt when service is configured", async () => {
@@ -1517,13 +1385,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"]);
 
       expect(confirmMock).not.toHaveBeenCalled();
       expect(sdkSpawn).toHaveBeenCalled();
@@ -1541,13 +1403,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"]);
 
       expect(confirmMock).toHaveBeenCalled();
       expect(sdkSpawn).toHaveBeenCalled();
@@ -1565,13 +1421,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"]);
 
       expect(confirmMock).toHaveBeenCalled();
       expect(sdkSpawn).not.toHaveBeenCalled();
@@ -1591,13 +1441,7 @@ describe("spawn command", () => {
       });
 
       await expect(
-        program.parseAsync([
-          "node",
-          "cli",
-          "spawn",
-          "claude-code",
-          "hello"
-        ])
+        program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"])
       ).rejects.toBeInstanceOf(OperationCancelledError);
 
       expect(confirmMock).toHaveBeenCalled();
@@ -1614,14 +1458,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "--yes",
-        "spawn",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "--yes", "spawn", "claude-code", "hello"]);
 
       expect(confirmMock).not.toHaveBeenCalled();
       expect(sdkSpawn).toHaveBeenCalled();
@@ -1644,14 +1481,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--interactive",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
 
       expect(confirmMock).toHaveBeenCalled();
       expect(spawnInteractive).toHaveBeenCalled();
@@ -1674,14 +1504,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--interactive",
-        "claude-code",
-        "hello"
-      ]);
+      await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
 
       expect(confirmMock).toHaveBeenCalled();
       expect(spawnInteractive).not.toHaveBeenCalled();

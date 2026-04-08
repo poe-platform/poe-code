@@ -1,0 +1,338 @@
+vars:
+  research_doc: "{{file 'docs/research/goose-agent-investigation.md'}}"
+
+tasks:
+  - id: agent-def
+    title: Create Goose agent definition and register it
+    prompt: |
+      Add Goose as a new agent in poe-code.
+
+      Research context: {{research_doc}}
+
+      ## 1. Create `packages/agent-defs/src/agents/goose.ts`
+
+      Define the Goose agent following the existing pattern (see opencode.ts, kimi.ts):
+
+      ```typescript
+      export const gooseAgent: AgentDefinition = {
+        id: "goose",
+        name: "goose",
+        label: "Goose",
+        summary: "Block's open-source AI agent with ACP support.",
+        binaryName: "goose",
+        configPath: "~/.config/goose/config.yaml",
+        branding: {
+          colors: {
+            dark: "#FF6B35",
+            light: "#E85D26"
+          }
+        }
+      };
+      ```
+
+      ## 2. Export from `packages/agent-defs/src/agents/index.ts`
+
+      Add: `export { gooseAgent } from "./goose.js";`
+
+      ## 3. Register in `packages/agent-defs/src/registry.ts`
+
+      Import `gooseAgent` and add it to the `allAgents` array.
+
+      ## 4. Add to `src/cli/constants.ts`
+
+      Add Goose to the model/agent constants where other agents are listed.
+
+      ## 5. Run tests
+
+      Run `npm run build` and the agent-defs test suite to confirm everything compiles and resolves correctly.
+    status:
+      implement: done
+      test: done
+      commit: open
+
+  - id: yaml-config-support
+    title: Add YAML config format to agent-mcp-config
+    prompt: |
+      Add YAML config format support to `packages/agent-mcp-config` so Goose MCP entries can be written.
+
+      Research context: {{research_doc}}
+
+      Goose stores MCP servers under the `extensions` key in `~/.config/goose/config.yaml` as YAML.
+
+      ## 1. Install yaml parser
+
+      Add the `yaml` package to `packages/agent-mcp-config` dependencies (the same one used in the ralph package).
+
+      ## 2. Add YAML format support in `packages/agent-mcp-config/src/configs.ts`
+
+      Extend the `ConfigFormat` type to include `"yaml"`.
+      Update the config read/write logic to handle YAML parsing and serialization using the `yaml` package.
+
+      ## 3. Add Goose MCP config entry
+
+      Add to the `agentMcpConfigs` record:
+
+      ```typescript
+      goose: {
+        configFile: "~/.config/goose/config.yaml",
+        configKey: "extensions",
+        format: "yaml",
+        shape: "goose"    // Goose uses a different shape for MCP entries
+      }
+      ```
+
+      Goose MCP extension entries look like:
+      ```yaml
+      extensions:
+        my-server:
+          type: stdio
+          cmd: npx
+          args:
+            - my-mcp-server
+          envs:
+            API_KEY: "..."
+      ```
+
+      The shape differs from the standard shape: it uses `cmd` instead of `command`, and `envs` instead of `env`. Add a `"goose"` shape handler.
+
+      ## 4. Tests
+
+      Write tests using memfs for:
+      - Reading existing YAML config and merging an MCP entry
+      - Writing a new YAML config when none exists
+      - The goose shape transformation (command→cmd, env→envs)
+      - Round-trip: write then read preserves entries
+    status:
+      implement: open
+      test: open
+      commit: open
+
+  - id: provider
+    title: Create Goose provider with configure/unconfigure
+    prompt: |
+      Create the Goose provider file implementing configure, unconfigure, install, and test.
+
+      Research context: {{research_doc}}
+
+      ## Create `src/providers/goose.ts`
+
+      Use `createProvider()` following the pattern in opencode.ts and codex.ts.
+
+      ### Configure strategy
+
+      Use a Goose **custom provider** for Poe integration. Configure must:
+
+      1. Ensure `~/.config/goose/custom_providers/` directory exists
+      2. Write `~/.config/goose/custom_providers/custom_poe.json`:
+         ```json
+         {
+           "name": "custom_poe",
+           "engine": "openai",
+           "display_name": "Poe",
+           "description": "Poe OpenAI-compatible API",
+           "api_key_env": "CUSTOM_POE_API_KEY",
+           "base_url": "https://api.poe.com/v1/chat/completions",
+           "models": [<model list from context>],
+           "supports_streaming": true,
+           "requires_auth": true
+         }
+         ```
+      3. Merge into `~/.config/goose/config.yaml`:
+         ```yaml
+         GOOSE_PROVIDER: custom_poe
+         GOOSE_MODEL: <selected model>
+         ```
+
+      Important: Goose config is YAML, not JSON. Use `configMutation.merge` with the yaml format if available, or use `fileMutation` to write the config. Check how other providers handle non-JSON config (e.g. codex uses TOML).
+
+      ### Unconfigure
+
+      1. Remove the `custom_poe.json` custom provider file
+      2. Prune `GOOSE_PROVIDER` and `GOOSE_MODEL` from config.yaml if they match Poe values
+
+      ### Install
+
+      Support both Homebrew (`brew install block-goose-cli`) and the release installer script.
+
+      ### Test
+
+      Use `goose run --text "Reply with exactly: GOOSE_OK" --output-format text` as the health check.
+
+      ### Isolated environment
+
+      Use `GOOSE_PATH_ROOT` to redirect config/data/state directories:
+      ```typescript
+      isolatedEnv: {
+        agentBinary: "goose",
+        configProbe: { kind: "isolatedFile", relativePath: ".config/goose/config.yaml" },
+        env: {
+          GOOSE_PATH_ROOT: { kind: "isolatedDir", relativePath: "" }
+        }
+      }
+      ```
+
+      ### Configure prompts
+
+      Prompt for model selection (use the standard model prompt pattern).
+
+      ## Export
+
+      Export as `export const provider = gooseService;`
+    status:
+      implement: open
+      test: open
+      commit: open
+
+  - id: spawn-config
+    title: Add Goose CLI and ACP spawn configs
+    prompt: |
+      Add spawn configuration for Goose so `poe-code spawn goose` works.
+
+      Research context: {{research_doc}}
+
+      ## 1. Create `packages/agent-spawn/src/configs/goose.ts`
+
+      ### CLI spawn config
+
+      ```typescript
+      export const gooseSpawnConfig: CliSpawnConfig = {
+        kind: "cli",
+        agentId: "goose",
+        adapter: "native",   // or create a goose adapter if stream-json needs custom parsing
+        promptFlag: "--text",
+        modelFlag: "--model",
+        modelStripProviderPrefix: false,
+        defaultArgs: ["run", "--output-format", "stream-json"],
+        modes: {
+          yolo: [],
+          edit: [],
+          read: []
+        },
+        stdinMode: {
+          omitPrompt: true,
+          extraArgs: ["--instructions", "-"]
+        },
+        interactive: {
+          defaultArgs: ["session"],
+          promptFlag: undefined
+        },
+        resumeCommand: (threadId, cwd) => ["run", "--resume", "--text", "continue"]
+      };
+      ```
+
+      Note: `promptFlag: "--text"` is used with the `run` subcommand. The `run` is in `defaultArgs`. Verify this produces correct argument order: `goose run --output-format stream-json --text "prompt" --model model`.
+
+      ### ACP spawn config
+
+      Goose supports ACP natively via `goose acp`:
+
+      ```typescript
+      export const gooseAcpSpawnConfig: AcpSpawnConfig = {
+        kind: "acp",
+        agentId: "goose",
+        acpArgs: ["acp"],
+        skipAuth: true
+      };
+      ```
+
+      ## 2. Register in `packages/agent-spawn/src/configs/index.ts`
+
+      Import and add `gooseSpawnConfig` to `allSpawnConfigs`.
+      Import and add `gooseAcpSpawnConfig` to the `acpLookup` map.
+
+      ## 3. MCP spawn args
+
+      Add a Goose MCP serializer in `packages/agent-spawn/src/configs/mcp.ts` if needed.
+      Goose supports `--with-extension` for runtime MCP:
+      ```
+      goose run --with-extension "cmd arg1 arg2" --text "prompt"
+      ```
+
+      Create `serializeGooseMcpArgs`:
+      ```typescript
+      export function serializeGooseMcpArgs(servers: McpSpawnConfig): string[] {
+        return Object.values(servers).flatMap((server) => [
+          "--with-extension",
+          [server.command, ...(server.args ?? [])].join(" ")
+        ]);
+      }
+      ```
+
+      Wire it into the spawn config via `mcpArgs`.
+
+      ## 4. Tests
+
+      Write tests for:
+      - CLI spawn config produces correct args
+      - ACP config is registered
+      - MCP serializer produces correct `--with-extension` args
+    status:
+      implement: open
+      test: open
+      commit: open
+
+  - id: skill-config
+    title: Add Goose skill directory config
+    prompt: |
+      Add Goose skill directory support.
+
+      Research context: {{research_doc}}
+
+      ## Update `packages/agent-skill-config/src/configs.ts`
+
+      Add Goose entry to `agentSkillConfigs`:
+
+      ```typescript
+      goose: {
+        globalSkillDir: "~/.agents/skills",
+        localSkillDir: ".agents/skills"
+      }
+      ```
+
+      Per the research doc, Goose scans multiple skill directories, but `.agents/skills` is the best practical choice that aligns with cross-agent conventions.
+
+      ## Tests
+
+      Write tests verifying:
+      - Goose agent is supported in skill config
+      - Skill directories resolve correctly
+    status:
+      implement: open
+      test: open
+      commit: open
+
+  - id: integration-test
+    title: Spot-test Goose integration end-to-end
+    prompt: |
+      Verify the full Goose integration works by running spot tests.
+
+      ## 1. Build
+
+      Run `npm run build` and fix any compilation errors.
+
+      ## 2. Screenshot tests
+
+      Run visual spot checks:
+      ```
+      npm run screenshot-poe-code -- configure --help
+      npm run screenshot-poe-code -- spawn --help
+      npm run screenshot-poe-code -- mcp --help
+      ```
+
+      Verify Goose appears in the agent lists.
+
+      ## 3. Verify agent resolution
+
+      ```
+      npm run dev -- test goose --dry-run
+      ```
+
+      Or test via the SDK that `resolveAgentId("goose")` returns `"goose"`.
+
+      ## 4. Fix any issues found
+
+      Fix compilation errors, missing registrations, or visual problems.
+    status:
+      implement: open
+      test: open
+      commit: open

@@ -1,5 +1,7 @@
 # Goose Agent Investigation
 
+> Note: this investigation was the earlier research pass. The current implementation direction is captured in `docs/plans/goose-agent-acp.md`, which supersedes the earlier CLI/`stream-json` framing and treats Goose as an ACP-first integration.
+
 ## Scope
 
 This document investigates two separate questions:
@@ -14,21 +16,19 @@ Reference point for implementation expectations: [`docs/ADDING_AGENT.md`](../ADD
 ## Executive Summary
 
 - **Manual Goose + Poe setup is very feasible today.**
-- The two realistic configuration paths are:
-  1. **Goose built-in `openai` provider** pointed at the Poe OpenAI-compatible API
-  2. **A Goose custom provider** (`engine: "openai"`) pointed at Poe
-- For **real user setup**, the **custom provider path is the cleanest recommendation** because it gives Poe its own provider identity inside Goose instead of overloading the generic OpenAI provider.
-- For **`poe-code` first-class support**, Goose is **materially more complex** than the currently supported agents because its state is split across:
-  - `config.yaml`
-  - optional `custom_providers/*.json`
-  - keyring or `secrets.yaml`
-  - YAML `extensions` for MCP
-- The biggest `poe-code` integration gaps are:
+- The cleanest provider path is a **Goose custom provider** (`engine: "openai"`) pointed at Poe.
+- For **`poe-code` first-class support**, Goose should be treated as a **normal ACP-capable integration**, not as an exceptional case.
+- The real work is mostly shared/config work:
   - **YAML config mutation support**
-  - **secret storage handling** (keyring vs `secrets.yaml`)
-  - deciding whether Goose should be configured via **built-in OpenAI** or a **Goose custom provider**
-  - determining whether Goose’s `stream-json` can use the existing native adapter or needs a **Goose-specific adapter**
-- **Recommendation:** if Goose is added to `poe-code`, use the **custom provider strategy**, start with **configure + install + test + spawn (CLI)**, and treat **unconfigure/MCP config/skills** as follow-up work.
+  - Goose `extensions:` mapping for **MCP**
+  - file-based secrets fallback via `secrets.yaml`
+  - skill directory wiring plus explicit **Summon** enablement
+- The correct spawn strategy is **ACP-first** via `goose acp`, not CLI `stream-json`.
+- **Recommendation:** implement Goose in `poe-code` through:
+  1. custom provider configuration
+  2. YAML config support
+  3. MCP + skills support
+  4. ACP spawn
 
 ---
 
@@ -563,4 +563,3 @@ That choice is cleaner for:
 - `crates/goose/src/agents/platform_extensions/skills.rs`
 - `download_cli.sh`
 - `CONTRIBUTING.md`
-

@@ -18,6 +18,11 @@
     "bin",
     "assets"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/terminal-png"
+  },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "commander": "^14.0.3",

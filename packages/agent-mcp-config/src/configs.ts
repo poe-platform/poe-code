@@ -1,7 +1,7 @@
 import { resolveAgentId } from "@poe-code/agent-defs";
 import type { ShapeName } from "./shapes.js";
 
-export type ConfigFormat = "json" | "toml";
+export type ConfigFormat = "json" | "toml" | "yaml";
 export type Platform = "darwin" | "linux" | "win32";
 
 export interface AgentMcpConfig {
@@ -52,6 +52,12 @@ const agentMcpConfigs: Record<string, AgentMcpConfig> = {
     configKey: "mcpServers",
     format: "json",
     shape: "standard"
+  },
+  goose: {
+    configFile: "~/.config/goose/config.yaml",
+    configKey: "extensions",
+    format: "yaml",
+    shape: "goose"
   }
 };
 

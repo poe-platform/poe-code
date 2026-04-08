@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createMockFs } from "@poe-code/config-mutations/testing";
+import { parse as parseYaml } from "yaml";
 import {
   configure,
   unconfigure,
@@ -10,6 +11,7 @@ import { resolveAgentSupport, type AgentMcpConfig } from "./configs.js";
 import {
   standardShape,
   opencodeShape,
+  gooseShape,
   getShapeTransformer
 } from "./shapes.js";
 
@@ -263,6 +265,160 @@ describe("configure", () => {
     });
   });
 
+  describe("goose", () => {
+    it("merges MCP servers into an existing YAML config", async () => {
+      const fs = createMockFs(
+        {
+          "~/.config/goose/config.yaml": [
+            "extensions:",
+            "  existing:",
+            "    type: stdio",
+            "    cmd: uvx",
+            "    args:",
+            "      - existing-server",
+            "otherKey: value"
+          ].join("\n")
+        },
+        HOME_DIR
+      );
+      const server: McpServerEntry = {
+        name: "poe-code",
+        config: {
+          transport: "stdio",
+          command: "npx",
+          args: ["poe-code", "mcp"],
+          env: { API_KEY: "secret" }
+        }
+      };
+
+      await configure("goose", server, createOptions(fs));
+
+      const content = parseYaml(
+        fs.getContent("/home/test/.config/goose/config.yaml")!
+      );
+      expect(content).toEqual({
+        extensions: {
+          existing: {
+            type: "stdio",
+            cmd: "uvx",
+            args: ["existing-server"]
+          },
+          "poe-code": {
+            type: "stdio",
+            cmd: "npx",
+            args: ["poe-code", "mcp"],
+            envs: { API_KEY: "secret" }
+          }
+        },
+        otherKey: "value"
+      });
+    });
+
+    it("writes a new YAML config when none exists", async () => {
+      const fs = createMockFs({}, HOME_DIR);
+      const server: McpServerEntry = {
+        name: "poe-code",
+        config: { transport: "stdio", command: "npx" }
+      };
+
+      await configure("goose", server, createOptions(fs));
+
+      const rawContent = fs.getContent("/home/test/.config/goose/config.yaml");
+      expect(rawContent).toContain("extensions:");
+      expect(parseYaml(rawContent!)).toEqual({
+        extensions: {
+          "poe-code": {
+            type: "stdio",
+            cmd: "npx"
+          }
+        }
+      });
+    });
+
+    it("preserves existing entries when writing then reading back YAML", async () => {
+      const fs = createMockFs({}, HOME_DIR);
+
+      await configure(
+        "goose",
+        {
+          name: "first-server",
+          config: { transport: "stdio", command: "npx", args: ["first"] }
+        },
+        createOptions(fs)
+      );
+
+      await configure(
+        "goose",
+        {
+          name: "second-server",
+          config: {
+            transport: "stdio",
+            command: "uvx",
+            env: { TOKEN: "abc" }
+          }
+        },
+        createOptions(fs)
+      );
+
+      expect(
+        parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)
+      ).toEqual({
+        extensions: {
+          "first-server": {
+            type: "stdio",
+            cmd: "npx",
+            args: ["first"]
+          },
+          "second-server": {
+            type: "stdio",
+            cmd: "uvx",
+            envs: { TOKEN: "abc" }
+          }
+        }
+      });
+    });
+
+    it("removes a Goose YAML entry when enabled is false", async () => {
+      const fs = createMockFs(
+        {
+          "~/.config/goose/config.yaml": [
+            "extensions:",
+            "  poe-code:",
+            "    type: stdio",
+            "    cmd: npx",
+            "  other:",
+            "    type: stdio",
+            "    cmd: uvx",
+            "theme: dark"
+          ].join("\n")
+        },
+        HOME_DIR
+      );
+
+      await configure(
+        "goose",
+        {
+          name: "poe-code",
+          config: { transport: "stdio", command: "npx" },
+          enabled: false
+        },
+        createOptions(fs)
+      );
+
+      expect(
+        parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)
+      ).toEqual({
+        extensions: {
+          other: {
+            type: "stdio",
+            cmd: "uvx"
+          }
+        },
+        theme: "dark"
+      });
+    });
+  });
+
   describe("error handling", () => {
     it("throws UnsupportedAgentError for unknown agent", async () => {
       const fs = createMockFs({}, HOME_DIR);
@@ -364,6 +520,29 @@ command = "test"
     const content = fs.getContent("/home/test/.codex/config.toml")!;
     expect(content).not.toContain("poe-code");
     expect(content).toContain("[mcp_servers.other]");
+  });
+
+  it("removes MCP server from goose YAML", async () => {
+    const fs = createMockFs(
+      {
+        "~/.config/goose/config.yaml": [
+          "extensions:",
+          "  poe-code:",
+          "    type: stdio",
+          "    cmd: npx",
+          "otherKey: value"
+        ].join("\n")
+      },
+      HOME_DIR
+    );
+
+    await unconfigure("goose", "poe-code", createOptions(fs));
+
+    expect(
+      parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)
+    ).toEqual({
+      otherKey: "value"
+    });
   });
 });
 
@@ -562,5 +741,57 @@ describe("getShapeTransformer", () => {
 
   it("returns opencodeShape for opencode", () => {
     expect(getShapeTransformer("opencode")).toBe(opencodeShape);
+  });
+
+  it("returns gooseShape for goose", () => {
+    expect(getShapeTransformer("goose")).toBe(gooseShape);
+  });
+});
+
+describe("gooseShape", () => {
+  it("transforms stdio server fields to Goose keys", () => {
+    const entry: McpServerEntry = {
+      name: "test",
+      config: {
+        transport: "stdio",
+        command: "npx",
+        args: ["server"],
+        env: { API_KEY: "secret" }
+      }
+    };
+
+    expect(gooseShape(entry)).toEqual({
+      type: "stdio",
+      cmd: "npx",
+      args: ["server"],
+      envs: { API_KEY: "secret" }
+    });
+  });
+
+  it("omits empty optional Goose fields", () => {
+    const entry: McpServerEntry = {
+      name: "test",
+      config: {
+        transport: "stdio",
+        command: "npx",
+        args: [],
+        env: {}
+      }
+    };
+
+    expect(gooseShape(entry)).toEqual({
+      type: "stdio",
+      cmd: "npx"
+    });
+  });
+
+  it("returns undefined for disabled Goose entries", () => {
+    const entry: McpServerEntry = {
+      name: "test",
+      config: { transport: "stdio", command: "npx" },
+      enabled: false
+    };
+
+    expect(gooseShape(entry)).toBeUndefined();
   });
 });

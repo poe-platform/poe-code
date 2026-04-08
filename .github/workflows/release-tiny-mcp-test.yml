@@ -30,7 +30,7 @@ jobs:
         working-directory: packages/tiny-stdio-mcp-test-server
         run: |
           REMOTE=$(npm view tiny-stdio-mcp-test-server version 2>/dev/null || echo "0.0.0")
-          npm version --no-git-tag-version "$REMOTE"
+          npm version --no-git-tag-version "$REMOTE" --allow-same-version
           npm version --no-git-tag-version patch
       - name: Publish
         working-directory: packages/tiny-stdio-mcp-test-server

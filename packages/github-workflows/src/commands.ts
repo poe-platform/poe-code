@@ -27,7 +27,7 @@ const builtInWorkflowTemplatesDirCandidates = [
   fileURLToPath(new URL("./workflow-templates", import.meta.url)),
   fileURLToPath(new URL("../src/workflow-templates", import.meta.url))
 ];
-const originalMustacheEscape = Mustache.escape;
+Mustache.escape = (value: string) => value;
 
 interface RunItemResult {
   prompt: string;
@@ -562,12 +562,11 @@ function buildTemplateContext(env: { get(key: string): string | undefined }): Re
   const repo = getOptionalEnvValue(env, "GITHUB_REPOSITORY");
   const issueNumber = getOptionalEnvValue(env, "ISSUE_NUMBER");
   const prNumber = getOptionalEnvValue(env, "PR_NUMBER");
+  const url = buildUrl(repo, issueNumber, prNumber);
 
   return {
     ...(repo === undefined ? {} : { repo }),
-    ...(buildUrl(repo, issueNumber, prNumber) === undefined
-      ? {}
-      : { url: buildUrl(repo, issueNumber, prNumber) }),
+    ...(url === undefined ? {} : { url }),
     issue: pruneUndefined({
       number: issueNumber,
       title: getOptionalEnvValue(env, "ISSUE_TITLE"),
@@ -656,12 +655,7 @@ function buildPerItemTemplateContext(
 }
 
 function renderPrompt(template: string, view: Record<string, unknown>): string {
-  Mustache.escape = (value: string) => value;
-  try {
-    return Mustache.render(template, view);
-  } finally {
-    Mustache.escape = originalMustacheEscape;
-  }
+  return Mustache.render(template, view);
 }
 
 function resolveSourceCommand(

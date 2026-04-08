@@ -106,7 +106,6 @@ describe("ghGroup", () => {
     vol.fromJSON({
       [builtInVariablesPath]: readFileSync(builtInVariablesPath, "utf8")
     });
-    vi.restoreAllMocks();
     vi.clearAllMocks();
     vi.spyOn(process, "cwd").mockReturnValue("/repo");
     spawnState.spawn.mockResolvedValue({
@@ -380,6 +379,53 @@ describe("ghGroup", () => {
         "- Keep it concise.",
         "- Use short Markdown sections only when they improve clarity.",
         ""
+      ].join("\n")
+    });
+  });
+
+  it("composes {{yield}} before rendering Mustache variables in prompt-preview", async () => {
+    writeBuiltInPrompt(
+      "github-issue-opened",
+      [
+        "Read {{url}} and make the smallest safe change.",
+        "",
+        "{{yield}}",
+        "",
+        "Always explain what changed in {{repo}}."
+      ].join("\n")
+    );
+    vol.fromJSON({
+      "/repo/.github/workflows/poe-code-github-issue-opened.md": [
+        "---",
+        "extends: true",
+        "---",
+        "Focus on test coverage for {{issue.title}}."
+      ].join("\n")
+    });
+
+    const promptPreviewCommand = getCommand(["prompt-preview"]);
+
+    await expect(
+      promptPreviewCommand.handler(
+        createContext(
+          {
+            name: "github-issue-opened"
+          },
+          {
+            GITHUB_REPOSITORY: "acme/app",
+            ISSUE_NUMBER: "188",
+            ISSUE_TITLE: "Can I configure paths for planning docs on ralph?"
+          }
+        )
+      )
+    ).resolves.toEqual({
+      name: "github-issue-opened",
+      prompt: [
+        "Read https://github.com/acme/app/issues/188 and make the smallest safe change.",
+        "",
+        "Focus on test coverage for Can I configure paths for planning docs on ralph?.",
+        "",
+        "Always explain what changed in acme/app."
       ].join("\n")
     });
   });
@@ -661,15 +707,17 @@ describe("ghGroup", () => {
 
     const runCommand = getCommand(["run"]);
 
-    await runCommand.handler(
-      createContext(
-        { cwd: "/repo" },
-        { GITHUB_REPOSITORY: "acme/app", ISSUE_NUMBER: "7" },
-        { poeApiKey: "key" }
-      )
-    );
-
-    Object.defineProperty(process.stdin, "isTTY", { value: undefined, configurable: true });
+    try {
+      await runCommand.handler(
+        createContext(
+          { cwd: "/repo" },
+          { GITHUB_REPOSITORY: "acme/app", ISSUE_NUMBER: "7" },
+          { poeApiKey: "key" }
+        )
+      );
+    } finally {
+      Object.defineProperty(process.stdin, "isTTY", { value: undefined, configurable: true });
+    }
 
     expect(designSystemState.select).toHaveBeenCalledWith(
       expect.objectContaining({

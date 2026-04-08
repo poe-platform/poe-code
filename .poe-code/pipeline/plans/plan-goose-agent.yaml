@@ -105,7 +105,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: provider
     title: Create Goose provider with configure/unconfigure
@@ -179,8 +179,8 @@ tasks:
 
       Export as `export const provider = gooseService;`
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: spawn-config

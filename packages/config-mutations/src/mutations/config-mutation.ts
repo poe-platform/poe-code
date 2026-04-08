@@ -13,7 +13,7 @@ export interface MergeOptions {
   /** Value to merge into the config file */
   value: ValueResolver<ConfigObject>;
   /** Optional explicit format override */
-  format?: "json" | "toml";
+  format?: "json" | "toml" | "yaml";
   /** Optional prune by prefix before merging (TOML) */
   pruneByPrefix?: Record<string, string>;
   /** Optional human-readable label for logging */
@@ -26,7 +26,7 @@ export interface PruneOptions {
   /** Shape to prune from the config file */
   shape: ValueResolver<ConfigObject>;
   /** Optional explicit format override */
-  format?: "json" | "toml";
+  format?: "json" | "toml" | "yaml";
   /** Optional guard - only prune if predicate returns true */
   onlyIf?: (doc: ConfigObject, ctx: MutationOptions) => boolean;
   /** Optional human-readable label for logging */
@@ -37,7 +37,7 @@ export interface TransformOptions {
   /** Target file path (must start with ~) */
   target: ValueResolver<string>;
   /** Optional explicit format override */
-  format?: "json" | "toml";
+  format?: "json" | "toml" | "yaml";
   /** Transform function - receives parsed content, returns transformed content */
   transform: (
     content: ConfigObject,

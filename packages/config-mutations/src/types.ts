@@ -119,7 +119,7 @@ export interface ConfigMergeMutation extends BaseMutation {
   kind: "configMerge";
   target: ValueResolver<string>;
   value: ValueResolver<ConfigObject>;
-  format?: "json" | "toml";
+  format?: "json" | "toml" | "yaml";
   pruneByPrefix?: Record<string, string>;
 }
 
@@ -127,14 +127,14 @@ export interface ConfigPruneMutation extends BaseMutation {
   kind: "configPrune";
   target: ValueResolver<string>;
   shape: ValueResolver<ConfigObject>;
-  format?: "json" | "toml";
+  format?: "json" | "toml" | "yaml";
   onlyIf?: (doc: ConfigObject, ctx: MutationOptions) => boolean;
 }
 
 export interface ConfigTransformMutation extends BaseMutation {
   kind: "configTransform";
   target: ValueResolver<string>;
-  format?: "json" | "toml";
+  format?: "json" | "toml" | "yaml";
   transform: (
     content: ConfigObject,
     ctx: MutationOptions

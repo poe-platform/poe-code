@@ -266,6 +266,7 @@ describe("listIsolatedServiceIds", () => {
       "claude-code",
       "claude",
       "codex",
+      "goose",
       "kimi",
       "kimi-cli",
       "opencode"
@@ -296,6 +297,7 @@ describe("listIsolatedServiceIds", () => {
       "claude-code",
       "claude",
       "codex",
+      "goose",
       "kimi",
       "kimi-cli",
       "opencode",

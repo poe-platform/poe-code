@@ -1528,7 +1528,6 @@ describe("goose service", () => {
   let mockFsObj: FileSystem;
   const home = "/home/user";
   const configPath = path.join(home, ".config", "goose", "config.yaml");
-  const secretsPath = path.join(home, ".config", "goose", "secrets.yaml");
   const providerPath = path.join(home, ".config", "goose", "custom_providers", "custom_poe.json");
   let env = createCliEnvironment({
     cwd: home,
@@ -1593,24 +1592,15 @@ describe("goose service", () => {
     });
   }
 
-  it("creates the goose config, secrets, and custom provider files", async () => {
+  it("creates the goose config and custom provider files", async () => {
     await configureGoose();
 
     const config = parseYaml(await mockFsObj.readFile(configPath, "utf8")) as Record<
       string,
       unknown
     >;
-    expect(config.GOOSE_DISABLE_KEYRING).toBe(true);
     expect(config.GOOSE_PROVIDER).toBe("custom_poe");
     expect(config.GOOSE_MODEL).toBe(DEFAULT_GOOSE_MODEL);
-    expect((config.extensions as Record<string, unknown>).developer).toBeDefined();
-    expect((config.extensions as Record<string, unknown>).summon).toBeDefined();
-
-    const secrets = parseYaml(await mockFsObj.readFile(secretsPath, "utf8")) as Record<
-      string,
-      unknown
-    >;
-    expect(secrets.CUSTOM_POE_API_KEY).toBe("sk-goose");
 
     const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
       string,
@@ -1618,12 +1608,7 @@ describe("goose service", () => {
     >;
     expect(provider.name).toBe("custom_poe");
     expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
-    expect(provider.models).toEqual(
-      GOOSE_MODELS.map((name) => ({
-        name,
-        context_limit: 128000
-      }))
-    );
+    expect(provider.models).toEqual(GOOSE_MODELS);
   });
 
   it("merges existing goose config and preserves unrelated settings", async () => {
@@ -1647,8 +1632,52 @@ describe("goose service", () => {
     ).toBe(true);
   });
 
+  it("writes the custom provider against the configured Poe API base URL", async () => {
+    env = createCliEnvironment({
+      cwd: home,
+      homeDir: home,
+      variables: {
+        POE_BASE_URL: "https://proxy.example.test/gateway"
+      }
+    });
+
+    await configureGoose();
+
+    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(provider.base_url).toBe("https://proxy.example.test/gateway/v1/chat/completions");
+  });
+
   it("removes managed Goose provider artifacts during unconfigure", async () => {
     await configureGoose();
+
+    const changed = await gooseService.gooseService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: {}
+    });
+
+    expect(changed).toBe(true);
+    await expect(mockFsObj.readFile(configPath, "utf8")).rejects.toThrow();
+    await expect(mockFsObj.readFile(providerPath, "utf8")).rejects.toThrow();
+  });
+
+  it("only prunes Goose YAML settings when the active provider is Poe-managed", async () => {
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.mkdir(path.dirname(providerPath), { recursive: true });
+    await mockFsObj.writeFile(
+      configPath,
+      ["GOOSE_PROVIDER: openai", "GOOSE_MODEL: openai/gpt-5.4", "theme: dark"].join("\n"),
+      { encoding: "utf8" }
+    );
+    await mockFsObj.writeFile(
+      providerPath,
+      `${JSON.stringify(buildCustomProviderFixture(), null, 2)}\n`,
+      { encoding: "utf8" }
+    );
 
     const changed = await gooseService.gooseService.unconfigure({
       fs: mockFsObj,
@@ -1662,9 +1691,9 @@ describe("goose service", () => {
       string,
       unknown
     >;
-    expect(config.GOOSE_PROVIDER).toBeUndefined();
-    expect(config.GOOSE_MODEL).toBeUndefined();
-    await expect(mockFsObj.readFile(secretsPath, "utf8")).rejects.toThrow();
+    expect(config.GOOSE_PROVIDER).toBe("openai");
+    expect(config.GOOSE_MODEL).toBe("openai/gpt-5.4");
+    expect(config.theme).toBe("dark");
     await expect(mockFsObj.readFile(providerPath, "utf8")).rejects.toThrow();
   });
 
@@ -1746,16 +1775,30 @@ describe("goose service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "goose",
-      expect.arrayContaining([
+      [
         "run",
-        "--provider",
-        "custom_poe",
         "--text",
-        "Reply with exactly: GOOSE_OK"
-      ])
+        "Reply with exactly: GOOSE_OK",
+        "--output-format",
+        "text"
+      ]
     );
   });
 });
+
+function buildCustomProviderFixture(): Record<string, unknown> {
+  return {
+    name: "custom_poe",
+    engine: "openai",
+    display_name: "Poe",
+    description: "Poe OpenAI-compatible API",
+    api_key_env: "CUSTOM_POE_API_KEY",
+    base_url: "https://api.poe.com/v1/chat/completions",
+    models: GOOSE_MODELS,
+    supports_streaming: true,
+    requires_auth: true
+  };
+}
 
 describe("poe-agent provider", () => {
   beforeEach(() => {

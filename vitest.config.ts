@@ -69,6 +69,10 @@ export default defineConfig({
       "packages/**/*.test.ts",         // Package tests
       "scripts/screenshot.test.ts"     // Script tests (explicit)
     ],
+    exclude: [
+      "node_modules",
+      "**/*.e2e.test.ts"               // E2E tests run separately
+    ],
     setupFiles: ["tests/setup.ts"]
   }
 });

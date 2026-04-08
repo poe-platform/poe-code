@@ -299,9 +299,29 @@ function ensureSpawnHelperExecutable(): void {
 
   try {
     accessSync(helper, constants.X_OK);
-  } catch {
-    chmodSync(helper, 0o755);
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return;
+    }
+
+    try {
+      chmodSync(helper, 0o755);
+    } catch (chmodError) {
+      if (isMissingFileError(chmodError)) {
+        return;
+      }
+
+      throw chmodError;
+    }
   }
+}
+
+function isMissingFileError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return "code" in error && error.code === "ENOENT";
 }
 
 function matchPattern(buffer: string, pattern: string | RegExp): string | null {

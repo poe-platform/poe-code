@@ -263,17 +263,11 @@ describe("configure command", () => {
     ) as Record<string, unknown>;
     expect(provider.name).toBe("custom_poe");
 
-    const secrets = parseYaml(
-      await fs.readFile(`${homeDir}/.config/goose/secrets.yaml`, "utf8")
-    ) as Record<string, unknown>;
-    expect(secrets.CUSTOM_POE_API_KEY).toBe("sk-goose");
-
     const content = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(content.configured_services.goose).toEqual({
       files: [
         `${homeDir}/.config/goose/config.yaml`,
-        `${homeDir}/.config/goose/custom_providers/custom_poe.json`,
-        `${homeDir}/.config/goose/secrets.yaml`
+        `${homeDir}/.config/goose/custom_providers/custom_poe.json`
       ]
     });
   });

@@ -4,5 +4,7 @@ export {
   parseToml,
   serializeToml,
   parseJson,
-  serializeJson
+  serializeJson,
+  parseYaml,
+  serializeYaml
 } from "./format-utils.js";

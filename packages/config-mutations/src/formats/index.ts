@@ -1,17 +1,21 @@
 import type { ConfigFormat } from "../types.js";
 import { jsonFormat } from "./json.js";
 import { tomlFormat } from "./toml.js";
+import { yamlFormat } from "./yaml.js";
 
-export type FormatName = "json" | "toml";
+export type FormatName = "json" | "toml" | "yaml";
 
 const formatRegistry: Record<FormatName, ConfigFormat> = {
   json: jsonFormat,
-  toml: tomlFormat
+  toml: tomlFormat,
+  yaml: yamlFormat
 };
 
 const extensionMap: Record<string, FormatName> = {
   ".json": "json",
-  ".toml": "toml"
+  ".toml": "toml",
+  ".yaml": "yaml",
+  ".yml": "yaml"
 };
 
 /**
@@ -56,3 +60,4 @@ function getExtension(path: string): string {
 
 export { jsonFormat } from "./json.js";
 export { tomlFormat } from "./toml.js";
+export { yamlFormat } from "./yaml.js";

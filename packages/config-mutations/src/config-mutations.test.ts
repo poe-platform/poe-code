@@ -1,7 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "./types.js";
-import { getConfigFormat, detectFormat, jsonFormat, tomlFormat } from "./formats/index.js";
+import {
+  getConfigFormat,
+  detectFormat,
+  jsonFormat,
+  tomlFormat,
+  yamlFormat
+} from "./formats/index.js";
 import {
   detectIndent,
   modifyAtPath,
@@ -17,7 +23,9 @@ import {
   parseToml,
   serializeToml,
   parseJson,
-  serializeJson
+  serializeJson,
+  parseYaml,
+  serializeYaml
 } from "./testing/format-utils.js";
 import { isConfigObject } from "./types.js";
 
@@ -45,6 +53,7 @@ describe("getConfigFormat", () => {
     it("is case-insensitive for extensions", () => {
       expect(getConfigFormat("file.JSON")).toBe(jsonFormat);
       expect(getConfigFormat("file.TOML")).toBe(tomlFormat);
+      expect(getConfigFormat("file.YAML")).toBe(yamlFormat);
     });
 
     it("throws for unsupported extension", () => {
@@ -66,6 +75,11 @@ describe("getConfigFormat", () => {
       const format = getConfigFormat("toml");
       expect(format).toBe(tomlFormat);
     });
+
+    it("returns YAML format for 'yaml'", () => {
+      const format = getConfigFormat("yaml");
+      expect(format).toBe(yamlFormat);
+    });
   });
 });
 
@@ -78,8 +92,12 @@ describe("detectFormat", () => {
     expect(detectFormat("file.toml")).toBe("toml");
   });
 
+  it("detects YAML from .yaml and .yml extensions", () => {
+    expect(detectFormat("file.yaml")).toBe("yaml");
+    expect(detectFormat("file.yml")).toBe("yaml");
+  });
+
   it("returns undefined for unknown extensions", () => {
-    expect(detectFormat("file.yaml")).toBeUndefined();
     expect(detectFormat("file")).toBeUndefined();
   });
 });
@@ -531,6 +549,50 @@ describe("tomlFormat", () => {
   });
 });
 
+describe("yamlFormat", () => {
+  describe("parse", () => {
+    it("parses valid YAML", () => {
+      expect(yamlFormat.parse("key: value\n")).toEqual({ key: "value" });
+    });
+
+    it("returns empty object for empty string", () => {
+      expect(yamlFormat.parse("")).toEqual({});
+    });
+
+    it("throws for YAML arrays", () => {
+      expect(() => yamlFormat.parse("- one\n- two\n")).toThrow("Expected YAML object");
+    });
+  });
+
+  describe("serialize", () => {
+    it("serializes YAML with trailing newline", () => {
+      expect(yamlFormat.serialize({ key: "value" })).toBe("key: value\n");
+    });
+  });
+
+  describe("merge", () => {
+    it("deep merges nested objects", () => {
+      expect(
+        yamlFormat.merge(
+          { nested: { a: 1, b: 2 } },
+          { nested: { b: 3, c: 4 } }
+        )
+      ).toEqual({ nested: { a: 1, b: 3, c: 4 } });
+    });
+  });
+
+  describe("prune", () => {
+    it("removes keys matching shape", () => {
+      const { changed, result } = yamlFormat.prune(
+        { keep: true, remove: true },
+        { remove: {} }
+      );
+      expect(changed).toBe(true);
+      expect(result).toEqual({ keep: true });
+    });
+  });
+});
+
 // --- execution/remove-directory.test.ts ---
 
 describe("fileMutation.removeDirectory", () => {
@@ -649,6 +711,24 @@ describe("runMutations", () => {
 
       expect(fs.files[`${homeDir}/.config/settings.toml`]).toContain('key = "value"');
     });
+
+    it("creates new YAML file", async () => {
+      const fs = createMockFs({}, homeDir);
+      await fs.mkdir(`${homeDir}/.config`, { recursive: true });
+
+      await runMutations(
+        [
+          configMutation.merge({
+            target: "~/.config/settings.yaml",
+            format: "yaml",
+            value: { key: "value" }
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      expect(fs.files[`${homeDir}/.config/settings.yaml`]).toBe("key: value\n");
+    });
   });
 
   describe("configMutation.prune", () => {
@@ -718,6 +798,26 @@ describe("runMutations", () => {
 
       const content = JSON.parse(fs.files[`${homeDir}/.config.json`]);
       expect(content).toEqual({ owner: "me" });
+    });
+
+    it("prunes YAML files", async () => {
+      const fs = createMockFs({
+        "~/.config.yaml": "owner: me\nkey: value\n"
+      }, homeDir);
+
+      await runMutations(
+        [
+          configMutation.prune({
+            target: "~/.config.yaml",
+            format: "yaml",
+            shape: { key: {} },
+            onlyIf: (doc) => doc.owner === "me"
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      expect(fs.files[`${homeDir}/.config.yaml`]).toBe("owner: me\n");
     });
   });
 
@@ -910,6 +1010,14 @@ describe("format utils", () => {
 
   it("serializes JSON with 2-space indentation", () => {
     expect(serializeJson({ key: "value" })).toBe('{\n  "key": "value"\n}\n');
+  });
+
+  it("parses YAML into a config object", () => {
+    expect(parseYaml("key: value\n")).toEqual({ key: "value" });
+  });
+
+  it("serializes YAML with trailing newline", () => {
+    expect(serializeYaml({ key: "value" })).toBe("key: value\n");
   });
 });
 

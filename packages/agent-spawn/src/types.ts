@@ -64,6 +64,7 @@ export interface StdinMode {
 
 export interface InteractiveSpawnConfig {
   defaultArgs: string[];
+  defaultArgsPosition?: "beforePrompt" | "afterPrompt";
   promptFlag?: string;
 }
 
@@ -73,6 +74,7 @@ export interface CliSpawnConfig {
   adapter: AdapterType;
   promptFlag: string;
   defaultArgs: string[];
+  defaultArgsPosition?: "beforePrompt" | "afterPrompt";
   modes: Record<SpawnMode, string[]>;
   stdinMode?: StdinMode;
   modelFlag?: string;
@@ -99,6 +101,15 @@ export interface CliSpawnConfig {
    */
   mcpEnv?: (servers: McpSpawnConfig) => Record<string, string>;
   /**
+   * Controls where serialized MCP args are inserted relative to the command.
+   *
+   * - "beforeCommand": before the prompt/subcommand section (e.g. `codex -c ... exec "prompt"`)
+   * - "beforePrompt": after `defaultArgs` but before the prompt/model section
+   * - "afterCommand": after `defaultArgs` (default)
+   */
+  mcpArgsPosition?: "beforeCommand" | "beforePrompt" | "afterCommand";
+  /**
+   * @deprecated Prefer `mcpArgsPosition`.
    * When true, MCP args are placed before the subcommand (e.g. `codex -c ... exec "prompt"`).
    * When false/undefined, they are placed after defaultArgs (e.g. `claude -p "prompt" --mcp-servers ...`).
    */

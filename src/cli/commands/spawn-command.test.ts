@@ -5,7 +5,11 @@ import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
 import { Command } from "commander";
 import { resetOutputFormatCache } from "@poe-code/design-system";
-import { DEFAULT_CLAUDE_CODE_MODEL, DEFAULT_CODEX_MODEL } from "../constants.js";
+import {
+  DEFAULT_CLAUDE_CODE_MODEL,
+  DEFAULT_CODEX_MODEL,
+  DEFAULT_GOOSE_MODEL
+} from "../constants.js";
 import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
 import { createCliContainer, type CliDependencies } from "../container.js";
@@ -1213,7 +1217,13 @@ describe("spawn command", () => {
       ).rejects.toThrow("does not support interactive mode");
     });
 
-    it("rejects interactive goose spawns before calling spawnInteractive", async () => {
+    it("calls spawnInteractive for goose when --interactive is set", async () => {
+      vi.mocked(spawnInteractive).mockResolvedValue({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      });
+
       const { runner } = createCommandRunnerStub();
       const program = createProgram({
         fs,
@@ -1223,11 +1233,14 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await expect(
-        program.parseAsync(["node", "cli", "spawn", "--interactive", "goose", "hello"])
-      ).rejects.toThrow("Goose does not support interactive mode");
+      await program.parseAsync(["node", "cli", "spawn", "--interactive", "goose", "hello"]);
 
-      expect(spawnInteractive).not.toHaveBeenCalled();
+      expect(spawnInteractive).toHaveBeenCalledWith("goose", {
+        prompt: "hello",
+        args: [],
+        model: DEFAULT_GOOSE_MODEL,
+        cwd: undefined
+      });
     });
 
     it("does not render ACP events in interactive mode", async () => {

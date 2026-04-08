@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  getAcpSpawnConfig,
   getSpawnConfig,
   listMcpSupportedAgents,
   supportsMcpAtSpawn
@@ -8,6 +9,8 @@ import { codexSpawnConfig } from "./codex.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { openCodeSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig } from "./kimi.js";
+import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
+import { serializeGooseMcpArgs } from "./mcp.js";
 
 describe("configs/getSpawnConfig", () => {
   it("returns undefined for claude-desktop", () => {
@@ -19,6 +22,7 @@ describe("configs/mcp support", () => {
   it("reports spawn-time MCP support for configured agents", () => {
     expect(supportsMcpAtSpawn("claude-code")).toBe(true);
     expect(supportsMcpAtSpawn("codex")).toBe(true);
+    expect(supportsMcpAtSpawn("goose")).toBe(true);
     expect(supportsMcpAtSpawn("kimi")).toBe(true);
     expect(supportsMcpAtSpawn("opencode")).toBe(true);
   });
@@ -29,7 +33,19 @@ describe("configs/mcp support", () => {
   });
 
   it("lists MCP-capable agents", () => {
-    expect(listMcpSupportedAgents()).toEqual(["claude-code", "codex", "opencode", "kimi"]);
+    expect(listMcpSupportedAgents()).toEqual([
+      "claude-code",
+      "codex",
+      "opencode",
+      "kimi",
+      "goose"
+    ]);
+  });
+});
+
+describe("configs/getAcpSpawnConfig", () => {
+  it("returns the registered ACP config for goose", () => {
+    expect(getAcpSpawnConfig("goose")).toEqual(gooseAcpSpawnConfig);
   });
 });
 
@@ -67,6 +83,36 @@ describe("resumeCommand", () => {
       threadId,
       "--work-dir",
       cwd
+    ]);
+  });
+
+  it("goose returns run --resume with a continue prompt", () => {
+    expect(gooseSpawnConfig.resumeCommand!(threadId, cwd)).toEqual([
+      "run",
+      "--resume",
+      "--text",
+      "continue"
+    ]);
+  });
+});
+
+describe("serializeGooseMcpArgs", () => {
+  it("serializes runtime MCP servers as repeated --with-extension args", () => {
+    expect(
+      serializeGooseMcpArgs({
+        alpha: {
+          command: "uvx",
+          args: ["mcp-server-alpha", "--port", "3000"]
+        },
+        beta: {
+          command: "node"
+        }
+      })
+    ).toEqual([
+      "--with-extension",
+      "uvx mcp-server-alpha --port 3000",
+      "--with-extension",
+      "node"
     ]);
   });
 });

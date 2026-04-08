@@ -9,6 +9,7 @@ import { claudeCodeSpawnConfig } from "./configs/claude-code.js";
 import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
 import { kimiSpawnConfig } from "./configs/kimi.js";
+import { gooseSpawnConfig } from "./configs/goose.js";
 import * as agentSpawnApi from "@poe-code/agent-spawn";
 import { buildSpawnArgs } from "./spawn.js";
 import { getMcpArgs } from "./mcp-args.js";
@@ -301,6 +302,23 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
+  it("builds goose args with the run subcommand before prompt and model flags", () => {
+    const result = buildSpawnArgs("goose", {
+      prompt: "hello",
+      model: "openai/gpt-5.4"
+    });
+
+    expect(result.binaryName).toBe("goose");
+    expect(result.args).toEqual([
+      ...gooseSpawnConfig.defaultArgs,
+      gooseSpawnConfig.promptFlag,
+      "hello",
+      gooseSpawnConfig.modelFlag!,
+      "openai/gpt-5.4",
+      ...gooseSpawnConfig.modes.yolo
+    ]);
+  });
+
   it("builds stdin args for claude-code when useStdin is true", () => {
     const result = buildSpawnArgs("claude-code", { prompt: "test", useStdin: true });
 
@@ -422,6 +440,27 @@ describe("buildSpawnArgs", () => {
       }
     });
     expect(result.args.slice(mcpIndex + 2)).toEqual([...kimiSpawnConfig.modes.yolo]);
+  });
+
+  it("adds goose MCP config as --with-extension args before the prompt flag", () => {
+    const result = buildSpawnArgs("goose", {
+      prompt: "hello",
+      mcpServers: {
+        test: {
+          command: "uvx",
+          args: ["mcp-server-test", "--port", "3000"]
+        }
+      }
+    });
+
+    expect(result.args).toEqual([
+      ...gooseSpawnConfig.defaultArgs,
+      "--with-extension",
+      "uvx mcp-server-test --port 3000",
+      gooseSpawnConfig.promptFlag,
+      "hello",
+      ...gooseSpawnConfig.modes.yolo
+    ]);
   });
 
   it("throws a clear error when MCP config is passed to unsupported agents", () => {

@@ -31,6 +31,10 @@ export async function spawnInteractive(
 
   const args: string[] = [];
 
+  if (interactive.defaultArgsPosition === "beforePrompt") {
+    args.push(...interactive.defaultArgs);
+  }
+
   if (options.prompt) {
     if (interactive.promptFlag) {
       args.push(interactive.promptFlag, options.prompt);
@@ -47,7 +51,9 @@ export async function spawnInteractive(
     args.push(spawnConfig.modelFlag, model);
   }
 
-  args.push(...interactive.defaultArgs);
+  if (interactive.defaultArgsPosition !== "beforePrompt") {
+    args.push(...interactive.defaultArgs);
+  }
   args.push(...getMcpArgs(spawnConfig, options.mcpServers));
 
   const mode = options.mode ?? "yolo";

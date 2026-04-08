@@ -5,7 +5,7 @@ import { readLines } from "./line-reader.js";
 import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
-import type { SpawnOptions, SpawnResult } from "../types.js";
+import type { CliSpawnConfig, SpawnOptions, SpawnResult } from "../types.js";
 
 function createAbortError(): Error {
   const error = new Error("Agent spawn aborted");
@@ -34,6 +34,19 @@ function isAcpEvent(value: unknown): value is AcpEvent {
   return !!value && typeof value === "object" && "event" in value;
 }
 
+function getDefaultArgsPosition(config: CliSpawnConfig): "beforePrompt" | "afterPrompt" {
+  return config.defaultArgsPosition ?? "afterPrompt";
+}
+
+function getMcpArgsPosition(
+  config: CliSpawnConfig
+): "beforeCommand" | "beforePrompt" | "afterCommand" {
+  if (config.mcpArgsPosition) {
+    return config.mcpArgsPosition;
+  }
+  return config.mcpArgsBeforeCommand ? "beforeCommand" : "afterCommand";
+}
+
 export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingResult {
   if (options.signal?.aborted) {
     throw createAbortError();
@@ -55,9 +68,19 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
 
   const mcpArgs = getMcpArgs(spawnConfig, options.mcpServers);
   const mcpEnvVars = getMcpEnv(spawnConfig, options.mcpServers);
+  const defaultArgsPosition = getDefaultArgsPosition(spawnConfig);
+  const mcpArgsPosition = getMcpArgsPosition(spawnConfig);
   const args: string[] = [];
 
-  if (spawnConfig.mcpArgsBeforeCommand) {
+  if (mcpArgsPosition === "beforeCommand") {
+    args.push(...mcpArgs);
+  }
+
+  if (defaultArgsPosition === "beforePrompt") {
+    args.push(...spawnConfig.defaultArgs);
+  }
+
+  if (mcpArgsPosition === "beforePrompt") {
     args.push(...mcpArgs);
   }
 
@@ -76,9 +99,11 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     args.push(spawnConfig.modelFlag, model);
   }
 
-  args.push(...spawnConfig.defaultArgs);
+  if (defaultArgsPosition === "afterPrompt") {
+    args.push(...spawnConfig.defaultArgs);
+  }
 
-  if (!spawnConfig.mcpArgsBeforeCommand) {
+  if (mcpArgsPosition === "afterCommand") {
     args.push(...mcpArgs);
   }
 

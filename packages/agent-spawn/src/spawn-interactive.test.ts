@@ -6,6 +6,7 @@ import { claudeCodeSpawnConfig } from "./configs/claude-code.js";
 import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
 import { kimiSpawnConfig } from "./configs/kimi.js";
+import { gooseSpawnConfig } from "./configs/goose.js";
 import { spawnInteractive } from "./spawn-interactive.js";
 import { getMcpArgs } from "./mcp-args.js";
 import type { CliSpawnConfig } from "./types.js";
@@ -134,6 +135,22 @@ describe("spawnInteractive", () => {
       "test prompt",
       ...kimiSpawnConfig.interactive!.defaultArgs,
       ...kimiSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("builds goose interactive args with the session subcommand before the prompt", async () => {
+    const spawnMock = vi
+      .mocked(spawnChildProcess)
+      .mockReturnValue(createMockInheritProcess(0));
+
+    await spawnInteractive("goose", { prompt: "test prompt" });
+
+    const [command, args] = spawnMock.mock.calls[0];
+    expect(command).toBe("goose");
+    expect(args).toEqual([
+      ...gooseSpawnConfig.interactive!.defaultArgs,
+      "test prompt",
+      ...gooseSpawnConfig.modes.yolo
     ]);
   });
 

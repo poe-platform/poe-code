@@ -4,14 +4,16 @@ import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { codexSpawnConfig } from "./codex.js";
 import { openCodeSpawnConfig, openCodeAcpSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig, kimiAcpSpawnConfig } from "./kimi.js";
+import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 
 // ACP adapter support (spawn streaming):
-// - Supported (has `adapter`): claude-code, codex, opencode, kimi
+// - Supported (has `adapter`): claude-code, codex, opencode, kimi, goose
 export const allSpawnConfigs: readonly SpawnConfig[] = [
   claudeCodeSpawnConfig,
   codexSpawnConfig,
   openCodeSpawnConfig,
-  kimiSpawnConfig
+  kimiSpawnConfig,
+  gooseSpawnConfig
 ];
 
 const lookup = new Map<string, SpawnConfig>();
@@ -23,6 +25,7 @@ for (const config of allSpawnConfigs) {
 const acpLookup = new Map<string, AcpSpawnConfig>();
 acpLookup.set(openCodeAcpSpawnConfig.agentId, openCodeAcpSpawnConfig);
 acpLookup.set(kimiAcpSpawnConfig.agentId, kimiAcpSpawnConfig);
+acpLookup.set(gooseAcpSpawnConfig.agentId, gooseAcpSpawnConfig);
 
 export function getSpawnConfig(input: string): SpawnConfig | undefined {
   const resolvedId = resolveAgentId(input);

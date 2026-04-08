@@ -181,7 +181,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: spawn-config
     title: Add Goose CLI and ACP spawn configs
@@ -267,8 +267,8 @@ tasks:
       - ACP config is registered
       - MCP serializer produces correct `--with-extension` args
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: skill-config

@@ -519,8 +519,7 @@ function assertInteractiveSupport(label: string, service: string): void {
   if (spawnConfig?.kind === "cli" && spawnConfig.interactive) {
     return;
   }
-  const resolvedAgentId = resolveAgentId(service);
-  if (resolvedAgentId && resolvedAgentId !== "goose") {
+  if (resolveAgentId(service)) {
     return;
   }
   throw new ValidationError(`${label} does not support interactive mode.`);

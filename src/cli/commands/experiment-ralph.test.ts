@@ -5,6 +5,7 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerExperimentCommand } from "./experiment.js";
 import { registerRalphCommand } from "./ralph.js";
+import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import { ValidationError } from "../errors.js";
 import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
 import experimentRunYaml from "../../templates/experiment/run.yaml.hbs";
@@ -74,6 +75,13 @@ function createBaseProgram(): Command {
   program.exitOverride();
   program.name("poe-code").option("-y, --yes").option("--dry-run").option("--verbose");
   return program;
+}
+
+function getSpawnAgentOptions() {
+  return allSpawnConfigs.map((config) => ({
+    label: config.agentId,
+    value: config.agentId
+  }));
 }
 
 describe("experiment run command", () => {
@@ -234,12 +242,7 @@ describe("experiment run command", () => {
     });
     expect(selectMock).toHaveBeenNthCalledWith(2, {
       message: "Select agent to run the experiment with:",
-      options: [
-        { label: "claude-code", value: "claude-code" },
-        { label: "codex", value: "codex" },
-        { label: "opencode", value: "opencode" },
-        { label: "kimi", value: "kimi" }
-      ]
+      options: getSpawnAgentOptions()
     });
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -785,12 +788,7 @@ describe("ralph run command", () => {
     });
     expect(selectMock).toHaveBeenNthCalledWith(2, {
       message: "Select agent to run Ralph with:",
-      options: [
-        { label: "claude-code", value: "claude-code" },
-        { label: "codex", value: "codex" },
-        { label: "opencode", value: "opencode" },
-        { label: "kimi", value: "kimi" }
-      ]
+      options: getSpawnAgentOptions()
     });
     expect(promptTextMock).toHaveBeenCalledWith({
       message: "How many Ralph iterations should run?"

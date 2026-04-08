@@ -66,16 +66,39 @@ function resolveCliConfig(agentId: string) {
   };
 }
 
+function getDefaultArgsPosition(config: CliSpawnConfig): "beforePrompt" | "afterPrompt" {
+  return config.defaultArgsPosition ?? "afterPrompt";
+}
+
+function getMcpArgsPosition(
+  config: CliSpawnConfig
+): "beforeCommand" | "beforePrompt" | "afterCommand" {
+  if (config.mcpArgsPosition) {
+    return config.mcpArgsPosition;
+  }
+  return config.mcpArgsBeforeCommand ? "beforeCommand" : "afterCommand";
+}
+
 function buildCliArgs(
   config: CliSpawnConfig,
   options: BuildSpawnArgsOptions,
   stdinMode?: StdinMode
 ): string[] {
   const mcpArgs = getMcpArgs(config, options.mcpServers);
+  const defaultArgsPosition = getDefaultArgsPosition(config);
+  const mcpArgsPosition = getMcpArgsPosition(config);
 
   const args: string[] = [];
 
-  if (config.mcpArgsBeforeCommand) {
+  if (mcpArgsPosition === "beforeCommand") {
+    args.push(...mcpArgs);
+  }
+
+  if (defaultArgsPosition === "beforePrompt") {
+    args.push(...config.defaultArgs);
+  }
+
+  if (mcpArgsPosition === "beforePrompt") {
     args.push(...mcpArgs);
   }
 
@@ -97,9 +120,11 @@ function buildCliArgs(
     args.push(config.modelFlag, model);
   }
 
-  args.push(...config.defaultArgs);
+  if (defaultArgsPosition === "afterPrompt") {
+    args.push(...config.defaultArgs);
+  }
 
-  if (!config.mcpArgsBeforeCommand) {
+  if (mcpArgsPosition === "afterCommand") {
     args.push(...mcpArgs);
   }
 

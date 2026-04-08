@@ -81,3 +81,10 @@ export function serializeCodexMcpArgs(servers: McpSpawnConfig): string[] {
 
   return args;
 }
+
+export function serializeGooseMcpArgs(servers: McpSpawnConfig): string[] {
+  return Object.values(servers).flatMap((server) => [
+    "--with-extension",
+    [server.command, ...(server.args ?? [])].join(" ")
+  ]);
+}

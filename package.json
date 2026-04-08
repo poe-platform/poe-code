@@ -5,6 +5,28 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cmdkit": {
+      "types": "./packages/cmdkit/dist/index.d.ts",
+      "import": "./packages/cmdkit/dist/index.js"
+    },
+    "./cmdkit/cli": {
+      "types": "./packages/cmdkit/dist/cli.d.ts",
+      "import": "./packages/cmdkit/dist/cli.js"
+    },
+    "./cmdkit/mcp": {
+      "types": "./packages/cmdkit/dist/mcp.d.ts",
+      "import": "./packages/cmdkit/dist/mcp.js"
+    },
+    "./cmdkit/sdk": {
+      "types": "./packages/cmdkit/dist/sdk.d.ts",
+      "import": "./packages/cmdkit/dist/sdk.js"
+    }
+  },
   "workspaces": [
     "packages/*"
   ],

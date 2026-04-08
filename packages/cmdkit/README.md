@@ -2,10 +2,12 @@
 
 Typed command and group definitions built on top of `@poe-code/cmdkit-schema`.
 
+Also available as `poe-code/cmdkit` for consumers of the published `poe-code` package.
+
 ## Usage
 
 ```ts
-import { defineCommand, defineGroup } from "@poe-code/cmdkit";
+import { defineCommand, defineGroup } from "poe-code/cmdkit";
 import { S } from "@poe-code/cmdkit-schema";
 
 const deploy = defineCommand({

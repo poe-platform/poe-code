@@ -636,6 +636,264 @@ describe("resolve", () => {
     });
   });
 
+  it("lets a base prompt wrap a markdown child body with {{yield}}", async () => {
+    const fs = createMemFs({
+      "/bases/review.md": [
+        "---",
+        "agent: codex",
+        "---",
+        "Read {{url}} and make the smallest safe change.",
+        "",
+        "{{yield}}",
+        "",
+        "Always explain what changed."
+      ].join("\n")
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/workspace/review.md",
+          content: [
+            "---",
+            "extends: true",
+            "---",
+            "Focus on test coverage and edge cases in {{repo}}."
+          ].join("\n")
+        },
+        {
+          source: "base",
+          path: "/bases"
+        }
+      ],
+      { fs }
+    );
+
+    expect(result.data).toEqual({
+      agent: "codex",
+      prompt: [
+        "Read {{url}} and make the smallest safe change.",
+        "",
+        "Focus on test coverage and edge cases in {{repo}}.",
+        "",
+        "Always explain what changed."
+      ].join("\n")
+    });
+    expect(result.sources.prompt).toBe("document");
+  });
+
+  it("lets a child prompt wrap an inherited base prompt with {{yield}}", async () => {
+    const fs = createMemFs({
+      "/bases/review.md": "Fix the issue described in {{url}}."
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/workspace/review.md",
+          content: [
+            "---",
+            "extends: true",
+            "---",
+            "Repository policy:",
+            "- keep changes small",
+            "- avoid unrelated refactors",
+            "",
+            "{{yield}}"
+          ].join("\n")
+        },
+        {
+          source: "base",
+          path: "/bases"
+        }
+      ],
+      { fs }
+    );
+
+    expect(result.data.prompt).toBe(
+      [
+        "Repository policy:",
+        "- keep changes small",
+        "- avoid unrelated refactors",
+        "",
+        "Fix the issue described in {{url}}."
+      ].join("\n")
+    );
+    expect(result.sources.prompt).toBe("document");
+  });
+
+  it("nests chained layouts while keeping one final Mustache template", async () => {
+    const fs = createMemFs({
+      "/base-a/review.md": ["---", "extends: true", "---", "Base A intro", "", "{{yield}}"].join("\n"),
+      "/base-b/review.md": ["---", "extends: true", "---", "Base B intro", "", "{{yield}}", "", "Base B outro"].join(
+        "\n"
+      ),
+      "/base-c/review.md": "Read {{url}}."
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/workspace/review.md",
+          content: ["---", "extends: true", "---", "Focus on {{repo}}."].join("\n")
+        },
+        {
+          source: "base-a",
+          path: "/base-a"
+        },
+        {
+          source: "base-b",
+          path: "/base-b"
+        },
+        {
+          source: "base-c",
+          path: "/base-c"
+        }
+      ],
+      { fs }
+    );
+
+    expect(result.data.prompt).toBe(
+      ["Base B intro", "", "Base A intro", "", "Focus on {{repo}}.", "", "Base B outro"].join("\n")
+    );
+    expect(result.sources.prompt).toBe("document");
+  });
+
+  it("replaces {{yield}} with an empty string when the child markdown body is empty", async () => {
+    const fs = createMemFs({
+      "/bases/review.md": [
+        "---",
+        "agent: codex",
+        "---",
+        "Read {{url}}.",
+        "",
+        "{{yield}}",
+        "",
+        "Always explain what changed."
+      ].join("\n")
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/workspace/review.md",
+          content: ["---", "extends: true", "agent: claude-code", "---"].join("\n")
+        },
+        {
+          source: "base",
+          path: "/bases"
+        }
+      ],
+      { fs }
+    );
+
+    expect(result.data).toEqual({
+      agent: "claude-code",
+      prompt: "Read {{url}}.\n\n\n\nAlways explain what changed."
+    });
+    expect(result.sources.prompt).toBe("base");
+  });
+
+  it("lets data layers before the document override the composed prompt", async () => {
+    const fs = createMemFs({
+      "/bases/review.md": ["Read {{url}}.", "", "{{yield}}"].join("\n")
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "override",
+          data: {
+            prompt: "Override prompt"
+          }
+        },
+        {
+          source: "document",
+          filePath: "/workspace/review.md",
+          content: ["---", "extends: true", "---", "Focus on {{repo}}."].join("\n")
+        },
+        {
+          source: "base",
+          path: "/bases"
+        }
+      ],
+      { fs }
+    );
+
+    expect(result.data.prompt).toBe("Override prompt");
+    expect(result.sources.prompt).toBe("override");
+  });
+
+  it("composes normalized prompt fields from YAML and JSON documents", async () => {
+    const fs = createMemFs({
+      "/bases/review.json": JSON.stringify({
+        prompt: "Read {{url}}."
+      })
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/workspace/review.yaml",
+          content: ["extends: true", 'prompt: "Focus on {{repo}}.\\n\\n{{yield}}"'].join("\n")
+        },
+        {
+          source: "base",
+          path: "/bases"
+        }
+      ],
+      { fs }
+    );
+
+    expect(result.data.prompt).toBe(["Focus on {{repo}}.", "", "Read {{url}}."].join("\n"));
+    expect(result.sources.prompt).toBe("document");
+  });
+
+  it("throws when a prompt contains more than one {{yield}} token", async () => {
+    const fs = createMemFs({
+      "/bases/review.md": ["First", "{{yield}}", "Second", "{{yield}}"].join("\n")
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.md",
+            content: ["---", "extends: true", "---", "Child body"].join("\n")
+          },
+          {
+            source: "base",
+            path: "/bases"
+          }
+        ],
+        { fs }
+      )
+    ).rejects.toThrow('Prompt composition supports exactly one "{{yield}}" token per prompt.');
+  });
+
+  it("throws when the final resolved prompt still contains an unresolved {{yield}}", async () => {
+    const fs = createMemFs();
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.yaml",
+            content: ['prompt: "Before\\n\\n{{yield}}"'].join("\n")
+          }
+        ],
+        { fs }
+      )
+    ).rejects.toThrow('Final resolved prompt contains an unresolved "{{yield}}" token.');
+  });
+
   it("tracks the correct source for each resolved field", async () => {
     const fs = createMemFs({
       "/bases/review.yaml": ["prompt: Base prompt", "tone: Base tone"].join("\n")

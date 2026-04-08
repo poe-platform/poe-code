@@ -12,6 +12,7 @@ import type {
 } from "./types.js";
 
 const MAX_EXTENDS_DEPTH = 5;
+const YIELD_TOKEN = "{{yield}}";
 
 interface ClassifiedChain {
   baseLayers: BaseLayer[];
@@ -40,15 +41,26 @@ export async function resolve(
         depth: 1
       })
     : undefined;
-  const merged = mergeLayers([
-    ...collectDataLayers(chain.slice(0, documentIndex)),
+  const composedPrompt = composePromptChain(
     {
       source: documentLayer.source,
       data: parsedDocument.data
     },
-    ...(resolvedBase?.layers ?? []),
+    resolvedBase?.layers ?? []
+  );
+  const merged = mergeLayers([
+    ...collectDataLayers(chain.slice(0, documentIndex)),
+    {
+      source: documentLayer.source,
+      data: withResolvedPrompt(parsedDocument.data, composedPrompt?.prompt)
+    },
+    ...stripResolvedBasePrompts(resolvedBase?.layers ?? [], composedPrompt?.consumedBaseIndexes ?? new Set<number>()),
     ...collectDataLayers(chain.slice(documentIndex + 1))
   ]);
+
+  if (composedPrompt !== undefined && merged.sources.prompt === documentLayer.source && composedPrompt.source !== undefined) {
+    merged.sources.prompt = composedPrompt.source;
+  }
 
   return {
     data: merged.data,
@@ -164,6 +176,135 @@ async function resolveBaseChain({
 
 function collectDataLayers(chain: ChainLayer[]): DataLayer[] {
   return chain.filter(isDataLayer);
+}
+
+interface ComposedPromptResult {
+  consumedBaseIndexes: Set<number>;
+  prompt: string;
+  source?: string;
+}
+
+function composePromptChain(
+  documentLayer: DataLayer,
+  baseLayers: DataLayer[]
+): ComposedPromptResult | undefined {
+  const documentPrompt = documentLayer.data.prompt;
+
+  if (documentPrompt !== undefined && typeof documentPrompt !== "string") {
+    return undefined;
+  }
+
+  if (documentPrompt !== undefined) {
+    assertValidYieldCount(documentPrompt);
+  }
+
+  let prompt = documentPrompt;
+  let source = prompt === undefined || prompt === "" ? undefined : documentLayer.source;
+  const consumedBaseIndexes = new Set<number>();
+
+  for (const [index, layer] of baseLayers.entries()) {
+    const candidate = layer.data.prompt;
+
+    if (candidate === undefined) {
+      continue;
+    }
+
+    if (typeof candidate !== "string") {
+      break;
+    }
+
+    assertValidYieldCount(candidate);
+    consumedBaseIndexes.add(index);
+    prompt = composeAdjacentPrompts(prompt, candidate);
+
+    if (source === undefined && candidate !== "") {
+      source = layer.source;
+    }
+  }
+
+  if (prompt !== undefined && prompt.includes(YIELD_TOKEN)) {
+    throw new Error('Final resolved prompt contains an unresolved "{{yield}}" token.');
+  }
+
+  if (prompt === undefined) {
+    return undefined;
+  }
+
+  return {
+    consumedBaseIndexes,
+    prompt,
+    source
+  };
+}
+
+function composeAdjacentPrompts(
+  high: string | undefined,
+  low: string
+): string {
+  if (high === undefined || high === "") {
+    return low.includes(YIELD_TOKEN) ? replaceYield(low, "") : low;
+  }
+
+  if (high.includes(YIELD_TOKEN)) {
+    return replaceYield(high, low);
+  }
+
+  if (low.includes(YIELD_TOKEN)) {
+    return replaceYield(low, high);
+  }
+
+  return high;
+}
+
+function replaceYield(
+  prompt: string,
+  replacement: string
+): string {
+  return prompt.replace(YIELD_TOKEN, replacement);
+}
+
+function assertValidYieldCount(prompt: string): void {
+  if (countYieldTokens(prompt) > 1) {
+    throw new Error('Prompt composition supports exactly one "{{yield}}" token per prompt.');
+  }
+}
+
+function countYieldTokens(prompt: string): number {
+  return prompt.split(YIELD_TOKEN).length - 1;
+}
+
+function withResolvedPrompt(
+  data: Record<string, unknown>,
+  prompt: string | undefined
+): Record<string, unknown> {
+  if (prompt === undefined) {
+    return data;
+  }
+
+  return {
+    ...data,
+    prompt
+  };
+}
+
+function stripResolvedBasePrompts(
+  layers: DataLayer[],
+  consumedBaseIndexes: Set<number>
+): DataLayer[] {
+  return layers.map((layer, index) => {
+    if (!consumedBaseIndexes.has(index) || typeof layer.data.prompt !== "string") {
+      return layer;
+    }
+
+    const { prompt: ignoredPrompt, ...data } = layer.data;
+
+    void ignoredPrompt;
+
+    return {
+      source: layer.source,
+      data
+    };
+  });
 }
 
 function getBaseName(filePath: string): string {

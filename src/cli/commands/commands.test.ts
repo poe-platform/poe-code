@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { parse as parseYaml } from "yaml";
 import { Command } from "commander";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { executeConfigure } from "./configure.js";
@@ -86,9 +87,7 @@ describe("configure command", () => {
     const { container } = createContainer();
 
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    vi.spyOn(container.options, "resolveModel").mockResolvedValue(
-      "test-model"
-    );
+    vi.spyOn(container.options, "resolveModel").mockResolvedValue("test-model");
     vi.spyOn(container.options, "resolveReasoning").mockResolvedValue("none");
 
     const invokeSpy = vi.spyOn(container.registry, "invoke");
@@ -245,6 +244,40 @@ describe("configure command", () => {
     expect(resolveModel).toHaveBeenCalled();
   });
 
+  it("configures goose and stores its managed files", async () => {
+    const { container } = createContainer();
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-goose");
+    vi.spyOn(container.options, "resolveModel").mockResolvedValue("openai/gpt-5.4");
+
+    const program = createTestProgram();
+    await executeConfigure(program, container, "goose", {});
+
+    const config = parseYaml(
+      await fs.readFile(`${homeDir}/.config/goose/config.yaml`, "utf8")
+    ) as Record<string, unknown>;
+    expect(config.GOOSE_PROVIDER).toBe("custom_poe");
+    expect(config.GOOSE_MODEL).toBe("openai/gpt-5.4");
+
+    const provider = JSON.parse(
+      await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8")
+    ) as Record<string, unknown>;
+    expect(provider.name).toBe("custom_poe");
+
+    const secrets = parseYaml(
+      await fs.readFile(`${homeDir}/.config/goose/secrets.yaml`, "utf8")
+    ) as Record<string, unknown>;
+    expect(secrets.CUSTOM_POE_API_KEY).toBe("sk-goose");
+
+    const content = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(content.configured_services.goose).toEqual({
+      files: [
+        `${homeDir}/.config/goose/config.yaml`,
+        `${homeDir}/.config/goose/custom_providers/custom_poe.json`,
+        `${homeDir}/.config/goose/secrets.yaml`
+      ]
+    });
+  });
+
   it("accepts --model option to set a model without prompting", async () => {
     const { container } = createContainer();
     const customModel = "Custom-Model";
@@ -286,7 +319,7 @@ describe("configure command", () => {
   it("prints a VSCode post-configure hint for Claude Code after configure", async () => {
     const logs: string[] = [];
     const { container } = createContainer({
-      logger: (message) => logs.push(message),
+      logger: (message) => logs.push(message)
     });
 
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
@@ -327,9 +360,7 @@ describe("generate command", () => {
   let stdoutSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    stdoutSpy = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(() => true);
+    stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -346,12 +377,7 @@ describe("generate command", () => {
     };
     setGlobalClient(client);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "generate",
-      "What is 2+2?"
-    ]);
+    await program.parseAsync(["node", "cli", "generate", "What is 2+2?"]);
 
     expect(client.text).toHaveBeenCalledWith({
       model: DEFAULT_TEXT_MODEL,
@@ -493,12 +519,7 @@ describe("generate command", () => {
     };
     setGlobalClient(client);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "generate",
-      "Hello"
-    ]);
+    await program.parseAsync(["node", "cli", "generate", "Hello"]);
 
     expect(client.text).toHaveBeenCalledWith({
       model: "Env-Model",
@@ -526,13 +547,7 @@ describe("generate command", () => {
       arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer
     } as unknown as Response);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "generate",
-      "image",
-      "A sunset"
-    ]);
+    await program.parseAsync(["node", "cli", "generate", "image", "A sunset"]);
 
     const saved = await fs.readFile("/repo/image-1737984000.png");
     expect(saved).toEqual(Buffer.from([1, 2, 3]));
@@ -561,15 +576,7 @@ describe("generate command", () => {
       arrayBuffer: async () => new Uint8Array([9, 8, 7]).buffer
     } as unknown as Response);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "generate",
-      "image",
-      "-o",
-      "custom.png",
-      "A cat"
-    ]);
+    await program.parseAsync(["node", "cli", "generate", "image", "-o", "custom.png", "A cat"]);
 
     const saved = await fs.readFile("/repo/custom.png");
     expect(saved).toEqual(Buffer.from([9, 8, 7]));
@@ -598,13 +605,7 @@ describe("generate command", () => {
       arrayBuffer: async () => new Uint8Array([4, 5, 6]).buffer
     } as unknown as Response);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "generate",
-      "video",
-      "A rocket launch"
-    ]);
+    await program.parseAsync(["node", "cli", "generate", "video", "A rocket launch"]);
 
     const saved = await fs.readFile("/repo/video-1737984000.mp4");
     expect(saved).toEqual(Buffer.from([4, 5, 6]));
@@ -638,15 +639,7 @@ describe("generate command", () => {
       arrayBuffer: async () => new Uint8Array([7, 8, 9]).buffer
     } as unknown as Response);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "generate",
-      "audio",
-      "-o",
-      "clip.mp3",
-      "Hello world"
-    ]);
+    await program.parseAsync(["node", "cli", "generate", "audio", "-o", "clip.mp3", "Hello world"]);
 
     const saved = await fs.readFile("/repo/clip.mp3");
     expect(saved).toEqual(Buffer.from([7, 8, 9]));
@@ -678,13 +671,7 @@ describe("generate command", () => {
       arrayBuffer: async () => new Uint8Array([1]).buffer
     } as unknown as Response);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "generate",
-      "image",
-      "A bird"
-    ]);
+    await program.parseAsync(["node", "cli", "generate", "image", "A bird"]);
 
     expect(client.media).toHaveBeenCalledWith("image", {
       model: DEFAULT_IMAGE_BOT,
@@ -702,14 +689,7 @@ describe("generate command", () => {
     setGlobalClient(client);
 
     await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "generate",
-        "--param",
-        "missing-equals",
-        "Hello"
-      ])
+      program.parseAsync(["node", "cli", "generate", "--param", "missing-equals", "Hello"])
     ).rejects.toThrow("Invalid param format");
   });
 
@@ -721,15 +701,9 @@ describe("generate command", () => {
     };
     setGlobalClient(client);
 
-    await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "generate",
-        "image",
-        "A cat"
-      ])
-    ).rejects.toThrow("RAW-RESPONSE");
+    await expect(program.parseAsync(["node", "cli", "generate", "image", "A cat"])).rejects.toThrow(
+      "RAW-RESPONSE"
+    );
   });
 });
 
@@ -739,10 +713,7 @@ describe("install command", () => {
   function createBaseProgram(): Command {
     const program = new Command();
     program.exitOverride();
-    program
-      .name("poe-code")
-      .option("-y, --yes")
-      .option("--dry-run");
+    program.name("poe-code").option("-y, --yes").option("--dry-run");
     return program;
   }
 
@@ -772,17 +743,10 @@ describe("install command", () => {
     const program = createBaseProgram();
     registerInstallCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "install",
-      "test-service"
-    ]);
+    await program.parseAsync(["node", "cli", "install", "test-service"]);
 
     expect(callOrder).toEqual(["install"]);
-    expect(logs.some((line) => line.includes("Installed Test Service"))).toBe(
-      true
-    );
+    expect(logs.some((line) => line.includes("Installed Test Service"))).toBe(true);
   });
 
   it("resolves the install alias", async () => {
@@ -806,12 +770,7 @@ describe("install command", () => {
     const program = createBaseProgram();
     registerInstallCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "i",
-      "test-service"
-    ]);
+    await program.parseAsync(["node", "cli", "i", "test-service"]);
 
     expect(install).toHaveBeenCalledOnce();
   });
@@ -1073,10 +1032,7 @@ describe("test command (isolated)", () => {
   function createBaseProgram(): Command {
     const program = new Command();
     program.exitOverride();
-    program
-      .name("poe-code")
-      .option("-y, --yes")
-      .option("--dry-run");
+    program.name("poe-code").option("-y, --yes").option("--dry-run");
     return program;
   }
 
@@ -1131,13 +1087,7 @@ describe("test command (isolated)", () => {
     const program = createBaseProgram();
     registerTestCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "test",
-      "demo-service",
-      "--isolated"
-    ]);
+    await program.parseAsync(["node", "cli", "test", "demo-service", "--isolated"]);
   });
 });
 
@@ -1164,10 +1114,7 @@ describe("test command", () => {
   function createBaseProgram(): Command {
     const program = new Command();
     program.exitOverride();
-    program
-      .name("poe-code")
-      .option("-y, --yes")
-      .option("--dry-run");
+    program.name("poe-code").option("-y, --yes").option("--dry-run");
     return program;
   }
 
@@ -1206,9 +1153,9 @@ describe("test command", () => {
     const program = createBaseProgram();
     registerTestCommand(program, container);
 
-    await expect(
-      program.parseAsync(["node", "cli", "test", "demo-service"])
-    ).rejects.toThrow(/does not support test/i);
+    await expect(program.parseAsync(["node", "cli", "test", "demo-service"])).rejects.toThrow(
+      /does not support test/i
+    );
   });
 
   it("propagates provider test failures", async () => {
@@ -1226,9 +1173,9 @@ describe("test command", () => {
     const program = createBaseProgram();
     registerTestCommand(program, container);
 
-    await expect(
-      program.parseAsync(["node", "cli", "test", "demo-service"])
-    ).rejects.toThrow(/health check failed/);
+    await expect(program.parseAsync(["node", "cli", "test", "demo-service"])).rejects.toThrow(
+      /health check failed/
+    );
   });
 
   it("passes --model to provider context", async () => {
@@ -1320,19 +1267,10 @@ describe("unconfigure command", () => {
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "unconfigure",
-      "test-service"
-    ]);
+    await program.parseAsync(["node", "cli", "unconfigure", "test-service"]);
 
     expect(unconfigureSpy).toHaveBeenCalledTimes(1);
-    expect(
-      logs.some((line) =>
-        line.includes("Removed Test Service configuration.")
-      )
-    ).toBe(true);
+    expect(logs.some((line) => line.includes("Removed Test Service configuration."))).toBe(true);
   });
 
   it("logs mutation outcomes when provider reports them", async () => {
@@ -1373,19 +1311,11 @@ describe("unconfigure command", () => {
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--verbose",
-      "unconfigure",
-      "test-service"
-    ]);
+    await program.parseAsync(["node", "cli", "--verbose", "unconfigure", "test-service"]);
 
     expect(
       logs.some((line) =>
-        line.includes(
-          "Transform file /home/test/.config/opencode/config.json: delete"
-        )
+        line.includes("Transform file /home/test/.config/opencode/config.json: delete")
       )
     ).toBe(true);
   });
@@ -1461,9 +1391,7 @@ describe("version command", () => {
     await parseWithVersionExit(program, ["node", "cli", "--version"]);
 
     expect(logs.some((log) => log.includes("99.0.0"))).toBe(true);
-    expect(
-      logs.some((log) => log.includes("npm install -g poe-code@latest"))
-    ).toBe(true);
+    expect(logs.some((log) => log.includes("npm install -g poe-code@latest"))).toBe(true);
   });
 
   it("does not show update message when version is current", async () => {
@@ -1485,9 +1413,7 @@ describe("version command", () => {
 
     await parseWithVersionExit(program, ["node", "cli", "--version"]);
 
-    expect(
-      logs.some((log) => log.includes("npm install -g poe-code@latest"))
-    ).toBe(false);
+    expect(logs.some((log) => log.includes("npm install -g poe-code@latest"))).toBe(false);
   });
 
   it("shows local build indicator for dev version", async () => {

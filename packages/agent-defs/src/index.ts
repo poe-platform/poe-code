@@ -5,7 +5,8 @@ export {
   claudeDesktopAgent,
   codexAgent,
   openCodeAgent,
-  kimiAgent
+  kimiAgent,
+  gooseAgent
 } from "./agents/index.js";
 export { allAgents, resolveAgentId } from "./registry.js";
 export { parseAgentSpecifier, formatAgentSpecifier } from "./specifier.js";

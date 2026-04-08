@@ -4,7 +4,8 @@ import {
   claudeDesktopAgent,
   codexAgent,
   openCodeAgent,
-  kimiAgent
+  kimiAgent,
+  gooseAgent
 } from "./agents/index.js";
 
 export const allAgents: AgentDefinition[] = [
@@ -12,7 +13,8 @@ export const allAgents: AgentDefinition[] = [
   claudeDesktopAgent,
   codexAgent,
   openCodeAgent,
-  kimiAgent
+  kimiAgent,
+  gooseAgent
 ];
 
 const lookup = new Map<string, string>();

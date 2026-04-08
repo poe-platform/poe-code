@@ -52,6 +52,9 @@ export const KIMI_MODELS = [
 ] as const;
 export const DEFAULT_KIMI_MODEL = KIMI_MODELS[0];
 
+export const GOOSE_MODELS = FRONTIER_MODELS;
+export const DEFAULT_GOOSE_MODEL = DEFAULT_FRONTIER_MODEL;
+
 export const DEFAULT_REASONING = "medium";
 export const PROVIDER_NAME = "poe";
 export const FEEDBACK_URL = "https://github.com/poe-platform/poe-code/issues";

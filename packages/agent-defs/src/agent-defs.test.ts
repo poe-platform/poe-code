@@ -5,6 +5,7 @@ import {
   codexAgent,
   openCodeAgent,
   kimiAgent,
+  gooseAgent,
   allAgents,
   resolveAgentId,
   type AgentDefinition
@@ -16,7 +17,8 @@ const expectedAgents: AgentDefinition[] = [
   claudeDesktopAgent,
   codexAgent,
   openCodeAgent,
-  kimiAgent
+  kimiAgent,
+  gooseAgent
 ];
 
 const normalizeKey = (value: string): string => value.toLowerCase();
@@ -28,6 +30,7 @@ describe("agent-defs package", () => {
     expect(codexAgent).toBeDefined();
     expect(openCodeAgent).toBeDefined();
     expect(kimiAgent).toBeDefined();
+    expect(gooseAgent).toBeDefined();
   });
 
   it.each(expectedAgents)("$id has all required fields", (agent) => {
@@ -80,6 +83,7 @@ describe("agent-defs package", () => {
   it("resolves aliases case-insensitively", () => {
     expect(resolveAgentId("CLAUDE")).toBe("claude-code");
     expect(resolveAgentId("kimi-cli")).toBe("kimi");
+    expect(resolveAgentId("GOOSE")).toBe("goose");
   });
 
   it("returns undefined for unknown agents", () => {

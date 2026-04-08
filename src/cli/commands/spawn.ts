@@ -12,7 +12,13 @@ import {
   type SpawnMode
 } from "@poe-code/agent-spawn";
 import { resolveAgentId } from "@poe-code/agent-defs";
-import { text, confirm, isCancel, resolveOutputFormat, renderMarkdown } from "@poe-code/design-system";
+import {
+  text,
+  confirm,
+  isCancel,
+  resolveOutputFormat,
+  renderMarkdown
+} from "@poe-code/design-system";
 import { loadConfiguredServices } from "../../services/config.js";
 import {
   createExecutionResources,
@@ -509,7 +515,12 @@ function assertSpawnSupport(label: string, service: string, providerSupportsSpaw
 }
 
 function assertInteractiveSupport(label: string, service: string): void {
-  if (resolveAgentId(service)) {
+  const spawnConfig = getSpawnConfig(service);
+  if (spawnConfig?.kind === "cli" && spawnConfig.interactive) {
+    return;
+  }
+  const resolvedAgentId = resolveAgentId(service);
+  if (resolvedAgentId && resolvedAgentId !== "goose") {
     return;
   }
   throw new ValidationError(`${label} does not support interactive mode.`);

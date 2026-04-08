@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import path from "node:path";
 import fs from "node:fs";
+import { parse as parseYaml } from "yaml";
 import type { FileSystem } from "../utils/file-system.js";
 import type { ProviderContext } from "../cli/service-registry.js";
 import { createCliEnvironment } from "../cli/environment.js";
@@ -13,15 +14,13 @@ import {
   type MockFileSystem
 } from "@poe-code/config-mutations/testing";
 import { createCliContainer } from "../cli/container.js";
-import {
-  buildProviderContext,
-  createExecutionResources
-} from "../cli/commands/shared.js";
+import { buildProviderContext, createExecutionResources } from "../cli/commands/shared.js";
 import { createProviderStub } from "../../tests/provider-stub.js";
 import * as claudeService from "./claude-code.js";
 import * as codexService from "./codex.js";
 import * as kimiService from "./kimi.js";
 import * as opencodeService from "./opencode.js";
+import * as gooseService from "./goose.js";
 import { provider as poeAgentProvider, spawnPoeAgentWithAcp } from "./poe-agent.js";
 import { AcpClient } from "@poe-code/poe-acp-client";
 import {
@@ -29,9 +28,11 @@ import {
   stripModelNamespace,
   DEFAULT_CODEX_MODEL,
   DEFAULT_KIMI_MODEL,
+  DEFAULT_GOOSE_MODEL,
   KIMI_MODELS,
   DEFAULT_FRONTIER_MODEL,
   FRONTIER_MODELS,
+  GOOSE_MODELS,
   PROVIDER_NAME
 } from "../cli/constants.js";
 
@@ -43,9 +44,8 @@ vi.mock("@poe-code/poe-agent", () => ({
   createAgentSession: createAgentSessionMock
 }));
 
-const resolveVariantModel = (
-  variant: keyof typeof CLAUDE_CODE_VARIANTS
-): string => CLAUDE_CODE_VARIANTS[variant];
+const resolveVariantModel = (variant: keyof typeof CLAUDE_CODE_VARIANTS): string =>
+  CLAUDE_CODE_VARIANTS[variant];
 
 const CLAUDE_MODEL_HAIKU = resolveVariantModel("haiku");
 const CLAUDE_MODEL_SONNET = resolveVariantModel("sonnet");
@@ -151,9 +151,7 @@ describe("claude-code service", () => {
     typeof claudeService.claudeCodeService.unconfigure
   >[0]["options"];
 
-  const buildConfigureOptions = (
-    overrides: Partial<ConfigureOptions> = {}
-  ): ConfigureOptions => ({
+  const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
     apiKey: "sk-test",
     model: CLAUDE_MODEL_SONNET,
@@ -167,9 +165,7 @@ describe("claude-code service", () => {
     ...overrides
   });
 
-  async function configureClaude(
-    overrides: Partial<ConfigureOptions> = {}
-  ): Promise<void> {
+  async function configureClaude(overrides: Partial<ConfigureOptions> = {}): Promise<void> {
     await claudeService.claudeCodeService.configure({
       fs: mockFsObj,
       env,
@@ -178,9 +174,7 @@ describe("claude-code service", () => {
     });
   }
 
-  async function unconfigureClaude(
-    overrides: Partial<UnconfigureOptions> = {}
-  ): Promise<boolean> {
+  async function unconfigureClaude(overrides: Partial<UnconfigureOptions> = {}): Promise<boolean> {
     return claudeService.claudeCodeService.unconfigure({
       fs: mockFsObj,
       env,
@@ -340,8 +334,10 @@ describe("claude-code service", () => {
     expect(runCommand).toHaveBeenCalledWith(
       "claude",
       expect.arrayContaining([
-        "-p", "Output exactly: CLAUDE_CODE_OK",
-        "--model", expect.stringContaining("claude-sonnet-4-6")
+        "-p",
+        "Output exactly: CLAUDE_CODE_OK",
+        "--model",
+        expect.stringContaining("claude-sonnet-4-6")
       ])
     );
   });
@@ -363,9 +359,7 @@ describe("claude-code service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(
-      claudeService.claudeCodeService.test?.(context)
-    ).rejects.toThrow(/FAIL_STDOUT/);
+    await expect(claudeService.claudeCodeService.test?.(context)).rejects.toThrow(/FAIL_STDOUT/);
   });
 
   it("includes stdout and stderr when the Claude health check output is unexpected", async () => {
@@ -376,9 +370,7 @@ describe("claude-code service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(
-      claudeService.claudeCodeService.test?.(context)
-    ).rejects.toThrow(/CLAUDE_CODE_OK/);
+    await expect(claudeService.claudeCodeService.test?.(context)).rejects.toThrow(/CLAUDE_CODE_OK/);
   });
 
   it("falls back to Windows path lookup when which is unavailable", async () => {
@@ -458,17 +450,11 @@ describe("codex service", () => {
     return { context, logs };
   }
 
-  type ConfigureOptions = Parameters<
-    typeof codexService.codexService.configure
-  >[0]["options"];
+  type ConfigureOptions = Parameters<typeof codexService.codexService.configure>[0]["options"];
 
-  type UnconfigureOptions = Parameters<
-    typeof codexService.codexService.unconfigure
-  >[0]["options"];
+  type UnconfigureOptions = Parameters<typeof codexService.codexService.unconfigure>[0]["options"];
 
-  const buildConfigureOptions = (
-    overrides: Partial<ConfigureOptions> = {}
-  ): ConfigureOptions => ({
+  const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
     apiKey: "sk-test",
     model: DEFAULT_CODEX_MODEL,
@@ -483,9 +469,7 @@ describe("codex service", () => {
     ...overrides
   });
 
-  async function configureCodex(
-    overrides: Partial<ConfigureOptions> = {}
-  ): Promise<void> {
+  async function configureCodex(overrides: Partial<ConfigureOptions> = {}): Promise<void> {
     await codexService.codexService.configure({
       fs: mockFsObj,
       env,
@@ -494,9 +478,7 @@ describe("codex service", () => {
     });
   }
 
-  async function unconfigureCodex(
-    overrides: Partial<UnconfigureOptions> = {}
-  ): Promise<boolean> {
+  async function unconfigureCodex(overrides: Partial<UnconfigureOptions> = {}): Promise<boolean> {
     return codexService.codexService.unconfigure({
       fs: mockFsObj,
       env,
@@ -514,8 +496,7 @@ describe("codex service", () => {
     expect(doc["model_provider"]).toBe("poe");
 
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const defaultProfileName =
-      codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
+    const defaultProfileName = codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
     const codexProfile = profiles[defaultProfileName];
     expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(codexProfile["model_provider"]).toBe("poe");
@@ -527,8 +508,7 @@ describe("codex service", () => {
     expect(providers["poe"]["requires_openai_auth"]).toBe(false);
     expect(providers["poe"]["supports_websockets"]).toBe(false);
 
-    await expect(mockFsObj.readFile(path.join(configDir, "auth.json"), "utf8")).rejects
-      .toThrow();
+    await expect(mockFsObj.readFile(path.join(configDir, "auth.json"), "utf8")).rejects.toThrow();
 
     await expect(
       mockFsObj.readFile(`${configPath}.backup.20240101T000000`, "utf8")
@@ -559,8 +539,7 @@ describe("codex service", () => {
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const defaultProfileName =
-      codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
+    const defaultProfileName = codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
     expect(profiles["opus"]).toBeDefined();
     expect(profiles[defaultProfileName]).toBeUndefined();
   });
@@ -588,11 +567,9 @@ describe("codex service", () => {
       timestamp: () => "20240101T000000"
     });
 
-    await mockFsObj.writeFile(
-      `${configPath}.backup.20240101T000000`,
-      "legacy",
-      { encoding: "utf8" }
-    );
+    await mockFsObj.writeFile(`${configPath}.backup.20240101T000000`, "legacy", {
+      encoding: "utf8"
+    });
     const removed = await unconfigureCodex();
     expect(removed).toBe(true);
 
@@ -749,24 +726,18 @@ describe("codex service", () => {
     await configureCodex();
 
     const files = mockFs.files;
-    const backupFile = Object.keys(files).find((f) =>
-      f.startsWith(`${configPath}.backup-`)
-    );
+    const backupFile = Object.keys(files).find((f) => f.startsWith(`${configPath}.backup-`));
     expect(backupFile).toBeDefined();
     const backupContent = await mockFsObj.readFile(backupFile!, "utf8");
     expect(backupContent).toBe("legacy-config");
-    await expect(
-      mockFsObj.readFile(path.join(configDir, "auth.json"), "utf8")
-    ).rejects.toThrow();
+    await expect(mockFsObj.readFile(path.join(configDir, "auth.json"), "utf8")).rejects.toThrow();
   });
 
   it("merges codex configuration with existing content", async () => {
     await mockFsObj.mkdir(configDir, { recursive: true });
     await mockFsObj.writeFile(
       configPath,
-      ['model_provider = "legacy"', "", "[features]", "foo = true", ""].join(
-        "\n"
-      ),
+      ['model_provider = "legacy"', "", "[features]", "foo = true", ""].join("\n"),
       { encoding: "utf8" }
     );
 
@@ -777,8 +748,7 @@ describe("codex service", () => {
     expect(doc["features"]).toEqual({ foo: true });
 
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const defaultProfileName =
-      codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
+    const defaultProfileName = codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
     const codexProfile = profiles[defaultProfileName];
     expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(codexProfile["model_provider"]).toBe("poe");
@@ -796,16 +766,12 @@ describe("codex service", () => {
     });
 
     const files = mockFs.files;
-    const backupFile = Object.keys(files).find((f) =>
-      f.startsWith(`${configPath}.backup-`)
-    );
+    const backupFile = Object.keys(files).find((f) => f.startsWith(`${configPath}.backup-`));
     expect(backupFile).toBeDefined();
     const backupContent = await mockFsObj.readFile(backupFile!, "utf8");
     expect(backupContent.trim()).toContain('model_provider = "legacy"');
     expect(backupContent.trim()).toContain("[features]");
-    await expect(
-      mockFsObj.readFile(path.join(configDir, "auth.json"), "utf8")
-    ).rejects.toThrow();
+    await expect(mockFsObj.readFile(path.join(configDir, "auth.json"), "utf8")).rejects.toThrow();
   });
 
   it("runs the Codex CLI health check via runCommand when invoking the provider test", async () => {
@@ -820,9 +786,7 @@ describe("codex service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "codex",
-      expect.arrayContaining([
-        "exec", "Output exactly: CODEX_OK"
-      ])
+      expect.arrayContaining(["exec", "Output exactly: CODEX_OK"])
     );
   });
 
@@ -843,9 +807,7 @@ describe("codex service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(
-      codexService.codexService.test?.(context)
-    ).resolves.toBeUndefined();
+    await expect(codexService.codexService.test?.(context)).resolves.toBeUndefined();
   });
 
   it("includes stdout and stderr when the health check command fails", async () => {
@@ -856,9 +818,7 @@ describe("codex service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(codexService.codexService.test?.(context)).rejects.toThrow(
-      /FAIL_STDOUT/
-    );
+    await expect(codexService.codexService.test?.(context)).rejects.toThrow(/FAIL_STDOUT/);
   });
 
   it("includes stdout and stderr when the health check output is unexpected", async () => {
@@ -869,9 +829,7 @@ describe("codex service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(codexService.codexService.test?.(context)).rejects.toThrow(
-      /CODEX_OK/
-    );
+    await expect(codexService.codexService.test?.(context)).rejects.toThrow(/CODEX_OK/);
   });
 });
 
@@ -927,22 +885,16 @@ describe("kimi service", () => {
     return { context, logs };
   }
 
-  type ConfigureOptions = Parameters<
-    typeof kimiService.kimiService.configure
-  >[0]["options"];
+  type ConfigureOptions = Parameters<typeof kimiService.kimiService.configure>[0]["options"];
 
-  const buildConfigureOptions = (
-    overrides: Partial<ConfigureOptions> = {}
-  ): ConfigureOptions => ({
+  const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
     apiKey: "sk-test",
     model: DEFAULT_KIMI_MODEL,
     ...overrides
   });
 
-  type UnconfigureOptions = Parameters<
-    typeof kimiService.kimiService.unconfigure
-  >[0]["options"];
+  type UnconfigureOptions = Parameters<typeof kimiService.kimiService.unconfigure>[0]["options"];
 
   const buildUnconfigureOptions = (
     overrides: Partial<UnconfigureOptions> = {}
@@ -951,9 +903,7 @@ describe("kimi service", () => {
     ...overrides
   });
 
-  async function configureKimi(
-    overrides: Partial<ConfigureOptions> = {}
-  ): Promise<void> {
+  async function configureKimi(overrides: Partial<ConfigureOptions> = {}): Promise<void> {
     await kimiService.kimiService.configure({
       fs: mockFsObj,
       env,
@@ -962,9 +912,7 @@ describe("kimi service", () => {
     });
   }
 
-  async function unconfigureKimi(
-    overrides: Partial<UnconfigureOptions> = {}
-  ): Promise<boolean> {
+  async function unconfigureKimi(overrides: Partial<UnconfigureOptions> = {}): Promise<boolean> {
     return kimiService.kimiService.unconfigure({
       fs: mockFsObj,
       env,
@@ -1173,9 +1121,7 @@ describe("kimi service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "kimi",
-      expect.arrayContaining([
-        "-p", "Output exactly: KIMI_OK"
-      ])
+      expect.arrayContaining(["-p", "Output exactly: KIMI_OK"])
     );
   });
 
@@ -1196,9 +1142,7 @@ describe("kimi service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(
-      kimiService.kimiService.test?.(context)
-    ).rejects.toThrow(/KIMI_FAIL_STDOUT/);
+    await expect(kimiService.kimiService.test?.(context)).rejects.toThrow(/KIMI_FAIL_STDOUT/);
   });
 
   it("includes stdout and stderr when the Kimi health check output is unexpected", async () => {
@@ -1209,9 +1153,7 @@ describe("kimi service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(
-      kimiService.kimiService.test?.(context)
-    ).rejects.toThrow(/KIMI_OK/);
+    await expect(kimiService.kimiService.test?.(context)).rejects.toThrow(/KIMI_OK/);
   });
 
   it("removes the Poe provider from config on remove", async () => {
@@ -1237,8 +1179,7 @@ describe("opencode service", () => {
   const authPath = path.join(homeDir, ".local", "share", "opencode", "auth.json");
   let env = createCliEnvironment({ cwd: homeDir, homeDir });
 
-  const withProviderPrefix = (model: string): string =>
-    `${PROVIDER_NAME}/${model}`;
+  const withProviderPrefix = (model: string): string => `${PROVIDER_NAME}/${model}`;
 
   const DEFAULT_PROVIDER_MODEL = withProviderPrefix(DEFAULT_FRONTIER_MODEL);
 
@@ -1283,18 +1224,14 @@ describe("opencode service", () => {
     typeof opencodeService.openCodeService.configure
   >[0]["options"];
 
-  const buildConfigureOptions = (
-    overrides: Partial<ConfigureOptions> = {}
-  ): ConfigureOptions => ({
+  const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
     apiKey: "sk-test",
     model: DEFAULT_FRONTIER_MODEL,
     ...overrides
   });
 
-  async function configureOpenCode(
-    overrides: Partial<ConfigureOptions> = {}
-  ): Promise<void> {
+  async function configureOpenCode(overrides: Partial<ConfigureOptions> = {}): Promise<void> {
     await opencodeService.openCodeService.configure({
       fs: mockFsObj,
       env,
@@ -1331,8 +1268,7 @@ describe("opencode service", () => {
   });
 
   it("offers Gemini 3.1 Pro in configure prompts instead of the removed Gemini 3 Pro", () => {
-    const choices =
-      opencodeService.openCodeService.configurePrompts?.model?.choices ?? [];
+    const choices = opencodeService.openCodeService.configurePrompts?.model?.choices ?? [];
     const values = choices.map((choice) => choice.value);
 
     expect(values).toContain("google/gemini-3.1-pro");
@@ -1550,9 +1486,7 @@ describe("opencode service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "opencode",
-      expect.arrayContaining([
-        "run", "Output exactly: OPEN_CODE_OK"
-      ])
+      expect.arrayContaining(["run", "Output exactly: OPEN_CODE_OK"])
     );
   });
 
@@ -1573,9 +1507,9 @@ describe("opencode service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(
-      opencodeService.openCodeService.test?.(context)
-    ).rejects.toThrow(/OPEN_FAIL_STDOUT/);
+    await expect(opencodeService.openCodeService.test?.(context)).rejects.toThrow(
+      /OPEN_FAIL_STDOUT/
+    );
   });
 
   it("includes stdout and stderr when the OpenCode health check output is unexpected", async () => {
@@ -1586,9 +1520,240 @@ describe("opencode service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(
-      opencodeService.openCodeService.test?.(context)
-    ).rejects.toThrow(/OPEN_CODE_OK/);
+    await expect(opencodeService.openCodeService.test?.(context)).rejects.toThrow(/OPEN_CODE_OK/);
+  });
+});
+
+describe("goose service", () => {
+  let mockFsObj: FileSystem;
+  const home = "/home/user";
+  const configPath = path.join(home, ".config", "goose", "config.yaml");
+  const secretsPath = path.join(home, ".config", "goose", "secrets.yaml");
+  const providerPath = path.join(home, ".config", "goose", "custom_providers", "custom_poe.json");
+  let env = createCliEnvironment({
+    cwd: home,
+    homeDir: home
+  });
+
+  beforeEach(() => {
+    mockFsObj = createMockFs({}, home);
+    env = createCliEnvironment({
+      cwd: home,
+      homeDir: home
+    });
+  });
+
+  function createProviderTestContext(
+    runCommand: ReturnType<typeof vi.fn>,
+    options: { dryRun?: boolean } = {}
+  ): { context: ProviderContext; logs: string[] } {
+    const logs: string[] = [];
+    const logger = createLoggerFactory((message) => {
+      logs.push(message);
+    }).create({
+      dryRun: options.dryRun ?? false,
+      verbose: true,
+      scope: "test:goose"
+    });
+
+    const context = {
+      env,
+      command: {
+        runCommand,
+        fs: mockFsObj
+      },
+      logger,
+      async runCheck(check) {
+        await check.run({
+          isDryRun: logger.context.dryRun,
+          runCommand,
+          logDryRun: (message) => logger.dryRun(message)
+        });
+      }
+    } satisfies ProviderContext;
+
+    return { context, logs };
+  }
+
+  type ConfigureOptions = Parameters<typeof gooseService.gooseService.configure>[0]["options"];
+
+  const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
+    env,
+    apiKey: "sk-goose",
+    model: DEFAULT_GOOSE_MODEL,
+    ...overrides
+  });
+
+  async function configureGoose(overrides: Partial<ConfigureOptions> = {}): Promise<void> {
+    await gooseService.gooseService.configure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: buildConfigureOptions(overrides)
+    });
+  }
+
+  it("creates the goose config, secrets, and custom provider files", async () => {
+    await configureGoose();
+
+    const config = parseYaml(await mockFsObj.readFile(configPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(config.GOOSE_DISABLE_KEYRING).toBe(true);
+    expect(config.GOOSE_PROVIDER).toBe("custom_poe");
+    expect(config.GOOSE_MODEL).toBe(DEFAULT_GOOSE_MODEL);
+    expect((config.extensions as Record<string, unknown>).developer).toBeDefined();
+    expect((config.extensions as Record<string, unknown>).summon).toBeDefined();
+
+    const secrets = parseYaml(await mockFsObj.readFile(secretsPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(secrets.CUSTOM_POE_API_KEY).toBe("sk-goose");
+
+    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(provider.name).toBe("custom_poe");
+    expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
+    expect(provider.models).toEqual(
+      GOOSE_MODELS.map((name) => ({
+        name,
+        context_limit: 128000
+      }))
+    );
+  });
+
+  it("merges existing goose config and preserves unrelated settings", async () => {
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.writeFile(
+      configPath,
+      ["theme: dark", "extensions:", "  custom:", "    enabled: true"].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    await configureGoose({ model: FRONTIER_MODELS[FRONTIER_MODELS.length - 1]! });
+
+    const config = parseYaml(await mockFsObj.readFile(configPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(config.theme).toBe("dark");
+    expect(config.GOOSE_MODEL).toBe(FRONTIER_MODELS[FRONTIER_MODELS.length - 1]!);
+    expect(
+      ((config.extensions as Record<string, unknown>).custom as Record<string, unknown>).enabled
+    ).toBe(true);
+  });
+
+  it("removes managed Goose provider artifacts during unconfigure", async () => {
+    await configureGoose();
+
+    const changed = await gooseService.gooseService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: {}
+    });
+
+    expect(changed).toBe(true);
+    const config = parseYaml(await mockFsObj.readFile(configPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(config.GOOSE_PROVIDER).toBeUndefined();
+    expect(config.GOOSE_MODEL).toBeUndefined();
+    await expect(mockFsObj.readFile(secretsPath, "utf8")).rejects.toThrow();
+    await expect(mockFsObj.readFile(providerPath, "utf8")).rejects.toThrow();
+  });
+
+  it("spawns Goose with provider and model flags", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "goose-output\n",
+      stderr: "",
+      exitCode: 0
+    }));
+    const providerContext = createProviderTestContext(runCommand).context;
+
+    const result = await gooseService.gooseService.spawn?.(providerContext, {
+      prompt: "List files",
+      model: DEFAULT_GOOSE_MODEL,
+      args: ["--session", "resume-1"]
+    });
+
+    expect(runCommand).toHaveBeenCalledWith("goose", [
+      "run",
+      "--provider",
+      "custom_poe",
+      "--model",
+      DEFAULT_GOOSE_MODEL,
+      "--output-format",
+      "text",
+      "--text",
+      "List files",
+      "--session",
+      "resume-1"
+    ]);
+    expect(result).toEqual({
+      stdout: "goose-output\n",
+      stderr: "",
+      exitCode: 0
+    });
+  });
+
+  it("uses stdin mode for Goose when requested", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "goose-output\n",
+      stderr: "",
+      exitCode: 0
+    }));
+    const providerContext = createProviderTestContext(runCommand).context;
+
+    await gooseService.gooseService.spawn?.(providerContext, {
+      prompt: "Read from stdin",
+      useStdin: true
+    });
+
+    expect(runCommand).toHaveBeenCalledWith(
+      "goose",
+      [
+        "run",
+        "--provider",
+        "custom_poe",
+        "--model",
+        DEFAULT_GOOSE_MODEL,
+        "--output-format",
+        "text",
+        "--instructions",
+        "-"
+      ],
+      {
+        stdin: "Read from stdin"
+      }
+    );
+  });
+
+  it("runs the Goose health check via goose run", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: "GOOSE_OK\n",
+      stderr: "",
+      exitCode: 0
+    });
+    const { context } = createProviderTestContext(runCommand);
+
+    await gooseService.gooseService.test?.(context);
+
+    expect(runCommand).toHaveBeenCalledWith(
+      "goose",
+      expect.arrayContaining([
+        "run",
+        "--provider",
+        "custom_poe",
+        "--text",
+        "Reply with exactly: GOOSE_OK"
+      ])
+    );
   });
 });
 
@@ -1599,10 +1764,7 @@ describe("poe-agent provider", () => {
     disposeMock.mockReset();
 
     sendMessageMock.mockImplementation(
-      async (
-        _prompt: string,
-        options?: { onSessionUpdate?: (update: unknown) => void }
-      ) => {
+      async (_prompt: string, options?: { onSessionUpdate?: (update: unknown) => void }) => {
         options?.onSessionUpdate?.({
           sessionUpdate: "tool_call",
           toolCallId: "tool-1",
@@ -1694,16 +1856,15 @@ describe("poe-agent provider", () => {
     expect(newSessionSpy).toHaveBeenCalledTimes(1);
     expect(newSessionSpy).toHaveBeenCalledWith("/workspace/project", []);
     expect(promptSpy).toHaveBeenCalledTimes(1);
-    expect(promptSpy).toHaveBeenCalledWith(
-      expect.any(String),
-      [{ type: "text", text: "Summarize this diff" }]
-    );
-    expect(
-      initializeSpy.mock.invocationCallOrder[0]
-    ).toBeLessThan(newSessionSpy.mock.invocationCallOrder[0]);
-    expect(
+    expect(promptSpy).toHaveBeenCalledWith(expect.any(String), [
+      { type: "text", text: "Summarize this diff" }
+    ]);
+    expect(initializeSpy.mock.invocationCallOrder[0]).toBeLessThan(
       newSessionSpy.mock.invocationCallOrder[0]
-    ).toBeLessThan(promptSpy.mock.invocationCallOrder[0]);
+    );
+    expect(newSessionSpy.mock.invocationCallOrder[0]).toBeLessThan(
+      promptSpy.mock.invocationCallOrder[0]
+    );
     expect(sendMessageMock).toHaveBeenCalledWith(
       "Summarize this diff",
       expect.objectContaining({
@@ -1748,21 +1909,21 @@ describe("poe-agent provider", () => {
 
     expect(createAgentSessionMock).toHaveBeenCalledWith({
       model: DEFAULT_FRONTIER_MODEL,
-      cwd: process.cwd(),
+      cwd: process.cwd()
     });
   });
 
   it("forwards baseUrl override to createAgentSession", async () => {
     const { done } = spawnPoeAgentWithAcp({
       prompt: "Explain this function",
-      baseUrl: "http://proxy.example.com/v1",
+      baseUrl: "http://proxy.example.com/v1"
     });
     await done;
 
     expect(createAgentSessionMock).toHaveBeenCalledWith({
       model: DEFAULT_FRONTIER_MODEL,
       cwd: process.cwd(),
-      baseUrl: "http://proxy.example.com/v1",
+      baseUrl: "http://proxy.example.com/v1"
     });
   });
 });
@@ -1781,8 +1942,8 @@ describe("determine provider workflow script", () => {
         typeof content === "string"
           ? content
           : Buffer.isBuffer(content)
-          ? content.toString("utf8")
-          : String(content);
+            ? content.toString("utf8")
+            : String(content);
       writes.push(text);
     }) as typeof fs.appendFileSync;
     process.env.GITHUB_OUTPUT = "/tmp/output";

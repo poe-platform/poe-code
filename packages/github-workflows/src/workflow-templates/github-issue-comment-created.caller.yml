@@ -1,14 +1,12 @@
-name: 'GitHub: Issue Comment Created'
+name: "GitHub: Issue Comment Created"
 on:
   issue_comment:
-    types: [created]
-
-# Keep these permissions in sync with the reusable workflow referenced below.
+    types:
+      - created
 permissions:
   contents: write
   issues: write
   pull-requests: write
-
 jobs:
   run:
     uses: __UPSTREAM_REPO__/.github/workflows/gh-github-issue-comment-created.yml@main
@@ -23,3 +21,4 @@ jobs:
       COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
       COMMENT_USER_TYPE: ${{ github.event.comment.user.type }}
       GITHUB_REPOSITORY: ${{ github.repository }}
+    if: github.event.issue.pull_request == null

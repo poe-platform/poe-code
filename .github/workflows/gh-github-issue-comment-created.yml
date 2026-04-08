@@ -36,7 +36,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   guard:
-    if: inputs.ISSUE_STATE == 'open' && inputs.COMMENT_USER_TYPE != 'Bot'
+    if: format('{0}', inputs.COMMENT_IS_PULL_REQUEST) != 'true' && inputs.ISSUE_STATE == 'open' && inputs.COMMENT_USER_TYPE != 'Bot'
     runs-on: ubuntu-latest
     env:
       OUTPUT_FORMAT: terminal

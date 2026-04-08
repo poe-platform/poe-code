@@ -28,7 +28,7 @@ describe("variables", () => {
       ].join("\n")
     });
 
-    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
+    await expect(loadVariables("/built-in", "/repo/.github/workflows")).resolves.toEqual({
       response_style: "- Start with a direct answer.\n",
       verify_before_responding: "Verify against the repo.\n"
     });
@@ -43,7 +43,7 @@ describe("variables", () => {
         "  Verify against the repo.",
         ""
       ].join("\n"),
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "# response_style: |",
         "#   - Custom response style.",
         "# verify_before_responding: |",
@@ -52,7 +52,7 @@ describe("variables", () => {
       ].join("\n")
     });
 
-    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
+    await expect(loadVariables("/built-in", "/repo/.github/workflows")).resolves.toEqual({
       response_style: "- Start with a direct answer.\n",
       verify_before_responding: "Verify against the repo.\n"
     });
@@ -67,14 +67,14 @@ describe("variables", () => {
         "  Verify against the repo.",
         ""
       ].join("\n"),
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "response_style: |",
         "  - Answer in the house style.",
         ""
       ].join("\n")
     });
 
-    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
+    await expect(loadVariables("/built-in", "/repo/.github/workflows")).resolves.toEqual({
       response_style: "- Answer in the house style.\n",
       verify_before_responding: "Verify against the repo.\n"
     });
@@ -89,10 +89,10 @@ describe("variables", () => {
         "  Use gh for GitHub operations.",
         ""
       ].join("\n"),
-      "/repo/.poe-code/github-workflows/variables.yaml": 'skill_github_cli: ""\n'
+      "/repo/.github/workflows/variables.yaml": 'skill_github_cli: ""\n'
     });
 
-    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
+    await expect(loadVariables("/built-in", "/repo/.github/workflows")).resolves.toEqual({
       response_style: "- Start with a direct answer.\n"
     });
   });
@@ -106,14 +106,14 @@ describe("variables", () => {
         "  Verify against the repo.",
         ""
       ].join("\n"),
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "custom_project_rules: |",
         "  Check docs/internal.md first.",
         ""
       ].join("\n")
     });
 
-    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
+    await expect(loadVariables("/built-in", "/repo/.github/workflows")).resolves.toEqual({
       response_style: "- Start with a direct answer.\n",
       verify_before_responding: "Verify against the repo.\n",
       custom_project_rules: "Check docs/internal.md first.\n"
@@ -129,7 +129,7 @@ describe("variables", () => {
         "  Verify against the repo.",
         ""
       ].join("\n"),
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "extends: false",
         "custom_project_rules: |",
         "  Check docs/internal.md first.",
@@ -137,7 +137,7 @@ describe("variables", () => {
       ].join("\n")
     });
 
-    await expect(loadVariables("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual({
+    await expect(loadVariables("/built-in", "/repo/.github/workflows")).resolves.toEqual({
       custom_project_rules: "Check docs/internal.md first.\n"
     });
   });
@@ -153,7 +153,7 @@ describe("variables", () => {
         "  Use gh for GitHub operations.",
         ""
       ].join("\n"),
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "verify_before_responding: |",
         "  Check the changed files first.",
         'skill_github_cli: ""',
@@ -163,21 +163,21 @@ describe("variables", () => {
       ].join("\n")
     });
 
-    await expect(loadVariableStatuses("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual([
+    await expect(loadVariableStatuses("/built-in", "/repo/.github/workflows")).resolves.toEqual([
       { name: "response_style", source: "built-in", status: "default" },
       {
         name: "verify_before_responding",
-        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        source: "/repo/.github/workflows/variables.yaml",
         status: "overridden"
       },
       {
         name: "skill_github_cli",
-        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        source: "/repo/.github/workflows/variables.yaml",
         status: "disabled"
       },
       {
         name: "custom_project_rules",
-        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        source: "/repo/.github/workflows/variables.yaml",
         status: "custom"
       }
     ]);
@@ -192,7 +192,7 @@ describe("variables", () => {
         "  Verify against the repo.",
         ""
       ].join("\n"),
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "extends: false",
         "response_style: |",
         "  - Answer in the house style.",
@@ -202,15 +202,15 @@ describe("variables", () => {
       ].join("\n")
     });
 
-    await expect(loadVariableStatuses("/built-in", "/repo/.poe-code/github-workflows")).resolves.toEqual([
+    await expect(loadVariableStatuses("/built-in", "/repo/.github/workflows")).resolves.toEqual([
       {
         name: "response_style",
-        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        source: "/repo/.github/workflows/variables.yaml",
         status: "overridden"
       },
       {
         name: "custom_project_rules",
-        source: "/repo/.poe-code/github-workflows/variables.yaml",
+        source: "/repo/.github/workflows/variables.yaml",
         status: "custom"
       }
     ]);

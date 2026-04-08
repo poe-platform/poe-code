@@ -503,7 +503,7 @@ function projectWorkflowDir(cwd: string): string {
 }
 
 function projectGitHubWorkflowsDir(cwd: string): string {
-  return path.join(cwd, ".poe-code", "github-workflows");
+  return projectWorkflowDir(cwd);
 }
 
 async function resolveBuiltInPromptsDir(): Promise<string> {

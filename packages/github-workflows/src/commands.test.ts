@@ -174,7 +174,7 @@ describe("ghGroup", () => {
       ["Repo from env: {{repo}}", "Style:", "{{response_style}}"].join("\n")
     );
     vol.fromJSON({
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "repo: overridden-by-project",
         "response_style: |",
         "  - Use the repository house style.",
@@ -347,7 +347,7 @@ describe("ghGroup", () => {
       ["Issue URL: {{url}}", "Rules:", "{{custom_project_rules}}", "{{response_style}}"].join("\n")
     );
     vol.fromJSON({
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "custom_project_rules: |",
         "  Check docs/internal.md first.",
         ""
@@ -805,10 +805,10 @@ describe("ghGroup", () => {
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).not.toContain(
       "npm install -g poe-code@latest"
     );
-    expect(readRepoFile("/repo/.poe-code/github-workflows/variables.yaml")).toContain(
+    expect(readRepoFile("/repo/.github/workflows/variables.yaml")).toContain(
       "# response_style: |"
     );
-    expect(readRepoFile("/repo/.poe-code/github-workflows/README.md")).toContain(
+    expect(readRepoFile("/repo/.github/workflows/README.md")).toContain(
       "| `poe-code github-workflows variables` | List shared prompt variables and where each value comes from |"
     );
     expect(result).toMatchObject({
@@ -820,8 +820,8 @@ describe("ghGroup", () => {
           ejected: false
         }
       ],
-      readmePath: "/repo/.poe-code/github-workflows/README.md",
-      variablesPath: "/repo/.poe-code/github-workflows/variables.yaml"
+      readmePath: "/repo/.github/workflows/README.md",
+      variablesPath: "/repo/.github/workflows/variables.yaml"
     });
   });
 
@@ -872,8 +872,8 @@ describe("ghGroup", () => {
     }
 
     expect(result.installations).toHaveLength(installableAutomationNames.length);
-    expect(result.variablesPath).toBe("/repo/.poe-code/github-workflows/variables.yaml");
-    expect(result.readmePath).toBe("/repo/.poe-code/github-workflows/README.md");
+    expect(result.variablesPath).toBe("/repo/.github/workflows/variables.yaml");
+    expect(result.readmePath).toBe("/repo/.github/workflows/README.md");
   });
 
   it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {
@@ -1021,7 +1021,7 @@ describe("ghGroup", () => {
 
   it("lists resolved variable statuses with sources", async () => {
     vol.fromJSON({
-      "/repo/.poe-code/github-workflows/variables.yaml": [
+      "/repo/.github/workflows/variables.yaml": [
         "verify_before_responding: |",
         "  Check changed files first.",
         'skill_github_cli: ""',
@@ -1058,19 +1058,19 @@ describe("ghGroup", () => {
       { name: "response_style", source: "built-in", status: "default" },
       {
         name: "verify_before_responding",
-        source: ".poe-code/github-workflows/variables.yaml",
+        source: ".github/workflows/variables.yaml",
         status: "overridden"
       },
       {
         name: "skill_github_cli",
-        source: ".poe-code/github-workflows/variables.yaml",
+        source: ".github/workflows/variables.yaml",
         status: "disabled"
       },
       { name: "pull_request_guidelines", source: "built-in", status: "default" },
       { name: "code_review_guidelines", source: "built-in", status: "default" },
       {
         name: "custom_project_rules",
-        source: ".poe-code/github-workflows/variables.yaml",
+        source: ".github/workflows/variables.yaml",
         status: "custom"
       }
     ]);

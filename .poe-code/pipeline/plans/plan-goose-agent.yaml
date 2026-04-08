@@ -269,7 +269,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: skill-config
     title: Add Goose skill directory config
@@ -297,8 +297,8 @@ tasks:
       - Goose agent is supported in skill config
       - Skill directories resolve correctly
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integration-test

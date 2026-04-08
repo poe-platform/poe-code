@@ -9,14 +9,9 @@ import {
   getAgentConfig,
   resolveAgentSupport,
   resolveSkillDir,
-  supportedAgents,
+  supportedAgents
 } from "./configs.js";
-import {
-  configure,
-  installSkill,
-  unconfigure,
-  UnsupportedAgentError,
-} from "./apply.js";
+import { configure, installSkill, unconfigure, UnsupportedAgentError } from "./apply.js";
 import { loadTemplate, createTemplateLoader } from "./templates.js";
 
 function createMemFs(): { fs: FileSystem; vol: Volume } {
@@ -104,7 +99,7 @@ function extractBodyAfterFrontmatter(markdown: string): string {
 
 describe("supportedAgents", () => {
   it("includes supported agent ids", () => {
-    expect(supportedAgents).toEqual(["claude-code", "codex", "opencode"]);
+    expect(supportedAgents).toEqual(["claude-code", "codex", "opencode", "goose"]);
   });
 });
 
@@ -115,7 +110,7 @@ describe("resolveAgentSupport", () => {
     expect(result.id).toBe("claude-code");
     expect(result.config).toEqual({
       globalSkillDir: "~/.claude/skills",
-      localSkillDir: ".claude/skills",
+      localSkillDir: ".claude/skills"
     });
   });
 
@@ -123,6 +118,16 @@ describe("resolveAgentSupport", () => {
     const result = resolveAgentSupport("CLAUDE");
     expect(result.status).toBe("supported");
     expect(result.id).toBe("claude-code");
+  });
+
+  it("returns supported for goose", () => {
+    const result = resolveAgentSupport("goose");
+    expect(result.status).toBe("supported");
+    expect(result.id).toBe("goose");
+    expect(result.config).toEqual({
+      globalSkillDir: "~/.agents/skills",
+      localSkillDir: ".agents/skills"
+    });
   });
 
   it("returns unknown when no agent matches", () => {
@@ -135,7 +140,7 @@ describe("getAgentConfig", () => {
   it("returns config for supported agent id", () => {
     expect(getAgentConfig("codex")).toEqual({
       globalSkillDir: "~/.codex/skills",
-      localSkillDir: ".codex/skills",
+      localSkillDir: ".codex/skills"
     });
   });
 
@@ -160,6 +165,17 @@ describe("resolveSkillDir", () => {
 
     const result = resolveSkillDir(config!, "global", "/repo");
     expect(result).toBe(path.resolve(path.join(os.homedir(), ".config/opencode/skills")));
+  });
+
+  it("resolves goose directories using .agents conventions", () => {
+    const config = getAgentConfig("goose");
+    expect(config).toBeDefined();
+
+    const cwd = "/repo";
+    expect(resolveSkillDir(config!, "local", cwd)).toBe(path.resolve(cwd, ".agents/skills"));
+    expect(resolveSkillDir(config!, "global", cwd)).toBe(
+      path.resolve(path.join(os.homedir(), ".agents/skills"))
+    );
   });
 });
 
@@ -202,7 +218,7 @@ describe("configure", () => {
 
     await expect(memFs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
     const content = await memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, {
-      encoding: "utf8",
+      encoding: "utf8"
     });
     expect(content).toContain("name: poe-generate");
     expect(content).toContain("# poe-code generate");
@@ -213,10 +229,28 @@ describe("configure", () => {
 
     await expect(memFs.stat(`${cwd}/.claude/skills`)).resolves.toBeDefined();
     const content = await memFs.readFile(`${cwd}/.claude/skills/poe-generate.md`, {
-      encoding: "utf8",
+      encoding: "utf8"
     });
     expect(content).toContain("name: poe-generate");
     expect(content).toContain("# poe-code generate");
+  });
+
+  it("creates goose skill directories using the shared .agents convention", async () => {
+    await configure("goose", { fs: memFs, homeDir, cwd });
+    await configure("goose", { fs: memFs, homeDir, cwd, scope: "local" });
+
+    await expect(memFs.stat(`${homeDir}/.agents/skills`)).resolves.toBeDefined();
+    await expect(memFs.stat(`${cwd}/.agents/skills`)).resolves.toBeDefined();
+
+    const globalContent = await memFs.readFile(`${homeDir}/.agents/skills/poe-generate.md`, {
+      encoding: "utf8"
+    });
+    const localContent = await memFs.readFile(`${cwd}/.agents/skills/poe-generate.md`, {
+      encoding: "utf8"
+    });
+
+    expect(globalContent).toContain("name: poe-generate");
+    expect(localContent).toContain("name: poe-generate");
   });
 });
 
@@ -233,9 +267,9 @@ describe("unconfigure", () => {
   });
 
   it("throws UnsupportedAgentError for unknown agent", async () => {
-    await expect(
-      unconfigure("unknown", { fs: memFs, homeDir, cwd })
-    ).rejects.toBeInstanceOf(UnsupportedAgentError);
+    await expect(unconfigure("unknown", { fs: memFs, homeDir, cwd })).rejects.toBeInstanceOf(
+      UnsupportedAgentError
+    );
   });
 
   it("removes global skill directory by default when force is set", async () => {
@@ -298,11 +332,11 @@ describe("installSkill", () => {
 
     expect(result).toEqual({
       skillPath: "~/.claude/skills/terminal-pilot/SKILL.md",
-      displayPath: ".claude/skills/terminal-pilot/SKILL.md",
+      displayPath: ".claude/skills/terminal-pilot/SKILL.md"
     });
 
     const content = await memFs.readFile(`${cwd}/.claude/skills/terminal-pilot/SKILL.md`, {
-      encoding: "utf8",
+      encoding: "utf8"
     });
     expect(content).toContain("name: terminal-pilot");
     expect(content).toContain("# Terminal Pilot");
@@ -318,6 +352,25 @@ describe("installSkill", () => {
         { fs: memFs, cwd, homeDir, scope: "local" }
       )
     ).rejects.toBeInstanceOf(UnsupportedAgentError);
+  });
+
+  it("installs a goose skill into the shared local .agents directory", async () => {
+    const result = await installSkill(
+      "goose",
+      { name: "terminal-pilot", content: "# Goose skill" },
+      { fs: memFs, cwd, homeDir, scope: "local" }
+    );
+
+    expect(result).toEqual({
+      skillPath: "~/.agents/skills/terminal-pilot/SKILL.md",
+      displayPath: ".agents/skills/terminal-pilot/SKILL.md"
+    });
+
+    await expect(
+      memFs.readFile(`${cwd}/.agents/skills/terminal-pilot/SKILL.md`, {
+        encoding: "utf8"
+      })
+    ).resolves.toBe("# Goose skill");
   });
 });
 
@@ -357,7 +410,7 @@ describe("bundled skill template: poe-generate.md", () => {
     const frontmatter = parseYamlFrontmatter(template);
     expect(frontmatter).toMatchObject({
       name: "poe-generate",
-      description: "Poe code generation skill",
+      description: "Poe code generation skill"
     });
 
     const body = extractBodyAfterFrontmatter(template);
@@ -366,9 +419,9 @@ describe("bundled skill template: poe-generate.md", () => {
   });
 
   it("fails validation when frontmatter is malformed", () => {
-    expect(() =>
-      parseYamlFrontmatter(["---", "name: poe-generate"].join("\n"))
-    ).toThrow("Missing YAML frontmatter end delimiter");
+    expect(() => parseYamlFrontmatter(["---", "name: poe-generate"].join("\n"))).toThrow(
+      "Missing YAML frontmatter end delimiter"
+    );
   });
 });
 
@@ -382,7 +435,7 @@ describe("bundled skill template: terminal-pilot.md", () => {
     const frontmatter = parseYamlFrontmatter(template);
     expect(frontmatter).toMatchObject({
       name: "terminal-pilot",
-      description: "Terminal automation skill using the terminal-pilot CLI",
+      description: "Terminal automation skill using the terminal-pilot CLI"
     });
 
     const body = extractBodyAfterFrontmatter(template);

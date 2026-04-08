@@ -299,7 +299,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integration-test
     title: Spot-test Goose integration end-to-end
@@ -333,6 +333,6 @@ tasks:
 
       Fix compilation errors, missing registrations, or visual problems.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open

@@ -8,6 +8,7 @@ class Agent(str, Enum):
     CODEX = "codex"
     OPENCODE = "opencode"
     KIMI = "kimi"
+    GOOSE = "goose"
 
 
 class SpawnMode(str, Enum):

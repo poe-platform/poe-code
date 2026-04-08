@@ -120,6 +120,40 @@ Always add tests for new functionality.
 
 When a prompt body is provided, it replaces the built-in prompt. When omitted, the built-in prompt is inherited.
 
+### Prompt composition with `{{yield}}`
+
+When using `extends`, you can use the `{{yield}}` token to compose prompts instead of fully replacing them. This lets you wrap the inherited prompt with your own instructions while still receiving upstream prompt updates.
+
+**Wrap the built-in prompt with extra instructions:**
+
+`.github/workflows/poe-code-github-issue-opened.md`:
+```yaml
+---
+extends: true
+---
+Repository policy:
+- keep changes small
+- avoid unrelated refactors
+
+{{yield}}
+```
+
+Here `{{yield}}` is replaced with the built-in prompt, so the final prompt becomes your policy rules followed by the inherited instructions.
+
+**Built-in prompts can also use `{{yield}}`** to provide a stable wrapper where your custom content is inserted in the middle. If the base prompt contains `{{yield}}`, your prompt body fills that slot:
+
+```
+Base:   "Read {{url}}.\n\n{{yield}}\n\nAlways explain what changed."
+Child:  "Focus on test coverage."
+Result: "Read {{url}}.\n\nFocus on test coverage.\n\nAlways explain what changed."
+```
+
+Rules:
+- Only one `{{yield}}` per prompt is allowed.
+- If neither side uses `{{yield}}`, the child prompt replaces the base (existing behavior).
+- If the child has no prompt body, `{{yield}}` resolves to an empty string.
+- `{{yield}}` is resolved before Mustache template variables like `{{url}}`, so both work together seamlessly.
+
 ### `extends` vs `--eject`
 
 | | `extends` | `--eject` |

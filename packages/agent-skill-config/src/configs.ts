@@ -21,6 +21,10 @@ const agentSkillConfigs: Record<string, AgentSkillConfig> = {
   opencode: {
     globalSkillDir: "~/.config/opencode/skills",
     localSkillDir: ".opencode/skills"
+  },
+  goose: {
+    globalSkillDir: "~/.agents/skills",
+    localSkillDir: ".agents/skills"
   }
 };
 
@@ -84,15 +88,10 @@ function expandHome(targetPath: string): string {
   return remainder.length === 0 ? os.homedir() : path.join(os.homedir(), remainder);
 }
 
-export function resolveSkillDir(
-  config: AgentSkillConfig,
-  scope: SkillScope,
-  cwd: string
-): string {
+export function resolveSkillDir(config: AgentSkillConfig, scope: SkillScope, cwd: string): string {
   if (scope === "global") {
     return path.resolve(expandHome(config.globalSkillDir));
   }
 
   return path.resolve(cwd, config.localSkillDir);
 }
-

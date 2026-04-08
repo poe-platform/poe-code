@@ -48,7 +48,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: yaml-config-support
     title: Add YAML config format to agent-mcp-config
@@ -103,8 +103,8 @@ tasks:
       - The goose shape transformation (command→cmd, env→envs)
       - Round-trip: write then read preserves entries
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: provider

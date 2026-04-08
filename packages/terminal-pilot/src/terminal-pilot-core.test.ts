@@ -1131,3 +1131,4 @@ describe("TerminalSession", () => {
     expect(screen.rawLines[0]).toContain("\u001b[38;2;162;0;255mhello\u001b[0m world");
   });
 });
+

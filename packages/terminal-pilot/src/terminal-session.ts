@@ -1,5 +1,7 @@
-import { spawn as spawnChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
+import { accessSync, chmodSync, constants } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import * as nodePty from "node-pty";
 import { stripAnsi } from "./ansi.js";
 import { TerminalBuffer } from "./terminal-buffer.js";
@@ -275,117 +277,31 @@ function createPtyProcess({
   cols: number;
   rows: number;
 }): PtyLike {
-  try {
-    return nodePty.spawn(command, args, {
-      cwd,
-      env,
-      cols,
-      rows,
-      encoding: "utf8"
-    });
-  } catch {
-    return createChildProcessFallback({ command, args, cwd, env });
-  }
-}
-
-function createChildProcessFallback({
-  command,
-  args,
-  cwd,
-  env
-}: {
-  command: string;
-  args: string[];
-  cwd: string;
-  env: Record<string, string | undefined>;
-}): PtyLike {
-  const child = spawnChildProcess(command, args, {
+  ensureSpawnHelperExecutable();
+  return nodePty.spawn(command, args, {
     cwd,
     env,
-    stdio: ["pipe", "pipe", "pipe"]
+    cols,
+    rows,
+    encoding: "utf8"
   });
-
-  return new ChildProcessFallback(child);
 }
 
-class ChildProcessFallback implements PtyLike {
-  readonly pid: number;
+let spawnHelperChecked = false;
 
-  private readonly child: ChildProcessWithoutNullStreams;
-  private readonly dataEmitter = new EventEmitter();
-  private readonly exitEmitter = new EventEmitter();
+function ensureSpawnHelperExecutable(): void {
+  if (spawnHelperChecked) return;
+  spawnHelperChecked = true;
 
-  constructor(child: ChildProcessWithoutNullStreams) {
-    this.child = child;
-    this.pid = child.pid ?? -1;
+  const require = createRequire(import.meta.url);
+  const nodePtyDir = dirname(require.resolve("node-pty"));
+  const helper = join(nodePtyDir, "..", "prebuilds", `${process.platform}-${process.arch}`, "spawn-helper");
 
-    child.stdout.setEncoding("utf8");
-    child.stderr.setEncoding("utf8");
-    child.stdout.on("data", this.handleData);
-    child.stderr.on("data", this.handleData);
-    child.on("exit", (exitCode, signal) => {
-      this.exitEmitter.emit("exit", {
-        exitCode: exitCode ?? signalToExitCode(signal),
-        signal: undefined
-      });
-    });
+  try {
+    accessSync(helper, constants.X_OK);
+  } catch {
+    chmodSync(helper, 0o755);
   }
-
-  write(data: string): void {
-    this.child.stdin.write(data);
-  }
-
-  resize(): void {
-    // No-op in fallback mode.
-  }
-
-  kill(signal?: string): void {
-    this.child.kill(signal as NodeJS.Signals | undefined);
-  }
-
-  onData(listener: (chunk: string) => void): { dispose(): void } {
-    this.dataEmitter.on("data", listener);
-
-    return {
-      dispose: () => {
-        this.dataEmitter.off("data", listener);
-      }
-    };
-  }
-
-  onExit(listener: (event: { exitCode: number; signal?: number }) => void): { dispose(): void } {
-    this.exitEmitter.on("exit", listener);
-
-    return {
-      dispose: () => {
-        this.exitEmitter.off("exit", listener);
-      }
-    };
-  }
-
-  private readonly handleData = (chunk: string | Buffer) => {
-    this.dataEmitter.emit("data", String(chunk));
-  };
-}
-
-function signalToExitCode(signal: NodeJS.Signals | null): number {
-  if (signal === null) {
-    return 0;
-  }
-
-  const signalNumbers: Partial<Record<NodeJS.Signals, number>> = {
-    SIGTERM: 15,
-    SIGINT: 2,
-    SIGHUP: 1,
-    SIGKILL: 9
-  };
-
-  const signalNumber = signalNumbers[signal];
-  if (signalNumber === undefined) {
-    return 1;
-  }
-
-  return 128 + signalNumber;
 }
 
 function matchPattern(buffer: string, pattern: string | RegExp): string | null {

@@ -24,6 +24,8 @@ poe-code gh install <name>
 
 This creates:
 - `.github/workflows/poe-code-<name>.yml` — the GitHub Actions workflow
+- `.github/workflows/variables.yaml` — optional shared prompt variable overrides
+- `.github/workflows/README.md` — a local command reference for workflow helpers
 
 This does not copy a local prompt file. The default install stays thin and references the built-in automation.
 
@@ -38,7 +40,7 @@ The workflow triggers automatically on the configured event.
 | Name | Trigger | Description |
 |------|---------|-------------|
 | `github-issue-opened` | Issue opened | Reads the issue and implements the requested changes |
-| `github-issue-comment-created` | Issue or PR comment created | Acts on prefixed comments, restricted to allowed roles; updates the current PR when the comment is on a same-repo PR |
+| `github-issue-comment-created` | Issue comment created | Acts on prefixed issue comments, restricted to allowed roles |
 | `github-pull-request-opened` | PR opened | Reviews the pull request |
 | `github-pull-request-synchronized` | PR updated | Re-reviews the PR after new commits are pushed |
 | `fix-vulnerabilities` | Scheduled | Fetches open Dependabot alerts and fixes them one by one |
@@ -222,20 +224,17 @@ Variables available in the prompt body depend on the trigger:
 | `{{repo}}` | All |
 | `{{issue.number}}`, `{{issue.title}}` | Issue workflows |
 | `{{pr.number}}`, `{{pr.title}}`, `{{pr.author}}` | PR workflows |
-| `{{comment.author}}`, `{{comment.body}}` | Comment workflows |
+| `{{comment.author}}`, `{{comment.body}}` | Issue-comment workflows |
 | `{{<field>}}` | Sourced automations — any field from the JSON item |
-
-For issue-comment workflows, `{{url}}` resolves to the PR URL and `{{pr.*}}` values are populated when the triggering comment is on a pull request.
 
 ---
 
 ## Issue Comment Workflow Behavior
 
-The built-in `github-issue-comment-created` workflow behaves differently depending on where the comment was posted:
+The built-in `github-issue-comment-created` workflow only runs for issue comments (not pull-request comments):
 
 - On an issue, prefixed comments can make code changes and open or update a PR.
-- On a same-repo pull request, prefixed comments execute against the current PR branch and update that existing PR.
-- On a fork-based pull request, PR metadata is still passed to the agent, but the workflow does not switch onto the contributor branch.
+- On a pull request comment, the workflow is skipped.
 
 The workflow also:
 

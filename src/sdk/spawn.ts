@@ -334,5 +334,5 @@ spawn.pretty = async function pretty(
 ): Promise<SpawnResult> {
   const { events, result } = spawn(service, promptOrOptions as string, maybeOptions);
   await renderAcpStream(events);
-  return result;
+  return await result;
 };

@@ -36,7 +36,7 @@ export async function runRalph(
             ...(input.signal ? { signal: input.signal } : {})
           });
           await renderAcpStream(events);
-          return result;
+          return await result;
         } catch (error) {
           if (!isActivityTimeoutError(error) || attempt === MAX_TIMEOUT_RETRIES) {
             throw error;

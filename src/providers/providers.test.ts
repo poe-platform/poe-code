@@ -263,7 +263,7 @@ describe("claude-code service", () => {
       env: {
         ANTHROPIC_BASE_URL: "https://api.poe.com"
       },
-      model: stripModelNamespace(CLAUDE_MODEL_SONNET)
+      model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
     });
   });
 
@@ -283,7 +283,7 @@ describe("claude-code service", () => {
       env: {
         ANTHROPIC_BASE_URL: "https://proxy.example.com"
       },
-      model: stripModelNamespace(CLAUDE_MODEL_SONNET)
+      model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
     });
   });
 
@@ -317,7 +317,7 @@ describe("claude-code service", () => {
         ANTHROPIC_BASE_URL: "https://api.poe.com",
         CUSTOM: "value"
       },
-      model: stripModelNamespace(CLAUDE_MODEL_SONNET)
+      model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
     });
   });
 
@@ -1529,6 +1529,7 @@ describe("goose service", () => {
   const home = "/home/user";
   const configPath = path.join(home, ".config", "goose", "config.yaml");
   const providerPath = path.join(home, ".config", "goose", "custom_providers", "custom_poe.json");
+  const secretsPath = path.join(home, ".config", "goose", "secrets.yaml");
   let env = createCliEnvironment({
     cwd: home,
     homeDir: home
@@ -1580,6 +1581,7 @@ describe("goose service", () => {
     env,
     apiKey: "sk-goose",
     model: DEFAULT_GOOSE_MODEL,
+    modelContextLimits: buildGooseModelContextLimitsFixture(),
     ...overrides
   });
 
@@ -1592,7 +1594,7 @@ describe("goose service", () => {
     });
   }
 
-  it("creates the goose config and custom provider files", async () => {
+  it("creates the goose config, custom provider, and persisted secrets files", async () => {
     await configureGoose();
 
     const config = parseYaml(await mockFsObj.readFile(configPath, "utf8")) as Record<
@@ -1601,6 +1603,7 @@ describe("goose service", () => {
     >;
     expect(config.GOOSE_PROVIDER).toBe("custom_poe");
     expect(config.GOOSE_MODEL).toBe(DEFAULT_GOOSE_MODEL);
+    expect(config.GOOSE_DISABLE_KEYRING).toBe(true);
 
     const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
       string,
@@ -1608,7 +1611,17 @@ describe("goose service", () => {
     >;
     expect(provider.name).toBe("custom_poe");
     expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
-    expect(provider.models).toEqual(GOOSE_MODELS);
+    expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
+    expect(provider.headers).toEqual({ Authorization: "Bearer sk-goose" });
+    expect(provider.models).toEqual(buildCustomProviderModelsFixture());
+
+    const secrets = parseYaml(await mockFsObj.readFile(secretsPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(secrets).toEqual({
+      CUSTOM_POE_API_KEY: "sk-goose"
+    });
   });
 
   it("merges existing goose config and preserves unrelated settings", async () => {
@@ -1650,6 +1663,84 @@ describe("goose service", () => {
     expect(provider.base_url).toBe("https://proxy.example.test/gateway/v1/chat/completions");
   });
 
+  it("requires explicit Goose model context limits when building the provider config", async () => {
+    await expect(configureGoose({ modelContextLimits: {} })).rejects.toThrow(
+      /Missing Goose model context limit/
+    );
+  });
+
+  it("fetches Goose model context limits from the Poe model catalog", async () => {
+    const modelContextLimits = await gooseService.gooseService.extendConfigurePayload?.({
+      fs: mockFsObj,
+      env,
+      httpClient: vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [
+            {
+              id: "claude-opus-4.6",
+              context_window: { context_length: 983040 }
+            },
+            {
+              id: "claude-sonnet-4.6",
+              context_window: { context_length: 983040 }
+            },
+            {
+              id: "gpt-5.3-codex",
+              context_window: { context_length: 400000 }
+            },
+            {
+              id: "gpt-5.4",
+              context_window: { context_length: 1050000 }
+            },
+            {
+              id: "gemini-3.1-pro",
+              context_window: { context_length: 1048576 }
+            }
+          ]
+        })
+      })),
+      logger: createLoggerFactory(() => {}).create({
+        dryRun: false,
+        verbose: true,
+        scope: "test:goose"
+      }),
+      payload: buildConfigureOptions()
+    });
+
+    expect(modelContextLimits).toEqual({
+      modelContextLimits: buildGooseModelContextLimitsFixture()
+    });
+  });
+
+  it("fails when the Poe model catalog response is incomplete", async () => {
+    await expect(
+      gooseService.gooseService.extendConfigurePayload?.({
+        fs: mockFsObj,
+        env,
+        httpClient: vi.fn(async () => ({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            data: [
+              {
+                id: "claude-opus-4.6",
+                context_window: { context_length: 983040 }
+              }
+            ]
+          })
+        })),
+        logger: createLoggerFactory(() => {}).create({
+          dryRun: false,
+          verbose: true,
+          scope: "test:goose"
+        }),
+        payload: buildConfigureOptions()
+      })
+    ).rejects.toThrow(/Missing Goose model context limit/);
+  });
+
   it("removes managed Goose provider artifacts during unconfigure", async () => {
     await configureGoose();
 
@@ -1663,6 +1754,7 @@ describe("goose service", () => {
     expect(changed).toBe(true);
     await expect(mockFsObj.readFile(configPath, "utf8")).rejects.toThrow();
     await expect(mockFsObj.readFile(providerPath, "utf8")).rejects.toThrow();
+    await expect(mockFsObj.readFile(secretsPath, "utf8")).rejects.toThrow();
   });
 
   it("only prunes Goose YAML settings when the active provider is Poe-managed", async () => {
@@ -1670,12 +1762,17 @@ describe("goose service", () => {
     await mockFsObj.mkdir(path.dirname(providerPath), { recursive: true });
     await mockFsObj.writeFile(
       configPath,
-      ["GOOSE_PROVIDER: openai", "GOOSE_MODEL: openai/gpt-5.4", "theme: dark"].join("\n"),
+      ["GOOSE_PROVIDER: openai", "GOOSE_MODEL: openai/gpt-5.4", "GOOSE_DISABLE_KEYRING: true", "theme: dark"].join("\n"),
       { encoding: "utf8" }
     );
     await mockFsObj.writeFile(
       providerPath,
       `${JSON.stringify(buildCustomProviderFixture(), null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    await mockFsObj.writeFile(
+      secretsPath,
+      ["CUSTOM_POE_API_KEY: sk-goose", "OPENAI_API_KEY: openai-key"].join("\n"),
       { encoding: "utf8" }
     );
 
@@ -1695,6 +1792,13 @@ describe("goose service", () => {
     expect(config.GOOSE_MODEL).toBe("openai/gpt-5.4");
     expect(config.theme).toBe("dark");
     await expect(mockFsObj.readFile(providerPath, "utf8")).rejects.toThrow();
+    const secrets = parseYaml(await mockFsObj.readFile(secretsPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(secrets).toEqual({
+      OPENAI_API_KEY: "openai-key"
+    });
   });
 
   it("spawns Goose with provider and model flags", async () => {
@@ -1794,9 +1898,26 @@ function buildCustomProviderFixture(): Record<string, unknown> {
     description: "Poe OpenAI-compatible API",
     api_key_env: "CUSTOM_POE_API_KEY",
     base_url: "https://api.poe.com/v1/chat/completions",
-    models: GOOSE_MODELS,
+    models: buildCustomProviderModelsFixture(),
     supports_streaming: true,
     requires_auth: true
+  };
+}
+
+function buildCustomProviderModelsFixture(): Array<Record<string, unknown>> {
+  return GOOSE_MODELS.map((name) => ({
+    name,
+    context_limit: buildGooseModelContextLimitsFixture()[name]
+  }));
+}
+
+function buildGooseModelContextLimitsFixture(): Record<string, number> {
+  return {
+    "anthropic/claude-opus-4.6": 983040,
+    "anthropic/claude-sonnet-4.6": 983040,
+    "openai/gpt-5.3-codex": 400000,
+    "openai/gpt-5.4": 1050000,
+    "google/gemini-3.1-pro": 1048576
   };
 }
 

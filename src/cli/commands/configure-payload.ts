@@ -57,5 +57,16 @@ export async function createConfigurePayload(
     payload.reasoningEffort = reasoningEffort;
   }
 
+  const extension = await adapter.extendConfigurePayload?.({
+    fs: container.fs,
+    env: context.env,
+    httpClient: container.httpClient,
+    logger,
+    payload
+  });
+  if (extension) {
+    Object.assign(payload, extension);
+  }
+
   return payload;
 }

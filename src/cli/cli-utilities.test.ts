@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { parse as parseYaml } from "yaml";
 import { deriveWrapBinaryAliases } from "./binary-aliases.js";
 import type { ProviderService } from "./service-registry.js";
 import { parseMcpOutputFormatPreferences } from "./mcp-output-format.js";
@@ -349,6 +350,67 @@ describe("poe-code command runner", () => {
     expect(settingsJson).toEqual({
       apiKeyHelper: "echo $POE_API_KEY",
       env: { ANTHROPIC_BASE_URL: "https://api.poe.com" }
+    });
+
+    expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });
+  });
+
+  it("routes Goose through its isolated home and config directories", async () => {
+    const fs = createHomeFs(homeDir);
+    const baseRunner = vi.fn(async () => ({
+      stdout: "OK\n",
+      stderr: "",
+      exitCode: 0
+    }));
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: {} },
+      logger: () => {},
+      commandRunner: baseRunner,
+      httpClient: vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [
+            { id: "claude-opus-4.6", context_window: { context_length: 983040 } },
+            { id: "claude-sonnet-4.6", context_window: { context_length: 983040 } },
+            { id: "gpt-5.3-codex", context_window: { context_length: 400000 } },
+            { id: "gpt-5.4", context_window: { context_length: 1050000 } },
+            { id: "gemini-3.1-pro", context_window: { context_length: 1048576 } }
+          ]
+        })
+      }))
+    });
+
+    await storeTestApiKey(fs, homeDir, "sk-test");
+
+    const result = await container.commandRunner("poe-code", [
+      "wrap",
+      "goose",
+      "run",
+      "--help"
+    ]);
+
+    expect(baseRunner).toHaveBeenCalledWith(
+      "goose",
+      ["run", "--help"],
+      expect.objectContaining({
+        env: expect.objectContaining({
+          HOME: "/home/test/.poe-code/goose",
+          XDG_CONFIG_HOME: "/home/test/.poe-code/goose/.config"
+        })
+      })
+    );
+    expect((baseRunner.mock.calls[0]?.[2] as { env: Record<string, string> }).env.POE_API_KEY).toBe(
+      undefined
+    );
+
+    const secrets = parseYaml(
+      await fs.readFile("/home/test/.poe-code/goose/.config/goose/secrets.yaml", "utf8")
+    ) as Record<string, unknown>;
+    expect(secrets).toEqual({
+      CUSTOM_POE_API_KEY: "sk-test"
     });
 
     expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });

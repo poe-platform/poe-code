@@ -55,6 +55,7 @@ describe("configure command", () => {
     overrides: {
       commandRunner?: CommandRunner;
       logger?: LoggerFn;
+      httpClient?: HttpClient;
     } = {}
   ) {
     const prompts = vi.fn().mockResolvedValue({});
@@ -78,7 +79,8 @@ describe("configure command", () => {
       prompts,
       env: { cwd, homeDir },
       logger,
-      commandRunner
+      commandRunner,
+      httpClient: overrides.httpClient
     });
     return { container, prompts, commandRunner };
   }
@@ -245,7 +247,20 @@ describe("configure command", () => {
   });
 
   it("configures goose and stores its managed files", async () => {
-    const { container } = createContainer();
+    const httpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [
+          { id: "claude-opus-4.6", context_window: { context_length: 983040 } },
+          { id: "claude-sonnet-4.6", context_window: { context_length: 983040 } },
+          { id: "gpt-5.3-codex", context_window: { context_length: 400000 } },
+          { id: "gpt-5.4", context_window: { context_length: 1050000 } },
+          { id: "gemini-3.1-pro", context_window: { context_length: 1048576 } }
+        ]
+      })
+    })) satisfies HttpClient;
+    const { container } = createContainer({ httpClient });
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-goose");
     vi.spyOn(container.options, "resolveModel").mockResolvedValue("openai/gpt-5.4");
 
@@ -262,14 +277,57 @@ describe("configure command", () => {
       await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8")
     ) as Record<string, unknown>;
     expect(provider.name).toBe("custom_poe");
+    expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
+    expect(provider.models).toEqual([
+      { name: "anthropic/claude-opus-4.6", context_limit: 983040 },
+      { name: "anthropic/claude-sonnet-4.6", context_limit: 983040 },
+      { name: "openai/gpt-5.3-codex", context_limit: 400000 },
+      { name: "openai/gpt-5.4", context_limit: 1050000 },
+      { name: "google/gemini-3.1-pro", context_limit: 1048576 }
+    ]);
+
+    const secrets = parseYaml(
+      await fs.readFile(`${homeDir}/.config/goose/secrets.yaml`, "utf8")
+    ) as Record<string, unknown>;
+    expect(secrets).toEqual({
+      CUSTOM_POE_API_KEY: "sk-goose"
+    });
 
     const content = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(content.configured_services.goose).toEqual({
       files: [
         `${homeDir}/.config/goose/config.yaml`,
-        `${homeDir}/.config/goose/custom_providers/custom_poe.json`
+        `${homeDir}/.config/goose/custom_providers/custom_poe.json`,
+        `${homeDir}/.config/goose/secrets.yaml`
       ]
     });
+    expect(httpClient).toHaveBeenCalledWith(
+      "https://api.poe.com/v1/models",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer sk-goose"
+        })
+      })
+    );
+  });
+
+  it("fails to configure goose when /v1/models does not provide required context lengths", async () => {
+    const httpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [{ id: "gpt-5.4", context_window: { context_length: 1050000 } }]
+      })
+    })) satisfies HttpClient;
+    const { container } = createContainer({ httpClient });
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-goose");
+    vi.spyOn(container.options, "resolveModel").mockResolvedValue("openai/gpt-5.4");
+
+    const program = createTestProgram();
+
+    await expect(executeConfigure(program, container, "goose", {})).rejects.toThrow(
+      /Missing Goose model context limit/
+    );
   });
 
   it("accepts --model option to set a model without prompting", async () => {

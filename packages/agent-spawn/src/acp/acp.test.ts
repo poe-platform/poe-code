@@ -618,7 +618,6 @@ describe("spawnAcp", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toBe("Hello world!\n");
-    expect(result.sessionId).toBe("ses_test_123");
     expect(result.threadId).toBe("ses_test_123");
   });
 
@@ -808,7 +807,6 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
     expect(final.threadId).toBeUndefined();
-    expect(final.sessionId).toBeUndefined();
     expect(final.usage).toBeUndefined();
   });
 

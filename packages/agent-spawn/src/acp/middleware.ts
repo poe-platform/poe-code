@@ -28,6 +28,7 @@ export interface SpawnContext {
   mode?: SpawnMode;
   cwd?: string;
   startedAt?: Date;
+  logFile?: string;
 }
 
 export type AcpMiddleware = (ctx: SpawnContext, next: () => Promise<void>) => Promise<void>;

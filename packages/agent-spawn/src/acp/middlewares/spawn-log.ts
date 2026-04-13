@@ -54,13 +54,13 @@ class SpawnLogWriter {
 
   private isDisabled = false;
 
-  private readonly logFilePath: string;
+  readonly filePath: string;
 
   private readonly logDirPath: string;
 
   constructor(ctx: SpawnContext) {
-    this.logFilePath = resolveLogFilePath(ctx);
-    this.logDirPath = path.dirname(this.logFilePath);
+    this.filePath = resolveLogFilePath(ctx);
+    this.logDirPath = path.dirname(this.filePath);
   }
 
   async writeEvent(event: AcpEvent): Promise<void> {
@@ -102,7 +102,7 @@ class SpawnLogWriter {
 
     try {
       await mkdir(this.logDirPath, { recursive: true });
-      this.fileHandle = await open(this.logFilePath, "a");
+      this.fileHandle = await open(this.filePath, "a");
     } catch {
       this.isDisabled = true;
     }
@@ -120,6 +120,7 @@ export const spawnLog: AcpMiddleware = async (ctx, next) => {
 
   const source = ctx.eventStream;
   const writer = new SpawnLogWriter(ctx);
+  ctx.logFile = writer.filePath;
 
   await writePreloadedEvents(writer, ctx.events);
 

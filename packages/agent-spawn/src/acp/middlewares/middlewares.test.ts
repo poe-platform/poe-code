@@ -318,6 +318,25 @@ describe("acp/middlewares/spawnLog", () => {
     expect(lines.map((line) => JSON.parse(line))).toEqual(ctx.events);
   });
 
+  it("sets ctx.logFile to the resolved log file path", async () => {
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield { event: "agent_message", text: "hello" } as AcpEvent;
+      })();
+    };
+
+    const ctx = createContext({
+      agent: "codex",
+      logDir: "/tmp/spawn-logs",
+      startedAt: new Date("2026-03-20T12:34:56.789Z")
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    await collect(ctx.eventStream!);
+
+    expect(ctx.logFile).toBe("/tmp/spawn-logs/20260320-123456-789-codex.jsonl");
+  });
+
   it("opens the file handle lazily and closes it when the stream completes", async () => {
     const sourceEvents: AcpEvent[] = [{ event: "agent_message", text: "close me" }];
 

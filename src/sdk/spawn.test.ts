@@ -123,8 +123,7 @@ describe("SDK spawn()", () => {
         stdout: "",
         stderr: "",
         exitCode: 0,
-        threadId: "thread_1",
-        sessionId: "thread_1"
+        threadId: "thread_1"
       })
     }));
 
@@ -147,8 +146,7 @@ describe("SDK spawn()", () => {
       stdout: "",
       stderr: "",
       exitCode: 0,
-      threadId: "thread_1",
-      sessionId: "thread_1"
+      threadId: "thread_1"
     });
 
     expect(spawnStreaming).toHaveBeenCalledTimes(1);
@@ -179,8 +177,7 @@ describe("SDK spawn()", () => {
         stdout: "",
         stderr: "",
         exitCode: 0,
-        threadId: "thread_1",
-        sessionId: "thread_1"
+        threadId: "thread_1"
       })
     }));
 
@@ -200,7 +197,6 @@ describe("SDK spawn()", () => {
       stderr: "",
       exitCode: 0,
       threadId: "thread_1",
-      sessionId: "thread_1",
       usage: {
         inputTokens: 10,
         outputTokens: 4,
@@ -710,14 +706,12 @@ describe("SDK spawn()", () => {
         stdout: "acp out",
         stderr: "",
         exitCode: 0,
-        threadId: "thread_acp",
-        sessionId: "session_acp"
+        threadId: "thread_acp"
       })
     }));
 
     vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
       ctx.threadId = "thread_via_acp_middleware";
-      ctx.sessionId = "session_via_acp_middleware";
       ctx.eventStream = (async function* () {
         yield { event: "agent_message", text: "from acp middleware" };
       })();
@@ -741,8 +735,7 @@ describe("SDK spawn()", () => {
       stdout: "acp out",
       stderr: "",
       exitCode: 0,
-      threadId: "thread_via_acp_middleware",
-      sessionId: "session_via_acp_middleware"
+      threadId: "thread_via_acp_middleware"
     });
 
     expect(spawnAcp).toHaveBeenCalledWith({
@@ -779,7 +772,6 @@ describe("SDK spawn()", () => {
 
     vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
       ctx.threadId = "thread_via_middleware";
-      ctx.sessionId = "thread_via_middleware";
       ctx.eventStream = (async function* () {
         yield { event: "agent_message", text: "from middleware" };
       })();
@@ -797,8 +789,7 @@ describe("SDK spawn()", () => {
       stdout: "",
       stderr: "",
       exitCode: 0,
-      threadId: "thread_via_middleware",
-      sessionId: "thread_via_middleware"
+      threadId: "thread_via_middleware"
     });
 
     expect(applyMiddlewares).toHaveBeenCalledTimes(1);
@@ -923,7 +914,6 @@ describe("SDK spawn()", () => {
         stderr: "",
         exitCode: 0,
         threadId: "thread_usage",
-        sessionId: "thread_usage",
         usage: { inputTokens: 33, outputTokens: 12, cachedTokens: 4 }
       })
     }));
@@ -935,7 +925,6 @@ describe("SDK spawn()", () => {
       stderr: "",
       exitCode: 0,
       threadId: "thread_usage",
-      sessionId: "thread_usage",
       usage: { inputTokens: 33, outputTokens: 12, cachedTokens: 4 }
     });
   });
@@ -957,8 +946,7 @@ describe("spawn.pretty()", () => {
         stdout: "out",
         stderr: "",
         exitCode: 0,
-        threadId: "t1",
-        sessionId: "t1"
+        threadId: "t1"
       })
     }));
 
@@ -969,8 +957,7 @@ describe("spawn.pretty()", () => {
       stdout: "out",
       stderr: "",
       exitCode: 0,
-      threadId: "t1",
-      sessionId: "t1"
+      threadId: "t1"
     });
   });
 

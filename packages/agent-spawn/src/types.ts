@@ -43,8 +43,8 @@ export interface SpawnResult {
   stderr: string;
   exitCode: number;
   threadId?: string;
-  sessionId?: string;
   usage?: SpawnUsage;
+  logFile?: string;
 }
 
 export interface SpawnLogger {

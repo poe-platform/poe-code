@@ -51,7 +51,6 @@ interface PoeAgentSpawnResult {
   stderr: string;
   exitCode: number;
   threadId?: string;
-  sessionId?: string;
   usage?: SpawnUsage;
 }
 
@@ -658,7 +657,6 @@ async function runPoeAgentAcpLifecycle(
       stderr: "",
       exitCode: promptResponse.stopReason === "completed" ? 0 : 1,
       threadId: sessionId,
-      sessionId,
     };
   } catch (error) {
     emitEvent(options.onEvent, {

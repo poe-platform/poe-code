@@ -1731,8 +1731,7 @@ describe("poe-agent provider", () => {
       stdout: "Poe agent output\n",
       stderr: "",
       exitCode: 0,
-      threadId: "poe-agent-session-1",
-      sessionId: "poe-agent-session-1"
+      threadId: "poe-agent-session-1"
     });
 
     initializeSpy.mockRestore();

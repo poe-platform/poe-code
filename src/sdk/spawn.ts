@@ -183,18 +183,14 @@ export function spawn(
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
         const threadId = middlewareContext.threadId ?? final.threadId;
-        const sessionId =
-          (middlewareContext.sessionId !== "unknown" ? middlewareContext.sessionId : undefined) ??
-          final.sessionId ??
-          threadId;
 
         return {
           stdout: final.stdout,
           stderr: final.stderr,
           exitCode: final.exitCode,
           ...(threadId ? { threadId } : {}),
-          ...(sessionId ? { sessionId } : {}),
-          ...(final.usage ? { usage: final.usage } : {})
+          ...(final.usage ? { usage: final.usage } : {}),
+          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {})
         };
       }
 
@@ -243,10 +239,6 @@ export function spawn(
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
         const threadId = middlewareContext.threadId ?? final.threadId;
-        const sessionId =
-          (middlewareContext.sessionId !== "unknown" ? middlewareContext.sessionId : undefined) ??
-          final.sessionId ??
-          threadId;
         const usage = final.usage ?? getCapturedUsage(middlewareContext.usage);
 
         return {
@@ -254,8 +246,8 @@ export function spawn(
           stderr: final.stderr,
           exitCode: final.exitCode,
           ...(threadId ? { threadId } : {}),
-          ...(sessionId ? { sessionId } : {}),
-          ...(usage ? { usage } : {})
+          ...(usage ? { usage } : {}),
+          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {})
         };
       }
 

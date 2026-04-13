@@ -326,7 +326,6 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
         stderr: "",
         exitCode: stopReason === "completed" || stopReason === "end_turn" ? 0 : 1,
         threadId: sessionId,
-        sessionId,
         ...(metaUsage ? {
           usage: {
             inputTokens: metaUsage.inputTokens ?? 0,
@@ -350,7 +349,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
         stdout: assistantText.length > 0 ? `${assistantText}\n` : "",
         stderr: message,
         exitCode: 1,
-        ...(sessionId ? { threadId: sessionId, sessionId } : {}),
+        ...(sessionId ? { threadId: sessionId } : {}),
       };
     } finally {
       options.signal?.removeEventListener("abort", onAbort);

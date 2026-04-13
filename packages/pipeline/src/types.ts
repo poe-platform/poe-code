@@ -86,7 +86,6 @@ export interface AgentRunResult {
   stderr: string;
   exitCode: number;
   threadId?: string;
-  sessionId?: string;
   usage?: AgentRunUsage;
 }
 

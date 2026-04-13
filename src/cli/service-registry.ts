@@ -3,6 +3,7 @@ import type { CommandContext } from "./context.js";
 import type { ScopedLogger } from "./logger.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { CommandCheck } from "../utils/command-checks.js";
+import type { HttpClient } from "./http.js";
 import type {
   ModelPromptInput,
   ReasoningPromptInput
@@ -51,6 +52,14 @@ export interface ServiceExecutionContext<Options> {
   pathMapper?: ServiceManifestPathMapper;
 }
 
+export interface ProviderConfigurePayloadContext {
+  fs: FileSystem;
+  env: CliEnvironment;
+  httpClient: HttpClient;
+  logger: ScopedLogger;
+  payload: Record<string, unknown>;
+}
+
 export interface ProviderService<
   TConfigure = any,
   TUnconfigure = TConfigure,
@@ -75,6 +84,9 @@ export interface ProviderService<
   supportsMcpSpawn?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
   postConfigureMessages?: string[];
+  extendConfigurePayload?(
+    context: ProviderConfigurePayloadContext
+  ): Promise<Record<string, unknown> | void> | Record<string, unknown> | void;
   isolatedEnv?: ProviderIsolatedEnv;
   install?(context: ProviderContext): Promise<void> | void;
   spawn?(context: ProviderContext, options: TSpawn): Promise<unknown>;

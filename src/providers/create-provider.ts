@@ -57,6 +57,11 @@ interface CreateProviderOptions<
   supportsMcpSpawn?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
   postConfigureMessages?: string[];
+  extendConfigurePayload?: ProviderService<
+    ConfigureOptions,
+    UnconfigureOptions,
+    SpawnOptions
+  >["extendConfigurePayload"];
   isolatedEnv?: ProviderIsolatedEnv;
   manifest: ManifestVersionDefinition;
   install?: ServiceInstallDefinition;
@@ -91,6 +96,7 @@ export function createProvider<
     supportsMcpSpawn: opts.supportsMcpSpawn,
     configurePrompts: opts.configurePrompts,
     postConfigureMessages: opts.postConfigureMessages,
+    extendConfigurePayload: opts.extendConfigurePayload,
     isolatedEnv: opts.isolatedEnv,
     async configure(context, runOptions) {
       await runMutations(opts.manifest.configure, {

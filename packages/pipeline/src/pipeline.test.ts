@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
-import { resolvePlanDirectory, resolvePlanPath } from "./plan/discovery.js";
+import { resolvePlanDirectory, resolvePlanPath, resolvePlanPaths } from "./plan/discovery.js";
 import { parsePlan } from "./plan/parser.js";
 import { readPlanFile, writeTaskStatus } from "./plan/writer.js";
 import {
@@ -826,6 +826,53 @@ describe("resolvePlanPath", () => {
     });
 
     expect(result).toBe("~/my-plans/plan-tilde.yaml");
+  });
+});
+
+describe("resolvePlanPaths", () => {
+  it("returns explicit plans in the provided order", async () => {
+    const result = await resolvePlanPaths({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plans: ["plan-b.yaml", "plan-a.yaml"],
+      fs: createFs({
+        "/repo/plan-a.yaml": "tasks: []\n",
+        "/repo/plan-b.yaml": "tasks: []\n"
+      })
+    });
+
+    expect(result).toEqual(["plan-b.yaml", "plan-a.yaml"]);
+  });
+
+  it("prompts for multiselect when discovered plans exist", async () => {
+    const selectPlans = vi.fn().mockResolvedValue([
+      ".poe-code/pipeline/plans/plan-alpha.yaml",
+      ".poe-code/pipeline/plans/plan-beta.yaml"
+    ]);
+
+    const result = await resolvePlanPaths({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/plans/plan-beta.yaml": "tasks: []\n",
+        "/repo/.poe-code/pipeline/plans/plan-alpha.yaml": "tasks: []\n"
+      }),
+      selectPlans
+    });
+
+    expect(selectPlans).toHaveBeenCalledWith(
+      expect.objectContaining({
+        required: true,
+        options: [
+          { label: ".poe-code/pipeline/plans/plan-alpha.yaml (0/0)", value: ".poe-code/pipeline/plans/plan-alpha.yaml" },
+          { label: ".poe-code/pipeline/plans/plan-beta.yaml (0/0)", value: ".poe-code/pipeline/plans/plan-beta.yaml" }
+        ]
+      })
+    );
+    expect(result).toEqual([
+      ".poe-code/pipeline/plans/plan-alpha.yaml",
+      ".poe-code/pipeline/plans/plan-beta.yaml"
+    ]);
   });
 });
 

@@ -6,6 +6,7 @@ import {
   cancel,
   confirm,
   isCancel,
+  multiselect,
   promptText,
   select
 } from "@poe-code/design-system";
@@ -31,6 +32,7 @@ import {
   runPipeline as sdkRunPipeline,
   type AgentRunUsage,
   type PipelineRunOptions,
+  type PipelineRunResult,
   type PlanSummary,
   type TaskProgress
 } from "../../sdk/pipeline.js";
@@ -41,7 +43,8 @@ import {
   parsePlan,
   resolveAbsolutePlanPath,
   resolveFileIncludes,
-  resolvePlanDirectory
+  resolvePlanDirectory,
+  resolvePlanPaths
 } from "@poe-code/pipeline";
 
 async function resolvePipelinePlanDirectory(container: CliContainer): Promise<string | undefined> {
@@ -105,6 +108,17 @@ function resolveMaxRuns(value: string | undefined): number | undefined {
   }
 
   return parsed;
+}
+
+function formatRunSummary(result: PipelineRunResult): string {
+  const metrics = result.metrics;
+
+  return [
+    `Runs: ${result.runsCompleted}`,
+    `tasksCompleted: ${metrics.tasksCompleted}, tasksFailed: ${metrics.tasksFailed}, stepsCompleted: ${metrics.stepsCompleted}`,
+    `Total tokens: ${metrics.totalInputTokens} input, ${metrics.totalOutputTokens} output, ${metrics.totalCachedTokens} cached`,
+    `Duration: ${formatDuration(result.totalDurationMs)}`
+  ].join("\n   ");
 }
 
 function resolvePipelinePaths(scope: SkillScope, cwd: string, homeDir: string): {
@@ -228,6 +242,7 @@ export function registerPipelineCommand(
     .option("--model <model>", "Model override passed to the agent")
     .option("--task <id>", "Run only the specified task")
     .option("--plan <path>", "Path to the pipeline plan file")
+    .option("--plans <paths...>", "Paths to pipeline plan files to run sequentially")
     .option("--max-runs <n>", "Maximum number of agent executions to perform")
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
@@ -241,6 +256,7 @@ export function registerPipelineCommand(
         model?: string;
         task?: string;
         plan?: string;
+        plans?: string[];
         maxRuns?: string;
       }>();
 
@@ -268,56 +284,31 @@ export function registerPipelineCommand(
         }
 
         const planDirectory = await resolvePipelinePlanDirectory(container);
+        const maxRuns = resolveMaxRuns(options.maxRuns);
 
-        const result = await sdkRunPipeline({
-          agent,
+        if (options.plan && options.plans && options.plans.length > 0) {
+          throw new ValidationError("Use either --plan or --plans, not both.");
+        }
+
+        const planPaths = await resolvePlanPaths({
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
           ...(planDirectory ? { planDirectory } : {}),
-          ...(options.model ? { model: options.model } : {}),
-          ...(options.task ? { task: options.task } : {}),
           ...(options.plan ? { plan: options.plan } : {}),
-          ...(resolveMaxRuns(options.maxRuns) != null
-            ? { maxRuns: resolveMaxRuns(options.maxRuns) }
-            : {}),
+          ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
           assumeYes: flags.assumeYes,
-          async onBlocked({ taskId, stepName }) {
-            if (flags.assumeYes) {
-              return true;
-            }
-            const label = stepName ? `${taskId} (${stepName})` : taskId;
-            const result = await confirm({
-              message: `Previous run failed at ${label}. Retry?`,
-              initialValue: true
-            });
-            if (isCancel(result)) {
-              return false;
-            }
-            return result === true;
-          },
-          onPlanReloadError(error: Error) {
-            resources.logger.warn(`Plan reload failed, using last good state: ${error.message}`);
-          },
-          onPlanResolved(summary: PlanSummary) {
-            const configLines = [`Agent: ${agent}`];
-            if (options.model) configLines.push(`Model: ${options.model}`);
-            configLines.push(`Plan: ${summary.planPath}`);
-            resources.logger.resolved("Config", configLines.join("\n   "));
-
-            const parts = [`${summary.done}/${summary.total} done`];
-            if (summary.failed) parts.push(`${summary.failed} failed`);
-            if (summary.open) parts.push(`${summary.open} open`);
-            resources.logger.resolved("Tasks", parts.join(", "));
-          },
-          selectPlan: async (
-            input: Parameters<NonNullable<PipelineRunOptions["selectPlan"]>>[0]
-          ) => {
-            const selected = await select(input);
+          fs: container.fs,
+          selectPlans: async (input: {
+            message: string;
+            options: Array<{ label: string; value: string }>;
+            required: boolean;
+          }) => {
+            const selected = await multiselect(input);
             if (isCancel(selected)) {
               cancel("Pipeline run cancelled.");
               return null;
             }
-            return typeof selected === "string" ? selected : null;
+            return Array.isArray(selected) ? selected : null;
           },
           promptForPath: async (
             input: Parameters<NonNullable<PipelineRunOptions["promptForPath"]>>[0]
@@ -330,81 +321,130 @@ export function registerPipelineCommand(
             return typeof value === "string" && value.trim().length > 0
               ? value.trim()
               : null;
-          },
-          onTaskStart(progress: TaskProgress) {
-            if (progress.phase) {
-              resources.logger.info(`${progress.taskTitle}...`);
-              return;
-            }
-            const step = progress.stepName ? ` (${progress.stepName})` : "";
-            const stepCounter =
-              progress.stepIndex !== undefined
-                ? ` step ${progress.stepIndex}/${progress.totalSteps}`
-                : "";
-            resources.logger.info(
-              `Task ${progress.taskIndex}/${progress.totalTasks}: ${progress.taskId}${step}${stepCounter}`
-            );
-          },
-          onTaskComplete(progress: TaskProgress & {
-            durationMs: number;
-            success: boolean;
-            usage?: AgentRunUsage;
-          }) {
-            const duration = formatDuration(progress.durationMs);
-            const status = progress.success ? "done" : "failed";
-            const usage = progress.usage
-              ? ` (tokens: ${progress.usage.inputTokens} in / ${progress.usage.outputTokens} out)`
-              : "";
-            if (progress.phase) {
-              resources.logger.info(`${progress.taskTitle} ${status} in ${duration}${usage}`);
-              return;
-            }
-            resources.logger.info(
-              `Task ${progress.taskId} ${status} in ${duration}${usage}`
-            );
           }
         });
 
-        const metrics = result.metrics;
-        const summary = [
-          `Runs: ${result.runsCompleted}`,
-          `tasksCompleted: ${metrics.tasksCompleted}, tasksFailed: ${metrics.tasksFailed}, stepsCompleted: ${metrics.stepsCompleted}`,
-          `Total tokens: ${metrics.totalInputTokens} input, ${metrics.totalOutputTokens} output, ${metrics.totalCachedTokens} cached`,
-          `Duration: ${formatDuration(result.totalDurationMs)}`
-        ].join("\n   ");
-
-        if (result.stopReason === "failed") {
-          process.exitCode = 1;
-          resources.logger.error(
-            `Pipeline blocked at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
-          );
-          resources.logger.resolved("Run summary", summary);
+        if (!planPaths || planPaths.length === 0) {
           return;
         }
 
-        if (result.stopReason === "cancelled") {
-          process.exitCode = 130;
-          resources.logger.warn("Pipeline run cancelled.");
+        for (const [index, planPath] of planPaths.entries()) {
+          const totalPlans = planPaths.length;
+          if (totalPlans > 1) {
+            resources.logger.info(`Plan ${index + 1}/${totalPlans}: ${planPath}`);
+          }
+
+          const result = await sdkRunPipeline({
+            agent,
+            cwd: container.env.cwd,
+            homeDir: container.env.homeDir,
+            ...(planDirectory ? { planDirectory } : {}),
+            ...(options.model ? { model: options.model } : {}),
+            ...(options.task ? { task: options.task } : {}),
+            plan: planPath,
+            ...(maxRuns != null ? { maxRuns } : {}),
+            assumeYes: flags.assumeYes,
+            async onBlocked({ taskId, stepName }) {
+              if (flags.assumeYes) {
+                return true;
+              }
+              const label = stepName ? `${taskId} (${stepName})` : taskId;
+              const result = await confirm({
+                message: `Previous run failed at ${label}. Retry?`,
+                initialValue: true
+              });
+              if (isCancel(result)) {
+                return false;
+              }
+              return result === true;
+            },
+            onPlanReloadError(error: Error) {
+              resources.logger.warn(`Plan reload failed, using last good state: ${error.message}`);
+            },
+            onPlanResolved(summary: PlanSummary) {
+              const configLines = [`Agent: ${agent}`];
+              if (options.model) configLines.push(`Model: ${options.model}`);
+              configLines.push(`Plan: ${summary.planPath}`);
+              if (totalPlans > 1) {
+                configLines.push(`Sequence: ${index + 1}/${totalPlans}`);
+              }
+              resources.logger.resolved("Config", configLines.join("\n   "));
+
+              const parts = [`${summary.done}/${summary.total} done`];
+              if (summary.failed) parts.push(`${summary.failed} failed`);
+              if (summary.open) parts.push(`${summary.open} open`);
+              resources.logger.resolved("Tasks", parts.join(", "));
+            },
+            onTaskStart(progress: TaskProgress) {
+              if (progress.phase) {
+                resources.logger.info(`${progress.taskTitle}...`);
+                return;
+              }
+              const step = progress.stepName ? ` (${progress.stepName})` : "";
+              const stepCounter =
+                progress.stepIndex !== undefined
+                  ? ` step ${progress.stepIndex}/${progress.totalSteps}`
+                  : "";
+              resources.logger.info(
+                `Task ${progress.taskIndex}/${progress.totalTasks}: ${progress.taskId}${step}${stepCounter}`
+              );
+            },
+            onTaskComplete(progress: TaskProgress & {
+              durationMs: number;
+              success: boolean;
+              usage?: AgentRunUsage;
+            }) {
+              const duration = formatDuration(progress.durationMs);
+              const status = progress.success ? "done" : "failed";
+              const usage = progress.usage
+                ? ` (tokens: ${progress.usage.inputTokens} in / ${progress.usage.outputTokens} out)`
+                : "";
+              if (progress.phase) {
+                resources.logger.info(`${progress.taskTitle} ${status} in ${duration}${usage}`);
+                return;
+              }
+              resources.logger.info(
+                `Task ${progress.taskId} ${status} in ${duration}${usage}`
+              );
+            }
+          });
+
+          const summary = formatRunSummary(result);
+
+          if (result.stopReason === "failed") {
+            process.exitCode = 1;
+            resources.logger.error(
+              `Pipeline blocked at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
+            );
+            resources.logger.resolved("Run summary", summary);
+            return;
+          }
+
+          if (result.stopReason === "cancelled") {
+            process.exitCode = 130;
+            resources.logger.warn("Pipeline run cancelled.");
+            resources.logger.resolved("Run summary", summary);
+            return;
+          }
+
+          if (result.stopReason === "nothing_to_run") {
+            resources.logger.info("Nothing to run.");
+            resources.logger.resolved("Run summary", summary);
+            continue;
+          }
+
+          if (result.stopReason === "max_runs") {
+            resources.logger.info(
+              `Reached max runs (${result.runsCompleted}).`
+            );
+            resources.logger.resolved("Run summary", summary);
+            return;
+          }
+
           resources.logger.resolved("Run summary", summary);
-          return;
         }
 
-        if (result.stopReason === "nothing_to_run") {
-          resources.logger.info("Nothing to run.");
-          resources.logger.resolved("Run summary", summary);
-          return;
-        }
-
-        if (result.stopReason === "max_runs") {
-          resources.logger.info(
-            `Reached max runs (${result.runsCompleted}).`
-          );
-          resources.logger.resolved("Run summary", summary);
-          return;
-        }
-
-        resources.logger.resolved("Run summary", summary);
-        resources.logger.success("Pipeline run finished.");
+        resources.logger.success(planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished.");
       } finally {
         resources.context.finalize();
       }

@@ -21,7 +21,7 @@ export type {
   PlanSummary
 } from "./types.js";
 export { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
-export { resolveAbsolutePlanPath, resolvePlanDirectory, resolvePlanPath } from "./plan/discovery.js";
+export { resolveAbsolutePlanPath, resolvePlanDirectory, resolvePlanPath, resolvePlanPaths } from "./plan/discovery.js";
 export { parsePlan } from "./plan/parser.js";
 export { readPlanFile, writeTaskStatus } from "./plan/writer.js";
 export { buildExecutionPrompt, interpolate, resolveFileIncludes, selectNextExecution } from "./run/runner.js";

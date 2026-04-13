@@ -59,11 +59,14 @@ function createBaseProgram(): Command {
 describe("pipeline run command", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    process.exitCode = undefined;
   });
 
   it("calls the pipeline SDK with the CLI options", async () => {
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
     const container = createCliContainer({
-      fs: createMemFs(),
+      fs,
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
       logger: () => {}
@@ -104,8 +107,10 @@ describe("pipeline run command", () => {
   });
 
   it("defaults to claude-code and resolves agent aliases", async () => {
+    const fs = createMemFs();
+    await fs.writeFile("/repo/plan.yaml", "tasks: []\n", { encoding: "utf8" });
     const container = createCliContainer({
-      fs: createMemFs(),
+      fs,
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
       logger: () => {}
@@ -119,7 +124,9 @@ describe("pipeline run command", () => {
       "pipeline",
       "run",
       "--agent",
-      "claude"
+      "claude",
+      "--plan",
+      "plan.yaml"
     ]);
 
     expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
@@ -185,8 +192,15 @@ describe("pipeline run command", () => {
       };
     });
 
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan.yaml",
+      "tasks: []\n",
+      { encoding: "utf8" }
+    );
     const container = createCliContainer({
-      fs: createMemFs(),
+      fs,
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
       logger: (message) => logs.push(message)
@@ -219,6 +233,78 @@ describe("pipeline run command", () => {
         message.includes("tasksCompleted: 1, tasksFailed: 0, stepsCompleted: 1")
       )
     ).toBe(true);
+  });
+
+  it("runs multiple explicit plans sequentially", async () => {
+    vi.mocked(sdkRunPipeline)
+      .mockResolvedValueOnce({
+        stopReason: "completed",
+        planPath: "plan-a.yaml",
+        runsCompleted: 1,
+        totalDurationMs: 1_000,
+        metrics: {
+          totalInputTokens: 0,
+          totalOutputTokens: 0,
+          totalCachedTokens: 0,
+          tasksCompleted: 1,
+          tasksFailed: 0,
+          stepsCompleted: 1
+        }
+      })
+      .mockResolvedValueOnce({
+        stopReason: "completed",
+        planPath: "plan-b.yaml",
+        runsCompleted: 2,
+        totalDurationMs: 2_000,
+        metrics: {
+          totalInputTokens: 0,
+          totalOutputTokens: 0,
+          totalCachedTokens: 0,
+          tasksCompleted: 2,
+          tasksFailed: 0,
+          stepsCompleted: 2
+        }
+      });
+
+    const fs = createMemFs();
+    await fs.writeFile("/repo/plan-a.yaml", "tasks: []\n", { encoding: "utf8" });
+    await fs.writeFile("/repo/plan-b.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--agent",
+      "codex",
+      "--plans",
+      "plan-a.yaml",
+      "plan-b.yaml"
+    ]);
+
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        plan: "plan-a.yaml",
+        agent: "codex"
+      })
+    );
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        plan: "plan-b.yaml",
+        agent: "codex"
+      })
+    );
   });
 });
 

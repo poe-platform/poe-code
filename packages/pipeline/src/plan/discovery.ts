@@ -198,6 +198,7 @@ export async function resolvePlanPath(options: {
   cwd: string;
   homeDir: string;
   plan?: string;
+  plans?: string[];
   planDirectory?: string;
   assumeYes?: boolean;
   fs?: DiscoveryFs;
@@ -205,14 +206,54 @@ export async function resolvePlanPath(options: {
     message: string;
     options: Array<{ label: string; value: string }>;
   }) => Promise<string | null>;
+  selectPlans?: (input: {
+    message: string;
+    options: Array<{ label: string; value: string }>;
+    required: boolean;
+  }) => Promise<string[] | null>;
   promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
 }): Promise<string | null> {
   const fs = options.fs ?? createDefaultFs();
 
-  const explicitPlan = options.plan?.trim();
-  if (explicitPlan) {
-    await ensurePlanExists(fs, options.cwd, explicitPlan);
-    return explicitPlan;
+  const planPaths = await resolvePlanPaths({
+    ...options,
+    fs
+  });
+
+  return planPaths?.[0] ?? null;
+}
+
+export async function resolvePlanPaths(options: {
+  cwd: string;
+  homeDir: string;
+  plan?: string;
+  plans?: string[];
+  planDirectory?: string;
+  assumeYes?: boolean;
+  fs?: DiscoveryFs;
+  selectPlan?: (input: {
+    message: string;
+    options: Array<{ label: string; value: string }>;
+  }) => Promise<string | null>;
+  selectPlans?: (input: {
+    message: string;
+    options: Array<{ label: string; value: string }>;
+    required: boolean;
+  }) => Promise<string[] | null>;
+  promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
+}): Promise<string[] | null> {
+  const fs = options.fs ?? createDefaultFs();
+
+  const explicitPlans = [
+    ...(options.plan ? [options.plan] : []),
+    ...(options.plans ?? [])
+  ].map((planPath) => planPath.trim()).filter((planPath) => planPath.length > 0);
+
+  if (explicitPlans.length > 0) {
+    for (const planPath of explicitPlans) {
+      await ensurePlanExists(fs, options.cwd, planPath);
+    }
+    return explicitPlans;
   }
 
   const config = await loadPipelineConfig({
@@ -223,25 +264,36 @@ export async function resolvePlanPath(options: {
 
   if (config.planPath) {
     await ensurePlanExists(fs, options.cwd, config.planPath);
-    return config.planPath;
+    return [config.planPath];
   }
 
   const candidates = await listPlanCandidates(fs, options.cwd, options.homeDir, options.planDirectory);
 
   if (candidates.length >= 1) {
     if (options.assumeYes) {
-      return candidates[0]!.path;
+      return [candidates[0]!.path];
+    }
+    if (options.selectPlans) {
+      return options.selectPlans({
+        message: "Select pipeline plans to run",
+        options: candidates.map((candidate) => ({
+          label: `${candidate.path} (${candidate.done}/${candidate.total})`,
+          value: candidate.path
+        })),
+        required: true
+      });
     }
     if (!options.selectPlan) {
       return null;
     }
-    return options.selectPlan({
+    const selectedPlan = await options.selectPlan({
       message: "Select a pipeline plan to run",
       options: candidates.map((candidate) => ({
         label: `${candidate.path} (${candidate.done}/${candidate.total})`,
         value: candidate.path
       }))
     });
+    return selectedPlan ? [selectedPlan] : null;
   }
 
   if (options.assumeYes) {
@@ -254,8 +306,9 @@ export async function resolvePlanPath(options: {
     return null;
   }
 
-  return options.promptForPath({
+  const selectedPath = await options.promptForPath({
     message: "Enter the pipeline plan path",
     placeholder: ".poe-code/pipeline/plans/plan.yaml"
   });
+  return selectedPath ? [selectedPath] : null;
 }

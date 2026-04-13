@@ -105,7 +105,7 @@ export const claudeCodeService = createProvider<
             env: {
               ANTHROPIC_BASE_URL: options.env.poeBaseUrl
             },
-            model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL)
+            model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL).replaceAll(".", "-")
           };
         }
       })

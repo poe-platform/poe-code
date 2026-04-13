@@ -72,11 +72,11 @@ const renderTerminalPngMock = vi.mocked(renderTerminalPng);
 
 describe("resolveScreenshotTimeoutMs", () => {
   it("uses default when env is missing or invalid", () => {
-    expect(resolveScreenshotTimeoutMs({})).toBe(15000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "" })).toBe(15000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "0" })).toBe(15000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "-1" })).toBe(15000);
-    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "nope" })).toBe(15000);
+    expect(resolveScreenshotTimeoutMs({})).toBe(60000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "" })).toBe(60000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "0" })).toBe(60000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "-1" })).toBe(60000);
+    expect(resolveScreenshotTimeoutMs({ POE_SCREENSHOT_TIMEOUT_MS: "nope" })).toBe(60000);
   });
 
   it("uses the provided timeout when valid", () => {
@@ -109,6 +109,15 @@ describe("buildColorEnv", () => {
 });
 
 describe("buildSpawnSpec", () => {
+  it("runs poe-code screenshots without re-triggering predev during capture", () => {
+    const target = resolveScreenshotTarget(["--poe-code", "--help"]);
+
+    expect(buildSpawnSpec(target, {}, "/tmp/force-tty.cjs")).toMatchObject({
+      command: "npm",
+      args: ["run", "--silent", "--ignore-scripts", "dev", "--", "--help"]
+    });
+  });
+
   it("injects --silent for npm run targets so screenshots omit npm script banners", () => {
     const target = resolveScreenshotTarget(["npm", "run", "demo", "--", "markdown"]);
 
@@ -148,20 +157,23 @@ describe("runScreenshot", () => {
   });
 
   it("renders the captured ANSI transcript directly to the requested PNG path", async () => {
-    spawnMock.mockReturnValue(
-      createSpawnProcess({
-        stdoutData: "\u001b[32mhelp\u001b[39m\n",
-        stderrData: "warning\n"
-      }) as never
-    );
+    spawnMock
+      .mockReturnValueOnce(createSpawnProcess() as never)
+      .mockReturnValueOnce(
+        createSpawnProcess({
+          stdoutData: "\u001b[32mhelp\u001b[39m\n",
+          stderrData: "warning\n"
+        }) as never
+      );
 
     await runScreenshot(["--poe-code", "--help"], {
       output: "screenshots/help.png"
     });
 
-    expect(spawnMock).toHaveBeenCalledWith(
+    expect(spawnMock).toHaveBeenNthCalledWith(
+      2,
       "npm",
-      ["run", "dev", "--silent", "--", "--help"],
+      ["run", "--silent", "--ignore-scripts", "dev", "--", "--help"],
       expect.objectContaining({
         stdio: ["ignore", "pipe", "pipe"]
       })
@@ -179,6 +191,38 @@ describe("runScreenshot", () => {
     );
     expect(stdoutWriteSpy).toHaveBeenCalledWith("screenshots/help.png\n");
     expect(rmSyncMock).not.toHaveBeenCalled();
+  });
+
+  it("runs poe-code predev before capturing screenshot output", async () => {
+    spawnMock
+      .mockReturnValueOnce(createSpawnProcess() as never)
+      .mockReturnValueOnce(
+        createSpawnProcess({
+          stdoutData: "\u001b[32mhelp\u001b[39m\n",
+          stderrData: "warning\n"
+        }) as never
+      );
+
+    await runScreenshot(["--poe-code", "--help"], {
+      output: "screenshots/help.png"
+    });
+
+    expect(spawnMock).toHaveBeenNthCalledWith(
+      1,
+      "npm",
+      ["run", "--silent", "predev"],
+      expect.objectContaining({
+        stdio: "inherit"
+      })
+    );
+    expect(spawnMock).toHaveBeenNthCalledWith(
+      2,
+      "npm",
+      ["run", "--silent", "--ignore-scripts", "dev", "--", "--help"],
+      expect.objectContaining({
+        stdio: ["ignore", "pipe", "pipe"]
+      })
+    );
   });
 
   it("renders screenshot with captured output on timeout", async () => {
@@ -208,7 +252,7 @@ describe("runScreenshot", () => {
 
     stdout.emit("data", Buffer.from("partial output\n"));
 
-    await vi.advanceTimersByTimeAsync(15000);
+    await vi.advanceTimersByTimeAsync(60000);
 
     await promise;
 

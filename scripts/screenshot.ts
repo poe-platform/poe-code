@@ -73,6 +73,10 @@ export function buildScreenshotOutputPath(args: string[]): string {
 
 
 type ScreenshotTarget = {
+  prepare?: {
+    command: string;
+    args: string[];
+  };
   command: string;
   args: string[];
   nameArgs: string[];
@@ -85,8 +89,12 @@ export function resolveScreenshotTarget(args: string[]): ScreenshotTarget {
   const [first, ...rest] = args;
   if (first === "--poe-code") {
     return {
+      prepare: {
+        command: "npm",
+        args: ["run", "--silent", "predev"]
+      },
       command: "npm",
-      args: ["run", "dev", "--silent", "--", ...rest],
+      args: ["run", "--silent", "--ignore-scripts", "dev", "--", ...rest],
       nameArgs: rest,
       displayCommand: "poe-code",
       displayArgs: rest,
@@ -148,7 +156,7 @@ export function sanitizeOutputChunk(chunk: string): string {
   return result;
 }
 
-const DEFAULT_SCREENSHOT_TIMEOUT_MS = 15000;
+const DEFAULT_SCREENSHOT_TIMEOUT_MS = 60000;
 
 export function resolveScreenshotTimeoutMs(env: NodeJS.ProcessEnv): number {
   const raw = env.POE_SCREENSHOT_TIMEOUT_MS;
@@ -279,6 +287,18 @@ export async function runScreenshot(
   const outputPath =
     options.output ?? buildScreenshotOutputPath(target.nameArgs);
   mkdirSync(path.dirname(outputPath), { recursive: true });
+
+  if (target.prepare) {
+    const prepareProcess = spawn(target.prepare.command, target.prepare.args, {
+      stdio: "inherit",
+      env: buildColorEnv(process.env)
+    });
+    const prepareCode = await waitForExit(prepareProcess);
+    if (prepareCode !== 0) {
+      const label = [target.prepare.command, ...target.prepare.args].join(" ");
+      throw new Error(`${label} exited with code ${prepareCode}`);
+    }
+  }
 
   const commandProcess = spawn(spawnSpec.command, spawnSpec.args, {
     stdio: ["ignore", "pipe", "pipe"],

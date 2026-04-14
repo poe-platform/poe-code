@@ -216,7 +216,9 @@ describe("spawn command", () => {
       prompt: "hello",
       args: [],
       model: DEFAULT_CLAUDE_CODE_MODEL,
-      cwd: undefined
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000
     });
 
     const plainChunks = chunks.map((chunk) => stripAnsi(chunk));
@@ -391,6 +393,42 @@ describe("spawn command", () => {
     }
   });
 
+  it("retries on ActivityTimeoutError", async () => {
+    const timeoutError = new Error("Agent spawn timed out after 600s of inactivity");
+    timeoutError.name = "ActivityTimeoutError";
+
+    vi.mocked(sdkSpawn)
+      .mockImplementationOnce(() => ({
+        events: emptyAsyncIterable(),
+        result: Promise.reject(timeoutError)
+      }))
+      .mockImplementationOnce(() => ({
+        events: emptyAsyncIterable(),
+        result: Promise.resolve({ stdout: "retry-success", stderr: "", exitCode: 0 })
+      }));
+
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "codex",
+      "hello"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledTimes(2);
+    expect(logs.some((line) => line.includes("retry-success"))).toBe(true);
+  });
+
   it("fails when spawn command exits with error", async () => {
     vi.mocked(sdkSpawn).mockImplementation(() => ({
       events: emptyAsyncIterable(),
@@ -542,7 +580,9 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: "some-model",
-      cwd: undefined
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000
     });
   });
 
@@ -574,7 +614,9 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: "openai/gpt-5.4",
-      cwd: undefined
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000
     });
   });
 
@@ -609,7 +651,9 @@ describe("spawn command", () => {
       prompt: "Use word_of_the_day",
       args: [],
       model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
       cwd: undefined,
+      activityTimeoutMs: 600_000,
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -646,6 +690,7 @@ describe("spawn command", () => {
       prompt: "hello",
       args: [],
       model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
       cwd: undefined,
       logDir: "/tmp/spawn-logs",
       activityTimeoutMs: 1500
@@ -735,7 +780,9 @@ describe("spawn command", () => {
       prompt: "Explain the change",
       args: [],
       model: DEFAULT_CLAUDE_CODE_MODEL,
-      cwd: customCwd
+      mode: undefined,
+      cwd: customCwd,
+      activityTimeoutMs: 600_000
     });
   });
 
@@ -765,7 +812,9 @@ describe("spawn command", () => {
       prompt: "Summarize the diff",
       args: [],
       model: DEFAULT_CODEX_MODEL,
-      cwd: resolved
+      mode: undefined,
+      cwd: resolved,
+      activityTimeoutMs: 600_000
     });
   });
 
@@ -844,7 +893,9 @@ describe("spawn command", () => {
       prompt: "Prompt via stdin",
       args: [],
       model: DEFAULT_CODEX_MODEL,
-      cwd: undefined
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000
     });
   });
 
@@ -883,7 +934,9 @@ describe("spawn command", () => {
       prompt: "Prompt via stdin",
       args: ["--foo", "bar"],
       model: DEFAULT_CODEX_MODEL,
-      cwd: undefined
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000
     });
   });
 

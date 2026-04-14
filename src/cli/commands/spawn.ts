@@ -3,7 +3,6 @@ import { Option } from "commander";
 import type { CliContainer } from "../container.js";
 import {
   renderAcpEvent,
-  renderAcpStream,
   spawnInteractive,
   getSpawnConfig,
   listMcpSupportedAgents,
@@ -26,6 +25,7 @@ import {
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
+import { spawnAutonomous } from "../../sdk/autonomous.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
 
@@ -259,7 +259,8 @@ export function registerSpawnCommand(
             return;
           }
 
-          const { events, result } = spawnSdk(canonicalService, {
+          const final = await spawnAutonomous(spawnSdk, {
+            service: canonicalService,
             prompt: spawnOptions.prompt,
             args: spawnOptions.args,
             model: spawnOptions.model,
@@ -271,10 +272,6 @@ export function registerSpawnCommand(
               ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
               : {})
           });
-
-          await renderAcpStream(events);
-
-          const final = await result;
           process.exitCode = final.exitCode;
 
           if (!shouldEmitUiOutput) {

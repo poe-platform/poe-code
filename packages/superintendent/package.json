@@ -31,6 +31,7 @@
     "dist"
   ],
   "dependencies": {
-    "@poe-code/cmdkit": "*"
+    "@poe-code/cmdkit": "*",
+    "@poe-code/design-system": "*"
   }
 }

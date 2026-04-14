@@ -19,10 +19,11 @@ import {
   statsToLines
 } from "./components/stats-pane.js";
 import { computeDashboardLayout } from "./layout.js";
+import { createStore } from "./store.js";
 import { resetThemeCache } from "../internal/theme-detect.js";
 import type { DashboardLayout } from "./layout.js";
 import type { KeypressEvent } from "./terminal.js";
-import type { DashboardStats, OutputItem, Rect } from "./types.js";
+import type { DashboardState, DashboardStats, OutputItem, Rect } from "./types.js";
 
 function readRow(buffer: ScreenBuffer, y: number): string {
   return Array.from({ length: buffer.width }, (_, x) => buffer.get(x, y).ch).join("");
@@ -616,6 +617,144 @@ describe("output pane", () => {
 
     expect(readRow(buffer, 1)).toBe(" │  gamma       ");
     expect(readRow(buffer, 2)).toBe(" ◆  done        ");
+  });
+});
+
+describe("store", () => {
+  it("initial state is correct", () => {
+    expect(createStore().getState()).toEqual({
+      output: [],
+      outputScroll: 0,
+      autoFollow: true,
+      stats: {
+        status: "idle",
+        iterations: 0,
+        tokensIn: 0,
+        tokensOut: 0,
+        elapsedMs: 0
+      },
+      paused: false,
+      activeDialog: { kind: "none" }
+    });
+  });
+
+  it("appendOutput adds items", () => {
+    const store = createStore();
+    const item: OutputItem = { kind: "info", text: "alpha", ts: 1 };
+
+    store.appendOutput(item);
+
+    expect(store.getState().output).toEqual([item]);
+  });
+
+  it("appendOutput with autoFollow adjusts scroll", () => {
+    const store = createStore();
+
+    store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
+    store.appendOutput({ kind: "info", text: "beta", ts: 2 });
+
+    expect(store.getState().outputScroll).toBe(1);
+    expect(store.getState().autoFollow).toBe(true);
+  });
+
+  it("updateStats merges partial updates", () => {
+    const store = createStore();
+
+    store.updateStats({
+      status: "running",
+      iterations: 3,
+      currentAction: "rendering"
+    });
+    store.updateStats({
+      tokensIn: 12,
+      elapsedMs: 42
+    });
+
+    expect(store.getState().stats).toEqual({
+      status: "running",
+      iterations: 3,
+      tokensIn: 12,
+      tokensOut: 0,
+      elapsedMs: 42,
+      currentAction: "rendering"
+    });
+  });
+
+  it("dispatch scrollUp and scrollDown change scroll offset", () => {
+    const store = createStore();
+
+    store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
+    store.appendOutput({ kind: "info", text: "beta", ts: 2 });
+    store.appendOutput({ kind: "info", text: "gamma", ts: 3 });
+    store.dispatch("scrollToTop", 2);
+
+    expect(store.getState().outputScroll).toBe(0);
+
+    store.dispatch("scrollDown", 2);
+    expect(store.getState().outputScroll).toBe(1);
+
+    store.dispatch("scrollUp", 2);
+    expect(store.getState().outputScroll).toBe(0);
+  });
+
+  it("appendOutput preserves manual scroll position when autoFollow is disabled", () => {
+    const store = createStore();
+
+    store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
+    store.appendOutput({ kind: "info", text: "beta", ts: 2 });
+    store.dispatch("scrollToTop", 2);
+    store.appendOutput({ kind: "info", text: "gamma", ts: 3 });
+
+    expect(store.getState().outputScroll).toBe(0);
+    expect(store.getState().autoFollow).toBe(false);
+  });
+
+  it("dispatch ignores passthrough commands", () => {
+    const store = createStore();
+    const calls: DashboardState[] = [];
+
+    store.onChange(() => {
+      calls.push(store.getState());
+    });
+
+    const before = store.getState();
+
+    store.dispatch("quit", 2);
+    store.dispatch("edit", 2);
+    store.dispatch("pause", 2);
+    store.dispatch("retry", 2);
+
+    expect(store.getState()).toEqual(before);
+    expect(calls).toEqual([]);
+  });
+
+  it("onChange fires after mutations", () => {
+    const store = createStore();
+    let calls = 0;
+
+    store.onChange(() => {
+      calls += 1;
+    });
+
+    store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
+    store.updateStats({ status: "running" });
+    store.dispatch("scrollToTop", 1);
+
+    expect(calls).toBe(3);
+  });
+
+  it("onChange unsubscribe stops future notifications", () => {
+    const store = createStore();
+    let calls = 0;
+    const unsubscribe = store.onChange(() => {
+      calls += 1;
+    });
+
+    store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
+    unsubscribe();
+    store.updateStats({ status: "running" });
+
+    expect(calls).toBe(1);
   });
 });
 

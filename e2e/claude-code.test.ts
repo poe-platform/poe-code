@@ -8,8 +8,8 @@ describe('claude-code', () => {
     const result = await container.exec('poe-code configure claude-code --yes');
     expect(result).toHaveExitCode(0);
 
-    await expect(container).toHaveFile('/home/poe/.claude/settings.json');
-    const raw = await container.readFile('/home/poe/.claude/settings.json');
+    await expect(container).toHaveFile(`${container.home}/.claude/settings.json`);
+    const raw = await container.readFile(`${container.home}/.claude/settings.json`);
     const config = JSON.parse(raw);
     expect(config).toHaveProperty('apiKeyHelper');
     expect(config).toHaveProperty('env.ANTHROPIC_BASE_URL');

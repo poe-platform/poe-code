@@ -8,8 +8,8 @@ describe('kimi', () => {
     const result = await container.exec('poe-code configure kimi --yes');
     expect(result).toHaveExitCode(0);
 
-    await expect(container).toHaveFile('/home/poe/.kimi/config.toml');
-    const config = await container.readFile('/home/poe/.kimi/config.toml');
+    await expect(container).toHaveFile(`${container.home}/.kimi/config.toml`);
+    const config = await container.readFile(`${container.home}/.kimi/config.toml`);
     expect(config).toContain('default_model');
     expect(config).toContain('base_url');
     expect(config).toContain('api_key');

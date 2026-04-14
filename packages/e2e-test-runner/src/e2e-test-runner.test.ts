@@ -6,6 +6,7 @@ import {
   findMatchingProfile,
   buildContainerScript,
   buildDockerArgs,
+  CONTAINER_HOME,
   MOUNT_TARGET,
   type ColimaProfile,
 } from './container.js';
@@ -43,6 +44,7 @@ function makeResult(overrides: Partial<ExecResult> = {}): ExecResult {
 function makeContainer(overrides: Partial<Container> = {}): Container {
   return {
     id: 'test-container',
+    home: CONTAINER_HOME,
     destroy: vi.fn(),
     exec: vi.fn(),
     execOrThrow: vi.fn(),

@@ -7,6 +7,7 @@ import { detectEngine } from './engine.js';
 import { getApiKey } from './credentials.js';
 import { ensureImage } from './image.js';
 export const MOUNT_TARGET = '/workspace';
+export const CONTAINER_HOME = '/home/poe';
 
 // Cache directories
 export const E2E_CACHE_ROOT = join(homedir(), '.cache', 'poe-e2e');
@@ -170,14 +171,13 @@ export interface RunResult {
 
 /** Build the shell script that runs inside the container */
 export function buildContainerScript(commands: string[]): string {
-  const home = '/home/poe';
   return [
     'set -e',
     // Clean up home state from previous runs (but keep cached dirs)
-    `find ${home} -mindepth 1 -maxdepth 1 ! -name ".npm" ! -name ".cache" ! -name ".local" -exec rm -rf {} + 2>/dev/null || true`,
-    `mkdir -p ${home}/.poe-code/logs`,
+    `find ${CONTAINER_HOME} -mindepth 1 -maxdepth 1 ! -name ".npm" ! -name ".cache" ! -name ".local" -exec rm -rf {} + 2>/dev/null || true`,
+    `mkdir -p ${CONTAINER_HOME}/.poe-code/logs`,
     // Add paths (uv is pre-installed in image)
-    `export PATH="${home}/.local/bin:$PATH"`,
+    `export PATH="${CONTAINER_HOME}/.local/bin:$PATH"`,
     // Run commands
     ...commands,
   ].join('; ');
@@ -209,8 +209,8 @@ export function buildDockerArgs(config: DockerArgsConfig): string[] {
   args.push(
     'run', '--rm',
     '-v', `${config.mountSource}:${MOUNT_TARGET}:rw`,
-    '-v', `${config.cacheConfig.npmCacheDir}:/home/poe/.npm:rw`,
-    '-v', `${config.cacheConfig.uvCacheDir}:/home/poe/.cache/uv:rw`,
+    '-v', `${config.cacheConfig.npmCacheDir}:${CONTAINER_HOME}/.npm:rw`,
+    '-v', `${config.cacheConfig.uvCacheDir}:${CONTAINER_HOME}/.cache/uv:rw`,
     '-w', MOUNT_TARGET,
   );
 

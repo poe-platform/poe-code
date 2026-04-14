@@ -13,6 +13,7 @@ import type { CapturedRequests, Container } from './types.js';
 function makeMockContainer(): Container {
   return {
     id: 'test-123',
+    home: '/home/mock',
     destroy: vi.fn(),
     exec: vi.fn().mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' }),
     execOrThrow: vi.fn().mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' }),
@@ -45,6 +46,7 @@ describe('useContainer', () => {
 
   it('defines container proxy helper method types', () => {
     expectTypeOf<Container>().toMatchTypeOf<{
+      home: string;
       requests: () => Promise<CapturedRequests>;
       writeSnapshots: (
         snapshots: Array<{ key: string; response: unknown }>
@@ -83,6 +85,10 @@ describe('useContainer', () => {
 
     it('exposes container id', () => {
       expect(container.id).toBe('test-123');
+    });
+
+    it('exposes container home', () => {
+      expect(container.home).toBe('/home/mock');
     });
 
     it('delegates requests to container', async () => {

@@ -199,6 +199,7 @@ describe('createContainer', () => {
     const container = await createContainer({ image: 'poe-code-e2e:abc123' });
 
     expect(container.id).toBe('abc123containerid');
+    expect(container.home).toBe(CONTAINER_HOME);
 
     // Verify docker create was called
     const createCall = mockSpawnSync.mock.calls.find(

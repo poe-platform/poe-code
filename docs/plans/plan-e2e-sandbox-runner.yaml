@@ -31,7 +31,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Find and replace all references to `@poe-code/e2e-docker-test-runner` with
       `@poe-code/e2e-test-runner` across the codebase. Key files to update:
@@ -55,9 +55,9 @@ tasks:
   - id: add-home-to-container
     title: Add `home` property to Container interface
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Add a `home: string` property to the `Container` interface in

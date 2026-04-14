@@ -8,8 +8,8 @@ describe('codex', () => {
     const result = await container.exec('poe-code configure codex --yes');
     expect(result).toHaveExitCode(0);
 
-    await expect(container).toHaveFile('/home/poe/.codex/config.toml');
-    const config = await container.readFile('/home/poe/.codex/config.toml');
+    await expect(container).toHaveFile(`${container.home}/.codex/config.toml`);
+    const config = await container.readFile(`${container.home}/.codex/config.toml`);
     expect(config).toContain('model_provider');
     expect(config).toContain('model = "gpt-5.4"');
     expect(config).toContain('model_verbosity = "medium"');

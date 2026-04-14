@@ -11,18 +11,19 @@ import { ensureImage } from './image.js';
 import { getApiKey } from './credentials.js';
 import { getResolvedContext, buildContextArgs } from './context.js';
 import {
+  CONTAINER_HOME,
   MOUNT_TARGET,
   NPM_CACHE_DIR,
   UV_CACHE_DIR,
   getWorkspaceDir,
 } from './container.js';
+export { CONTAINER_HOME } from './container.js';
 import { mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { CapturedExchange } from './proxy-types.js';
 import { CapturedRequests as CapturedRequestsCollection } from './proxy-requests.js';
 
 const CONTAINER_LABEL = 'poe-e2e-test-runner=true';
-export const CONTAINER_HOME = '/home/poe';
 export const CONTAINER_PATH = `${CONTAINER_HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`;
 const PROXY_PORT = 3456;
 const PROXY_BASE_URL = `http://localhost:${PROXY_PORT}`;
@@ -358,6 +359,7 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
 
   return {
     id: containerId,
+    home: CONTAINER_HOME,
 
     destroy: async () => {
       spawnSync(engine, [...ctxArgs, 'rm', '-f', containerId], { stdio: 'ignore' });

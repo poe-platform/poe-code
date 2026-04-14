@@ -35,6 +35,7 @@ export interface CapturedRequests {
 
 export interface Container {
   id: string;
+  home: string;
   destroy(): Promise<void>;
   exec(command: string): Promise<ExecResult>;
   execOrThrow(command: string): Promise<ExecResult>;

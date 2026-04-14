@@ -39,6 +39,25 @@ describe("superintendent CLI entry point", () => {
     expect(runCLIMock).toHaveBeenCalledWith(superintendentGroupMock);
   });
 
+  it("normalizes --output markdown for cmdkit CLI parsing", async () => {
+    runCLIMock.mockImplementation(async () => {
+      expect(process.argv).toEqual([
+        "node",
+        "superintendent",
+        "validate",
+        "plan.md",
+        "--output",
+        "md"
+      ]);
+    });
+
+    const { main } = await import("./cli.js");
+
+    await main(["node", "superintendent", "validate", "plan.md", "--output", "markdown"]);
+
+    expect(runCLIMock).toHaveBeenCalledTimes(1);
+  });
+
   it("does not execute the CLI as a side effect of importing the module", async () => {
     await import("./cli.js");
 

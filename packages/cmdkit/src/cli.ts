@@ -497,6 +497,9 @@ function resolveHelpOutput(argv: string[]): OutputMode {
       if (value === "rich" || value === "md" || value === "json") {
         return value;
       }
+      if (value === "markdown") {
+        return "md";
+      }
       continue;
     }
 
@@ -504,6 +507,9 @@ function resolveHelpOutput(argv: string[]): OutputMode {
       const value = token.slice("--output=".length);
       if (value === "rich" || value === "md" || value === "json") {
         return value;
+      }
+      if (value === "markdown") {
+        return "md";
       }
     }
   }
@@ -900,7 +906,11 @@ function addGlobalOptions(command: CommanderCommand): void {
         return value;
       }
 
-      throw new InvalidArgumentError('Invalid value for "--output". Expected one of: rich, md, json.');
+      if (value === "markdown") {
+        return "md";
+      }
+
+      throw new InvalidArgumentError('Invalid value for "--output". Expected one of: rich, md, markdown, json.');
     })
     .option("--verbose", "Print stack traces for unexpected errors.");
 }

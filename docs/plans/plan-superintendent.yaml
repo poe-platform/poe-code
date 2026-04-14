@@ -217,9 +217,9 @@ tasks:
   - id: validate-command
     title: Implement validate command
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Implement the `superintendent validate` command using cmdkit.

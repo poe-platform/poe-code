@@ -765,6 +765,31 @@ describe("runCLI", () => {
     });
   });
 
+  it("accepts --output markdown as an alias for md", async () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => ({
+        ok: true,
+      }),
+      render: {
+        markdown: () => "rendered markdown",
+      },
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "cmdkit", "deploy", "--output", "markdown", "--yes"];
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toBe("rendered markdown\n");
+  });
+
   it("keeps rich output as the default when stdout is not a TTY", async () => {
     const renderRich = vi.fn();
     const renderJson = vi.fn((result: unknown) => result);

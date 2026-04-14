@@ -481,10 +481,10 @@ tasks:
   - id: run-superintendent
     title: Implement superintendent agent execution
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Implement `packages/superintendent/src/runtime/run-superintendent.ts`.
 

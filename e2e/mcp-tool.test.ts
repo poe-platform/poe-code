@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useContainer, shellQuote } from '@poe-code/e2e-test-runner';
 
 interface AgentMcpSpawnTest {
@@ -41,6 +41,11 @@ const mcpConfig = shellQuote(JSON.stringify({
 
 describe.each(agents)('spawn --mcp-config: $name', ({ name, expectSpawnSuccess, spawnArgs }) => {
   const container = useContainer({ testName: `spawn-mcp-${name}` });
+
+  beforeEach(async () => {
+    const installResult = await container.exec(`poe-code install ${name}`);
+    expect(installResult).toHaveExitCode(0);
+  });
 
   it('uses tiny MCP server and validates output', async () => {
     const configResult = await container.exec(`poe-code configure ${name} --yes`);

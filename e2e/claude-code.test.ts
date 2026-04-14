@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useContainer } from '@poe-code/e2e-test-runner';
 
 describe('claude-code', () => {
   const container = useContainer({ testName: 'claude-code' });
+
+  beforeEach(async () => {
+    const installResult = await container.exec('poe-code install claude-code');
+    expect(installResult).toHaveExitCode(0);
+  });
 
   it('configure and test', async () => {
     const result = await container.exec('poe-code configure claude-code --yes');

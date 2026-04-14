@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 import { useContainer } from '@poe-code/e2e-test-runner';
 import { DEFAULT_GOOSE_MODEL } from '../src/cli/constants.js';
@@ -6,10 +6,12 @@ import { DEFAULT_GOOSE_MODEL } from '../src/cli/constants.js';
 describe('goose', () => {
   const container = useContainer({ testName: 'goose' });
 
-  it('install, configure and test', async () => {
+  beforeEach(async () => {
     const installResult = await container.exec('poe-code install goose');
     expect(installResult).toHaveExitCode(0);
+  });
 
+  it('configure and test', async () => {
     const configureResult = await container.exec('poe-code configure goose --yes');
     expect(configureResult).toHaveExitCode(0);
 
@@ -42,9 +44,6 @@ describe('goose', () => {
   });
 
   it('test --isolated', async () => {
-    const installResult = await container.exec('poe-code install goose');
-    expect(installResult).toHaveExitCode(0);
-
     const result = await container.exec('env -u POE_API_KEY poe-code test goose --isolated');
     expect(result).toSucceedWith('Tested Goose.');
 
@@ -56,9 +55,6 @@ describe('goose', () => {
   });
 
   it('spawn creates a file', async () => {
-    const installResult = await container.exec('poe-code install goose');
-    expect(installResult).toHaveExitCode(0);
-
     const configureResult = await container.exec('poe-code configure goose --yes');
     expect(configureResult).toHaveExitCode(0);
 

@@ -1,10 +1,19 @@
 import chalk from "chalk";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
 import { renderBorder } from "./components/border.js";
+import {
+  computeVisualLines,
+  renderOutputPane,
+  scrollDown,
+  scrollToBottom,
+  scrollToTop,
+  scrollUp
+} from "./components/output-pane.js";
 import { computeDashboardLayout } from "./layout.js";
+import { resetThemeCache } from "../internal/theme-detect.js";
 import type { DashboardLayout } from "./layout.js";
-import type { Rect } from "./types.js";
+import type { OutputItem, Rect } from "./types.js";
 
 function readRow(buffer: ScreenBuffer, y: number): string {
   return Array.from({ length: buffer.width }, (_, x) => buffer.get(x, y).ch).join("");
@@ -197,26 +206,27 @@ describe("diff", () => {
 
     prev.put(2, 1, "Y", { bold: true });
 
-    expect(diff(prev, next)).toEqual([
-      { x: 2, y: 1, cell: { ch: " ", style: {} } }
-    ]);
+    expect(diff(prev, next)).toEqual([{ x: 2, y: 1, cell: { ch: " ", style: {} } }]);
   });
 });
 
-
 describe("cellToAnsi", () => {
   it("converts a styled cell to ANSI text", () => {
-    expect(cellToAnsi({
-      ch: "A",
-      style: { fg: "red", bg: "blue", bold: true, dim: true }
-    })).toBe(chalk.bold.dim.red.bgBlue("A"));
+    expect(
+      cellToAnsi({
+        ch: "A",
+        style: { fg: "red", bg: "blue", bold: true, dim: true }
+      })
+    ).toBe(chalk.bold.dim.red.bgBlue("A"));
   });
 
   it("supports hex foreground and background colors", () => {
-    expect(cellToAnsi({
-      ch: "A",
-      style: { fg: "#ff0000", bg: "#0000ff" }
-    })).toBe(chalk.hex("#ff0000").bgHex("#0000ff")("A"));
+    expect(
+      cellToAnsi({
+        ch: "A",
+        style: { fg: "#ff0000", bg: "#0000ff" }
+      })
+    ).toBe(chalk.hex("#ff0000").bgHex("#0000ff")("A"));
   });
 });
 
@@ -233,11 +243,13 @@ describe("computeDashboardLayout", () => {
   });
 
   it("respects a custom right pane width", () => {
-    expect(computeDashboardLayout({
-      totalWidth: 100,
-      totalHeight: 30,
-      rightPaneWidth: 30
-    })).toMatchObject({
+    expect(
+      computeDashboardLayout({
+        totalWidth: 100,
+        totalHeight: 30,
+        rightPaneWidth: 30
+      })
+    ).toMatchObject({
       leftPane: { x: 1, y: 1, width: 67, height: 26 },
       rightPane: { x: 69, y: 1, width: 30, height: 26 },
       divider: { x: 68, top: 1, bottom: 26 },
@@ -389,5 +401,211 @@ describe("renderBorder", () => {
     expect(readRow(buffer, 0)).toBe("┌────────┐");
     expect(readRow(buffer, 3)).toBe("├────────┤");
     expect(buffer.get(8, 1)).toEqual({ ch: " ", style: {} });
+  });
+});
+
+describe("output pane", () => {
+  const previousPoeCodeTheme = process.env.POE_CODE_THEME;
+  const previousPoeTheme = process.env.POE_THEME;
+
+  beforeEach(() => {
+    process.env.POE_CODE_THEME = "dark";
+    delete process.env.POE_THEME;
+    resetThemeCache();
+  });
+
+  afterEach(() => {
+    if (previousPoeCodeTheme === undefined) {
+      delete process.env.POE_CODE_THEME;
+    } else {
+      process.env.POE_CODE_THEME = previousPoeCodeTheme;
+    }
+
+    if (previousPoeTheme === undefined) {
+      delete process.env.POE_THEME;
+    } else {
+      process.env.POE_THEME = previousPoeTheme;
+    }
+
+    resetThemeCache();
+  });
+
+  it("computeVisualLines wraps long text correctly", () => {
+    const items: OutputItem[] = [{ kind: "info", text: "alpha beta gamma", ts: 1 }];
+
+    expect(computeVisualLines(items, 10)).toEqual([
+      {
+        prefix: "◇",
+        prefixStyle: { fg: "magenta" },
+        style: { fg: "magenta" },
+        text: "alpha"
+      },
+      {
+        prefix: "│",
+        prefixStyle: { dim: true },
+        style: { fg: "magenta" },
+        text: "beta"
+      },
+      {
+        prefix: "│",
+        prefixStyle: { dim: true },
+        style: { fg: "magenta" },
+        text: "gamma"
+      }
+    ]);
+  });
+
+  it("computeVisualLines assigns the correct prefix and style per item kind", () => {
+    const items: OutputItem[] = [
+      { kind: "info", text: "info", ts: 1 },
+      { kind: "success", text: "success", ts: 2 },
+      { kind: "error", text: "error", ts: 3 },
+      { kind: "tool", text: "tool", ts: 4 },
+      { kind: "status", text: "status", ts: 5 }
+    ];
+
+    expect(computeVisualLines(items, 20)).toEqual([
+      { prefix: "◇", prefixStyle: { fg: "magenta" }, style: { fg: "magenta" }, text: "info" },
+      { prefix: "◆", prefixStyle: { fg: "green" }, style: { fg: "green" }, text: "success" },
+      { prefix: "■", prefixStyle: { fg: "red" }, style: { fg: "red" }, text: "error" },
+      { prefix: "│", prefixStyle: { dim: true }, style: { dim: true }, text: "tool" },
+      { prefix: "●", prefixStyle: { fg: "magenta" }, style: { fg: "magenta" }, text: "status" }
+    ]);
+  });
+
+  it("computeVisualLines preserves explicit blank lines and wraps each paragraph", () => {
+    const items: OutputItem[] = [{ kind: "info", text: ["alpha beta", "", "gamma"].join("\n"), ts: 1 }];
+
+    expect(computeVisualLines(items, 9)).toEqual([
+      {
+        prefix: "◇",
+        prefixStyle: { fg: "magenta" },
+        style: { fg: "magenta" },
+        text: "alpha"
+      },
+      {
+        prefix: "│",
+        prefixStyle: { dim: true },
+        style: { fg: "magenta" },
+        text: "beta"
+      },
+      {
+        prefix: "│",
+        prefixStyle: { dim: true },
+        style: { fg: "magenta" },
+        text: ""
+      },
+      {
+        prefix: "│",
+        prefixStyle: { dim: true },
+        style: { fg: "magenta" },
+        text: "gamma"
+      }
+    ]);
+  });
+
+  it("computeVisualLines resolves light theme colors", () => {
+    process.env.POE_CODE_THEME = "light";
+    resetThemeCache();
+
+    const items: OutputItem[] = [
+      { kind: "info", text: "info", ts: 1 },
+      { kind: "success", text: "success", ts: 2 },
+      { kind: "error", text: "error", ts: 3 },
+      { kind: "tool", text: "tool", ts: 4 },
+      { kind: "status", text: "status", ts: 5 }
+    ];
+
+    expect(computeVisualLines(items, 20)).toEqual([
+      { prefix: "◇", prefixStyle: { fg: "#a200ff" }, style: { fg: "#a200ff" }, text: "info" },
+      { prefix: "◆", prefixStyle: { fg: "#008800" }, style: { fg: "#008800" }, text: "success" },
+      { prefix: "■", prefixStyle: { fg: "#cc0000" }, style: { fg: "#cc0000" }, text: "error" },
+      { prefix: "│", prefixStyle: { fg: "#666666" }, style: { fg: "#666666" }, text: "tool" },
+      { prefix: "●", prefixStyle: { fg: "#a200ff" }, style: { fg: "#a200ff" }, text: "status" }
+    ]);
+  });
+
+  it("scroll up and down clamp to valid offsets", () => {
+    const state = { items: [], scrollOffset: 2, autoFollow: true };
+
+    expect(scrollUp(state, 5)).toEqual({ items: [], scrollOffset: 0, autoFollow: false });
+    expect(scrollDown(state, 5, 4)).toEqual({ items: [], scrollOffset: 3, autoFollow: false });
+  });
+
+  it("scrollToBottom enables auto-follow", () => {
+    expect(scrollToBottom({ items: [], scrollOffset: 1, autoFollow: false }, 10, 4)).toEqual({
+      items: [],
+      scrollOffset: 6,
+      autoFollow: true
+    });
+  });
+
+  it("manual scrolling disables auto-follow", () => {
+    expect(scrollDown({ items: [], scrollOffset: 0, autoFollow: true }, 1, 3).autoFollow).toBe(
+      false
+    );
+    expect(scrollUp({ items: [], scrollOffset: 3, autoFollow: true }, 1).autoFollow).toBe(false);
+    expect(scrollToTop({ items: [], scrollOffset: 3, autoFollow: true }).autoFollow).toBe(false);
+  });
+
+  it("renderOutputPane renders the expected lines in the rect", () => {
+    const buffer = new ScreenBuffer(16, 5);
+    const rect: Rect = { x: 1, y: 1, width: 13, height: 3 };
+    const items: OutputItem[] = [
+      { kind: "info", text: "alpha beta gamma", ts: 1 },
+      { kind: "success", text: "done", ts: 2 }
+    ];
+
+    renderOutputPane(buffer, rect, {
+      items,
+      scrollOffset: 0,
+      autoFollow: false
+    });
+
+    expect(readRow(buffer, 1)).toBe(" ◇  alpha beta  ");
+    expect(readRow(buffer, 2)).toBe(" │  gamma       ");
+    expect(readRow(buffer, 3)).toBe(" ◆  done        ");
+    expect(buffer.get(1, 1)).toEqual({ ch: "◇", style: { fg: "magenta" } });
+    expect(buffer.get(4, 1)).toEqual({ ch: "a", style: { fg: "magenta" } });
+    expect(buffer.get(1, 2)).toEqual({ ch: "│", style: { dim: true } });
+    expect(buffer.get(4, 3)).toEqual({ ch: "d", style: { fg: "green" } });
+  });
+
+  it("renderOutputPane respects scrollOffset when auto-follow is disabled", () => {
+    const buffer = new ScreenBuffer(16, 6);
+    const rect: Rect = { x: 1, y: 1, width: 13, height: 3 };
+    const items: OutputItem[] = [
+      { kind: "info", text: "alpha beta gamma", ts: 1 },
+      { kind: "success", text: "done", ts: 2 },
+      { kind: "error", text: "oops", ts: 3 }
+    ];
+
+    renderOutputPane(buffer, rect, {
+      items,
+      scrollOffset: 1,
+      autoFollow: false
+    });
+
+    expect(readRow(buffer, 1)).toBe(" │  gamma       ");
+    expect(readRow(buffer, 2)).toBe(" ◆  done        ");
+    expect(readRow(buffer, 3)).toBe(" ■  oops        ");
+  });
+
+  it("renderOutputPane ignores scrollOffset while auto-follow is enabled", () => {
+    const buffer = new ScreenBuffer(16, 5);
+    const rect: Rect = { x: 1, y: 1, width: 13, height: 2 };
+    const items: OutputItem[] = [
+      { kind: "info", text: "alpha beta gamma", ts: 1 },
+      { kind: "success", text: "done", ts: 2 }
+    ];
+
+    renderOutputPane(buffer, rect, {
+      items,
+      scrollOffset: 0,
+      autoFollow: true
+    });
+
+    expect(readRow(buffer, 1)).toBe(" │  gamma       ");
+    expect(readRow(buffer, 2)).toBe(" ◆  done        ");
   });
 });

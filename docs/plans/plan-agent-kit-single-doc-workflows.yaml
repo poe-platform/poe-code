@@ -621,8 +621,8 @@ tasks:
       Run `npm run dev -- ralph --help` to verify CLI still works.
     status:
       implement: done
-      refactor: open
-      test: open
+      refactor: done
+      test: done
       commit: open
 
   - id: experiment-migration

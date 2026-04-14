@@ -921,6 +921,97 @@ describe("createRalphSimulation", () => {
     });
   });
 
+  it("restores open status and releases the lock when the agent throws unexpectedly", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": "# Plan"
+    });
+    let callCount = 0;
+    const runAgent = vi.fn(async () => {
+      callCount += 1;
+
+      if (callCount === 1) {
+        return {
+          stdout: "",
+          stderr: "",
+          exitCode: 0
+        };
+      }
+
+      throw new Error("boom");
+    });
+
+    await expect(
+      runRalph({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: ".poe-code/ralph/plans/plan.md",
+        maxIterations: 3,
+        fs,
+        runAgent
+      })
+    ).rejects.toThrow("boom");
+
+    const content = await rawFs.readFile(
+      "/repo/.poe-code/ralph/plans/plan.md",
+      "utf8"
+    );
+    const { data } = parseFrontmatter(content as string);
+
+    expect(data.status).toEqual({
+      state: "open",
+      iteration: 1
+    });
+    await expect(
+      rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock")
+    ).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("uses agent-kit path resolution for home-directory docs", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/home/test/.poe-code/ralph/plans/plan.md": "# Home plan"
+    });
+    const runAgent = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    const result = await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "~/.poe-code/ralph/plans/plan.md",
+      maxIterations: 1,
+      fs,
+      runAgent
+    });
+
+    expect(result).toMatchObject({
+      docPath: "~/.poe-code/ralph/plans/plan.md",
+      stopReason: "max_iterations",
+      iterationsCompleted: 1
+    });
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        prompt: "# Home plan",
+        cwd: "/repo"
+      })
+    );
+
+    const archived = await rawFs.readFile(
+      "/home/test/.poe-code/ralph/plans/archive/plan.md",
+      "utf8"
+    );
+    const { data } = parseFrontmatter(archived as string);
+
+    expect(data.status).toEqual({
+      state: "completed",
+      iteration: 1
+    });
+  });
+
   it("stops on first failed iteration", async () => {
     const sim = createRalphSimulation({
       docContent: "Keep trying",

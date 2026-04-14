@@ -149,6 +149,11 @@ export async function runRalph(
             return;
           }
 
+          if (lastStopKind === "fatal") {
+            await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
+            return;
+          }
+
           return;
         }
 

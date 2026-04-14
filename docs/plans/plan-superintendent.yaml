@@ -280,7 +280,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Implement `packages/superintendent/src/runtime/templates.ts`.
 
@@ -325,10 +325,10 @@ tasks:
   - id: run-builder
     title: Implement builder execution
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Implement `packages/superintendent/src/runtime/run-builder.ts`.
 

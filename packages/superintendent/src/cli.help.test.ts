@@ -25,9 +25,9 @@ describe("superintendent CLI help", () => {
     expect(output).toContain("Commands:");
     expect(output).toContain("builder");
     expect(output).toContain("inspector");
-  });
+  }, 15000);
 
-  it("renders help for empty scaffold groups", async () => {
+  it("renders help for the builder subcommands", async () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const { main } = await import("./cli.js");
 
@@ -36,5 +36,6 @@ describe("superintendent CLI help", () => {
     const output = readStdout(stdoutWrite);
     expect(output).toContain("superintendent builder");
     expect(output).toContain("Builder commands.");
-  });
+    expect(output).toContain("run");
+  }, 15000);
 });

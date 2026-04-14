@@ -10,7 +10,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/agent-spawn/src/acp/replay.ts` with these functions:
 
@@ -58,9 +58,9 @@ tasks:
   - id: replay-cli
     title: Create minimal CLI entrypoint for replay
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Create `packages/agent-spawn/src/acp/replay-cli.ts` — a minimal entrypoint script.

@@ -1,3 +1,5 @@
+import { resolveAgentId } from "./registry.js";
+
 export interface AgentSpecifier {
   agent: string;
   model?: string;
@@ -23,4 +25,14 @@ export function formatAgentSpecifier(specifier: AgentSpecifier): string {
     return `${specifier.agent}:${specifier.model}`;
   }
   return specifier.agent;
+}
+
+export function normalizeAgentId(input: string): string {
+  const specifier = parseAgentSpecifier(input.trim());
+  const agent = resolveAgentId(specifier.agent) ?? specifier.agent;
+
+  return formatAgentSpecifier({
+    agent,
+    model: specifier.model
+  });
 }

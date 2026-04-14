@@ -7,6 +7,7 @@ import {
   kimiAgent,
   allAgents,
   resolveAgentId,
+  normalizeAgentId,
   type AgentDefinition
 } from "./index.js";
 import { parseAgentSpecifier, formatAgentSpecifier } from "./specifier.js";
@@ -133,6 +134,22 @@ describe("parseAgentSpecifier", () => {
       agent: "claude-code",
       model: "claude-opus-4.6",
     });
+  });
+});
+
+describe("normalizeAgentId", () => {
+  it("normalizes aliases to canonical ids", () => {
+    expect(normalizeAgentId("CLAUDE")).toBe("claude-code");
+  });
+
+  it("preserves inline model syntax", () => {
+    expect(normalizeAgentId("claude:anthropic/claude-opus-4.6")).toBe(
+      "claude-code:anthropic/claude-opus-4.6"
+    );
+  });
+
+  it("returns unknown agents unchanged apart from trimming", () => {
+    expect(normalizeAgentId("  custom-agent  ")).toBe("custom-agent");
   });
 });
 

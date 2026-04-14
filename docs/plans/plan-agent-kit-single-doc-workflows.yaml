@@ -237,9 +237,9 @@ tasks:
       - Inline model syntax preserved
       - Missing agent field throws
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ── Phase 3: Locking and setup/teardown ──

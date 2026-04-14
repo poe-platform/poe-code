@@ -13,10 +13,13 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "cd ../.. && vitest run packages/agent-kit/src/paths.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/agent-kit/src/paths.test.ts"
+    "test": "cd ../.. && vitest run packages/agent-kit/src",
+    "test:unit": "cd ../.. && vitest run packages/agent-kit/src"
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "@poe-code/agent-defs": "*"
+  }
 }

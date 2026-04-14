@@ -8,4 +8,4 @@ export {
   kimiAgent
 } from "./agents/index.js";
 export { allAgents, resolveAgentId } from "./registry.js";
-export { parseAgentSpecifier, formatAgentSpecifier } from "./specifier.js";
+export { parseAgentSpecifier, formatAgentSpecifier, normalizeAgentId } from "./specifier.js";

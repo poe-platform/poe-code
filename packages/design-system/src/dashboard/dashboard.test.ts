@@ -1,3 +1,4 @@
+import { PassThrough } from "node:stream";
 import chalk from "chalk";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
@@ -20,6 +21,8 @@ import {
 } from "./components/stats-pane.js";
 import { computeDashboardLayout } from "./layout.js";
 import { createStore } from "./store.js";
+import { createDashboard } from "./dashboard.js";
+import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 import { resetThemeCache } from "../internal/theme-detect.js";
 import type { DashboardLayout } from "./layout.js";
 import type { KeypressEvent } from "./terminal.js";
@@ -27,6 +30,45 @@ import type { DashboardState, DashboardStats, OutputItem, Rect } from "./types.j
 
 function readRow(buffer: ScreenBuffer, y: number): string {
   return Array.from({ length: buffer.width }, (_, x) => buffer.get(x, y).ch).join("");
+}
+
+function stripTerminalControl(value: string): string {
+  return value.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "");
+}
+
+class TestDashboardStdin extends PassThrough {
+  rawModes: boolean[] = [];
+  resumeCount = 0;
+
+  setRawMode(mode: boolean): void {
+    this.rawModes.push(mode);
+  }
+
+  override resume(): this {
+    this.resumeCount += 1;
+    return super.resume();
+  }
+}
+
+class TestDashboardStdout extends PassThrough {
+  columns: number | undefined;
+  rows: number | undefined;
+  output = "";
+
+  constructor(cols = 80, rows = 24) {
+    super();
+    this.columns = cols;
+    this.rows = rows;
+  }
+
+  override write(
+    chunk: string | Uint8Array,
+    encoding?: BufferEncoding | ((error: Error | null | undefined) => void),
+    callback?: (error: Error | null | undefined) => void
+  ): boolean {
+    this.output += typeof chunk === "string" ? chunk : chunk.toString("utf8");
+    return super.write(chunk, encoding as never, callback);
+  }
 }
 
 describe("ScreenBuffer", () => {
@@ -1197,5 +1239,102 @@ describe("keymap", () => {
     });
 
     expect(resolve(key({ ch: "G", shift: true }))).toBe("scrollToBottom");
+  });
+});
+
+describe("createDashboard", () => {
+  afterEach(() => {
+    resetOutputFormatCache();
+  });
+
+  it("returns an object with the expected methods", () => {
+    const dashboard = createDashboard();
+
+    expect(dashboard).toMatchObject({
+      start: expect.any(Function),
+      stop: expect.any(Function),
+      appendOutput: expect.any(Function),
+      updateStats: expect.any(Function),
+      onCommand: expect.any(Function),
+      destroy: expect.any(Function)
+    });
+  });
+
+  it("falls back gracefully outside terminal output mode", () => {
+    withOutputFormat("markdown", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout();
+      const dashboard = createDashboard({ stdin, stdout });
+
+      dashboard.start();
+      dashboard.updateStats({ status: "running", iterations: 3 });
+      dashboard.appendOutput({ kind: "info", text: "hello fallback", ts: 1 });
+      dashboard.stop();
+      dashboard.destroy();
+
+      expect(stdin.rawModes).toEqual([]);
+      expect(stdout.output).toContain("hello fallback");
+      expect(stdout.output).not.toContain("\u001b[?1049h");
+      expect(stdout.output).not.toContain("\u001b[?25l");
+    });
+  });
+
+  it("calls onCommand handlers for non-scroll commands", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout();
+      const dashboard = createDashboard({ stdin, stdout });
+      const commands: string[] = [];
+
+      dashboard.onCommand((command) => {
+        commands.push(command);
+      });
+
+      dashboard.start();
+      stdin.emit("data", Buffer.from("e"));
+
+      expect(commands).toEqual(["edit"]);
+
+      dashboard.destroy();
+    });
+  });
+
+  it("renders buffered output on start and restores terminal state on stop", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout();
+      const dashboard = createDashboard({ stdin, stdout });
+
+      dashboard.appendOutput({ kind: "info", text: "before start", ts: 1 });
+      dashboard.start();
+      dashboard.stop();
+
+      expect(stdin.rawModes).toEqual([true, false]);
+      expect(stdout.output).toContain("\u001b[?1049h");
+      expect(stdout.output).toContain("\u001b[?1049l");
+      expect(stdout.output).toContain("\u001b[?25l");
+      expect(stdout.output).toContain("\u001b[?25h");
+      expect(stripTerminalControl(stdout.output)).toContain("before start");
+    });
+  });
+
+  it("does not emit scroll commands to onCommand handlers", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout();
+      const dashboard = createDashboard({ stdin, stdout });
+      const commands: string[] = [];
+
+      dashboard.onCommand((command) => {
+        commands.push(command);
+      });
+
+      dashboard.start();
+      stdin.emit("data", Buffer.from("\u001b[A"));
+
+      expect(commands).toEqual([]);
+
+      dashboard.destroy();
+    });
   });
 });

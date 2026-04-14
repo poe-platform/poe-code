@@ -473,7 +473,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/store.ts`:
 
@@ -532,9 +532,9 @@ tasks:
   - id: dashboard
     title: Implement main dashboard orchestrator and public API
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/dashboard.ts`:
 

@@ -42,14 +42,20 @@ export { spawn } from "./spawn.js";
 export { spawnInteractive } from "./spawn-interactive.js";
 
 export { renderAcpEvent, renderAcpStream } from "./acp/renderer.js";
+export type { LogEntry } from "./acp/replay.js";
+export {
+  findLatestLog,
+  listSpawnLogs,
+  pickRandomLog,
+  readSpawnLog,
+  replaySpawnLog
+} from "./acp/replay.js";
 export type { SpawnStreamingOptions, SpawnStreamingResult } from "./acp/spawn.js";
 export { spawnStreaming } from "./acp/spawn.js";
 export type { SpawnAcpOptions, SpawnAcpResult } from "./acp/spawn-acp.js";
 export { spawnAcp } from "./acp/spawn-acp.js";
 export { readLines } from "./acp/line-reader.js";
-export {
-  applyMiddlewares
-} from "./acp/middleware.js";
+export { applyMiddlewares } from "./acp/middleware.js";
 export type {
   AcpMiddleware,
   SessionResult,

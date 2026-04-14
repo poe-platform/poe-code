@@ -7,9 +7,9 @@ tasks:
   - id: replay-core
     title: Implement JSONL parsing and replay helpers
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Create `packages/agent-spawn/src/acp/replay.ts` with these functions:

@@ -1,0 +1,155 @@
+import path from "node:path";
+import { homedir } from "node:os";
+import type { Dirent } from "node:fs";
+import { open, readdir } from "node:fs/promises";
+import { createInterface } from "node:readline";
+import { renderAcpStream } from "./renderer.js";
+import type { AcpEvent } from "./types.js";
+
+const DEFAULT_LOG_LIMIT = 80;
+const JSONL_EXTENSION = ".jsonl";
+
+export interface LogEntry {
+  path: string;
+  filename: string;
+  agent?: string;
+  timestamp?: Date;
+}
+
+interface ListSpawnLogsOptions {
+  agent?: string;
+  limit?: number;
+}
+
+function isDigitString(value: string, length: number): boolean {
+  if (value.length !== length) return false;
+  for (const char of value) {
+    if (char < "0" || char > "9") return false;
+  }
+  return true;
+}
+
+function parseTimestamp(day: string, time: string, milliseconds: string): Date | undefined {
+  if (!isDigitString(day, 8) || !isDigitString(time, 6) || !isDigitString(milliseconds, 3)) {
+    return undefined;
+  }
+
+  const year = Number(day.slice(0, 4));
+  const month = Number(day.slice(4, 6));
+  const date = Number(day.slice(6, 8));
+  const hours = Number(time.slice(0, 2));
+  const minutes = Number(time.slice(2, 4));
+  const seconds = Number(time.slice(4, 6));
+  const millis = Number(milliseconds);
+
+  const timestamp = new Date(Date.UTC(year, month - 1, date, hours, minutes, seconds, millis));
+
+  if (
+    Number.isNaN(timestamp.getTime()) ||
+    timestamp.getUTCFullYear() !== year ||
+    timestamp.getUTCMonth() !== month - 1 ||
+    timestamp.getUTCDate() !== date ||
+    timestamp.getUTCHours() !== hours ||
+    timestamp.getUTCMinutes() !== minutes ||
+    timestamp.getUTCSeconds() !== seconds ||
+    timestamp.getUTCMilliseconds() !== millis
+  ) {
+    return undefined;
+  }
+
+  return timestamp;
+}
+
+function parseLogFilename(filename: string): { agent?: string; timestamp?: Date } {
+  if (!filename.endsWith(JSONL_EXTENSION)) return {};
+
+  const baseName = filename.slice(0, -JSONL_EXTENSION.length);
+  const parts = baseName.split("-");
+
+  if (parts.length < 4) return {};
+
+  const timestamp = parseTimestamp(parts[0], parts[1], parts[2]);
+  const agent = parts.slice(3).join("-");
+
+  return {
+    agent: agent.length > 0 ? agent : undefined,
+    timestamp
+  };
+}
+
+function normalizeLimit(limit: number | undefined): number {
+  if (typeof limit !== "number" || !Number.isFinite(limit) || limit < 0) {
+    return DEFAULT_LOG_LIMIT;
+  }
+  return Math.floor(limit);
+}
+
+export async function* readSpawnLog(filePath: string): AsyncIterable<AcpEvent> {
+  const fileHandle = await open(filePath, "r");
+  const stream = fileHandle.createReadStream({ encoding: "utf8" });
+  const reader = createInterface({
+    input: stream,
+    crlfDelay: Infinity
+  });
+
+  try {
+    for await (const line of reader) {
+      const trimmed = line.trim();
+      if (trimmed.length === 0) continue;
+      yield JSON.parse(trimmed) as AcpEvent;
+    }
+  } finally {
+    reader.close();
+    if (!stream.destroyed) {
+      stream.destroy();
+    }
+    await fileHandle.close().catch(() => {});
+  }
+}
+
+export async function listSpawnLogs(options: ListSpawnLogsOptions = {}): Promise<LogEntry[]> {
+  const logDir = path.join(homedir(), ".poe-code", "spawn-logs");
+  const limit = normalizeLimit(options.limit);
+
+  let entries: Dirent[];
+  try {
+    entries = await readdir(logDir, { withFileTypes: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
+  }
+
+  const logs: LogEntry[] = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith(JSONL_EXTENSION)) continue;
+
+    const logEntry: LogEntry = {
+      path: path.join(logDir, entry.name),
+      filename: entry.name,
+      ...parseLogFilename(entry.name)
+    };
+
+    if (options.agent && logEntry.agent !== options.agent) continue;
+
+    logs.push(logEntry);
+  }
+
+  logs.sort((a, b) => (a.filename < b.filename ? 1 : a.filename > b.filename ? -1 : 0));
+  return logs.slice(0, limit);
+}
+
+export async function findLatestLog(agent?: string): Promise<string | undefined> {
+  const [entry] = await listSpawnLogs({ agent, limit: 1 });
+  return entry?.path;
+}
+
+export async function pickRandomLog(agent?: string): Promise<string | undefined> {
+  const entries = await listSpawnLogs({ agent });
+  if (entries.length === 0) return undefined;
+  return entries[Math.floor(Math.random() * entries.length)]?.path;
+}
+
+export async function replaySpawnLog(filePath: string): Promise<void> {
+  await renderAcpStream(readSpawnLog(filePath));
+}

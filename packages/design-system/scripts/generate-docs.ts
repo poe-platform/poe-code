@@ -366,6 +366,29 @@ log.message(diffLines.join("\\n"), { symbol: chalk.yellow("~") });`,
     ]
   },
   {
+    title: "Dashboard",
+    description:
+      "Full-screen interactive terminal dashboard with output pane, stats pane, and keyboard navigation. Used for monitoring long-running agent sessions.",
+    elements: [
+      {
+        name: "dashboard",
+        description:
+          "Two-pane dashboard layout with scrollable output on the left, live stats on the right, and keyboard hints in the footer",
+        codeSnippet: `import { createDashboard } from "@poe-code/design-system";
+
+const dashboard = createDashboard({
+  title: "Agent Output",
+  statsTitle: "Stats"
+});
+
+dashboard.start();
+dashboard.appendOutput({ kind: "info", text: "Analyzing repository state", ts: Date.now() });
+dashboard.updateStats({ status: "running", iterations: 5, tokensIn: 685, tokensOut: 445, elapsedMs: 5000 });`,
+        demoArgs: `dashboard`
+      }
+    ]
+  },
+  {
     title: "Terminal Markdown",
     description:
       "Reference demos for the terminal markdown renderer, covering both the full showcase and a minimal validation sample.",

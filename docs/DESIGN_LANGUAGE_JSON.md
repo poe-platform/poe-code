@@ -526,6 +526,50 @@ log.message(diffLines.join("\n"), { symbol: chalk.yellow("~") });
 {"level":"message","message":"--- config.json\n+++ config.json\n@@ -1,3 +1,5 @@\n {\n-  \"model\": \"gpt-4\",\n+  \"model\": \"claude-sonnet-4\",\n   \"temperature\": 0.7\n+  \"maxTokens\": 4096\n }"}
 ```
 
+## Dashboard
+
+Full-screen interactive terminal dashboard with output pane, stats pane, and keyboard navigation. Used for monitoring long-running agent sessions.
+
+### dashboard
+
+Two-pane dashboard layout with scrollable output on the left, live stats on the right, and keyboard hints in the footer
+
+```typescript
+import { createDashboard } from "@poe-code/design-system";
+
+const dashboard = createDashboard({
+  title: "Agent Output",
+  statsTitle: "Stats"
+});
+
+dashboard.start();
+dashboard.appendOutput({ kind: "info", text: "Analyzing repository state", ts: Date.now() });
+dashboard.updateStats({ status: "running", iterations: 5, tokensIn: 685, tokensOut: 445, elapsedMs: 5000 });
+```
+
+```json
+┌─ Agent Output ─────────────────────────────────────┬─ Stats ─────────────────┐
+│◇  Analyzing repository state                       │Status            Running│
+││  Running npm test -- --runInBand                  │Iteration               5│
+│◆  Generated provider config                        │Elapsed          00:00:05│
+│●  Streaming model response                         │                         │
+│◇  Inspecting agent configuration                   │Tokens In             685│
+││  Executing npm run lint:types                     │Tokens Out            445│
+│■  Retrying transient network request               │Total               1,130│
+│◆  Updated dashboard layout                         │                         │
+│◇  Collecting recent command output                 │Current:                 │
+│●  Waiting for follow-up task                       │  Executing tool call    │
+│                                                    │                         │
+│                                                    │                         │
+│                                                    │                         │
+│                                                    │                         │
+│                                                    │                         │
+│                                                    │                         │
+├────────────────────────────────────────────────────┴─────────────────────────┤
+│                 q Quit  e Edit  p Pause  r Retry  ↑↓ Scroll                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
 ## Terminal Markdown
 
 Reference demos for the terminal markdown renderer, covering both the full showcase and a minimal validation sample.

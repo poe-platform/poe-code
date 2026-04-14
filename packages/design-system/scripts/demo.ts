@@ -23,7 +23,8 @@ import {
   type RenderOptions,
   getTheme,
   resolveOutputFormat,
-  resetOutputFormatCache
+  resetOutputFormatCache,
+  dashboard
 } from "../src/index.js";
 import { getMarkdownDemo, type MarkdownDemoName } from "../src/terminal-markdown/demo-content.js";
 
@@ -51,6 +52,7 @@ type DemoType =
   | "layout-expanded"
   | "table"
   | "table-markdown"
+  | "dashboard"
   | "markdown"
   | "markdown-minimal"
   | "markdown-blocks"
@@ -213,6 +215,10 @@ function runTableDemo(): void {
   process.stdout.write(output + "\n");
 }
 
+function runDashboardDemo(): void {
+  process.stdout.write(dashboard.renderDashboardSnapshot() + "\n");
+}
+
 function runTableMarkdownDemo(): void {
   resetOutputFormatCache();
   resolveOutputFormat({ OUTPUT_FORMAT: "markdown" });
@@ -323,7 +329,7 @@ export async function main(argv = process.argv.slice(2), context: DemoContext = 
     );
     process.stderr.write("       resolved, errorResolved, spinner, layout, layout-expanded,\n");
     process.stderr.write(
-      "       table, table-markdown, markdown, markdown-minimal, markdown-blocks, markdown-file\n"
+      "       table, table-markdown, dashboard, markdown, markdown-minimal, markdown-blocks, markdown-file\n"
     );
     process.exitCode = 1;
     return;
@@ -382,6 +388,9 @@ export async function main(argv = process.argv.slice(2), context: DemoContext = 
       break;
     case "table-markdown":
       runTableMarkdownDemo();
+      break;
+    case "dashboard":
+      runDashboardDemo();
       break;
     case "markdown": {
       const { renderOptions } = parseMarkdownDemoArgs(values);

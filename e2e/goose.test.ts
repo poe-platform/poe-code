@@ -1,10 +1,18 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import path from 'path';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { execSync } from 'child_process';
 import { parse as parseYaml } from 'yaml';
 import { useContainer } from '@poe-code/e2e-test-runner';
 import { DEFAULT_GOOSE_MODEL } from '../src/cli/constants.js';
 
+const bin = path.resolve(__dirname, '..', 'dist', 'bin.cjs');
+
 describe('goose', () => {
   const container = useContainer({ testName: 'goose' });
+
+  beforeAll(() => {
+    execSync(`node ${bin} install goose`, { stdio: 'pipe' });
+  });
 
   beforeEach(async () => {
     const installResult = await container.exec('poe-code install goose');

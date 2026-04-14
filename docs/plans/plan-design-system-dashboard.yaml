@@ -391,7 +391,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/components/footer.ts`:
 
@@ -436,8 +436,8 @@ tasks:
   - id: keymap
     title: Implement keymap
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
     prompt: |
       Create `packages/design-system/src/dashboard/keymap.ts`:

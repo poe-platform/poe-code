@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
 import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
+import { createKeymap } from "./keymap.js";
 import {
   computeVisualLines,
   renderOutputPane,
@@ -20,6 +21,7 @@ import {
 import { computeDashboardLayout } from "./layout.js";
 import { resetThemeCache } from "../internal/theme-detect.js";
 import type { DashboardLayout } from "./layout.js";
+import type { KeypressEvent } from "./terminal.js";
 import type { DashboardStats, OutputItem, Rect } from "./types.js";
 
 function readRow(buffer: ScreenBuffer, y: number): string {
@@ -992,5 +994,69 @@ describe("footer", () => {
 
     expect(buffer.get(7, 0)).toEqual({ ch: "q", style: { fg: "cyan", bold: true } });
     expect(buffer.get(9, 0)).toEqual({ ch: "Q", style: {} });
+  });
+});
+
+describe("keymap", () => {
+  function key(event: Partial<KeypressEvent>): KeypressEvent {
+    return {
+      ctrl: false,
+      meta: false,
+      shift: false,
+      ...event
+    };
+  }
+
+  it("resolves default keys to commands", () => {
+    const resolve = createKeymap();
+
+    expect(resolve(key({ ch: "q" }))).toBe("quit");
+    expect(resolve(key({ ch: "e" }))).toBe("edit");
+    expect(resolve(key({ ch: "p" }))).toBe("pause");
+    expect(resolve(key({ ch: "r" }))).toBe("retry");
+    expect(resolve(key({ name: "up" }))).toBe("scrollUp");
+    expect(resolve(key({ ch: "k" }))).toBe("scrollUp");
+    expect(resolve(key({ name: "down" }))).toBe("scrollDown");
+    expect(resolve(key({ ch: "j" }))).toBe("scrollDown");
+    expect(resolve(key({ name: "pageup" }))).toBe("pageUp");
+    expect(resolve(key({ name: "pagedown" }))).toBe("pageDown");
+    expect(resolve(key({ name: "home" }))).toBe("scrollToTop");
+    expect(resolve(key({ ch: "g" }))).toBe("scrollToTop");
+    expect(resolve(key({ name: "end" }))).toBe("scrollToBottom");
+    expect(resolve(key({ ch: "G", shift: true }))).toBe("scrollToBottom");
+  });
+
+  it("resolves ctrl+c to quit", () => {
+    const resolve = createKeymap();
+
+    expect(resolve(key({ name: "c", ctrl: true }))).toBe("quit");
+  });
+
+  it("returns undefined for unknown keys", () => {
+    const resolve = createKeymap();
+
+    expect(resolve(key({ ch: "x" }))).toBeUndefined();
+    expect(resolve(key({ name: "left" }))).toBeUndefined();
+  });
+
+  it("replaces default bindings with overrides", () => {
+    const resolve = createKeymap({
+      edit: ["x"],
+      quit: ["escape"]
+    });
+
+    expect(resolve(key({ ch: "e" }))).toBeUndefined();
+    expect(resolve(key({ ch: "x" }))).toBe("edit");
+    expect(resolve(key({ ch: "q" }))).toBeUndefined();
+    expect(resolve(key({ name: "escape" }))).toBe("quit");
+    expect(resolve(key({ name: "c", ctrl: true }))).toBeUndefined();
+  });
+
+  it("supports shifted character overrides", () => {
+    const resolve = createKeymap({
+      scrollToBottom: ["shift+g"]
+    });
+
+    expect(resolve(key({ ch: "G", shift: true }))).toBe("scrollToBottom");
   });
 });

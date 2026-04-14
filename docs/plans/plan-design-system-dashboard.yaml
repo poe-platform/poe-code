@@ -7,8 +7,8 @@ tasks:
   - id: types
     title: Define shared types
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
     prompt: |
       Create `packages/design-system/src/dashboard/types.ts` with all shared types:

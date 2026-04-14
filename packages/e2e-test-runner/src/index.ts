@@ -14,6 +14,8 @@ export { setResolvedContext, getResolvedContext, buildContextArgs } from './cont
 export { useContainer } from './use-container.js';
 export { CapturedRequests } from './proxy-requests.js';
 export { shellQuote } from './shell-quote.js';
+export { buildSandboxCommand } from './sandbox.js';
+export type { SandboxConfig } from './sandbox.js';
 export type { UseContainerOptions } from './use-container.js';
 export type { Backend } from './backend.js';
 export type { RunResult } from './container.js';

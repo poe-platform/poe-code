@@ -106,7 +106,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   # ── Phase 2b: Shared normalization and path helpers ──
 
@@ -170,10 +170,10 @@ tasks:
       - Empty dirs return empty array
       - Missing dirs return empty array (no throw)
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: participant-helpers
     title: Add participant normalization helpers to agent-kit

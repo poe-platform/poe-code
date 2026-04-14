@@ -613,8 +613,9 @@ describe("spawnAcp", () => {
     const result = await done;
 
     expect(collected[0]).toEqual({ event: "session_start", threadId: "ses_test_123" });
-    expect(collected[1]).toEqual({ event: "agent_message", text: "Hello " });
-    expect(collected[2]).toEqual({ event: "agent_message", text: "world!" });
+    expect(collected[1]).toMatchObject({ event: "agent_message", text: "Hello " });
+    expect(collected[1]._meta).toHaveProperty("raw");
+    expect(collected[2]).toMatchObject({ event: "agent_message", text: "world!" });
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toBe("Hello world!\n");

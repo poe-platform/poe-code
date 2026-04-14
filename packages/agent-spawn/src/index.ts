@@ -44,7 +44,7 @@ export {
 export { spawn } from "./spawn.js";
 export { spawnInteractive } from "./spawn-interactive.js";
 
-export { renderAcpEvent, renderAcpStream } from "./acp/renderer.js";
+export { renderAcpEvent, renderAcpStream, renderSessionUpdateStream } from "./acp/renderer.js";
 export type { LogEntry } from "./acp/replay.js";
 export {
   findLatestLog,

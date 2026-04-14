@@ -24,6 +24,7 @@ vi.mock("node:fs/promises", async () => {
 });
 
 import { acp } from "@poe-code/design-system";
+import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import {
   findLatestLog,
   listSpawnLogs,
@@ -31,7 +32,6 @@ import {
   readSpawnLog,
   replaySpawnLog
 } from "./replay.js";
-import type { AcpEvent } from "./types.js";
 
 async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
   const items: T[] = [];
@@ -52,31 +52,46 @@ describe("acp/replay", () => {
     vi.clearAllMocks();
   });
 
-  it("readSpawnLog yields parsed AcpEvent objects from a JSONL file", async () => {
-    const events: AcpEvent[] = [
-      { event: "session_start", threadId: "thread-1" },
-      { event: "agent_message", text: "hello" },
-      { event: "usage", inputTokens: 1, outputTokens: 2 }
+  it("readSpawnLog yields raw SessionUpdate objects from a JSONL file", async () => {
+    const updates: SessionUpdate[] = [
+      { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } },
+      { sessionUpdate: "usage_update", used: 1, size: 3 }
     ];
 
     vol.fromJSON({
-      [createLogFile("20260320-123456-789-codex.jsonl")]: events
-        .map((event) => JSON.stringify(event))
+      [createLogFile("20260320-123456-789-codex.jsonl")]: updates
+        .map((u) => JSON.stringify(u))
         .join("\n")
     });
 
     const observed = await collect(readSpawnLog(createLogFile("20260320-123456-789-codex.jsonl")));
 
-    expect(observed).toEqual(events);
+    expect(observed).toEqual(updates);
+  });
+
+  it("readSpawnLog converts legacy internal events to SessionUpdate", async () => {
+    vol.fromJSON({
+      [createLogFile("20260320-123456-789-codex.jsonl")]: [
+        JSON.stringify({ event: "agent_message", text: "hello" }),
+        JSON.stringify({ event: "reasoning", text: "thinking" })
+      ].join("\n")
+    });
+
+    const observed = await collect(readSpawnLog(createLogFile("20260320-123456-789-codex.jsonl")));
+
+    expect(observed).toEqual([
+      { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } },
+      { sessionUpdate: "agent_thought_chunk", content: { type: "text", text: "thinking" } }
+    ]);
   });
 
   it("readSpawnLog skips blank lines", async () => {
     vol.fromJSON({
       [createLogFile("20260320-123456-789-codex.jsonl")]: [
-        JSON.stringify({ event: "agent_message", text: "hello" }),
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } }),
         "",
         "   ",
-        JSON.stringify({ event: "usage", inputTokens: 1, outputTokens: 2 }),
+        JSON.stringify({ sessionUpdate: "usage_update", used: 1, size: 3 }),
         ""
       ].join("\n")
     });
@@ -84,8 +99,8 @@ describe("acp/replay", () => {
     const observed = await collect(readSpawnLog(createLogFile("20260320-123456-789-codex.jsonl")));
 
     expect(observed).toEqual([
-      { event: "agent_message", text: "hello" },
-      { event: "usage", inputTokens: 1, outputTokens: 2 }
+      { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } },
+      { sessionUpdate: "usage_update", used: 1, size: 3 }
     ]);
   });
 
@@ -227,12 +242,12 @@ describe("acp/replay", () => {
     await expect(pickRandomLog("claude-code")).resolves.toBeUndefined();
   });
 
-  it("replaySpawnLog renders parsed events from a JSONL log", async () => {
+  it("replaySpawnLog renders raw SessionUpdate events from a JSONL log", async () => {
     vol.fromJSON({
       [createLogFile("20260320-123456-789-codex.jsonl")]: [
         "",
-        JSON.stringify({ event: "agent_message", text: "hello" }),
-        JSON.stringify({ event: "usage", inputTokens: 3, outputTokens: 5 }),
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } }),
+        JSON.stringify({ sessionUpdate: "usage_update", used: 3, size: 8 }),
         ""
       ].join("\n")
     });
@@ -242,9 +257,8 @@ describe("acp/replay", () => {
     expect(acp.renderAgentMessage).toHaveBeenCalledWith("hello");
     expect(acp.renderUsage).toHaveBeenCalledWith({
       input: 3,
-      output: 5,
-      cached: undefined,
-      costUsd: undefined
+      output: 0,
+      cached: 5
     });
   });
 });

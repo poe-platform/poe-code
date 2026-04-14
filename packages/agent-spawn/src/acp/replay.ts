@@ -3,7 +3,9 @@ import { homedir } from "node:os";
 import type { Dirent } from "node:fs";
 import { open, readdir } from "node:fs/promises";
 import { createInterface } from "node:readline";
-import { renderAcpStream } from "./renderer.js";
+import type { SessionUpdate } from "@poe-code/poe-acp-client";
+import { mapLegacyEventToSessionUpdates } from "@poe-code/poe-acp-client";
+import { renderSessionUpdateStream } from "./renderer.js";
 import type { AcpEvent } from "./types.js";
 
 const DEFAULT_LOG_LIMIT = 80;
@@ -84,7 +86,25 @@ function normalizeLimit(limit: number | undefined): number {
   return Math.floor(limit);
 }
 
-export async function* readSpawnLog(filePath: string): AsyncIterable<AcpEvent> {
+function isSessionUpdate(parsed: unknown): parsed is SessionUpdate {
+  return (
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "sessionUpdate" in parsed &&
+    typeof (parsed as Record<string, unknown>).sessionUpdate === "string"
+  );
+}
+
+function isLegacyEvent(parsed: unknown): parsed is AcpEvent {
+  return (
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "event" in parsed &&
+    typeof (parsed as Record<string, unknown>).event === "string"
+  );
+}
+
+export async function* readSpawnLog(filePath: string): AsyncIterable<SessionUpdate> {
   const fileHandle = await open(filePath, "r");
   const stream = fileHandle.createReadStream({ encoding: "utf8" });
   const reader = createInterface({
@@ -96,7 +116,19 @@ export async function* readSpawnLog(filePath: string): AsyncIterable<AcpEvent> {
     for await (const line of reader) {
       const trimmed = line.trim();
       if (trimmed.length === 0) continue;
-      yield JSON.parse(trimmed) as AcpEvent;
+
+      const parsed: unknown = JSON.parse(trimmed);
+
+      if (isSessionUpdate(parsed)) {
+        yield parsed;
+        continue;
+      }
+
+      if (isLegacyEvent(parsed)) {
+        for (const update of mapLegacyEventToSessionUpdates(parsed as { event: string } & Record<string, unknown>)) {
+          yield update;
+        }
+      }
     }
   } finally {
     reader.close();
@@ -151,5 +183,5 @@ export async function pickRandomLog(agent?: string): Promise<string | undefined>
 }
 
 export async function replaySpawnLog(filePath: string): Promise<void> {
-  await renderAcpStream(readSpawnLog(filePath));
+  await renderSessionUpdateStream(readSpawnLog(filePath));
 }

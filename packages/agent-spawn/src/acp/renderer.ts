@@ -1,5 +1,7 @@
 import { acp, resolveOutputFormat, text } from "@poe-code/design-system";
+import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import type { AcpEvent } from "./types.js";
+import { sessionUpdateToEvents, createToolRenderState, toRenderKind } from "./session-update-converter.js";
 
 function writeLine(line: string): void {
   process.stdout.write(`${line}\n`);
@@ -97,6 +99,84 @@ export async function renderAcpStream(
     }
     flushAll();
     renderAcpEvent(event);
+  }
+  flushAll();
+}
+
+function renderSessionUpdate(update: SessionUpdate): void {
+  if (update.sessionUpdate === "agent_message_chunk" && update.content.type === "text") {
+    acp.renderAgentMessage(update.content.text);
+    return;
+  }
+
+  if (update.sessionUpdate === "agent_thought_chunk" && update.content.type === "text") {
+    acp.renderReasoning(update.content.text);
+    return;
+  }
+
+  if (update.sessionUpdate === "tool_call") {
+    acp.renderToolStart(toRenderKind(update.kind), update.title);
+    return;
+  }
+
+  if (update.sessionUpdate === "tool_call_update") {
+    const status = update.status;
+    if (status === "completed" || status === "failed" || status === "cancelled") {
+      acp.renderToolComplete(toRenderKind(update.kind ?? undefined));
+    }
+    return;
+  }
+
+  if (update.sessionUpdate === "usage_update") {
+    const cachedTokens = Math.max(0, update.size - update.used);
+    acp.renderUsage({
+      input: update.used,
+      output: 0,
+      ...(cachedTokens > 0 ? { cached: cachedTokens } : {}),
+      ...(update.cost?.currency === "USD" ? { costUsd: update.cost.amount } : {}),
+    });
+    return;
+  }
+}
+
+export async function renderSessionUpdateStream(
+  updates: AsyncIterable<SessionUpdate>
+): Promise<void> {
+  let messageBuffer = "";
+  let reasoningBuffer = "";
+
+  function flushMessageBuffer(): void {
+    if (messageBuffer.length > 0) {
+      acp.renderAgentMessage(messageBuffer);
+      messageBuffer = "";
+    }
+  }
+
+  function flushReasoningBuffer(): void {
+    if (reasoningBuffer.length > 0) {
+      acp.renderReasoning(reasoningBuffer);
+      reasoningBuffer = "";
+    }
+  }
+
+  function flushAll(): void {
+    flushMessageBuffer();
+    flushReasoningBuffer();
+  }
+
+  for await (const update of updates) {
+    if (update.sessionUpdate === "agent_message_chunk" && update.content.type === "text") {
+      flushReasoningBuffer();
+      messageBuffer += update.content.text;
+      continue;
+    }
+    if (update.sessionUpdate === "agent_thought_chunk" && update.content.type === "text") {
+      flushMessageBuffer();
+      reasoningBuffer += update.content.text;
+      continue;
+    }
+    flushAll();
+    renderSessionUpdate(update);
   }
   flushAll();
 }

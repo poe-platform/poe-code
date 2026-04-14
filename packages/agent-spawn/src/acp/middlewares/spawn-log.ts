@@ -74,7 +74,9 @@ class SpawnLogWriter {
         return;
       }
 
-      await this.fileHandle.appendFile(`${JSON.stringify(event)}\n`, "utf8");
+      const meta = (event as { _meta?: Record<string, unknown> })._meta;
+      const toLog = meta?.raw ?? event;
+      await this.fileHandle.appendFile(`${JSON.stringify(toLog)}\n`, "utf8");
     } catch {
       this.isDisabled = true;
       await this.close();

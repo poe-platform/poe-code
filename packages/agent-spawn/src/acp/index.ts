@@ -11,7 +11,8 @@ export type {
   ToolKind
 } from "./types.js";
 
-export { renderAcpEvent, renderAcpStream } from "./renderer.js";
+export { renderAcpEvent, renderAcpStream, renderSessionUpdateStream } from "./renderer.js";
+export { sessionUpdateToEvents, createToolRenderState } from "./session-update-converter.js";
 export type { LogEntry } from "./replay.js";
 export {
   findLatestLog,

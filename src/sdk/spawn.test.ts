@@ -19,6 +19,8 @@ vi.mock("@poe-code/agent-spawn", () => ({
   getSpawnConfig: vi.fn(),
   runCommand: vi.fn(),
   renderAcpStream: vi.fn(),
+  isActivityTimeoutError: (error: unknown) =>
+    error instanceof Error && error.name === "ActivityTimeoutError",
   applyMiddlewares: applyMiddlewaresMock,
   sessionCapture: sessionCaptureMock,
   usageCapture: usageCaptureMock,
@@ -49,6 +51,7 @@ import { spawn } from "./spawn.js";
 import {
   getAcpSpawnConfig,
   getSpawnConfig,
+  isActivityTimeoutError,
   spawn as agentSpawn,
   spawnAcp,
   spawnStreaming,
@@ -65,6 +68,13 @@ import { resolveWorkspace } from "@poe-code/workspace-resolver";
 
 const originalEnv = { ...process.env };
 const homeDir = "/home/test";
+
+function createActivityTimeoutError(timeoutMs = 1_500): Error {
+  const error = new Error(`Agent spawn timed out after ${timeoutMs / 1000}s of inactivity`);
+  error.name = "ActivityTimeoutError";
+  expect(isActivityTimeoutError(error)).toBe(true);
+  return error;
+}
 
 function createMemFs(): FileSystem {
   const vol = new Volume();
@@ -980,5 +990,99 @@ describe("spawn.pretty()", () => {
       expect.objectContaining({ prompt: "fix bug", model: "gpt-4" })
     );
     expect(result).toEqual({ stdout: "", stderr: "", exitCode: 0 });
+  });
+});
+
+describe("spawn.autonomous()", () => {
+  it("retries timeout errors with the default activity timeout and returns the retry result", async () => {
+    const timeoutError = createActivityTimeoutError();
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming)
+      .mockImplementationOnce(() => ({
+        events: (async function* () {})(),
+        done: Promise.reject(timeoutError)
+      }))
+      .mockImplementationOnce(() => ({
+        events: (async function* () {})(),
+        done: Promise.resolve({
+          stdout: "retry-ok",
+          stderr: "",
+          exitCode: 0,
+          threadId: "thread_retry"
+        })
+      }));
+
+    const result = await spawn.autonomous("codex", "test prompt");
+
+    expect(result).toEqual({
+      stdout: "retry-ok",
+      stderr: "",
+      exitCode: 0,
+      threadId: "thread_retry"
+    });
+    expect(renderAcpStream).toHaveBeenCalledTimes(2);
+    expect(spawnStreaming).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        prompt: "test prompt",
+        activityTimeoutMs: 10 * 60 * 1000
+      })
+    );
+    expect(spawnStreaming).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        prompt: "test prompt",
+        activityTimeoutMs: 10 * 60 * 1000
+      })
+    );
+  });
+
+  it("accepts the options overload and custom retry settings", async () => {
+    const timeoutError = createActivityTimeoutError();
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.reject(timeoutError)
+    }));
+
+    await expect(
+      spawn.autonomous("codex", {
+        prompt: "custom retry",
+        model: "gpt-5.4",
+        activityTimeoutMs: 1_234,
+        maxTimeoutRetries: 2
+      })
+    ).rejects.toBe(timeoutError);
+
+    expect(spawnStreaming).toHaveBeenCalledTimes(2);
+    expect(renderAcpStream).toHaveBeenCalledTimes(2);
+    expect(spawnStreaming).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        prompt: "custom retry",
+        model: "gpt-5.4",
+        activityTimeoutMs: 1_234
+      })
+    );
+    expect(spawnStreaming).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        prompt: "custom retry",
+        model: "gpt-5.4",
+        activityTimeoutMs: 1_234
+      })
+    );
   });
 });

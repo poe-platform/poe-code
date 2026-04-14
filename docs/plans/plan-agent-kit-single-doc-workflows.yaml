@@ -69,9 +69,9 @@ tasks:
 
       Use TDD. Mock the spawn function. Import `isActivityTimeoutError` from `@poe-code/agent-spawn`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ── Phase 2: Agent-kit package scaffolding ──

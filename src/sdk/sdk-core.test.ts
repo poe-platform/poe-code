@@ -42,8 +42,7 @@ const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
 
 // experiment.test.ts
 const runExperimentLoopMock = vi.hoisted(() => vi.fn());
-const renderAcpStreamMock = vi.hoisted(() => vi.fn(async () => {}));
-const spawnMock = vi.hoisted(() => vi.fn());
+const spawnAutonomousMock = vi.hoisted(() => vi.fn());
 
 vi.mock("auth-store", () => ({
   createSecretStore: createSecretStoreMock
@@ -84,16 +83,10 @@ vi.mock("@poe-code/experiment-loop", async (importOriginal) => {
   };
 });
 
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return {
-    ...actual,
-    renderAcpStream: renderAcpStreamMock
-  };
-});
-
 vi.mock("./spawn.js", () => ({
-  spawn: spawnMock
+  spawn: Object.assign(vi.fn(), {
+    autonomous: spawnAutonomousMock
+  })
 }));
 
 import { createSdkContainer } from "./container.js";
@@ -664,8 +657,7 @@ describe("spawnCore", () => {
 describe("SDK experiment", () => {
   beforeEach(() => {
     runExperimentLoopMock.mockReset();
-    renderAcpStreamMock.mockReset();
-    spawnMock.mockReset();
+    spawnAutonomousMock.mockReset();
   });
 
   it("forwards CLI-parity options and wires the default agent runner", async () => {
@@ -685,15 +677,10 @@ describe("SDK experiment", () => {
       return expectedResult;
     });
 
-    const events = [{ type: "token" }];
-    const resultPromise = Promise.resolve({
+    spawnAutonomousMock.mockResolvedValue({
       stdout: "done",
       stderr: "",
       exitCode: 0
-    });
-    spawnMock.mockReturnValue({
-      events,
-      result: resultPromise
     });
 
     const result = await runExperiment({
@@ -729,14 +716,12 @@ describe("SDK experiment", () => {
       model: "gpt-5.2"
     });
 
-    expect(spawnMock).toHaveBeenCalledWith("codex", {
+    expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", {
       prompt: "Improve the metric",
       cwd: "/repo",
       model: "gpt-5.2",
-      mode: "yolo",
-      activityTimeoutMs: 10 * 60 * 1000
+      mode: "yolo"
     });
-    expect(renderAcpStreamMock).toHaveBeenCalledWith(events);
     expect(agentResult).toEqual({
       stdout: "done",
       stderr: "",

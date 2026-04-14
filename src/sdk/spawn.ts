@@ -3,6 +3,7 @@ import os from "node:os";
 import { getPoeApiKey } from "./credentials.js";
 import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
+import { spawnAutonomous, type AutonomousSpawnOptions } from "./autonomous.js";
 import {
   getAcpSpawnConfig,
   getSpawnConfig,
@@ -327,4 +328,20 @@ spawn.pretty = async function pretty(
   const { events, result } = spawn(service, promptOrOptions as string, maybeOptions);
   await renderAcpStream(events);
   return await result;
+};
+
+spawn.autonomous = async function autonomous(
+  service: string,
+  promptOrOptions: string | Omit<AutonomousSpawnOptions, "service">,
+  maybeOptions?: Omit<AutonomousSpawnOptions, "prompt" | "service">
+): Promise<SpawnResult> {
+  const options =
+    typeof promptOrOptions === "string"
+      ? { ...maybeOptions, prompt: promptOrOptions }
+      : promptOrOptions;
+
+  return await spawnAutonomous(spawn, {
+    ...options,
+    service
+  });
 };

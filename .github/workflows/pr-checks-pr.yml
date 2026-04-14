@@ -22,7 +22,12 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: npm run e2e:verbose
         env:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
+          E2E_BACKEND: env
         timeout-minutes: 15

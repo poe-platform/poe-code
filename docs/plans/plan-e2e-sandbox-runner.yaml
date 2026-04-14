@@ -292,7 +292,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Remove the Docker backend entirely. Delete these files:
       - `packages/e2e-test-runner/src/context.ts` (Colima context management)
@@ -335,10 +335,10 @@ tasks:
   - id: ci-workflow-update
     title: Update CI workflow for env backend
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Update the GitHub Actions workflow for e2e tests. The workflow should:
 

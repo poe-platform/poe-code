@@ -1085,7 +1085,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.
 
@@ -1122,10 +1122,10 @@ tasks:
   - id: sim-abort-signal
     title: "Simulation: abort signal stops the loop gracefully"
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.
 

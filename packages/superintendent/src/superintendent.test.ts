@@ -717,6 +717,64 @@ describe("createSuperintendentSimulation", () => {
     });
   });
 
+  it("stops after the builder when the abort signal fires mid-loop", async () => {
+    const controller = new AbortController();
+    const builderUpdatedDoc = createDoc({ tasks: [true] });
+
+    const simulation = createSuperintendentSimulation({
+      docPath,
+      docContent: createDoc({ tasks: [false] }),
+      signal: controller.signal,
+      turns: [
+        builderTurn(
+          {
+            [docPath]: builderUpdatedDoc
+          },
+          async (prompt, ctx) => {
+            expect(prompt).toContain(absoluteDocPath);
+            expect(prompt).not.toContain("{{plan.path}}");
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+            expect(parseTaskBoard(doc.body)).toMatchObject({
+              openCount: 1,
+              doneCount: 0,
+              allDone: false
+            });
+
+            controller.abort();
+          }
+        )
+      ]
+    });
+
+    const { prompts, readDoc, result, runs } = await simulation.run();
+    const finalDoc = await readDoc();
+    const finalTaskBoard = parseTaskBoard(finalDoc.body);
+
+    expect(prompts).toHaveLength(1);
+    expect(runs).toHaveLength(1);
+    expect(result.stopReason).toBe("aborted");
+    expect(result.state).toBe("in_progress");
+    expect(result.state).not.toBe("completed");
+    expect(result.stopReason).not.toBe("max_rounds");
+    expect(finalDoc.frontmatter.status).toEqual({
+      state: "in_progress",
+      round: 0,
+      review_turn: 0
+    });
+    expect(finalTaskBoard).toMatchObject({
+      openCount: 0,
+      doneCount: 1,
+      allDone: true
+    });
+    expect(finalTaskBoard.tasks).toEqual([{ text: "Task 1", done: true }]);
+  });
+
   it("falls back to in_progress after the fifth owner rejection and completes in round 2", async () => {
     const round1BuilderSummary = "Checked off Task 1";
     const round1InspectorSummary = "Looks good";

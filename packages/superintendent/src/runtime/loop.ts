@@ -147,6 +147,7 @@ export async function runLoop(
         }
 
         if (state.state === "in_progress") {
+          const roundStartState = { ...state };
           const roundSnapshot = await readDocumentContent(options.fs, options.docPath);
           state = beginRound(state);
           emitStateChange(options.callbacks, state);
@@ -175,6 +176,9 @@ export async function runLoop(
           const stopReason = readInterruptionReason(options, state);
 
           if (stopReason) {
+            if (stopReason === "aborted") {
+              state = await rollbackRoundStatus(options, roundStartState);
+            }
             return finishLoop(options.callbacks, state, stopReason);
           }
 
@@ -205,6 +209,9 @@ export async function runLoop(
             const stopReason = readInterruptionReason(options, state);
 
             if (stopReason) {
+              if (stopReason === "aborted") {
+                state = await rollbackRoundStatus(options, roundStartState);
+              }
               return finishLoop(options.callbacks, state, stopReason);
             }
           }
@@ -238,6 +245,9 @@ export async function runLoop(
             const stopReason = readLoopStopReason(options, state);
 
             if (stopReason) {
+              if (stopReason === "aborted" && state.state === "in_progress") {
+                state = await rollbackRoundStatus(options, roundStartState);
+              }
               return finishLoop(options.callbacks, state, stopReason);
             }
           }
@@ -401,6 +411,15 @@ async function restoreDocument(
   content: string
 ): Promise<void> {
   await fs.writeFile(docPath, content, { encoding: "utf8" });
+}
+
+async function rollbackRoundStatus(
+  options: Pick<LoopRuntime, "callbacks" | "docPath" | "fs">,
+  state: LoopState
+): Promise<LoopState> {
+  await writeLoopState(options.fs, options.docPath, state);
+  emitStateChange(options.callbacks, state);
+  return state;
 }
 
 function createTemplateContext(context: TemplateLoopContext): {

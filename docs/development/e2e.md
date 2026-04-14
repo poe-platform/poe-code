@@ -1,14 +1,14 @@
 # E2E Test Library
 
-`@poe-code/e2e-docker-test-runner` — persistent Docker containers for e2e testing with per-command assertions.
+`@poe-code/e2e-test-runner` — persistent Docker containers for e2e testing with per-command assertions.
 
 ## Quick Start
 
 ```typescript
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createContainer, setWorkspaceDir } from '@poe-code/e2e-docker-test-runner';
-import type { Container } from '@poe-code/e2e-docker-test-runner';
-import '@poe-code/e2e-docker-test-runner/matchers';
+import { createContainer, setWorkspaceDir } from '@poe-code/e2e-test-runner';
+import type { Container } from '@poe-code/e2e-test-runner';
+import '@poe-code/e2e-test-runner/matchers';
 
 describe('my agent', () => {
   let container: Container;
@@ -174,10 +174,10 @@ Import matchers via side-effect import or vitest `setupFiles`:
 
 ```typescript
 // In test file:
-import '@poe-code/e2e-docker-test-runner/matchers';
+import '@poe-code/e2e-test-runner/matchers';
 
 // Or in vitest.config.ts:
-setupFiles: ['@poe-code/e2e-docker-test-runner/matchers']
+setupFiles: ['@poe-code/e2e-test-runner/matchers']
 ```
 
 All matchers print full context (exit code, stdout, stderr) on failure.
@@ -440,7 +440,7 @@ export default defineConfig({
     hookTimeout: 300000,   // 5 min — container creation + login
     maxWorkers: 1,         // serial — containers share Docker daemon
     globalSetup: './setup.ts',
-    setupFiles: ['@poe-code/e2e-docker-test-runner/matchers'],
+    setupFiles: ['@poe-code/e2e-test-runner/matchers'],
   },
 });
 ```
@@ -450,7 +450,7 @@ export default defineConfig({
 Run preflight checks before all tests: verifies Docker is available and API key is set, cleans orphaned containers.
 
 ```typescript
-import { runPreflight, formatPreflightResults } from '@poe-code/e2e-docker-test-runner';
+import { runPreflight, formatPreflightResults } from '@poe-code/e2e-test-runner';
 
 export async function setup(): Promise<void> {
   const { passed, results } = await runPreflight();
@@ -466,7 +466,7 @@ export async function setup(): Promise<void> {
 Alternative: use the built-in factory for log rotation and workspace setup.
 
 ```typescript
-import { createGlobalSetup } from '@poe-code/e2e-docker-test-runner';
+import { createGlobalSetup } from '@poe-code/e2e-test-runner';
 
 export default createGlobalSetup({
   logsDir: './e2e-logs',

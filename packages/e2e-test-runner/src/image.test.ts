@@ -30,7 +30,7 @@ describe('image', () => {
     it('includes tarballs required for proxy-server and poe-agent runtime', () => {
       const names = BUILD_TARBALLS.map((entry) => entry.name);
       expect(names).toContain('poe-code.tgz');
-      expect(names).toContain('e2e-docker-test-runner.tgz');
+      expect(names).toContain('e2e-test-runner.tgz');
       expect(names).toContain('poe-agent.tgz');
       expect(names).toContain('auth-store.tgz');
       expect(names).toContain('poe-oauth.tgz');

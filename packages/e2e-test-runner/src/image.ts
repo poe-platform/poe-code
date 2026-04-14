@@ -15,7 +15,7 @@ interface BuildTarball {
 
 export const BUILD_TARBALLS: ReadonlyArray<BuildTarball> = [
   { name: "poe-code.tgz", packageDir: "." },
-  { name: "e2e-docker-test-runner.tgz", packageDir: "packages/e2e-docker-test-runner" },
+  { name: "e2e-test-runner.tgz", packageDir: "packages/e2e-test-runner" },
   { name: "auth-store.tgz", packageDir: "packages/auth-store" },
   { name: "poe-oauth.tgz", packageDir: "packages/poe-oauth" },
   { name: "agent-defs.tgz", packageDir: "packages/agent-defs" },

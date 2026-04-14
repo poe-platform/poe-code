@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { useContainer } from '@poe-code/e2e-docker-test-runner';
+import { useContainer } from '@poe-code/e2e-test-runner';
 
 describe('kimi', () => {
   const container = useContainer({ testName: 'kimi' });

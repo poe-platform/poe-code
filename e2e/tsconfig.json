@@ -10,9 +10,9 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "paths": {
-      "@poe-code/e2e-docker-test-runner": ["../packages/e2e-docker-test-runner/src/index.ts"],
-      "@poe-code/e2e-docker-test-runner/matchers": ["../packages/e2e-docker-test-runner/src/matchers.ts"]
+      "@poe-code/e2e-test-runner": ["../packages/e2e-test-runner/src/index.ts"],
+      "@poe-code/e2e-test-runner/matchers": ["../packages/e2e-test-runner/src/matchers.ts"]
     }
   },
-  "include": [".", "../packages/e2e-docker-test-runner/src"]
+  "include": [".", "../packages/e2e-test-runner/src"]
 }

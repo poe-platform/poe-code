@@ -1,4 +1,4 @@
-# @poe-code/e2e-docker-test-runner
+# @poe-code/e2e-test-runner
 
 Docker-based e2e test runner for poe-code.
 
@@ -28,7 +28,7 @@ export default defineConfig({
 Create `e2e/setup.ts`:
 
 ```typescript
-import { createGlobalSetup } from '@poe-code/e2e-docker-test-runner';
+import { createGlobalSetup } from '@poe-code/e2e-test-runner';
 
 export default createGlobalSetup({
   logsDir: '.e2e-logs',
@@ -39,7 +39,7 @@ export default createGlobalSetup({
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { withContainer } from '@poe-code/e2e-docker-test-runner';
+import { withContainer } from '@poe-code/e2e-test-runner';
 
 describe('poe-code install', () => {
   it('configures claude-code', async () => {

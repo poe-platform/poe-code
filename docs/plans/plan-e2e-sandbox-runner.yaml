@@ -7,9 +7,9 @@ tasks:
   - id: rename-package-dir
     title: Rename package directory and update package.json name
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Rename `packages/e2e-docker-test-runner/` to `packages/e2e-test-runner/`.

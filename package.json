@@ -71,10 +71,10 @@
     "snapshots:delete:stale": "npm run snapshots -- delete --stale",
     "e2e": "vitest run --config e2e/vitest.config.ts",
     "e2e:verbose": "E2E_VERBOSE=1 vitest run --config e2e/vitest.config.ts --reporter=verbose",
-    "e2e:cleanup": "tsx packages/e2e-docker-test-runner/scripts/cleanup.ts",
-    "e2e:cleanup:aggressive": "tsx packages/e2e-docker-test-runner/scripts/cleanup.ts --aggressive",
-    "e2e:logs": "tsx packages/e2e-docker-test-runner/scripts/logs.ts",
-    "e2e:logs:rotate": "tsx packages/e2e-docker-test-runner/scripts/logs.ts --rotate",
+    "e2e:cleanup": "tsx packages/e2e-test-runner/scripts/cleanup.ts",
+    "e2e:cleanup:aggressive": "tsx packages/e2e-test-runner/scripts/cleanup.ts --aggressive",
+    "e2e:logs": "tsx packages/e2e-test-runner/scripts/logs.ts",
+    "e2e:logs:rotate": "tsx packages/e2e-test-runner/scripts/logs.ts --rotate",
     "e2e:cache:clear": "rm -rf ~/.cache/poe-e2e",
     "prepack": "npm run build",
     "prepare": "husky",
@@ -130,7 +130,6 @@
     "@poe-code/config-extends": "*",
     "@poe-code/config-mutations": "*",
     "@poe-code/design-system": "*",
-    "@poe-code/e2e-docker-test-runner": "*",
     "@poe-code/experiment-loop": "*",
     "@poe-code/github-workflows": "*",
     "@poe-code/plan-browser": "*",
@@ -169,7 +168,8 @@
     "turbo": "^2.8.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "@poe-code/e2e-test-runner": "*"
   },
   "repository": {
     "type": "git",

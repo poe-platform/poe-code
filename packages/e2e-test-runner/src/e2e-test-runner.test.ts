@@ -16,7 +16,7 @@ import {
   CapturedRequests as CapturedRequestsPackage,
   runPreflight,
   useContainer,
-} from '@poe-code/e2e-docker-test-runner';
+} from '@poe-code/e2e-test-runner';
 
 // --- matcher-format.test.ts ---
 import { formatExchangeContext, formatExchangeList } from './matcher-format.js';
@@ -1484,8 +1484,8 @@ describe('isCliInvocation', () => {
     expect(
       isCliInvocation(
         ['/usr/bin/node', '/usr/local/bin/proxy-server'],
-        'file:///usr/local/lib/node_modules/@poe-code/e2e-docker-test-runner/dist/proxy-cli.js',
-        () => '/usr/local/lib/node_modules/@poe-code/e2e-docker-test-runner/dist/proxy-cli.js',
+        'file:///usr/local/lib/node_modules/@poe-code/e2e-test-runner/dist/proxy-cli.js',
+        () => '/usr/local/lib/node_modules/@poe-code/e2e-test-runner/dist/proxy-cli.js',
       ),
     ).toBe(true);
   });

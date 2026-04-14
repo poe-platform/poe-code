@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { useContainer, shellQuote } from '@poe-code/e2e-docker-test-runner';
+import { useContainer, shellQuote } from '@poe-code/e2e-test-runner';
 
 interface AgentMcpSpawnTest {
   name: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@poe-code/e2e-docker-test-runner",
+  "name": "@poe-code/e2e-test-runner",
   "version": "1.0.0",
   "description": "Docker-based e2e test runner for poe-code",
   "private": true,

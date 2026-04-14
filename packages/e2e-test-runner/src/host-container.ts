@@ -6,6 +6,7 @@ import {
   readFile as readFileFs,
   readdir,
   rm,
+  symlink,
   writeFile as writeFileFs,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -186,6 +187,33 @@ interface ProxyState {
   mode: SnapshotMode;
 }
 
+async function linkRootPackageBins(home: string, repoDir: string): Promise<void> {
+  const localBinDir = join(home, '.local', 'bin');
+  await mkdir(localBinDir, { recursive: true });
+
+  let pkg: { name?: string; bin?: string | Record<string, string> };
+  try {
+    pkg = JSON.parse(await readFileFs(join(repoDir, 'package.json'), 'utf-8'));
+  } catch {
+    return;
+  }
+
+  const bins: Record<string, string> = typeof pkg.bin === 'string'
+    ? { [pkg.name ?? '']: pkg.bin }
+    : pkg.bin ?? {};
+
+  for (const [name, relPath] of Object.entries(bins)) {
+    if (!name) continue;
+    const target = resolve(repoDir, relPath);
+    try {
+      await access(target);
+      await symlink(target, join(localBinDir, name));
+    } catch {
+      // skip bins whose targets don't exist (not built yet)
+    }
+  }
+}
+
 async function runPreflight(home: string, repoDir: string): Promise<string> {
   const homeEntries = await readdir(home).then(
     entries => entries.filter(e => e !== 'workspace'),
@@ -207,6 +235,8 @@ async function runPreflight(home: string, repoDir: string): Promise<string> {
       throw error;
     }
   }
+
+  await linkRootPackageBins(home, repoDir);
 
   const apiKey = await getApiKey();
   if (!apiKey) {

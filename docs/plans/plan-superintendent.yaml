@@ -859,7 +859,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Write simulation tests in `packages/superintendent/src/superintendent.test.ts`.
 
@@ -902,9 +902,9 @@ tasks:
   - id: sim-owner-rejects
     title: "Simulation: owner rejects and loop continues"
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.

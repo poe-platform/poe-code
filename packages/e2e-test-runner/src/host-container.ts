@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import {
   access,
+  chmod,
   mkdtemp,
   mkdir,
   readFile as readFileFs,
@@ -207,6 +208,7 @@ async function linkRootPackageBins(home: string, repoDir: string): Promise<void>
     const target = resolve(repoDir, relPath);
     try {
       await access(target);
+      await chmod(target, 0o755);
       await symlink(target, join(localBinDir, name));
     } catch {
       // skip bins whose targets don't exist (not built yet)

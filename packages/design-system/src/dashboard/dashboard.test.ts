@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
 import { renderBorder } from "./components/border.js";
+import { defaultHints, renderFooter } from "./components/footer.js";
 import {
   computeVisualLines,
   renderOutputPane,
@@ -911,5 +912,85 @@ describe("stats pane", () => {
     expect(readRow(buffer, 10)).toBe("    generating patch          ");
     expect(buffer.get(20, 1)).toEqual({ ch: "R", style: { fg: "magenta" } });
     expect(buffer.get(4, 10)).toEqual({ ch: "g", style: { dim: true } });
+  });
+});
+
+describe("footer", () => {
+  const previousPoeCodeTheme = process.env.POE_CODE_THEME;
+  const previousPoeTheme = process.env.POE_THEME;
+
+  beforeEach(() => {
+    process.env.POE_CODE_THEME = "dark";
+    delete process.env.POE_THEME;
+    resetThemeCache();
+  });
+
+  afterEach(() => {
+    if (previousPoeCodeTheme === undefined) {
+      delete process.env.POE_CODE_THEME;
+    } else {
+      process.env.POE_CODE_THEME = previousPoeCodeTheme;
+    }
+
+    if (previousPoeTheme === undefined) {
+      delete process.env.POE_THEME;
+    } else {
+      process.env.POE_THEME = previousPoeTheme;
+    }
+
+    resetThemeCache();
+  });
+
+  it("returns the standard footer hints", () => {
+    expect(defaultHints()).toEqual([
+      { key: "q", label: "Quit" },
+      { key: "e", label: "Edit" },
+      { key: "p", label: "Pause" },
+      { key: "r", label: "Retry" },
+      { key: "↑↓", label: "Scroll" }
+    ]);
+  });
+
+  it("renders centered hints with the expected spacing", () => {
+    const buffer = new ScreenBuffer(20, 1);
+
+    renderFooter(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
+      { key: "q", label: "Quit" },
+      { key: "e", label: "Edit" }
+    ]);
+
+    expect(readRow(buffer, 0)).toBe("   q Quit  e Edit   ");
+  });
+
+  it("centers hints within the footer rect vertically and horizontally", () => {
+    const buffer = new ScreenBuffer(20, 3);
+
+    renderFooter(buffer, { x: 0, y: 0, width: 20, height: 3 }, [
+      { key: "q", label: "Quit" },
+      { key: "e", label: "Edit" }
+    ]);
+
+    expect(readRow(buffer, 0)).toBe("                    ");
+    expect(readRow(buffer, 1)).toBe("   q Quit  e Edit   ");
+    expect(readRow(buffer, 2)).toBe("                    ");
+  });
+
+  it("truncates overflowing hints with an ellipsis", () => {
+    const buffer = new ScreenBuffer(12, 1);
+
+    renderFooter(buffer, { x: 0, y: 0, width: 12, height: 1 }, defaultHints());
+
+    expect(readRow(buffer, 0)).toBe("q Quit  e...");
+  });
+
+  it("styles keys with the accent color in bold", () => {
+    const buffer = new ScreenBuffer(20, 1);
+
+    renderFooter(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
+      { key: "q", label: "Quit" }
+    ]);
+
+    expect(buffer.get(7, 0)).toEqual({ ch: "q", style: { fg: "cyan", bold: true } });
+    expect(buffer.get(9, 0)).toEqual({ ch: "Q", style: {} });
   });
 });

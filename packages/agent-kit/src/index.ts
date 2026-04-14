@@ -22,3 +22,14 @@ export {
   type WorkflowStage
 } from "./stage.js";
 export { lockWorkflow, type LockOptions } from "./lock.js";
+export {
+  runDocumentWorkflow,
+  type DocumentWorkflowOptions,
+  type IterationResult,
+  type WorkflowFileStat,
+  type WorkflowFileSystem
+} from "./runner.js";
+export {
+  runDocumentWorkflowSequence,
+  type DocumentWorkflowSequenceOptions
+} from "./sequence.js";

@@ -473,7 +473,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: document-runner
     title: Add shared document workflow runner to agent-kit
@@ -569,9 +569,9 @@ tasks:
       - nothing_to_run continues to next doc
       - Calls onSequenceProgress for each doc
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: ralph-migration

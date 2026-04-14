@@ -22,6 +22,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - run: npm run build
       - name: Install uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh

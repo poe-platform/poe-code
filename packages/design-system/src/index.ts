@@ -21,6 +21,11 @@ export type { TableColumn, RenderTableOptions } from "./components/table.js";
 // ACP rendering
 export * as acp from "./acp/index.js";
 
+// Dashboard
+export * as dashboard from "./dashboard/index.js";
+export { createDashboard } from "./dashboard/index.js";
+export type { Dashboard, DashboardOptions } from "./dashboard/index.js";
+
 // Prompts
 export * as prompts from "./prompts/index.js";
 export { intro, introPlain, outro, note, select, multiselect, text as promptText, confirm, confirmOrCancel, password, spinner, withSpinner, isCancel, cancel, log, PromptCancelledError } from "./prompts/index.js";

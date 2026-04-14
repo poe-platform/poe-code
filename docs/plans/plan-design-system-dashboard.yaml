@@ -601,9 +601,9 @@ tasks:
   - id: export
     title: Export dashboard from design-system package
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/index.ts` barrel:
 

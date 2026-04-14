@@ -73,8 +73,6 @@
     "e2e:verbose": "E2E_VERBOSE=1 vitest run --config e2e/vitest.config.ts --reporter=verbose",
     "e2e:cleanup": "tsx packages/e2e-test-runner/scripts/cleanup.ts",
     "e2e:cleanup:aggressive": "tsx packages/e2e-test-runner/scripts/cleanup.ts --aggressive",
-    "e2e:logs": "tsx packages/e2e-test-runner/scripts/logs.ts",
-    "e2e:logs:rotate": "tsx packages/e2e-test-runner/scripts/logs.ts --rotate",
     "e2e:cache:clear": "rm -rf ~/.cache/poe-e2e",
     "prepack": "npm run build",
     "prepare": "husky",

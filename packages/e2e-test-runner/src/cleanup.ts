@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process';
 import { rmSync } from 'node:fs';
+import type { Backend } from './backend.js';
 import { detectEngine } from './engine.js';
 import { cleanupOrphans } from './preflight.js';
 import { E2E_CACHE_ROOT } from './runtime.js';
@@ -9,6 +10,7 @@ const IMAGE_NAME = 'poe-code-e2e';
 
 export interface CleanupDiskOptions {
   aggressive?: boolean;
+  backend?: Backend;
   clearLocalCache?: boolean;
   engine?: Engine;
 }
@@ -23,9 +25,24 @@ export interface CleanupDiskResult {
 export async function cleanupDisk(
   options: CleanupDiskOptions = {},
 ): Promise<CleanupDiskResult> {
-  const engine = options.engine ?? detectEngine();
+  const backend = options.backend ?? 'podman';
   const aggressive = options.aggressive ?? false;
   const clearLocalCache = options.clearLocalCache ?? true;
+
+  if (backend !== 'podman') {
+    if (clearLocalCache) {
+      rmSync(E2E_CACHE_ROOT, { recursive: true, force: true });
+    }
+
+    return {
+      orphanedContainers: 0,
+      removedE2eImages: 0,
+      localCacheCleared: clearLocalCache,
+      aggressive,
+    };
+  }
+
+  const engine = options.engine ?? detectEngine();
 
   const orphanedContainers = await cleanupOrphans(engine);
   const removedE2eImages = removeE2eImages(engine);

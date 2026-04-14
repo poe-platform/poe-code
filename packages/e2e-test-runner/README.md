@@ -1,107 +1,199 @@
 # @poe-code/e2e-test-runner
 
-Docker-based e2e test runner for poe-code.
+Backend-aware e2e test runner for poe-code.
 
-## Usage
+## Backends
 
-### Vitest Configuration
+The runner supports three isolation backends:
 
-Create `e2e/vitest.config.ts`:
+| Backend | How commands run | `container.home` | Best fit | Extra prerequisites |
+| --- | --- | --- | --- | --- |
+| `env` | Directly on the host with a fresh HOME/XDG environment | Temporary host directory | CI, fast host-based runs | No extra runtime beyond the common prerequisites |
+| `sandbox` | On the host inside a sandbox with a fresh HOME/XDG environment | Temporary host directory | Local development default | macOS: `sandbox-exec`; Linux: `bwrap` |
+| `podman` | Inside a persistent rootless container | `/home/poe` | Containerized debugging or parity runs | Podman installed and running, plus a container image |
+
+### Backend selection
+
+Backend resolution is:
+
+1. `E2E_BACKEND=env|sandbox|podman`
+2. `CI` → `env`
+3. local machine → `sandbox`
+4. if the sandbox runtime is unavailable locally, fall back to `env`
+
+## Environment variables
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `POE_API_KEY` | Yes | API key used by `container.login()` and preflight checks. |
+| `E2E_BACKEND` | No | Force `env`, `sandbox`, or `podman`. Defaults to `env` in CI and `sandbox` locally, with local fallback to `env` when sandboxing is unavailable. |
+| `E2E_PODMAN_IMAGE` | Podman only | Default image for the `podman` backend. You can also pass `options.image`. |
+| `POE_SNAPSHOT_MODE` | No | Snapshot mode for proxy-backed tests: `playback` or `record`. |
+| `POE_SNAPSHOT_MISS` | No | Snapshot miss behavior: `error`, `warn`, `passthrough`, or `record`. |
+| `E2E_VERBOSE` | No | Enables extra podman backend debug logging. |
+
+## Prerequisites
+
+### Common prerequisites
+
+All backends require:
+
+- `node` on `PATH`
+- `npm` on `PATH`
+- `uv` on `PATH`
+- `POE_API_KEY`
+
+### Per-backend prerequisites
+
+#### `env`
+
+- No extra runtime prerequisites beyond the common list
+- Best choice for CI
+
+#### `sandbox`
+
+- macOS: `sandbox-exec`
+- Linux: `bwrap` / bubblewrap
+- Supported on macOS and Linux only
+
+#### `podman`
+
+- `podman` installed
+- `podman info` must succeed
+- `E2E_PODMAN_IMAGE` set, or `options.image` passed to the podman container factory
+
+## Quick start
+
+### 1. Vitest setup
 
 ```typescript
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['e2e/**/*.e2e.ts'],
+    include: ['e2e/**/*.test.ts'],
     testTimeout: 300000,
     hookTimeout: 300000,
-    maxConcurrency: 1,
-    pool: 'forks',
-    globalSetup: ['e2e/setup.ts'],
+    maxWorkers: 1,
+    globalSetup: ['./e2e/setup.ts'],
+    setupFiles: ['@poe-code/e2e-test-runner/matchers'],
   },
 });
 ```
 
-### Global Setup
-
-Create `e2e/setup.ts`:
+### 2. Global setup
 
 ```typescript
-import { createGlobalSetup } from '@poe-code/e2e-test-runner';
+import { runPreflight, formatPreflightResults } from '@poe-code/e2e-test-runner';
 
-export default createGlobalSetup({
-  logsDir: '.e2e-logs',
-});
+export async function setup(): Promise<void> {
+  const { passed, results } = await runPreflight();
+  console.error(formatPreflightResults(results));
+
+  if (!passed) {
+    throw new Error('Preflight checks failed');
+  }
+}
 ```
 
-### Writing Tests
+### 3. Write tests
+
+`useContainer()` is the preferred API because it automatically creates a backend-aware container per test and destroys it in `afterEach`.
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { withContainer } from '@poe-code/e2e-test-runner';
+import { describe, expect, it } from 'vitest';
+import { useContainer } from '@poe-code/e2e-test-runner';
 
-describe('poe-code install', () => {
-  it('configures claude-code', async () => {
-    await withContainer(async (c) => {
-      await c.login();
-      await c.execOrThrow('poe-code install claude-code');
+describe('claude-code', () => {
+  const container = useContainer({ testName: 'claude-code' });
 
-      expect(await c.fileExists('~/.claude/settings.json')).toBe(true);
-    }, { testName: 'claude-code-install' });
+  it('configures the agent', async () => {
+    const result = await container.exec('poe-code configure claude-code --yes');
+    expect(result).toHaveExitCode(0);
+
+    await expect(container).toHaveFile(`${container.home}/.claude/settings.json`);
   });
 });
 ```
 
 ## API
 
-### `withContainer(fn, options?)`
+### `useContainer(options)`
 
-Runs a test in an isolated Docker container.
+Preferred Vitest helper.
 
-- `fn`: Async function receiving a `Container` instance
-- `options.image`: Docker image (default: `node:22`)
-- `options.testName`: Name for log files
+| Option | Type | Required | Description |
+| --- | --- | --- | --- |
+| `testName` | `string` | Yes | Stable name used for logs and snapshots. |
+| `workspaceDir` | `string` | No | Workspace root. Defaults to `process.cwd()`. |
+| `useSnapshots` | `boolean` | No | Enable proxy snapshot playback/recording. |
 
-### Container Methods
+### `createBackendContainer(backend, options?)`
 
-- `exec(command)`: Execute command, returns `{ exitCode, stdout, stderr }`
-- `execOrThrow(command)`: Execute command, throws on non-zero exit
-- `login()`: Authenticate with poe-code API
-- `fileExists(path)`: Check if file exists
-- `readFile(path)`: Read file contents
+Low-level factory when you want to manage lifecycle yourself.
 
-### `createGlobalSetup(options?)`
+```typescript
+import {
+  createBackendContainer,
+  resolveBackend,
+  setWorkspaceDir,
+} from '@poe-code/e2e-test-runner';
 
-Creates a Vitest globalSetup function that runs preflight checks.
+setWorkspaceDir(process.cwd());
+const container = await createBackendContainer(resolveBackend(), {
+  testName: 'manual-test',
+});
 
-- `options.logsDir`: Directory for test logs
-- `options.maxLogs`: Maximum number of log files to keep (default: 50)
+try {
+  await container.login();
+  await container.execOrThrow('poe-code configure codex --yes');
+} finally {
+  await container.destroy();
+}
+```
 
-### `rotateLogs(logsDir, maxLogs?)`
+### `ContainerOptions`
 
-Rotate old log files, keeping only the most recent N files.
+| Option | Type | Applies to | Description |
+| --- | --- | --- | --- |
+| `image` | `string` | `podman` | Container image. Required for podman unless `E2E_PODMAN_IMAGE` is set. |
+| `testName` | `string` | all backends | Label used for logs and snapshots. |
+| `useSnapshots` | `boolean` | all backends | Enable proxy snapshot playback/recording. |
 
-- `logsDir`: Directory containing log files
-- `maxLogs`: Maximum files to keep (default: 50)
+### `Container` interface
 
-Returns the number of files deleted.
+Use `container.home` instead of hardcoding backend-specific home paths.
 
-### `cleanupOrphans()`
+```typescript
+interface Container {
+  id: string;
+  home: string;
+  destroy(): Promise<void>;
+  exec(command: string): Promise<ExecResult>;
+  execOrThrow(command: string): Promise<ExecResult>;
+  login(): Promise<void>;
+  fileExists(path: string): Promise<boolean>;
+  readFile(path: string): Promise<string>;
+  writeFile(path: string, content: string): Promise<void>;
+  proxyLog(): Promise<string | null>;
+  requests(): Promise<CapturedRequests>;
+  writeSnapshots(snapshots: Array<{ key: string; response: unknown }>): Promise<void>;
+}
+```
 
-Manually clean up orphaned test containers.
+Notes:
 
-### `runPreflight()`
+- `home` is a temporary host directory for `env` and `sandbox`
+- `home` is `/home/poe` for `podman`
+- `createContainer()` / `createPersistentContainer()` are podman-specific helpers; prefer `useContainer()` or `createBackendContainer(resolveBackend(), ...)` for backend-aware tests
 
-Run preflight checks and return results.
+## Useful commands
 
-## CLI Commands
+When used in this repo:
 
-When used with poe-code, the following npm scripts are available:
+- `npm run e2e`
+- `npm run e2e:verbose`
+- `npm run e2e:cleanup`
+- `npm run e2e:cleanup:aggressive`
 
-- `npm run e2e` - Run e2e tests
-- `npm run e2e:cleanup` - Clean up orphaned containers
-- `npm run e2e:logs` - View test logs
-- `npm run e2e:logs -- <filter>` - View logs matching filter
-- `npm run e2e:logs -- --follow` - Stream logs in real-time
-- `npm run e2e:logs:rotate` - Manually rotate old logs
+`npm run e2e:cleanup` removes podman containers/images only when `E2E_BACKEND=podman`; for `env` and `sandbox` it clears the local e2e cache only.

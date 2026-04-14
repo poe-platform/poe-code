@@ -1,21 +1,27 @@
 #!/usr/bin/env node
+import { resolveBackend } from '../src/backend.js';
 import { cleanupDisk } from '../src/cleanup.js';
 
 async function main() {
   const aggressive = process.argv.includes('--aggressive') || process.argv.includes('-a');
   const clearLocalCache = !process.argv.includes('--no-cache');
-  const summary = await cleanupDisk({ aggressive, clearLocalCache });
+  const backend = resolveBackend();
+  const summary = await cleanupDisk({ aggressive, backend, clearLocalCache });
 
-  if (summary.orphanedContainers === 0) {
-    console.log('No orphaned e2e containers found.');
-  } else {
-    console.log(`Cleaned up ${summary.orphanedContainers} orphaned container(s).`);
-  }
+  if (backend === 'podman') {
+    if (summary.orphanedContainers === 0) {
+      console.log('No orphaned e2e containers found.');
+    } else {
+      console.log(`Cleaned up ${summary.orphanedContainers} orphaned container(s).`);
+    }
 
-  if (summary.removedE2eImages === 0) {
-    console.log('No removable e2e images found.');
+    if (summary.removedE2eImages === 0) {
+      console.log('No removable e2e images found.');
+    } else {
+      console.log(`Removed ${summary.removedE2eImages} e2e image(s).`);
+    }
   } else {
-    console.log(`Removed ${summary.removedE2eImages} e2e image(s).`);
+    console.log(`Backend "${backend}" does not create persistent container artifacts.`);
   }
 
   if (summary.localCacheCleared) {
@@ -25,7 +31,11 @@ async function main() {
   }
 
   if (summary.aggressive) {
-    console.log('Aggressive cleanup applied (image/builder/volume prune).');
+    console.log(
+      backend === 'podman'
+        ? 'Aggressive cleanup applied (image/builder/volume prune).'
+        : `Aggressive cleanup is only relevant for the podman backend; nothing extra to prune for "${backend}".`,
+    );
   }
 }
 

@@ -396,9 +396,9 @@ tasks:
   - id: cleanup-and-docs
     title: Update package README and e2e development docs
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Update `packages/e2e-test-runner/README.md`:

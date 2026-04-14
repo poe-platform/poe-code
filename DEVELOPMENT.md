@@ -16,7 +16,7 @@ Verify it worked with `poe-code --version` — local builds show a ` local build
 
 ## E2E testing
 
-Requires Docker (or Podman) and a valid API key.
+Requires a valid API key plus the selected backend prerequisites. Local runs default to `sandbox`; CI defaults to `env`. Override with `E2E_BACKEND=env|sandbox|podman`.
 
 ```bash
 npm run e2e           # Quiet mode - shows progress and summary
@@ -24,12 +24,10 @@ npm run e2e:verbose   # Verbose mode - shows all output
 ```
 
 Additional commands:
-- `npm run e2e:cleanup` - Clean up orphaned containers
-- `npm run e2e:logs` - View test logs
-- `npm run e2e:logs:rotate` - Rotate old log files
-- `npm run e2e:cache:clear` - Clear npm cache volume (if dependencies seem stale)
+- `npm run e2e:cleanup` - Backend-aware cleanup for podman artifacts and local cache
+- `npm run e2e:cache:clear` - Clear the local e2e cache if dependencies seem stale
 
-The e2e runner caches npm downloads at `~/.cache/poe-e2e/npm`.
+The e2e runner caches downloads at `~/.cache/poe-e2e`. See `docs/development/e2e.md` for backend details and prerequisites.
 
 ## Use different base_url
 

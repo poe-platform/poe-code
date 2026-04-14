@@ -89,6 +89,30 @@ describe('cleanupDisk', () => {
     expect(vi.mocked(rmSync)).not.toHaveBeenCalled();
   });
 
+  it('skips podman cleanup when using a non-podman backend', async () => {
+    const { execSync } = await import('node:child_process');
+    const { rmSync } = await import('node:fs');
+    const { detectEngine } = await import('./engine.js');
+    const { cleanupOrphans } = await import('./preflight.js');
+    const { cleanupDisk } = await import('./cleanup.js');
+
+    const result = await cleanupDisk({ backend: 'sandbox' });
+
+    expect(result).toEqual({
+      orphanedContainers: 0,
+      removedE2eImages: 0,
+      localCacheCleared: true,
+      aggressive: false,
+    });
+    expect(vi.mocked(detectEngine)).not.toHaveBeenCalled();
+    expect(vi.mocked(cleanupOrphans)).not.toHaveBeenCalled();
+    expect(vi.mocked(execSync)).not.toHaveBeenCalled();
+    expect(vi.mocked(rmSync)).toHaveBeenCalledWith('/tmp/poe-e2e-cache', {
+      recursive: true,
+      force: true,
+    });
+  });
+
   it('handles image listing failures and continues cleanup', async () => {
     const { execSync } = await import('node:child_process');
     vi.mocked(execSync).mockImplementation((command: string) => {

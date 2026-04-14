@@ -1,1 +1,313 @@
-export {};
+import path from "node:path";
+import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
+import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
+import { resolveTemplate, type TemplateContext } from "./templates.js";
+import {
+  createWorkflowTool,
+  parseWorkflowCall,
+  type WorkflowTransition
+} from "./workflow-tool.js";
+
+export type OwnerResult = {
+  transition: WorkflowTransition;
+};
+
+type AutonomousInput = {
+  agent: string;
+  mode?: string;
+  prompt: string;
+  cwd?: string;
+  mcpServers?: McpSpawnConfig;
+};
+
+type ToolCallLike = {
+  name?: unknown;
+  tool?: unknown;
+  title?: unknown;
+  path?: unknown;
+  arguments?: unknown;
+  args?: unknown;
+  input?: unknown;
+};
+
+type AutonomousOutput =
+  | string
+  | {
+      transition?: unknown;
+      toolCalls?: unknown;
+      sessionResult?: unknown;
+      output?: unknown;
+      stdout?: unknown;
+      text?: unknown;
+    };
+
+type SpawnWithAutonomous = typeof spawn & {
+  autonomous?: (
+    agent: string,
+    options: Omit<AutonomousInput, "agent">
+  ) => Promise<AutonomousOutput>;
+};
+
+const WORKFLOW_SERVER_NAME = "__owner_workflow_transition__";
+const WORKFLOW_SERVER_COMMAND = "poe-superintendent-mcp";
+const WORKFLOW_SERVER_SUBCOMMAND = "workflow-transition";
+
+export async function runOwnerReview(
+  doc: SuperintendentDoc,
+  context: Partial<TemplateContext>
+): Promise<OwnerResult> {
+  const prompt = resolveTemplate(doc.frontmatter.owner.prompt, buildTemplateContext(doc, context));
+  const result = await runAutonomous({
+    agent: doc.frontmatter.owner.agent,
+    mode: doc.frontmatter.owner.mode,
+    prompt,
+    cwd: path.dirname(doc.filePath),
+    mcpServers: buildMcpServers(doc)
+  });
+
+  return {
+    transition: extractOwnerTransition(result)
+  };
+}
+
+function buildTemplateContext(
+  doc: SuperintendentDoc,
+  context: Partial<TemplateContext>
+): Partial<TemplateContext> {
+  return { ...context, plan: { path: doc.filePath } };
+}
+
+function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig {
+  const servers: McpSpawnConfig = {
+    [WORKFLOW_SERVER_NAME]: createWorkflowServer()
+  };
+
+  for (const name of doc.frontmatter.owner.tools?.mcp ?? []) {
+    servers[name] = toSpawnMcpServer(name, doc.frontmatter.mcp);
+  }
+
+  return servers;
+}
+
+function createWorkflowServer(): McpSpawnConfig[string] {
+  const workflowTool = createWorkflowTool("owner", "review");
+
+  return {
+    command: WORKFLOW_SERVER_COMMAND,
+    args: [WORKFLOW_SERVER_SUBCOMMAND, encodeJson(workflowTool)]
+  };
+}
+
+function toSpawnMcpServer(name: string, mcpConfig: Record<string, McpConfig> | undefined): McpSpawnConfig[string] {
+  const config = mcpConfig?.[name];
+
+  if (config === undefined) {
+    throw new Error(`Unknown MCP tool \`${name}\` referenced by owner.tools.mcp`);
+  }
+
+  return {
+    command: config.command,
+    ...(config.args ? { args: [...config.args] } : {})
+  };
+}
+
+async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> {
+  const spawnApi = spawn as SpawnWithAutonomous;
+
+  if (typeof spawnApi.autonomous === "function") {
+    return spawnApi.autonomous(input.agent, {
+      cwd: input.cwd,
+      prompt: input.prompt,
+      mode: input.mode,
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+    });
+  }
+
+  const result = await spawn(input.agent, {
+    cwd: input.cwd,
+    prompt: input.prompt,
+    mode: input.mode as SpawnMode | undefined,
+    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+  });
+
+  return {
+    stdout: result.stdout
+  };
+}
+
+function extractOwnerTransition(result: AutonomousOutput): WorkflowTransition {
+  const transition = extractTransition(result);
+
+  if (transition === undefined) {
+    throw new Error("Owner review must end with workflow.transition");
+  }
+
+  if (transition.action !== "approve_completion" && transition.action !== "request_changes") {
+    throw new Error(`Owner review returned invalid transition: ${transition.action}`);
+  }
+
+  return transition;
+}
+
+function extractTransition(result: AutonomousOutput): WorkflowTransition | undefined {
+  if (typeof result !== "string") {
+    const directTransition = readTransition(result.transition);
+
+    if (directTransition) {
+      return directTransition;
+    }
+
+    const toolCallTransition = readTransitionFromToolCalls(result.toolCalls);
+
+    if (toolCallTransition) {
+      return toolCallTransition;
+    }
+
+    const sessionTransition = readTransitionFromSessionResult(result.sessionResult);
+
+    if (sessionTransition) {
+      return sessionTransition;
+    }
+  }
+
+  return readTransitionFromText(extractOutputText(result));
+}
+
+function readTransition(value: unknown): WorkflowTransition | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return parseWorkflowCall(parseJsonValue(value));
+}
+
+function readTransitionFromToolCalls(value: unknown): WorkflowTransition | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  for (const entry of value) {
+    const toolCall = readToolCall(entry);
+
+    if (!toolCall || !isWorkflowToolName(readToolCallName(toolCall))) {
+      continue;
+    }
+
+    const argumentsValue = readToolCallArguments(toolCall);
+
+    if (argumentsValue === undefined) {
+      continue;
+    }
+
+    return parseWorkflowCall(parseJsonValue(argumentsValue));
+  }
+
+  return undefined;
+}
+
+function readTransitionFromSessionResult(value: unknown): WorkflowTransition | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  return readTransitionFromToolCalls(value.toolCalls);
+}
+
+function readTransitionFromText(text: string): WorkflowTransition | undefined {
+  for (const line of splitLines(text)) {
+    const trimmed = line.trim();
+
+    if (trimmed.length === 0) {
+      continue;
+    }
+
+    const payload = readWorkflowTransitionTextPayload(trimmed);
+
+    if (payload !== undefined) {
+      return parseWorkflowCall(parseJsonValue(payload));
+    }
+  }
+
+  return undefined;
+}
+
+function extractOutputText(result: AutonomousOutput): string {
+  if (typeof result === "string") {
+    return result;
+  }
+
+  return readString(result.output) ?? readString(result.stdout) ?? readString(result.text) ?? "";
+}
+
+function readToolCall(value: unknown): ToolCallLike | undefined {
+  return isRecord(value) ? value : undefined;
+}
+
+function readToolCallName(toolCall: ToolCallLike): string | undefined {
+  return (
+    readString(toolCall.name) ??
+    readString(toolCall.tool) ??
+    readString(toolCall.title) ??
+    readString(toolCall.path)
+  );
+}
+
+function readToolCallArguments(toolCall: ToolCallLike): unknown {
+  return toolCall.arguments ?? toolCall.args ?? toolCall.input;
+}
+
+function isWorkflowToolName(name: string | undefined): boolean {
+  return name === "workflow.transition" || name === `${WORKFLOW_SERVER_NAME}.workflow.transition`;
+}
+
+function readWorkflowTransitionTextPayload(line: string): string | undefined {
+  for (const toolName of ["workflow.transition", `${WORKFLOW_SERVER_NAME}.workflow.transition`]) {
+    const prefix = `${toolName}(`;
+
+    if (line.startsWith(prefix) && line.endsWith(")")) {
+      return line.slice(prefix.length, -1).trim();
+    }
+  }
+
+  return undefined;
+}
+
+function parseJsonValue(value: unknown): unknown {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return value;
+  }
+
+  const parsed = tryParseJson(trimmed);
+
+  return parsed === undefined ? value : parsed;
+}
+
+function tryParseJson(value: string): unknown {
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
+function encodeJson(value: unknown): string {
+  return Buffer.from(JSON.stringify(value), "utf8").toString("base64");
+}
+
+function splitLines(value: string): string[] {
+  return value.split("\n").map((line) => (line.endsWith("\r") ? line.slice(0, -1) : line));
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}

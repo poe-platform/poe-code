@@ -1236,7 +1236,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Add the `superintendent complete` command to the superintendent group.
 
@@ -1261,9 +1261,9 @@ tasks:
   - id: run-command
     title: Implement run command with dashboard UI
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Implement the `superintendent run` command.

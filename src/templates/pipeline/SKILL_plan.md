@@ -13,7 +13,10 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 
 1. Run `poe-code pipeline plan-path` to get the plans directory.
 2. Write the plan to `<plan-path>/plan-<name>.yaml`. If the plan path is under the global `~/.poe-code` directory, prefix the filename with the project name: `plan-<project>-<name>.yaml`.
-3. Check if a `steps.yaml` exists next to the plans directory (i.e. `<plan-path>/../steps.yaml`). If it does, read it to determine available steps and note any `setup`/`teardown` hooks defined there. If not, use stepless tasks.
+3. Find the `steps.yaml` file. Check these locations in order and use the first one found:
+   a. `<project-root>/.poe-code/pipeline/steps.yaml` (project-level)
+   b. `~/.poe-code/pipeline/steps.yaml` (user-global)
+   If found, read it to determine available steps and note any `setup`/`teardown` hooks defined there. If not found in either location, use stepless tasks.
 4. If the user has an existing Markdown plan document (e.g. in `docs/plans/`), link it via `vars` so it is available in every prompt without repeating the path.
 
 ## Rules

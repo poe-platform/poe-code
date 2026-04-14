@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { runMCP } from "@poe-code/cmdkit/mcp";
+import { createMCPServer } from "@poe-code/cmdkit/mcp";
 import { createServer } from "tiny-stdio-mcp-server";
 import { isDirectExecution } from "./direct-execution.js";
-import { superintendentGroup } from "./commands/index.js";
+import { superintendentMcpGroup } from "./commands/index.js";
 import {
   parseWorkflowCall,
   type McpToolDefinition,
@@ -14,6 +14,13 @@ const MCP_VERSION = "0.0.1";
 const WORKFLOW_TRANSITION_SUBCOMMAND = "workflow-transition";
 const WORKFLOW_TRANSITION_SERVER_NAME = "superintendent-workflow-transition";
 
+export function createSuperintendentMcpServer() {
+  return createMCPServer([superintendentMcpGroup], {
+    name: MCP_NAME,
+    version: MCP_VERSION
+  });
+}
+
 export async function main(argv: string[] = process.argv): Promise<void> {
   const originalArgv = process.argv;
   process.argv = argv;
@@ -24,10 +31,7 @@ export async function main(argv: string[] = process.argv): Promise<void> {
       return;
     }
 
-    await runMCP(superintendentGroup, {
-      name: MCP_NAME,
-      version: MCP_VERSION
-    });
+    await createSuperintendentMcpServer().listen();
   } finally {
     process.argv = originalArgv;
   }

@@ -1264,7 +1264,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Implement the `superintendent run` command.
 
@@ -1322,9 +1322,9 @@ tasks:
   - id: mcp-entrypoint
     title: Wire MCP entrypoint and verify tool names
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Wire up the MCP entrypoint in `packages/superintendent/src/mcp.ts`:

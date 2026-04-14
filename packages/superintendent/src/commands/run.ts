@@ -85,7 +85,7 @@ export const runCommand = defineCommand({
   description: "Run the full superintendent loop with the live dashboard UI.",
   positional: ["doc"],
   params: runParams,
-  scope: ["cli"],
+  scope: ["cli", "sdk"],
   handler: async ({ params }) => {
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
@@ -129,6 +129,30 @@ export const runCommand = defineCommand({
     },
     json: (result) => result
   }
+});
+
+export const runMcpCommand = defineCommand({
+  name: "run",
+  description: "Run the full superintendent loop without the dashboard UI.",
+  positional: ["doc"],
+  params: runParams,
+  scope: ["mcp"],
+  handler: async ({ params }) => {
+    const cwd = process.cwd();
+    const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
+
+    return runSuperintendentCommand({
+      cwd,
+      homeDir,
+      docPath: params.doc,
+      builderAgent: params.agent,
+      assumeYes: true,
+      interactive: false,
+      useDashboard: false,
+      env: process.env
+    });
+  },
+  render: runCommand.render
 });
 
 export async function runSuperintendentCommand(

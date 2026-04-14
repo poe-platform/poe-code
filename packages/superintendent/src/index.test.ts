@@ -1,15 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { builderGroupMock, inspectorGroupMock, superintendentGroupMock } = vi.hoisted(() => ({
+const {
+  builderGroupMock,
+  inspectorGroupMock,
+  superintendentGroupMock,
+  superintendentMcpGroupMock
+} = vi.hoisted(() => ({
   builderGroupMock: { name: "builder" },
   inspectorGroupMock: { name: "inspector" },
-  superintendentGroupMock: { name: "superintendent" }
+  superintendentGroupMock: { name: "superintendent" },
+  superintendentMcpGroupMock: { name: "superintendent" }
 }));
 
 vi.mock("./commands/index.js", () => ({
   builderGroup: builderGroupMock,
   inspectorGroup: inspectorGroupMock,
-  superintendentGroup: superintendentGroupMock
+  superintendentGroup: superintendentGroupMock,
+  superintendentMcpGroup: superintendentMcpGroupMock
 }));
 
 describe("@poe-code/superintendent package exports", () => {
@@ -23,6 +30,7 @@ describe("@poe-code/superintendent package exports", () => {
     expect(pkg.builderGroup).toBe(builderGroupMock);
     expect(pkg.inspectorGroup).toBe(inspectorGroupMock);
     expect(pkg.superintendentGroup).toBe(superintendentGroupMock);
+    expect(pkg.superintendentMcpGroup).toBe(superintendentMcpGroupMock);
   });
 
   it("re-exports the testing helpers for external consumers", async () => {

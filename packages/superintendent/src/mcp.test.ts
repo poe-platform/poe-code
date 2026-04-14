@@ -2,13 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createWorkflowTool } from "./runtime/workflow-tool.js";
 
 const {
+  createMCPServerMock,
   createServerMock,
   isDirectExecutionMock,
-  runMCPMock,
+  mcpListenMock,
   serverListenMock,
   serverToolMock,
-  superintendentGroupMock
+  superintendentMcpGroupMock
 } = vi.hoisted(() => {
+  const mcpListenMock = vi.fn<() => Promise<void>>();
+  const createMCPServerMock = vi.fn(() => ({
+    listen: mcpListenMock
+  }));
   const serverListenMock = vi.fn<() => Promise<void>>();
   const serverToolMock = vi.fn<(name: string, description: string, schema: unknown, handler: unknown) => unknown>();
   const createServerMock = vi.fn(() => {
@@ -24,12 +29,13 @@ const {
   });
 
   return {
+    createMCPServerMock,
     createServerMock,
     isDirectExecutionMock: vi.fn<(moduleUrl: string, argv: string[]) => Promise<boolean>>(),
-    runMCPMock: vi.fn<() => Promise<void>>(),
+    mcpListenMock,
     serverListenMock,
     serverToolMock,
-    superintendentGroupMock: { name: "superintendent" }
+    superintendentMcpGroupMock: { name: "superintendent" }
   };
 });
 
@@ -40,7 +46,7 @@ vi.mock("./direct-execution.js", () => ({
 }));
 
 vi.mock("@poe-code/cmdkit/mcp", () => ({
-  runMCP: runMCPMock
+  createMCPServer: createMCPServerMock
 }));
 
 vi.mock("tiny-stdio-mcp-server", () => ({
@@ -48,33 +54,36 @@ vi.mock("tiny-stdio-mcp-server", () => ({
 }));
 
 vi.mock("./commands/index.js", () => ({
-  superintendentGroup: superintendentGroupMock
+  superintendentMcpGroup: superintendentMcpGroupMock
 }));
 
 describe("superintendent MCP entry point", () => {
   beforeEach(() => {
     process.argv = [...originalArgv];
+    createMCPServerMock.mockReset();
+    createMCPServerMock.mockReturnValue({ listen: mcpListenMock });
     createServerMock.mockClear();
     isDirectExecutionMock.mockReset();
     isDirectExecutionMock.mockResolvedValue(false);
-    runMCPMock.mockReset();
-    runMCPMock.mockResolvedValue(undefined);
+    mcpListenMock.mockReset();
+    mcpListenMock.mockResolvedValue(undefined);
     serverListenMock.mockReset();
     serverListenMock.mockResolvedValue(undefined);
     serverToolMock.mockReset();
     vi.resetModules();
   });
 
-  it("runs cmdkit MCP with the superintendent command group", async () => {
+  it("starts cmdkit MCP with the superintendent MCP command group", async () => {
     const { main } = await import("./mcp.js");
 
     await main();
 
-    expect(runMCPMock).toHaveBeenCalledTimes(1);
-    expect(runMCPMock).toHaveBeenCalledWith(superintendentGroupMock, {
+    expect(createMCPServerMock).toHaveBeenCalledTimes(1);
+    expect(createMCPServerMock).toHaveBeenCalledWith([superintendentMcpGroupMock], {
       name: "superintendent",
       version: "0.0.1"
     });
+    expect(mcpListenMock).toHaveBeenCalledTimes(1);
     expect(createServerMock).not.toHaveBeenCalled();
   });
 
@@ -85,7 +94,8 @@ describe("superintendent MCP entry point", () => {
 
     await main(["node", "/repo/packages/superintendent/dist/mcp.js", "workflow-transition", encodedTool]);
 
-    expect(runMCPMock).not.toHaveBeenCalled();
+    expect(createMCPServerMock).not.toHaveBeenCalled();
+    expect(mcpListenMock).not.toHaveBeenCalled();
     expect(createServerMock).toHaveBeenCalledWith({
       name: "superintendent-workflow-transition",
       version: "0.0.1"
@@ -116,14 +126,16 @@ describe("superintendent MCP entry point", () => {
     await expect(
       main(["node", "/repo/packages/superintendent/dist/mcp.js", "workflow-transition", "not-base64"])
     ).rejects.toThrow("Invalid workflow transition tool definition");
-    expect(runMCPMock).not.toHaveBeenCalled();
+    expect(createMCPServerMock).not.toHaveBeenCalled();
+    expect(mcpListenMock).not.toHaveBeenCalled();
     expect(createServerMock).not.toHaveBeenCalled();
   });
 
   it("does not start the MCP server as a side effect of importing the module", async () => {
     await import("./mcp.js");
 
-    expect(runMCPMock).not.toHaveBeenCalled();
+    expect(createMCPServerMock).not.toHaveBeenCalled();
+    expect(mcpListenMock).not.toHaveBeenCalled();
     expect(createServerMock).not.toHaveBeenCalled();
   });
 
@@ -132,10 +144,11 @@ describe("superintendent MCP entry point", () => {
 
     await import("./mcp.js");
 
-    expect(runMCPMock).toHaveBeenCalledTimes(1);
-    expect(runMCPMock).toHaveBeenCalledWith(superintendentGroupMock, {
+    expect(createMCPServerMock).toHaveBeenCalledTimes(1);
+    expect(createMCPServerMock).toHaveBeenCalledWith([superintendentMcpGroupMock], {
       name: "superintendent",
       version: "0.0.1"
     });
+    expect(mcpListenMock).toHaveBeenCalledTimes(1);
   });
 });

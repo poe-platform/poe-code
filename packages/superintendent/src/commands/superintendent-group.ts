@@ -5,7 +5,7 @@ import { hasTaskBoard, parseTaskBoard } from "../document/tasks.js";
 import { builderGroup } from "./builder-group.js";
 import { completeCommand } from "./complete.js";
 import { inspectorGroup } from "./inspector-group.js";
-import { runCommand } from "./run.js";
+import { runCommand, runMcpCommand } from "./run.js";
 
 export type ValidationProblem = {
   level: "error" | "warning";
@@ -68,6 +68,13 @@ export const superintendentGroup = defineGroup({
   description: "Superintendent workflow commands.",
   scope: ["cli", "mcp", "sdk"],
   children: [runCommand, validateCommand, completeCommand, builderGroup, inspectorGroup]
+});
+
+export const superintendentMcpGroup = defineGroup({
+  name: "superintendent",
+  description: "Superintendent workflow commands.",
+  scope: ["mcp"],
+  children: [runMcpCommand, validateCommand, completeCommand, builderGroup, inspectorGroup]
 });
 
 export function validateSuperintendentDocument(

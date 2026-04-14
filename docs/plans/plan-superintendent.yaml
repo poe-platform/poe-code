@@ -1150,9 +1150,9 @@ tasks:
   - id: sim-template-resolution
     title: "Simulation: prompt template variables resolve correctly across all roles"
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.

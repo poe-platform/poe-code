@@ -12,6 +12,14 @@ import {
 
 const docPath = ".poe-code/superintendent/plans/happy-path.md";
 const absoluteDocPath = "/repo/.poe-code/superintendent/plans/happy-path.md";
+const knownTemplateVariables = [
+  "{{plan.path}}",
+  "{{builder.summary}}",
+  "{{builder.log}}",
+  "{{inspectors.code-quality}}",
+  "{{inspectors.dx}}",
+  "{{superintendent.summary}}"
+];
 
 function createDoc(
   options: {
@@ -97,6 +105,20 @@ function createDoc(
 
 function formatPromptBlock(prompt: string, indent: string): string[] {
   return prompt.split("\n").map((line) => indent + line);
+}
+
+function expectKnownTemplateVariablesResolved(prompt: string): void {
+  for (const variable of knownTemplateVariables) {
+    expect(prompt).not.toContain(variable);
+  }
+}
+
+function readPromptLineValue(prompt: string, prefix: string): string {
+  const line = prompt.split("\n").find((candidate) => candidate.startsWith(prefix));
+
+  expect(line, `Expected prompt line starting with "${prefix}"`).toBeDefined();
+
+  return line!.slice(prefix.length).trim();
 }
 
 describe("createSuperintendentSimulation", () => {
@@ -233,6 +255,131 @@ describe("createSuperintendentSimulation", () => {
     expect(finalTaskBoard.tasks).toEqual([
       { text: "Task 1", done: true },
       { text: "Task 2", done: true }
+    ]);
+  });
+
+  it("resolves each template variable at the execution phase where it becomes available", async () => {
+    const builderSummary = "builder-ready";
+    const builderLog = "built stuff";
+    const codeQualitySummary = "quality-ok";
+    const dxSummary = "dx-ok";
+    const superintendentSummary = "all done";
+
+    const simulation = createSuperintendentSimulation({
+      docPath,
+      docContent: createDoc({
+        tasks: [false],
+        builderPrompt: "Work on {{plan.path}}",
+        inspectorPrompt: "Inspect {{plan.path}}",
+        extraInspectors: [
+          {
+            name: "dx",
+            agent: "gemini",
+            prompt: "Review DX. Build log: {{builder.log}}"
+          }
+        ],
+        superintendentPrompt: [
+          "Plan: {{plan.path}}",
+          "Builder: {{builder.summary}}",
+          "Log: {{builder.log}}",
+          "Quality: {{inspectors.code-quality}}",
+          "DX: {{inspectors.dx}}"
+        ].join("\n"),
+        ownerPrompt: [
+          "Plan: {{plan.path}}",
+          "Superintendent: {{superintendent.summary}}"
+        ].join("\n")
+      }),
+      turns: [
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expectKnownTemplateVariablesResolved(prompt);
+            expect(prompt.trim()).toBe(`Work on ${absoluteDocPath}`);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+          },
+          output: {
+            stdout: builderLog,
+            summary: builderSummary,
+            exitCode: 0
+          }
+        },
+        inspectorTurn(codeQualitySummary, async (prompt, ctx) => {
+          expectKnownTemplateVariablesResolved(prompt);
+          expect(prompt.trim()).toBe(`Inspect ${absoluteDocPath}`);
+
+          const doc = await ctx.readDoc();
+          expect(doc.frontmatter.status).toEqual({
+            state: "in_progress",
+            round: 1,
+            review_turn: 0
+          });
+        }),
+        inspectorTurn(dxSummary, async (prompt, ctx) => {
+          expectKnownTemplateVariablesResolved(prompt);
+          expect(prompt.trim()).toBe(`Review DX. Build log: ${builderLog}`);
+
+          const doc = await ctx.readDoc();
+          expect(doc.frontmatter.status).toEqual({
+            state: "in_progress",
+            round: 1,
+            review_turn: 0
+          });
+        }),
+        superintendentTurn(
+          { action: "request_review", summary: superintendentSummary },
+          undefined,
+          async (prompt, ctx) => {
+            expectKnownTemplateVariablesResolved(prompt);
+            expect(readPromptLineValue(prompt, "Plan: ")).toBe(absoluteDocPath);
+            expect(readPromptLineValue(prompt, "Builder: ")).toBe(builderSummary);
+            expect(readPromptLineValue(prompt, "Log: ")).toBe(builderLog);
+            expect(readPromptLineValue(prompt, "Quality: ")).toBe(codeQualitySummary);
+            expect(readPromptLineValue(prompt, "DX: ")).toBe(dxSummary);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+          }
+        ),
+        ownerApproveTurn(async (prompt, ctx) => {
+          expectKnownTemplateVariablesResolved(prompt);
+          expect(readPromptLineValue(prompt, "Plan: ")).toBe(absoluteDocPath);
+          expect(readPromptLineValue(prompt, "Superintendent: ")).toBe(superintendentSummary);
+
+          const doc = await ctx.readDoc();
+          expect(doc.frontmatter.status).toEqual({
+            state: "review",
+            round: 1,
+            review_turn: 0
+          });
+        })
+      ]
+    });
+
+    const { prompts, result, runs } = await simulation.run();
+
+    expect(result.state).toBe("completed");
+    expect(result.round).toBe(1);
+    expect(result.reviewTurn).toBe(0);
+    expect(prompts).toHaveLength(5);
+    prompts.forEach((prompt) => {
+      expectKnownTemplateVariablesResolved(prompt);
+    });
+    expect(runs.map((run) => run.agent)).toEqual([
+      "claude-code",
+      "codex",
+      "gemini",
+      "codex",
+      "claude-code"
     ]);
   });
 

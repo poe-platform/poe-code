@@ -1,0 +1,36 @@
+{
+  "name": "@poe-code/superintendent",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "poe-superintendent-mcp": "dist/mcp.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp.d.ts",
+      "import": "./dist/mcp.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run $(rg --files packages/superintendent/src -g '*.test.ts' | sort | tr '\n' ' ')",
+    "test:unit": "cd ../.. && vitest run $(rg --files packages/superintendent/src -g '*.test.ts' | sort | tr '\n' ' ')"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/cmdkit": "*"
+  }
+}

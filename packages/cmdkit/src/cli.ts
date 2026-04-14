@@ -519,7 +519,12 @@ function isNodeVisibleInScope<TServices extends object>(
     return node.scope.includes(scope);
   }
 
-  return getVisibleChildren(node, scope).length > 0 || Boolean(node.default && node.default.scope.includes(scope));
+  return (
+    getVisibleChildren(node, scope).length > 0 ||
+    Boolean(node.default && node.default.scope.includes(scope)) ||
+    node.scope === undefined ||
+    node.scope.includes(scope)
+  );
 }
 
 function getVisibleChildren<TServices extends object>(group: Group<TServices>, scope: Scope): Array<Command<TServices, any, any, any> | Group<TServices>> {
@@ -857,13 +862,13 @@ function createNodeCommand<TServices extends object>(
     return command;
   }
 
+  if (!isNodeVisibleInScope(node, "cli")) {
+    return null;
+  }
+
   const visibleChildren = node.children
     .map((child) => createNodeCommand(child, casing, execute))
     .filter((child): child is CommanderCommand => child !== null);
-
-  if (visibleChildren.length === 0 && node.default === undefined) {
-    return null;
-  }
 
   const group = new CommanderCommand(node.name);
 

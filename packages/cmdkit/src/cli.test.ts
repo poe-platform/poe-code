@@ -1491,4 +1491,50 @@ describe("runCLI", () => {
     expect(output).toContain("text");
     expect(output).not.toContain("invoke");
   });
+
+  it("renders empty cli groups in help output", async () => {
+    const builder = defineGroup({
+      name: "builder",
+      description: "Builder commands.",
+      children: [],
+    });
+
+    const root = defineGroup({
+      name: "poe-code",
+      children: [builder],
+    });
+
+    process.argv = ["node", "poe-code", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("Commands:");
+    expect(output).toContain("builder");
+  });
+
+  it("renders help for an empty nested cli group", async () => {
+    const builder = defineGroup({
+      name: "builder",
+      description: "Builder commands.",
+      children: [],
+    });
+
+    const root = defineGroup({
+      name: "poe-code",
+      children: [builder],
+    });
+
+    process.argv = ["node", "poe-code", "builder", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("poe-code builder");
+    expect(output).toContain("Builder commands.");
+  });
 });

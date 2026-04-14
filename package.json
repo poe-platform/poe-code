@@ -139,6 +139,7 @@
     "@poe-code/process-launcher": "*",
     "@poe-code/process-runner": "*",
     "@poe-code/ralph": "*",
+    "@poe-code/superintendent": "*",
     "@poe-code/worktree": "*",
     "@poe-code/workspace-resolver": "*",
     "@types/mustache": "^4.2.6",

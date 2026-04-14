@@ -60,6 +60,8 @@ export type SimulationResult = {
   readDoc: () => Promise<SuperintendentDoc>;
 };
 
+export type SimulationFailureContext = Omit<SimulationResult, "result">;
+
 function createSimulationFs(options: SimulationOptions): {
   fs: SimulationFs;
   docPath: string;
@@ -251,47 +253,54 @@ export function createSuperintendentSimulation(options: SimulationOptions): {
         fsWriteFile(rawFs, path.join(cwd, filePath), content);
       const readDoc = async (): Promise<SuperintendentDoc> =>
         parseSuperintendentDoc(absoluteDocPath, await fs.readFile(absoluteDocPath, "utf8"));
-
-      const result = await runLoop({
-        docPath,
-        cwd,
-        homeDir,
-        ...(options.signal ? { signal: options.signal } : {}),
-        fs,
-        runAgent: async (input) => {
-          const turn = turns.shift();
-          if (!turn) {
-            throw new Error("Superintendent simulation ran out of turns.");
-          }
-
-          prompts.push(input.prompt);
-          runs.push(input);
-
-          if (turn.assertPrompt) {
-            await turn.assertPrompt(input.prompt, {
-              fs,
-              readFile,
-              writeFile,
-              readDoc
-            });
-          }
-
-          if (turn.fileChanges) {
-            await applyFileChanges(rawFs, cwd, turn.fileChanges);
-          }
-
-          return normalizeAgentResult(turn.output);
-        }
-      });
-
-      return {
-        result,
+      const failureContext: SimulationFailureContext = {
         prompts,
         runs,
         fs,
         readFile,
         readDoc
       };
+
+      try {
+        const result = await runLoop({
+          docPath,
+          cwd,
+          homeDir,
+          ...(options.signal ? { signal: options.signal } : {}),
+          fs,
+          runAgent: async (input) => {
+            const turn = turns.shift();
+            if (!turn) {
+              throw new Error("Superintendent simulation ran out of turns.");
+            }
+
+            prompts.push(input.prompt);
+            runs.push(input);
+
+            if (turn.assertPrompt) {
+              await turn.assertPrompt(input.prompt, {
+                fs,
+                readFile,
+                writeFile,
+                readDoc
+              });
+            }
+
+            if (turn.fileChanges) {
+              await applyFileChanges(rawFs, cwd, turn.fileChanges);
+            }
+
+            return normalizeAgentResult(turn.output);
+          }
+        });
+
+        return {
+          result,
+          ...failureContext
+        };
+      } catch (error) {
+        throw attachSimulationContext(error, failureContext);
+      }
     }
   };
 }
@@ -350,6 +359,14 @@ function readWorkflowTransitionTextPayload(line: string): string | undefined {
   }
 
   return undefined;
+}
+
+function attachSimulationContext(
+  error: unknown,
+  context: SimulationFailureContext
+): Error & SimulationFailureContext {
+  const normalizedError = error instanceof Error ? error : new Error(String(error));
+  return Object.assign(normalizedError, context);
 }
 
 function splitLines(value: string): string[] {

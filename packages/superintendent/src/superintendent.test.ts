@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { parseTaskBoard } from "./document/tasks.js";
 import {
+  builderTurn,
   createSuperintendentSimulation,
   failTurn,
-  type TurnContext
+  inspectorTurn,
+  type SimulationFailureContext
 } from "./testing/simulation.js";
 
 const docPath = ".poe-code/superintendent/plans/happy-path.md";
@@ -15,7 +17,11 @@ function createDoc(
     tasks?: boolean[];
     builderPrompt?: string;
     inspectorPrompt?: string;
+    includeManualQaInspector?: boolean;
+    manualQaAgent?: string;
+    manualQaPrompt?: string;
     superintendentPrompt?: string;
+    superintendentAgent?: string;
     ownerPrompt?: string;
   } = {}
 ): string {
@@ -39,8 +45,19 @@ function createDoc(
       options.inspectorPrompt ?? "Inspect {{plan.path}} after {{builder.summary}}",
       "      "
     ),
+    ...(options.includeManualQaInspector
+      ? [
+          "  manual-qa:",
+          `    agent: ${options.manualQaAgent ?? "claude-code"}`,
+          "    prompt: |",
+          ...formatPromptBlock(
+            options.manualQaPrompt ?? "Manual QA for {{plan.path}} after {{inspectors.code-quality}}",
+            "      "
+          )
+        ]
+      : []),
     "superintendent:",
-    "  agent: codex",
+    `  agent: ${options.superintendentAgent ?? "codex"}`,
     "  prompt: |",
     ...formatPromptBlock(
       options.superintendentPrompt ??
@@ -1026,17 +1043,12 @@ describe("createSuperintendentSimulation", () => {
 
   it("surfaces builder failure, halts the round, and keeps the document in the last valid state", async () => {
     const initialDoc = createDoc({ tasks: [false] });
-    const prompts: string[] = [];
-    let turnContext: TurnContext | undefined;
 
     const simulation = createSuperintendentSimulation({
       docPath,
       docContent: initialDoc,
       turns: [
         failTurn("Process exited with code 1", async (prompt, ctx) => {
-          prompts.push(prompt);
-          turnContext = ctx;
-
           expect(prompt).toContain(absoluteDocPath);
           expect(prompt).not.toContain("{{plan.path}}");
 
@@ -1055,15 +1067,22 @@ describe("createSuperintendentSimulation", () => {
       ]
     });
 
-    await expect(simulation.run()).rejects.toThrow("Process exited with code 1");
+    let error: (Error & Partial<SimulationFailureContext>) | undefined;
 
-    expect(prompts).toHaveLength(1);
-    expect(turnContext).toBeDefined();
+    try {
+      await simulation.run();
+    } catch (thrown) {
+      error = thrown as typeof error;
+    }
 
-    const finalDoc = await turnContext!.readDoc();
+    expect(error).toBeDefined();
+    expect(error?.message).toContain("Process exited with code 1");
+    expect(error?.prompts).toHaveLength(1);
+
+    const finalDoc = await error!.readDoc!();
     const finalTaskBoard = parseTaskBoard(finalDoc.body);
 
-    expect(await turnContext!.readFile(docPath)).toBe(initialDoc);
+    expect(await error!.readFile!(docPath)).toBe(initialDoc);
     expect(finalDoc.frontmatter.status).toEqual({
       state: "in_progress",
       round: 0,
@@ -1075,5 +1094,115 @@ describe("createSuperintendentSimulation", () => {
       allDone: false
     });
     expect(finalTaskBoard.tasks).toEqual([{ text: "Task 1", done: false }]);
+  });
+
+  it("surfaces an inspector failure after builder completion, skips the superintendent, and keeps builder edits", async () => {
+    const manualQaAgent = "claude-code";
+    const superintendentAgent = "gemini";
+    const codeQualitySummary = "all good";
+    const inspectorDoc = createDoc({
+      tasks: [false],
+      includeManualQaInspector: true,
+      manualQaAgent,
+      superintendentAgent
+    });
+    const builderUpdatedDoc = createDoc({
+      tasks: [true],
+      includeManualQaInspector: true,
+      manualQaAgent,
+      superintendentAgent
+    });
+
+    const simulation = createSuperintendentSimulation({
+      docPath,
+      docContent: inspectorDoc,
+      turns: [
+        builderTurn(
+          {
+            [docPath]: builderUpdatedDoc
+          },
+          async (prompt, ctx) => {
+            expect(prompt).toContain(absoluteDocPath);
+            expect(prompt).not.toContain("{{plan.path}}");
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+            expect(parseTaskBoard(doc.body)).toMatchObject({
+              openCount: 1,
+              doneCount: 0,
+              allDone: false
+            });
+          }
+        ),
+        inspectorTurn(codeQualitySummary, async (prompt, ctx) => {
+          expect(prompt).toContain(absoluteDocPath);
+          expect(prompt).not.toContain("{{plan.path}}");
+
+          const doc = await ctx.readDoc();
+          expect(doc.frontmatter.status).toEqual({
+            state: "in_progress",
+            round: 1,
+            review_turn: 0
+          });
+          expect(parseTaskBoard(doc.body)).toMatchObject({
+            openCount: 0,
+            doneCount: 1,
+            allDone: true
+          });
+        }),
+        failTurn("timeout", async (prompt, ctx) => {
+          expect(prompt).toContain(absoluteDocPath);
+          expect(prompt).toContain(codeQualitySummary);
+          expect(prompt).not.toContain("{{inspectors.code-quality}}");
+
+          const doc = await ctx.readDoc();
+          expect(doc.frontmatter.status).toEqual({
+            state: "in_progress",
+            round: 1,
+            review_turn: 0
+          });
+          expect(parseTaskBoard(doc.body)).toMatchObject({
+            openCount: 0,
+            doneCount: 1,
+            allDone: true
+          });
+        })
+      ]
+    });
+
+    let error: (Error & Partial<SimulationFailureContext>) | undefined;
+
+    try {
+      await simulation.run();
+    } catch (thrown) {
+      error = thrown as typeof error;
+    }
+
+    expect(error).toBeDefined();
+    expect(error).toBeInstanceOf(Error);
+    expect(error?.message).toContain("timeout");
+    expect(error?.prompts).toHaveLength(3);
+    expect(error?.runs).toHaveLength(3);
+    expect(error?.runs?.[2]?.agent).toBe(manualQaAgent);
+    expect(error?.runs?.some((run) => run.agent === superintendentAgent)).toBe(false);
+
+    const finalDoc = await error!.readDoc!();
+    const finalTaskBoard = parseTaskBoard(finalDoc.body);
+
+    expect(finalDoc.frontmatter.status).toEqual({
+      state: "in_progress",
+      round: 1,
+      review_turn: 0
+    });
+    expect(finalTaskBoard).toMatchObject({
+      openCount: 0,
+      doneCount: 1,
+      allDone: true
+    });
+    expect(finalTaskBoard.tasks).toEqual([{ text: "Task 1", done: true }]);
   });
 });

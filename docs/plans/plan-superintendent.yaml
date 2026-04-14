@@ -1053,9 +1053,9 @@ tasks:
   - id: sim-inspector-failure
     title: "Simulation: inspector failure halts the round"
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.

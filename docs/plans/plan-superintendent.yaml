@@ -730,7 +730,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/superintendent/src/testing/simulation.ts` and
       `packages/superintendent/src/testing/index.ts`.
@@ -856,9 +856,9 @@ tasks:
   - id: sim-happy-path
     title: "Simulation: happy path — single round approval"
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Write simulation tests in `packages/superintendent/src/superintendent.test.ts`.

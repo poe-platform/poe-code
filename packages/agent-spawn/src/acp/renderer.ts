@@ -1,7 +1,7 @@
 import { acp, resolveOutputFormat, text } from "@poe-code/design-system";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import type { AcpEvent } from "./types.js";
-import { sessionUpdateToEvents, createToolRenderState, toRenderKind } from "./session-update-converter.js";
+import { toRenderKind } from "./session-update-converter.js";
 
 function writeLine(line: string): void {
   process.stdout.write(`${line}\n`);

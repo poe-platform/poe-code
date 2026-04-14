@@ -1,5 +1,5 @@
 import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
-import { AcpClient, type McpServer, type SessionUpdateNotification } from "@poe-code/poe-acp-client";
+import { AcpClient, type McpServer } from "@poe-code/poe-acp-client";
 import { getAcpSpawnConfig } from "../configs/index.js";
 import type { McpSpawnConfig, SpawnMode, SpawnResult } from "../types.js";
 import type { AcpEvent } from "./types.js";

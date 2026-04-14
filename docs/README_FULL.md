@@ -1076,8 +1076,8 @@ interface SpawnResult {
   exitCode: number;
   /** Thread identifier from streaming agents (if available) */
   threadId?: string;
-  /** Backward-compatible alias for threadId */
-  sessionId?: string;
+  /** Path to the JSONL spawn log file (if logging was active) */
+  logFile?: string;
 }
 ```
 

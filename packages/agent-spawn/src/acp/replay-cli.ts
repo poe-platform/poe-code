@@ -108,10 +108,7 @@ export async function main(argv: string[] = process.argv): Promise<void> {
 
     if (command.kind === "list") {
       const entries = await listSpawnLogs();
-      if (entries.length === 0) {
-        throw new Error("No spawn logs found.");
-      }
-      writeLine(process.stdout, renderLogTable(entries));
+      writeLine(process.stdout, entries.length === 0 ? "No spawn logs found." : renderLogTable(entries));
       return;
     }
 

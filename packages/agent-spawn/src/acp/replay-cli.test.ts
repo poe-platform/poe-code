@@ -161,11 +161,12 @@ describe("acp/replay-cli", () => {
     expect(replaySpawnLogMock).not.toHaveBeenCalled();
   });
 
-  it("fails when --list finds no logs", async () => {
+  it("prints a helpful message when --list finds no logs", async () => {
     const result = await runMain(["--list"]);
 
-    expect(result.stderr).toContain("No spawn logs found.");
-    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain("No spawn logs found.");
+    expect(result.stderr).toBe("");
+    expect(result.exitCode).toBeUndefined();
     expect(replaySpawnLogMock).not.toHaveBeenCalled();
   });
 

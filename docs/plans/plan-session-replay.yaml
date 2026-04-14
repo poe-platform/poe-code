@@ -61,7 +61,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/agent-spawn/src/acp/replay-cli.ts` — a minimal entrypoint script.
 
@@ -90,10 +90,10 @@ tasks:
   - id: npm-script
     title: Add replay npm script to root package.json
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Add a `replay` script to the root `package.json`:
 

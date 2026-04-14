@@ -5,13 +5,17 @@ import type { Command } from "commander";
 import { cancel, getTheme, isCancel, renderTable, select } from "@poe-code/design-system";
 import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
+import { resolveWorkflowPath } from "@poe-code/agent-kit";
 import {
   installSkill,
   resolveAgentSupport,
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import { parseExperimentFrontmatter } from "@poe-code/experiment-loop";
+import {
+  discoverExperimentDocs,
+  parseExperimentFrontmatter
+} from "@poe-code/experiment-loop";
 import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
@@ -26,8 +30,6 @@ import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 
 const DEFAULT_EXPERIMENT_AGENT = "claude-code";
 const DEFAULT_EXPERIMENT_SCOPE: SkillScope = "local";
-const EXPERIMENTS_DIRECTORY = path.join(".poe-code", "experiments");
-
 type ExperimentInstallCommandOptions = {
   force?: boolean;
   agent?: string;
@@ -223,72 +225,6 @@ async function resolveExperimentPlanDirectory(
   return dir || undefined;
 }
 
-function resolveAbsoluteDocPath(container: CliContainer, docPath: string): string {
-  if (docPath.startsWith("~/")) {
-    return path.join(container.env.homeDir, docPath.slice(2));
-  }
-
-  return path.isAbsolute(docPath) ? docPath : path.resolve(container.env.cwd, docPath);
-}
-
-function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): string {
-  if (dir.startsWith("~/")) {
-    return path.join(homeDir, dir.slice(2));
-  }
-  return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
-}
-
-async function scanExperimentDir(
-  container: CliContainer,
-  absoluteDir: string,
-  displayDir: string
-): Promise<Array<{ path: string; displayPath: string }>> {
-  let names: string[];
-  try {
-    names = await container.fs.readdir(absoluteDir);
-  } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
-      return [];
-    }
-    throw error;
-  }
-
-  const docs: Array<{ path: string; displayPath: string }> = [];
-  for (const name of names.sort()) {
-    if (!name.endsWith(".md")) {
-      continue;
-    }
-
-    const absolutePath = path.join(absoluteDir, name);
-    const fileStat = await container.fs.stat(absolutePath);
-    if (!fileStat.isFile()) {
-      continue;
-    }
-
-    const displayPath = path.join(displayDir, name);
-    docs.push({ path: displayPath, displayPath });
-  }
-
-  return docs;
-}
-
-async function discoverExperimentDocs(
-  container: CliContainer,
-  planDirectory?: string
-): Promise<Array<{ path: string; displayPath: string }>> {
-  const customDir = planDirectory?.trim();
-  if (customDir) {
-    const absoluteDir = resolveAbsoluteDirectory(customDir, container.env.cwd, container.env.homeDir);
-    return scanExperimentDir(container, absoluteDir, customDir);
-  }
-
-  return scanExperimentDir(
-    container,
-    path.join(container.env.cwd, EXPERIMENTS_DIRECTORY),
-    EXPERIMENTS_DIRECTORY
-  );
-}
-
 async function resolveDocPath(options: {
   container: CliContainer;
   program: Command;
@@ -301,7 +237,12 @@ async function resolveDocPath(options: {
     return options.providedDoc.trim();
   }
 
-  const docs = await discoverExperimentDocs(options.container, options.planDirectory);
+  const docs = await discoverExperimentDocs({
+    cwd: options.container.env.cwd,
+    homeDir: options.container.env.homeDir,
+    planDirectory: options.planDirectory,
+    fs: options.container.fs
+  });
   if (docs.length === 0) {
     throw new ValidationError(
       "No markdown doc found under .poe-code/experiments/. Provide a doc path."
@@ -335,7 +276,7 @@ async function readExperimentDoc(
   absolutePath: string;
   frontmatter: ReturnType<typeof parseExperimentFrontmatter>["frontmatter"];
 }> {
-  const absolutePath = resolveAbsoluteDocPath(container, docPath);
+  const absolutePath = resolveWorkflowPath(docPath, container.env.cwd, container.env.homeDir);
 
   try {
     const content = await container.fs.readFile(absolutePath, "utf8");

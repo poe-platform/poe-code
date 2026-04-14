@@ -199,6 +199,29 @@ describe("experiment run command", () => {
     );
   });
 
+  it("discovers docs from the home experiments directory when no local docs exist", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/home/test/.poe-code/experiments/plan-a.md": "# A"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "experiment", "run"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        docPath: "~/.poe-code/experiments/plan-a.md"
+      })
+    );
+  });
+
   it("prompts for missing doc and agent when frontmatter does not provide them", async () => {
     selectMock
       .mockResolvedValueOnce(".poe-code/experiments/plan-a.md")

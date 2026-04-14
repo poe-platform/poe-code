@@ -1,10 +1,16 @@
-export interface ExperimentFileSystem {
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+import type { WorkflowFileStat, WorkflowFileSystem } from "@poe-code/agent-kit";
+
+export interface ExperimentFileStat extends WorkflowFileStat {
+  isFile(): boolean;
+  isDirectory(): boolean;
+  mtimeMs: number;
+}
+
+export interface ExperimentFileSystem extends WorkflowFileSystem {
   writeFile(path: string, content: string): Promise<void>;
   readdir(path: string): Promise<string[]>;
-  stat(path: string): Promise<{ isFile(): boolean; mtimeMs: number }>;
-  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   appendFile(path: string, content: string): Promise<void>;
+  stat(path: string): Promise<ExperimentFileStat>;
 }
 
 export interface ExperimentGit {

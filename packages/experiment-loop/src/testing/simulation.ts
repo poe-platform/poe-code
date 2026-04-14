@@ -1,6 +1,7 @@
 import path from "node:path";
 import matter from "gray-matter";
 import { Volume, createFsFromVolume } from "memfs";
+import { resolveWorkflowPath } from "@poe-code/agent-kit";
 import { baselineFromEntry, ExperimentJournal } from "../journal/journal.js";
 import { runExperimentLoop } from "../run/loop.js";
 import { parseExperimentFrontmatter } from "../frontmatter/frontmatter.js";
@@ -90,14 +91,6 @@ export type SimulationResult = {
   readJournal: () => Promise<JournalEntry[]>;
 };
 
-function resolveAbsolutePath(filePath: string, cwd: string, homeDir: string): string {
-  if (filePath.startsWith("~/")) {
-    return path.join(homeDir, filePath.slice(2));
-  }
-
-  return path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
-}
-
 function resolveJournalPath(docPath: string): string {
   return path.join(
     path.dirname(docPath),
@@ -123,7 +116,7 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
 } {
   const cwd = "/repo";
   const homeDir = "/home/test";
-  const docPath = resolveAbsolutePath(
+  const docPath = resolveWorkflowPath(
     options.docPath ?? ".poe-code/experiments/plan.md",
     cwd,
     homeDir
@@ -133,7 +126,7 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
     [docPath]: options.docContent ?? createExperimentDoc(),
     ...Object.fromEntries(
       Object.entries(options.files ?? {}).map(([filePath, content]) => [
-        resolveAbsolutePath(filePath, cwd, homeDir),
+        resolveWorkflowPath(filePath, cwd, homeDir),
         content
       ])
     )
@@ -153,11 +146,15 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
 
       return {
         isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
         mtimeMs: Number(stat.mtimeMs)
       };
     },
     mkdir: async (filePath, mkdirOptions) => {
       await rawFs.mkdir(filePath, mkdirOptions);
+    },
+    rmdir: async (filePath) => {
+      await rawFs.rmdir(filePath);
     },
     appendFile: async (filePath, content) => {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
@@ -346,7 +343,7 @@ async function applyFileChanges(
   changes: Record<string, string>
 ): Promise<void> {
   for (const [filePath, content] of Object.entries(changes)) {
-    await fsWriteFile(rawFs, resolveAbsolutePath(filePath, cwd, homeDir), content);
+    await fsWriteFile(rawFs, resolveWorkflowPath(filePath, cwd, homeDir), content);
   }
 }
 
@@ -468,7 +465,7 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
       const { exec, execCalls } = createSimulationExec(options.metricResults);
 
       const readFile = async (filePath: string): Promise<string> =>
-        fs.readFile(resolveAbsolutePath(filePath, cwd, homeDir), "utf8");
+        fs.readFile(resolveWorkflowPath(filePath, cwd, homeDir), "utf8");
       const readDoc = async (): Promise<string> => fs.readFile(docPath, "utf8");
       const readJournal = async (): Promise<JournalEntry[]> =>
         new ExperimentJournal(journalPath, fs).readAll();
@@ -500,7 +497,7 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
               fs,
               readFile,
               writeFile: async (filePath, content) => {
-                await fsWriteFile(rawFs, resolveAbsolutePath(filePath, cwd, homeDir), content);
+                await fsWriteFile(rawFs, resolveWorkflowPath(filePath, cwd, homeDir), content);
               }
             });
           }

@@ -1,5 +1,6 @@
-import path from "node:path";
 import * as fsPromises from "node:fs/promises";
+import path from "node:path";
+import { resolveWorkflowPath } from "@poe-code/agent-kit";
 import {
   ExperimentJournal,
   runExperimentLoop as runWorkspaceExperimentLoop,
@@ -42,24 +43,20 @@ function createDefaultFs(): ExperimentFileSystem {
       const stat = await fsPromises.stat(filePath);
       return {
         isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
     },
     mkdir: async (filePath, options) => {
       await fsPromises.mkdir(filePath, options);
     },
+    rmdir: async (filePath) => {
+      await fsPromises.rmdir(filePath);
+    },
     appendFile: async (filePath, content) => {
       await fsPromises.appendFile(filePath, content, "utf8");
     }
   };
-}
-
-function resolveAbsoluteDocPath(docPath: string, cwd: string, homeDir: string): string {
-  if (docPath.startsWith("~/")) {
-    return path.join(homeDir, docPath.slice(2));
-  }
-
-  return path.isAbsolute(docPath) ? docPath : path.resolve(cwd, docPath);
 }
 
 function resolveJournalPath(docPath: string): string {
@@ -88,7 +85,7 @@ export async function readExperimentJournal(
   options: ExperimentJournalOptions
 ): Promise<JournalEntry[]> {
   const fs = options.fs ?? createDefaultFs();
-  const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
+  const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   return await journal.readAll();
 }
@@ -101,7 +98,7 @@ export async function appendExperimentJournalEntry(
   options: AppendJournalEntryOptions
 ): Promise<void> {
   const fs = options.fs ?? createDefaultFs();
-  const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
+  const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   await journal.init();
   await journal.log(options.entry);

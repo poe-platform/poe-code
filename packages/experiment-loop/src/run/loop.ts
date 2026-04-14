@@ -1,6 +1,7 @@
 import { exec as execCallback } from "node:child_process";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
+import { lockWorkflow, resolveWorkflowPath } from "@poe-code/agent-kit";
 import { resolve } from "@poe-code/config-extends";
 import {
   parseExperimentFrontmatterData,
@@ -31,11 +32,15 @@ function createDefaultFs(): ExperimentFileSystem {
       const stat = await fsPromises.stat(filePath);
       return {
         isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
     },
     mkdir: async (filePath, options) => {
       await fsPromises.mkdir(filePath, options);
+    },
+    rmdir: async (filePath) => {
+      await fsPromises.rmdir(filePath);
     },
     appendFile: async (filePath, content) => {
       await fsPromises.appendFile(filePath, content, "utf8");
@@ -70,14 +75,6 @@ function createDefaultExec(): ExecFn {
         }
       );
     });
-}
-
-function resolveAbsoluteDocPath(docPath: string, cwd: string, homeDir: string): string {
-  if (docPath.startsWith("~/")) {
-    return path.join(homeDir, docPath.slice(2));
-  }
-
-  return path.isAbsolute(docPath) ? docPath : path.resolve(cwd, docPath);
 }
 
 function resolveJournalPath(docPath: string): string {
@@ -252,14 +249,9 @@ export async function runExperimentLoop(
     throw new Error("runExperimentLoop requires a runAgent implementation.");
   }
 
-  const absoluteDocPath = resolveAbsoluteDocPath(options.docPath, options.cwd, options.homeDir);
-  const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
-  await journal.init();
-  const [runConfig, instructions] = await Promise.all([
-    loadRunConfig({ cwd: options.cwd, homeDir: options.homeDir, fs }),
-    loadInstructions()
-  ]);
+  const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   const startTime = Date.now();
+  let releaseLock: (() => Promise<void>) | undefined;
 
   async function readDoc(): Promise<{ frontmatter: ExperimentFrontmatter; body: string }> {
     const rawContent = await fs.readFile(absoluteDocPath, "utf8");
@@ -281,34 +273,10 @@ export async function runExperimentLoop(
     };
   }
 
-  const { frontmatter: initialFrontmatter } = await readDoc();
-  const initialMetrics = normalizeMetrics(initialFrontmatter.metric);
-  const journalEntries = await journal.readAll();
-  const journalState = deriveStateFromJournal(journalEntries);
-
-  let experimentsCompleted = journalState.experimentsCompleted;
-  let experimentsKept = journalState.experimentsKept;
-  let baselineHash: string | undefined = journalState.baselineHash;
-  // Journal's last keep takes priority; fall back to frontmatter seed if no keeps yet
-  let baseline: Record<string, number> | null =
-    journalState.baseline ?? initialFrontmatter.baseline;
-
-  if (baseline === null) {
-    const metricTimeoutMs = initialFrontmatter.metricTimeout
-      ? initialFrontmatter.metricTimeout * 1000
-      : undefined;
-    const baselineResults = await evaluateChain(
-      initialMetrics,
-      options.cwd,
-      exec,
-      options.onMetricResult,
-      metricTimeoutMs
-    );
-    if (allMetricsPassed(initialMetrics, baselineResults)) {
-      baseline = baselineFromResults(initialMetrics, baselineResults);
-      options.onBaselineCollected?.(baseline);
-    }
-  }
+  let experimentsCompleted = 0;
+  let experimentsKept = 0;
+  let baselineHash: string | undefined;
+  let baseline: Record<string, number> | null = null;
 
   async function finalize(
     stopReason: ExperimentRunResult["stopReason"]
@@ -323,9 +291,49 @@ export async function runExperimentLoop(
   }
 
   try {
+    assertNotAborted(options.signal);
+    releaseLock = await lockWorkflow(absoluteDocPath, { fs });
+
+    const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
+    await journal.init();
+    const [runConfig, instructions] = await Promise.all([
+      loadRunConfig({ cwd: options.cwd, homeDir: options.homeDir, fs }),
+      loadInstructions()
+    ]);
+    const { frontmatter: initialFrontmatter } = await readDoc();
+    const initialMetrics = normalizeMetrics(initialFrontmatter.metric);
+    const journalEntries = await journal.readAll();
+    const journalState = deriveStateFromJournal(journalEntries);
+
+    experimentsCompleted = journalState.experimentsCompleted;
+    experimentsKept = journalState.experimentsKept;
+    baselineHash = journalState.baselineHash;
+    // Journal's last keep takes priority; fall back to frontmatter seed if no keeps yet
+    baseline = journalState.baseline ?? initialFrontmatter.baseline;
+
+    if (baseline === null) {
+      const metricTimeoutMs = initialFrontmatter.metricTimeout
+        ? initialFrontmatter.metricTimeout * 1000
+        : undefined;
+      const baselineResults = await evaluateChain(
+        initialMetrics,
+        options.cwd,
+        exec,
+        options.onMetricResult,
+        metricTimeoutMs
+      );
+      if (allMetricsPassed(initialMetrics, baselineResults)) {
+        baseline = baselineFromResults(initialMetrics, baselineResults);
+        options.onBaselineCollected?.(baseline);
+      }
+    }
+
     while (true) {
       assertNotAborted(options.signal);
 
+      // runDocumentWorkflow does not fit yet because experiment-loop rebuilds the
+      // single-stage prompt from the latest doc + journal every iteration and then
+      // decides keep/reset state from experiment-specific journal + git handling.
       const doc = await readDoc();
       const { body, frontmatter } = doc;
 
@@ -425,6 +433,8 @@ export async function runExperimentLoop(
     }
 
     throw error;
+  } finally {
+    await releaseLock?.();
   }
 
   return finalize("max_experiments");

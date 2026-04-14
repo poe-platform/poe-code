@@ -623,7 +623,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: experiment-migration
     title: Migrate experiment-loop to use agent-kit shared helpers
@@ -668,7 +668,7 @@ tasks:
       Run `pnpm --filter @poe-code/experiment-loop test`.
       Run `npm run dev -- experiment --help` to verify CLI still works.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open

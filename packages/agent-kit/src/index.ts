@@ -8,3 +8,4 @@ export {
   selectParticipantAgent,
   type WorkflowParticipant
 } from "./participant.js";
+export { lockWorkflow, type LockOptions } from "./lock.js";

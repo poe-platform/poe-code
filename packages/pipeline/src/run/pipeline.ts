@@ -1,7 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
-import { lockFile } from "../lock/lock.js";
+import { lockWorkflow } from "@poe-code/agent-kit";
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";
@@ -238,7 +238,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
   while (runsCompleted < maxRuns) {
     assertNotAborted(options.signal);
-    const release = await lockFile(absolutePlanPath, { fs });
+    const release = await lockWorkflow(absolutePlanPath, { fs });
     try {
       let stepsConfig: ResolvedStepsConfig;
       let plan: PipelinePlan;

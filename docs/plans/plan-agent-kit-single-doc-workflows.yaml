@@ -240,7 +240,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ── Phase 3: Locking and setup/teardown ──
 
@@ -298,10 +298,10 @@ tasks:
       - Stale lock is cleaned up
       - Lock path is derived from doc path
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: setup-teardown
     title: Add shared setup/teardown execution helpers to agent-kit

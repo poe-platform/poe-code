@@ -5,6 +5,8 @@ import {
   createSuperintendentSimulation,
   failTurn,
   inspectorTurn,
+  ownerApproveTurn,
+  superintendentTurn,
   type SimulationFailureContext
 } from "./testing/simulation.js";
 
@@ -20,6 +22,11 @@ function createDoc(
     includeManualQaInspector?: boolean;
     manualQaAgent?: string;
     manualQaPrompt?: string;
+    extraInspectors?: Array<{
+      name: string;
+      agent: string;
+      prompt: string;
+    }>;
     superintendentPrompt?: string;
     superintendentAgent?: string;
     ownerPrompt?: string;
@@ -56,6 +63,12 @@ function createDoc(
           )
         ]
       : []),
+    ...(options.extraInspectors?.flatMap((inspector) => [
+      `  ${inspector.name}:`,
+      `    agent: ${inspector.agent}`,
+      "    prompt: |",
+      ...formatPromptBlock(inspector.prompt, "      ")
+    ]) ?? []),
     "superintendent:",
     `  agent: ${options.superintendentAgent ?? "codex"}`,
     "  prompt: |",
@@ -221,6 +234,73 @@ describe("createSuperintendentSimulation", () => {
       { text: "Task 1", done: true },
       { text: "Task 2", done: true }
     ]);
+  });
+
+  it("runs three inspectors in definition order and passes their summaries to the superintendent", async () => {
+    const builderLog = "Built feature X";
+    const codeQualityAgent = "codex";
+    const codeQualitySummary = "Code quality: A+";
+    const manualQaAgent = "claude-code";
+    const manualQaSummary = "Manual QA: all pass";
+    const developerExperienceAgent = "gemini";
+    const developerExperienceSummary = "DX: good ergonomics";
+    const superintendentSummary = "Ready for owner review";
+
+    const simulation = createSuperintendentSimulation({
+      docPath,
+      docContent: createDoc({
+        tasks: [false],
+        includeManualQaInspector: true,
+        manualQaAgent,
+        extraInspectors: [
+          {
+            name: "developer-experience",
+            agent: developerExperienceAgent,
+            prompt: "Developer experience review {{builder.log}}"
+          }
+        ],
+        superintendentPrompt: [
+          "Superintendent review",
+          "quality={{inspectors.code-quality}}",
+          "manual={{inspectors.manual-qa}}",
+          "dx={{inspectors.developer-experience}}"
+        ].join("\n")
+      }),
+      turns: [
+        { output: { stdout: builderLog, exitCode: 0 } },
+        inspectorTurn(codeQualitySummary),
+        inspectorTurn(manualQaSummary),
+        inspectorTurn(developerExperienceSummary, async (prompt) => {
+          expect(prompt).toContain(builderLog);
+          expect(prompt).not.toContain("{{builder.log}}");
+        }),
+        superintendentTurn(
+          { action: "request_review", summary: superintendentSummary },
+          undefined,
+          async (prompt) => {
+            expect(prompt).toContain(codeQualitySummary);
+            expect(prompt).toContain(manualQaSummary);
+            expect(prompt).toContain(developerExperienceSummary);
+            expect(prompt).not.toContain("{{inspectors.code-quality}}");
+            expect(prompt).not.toContain("{{inspectors.manual-qa}}");
+            expect(prompt).not.toContain("{{inspectors.developer-experience}}");
+          }
+        ),
+        ownerApproveTurn()
+      ]
+    });
+
+    const { result, runs } = await simulation.run();
+
+    expect(runs.slice(1, 4).map((run) => run.agent)).toEqual([
+      codeQualityAgent,
+      manualQaAgent,
+      developerExperienceAgent
+    ]);
+    expect(runs[1]?.agent).toBe(codeQualityAgent);
+    expect(runs[2]?.agent).toBe(manualQaAgent);
+    expect(runs[3]?.agent).toBe(developerExperienceAgent);
+    expect(result.state).toBe("completed");
   });
 
   it("replans after owner rejection and completes in the second round", async () => {

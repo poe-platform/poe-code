@@ -1056,7 +1056,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.
 
@@ -1082,9 +1082,9 @@ tasks:
   - id: sim-multiple-inspectors
     title: "Simulation: multiple inspectors run sequentially"
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.

@@ -72,7 +72,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ── Phase 2: Agent-kit package scaffolding ──
 
@@ -104,8 +104,8 @@ tasks:
       Run `pnpm install` to link the new package.
       Run `pnpm --filter @poe-code/agent-kit build` to verify it compiles.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   # ── Phase 2b: Shared normalization and path helpers ──

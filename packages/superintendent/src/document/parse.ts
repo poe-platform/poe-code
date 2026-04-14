@@ -1,5 +1,6 @@
 import path from "node:path";
 import { parseDocument } from "yaml";
+export type { TaskBoard, TaskItem } from "./tasks.js";
 
 export type SuperintendentDoc = {
   frontmatter: SuperintendentFrontmatter;

@@ -1,49 +1,241 @@
 # @poe-code/superintendent
 
-Cmdkit-first scaffold for the superintendent workflow package.
+Superintendent workflow package for parsing superintendent plan documents, running the builder/inspector/superintendent loop, exposing CLI + MCP commands, and providing deterministic testing helpers.
 
-This package will host the superintendent document model, orchestration runtime, CLI commands, MCP tools, and SDK exports described in `docs/plans/superintendent.md`.
+## Package overview
 
-## Current scaffold
+This package provides:
 
-- `src/commands/` contains placeholder cmdkit groups for `superintendent`, `builder`, and `inspector`.
-- `src/document/` contains stub modules for document parsing and writing.
-- `src/runtime/` contains stub modules for runtime orchestration entry points.
-- `src/cli.ts` and `src/mcp.ts` wire the cmdkit CLI and MCP runners.
+- markdown document parsing for superintendent plans with YAML frontmatter
+- Task Board parsing and runtime status writers
+- runtime orchestration for builder, inspectors, superintendent, and owner review
+- cmdkit command groups that can be composed into CLI, SDK, and MCP surfaces
+- testing helpers for in-memory loop simulation
 
-## Usage
+The canonical workflow artifact is a single markdown file with frontmatter plus a required `## Task Board` section in the body.
 
-CLI entrypoint during development:
+## CLI commands and usage
+
+Local development entrypoint:
 
 ```sh
 npx tsx packages/superintendent/src/cli.ts --help
 ```
 
-MCP entrypoint during development:
+Built entrypoint:
+
+```sh
+node packages/superintendent/dist/cli.js --help
+```
+
+Main commands:
+
+```sh
+npx tsx packages/superintendent/src/cli.ts run <doc> [--agent <builder-agent>]
+npx tsx packages/superintendent/src/cli.ts validate <doc>
+npx tsx packages/superintendent/src/cli.ts complete <doc> [--reason <text>]
+npx tsx packages/superintendent/src/cli.ts builder run <doc>
+npx tsx packages/superintendent/src/cli.ts inspector list <doc>
+npx tsx packages/superintendent/src/cli.ts inspector run <doc> [name]
+```
+
+Behavior notes:
+
+- `run` starts the full loop and uses the live dashboard in terminal output.
+- `run --agent ...` overrides the configured builder agent for that execution only.
+- `validate` checks frontmatter, supported prompt variables, and the Task Board shape.
+- `complete` force-transitions the document status to `completed`.
+- `builder run` executes only the builder role.
+- `inspector run` executes one named inspector, or all configured inspectors when `name` is omitted.
+
+## MCP tool names
+
+MCP server entrypoint:
 
 ```sh
 npx tsx packages/superintendent/src/mcp.ts
 ```
 
-Installed MCP binary:
+Installed binary:
 
 ```sh
 poe-superintendent-mcp
 ```
 
-## SDK
+Exposed server tools:
 
-Current SDK exports the placeholder command groups:
+- `superintendent.run`
+- `superintendent.validate`
+- `superintendent.complete`
+- `superintendent.builder.run`
+- `superintendent.inspector.list`
+- `superintendent.inspector.run`
+
+Runtime-injected workflow tool:
+
+- `workflow.transition` — injected automatically for superintendent/owner runs when the current state allows transitions
+
+`superintendent.run` uses the same runtime loop as the CLI command, but the MCP surface runs without the interactive dashboard.
+
+## SDK API summary
+
+Import from the package root:
+
+```ts
+import {
+  parseSuperintendentDoc,
+  updateStatus,
+  transitionState,
+  incrementRound,
+  parseTaskBoard,
+  hasTaskBoard,
+  runLoop,
+  runBuilder,
+  runInspector,
+  runAllInspectors,
+  resolveTemplate,
+  createLoopState,
+  applyTransition,
+  isComplete,
+  superintendentGroup
+} from "@poe-code/superintendent";
+```
+
+### Document
+
+- `parseSuperintendentDoc`
+- `updateStatus`
+- `transitionState`
+- `incrementRound`
+- `parseTaskBoard`
+- `hasTaskBoard`
+- types: `SuperintendentDoc`, `SuperintendentFrontmatter`, `StatusBlock`, `TaskBoard`, `TaskItem`
+
+### Runtime
+
+- `runLoop`
+- `runBuilder`
+- `runInspector`
+- `runAllInspectors`
+- `resolveTemplate`
+- types: `LoopCallbacks`, `BuilderResult`, `InspectorResult`, `TemplateContext`
+
+### State
+
+- `createLoopState`
+- `applyTransition`
+- `isComplete`
+
+### Testing
+
+Re-exported from `./testing/index.js`:
+
+- `createSuperintendentSimulation`
+- `successTurn`
+- `failTurn`
+- `builderTurn`
+- `inspectorTurn`
+- `superintendentTurn`
+- `ownerApproveTurn`
+- `ownerRejectTurn`
+
+### Commands
 
 - `superintendentGroup`
-- `builderGroup`
-- `inspectorGroup`
 
 ## Environment variables
 
-This scaffold does not currently read or expose any package-specific environment variables.
+There are no superintendent-specific environment variables.
 
-## Config options
+The package does respect these generic runtime variables:
 
-This scaffold does not currently expose package-specific configuration options.
-Future document frontmatter and runtime options will be documented here as they are implemented.
+- `HOME` / `USERPROFILE` — used when resolving workflow-relative document paths for `run`
+- `EDITOR` / `VISUAL` — used by the dashboard edit action; falls back to `vi`
+
+## Configuration options
+
+Configuration lives in the superintendent markdown document frontmatter.
+
+### Required document shape
+
+```yaml
+---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: |
+    Build {{plan.path}}
+superintendent:
+  agent: claude-code
+  prompt: |
+    Review {{builder.summary}}
+owner:
+  agent: claude-code
+  prompt: |
+    Approve {{superintendent.summary}}
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+# Plan
+
+## Task Board
+
+- [ ] First task
+```
+
+### Root frontmatter fields
+
+- `kind` — required, must be `superintendent`
+- `version` — required numeric document version
+- `mcp` — optional map of named MCP server definitions
+- `builder` — required builder role config
+- `inspectors` — optional map of inspector role configs keyed by inspector name
+- `superintendent` — required superintendent role config
+- `owner` — required owner role config
+- `max_rounds` — optional number, defaults to `100`
+- `status` — required runtime status block
+
+### `mcp.<name>` config
+
+- `command` — required executable
+- `args` — optional string array of arguments
+
+### Role config
+
+The `builder`, each `inspectors.<name>`, `superintendent`, and `owner` blocks support:
+
+- `agent` — required agent id
+- `mode` — optional spawn mode
+- `prompt` — required prompt template
+- `tools.mcp` — optional list of MCP server names declared under the root `mcp` map
+
+### Status block
+
+- `state` — required: `in_progress`, `review`, or `completed`
+- `round` — required number
+- `review_turn` — required number
+
+### Body requirements
+
+The markdown body must include a `## Task Board` section with checkbox list items:
+
+```md
+## Task Board
+
+- [ ] open task
+- [x] completed task
+```
+
+### Supported prompt template variables
+
+The validator/runtime currently supports:
+
+- `{{plan.path}}`
+- `{{builder.summary}}`
+- `{{builder.log}}`
+- `{{inspectors.<name>}}`
+- `{{superintendent.summary}}`
+- `{{owner.feedback}}`

@@ -1325,7 +1325,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Wire up the MCP entrypoint in `packages/superintendent/src/mcp.ts`:
 
@@ -1367,9 +1367,9 @@ tasks:
   - id: sdk-exports
     title: Finalize SDK exports and package index
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Finalize `packages/superintendent/src/index.ts` with clean SDK exports:

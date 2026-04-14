@@ -1,3 +1,8 @@
+---
+status:
+  state: done
+  iteration: 1
+---
 # Plan: Remove Handlebars Naming and Standardize on Mustache
 
 ## Summary

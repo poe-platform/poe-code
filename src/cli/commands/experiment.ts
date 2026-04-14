@@ -111,7 +111,7 @@ async function loadExperimentTemplates(): Promise<{ skillPlan: string; runYaml: 
 
     const [skillPlan, runYaml] = await Promise.all([
       readFile(path.join(templateRoot, "SKILL_experiment.md"), "utf8"),
-      readFile(path.join(templateRoot, "run.yaml.hbs"), "utf8")
+      readFile(path.join(templateRoot, "run.yaml.mustache"), "utf8")
     ]);
 
     experimentTemplatesCache = { skillPlan, runYaml };

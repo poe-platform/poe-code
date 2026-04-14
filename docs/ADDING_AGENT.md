@@ -23,7 +23,7 @@ Before writing code, determine which features the agent supports. This drives wh
 | **MCP (spawn)** | Pass MCP servers as CLI args at spawn time | claude-code, codex, kimi, opencode |
 | **Skills** | Support global/local skill directories | claude-code, codex, opencode |
 | **Isolated env** | Run inside an isolated home directory for testing | claude-code, codex, kimi, opencode |
-| **Templates** | Handlebars templates for config file generation | codex |
+| **Templates** | Mustache templates for config file generation | codex |
 
 ## Files to touch
 
@@ -48,7 +48,7 @@ Before writing code, determine which features the agent supports. This drives wh
 | 10 | `packages/agent-spawn/src/configs/mcp.ts` | MCP at spawn -- add serializer if needed |
 | 11 | `packages/agent-mcp-config/src/configs.ts` | MCP config -- add to `agentMcpConfigs` |
 | 12 | `packages/agent-skill-config/src/configs.ts` | Skills -- add to `agentSkillConfigs` |
-| 13 | `src/templates/<agent>/` | Templates -- create Handlebars files |
+| 13 | `src/templates/<agent>/` | Templates -- create Mustache files |
 
 ### Tests
 

@@ -15,12 +15,12 @@ import {
   type ServiceInstallDefinition
 } from "../services/service-install.js";
 // Template imports are lazy to avoid breaking tsc output when imported
-// by generate-bin-wrappers.mjs (Node.js can't resolve .hbs as ESM modules)
+// by generate-bin-wrappers.mjs (Node.js can't resolve .mustache as ESM modules)
 const templateImports: Record<string, () => Promise<{ default: string }>> = {
-  "py-poe-spawn/env.hbs": () => import("../templates/py-poe-spawn/env.hbs"),
-  "py-poe-spawn/main.py.hbs": () => import("../templates/py-poe-spawn/main.py.hbs"),
-  "py-poe-spawn/requirements.txt.hbs": () => import("../templates/py-poe-spawn/requirements.txt.hbs"),
-  "codex/config.toml.hbs": () => import("../templates/codex/config.toml.hbs"),
+  "py-poe-spawn/env.mustache": () => import("../templates/py-poe-spawn/env.mustache"),
+  "py-poe-spawn/main.py.mustache": () => import("../templates/py-poe-spawn/main.py.mustache"),
+  "py-poe-spawn/requirements.txt.mustache": () => import("../templates/py-poe-spawn/requirements.txt.mustache"),
+  "codex/config.toml.mustache": () => import("../templates/codex/config.toml.mustache"),
 };
 
 async function loadTemplate(templateId: string): Promise<string> {

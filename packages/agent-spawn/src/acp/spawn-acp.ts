@@ -219,7 +219,6 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
     args: acpConfig.acpArgs,
     cwd: options.cwd ?? process.cwd(),
     env,
-    requestTimeoutMs: 300_000,
     skipAuth: acpConfig.skipAuth ?? false,
     autoApprove: (options.mode ?? "yolo") === "yolo",
   });

@@ -37,7 +37,7 @@
     "codegen:check:python-types": "tsx scripts/generate-agent-spawn-py-types.ts --check",
     "install:py-poe-spawn": "pip install -e packages/py-poe-spawn",
     "predev": "turbo run build --output-logs=none --log-prefix=none --verbosity=0 > /dev/null 2>&1",
-    "dev": "tsx --import ./scripts/register-hbs-loader.mjs src/index.ts",
+    "dev": "tsx --import ./scripts/register-template-loader.mjs src/index.ts",
     "start": "node dist/bin.cjs",
     "dev:bundle": "npm run build && node dist/bin.cjs",
     "test": "turbo run test:unit",

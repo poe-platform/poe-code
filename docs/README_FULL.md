@@ -1232,7 +1232,7 @@ Config not required for isolation (`requiresConfig: false`).
 
 1. Ensure `~/.codex/` directory exists
 2. Backup `~/.codex/config.toml`
-3. Merge TOML using Handlebars template with:
+3. Merge TOML using Mustache template with:
    - `apiKey`, `baseUrl`, `model` (stripped namespace), `reasoningEffort`
 
 **Unconfigure mutations:**
@@ -1942,10 +1942,10 @@ configMutation.prune({
 #### Template Mutations
 
 ```typescript
-// Merge using Handlebars template
+// Merge using Mustache template
 templateMutation.mergeToml({
   target: "~/.codex/config.toml",
-  templateId: "codex/config.toml.hbs",
+  templateId: "codex/config.toml.mustache",
   context: (ctx) => ({
     apiKey: ctx.apiKey,
     baseUrl: ctx.baseUrl,
@@ -2238,7 +2238,7 @@ poe-setup-scripts/
 │   │   ├── command-checks.ts       # Health check infrastructure
 │   │   ├── cli-settings-merge.ts   # Agent CLI settings injection
 │   │   └── execution-context.ts    # Execution context utilities
-│   └── templates/                  # Handlebars templates for configs
+│   └── templates/                  # Mustache templates for configs
 ├── packages/
 │   ├── agent-defs/                 # Agent definitions and metadata
 │   ├── agent-spawn/                # Agent spawning and streaming

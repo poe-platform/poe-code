@@ -6,7 +6,7 @@ import type { FileSystem } from "../../utils/file-system.js";
 import { registerPipelineCommand } from "./pipeline.js";
 import { ValidationError } from "../errors.js";
 import pipelineSkillPlan from "../../templates/pipeline/SKILL_plan.md";
-import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.hbs";
+import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache";
 
 vi.mock("../../sdk/pipeline.js", () => ({
   runPipeline: vi.fn().mockResolvedValue({

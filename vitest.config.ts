@@ -5,12 +5,12 @@ import fs from "fs";
 
 loadTestEnv();
 
-// Plugin to load .hbs and .md files as raw text (like esbuild's text loader)
+// Plugin to load .mustache and .md files as raw text (like esbuild's text loader)
 function rawTextPlugin(): Plugin {
   return {
     name: "raw-text",
     transform(code, id) {
-      if (id.endsWith(".hbs") || id.endsWith(".md") || id.endsWith(".log")) {
+      if (id.endsWith(".mustache") || id.endsWith(".md") || id.endsWith(".log")) {
         // We can just use the code that vitest already read from disk
         return {
           code: `export default ${JSON.stringify(code)};`,

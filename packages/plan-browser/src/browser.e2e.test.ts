@@ -7,7 +7,7 @@ import { TerminalPilot } from "@poe-code/terminal-pilot";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const tsxPath = path.join(repoRoot, "node_modules", ".bin", "tsx");
-const registerLoaderPath = path.join(repoRoot, "scripts", "register-hbs-loader.mjs");
+const registerLoaderPath = path.join(repoRoot, "scripts", "register-template-loader.mjs");
 const cliEntryPath = path.join(repoRoot, "src", "index.ts");
 
 const pilots: TerminalPilot[] = [];

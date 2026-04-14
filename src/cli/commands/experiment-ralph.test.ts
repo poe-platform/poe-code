@@ -8,7 +8,7 @@ import { registerRalphCommand } from "./ralph.js";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import { ValidationError } from "../errors.js";
 import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
-import experimentRunYaml from "../../templates/experiment/run.yaml.hbs";
+import experimentRunYaml from "../../templates/experiment/run.yaml.mustache";
 import { parseFrontmatter } from "../../../packages/ralph/src/frontmatter/frontmatter.js";
 
 const {

@@ -3,7 +3,7 @@ declare module "*.md" {
   export default content;
 }
 
-declare module "*.hbs" {
+declare module "*.mustache" {
   const content: string;
   export default content;
 }

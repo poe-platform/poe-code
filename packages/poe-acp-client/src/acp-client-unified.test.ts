@@ -1955,7 +1955,6 @@ function createHarness(options?: ConstructorParameters<typeof JsonRpcMessageLaye
   const layer = new JsonRpcMessageLayer({
     input,
     output,
-    requestTimeoutMs: 1_000,
     ...options,
   });
 
@@ -2299,20 +2298,6 @@ describe("JsonRpcMessageLayer", () => {
       code: -32000,
       data: { methodId: "api-key" },
     });
-  });
-
-  it("rejects pending requests on timeout", async () => {
-    vi.useFakeTimers();
-
-    const { layer } = createHarness({ requestTimeoutMs: 25 });
-    const pending = expect(layer.sendRequest("slow/method")).rejects.toThrow(
-      'JSON-RPC request "slow/method" timed out after 25ms'
-    );
-
-    await vi.advanceTimersByTimeAsync(25);
-
-    await pending;
-    expect(layer.pendingRequestCount()).toBe(0);
   });
 
   it("returns method_not_found for unregistered request methods", async () => {

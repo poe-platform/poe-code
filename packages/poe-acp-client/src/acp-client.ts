@@ -143,7 +143,6 @@ export interface AcpClientProcessOptions extends AcpClientSharedOptions {
   args?: readonly string[];
   cwd?: string;
   env?: NodeJS.ProcessEnv;
-  requestTimeoutMs?: number;
   firstRequestId?: number;
   spawn?: AcpTransportOptions["spawn"];
 }
@@ -317,7 +316,6 @@ export class AcpClient {
           args: options.args,
           cwd: options.cwd,
           env: options.env,
-          requestTimeoutMs: options.requestTimeoutMs,
           firstRequestId: options.firstRequestId,
           spawn: options.spawn,
         });

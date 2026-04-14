@@ -71,13 +71,11 @@ export type ParsedJsonRpcMessage =
 
 export interface JsonRpcRequestOptions {
   id?: RequestId;
-  timeoutMs?: number;
 }
 
 export interface JsonRpcMessageLayerOptions {
   input: Readable;
   output: Writable;
-  requestTimeoutMs?: number;
   firstRequestId?: number;
 }
 
@@ -95,7 +93,6 @@ interface PendingRequest {
   method: string;
   resolve: (value: unknown) => void;
   reject: (reason: unknown) => void;
-  timeout: ReturnType<typeof setTimeout> | null;
 }
 
 interface JsonRpcResponseError extends Error {
@@ -383,19 +380,13 @@ export class JsonRpcMessageLayer {
     JsonRpcNotificationHandler
   >();
   private readonly pending = new Map<RequestId, PendingRequest>();
-  private readonly defaultTimeoutMs: number;
   private nextRequestId: number;
   private disposed = false;
 
   constructor(options: JsonRpcMessageLayerOptions) {
     this.input = options.input;
     this.output = options.output;
-    this.defaultTimeoutMs = options.requestTimeoutMs ?? 30_000;
     this.nextRequestId = options.firstRequestId ?? 1;
-
-    if (!Number.isFinite(this.defaultTimeoutMs) || this.defaultTimeoutMs < 0) {
-      throw new Error("requestTimeoutMs must be a non-negative finite number");
-    }
 
     if (!Number.isFinite(this.nextRequestId)) {
       throw new Error("firstRequestId must be a finite number");
@@ -444,11 +435,6 @@ export class JsonRpcMessageLayer {
       throw new Error(`A request with id ${JSON.stringify(id)} is already pending`);
     }
 
-    const timeoutMs = options.timeoutMs ?? this.defaultTimeoutMs;
-    if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
-      throw new Error("timeoutMs must be a non-negative finite number");
-    }
-
     const request: JsonRpcRequestMessage = {
       jsonrpc: "2.0",
       id,
@@ -460,24 +446,15 @@ export class JsonRpcMessageLayer {
     }
 
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.pending.delete(id);
-        reject(
-          new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`)
-        );
-      }, timeoutMs);
-
       this.pending.set(id, {
         method,
         resolve,
         reject,
-        timeout,
       });
 
       try {
         this.sendMessage(request);
       } catch (error) {
-        clearTimeout(timeout);
         this.pending.delete(id);
         reject(error);
       }
@@ -545,9 +522,6 @@ export class JsonRpcMessageLayer {
     }
 
     this.pending.delete(message.id);
-    if (pending.timeout !== null) {
-      clearTimeout(pending.timeout);
-    }
 
     if ("error" in message) {
       pending.reject(toResponseError(message.error));
@@ -600,9 +574,6 @@ export class JsonRpcMessageLayer {
 
   private rejectAllPending(error: Error): void {
     for (const pending of this.pending.values()) {
-      if (pending.timeout !== null) {
-        clearTimeout(pending.timeout);
-      }
       pending.reject(error);
     }
 

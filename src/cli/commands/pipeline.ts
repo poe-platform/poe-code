@@ -162,7 +162,7 @@ async function loadPipelineTemplates(): Promise<{
 
     const [skillPlan, steps] = await Promise.all([
       readFile(path.join(templateRoot, "SKILL_plan.md"), "utf8"),
-      readFile(path.join(templateRoot, "steps.yaml.hbs"), "utf8")
+      readFile(path.join(templateRoot, "steps.yaml.mustache"), "utf8")
     ]);
 
     pipelineTemplatesCache = { skillPlan, steps };

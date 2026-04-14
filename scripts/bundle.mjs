@@ -109,7 +109,7 @@ await esbuild.build({
   banner: undefined,
   sourcemap: true,
   plugins: [stripShebangPlugin],
-  loader: { ".md": "text", ".hbs": "text", ".log": "text" },
+  loader: { ".md": "text", ".mustache": "text", ".log": "text" },
 });
 
 const providerEntryPoints = await getProviderEntryPoints(rootDir);
@@ -127,7 +127,7 @@ if (providerEntryPoints.length > 0) {
     banner: undefined,
     sourcemap: true,
     plugins: [stripShebangPlugin],
-    loader: { ".md": "text", ".hbs": "text", ".log": "text" },
+    loader: { ".md": "text", ".mustache": "text", ".log": "text" },
   });
 }
 
@@ -152,8 +152,8 @@ await Promise.all([
     path.join(pipelineTemplateDir, "SKILL_plan.md")
   ),
   copyFile(
-    path.join(rootDir, "src", "templates", "pipeline", "steps.yaml.hbs"),
-    path.join(pipelineTemplateDir, "steps.yaml.hbs")
+    path.join(rootDir, "src", "templates", "pipeline", "steps.yaml.mustache"),
+    path.join(pipelineTemplateDir, "steps.yaml.mustache")
   ),
   copyFile(
     path.join(rootDir, "packages", "poe-agent", "src", "SYSTEM_PROMPT.md"),

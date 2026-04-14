@@ -165,7 +165,7 @@ export const codexService = createProvider<
       }),
       templateMutation.mergeToml({
         target: "~/.codex/config.toml",
-        templateId: "codex/config.toml.hbs",
+        templateId: "codex/config.toml.mustache",
         context: (ctx) => {
           const options = ctx as unknown as CodexConfigureContext;
           const model = options.model ?? DEFAULT_CODEX_MODEL;

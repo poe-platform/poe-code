@@ -110,7 +110,6 @@ export interface AcpTransportOptions {
   args?: readonly string[];
   cwd?: string;
   env?: NodeJS.ProcessEnv;
-  requestTimeoutMs?: number;
   firstRequestId?: number;
   spawn?: SpawnFunction;
 }
@@ -139,7 +138,6 @@ export class AcpTransport {
       args = [],
       cwd,
       env,
-      requestTimeoutMs,
       firstRequestId,
       spawn = spawnChildProcess,
     } = options;
@@ -168,7 +166,6 @@ export class AcpTransport {
     this.layer = new JsonRpcMessageLayer({
       input: this.child.stdout,
       output: this.child.stdin,
-      requestTimeoutMs,
       firstRequestId,
     });
 

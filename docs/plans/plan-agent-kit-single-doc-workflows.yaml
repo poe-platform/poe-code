@@ -412,7 +412,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ── Phase 5: Document workflow foundation ──
 
@@ -470,9 +470,9 @@ tasks:
       - onFailure "continue" returns success: false on error
       - Abort signal forwarded
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: document-runner

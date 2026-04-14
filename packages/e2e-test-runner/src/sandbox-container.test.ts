@@ -131,7 +131,7 @@ describe('createSandboxContainer', () => {
       'sandbox-bin',
       expect.any(Array),
       expect.objectContaining({
-        cwd: '/workspace',
+        cwd: `${container.home}/workspace`,
         env: expect.objectContaining({
           HOME: container.home,
         }),

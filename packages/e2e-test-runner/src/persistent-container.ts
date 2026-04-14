@@ -367,6 +367,7 @@ export async function createPersistentContainer(
   return {
     id: containerId,
     home: CONTAINER_HOME,
+    workspace: MOUNT_TARGET,
 
     destroy: async () => {
       spawnSync(engine, ['rm', '-f', containerId], { stdio: 'ignore' });

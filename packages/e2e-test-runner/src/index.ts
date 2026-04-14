@@ -8,7 +8,7 @@ export { createSandboxContainer } from './sandbox-container.js';
 export { createBackendContainer, resolveBackend } from './backend.js';
 export { rotateLogs } from './log-rotation.js';
 export { getApiKey } from './credentials.js';
-export { runPreflight, formatPreflightResults } from './preflight.js';
+export { runPreflight, formatPreflightResults, type PreflightEnvironment } from './preflight.js';
 export { useContainer } from './use-container.js';
 export { CapturedRequests } from './proxy-requests.js';
 export { shellQuote } from './shell-quote.js';

@@ -30,23 +30,32 @@ export interface RunPreflightOptions {
   verbose?: boolean;
 }
 
+export interface PreflightEnvironment {
+  backend: Backend;
+  workspace: string;
+  home: string;
+}
+
 export async function runPreflight(
   options: RunPreflightOptions = {},
-): Promise<{ passed: boolean; results: CheckResult[] }> {
+): Promise<{ passed: boolean; results: CheckResult[]; environment: PreflightEnvironment }> {
   const results: CheckResult[] = [];
   const backend = options.backend ?? resolveBackend();
+  const home = join(tmpdir(), 'poe-e2e-<id>');
+  const workspace = join(home, 'workspace');
+  const environment: PreflightEnvironment = { backend, workspace, home };
 
   if (backend === 'podman') {
     const engineCheck = checkPodmanInstalled();
     results.push(engineCheck);
     if (!engineCheck.passed) {
-      return { passed: false, results };
+      return { passed: false, results, environment };
     }
 
     const daemonCheck = checkPodmanRunning();
     results.push(daemonCheck);
     if (!daemonCheck.passed) {
-      return { passed: false, results };
+      return { passed: false, results, environment };
     }
   }
 
@@ -54,26 +63,26 @@ export async function runPreflight(
     const sandboxCheck = checkSandboxRuntime();
     results.push(sandboxCheck);
     if (!sandboxCheck.passed) {
-      return { passed: false, results };
+      return { passed: false, results, environment };
     }
   }
 
   const apiKeyCheck = await checkApiKey();
   results.push(apiKeyCheck);
   if (!apiKeyCheck.passed) {
-    return { passed: false, results };
+    return { passed: false, results, environment };
   }
 
   if (backend === 'env' || backend === 'sandbox') {
     const isolatedChecks = await runIsolatedHostChecks();
     results.push(isolatedChecks.agentCheck);
     if (!isolatedChecks.agentCheck.passed) {
-      return { passed: false, results };
+      return { passed: false, results, environment };
     }
 
     results.push(isolatedChecks.toolsCheck);
     if (!isolatedChecks.toolsCheck.passed) {
-      return { passed: false, results };
+      return { passed: false, results, environment };
     }
   }
 
@@ -88,7 +97,7 @@ export async function runPreflight(
     }
   }
 
-  return { passed: true, results };
+  return { passed: true, results, environment };
 }
 
 function checkPodmanInstalled(): CheckResult {
@@ -297,8 +306,17 @@ export async function cleanupOrphans(engine: Engine = 'podman'): Promise<number>
   }
 }
 
-export function formatPreflightResults(results: CheckResult[]): string {
+export function formatPreflightResults(results: CheckResult[], environment?: PreflightEnvironment): string {
   const lines: string[] = [];
+
+  if (environment) {
+    lines.push(chalk.bold('Environment:'));
+    lines.push(`  backend:   ${chalk.cyan(environment.backend)}`);
+    lines.push(`  workspace: ${chalk.cyan(environment.workspace)}`);
+    lines.push(`  home:      ${chalk.cyan(environment.home)}`);
+    lines.push('');
+  }
+
   lines.push(chalk.bold('Preflight checks:'));
 
   for (const result of results) {

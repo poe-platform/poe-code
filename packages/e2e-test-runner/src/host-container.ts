@@ -23,7 +23,7 @@ const PROXY_ROUTE_PATH = '/v1/chat/completions';
 const PROXY_ROUTE_TARGET = 'https://api.poe.com';
 const PROXY_CAPTURE_FILE = 'proxy-capture.jsonl';
 const REMOVE_HOME_MAX_ATTEMPTS = 4;
-const REMOVE_HOME_RETRY_DELAY_MS = 25;
+const REMOVE_HOME_RETRY_DELAY_MS = 250;
 
 export interface HostExecCommand {
   bin: string;
@@ -47,6 +47,29 @@ function isRetryableRemoveError(error: unknown): boolean {
   return error.code === 'ENOTEMPTY' || error.code === 'EBUSY';
 }
 
+function killProcessesUsingHome(home: string): void {
+  try {
+    const output = spawnSync('lsof', ['+D', home], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 5000,
+    });
+    if (!output.stdout) return;
+
+    const pids = new Set<number>();
+    for (const line of output.stdout.split('\n').slice(1)) {
+      const pid = parseInt(line.split(/\s+/)[1], 10);
+      if (pid > 0 && pid !== process.pid) {
+        pids.add(pid);
+      }
+    }
+
+    for (const pid of pids) {
+      try { process.kill(pid, 'SIGKILL'); } catch { /* already gone */ }
+    }
+  } catch { /* lsof not available or failed */ }
+}
+
 async function removeHomeDirectory(home: string): Promise<void> {
   for (let attempt = 1; attempt <= REMOVE_HOME_MAX_ATTEMPTS; attempt += 1) {
     try {
@@ -57,6 +80,7 @@ async function removeHomeDirectory(home: string): Promise<void> {
         throw error;
       }
 
+      killProcessesUsingHome(home);
       await new Promise((resolve) => {
         setTimeout(resolve, REMOVE_HOME_RETRY_DELAY_MS * attempt);
       });
@@ -135,11 +159,11 @@ function commandExists(command: string, env: NodeJS.ProcessEnv, cwd: string): bo
 
 function buildExecEnv(
   home: string,
-  workspace: string,
+  repoDir: string,
   apiKey: string,
   proxyBaseUrl?: string,
 ): NodeJS.ProcessEnv {
-  const path = `${home}/.local/bin:${home}/.npm-global/bin:${workspace}/node_modules/.bin:${process.env.PATH ?? ''}`;
+  const path = `${home}/.local/bin:${home}/.npm-global/bin:${repoDir}/node_modules/.bin:${process.env.PATH ?? ''}`;
 
   return {
     ...process.env,
@@ -162,8 +186,10 @@ interface ProxyState {
   mode: SnapshotMode;
 }
 
-async function runPreflight(home: string, workspace: string): Promise<string> {
-  const homeEntries = await readdir(home);
+async function runPreflight(home: string, repoDir: string): Promise<string> {
+  const homeEntries = await readdir(home).then(
+    entries => entries.filter(e => e !== 'workspace'),
+  );
   if (homeEntries.length !== 0) {
     throw new Error(`Expected fresh HOME to be empty, found: ${homeEntries.join(', ')}`);
   }
@@ -187,9 +213,9 @@ async function runPreflight(home: string, workspace: string): Promise<string> {
     throw new Error('No API key available. Set POE_API_KEY environment variable.');
   }
 
-  const env = buildExecEnv(home, workspace, apiKey);
+  const env = buildExecEnv(home, repoDir, apiKey);
   for (const command of ['node', 'npm', 'uv']) {
-    if (!commandExists(command, env, workspace)) {
+    if (!commandExists(command, env, repoDir)) {
       throw new Error(`Required tool "${command}" is not available on PATH.`);
     }
   }
@@ -233,10 +259,12 @@ export async function createHostContainer(
     throw new Error('useSnapshots requires testName');
   }
 
-  const workspace = getWorkspaceDir() ?? process.cwd();
   const home = await mkdtemp(TEMP_HOME_PREFIX);
+  const workspace = join(home, 'workspace');
+  await mkdir(workspace, { recursive: true });
+  const repoDir = getWorkspaceDir() ?? process.cwd();
   const snapshotDir = useSnapshots && options.testName
-    ? resolve(workspace, E2E_FIXTURES_DIR, options.testName)
+    ? resolve(repoDir, E2E_FIXTURES_DIR, options.testName)
     : null;
   const wantRecording = useSnapshots && (
     process.env.POE_SNAPSHOT_MODE === 'record' ||
@@ -264,7 +292,7 @@ export async function createHostContainer(
     env: NodeJS.ProcessEnv;
   }> {
     if (!preflightComplete) {
-      apiKey = await runPreflight(home, workspace);
+      apiKey = await runPreflight(home, repoDir);
       preflightComplete = true;
     }
     if (!apiKey) {
@@ -277,7 +305,7 @@ export async function createHostContainer(
       apiKey,
       env: buildExecEnv(
         home,
-        workspace,
+        repoDir,
         apiKey,
         proxyState.server?.url,
       ),
@@ -333,6 +361,7 @@ export async function createHostContainer(
   return {
     id: basename(home),
     home,
+    workspace,
 
     async destroy() {
       if (proxyState.server !== null) {

@@ -89,7 +89,7 @@ describe('createEnvContainer', () => {
     const container = await createEnvContainer();
 
     expect(container.home).toMatch(/^\/tmp\/poe-e2e-/);
-    await expect(readdir(container.home)).resolves.toEqual([]);
+    await expect(readdir(container.home)).resolves.toEqual(['workspace']);
   });
 
   it('spawns commands with sandbox env vars', async () => {
@@ -123,7 +123,7 @@ describe('createEnvContainer', () => {
       'sh',
       ['-c', 'echo hello'],
       expect.objectContaining({
-        cwd: '/workspace',
+        cwd: `${container.home}/workspace`,
         env: expect.objectContaining({
           HOME: container.home,
           XDG_CONFIG_HOME: `${container.home}/.config`,

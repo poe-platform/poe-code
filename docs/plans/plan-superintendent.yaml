@@ -635,7 +635,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Implement `packages/superintendent/src/runtime/loop.ts`.
 
@@ -727,9 +727,9 @@ tasks:
   - id: simulation-infra
     title: Build simulation test infrastructure
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Create `packages/superintendent/src/testing/simulation.ts` and

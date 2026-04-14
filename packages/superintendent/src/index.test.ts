@@ -24,4 +24,19 @@ describe("@poe-code/superintendent package exports", () => {
     expect(pkg.inspectorGroup).toBe(inspectorGroupMock);
     expect(pkg.superintendentGroup).toBe(superintendentGroupMock);
   });
+
+  it("re-exports the testing helpers for external consumers", async () => {
+    const pkg = await import("./index.js");
+
+    expect(pkg).toMatchObject({
+      createSuperintendentSimulation: expect.any(Function),
+      successTurn: expect.any(Function),
+      failTurn: expect.any(Function),
+      builderTurn: expect.any(Function),
+      inspectorTurn: expect.any(Function),
+      superintendentTurn: expect.any(Function),
+      ownerApproveTurn: expect.any(Function),
+      ownerRejectTurn: expect.any(Function)
+    });
+  });
 });

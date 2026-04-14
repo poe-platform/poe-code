@@ -1,5 +1,6 @@
 export interface RalphFileStat {
   isFile(): boolean;
+  isDirectory(): boolean;
   mtimeMs: number;
 }
 
@@ -9,6 +10,7 @@ export interface RalphFileSystem {
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<RalphFileStat>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  rmdir(path: string): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;
 }
 

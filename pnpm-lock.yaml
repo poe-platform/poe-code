@@ -443,6 +443,9 @@ importers:
       '@poe-code/agent-defs':
         specifier: '*'
         version: link:../agent-defs
+      '@poe-code/agent-kit':
+        specifier: '*'
+        version: link:../agent-kit
       '@poe-code/config-extends':
         specifier: '*'
         version: link:../config-extends

@@ -391,4 +391,46 @@ describe("runDocumentWorkflow", () => {
       [1, "completed"]
     ]);
   });
+
+  it("awaits async iteration callbacks before continuing", async () => {
+    const events: string[] = [];
+    const options = createOptions({
+      frontmatter: {
+        participants: {
+          default: {
+            agent: "claude",
+            mode: "edit"
+          }
+        },
+        stages: [
+          {
+            id: "draft",
+            participant: "default",
+            prompt: "Draft changes"
+          }
+        ],
+        max_iterations: 1
+      },
+      runAgent: vi.fn(async () => {
+        events.push("run");
+        return { exitCode: 0 };
+      }),
+      onIterationStart: ((iteration: number) =>
+        Promise.resolve().then(() => {
+          events.push(`start:${iteration}`);
+        })) as unknown as (iteration: number) => void,
+      onIterationEnd: ((iteration: number, result: IterationResult) =>
+        Promise.resolve().then(() => {
+          events.push(`end:${iteration}:${result}`);
+        })) as unknown as (iteration: number, result: IterationResult) => void
+    });
+
+    await runDocumentWorkflow(options);
+
+    expect(events).toEqual([
+      "start:0",
+      "run",
+      "end:0:completed"
+    ]);
+  });
 });

@@ -16,12 +16,15 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/ralph/src",
+    "test:unit": "cd ../.. && vitest run packages/ralph/src"
   },
   "files": [
     "dist"
   ],
   "dependencies": {
+    "@poe-code/agent-kit": "*",
     "@poe-code/agent-defs": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/design-system": "*",

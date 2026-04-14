@@ -1,5 +1,6 @@
 import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
+import { resolveWorkflowPath } from "@poe-code/agent-kit";
 import { runRalph } from "../run/ralph.js";
 import type {
   AgentRunInput,
@@ -48,17 +49,6 @@ export type SimulationResult = {
   readFile: (filePath: string) => Promise<string>;
 };
 
-function resolveAbsolutePath(
-  filePath: string,
-  cwd: string,
-  homeDir: string
-): string {
-  if (filePath.startsWith("~/")) {
-    return path.join(homeDir, filePath.slice(2));
-  }
-  return path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
-}
-
 function createSimulationFs(options: SimulationOptions): {
   fs: SimulationFs;
   docPath: string;
@@ -69,7 +59,7 @@ function createSimulationFs(options: SimulationOptions): {
   const cwd = "/repo";
   const homeDir = "/home/test";
   const docPath = options.docPath ?? ".poe-code/ralph/plans/plan.md";
-  const absoluteDocPath = resolveAbsolutePath(docPath, cwd, homeDir);
+  const absoluteDocPath = resolveWorkflowPath(docPath, cwd, homeDir);
   const files: Record<string, string> = {
     [absoluteDocPath]: options.docContent ?? "Run the loop",
     ...Object.fromEntries(
@@ -94,11 +84,15 @@ function createSimulationFs(options: SimulationOptions): {
       const stat = await rawFs.stat(filePath);
       return {
         isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
         mtimeMs: Number(stat.mtimeMs)
       };
     },
     mkdir: async (filePath, options) => {
       await rawFs.mkdir(filePath, options);
+    },
+    rmdir: async (filePath) => {
+      await rawFs.rmdir(filePath);
     },
     rename: async (oldPath, newPath) => {
       await rawFs.mkdir(path.dirname(newPath), { recursive: true });

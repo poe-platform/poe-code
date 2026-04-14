@@ -25,6 +25,7 @@ function createFs(files: Record<string, string>) {
       const stat = await rawFs.stat(filePath);
       return {
         isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
         mtimeMs: Number(stat.mtimeMs)
       };
     }
@@ -52,11 +53,15 @@ function createRunFs(files: Record<string, string>) {
         const stat = await rawFs.stat(filePath);
         return {
           isFile: () => stat.isFile(),
+          isDirectory: () => stat.isDirectory(),
           mtimeMs: Number(stat.mtimeMs)
         };
       },
       mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
         await rawFs.mkdir(filePath, options);
+      },
+      rmdir: async (filePath: string) => {
+        await rawFs.rmdir(filePath);
       },
       rename: async (oldPath: string, newPath: string) => {
         await rawFs.mkdir(path.dirname(newPath), {
@@ -138,6 +143,26 @@ describe("discoverDocs", () => {
         fs
       })
     ).resolves.toEqual([]);
+  });
+
+  it("prefers the local doc when local and global docs share the same file name", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/ralph/plans/shared.md": "# local",
+      "/home/test/.poe-code/ralph/plans/shared.md": "# global"
+    });
+
+    await expect(
+      discoverDocs({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs
+      })
+    ).resolves.toEqual([
+      {
+        path: ".poe-code/ralph/plans/shared.md",
+        displayPath: ".poe-code/ralph/plans/shared.md"
+      }
+    ]);
   });
 
   it("scans only the custom planDirectory when provided", async () => {
@@ -864,6 +889,36 @@ describe("createRalphSimulation", () => {
     );
     const { body } = parseFrontmatter(archived);
     expect(body).toBe("Fix {{ current_file }}");
+  });
+
+  it("holds an agent-kit workflow lock while the iteration is running", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": "# Plan"
+    });
+    const runAgent = vi.fn(async () => {
+      const stat = await rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock");
+      expect(stat.isDirectory()).toBe(true);
+      return {
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      };
+    });
+
+    await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: ".poe-code/ralph/plans/plan.md",
+      maxIterations: 1,
+      fs,
+      runAgent
+    });
+
+    await expect(
+      rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock")
+    ).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("stops on first failed iteration", async () => {

@@ -1,5 +1,9 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
+import {
+  discoverWorkflowDocs,
+  resolveWorkflowPath
+} from "@poe-code/agent-kit";
 import type { RalphFileStat } from "../types.js";
 
 type DiscoveryFs = {
@@ -14,6 +18,7 @@ function createDefaultFs(): DiscoveryFs {
       const stat = await fsPromises.stat(filePath);
       return {
         isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
     }
@@ -71,6 +76,67 @@ async function scanDir(
   return docs;
 }
 
+function toDisplayPath(options: {
+  absolutePath: string;
+  cwd: string;
+  homeDir: string;
+}): string {
+  const localDir = path.join(options.cwd, ".poe-code", "ralph", "plans");
+  const globalDir = path.join(options.homeDir, ".poe-code", "ralph", "plans");
+
+  if (options.absolutePath.startsWith(`${localDir}${path.sep}`)) {
+    return path.join(
+      ".poe-code/ralph/plans",
+      path.relative(localDir, options.absolutePath)
+    );
+  }
+
+  if (options.absolutePath.startsWith(`${globalDir}${path.sep}`)) {
+    return path.join(
+      "~/.poe-code/ralph/plans",
+      path.relative(globalDir, options.absolutePath)
+    );
+  }
+
+  return options.absolutePath;
+}
+
+async function scanCustomDir(
+  fs: DiscoveryFs,
+  planDirectory: string,
+  cwd: string,
+  homeDir: string
+): Promise<Array<{ path: string; displayPath: string }>> {
+  const absoluteDir = resolveWorkflowPath(planDirectory, cwd, homeDir);
+  return scanDir(fs, absoluteDir, planDirectory);
+}
+
+async function scanDefaultDirs(
+  fs: DiscoveryFs,
+  cwd: string,
+  homeDir: string
+): Promise<Array<{ path: string; displayPath: string }>> {
+  const docs = await discoverWorkflowDocs({
+    cwd,
+    homeDir,
+    subDirectory: "ralph/plans",
+    fs
+  });
+
+  return docs.map((absolutePath) => {
+    const displayPath = toDisplayPath({
+      absolutePath,
+      cwd,
+      homeDir
+    });
+
+    return {
+      path: displayPath,
+      displayPath
+    };
+  });
+}
+
 export async function discoverDocs(options: {
   cwd: string;
   homeDir: string;
@@ -91,42 +157,4 @@ export async function discoverDocs(options: {
       ? left.displayPath.localeCompare(right.displayPath)
       : leftName.localeCompare(rightName);
   });
-}
-
-async function scanCustomDir(
-  fs: DiscoveryFs,
-  planDirectory: string,
-  cwd: string,
-  homeDir: string
-): Promise<Array<{ path: string; displayPath: string }>> {
-  const absoluteDir = resolveAbsoluteDirectory(planDirectory, cwd, homeDir);
-  const displayDir = planDirectory;
-  return scanDir(fs, absoluteDir, displayDir);
-}
-
-async function scanDefaultDirs(
-  fs: DiscoveryFs,
-  cwd: string,
-  homeDir: string
-): Promise<Array<{ path: string; displayPath: string }>> {
-  const [localDocs, globalDocs] = await Promise.all([
-    scanDir(
-      fs,
-      path.join(cwd, ".poe-code", "ralph", "plans"),
-      ".poe-code/ralph/plans"
-    ),
-    scanDir(
-      fs,
-      path.join(homeDir, ".poe-code", "ralph", "plans"),
-      "~/.poe-code/ralph/plans"
-    )
-  ]);
-  return [...localDocs, ...globalDocs];
-}
-
-function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): string {
-  if (dir.startsWith("~/")) {
-    return path.join(homeDir, dir.slice(2));
-  }
-  return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
 }

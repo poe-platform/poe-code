@@ -1,6 +1,14 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
+import {
+  resolveWorkflowPath,
+  runDocumentWorkflow
+} from "@poe-code/agent-kit";
+import {
+  formatAgentSpecifier,
+  parseAgentSpecifier,
+  type AgentSpecifier
+} from "@poe-code/agent-defs";
 import { resolve } from "@poe-code/config-extends";
 import {
   parseFrontmatter,
@@ -16,6 +24,13 @@ import type {
 } from "../types.js";
 import { interpolateVariables } from "../variables/variables.js";
 
+class RalphWorkflowStopError extends Error {
+  constructor(readonly kind: "failed" | "cancelled" | "fatal") {
+    super(`Ralph workflow stopped: ${kind}`);
+    this.name = "RalphWorkflowStopError";
+  }
+}
+
 export async function runRalph(
   options: RalphRunOptions
 ): Promise<RalphRunResult> {
@@ -25,11 +40,209 @@ export async function runRalph(
     throw new Error("runRalph requires a runAgent implementation.");
   }
 
-  const absoluteDocPath = resolveAbsoluteDocPath(
+  const absoluteDocPath = resolveWorkflowPath(
     options.docPath,
     options.cwd,
     options.homeDir
   );
+  const config = await resolveDocumentConfig(options, fs, absoluteDocPath);
+  const workflowFrontmatter = createWorkflowFrontmatter(
+    config.agents,
+    config.maxIterations,
+    config.prompt
+  );
+  const startTime = Date.now();
+  let iterationsCompleted = 0;
+  let currentIterationStart = 0;
+  let stopReason: RalphRunResult["stopReason"] = "max_iterations";
+  let archived = false;
+  let fatalError: unknown;
+  let lastStopKind: RalphWorkflowStopError["kind"] | null = null;
+
+  if (options.signal?.aborted) {
+    await updateFrontmatter(fs, absoluteDocPath, "open", 0);
+    return createRunResult(options.docPath, startTime, 0, "cancelled");
+  }
+
+  try {
+    await runDocumentWorkflow({
+      cwd: options.cwd,
+      homeDir: options.homeDir,
+      docPath: absoluteDocPath,
+      fs,
+      signal: options.signal,
+      readConfig: () => ({
+        frontmatter: workflowFrontmatter,
+        body: config.prompt
+      }),
+      runAgent: async (input) => {
+        const specifier = parseAgentSpecifier(input.agent);
+
+        try {
+          const result = await runAgent({
+            agent: specifier.agent,
+            prompt: input.prompt,
+            cwd: input.cwd,
+            ...(specifier.model ?? input.model
+              ? { model: specifier.model ?? input.model }
+              : {}),
+            ...(input.signal ? { signal: input.signal } : {})
+          });
+
+          if (result.exitCode !== 0) {
+            lastStopKind = "failed";
+            throw new RalphWorkflowStopError("failed");
+          }
+
+          lastStopKind = null;
+          return result;
+        } catch (error) {
+          if (error instanceof RalphWorkflowStopError) {
+            throw error;
+          }
+
+          if (isAbortError(error)) {
+            lastStopKind = "cancelled";
+            throw new RalphWorkflowStopError("cancelled");
+          }
+
+          lastStopKind = "fatal";
+          fatalError = error;
+          throw new RalphWorkflowStopError("fatal");
+        }
+      },
+      onIterationStart: async (iteration) => {
+        currentIterationStart = Date.now();
+
+        if (iteration === 0) {
+          await updateFrontmatter(fs, absoluteDocPath, "in_progress", 0);
+        }
+
+        const currentSpecifier = config.agents[iteration % config.agents.length]!;
+        options.onIterationStart?.(
+          iteration + 1,
+          config.maxIterations,
+          currentSpecifier.agent
+        );
+      },
+      onIterationEnd: async (iteration, result) => {
+        const iterationNumber = iteration + 1;
+        const durationMs = Date.now() - currentIterationStart;
+
+        if (result === "failed") {
+          if (lastStopKind === "failed") {
+            iterationsCompleted = iterationNumber;
+            stopReason = "failed";
+            await updateFrontmatter(
+              fs,
+              absoluteDocPath,
+              "failed",
+              iterationsCompleted
+            );
+            options.onIterationComplete?.(iterationNumber, durationMs, false);
+            return;
+          }
+
+          if (lastStopKind === "cancelled") {
+            stopReason = "cancelled";
+            await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
+            return;
+          }
+
+          return;
+        }
+
+        if (result !== "completed") {
+          return;
+        }
+
+        iterationsCompleted = iterationNumber;
+        options.onIterationComplete?.(iterationNumber, durationMs, true);
+
+        if (options.signal?.aborted) {
+          stopReason = "cancelled";
+          await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
+          return;
+        }
+
+        if (iterationNumber === config.maxIterations) {
+          await updateFrontmatter(
+            fs,
+            absoluteDocPath,
+            "completed",
+            iterationsCompleted
+          );
+          await archivePlan(fs, absoluteDocPath);
+          archived = true;
+          stopReason = "max_iterations";
+          return;
+        }
+
+        await updateFrontmatter(
+          fs,
+          absoluteDocPath,
+          "in_progress",
+          iterationsCompleted
+        );
+      }
+    });
+  } catch (error) {
+    if (fatalError !== undefined) {
+      throw fatalError;
+    }
+
+    if (isAbortError(error)) {
+      stopReason = "cancelled";
+      if (!archived) {
+        await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
+      }
+    } else {
+      throw error;
+    }
+  }
+
+  if (fatalError !== undefined) {
+    throw fatalError;
+  }
+
+  if (stopReason === "max_iterations" && !archived && iterationsCompleted > 0) {
+    await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
+    await archivePlan(fs, absoluteDocPath);
+  } else if (stopReason === "cancelled" && !archived) {
+    await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
+  }
+
+  return createRunResult(
+    options.docPath,
+    startTime,
+    iterationsCompleted,
+    stopReason
+  );
+}
+
+function createRunResult(
+  docPath: string,
+  startTime: number,
+  iterationsCompleted: number,
+  stopReason: RalphRunResult["stopReason"]
+): RalphRunResult {
+  return {
+    stopReason,
+    docPath,
+    iterationsCompleted,
+    totalDurationMs: Date.now() - startTime
+  };
+}
+
+async function resolveDocumentConfig(
+  options: RalphRunOptions,
+  fs: RalphFileSystem,
+  absoluteDocPath: string
+): Promise<{
+  agents: AgentSpecifier[];
+  maxIterations: number;
+  prompt: string;
+}> {
   const rawContent = await fs.readFile(absoluteDocPath, "utf8");
   const resolved = await resolve(
     [
@@ -60,84 +273,58 @@ export async function runRalph(
     ],
     { fs }
   );
+
   const frontmatter = parseFrontmatterData(resolved.data);
-  const agents = normalizeAgents(frontmatter.agent);
-  const maxIterations = normalizeMaxIterations(frontmatter.iterations);
-  const prompt = interpolateVariables(normalizeResolvedPrompt(resolved.data.prompt), {
-    current_file: absoluteDocPath
-  });
-  const startTime = Date.now();
-  let iterationsCompleted = 0;
 
-  await updateFrontmatter(fs, absoluteDocPath, "in_progress", 0);
+  return {
+    agents: normalizeAgents(frontmatter.agent),
+    maxIterations: normalizeMaxIterations(frontmatter.iterations),
+    prompt: interpolateVariables(normalizeResolvedPrompt(resolved.data.prompt), {
+      current_file: absoluteDocPath
+    })
+  };
+}
 
-  async function finalize(
-    stopReason: RalphRunResult["stopReason"]
-  ): Promise<RalphRunResult> {
-    const status = stopReasonToStatus(stopReason);
-    await updateFrontmatter(fs, absoluteDocPath, status, iterationsCompleted);
-    if (stopReason === "max_iterations" && iterationsCompleted > 0) {
-      await archivePlan(fs, absoluteDocPath);
-    }
-    return {
-      stopReason,
-      docPath: options.docPath,
-      iterationsCompleted,
-      totalDurationMs: Date.now() - startTime
+function createWorkflowFrontmatter(
+  agents: AgentSpecifier[],
+  maxIterations: number,
+  prompt: string
+): {
+  participants: {
+    default: {
+      agent: string | string[];
+      mode: "yolo";
     };
-  }
-
-  try {
-    for (
-      let iteration = 1;
-      iteration <= maxIterations;
-      iteration += 1
-    ) {
-      assertNotAborted(options.signal);
-      const currentSpecifier = agents[(iteration - 1) % agents.length]!;
-      const model = currentSpecifier.model;
-      options.onIterationStart?.(iteration, maxIterations, currentSpecifier.agent);
-
-      const iterationStart = Date.now();
-      let result;
-      try {
-        result = await runAgent({
-          agent: currentSpecifier.agent,
-          prompt,
-          cwd: options.cwd,
-          ...(model ? { model } : {}),
-          ...(options.signal ? { signal: options.signal } : {})
-        });
-      } catch (error) {
-        if (isAbortError(error)) {
-          return finalize("cancelled");
-        }
-        throw error;
-      }
-
-      const success = result.exitCode === 0;
-      iterationsCompleted += 1;
-
-      await updateFrontmatter(fs, absoluteDocPath, "in_progress", iterationsCompleted);
-
-      options.onIterationComplete?.(
-        iteration,
-        Date.now() - iterationStart,
-        success
-      );
-
-      if (!success) {
-        return finalize("failed");
-      }
+  };
+  stages: [
+    {
+      id: "ralph";
+      participant: "default";
+      prompt: string;
+      onFailure: "stop";
     }
-  } catch (error) {
-    if (isAbortError(error)) {
-      return finalize("cancelled");
-    }
-    throw error;
-  }
+  ];
+  max_iterations: number;
+} {
+  const workflowAgents = agents.map((agent) => formatAgentSpecifier(agent));
 
-  return finalize("max_iterations");
+  return {
+    participants: {
+      default: {
+        agent: workflowAgents.length === 1 ? workflowAgents[0]! : workflowAgents,
+        mode: "yolo"
+      }
+    },
+    stages: [
+      {
+        id: "ralph",
+        participant: "default",
+        prompt,
+        onFailure: "stop"
+      }
+    ],
+    max_iterations: maxIterations
+  };
 }
 
 function createDefaultFs(): RalphFileSystem {
@@ -150,11 +337,15 @@ function createDefaultFs(): RalphFileSystem {
       const stat = await fsPromises.stat(filePath);
       return {
         isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       } satisfies RalphFileStat;
     },
     mkdir: async (filePath, options) => {
       await fsPromises.mkdir(filePath, options);
+    },
+    rmdir: async (filePath) => {
+      await fsPromises.rmdir(filePath);
     },
     rename: fsPromises.rename
   };
@@ -173,15 +364,13 @@ function normalizeAgents(
     throw new Error("agent must contain at least one entry.");
   }
 
-  const specifiers = raw.map((entry) => {
+  return raw.map((entry) => {
     const trimmed = entry.trim();
     if (trimmed.length === 0) {
       throw new Error("agent entries must be non-empty strings.");
     }
     return parseAgentSpecifier(trimmed);
   });
-
-  return specifiers;
 }
 
 function resolveCliOverrides(options: RalphRunOptions): Record<string, unknown> {
@@ -209,31 +398,6 @@ function normalizeMaxIterations(iterations: number | undefined): number {
   }
 
   return iterations;
-}
-
-function resolveAbsoluteDocPath(
-  docPath: string,
-  cwd: string,
-  homeDir: string
-): string {
-  if (docPath.startsWith("~/")) {
-    return path.join(homeDir, docPath.slice(2));
-  }
-  return path.isAbsolute(docPath) ? docPath : path.resolve(cwd, docPath);
-}
-
-function assertNotAborted(signal: AbortSignal | undefined): void {
-  if (!signal?.aborted) {
-    return;
-  }
-
-  throw createAbortError();
-}
-
-function createAbortError(): Error {
-  const error = new Error("Ralph run cancelled");
-  error.name = "AbortError";
-  return error;
 }
 
 function isAbortError(error: unknown): boolean {
@@ -291,18 +455,4 @@ async function archivePlan(
   const archivePath = path.join(archiveDir, path.basename(absoluteDocPath));
   await fs.mkdir(archiveDir, { recursive: true });
   await fs.rename(absoluteDocPath, archivePath);
-}
-
-function stopReasonToStatus(
-  stopReason: RalphRunResult["stopReason"]
-): RalphPlanStatus {
-  switch (stopReason) {
-    case "completed":
-    case "max_iterations":
-      return "completed";
-    case "cancelled":
-      return "open";
-    case "failed":
-      return "failed";
-  }
 }

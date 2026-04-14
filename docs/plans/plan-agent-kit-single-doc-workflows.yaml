@@ -572,7 +572,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: ralph-migration
     title: Migrate ralph to use agent-kit shared helpers
@@ -620,7 +620,7 @@ tasks:
       Run `pnpm --filter @poe-code/ralph test`.
       Run `npm run dev -- ralph --help` to verify CLI still works.
     status:
-      implement: open
+      implement: done
       refactor: open
       test: open
       commit: open

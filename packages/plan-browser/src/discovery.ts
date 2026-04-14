@@ -262,6 +262,7 @@ async function discoverRalphPlans(options: {
         const stat = await options.fs.stat(filePath);
         return {
           isFile: () => stat.isFile(),
+          isDirectory: () => stat.isDirectory?.() ?? false,
           mtimeMs: stat.mtimeMs
         };
       }

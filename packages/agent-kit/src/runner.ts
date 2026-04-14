@@ -27,8 +27,11 @@ export interface DocumentWorkflowOptions {
   runAgent: RunAgentFn;
   readConfig: (content: string) => { frontmatter: any; body: string };
   signal?: AbortSignal;
-  onIterationStart?: (iteration: number) => void;
-  onIterationEnd?: (iteration: number, result: IterationResult) => void;
+  onIterationStart?: (iteration: number) => void | Promise<void>;
+  onIterationEnd?: (
+    iteration: number,
+    result: IterationResult
+  ) => void | Promise<void>;
 }
 
 export type IterationResult = "completed" | "nothing_to_run" | "failed";
@@ -248,8 +251,8 @@ export async function runDocumentWorkflow(
     }
 
     if (workflow.maxIterations === 0 || workflow.stages.length === 0) {
-      options.onIterationStart?.(0);
-      options.onIterationEnd?.(0, "nothing_to_run");
+      await options.onIterationStart?.(0);
+      await options.onIterationEnd?.(0, "nothing_to_run");
       return;
     }
 
@@ -257,7 +260,7 @@ export async function runDocumentWorkflow(
 
     for (let iteration = 0; iteration < workflow.maxIterations; iteration += 1) {
       throwIfAborted(options.signal);
-      options.onIterationStart?.(iteration);
+      await options.onIterationStart?.(iteration);
 
       let iterationResult: IterationResult = "completed";
 
@@ -287,7 +290,7 @@ export async function runDocumentWorkflow(
         }
       }
 
-      options.onIterationEnd?.(iteration, iterationResult);
+      await options.onIterationEnd?.(iteration, iterationResult);
 
       if (shouldStop) {
         break;

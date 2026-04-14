@@ -85,7 +85,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/buffer.ts`:
 
@@ -129,9 +129,9 @@ tasks:
   - id: layout
     title: Implement layout calculator
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/layout.ts`:
 

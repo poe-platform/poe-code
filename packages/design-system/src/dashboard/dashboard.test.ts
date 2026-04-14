@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { describe, expect, it } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
+import { computeDashboardLayout } from "./layout.js";
 import type { Rect } from "./types.js";
 
 function readRow(buffer: ScreenBuffer, y: number): string {
@@ -214,5 +215,74 @@ describe("cellToAnsi", () => {
       ch: "A",
       style: { fg: "#ff0000", bg: "#0000ff" }
     })).toBe(chalk.hex("#ff0000").bgHex("#0000ff")("A"));
+  });
+});
+
+describe("computeDashboardLayout", () => {
+  it("produces the expected rects for a standard 80x24 terminal", () => {
+    expect(computeDashboardLayout({ totalWidth: 80, totalHeight: 24 })).toEqual({
+      outerBorder: { x: 0, y: 0, width: 80, height: 24 },
+      leftPane: { x: 1, y: 1, width: 52, height: 20 },
+      rightPane: { x: 54, y: 1, width: 25, height: 20 },
+      divider: { x: 53, top: 1, bottom: 20 },
+      footer: { x: 1, y: 22, width: 78, height: 1 },
+      footerDivider: { y: 21, left: 1, right: 78 }
+    });
+  });
+
+  it("respects a custom right pane width", () => {
+    expect(computeDashboardLayout({
+      totalWidth: 100,
+      totalHeight: 30,
+      rightPaneWidth: 30
+    })).toMatchObject({
+      leftPane: { x: 1, y: 1, width: 67, height: 26 },
+      rightPane: { x: 69, y: 1, width: 30, height: 26 },
+      divider: { x: 68, top: 1, bottom: 26 },
+      footer: { x: 1, y: 28, width: 98, height: 1 },
+      footerDivider: { y: 27, left: 1, right: 98 }
+    });
+  });
+
+  it("keeps the left pane at a minimum width of 20 columns when space is tight", () => {
+    const layout = computeDashboardLayout({ totalWidth: 40, totalHeight: 24 });
+
+    expect(layout.leftPane).toEqual({ x: 1, y: 1, width: 20, height: 20 });
+    expect(layout.divider).toEqual({ x: 21, top: 1, bottom: 20 });
+    expect(layout.rightPane).toEqual({ x: 22, y: 1, width: 17, height: 20 });
+  });
+
+  it("accounts for borders, divider, and footer when calculating heights", () => {
+    const layout = computeDashboardLayout({
+      totalWidth: 80,
+      totalHeight: 12,
+      footerHeight: 2
+    });
+
+    expect(layout.leftPane.height).toBe(7);
+    expect(layout.rightPane.height).toBe(7);
+    expect(layout.footer).toEqual({ x: 1, y: 9, width: 78, height: 2 });
+    expect(layout.footerDivider).toEqual({ y: 8, left: 1, right: 78 });
+    expect(1 + layout.leftPane.height + 1 + layout.footer.height + 1).toBe(12);
+  });
+
+  it("keeps collapsed layouts anchored inside the terminal bounds", () => {
+    expect(computeDashboardLayout({ totalWidth: 0, totalHeight: 0 })).toEqual({
+      outerBorder: { x: 0, y: 0, width: 0, height: 0 },
+      leftPane: { x: 0, y: 0, width: 0, height: 0 },
+      rightPane: { x: 0, y: 0, width: 0, height: 0 },
+      divider: { x: 0, top: 0, bottom: 0 },
+      footer: { x: 0, y: 0, width: 0, height: 0 },
+      footerDivider: { y: 0, left: 0, right: 0 }
+    });
+
+    expect(computeDashboardLayout({ totalWidth: 1, totalHeight: 1 })).toEqual({
+      outerBorder: { x: 0, y: 0, width: 1, height: 1 },
+      leftPane: { x: 0, y: 0, width: 0, height: 0 },
+      rightPane: { x: 0, y: 0, width: 0, height: 0 },
+      divider: { x: 0, top: 0, bottom: 0 },
+      footer: { x: 0, y: 0, width: 0, height: 0 },
+      footerDivider: { y: 0, left: 0, right: 0 }
+    });
   });
 });

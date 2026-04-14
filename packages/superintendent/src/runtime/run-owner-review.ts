@@ -8,8 +8,13 @@ import {
   type WorkflowTransition
 } from "./workflow-tool.js";
 
+type OwnerTransition = Extract<
+  WorkflowTransition,
+  { action: "approve_completion" } | { action: "request_changes" }
+>;
+
 export type OwnerResult = {
-  transition: WorkflowTransition;
+  transition: OwnerTransition;
 };
 
 type AutonomousInput = {
@@ -135,7 +140,7 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
   };
 }
 
-function extractOwnerTransition(result: AutonomousOutput): WorkflowTransition {
+function extractOwnerTransition(result: AutonomousOutput): OwnerTransition {
   const transition = extractTransition(result);
 
   if (transition === undefined) {

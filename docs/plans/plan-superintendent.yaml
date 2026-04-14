@@ -632,9 +632,9 @@ tasks:
   - id: run-loop
     title: Implement the main superintendent run loop
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Implement `packages/superintendent/src/runtime/loop.ts`.

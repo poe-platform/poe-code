@@ -1,0 +1,456 @@
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import { parseSuperintendentDoc } from "./parse.js";
+
+describe("parseSuperintendentDoc", () => {
+  it("parses a valid document with all fields", () => {
+    const content = `---
+kind: superintendent
+version: 1
+mcp:
+  delegate:
+    command: poe-superintendent-mcp
+  plan_browser:
+    command: poe-code
+    args:
+      - plan
+      - list
+builder:
+  agent: claude-code
+  mode: yolo
+  prompt: |
+    Build the next task.
+inspectors:
+  code-quality:
+    agent: codex
+    mode: read
+    prompt: |
+      Review the implementation.
+superintendent:
+  agent: claude-code
+  mode: read
+  tools:
+    mcp:
+      - delegate
+      - plan_browser
+  prompt: |
+    Review the builder output.
+owner:
+  agent: claude-code
+  prompt: |
+    Approve or reject.
+max_rounds: 12
+status:
+  state: review
+  round: 3
+  review_turn: 2
+---
+# Task Board
+
+- [ ] Build the next task
+`;
+
+    const result = parseSuperintendentDoc("plans/feature.md", content);
+
+    expect(result).toEqual({
+      filePath: path.resolve("plans/feature.md"),
+      body: "# Task Board\n\n- [ ] Build the next task\n",
+      frontmatter: {
+        kind: "superintendent",
+        version: 1,
+        mcp: {
+          delegate: {
+            command: "poe-superintendent-mcp"
+          },
+          plan_browser: {
+            command: "poe-code",
+            args: ["plan", "list"]
+          }
+        },
+        builder: {
+          agent: "claude-code",
+          mode: "yolo",
+          prompt: "Build the next task.\n"
+        },
+        inspectors: {
+          "code-quality": {
+            agent: "codex",
+            mode: "read",
+            prompt: "Review the implementation.\n"
+          }
+        },
+        superintendent: {
+          agent: "claude-code",
+          mode: "read",
+          tools: {
+            mcp: ["delegate", "plan_browser"]
+          },
+          prompt: "Review the builder output.\n"
+        },
+        owner: {
+          agent: "claude-code",
+          prompt: "Approve or reject.\n"
+        },
+        max_rounds: 12,
+        status: {
+          state: "review",
+          round: 3,
+          review_turn: 2
+        }
+      }
+    });
+  });
+
+  it("parses a minimal document", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: |
+    Build the next task.
+superintendent:
+  agent: claude-code
+  prompt: |
+    Review the work.
+owner:
+  agent: claude-code
+  prompt: |
+    Approve or reject.
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+## Task Board
+
+- [ ] Ship it
+`;
+
+    const result = parseSuperintendentDoc("/tmp/plan.md", content);
+
+    expect(result.frontmatter.builder).toEqual({
+      agent: "claude-code",
+      prompt: "Build the next task.\n"
+    });
+    expect(result.frontmatter.superintendent).toEqual({
+      agent: "claude-code",
+      prompt: "Review the work.\n"
+    });
+    expect(result.frontmatter.owner).toEqual({
+      agent: "claude-code",
+      prompt: "Approve or reject.\n"
+    });
+    expect(result.frontmatter.inspectors).toBeUndefined();
+    expect(result.frontmatter.mcp).toBeUndefined();
+  });
+
+  it("extracts the markdown body correctly", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: completed
+  round: 4
+  review_turn: 1
+---
+# Heading
+
+Paragraph.
+
+- [x] Done
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.body).toBe("# Heading\n\nParagraph.\n\n- [x] Done\n");
+  });
+
+  it("parses documents prefixed with a UTF-8 BOM", () => {
+    const content = `\uFEFF---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.kind).toBe("superintendent");
+    expect(result.body).toBe("Body\n");
+  });
+
+  it("throws on missing kind field", () => {
+    const content = `---
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/missing `kind` field/i);
+  });
+
+  it("throws when kind is not superintendent", () => {
+    const content = `---
+kind: pipeline
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
+      /kind must be "superintendent"/i
+    );
+  });
+
+  it("throws on invalid YAML", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent: [oops
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/invalid yaml/i);
+  });
+
+  it("throws on a missing frontmatter end delimiter", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/frontmatter end delimiter/i);
+  });
+
+  it.each(["builder", "superintendent", "owner"])(
+    "throws on missing required role %s",
+    (missingRole) => {
+      const sections = {
+        builder: `builder:\n  agent: claude-code\n  prompt: build`,
+        superintendent: `superintendent:\n  agent: claude-code\n  prompt: review`,
+        owner: `owner:\n  agent: claude-code\n  prompt: approve`
+      };
+
+      const content = `---
+kind: superintendent
+version: 1
+${Object.entries(sections)
+  .filter(([role]) => role !== missingRole)
+  .map(([, section]) => section)
+  .join("\n")}
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+      expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
+        new RegExp("missing required role `" + missingRole + "`", "i")
+      );
+    }
+  );
+
+  it("handles optional mcp and inspectors fields", () => {
+    const content = `---
+kind: superintendent
+version: 1
+mcp:
+  repo:
+    command: poe-code
+    args:
+      - plan
+builder:
+  agent: claude-code
+  prompt: build
+inspectors:
+  qa:
+    agent: codex
+    prompt: inspect
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.mcp).toEqual({
+      repo: {
+        command: "poe-code",
+        args: ["plan"]
+      }
+    });
+    expect(result.frontmatter.inspectors).toEqual({
+      qa: {
+        agent: "codex",
+        prompt: "inspect"
+      }
+    });
+  });
+
+  it("defaults max_rounds to 100", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.max_rounds).toBe(100);
+  });
+
+  it("parses the status block correctly", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: completed
+  round: 7
+  review_turn: 4
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.status).toEqual({
+      state: "completed",
+      round: 7,
+      review_turn: 4
+    });
+  });
+
+  it("throws on an unsupported status state", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: queued
+  round: 7
+  review_turn: 4
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
+      /status\.state must be one of/i
+    );
+  });
+});

@@ -10,7 +10,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create the `packages/superintendent` package with this structure:
 
@@ -52,10 +52,10 @@ tasks:
   - id: parse-frontmatter
     title: Implement superintendent document parser
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Implement `packages/superintendent/src/document/parse.ts`.
 

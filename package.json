@@ -40,7 +40,7 @@
     "dev": "tsx --import ./scripts/register-template-loader.mjs src/index.ts",
     "start": "node dist/bin.cjs",
     "dev:bundle": "npm run build && node dist/bin.cjs",
-    "test": "turbo run test:unit",
+    "test": "turbo run test:unit --concurrency=4",
     "test:unit": "vitest run",
     "typecheck": "npm run lint:types",
     "check:semver": "node -e \"const semver=require('semver'); const pkg=require('./package.json'); if(!semver.valid(pkg.version)){console.error('Invalid semver version in package.json:', pkg.version); process.exit(1);}\"",

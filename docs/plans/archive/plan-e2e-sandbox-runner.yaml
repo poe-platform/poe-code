@@ -399,7 +399,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Update `packages/e2e-test-runner/README.md`:
       - Document all three backends (env, sandbox, podman)

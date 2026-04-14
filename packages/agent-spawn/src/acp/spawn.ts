@@ -5,7 +5,7 @@ import { readLines } from "./line-reader.js";
 import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
-import type { CliSpawnConfig, SpawnOptions, SpawnResult } from "../types.js";
+import { resolveModeConfig, type CliSpawnConfig, type SpawnOptions, type SpawnResult } from "../types.js";
 
 function createAbortError(): Error {
   const error = new Error("Agent spawn aborted");
@@ -107,8 +107,8 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     args.push(...mcpArgs);
   }
 
-  const mode = options.mode ?? "yolo";
-  args.push(...spawnConfig.modes[mode]);
+  const modeResolved = resolveModeConfig(spawnConfig.modes[options.mode ?? "yolo"]);
+  args.push(...modeResolved.args);
 
   if (useStdin) {
     args.push(...spawnConfig.stdinMode!.extraArgs);
@@ -118,11 +118,12 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     args.push(...options.args);
   }
 
+  const envOverrides = { ...mcpEnvVars, ...modeResolved.env };
   const child = spawnChildProcess(binaryName, args, {
     cwd: options.cwd,
     stdio: ["pipe", "pipe", "pipe"],
-    env: Object.keys(mcpEnvVars).length > 0
-      ? { ...process.env, ...mcpEnvVars }
+    env: Object.keys(envOverrides).length > 0
+      ? { ...process.env, ...envOverrides }
       : undefined
   });
   let aborted = false;

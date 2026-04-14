@@ -1612,7 +1612,7 @@ describe("goose service", () => {
     expect(provider.name).toBe("custom_poe");
     expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
     expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
-    expect(provider.headers).toEqual({ Authorization: "Bearer sk-goose" });
+    expect(provider.headers).toBeUndefined();
     expect(provider.models).toEqual(buildCustomProviderModelsFixture());
 
     const secrets = parseYaml(await mockFsObj.readFile(secretsPath, "utf8")) as Record<
@@ -1864,6 +1864,99 @@ describe("goose service", () => {
       {
         stdin: "Read from stdin"
       }
+    );
+  });
+
+  it("spawns Goose with MCP server args", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "goose-output\n",
+      stderr: "",
+      exitCode: 0
+    }));
+    const providerContext = createProviderTestContext(runCommand).context;
+
+    await gooseService.gooseService.spawn?.(providerContext, {
+      prompt: "Call the tool",
+      mcpServers: {
+        "my-server": {
+          command: "my-mcp-server",
+          args: ["serve"]
+        }
+      }
+    });
+
+    expect(runCommand).toHaveBeenCalledWith("goose", [
+      "run",
+      "--provider",
+      "custom_poe",
+      "--model",
+      DEFAULT_GOOSE_MODEL,
+      "--output-format",
+      "text",
+      "--with-extension",
+      "my-mcp-server serve",
+      "--text",
+      "Call the tool"
+    ]);
+  });
+
+  it("spawns Goose in edit mode with GOOSE_MODE env var", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "goose-output\n",
+      stderr: "",
+      exitCode: 0
+    }));
+    const providerContext = createProviderTestContext(runCommand).context;
+
+    await gooseService.gooseService.spawn?.(providerContext, {
+      prompt: "Edit the file",
+      mode: "edit"
+    });
+
+    expect(runCommand).toHaveBeenCalledWith(
+      "goose",
+      [
+        "run",
+        "--provider",
+        "custom_poe",
+        "--model",
+        DEFAULT_GOOSE_MODEL,
+        "--output-format",
+        "text",
+        "--text",
+        "Edit the file"
+      ],
+      { env: { GOOSE_MODE: "smart_approve" } }
+    );
+  });
+
+  it("spawns Goose in read mode with GOOSE_MODE env var", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "goose-output\n",
+      stderr: "",
+      exitCode: 0
+    }));
+    const providerContext = createProviderTestContext(runCommand).context;
+
+    await gooseService.gooseService.spawn?.(providerContext, {
+      prompt: "Explain the code",
+      mode: "read"
+    });
+
+    expect(runCommand).toHaveBeenCalledWith(
+      "goose",
+      [
+        "run",
+        "--provider",
+        "custom_poe",
+        "--model",
+        DEFAULT_GOOSE_MODEL,
+        "--output-format",
+        "text",
+        "--text",
+        "Explain the code"
+      ],
+      { env: { GOOSE_MODE: "chat" } }
     );
   });
 

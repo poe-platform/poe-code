@@ -314,9 +314,21 @@ describe("buildSpawnArgs", () => {
       gooseSpawnConfig.promptFlag,
       "hello",
       gooseSpawnConfig.modelFlag!,
-      "openai/gpt-5.4",
-      ...gooseSpawnConfig.modes.yolo
+      "openai/gpt-5.4"
     ]);
+    expect(result.env).toEqual({ GOOSE_MODE: "auto" });
+  });
+
+  it("returns GOOSE_MODE env for goose edit mode", () => {
+    const result = buildSpawnArgs("goose", { prompt: "hello", mode: "edit" });
+
+    expect(result.env).toEqual({ GOOSE_MODE: "smart_approve" });
+  });
+
+  it("returns GOOSE_MODE env for goose read mode", () => {
+    const result = buildSpawnArgs("goose", { prompt: "hello", mode: "read" });
+
+    expect(result.env).toEqual({ GOOSE_MODE: "chat" });
   });
 
   it("builds stdin args for claude-code when useStdin is true", () => {
@@ -458,9 +470,9 @@ describe("buildSpawnArgs", () => {
       "--with-extension",
       "uvx mcp-server-test --port 3000",
       gooseSpawnConfig.promptFlag,
-      "hello",
-      ...gooseSpawnConfig.modes.yolo
+      "hello"
     ]);
+    expect(result.env).toEqual({ GOOSE_MODE: "auto" });
   });
 
   it("throws a clear error when MCP config is passed to unsupported agents", () => {

@@ -13,9 +13,9 @@ export const gooseSpawnConfig: CliSpawnConfig = {
   mcpArgs: serializeGooseMcpArgs,
   mcpArgsPosition: "beforePrompt",
   modes: {
-    yolo: [],
-    edit: [],
-    read: []
+    yolo: { env: { GOOSE_MODE: "auto" } },
+    edit: { env: { GOOSE_MODE: "smart_approve" } },
+    read: { env: { GOOSE_MODE: "chat" } }
   },
   stdinMode: {
     omitPrompt: true,

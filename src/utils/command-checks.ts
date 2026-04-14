@@ -156,7 +156,7 @@ export function createSpawnHealthCheck(
   options: { model?: string; expectedOutput: string }
 ): CommandCheck {
   const prompt = `Output exactly: ${options.expectedOutput}`;
-  const { binaryName, args } = buildSpawnArgs(agentId, {
+  const { binaryName, args, env: modeEnv } = buildSpawnArgs(agentId, {
     prompt,
     model: options.model,
     mode: "yolo"
@@ -172,7 +172,9 @@ export function createSpawnHealthCheck(
         return;
       }
 
-      const result = await context.runCommand(binaryName, args);
+      const result = modeEnv
+        ? await context.runCommand(binaryName, args, { env: modeEnv })
+        : await context.runCommand(binaryName, args);
 
       if (result.exitCode !== 0) {
         throw new Error(

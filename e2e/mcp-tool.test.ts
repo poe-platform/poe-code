@@ -26,6 +26,10 @@ const agents: AgentMcpSpawnTest[] = [
     name: 'kimi',
     expectSpawnSuccess: true,
   },
+  {
+    name: 'goose',
+    expectSpawnSuccess: true,
+  },
 ];
 
 const mcpConfig = shellQuote(JSON.stringify({

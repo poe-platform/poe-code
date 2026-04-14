@@ -2,6 +2,18 @@ import type { AdapterType } from "./adapters/index.js";
 
 export type SpawnMode = "yolo" | "edit" | "read";
 
+export type SpawnModeConfig = string[] | { args?: string[]; env?: Record<string, string> };
+
+export function resolveModeConfig(modeConfig: SpawnModeConfig): { args: string[]; env?: Record<string, string> } {
+  if (Array.isArray(modeConfig)) {
+    return { args: modeConfig };
+  }
+  return {
+    args: modeConfig.args ?? [],
+    env: modeConfig.env && Object.keys(modeConfig.env).length > 0 ? modeConfig.env : undefined
+  };
+}
+
 export interface McpSpawnServer {
   command: string;
   args?: string[];
@@ -75,7 +87,7 @@ export interface CliSpawnConfig {
   promptFlag: string;
   defaultArgs: string[];
   defaultArgsPosition?: "beforePrompt" | "afterPrompt";
-  modes: Record<SpawnMode, string[]>;
+  modes: Record<SpawnMode, SpawnModeConfig>;
   stdinMode?: StdinMode;
   modelFlag?: string;
   /**

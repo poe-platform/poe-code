@@ -2,14 +2,15 @@ import { spawn as spawnChildProcess } from "node:child_process";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
-import type {
-  CliSpawnConfig,
-  McpSpawnConfig,
-  SpawnContext,
-  SpawnMode,
-  SpawnOptions,
-  SpawnResult,
-  StdinMode
+import {
+  resolveModeConfig,
+  type CliSpawnConfig,
+  type McpSpawnConfig,
+  type SpawnContext,
+  type SpawnMode,
+  type SpawnOptions,
+  type SpawnResult,
+  type StdinMode
 } from "./types.js";
 
 function createAbortError(): Error {
@@ -42,6 +43,7 @@ export interface BuildSpawnArgsOptions {
 export interface BuildSpawnArgsResult {
   binaryName: string;
   args: string[];
+  env?: Record<string, string>;
 }
 
 function resolveCliConfig(agentId: string) {
@@ -83,7 +85,7 @@ function buildCliArgs(
   config: CliSpawnConfig,
   options: BuildSpawnArgsOptions,
   stdinMode?: StdinMode
-): string[] {
+): { args: string[]; env?: Record<string, string> } {
   const mcpArgs = getMcpArgs(config, options.mcpServers);
   const defaultArgsPosition = getDefaultArgsPosition(config);
   const mcpArgsPosition = getMcpArgsPosition(config);
@@ -128,13 +130,14 @@ function buildCliArgs(
     args.push(...mcpArgs);
   }
 
-  args.push(...config.modes[options.mode ?? "yolo"]);
+  const mode = resolveModeConfig(config.modes[options.mode ?? "yolo"]);
+  args.push(...mode.args);
 
   if (options.args && options.args.length > 0) {
     args.push(...options.args);
   }
 
-  return args;
+  return { args, env: mode.env };
 }
 
 export function buildSpawnArgs(
@@ -144,7 +147,8 @@ export function buildSpawnArgs(
   const { binaryName, spawnConfig } = resolveCliConfig(agentId);
   const stdinMode =
     options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
-  return { binaryName, args: buildCliArgs(spawnConfig, options, stdinMode) };
+  const result = buildCliArgs(spawnConfig, options, stdinMode);
+  return { binaryName, args: result.args, env: result.env };
 }
 
 export async function spawn(
@@ -161,7 +165,7 @@ export async function spawn(
   const stdinMode =
     options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
 
-  const spawnArgs = buildCliArgs(spawnConfig, options, stdinMode);
+  const { args: spawnArgs, env: modeEnv } = buildCliArgs(spawnConfig, options, stdinMode);
 
   if (context?.dryRun) {
     const rendered = [binaryName, ...spawnArgs].join(" ");
@@ -171,7 +175,8 @@ export async function spawn(
 
   const child = spawnChildProcess(binaryName, spawnArgs, {
     cwd: options.cwd,
-    stdio: [stdinMode ? "pipe" : "inherit", "pipe", "pipe"]
+    stdio: [stdinMode ? "pipe" : "inherit", "pipe", "pipe"],
+    ...(modeEnv ? { env: { ...process.env, ...modeEnv } } : {})
   });
 
   if (!child.stdout || !child.stderr) {

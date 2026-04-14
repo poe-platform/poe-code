@@ -2,7 +2,7 @@ import { spawn as spawnChildProcess } from "node:child_process";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
-import type { SpawnOptions, SpawnResult } from "./types.js";
+import { resolveModeConfig, type SpawnOptions, type SpawnResult } from "./types.js";
 
 export async function spawnInteractive(
   agentId: string,
@@ -56,8 +56,8 @@ export async function spawnInteractive(
   }
   args.push(...getMcpArgs(spawnConfig, options.mcpServers));
 
-  const mode = options.mode ?? "yolo";
-  args.push(...spawnConfig.modes[mode]);
+  const modeResolved = resolveModeConfig(spawnConfig.modes[options.mode ?? "yolo"]);
+  args.push(...modeResolved.args);
 
   if (options.args && options.args.length > 0) {
     args.push(...options.args);
@@ -65,7 +65,8 @@ export async function spawnInteractive(
 
   const child = spawnChildProcess(resolved.binaryName, args, {
     cwd: options.cwd,
-    stdio: "inherit"
+    stdio: "inherit",
+    ...(modeResolved.env ? { env: { ...process.env, ...modeResolved.env } } : {})
   });
 
   return new Promise<SpawnResult>((resolve, reject) => {

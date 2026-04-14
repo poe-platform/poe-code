@@ -7,6 +7,8 @@ export {
   type CommandRunnerResult
 } from "./run-command.js";
 
+export { resolveModeConfig } from "./types.js";
+
 export type {
   AcpSpawnConfig,
   CliSpawnConfig,
@@ -18,6 +20,7 @@ export type {
   McpSpawnConfig,
   McpSpawnServer,
   SpawnMode,
+  SpawnModeConfig,
   SpawnOptions,
   SpawnResult,
   SpawnUsage,
@@ -31,7 +34,7 @@ export {
   listMcpSupportedAgents,
   supportsMcpAtSpawn
 } from "./configs/index.js";
-export { serializeOpenCodeMcpEnv } from "./configs/mcp.js";
+export { serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./configs/mcp.js";
 export {
   buildSpawnArgs,
   isActivityTimeoutError,

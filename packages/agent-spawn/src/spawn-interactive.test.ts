@@ -149,9 +149,11 @@ describe("spawnInteractive", () => {
     expect(command).toBe("goose");
     expect(args).toEqual([
       ...gooseSpawnConfig.interactive!.defaultArgs,
-      "test prompt",
-      ...gooseSpawnConfig.modes.yolo
+      "test prompt"
     ]);
+    const [, , spawnOpts] = spawnMock.mock.calls[0];
+    expect(spawnOpts).toHaveProperty("env");
+    expect(spawnOpts.env).toMatchObject({ GOOSE_MODE: "auto" });
   });
 
   it("includes model flag when model is provided", async () => {

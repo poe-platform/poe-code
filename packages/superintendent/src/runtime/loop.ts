@@ -2,6 +2,7 @@ import * as fsPromises from "node:fs/promises";
 import { lockWorkflow, resolveWorkflowPath } from "@poe-code/agent-kit";
 import { spawn, type McpSpawnConfig } from "@poe-code/agent-spawn";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
+import { parseTaskBoard } from "../document/tasks.js";
 import { updateStatus } from "../document/write.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
 import { runBuilder, type BuilderResult } from "./run-builder.js";
@@ -188,22 +189,17 @@ export async function runLoop(
             }
           }
 
-          options.callbacks.onSuperintendentStart?.();
-          const superintendentSnapshot = await readDocumentContent(options.fs, options.docPath);
-          let superintendentResult: SuperintendentResult;
-          try {
-            superintendentResult = await runSuperintendent(doc, createTemplateContext(context));
-          } catch (error) {
-            await restoreDocument(options.fs, options.docPath, superintendentSnapshot);
-            throw toError(error);
-          }
-          options.callbacks.onSuperintendentComplete?.(superintendentResult);
+          const superintendentResult = await executeSuperintendent(options, doc, context);
           context = {
             ...context,
             superintendentSummary: superintendentResult.summary
           };
 
           if (superintendentResult.transition?.action === "request_review") {
+            context = {
+              ...context,
+              ownerFeedback: undefined
+            };
             state = {
               ...state,
               state: "review",
@@ -217,6 +213,27 @@ export async function runLoop(
           if (state.state === "in_progress") {
             options.callbacks.onRoundComplete?.(state.round);
           }
+
+          if (shouldHalt(options)) {
+            return finishLoop(options.callbacks, state);
+          }
+
+          continue;
+        }
+
+        if (context.ownerFeedback && shouldContinueReview(doc)) {
+          const superintendentResult = await executeSuperintendent(options, doc, context);
+
+          if (superintendentResult.transition?.action !== "request_review") {
+            throw new Error("Superintendent must call request_review to continue a review exchange");
+          }
+
+          context = {
+            ...context,
+            superintendentSummary: superintendentResult.summary,
+            ownerFeedback: undefined
+          };
+          doc = await writeLoopState(options.fs, options.docPath, state);
 
           if (shouldHalt(options)) {
             return finishLoop(options.callbacks, state);
@@ -246,12 +263,15 @@ export async function runLoop(
             ...context,
             ownerFeedback: ownerResult.transition.feedback
           };
-          state = applyOwnerFeedback(state);
+          state = applyOwnerFeedback(state, shouldContinueReview(doc));
         }
 
         emitStateChange(options.callbacks, state);
         doc = await writeLoopState(options.fs, options.docPath, state);
-        options.callbacks.onRoundComplete?.(state.round);
+
+        if (state.state !== "review") {
+          options.callbacks.onRoundComplete?.(state.round);
+        }
 
         if (shouldHalt(options)) {
           return finishLoop(options.callbacks, state);
@@ -376,14 +396,43 @@ function beginRound(state: LoopState): LoopState {
   };
 }
 
-function applyOwnerFeedback(state: LoopState): LoopState {
+function applyOwnerFeedback(state: LoopState, continueReview: boolean): LoopState {
   const nextReviewTurn = state.reviewTurn + 1;
+
+  if (continueReview && nextReviewTurn < state.maxReviewTurns) {
+    return {
+      ...state,
+      state: "review",
+      reviewTurn: nextReviewTurn
+    };
+  }
 
   return {
     ...state,
     state: "in_progress",
-    reviewTurn: nextReviewTurn >= state.maxReviewTurns ? 0 : nextReviewTurn
+    reviewTurn: 0
   };
+}
+
+async function executeSuperintendent(
+  options: LoopRuntime,
+  doc: SuperintendentDoc,
+  context: TemplateLoopContext
+): Promise<SuperintendentResult> {
+  options.callbacks.onSuperintendentStart?.();
+  const snapshot = await readDocumentContent(options.fs, options.docPath);
+  try {
+    const result = await runSuperintendent(doc, createTemplateContext(context));
+    options.callbacks.onSuperintendentComplete?.(result);
+    return result;
+  } catch (error) {
+    await restoreDocument(options.fs, options.docPath, snapshot);
+    throw toError(error);
+  }
+}
+
+function shouldContinueReview(doc: SuperintendentDoc): boolean {
+  return parseTaskBoard(doc.body).allDone;
 }
 
 function emitStateChange(callbacks: LoopCallbacks, state: LoopState): void {

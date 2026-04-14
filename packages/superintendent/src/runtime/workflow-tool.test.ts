@@ -52,21 +52,25 @@ describe("createWorkflowTool", () => {
     });
   });
 
-  it("gives superintendent in review no transitions", () => {
+  it("gives superintendent in review only request_review", () => {
     const tool = createWorkflowTool("superintendent", "review");
 
     expect(tool).toEqual({
       name: "workflow.transition",
-      description: "Transition the workflow state. No transitions are available in the current role/state.",
+      description: "Transition the workflow state. Valid actions: request_review.",
       inputSchema: {
         type: "object",
         additionalProperties: false,
-        required: ["action"],
+        required: ["action", "summary"],
         properties: {
           action: {
             type: "string",
             description: "Workflow transition action to apply.",
-            enum: []
+            enum: ["request_review"]
+          },
+          summary: {
+            type: "string",
+            description: "Summarize why the work is ready for owner review."
           }
         }
       }

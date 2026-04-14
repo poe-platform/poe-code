@@ -113,7 +113,7 @@ function getAllowedActions(
   role: "superintendent" | "owner",
   state: StatusBlock["state"]
 ): Array<WorkflowTransition["action"]> {
-  if (role === "superintendent" && state === "in_progress") {
+  if (role === "superintendent" && (state === "in_progress" || state === "review")) {
     return ["request_review"];
   }
 

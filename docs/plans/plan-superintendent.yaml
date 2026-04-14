@@ -905,7 +905,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.
 
@@ -941,9 +941,9 @@ tasks:
   - id: sim-review-cap
     title: "Simulation: review turn cap forces back to in_progress"
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.

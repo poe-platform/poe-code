@@ -8,7 +8,7 @@ const absoluteDocPath = "/repo/.poe-code/superintendent/plans/happy-path.md";
 function createDoc(
   options: {
     tasksChecked?: boolean;
-    tasks?: [boolean, boolean];
+    tasks?: boolean[];
     builderPrompt?: string;
     inspectorPrompt?: string;
     superintendentPrompt?: string;
@@ -56,8 +56,7 @@ function createDoc(
     "",
     "## Task Board",
     "",
-    `- [${tasks[0] ? "x" : " "}] Task 1`,
-    `- [${tasks[1] ? "x" : " "}] Task 2`,
+    ...tasks.map((task, index) => `- [${task ? "x" : " "}] Task ${index + 1}`),
     ""
   ].join("\n");
 }
@@ -456,5 +455,409 @@ describe("createSuperintendentSimulation", () => {
       { text: "Task 1", done: true },
       { text: "Task 2", done: true }
     ]);
+  });
+
+  it("falls back to in_progress after the fifth owner rejection and completes in round 2", async () => {
+    const round1BuilderSummary = "Checked off Task 1";
+    const round1InspectorSummary = "Looks good";
+    const round1SuperintendentSummary = "Ready for owner review";
+    const reviewFeedback = [
+      "fix formatting",
+      "still not right",
+      "nope",
+      "try again",
+      "no"
+    ];
+    const reviewPhaseSuperintendentSummaries = [
+      "Re-requesting owner review 1",
+      "Re-requesting owner review 2",
+      "Re-requesting owner review 3",
+      "Re-requesting owner review 4"
+    ];
+    const round2BuilderSummary = "Polished Task 1";
+    const round2InspectorSummary = "All good";
+    const round2SuperintendentSummary = "Ready for final owner review";
+    const builderPrompt = "Builder handles {{plan.path}}\nOwner feedback: {{owner.feedback}}";
+    const superintendentPrompt =
+      "Superintendent review owner={{owner.feedback}} builder={{builder.summary}} inspector={{inspectors.code-quality}}";
+    let reviewTurnAfterCap: number | undefined;
+
+    const simulation = createSuperintendentSimulation({
+      docPath,
+      docContent: createDoc({ tasks: [false], builderPrompt, superintendentPrompt }),
+      turns: [
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(absoluteDocPath);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+            expect(parseTaskBoard(doc.body)).toMatchObject({
+              openCount: 1,
+              doneCount: 0,
+              allDone: false
+            });
+          },
+          fileChanges: {
+            [docPath]: createDoc({ tasks: [true], builderPrompt, superintendentPrompt })
+          },
+          output: {
+            stdout: round1BuilderSummary,
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(round1BuilderSummary);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+            expect(parseTaskBoard(doc.body)).toMatchObject({
+              openCount: 0,
+              doneCount: 1,
+              allDone: true
+            });
+          },
+          output: {
+            stdout: round1InspectorSummary,
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(round1BuilderSummary);
+            expect(prompt).toContain(round1InspectorSummary);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({
+                action: "request_review",
+                summary: round1SuperintendentSummary
+              }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 0
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({ action: "request_changes", feedback: reviewFeedback[0] }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(reviewFeedback[0]);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 1
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({
+                action: "request_review",
+                summary: reviewPhaseSuperintendentSummaries[0]
+              }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 1
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({ action: "request_changes", feedback: reviewFeedback[1] }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(reviewFeedback[1]);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 2
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({
+                action: "request_review",
+                summary: reviewPhaseSuperintendentSummaries[1]
+              }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 2
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({ action: "request_changes", feedback: reviewFeedback[2] }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(reviewFeedback[2]);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 3
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({
+                action: "request_review",
+                summary: reviewPhaseSuperintendentSummaries[2]
+              }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 3
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({ action: "request_changes", feedback: reviewFeedback[3] }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(reviewFeedback[3]);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 4
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({
+                action: "request_review",
+                summary: reviewPhaseSuperintendentSummaries[3]
+              }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 4
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({ action: "request_changes", feedback: reviewFeedback[4] }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(absoluteDocPath);
+            reviewTurnAfterCap = (await ctx.readDoc()).frontmatter.status.review_turn;
+            expect((await ctx.readDoc()).frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 2,
+              review_turn: 0
+            });
+            expect(prompt).toContain(reviewFeedback[4]);
+          },
+          fileChanges: {
+            [docPath]: createDoc({ tasks: [true], builderPrompt, superintendentPrompt })
+          },
+          output: {
+            stdout: round2BuilderSummary,
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(round2BuilderSummary);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 2,
+              review_turn: 0
+            });
+            expect(parseTaskBoard(doc.body)).toMatchObject({
+              openCount: 0,
+              doneCount: 1,
+              allDone: true
+            });
+          },
+          output: {
+            stdout: round2InspectorSummary,
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(round2BuilderSummary);
+            expect(prompt).toContain(round2InspectorSummary);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 2,
+              review_turn: 0
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({
+                action: "request_review",
+                summary: round2SuperintendentSummary
+              }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (prompt, ctx) => {
+            expect(prompt).toContain(round2SuperintendentSummary);
+
+            const doc = await ctx.readDoc();
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 2,
+              review_turn: 0
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({ action: "approve_completion" }) +
+              ")",
+            exitCode: 0
+          }
+        }
+      ]
+    });
+
+    const { prompts, readDoc, result, runs } = await simulation.run();
+    const finalDoc = await readDoc();
+    const finalTaskBoard = parseTaskBoard(finalDoc.body);
+    const reviewPhaseRuns = runs.slice(3, 12);
+
+    expect(result.state).toBe("completed");
+    expect(result.round).toBe(2);
+    expect(reviewTurnAfterCap).toBe(0);
+    expect(result.reviewTurn).toBe(0);
+    expect(prompts).toHaveLength(16);
+    expect(
+      reviewPhaseRuns.map((run) =>
+        run.prompt.startsWith("Owner review ") ? "owner" : "superintendent"
+      )
+    ).toEqual([
+      "owner",
+      "superintendent",
+      "owner",
+      "superintendent",
+      "owner",
+      "superintendent",
+      "owner",
+      "superintendent",
+      "owner"
+    ]);
+    expect(reviewPhaseRuns.map((run) => run.agent)).toEqual([
+      "claude-code",
+      "codex",
+      "claude-code",
+      "codex",
+      "claude-code",
+      "codex",
+      "claude-code",
+      "codex",
+      "claude-code"
+    ]);
+    expect(finalDoc.frontmatter.status).toEqual({
+      state: "completed",
+      round: 2,
+      review_turn: 0
+    });
+    expect(finalTaskBoard).toMatchObject({
+      openCount: 0,
+      doneCount: 1,
+      allDone: true
+    });
+    expect(finalTaskBoard.tasks).toEqual([{ text: "Task 1", done: true }]);
   });
 });

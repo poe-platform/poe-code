@@ -705,6 +705,171 @@ describe("createSuperintendentSimulation", () => {
     ]);
   });
 
+  it("writes the current runtime status back to the document after each phase", async () => {
+    const round1BuilderSummary = "Checked off Task 1";
+    const round1InspectorSummary = "Task 1 looks good";
+    const round1SuperintendentSummary = "Ready for owner review";
+    const ownerFeedback = "finish task 2";
+    const round2BuilderSummary = "Checked off Task 2";
+    const round2InspectorSummary = "All tasks complete";
+    const round2SuperintendentSummary = "Ready for final owner review";
+
+    const simulation = createSuperintendentSimulation({
+      docPath,
+      docContent: createDoc({ tasks: [false, false] }),
+      turns: [
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+            expect(parseTaskBoard(doc.body)).toMatchObject({
+              openCount: 2,
+              doneCount: 0,
+              allDone: false
+            });
+          },
+          fileChanges: {
+            [docPath]: createDoc({ tasks: [true, false] })
+          },
+          output: {
+            stdout: round1BuilderSummary,
+            exitCode: 0
+          }
+        },
+        inspectorTurn(round1InspectorSummary, async (_prompt, ctx) => {
+          const doc = await ctx.readDoc();
+
+          expect(doc.frontmatter.status).toEqual({
+            state: "in_progress",
+            round: 1,
+            review_turn: 0
+          });
+          expect(parseTaskBoard(doc.body)).toMatchObject({
+            openCount: 1,
+            doneCount: 1,
+            allDone: false
+          });
+        }),
+        superintendentTurn(
+          { action: "request_review", summary: round1SuperintendentSummary },
+          undefined,
+          async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 1,
+              review_turn: 0
+            });
+          }
+        ),
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+
+            expect(doc.frontmatter.status).toEqual({
+              state: "review",
+              round: 1,
+              review_turn: 0
+            });
+          },
+          output: {
+            stdout:
+              "workflow.transition(" +
+              JSON.stringify({ action: "request_changes", feedback: ownerFeedback }) +
+              ")",
+            exitCode: 0
+          }
+        },
+        {
+          assertPrompt: async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 2,
+              review_turn: 0
+            });
+            expect(parseTaskBoard(doc.body)).toMatchObject({
+              openCount: 1,
+              doneCount: 1,
+              allDone: false
+            });
+          },
+          fileChanges: {
+            [docPath]: createDoc({ tasks: [true, true] })
+          },
+          output: {
+            stdout: round2BuilderSummary,
+            exitCode: 0
+          }
+        },
+        inspectorTurn(round2InspectorSummary, async (_prompt, ctx) => {
+          const doc = await ctx.readDoc();
+
+          expect(doc.frontmatter.status).toEqual({
+            state: "in_progress",
+            round: 2,
+            review_turn: 0
+          });
+          expect(parseTaskBoard(doc.body)).toMatchObject({
+            openCount: 0,
+            doneCount: 2,
+            allDone: true
+          });
+        }),
+        superintendentTurn(
+          { action: "request_review", summary: round2SuperintendentSummary },
+          undefined,
+          async (_prompt, ctx) => {
+            const doc = await ctx.readDoc();
+
+            expect(doc.frontmatter.status).toEqual({
+              state: "in_progress",
+              round: 2,
+              review_turn: 0
+            });
+          }
+        ),
+        ownerApproveTurn(async (_prompt, ctx) => {
+          const doc = await ctx.readDoc();
+
+          expect(doc.frontmatter.status).toEqual({
+            state: "review",
+            round: 2,
+            review_turn: 0
+          });
+        })
+      ]
+    });
+
+    const { readDoc, result } = await simulation.run();
+    const finalDoc = await readDoc();
+    const finalTaskBoard = parseTaskBoard(finalDoc.body);
+
+    expect(result.state).toBe("completed");
+    expect(result.round).toBe(2);
+    expect(finalDoc.frontmatter.status).toEqual({
+      state: "completed",
+      round: 2,
+      review_turn: 0
+    });
+    expect(finalTaskBoard).toMatchObject({
+      openCount: 0,
+      doneCount: 2,
+      allDone: true
+    });
+    expect(finalTaskBoard.tasks).toEqual([
+      { text: "Task 1", done: true },
+      { text: "Task 2", done: true }
+    ]);
+  });
+
   it("stops at max_rounds without entering review when work stays in progress", async () => {
     const round1BuilderSummary = "Builder round 1 made progress";
     const round1InspectorSummary = "Task still open";

@@ -1027,10 +1027,10 @@ tasks:
   - id: sim-builder-failure
     title: "Simulation: builder crash halts the round"
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.
 

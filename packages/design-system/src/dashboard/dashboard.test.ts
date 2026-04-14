@@ -10,10 +10,16 @@ import {
   scrollToTop,
   scrollUp
 } from "./components/output-pane.js";
+import {
+  formatElapsed,
+  formatNumber,
+  renderStatsPane,
+  statsToLines
+} from "./components/stats-pane.js";
 import { computeDashboardLayout } from "./layout.js";
 import { resetThemeCache } from "../internal/theme-detect.js";
 import type { DashboardLayout } from "./layout.js";
-import type { OutputItem, Rect } from "./types.js";
+import type { DashboardStats, OutputItem, Rect } from "./types.js";
 
 function readRow(buffer: ScreenBuffer, y: number): string {
   return Array.from({ length: buffer.width }, (_, x) => buffer.get(x, y).ch).join("");
@@ -607,5 +613,303 @@ describe("output pane", () => {
 
     expect(readRow(buffer, 1)).toBe(" │  gamma       ");
     expect(readRow(buffer, 2)).toBe(" ◆  done        ");
+  });
+});
+
+describe("stats pane", () => {
+  const previousPoeCodeTheme = process.env.POE_CODE_THEME;
+  const previousPoeTheme = process.env.POE_THEME;
+
+  beforeEach(() => {
+    process.env.POE_CODE_THEME = "dark";
+    delete process.env.POE_THEME;
+    resetThemeCache();
+  });
+
+  afterEach(() => {
+    if (previousPoeCodeTheme === undefined) {
+      delete process.env.POE_CODE_THEME;
+    } else {
+      process.env.POE_CODE_THEME = previousPoeCodeTheme;
+    }
+
+    if (previousPoeTheme === undefined) {
+      delete process.env.POE_THEME;
+    } else {
+      process.env.POE_THEME = previousPoeTheme;
+    }
+
+    resetThemeCache();
+  });
+
+  it("formatElapsed formats correctly for various durations", () => {
+    expect(formatElapsed(0)).toBe("00:00:00");
+    expect(formatElapsed(999)).toBe("00:00:00");
+    expect(formatElapsed(92_000)).toBe("00:01:32");
+    expect(formatElapsed(3_723_000)).toBe("01:02:03");
+    expect(formatElapsed(90_061_000)).toBe("25:01:01");
+    expect(formatElapsed(-1_000)).toBe("00:00:00");
+    expect(formatElapsed(Number.NaN)).toBe("00:00:00");
+  });
+
+  it("formatNumber adds commas", () => {
+    expect(formatNumber(0)).toBe("0");
+    expect(formatNumber(12_430)).toBe("12,430");
+    expect(formatNumber(1_234_567)).toBe("1,234,567");
+  });
+
+  it("statsToLines produces the expected label/value pairs", () => {
+    const stats: DashboardStats = {
+      status: "running",
+      iterations: 14,
+      tokensIn: 12_430,
+      tokensOut: 5_982,
+      elapsedMs: 92_000,
+      currentAction: "generating patch"
+    };
+
+    expect(statsToLines(stats, 25)).toEqual([
+      {
+        prefix: "Status            ",
+        prefixStyle: {},
+        style: { fg: "magenta" },
+        text: "Running"
+      },
+      {
+        prefix: "Iteration              ",
+        prefixStyle: {},
+        style: {},
+        text: "14"
+      },
+      {
+        prefix: "Elapsed          ",
+        prefixStyle: {},
+        style: {},
+        text: "00:01:32"
+      },
+      {
+        prefix: "",
+        prefixStyle: {},
+        style: {},
+        text: ""
+      },
+      {
+        prefix: "Tokens In          ",
+        prefixStyle: {},
+        style: {},
+        text: "12,430"
+      },
+      {
+        prefix: "Tokens Out          ",
+        prefixStyle: {},
+        style: {},
+        text: "5,982"
+      },
+      {
+        prefix: "Total              ",
+        prefixStyle: {},
+        style: {},
+        text: "18,412"
+      },
+      {
+        prefix: "",
+        prefixStyle: {},
+        style: {},
+        text: ""
+      },
+      {
+        prefix: "Current:",
+        prefixStyle: {},
+        style: {},
+        text: ""
+      },
+      {
+        prefix: "  ",
+        prefixStyle: { dim: true },
+        style: { dim: true },
+        text: "generating patch"
+      }
+    ]);
+  });
+
+  it("statsToLines applies the expected status colors", () => {
+    expect(
+      statsToLines(
+        { status: "running", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
+    ).toMatchObject({ style: { fg: "magenta" }, text: "Running" });
+    expect(
+      statsToLines(
+        { status: "paused", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
+    ).toMatchObject({ style: { fg: "yellow" }, text: "Paused" });
+    expect(
+      statsToLines(
+        { status: "error", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
+    ).toMatchObject({ style: { fg: "red" }, text: "Error" });
+    expect(
+      statsToLines({ status: "done", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 }, 20)[0]
+    ).toMatchObject({ style: { fg: "green" }, text: "Done" });
+    expect(
+      statsToLines({ status: "idle", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 }, 20)[0]
+    ).toMatchObject({ style: { dim: true }, text: "Idle" });
+  });
+
+  it("statsToLines resolves light theme status colors", () => {
+    process.env.POE_CODE_THEME = "light";
+    resetThemeCache();
+
+    expect(
+      statsToLines(
+        { status: "running", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
+    ).toMatchObject({ style: { fg: "#a200ff" }, text: "Running" });
+    expect(
+      statsToLines(
+        { status: "paused", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
+    ).toMatchObject({ style: { fg: "#cc6600" }, text: "Paused" });
+    expect(
+      statsToLines(
+        { status: "error", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
+    ).toMatchObject({ style: { fg: "#cc0000" }, text: "Error" });
+    expect(
+      statsToLines({ status: "done", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 }, 20)[0]
+    ).toMatchObject({ style: { fg: "#008800" }, text: "Done" });
+    expect(
+      statsToLines({ status: "idle", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 }, 20)[0]
+    ).toMatchObject({ style: { fg: "#666666" }, text: "Idle" });
+  });
+
+  it("statsToLines includes the current action only when present", () => {
+    const withCurrent = statsToLines(
+      {
+        status: "running",
+        iterations: 14,
+        tokensIn: 12_430,
+        tokensOut: 5_982,
+        elapsedMs: 92_000,
+        currentAction: "generating patch"
+      },
+      25
+    );
+    const withoutCurrent = statsToLines(
+      {
+        status: "running",
+        iterations: 14,
+        tokensIn: 12_430,
+        tokensOut: 5_982,
+        elapsedMs: 92_000
+      },
+      25
+    );
+
+    expect(withCurrent.slice(-2)).toEqual([
+      { prefix: "Current:", prefixStyle: {}, style: {}, text: "" },
+      {
+        prefix: "  ",
+        prefixStyle: { dim: true },
+        style: { dim: true },
+        text: "generating patch"
+      }
+    ]);
+    expect(withoutCurrent).toHaveLength(7);
+    expect(withoutCurrent.some((line) => line.prefix === "Current:" || line.text === "generating patch")).toBe(false);
+  });
+
+  it("statsToLines renders the Current section for an empty action and clips narrow widths", () => {
+    expect(
+      statsToLines(
+        {
+          status: "running",
+          iterations: 14,
+          tokensIn: 12_430,
+          tokensOut: 5_982,
+          elapsedMs: 92_000,
+          currentAction: ""
+        },
+        0
+      )
+    ).toEqual([]);
+
+    expect(
+      statsToLines(
+        {
+          status: "running",
+          iterations: 14,
+          tokensIn: 12_430,
+          tokensOut: 5_982,
+          elapsedMs: 92_000,
+          currentAction: ""
+        },
+        8
+      ).slice(-2)
+    ).toEqual([
+      { prefix: "Current:", prefixStyle: {}, style: {}, text: "" },
+      { prefix: "  ", prefixStyle: { dim: true }, style: { dim: true }, text: "" }
+    ]);
+
+    expect(
+      statsToLines(
+        {
+          status: "running",
+          iterations: 14,
+          tokensIn: 12_430,
+          tokensOut: 5_982,
+          elapsedMs: 92_000,
+          currentAction: "generating patch"
+        },
+        3
+      )
+    ).toEqual([
+      { prefix: "", prefixStyle: {}, style: { fg: "magenta" }, text: "Run" },
+      { prefix: " ", prefixStyle: {}, style: {}, text: "14" },
+      { prefix: "", prefixStyle: {}, style: {}, text: "00:" },
+      { prefix: "", prefixStyle: {}, style: {}, text: "" },
+      { prefix: "", prefixStyle: {}, style: {}, text: "12," },
+      { prefix: "", prefixStyle: {}, style: {}, text: "5,9" },
+      { prefix: "", prefixStyle: {}, style: {}, text: "18," },
+      { prefix: "", prefixStyle: {}, style: {}, text: "" },
+      { prefix: "Cur", prefixStyle: {}, style: {}, text: "" },
+      {
+        prefix: "  ",
+        prefixStyle: { dim: true },
+        style: { dim: true },
+        text: "g"
+      }
+    ]);
+  });
+
+  it("renderStatsPane renders aligned lines into the rect", () => {
+    const buffer = new ScreenBuffer(30, 12);
+    const rect: Rect = { x: 2, y: 1, width: 25, height: 10 };
+
+    renderStatsPane(buffer, rect, {
+      status: "running",
+      iterations: 14,
+      tokensIn: 12_430,
+      tokensOut: 5_982,
+      elapsedMs: 92_000,
+      currentAction: "generating patch"
+    });
+
+    expect(readRow(buffer, 1)).toBe("  Status            Running   ");
+    expect(readRow(buffer, 2)).toBe("  Iteration              14   ");
+    expect(readRow(buffer, 3)).toBe("  Elapsed          00:01:32   ");
+    expect(readRow(buffer, 5)).toBe("  Tokens In          12,430   ");
+    expect(readRow(buffer, 6)).toBe("  Tokens Out          5,982   ");
+    expect(readRow(buffer, 7)).toBe("  Total              18,412   ");
+    expect(readRow(buffer, 9)).toBe("  Current:                    ");
+    expect(readRow(buffer, 10)).toBe("    generating patch          ");
+    expect(buffer.get(20, 1)).toEqual({ ch: "R", style: { fg: "magenta" } });
+    expect(buffer.get(4, 10)).toEqual({ ch: "g", style: { dim: true } });
   });
 });

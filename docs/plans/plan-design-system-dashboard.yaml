@@ -277,7 +277,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/components/output-pane.ts`:
 
@@ -340,8 +340,8 @@ tasks:
   - id: stats-pane
     title: Implement stats pane
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
     prompt: |
       Create `packages/design-system/src/dashboard/components/stats-pane.ts`:

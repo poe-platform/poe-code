@@ -220,7 +220,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Implement the `superintendent validate` command using cmdkit.
 
@@ -277,9 +277,9 @@ tasks:
   - id: template-engine
     title: Implement prompt template variable resolution
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Implement `packages/superintendent/src/runtime/templates.ts`.

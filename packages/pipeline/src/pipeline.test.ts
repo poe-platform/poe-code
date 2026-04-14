@@ -1326,7 +1326,7 @@ describe("selectNextExecution", () => {
     });
   });
 
-  it("returns a blocking failure for a failed stepless task", () => {
+  it("reruns a failed stepless task before later open tasks", () => {
     const selection = getSelection({
       tasks: [
         { id: "one", title: "One", prompt: "One", status: "failed" },
@@ -1335,7 +1335,7 @@ describe("selectNextExecution", () => {
     });
 
     expect(selection).toEqual({
-      kind: "blocked",
+      kind: "run",
       task: { id: "one", title: "One", prompt: "One", status: "failed" }
     });
   });
@@ -1363,7 +1363,7 @@ describe("selectNextExecution", () => {
     });
   });
 
-  it("blocks when any step has failed", () => {
+  it("reruns the first failed step before later open steps", () => {
     const selection = getSelection({
       tasks: [
         {
@@ -1380,7 +1380,7 @@ describe("selectNextExecution", () => {
     });
 
     expect(selection).toMatchObject({
-      kind: "blocked",
+      kind: "run",
       task: { id: "one" },
       stepName: "test"
     });
@@ -2087,7 +2087,7 @@ describe("createPipelineSimulation", () => {
     expect((await readPlan()).tasks[0]?.status).toBe("failed");
   });
 
-  it("retries a blocked stepless task when onBlocked returns true", async () => {
+  it("reruns a failed stepless task on the next pipeline run", async () => {
     const sim = createPipelineSimulation({
       plan: {
         tasks: [
@@ -2099,8 +2099,7 @@ describe("createPipelineSimulation", () => {
           }
         ]
       },
-      turns: [successTurn()],
-      onBlocked: vi.fn().mockResolvedValue(true)
+      turns: [successTurn()]
     });
 
     const { result, readPlan, prompts } = await sim.run();
@@ -2110,7 +2109,7 @@ describe("createPipelineSimulation", () => {
     expect((await readPlan()).tasks[0]?.status).toBe("done");
   });
 
-  it("retries a blocked step when onBlocked returns true", async () => {
+  it("reruns a failed step on the next pipeline run", async () => {
     const sim = createPipelineSimulation({
       globalSteps: {
         implement: { mode: "edit", prompt: "Implement {{id}}" },
@@ -2131,8 +2130,7 @@ describe("createPipelineSimulation", () => {
           }
         ]
       },
-      turns: [successTurn(), successTurn()],
-      onBlocked: vi.fn().mockResolvedValue(true)
+      turns: [successTurn(), successTurn()]
     });
 
     const { result, readPlan, prompts } = await sim.run();
@@ -2146,7 +2144,7 @@ describe("createPipelineSimulation", () => {
     });
   });
 
-  it("stops at a blocked task when onBlocked returns false", async () => {
+  it("does not retry a failed task again within the same run", async () => {
     const sim = createPipelineSimulation({
       plan: {
         tasks: [
@@ -2158,35 +2156,14 @@ describe("createPipelineSimulation", () => {
           }
         ]
       },
-      turns: [],
-      onBlocked: vi.fn().mockResolvedValue(false)
+      turns: [failTurn("still failing"), successTurn()]
     });
 
-    const { result, prompts } = await sim.run();
+    const { result, prompts, readPlan } = await sim.run();
 
     expect(result.stopReason).toBe("failed");
-    expect(prompts).toEqual([]);
-  });
-
-  it("stops at a blocked task when onBlocked is not provided", async () => {
-    const sim = createPipelineSimulation({
-      plan: {
-        tasks: [
-          {
-            id: "quick-fix",
-            title: "Quick fix",
-            prompt: "Fix it",
-            status: "failed"
-          }
-        ]
-      },
-      turns: []
-    });
-
-    const { result, prompts } = await sim.run();
-
-    expect(result.stopReason).toBe("failed");
-    expect(prompts).toEqual([]);
+    expect(prompts).toEqual(["Fix it"]);
+    expect((await readPlan()).tasks[0]?.status).toBe("failed");
   });
 
   it("archives the plan file after all tasks complete", async () => {

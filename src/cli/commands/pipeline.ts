@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import {
   cancel,
-  confirm,
   isCancel,
   multiselect,
   promptText,
@@ -344,20 +343,6 @@ export function registerPipelineCommand(
             plan: planPath,
             ...(maxRuns != null ? { maxRuns } : {}),
             assumeYes: flags.assumeYes,
-            async onBlocked({ taskId, stepName }) {
-              if (flags.assumeYes) {
-                return true;
-              }
-              const label = stepName ? `${taskId} (${stepName})` : taskId;
-              const result = await confirm({
-                message: `Previous run failed at ${label}. Retry?`,
-                initialValue: true
-              });
-              if (isCancel(result)) {
-                return false;
-              }
-              return result === true;
-            },
             onPlanReloadError(error: Error) {
               resources.logger.warn(`Plan reload failed, using last good state: ${error.message}`);
             },
@@ -414,7 +399,7 @@ export function registerPipelineCommand(
           if (result.stopReason === "failed") {
             process.exitCode = 1;
             resources.logger.error(
-              `Pipeline blocked at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
+              `Pipeline failed at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
             );
             resources.logger.resolved("Run summary", summary);
             return;

@@ -235,6 +235,57 @@ describe("pipeline run command", () => {
     ).toBe(true);
   });
 
+  it("reports pipeline failures without blocked retry messaging", async () => {
+    const logs: string[] = [];
+    vi.mocked(sdkRunPipeline).mockResolvedValueOnce({
+      stopReason: "failed",
+      planPath: ".poe-code/pipeline/plans/plan.yaml",
+      runsCompleted: 1,
+      totalDurationMs: 1_000,
+      metrics: {
+        totalInputTokens: 0,
+        totalOutputTokens: 0,
+        totalCachedTokens: 0,
+        tasksCompleted: 0,
+        tasksFailed: 1,
+        stepsCompleted: 1
+      },
+      lastTaskId: "auth-hardening",
+      lastStepName: "test"
+    });
+
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan.yaml",
+      "tasks: []\n",
+      { encoding: "utf8" }
+    );
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--agent",
+      "codex"
+    ]);
+
+    expect(process.exitCode).toBe(1);
+    expect(logs.some((message) => message.includes("Pipeline failed at auth-hardening (test)."))).toBe(true);
+    expect(logs.some((message) => message.includes("Pipeline blocked at"))).toBe(false);
+  });
+
   it("runs multiple explicit plans sequentially", async () => {
     vi.mocked(sdkRunPipeline)
       .mockResolvedValueOnce({

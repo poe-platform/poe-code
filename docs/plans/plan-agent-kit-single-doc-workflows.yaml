@@ -356,7 +356,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   # ── Phase 4: Pipeline simplification ──
 
@@ -409,9 +409,9 @@ tasks:
 
       Run the full pipeline test suite. All tests must pass.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ── Phase 5: Document workflow foundation ──

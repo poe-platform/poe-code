@@ -6,36 +6,13 @@ import type {
   ResolvedStepDefinitions
 } from "../types.js";
 
-function getFailedStepName(status: Record<string, "open" | "done" | "failed">): string | undefined {
-  return Object.entries(status).find(([, value]) => value === "failed")?.[0];
-}
-
-function getOpenStepName(status: Record<string, "open" | "done" | "failed">): string | undefined {
-  return Object.entries(status).find(([, value]) => value === "open")?.[0];
-}
-
 function selectFromTask(task: PipelineTask): ExecutionSelection {
   if (typeof task.status === "string") {
-    if (task.status === "done") {
-      return { kind: "completed" };
-    }
-    if (task.status === "failed") {
-      return { kind: "blocked", task };
-    }
-    return { kind: "run", task };
+    return task.status === "done" ? { kind: "completed" } : { kind: "run", task };
   }
 
-  const failedStepName = getFailedStepName(task.status);
-  if (failedStepName) {
-    return { kind: "blocked", task, stepName: failedStepName };
-  }
-
-  const openStepName = getOpenStepName(task.status);
-  if (openStepName) {
-    return { kind: "run", task, stepName: openStepName };
-  }
-
-  return { kind: "completed" };
+  const stepName = Object.entries(task.status).find(([, value]) => value !== "done")?.[0];
+  return stepName ? { kind: "run", task, stepName } : { kind: "completed" };
 }
 
 export function selectNextExecution(

@@ -202,6 +202,19 @@ Body
     expect(result.body).toBe("Body\n");
   });
 
+  it("parses CRLF-delimited frontmatter without corrupting the last value", () => {
+    const content = "---\r\nkind: superintendent\r\nversion: 1\r\nbuilder:\r\n  agent: claude-code\r\n  prompt: build\r\nsuperintendent:\r\n  agent: claude-code\r\n  prompt: review\r\nowner:\r\n  agent: claude-code\r\n  prompt: approve\r\nstatus:\r\n  state: review\r\n  round: 3\r\n  review_turn: 2\r\n---\r\nBody\r\n";
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.status).toEqual({
+      state: "review",
+      round: 3,
+      review_turn: 2
+    });
+    expect(result.body).toBe("Body\r\n");
+  });
+
   it("throws on missing kind field", () => {
     const content = `---
 version: 1

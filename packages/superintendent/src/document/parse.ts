@@ -64,9 +64,10 @@ function splitFrontmatter(
 
   const frontmatterStart = 3 + openingLineBreak.length;
   const closingFenceIndex = findClosingFence(normalizedContent, frontmatterStart, filePath);
+  const frontmatterEnd = readFrontmatterEnd(normalizedContent, closingFenceIndex);
 
   return {
-    frontmatterText: normalizedContent.slice(frontmatterStart, closingFenceIndex),
+    frontmatterText: normalizedContent.slice(frontmatterStart, frontmatterEnd),
     body: readBody(normalizedContent, closingFenceIndex + 4)
   };
 }
@@ -127,6 +128,10 @@ function readBody(content: string, bodyStart: number): string {
   }
 
   return content.slice(bodyStart);
+}
+
+function readFrontmatterEnd(content: string, closingFenceIndex: number): number {
+  return content[closingFenceIndex - 1] === "\r" ? closingFenceIndex - 1 : closingFenceIndex;
 }
 
 function parseYamlFrontmatter(filePath: string, frontmatterText: string): unknown {

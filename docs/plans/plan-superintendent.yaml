@@ -126,10 +126,10 @@ tasks:
   - id: write-status
     title: Implement status block writer
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Implement `packages/superintendent/src/document/write.ts`.
 

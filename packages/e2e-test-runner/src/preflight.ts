@@ -1,17 +1,28 @@
 import { execSync } from 'node:child_process';
+import { access, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import chalk from 'chalk';
 import { resolveBackend, type Backend } from './backend.js';
-import { detectEngine } from './engine.js';
 import { hasApiKey } from './credentials.js';
+import { detectEngine } from './engine.js';
+import { getWorkspaceDir } from './runtime.js';
 import type { Engine } from './types.js';
 
 const LABEL = 'poe-e2e-test-runner';
+const TEMP_HOME_PREFIX = join(tmpdir(), 'poe-e2e-');
 
 interface CheckResult {
   name: string;
   passed: boolean;
   message?: string;
   fix?: string;
+}
+
+interface IsolatedHostContext {
+  home: string;
+  workspace: string;
+  env: NodeJS.ProcessEnv;
 }
 
 export interface RunPreflightOptions {
@@ -51,6 +62,19 @@ export async function runPreflight(
   results.push(apiKeyCheck);
   if (!apiKeyCheck.passed) {
     return { passed: false, results };
+  }
+
+  if (backend === 'env' || backend === 'sandbox') {
+    const isolatedChecks = await runIsolatedHostChecks();
+    results.push(isolatedChecks.agentCheck);
+    if (!isolatedChecks.agentCheck.passed) {
+      return { passed: false, results };
+    }
+
+    results.push(isolatedChecks.toolsCheck);
+    if (!isolatedChecks.toolsCheck.passed) {
+      return { passed: false, results };
+    }
   }
 
   if (backend === 'podman') {
@@ -127,6 +151,104 @@ function checkSandboxRuntime(): CheckResult {
           : 'bubblewrap (`bwrap`) is required for the sandbox backend on Linux.',
     };
   }
+}
+
+async function runIsolatedHostChecks(): Promise<{
+  agentCheck: CheckResult;
+  toolsCheck: CheckResult;
+}> {
+  return withIsolatedHostContext(async (context) => {
+    const agentCheck = await checkAgentNotConfigured(context.home);
+    if (!agentCheck.passed) {
+      return {
+        agentCheck,
+        toolsCheck: {
+          name: 'node/npm/uv on PATH',
+          passed: false,
+          message: 'Skipped because the isolated HOME is already configured.',
+        },
+      };
+    }
+
+    return {
+      agentCheck,
+      toolsCheck: checkRequiredToolsOnPath(context),
+    };
+  });
+}
+
+async function withIsolatedHostContext<T>(
+  callback: (context: IsolatedHostContext) => Promise<T>,
+): Promise<T> {
+  const home = await mkdtemp(TEMP_HOME_PREFIX);
+  const workspace = getWorkspaceDir() ?? process.cwd();
+  const env = buildIsolatedHostEnv(home, workspace);
+
+  try {
+    return await callback({ home, workspace, env });
+  } finally {
+    try {
+      await rm(home, { recursive: true, force: true });
+    } catch {
+      // Ignore temp HOME cleanup failures during preflight.
+    }
+  }
+}
+
+function buildIsolatedHostEnv(home: string, workspace: string): NodeJS.ProcessEnv {
+  const path = `${home}/.local/bin:${home}/.npm-global/bin:${workspace}/node_modules/.bin:${process.env.PATH ?? ''}`;
+
+  return {
+    ...process.env,
+    HOME: home,
+    XDG_CONFIG_HOME: `${home}/.config`,
+    NPM_CONFIG_PREFIX: `${home}/.npm-global`,
+    PATH: path,
+  };
+}
+
+async function checkAgentNotConfigured(home: string): Promise<CheckResult> {
+  try {
+    await access(join(home, '.config'));
+    return {
+      name: 'Agent not configured',
+      passed: false,
+      message: 'Fresh HOME already contains agent config directories.',
+      fix: 'Use a fresh HOME directory for env and sandbox backends.',
+    };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return { name: 'Agent not configured', passed: true };
+    }
+
+    return {
+      name: 'Agent not configured',
+      passed: false,
+      message: error instanceof Error ? error.message : 'Unable to verify agent config state.',
+      fix: 'Ensure the isolated HOME directory is accessible and starts empty.',
+    };
+  }
+}
+
+function checkRequiredToolsOnPath(context: IsolatedHostContext): CheckResult {
+  for (const command of ['node', 'npm', 'uv']) {
+    try {
+      execSync(`${command} --version`, {
+        cwd: context.workspace,
+        env: context.env,
+        stdio: 'ignore',
+      });
+    } catch {
+      return {
+        name: 'node/npm/uv on PATH',
+        passed: false,
+        message: `Required tool "${command}" is not available on PATH.`,
+        fix: 'Install node, npm, and uv, then make sure they are available on PATH.',
+      };
+    }
+  }
+
+  return { name: 'node/npm/uv on PATH', passed: true };
 }
 
 async function checkApiKey(): Promise<CheckResult> {

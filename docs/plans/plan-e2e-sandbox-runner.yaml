@@ -364,10 +364,10 @@ tasks:
   - id: preflight-per-backend
     title: Update preflight checks to be backend-aware
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Update `packages/e2e-test-runner/src/preflight.ts` so checks are
       conditional on the resolved backend:

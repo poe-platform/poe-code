@@ -4,6 +4,12 @@ vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
 }));
 
+vi.mock('node:fs/promises', () => ({
+  access: vi.fn(),
+  mkdtemp: vi.fn(),
+  rm: vi.fn(),
+}));
+
 vi.mock('./backend.js', () => ({
   resolveBackend: vi.fn(),
 }));
@@ -16,53 +22,109 @@ vi.mock('./credentials.js', () => ({
   hasApiKey: vi.fn(),
 }));
 
+vi.mock('./runtime.js', () => ({
+  getWorkspaceDir: vi.fn(),
+}));
+
+function createMissingPathError(): NodeJS.ErrnoException {
+  const error = new Error('missing') as NodeJS.ErrnoException;
+  error.code = 'ENOENT';
+  return error;
+}
+
 describe('runPreflight', () => {
   const originalPlatform = process.platform;
+  const originalPath = process.env.PATH;
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.resetModules();
+    process.env.PATH = '/usr/bin:/bin';
   });
 
   afterEach(() => {
     Object.defineProperty(process, 'platform', { value: originalPlatform });
+
+    if (originalPath === undefined) {
+      delete process.env.PATH;
+    } else {
+      process.env.PATH = originalPath;
+    }
   });
 
   async function setup() {
     const { execSync } = await import('node:child_process');
+    const { access, mkdtemp, rm } = await import('node:fs/promises');
     const { resolveBackend } = await import('./backend.js');
     const { detectEngine } = await import('./engine.js');
     const { hasApiKey } = await import('./credentials.js');
+    const { getWorkspaceDir } = await import('./runtime.js');
     const { runPreflight } = await import('./preflight.js');
 
     vi.mocked(resolveBackend).mockReturnValue('sandbox');
     vi.mocked(detectEngine).mockReturnValue('podman');
     vi.mocked(hasApiKey).mockResolvedValue(true);
+    vi.mocked(getWorkspaceDir).mockReturnValue('/workspace');
     vi.mocked(execSync).mockImplementation(() => '');
+    vi.mocked(mkdtemp).mockResolvedValue('/tmp/poe-e2e-test');
+    vi.mocked(access).mockRejectedValue(createMissingPathError());
+    vi.mocked(rm).mockResolvedValue(undefined);
 
     return {
-      execSync: vi.mocked(execSync),
-      resolveBackend: vi.mocked(resolveBackend),
+      access: vi.mocked(access),
       detectEngine: vi.mocked(detectEngine),
+      execSync: vi.mocked(execSync),
+      getWorkspaceDir: vi.mocked(getWorkspaceDir),
       hasApiKey: vi.mocked(hasApiKey),
+      mkdtemp: vi.mocked(mkdtemp),
+      resolveBackend: vi.mocked(resolveBackend),
+      rm: vi.mocked(rm),
       runPreflight,
     };
   }
 
-  it('checks only API key for env backend', async () => {
-    const { execSync, resolveBackend, runPreflight } = await setup();
+  it('runs env-only checks for the env backend', async () => {
+    const { access, detectEngine, execSync, mkdtemp, resolveBackend, rm, runPreflight } = await setup();
     resolveBackend.mockReturnValue('env');
 
     const result = await runPreflight();
 
     expect(result.passed).toBe(true);
-    expect(result.results).toEqual([
-      expect.objectContaining({ name: 'API key available', passed: true }),
+    expect(result.results).toHaveLength(3);
+    expect(result.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'API key available', passed: true }),
+        expect.objectContaining({ name: 'Agent not configured', passed: true }),
+        expect.objectContaining({ name: 'node/npm/uv on PATH', passed: true }),
+      ]),
+    );
+    expect(mkdtemp).toHaveBeenCalledOnce();
+    expect(access).toHaveBeenCalledWith('/tmp/poe-e2e-test/.config');
+    expect(rm).toHaveBeenCalledWith('/tmp/poe-e2e-test', { force: true, recursive: true });
+    expect(execSync.mock.calls.map(([command]) => command)).toEqual([
+      'node --version',
+      'npm --version',
+      'uv --version',
     ]);
-    expect(execSync).not.toHaveBeenCalled();
+    expect(execSync).not.toHaveBeenCalledWith('sandbox-exec -V', expect.anything());
+    expect(execSync).not.toHaveBeenCalledWith('bwrap --version', expect.anything());
+    expect(execSync).not.toHaveBeenCalledWith('podman info', expect.anything());
+    expect(detectEngine).not.toHaveBeenCalled();
+
+    const nodeVersionCall = execSync.mock.calls[0];
+    expect(nodeVersionCall?.[1]).toMatchObject({
+      cwd: '/workspace',
+      env: expect.objectContaining({
+        HOME: '/tmp/poe-e2e-test',
+        NPM_CONFIG_PREFIX: '/tmp/poe-e2e-test/.npm-global',
+        PATH: '/tmp/poe-e2e-test/.local/bin:/tmp/poe-e2e-test/.npm-global/bin:/workspace/node_modules/.bin:/usr/bin:/bin',
+        XDG_CONFIG_HOME: '/tmp/poe-e2e-test/.config',
+      }),
+      stdio: 'ignore',
+    });
   });
 
-  it('checks sandbox tool availability on macOS sandbox backend', async () => {
+  it('checks sandbox-exec for the macOS sandbox backend', async () => {
     Object.defineProperty(process, 'platform', { value: 'darwin' });
     const { execSync, resolveBackend, runPreflight } = await setup();
     resolveBackend.mockReturnValue('sandbox');
@@ -70,13 +132,24 @@ describe('runPreflight', () => {
     const result = await runPreflight();
 
     expect(result.passed).toBe(true);
-    expect(execSync).toHaveBeenCalledWith('sandbox-exec -V', { stdio: 'ignore' });
-    expect(result.results).toContainEqual(
-      expect.objectContaining({ name: 'Sandbox runtime available', passed: true }),
+    expect(result.results).toHaveLength(4);
+    expect(result.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'API key available', passed: true }),
+        expect.objectContaining({ name: 'Agent not configured', passed: true }),
+        expect.objectContaining({ name: 'node/npm/uv on PATH', passed: true }),
+        expect.objectContaining({ name: 'Sandbox runtime available', passed: true }),
+      ]),
     );
+    expect(execSync.mock.calls.map(([command]) => command)).toEqual([
+      'sandbox-exec -V',
+      'node --version',
+      'npm --version',
+      'uv --version',
+    ]);
   });
 
-  it('checks bubblewrap availability on Linux sandbox backend', async () => {
+  it('checks bubblewrap for the Linux sandbox backend', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux' });
     const { execSync, resolveBackend, runPreflight } = await setup();
     resolveBackend.mockReturnValue('sandbox');
@@ -84,15 +157,20 @@ describe('runPreflight', () => {
     const result = await runPreflight();
 
     expect(result.passed).toBe(true);
-    expect(execSync).toHaveBeenCalledWith('bwrap --version', { stdio: 'ignore' });
+    expect(execSync.mock.calls.map(([command]) => command)).toEqual([
+      'bwrap --version',
+      'node --version',
+      'npm --version',
+      'uv --version',
+    ]);
     expect(result.results).toContainEqual(
       expect.objectContaining({ name: 'Sandbox runtime available', passed: true }),
     );
   });
 
-  it('fails sandbox backend when required sandbox runtime is missing', async () => {
+  it('fails sandbox backend when the sandbox runtime is missing', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux' });
-    const { execSync, resolveBackend, runPreflight } = await setup();
+    const { execSync, mkdtemp, resolveBackend, rm, runPreflight } = await setup();
     resolveBackend.mockReturnValue('sandbox');
     execSync.mockImplementation((command: string) => {
       if (command === 'bwrap --version') {
@@ -104,16 +182,18 @@ describe('runPreflight', () => {
     const result = await runPreflight();
 
     expect(result.passed).toBe(false);
-    expect(result.results).toContainEqual(
+    expect(result.results).toEqual([
       expect.objectContaining({
         name: 'Sandbox runtime available',
         passed: false,
       }),
-    );
+    ]);
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(rm).not.toHaveBeenCalled();
   });
 
-  it('checks podman installation, daemon, and cleans orphans for podman backend', async () => {
-    const { execSync, resolveBackend, detectEngine, runPreflight } = await setup();
+  it('runs only podman checks for the podman backend', async () => {
+    const { access, detectEngine, execSync, mkdtemp, resolveBackend, rm, runPreflight } = await setup();
     resolveBackend.mockReturnValue('podman');
     detectEngine.mockReturnValue('podman');
     execSync.mockImplementation((command: string) => {
@@ -129,24 +209,45 @@ describe('runPreflight', () => {
     const result = await runPreflight();
 
     expect(result.passed).toBe(true);
-    expect(result.results).toContainEqual(
-      expect.objectContaining({ name: 'Podman installed', passed: true }),
+    expect(result.results).toHaveLength(4);
+    expect(result.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'Podman installed', passed: true }),
+        expect.objectContaining({ name: 'Podman daemon running', passed: true }),
+        expect.objectContaining({ name: 'API key available', passed: true }),
+        expect.objectContaining({
+          name: 'Cleanup',
+          passed: true,
+          message: 'Cleaned up 2 orphaned container(s)',
+        }),
+      ]),
     );
-    expect(result.results).toContainEqual(
-      expect.objectContaining({ name: 'Podman daemon running', passed: true }),
-    );
-    expect(result.results).toContainEqual(
-      expect.objectContaining({
-        name: 'Cleanup',
-        passed: true,
-        message: 'Cleaned up 2 orphaned container(s)',
-      }),
-    );
-    expect(execSync).toHaveBeenCalledWith('podman info', { stdio: 'ignore' });
-    expect(execSync).toHaveBeenCalledWith(
+    expect(execSync.mock.calls.map(([command]) => command)).toEqual([
+      'podman info',
       'podman ps -aq --filter label=poe-e2e-test-runner=true',
-      { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] },
-    );
+      'podman stop one',
+      'podman rm -f one',
+      'podman stop two',
+      'podman rm -f two',
+    ]);
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(access).not.toHaveBeenCalled();
+    expect(rm).not.toHaveBeenCalled();
+  });
+
+  it('fails when the isolated home already has agent config', async () => {
+    const { access, execSync, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('env');
+    access.mockResolvedValue(undefined);
+
+    const result = await runPreflight();
+
+    expect(result.passed).toBe(false);
+    expect(result.results).toEqual([
+      expect.objectContaining({ name: 'API key available', passed: true }),
+      expect.objectContaining({ name: 'Agent not configured', passed: false }),
+    ]);
+    expect(execSync).not.toHaveBeenCalled();
   });
 
   it('fails fast when podman is unavailable', async () => {
@@ -168,7 +269,7 @@ describe('runPreflight', () => {
     ]);
   });
 
-  it('fails fast when podman daemon is not running', async () => {
+  it('fails fast when the podman daemon is not running', async () => {
     const { execSync, resolveBackend, runPreflight } = await setup();
     resolveBackend.mockReturnValue('podman');
     execSync.mockImplementation((command: string) => {
@@ -181,23 +282,23 @@ describe('runPreflight', () => {
     const result = await runPreflight();
 
     expect(result.passed).toBe(false);
-    expect(result.results).toContainEqual(
-      expect.objectContaining({
-        name: 'Podman daemon running',
-        passed: false,
-      }),
-    );
+    expect(result.results).toEqual([
+      expect.objectContaining({ name: 'Podman installed', passed: true }),
+      expect.objectContaining({ name: 'Podman daemon running', passed: false }),
+    ]);
   });
 
-  it('fails fast when API key is missing', async () => {
-    const { hasApiKey, runPreflight } = await setup();
+  it('fails fast when the API key is missing', async () => {
+    const { hasApiKey, mkdtemp, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('env');
     hasApiKey.mockResolvedValue(false);
 
     const result = await runPreflight();
 
     expect(result.passed).toBe(false);
-    expect(result.results).toContainEqual(
+    expect(result.results).toEqual([
       expect.objectContaining({ name: 'API key available', passed: false }),
-    );
+    ]);
+    expect(mkdtemp).not.toHaveBeenCalled();
   });
 });

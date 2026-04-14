@@ -259,7 +259,8 @@ describe("runLoop", () => {
       round: 1,
       reviewTurn: 0,
       maxRounds: 10,
-      maxReviewTurns: 5
+      maxReviewTurns: 5,
+      stopReason: "completed"
     });
     expect(events).toEqual([
       "builder:start",
@@ -360,7 +361,8 @@ describe("runLoop", () => {
       round: 2,
       reviewTurn: 0,
       maxRounds: 10,
-      maxReviewTurns: 5
+      maxReviewTurns: 5,
+      stopReason: "completed"
     });
     expect(runBuilderMock).toHaveBeenCalledTimes(2);
     expect(runOwnerReviewMock).toHaveBeenCalledTimes(2);
@@ -492,7 +494,8 @@ describe("runLoop", () => {
       round: 2,
       reviewTurn: 0,
       maxRounds: 2,
-      maxReviewTurns: 5
+      maxReviewTurns: 5,
+      stopReason: "max_rounds"
     });
     expect(runBuilderMock).toHaveBeenCalledTimes(2);
     expect(runOwnerReviewMock).not.toHaveBeenCalled();
@@ -526,7 +529,8 @@ describe("runLoop", () => {
       round: 0,
       reviewTurn: 0,
       maxRounds: 10,
-      maxReviewTurns: 5
+      maxReviewTurns: 5,
+      stopReason: "paused"
     });
     expect(runBuilderMock).not.toHaveBeenCalled();
     expect(runSuperintendentMock).not.toHaveBeenCalled();
@@ -567,7 +571,8 @@ describe("runLoop", () => {
       round: 1,
       reviewTurn: 0,
       maxRounds: 10,
-      maxReviewTurns: 5
+      maxReviewTurns: 5,
+      stopReason: "stopped"
     });
     expect(runInspectorMock).not.toHaveBeenCalled();
     expect(runSuperintendentMock).not.toHaveBeenCalled();

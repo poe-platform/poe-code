@@ -10,6 +10,17 @@ import { runInspector, type InspectorResult } from "./run-inspector.js";
 import { runOwnerReview, type OwnerResult } from "./run-owner-review.js";
 import { runSuperintendent, type SuperintendentResult } from "./run-superintendent.js";
 
+export type SuperintendentStopReason =
+  | "completed"
+  | "max_rounds"
+  | "paused"
+  | "stopped"
+  | "aborted";
+
+export type SuperintendentRunResult = LoopState & {
+  stopReason: SuperintendentStopReason;
+};
+
 export interface SuperintendentFileStat {
   isFile(): boolean;
   isDirectory(): boolean;
@@ -64,7 +75,7 @@ export type LoopCallbacks = {
   onOwnerStart?: () => void;
   onOwnerComplete?: (result: OwnerResult) => void;
   onRoundComplete?: (round: number) => void;
-  onLoopComplete?: (state: LoopState) => void;
+  onLoopComplete?: (state: SuperintendentRunResult) => void;
   onStateChange?: (state: LoopState) => void;
   shouldPause?: () => boolean;
   shouldStop?: () => boolean;
@@ -108,12 +119,15 @@ type SpawnWithAutonomous = typeof spawn & {
   autonomous?: (agent: string, options: AutonomousOptions) => Promise<unknown>;
 };
 
-export async function runLoop(docPath: string, callbacks?: LoopCallbacks): Promise<LoopState>;
-export async function runLoop(options: RunLoopOptions): Promise<LoopState>;
+export async function runLoop(
+  docPath: string,
+  callbacks?: LoopCallbacks
+): Promise<SuperintendentRunResult>;
+export async function runLoop(options: RunLoopOptions): Promise<SuperintendentRunResult>;
 export async function runLoop(
   input: string | RunLoopOptions,
   callbacks?: LoopCallbacks
-): Promise<LoopState> {
+): Promise<SuperintendentRunResult> {
   const options = normalizeOptions(input, callbacks);
   const releaseLock = await lockWorkflow(options.docPath, { fs: options.fs });
 
@@ -126,8 +140,10 @@ export async function runLoop(
       };
 
       while (true) {
-        if (shouldHalt(options) || isCompletedOrCapped(state)) {
-          return finishLoop(options.callbacks, state);
+        const stopReason = readLoopStopReason(options, state);
+
+        if (stopReason) {
+          return finishLoop(options.callbacks, state, stopReason);
         }
 
         if (state.state === "in_progress") {
@@ -156,8 +172,10 @@ export async function runLoop(
           };
           doc = await writeLoopState(options.fs, options.docPath, state);
 
-          if (shouldHalt(options)) {
-            return finishLoop(options.callbacks, state);
+          const stopReason = readInterruptionReason(options, state);
+
+          if (stopReason) {
+            return finishLoop(options.callbacks, state, stopReason);
           }
 
           for (const [name, config] of Object.entries(doc.frontmatter.inspectors ?? {})) {
@@ -184,8 +202,10 @@ export async function runLoop(
             };
             doc = await writeLoopState(options.fs, options.docPath, state);
 
-            if (shouldHalt(options)) {
-              return finishLoop(options.callbacks, state);
+            const stopReason = readInterruptionReason(options, state);
+
+            if (stopReason) {
+              return finishLoop(options.callbacks, state, stopReason);
             }
           }
 
@@ -214,8 +234,12 @@ export async function runLoop(
             options.callbacks.onRoundComplete?.(state.round);
           }
 
-          if (shouldHalt(options)) {
-            return finishLoop(options.callbacks, state);
+          {
+            const stopReason = readLoopStopReason(options, state);
+
+            if (stopReason) {
+              return finishLoop(options.callbacks, state, stopReason);
+            }
           }
 
           continue;
@@ -235,8 +259,12 @@ export async function runLoop(
           };
           doc = await writeLoopState(options.fs, options.docPath, state);
 
-          if (shouldHalt(options)) {
-            return finishLoop(options.callbacks, state);
+          {
+            const stopReason = readInterruptionReason(options, state);
+
+            if (stopReason) {
+              return finishLoop(options.callbacks, state, stopReason);
+            }
           }
 
           continue;
@@ -273,8 +301,12 @@ export async function runLoop(
           options.callbacks.onRoundComplete?.(state.round);
         }
 
-        if (shouldHalt(options)) {
-          return finishLoop(options.callbacks, state);
+        {
+          const stopReason = readLoopStopReason(options, state);
+
+          if (stopReason) {
+            return finishLoop(options.callbacks, state, stopReason);
+          }
         }
       }
     });
@@ -439,24 +471,49 @@ function emitStateChange(callbacks: LoopCallbacks, state: LoopState): void {
   callbacks.onStateChange?.({ ...state });
 }
 
-function isCompletedOrCapped(state: LoopState): boolean {
+function readLoopStopReason(
+  options: Pick<LoopRuntime, "callbacks" | "signal">,
+  state: LoopState
+): SuperintendentStopReason | undefined {
   if (state.state === "completed") {
-    return true;
+    return "completed";
   }
 
-  return state.state === "in_progress" && state.round >= state.maxRounds;
+  if (state.state === "in_progress" && state.round >= state.maxRounds) {
+    return "max_rounds";
+  }
+
+  return readInterruptionReason(options, state);
 }
 
-function shouldHalt(options: Pick<LoopRuntime, "callbacks" | "signal">): boolean {
+function readInterruptionReason(
+  options: Pick<LoopRuntime, "callbacks" | "signal">,
+  _state: LoopState
+): SuperintendentStopReason | undefined {
   if (options.signal?.aborted) {
-    return true;
+    return "aborted";
   }
 
-  return options.callbacks.shouldStop?.() === true || options.callbacks.shouldPause?.() === true;
+  if (options.callbacks.shouldStop?.() === true) {
+    return "stopped";
+  }
+
+  if (options.callbacks.shouldPause?.() === true) {
+    return "paused";
+  }
+
+  return undefined;
 }
 
-function finishLoop(callbacks: LoopCallbacks, state: LoopState): LoopState {
-  const snapshot = { ...state };
+function finishLoop(
+  callbacks: LoopCallbacks,
+  state: LoopState,
+  stopReason: SuperintendentStopReason
+): SuperintendentRunResult {
+  const snapshot = {
+    ...state,
+    stopReason
+  };
   callbacks.onLoopComplete?.(snapshot);
   return snapshot;
 }

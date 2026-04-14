@@ -146,9 +146,9 @@ tasks:
   - id: env-container
     title: Implement `env` backend (HOME/XDG isolation)
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Create `packages/e2e-test-runner/src/env-container.ts` implementing the

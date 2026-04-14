@@ -5,7 +5,12 @@ vi.mock('./persistent-container.js', () => ({
   createPersistentContainer: vi.fn(),
 }));
 
+vi.mock('./env-container.js', () => ({
+  createEnvContainer: vi.fn(),
+}));
+
 import { createPersistentContainer } from './persistent-container.js';
+import { createEnvContainer } from './env-container.js';
 import { createBackendContainer, resolveBackend } from './backend.js';
 
 function makeMockContainer(): Container {
@@ -99,13 +104,25 @@ describe('backend', () => {
     expect(result).toBe(container);
   });
 
-  it.each([
-    ['env'],
-    ['sandbox'],
-  ] as const)('throws for %s backend until implemented', async (backend) => {
-    await expect(createBackendContainer(backend, {})).rejects.toThrow(
-      `${backend} backend not implemented yet`,
+  it("delegates env backend to the env container", async () => {
+    const container = makeMockContainer();
+    vi.mocked(createEnvContainer).mockResolvedValue(container);
+    const options = {
+      testName: 'env-backend',
+      useSnapshots: true,
+    };
+
+    const result = await createBackendContainer('env', options);
+
+    expect(createEnvContainer).toHaveBeenCalledWith(options);
+    expect(result).toBe(container);
+  });
+
+  it('throws for sandbox backend until implemented', async () => {
+    await expect(createBackendContainer('sandbox', {})).rejects.toThrow(
+      'sandbox backend not implemented yet',
     );
     expect(createPersistentContainer).not.toHaveBeenCalled();
+    expect(createEnvContainer).not.toHaveBeenCalled();
   });
 });

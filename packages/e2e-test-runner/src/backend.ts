@@ -1,3 +1,4 @@
+import { createEnvContainer } from './env-container.js';
 import { createPersistentContainer } from './persistent-container.js';
 import type { Container, ContainerOptions } from './types.js';
 
@@ -31,6 +32,7 @@ export async function createBackendContainer(
     case 'docker':
       return createPersistentContainer(options);
     case 'env':
+      return createEnvContainer(options);
     case 'sandbox':
       throw new Error(`${backend} backend not implemented yet`);
     default:

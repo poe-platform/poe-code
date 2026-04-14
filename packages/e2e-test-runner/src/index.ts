@@ -4,6 +4,7 @@ export { detectEngine } from './engine.js';
 export { runInContainer, setWorkspaceDir } from './container.js';
 export { createContainer } from './persistent-container.js';
 export { createPersistentContainer } from './persistent-container.js';
+export { createEnvContainer } from './env-container.js';
 export { createBackendContainer, resolveBackend } from './backend.js';
 export { rotateLogs } from './log-rotation.js';
 export { getApiKey } from './credentials.js';

@@ -178,7 +178,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/terminal.ts`:
 
@@ -237,9 +237,9 @@ tasks:
   - id: border
     title: Implement border renderer
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
     prompt: |
       Create `packages/design-system/src/dashboard/components/border.ts`:
 

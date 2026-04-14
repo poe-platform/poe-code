@@ -1,7 +1,9 @@
 import chalk from "chalk";
 import { describe, expect, it } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
+import { renderBorder } from "./components/border.js";
 import { computeDashboardLayout } from "./layout.js";
+import type { DashboardLayout } from "./layout.js";
 import type { Rect } from "./types.js";
 
 function readRow(buffer: ScreenBuffer, y: number): string {
@@ -284,5 +286,108 @@ describe("computeDashboardLayout", () => {
       footer: { x: 0, y: 0, width: 0, height: 0 },
       footerDivider: { y: 0, left: 0, right: 0 }
     });
+  });
+});
+
+describe("renderBorder", () => {
+  it("places border characters at the expected positions", () => {
+    const buffer = new ScreenBuffer(30, 8);
+    const layout = computeDashboardLayout({ totalWidth: 30, totalHeight: 8 });
+
+    renderBorder(buffer, layout, { style: { fg: "cyan" } });
+
+    expect(readRow(buffer, 0)).toBe("┌────────────────────┬───────┐");
+    expect(readRow(buffer, 5)).toBe("├────────────────────┴───────┤");
+    expect(readRow(buffer, 7)).toBe("└────────────────────────────┘");
+    expect(buffer.get(0, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
+    expect(buffer.get(21, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
+    expect(buffer.get(29, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
+    expect(buffer.get(21, 6)).toEqual({ ch: " ", style: {} });
+  });
+
+  it("renders titles inline in the top border", () => {
+    const buffer = new ScreenBuffer(40, 8);
+    const layout = computeDashboardLayout({ totalWidth: 40, totalHeight: 8 });
+
+    renderBorder(buffer, layout, {
+      leftTitle: "Agent Output",
+      rightTitle: "Stats",
+      style: { fg: "green", bold: true }
+    });
+
+    expect(readRow(buffer, 0)).toBe("┌─ Agent Output ─────┬─ Stats ─────────┐");
+    expect(buffer.get(1, 0)).toEqual({ ch: "─", style: { fg: "green", bold: true } });
+    expect(buffer.get(3, 0)).toEqual({ ch: "A", style: { fg: "green", bold: true } });
+    expect(buffer.get(22, 0)).toEqual({ ch: "─", style: { fg: "green", bold: true } });
+  });
+
+  it("uses the correct junction characters at intersections", () => {
+    const buffer = new ScreenBuffer(10, 6);
+    const layout: DashboardLayout = {
+      outerBorder: { x: 0, y: 0, width: 10, height: 6 },
+      leftPane: { x: 1, y: 1, width: 4, height: 3 },
+      rightPane: { x: 6, y: 1, width: 3, height: 3 },
+      divider: { x: 5, top: 1, bottom: 4 },
+      footer: { x: 1, y: 4, width: 8, height: 1 },
+      footerDivider: { y: 3, left: 1, right: 8 }
+    };
+
+    renderBorder(buffer, layout, { style: { dim: true } });
+
+    expect(readRow(buffer, 0)).toBe("┌────┬───┐");
+    expect(readRow(buffer, 3)).toBe("├────┼───┤");
+    expect(readRow(buffer, 5)).toBe("└────┴───┘");
+  });
+
+  it("truncates long titles to fit the available top-border width", () => {
+    const buffer = new ScreenBuffer(40, 8);
+    const layout = computeDashboardLayout({ totalWidth: 40, totalHeight: 8 });
+
+    renderBorder(buffer, layout, {
+      leftTitle: "ABCDEFGHIJKLMNOPQRSTUVWX",
+      rightTitle: "12345678901234567890",
+      style: { fg: "yellow" }
+    });
+
+    expect(readRow(buffer, 0)).toBe("┌─ ABCDEFGHIJKLMNOPQR┬─ 123456789012345┐");
+  });
+
+  it("preserves top and bottom junctions when the divider touches the outer frame", () => {
+    const buffer = new ScreenBuffer(10, 6);
+    const layout: DashboardLayout = {
+      outerBorder: { x: 0, y: 0, width: 10, height: 6 },
+      leftPane: { x: 1, y: 1, width: 4, height: 4 },
+      rightPane: { x: 6, y: 1, width: 3, height: 4 },
+      divider: { x: 5, top: 0, bottom: 5 },
+      footer: { x: 1, y: 5, width: 8, height: 0 },
+      footerDivider: { y: 5, left: 1, right: 8 }
+    };
+
+    renderBorder(buffer, layout, { style: { fg: "magenta" } });
+
+    expect(readRow(buffer, 0)).toBe("┌────┬───┐");
+    expect(readRow(buffer, 5)).toBe("└────┴───┘");
+    expect(buffer.get(5, 2)).toEqual({ ch: "│", style: { fg: "magenta" } });
+  });
+
+  it("omits divider junctions when there is no interior height", () => {
+    const buffer = new ScreenBuffer(12, 2);
+    const layout = computeDashboardLayout({ totalWidth: 12, totalHeight: 2 });
+
+    renderBorder(buffer, layout, { style: { fg: "blue" } });
+
+    expect(readRow(buffer, 0)).toBe("┌──────────┐");
+    expect(readRow(buffer, 1)).toBe("└──────────┘");
+  });
+
+  it("omits the pane divider when the right pane collapses to zero width", () => {
+    const buffer = new ScreenBuffer(10, 6);
+    const layout = computeDashboardLayout({ totalWidth: 10, totalHeight: 6 });
+
+    renderBorder(buffer, layout, { style: { fg: "red" } });
+
+    expect(readRow(buffer, 0)).toBe("┌────────┐");
+    expect(readRow(buffer, 3)).toBe("├────────┤");
+    expect(buffer.get(8, 1)).toEqual({ ch: " ", style: {} });
   });
 });

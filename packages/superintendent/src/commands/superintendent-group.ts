@@ -3,6 +3,7 @@ import { text } from "@poe-code/design-system";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { hasTaskBoard, parseTaskBoard } from "../document/tasks.js";
 import { builderGroup } from "./builder-group.js";
+import { completeCommand } from "./complete.js";
 import { inspectorGroup } from "./inspector-group.js";
 
 export type ValidationProblem = {
@@ -65,7 +66,7 @@ export const superintendentGroup = defineGroup({
   name: "superintendent",
   description: "Superintendent workflow commands.",
   scope: ["cli", "mcp", "sdk"],
-  children: [validateCommand, builderGroup, inspectorGroup]
+  children: [validateCommand, completeCommand, builderGroup, inspectorGroup]
 });
 
 export function validateSuperintendentDocument(

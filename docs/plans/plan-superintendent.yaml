@@ -1195,7 +1195,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Add simulation test to `packages/superintendent/src/superintendent.test.ts`.
 
@@ -1233,9 +1233,9 @@ tasks:
   - id: complete-command
     title: Implement complete command
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Add the `superintendent complete` command to the superintendent group.

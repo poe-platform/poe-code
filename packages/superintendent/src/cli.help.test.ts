@@ -23,6 +23,7 @@ describe("superintendent CLI help", () => {
     const output = readStdout(stdoutWrite);
     expect(output).toContain("superintendent");
     expect(output).toContain("Commands:");
+    expect(output).toContain("complete");
     expect(output).toContain("builder");
     expect(output).toContain("inspector");
   }, 15000);

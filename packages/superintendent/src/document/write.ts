@@ -3,6 +3,35 @@ import { parseDocument } from "yaml";
 import { parseSuperintendentDoc, type StatusBlock } from "./parse.js";
 
 export function updateStatus(filePath: string, content: string, status: StatusBlock): string {
+  return updateFrontmatter(filePath, content, (frontmatterDocument) => {
+    frontmatterDocument.set("status", {
+      state: status.state,
+      round: status.round,
+      review_turn: status.review_turn
+    });
+  });
+}
+
+export function setStatusReason(
+  filePath: string,
+  content: string,
+  reason: string | undefined
+): string {
+  return updateFrontmatter(filePath, content, (frontmatterDocument) => {
+    if (reason === undefined) {
+      frontmatterDocument.deleteIn(["status", "reason"]);
+      return;
+    }
+
+    frontmatterDocument.setIn(["status", "reason"], reason);
+  });
+}
+
+function updateFrontmatter(
+  filePath: string,
+  content: string,
+  mutate: (frontmatterDocument: ReturnType<typeof parseDocument>) => void
+): string {
   const resolvedFilePath = path.resolve(filePath);
   const parts = splitDocument(resolvedFilePath, content);
   const frontmatterDocument = parseDocument(parts.frontmatterText);
@@ -13,11 +42,7 @@ export function updateStatus(filePath: string, content: string, status: StatusBl
     );
   }
 
-  frontmatterDocument.set("status", {
-    state: status.state,
-    round: status.round,
-    review_turn: status.review_turn
-  });
+  mutate(frontmatterDocument);
 
   return [
     parts.bom,

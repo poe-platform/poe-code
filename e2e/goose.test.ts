@@ -52,7 +52,7 @@ describe('goose', () => {
   });
 
   it('test --isolated', async () => {
-    const result = await container.exec('env -u POE_API_KEY poe-code test goose --isolated');
+    const result = await container.exec('poe-code test goose --isolated');
     expect(result).toSucceedWith('Tested Goose.');
 
     await expect(container).toHaveFile(`${container.home}/.poe-code/goose/.config/goose/secrets.yaml`);

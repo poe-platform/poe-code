@@ -640,8 +640,8 @@ tasks:
   - id: demo
     title: Create demo script for visual testing
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
     prompt: |
       Create `packages/design-system/src/dashboard/demo.ts`:

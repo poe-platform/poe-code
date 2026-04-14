@@ -353,9 +353,9 @@ tasks:
       - Hook failure propagates error
       - Abort signal is forwarded to runAgent
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   # ── Phase 4: Pipeline simplification ──

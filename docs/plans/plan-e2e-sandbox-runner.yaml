@@ -203,7 +203,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/e2e-test-runner/src/sandbox.ts` with a platform-specific
       command builder:
@@ -255,9 +255,9 @@ tasks:
   - id: sandbox-container
     title: Implement `sandbox` backend container
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Create `packages/e2e-test-runner/src/sandbox-container.ts`.

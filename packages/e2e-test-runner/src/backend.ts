@@ -1,5 +1,6 @@
 import { createEnvContainer } from './env-container.js';
 import { createPersistentContainer } from './persistent-container.js';
+import { createSandboxContainer } from './sandbox-container.js';
 import type { Container, ContainerOptions } from './types.js';
 
 export type Backend = 'env' | 'sandbox' | 'podman' | 'docker';
@@ -34,7 +35,7 @@ export async function createBackendContainer(
     case 'env':
       return createEnvContainer(options);
     case 'sandbox':
-      throw new Error(`${backend} backend not implemented yet`);
+      return createSandboxContainer(options);
     default:
       throw new Error(`Unsupported backend: ${String(backend)}`);
   }

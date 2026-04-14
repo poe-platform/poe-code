@@ -9,8 +9,13 @@ vi.mock('./env-container.js', () => ({
   createEnvContainer: vi.fn(),
 }));
 
+vi.mock('./sandbox-container.js', () => ({
+  createSandboxContainer: vi.fn(),
+}));
+
 import { createPersistentContainer } from './persistent-container.js';
 import { createEnvContainer } from './env-container.js';
+import { createSandboxContainer } from './sandbox-container.js';
 import { createBackendContainer, resolveBackend } from './backend.js';
 
 function makeMockContainer(): Container {
@@ -118,10 +123,18 @@ describe('backend', () => {
     expect(result).toBe(container);
   });
 
-  it('throws for sandbox backend until implemented', async () => {
-    await expect(createBackendContainer('sandbox', {})).rejects.toThrow(
-      'sandbox backend not implemented yet',
-    );
+  it("delegates sandbox backend to the sandbox container", async () => {
+    const container = makeMockContainer();
+    vi.mocked(createSandboxContainer).mockResolvedValue(container);
+    const options = {
+      testName: 'sandbox-backend',
+      useSnapshots: true,
+    };
+
+    const result = await createBackendContainer('sandbox', options);
+
+    expect(createSandboxContainer).toHaveBeenCalledWith(options);
+    expect(result).toBe(container);
     expect(createPersistentContainer).not.toHaveBeenCalled();
     expect(createEnvContainer).not.toHaveBeenCalled();
   });

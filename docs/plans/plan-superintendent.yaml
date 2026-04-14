@@ -370,9 +370,9 @@ tasks:
   - id: run-inspector
     title: Implement inspector execution
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Implement `packages/superintendent/src/runtime/run-inspector.ts`.

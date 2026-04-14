@@ -7,17 +7,15 @@ import type {
   ExecResult,
 } from './types.js';
 import { detectEngine } from './engine.js';
-import { ensureImage } from './image.js';
 import { getApiKey } from './credentials.js';
-import { getResolvedContext, buildContextArgs } from './context.js';
 import {
   CONTAINER_HOME,
   MOUNT_TARGET,
   NPM_CACHE_DIR,
   UV_CACHE_DIR,
   getWorkspaceDir,
-} from './container.js';
-export { CONTAINER_HOME } from './container.js';
+} from './runtime.js';
+export { CONTAINER_HOME } from './runtime.js';
 import { mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { CapturedExchange } from './proxy-types.js';
@@ -92,14 +90,12 @@ function isSafeSnapshotKey(key: string): boolean {
 
 async function waitForProxyToBind(
   engine: string,
-  ctxArgs: string[],
   containerId: string,
 ): Promise<void> {
   for (let attempt = 0; attempt < PROXY_BIND_MAX_ATTEMPTS; attempt += 1) {
     const probeResult = spawnSync(
       engine,
       [
-        ...ctxArgs,
         'exec',
         containerId,
         'node',
@@ -134,6 +130,20 @@ function ensureCacheDirs(): void {
 
 function generateContainerName(): string {
   return `poe-e2e-${randomUUID().split('-')[0]}`;
+}
+
+function resolveContainerImage(image: string | undefined): string {
+  const configuredImage = image?.trim();
+  if (configuredImage) {
+    return configuredImage;
+  }
+
+  const envImage = process.env.E2E_PODMAN_IMAGE?.trim();
+  if (envImage) {
+    return envImage;
+  }
+
+  throw new Error('Podman image not configured. Pass options.image or set E2E_PODMAN_IMAGE.');
 }
 
 export function buildCreateArgs(config: {
@@ -231,9 +241,7 @@ export async function createPersistentContainer(
     : 'error';
 
   const engine = detectEngine();
-  const context = getResolvedContext();
-  const ctxArgs = buildContextArgs(engine, context);
-  const image = options.image ?? ensureImage(engine, workspace, { context: context ?? undefined });
+  const image = resolveContainerImage(options.image);
   const apiKey = await getApiKey();
   const name = generateContainerName();
 
@@ -251,7 +259,7 @@ export async function createPersistentContainer(
     env.POE_API_KEY = apiKey;
   }
 
-  const createResult = spawnSync(engine, [...ctxArgs, ...createArgs], {
+  const createResult = spawnSync(engine, createArgs, {
     encoding: 'utf-8',
     env,
   });
@@ -262,35 +270,35 @@ export async function createPersistentContainer(
 
   const containerId = createResult.stdout.trim();
 
-  const startResult = spawnSync(engine, [...ctxArgs, 'start', containerId], {
+  const startResult = spawnSync(engine, ['start', containerId], {
     encoding: 'utf-8',
   });
 
   if (startResult.status !== 0) {
     // Clean up the created container on start failure
-    spawnSync(engine, [...ctxArgs, 'rm', '-f', containerId], { stdio: 'ignore' });
+    spawnSync(engine, ['rm', '-f', containerId], { stdio: 'ignore' });
     throw new Error(`Failed to start container: ${startResult.stderr}`);
   }
 
   if (proxyEnabled) {
     const prepareProxyResult = spawnSync(
       engine,
-      [...ctxArgs, 'exec', containerId, 'sh', '-c', `mkdir -p ${PROXY_SNAPSHOT_DIR} && : > ${PROXY_CAPTURE_FILE}`],
+      ['exec', containerId, 'sh', '-c', `mkdir -p ${PROXY_SNAPSHOT_DIR} && : > ${PROXY_CAPTURE_FILE}`],
       { encoding: 'utf-8', stdio: 'pipe' },
     );
     if ((prepareProxyResult.status ?? 1) !== 0) {
-      spawnSync(engine, [...ctxArgs, 'rm', '-f', containerId], { stdio: 'ignore' });
+      spawnSync(engine, ['rm', '-f', containerId], { stdio: 'ignore' });
       throw new Error(`Failed to prepare proxy directories: ${(prepareProxyResult.stderr ?? '').trim()}`);
     }
 
     if (readdirSync(hostSnapshotDir).length > 0) {
       const copyResult = spawnSync(
         engine,
-        [...ctxArgs, 'cp', `${hostSnapshotDir}/.`, `${containerId}:${PROXY_SNAPSHOT_DIR}/`],
+        ['cp', `${hostSnapshotDir}/.`, `${containerId}:${PROXY_SNAPSHOT_DIR}/`],
         { encoding: 'utf-8', stdio: 'pipe' },
       );
       if ((copyResult.status ?? 1) !== 0) {
-        spawnSync(engine, [...ctxArgs, 'rm', '-f', containerId], { stdio: 'ignore' });
+        spawnSync(engine, ['rm', '-f', containerId], { stdio: 'ignore' });
         throw new Error(`Failed to copy snapshotDir into container: ${(copyResult.stderr ?? '').trim()}`);
       }
     }
@@ -299,7 +307,6 @@ export async function createPersistentContainer(
     const startProxyResult = spawnSync(
       engine,
       [
-        ...ctxArgs,
         'exec',
         containerId,
         'sh',
@@ -309,14 +316,14 @@ export async function createPersistentContainer(
       { encoding: 'utf-8', stdio: 'pipe' },
     );
     if ((startProxyResult.status ?? 1) !== 0) {
-      spawnSync(engine, [...ctxArgs, 'rm', '-f', containerId], { stdio: 'ignore' });
+      spawnSync(engine, ['rm', '-f', containerId], { stdio: 'ignore' });
       throw new Error(`Failed to start proxy server: ${(startProxyResult.stderr ?? '').trim()}`);
     }
 
     try {
-      await waitForProxyToBind(engine, ctxArgs, containerId);
+      await waitForProxyToBind(engine, containerId);
     } catch (error) {
-      spawnSync(engine, [...ctxArgs, 'rm', '-f', containerId], { stdio: 'ignore' });
+      spawnSync(engine, ['rm', '-f', containerId], { stdio: 'ignore' });
       throw error;
     }
   }
@@ -324,8 +331,7 @@ export async function createPersistentContainer(
   /** Always-quiet exec that never streams output (for internal helpers that may handle secrets) */
   const execQuiet = async (command: string): Promise<ExecResult> => {
     const execArgs = buildExecArgs(containerId, command);
-    const fullArgs = [...ctxArgs, ...execArgs];
-    const result = spawnSync(engine, fullArgs, {
+    const result = spawnSync(engine, execArgs, {
       encoding: 'utf-8',
       stdio: 'pipe',
     });
@@ -344,8 +350,7 @@ export async function createPersistentContainer(
     }
 
     const execArgs = buildExecArgs(containerId, command);
-    const fullArgs = [...ctxArgs, ...execArgs];
-    const result = await execStreaming(engine, fullArgs);
+    const result = await execStreaming(engine, execArgs);
     return { exitCode: result.exitCode, stdout: result.stdout.trim(), stderr: result.stderr.trim(), command };
   };
 
@@ -364,7 +369,7 @@ export async function createPersistentContainer(
     home: CONTAINER_HOME,
 
     destroy: async () => {
-      spawnSync(engine, [...ctxArgs, 'rm', '-f', containerId], { stdio: 'ignore' });
+      spawnSync(engine, ['rm', '-f', containerId], { stdio: 'ignore' });
     },
 
     exec,
@@ -394,7 +399,7 @@ export async function createPersistentContainer(
     },
 
     async writeFile(filePath: string, content: string): Promise<void> {
-      const result = spawnSync(engine, [...ctxArgs, 'exec', '-i', containerId, 'sh', '-c', `cat > ${filePath}`], {
+      const result = spawnSync(engine, ['exec', '-i', containerId, 'sh', '-c', `cat > ${filePath}`], {
         encoding: 'utf-8',
         input: content,
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -439,7 +444,7 @@ export async function createPersistentContainer(
         }
         const result = spawnSync(
           engine,
-          [...ctxArgs, 'exec', '-i', containerId, 'sh', '-c', `cat > ${PROXY_SNAPSHOT_DIR}/${snapshot.key}.json`],
+          ['exec', '-i', containerId, 'sh', '-c', `cat > ${PROXY_SNAPSHOT_DIR}/${snapshot.key}.json`],
           {
             encoding: 'utf-8',
             input: JSON.stringify({

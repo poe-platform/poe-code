@@ -1,13 +1,12 @@
 {
   "name": "@poe-code/e2e-test-runner",
   "version": "1.0.0",
-  "description": "Docker-based e2e test runner for poe-code",
+  "description": "E2E test runner for poe-code",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "e2e-runner": "dist/runner.js",
     "proxy-server": "dist/proxy-cli.js"
   },
   "exports": {

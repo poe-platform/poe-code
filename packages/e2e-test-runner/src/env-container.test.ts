@@ -33,7 +33,7 @@ vi.mock('./proxy-server.js', () => ({
   startProxyServer: vi.fn(),
 }));
 
-vi.mock('./container.js', () => ({
+vi.mock('./runtime.js', () => ({
   getWorkspaceDir: vi.fn(() => '/workspace'),
 }));
 
@@ -154,6 +154,28 @@ describe('createEnvContainer', () => {
 
     await container.destroy();
 
+    await expect(access(home)).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  it('retries destroy when recursive removal hits ENOTEMPTY', async () => {
+    const fsPromises = await import('node:fs/promises');
+    const originalRm = fsPromises.rm.bind(fsPromises);
+    const rmSpy = vi.spyOn(fsPromises, 'rm');
+    rmSpy
+      .mockRejectedValueOnce(
+        Object.assign(new Error('directory not empty'), { code: 'ENOTEMPTY' }),
+      )
+      .mockImplementation(originalRm);
+
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer();
+    const { home } = container;
+
+    await expect(container.destroy()).resolves.toBeUndefined();
+
+    expect(rmSpy).toHaveBeenCalledTimes(2);
     await expect(access(home)).rejects.toMatchObject({
       code: 'ENOENT',
     });

@@ -33,7 +33,7 @@ vi.mock('./proxy-server.js', () => ({
   startProxyServer: vi.fn(),
 }));
 
-vi.mock('./container.js', () => ({
+vi.mock('./runtime.js', () => ({
   getWorkspaceDir: vi.fn(() => '/workspace'),
 }));
 

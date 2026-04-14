@@ -12,19 +12,11 @@ vi.mock('./engine.js', () => ({
   detectEngine: vi.fn(),
 }));
 
-vi.mock('./context.js', () => ({
-  detectRunningContext: vi.fn(),
-}));
-
 vi.mock('./preflight.js', () => ({
   cleanupOrphans: vi.fn(),
 }));
 
-vi.mock('./image.js', () => ({
-  IMAGE_NAME: 'poe-code-e2e',
-}));
-
-vi.mock('./container.js', () => ({
+vi.mock('./runtime.js', () => ({
   E2E_CACHE_ROOT: '/tmp/poe-e2e-cache',
 }));
 
@@ -33,12 +25,10 @@ describe('cleanupDisk', () => {
     vi.resetAllMocks();
 
     const { detectEngine } = await import('./engine.js');
-    const { detectRunningContext } = await import('./context.js');
     const { cleanupOrphans } = await import('./preflight.js');
     const { execSync } = await import('node:child_process');
 
-    vi.mocked(detectEngine).mockReturnValue('docker');
-    vi.mocked(detectRunningContext).mockReturnValue('colima');
+    vi.mocked(detectEngine).mockReturnValue('podman');
     vi.mocked(cleanupOrphans).mockResolvedValue(2);
     vi.mocked(execSync).mockImplementation((command: string) => {
       if (command.includes(' images --format ')) {
@@ -64,12 +54,12 @@ describe('cleanupDisk', () => {
 
     const calls = vi.mocked(execSync).mock.calls.map(([command]) => command);
     expect(calls).toContain(
-      'docker --context colima images --format "{{.Repository}}:{{.Tag}}" poe-code-e2e'
+      'podman images --format "{{.Repository}}:{{.Tag}}" poe-code-e2e',
     );
-    expect(calls).toContain('docker --context colima rmi poe-code-e2e:one');
-    expect(calls).toContain('docker --context colima rmi poe-code-e2e:two');
-    expect(calls).toContain('docker --context colima image prune -f');
-    expect(calls).toContain('docker --context colima builder prune -f');
+    expect(calls).toContain('podman rmi poe-code-e2e:one');
+    expect(calls).toContain('podman rmi poe-code-e2e:two');
+    expect(calls).toContain('podman image prune -f');
+    expect(calls).toContain('podman builder prune -f');
 
     expect(vi.mocked(rmSync)).toHaveBeenCalledWith('/tmp/poe-e2e-cache', {
       recursive: true,
@@ -84,9 +74,9 @@ describe('cleanupDisk', () => {
     await cleanupDisk({ aggressive: true });
 
     const calls = vi.mocked(execSync).mock.calls.map(([command]) => command);
-    expect(calls).toContain('docker --context colima image prune -af');
-    expect(calls).toContain('docker --context colima builder prune -af');
-    expect(calls).toContain('docker --context colima volume prune -f');
+    expect(calls).toContain('podman image prune -af');
+    expect(calls).toContain('podman builder prune -af');
+    expect(calls).toContain('podman volume prune -f');
   });
 
   it('supports skipping local cache cleanup', async () => {
@@ -103,7 +93,7 @@ describe('cleanupDisk', () => {
     const { execSync } = await import('node:child_process');
     vi.mocked(execSync).mockImplementation((command: string) => {
       if (command.includes(' images --format ')) {
-        throw new Error('docker unavailable');
+        throw new Error('podman unavailable');
       }
       return '';
     });
@@ -113,7 +103,7 @@ describe('cleanupDisk', () => {
 
     expect(result.removedE2eImages).toBe(0);
     const calls = vi.mocked(execSync).mock.calls.map(([command]) => command);
-    expect(calls).toContain('docker --context colima image prune -f');
-    expect(calls).toContain('docker --context colima builder prune -f');
+    expect(calls).toContain('podman image prune -f');
+    expect(calls).toContain('podman builder prune -f');
   });
 });

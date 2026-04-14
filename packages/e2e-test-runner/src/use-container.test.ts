@@ -2,10 +2,10 @@ import { describe, it, expect, expectTypeOf, vi, beforeEach } from 'vitest';
 import './matchers.js';
 
 vi.mock('./backend.js');
-vi.mock('./container.js');
+vi.mock('./runtime.js');
 
 import { createBackendContainer, resolveBackend } from './backend.js';
-import { setWorkspaceDir } from './container.js';
+import { setWorkspaceDir } from './runtime.js';
 import { useContainer } from './use-container.js';
 import type { UseContainerOptions } from './use-container.js';
 import type { CapturedRequests, Container } from './types.js';

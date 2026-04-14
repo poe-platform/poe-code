@@ -1,9 +1,8 @@
 import { execSync } from 'node:child_process';
 import chalk from 'chalk';
+import { resolveBackend, type Backend } from './backend.js';
 import { detectEngine } from './engine.js';
 import { hasApiKey } from './credentials.js';
-import { ensureImage, IMAGE_NAME } from './image.js';
-import { setResolvedContext, getResolvedContext, detectRunningContext } from './context.js';
 import type { Engine } from './types.js';
 
 const LABEL = 'poe-e2e-test-runner';
@@ -16,235 +15,117 @@ interface CheckResult {
 }
 
 export interface RunPreflightOptions {
-  prebuildWorkspaceDir?: string;
+  backend?: Backend;
   verbose?: boolean;
 }
 
 export async function runPreflight(
-  options: RunPreflightOptions = {}
+  options: RunPreflightOptions = {},
 ): Promise<{ passed: boolean; results: CheckResult[] }> {
   const results: CheckResult[] = [];
+  const backend = options.backend ?? resolveBackend();
 
-  // Check 1: Docker/Podman installed
-  const engineCheck = checkEngineInstalled();
-  results.push(engineCheck);
-  if (!engineCheck.passed) {
-    return { passed: false, results };
+  if (backend === 'podman') {
+    const engineCheck = checkPodmanInstalled();
+    results.push(engineCheck);
+    if (!engineCheck.passed) {
+      return { passed: false, results };
+    }
+
+    const daemonCheck = checkPodmanRunning();
+    results.push(daemonCheck);
+    if (!daemonCheck.passed) {
+      return { passed: false, results };
+    }
   }
 
-  const engine = detectEngine();
-
-  // Check 2: Docker daemon running
-  const daemonCheck = checkDaemonRunning(engine);
-  results.push(daemonCheck);
-  if (!daemonCheck.passed) {
-    return { passed: false, results };
+  if (backend === 'sandbox') {
+    const sandboxCheck = checkSandboxRuntime();
+    results.push(sandboxCheck);
+    if (!sandboxCheck.passed) {
+      return { passed: false, results };
+    }
   }
 
-  // Check 3: API key available
   const apiKeyCheck = await checkApiKey();
   results.push(apiKeyCheck);
   if (!apiKeyCheck.passed) {
     return { passed: false, results };
   }
 
-  // Cleanup orphan containers
-  const cleaned = await cleanupOrphans(engine);
-  if (cleaned > 0) {
-    results.push({
-      name: 'Cleanup',
-      passed: true,
-      message: `Cleaned up ${cleaned} orphaned container(s)`,
-    });
-  }
-
-  // Prune old e2e images and build cache to prevent disk full errors
-  const pruned = pruneOldImages(engine);
-  if (pruned > 0) {
-    results.push({
-      name: 'Docker prune',
-      passed: true,
-      message: `Removed ${pruned} old e2e image(s) and pruned build cache`,
-    });
-  }
-
-  if (options.prebuildWorkspaceDir) {
-    try {
-      const context = engine === 'docker' ? getResolvedContext() ?? undefined : undefined;
-      const tag = ensureImage(engine, options.prebuildWorkspaceDir, {
-        context,
-        verbose: options.verbose ?? false,
-      });
+  if (backend === 'podman') {
+    const cleaned = await cleanupOrphans('podman');
+    if (cleaned > 0) {
       results.push({
-        name: 'E2E image',
+        name: 'Cleanup',
         passed: true,
-        message: `Prepared ${tag}`,
+        message: `Cleaned up ${cleaned} orphaned container(s)`,
       });
-    } catch (error) {
-      results.push({
-        name: 'E2E image',
-        passed: false,
-        message: error instanceof Error ? error.message : String(error),
-      });
-      return { passed: false, results };
     }
   }
 
   return { passed: true, results };
 }
 
-function checkEngineInstalled(): CheckResult {
+function checkPodmanInstalled(): CheckResult {
   try {
-    detectEngine();
-    return { name: 'Docker installed', passed: true };
-  } catch {
+    const engine = detectEngine();
+    if (engine !== 'podman') {
+      throw new Error('Podman not installed');
+    }
+    return { name: 'Podman installed', passed: true };
+  } catch (error) {
     return {
-      name: 'Docker installed',
+      name: 'Podman installed',
       passed: false,
-      message: 'Docker not installed',
-      fix:
-        'Install Docker:\n' +
-        '  - Docker Desktop: https://www.docker.com/products/docker-desktop\n' +
-        '  - Colima (macOS): brew install colima && colima start\n' +
-        '  - Podman: https://podman.io/docs/installation',
+      message: error instanceof Error ? error.message : 'Podman not installed',
+      fix: 'Install Podman: https://podman.io/docs/installation',
     };
   }
 }
 
-function checkDaemonRunning(engine: Engine): CheckResult {
-  // First check if there's a running colima profile we should use
-  const runningContext = detectRunningContext();
-  if (runningContext && engine === 'docker') {
-    try {
-      execSync(`${engine} --context ${runningContext} info`, { stdio: 'ignore' });
-      setResolvedContext(runningContext);
-      return { name: 'Docker daemon running', passed: true, message: `Using ${runningContext}` };
-    } catch {
-      // Fall through to other checks
-    }
-  }
-
+function checkPodmanRunning(): CheckResult {
   try {
-    execSync(`${engine} info`, { stdio: 'ignore' });
-    return { name: 'Docker daemon running', passed: true };
+    execSync('podman info', { stdio: 'ignore' });
+    return { name: 'Podman daemon running', passed: true };
   } catch {
-    // Try to auto-start colima if available
-    if (tryStartColima()) {
-      // Re-discover context after starting colima
-      const newContext = detectRunningContext();
-      if (newContext && engine === 'docker') {
-        try {
-          execSync(`${engine} --context ${newContext} info`, { stdio: 'ignore' });
-          setResolvedContext(newContext);
-          return { name: 'Docker daemon running', passed: true, message: `Started colima (${newContext})` };
-        } catch {
-          // Fall through
-        }
-      }
-
-      try {
-        execSync(`${engine} info`, { stdio: 'ignore' });
-        return { name: 'Docker daemon running', passed: true, message: 'Started colima' };
-      } catch {
-        // Still failed after starting colima
-      }
-    }
-
-    // Try to auto-start Docker Desktop if available (macOS only)
-    if (tryStartDockerDesktop()) {
-      return { name: 'Docker daemon running', passed: true, message: 'Started Docker Desktop' };
-    }
-
     return {
-      name: 'Docker daemon running',
+      name: 'Podman daemon running',
       passed: false,
-      message: 'Docker daemon not running',
-      fix:
-        'Start the Docker daemon:\n' +
-        '  - Colima: colima start\n' +
-        '  - Docker Desktop: open -a Docker',
+      message: 'Podman daemon not running',
+      fix: 'Start Podman and verify `podman info` succeeds.',
     };
   }
 }
 
-function tryStartColima(): boolean {
+function checkSandboxRuntime(): CheckResult {
   try {
-    // Check if colima is installed
-    execSync('command -v colima', { stdio: 'ignore' });
-
-    // Check if colima is already running
-    try {
-      execSync('colima status', { stdio: 'ignore' });
-      return true; // Already running
-    } catch {
-      // Not running, try to start
-      console.log(chalk.dim('Starting colima...'));
-      try {
-        execSync('colima start', { stdio: 'inherit', timeout: 120000 });
-        return true;
-      } catch {
-        // Start failed (e.g. stale/corrupted VM), delete and recreate
-        console.log(chalk.dim('Colima start failed, deleting stale instance and retrying...'));
-        try {
-          execSync('colima delete --force', { stdio: 'ignore', timeout: 30000 });
-          const dns = detectHostDns();
-          const dnsArgs = dns.length > 0 ? dns.map((d: string) => `--dns ${d}`).join(' ') : '--dns 8.8.8.8';
-          execSync(`colima start ${dnsArgs}`, { stdio: 'inherit', timeout: 120000 });
-          return true;
-        } catch {
-          return false;
-        }
-      }
-    }
-  } catch {
-    return false;
-  }
-}
-
-function detectHostDns(): string[] {
-  try {
-    const output = execSync('scutil --dns', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
-    const servers: string[] = [];
-    for (const line of output.split('\n')) {
-      const match = line.match(/nameserver\[\d+\]\s*:\s*(\d+\.\d+\.\d+\.\d+)/);
-      if (match && !servers.includes(match[1])) {
-        servers.push(match[1]);
-      }
-    }
-    return servers;
-  } catch {
-    return [];
-  }
-}
-
-function tryStartDockerDesktop(): boolean {
-  if (process.platform !== 'darwin') {
-    return false;
-  }
-
-  try {
-    execSync('test -d "/Applications/Docker.app"', { stdio: 'ignore' });
-  } catch {
-    return false;
-  }
-
-  try {
-    console.log(chalk.dim('Starting Docker Desktop...'));
-    execSync('open -a Docker', { stdio: 'ignore' });
-
-    // Poll for daemon readiness (up to 60 seconds)
-    for (let i = 0; i < 30; i++) {
-      try {
-        execSync('docker info', { stdio: 'ignore' });
-        return true;
-      } catch {
-        execSync('sleep 2', { stdio: 'ignore' });
-      }
+    if (process.platform === 'darwin') {
+      execSync('sandbox-exec -V', { stdio: 'ignore' });
+      return { name: 'Sandbox runtime available', passed: true };
     }
 
-    return false;
+    if (process.platform === 'linux') {
+      execSync('bwrap --version', { stdio: 'ignore' });
+      return { name: 'Sandbox runtime available', passed: true };
+    }
+
+    return {
+      name: 'Sandbox runtime available',
+      passed: false,
+      message: `Sandbox backend is not supported on ${process.platform}`,
+      fix: 'Use E2E_BACKEND=env or E2E_BACKEND=podman on this platform.',
+    };
   } catch {
-    return false;
+    return {
+      name: 'Sandbox runtime available',
+      passed: false,
+      message: 'Sandbox runtime not available',
+      fix:
+        process.platform === 'darwin'
+          ? 'sandbox-exec is required for the sandbox backend on macOS.'
+          : 'bubblewrap (`bwrap`) is required for the sandbox backend on Linux.',
+    };
   }
 }
 
@@ -263,50 +144,11 @@ async function checkApiKey(): Promise<CheckResult> {
   };
 }
 
-function pruneOldImages(engine: Engine): number {
-  const ctx = engine === 'docker' ? getResolvedContext() : null;
-  const contextArg = ctx ? `--context ${ctx}` : '';
-
-  try {
-    // Find all poe-code-e2e images
-    const output = execSync(
-      `${engine} ${contextArg} images --format "{{.Repository}}:{{.Tag}}" ${IMAGE_NAME}`,
-      { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] }
-    );
-    const images = output.trim().split('\n').filter(Boolean);
-
-    if (images.length <= 1) {
-      return 0;
-    }
-
-    // Remove all old images (the current one will be rebuilt if needed)
-    for (const image of images) {
-      try {
-        execSync(`${engine} ${contextArg} rmi ${image}`, { stdio: 'ignore' });
-      } catch {
-        // Image might be in use, skip
-      }
-    }
-
-    // Prune dangling images and build cache
-    execSync(`${engine} ${contextArg} image prune -f`, { stdio: 'ignore' });
-    execSync(`${engine} ${contextArg} builder prune -f`, { stdio: 'ignore' });
-
-    return images.length;
-  } catch {
-    return 0;
-  }
-}
-
-export async function cleanupOrphans(engine?: Engine, context?: string): Promise<number> {
-  const eng = engine ?? detectEngine();
-  const ctx = context ?? (eng === 'docker' ? detectRunningContext() : null);
-  const contextArg = ctx ? `--context ${ctx}` : '';
-
+export async function cleanupOrphans(engine: Engine = 'podman'): Promise<number> {
   try {
     const output = execSync(
-      `${eng} ${contextArg} ps -aq --filter label=${LABEL}=true`,
-      { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] }
+      `${engine} ps -aq --filter label=${LABEL}=true`,
+      { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] },
     );
     const containerIds = output.trim().split('\n').filter(Boolean);
 
@@ -316,14 +158,14 @@ export async function cleanupOrphans(engine?: Engine, context?: string): Promise
 
     for (const id of containerIds) {
       try {
-        execSync(`${eng} ${contextArg} stop ${id}`, { stdio: 'ignore' });
+        execSync(`${engine} stop ${id}`, { stdio: 'ignore' });
       } catch {
-        // Ignore errors
+        // Ignore errors.
       }
       try {
-        execSync(`${eng} ${contextArg} rm -f ${id}`, { stdio: 'ignore' });
+        execSync(`${engine} rm -f ${id}`, { stdio: 'ignore' });
       } catch {
-        // Ignore errors
+        // Ignore errors.
       }
     }
 

@@ -1,13 +1,8 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { runPreflight, formatPreflightResults } from '@poe-code/e2e-test-runner';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export async function setup(): Promise<void> {
-  const { passed, results } = await runPreflight({
-    prebuildWorkspaceDir: path.resolve(__dirname, '..'),
-  });
+  const { passed, results } = await runPreflight();
   console.error(formatPreflightResults(results));
 
   if (!passed) {

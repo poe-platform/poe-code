@@ -1,7 +1,6 @@
 import './matchers.js';
 
 export { detectEngine } from './engine.js';
-export { runInContainer, setWorkspaceDir } from './container.js';
 export { createContainer } from './persistent-container.js';
 export { createPersistentContainer } from './persistent-container.js';
 export { createEnvContainer } from './env-container.js';
@@ -9,16 +8,14 @@ export { createSandboxContainer } from './sandbox-container.js';
 export { createBackendContainer, resolveBackend } from './backend.js';
 export { rotateLogs } from './log-rotation.js';
 export { getApiKey } from './credentials.js';
-export { ensureImage, getSourceHash, IMAGE_NAME } from './image.js';
 export { runPreflight, formatPreflightResults } from './preflight.js';
-export { setResolvedContext, getResolvedContext, buildContextArgs } from './context.js';
 export { useContainer } from './use-container.js';
 export { CapturedRequests } from './proxy-requests.js';
 export { shellQuote } from './shell-quote.js';
 export { buildSandboxCommand } from './sandbox.js';
+export { setWorkspaceDir } from './runtime.js';
 export type { SandboxConfig } from './sandbox.js';
 export type { UseContainerOptions } from './use-container.js';
 export type { Backend } from './backend.js';
-export type { RunResult } from './container.js';
 export type { Container, ContainerOptions, ExecResult } from './types.js';
 export type { CapturedExchange, SnapshotMode, SnapshotMissBehavior } from './proxy-types.js';

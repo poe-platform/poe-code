@@ -258,7 +258,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Create `packages/e2e-test-runner/src/sandbox-container.ts`.
 
@@ -289,9 +289,9 @@ tasks:
   - id: remove-docker-backend
     title: Remove Docker backend and related infrastructure
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Remove the Docker backend entirely. Delete these files:

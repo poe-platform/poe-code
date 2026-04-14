@@ -10,7 +10,7 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
-import { getWorkspaceDir } from './container.js';
+import { getWorkspaceDir } from './runtime.js';
 import { getApiKey } from './credentials.js';
 import { CapturedRequests as CapturedRequestsCollection } from './proxy-requests.js';
 import { startProxyServer, type ProxyServer } from './proxy-server.js';
@@ -22,6 +22,8 @@ const E2E_FIXTURES_DIR = '.snapshots';
 const PROXY_ROUTE_PATH = '/v1/chat/completions';
 const PROXY_ROUTE_TARGET = 'https://api.poe.com';
 const PROXY_CAPTURE_FILE = 'proxy-capture.jsonl';
+const REMOVE_HOME_MAX_ATTEMPTS = 4;
+const REMOVE_HOME_RETRY_DELAY_MS = 25;
 
 export interface HostExecCommand {
   bin: string;
@@ -36,6 +38,31 @@ export interface HostExecCommandContext {
 }
 
 export type HostExecCommandBuilder = (context: HostExecCommandContext) => HostExecCommand;
+
+function isRetryableRemoveError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+
+  return error.code === 'ENOTEMPTY' || error.code === 'EBUSY';
+}
+
+async function removeHomeDirectory(home: string): Promise<void> {
+  for (let attempt = 1; attempt <= REMOVE_HOME_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      await rm(home, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (!isRetryableRemoveError(error) || attempt === REMOVE_HOME_MAX_ATTEMPTS) {
+        throw error;
+      }
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, REMOVE_HOME_RETRY_DELAY_MS * attempt);
+      });
+    }
+  }
+}
 
 function parseCapturedRequests(raw: string): CapturedRequests {
   const exchanges: CapturedExchange[] = [];
@@ -317,7 +344,7 @@ export async function createHostContainer(
         };
         await server.close();
       }
-      await rm(home, { recursive: true, force: true });
+      await removeHomeDirectory(home);
     },
 
     exec,

@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CapturedRequests, Container } from './types.js';
 
+vi.mock('node:child_process', () => ({
+  execSync: vi.fn(),
+}));
+
 vi.mock('./persistent-container.js', () => ({
   createPersistentContainer: vi.fn(),
 }));
@@ -16,6 +20,7 @@ vi.mock('./sandbox-container.js', () => ({
 import { createPersistentContainer } from './persistent-container.js';
 import { createEnvContainer } from './env-container.js';
 import { createSandboxContainer } from './sandbox-container.js';
+import { execSync } from 'node:child_process';
 import { createBackendContainer, resolveBackend } from './backend.js';
 
 function makeMockContainer(): Container {
@@ -41,6 +46,7 @@ describe('backend', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(execSync).mockImplementation(() => Buffer.from(''));
     delete process.env.CI;
     delete process.env.E2E_BACKEND;
   });
@@ -69,6 +75,14 @@ describe('backend', () => {
     expect(resolveBackend()).toBe('sandbox');
   });
 
+  it("returns 'env' when sandbox runtime is unavailable locally", () => {
+    vi.mocked(execSync).mockImplementation(() => {
+      throw new Error('missing sandbox runtime');
+    });
+
+    expect(resolveBackend()).toBe('env');
+  });
+
   it('respects E2E_BACKEND override', () => {
     process.env.E2E_BACKEND = 'podman';
     process.env.CI = 'true';
@@ -77,30 +91,17 @@ describe('backend', () => {
   });
 
   it('throws for unsupported E2E_BACKEND override', () => {
-    process.env.E2E_BACKEND = 'invalid';
+    process.env.E2E_BACKEND = 'docker';
 
-    expect(() => resolveBackend()).toThrow('Unsupported E2E_BACKEND: invalid');
+    expect(() => resolveBackend()).toThrow('Unsupported E2E_BACKEND: docker');
   });
 
-  it("delegates docker backend to the persistent container", async () => {
-    const container = makeMockContainer();
-    vi.mocked(createPersistentContainer).mockResolvedValue(container);
-    const options = {
-      testName: 'docker-backend',
-      useSnapshots: true,
-    };
-
-    const result = await createBackendContainer('docker', options);
-
-    expect(createPersistentContainer).toHaveBeenCalledWith(options);
-    expect(result).toBe(container);
-  });
-
-  it("delegates podman backend to the persistent container", async () => {
+  it('delegates podman backend to the persistent container', async () => {
     const container = makeMockContainer();
     vi.mocked(createPersistentContainer).mockResolvedValue(container);
     const options = {
       testName: 'podman-backend',
+      useSnapshots: true,
     };
 
     const result = await createBackendContainer('podman', options);
@@ -109,7 +110,7 @@ describe('backend', () => {
     expect(result).toBe(container);
   });
 
-  it("delegates env backend to the env container", async () => {
+  it('delegates env backend to the env container', async () => {
     const container = makeMockContainer();
     vi.mocked(createEnvContainer).mockResolvedValue(container);
     const options = {
@@ -123,7 +124,7 @@ describe('backend', () => {
     expect(result).toBe(container);
   });
 
-  it("delegates sandbox backend to the sandbox container", async () => {
+  it('delegates sandbox backend to the sandbox container', async () => {
     const container = makeMockContainer();
     vi.mocked(createSandboxContainer).mockResolvedValue(container);
     const options = {

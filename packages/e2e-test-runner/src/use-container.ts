@@ -1,6 +1,6 @@
 import { beforeEach, afterEach, expect } from 'vitest';
 import { createBackendContainer, resolveBackend } from './backend.js';
-import { setWorkspaceDir } from './container.js';
+import { setWorkspaceDir } from './runtime.js';
 import type { Container } from './types.js';
 
 export interface UseContainerOptions {

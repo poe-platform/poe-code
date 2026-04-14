@@ -3,8 +3,7 @@ import { vol } from 'memfs';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import { buildCreateArgs, buildExecArgs, CONTAINER_PATH, CONTAINER_HOME } from './persistent-container.js';
-import { MOUNT_TARGET, setWorkspaceDir } from './container.js';
-import { setResolvedContext } from './context.js';
+import { MOUNT_TARGET, setWorkspaceDir } from './runtime.js';
 
 function createMockChildProcess(exitCode: number, stdoutData: string, stderrData: string) {
   const child = new EventEmitter() as EventEmitter & { stdout: PassThrough; stderr: PassThrough };
@@ -34,12 +33,7 @@ vi.mock('node:child_process', () => ({
 }));
 
 vi.mock('./engine.js', () => ({
-  detectEngine: vi.fn(() => 'docker'),
-}));
-
-vi.mock('./image.js', () => ({
-  ensureImage: vi.fn(() => 'poe-code-e2e:abc123'),
-  IMAGE_NAME: 'poe-code-e2e',
+  detectEngine: vi.fn(() => 'podman'),
 }));
 
 vi.mock('./credentials.js', () => ({
@@ -64,7 +58,7 @@ describe('buildCreateArgs', () => {
     image: 'poe-code-e2e:abc123',
   };
 
-  it('starts with docker create', () => {
+  it('starts with "create" command', () => {
     const args = buildCreateArgs(baseConfig);
     expect(args[0]).toBe('create');
   });
@@ -139,7 +133,7 @@ describe('buildCreateArgs', () => {
 });
 
 describe('buildExecArgs', () => {
-  it('constructs docker exec with sh -c', () => {
+  it('constructs exec args with sh -c', () => {
     const args = buildExecArgs('abc123', 'echo hello');
     expect(args).toEqual(['exec', 'abc123', 'sh', '-c', 'echo hello']);
   });
@@ -159,7 +153,7 @@ describe('createContainer', () => {
     vol.mkdirSync('/tmp', { recursive: true });
   });
 
-  it('calls docker create with correct args and docker start', async () => {
+  it('creates container and starts it with correct args', async () => {
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
 
@@ -201,12 +195,12 @@ describe('createContainer', () => {
     expect(container.id).toBe('abc123containerid');
     expect(container.home).toBe(CONTAINER_HOME);
 
-    // Verify docker create was called
+    // Verify create was called
     const createCall = mockSpawnSync.mock.calls.find(
       (call) => (call[1] as string[])[0] === 'create'
     );
     expect(createCall).toBeDefined();
-    expect(createCall![0]).toBe('docker');
+    expect(createCall![0]).toBe('podman');
     const createArgs = createCall![1] as string[];
     expect(createArgs).toContain('--name');
     expect(createArgs).toContain('--label');
@@ -217,12 +211,12 @@ describe('createContainer', () => {
     const nameIndex = createArgs.indexOf('--name');
     expect(createArgs[nameIndex + 1]).toBe('poe-e2e-a1b2c3d4');
 
-    // Verify docker start was called with the container ID
+    // Verify start was called with the container ID
     const startCall = mockSpawnSync.mock.calls.find(
       (call) => (call[1] as string[])[0] === 'start'
     );
     expect(startCall).toBeDefined();
-    expect(startCall![0]).toBe('docker');
+    expect(startCall![0]).toBe('podman');
     expect((startCall![1] as string[])[1]).toBe('abc123containerid');
 
     const proxyStartCall = mockSpawnSync.mock.calls.find((call) => {
@@ -302,6 +296,13 @@ describe('createContainer', () => {
 
     await expect(container.writeSnapshots([{ key: 'x', response: { ok: true } }])).rejects.toThrow(
       'writeSnapshots() requires .snapshots/<testName> directory to exist'
+    );
+  });
+
+  it('throws when image is not configured', async () => {
+    const { createContainer } = await import('./persistent-container.js');
+    await expect(createContainer()).rejects.toThrow(
+      'Podman image not configured. Pass options.image or set E2E_PODMAN_IMAGE.'
     );
   });
 
@@ -823,7 +824,7 @@ describe('createContainer', () => {
     }
   });
 
-  it('throws when docker create fails', async () => {
+  it('throws when create fails', async () => {
     const { spawnSync } = await import('node:child_process');
     vi.mocked(spawnSync).mockReturnValue({
       status: 1,
@@ -840,7 +841,7 @@ describe('createContainer', () => {
     );
   });
 
-  it('throws and cleans up when docker start fails', async () => {
+  it('throws and cleans up when start fails', async () => {
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
 
@@ -897,7 +898,7 @@ describe('destroy', () => {
     vol.reset();
   });
 
-  it('calls docker rm -f with container id', async () => {
+  it('calls rm -f with container id', async () => {
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
 
@@ -931,7 +932,7 @@ describe('destroy', () => {
     await container.destroy();
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
-      'docker',
+      'podman',
       ['rm', '-f', 'my-container-id'],
       { stdio: 'ignore' }
     );
@@ -979,7 +980,7 @@ describe('exec', () => {
     vol.reset();
   });
 
-  it('calls docker exec with sh -c and the command', async () => {
+  it('calls exec with sh -c and the command', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
     mockSpawnSync.mockReturnValue({
@@ -994,7 +995,7 @@ describe('exec', () => {
     await container.exec('echo hello');
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
-      'docker',
+      'podman',
       ['exec', 'test-container-id', 'sh', '-c', 'echo hello'],
       { encoding: 'utf-8', stdio: 'pipe' }
     );
@@ -1103,7 +1104,7 @@ describe('exec', () => {
 
       // Should call async spawn
       expect(mockSpawn).toHaveBeenCalledWith(
-        'docker',
+        'podman',
         ['exec', 'test-container-id', 'sh', '-c', 'echo hello'],
         { stdio: ['ignore', 'pipe', 'pipe'] }
       );
@@ -1179,7 +1180,7 @@ describe('readFile', () => {
     const content = await container.readFile('/root/.config/settings.json');
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
-      'docker',
+      'podman',
       ['exec', 'test-container-id', 'sh', '-c', 'cat /root/.config/settings.json'],
       { encoding: 'utf-8', stdio: 'pipe' }
     );
@@ -1260,7 +1261,7 @@ describe('fileExists', () => {
     const exists = await container.fileExists('/root/.config/settings.json');
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
-      'docker',
+      'podman',
       ['exec', 'test-container-id', 'sh', '-c', 'test -f /root/.config/settings.json'],
       { encoding: 'utf-8', stdio: 'pipe' }
     );
@@ -1291,7 +1292,7 @@ describe('writeFile', () => {
     vol.reset();
   });
 
-  it('calls docker exec -i with content piped to stdin', async () => {
+  it('calls exec -i with content piped to stdin', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
     mockSpawnSync.mockReturnValue({
@@ -1306,7 +1307,7 @@ describe('writeFile', () => {
     await container.writeFile('/root/.config/settings.json', '{"key": "value"}');
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
-      'docker',
+      'podman',
       ['exec', '-i', 'test-container-id', 'sh', '-c', 'cat > /root/.config/settings.json'],
       { encoding: 'utf-8', input: '{"key": "value"}', stdio: ['pipe', 'pipe', 'pipe'] }
     );
@@ -1463,149 +1464,5 @@ describe('login', () => {
     });
 
     await expect(container.login()).rejects.toThrow('Command failed: "poe-code --yes login"');
-  });
-});
-
-describe('docker context support', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vol.reset();
-    setResolvedContext(null);
-  });
-
-  it('prepends --context args to docker create when context is set', async () => {
-    setResolvedContext('colima-poe-runner');
-
-    const { spawnSync } = await import('node:child_process');
-    const mockSpawnSync = vi.mocked(spawnSync);
-
-    mockSpawnSync.mockImplementation((_cmd, args) => {
-      const argsArr = args as string[];
-      if (argsArr.includes('create')) {
-        return { status: 0, stdout: 'ctx-container\n', stderr: '', pid: 1, output: [], signal: null };
-      }
-      return { status: 0, stdout: '', stderr: '', pid: 1, output: [], signal: null };
-    });
-
-    const { createContainer } = await import('./persistent-container.js');
-    await createContainer({ image: 'poe-code-e2e:abc123' });
-
-    const createCall = mockSpawnSync.mock.calls.find(
-      (call) => (call[1] as string[]).includes('create')
-    );
-    expect(createCall).toBeDefined();
-    const createArgs = createCall![1] as string[];
-    expect(createArgs[0]).toBe('--context');
-    expect(createArgs[1]).toBe('colima-poe-runner');
-    expect(createArgs[2]).toBe('create');
-  });
-
-  it('prepends --context args to docker start', async () => {
-    setResolvedContext('colima-poe-runner');
-
-    const { spawnSync } = await import('node:child_process');
-    const mockSpawnSync = vi.mocked(spawnSync);
-
-    mockSpawnSync.mockImplementation((_cmd, args) => {
-      const argsArr = args as string[];
-      if (argsArr.includes('create')) {
-        return { status: 0, stdout: 'ctx-container\n', stderr: '', pid: 1, output: [], signal: null };
-      }
-      return { status: 0, stdout: '', stderr: '', pid: 1, output: [], signal: null };
-    });
-
-    const { createContainer } = await import('./persistent-container.js');
-    await createContainer({ image: 'poe-code-e2e:abc123' });
-
-    const startCall = mockSpawnSync.mock.calls.find(
-      (call) => (call[1] as string[]).includes('start')
-    );
-    expect(startCall).toBeDefined();
-    const startArgs = startCall![1] as string[];
-    expect(startArgs[0]).toBe('--context');
-    expect(startArgs[1]).toBe('colima-poe-runner');
-    expect(startArgs[2]).toBe('start');
-  });
-
-  it('prepends --context args to docker exec', async () => {
-    setResolvedContext('colima-poe-runner');
-
-    const { spawnSync } = await import('node:child_process');
-    const mockSpawnSync = vi.mocked(spawnSync);
-
-    mockSpawnSync.mockImplementation((_cmd, args) => {
-      const argsArr = args as string[];
-      if (argsArr.includes('create')) {
-        return { status: 0, stdout: 'ctx-container\n', stderr: '', pid: 1, output: [], signal: null };
-      }
-      return { status: 0, stdout: 'output\n', stderr: '', pid: 1, output: [], signal: null };
-    });
-
-    const { createContainer } = await import('./persistent-container.js');
-    const container = await createContainer({ image: 'poe-code-e2e:abc123' });
-
-    mockSpawnSync.mockClear();
-    mockSpawnSync.mockReturnValue({ status: 0, stdout: 'hello\n', stderr: '', pid: 1, output: [], signal: null });
-
-    await container.exec('echo hello');
-
-    expect(mockSpawnSync).toHaveBeenCalledWith(
-      'docker',
-      ['--context', 'colima-poe-runner', 'exec', 'ctx-container', 'sh', '-c', 'echo hello'],
-      { encoding: 'utf-8', stdio: 'pipe' }
-    );
-  });
-
-  it('prepends --context args to docker rm on destroy', async () => {
-    setResolvedContext('colima-poe-runner');
-
-    const { spawnSync } = await import('node:child_process');
-    const mockSpawnSync = vi.mocked(spawnSync);
-
-    mockSpawnSync.mockImplementation((_cmd, args) => {
-      const argsArr = args as string[];
-      if (argsArr.includes('create')) {
-        return { status: 0, stdout: 'ctx-container\n', stderr: '', pid: 1, output: [], signal: null };
-      }
-      return { status: 0, stdout: '', stderr: '', pid: 1, output: [], signal: null };
-    });
-
-    const { createContainer } = await import('./persistent-container.js');
-    const container = await createContainer({ image: 'poe-code-e2e:abc123' });
-
-    mockSpawnSync.mockClear();
-
-    await container.destroy();
-
-    expect(mockSpawnSync).toHaveBeenCalledWith(
-      'docker',
-      ['--context', 'colima-poe-runner', 'rm', '-f', 'ctx-container'],
-      { stdio: 'ignore' }
-    );
-  });
-
-  it('does not add context args when no context is set', async () => {
-    setResolvedContext(null);
-
-    const { spawnSync } = await import('node:child_process');
-    const mockSpawnSync = vi.mocked(spawnSync);
-
-    mockSpawnSync.mockImplementation((_cmd, args) => {
-      const argsArr = args as string[];
-      if (argsArr[0] === 'create') {
-        return { status: 0, stdout: 'no-ctx-container\n', stderr: '', pid: 1, output: [], signal: null };
-      }
-      return { status: 0, stdout: '', stderr: '', pid: 1, output: [], signal: null };
-    });
-
-    const { createContainer } = await import('./persistent-container.js');
-    await createContainer({ image: 'poe-code-e2e:abc123' });
-
-    const createCall = mockSpawnSync.mock.calls.find(
-      (call) => (call[1] as string[]).includes('create')
-    );
-    expect(createCall).toBeDefined();
-    const createArgs = createCall![1] as string[];
-    expect(createArgs[0]).toBe('create');
   });
 });

@@ -1,29 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+}));
+
+vi.mock('./backend.js', () => ({
+  resolveBackend: vi.fn(),
 }));
 
 vi.mock('./engine.js', () => ({
   detectEngine: vi.fn(),
 }));
 
-vi.mock('./context.js', () => ({
-  detectRunningContext: vi.fn(),
-  setResolvedContext: vi.fn(),
-  getResolvedContext: vi.fn().mockReturnValue(null),
-}));
-
 vi.mock('./credentials.js', () => ({
   hasApiKey: vi.fn(),
 }));
 
-vi.mock('./image.js', () => ({
-  IMAGE_NAME: 'poe-code-e2e',
-  ensureImage: vi.fn(),
-}));
-
-describe('runPreflight - Docker Desktop auto-start', () => {
+describe('runPreflight', () => {
   const originalPlatform = process.platform;
 
   beforeEach(() => {
@@ -37,228 +30,174 @@ describe('runPreflight - Docker Desktop auto-start', () => {
 
   async function setup() {
     const { execSync } = await import('node:child_process');
+    const { resolveBackend } = await import('./backend.js');
     const { detectEngine } = await import('./engine.js');
-    const { detectRunningContext, getResolvedContext } = await import('./context.js');
     const { hasApiKey } = await import('./credentials.js');
-    const { ensureImage } = await import('./image.js');
     const { runPreflight } = await import('./preflight.js');
 
-    vi.mocked(detectEngine).mockReturnValue('docker');
-    vi.mocked(detectRunningContext).mockReturnValue(null);
-    vi.mocked(getResolvedContext).mockReturnValue(null);
+    vi.mocked(resolveBackend).mockReturnValue('sandbox');
+    vi.mocked(detectEngine).mockReturnValue('podman');
     vi.mocked(hasApiKey).mockResolvedValue(true);
-    vi.mocked(ensureImage).mockReturnValue('poe-code-e2e:test');
+    vi.mocked(execSync).mockImplementation(() => '');
 
     return {
       execSync: vi.mocked(execSync),
-      detectRunningContext: vi.mocked(detectRunningContext),
-      ensureImage: vi.mocked(ensureImage),
-      getResolvedContext: vi.mocked(getResolvedContext),
+      resolveBackend: vi.mocked(resolveBackend),
+      detectEngine: vi.mocked(detectEngine),
+      hasApiKey: vi.mocked(hasApiKey),
       runPreflight,
     };
   }
 
-  function mockExecCommands(execSync: ReturnType<typeof vi.fn>, overrides: Record<string, () => string | Buffer> = {}) {
-    execSync.mockImplementation((cmd: string) => {
-      const cmdStr = String(cmd);
-
-      // Exact match first, then prefix match (command without args)
-      if (overrides[cmdStr]) {
-        return overrides[cmdStr]();
-      }
-      for (const [key, handler] of Object.entries(overrides)) {
-        if (cmdStr.startsWith(key + ' ')) {
-          return handler();
-        }
-      }
-
-      // Default: docker info always fails (daemon not running)
-      if (cmdStr.includes('docker info') || cmdStr.includes('docker --context')) {
-        throw new Error('Cannot connect to Docker daemon');
-      }
-
-      // Default: colima not available
-      if (cmdStr === 'command -v colima') {
-        throw new Error('not found');
-      }
-
-      if (cmdStr === 'colima status') {
-        throw new Error('not running');
-      }
-
-      // ps for cleanup
-      if (cmdStr.includes('ps -aq')) {
-        return '';
-      }
-
-      return Buffer.from('');
-    });
-  }
-
-  it('recovers from stale colima VM by stopping and restarting', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { execSync, runPreflight } = await setup();
-
-    let colimaStartAttempts = 0;
-    let colimaDeleted = false;
-    mockExecCommands(execSync, {
-      'command -v colima': () => 'ok',
-      'colima status': () => {
-        throw new Error('not running');
-      },
-      'colima start': () => {
-        colimaStartAttempts++;
-        if (colimaStartAttempts === 1) {
-          throw new Error('error at starting: exit status 1');
-        }
-        return '';
-      },
-      'colima delete --force': () => {
-        colimaDeleted = true;
-        return '';
-      },
-      'scutil --dns': () => 'nameserver[0] : 192.168.1.1',
-      'docker info': () => {
-        if (colimaStartAttempts >= 2) return 'ok';
-        throw new Error('Cannot connect to Docker daemon');
-      },
-    });
-
-    const result = await runPreflight();
-
-    expect(colimaDeleted).toBe(true);
-    expect(colimaStartAttempts).toBe(2);
-    expect(result.passed).toBe(true);
-    expect(result.results).toContainEqual(
-      expect.objectContaining({
-        name: 'Docker daemon running',
-        passed: true,
-      }),
-    );
-  });
-
-  it('starts Docker Desktop on macOS when daemon is not running and colima is unavailable', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { execSync, runPreflight } = await setup();
-
-    let dockerStarted = false;
-    mockExecCommands(execSync, {
-      'docker info': () => {
-        if (dockerStarted) return 'ok';
-        throw new Error('Cannot connect to Docker daemon');
-      },
-      'test -d "/Applications/Docker.app"': () => 'ok',
-      'open -a Docker': () => {
-        dockerStarted = true;
-        return '';
-      },
-    });
+  it('checks only API key for env backend', async () => {
+    const { execSync, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('env');
 
     const result = await runPreflight();
 
     expect(result.passed).toBe(true);
+    expect(result.results).toEqual([
+      expect.objectContaining({ name: 'API key available', passed: true }),
+    ]);
+    expect(execSync).not.toHaveBeenCalled();
+  });
+
+  it('checks sandbox tool availability on macOS sandbox backend', async () => {
+    Object.defineProperty(process, 'platform', { value: 'darwin' });
+    const { execSync, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('sandbox');
+
+    const result = await runPreflight();
+
+    expect(result.passed).toBe(true);
+    expect(execSync).toHaveBeenCalledWith('sandbox-exec -V', { stdio: 'ignore' });
     expect(result.results).toContainEqual(
-      expect.objectContaining({
-        name: 'Docker daemon running',
-        passed: true,
-        message: 'Started Docker Desktop',
-      }),
+      expect.objectContaining({ name: 'Sandbox runtime available', passed: true }),
     );
   });
 
-  it('does not try Docker Desktop on Linux', async () => {
+  it('checks bubblewrap availability on Linux sandbox backend', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux' });
-    const { execSync, runPreflight } = await setup();
-
-    mockExecCommands(execSync);
-
-    const result = await runPreflight();
-
-    expect(result.passed).toBe(false);
-    expect(execSync).not.toHaveBeenCalledWith('open -a Docker', expect.anything());
-  });
-
-  it('fails when Docker.app is not installed', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { execSync, runPreflight } = await setup();
-
-    mockExecCommands(execSync, {
-      'test -d "/Applications/Docker.app"': () => {
-        throw new Error('not found');
-      },
-    });
+    const { execSync, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('sandbox');
 
     const result = await runPreflight();
-
-    expect(result.passed).toBe(false);
-    expect(execSync).not.toHaveBeenCalledWith('open -a Docker', expect.anything());
-  });
-
-  it('fails when Docker Desktop starts but daemon never becomes ready', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { execSync, runPreflight } = await setup();
-
-    mockExecCommands(execSync, {
-      'test -d "/Applications/Docker.app"': () => 'ok',
-      'open -a Docker': () => '',
-      // docker info always throws (never becomes ready)
-    });
-
-    const result = await runPreflight();
-
-    expect(result.passed).toBe(false);
-  });
-
-  it('prebuilds the e2e image when a workspace is provided', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { detectRunningContext, execSync, ensureImage, getResolvedContext, runPreflight } = await setup();
-
-    detectRunningContext.mockReturnValue('colima');
-    getResolvedContext.mockReturnValue('colima');
-    mockExecCommands(execSync, {
-      'docker --context colima info': () => 'ok',
-    });
-
-    const result = await runPreflight({
-      prebuildWorkspaceDir: '/repo',
-    });
 
     expect(result.passed).toBe(true);
-    expect(ensureImage).toHaveBeenCalledWith('docker', '/repo', {
-      context: 'colima',
-      verbose: false,
+    expect(execSync).toHaveBeenCalledWith('bwrap --version', { stdio: 'ignore' });
+    expect(result.results).toContainEqual(
+      expect.objectContaining({ name: 'Sandbox runtime available', passed: true }),
+    );
+  });
+
+  it('fails sandbox backend when required sandbox runtime is missing', async () => {
+    Object.defineProperty(process, 'platform', { value: 'linux' });
+    const { execSync, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('sandbox');
+    execSync.mockImplementation((command: string) => {
+      if (command === 'bwrap --version') {
+        throw new Error('missing');
+      }
+      return '';
     });
+
+    const result = await runPreflight();
+
+    expect(result.passed).toBe(false);
     expect(result.results).toContainEqual(
       expect.objectContaining({
-        name: 'E2E image',
-        passed: true,
-        message: 'Prepared poe-code-e2e:test',
+        name: 'Sandbox runtime available',
+        passed: false,
       }),
     );
   });
 
-  it('fails when image prebuild fails', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const { execSync, ensureImage, runPreflight } = await setup();
+  it('checks podman installation, daemon, and cleans orphans for podman backend', async () => {
+    const { execSync, resolveBackend, detectEngine, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('podman');
+    detectEngine.mockReturnValue('podman');
+    execSync.mockImplementation((command: string) => {
+      if (command === 'podman info') {
+        return 'ok';
+      }
+      if (command === 'podman ps -aq --filter label=poe-e2e-test-runner=true') {
+        return 'one\ntwo\n';
+      }
+      return '';
+    });
 
-    ensureImage.mockImplementation(() => {
-      throw new Error('build failed');
-    });
-    mockExecCommands(execSync, {
-      'docker info': () => 'ok',
+    const result = await runPreflight();
+
+    expect(result.passed).toBe(true);
+    expect(result.results).toContainEqual(
+      expect.objectContaining({ name: 'Podman installed', passed: true }),
+    );
+    expect(result.results).toContainEqual(
+      expect.objectContaining({ name: 'Podman daemon running', passed: true }),
+    );
+    expect(result.results).toContainEqual(
+      expect.objectContaining({
+        name: 'Cleanup',
+        passed: true,
+        message: 'Cleaned up 2 orphaned container(s)',
+      }),
+    );
+    expect(execSync).toHaveBeenCalledWith('podman info', { stdio: 'ignore' });
+    expect(execSync).toHaveBeenCalledWith(
+      'podman ps -aq --filter label=poe-e2e-test-runner=true',
+      { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] },
+    );
+  });
+
+  it('fails fast when podman is unavailable', async () => {
+    const { detectEngine, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('podman');
+    detectEngine.mockImplementation(() => {
+      throw new Error('Podman not installed');
     });
 
-    const result = await runPreflight({
-      prebuildWorkspaceDir: '/repo',
+    const result = await runPreflight();
+
+    expect(result.passed).toBe(false);
+    expect(result.results).toEqual([
+      expect.objectContaining({
+        name: 'Podman installed',
+        passed: false,
+        message: 'Podman not installed',
+      }),
+    ]);
+  });
+
+  it('fails fast when podman daemon is not running', async () => {
+    const { execSync, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('podman');
+    execSync.mockImplementation((command: string) => {
+      if (command === 'podman info') {
+        throw new Error('not running');
+      }
+      return '';
     });
+
+    const result = await runPreflight();
 
     expect(result.passed).toBe(false);
     expect(result.results).toContainEqual(
       expect.objectContaining({
-        name: 'E2E image',
+        name: 'Podman daemon running',
         passed: false,
-        message: 'build failed',
       }),
+    );
+  });
+
+  it('fails fast when API key is missing', async () => {
+    const { hasApiKey, runPreflight } = await setup();
+    hasApiKey.mockResolvedValue(false);
+
+    const result = await runPreflight();
+
+    expect(result.passed).toBe(false);
+    expect(result.results).toContainEqual(
+      expect.objectContaining({ name: 'API key available', passed: false }),
     );
   });
 });

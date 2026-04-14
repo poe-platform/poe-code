@@ -1,4 +1,4 @@
-import { setWorkspaceDir } from './container.js';
+import { setWorkspaceDir } from './runtime.js';
 import { rotateLogs } from './log-rotation.js';
 import { mkdirSync } from 'node:fs';
 

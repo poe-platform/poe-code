@@ -50,4 +50,4 @@ export interface Container {
   ): Promise<void>;
 }
 
-export type Engine = 'docker' | 'podman';
+export type Engine = 'podman';

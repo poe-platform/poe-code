@@ -10,7 +10,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Rename `packages/e2e-docker-test-runner/` to `packages/e2e-test-runner/`.
 
@@ -28,9 +28,9 @@ tasks:
   - id: update-import-references
     title: Update all import references to the renamed package
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
     prompt: |
       Find and replace all references to `@poe-code/e2e-docker-test-runner` with

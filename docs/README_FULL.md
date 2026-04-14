@@ -2251,7 +2251,7 @@ poe-setup-scripts/
 │   ├── tiny-stdio-mcp-test-server/ # MCP test server
 │   ├── tokenfill/                  # Token filling utilities
 │   ├── cached-resource/            # Resource caching
-│   └── e2e-docker-test-runner/     # Docker-based E2E test framework
+│   └── e2e-test-runner/            # Docker-based E2E test framework
 ├── e2e/                            # End-to-end tests
 ├── tests/                          # Unit/integration tests
 ├── docs/                           # Documentation

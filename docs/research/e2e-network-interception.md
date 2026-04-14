@@ -5,7 +5,7 @@
 US-008 investigates whether we can intercept and mock HTTP traffic inside e2e
 containers for tests that need to verify API calls without hitting real services.
 
-The current e2e test library (`@poe-code/e2e-docker-test-runner`) uses persistent
+The current e2e test library (`@poe-code/e2e-test-runner`) uses persistent
 Docker containers via `docker create` + `docker exec`. Tests execute CLI commands
 and assert on stdout, stderr, exit codes, and filesystem state. There is no
 mechanism to observe or mock outbound HTTP requests.

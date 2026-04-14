@@ -267,7 +267,7 @@ Implementation:
 
 ### Engine detection
 
-Extracted from `e2e-docker-test-runner/src/engine.ts`:
+Extracted from `e2e-test-runner/src/engine.ts`:
 
 ```typescript
 function detectEngine(): Engine; // docker → podman → throw
@@ -276,15 +276,15 @@ function isEngineAvailable(engine: Engine): boolean;
 
 ### Context detection
 
-Extracted from `e2e-docker-test-runner/src/context.ts`:
+Extracted from `e2e-test-runner/src/context.ts`:
 
 ```typescript
 function detectContext(): string | null; // colima auto-detect
 function buildContextArgs(engine: Engine, context: string | null): string[];
 ```
 
-Both are currently duplicated in `e2e-docker-test-runner`. After this package exists,
-`e2e-docker-test-runner` can depend on `@poe-code/process-runner` and drop its copies.
+Both are currently duplicated in `e2e-test-runner`. After this package exists,
+`e2e-test-runner` can depend on `@poe-code/process-runner` and drop its copies.
 
 ### Docker args builder
 
@@ -389,7 +389,7 @@ When other packages adopt this runner, they create the runner themselves:
   CLI flag like `--runner docker --image alpine` would create a `DockerRunner` before calling spawn.
 - **`process-launcher`**: supervisor takes `Runner` in options, creates host or docker
   based on `ProcessSpec.docker` field.
-- **`e2e-docker-test-runner`**: could import engine/context detection from this package
+- **`e2e-test-runner`**: could import engine/context detection from this package
   instead of its own copies.
 
 ## Testing
@@ -449,8 +449,8 @@ When other packages adopt this runner, they create the runner themselves:
 
 7. **Docker args builder** — pure `buildDockerRunArgs()` function
 8. **Docker args tests** — 1–11: every flag combination
-9. **Engine detection** — extract from `e2e-docker-test-runner`
-10. **Context detection** — extract from `e2e-docker-test-runner`
+9. **Engine detection** — extract from `e2e-test-runner`
+10. **Context detection** — extract from `e2e-test-runner`
 
 **Verify phase 3:**
 
@@ -502,7 +502,7 @@ When other packages adopt this runner, they create the runner themselves:
 ### Non-goals for this implementation
 
 - Wiring `Runner` into `agent-spawn` (follow-up, separate plan)
-- Refactoring `e2e-docker-test-runner` to use this package (follow-up)
+- Refactoring `e2e-test-runner` to use this package (follow-up)
 - Building the `process-launcher` supervisor (separate plan)
 - Docker image build tooling (separate plan)
 

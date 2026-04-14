@@ -81,9 +81,9 @@ importers:
       '@poe-code/design-system':
         specifier: '*'
         version: link:packages/design-system
-      '@poe-code/e2e-docker-test-runner':
+      '@poe-code/e2e-test-runner':
         specifier: '*'
-        version: link:packages/e2e-docker-test-runner
+        version: link:packages/e2e-test-runner
       '@poe-code/experiment-loop':
         specifier: '*'
         version: link:packages/experiment-loop
@@ -298,7 +298,7 @@ importers:
         specifier: ^2.15.0
         version: 2.15.0
 
-  packages/e2e-docker-test-runner:
+  packages/e2e-test-runner:
     dependencies:
       auth-store:
         specifier: '*'

@@ -145,7 +145,7 @@ Validation: if both are set → error. If neither is set → error.
 When `dockerfile` is set, poe-code builds the image before spawning:
 
 1. **Hash** — compute content hash of the Dockerfile + build context directory
-   (reuse the hashing approach from `e2e-docker-test-runner/src/image.ts`)
+   (reuse the hashing approach from `e2e-test-runner/src/image.ts`)
 2. **Tag** — `poe-runtime:<project-name>-<hash[:12]>`
 3. **Cache check** — if image with that tag already exists, skip build
 4. **Build** — `docker build -t <tag> -f <dockerfile> <build_context>`

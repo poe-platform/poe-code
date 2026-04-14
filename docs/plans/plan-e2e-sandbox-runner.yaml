@@ -58,7 +58,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
     prompt: |
       Add a `home: string` property to the `Container` interface in
       `packages/e2e-test-runner/src/types.ts`.
@@ -100,10 +100,10 @@ tasks:
   - id: backend-abstraction
     title: Create backend resolution and factory abstraction
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
     prompt: |
       Create `packages/e2e-test-runner/src/backend.ts` with:
 

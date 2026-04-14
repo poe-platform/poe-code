@@ -201,7 +201,9 @@ function execStreaming(engine: string, args: string[]): Promise<{ exitCode: numb
 
 export const E2E_FIXTURES_DIR = '.snapshots';
 
-export async function createContainer(options: ContainerOptions = {}): Promise<Container> {
+export async function createPersistentContainer(
+  options: ContainerOptions = {},
+): Promise<Container> {
   const useSnapshots = options.useSnapshots ?? false;
   if (useSnapshots && !options.testName) {
     throw new Error('useSnapshots requires testName');
@@ -456,3 +458,5 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
     },
   };
 }
+
+export const createContainer = createPersistentContainer;

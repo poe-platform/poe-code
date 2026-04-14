@@ -1,10 +1,10 @@
 import { describe, it, expect, expectTypeOf, vi, beforeEach } from 'vitest';
 import './matchers.js';
 
-vi.mock('./persistent-container.js');
+vi.mock('./backend.js');
 vi.mock('./container.js');
 
-import { createContainer } from './persistent-container.js';
+import { createBackendContainer, resolveBackend } from './backend.js';
 import { setWorkspaceDir } from './container.js';
 import { useContainer } from './use-container.js';
 import type { UseContainerOptions } from './use-container.js';
@@ -33,7 +33,8 @@ describe('useContainer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockContainer = makeMockContainer();
-    vi.mocked(createContainer).mockResolvedValue(mockContainer);
+    vi.mocked(resolveBackend).mockReturnValue('sandbox');
+    vi.mocked(createBackendContainer).mockResolvedValue(mockContainer);
   });
 
   it('defines options with required testName and optional workspaceDir', () => {
@@ -66,7 +67,8 @@ describe('useContainer', () => {
     });
 
     it('creates container with testName', () => {
-      expect(createContainer).toHaveBeenCalledWith({
+      expect(resolveBackend).toHaveBeenCalledTimes(1);
+      expect(createBackendContainer).toHaveBeenCalledWith('sandbox', {
         testName: 'my-agent',
         useSnapshots: true,
       });
@@ -112,7 +114,7 @@ describe('useContainer', () => {
     });
 
     it('creates a fresh container for each test', () => {
-      expect(vi.mocked(createContainer)).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(createBackendContainer)).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -122,7 +124,7 @@ describe('useContainer', () => {
     });
 
     it('creates container with snapshots disabled by default', () => {
-      expect(createContainer).toHaveBeenCalledWith({
+      expect(createBackendContainer).toHaveBeenCalledWith('sandbox', {
         testName: 'default-agent',
         useSnapshots: false,
       });

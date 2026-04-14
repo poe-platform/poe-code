@@ -1,5 +1,5 @@
 import { beforeEach, afterEach, expect } from 'vitest';
-import { createContainer } from './persistent-container.js';
+import { createBackendContainer, resolveBackend } from './backend.js';
 import { setWorkspaceDir } from './container.js';
 import type { Container } from './types.js';
 
@@ -14,7 +14,7 @@ export function useContainer(options: UseContainerOptions): Container {
 
   beforeEach(async () => {
     setWorkspaceDir(options.workspaceDir ?? process.cwd());
-    current = await createContainer({
+    current = await createBackendContainer(resolveBackend(), {
       testName: options.testName,
       useSnapshots: options.useSnapshots ?? false,
     });

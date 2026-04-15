@@ -65,6 +65,7 @@ export type RunCommandOptions = {
   clearInterval?: typeof global.clearInterval;
   openInEditor?: (absolutePath: string, env: Record<string, string | undefined>) => void;
   stderr?: NodeJS.WritableStream;
+  exit?: (code: number) => never;
 };
 
 type OutputKind = "info" | "success" | "error" | "tool" | "status";
@@ -224,6 +225,7 @@ export async function runSuperintendentCommand(
   const assumeYes = options.assumeYes ?? false;
   const useDashboard = options.useDashboard ?? resolveOutputFormat() === "terminal";
   const stderr = options.stderr ?? process.stderr;
+  const exitProcess = options.exit ?? ((code: number) => process.exit(code));
 
   const selectedDocPath = await resolveDocPath({
     cwd: options.cwd,
@@ -494,7 +496,9 @@ export async function runSuperintendentCommand(
   syncStats();
 
   const sigintHandler = () => {
-    handleDashboardCommand("quit");
+    session.dashboard.stop();
+    session.dashboard.destroy();
+    exitProcess(130);
   };
   process.on("SIGINT", sigintHandler);
 

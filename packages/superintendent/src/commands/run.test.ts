@@ -374,4 +374,59 @@ describe("superintendent run command", () => {
     expect(stderrChunks.join("")).toContain("Builder failed: agent stderr blob");
     expect(writeOrder.indexOf("destroy")).toBeLessThan(writeOrder.indexOf("stderr"));
   });
+
+  it("kills the process with exit code 130 on SIGINT after restoring the terminal", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
+    });
+    const dashboardMock = createDashboardMock();
+
+    let rejectLoop: (error: Error) => void = () => {};
+    const runLoopMock = vi.fn(
+      () =>
+        new Promise<never>((_, reject) => {
+          rejectLoop = reject;
+        })
+    );
+
+    const callOrder: string[] = [];
+    dashboardMock.destroy.mockImplementation(() => {
+      callOrder.push("destroy");
+    });
+    const exitMock = vi.fn((code: number) => {
+      callOrder.push(`exit:${code}`);
+      rejectLoop(new Error("__sigint_exit__"));
+      return undefined as never;
+    });
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const promise = runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/.poe-code/superintendent/plan.md",
+      builderAgent: "claude-code",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {},
+      exit: exitMock,
+      stderr: { write: () => true } as NodeJS.WritableStream
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    process.emit("SIGINT");
+
+    await expect(promise).rejects.toThrow("__sigint_exit__");
+
+    expect(exitMock).toHaveBeenCalledWith(130);
+    expect(dashboardMock.destroy).toHaveBeenCalled();
+    expect(callOrder.indexOf("destroy")).toBeLessThan(callOrder.indexOf("exit:130"));
+  });
 });

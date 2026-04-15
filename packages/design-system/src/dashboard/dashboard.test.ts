@@ -577,6 +577,59 @@ describe("output pane", () => {
     ]);
   });
 
+  it("computeVisualLines renders ANSI escape codes as styled segments", () => {
+    const items: OutputItem[] = [
+      { kind: "tool", text: "plain \u001b[31mred\u001b[0m after", ts: 1 }
+    ];
+
+    expect(computeVisualLines(items, 30)).toEqual([
+      {
+        prefix: "│",
+        prefixStyle: { dim: true },
+        style: { dim: true },
+        text: "plain red after",
+        segments: [
+          { text: "plain ", style: {} },
+          { text: "red", style: { fg: "red" } },
+          { text: " after", style: {} }
+        ]
+      }
+    ]);
+  });
+
+  it("computeVisualLines hard-wraps ANSI output at pane width while preserving styles", () => {
+    const items: OutputItem[] = [
+      { kind: "tool", text: "\u001b[32mgreengreengreen\u001b[0m tail", ts: 1 }
+    ];
+
+    const result = computeVisualLines(items, 16);
+    expect(result).toHaveLength(2);
+    expect(result[0]!.segments).toEqual([
+      { text: "greengreengre", style: { fg: "green" } }
+    ]);
+    expect(result[1]!.segments).toEqual([
+      { text: "en", style: { fg: "green" } },
+      { text: " tail", style: {} }
+    ]);
+  });
+
+  it("renderOutputPane writes segment-specific styles into the screen buffer", () => {
+    const buffer = new ScreenBuffer(30, 1);
+    const items: OutputItem[] = [
+      { kind: "tool", text: "\u001b[31mRED\u001b[0m plain", ts: 1 }
+    ];
+
+    renderOutputPane(buffer, { x: 0, y: 0, width: 30, height: 1 }, {
+      items,
+      scrollOffset: 0,
+      autoFollow: true
+    });
+
+    expect(buffer.get(3, 0)).toEqual({ ch: "R", style: { fg: "red" } });
+    expect(buffer.get(5, 0)).toEqual({ ch: "D", style: { fg: "red" } });
+    expect(buffer.get(7, 0)).toEqual({ ch: "p", style: {} });
+  });
+
   it("scroll up and down clamp to valid offsets", () => {
     const state = { items: [], scrollOffset: 2, autoFollow: true };
 

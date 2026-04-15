@@ -1,4 +1,5 @@
 import { resolveThemeName } from "../../internal/theme-detect.js";
+import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
 import { ScreenBuffer } from "../buffer.js";
 import type { CellStyle, OutputItem, OutputItemKind, Rect } from "../types.js";
 
@@ -18,6 +19,7 @@ export type VisualLine = {
   style: CellStyle;
   prefix: string;
   prefixStyle: CellStyle;
+  segments?: StyledSegment[];
 };
 
 export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, state: OutputPaneState): void {
@@ -45,6 +47,33 @@ export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, state: Output
     }
 
     buffer.putInRect(rect, row, line.prefix, line.prefixStyle);
+
+    if (line.segments && line.segments.length > 0) {
+      let offsetX = 0;
+      for (const segment of line.segments) {
+        if (segment.text.length === 0) {
+          continue;
+        }
+        const remaining = textRect.width - offsetX;
+        if (remaining <= 0) {
+          break;
+        }
+        buffer.putInRect(
+          {
+            x: textRect.x + offsetX,
+            y: textRect.y,
+            width: remaining,
+            height: textRect.height
+          },
+          row,
+          segment.text,
+          segment.style
+        );
+        offsetX += countCells(segment.text);
+      }
+      continue;
+    }
+
     buffer.putInRect(textRect, row, line.text, line.style);
   }
 }
@@ -61,8 +90,27 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
 
   for (const item of items) {
     const itemStyle = getItemStyle(item.kind, themeName);
-    const wrappedLines = wrapText(item.text, textWidth);
 
+    if (hasAnsi(item.text)) {
+      const styledLines = parseAnsi(item.text, {});
+      let firstRow = true;
+      for (const styledLine of styledLines) {
+        const rows = hardWrapSegments(styledLine.segments, textWidth);
+        for (const rowSegments of rows) {
+          visualLines.push({
+            prefix: firstRow ? getPrefix(item.kind) : CONTINUATION_PREFIX,
+            prefixStyle: firstRow ? itemStyle : mutedStyle,
+            style: itemStyle,
+            text: rowSegments.map((segment) => segment.text).join(""),
+            segments: rowSegments
+          });
+          firstRow = false;
+        }
+      }
+      continue;
+    }
+
+    const wrappedLines = wrapText(item.text, textWidth);
     for (let index = 0; index < wrappedLines.length; index += 1) {
       visualLines.push({
         prefix: index === 0 ? getPrefix(item.kind) : CONTINUATION_PREFIX,
@@ -74,6 +122,52 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
   }
 
   return visualLines;
+}
+
+function hardWrapSegments(segments: StyledSegment[], width: number): StyledSegment[][] {
+  if (width <= 0) {
+    return [[]];
+  }
+
+  const rows: StyledSegment[][] = [[]];
+  let rowWidth = 0;
+
+  for (const segment of segments) {
+    if (segment.text.length === 0) {
+      continue;
+    }
+
+    const chars = [...segment.text];
+    let cursor = 0;
+
+    while (cursor < chars.length) {
+      const space = width - rowWidth;
+      if (space <= 0) {
+        rows.push([]);
+        rowWidth = 0;
+        continue;
+      }
+      const take = chars.slice(cursor, cursor + space).join("");
+      const currentRow = rows[rows.length - 1]!;
+      currentRow.push({ text: take, style: { ...segment.style } });
+      rowWidth += Math.min(space, chars.length - cursor);
+      cursor += space;
+      if (cursor < chars.length) {
+        rows.push([]);
+        rowWidth = 0;
+      }
+    }
+  }
+
+  return rows;
+}
+
+function countCells(text: string): number {
+  let count = 0;
+  for (const _ of text) {
+    count += 1;
+  }
+  return count;
 }
 
 export function scrollUp(state: OutputPaneState, lines: number): OutputPaneState {

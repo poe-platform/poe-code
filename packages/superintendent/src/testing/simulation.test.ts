@@ -72,7 +72,7 @@ describe("createSuperintendentSimulation", () => {
     const result = await simulation.run();
 
     expect(result.prompts.map((prompt) => prompt.trimEnd())).toEqual([
-      "Build /repo/.poe-code/superintendent/plans/plan.md",
+      "Build /repo/.poe-code/superintendent/plan.md",
       "Review Builder completed without output."
     ]);
     expect(result.runs).toHaveLength(2);
@@ -95,7 +95,7 @@ describe("createSuperintendentSimulation", () => {
 
     expect(result.result.state).toBe("completed");
     expect(result.prompts.map((prompt) => prompt.trimEnd())).toEqual([
-      "Build /repo/.poe-code/superintendent/plans/plan.md",
+      "Build /repo/.poe-code/superintendent/plan.md",
       "Review Builder completed without output.",
       "Review Ready for owner review"
     ]);

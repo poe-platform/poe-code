@@ -562,7 +562,7 @@ async function discoverSuperintendentDocs(options: {
   const docs = await discoverWorkflowDocs({
     cwd: options.cwd,
     homeDir: options.homeDir,
-    subDirectory: "superintendent/plans",
+    subDirectory: "superintendent",
     fs: { readdir: options.fs.readdir }
   });
   const matches: string[] = [];

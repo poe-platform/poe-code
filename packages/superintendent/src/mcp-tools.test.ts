@@ -54,7 +54,7 @@ const EXPECTED_TOOL_NAMES = [
   "superintendent.inspector.list"
 ];
 
-const documentPath = "/repo/.poe-code/superintendent/plans/plan.md";
+const documentPath = "/repo/.poe-code/superintendent/plan.md";
 const document = `---
 kind: superintendent
 version: 1

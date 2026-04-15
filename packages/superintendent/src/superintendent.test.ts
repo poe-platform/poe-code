@@ -10,8 +10,8 @@ import {
   type SimulationFailureContext
 } from "./testing/simulation.js";
 
-const docPath = ".poe-code/superintendent/plans/happy-path.md";
-const absoluteDocPath = "/repo/.poe-code/superintendent/plans/happy-path.md";
+const docPath = ".poe-code/superintendent/happy-path.md";
+const absoluteDocPath = "/repo/.poe-code/superintendent/happy-path.md";
 const knownTemplateVariables = [
   "{{plan.path}}",
   "{{builder.summary}}",

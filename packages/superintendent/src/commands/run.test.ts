@@ -116,8 +116,8 @@ describe("superintendent run command", () => {
 
   it("uses discovered defaults with --yes and skips the pre-dashboard prompts", async () => {
     const fs = createFs({
-      "/repo/.poe-code/superintendent/plans/b-plan.md": createDoc("codex"),
-      "/repo/.poe-code/superintendent/plans/a-plan.md": createDoc("claude-code")
+      "/repo/.poe-code/superintendent/b-plan.md": createDoc("codex"),
+      "/repo/.poe-code/superintendent/a-plan.md": createDoc("claude-code")
     });
     const selectPrompt = vi.fn();
     const dashboardMock = createDashboardMock();
@@ -151,11 +151,11 @@ describe("superintendent run command", () => {
     expect(selectPrompt).not.toHaveBeenCalled();
     expect(runLoopMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        docPath: "/repo/.poe-code/superintendent/plans/a-plan.md"
+        docPath: "/repo/.poe-code/superintendent/a-plan.md"
       })
     );
     expect(result).toMatchObject({
-      docPath: "/repo/.poe-code/superintendent/plans/a-plan.md",
+      docPath: "/repo/.poe-code/superintendent/a-plan.md",
       builderAgent: "claude-code",
       stopReason: "completed"
     });
@@ -163,7 +163,7 @@ describe("superintendent run command", () => {
 
   it("wires loop callbacks to the dashboard", async () => {
     const fs = createFs({
-      "/repo/.poe-code/superintendent/plans/plan.md": createDoc("claude-code")
+      "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
     });
     const dashboardMock = createDashboardMock();
     const runLoopMock = vi.fn(async (options: { callbacks?: {
@@ -230,7 +230,7 @@ describe("superintendent run command", () => {
     const result = await runSuperintendentCommand({
       cwd: "/repo",
       homeDir: "/home/test",
-      docPath: "/repo/.poe-code/superintendent/plans/plan.md",
+      docPath: "/repo/.poe-code/superintendent/plan.md",
       builderAgent: "codex",
       interactive: true,
       useDashboard: true,

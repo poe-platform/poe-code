@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { renderMarkdown } from "../terminal-markdown/index.js";
+import { getAcpWriter } from "./writer.js";
 
 function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
@@ -22,7 +23,7 @@ function colorForKind(kind: string): (text: string) => string {
 }
 
 function writeLine(line: string): void {
-  process.stdout.write(`${line}\n`);
+  getAcpWriter()(line);
 }
 
 const AGENT_PREFIX = `${chalk.green.bold("✓")} agent: `;
@@ -136,7 +137,7 @@ export function renderUsage(tokens: {
     return;
   }
 
-  process.stdout.write("\n");
+  writeLine("");
   writeLine(chalk.green(`✓ tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`));
 }
 

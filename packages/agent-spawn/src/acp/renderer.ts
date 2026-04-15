@@ -4,7 +4,7 @@ import type { AcpEvent } from "./types.js";
 import { toRenderKind } from "./session-update-converter.js";
 
 function writeLine(line: string): void {
-  process.stdout.write(`${line}\n`);
+  acp.getAcpWriter()(line);
 }
 
 /**

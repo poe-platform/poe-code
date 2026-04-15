@@ -21,7 +21,11 @@ vi.mock("@poe-code/design-system", () => {
       renderToolComplete: vi.fn(),
       renderReasoning: vi.fn(),
       renderUsage: vi.fn(),
-      renderError: vi.fn()
+      renderError: vi.fn(),
+      getAcpWriter: () => (line: string) => {
+        process.stdout.write(`${line}\n`);
+      },
+      withAcpWriter: async <T,>(_writer: (line: string) => void, fn: () => Promise<T>) => fn()
     },
     text: {
       muted: (content: string) => `<muted>${content}</muted>`

@@ -163,11 +163,7 @@ function hardWrapSegments(segments: StyledSegment[], width: number): StyledSegme
 }
 
 function countCells(text: string): number {
-  let count = 0;
-  for (const _ of text) {
-    count += 1;
-  }
-  return count;
+  return Array.from(text).length;
 }
 
 export function scrollUp(state: OutputPaneState, lines: number): OutputPaneState {

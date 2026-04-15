@@ -273,6 +273,81 @@ describe("superintendent run command", () => {
     });
   });
 
+  it("streams agent stdout and stderr lines into the dashboard output", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/superintendent/plan.md": createDoc("codex")
+    });
+    const dashboardMock = createDashboardMock();
+    const executeAgent = vi.fn(async (_agent: string, input: {
+      onStdout?: (chunk: string) => void;
+      onStderr?: (chunk: string) => void;
+    }) => {
+      input.onStdout?.("thinking...\nplanning next step\npar");
+      input.onStdout?.("tial line completes\n");
+      input.onStderr?.("warning: low disk\n");
+      return {
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      };
+    });
+    const runLoopMock = vi.fn(async (options: {
+      callbacks?: { onBuilderStart?: () => void; onBuilderComplete?: (result: { summary: string; log: string }) => void };
+      runAgent?: (input: { agent: string; prompt: string; cwd: string }) => Promise<unknown>;
+    }) => {
+      options.callbacks?.onBuilderStart?.();
+      await options.runAgent?.({ agent: "codex", prompt: "Build", cwd: "/repo" });
+      options.callbacks?.onBuilderComplete?.({ summary: "done", log: "" });
+      return {
+        state: "completed" as const,
+        round: 1,
+        reviewTurn: 0,
+        maxRounds: 100,
+        maxReviewTurns: 5,
+        stopReason: "completed" as const
+      };
+    });
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/.poe-code/superintendent/plan.md",
+      builderAgent: "codex",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      executeAgent,
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {}
+    });
+
+    const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
+    const texts = outputs.map((item: { text: string }) => item.text);
+    expect(texts).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("[builder] thinking..."),
+        expect.stringContaining("[builder] planning next step"),
+        expect.stringContaining("[builder] partial line completes"),
+        expect.stringContaining("[builder] warning: low disk")
+      ])
+    );
+    const toolKind = outputs.find((item: { kind: string; text: string }) =>
+      item.kind === "tool" && item.text.includes("thinking...")
+    );
+    expect(toolKind).toBeDefined();
+    const errKind = outputs.find((item: { kind: string; text: string }) =>
+      item.kind === "error" && item.text.includes("warning: low disk")
+    );
+    expect(errKind).toBeDefined();
+  });
+
   it("scans the configured planDirectory instead of the default superintendent directory", async () => {
     const fs = createFs({
       "/repo/.poe-code/superintendent/should-be-ignored.md": createDoc("codex"),

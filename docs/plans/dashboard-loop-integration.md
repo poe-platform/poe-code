@@ -24,7 +24,7 @@ inspectors:
     mcp:
       terminal-pilot:
         command: npx
-        args: [terminal-pilot-mcp]
+        args: [ terminal-pilot-mcp ]
     prompt: |
       Use terminal-pilot to drive the dashboard end-to-end and verify it behaves
       as the plan describes.
@@ -54,6 +54,8 @@ owner:
   prompt: |
     Decide whether the work is done. Approve or send back with feedback.
 
+    Ask yourself question: Is this the best experience our users could be getting?
+
     Superintendent summary:
     {{superintendent.summary}}
 
@@ -61,7 +63,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 0
+  round: 5
   review_turn: 0
 ---
 
@@ -102,10 +104,23 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 
 - **Opt-in via flag or config.** Dashboard is off by default. Enable per-run with `--tui`, or persistently via a `tui: true` config setting (CLI flag wins over config). Non-TTY runs (CI, pipes, redirects) skip the dashboard automatically via the existing `resolveOutputFormat()` check inside `createDashboard`, even when enabled.
 - **Only `quit` + scroll are wired.** `edit`, `pause`, `retry` are not hooked up — they have no agreed semantics per loop yet and are out of scope here. The footer should only show hints for commands that are actually wired. If this requires a small dashboard-side change to suppress unwired hints (rather than relying on every integrator to curate their own `hints` array), that change is in scope for this plan.
+- **Stream child-agent output into the dashboard via the ACP pipeline.** The dashboard is useless if the left pane only shows `builder starting` / `builder completed` bookends while an agent runs for minutes. Don't tee raw child stdout — CLI agents like `codex` and `claude-code` emit JSON lines, not colored text. Instead, reuse the existing ACP rendering pipeline:
+  1. Spawn agents through `spawnAutonomous` from `@poe-code/agent-spawn` (wraps `spawnStreaming` + `renderAcpStream` with activity-timeout retry).
+  2. Bind a dashboard-targeted `AcpLineWriter` with `acp.withAcpWriter(writer, fn)` from `@poe-code/design-system` around the call. `renderAcpStream` → `renderAgentMessage` / `renderToolStart` / `renderReasoning` / `renderUsage` / `renderError` already emit chalk-styled human-readable lines; the writer forwards each one into `dashboard.appendOutput` (kind `tool` for stdout-ish, `error` for errors).
+  3. The dashboard's ANSI parser renders chalk's escape codes as per-segment colors — no custom JSON-to-pretty formatter needed.
+  4. Stderr is streamed separately through `spawnStreaming`'s `tee.stderr` option into `appendOutput` with `kind: "error"`.
+  5. Append each line with a stage tag (`builder`, `inspector:<name>`, `superintendent`, `owner`, or the loop-specific equivalent).
+  6. Pass prompts via `useStdin: true` so large templated prompts don't hit `E2BIG`.
+  7. In non-TTY fallback mode, leave `renderAcpStream` pointed at its default writer (stdout) so the existing logger path still works.
+
+  The superintendent integration is the reference implementation: see [packages/superintendent/src/commands/run.ts](../../packages/superintendent/src/commands/run.ts) → `createAgentRunner` (line buffering + stage tagging), `executeSpawnAgentStreaming` (the `withAcpWriter` + `spawnAutonomous` wiring), and the `AgentRunInput.onStdout` / `onStderr` hooks in [packages/superintendent/src/runtime/loop.ts](../../packages/superintendent/src/runtime/loop.ts).
 
 ## Task Board
 
 - [ ] Finish the feature plan (altitudes 2–5).
-- [ ] Integrate dashboard into pipeline.
-- [ ] Integrate dashboard into ralph.
-- [ ] Integrate dashboard into experiment.
+- [x] Integrate dashboard into pipeline.
+- [x] Integrate dashboard into ralph.
+- [x] Integrate dashboard into experiment.
+- [ ] Stream child-agent output into `appendOutput` from the pipeline integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
+- [ ] Stream child-agent output into `appendOutput` from the ralph integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
+- [ ] Stream child-agent output into `appendOutput` from the experiment integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).

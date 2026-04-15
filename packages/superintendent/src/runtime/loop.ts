@@ -48,6 +48,8 @@ export interface AgentRunInput {
   mode?: string;
   mcpServers?: McpSpawnConfig;
   signal?: AbortSignal;
+  onStdout?: (chunk: string) => void;
+  onStderr?: (chunk: string) => void;
 }
 
 export interface AgentRunResult {

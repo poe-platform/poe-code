@@ -2,10 +2,20 @@ import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { spawnSync as nodeSpawnSync } from "node:child_process";
 import { discoverWorkflowDocs, resolveWorkflowPath } from "@poe-code/agent-kit";
-import { allSpawnConfigs, spawn } from "@poe-code/agent-spawn";
-import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
+import {
+  allSpawnConfigs,
+  getSpawnConfig,
+  spawn,
+  spawnAutonomous,
+  spawnStreaming,
+  type AcpEvent,
+  type SpawnResult,
+  type SpawnStreamingOptions
+} from "@poe-code/agent-spawn";
+import { resolveAgentId } from "@poe-code/agent-defs";
 import { S, UserError, defineCommand } from "@poe-code/cmdkit";
 import {
+  acp,
   cancel,
   createDashboard,
   isCancel,
@@ -289,7 +299,9 @@ export async function runSuperintendentCommand(
         session: undefined,
         executeAgent: options.executeAgent,
         selectedBuilderAgent,
-        activeStage: () => activeStage
+        activeStage: () => activeStage,
+        now,
+        stderr
       })
     });
 
@@ -518,7 +530,9 @@ export async function runSuperintendentCommand(
           session,
           executeAgent: options.executeAgent,
           selectedBuilderAgent,
-          activeStage: () => session.activeStage
+          activeStage: () => session.activeStage,
+          now,
+          stderr
         })
       });
 
@@ -733,7 +747,6 @@ async function resolveBuilderAgent(options: {
 function listSelectableAgents(defaultAgent: string): string[] {
   const available = new Set<string>([
     ...allSpawnConfigs.map((config) => config.agentId),
-    ...allAgents.map((agent) => agent.id),
     defaultAgent
   ]);
 
@@ -745,20 +758,87 @@ function createAgentRunner(options: {
   executeAgent: RunCommandOptions["executeAgent"];
   selectedBuilderAgent: string;
   activeStage: () => RunSession["activeStage"];
+  now: () => number;
+  stderr: NodeJS.WritableStream;
 }): RunLoopOptions["runAgent"] {
   return async (input) => {
     const activeStage = options.activeStage();
     const agent = activeStage === "builder" ? options.selectedBuilderAgent : input.agent;
     const executeAgent = options.executeAgent ?? executeSpawnAgent;
-    const result = await executeAgent(agent, input);
+    const stageLabel = formatStageLabel(activeStage);
 
-    if (options.session && result.usage) {
-      options.session.tokensIn += result.usage.inputTokens;
-      options.session.tokensOut += result.usage.outputTokens;
+    const emitLine = (kind: OutputKind, line: string) => {
+      if (line.length === 0) {
+        return;
+      }
+      if (options.session) {
+        options.session.dashboard.appendOutput({
+          kind,
+          text: `${formatTimestamp(options.now())} [${stageLabel}] ${line}`,
+          ts: options.now()
+        });
+      } else {
+        options.stderr.write(`[${stageLabel}] ${line}\n`);
+      }
+    };
+
+    const stdoutBuffer = createLineBuffer((line) => emitLine("tool", line));
+    const stderrBuffer = createLineBuffer((line) => emitLine("error", line));
+
+    const onStdout = (chunk: string) => stdoutBuffer.push(chunk);
+    const onStderr = (chunk: string) => stderrBuffer.push(chunk);
+
+    try {
+      const result = await executeAgent(agent, { ...input, onStdout, onStderr });
+
+      if (options.session && result.usage) {
+        options.session.tokensIn += result.usage.inputTokens;
+        options.session.tokensOut += result.usage.outputTokens;
+      }
+
+      return result;
+    } finally {
+      stdoutBuffer.flush();
+      stderrBuffer.flush();
     }
-
-    return result;
   };
+}
+
+function createLineBuffer(emit: (line: string) => void): {
+  push(chunk: string): void;
+  flush(): void;
+} {
+  let pending = "";
+  return {
+    push(chunk: string): void {
+      pending += chunk;
+      let newlineIndex = pending.indexOf("\n");
+      while (newlineIndex !== -1) {
+        const raw = pending.slice(0, newlineIndex);
+        const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+        emit(line);
+        pending = pending.slice(newlineIndex + 1);
+        newlineIndex = pending.indexOf("\n");
+      }
+    },
+    flush(): void {
+      if (pending.length > 0) {
+        const line = pending.endsWith("\r") ? pending.slice(0, -1) : pending;
+        emit(line);
+        pending = "";
+      }
+    }
+  };
+}
+
+function formatStageLabel(stage: RunSession["activeStage"]): string {
+  if (!stage) {
+    return "agent";
+  }
+  if (typeof stage === "string") {
+    return stage;
+  }
+  return `inspector:${stage.inspector}`;
 }
 
 async function executeSpawnAgent(
@@ -767,12 +847,25 @@ async function executeSpawnAgent(
 ): Promise<AgentRunResult & {
   usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
 }> {
+  if ((input.onStdout || input.onStderr) && supportsStreaming(agent)) {
+    return executeSpawnAgentStreaming(agent, input);
+  }
+
+  const tee = input.onStdout || input.onStderr
+    ? {
+        ...(input.onStdout ? { stdout: { write: input.onStdout } } : {}),
+        ...(input.onStderr ? { stderr: { write: input.onStderr } } : {})
+      }
+    : undefined;
+
   const result = await spawn(agent, {
     prompt: input.prompt,
     cwd: input.cwd,
+    useStdin: true,
     ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-    ...(input.signal ? { signal: input.signal } : {})
+    ...(input.signal ? { signal: input.signal } : {}),
+    ...(tee ? { tee } : {})
   });
 
   return {
@@ -780,6 +873,69 @@ async function executeSpawnAgent(
     stderr: result.stderr,
     exitCode: result.exitCode,
     ...(result.usage ? { usage: result.usage } : {})
+  };
+}
+
+function supportsStreaming(agent: string): boolean {
+  const config = getSpawnConfig(agent);
+  return config?.kind === "cli";
+}
+
+async function executeSpawnAgentStreaming(
+  agent: string,
+  input: AgentRunInput
+): Promise<AgentRunResult & {
+  usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
+}> {
+  const writer = (line: string) => {
+    input.onStdout?.(`${line}\n`);
+  };
+
+  let capturedUsage:
+    | { inputTokens: number; outputTokens: number; cachedTokens?: number }
+    | undefined;
+
+  const teeUsage = (source: AsyncIterable<AcpEvent>): AsyncIterable<AcpEvent> =>
+    (async function* () {
+      for await (const event of source) {
+        if (event.event === "usage") {
+          const usageEvent = event as { inputTokens: number; outputTokens: number; cachedTokens?: number };
+          capturedUsage = {
+            inputTokens: usageEvent.inputTokens,
+            outputTokens: usageEvent.outputTokens,
+            ...(typeof usageEvent.cachedTokens === "number"
+              ? { cachedTokens: usageEvent.cachedTokens }
+              : {})
+          };
+        }
+        yield event;
+      }
+    })();
+
+  const result = await acp.withAcpWriter(writer, () =>
+    spawnAutonomous<Omit<SpawnStreamingOptions, "agentId">, SpawnResult>(
+      (service, options) => {
+        const { events, done } = spawnStreaming({ ...options, agentId: service });
+        return { events: teeUsage(events), result: done };
+      },
+      {
+        service: agent,
+        prompt: input.prompt,
+        cwd: input.cwd,
+        useStdin: true,
+        ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
+        ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+        ...(input.signal ? { signal: input.signal } : {}),
+        ...(input.onStderr ? { tee: { stderr: { write: input.onStderr } } } : {})
+      }
+    )
+  );
+
+  return {
+    stdout: (result as SpawnResult).stdout,
+    stderr: (result as SpawnResult).stderr,
+    exitCode: (result as SpawnResult).exitCode,
+    ...(capturedUsage ? { usage: capturedUsage } : {})
   };
 }
 

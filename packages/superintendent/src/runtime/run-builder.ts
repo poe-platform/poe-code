@@ -1,11 +1,12 @@
 import path from "node:path";
-import { spawn, type SpawnMode } from "@poe-code/agent-spawn";
+import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { SuperintendentDoc } from "../document/parse.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 
 export type BuilderResult = {
   summary: string;
   log: string;
+  log_path: string;
 };
 
 type AutonomousInput = {
@@ -13,6 +14,7 @@ type AutonomousInput = {
   mode?: string;
   prompt: string;
   cwd?: string;
+  mcpServers?: McpSpawnConfig;
 };
 
 type AutonomousOutput =
@@ -23,6 +25,7 @@ type AutonomousOutput =
       output?: unknown;
       stdout?: unknown;
       text?: unknown;
+      logFile?: unknown;
     };
 
 type SpawnWithAutonomous = typeof spawn & {
@@ -41,14 +44,38 @@ export async function runBuilder(
     agent: doc.frontmatter.builder.agent,
     mode: doc.frontmatter.builder.mode,
     prompt,
-    cwd: path.dirname(doc.filePath)
+    cwd: path.dirname(doc.filePath),
+    mcpServers: buildMcpServers(doc)
   });
   const log = extractLog(result);
 
   return {
     summary: extractSummary(result, log),
-    log
+    log,
+    log_path: extractLogPath(result)
   };
+}
+
+function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig | undefined {
+  const merged = {
+    ...(doc.frontmatter.mcp ?? {}),
+    ...(doc.frontmatter.builder.mcp ?? {})
+  };
+
+  if (Object.keys(merged).length === 0) {
+    return undefined;
+  }
+
+  const servers: McpSpawnConfig = {};
+
+  for (const [name, config] of Object.entries(merged)) {
+    servers[name] = {
+      command: config.command,
+      ...(config.args ? { args: [...config.args] } : {})
+    };
+  }
+
+  return servers;
 }
 
 function buildTemplateContext(
@@ -71,18 +98,21 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
     return spawnApi.autonomous(input.agent, {
       cwd: input.cwd,
       prompt: input.prompt,
-      mode: input.mode
+      mode: input.mode,
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
     });
   }
 
   const result = await spawn(input.agent, {
     cwd: input.cwd,
     prompt: input.prompt,
-    mode: input.mode as SpawnMode | undefined
+    mode: input.mode as SpawnMode | undefined,
+    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
   });
 
   return {
-    stdout: result.stdout
+    stdout: result.stdout,
+    ...(result.logFile ? { logFile: result.logFile } : {})
   };
 }
 
@@ -92,6 +122,14 @@ function extractLog(result: AutonomousOutput): string {
   }
 
   return readString(result.log) ?? readString(result.output) ?? readString(result.stdout) ?? readString(result.text) ?? "";
+}
+
+function extractLogPath(result: AutonomousOutput): string {
+  if (typeof result === "string") {
+    return "";
+  }
+
+  return readString(result.logFile) ?? "";
 }
 
 function extractSummary(result: AutonomousOutput, log: string): string {

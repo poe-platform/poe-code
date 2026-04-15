@@ -87,8 +87,13 @@ function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig {
     [WORKFLOW_SERVER_NAME]: createWorkflowServer()
   };
 
-  for (const name of doc.frontmatter.owner.tools?.mcp ?? []) {
-    servers[name] = toSpawnMcpServer(name, doc.frontmatter.mcp);
+  const merged = {
+    ...(doc.frontmatter.mcp ?? {}),
+    ...(doc.frontmatter.owner.mcp ?? {})
+  };
+
+  for (const [name, config] of Object.entries(merged)) {
+    servers[name] = toSpawnMcpServer(config);
   }
 
   return servers;
@@ -103,13 +108,7 @@ function createWorkflowServer(): McpSpawnConfig[string] {
   };
 }
 
-function toSpawnMcpServer(name: string, mcpConfig: Record<string, McpConfig> | undefined): McpSpawnConfig[string] {
-  const config = mcpConfig?.[name];
-
-  if (config === undefined) {
-    throw new Error(`Unknown MCP tool \`${name}\` referenced by owner.tools.mcp`);
-  }
-
+function toSpawnMcpServer(config: McpConfig): McpSpawnConfig[string] {
   return {
     command: config.command,
     ...(config.args ? { args: [...config.args] } : {})

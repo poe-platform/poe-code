@@ -13,10 +13,23 @@ describe("resolveTemplate", () => {
       resolveTemplate("Summary: {{builder.summary}}\nLog: {{builder.log}}", {
         builder: {
           summary: "Implemented the feature",
-          log: "line 1\nline 2"
+          log: "line 1\nline 2",
+          log_path: "/tmp/spawn-logs/builder.jsonl"
         }
       })
     ).toBe("Summary: Implemented the feature\nLog: line 1\nline 2");
+  });
+
+  it("resolves {{builder.log_path}} to the spawn log file path", () => {
+    expect(
+      resolveTemplate("Replay: npm run replay -- {{builder.log_path}}", {
+        builder: {
+          summary: "done",
+          log: "log",
+          log_path: "/tmp/spawn-logs/20260415-120000-000-claude-code.jsonl"
+        }
+      })
+    ).toBe("Replay: npm run replay -- /tmp/spawn-logs/20260415-120000-000-claude-code.jsonl");
   });
 
   it("resolves {{inspectors.code-quality}} with hyphenated inspector names", () => {
@@ -87,7 +100,7 @@ describe("resolveTemplate", () => {
         "Plan {{plan.path}}\nSummary {{builder.summary}}\nInspector {{inspectors.code-quality}}\nOwner {{owner.feedback}}",
         {
           plan: { path: "docs/plans/feature.md" },
-          builder: { summary: "Builder done", log: "unused" },
+          builder: { summary: "Builder done", log: "unused", log_path: "/tmp/log.jsonl" },
           inspectors: { "code-quality": "No issues found" },
           owner: { feedback: "Approved" }
         }

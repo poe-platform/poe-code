@@ -29,10 +29,6 @@ inspectors:
 superintendent:
   agent: claude-code
   mode: read
-  tools:
-    mcp:
-      - delegate
-      - plan_browser
   prompt: |
     Review the builder output.
 owner:
@@ -82,9 +78,6 @@ status:
         superintendent: {
           agent: "claude-code",
           mode: "read",
-          tools: {
-            mcp: ["delegate", "plan_browser"]
-          },
           prompt: "Review the builder output.\n"
         },
         owner: {
@@ -98,6 +91,57 @@ status:
           review_turn: 2
         }
       }
+    });
+  });
+
+  it("parses inline mcp on a role in addition to global mcp", () => {
+    const content = `---
+kind: superintendent
+version: 1
+mcp:
+  delegate:
+    command: poe-superintendent-mcp
+builder:
+  agent: claude-code
+  prompt: build
+inspectors:
+  testing:
+    agent: claude-code
+    mcp:
+      terminal-pilot:
+        command: npx
+        args:
+          - terminal-pilot-mcp
+    prompt: |
+      Test it.
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.mcp).toEqual({
+      delegate: { command: "poe-superintendent-mcp" }
+    });
+    expect(result.frontmatter.inspectors?.testing).toEqual({
+      agent: "claude-code",
+      mcp: {
+        "terminal-pilot": {
+          command: "npx",
+          args: ["terminal-pilot-mcp"]
+        }
+      },
+      prompt: "Test it.\n"
     });
   });
 

@@ -1,6 +1,6 @@
 export type TemplateContext = {
   plan: { path: string };
-  builder: { summary: string; log: string };
+  builder: { summary: string; log: string; log_path: string };
   inspectors: Record<string, string>;
   superintendent: { summary: string };
   owner: { feedback: string };

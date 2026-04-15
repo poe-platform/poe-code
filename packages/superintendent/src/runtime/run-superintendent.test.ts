@@ -44,9 +44,6 @@ const document: SuperintendentDoc = {
     superintendent: {
       agent: "codex",
       mode: "read",
-      tools: {
-        mcp: ["delegate", "plan_browser"]
-      },
       prompt: "Review {{plan.path}} after {{builder.summary}} and {{owner.feedback}}"
     },
     owner: {
@@ -201,28 +198,6 @@ describe("runSuperintendent", () => {
     });
   });
 
-  it("fails fast when frontmatter references an unknown MCP tool", async () => {
-    const { runSuperintendent } = await import("./run-superintendent.js");
-
-    await expect(
-      runSuperintendent(
-        {
-          ...document,
-          frontmatter: {
-            ...document.frontmatter,
-            superintendent: {
-              ...document.frontmatter.superintendent,
-              tools: {
-                mcp: ["delegate", "missing"]
-              }
-            }
-          }
-        },
-        {}
-      )
-    ).rejects.toThrow("Unknown MCP tool `missing` referenced by superintendent.tools.mcp");
-    expect(autonomousMock).not.toHaveBeenCalled();
-  });
 });
 
 function readWorkflowTool(

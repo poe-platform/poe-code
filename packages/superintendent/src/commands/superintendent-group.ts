@@ -143,6 +143,7 @@ function validatePromptVariables(document: SuperintendentDoc): ValidationProblem
     "plan.path",
     "builder.summary",
     "builder.log",
+    "builder.log_path",
     "superintendent.summary",
     "owner.feedback"
   ]);

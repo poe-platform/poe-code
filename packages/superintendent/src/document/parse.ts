@@ -23,7 +23,7 @@ export type SuperintendentFrontmatter = {
 export type AgentRoleConfig = {
   agent: string;
   mode?: string;
-  tools?: { mcp?: string[] };
+  mcp?: Record<string, McpConfig>;
   prompt: string;
 };
 
@@ -179,14 +179,16 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
   }
 
   const role = expectRecord(value, roleName, filePath);
-  const tools =
-    role.tools === undefined ? undefined : parseRoleTools(role.tools, roleName, filePath);
+  const mcp =
+    role.mcp === undefined
+      ? undefined
+      : parseMcpMap(role.mcp, filePath, `${roleName}.mcp`);
 
   return {
     agent: expectString(role.agent, `${roleName}.agent`, filePath),
     mode:
       role.mode === undefined ? undefined : expectString(role.mode, `${roleName}.mode`, filePath),
-    tools,
+    mcp,
     prompt: expectString(role.prompt, `${roleName}.prompt`, filePath)
   };
 }
@@ -209,17 +211,21 @@ function parseInspectorMap(
   );
 }
 
-function parseMcpMap(value: unknown, filePath: string): Record<string, McpConfig> | undefined {
+function parseMcpMap(
+  value: unknown,
+  filePath: string,
+  fieldName: string = "mcp"
+): Record<string, McpConfig> | undefined {
   if (value === undefined) {
     return undefined;
   }
 
-  const mcp = expectRecord(value, "mcp", filePath);
+  const mcp = expectRecord(value, fieldName, filePath);
 
   return Object.fromEntries(
     Object.entries(mcp).map(([name, config]) => [
       name,
-      parseMcpConfig(config, `mcp.${name}`, filePath)
+      parseMcpConfig(config, `${fieldName}.${name}`, filePath)
     ])
   );
 }
@@ -233,17 +239,6 @@ function parseMcpConfig(value: unknown, fieldName: string, filePath: string): Mc
       config.args === undefined
         ? undefined
         : expectStringArray(config.args, `${fieldName}.args`, filePath)
-  };
-}
-
-function parseRoleTools(value: unknown, roleName: string, filePath: string): { mcp?: string[] } {
-  const tools = expectRecord(value, `${roleName}.tools`, filePath);
-
-  return {
-    mcp:
-      tools.mcp === undefined
-        ? undefined
-        : expectStringArray(tools.mcp, `${roleName}.tools.mcp`, filePath)
   };
 }
 

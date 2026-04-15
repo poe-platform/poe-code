@@ -1,5 +1,5 @@
 import path from "node:path";
-import { spawn, type SpawnMode } from "@poe-code/agent-spawn";
+import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { AgentRoleConfig, SuperintendentDoc } from "../document/parse.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 
@@ -13,6 +13,7 @@ type AutonomousInput = {
   mode?: string;
   prompt: string;
   cwd?: string;
+  mcpServers?: McpSpawnConfig;
 };
 
 type AutonomousOutput =
@@ -42,13 +43,39 @@ export async function runInspector(
     agent: config.agent,
     mode: config.mode,
     prompt,
-    cwd: path.dirname(doc.filePath)
+    cwd: path.dirname(doc.filePath),
+    mcpServers: buildMcpServers(doc, config)
   });
 
   return {
     name,
     summary: extractSummary(output)
   };
+}
+
+function buildMcpServers(
+  doc: SuperintendentDoc,
+  config: AgentRoleConfig
+): McpSpawnConfig | undefined {
+  const merged = {
+    ...(doc.frontmatter.mcp ?? {}),
+    ...(config.mcp ?? {})
+  };
+
+  if (Object.keys(merged).length === 0) {
+    return undefined;
+  }
+
+  const servers: McpSpawnConfig = {};
+
+  for (const [name, mcpConfig] of Object.entries(merged)) {
+    servers[name] = {
+      command: mcpConfig.command,
+      ...(mcpConfig.args ? { args: [...mcpConfig.args] } : {})
+    };
+  }
+
+  return servers;
 }
 
 export async function runAllInspectors(
@@ -97,14 +124,16 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
     return spawnApi.autonomous(input.agent, {
       cwd: input.cwd,
       prompt: input.prompt,
-      mode: input.mode
+      mode: input.mode,
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
     });
   }
 
   const result = await spawn(input.agent, {
     cwd: input.cwd,
     prompt: input.prompt,
-    mode: input.mode as SpawnMode | undefined
+    mode: input.mode as SpawnMode | undefined,
+    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
   });
 
   return {

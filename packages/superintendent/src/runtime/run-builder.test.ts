@@ -70,28 +70,31 @@ describe("runBuilder", () => {
     expect(autonomousMock).toHaveBeenCalledTimes(1);
   });
 
-  it("returns a BuilderResult with summary and log", async () => {
+  it("returns a BuilderResult with summary, log, and empty log_path when not provided", async () => {
     autonomousMock.mockResolvedValue("Implemented the next task\nUpdated tests and docs");
 
     const { runBuilder } = await import("./run-builder.js");
 
     await expect(runBuilder(document, {})).resolves.toEqual({
       summary: "Implemented the next task",
-      log: "Implemented the next task\nUpdated tests and docs"
+      log: "Implemented the next task\nUpdated tests and docs",
+      log_path: ""
     });
   });
 
-  it("uses explicit summary and log fields from structured autonomous output", async () => {
+  it("uses explicit summary, log, and logFile fields from structured autonomous output", async () => {
     autonomousMock.mockResolvedValue({
       summary: "Builder finished cleanly",
-      log: "Applied the requested changes"
+      log: "Applied the requested changes",
+      logFile: "/tmp/spawn-logs/20260415-120000-000-claude-code.jsonl"
     });
 
     const { runBuilder } = await import("./run-builder.js");
 
     await expect(runBuilder(document, {})).resolves.toEqual({
       summary: "Builder finished cleanly",
-      log: "Applied the requested changes"
+      log: "Applied the requested changes",
+      log_path: "/tmp/spawn-logs/20260415-120000-000-claude-code.jsonl"
     });
   });
 

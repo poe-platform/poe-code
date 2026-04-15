@@ -636,6 +636,156 @@ describe("spawn command", () => {
     });
   });
 
+  it("reads --mcp-servers from an absolute @file path", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = "/tmp/mcp.json";
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(
+      filePath,
+      JSON.stringify({
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-servers",
+      `@${filePath}`,
+      "codex",
+      "Use word_of_the_day"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Use word_of_the_day",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+  });
+
+  it("resolves relative --mcp-servers @file paths against the CLI cwd", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = path.join(cwd, "mcp.json");
+    await fs.mkdir(cwd, { recursive: true });
+    await fs.writeFile(
+      filePath,
+      JSON.stringify({
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-servers",
+      "@mcp.json",
+      "codex",
+      "Use word_of_the_day"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Use word_of_the_day",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+  });
+
+  it("reads deprecated --mcp-config from an @file path", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = path.join(cwd, "mcp.json");
+    await fs.mkdir(cwd, { recursive: true });
+    await fs.writeFile(
+      filePath,
+      JSON.stringify({
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-config",
+      "@mcp.json",
+      "codex",
+      "Use word_of_the_day"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Use word_of_the_day",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+  });
+
   it("passes --log-dir and --activity-timeout-ms to SDK spawn", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
@@ -682,6 +832,77 @@ describe("spawn command", () => {
     await expect(
       program.parseAsync(["node", "cli", "spawn", "--mcp-servers", "{nope", "codex", "hello"])
     ).rejects.toThrow("--mcp-servers");
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects --mcp-servers when the referenced @file does not exist", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const missingPath = path.join(cwd, "missing.json");
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--mcp-servers",
+        "@missing.json",
+        "codex",
+        "hello"
+      ])
+    ).rejects.toThrow(missingPath);
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid JSON loaded from an --mcp-servers @file", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = path.join(cwd, "mcp.json");
+    await fs.mkdir(cwd, { recursive: true });
+    await fs.writeFile(filePath, "{nope", { encoding: "utf8" });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--mcp-servers",
+        "@mcp.json",
+        "codex",
+        "hello"
+      ])
+    ).rejects.toThrow("--mcp-servers");
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects --mcp-servers when @ has no file path", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "--mcp-servers", "@", "codex", "hello"])
+    ).rejects.toThrow("--mcp-servers @<path> requires a file path after '@'");
 
     expect(sdkSpawn).not.toHaveBeenCalled();
   });

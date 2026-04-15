@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { Command } from "commander";
 import { Option } from "commander";
 import type { CliContainer } from "../container.js";
@@ -32,6 +33,7 @@ import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { spawnAutonomous } from "../../sdk/autonomous.js";
+import type { FileSystem } from "../../utils/file-system.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
 
@@ -71,8 +73,13 @@ export function registerSpawnCommand(
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
-    .option("--mcp-servers <json>", "MCP server config JSON: {name: {command, args?, env?}}")
-    .addOption(new Option("--mcp-config <json>", "[deprecated: use --mcp-servers]").hideHelp())
+    .option(
+      "--mcp-servers <json|@file>",
+      "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
+    )
+    .addOption(
+      new Option("--mcp-config <json|@file>", "[deprecated: use --mcp-servers]").hideHelp()
+    )
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
     .option(
       "--activity-timeout-ms <ms>",
@@ -101,7 +108,9 @@ export function registerSpawnCommand(
         activityTimeoutMs?: number;
       }>();
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
-      const mcpServers = parseMcpSpawnConfig(commandOptions.mcpServers ?? commandOptions.mcpConfig);
+      const rawMcpInput = commandOptions.mcpServers ?? commandOptions.mcpConfig;
+      const mcpInput = await resolveMcpSpawnInput(rawMcpInput, container.fs, container.env.cwd);
+      const mcpServers = parseMcpSpawnConfig(mcpInput);
 
       const wantsStdinFlag = commandOptions.stdin === true;
       const shouldReadFromStdin =
@@ -391,6 +400,35 @@ async function confirmUnconfiguredService(
   }
 
   return shouldProceed === true;
+}
+
+async function resolveMcpSpawnInput(
+  input: string | undefined,
+  fs: FileSystem,
+  baseDir: string
+): Promise<string | undefined> {
+  if (!input) {
+    return undefined;
+  }
+
+  if (!input.startsWith("@")) {
+    return input;
+  }
+
+  const rawPath = input.slice(1);
+  if (rawPath.length === 0) {
+    throw new ValidationError("--mcp-servers @<path> requires a file path after '@'");
+  }
+
+  const filePath = path.isAbsolute(rawPath) ? rawPath : path.join(baseDir, rawPath);
+
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    throw new ValidationError(
+      `--mcp-servers could not read file "${filePath}": ${(error as Error).message}`
+    );
+  }
 }
 
 function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {

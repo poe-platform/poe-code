@@ -30,3 +30,6 @@ export * from "./testing/index.js";
 
 // Commands (for composition)
 export { superintendentGroup } from "./commands/index.js";
+
+// Config
+export { superintendentConfigScope } from "./config-scope.js";

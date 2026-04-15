@@ -6,6 +6,7 @@ import {
   readMergedDocument,
   writeScope
 } from "@poe-code/poe-code-config";
+import { superintendentConfigScope } from "@poe-code/superintendent";
 import type { FileSystem } from "../utils/file-system.js";
 
 export interface ConfigStoreOptions {
@@ -92,7 +93,8 @@ export const knownConfigScopes = [
   ralphConfigScope,
   pipelineConfigScope,
   experimentConfigScope,
-  planConfigScope
+  planConfigScope,
+  superintendentConfigScope
 ] as const;
 
 const CORE_SCOPE = coreConfigScope.scope;

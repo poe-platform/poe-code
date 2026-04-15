@@ -272,4 +272,49 @@ describe("superintendent run command", () => {
       stopReason: "completed"
     });
   });
+
+  it("scans the configured planDirectory instead of the default superintendent directory", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/superintendent/should-be-ignored.md": createDoc("codex"),
+      "/repo/docs/plans/expected.md": createDoc("claude-code")
+    });
+    const dashboardMock = createDashboardMock();
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "docs/plans",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      selectPrompt: vi.fn(),
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {}
+    });
+
+    expect(runLoopMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        docPath: "/repo/docs/plans/expected.md"
+      })
+    );
+    expect(result).toMatchObject({
+      docPath: "/repo/docs/plans/expected.md",
+      builderAgent: "claude-code"
+    });
+  });
 });

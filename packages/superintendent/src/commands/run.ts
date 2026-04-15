@@ -14,6 +14,13 @@ import {
   text,
   type Dashboard
 } from "@poe-code/design-system";
+import {
+  readMergedDocument,
+  resolveConfigPath,
+  resolveProjectConfigPath,
+  resolveScope
+} from "@poe-code/poe-code-config";
+import { superintendentConfigScope } from "../config-scope.js";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import {
   runLoop,
@@ -36,6 +43,7 @@ export type RunCommandOptions = {
   homeDir: string;
   docPath?: string;
   builderAgent?: string;
+  planDirectory?: string;
   assumeYes?: boolean;
   interactive?: boolean;
   useDashboard?: boolean;
@@ -89,6 +97,7 @@ export const runCommand = defineCommand({
   handler: async ({ params }) => {
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
+    const planDirectory = await resolveSuperintendentPlanDirectory(cwd, homeDir, process.env);
 
     return runSuperintendentCommand({
       cwd,
@@ -98,7 +107,8 @@ export const runCommand = defineCommand({
       assumeYes: process.argv.includes("--yes"),
       interactive: Boolean(process.stdin.isTTY),
       useDashboard: resolveOutputFormat() === "terminal",
-      env: process.env
+      env: process.env,
+      ...(planDirectory ? { planDirectory } : {})
     });
   },
   render: {
@@ -140,6 +150,7 @@ export const runMcpCommand = defineCommand({
   handler: async ({ params }) => {
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
+    const planDirectory = await resolveSuperintendentPlanDirectory(cwd, homeDir, process.env);
 
     return runSuperintendentCommand({
       cwd,
@@ -149,11 +160,53 @@ export const runMcpCommand = defineCommand({
       assumeYes: true,
       interactive: false,
       useDashboard: false,
-      env: process.env
+      env: process.env,
+      ...(planDirectory ? { planDirectory } : {})
     });
   },
   render: runCommand.render
 });
+
+async function resolveSuperintendentPlanDirectory(
+  cwd: string,
+  homeDir: string,
+  env: Record<string, string | undefined>
+): Promise<string | undefined> {
+  const configPath = resolveConfigPath(homeDir);
+  const projectConfigPath = resolveProjectConfigPath(cwd);
+  try {
+    const document = await readMergedDocument(configFs, configPath, projectConfigPath);
+    const resolved = resolveScope(
+      superintendentConfigScope.schema,
+      document[superintendentConfigScope.scope],
+      env
+    );
+    const dir = resolved.plan_directory?.trim();
+    return dir ? dir : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const configFs = {
+  readFile: (filePath: string, encoding: "utf8") => fsPromises.readFile(filePath, encoding),
+  writeFile: async (
+    filePath: string,
+    content: string,
+    options?: { encoding: "utf8" }
+  ): Promise<void> => {
+    await fsPromises.writeFile(filePath, content, options ?? { encoding: "utf8" });
+  },
+  mkdir: async (filePath: string, options?: { recursive: boolean }): Promise<void> => {
+    await fsPromises.mkdir(filePath, options);
+  },
+  unlink: (filePath: string) => fsPromises.unlink(filePath),
+  stat: async (filePath: string) => {
+    const stat = await fsPromises.stat(filePath);
+    return { mode: stat.mode };
+  },
+  readdir: (filePath: string) => fsPromises.readdir(filePath) as Promise<string[]>
+};
 
 export async function runSuperintendentCommand(
   options: RunCommandOptions
@@ -174,6 +227,7 @@ export async function runSuperintendentCommand(
     cwd: options.cwd,
     homeDir: options.homeDir,
     docPath: options.docPath,
+    planDirectory: options.planDirectory,
     assumeYes,
     interactive,
     fs,
@@ -518,6 +572,7 @@ async function resolveDocPath(options: {
   cwd: string;
   homeDir: string;
   docPath?: string;
+  planDirectory?: string;
   assumeYes: boolean;
   interactive: boolean;
   fs: SuperintendentFileSystem;
@@ -557,14 +612,23 @@ async function resolveDocPath(options: {
 async function discoverSuperintendentDocs(options: {
   cwd: string;
   homeDir: string;
+  planDirectory?: string;
   fs: SuperintendentFileSystem;
 }): Promise<string[]> {
-  const docs = await discoverWorkflowDocs({
-    cwd: options.cwd,
-    homeDir: options.homeDir,
-    subDirectory: "superintendent",
-    fs: { readdir: options.fs.readdir }
-  });
+  const docs = options.planDirectory
+    ? await listPlanDirectoryDocs(
+        options.fs,
+        options.planDirectory,
+        options.cwd,
+        options.homeDir
+      )
+    : await discoverWorkflowDocs({
+        cwd: options.cwd,
+        homeDir: options.homeDir,
+        subDirectory: "superintendent",
+        fs: { readdir: options.fs.readdir }
+      });
+
   const matches: string[] = [];
 
   for (const docPath of docs) {
@@ -580,6 +644,44 @@ async function discoverSuperintendentDocs(options: {
   }
 
   return matches;
+}
+
+async function listPlanDirectoryDocs(
+  fs: SuperintendentFileSystem,
+  planDirectory: string,
+  cwd: string,
+  homeDir: string
+): Promise<string[]> {
+  const absoluteDir = resolveAbsolutePlanDirectory(planDirectory, cwd, homeDir);
+  let entries: string[];
+  try {
+    entries = await fs.readdir(absoluteDir);
+  } catch (error) {
+    if (isMissingDirectory(error)) {
+      return [];
+    }
+    throw error;
+  }
+
+  return entries
+    .filter((entry) => entry.toLowerCase().endsWith(".md"))
+    .map((entry) => path.join(absoluteDir, entry))
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function resolveAbsolutePlanDirectory(dir: string, cwd: string, homeDir: string): string {
+  if (dir.startsWith("~/")) {
+    return path.join(homeDir, dir.slice(2));
+  }
+  return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
+}
+
+function isMissingDirectory(error: unknown): boolean {
+  if (!error || typeof error !== "object" || !("code" in error)) {
+    return false;
+  }
+  const code = (error as { code?: unknown }).code;
+  return code === "ENOENT" || code === "ENOTDIR";
 }
 
 async function resolveBuilderAgent(options: {

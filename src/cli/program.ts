@@ -3,6 +3,7 @@ import { Command, Help } from "commander";
 import type { Group } from "@poe-code/cmdkit";
 import { runCLI } from "@poe-code/cmdkit/cli";
 import { ghGroup } from "@poe-code/github-workflows";
+import { superintendentGroup } from "@poe-code/superintendent";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
@@ -421,6 +422,26 @@ function bootstrapProgram(container: CliContainer): Command {
       process.argv = buildCmdkitArgv(originalArgv, ghGroup);
       try {
         await runCLI(ghGroup, { rootDisplayName: `Poe - ${ghGroup.name}`, rootUsageName: `${usageCommand} ${ghGroup.name}` });
+      } finally {
+        process.argv = originalArgv;
+      }
+    });
+  program
+    .command(superintendentGroup.name)
+    .description(superintendentGroup.description ?? "")
+    .aliases(superintendentGroup.aliases)
+    .argument("[args...]")
+    .allowUnknownOption()
+    .allowExcessArguments()
+    .helpOption(false)
+    .action(async () => {
+      const originalArgv = [...process.argv];
+      process.argv = buildCmdkitArgv(originalArgv, superintendentGroup);
+      try {
+        await runCLI(superintendentGroup, {
+          rootDisplayName: `Poe - ${superintendentGroup.name}`,
+          rootUsageName: `${usageCommand} ${superintendentGroup.name}`
+        });
       } finally {
         process.argv = originalArgv;
       }

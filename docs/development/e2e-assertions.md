@@ -39,6 +39,7 @@ This is important: we don't need to match the entire stdout, just one line.
 - `poe-code install codex`
 - `poe-code install opencode`
 - `poe-code install kimi`
+- `poe-code install goose`
 
 ### Common Assertions (all agents)
 
@@ -82,6 +83,14 @@ This is important: we don't need to match the entire stdout, just one line.
 
 **Install method:** `uv tool install --python 3.13 kimi-cli`
 
+#### goose
+| What | How to check | Expected |
+|------|-------------|----------|
+| Success message | `result.stdout` | Contains `Installed Goose CLI.` |
+| Binary exists | `container.exec('which goose')` | Exit code `0` |
+
+**Install method:** `brew install block-goose-cli` (macOS) or Goose install script (Linux/Windows)
+
 ### Notes
 - Install is idempotent; if the binary already exists, it may skip with a
   different message (e.g., "already installed")
@@ -100,6 +109,7 @@ This is important: we don't need to match the entire stdout, just one line.
 - `poe-code configure codex --yes`
 - `poe-code configure opencode --yes`
 - `poe-code configure kimi --yes`
+- `poe-code configure goose --yes`
 
 ### Common Assertions (all agents)
 
@@ -255,6 +265,7 @@ api_key = "<api-key>"
 - `poe-code test codex`
 - `poe-code test opencode`
 - `poe-code test kimi`
+- `poe-code test goose`
 
 ### Common Assertions (all agents)
 
@@ -297,6 +308,14 @@ api_key = "<api-key>"
 
 **Health check command:** `kimi --quiet -p "Output exactly: KIMI_OK"`
 
+#### goose
+| What | How to check | Expected |
+|------|-------------|----------|
+| Health check output | `result.stdout` | Contains `GOOSE_OK` on a line |
+| Success message | `result.stdout` | Contains `Tested Goose.` |
+
+**Health check command:** `goose run --text "Reply with exactly: GOOSE_OK" --output-format text`
+
 ### Isolated Test Mode
 
 **Commands per agent:**
@@ -304,6 +323,7 @@ api_key = "<api-key>"
 - `poe-code test codex --isolated`
 - `poe-code test opencode --isolated`
 - `poe-code test kimi --isolated`
+- `poe-code test goose --isolated`
 
 Same assertions as above, but the test runs in an isolated environment using
 `poe-code wrap <agent> -- <args>` under the hood.
@@ -367,6 +387,7 @@ it('test', async () => {
 | codex | `codex` | `~/.codex/config.toml` | npm -g |
 | opencode | `opencode` | `~/.config/opencode/config.json`, `~/.opencode-data/auth.json` | npm -g |
 | kimi | `kimi` | `~/.kimi/config.toml` | uv tool install |
+| goose | `goose` | `~/.config/goose/config.yaml`, `~/.config/goose/secrets.yaml`, `~/.config/goose/custom_providers/custom_poe.json` | brew or install script |
 
 **Shared:** `~/.poe-code/credentials.json` (login, tracks configured services)
 
@@ -378,6 +399,7 @@ it('test', async () => {
 | codex | `CODEX_OK` | Any trimmed non-empty line equals token |
 | opencode | `OPEN_CODE_OK` | Any trimmed non-empty line equals token |
 | kimi | `KIMI_OK` | Any trimmed non-empty line equals token |
+| goose | `GOOSE_OK` | Any trimmed non-empty line equals token |
 
 ## Default Models (with `--yes`)
 
@@ -387,3 +409,4 @@ it('test', async () => {
 | codex | `openai/gpt-5.2-codex` | `gpt-5.2-codex` |
 | opencode | `anthropic/claude-sonnet-4.5` | `poe/claude-sonnet-4.5` (provider-prefixed) |
 | kimi | `novitaai/kimi-k2.5` | `poe/kimi-k2.5` (provider-prefixed) |
+| goose | `anthropic/claude-sonnet-4.6` | `anthropic/claude-sonnet-4.6` (provider kept) |

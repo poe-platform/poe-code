@@ -2,7 +2,7 @@
 
 > **Audience**: AI agents and developers who need to understand and use every feature of the `poe-code` library — CLI, SDK, MCP server, providers, and internals.
 
-`poe-code` is a CLI tool and Node.js SDK that configures coding agents (Claude Code, Codex, OpenCode, Kimi) to route their API calls through the [Poe API](https://poe.com/api). Instead of managing multiple provider accounts, a single Poe subscription powers all your coding agents.
+`poe-code` is a CLI tool and Node.js SDK that configures coding agents (Claude Code, Codex, OpenCode, Kimi, Goose) to route their API calls through the [Poe API](https://poe.com/api). Instead of managing multiple provider accounts, a single Poe subscription powers all your coding agents.
 
 **Repository**: https://github.com/poe-platform/poe-code
 
@@ -42,6 +42,7 @@
   - [Codex](#codex-provider)
   - [OpenCode](#opencode-provider)
   - [Kimi](#kimi-provider)
+  - [Goose](#goose-provider)
   - [Provider Architecture](#provider-architecture)
 - [MCP Server](#mcp-server)
   - [Available Tools](#mcp-tools)
@@ -82,7 +83,7 @@ npm install -g poe-code
 npx poe-code@latest <command>
 ```
 
-**Requirements**: Node.js >= 22.14.0, npm >= 11.5.1
+**Requirements**: Node.js >= 20, npm >= 10
 
 ---
 
@@ -96,6 +97,7 @@ npx poe-code@latest wrap claude
 npx poe-code@latest wrap codex
 npx poe-code@latest wrap opencode
 npx poe-code@latest wrap kimi
+npx poe-code@latest wrap goose
 ```
 
 ### Persistent configuration
@@ -452,6 +454,7 @@ Each agent has a health check that spawns the agent with a known prompt and vali
 | Codex | `CODEX_OK` |
 | OpenCode | `OPEN_CODE_OK` |
 | Kimi | `KIMI_OK` |
+| Goose | `GOOSE_OK` |
 
 **Examples:**
 
@@ -459,6 +462,7 @@ Each agent has a health check that spawns the agent with a known prompt and vali
 poe-code test claude-code
 poe-code test codex --isolated
 poe-code test opencode --model anthropic/claude-sonnet-4.6
+poe-code test goose
 ```
 
 ---
@@ -485,6 +489,7 @@ poe-code install [agent]
 | Codex | `npm install -g @openai/codex` |
 | OpenCode | `npm install -g opencode-ai` |
 | Kimi | `uv tool install --python 3.13 kimi-cli` |
+| Goose | `brew install block-goose-cli` (macOS) or `curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh \| CONFIGURE=false bash` |
 
 **Examples:**
 
@@ -493,6 +498,7 @@ poe-code install claude-code
 poe-code install codex
 poe-code install opencode
 poe-code install kimi
+poe-code install goose
 ```
 
 ---
@@ -740,12 +746,14 @@ poe-code mcp configure [agent]
 | Codex | `~/.codex/config.toml` | `mcp_servers` |
 | OpenCode | `~/.config/opencode/opencode.json` | `mcp` |
 | Kimi | `~/.kimi/mcp.json` | `mcpServers` |
+| Goose | `~/.config/goose/config.yaml` | `extensions` |
 
 **Examples:**
 
 ```bash
 poe-code mcp configure claude-code
 poe-code mcp configure codex
+poe-code mcp configure goose
 poe-code mcp configure --yes  # defaults to claude-code
 ```
 
@@ -1424,6 +1432,68 @@ Config probe: `.kimi/config.toml`
 
 ---
 
+### Goose Provider
+
+| Property | Value |
+|----------|-------|
+| ID | `goose` |
+| Binary | `goose` |
+| Config File | `~/.config/goose/config.yaml` |
+| Config Format | YAML |
+| Branding | Dark: `#FF6B35`, Light: `#E85D26` |
+
+**Models:**
+
+Uses `FRONTIER_MODELS` with default `anthropic/claude-sonnet-4.6`.
+
+**Configuration mutations (configure):**
+
+1. Ensure `~/.config/goose/custom_providers/` exists
+2. Write custom provider JSON to `~/.config/goose/custom_providers/custom_poe.json`
+3. Merge `GOOSE_PROVIDER`, `GOOSE_MODEL`, and `GOOSE_DISABLE_KEYRING` into `~/.config/goose/config.yaml`
+4. Store `CUSTOM_POE_API_KEY` in `~/.config/goose/secrets.yaml`
+
+**Unconfigure mutations:**
+
+- Remove `custom_poe.json`
+- Prune Goose-specific keys from `config.yaml`
+- Remove `CUSTOM_POE_API_KEY` from `secrets.yaml`
+
+**Isolated environment:**
+
+| Variable | Type | Relative Path |
+|----------|------|---------------|
+| `HOME` | `isolatedDir` | `` |
+| `XDG_CONFIG_HOME` | `isolatedDir` | `.config` |
+
+Config probe: `.config/goose/config.yaml`
+
+**Custom spawn:** Runs `goose run --output-format stream-json --text <prompt>`.
+
+**Spawn configuration:**
+
+| Property | Value |
+|----------|-------|
+| Prompt flag | `--text` |
+| Model flag | `--model` |
+| Strip provider prefix | No |
+| Default args | `run --output-format stream-json` |
+| Stdin mode | Omit prompt, add `--instructions -` |
+| Interactive args | `session` |
+| Resume command | `run --resume --text continue` |
+
+**Permission mode env:**
+
+| Mode | Value |
+|------|-------|
+| `yolo` | `GOOSE_MODE=auto` |
+| `edit` | `GOOSE_MODE=smart_approve` |
+| `read` | `GOOSE_MODE=chat` |
+
+**MCP args:** repeated `--with-extension "<command> <args...>"`
+
+---
+
 ### Provider Architecture
 
 Providers are created declaratively using `createProvider()`. The core principle: **no provider-specific branching in the main codebase**. Each provider is a self-contained file that declares its configuration, mutations, and behavior.
@@ -1633,17 +1703,30 @@ command = "poe-code"
 args = ["mcp", "serve", "--output-format", "url"]
 ```
 
+**Goose shape** (YAML):
+```yaml
+extensions:
+  poe-code:
+    type: stdio
+    cmd: poe-code
+    args:
+      - mcp
+      - serve
+      - --output-format
+      - url
+```
+
 ---
 
 ## Spawn System
 
 ### Spawn Modes
 
-| Mode | Description | Claude Code Args | Codex Args | OpenCode Args | Kimi Args |
-|------|-------------|-----------------|------------|---------------|-----------|
-| `yolo` | Full access, no permission prompts | `--dangerously-skip-permissions` | `-s danger-full-access` | (none) | `--yolo` |
-| `edit` | Can edit files, restricted commands | `--permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit` | `-s workspace-write` | (none) | (none) |
-| `read` | Read-only, no modifications | `--permission-mode plan` | `-s read-only` | `--agent plan` | (none) |
+| Mode | Description | Claude Code Args | Codex Args | OpenCode Args | Kimi Args | Goose |
+|------|-------------|-----------------|------------|---------------|-----------|-------|
+| `yolo` | Full access, no permission prompts | `--dangerously-skip-permissions` | `-s danger-full-access` | (none) | `--yolo` | `GOOSE_MODE=auto` |
+| `edit` | Can edit files, restricted commands | `--permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit` | `-s workspace-write` | (none) | (none) | `GOOSE_MODE=smart_approve` |
+| `read` | Read-only, no modifications | `--permission-mode plan` | `-s read-only` | `--agent plan` | (none) | `GOOSE_MODE=chat` |
 
 ### Streaming (ACP Events)
 
@@ -1669,6 +1752,7 @@ const final = await result;
 | Codex | Yes | `json` |
 | OpenCode | Yes | `json` |
 | Kimi | Yes | `stream-json` |
+| Goose | Yes | `stream-json` |
 
 Use `renderAcpStream()` from `@poe-code/agent-spawn` for pretty-printed terminal output, or `spawn.pretty()` from the SDK.
 
@@ -1703,6 +1787,7 @@ const { result } = spawn("claude-code", {
 | Claude Code | JSON: `--mcp-config '{"mcpServers": {...}}'` | `--mcp-config` |
 | Codex | TOML inline tables via `-c` flags | `-c mcp_servers.name.command="..."` |
 | Kimi | JSON: `--mcp-config '{"mcpServers": {...}}'` | `--mcp-config` |
+| Goose | Repeated extension flags | `--with-extension "<command> <args...>"` |
 | OpenCode | Not supported at spawn time | N/A |
 
 ### Interactive Mode
@@ -1748,6 +1833,7 @@ cat prompt.txt | poe-code spawn claude-code
 | Claude Code | Omits `-p` flag, adds `--input-format text` |
 | Codex | Omits `exec` subcommand, adds `-` |
 | Kimi | Omits `-p` flag, adds `--input-format stream-json` |
+| Goose | Omits `--text`, adds `--instructions -` |
 
 ### Resume Sessions
 
@@ -1766,6 +1852,7 @@ To resume this session:
 | Codex | `resume -C <cwd> <threadId>` |
 | OpenCode | `<cwd> --session <threadId>` |
 | Kimi | `--session <threadId> --work-dir <cwd>` |
+| Goose | `run --resume --text continue` |
 
 ### Spawn Configurations per Agent
 
@@ -1839,6 +1926,23 @@ Interactive prompt flag: -p
 Resume: --session <threadId> --work-dir <cwd>
 ```
 
+#### Goose Spawn Config
+
+```
+Binary: goose
+Prompt: --text <prompt>
+Model: --model <model> (provider prefix preserved)
+Default args: run --output-format stream-json
+Modes:
+  yolo: GOOSE_MODE=auto
+  edit: GOOSE_MODE=smart_approve
+  read: GOOSE_MODE=chat
+MCP: --with-extension "<command> <args...>" (repeatable)
+Stdin: omit --text, add --instructions -
+Interactive: session
+Resume: run --resume --text continue
+```
+
 ---
 
 ## Configuration System
@@ -1874,6 +1978,7 @@ Resume: --session <threadId> --work-dir <cwd>
 | Codex | `~/.codex/config.toml` | TOML |
 | OpenCode | `~/.config/opencode/config.json` + `~/.local/share/opencode/auth.json` | JSON |
 | Kimi | `~/.kimi/config.toml` | TOML |
+| Goose | `~/.config/goose/config.yaml` + `~/.config/goose/secrets.yaml` + `~/.config/goose/custom_providers/custom_poe.json` | YAML + JSON |
 
 ### Isolated Environments
 
@@ -1986,8 +2091,9 @@ Output shows:
 | `DEFAULT_AUDIO_BOT` | `elevenlabs/elevenlabs-v3` | `generate audio` |
 | `DEFAULT_FRONTIER_MODEL` | `anthropic/claude-sonnet-4.6` | OpenCode default |
 | `DEFAULT_CLAUDE_CODE_MODEL` | `anthropic/claude-sonnet-4.6` | Claude Code default |
-| `DEFAULT_CODEX_MODEL` | `openai/gpt-5.2-codex` | Codex default |
+| `DEFAULT_CODEX_MODEL` | `openai/gpt-5.4` | Codex default |
 | `DEFAULT_KIMI_MODEL` | `novitaai/kimi-k2.5` | Kimi default |
+| `DEFAULT_GOOSE_MODEL` | `anthropic/claude-sonnet-4.6` | Goose default |
 | `DEFAULT_REASONING` | `medium` | Codex reasoning effort |
 | `PROVIDER_NAME` | `poe` | Provider identifier in configs |
 
@@ -1997,8 +2103,9 @@ Output shows:
 const FRONTIER_MODELS = [
   "anthropic/claude-opus-4.6",
   "anthropic/claude-sonnet-4.6",
-  "openai/gpt-5.2",
-  "google/gemini-3-pro"
+  "openai/gpt-5.3-codex",
+  "openai/gpt-5.4",
+  "google/gemini-3.1-pro"
 ];
 ```
 

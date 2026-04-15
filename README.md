@@ -19,7 +19,7 @@ Start a coding session routing all your `claude` calls to Poe
 
 ```bash
 npx poe-code@latest wrap claude
-# Also available: codex, opencode, kimi
+# Also available: codex, opencode, kimi, goose
 ```
 
 or
@@ -33,7 +33,7 @@ This updates the provider’s config files and continue using your tools normall
 npx poe-code@latest configure
 
 # Setup a specific agent
-npx poe-code@latest configure codex # (or claude, opencode, kimi)
+npx poe-code@latest configure codex # (or claude, opencode, kimi, goose)
 ```
 
 ### Unconfigure (remove overrides)
@@ -117,6 +117,9 @@ npx poe-code@latest install opencode
 
 # Kimi
 npx poe-code@latest install kimi
+
+# Goose
+npx poe-code@latest install goose
 ```
 
 ### Optional flags
@@ -212,7 +215,7 @@ console.log(result.stdout);
 
 Runs a single prompt through a configured service CLI.
 
-- `service` – Service identifier (`claude-code`, `codex`, `opencode`)
+- `service` – Service identifier (`claude-code`, `codex`, `opencode`, `kimi`, `goose`)
 - `options.prompt` – The prompt to send
 - `options.cwd` – Working directory or workspace locator (optional). Supports local paths and `github://owner/repo[#ref[:subdir]]` locators. See [@poe-code/workspace-resolver](packages/workspace-resolver/) for the full locator syntax.
 - `options.model` – Model identifier override (optional)

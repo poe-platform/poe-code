@@ -152,6 +152,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   child.stderr.on("data", (chunk) => {
     result.stderr += chunk;
     resetActivityTimer?.();
+    if (options.tee?.stderr) options.tee.stderr.write(chunk);
   });
 
   if (useStdin) {

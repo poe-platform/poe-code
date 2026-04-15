@@ -37,7 +37,7 @@ function createBaseProgram(): Command {
   return program;
 }
 
-describe("plan root command", () => {
+describe("plan browse command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
@@ -53,12 +53,36 @@ describe("plan root command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan"]);
+    await program.parseAsync(["node", "cli", "--yes", "plan", "browse"]);
 
     expect(runPlanBrowserMock).toHaveBeenCalledWith(
       expect.objectContaining({
         assumeYes: true
       })
+    );
+  });
+
+  it("forwards --source to the browser", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "browse",
+      "--source",
+      "ralph"
+    ]);
+
+    expect(runPlanBrowserMock).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "ralph" })
     );
   });
 });

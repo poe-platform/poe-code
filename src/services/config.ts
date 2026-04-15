@@ -78,7 +78,22 @@ export const experimentConfigScope = defineScope("experiment", {
   }
 });
 
-export const knownConfigScopes = [coreConfigScope, ralphConfigScope, pipelineConfigScope, experimentConfigScope] as const;
+export const planConfigScope = defineScope("plan", {
+  plan_directory: {
+    type: "string",
+    default: "docs/plans",
+    env: "POE_PLAN_DIRECTORY",
+    doc: "Directory where `poe-code plan <question>` writes planning documents"
+  }
+});
+
+export const knownConfigScopes = [
+  coreConfigScope,
+  ralphConfigScope,
+  pipelineConfigScope,
+  experimentConfigScope,
+  planConfigScope
+] as const;
 
 const CORE_SCOPE = coreConfigScope.scope;
 

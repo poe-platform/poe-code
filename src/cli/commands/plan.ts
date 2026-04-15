@@ -1,10 +1,12 @@
 import path from "node:path";
 import type { Command } from "commander";
 import {
+  cancel,
   confirmOrCancel,
   getTheme,
   intro,
   isCancel,
+  promptText,
   renderMarkdown,
   renderTable,
   select,
@@ -21,9 +23,49 @@ import {
   type PlanEntry,
   type PlanSource
 } from "@poe-code/plan-browser";
+import {
+  installSkill,
+  resolveAgentSupport,
+  supportedAgents,
+  type SkillScope
+} from "@poe-code/agent-skill-config";
+import {
+  readMergedDocument,
+  resolveScope
+} from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
-import { resolveCommandFlags } from "./shared.js";
+import { planConfigScope } from "../../services/config.js";
+import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import planSkillTemplate from "../../templates/plan/SKILL_plan.md";
+
+const DEFAULT_PLAN_AGENT = "claude-code";
+const DEFAULT_PLAN_SCOPE: SkillScope = "local";
+
+export interface BuildPlanPromptOptions {
+  question: string;
+  planDirectory: string;
+  skillContent: string;
+}
+
+export function buildPlanPrompt(options: BuildPlanPromptOptions): string {
+  const trimmedQuestion = options.question.trim();
+  const userSection = trimmedQuestion.length > 0
+    ? `User request: ${trimmedQuestion}`
+    : "The user has not yet stated what they want to plan. Follow the skill's \"If The Request Is Empty\" instruction and ask: What do you want to plan?";
+
+  return [
+    "Follow the skill below to draft a feature plan.",
+    "",
+    options.skillContent,
+    "",
+    "---",
+    "",
+    `Plan directory: ${options.planDirectory}`,
+    userSection
+  ].join("\n");
+}
 
 type OutputOption = "terminal" | "markdown" | "json";
 
@@ -280,11 +322,32 @@ async function executePlanAction(options: {
 export function registerPlanCommand(program: Command, container: CliContainer): void {
   const plan = program
     .command("plan")
+    .description("Plan a feature with an interactive agent session, or manage existing plans.")
+    .argument("[question]", "What you want to plan")
+    .option("--agent <name>", "Agent to run the plan session with")
+    .action(async function (this: Command, questionArg?: string) {
+      const opts = this.opts<{ agent?: string }>();
+      const flags = resolveCommandFlags(program);
+      const question = await resolvePlanQuestion(questionArg, flags.assumeYes);
+      if (question === null) {
+        return;
+      }
+
+      const agent = resolvePlanSessionAgent(opts.agent);
+      await runPlanSession({
+        container,
+        agent,
+        question
+      });
+    });
+
+  plan
+    .command("browse")
     .description("Browse, view, and manage plans across pipeline, experiment, and Ralph.")
     .option("--source <source>", "Filter by plan source: pipeline, experiment, or ralph")
     .action(async function (this: Command) {
       const opts = this.opts<PlanCommandOptions>();
-      const flags = resolveCommandFlags(this);
+      const flags = resolveCommandFlags(program);
       intro("plan browser");
       await runPlanBrowser({
         cwd: container.env.cwd,
@@ -398,4 +461,202 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         ...resolvePlanCommandOptions(this)
       });
     });
+
+  plan
+    .command("install")
+    .description("Install the /plan five-altitudes skill.")
+    .option("--agent <name>", "Agent to install the plan skill for")
+    .option("--local", "Install project-local skill")
+    .option("--global", "Install user-global skill")
+    .action(async function (this: Command) {
+      const flags = resolveCommandFlags(program);
+      const localOptions = this.opts<{
+        agent?: string;
+        local?: boolean;
+        global?: boolean;
+      }>();
+      const parentOptions = this.parent?.opts<{ agent?: string }>() ?? {};
+      const options = {
+        agent: localOptions.agent ?? parentOptions.agent,
+        local: localOptions.local,
+        global: localOptions.global
+      };
+
+      if (options.local && options.global) {
+        throw new ValidationError("Use either --local or --global, not both.");
+      }
+
+      const resources = createExecutionResources(container, flags, "plan:install");
+
+      try {
+        const agent = await resolvePlanAgent(options.agent, flags.assumeYes);
+        if (agent === null) {
+          return;
+        }
+
+        const support = resolveAgentSupport(agent);
+        if (support.status !== "supported" || !support.id) {
+          throw new ValidationError(`Unsupported agent: ${agent}`);
+        }
+
+        const scope = await resolvePlanScope(options, flags.assumeYes);
+        if (scope === null) {
+          return;
+        }
+
+        resources.logger.intro(`plan install (${support.id}, ${scope})`);
+
+        const skillResult = await installSkill(
+          support.id,
+          {
+            name: "poe-code-plan",
+            content: planSkillTemplate
+          },
+          {
+            fs: container.fs,
+            cwd: container.env.cwd,
+            homeDir: container.env.homeDir,
+            scope,
+            dryRun: flags.dryRun
+          }
+        );
+
+        if (flags.dryRun) {
+          resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
+        } else {
+          resources.logger.info(`Create: ${skillResult.displayPath}`);
+        }
+
+        resources.context.complete({
+          success: `Installed plan skill for ${support.id} (${scope}).`,
+          dry: `Would install plan skill for ${support.id} (${scope}).`
+        });
+      } finally {
+        resources.context.finalize();
+      }
+    });
+}
+
+async function resolvePlanQuestion(
+  value: string | undefined,
+  assumeYes: boolean
+): Promise<string | null> {
+  const trimmed = value?.trim() ?? "";
+  if (trimmed.length > 0) {
+    return trimmed;
+  }
+
+  if (assumeYes) {
+    throw new ValidationError("A question is required for `poe-code plan`. Pass it as the first argument.");
+  }
+
+  const entered = await promptText({
+    message: "What do you want to plan?"
+  });
+  if (isCancel(entered)) {
+    cancel("Plan session cancelled.");
+    return null;
+  }
+
+  const question = typeof entered === "string" ? entered.trim() : "";
+  if (question.length === 0) {
+    throw new ValidationError("A question is required for `poe-code plan`.");
+  }
+  return question;
+}
+
+function resolvePlanSessionAgent(value: string | undefined): string {
+  const trimmed = value?.trim() ?? "";
+  return trimmed.length > 0 ? trimmed : DEFAULT_PLAN_AGENT;
+}
+
+async function resolvePlanDirectory(container: CliContainer): Promise<string> {
+  const document = await readMergedDocument(
+    container.fs,
+    container.env.configPath,
+    container.env.projectConfigPath
+  );
+  const config = resolveScope(
+    planConfigScope.schema,
+    document[planConfigScope.scope],
+    container.env.variables
+  );
+  const configured = config.plan_directory?.trim();
+  return configured && configured.length > 0 ? configured : "docs/plans";
+}
+
+interface RunPlanSessionOptions {
+  container: CliContainer;
+  agent: string;
+  question: string;
+}
+
+async function runPlanSession(options: RunPlanSessionOptions): Promise<void> {
+  const planDirectory = await resolvePlanDirectory(options.container);
+  const prompt = buildPlanPrompt({
+    question: options.question,
+    planDirectory,
+    skillContent: planSkillTemplate
+  });
+
+  const { result } = sdkSpawn(options.agent, prompt, {
+    interactive: true,
+    cwd: options.container.env.cwd
+  });
+
+  const final = await result;
+  if (final.exitCode !== 0) {
+    process.exitCode = final.exitCode;
+  }
+}
+
+async function resolvePlanAgent(
+  value: string | undefined,
+  assumeYes: boolean
+): Promise<string | null> {
+  if (value && value.trim().length > 0) {
+    return value.trim();
+  }
+
+  if (assumeYes) {
+    return DEFAULT_PLAN_AGENT;
+  }
+
+  const selected = await select({
+    message: "Select agent to install the plan skill for:",
+    options: supportedAgents.map((name) => ({ value: name, label: name }))
+  });
+  if (isCancel(selected)) {
+    cancel("Plan install cancelled.");
+    return null;
+  }
+  return selected as string;
+}
+
+async function resolvePlanScope(
+  options: { local?: boolean; global?: boolean },
+  assumeYes: boolean
+): Promise<SkillScope | null> {
+  if (options.local) {
+    return "local";
+  }
+  if (options.global) {
+    return "global";
+  }
+  if (assumeYes) {
+    return DEFAULT_PLAN_SCOPE;
+  }
+
+  const selected = await select({
+    message: "Select install scope:",
+    options: [
+      { value: "local", label: "Local" },
+      { value: "global", label: "Global" }
+    ]
+  });
+  if (isCancel(selected)) {
+    cancel("Plan install cancelled.");
+    return null;
+  }
+  return selected as SkillScope;
 }

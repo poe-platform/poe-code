@@ -100,7 +100,7 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 
 ### Decisions
 
-- **Opt-out, not opt-in.** Dashboard is the default whenever stdout is a TTY (and output format is `terminal`). A `--no-dashboard` flag disables it and falls back to the current logger stream. Non-TTY runs (CI, pipes, redirects) skip the dashboard automatically via the existing `resolveOutputFormat()` check inside `createDashboard`.
+- **Opt-in via flag or config.** Dashboard is off by default. Enable per-run with `--tui`, or persistently via a `tui: true` config setting (CLI flag wins over config). Non-TTY runs (CI, pipes, redirects) skip the dashboard automatically via the existing `resolveOutputFormat()` check inside `createDashboard`, even when enabled.
 - **Only `quit` + scroll are wired.** `edit`, `pause`, `retry` are not hooked up — they have no agreed semantics per loop yet and are out of scope here. The footer should only show hints for commands that are actually wired. If this requires a small dashboard-side change to suppress unwired hints (rather than relying on every integrator to curate their own `hints` array), that change is in scope for this plan.
 
 ## Task Board

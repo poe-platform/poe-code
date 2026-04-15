@@ -23,7 +23,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-templates.mjs",
     "test": "cd ../.. && vitest run $(rg --files packages/superintendent/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "test:unit": "cd ../.. && vitest run $(rg --files packages/superintendent/src -g '*.test.ts' | sort | tr '\n' ' ')"
   },
@@ -31,6 +31,7 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",
     "@poe-code/cmdkit": "*",
     "@poe-code/design-system": "*"

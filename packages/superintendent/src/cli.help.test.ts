@@ -27,6 +27,7 @@ describe("superintendent CLI help", () => {
     expect(output).toContain("complete");
     expect(output).toContain("builder");
     expect(output).toContain("inspector");
+    expect(output).toContain("install");
   }, 15000);
 
   it("renders help for the builder subcommands", async () => {

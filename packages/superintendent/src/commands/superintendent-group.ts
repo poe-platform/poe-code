@@ -4,6 +4,7 @@ import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/pars
 import { hasTaskBoard, parseTaskBoard } from "../document/tasks.js";
 import { builderGroup } from "./builder-group.js";
 import { completeCommand } from "./complete.js";
+import { installCommand } from "./install.js";
 import { inspectorGroup } from "./inspector-group.js";
 import { runCommand, runMcpCommand } from "./run.js";
 
@@ -67,7 +68,7 @@ export const superintendentGroup = defineGroup({
   name: "superintendent",
   description: "Superintendent workflow commands.",
   scope: ["cli", "mcp", "sdk"],
-  children: [runCommand, validateCommand, completeCommand, builderGroup, inspectorGroup]
+  children: [runCommand, validateCommand, completeCommand, installCommand, builderGroup, inspectorGroup]
 });
 
 export const superintendentMcpGroup = defineGroup({

@@ -317,4 +317,61 @@ describe("superintendent run command", () => {
       builderAgent: "claude-code"
     });
   });
+
+  it("writes the loop error to stderr after the dashboard tears down", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
+    });
+    const dashboardMock = createDashboardMock();
+    const runLoopMock = vi.fn(async () => {
+      throw new Error("Builder failed: agent stderr blob");
+    });
+    const stderrChunks: string[] = [];
+    const stderr = {
+      write: (chunk: string | Uint8Array): boolean => {
+        stderrChunks.push(typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8"));
+        return true;
+      }
+    } as NodeJS.WritableStream;
+    const writeOrder: string[] = [];
+    dashboardMock.destroy.mockImplementation(() => writeOrder.push("destroy"));
+    const trackingStderr = {
+      write: (chunk: string | Uint8Array): boolean => {
+        writeOrder.push("stderr");
+        return stderr.write(chunk);
+      }
+    } as NodeJS.WritableStream;
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    await expect(
+      runSuperintendentCommand({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: "/repo/.poe-code/superintendent/plan.md",
+        builderAgent: "claude-code",
+        assumeYes: true,
+        interactive: true,
+        useDashboard: true,
+        fs,
+        createDashboard: () => dashboardMock.dashboard,
+        runLoop: runLoopMock,
+        now: () => 0,
+        setInterval: (() => 0) as typeof global.setInterval,
+        clearInterval: vi.fn(),
+        openInEditor: vi.fn(),
+        env: {},
+        stderr: trackingStderr
+      })
+    ).rejects.toThrow("Builder failed: agent stderr blob");
+
+    expect(dashboardMock.appendOutput).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "error",
+        text: expect.stringContaining("Builder failed: agent stderr blob")
+      })
+    );
+    expect(dashboardMock.destroy).toHaveBeenCalled();
+    expect(stderrChunks.join("")).toContain("Builder failed: agent stderr blob");
+    expect(writeOrder.indexOf("destroy")).toBeLessThan(writeOrder.indexOf("stderr"));
+  });
 });

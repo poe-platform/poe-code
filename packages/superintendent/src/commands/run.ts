@@ -64,6 +64,7 @@ export type RunCommandOptions = {
   setInterval?: typeof global.setInterval;
   clearInterval?: typeof global.clearInterval;
   openInEditor?: (absolutePath: string, env: Record<string, string | undefined>) => void;
+  stderr?: NodeJS.WritableStream;
 };
 
 type OutputKind = "info" | "success" | "error" | "tool" | "status";
@@ -222,6 +223,7 @@ export async function runSuperintendentCommand(
   const interactive = options.interactive ?? Boolean(process.stdin.isTTY);
   const assumeYes = options.assumeYes ?? false;
   const useDashboard = options.useDashboard ?? resolveOutputFormat() === "terminal";
+  const stderr = options.stderr ?? process.stderr;
 
   const selectedDocPath = await resolveDocPath({
     cwd: options.cwd,
@@ -496,6 +498,7 @@ export async function runSuperintendentCommand(
   };
   process.on("SIGINT", sigintHandler);
 
+  let caughtError: unknown;
   try {
     while (true) {
       session.paused = false;
@@ -549,6 +552,7 @@ export async function runSuperintendentCommand(
       };
     }
   } catch (error) {
+    caughtError = error;
     session.currentAction = undefined;
     session.dashboard.appendOutput({
       kind: "error",
@@ -559,13 +563,19 @@ export async function runSuperintendentCommand(
       status: "error",
       elapsedMs: Math.max(0, now() - session.startedAt)
     });
-    throw error;
   } finally {
     clearIntervalImpl(intervalId);
     process.off("SIGINT", sigintHandler);
     session.dashboard.stop();
     session.dashboard.destroy();
   }
+
+  const error = toError(caughtError);
+  stderr.write(`Superintendent run failed: ${error.message}\n`);
+  if (error.stack) {
+    stderr.write(`${error.stack}\n`);
+  }
+  throw caughtError;
 }
 
 async function resolveDocPath(options: {

@@ -10,22 +10,24 @@ const usageCaptureMock = vi.hoisted(() => vi.fn());
 const spawnLogMock = vi.hoisted(() => vi.fn());
 const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/agent-spawn", () => ({
-  spawn: vi.fn(),
-  spawnAcp: vi.fn(),
-  spawnStreaming: vi.fn(),
-  spawnInteractive: vi.fn(),
-  getAcpSpawnConfig: vi.fn(),
-  getSpawnConfig: vi.fn(),
-  runCommand: vi.fn(),
-  renderAcpStream: vi.fn(),
-  isActivityTimeoutError: (error: unknown) =>
-    error instanceof Error && error.name === "ActivityTimeoutError",
-  applyMiddlewares: applyMiddlewaresMock,
-  sessionCapture: sessionCaptureMock,
-  usageCapture: usageCaptureMock,
-  spawnLog: spawnLogMock
-}));
+vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
+  return {
+    ...actual,
+    spawn: vi.fn(),
+    spawnAcp: vi.fn(),
+    spawnStreaming: vi.fn(),
+    spawnInteractive: vi.fn(),
+    getAcpSpawnConfig: vi.fn(),
+    getSpawnConfig: vi.fn(),
+    runCommand: vi.fn(),
+    renderAcpStream: vi.fn(),
+    applyMiddlewares: applyMiddlewaresMock,
+    sessionCapture: sessionCaptureMock,
+    usageCapture: usageCaptureMock,
+    spawnLog: spawnLogMock
+  };
+});
 
 vi.mock("./spawn-core.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./spawn-core.js")>();
@@ -1026,7 +1028,7 @@ describe("spawn.autonomous()", () => {
       exitCode: 0,
       threadId: "thread_retry"
     });
-    expect(renderAcpStream).toHaveBeenCalledTimes(2);
+    expect(spawnStreaming).toHaveBeenCalledTimes(2);
     expect(spawnStreaming).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
@@ -1067,7 +1069,6 @@ describe("spawn.autonomous()", () => {
     ).rejects.toBe(timeoutError);
 
     expect(spawnStreaming).toHaveBeenCalledTimes(2);
-    expect(renderAcpStream).toHaveBeenCalledTimes(2);
     expect(spawnStreaming).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({

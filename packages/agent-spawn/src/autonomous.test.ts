@@ -2,15 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const renderAcpStreamMock = vi.hoisted(() => vi.fn(async () => {}));
 
-vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
-  return {
-    ...actual,
-    renderAcpStream: renderAcpStreamMock
-  };
-});
+vi.mock("./acp/renderer.js", () => ({
+  renderAcpStream: renderAcpStreamMock
+}));
 
-import { isActivityTimeoutError } from "@poe-code/agent-spawn";
+import { isActivityTimeoutError } from "./spawn.js";
 import { spawnAutonomous } from "./autonomous.js";
 import type { SpawnResult } from "./types.js";
 

@@ -43,6 +43,12 @@ export {
 } from "./spawn.js";
 export { spawn } from "./spawn.js";
 export { spawnInteractive } from "./spawn-interactive.js";
+export { spawnAutonomous } from "./autonomous.js";
+export type {
+  AutonomousOptions,
+  StreamingSpawnFn,
+  StreamingSpawnReturn
+} from "./autonomous.js";
 
 export { renderAcpEvent, renderAcpStream, renderSessionUpdateStream } from "./acp/renderer.js";
 export type { LogEntry } from "./acp/replay.js";

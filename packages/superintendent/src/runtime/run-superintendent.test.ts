@@ -167,7 +167,7 @@ describe("runSuperintendent", () => {
       sessionResult: {
         toolCalls: [
           {
-            name: "__superintendent_workflow_transition__.workflow.transition",
+            name: "__superintendent_tools__.workflow.transition",
             arguments: JSON.stringify({
               action: "request_review",
               summary: "Ready for owner review"
@@ -203,11 +203,18 @@ describe("runSuperintendent", () => {
 function readWorkflowTool(
   mcpServers: Record<string, { command: string; args?: string[] }> | undefined
 ): unknown {
-  const workflowServer = Object.values(mcpServers ?? {}).find(
-    (server) => server.command === "poe-superintendent-mcp" && server.args?.[0] === "workflow-transition"
+  const payload = readSuperintendentToolsPayload(mcpServers);
+  return createWorkflowTool("superintendent", payload.state);
+}
+
+function readSuperintendentToolsPayload(
+  mcpServers: Record<string, { command: string; args?: string[] }> | undefined
+): { docPath: string; state: "in_progress" | "review" | "completed"; inspectorNames: string[] } {
+  const server = Object.values(mcpServers ?? {}).find(
+    (entry) => entry.command === "poe-superintendent-mcp" && entry.args?.[0] === "superintendent-tools"
   );
 
-  expect(workflowServer).toBeDefined();
+  expect(server).toBeDefined();
 
-  return JSON.parse(Buffer.from(workflowServer?.args?.[1] ?? "", "base64").toString("utf8"));
+  return JSON.parse(Buffer.from(server?.args?.[1] ?? "", "base64").toString("utf8"));
 }

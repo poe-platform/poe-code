@@ -2,11 +2,7 @@ import path from "node:path";
 import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
-import {
-  createWorkflowTool,
-  parseWorkflowCall,
-  type WorkflowTransition
-} from "./workflow-tool.js";
+import { parseWorkflowCall, type WorkflowTransition } from "./workflow-tool.js";
 
 export type SuperintendentResult = {
   summary: string;
@@ -50,9 +46,9 @@ type SpawnWithAutonomous = typeof spawn & {
   ) => Promise<AutonomousOutput>;
 };
 
-const WORKFLOW_SERVER_NAME = "__superintendent_workflow_transition__";
-const WORKFLOW_SERVER_COMMAND = "poe-superintendent-mcp";
-const WORKFLOW_SERVER_SUBCOMMAND = "workflow-transition";
+const SUPERINTENDENT_TOOLS_SERVER_NAME = "__superintendent_tools__";
+const SUPERINTENDENT_TOOLS_SERVER_COMMAND = "poe-superintendent-mcp";
+const SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND = "superintendent-tools";
 
 export async function runSuperintendent(
   doc: SuperintendentDoc,
@@ -92,7 +88,7 @@ function buildTemplateContext(
 
 function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig {
   const servers: McpSpawnConfig = {
-    [WORKFLOW_SERVER_NAME]: createWorkflowServer(doc)
+    [SUPERINTENDENT_TOOLS_SERVER_NAME]: createSuperintendentToolsServer(doc)
   };
 
   const merged = {
@@ -107,12 +103,16 @@ function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig {
   return servers;
 }
 
-function createWorkflowServer(doc: SuperintendentDoc): McpSpawnConfig[string] {
-  const workflowTool = createWorkflowTool("superintendent", doc.frontmatter.status.state);
+function createSuperintendentToolsServer(doc: SuperintendentDoc): McpSpawnConfig[string] {
+  const payload = {
+    docPath: doc.filePath,
+    state: doc.frontmatter.status.state,
+    inspectorNames: Object.keys(doc.frontmatter.inspectors ?? {})
+  };
 
   return {
-    command: WORKFLOW_SERVER_COMMAND,
-    args: [WORKFLOW_SERVER_SUBCOMMAND, encodeJson(workflowTool)]
+    command: SUPERINTENDENT_TOOLS_SERVER_COMMAND,
+    args: [SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND, encodeJson(payload)]
   };
 }
 
@@ -302,7 +302,7 @@ function readToolCallArguments(toolCall: ToolCallLike): unknown {
 function isWorkflowToolName(name: string | undefined): boolean {
   return (
     name === "workflow.transition" ||
-    name === `${WORKFLOW_SERVER_NAME}.workflow.transition`
+    name === `${SUPERINTENDENT_TOOLS_SERVER_NAME}.workflow.transition`
   );
 }
 

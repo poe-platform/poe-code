@@ -109,6 +109,28 @@ describe("runInspector", () => {
       )
     ).rejects.toThrow("inspector failed");
   });
+
+  it("uses the prompt override verbatim when provided, skipping template resolution", async () => {
+    autonomousMock.mockImplementation(async (_, { prompt }) => {
+      expect(prompt).toBe("Re-check after the latest fix");
+      return "Resolved";
+    });
+
+    const { runInspector } = await import("./run-inspector.js");
+
+    await runInspector(
+      "code-quality",
+      document.frontmatter.inspectors?.["code-quality"] ?? {
+        agent: "codex",
+        prompt: ""
+      },
+      document,
+      {},
+      { promptOverride: "Re-check after the latest fix" }
+    );
+
+    expect(autonomousMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("runAllInspectors", () => {

@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { SuperintendentDoc } from "./document/parse.js";
 import { createWorkflowTool } from "./runtime/workflow-tool.js";
+import { createBuilderTool, createInspectorTool } from "./runtime/agentic-tools.js";
+import type { SuperintendentToolsPayload } from "./mcp.js";
 
 const {
   createMCPServerMock,
@@ -8,7 +11,11 @@ const {
   mcpListenMock,
   serverListenMock,
   serverToolMock,
-  superintendentMcpGroupMock
+  superintendentMcpGroupMock,
+  runBuilderMock,
+  runInspectorMock,
+  parseSuperintendentDocMock,
+  readFileMock
 } = vi.hoisted(() => {
   const mcpListenMock = vi.fn<() => Promise<void>>();
   const createMCPServerMock = vi.fn(() => ({
@@ -35,7 +42,11 @@ const {
     mcpListenMock,
     serverListenMock,
     serverToolMock,
-    superintendentMcpGroupMock: { name: "superintendent" }
+    superintendentMcpGroupMock: { name: "superintendent" },
+    runBuilderMock: vi.fn(),
+    runInspectorMock: vi.fn(),
+    parseSuperintendentDocMock: vi.fn(),
+    readFileMock: vi.fn()
   };
 });
 
@@ -57,6 +68,32 @@ vi.mock("./commands/index.js", () => ({
   superintendentMcpGroup: superintendentMcpGroupMock
 }));
 
+vi.mock("./runtime/run-builder.js", () => ({
+  runBuilder: runBuilderMock
+}));
+
+vi.mock("./runtime/run-inspector.js", () => ({
+  runInspector: runInspectorMock
+}));
+
+vi.mock("./document/parse.js", () => ({
+  parseSuperintendentDoc: parseSuperintendentDocMock
+}));
+
+vi.mock("node:fs/promises", () => ({
+  readFile: readFileMock
+}));
+
+const PAYLOAD: SuperintendentToolsPayload = {
+  docPath: "/repo/docs/plans/feature.md",
+  state: "in_progress",
+  inspectorNames: ["code-quality", "testing"]
+};
+
+function encodePayload(payload: SuperintendentToolsPayload): string {
+  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
+}
+
 describe("superintendent MCP entry point", () => {
   beforeEach(() => {
     process.argv = [...originalArgv];
@@ -70,6 +107,10 @@ describe("superintendent MCP entry point", () => {
     serverListenMock.mockReset();
     serverListenMock.mockResolvedValue(undefined);
     serverToolMock.mockReset();
+    runBuilderMock.mockReset();
+    runInspectorMock.mockReset();
+    parseSuperintendentDocMock.mockReset();
+    readFileMock.mockReset();
     vi.resetModules();
   });
 
@@ -87,45 +128,184 @@ describe("superintendent MCP entry point", () => {
     expect(createServerMock).not.toHaveBeenCalled();
   });
 
-  it("runs a dedicated workflow transition MCP server when requested", async () => {
-    const workflowTool = createWorkflowTool("superintendent", "in_progress");
-    const encodedTool = Buffer.from(JSON.stringify(workflowTool), "utf8").toString("base64");
+  it("registers workflow.transition, builder.run, and inspector.run on the superintendent-tools server", async () => {
     const { main } = await import("./mcp.js");
 
-    await main(["node", "/repo/packages/superintendent/dist/mcp.js", "workflow-transition", encodedTool]);
+    await main([
+      "node",
+      "/repo/packages/superintendent/dist/mcp.js",
+      "superintendent-tools",
+      encodePayload(PAYLOAD)
+    ]);
 
     expect(createMCPServerMock).not.toHaveBeenCalled();
     expect(mcpListenMock).not.toHaveBeenCalled();
     expect(createServerMock).toHaveBeenCalledWith({
-      name: "superintendent-workflow-transition",
+      name: "superintendent-agentic-tools",
       version: "0.0.1"
     });
-    expect(serverToolMock).toHaveBeenCalledTimes(1);
-    expect(serverToolMock).toHaveBeenCalledWith(
-      workflowTool.name,
-      workflowTool.description,
-      workflowTool.inputSchema,
-      expect.any(Function)
-    );
     expect(serverListenMock).toHaveBeenCalledTimes(1);
 
-    const handler = serverToolMock.mock.calls[0]?.[3] as ((args: unknown) => Promise<unknown>) | undefined;
+    const expectedWorkflowTool = createWorkflowTool("superintendent", PAYLOAD.state);
+    const expectedBuilderTool = createBuilderTool();
+    const expectedInspectorTool = createInspectorTool(PAYLOAD.inspectorNames);
 
-    expect(handler).toBeDefined();
-    await expect(handler?.({ action: "request_review", summary: "Ready for owner review" })).resolves.toBe(
-      "Recorded workflow transition: request_review"
+    expect(serverToolMock).toHaveBeenCalledTimes(3);
+    expect(serverToolMock).toHaveBeenNthCalledWith(
+      1,
+      expectedWorkflowTool.name,
+      expectedWorkflowTool.description,
+      expectedWorkflowTool.inputSchema,
+      expect.any(Function)
     );
-    await expect(handler?.({ action: "approve_completion" })).rejects.toThrow(
+    expect(serverToolMock).toHaveBeenNthCalledWith(
+      2,
+      expectedBuilderTool.name,
+      expectedBuilderTool.description,
+      expectedBuilderTool.inputSchema,
+      expect.any(Function)
+    );
+    expect(serverToolMock).toHaveBeenNthCalledWith(
+      3,
+      expectedInspectorTool.name,
+      expectedInspectorTool.description,
+      expectedInspectorTool.inputSchema,
+      expect.any(Function)
+    );
+  });
+
+  it("workflow.transition handler records allowed actions and rejects others", async () => {
+    const { main } = await import("./mcp.js");
+
+    await main([
+      "node",
+      "/repo/packages/superintendent/dist/mcp.js",
+      "superintendent-tools",
+      encodePayload(PAYLOAD)
+    ]);
+
+    const workflowHandler = serverToolMock.mock.calls[0]?.[3] as (
+      input: unknown
+    ) => Promise<unknown>;
+
+    await expect(
+      workflowHandler({ action: "request_review", summary: "Ready for owner review" })
+    ).resolves.toBe("Recorded workflow transition: request_review");
+    await expect(workflowHandler({ action: "approve_completion" })).rejects.toThrow(
       'workflow.transition action "approve_completion" is not allowed for this role/state'
     );
   });
 
-  it("fails when the workflow transition payload is invalid", async () => {
+  it("builder.run handler reads the doc fresh and forwards the prompt override", async () => {
+    const freshDoc = { filePath: PAYLOAD.docPath } as unknown as SuperintendentDoc;
+    readFileMock.mockResolvedValue("doc-content");
+    parseSuperintendentDocMock.mockReturnValue(freshDoc);
+    runBuilderMock.mockResolvedValue({
+      summary: "Builder summary",
+      log: "log",
+      log_path: "/tmp/builder.jsonl"
+    });
+
+    const { main } = await import("./mcp.js");
+
+    await main([
+      "node",
+      "/repo/packages/superintendent/dist/mcp.js",
+      "superintendent-tools",
+      encodePayload(PAYLOAD)
+    ]);
+
+    const builderHandler = serverToolMock.mock.calls[1]?.[3] as (
+      input: unknown
+    ) => Promise<unknown>;
+
+    const result = await builderHandler({ prompt: "Fix the failing test in foo.test.ts" });
+
+    expect(readFileMock).toHaveBeenCalledWith(PAYLOAD.docPath, "utf8");
+    expect(parseSuperintendentDocMock).toHaveBeenCalledWith(PAYLOAD.docPath, "doc-content");
+    expect(runBuilderMock).toHaveBeenCalledWith(freshDoc, {}, {
+      promptOverride: "Fix the failing test in foo.test.ts"
+    });
+    expect(result).toBe(
+      JSON.stringify({ summary: "Builder summary", log: "log", log_path: "/tmp/builder.jsonl" })
+    );
+  });
+
+  it("inspector.run handler resolves the inspector config and forwards the optional prompt", async () => {
+    const inspectorConfig = { agent: "claude-code", prompt: "configured prompt" };
+    const freshDoc = {
+      filePath: PAYLOAD.docPath,
+      frontmatter: {
+        inspectors: {
+          "code-quality": inspectorConfig
+        }
+      }
+    } as unknown as SuperintendentDoc;
+    readFileMock.mockResolvedValue("doc-content");
+    parseSuperintendentDocMock.mockReturnValue(freshDoc);
+    runInspectorMock.mockResolvedValue({
+      name: "code-quality",
+      summary: "Looks good"
+    });
+
+    const { main } = await import("./mcp.js");
+
+    await main([
+      "node",
+      "/repo/packages/superintendent/dist/mcp.js",
+      "superintendent-tools",
+      encodePayload(PAYLOAD)
+    ]);
+
+    const inspectorHandler = serverToolMock.mock.calls[2]?.[3] as (
+      input: unknown
+    ) => Promise<unknown>;
+
+    const result = await inspectorHandler({
+      name: "code-quality",
+      prompt: "Re-check after the latest fix"
+    });
+
+    expect(runInspectorMock).toHaveBeenCalledWith(
+      "code-quality",
+      inspectorConfig,
+      freshDoc,
+      {},
+      { promptOverride: "Re-check after the latest fix" }
+    );
+    expect(result).toBe(JSON.stringify({ name: "code-quality", summary: "Looks good" }));
+  });
+
+  it("inspector.run handler rejects unknown inspector names", async () => {
+    const { main } = await import("./mcp.js");
+
+    await main([
+      "node",
+      "/repo/packages/superintendent/dist/mcp.js",
+      "superintendent-tools",
+      encodePayload(PAYLOAD)
+    ]);
+
+    const inspectorHandler = serverToolMock.mock.calls[2]?.[3] as (
+      input: unknown
+    ) => Promise<unknown>;
+
+    await expect(inspectorHandler({ name: "missing-inspector" })).rejects.toThrow(
+      'inspector.run name "missing-inspector" is not configured'
+    );
+  });
+
+  it("fails when the superintendent-tools payload is invalid", async () => {
     const { main } = await import("./mcp.js");
 
     await expect(
-      main(["node", "/repo/packages/superintendent/dist/mcp.js", "workflow-transition", "not-base64"])
-    ).rejects.toThrow("Invalid workflow transition tool definition");
+      main([
+        "node",
+        "/repo/packages/superintendent/dist/mcp.js",
+        "superintendent-tools",
+        "not-base64"
+      ])
+    ).rejects.toThrow("Invalid superintendent-tools payload");
     expect(createMCPServerMock).not.toHaveBeenCalled();
     expect(mcpListenMock).not.toHaveBeenCalled();
     expect(createServerMock).not.toHaveBeenCalled();

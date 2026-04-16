@@ -32,13 +32,20 @@ type SpawnWithAutonomous = typeof spawn & {
   ) => Promise<AutonomousOutput>;
 };
 
+export type RunInspectorOptions = {
+  promptOverride?: string;
+};
+
 export async function runInspector(
   name: string,
   config: AgentRoleConfig,
   doc: SuperintendentDoc,
-  context: Partial<TemplateContext>
+  context: Partial<TemplateContext>,
+  options: RunInspectorOptions = {}
 ): Promise<InspectorResult> {
-  const prompt = resolveTemplate(config.prompt, buildTemplateContext(doc, context));
+  const prompt =
+    options.promptOverride ??
+    resolveTemplate(config.prompt, buildTemplateContext(doc, context));
   const output = await runAutonomous({
     agent: config.agent,
     mode: config.mode,

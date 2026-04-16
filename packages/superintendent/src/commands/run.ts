@@ -321,7 +321,8 @@ export async function runSuperintendentCommand(
         { key: "q", label: "Quit" },
         { key: "e", label: "Edit" },
         { key: "p", label: "Pause" },
-        { key: "↑↓", label: "Scroll" }
+        { key: "↑↓", label: "Scroll" },
+        { key: "F", label: "Follow" }
       ]
     }),
     startedAt: now(),

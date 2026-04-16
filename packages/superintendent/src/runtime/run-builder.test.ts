@@ -105,4 +105,17 @@ describe("runBuilder", () => {
 
     await expect(runBuilder(document, {})).rejects.toThrow("builder failed");
   });
+
+  it("uses the prompt override verbatim when provided, skipping template resolution", async () => {
+    autonomousMock.mockImplementation(async (_, { prompt }) => {
+      expect(prompt).toBe("Fix the failing test in foo.test.ts");
+      return "Done";
+    });
+
+    const { runBuilder } = await import("./run-builder.js");
+
+    await runBuilder(document, {}, { promptOverride: "Fix the failing test in foo.test.ts" });
+
+    expect(autonomousMock).toHaveBeenCalledTimes(1);
+  });
 });

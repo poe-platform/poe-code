@@ -35,11 +35,18 @@ type SpawnWithAutonomous = typeof spawn & {
   ) => Promise<AutonomousOutput>;
 };
 
+export type RunBuilderOptions = {
+  promptOverride?: string;
+};
+
 export async function runBuilder(
   doc: SuperintendentDoc,
-  context: Partial<TemplateContext>
+  context: Partial<TemplateContext>,
+  options: RunBuilderOptions = {}
 ): Promise<BuilderResult> {
-  const prompt = resolveTemplate(doc.frontmatter.builder.prompt, buildTemplateContext(doc, context));
+  const prompt =
+    options.promptOverride ??
+    resolveTemplate(doc.frontmatter.builder.prompt, buildTemplateContext(doc, context));
   const result = await runAutonomous({
     agent: doc.frontmatter.builder.agent,
     mode: doc.frontmatter.builder.mode,

@@ -49,6 +49,7 @@ type SpawnWithAutonomous = typeof spawn & {
 const SUPERINTENDENT_TOOLS_SERVER_NAME = "__superintendent_tools__";
 const SUPERINTENDENT_TOOLS_SERVER_COMMAND = "poe-superintendent-mcp";
 const SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND = "superintendent-tools";
+const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
 
 export async function runSuperintendent(
   doc: SuperintendentDoc,
@@ -112,14 +113,16 @@ function createSuperintendentToolsServer(doc: SuperintendentDoc): McpSpawnConfig
 
   return {
     command: SUPERINTENDENT_TOOLS_SERVER_COMMAND,
-    args: [SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND, encodeJson(payload)]
+    args: [SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND, encodeJson(payload)],
+    timeout: SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS
   };
 }
 
 function toSpawnMcpServer(config: McpConfig): McpSpawnConfig[string] {
   return {
     command: config.command,
-    ...(config.args ? { args: [...config.args] } : {})
+    ...(config.args ? { args: [...config.args] } : {}),
+    ...(config.timeout !== undefined ? { timeout: config.timeout } : {})
   };
 }
 

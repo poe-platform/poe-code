@@ -78,7 +78,8 @@ function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig | undefined {
   for (const [name, config] of Object.entries(merged)) {
     servers[name] = {
       command: config.command,
-      ...(config.args ? { args: [...config.args] } : {})
+      ...(config.args ? { args: [...config.args] } : {}),
+      ...(config.timeout !== undefined ? { timeout: config.timeout } : {})
     };
   }
 

@@ -4,6 +4,7 @@ interface JsonMcpServer {
   command: string;
   args?: string[];
   env?: Record<string, string>;
+  timeout?: number;
 }
 
 function toJsonMcpServers(servers: McpSpawnConfig): Record<string, JsonMcpServer> {
@@ -16,6 +17,9 @@ function toJsonMcpServers(servers: McpSpawnConfig): Record<string, JsonMcpServer
     }
     if (server.env && Object.keys(server.env).length > 0) {
       mapped.env = server.env;
+    }
+    if (server.timeout !== undefined) {
+      mapped.timeout = server.timeout;
     }
     out[name] = mapped;
   }
@@ -76,6 +80,10 @@ export function serializeCodexMcpArgs(servers: McpSpawnConfig): string[] {
 
     if (server.env && Object.keys(server.env).length > 0) {
       args.push("-c", `${prefix}.env=${toTomlInlineTable(server.env)}`);
+    }
+
+    if (server.timeout !== undefined) {
+      args.push("-c", `${prefix}.timeout=${server.timeout}`);
     }
   }
 

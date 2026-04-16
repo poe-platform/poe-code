@@ -30,6 +30,7 @@ export type AgentRoleConfig = {
 export type McpConfig = {
   command: string;
   args?: string[];
+  timeout?: number;
 };
 
 export type StatusBlock = {

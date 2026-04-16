@@ -501,10 +501,21 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
       }
     }
 
+    let timeout: number | undefined;
+    if ("timeout" in value && value.timeout !== undefined) {
+      if (typeof value.timeout !== "number" || value.timeout <= 0) {
+        throw new ValidationError(
+          `--mcp-servers entry "${name}".timeout must be a positive number (seconds)`
+        );
+      }
+      timeout = value.timeout;
+    }
+
     servers[name] = {
       command,
       ...(args ? { args } : {}),
-      ...(env ? { env } : {})
+      ...(env ? { env } : {}),
+      ...(timeout !== undefined ? { timeout } : {})
     };
   }
 

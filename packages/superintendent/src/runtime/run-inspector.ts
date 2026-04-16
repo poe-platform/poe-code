@@ -78,7 +78,8 @@ function buildMcpServers(
   for (const [name, mcpConfig] of Object.entries(merged)) {
     servers[name] = {
       command: mcpConfig.command,
-      ...(mcpConfig.args ? { args: [...mcpConfig.args] } : {})
+      ...(mcpConfig.args ? { args: [...mcpConfig.args] } : {}),
+      ...(mcpConfig.timeout !== undefined ? { timeout: mcpConfig.timeout } : {})
     };
   }
 

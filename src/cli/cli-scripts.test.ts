@@ -538,7 +538,7 @@ describe("discover models workflow script", () => {
         },
         {
           date: "2026-02-23T00:00:00+00:00",
-          added: ["GPT-5.2-Codex", "gpt-5.2-codex", "Claude-Opus-4.6"],
+          added: ["GPT-5.2-Codex", "gpt-5.2-codex", "Claude-Opus-4.7"],
           removed: ["Legacy-Model"]
         },
         {
@@ -563,7 +563,7 @@ describe("discover models workflow script", () => {
       { referenceDate: new Date("2026-02-27T12:00:00+00:00") }
     );
 
-    expect(events.added).toEqual(["gpt-5.2-codex", "claude-opus-4.6", "new-one"]);
+    expect(events.added).toEqual(["gpt-5.2-codex", "claude-opus-4.7", "new-one"]);
     expect(events.removed).toEqual(["legacy-model"]);
     expect(events.renamed).toEqual([{ from: "old-name", to: "new-name" }]);
   });

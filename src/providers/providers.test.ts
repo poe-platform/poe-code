@@ -517,14 +517,14 @@ describe("codex service", () => {
 
   it("writes opus model as opus profile", async () => {
     await configureCodex({
-      model: "anthropic/claude-opus-4.6",
+      model: "anthropic/claude-opus-4.7",
       reasoningEffort: "high"
     });
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
     const opusProfile = profiles["opus"];
-    expect(opusProfile["model"]).toBe("claude-opus-4.6");
+    expect(opusProfile["model"]).toBe("claude-opus-4.7");
     expect(opusProfile["model_provider"]).toBe("poe");
     expect(opusProfile["model_reasoning_effort"]).toBe("high");
   });
@@ -533,7 +533,7 @@ describe("codex service", () => {
     await configureCodex({ model: DEFAULT_CODEX_MODEL });
 
     await configureCodex({
-      model: "anthropic/claude-opus-4.6",
+      model: "anthropic/claude-opus-4.7",
       reasoningEffort: "high"
     });
 
@@ -695,7 +695,7 @@ describe("codex service", () => {
       configPath,
       [
         "[profiles.opus]",
-        'model = "claude-opus-4.6"',
+        'model = "claude-opus-4.7"',
         'model_provider = "poe"',
         'model_reasoning_effort = "high"',
         "",
@@ -1679,7 +1679,7 @@ describe("goose service", () => {
         json: async () => ({
           data: [
             {
-              id: "claude-opus-4.6",
+              id: "claude-opus-4.7",
               context_window: { context_length: 983040 }
             },
             {
@@ -1725,7 +1725,7 @@ describe("goose service", () => {
           json: async () => ({
             data: [
               {
-                id: "claude-opus-4.6",
+                id: "claude-opus-4.7",
                 context_window: { context_length: 983040 }
               }
             ]
@@ -2006,7 +2006,7 @@ function buildCustomProviderModelsFixture(): Array<Record<string, unknown>> {
 
 function buildGooseModelContextLimitsFixture(): Record<string, number> {
   return {
-    "anthropic/claude-opus-4.6": 983040,
+    "anthropic/claude-opus-4.7": 983040,
     "anthropic/claude-sonnet-4.6": 983040,
     "openai/gpt-5.3-codex": 400000,
     "openai/gpt-5.4": 1050000,
@@ -2078,7 +2078,7 @@ describe("poe-agent provider", () => {
 
     const { events, done } = spawnPoeAgentWithAcp({
       prompt: "Summarize this diff",
-      model: "anthropic/claude-opus-4.6",
+      model: "anthropic/claude-opus-4.7",
       cwd: "/workspace/project",
       mcpServers: {
         test: {
@@ -2098,7 +2098,7 @@ describe("poe-agent provider", () => {
     await collectPromise;
 
     expect(createAgentSessionMock).toHaveBeenCalledWith({
-      model: "anthropic/claude-opus-4.6",
+      model: "anthropic/claude-opus-4.7",
       cwd: "/workspace/project",
       mcpServers: {
         test: {

@@ -1532,7 +1532,7 @@ describe("spawn command", () => {
 
       await fs.writeFile(
         resolveConfigPath(homeDir),
-        `${JSON.stringify({ models: { "claude-code": "anthropic/claude-opus-4.6" } }, null, 2)}\n`,
+        `${JSON.stringify({ models: { "claude-code": "anthropic/claude-opus-4.7" } }, null, 2)}\n`,
         { encoding: "utf8" }
       );
 
@@ -1550,7 +1550,7 @@ describe("spawn command", () => {
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "hello",
         args: [],
-        model: "anthropic/claude-opus-4.6",
+        model: "anthropic/claude-opus-4.7",
         cwd: undefined
       });
     });

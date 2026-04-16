@@ -1,7 +1,7 @@
 tasks:
-  - id: echo-verify
-    title: Echo test for TUI dashboard verification
+  - id: non-tty-test
+    title: Simple echo for non-TTY fallback test
     prompt: |
-      Run `echo "pipeline-tui-ok"` and report the output. Do not change any files.
+      Run `echo "non-tty-ok"` and report the output. Do not change any files.
     status:
       implement: done

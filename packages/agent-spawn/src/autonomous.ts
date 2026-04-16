@@ -47,11 +47,19 @@ export async function spawnAutonomous<
   const spawnOptions = { ...rest, activityTimeoutMs } as unknown as TOptions;
 
   for (let attempt = 1; attempt <= maxTimeoutRetries; attempt += 1) {
+    let result: Promise<TResult> | undefined;
     try {
-      const { events, result } = spawnFn(service, spawnOptions);
-      await renderAcpStream(events);
-      return await result;
+      const stream = spawnFn(service, spawnOptions);
+      result = stream.result;
+      // Attach to the final result immediately so a failed attempt can retry
+      // without hanging behind ACP rendering that is still flushing.
+      const [spawnResult] = await Promise.all([
+        result,
+        renderAcpStream(stream.events)
+      ]);
+      return spawnResult;
     } catch (error) {
+      result?.catch(() => {});
       if (!isActivityTimeoutError(error) || attempt === maxTimeoutRetries) {
         throw error;
       }

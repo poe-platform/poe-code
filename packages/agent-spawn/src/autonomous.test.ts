@@ -21,6 +21,23 @@ function createSpawnResult(result: Promise<SpawnResult>) {
   };
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+}
+
+async function flushMicrotasks(times = 5): Promise<void> {
+  for (let index = 0; index < times; index += 1) {
+    await Promise.resolve();
+  }
+}
+
 function createActivityTimeoutError(timeoutMs = 1_500): Error {
   const error = new Error(`Agent spawn timed out after ${timeoutMs / 1000}s of inactivity`);
   error.name = "ActivityTimeoutError";
@@ -136,6 +153,38 @@ describe("spawnAutonomous()", () => {
       prompt: "Custom timeout",
       activityTimeoutMs: 1_500
     });
+  });
+
+  it("retries timeout errors without waiting for ACP rendering to finish", async () => {
+    const timeoutError = createActivityTimeoutError();
+    const firstRender = createDeferred<void>();
+    const expected: SpawnResult = {
+      stdout: "retry-success",
+      stderr: "",
+      exitCode: 0
+    };
+    const sdkSpawn = vi
+      .fn()
+      .mockReturnValueOnce(createSpawnResult(Promise.reject(timeoutError)))
+      .mockReturnValueOnce(createSpawnResult(Promise.resolve(expected)));
+
+    renderAcpStreamMock
+      .mockImplementationOnce(() => firstRender.promise)
+      .mockResolvedValueOnce(undefined);
+
+    const resultPromise = spawnAutonomous(sdkSpawn, {
+      service: "codex",
+      prompt: "Retry before render completes"
+    });
+
+    await flushMicrotasks();
+
+    expect(sdkSpawn).toHaveBeenCalledTimes(2);
+
+    firstRender.resolve();
+
+    await expect(resultPromise).resolves.toEqual(expected);
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(2);
   });
 
   it("uses a custom maxTimeoutRetries value", async () => {

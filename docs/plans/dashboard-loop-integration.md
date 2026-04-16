@@ -65,7 +65,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 13
+  round: 18
   review_turn: 0
 ---
 
@@ -117,6 +117,7 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 - [x] Stream child-agent output into `appendOutput` from the pipeline integration (render ACP events plus tee stdout/stderr, stage-tagged).
 - [x] Stream child-agent output into `appendOutput` from the ralph integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
 - [x] Stream child-agent output into `appendOutput` from the experiment integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
+- [x] Extract shared CLI dashboard helpers so pipeline, ralph, and experiment reuse the same duration/timestamp/TTY/line-buffer logic.
 
 ## 2. User-facing shape
 
@@ -315,5 +316,4 @@ No migration is required:
 
 ### Follow-up candidates
 
-- Extract duplicated dashboard helpers later if the three command files diverge further.
 - Consider a persisted config knob only if interactive users ask for it repeatedly.

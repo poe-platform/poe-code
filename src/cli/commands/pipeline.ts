@@ -9,7 +9,6 @@ import {
   isCancel,
   multiselect,
   promptText,
-  resolveOutputFormat,
   select
 } from "@poe-code/design-system";
 import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
@@ -54,6 +53,12 @@ import {
   resolvePlanDirectory,
   resolvePlanPaths
 } from "@poe-code/pipeline";
+import {
+  createDashboardLineBuffer,
+  formatDashboardDuration,
+  formatDashboardTimestamp,
+  shouldUseInteractiveDashboard
+} from "./dashboard-loop-shared.js";
 
 async function resolvePipelinePlanDirectory(container: CliContainer): Promise<string | undefined> {
   const configDoc = await readMergedDocument(
@@ -68,13 +73,6 @@ async function resolvePipelinePlanDirectory(container: CliContainer): Promise<st
   );
   const dir = pipelineConfig.plan_directory?.trim();
   return dir || undefined;
-}
-
-function formatDuration(ms: number): string {
-  const totalSeconds = Math.round(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 }
 
 const DEFAULT_PIPELINE_AGENT = "claude-code";
@@ -140,7 +138,7 @@ function formatRunSummary(result: PipelineRunResult): string {
     `Runs: ${result.runsCompleted}`,
     `tasksCompleted: ${metrics.tasksCompleted}, tasksFailed: ${metrics.tasksFailed}, stepsCompleted: ${metrics.stepsCompleted}`,
     `Total tokens: ${metrics.totalInputTokens} input, ${metrics.totalOutputTokens} output, ${metrics.totalCachedTokens} cached`,
-    `Duration: ${formatDuration(result.totalDurationMs)}`
+    `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
   ].join("\n   ");
 }
 
@@ -188,7 +186,7 @@ function formatTaskStartMessage(progress: TaskProgress): string {
 }
 
 function formatTaskCompleteMessage(progress: TaskCompletion): string {
-  const duration = formatDuration(progress.durationMs);
+  const duration = formatDashboardDuration(progress.durationMs);
   const status = progress.success ? "done" : "failed";
   const usage = progress.usage
     ? ` (tokens: ${progress.usage.inputTokens} in / ${progress.usage.outputTokens} out)`
@@ -217,50 +215,12 @@ function formatDashboardCurrentAction(progress: TaskProgress): string {
   return parts.join(" · ");
 }
 
-function formatTimestamp(timestamp: number): string {
-  const date = new Date(timestamp);
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-  return `[${hours}:${minutes}:${seconds}]`;
-}
-
 function formatPipelineStageLabel(progress: TaskProgress): string {
   if (progress.phase) {
     return progress.phase;
   }
 
   return progress.stepName ? `${progress.taskId}:${progress.stepName}` : progress.taskId;
-}
-
-function createLineBuffer(emit: (line: string) => void): {
-  push(chunk: string): void;
-  flush(): void;
-} {
-  let pending = "";
-
-  return {
-    push(chunk: string): void {
-      pending += chunk;
-      let newlineIndex = pending.indexOf("\n");
-      while (newlineIndex !== -1) {
-        const raw = pending.slice(0, newlineIndex);
-        const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
-        emit(line);
-        pending = pending.slice(newlineIndex + 1);
-        newlineIndex = pending.indexOf("\n");
-      }
-    },
-    flush(): void {
-      if (pending.length === 0) {
-        return;
-      }
-
-      const line = pending.endsWith("\r") ? pending.slice(0, -1) : pending;
-      emit(line);
-      pending = "";
-    }
-  };
 }
 
 async function streamAcpEventsToDashboard(options: {
@@ -338,10 +298,10 @@ function createPipelineDashboardRunAgent(options: {
 }): NonNullable<PipelineRunOptions["runAgent"]> {
   return async (input) => {
     for (let attempt = 1; attempt <= 3; attempt += 1) {
-      const toolBuffer = createLineBuffer((line) => {
+      const toolBuffer = createDashboardLineBuffer((line) => {
         options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
       });
-      const errorBuffer = createLineBuffer((line) => {
+      const errorBuffer = createDashboardLineBuffer((line) => {
         options.appendOutput("error", `[${options.activeStage()}] ${line}`);
       });
       let sawStdout = false;
@@ -410,13 +370,6 @@ function createPipelineDashboardRunAgent(options: {
   };
 }
 
-function shouldUsePipelineDashboard(enabled: boolean | undefined): boolean {
-  return enabled === true
-    && resolveOutputFormat() === "terminal"
-    && Boolean(process.stdin.isTTY)
-    && Boolean(process.stdout.isTTY);
-}
-
 function dashboardStatusForResult(
   result: PipelineRunResult
 ): "done" | "error" {
@@ -462,7 +415,7 @@ async function runPipelineWithDashboard(
   ): void => {
     dashboard.appendOutput({
       kind,
-      text: `${formatTimestamp(Date.now())} ${message}`,
+      text: `${formatDashboardTimestamp(Date.now())} ${message}`,
       ts: Date.now()
     });
   };
@@ -780,7 +733,7 @@ export function registerPipelineCommand(
             assumeYes: flags.assumeYes
           };
 
-          const result = shouldUsePipelineDashboard(options.tui)
+          const result = shouldUseInteractiveDashboard(options.tui)
             ? await runPipelineWithDashboard({
                 agent,
                 ...(options.model ? { model: options.model } : {}),

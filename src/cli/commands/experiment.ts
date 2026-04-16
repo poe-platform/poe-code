@@ -9,7 +9,6 @@ import {
   getTheme,
   isCancel,
   renderTable,
-  resolveOutputFormat,
   select
 } from "@poe-code/design-system";
 import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
@@ -38,6 +37,12 @@ import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { experimentConfigScope } from "../../services/config.js";
 import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
+import {
+  createDashboardLineBuffer,
+  formatDashboardDuration,
+  formatDashboardTimestamp,
+  shouldUseInteractiveDashboard
+} from "./dashboard-loop-shared.js";
 
 const DEFAULT_EXPERIMENT_AGENT = "claude-code";
 const DEFAULT_EXPERIMENT_SCOPE: SkillScope = "local";
@@ -191,21 +196,6 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
   return errors;
 }
 
-function formatDuration(ms: number): string {
-  const totalSeconds = Math.round(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-}
-
-function formatTimestamp(timestamp: number): string {
-  const date = new Date(timestamp);
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-  return `[${hours}:${minutes}:${seconds}]`;
-}
-
 function formatExperimentAgentSummary(agent: string | string[]): string {
   return Array.isArray(agent) ? agent.join(", ") : agent;
 }
@@ -249,49 +239,6 @@ function formatExperimentScores(
     .join(", ");
 }
 
-function shouldUseExperimentDashboard(enabled: boolean | undefined): boolean {
-  return enabled === true
-    && resolveOutputFormat() === "terminal"
-    && Boolean(process.stdin.isTTY)
-    && Boolean(process.stdout.isTTY);
-}
-
-function dashboardStatusForExperimentResult(
-  stopReason: "max_experiments" | "cancelled"
-): "done" | "error" {
-  return stopReason === "cancelled" ? "done" : "done";
-}
-
-function createLineBuffer(emit: (line: string) => void): {
-  push(chunk: string): void;
-  flush(): void;
-} {
-  let pending = "";
-
-  return {
-    push(chunk: string): void {
-      pending += chunk;
-      let newlineIndex = pending.indexOf("\n");
-      while (newlineIndex !== -1) {
-        const raw = pending.slice(0, newlineIndex);
-        const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
-        emit(line);
-        pending = pending.slice(newlineIndex + 1);
-        newlineIndex = pending.indexOf("\n");
-      }
-    },
-    flush(): void {
-      if (pending.length === 0) {
-        return;
-      }
-
-      const line = pending.endsWith("\r") ? pending.slice(0, -1) : pending;
-      emit(line);
-      pending = "";
-    }
-  };
-}
-
 function formatExperimentStageLabel(index: number): string {
   return `experiment:${index}`;
 }
@@ -301,7 +248,7 @@ function createExperimentDashboardRunAgent(options: {
   activeStage: () => string;
 }): NonNullable<ExperimentRunOptions["runAgent"]> {
   return async (input) => {
-    const errorBuffer = createLineBuffer((line) => {
+    const errorBuffer = createDashboardLineBuffer((line) => {
       options.appendOutput("error", `[${options.activeStage()}] ${line}`);
     });
 
@@ -370,7 +317,7 @@ async function runExperimentWithDashboard(
   ): void => {
     dashboard.appendOutput({
       kind,
-      text: `${formatTimestamp(Date.now())} ${message}`,
+      text: `${formatDashboardTimestamp(Date.now())} ${message}`,
       ts: Date.now()
     });
   };
@@ -445,13 +392,13 @@ async function runExperimentWithDashboard(
         iterations = Math.max(iterations, index);
         appendOutput(
           entry.status === "keep" ? "success" : "error",
-          `Experiment ${index} ${entry.status} in ${formatDuration(entry.durationMs)} · scores: ${formatExperimentScores(entry.scores)}`
+          `Experiment ${index} ${entry.status} in ${formatDashboardDuration(entry.durationMs)} · scores: ${formatExperimentScores(entry.scores)}`
         );
         syncStats();
       }
     });
 
-    status = dashboardStatusForExperimentResult(result.stopReason);
+    status = "done";
     iterations = result.experimentsCompleted;
     syncStats();
     return result;
@@ -718,11 +665,11 @@ export function registerExperimentCommand(program: Command, container: CliContai
               ? Object.entries(entry.scores).map(([k, v]) => `${k}=${v}`).join(", ")
               : "-";
             resources.logger.info(
-              `Experiment ${index} ${entry.status} in ${formatDuration(entry.durationMs)} · scores: ${scores}`
+              `Experiment ${index} ${entry.status} in ${formatDashboardDuration(entry.durationMs)} · scores: ${scores}`
             );
           }
         };
-        const result = shouldUseExperimentDashboard(options.tui)
+        const result = shouldUseInteractiveDashboard(options.tui)
           ? await runExperimentWithDashboard({
               agent,
               docPath,
@@ -735,7 +682,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           `Experiments: ${result.experimentsCompleted}`,
           `Kept: ${result.experimentsKept}`,
           `Doc: ${result.docPath}`,
-          `Duration: ${formatDuration(result.totalDurationMs)}`
+          `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
         ].join("\n   ");
 
         if (result.stopReason === "cancelled") {
@@ -797,7 +744,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           scores: entry.scores
             ? Object.entries(entry.scores).map(([k, v]) => `${k}=${v}`).join(", ")
             : "-",
-          duration: formatDuration(entry.durationMs),
+          duration: formatDashboardDuration(entry.durationMs),
           timestamp: entry.timestamp,
           commit: entry.commit,
           output: formatJournalOutput(entry.output)

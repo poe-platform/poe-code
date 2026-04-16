@@ -6,7 +6,6 @@ import {
   createDashboard,
   isCancel,
   promptText,
-  resolveOutputFormat,
   select,
   text as designText
 } from "@poe-code/design-system";
@@ -35,6 +34,12 @@ import {
   type RalphRunResult
 } from "../../sdk/ralph.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import {
+  createDashboardLineBuffer,
+  formatDashboardDuration,
+  formatDashboardTimestamp,
+  shouldUseInteractiveDashboard
+} from "./dashboard-loop-shared.js";
 
 const DEFAULT_RALPH_AGENT = "claude-code";
 const DEFAULT_RALPH_ITERATIONS = 3;
@@ -45,21 +50,6 @@ type RalphDashboardRunOptions = {
   maxIterations: number;
   runOptions: RalphRunOptions;
 };
-
-function formatDuration(ms: number): string {
-  const totalSeconds = Math.round(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-}
-
-function formatTimestamp(timestamp: number): string {
-  const date = new Date(timestamp);
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-  return `[${hours}:${minutes}:${seconds}]`;
-}
 
 function formatRalphAgentSummary(agent: string | string[]): string {
   return Array.isArray(agent) ? agent.join(", ") : agent;
@@ -89,42 +79,12 @@ function formatRalphStageLabel(iteration: number): string {
   return `iteration:${iteration}`;
 }
 
-function createLineBuffer(emit: (line: string) => void): {
-  push(chunk: string): void;
-  flush(): void;
-} {
-  let pending = "";
-
-  return {
-    push(chunk: string): void {
-      pending += chunk;
-      let newlineIndex = pending.indexOf("\n");
-      while (newlineIndex !== -1) {
-        const raw = pending.slice(0, newlineIndex);
-        const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
-        emit(line);
-        pending = pending.slice(newlineIndex + 1);
-        newlineIndex = pending.indexOf("\n");
-      }
-    },
-    flush(): void {
-      if (pending.length === 0) {
-        return;
-      }
-
-      const line = pending.endsWith("\r") ? pending.slice(0, -1) : pending;
-      emit(line);
-      pending = "";
-    }
-  };
-}
-
 function createRalphDashboardRunAgent(options: {
   appendOutput: (kind: "tool" | "error", message: string) => void;
   activeStage: () => string;
 }): NonNullable<RalphRunOptions["runAgent"]> {
   return async (input) => {
-    const errorBuffer = createLineBuffer((line) => {
+    const errorBuffer = createDashboardLineBuffer((line) => {
       options.appendOutput("error", `[${options.activeStage()}] ${line}`);
     });
 
@@ -154,13 +114,6 @@ function createRalphDashboardRunAgent(options: {
       throw error;
     }
   };
-}
-
-function shouldUseRalphDashboard(enabled: boolean | undefined): boolean {
-  return enabled === true
-    && resolveOutputFormat() === "terminal"
-    && Boolean(process.stdin.isTTY)
-    && Boolean(process.stdout.isTTY);
 }
 
 function dashboardStatusForResult(
@@ -206,7 +159,7 @@ async function runRalphWithDashboard(
   ): void => {
     dashboard.appendOutput({
       kind,
-      text: `${formatTimestamp(Date.now())} ${message}`,
+      text: `${formatDashboardTimestamp(Date.now())} ${message}`,
       ts: Date.now()
     });
   };
@@ -257,7 +210,7 @@ async function runRalphWithDashboard(
         iterations = Math.max(iterations, iteration);
         appendOutput(
           success ? "success" : "error",
-          `Iteration ${iteration} ${success ? "done" : "failed"} in ${formatDuration(durationMs)}`
+          `Iteration ${iteration} ${success ? "done" : "failed"} in ${formatDashboardDuration(durationMs)}`
         );
         syncStats();
       }
@@ -770,7 +723,7 @@ export function registerRalphCommand(
           docPath,
           maxIterations
         };
-        const result = shouldUseRalphDashboard(options.tui)
+        const result = shouldUseInteractiveDashboard(options.tui)
           ? await runRalphWithDashboard({
               agent,
               docPath,
@@ -785,7 +738,7 @@ export function registerRalphCommand(
               onIterationComplete(iteration, durationMs, success) {
                 const status = success ? "done" : "failed";
                 resources.logger.info(
-                  `Iteration ${iteration} ${status} in ${formatDuration(durationMs)}`
+                  `Iteration ${iteration} ${status} in ${formatDashboardDuration(durationMs)}`
                 );
               }
             });
@@ -793,7 +746,7 @@ export function registerRalphCommand(
         const summary = [
           `Iterations: ${result.iterationsCompleted}/${maxIterations}`,
           `Doc: ${result.docPath}`,
-          `Duration: ${formatDuration(result.totalDurationMs)}`
+          `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
         ].join("\n   ");
 
         if (result.stopReason === "cancelled") {

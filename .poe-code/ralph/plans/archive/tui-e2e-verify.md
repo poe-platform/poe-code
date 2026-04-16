@@ -2,8 +2,8 @@
 agent: claude-code
 iterations: 1
 status:
-  state: open
-  iteration: 0
+  state: completed
+  iteration: 1
 ---
 
 # TUI E2E Verify

@@ -6,6 +6,6 @@ status:
   iteration: 1
 ---
 
-# TUI No-TUI Fallback Test
+# TUI No-TUI Test
 
-Run `echo "ralph-logger-ok"` and report the output. Do not change any files.
+Run `echo "no-tui-ok"` and report the output. Do not change any files.

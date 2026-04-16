@@ -1,11 +1,11 @@
 ---
 agent: claude-code
-iterations: 2
+iterations: 3
 status:
   state: completed
-  iteration: 2
+  iteration: 3
 ---
 
 # TUI Scroll Test
 
-Run `echo "scroll-test-ok"` and report what you see. Do not change any files.
+Run `echo "scroll-test-ok"` and report the output. Do not change any files.

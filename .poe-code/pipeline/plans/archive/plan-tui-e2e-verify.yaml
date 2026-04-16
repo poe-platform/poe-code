@@ -1,6 +1,6 @@
 tasks:
-  - id: tui-verify
-    title: Simple echo for TUI dashboard verification
+  - id: tui-echo
+    title: Simple echo for TUI verification
     prompt: |
       Run `echo "dashboard-tui-pipeline-ok"` and report the output.
     status:

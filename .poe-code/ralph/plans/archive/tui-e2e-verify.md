@@ -8,4 +8,4 @@ status:
 
 # TUI E2E Verify
 
-Run `echo "dashboard-tui-ralph-ok"` and report what you see.
+Run `echo "ralph-tui-ok"` and report what you see. Do not change any files.

@@ -1,11 +1,11 @@
 ---
 agent: claude-code
-iterations: 3
+iterations: 5
 status:
   state: completed
-  iteration: 1
+  iteration: 2
 ---
 
 # TUI Quit Test
 
-Run `echo "iteration running"` and then `sleep 5` and report what you see.
+Run `echo "iteration running"` and report the output. Take your time.

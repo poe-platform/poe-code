@@ -1,0 +1,7 @@
+tasks:
+  - id: tui-verify
+    title: Simple echo for TUI dashboard verification
+    prompt: |
+      Run `echo "dashboard-tui-pipeline-ok"` and report the output.
+    status:
+      implement: done

@@ -6,6 +6,6 @@ status:
   iteration: 1
 ---
 
-# TUI Dashboard Verification
+# TUI E2E Verify
 
-Run `echo "dashboard-tui-ralph-ok"` and report the output.
+Run `echo "dashboard-tui-ralph-ok"` and report what you see.

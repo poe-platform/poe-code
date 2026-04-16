@@ -82,6 +82,7 @@ export function createTerminalDriver(opts?: {
     }
 
     stdin.setRawMode?.(false);
+    stdin.pause();
     rawMode = false;
   }
 

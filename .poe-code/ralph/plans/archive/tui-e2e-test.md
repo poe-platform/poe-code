@@ -2,7 +2,7 @@
 agent: claude-code
 iterations: 2
 status:
-  state: in_progress
+  state: completed
   iteration: 1
 ---
 

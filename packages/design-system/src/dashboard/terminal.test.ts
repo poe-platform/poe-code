@@ -5,6 +5,7 @@ import { createTerminalDriver, parseKeypress } from "./terminal.js";
 class TestStdin extends PassThrough {
   rawModes: boolean[] = [];
   resumeCount = 0;
+  pauseCount = 0;
 
   setRawMode(mode: boolean): void {
     this.rawModes.push(mode);
@@ -13,6 +14,11 @@ class TestStdin extends PassThrough {
   override resume(): this {
     this.resumeCount += 1;
     return super.resume();
+  }
+
+  override pause(): this {
+    this.pauseCount += 1;
+    return super.pause();
   }
 }
 
@@ -164,6 +170,7 @@ describe("createTerminalDriver", () => {
     driver.destroy();
 
     expect(stdin.rawModes).toEqual([true, false]);
+    expect(stdin.pauseCount).toBe(1);
     expect(stdout.output).toBe(
       "\u001b[?1049h\u001b[?25l\u001b[2;1HA\u001b[1;2HB\u001b[3;3HC\u001b[?1049l\u001b[?25h"
     );

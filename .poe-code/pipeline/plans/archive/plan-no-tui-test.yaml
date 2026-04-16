@@ -1,0 +1,7 @@
+tasks:
+  - id: echo-no-tui
+    title: Simple echo for no-tui test
+    prompt: |
+      Run `echo "no-tui-ok"` and report the output. Do not change any files.
+    status:
+      implement: done

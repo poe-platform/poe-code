@@ -25,9 +25,6 @@ export type {
 // State
 export { createLoopState, applyTransition, isComplete } from "./state/machine.js";
 
-// Testing
-export * from "./testing/index.js";
-
 // Commands (for composition)
 export { superintendentGroup } from "./commands/index.js";
 

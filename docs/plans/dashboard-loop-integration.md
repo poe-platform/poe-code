@@ -33,7 +33,9 @@ superintendent:
   agent: claude-code
   prompt: |
     Review the builder and inspector output, update the Task Board in {{plan.path}},
-    and request owner review when the board is complete.
+
+    Ask builder for rework based on feedback from inspectors.
+    Request owner review when the board is complete and there's nothing left to do or add.
 
     Builder summary:
     {{builder.summary}}
@@ -63,7 +65,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 5
+  round: 8
   review_turn: 0
 ---
 
@@ -102,25 +104,216 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 
 ### Decisions
 
-- **Opt-in via flag or config.** Dashboard is off by default. Enable per-run with `--tui`, or persistently via a `tui: true` config setting (CLI flag wins over config). Non-TTY runs (CI, pipes, redirects) skip the dashboard automatically via the existing `resolveOutputFormat()` check inside `createDashboard`, even when enabled.
-- **Only `quit` + scroll are wired.** `edit`, `pause`, `retry` are not hooked up — they have no agreed semantics per loop yet and are out of scope here. The footer should only show hints for commands that are actually wired. If this requires a small dashboard-side change to suppress unwired hints (rather than relying on every integrator to curate their own `hints` array), that change is in scope for this plan.
-- **Stream child-agent output into the dashboard via the ACP pipeline.** The dashboard is useless if the left pane only shows `builder starting` / `builder completed` bookends while an agent runs for minutes. Don't tee raw child stdout — CLI agents like `codex` and `claude-code` emit JSON lines, not colored text. Instead, reuse the existing ACP rendering pipeline:
-  1. Spawn agents through `spawnAutonomous` from `@poe-code/agent-spawn` (wraps `spawnStreaming` + `renderAcpStream` with activity-timeout retry).
-  2. Bind a dashboard-targeted `AcpLineWriter` with `acp.withAcpWriter(writer, fn)` from `@poe-code/design-system` around the call. `renderAcpStream` → `renderAgentMessage` / `renderToolStart` / `renderReasoning` / `renderUsage` / `renderError` already emit chalk-styled human-readable lines; the writer forwards each one into `dashboard.appendOutput` (kind `tool` for stdout-ish, `error` for errors).
-  3. The dashboard's ANSI parser renders chalk's escape codes as per-segment colors — no custom JSON-to-pretty formatter needed.
-  4. Stderr is streamed separately through `spawnStreaming`'s `tee.stderr` option into `appendOutput` with `kind: "error"`.
-  5. Append each line with a stage tag (`builder`, `inspector:<name>`, `superintendent`, `owner`, or the loop-specific equivalent).
-  6. Pass prompts via `useStdin: true` so large templated prompts don't hit `E2BIG`.
-  7. In non-TTY fallback mode, leave `renderAcpStream` pointed at its default writer (stdout) so the existing logger path still works.
-
-  The superintendent integration is the reference implementation: see [packages/superintendent/src/commands/run.ts](../../packages/superintendent/src/commands/run.ts) → `createAgentRunner` (line buffering + stage tagging), `executeSpawnAgentStreaming` (the `withAcpWriter` + `spawnAutonomous` wiring), and the `AgentRunInput.onStdout` / `onStderr` hooks in [packages/superintendent/src/runtime/loop.ts](../../packages/superintendent/src/runtime/loop.ts).
+- **Opt-in via `--tui`.** Dashboard stays off by default and only runs for explicit interactive invocations. Non-TTY runs still use the existing logger path because each command gates the dashboard behind `resolveOutputFormat() === "terminal"` plus `stdin`/`stdout` TTY checks.
+- **Only `quit` + scroll are wired.** `edit`, `pause`, `retry` are not hooked up — they have no agreed semantics per loop yet and are out of scope. The CLI integrations pass a reduced footer hint set (`q`, scroll, follow) so the dashboard only advertises commands that work.
+- **Child-agent output must reach the left pane in human-readable form.** Pipeline reuses ACP event rendering via `renderAcpEvent` and also buffers tee'd stdout/stderr; Ralph and Experiment wrap `sdkSpawn.autonomous()` in `acp.withAcpWriter()` and tee stderr separately. In all three cases the dashboard receives stage-tagged lines (`task:step`, `iteration:n`, `experiment:n`) rather than raw JSON event streams.
 
 ## Task Board
 
-- [ ] Finish the feature plan (altitudes 2–5).
+- [x] Finish the feature plan (altitudes 2–5).
 - [x] Integrate dashboard into pipeline.
 - [x] Integrate dashboard into ralph.
 - [x] Integrate dashboard into experiment.
-- [ ] Stream child-agent output into `appendOutput` from the pipeline integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
-- [ ] Stream child-agent output into `appendOutput` from the ralph integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
-- [ ] Stream child-agent output into `appendOutput` from the experiment integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
+- [x] Stream child-agent output into `appendOutput` from the pipeline integration (render ACP events plus tee stdout/stderr, stage-tagged).
+- [x] Stream child-agent output into `appendOutput` from the ralph integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
+- [x] Stream child-agent output into `appendOutput` from the experiment integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
+
+## 2. User-facing shape
+
+### CLI surface
+
+```text
+poe-code pipeline run --plan .poe-code/pipeline/plans/plan.yaml --agent codex --tui
+poe-code ralph run docs/loop.md --agent claude --iterations 5 --tui
+poe-code experiment run docs/loop.md --agent claude --max-experiments 5 --tui
+```
+
+`--tui` is the only new switch. Without it, all three commands keep their existing logger output.
+
+### End-state dashboard
+
+```text
+┌─ Pipeline / Ralph / Experiment Output ───────────────┬─ Run ─────────────┐
+│ [12:00:00] Config · Agent: claude-code · ...         │ Status   running  │
+│ [12:00:01] Task 2/3: auth-hardening (implement) ...  │ Iter.    1        │
+│ [12:00:02] [auth-hardening:implement] Analyzing doc  │ Elapsed  00:00:02 │
+│ [12:00:03] [auth-hardening:implement] Drafting ...   │ TokensIn 120      │
+│ [12:00:04] Task auth-hardening done in 2s            │ TokensOut 45      │
+│                                                      │ Current  Task 2/3 │
+├──────────────────────────────────────────────────────┴───────────────────┤
+│ q Quit  ↑↓ Scroll  F Follow                                            │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### What each command writes into the dashboard
+
+- **Pipeline**
+  - Initial config line with agent/model/plan.
+  - Task summary line (`done/failed/open`).
+  - Task start + completion lines.
+  - Stage-tagged child-agent output like `[auth-hardening:implement] ...`.
+  - Stats pane shows iterations completed, token totals, elapsed time, and current task/step.
+
+- **Ralph**
+  - Initial config line with agent(s), doc path, and iteration budget.
+  - Iteration start + completion lines.
+  - Stage-tagged child-agent output like `[iteration:2] ...`.
+  - Stats pane shows iteration count, elapsed time, and current iteration/agent.
+
+- **Experiment**
+  - Initial config line with agent(s), doc path, and max-experiments limit.
+  - Experiment start line.
+  - Baseline, metric, commit, reset, and experiment-complete lines.
+  - Stage-tagged child-agent output like `[experiment:3] ...`.
+  - Stats pane shows experiments completed, elapsed time, and current experiment/agent.
+
+## 3. Implementation details and technical decisions
+
+### Architecture
+
+The integration lives entirely in the CLI layer:
+
+- [src/cli/commands/pipeline.ts](../../src/cli/commands/pipeline.ts)
+- [src/cli/commands/ralph.ts](../../src/cli/commands/ralph.ts)
+- [src/cli/commands/experiment.ts](../../src/cli/commands/experiment.ts)
+
+That keeps `@poe-code/pipeline`, `@poe-code/ralph`, and `@poe-code/experiment-loop` focused on orchestration and callbacks, while the CLI owns presentation, keyboard handling, and output formatting.
+
+### Dashboard lifecycle per command
+
+Each command follows the same shape:
+
+1. Parse normal CLI options plus `--tui`.
+2. Call `shouldUse*Dashboard()` to require all of:
+   - `--tui`
+   - terminal output format
+   - TTY stdin
+   - TTY stdout
+3. If enabled, create a dashboard, start it, and keep stats fresh with a 1-second interval.
+4. Create an `AbortController` and map both `q` and `SIGINT` to a single idempotent cancellation path.
+5. Pass loop callbacks (`onTaskStart`, `onIterationStart`, `onExperimentStart`, etc.) that translate runtime events into `appendOutput()` and `updateStats()` calls.
+6. Always `stop()` and `destroy()` the dashboard in `finally`.
+
+### Output streaming strategy
+
+- **Pipeline:** uses `sdkSpawn()` directly so it can preserve pipeline-specific `logDir`, `mode`, MCP server config, usage, and fallback stdout/stderr handling. ACP events are rendered with `renderAcpEvent()` through an `acp.withAcpWriter()` bridge; tee'd stdout/stderr are line-buffered and appended if ACP events are missing or incomplete.
+- **Ralph / Experiment:** use `sdkSpawn.autonomous()` inside `acp.withAcpWriter()` and pass `useStdin: true` so large prompts do not rely on argv length limits.
+- **All three:** tag every emitted line with the active stage before appending it to the dashboard. Errors go to `kind: "error"`; human-readable stream output goes to `kind: "tool"`.
+
+### Edge cases
+
+- Partial stdout/stderr chunks are buffered until a newline or flush so stage prefixes are not repeated mid-line.
+- Cancellation is safe to request multiple times.
+- Non-TTY runs, redirected output, and markdown/json output modes skip dashboard startup entirely.
+- Pipeline preserves a fallback path when an agent emits no ACP events.
+- Ralph and Experiment intentionally do not surface token counts yet because their loop callback contracts do not expose usage.
+
+### Flags, env vars, config knobs
+
+- New flag: `--tui` on `pipeline run`, `ralph run`, and `experiment run`.
+- No new env vars.
+- No new persisted config field in this iteration.
+- Open question: do we later want a per-command `tui: true` config knob, or is explicit `--tui` enough for interactive workflows?
+
+## 4. Interfaces and test plan
+
+### Module boundaries
+
+The new code is built around small CLI-local helpers, not new shared runtime APIs:
+
+```ts
+runPipelineWithDashboard(options: PipelineDashboardRunOptions): Promise<PipelineRunResult>
+createPipelineDashboardRunAgent(options): PipelineRunOptions["runAgent"]
+
+runRalphWithDashboard(options: RalphDashboardRunOptions): Promise<RalphRunResult>
+createRalphDashboardRunAgent(options): RalphRunOptions["runAgent"]
+
+runExperimentWithDashboard(options: ExperimentDashboardRunOptions): Promise<ExperimentRunResult>
+createExperimentDashboardRunAgent(options): ExperimentRunOptions["runAgent"]
+```
+
+Shared contracts already existed and remain unchanged:
+
+- loop callbacks from `@poe-code/pipeline`, `@poe-code/ralph`, and `@poe-code/experiment-loop`
+- dashboard contract from `@poe-code/design-system`
+- spawn helpers from `src/sdk/spawn.ts`
+
+### Output contract
+
+Every dashboard write uses the existing design-system `OutputItem` shape:
+
+```ts
+{ kind: "info" | "success" | "error" | "tool" | "status", text: string, ts: number }
+```
+
+Stats writes use the existing `DashboardStats` shape:
+
+```ts
+{ status, iterations, tokensIn, tokensOut, elapsedMs, currentAction? }
+```
+
+The only command-specific variation is how `iterations` and `currentAction` are derived.
+
+### Automated tests
+
+Add command-level tests, not loop-package tests:
+
+- [src/cli/commands/pipeline-command.test.ts](../../src/cli/commands/pipeline-command.test.ts)
+  - `--tui` routes pipeline progress through the dashboard.
+  - `quit` aborts the run and sets exit code 130.
+  - child-agent output and stderr are stage-tagged and appended.
+- [src/cli/commands/experiment-ralph.test.ts](../../src/cli/commands/experiment-ralph.test.ts)
+  - equivalent coverage for Experiment.
+  - equivalent coverage for Ralph.
+
+These tests mock the dashboard and spawn layers, so they stay fast and do not create files.
+
+### Manual QA
+
+- Run each command with `--tui` in a real terminal.
+- Verify `q` cancels cleanly.
+- Verify scroll/follow keys still work.
+- Verify long child-agent output shows up in the left pane with stage tags.
+- Capture screenshots with `npm run screenshot-poe-code -- <command>` for visual validation.
+
+### Rollout / migration
+
+No migration is required:
+
+- feature is opt-in
+- SDK contracts stay unchanged
+- non-TTY behavior stays on the existing logger path
+
+## 5. Code plan
+
+### Files to change
+
+- [src/cli/commands/pipeline.ts](../../src/cli/commands/pipeline.ts)
+  - add `--tui`
+  - add dashboard runner + stats formatting helpers
+  - add stage-label formatting and ACP/stdout/stderr streaming helpers
+- [src/cli/commands/ralph.ts](../../src/cli/commands/ralph.ts)
+  - add `--tui`
+  - add dashboard runner for iteration callbacks
+  - add ACP writer + stderr tee integration for child-agent output
+- [src/cli/commands/experiment.ts](../../src/cli/commands/experiment.ts)
+  - add `--tui`
+  - add dashboard runner for experiment/baseline/metric/reset/commit callbacks
+  - add ACP writer + stderr tee integration for child-agent output
+- [src/cli/commands/pipeline-command.test.ts](../../src/cli/commands/pipeline-command.test.ts)
+  - cover dashboard happy path, quit path, and streamed child output
+- [src/cli/commands/experiment-ralph.test.ts](../../src/cli/commands/experiment-ralph.test.ts)
+  - cover dashboard happy path, quit path, and streamed child output for Ralph + Experiment
+
+### Build order
+
+1. Wire `pipeline run --tui` first because it exercises the richest callback surface and token accounting.
+2. Reuse the same dashboard lifecycle pattern for `ralph run`.
+3. Apply the pattern to `experiment run`, adding experiment-specific status lines.
+4. Add command tests for each integration path.
+5. Do manual screenshot QA for all three commands.
+
+### Follow-up candidates
+
+- Extract duplicated dashboard helpers later if the three command files diverge further.
+- Consider a persisted config knob only if interactive users ask for it repeatedly.

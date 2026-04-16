@@ -16,18 +16,20 @@ export type {
 export async function runRalph(
   options: RalphRunOptions
 ): Promise<RalphRunResult> {
+  const runAgent = options.runAgent ?? (async (
+    input: Parameters<NonNullable<RalphRunOptions["runAgent"]>>[0]
+  ) => {
+    return await sdkSpawn.autonomous(input.agent, {
+      prompt: input.prompt,
+      cwd: input.cwd,
+      model: input.model,
+      mode: "yolo",
+      ...(input.signal ? { signal: input.signal } : {})
+    });
+  });
+
   return runWorkspaceRalph({
     ...options,
-    runAgent: async (
-      input: Parameters<NonNullable<RalphRunOptions["runAgent"]>>[0]
-    ) => {
-      return await sdkSpawn.autonomous(input.agent, {
-        prompt: input.prompt,
-        cwd: input.cwd,
-        model: input.model,
-        mode: "yolo",
-        ...(input.signal ? { signal: input.signal } : {})
-      });
-    }
+    runAgent
   });
 }

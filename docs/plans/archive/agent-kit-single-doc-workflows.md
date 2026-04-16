@@ -1,3 +1,8 @@
+---
+status:
+  state: in_progress
+  iteration: 0
+---
 # Agent Kit for Single-Document Autonomous Workflows
 
 ## Problem

@@ -1,9 +1,12 @@
 import path from "node:path";
 import type { Command } from "commander";
 import {
+  acp,
   cancel,
+  createDashboard,
   isCancel,
   promptText,
+  resolveOutputFormat,
   select,
   text as designText
 } from "@poe-code/design-system";
@@ -26,16 +29,256 @@ import {
   createExecutionResources,
   resolveCommandFlags
 } from "./shared.js";
-import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
+import {
+  runRalph as sdkRunRalph,
+  type RalphRunOptions,
+  type RalphRunResult
+} from "../../sdk/ralph.js";
+import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 
 const DEFAULT_RALPH_AGENT = "claude-code";
 const DEFAULT_RALPH_ITERATIONS = 3;
+
+type RalphDashboardRunOptions = {
+  agent: string | string[];
+  docPath: string;
+  maxIterations: number;
+  runOptions: RalphRunOptions;
+};
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+
+function formatTimestamp(timestamp: number): string {
+  const date = new Date(timestamp);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `[${hours}:${minutes}:${seconds}]`;
+}
+
+function formatRalphAgentSummary(agent: string | string[]): string {
+  return Array.isArray(agent) ? agent.join(", ") : agent;
+}
+
+function formatRalphConfigSummary(options: {
+  agent: string | string[];
+  docPath: string;
+  maxIterations: number;
+}): string {
+  return [
+    `Agent: ${formatRalphAgentSummary(options.agent)}`,
+    `Iterations: ${options.maxIterations}`,
+    `Doc: ${options.docPath}`
+  ].join(" · ");
+}
+
+function formatRalphCurrentAction(
+  iteration: number,
+  totalIterations: number,
+  currentAgent: string
+): string {
+  return `Iteration ${iteration}/${totalIterations} · ${currentAgent}`;
+}
+
+function formatRalphStageLabel(iteration: number): string {
+  return `iteration:${iteration}`;
+}
+
+function createLineBuffer(emit: (line: string) => void): {
+  push(chunk: string): void;
+  flush(): void;
+} {
+  let pending = "";
+
+  return {
+    push(chunk: string): void {
+      pending += chunk;
+      let newlineIndex = pending.indexOf("\n");
+      while (newlineIndex !== -1) {
+        const raw = pending.slice(0, newlineIndex);
+        const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+        emit(line);
+        pending = pending.slice(newlineIndex + 1);
+        newlineIndex = pending.indexOf("\n");
+      }
+    },
+    flush(): void {
+      if (pending.length === 0) {
+        return;
+      }
+
+      const line = pending.endsWith("\r") ? pending.slice(0, -1) : pending;
+      emit(line);
+      pending = "";
+    }
+  };
+}
+
+function createRalphDashboardRunAgent(options: {
+  appendOutput: (kind: "tool" | "error", message: string) => void;
+  activeStage: () => string;
+}): NonNullable<RalphRunOptions["runAgent"]> {
+  return async (input) => {
+    const errorBuffer = createLineBuffer((line) => {
+      options.appendOutput("error", `[${options.activeStage()}] ${line}`);
+    });
+
+    try {
+      const result = await acp.withAcpWriter((line) => {
+        options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
+      }, async () => await sdkSpawn.autonomous(input.agent, {
+        prompt: input.prompt,
+        cwd: input.cwd,
+        model: input.model,
+        mode: "yolo",
+        ...(input.signal ? { signal: input.signal } : {}),
+        useStdin: true,
+        tee: {
+          stderr: {
+            write(chunk: string) {
+              errorBuffer.push(chunk);
+            }
+          }
+        }
+      }));
+
+      errorBuffer.flush();
+      return result;
+    } catch (error) {
+      errorBuffer.flush();
+      throw error;
+    }
+  };
+}
+
+function shouldUseRalphDashboard(enabled: boolean | undefined): boolean {
+  return enabled === true
+    && resolveOutputFormat() === "terminal"
+    && Boolean(process.stdin.isTTY)
+    && Boolean(process.stdout.isTTY);
+}
+
+function dashboardStatusForResult(
+  result: RalphRunResult
+): "done" | "error" {
+  return result.stopReason === "failed" ? "error" : "done";
+}
+
+async function runRalphWithDashboard(
+  options: RalphDashboardRunOptions
+): Promise<RalphRunResult> {
+  const dashboard = createDashboard({
+    title: "Ralph",
+    statsTitle: "Run",
+    rightPaneWidth: 32,
+    hints: [
+      { key: "q", label: "Quit" },
+      { key: "↑↓", label: "Scroll" },
+      { key: "F", label: "Follow" }
+    ]
+  });
+  const abortController = new AbortController();
+  const startedAt = Date.now();
+  let iterations = 0;
+  let currentAction: string | undefined;
+  let currentStage = "ralph";
+  let status: "running" | "done" | "error" = "running";
+
+  const syncStats = (): void => {
+    dashboard.updateStats({
+      status,
+      iterations,
+      tokensIn: 0,
+      tokensOut: 0,
+      elapsedMs: Math.max(0, Date.now() - startedAt),
+      ...(currentAction ? { currentAction } : {})
+    });
+  };
+
+  const appendOutput = (
+    kind: "info" | "success" | "error" | "tool" | "status",
+    message: string
+  ): void => {
+    dashboard.appendOutput({
+      kind,
+      text: `${formatTimestamp(Date.now())} ${message}`,
+      ts: Date.now()
+    });
+  };
+
+  const requestCancellation = (): void => {
+    if (abortController.signal.aborted) {
+      return;
+    }
+
+    abortController.abort();
+    currentAction = "Cancelling";
+    appendOutput("status", "Cancellation requested");
+    syncStats();
+  };
+
+  dashboard.onCommand((command) => {
+    if (command === "quit") {
+      requestCancellation();
+    }
+  });
+  dashboard.start();
+  syncStats();
+  appendOutput("info", `Config · ${formatRalphConfigSummary(options)}`);
+
+  const intervalId = global.setInterval(() => {
+    syncStats();
+  }, 1_000);
+  const sigintHandler = () => {
+    requestCancellation();
+  };
+  process.on("SIGINT", sigintHandler);
+
+  try {
+    const result = await sdkRunRalph({
+      ...options.runOptions,
+      runAgent: createRalphDashboardRunAgent({
+        appendOutput,
+        activeStage: () => currentStage
+      }),
+      signal: abortController.signal,
+      onIterationStart(iteration, totalIterations, currentAgent) {
+        currentStage = formatRalphStageLabel(iteration);
+        currentAction = formatRalphCurrentAction(iteration, totalIterations, currentAgent);
+        appendOutput("status", `Iteration ${iteration}/${totalIterations} (${currentAgent})`);
+        syncStats();
+      },
+      onIterationComplete(iteration, durationMs, success) {
+        iterations = Math.max(iterations, iteration);
+        appendOutput(
+          success ? "success" : "error",
+          `Iteration ${iteration} ${success ? "done" : "failed"} in ${formatDuration(durationMs)}`
+        );
+        syncStats();
+      }
+    });
+
+    status = dashboardStatusForResult(result);
+    iterations = result.iterationsCompleted;
+    syncStats();
+    return result;
+  } catch (error) {
+    status = "error";
+    currentAction = undefined;
+    appendOutput("error", error instanceof Error ? error.message : String(error));
+    syncStats();
+    throw error;
+  } finally {
+    global.clearInterval(intervalId);
+    process.off("SIGINT", sigintHandler);
+    dashboard.stop();
+    dashboard.destroy();
+  }
 }
 
 function resolveRalphAgent(
@@ -477,12 +720,14 @@ export function registerRalphCommand(
     .argument("[doc]", "Markdown doc path")
     .option("--agent <name>", "Override the agent from frontmatter")
     .option("--iterations <n>", "Override iterations from frontmatter")
+    .option("--tui", "Show a live dashboard while Ralph is running")
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "ralph:run");
       const options = this.opts<{
         agent?: string;
         iterations?: string;
+        tui?: boolean;
       }>();
 
       resources.logger.intro("ralph run");
@@ -518,22 +763,32 @@ export function registerRalphCommand(
           return;
         }
 
-        const result = await sdkRunRalph({
+        const runOptions: RalphRunOptions = {
           agent,
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
           docPath,
-          maxIterations,
-          onIterationStart(iteration, total, currentAgent) {
-            resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
-          },
-          onIterationComplete(iteration, durationMs, success) {
-            const status = success ? "done" : "failed";
-            resources.logger.info(
-              `Iteration ${iteration} ${status} in ${formatDuration(durationMs)}`
-            );
-          }
-        });
+          maxIterations
+        };
+        const result = shouldUseRalphDashboard(options.tui)
+          ? await runRalphWithDashboard({
+              agent,
+              docPath,
+              maxIterations,
+              runOptions
+            })
+          : await sdkRunRalph({
+              ...runOptions,
+              onIterationStart(iteration, total, currentAgent) {
+                resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
+              },
+              onIterationComplete(iteration, durationMs, success) {
+                const status = success ? "done" : "failed";
+                resources.logger.info(
+                  `Iteration ${iteration} ${status} in ${formatDuration(durationMs)}`
+                );
+              }
+            });
 
         const summary = [
           `Iterations: ${result.iterationsCompleted}/${maxIterations}`,

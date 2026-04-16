@@ -2,7 +2,16 @@ import path from "node:path";
 import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
-import { cancel, getTheme, isCancel, renderTable, select } from "@poe-code/design-system";
+import {
+  acp,
+  cancel,
+  createDashboard,
+  getTheme,
+  isCancel,
+  renderTable,
+  resolveOutputFormat,
+  select
+} from "@poe-code/design-system";
 import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import { resolveWorkflowPath } from "@poe-code/agent-kit";
@@ -25,8 +34,10 @@ import {
   readExperimentJournal as sdkReadExperimentJournal,
   appendExperimentJournalEntry as sdkAppendExperimentJournalEntry
 } from "../../sdk/experiment.js";
+import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { experimentConfigScope } from "../../services/config.js";
 import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
+import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
 
 const DEFAULT_EXPERIMENT_AGENT = "claude-code";
 const DEFAULT_EXPERIMENT_SCOPE: SkillScope = "local";
@@ -38,6 +49,13 @@ type ExperimentInstallCommandOptions = {
 };
 
 let experimentTemplatesCache: { skillPlan: string; runYaml: string } | null = null;
+
+type ExperimentDashboardRunOptions = {
+  agent: string | string[];
+  docPath: string;
+  maxExperiments?: number;
+  runOptions: Parameters<typeof sdkRunExperiment>[0];
+};
 
 function resolveExperimentPaths(
   scope: SkillScope,
@@ -178,6 +196,277 @@ function formatDuration(ms: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+
+function formatTimestamp(timestamp: number): string {
+  const date = new Date(timestamp);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `[${hours}:${minutes}:${seconds}]`;
+}
+
+function formatExperimentAgentSummary(agent: string | string[]): string {
+  return Array.isArray(agent) ? agent.join(", ") : agent;
+}
+
+function formatMaxExperimentsLabel(maxExperiments: number | undefined): string {
+  return maxExperiments === undefined ? "unlimited" : String(maxExperiments);
+}
+
+function formatExperimentConfigSummary(options: {
+  agent: string | string[];
+  docPath: string;
+  maxExperiments?: number;
+}): string {
+  return [
+    `Agent: ${formatExperimentAgentSummary(options.agent)}`,
+    `Max experiments: ${formatMaxExperimentsLabel(options.maxExperiments)}`,
+    `Doc: ${options.docPath}`
+  ].join(" · ");
+}
+
+function formatExperimentCurrentAction(
+  index: number,
+  maxExperiments: number | undefined,
+  currentAgent: string
+): string {
+  const progress = maxExperiments === undefined
+    ? `Experiment ${index}`
+    : `Experiment ${index}/${maxExperiments}`;
+  return `${progress} · ${currentAgent}`;
+}
+
+function formatExperimentScores(
+  scores: Record<string, number> | undefined
+): string {
+  if (!scores) {
+    return "-";
+  }
+
+  return Object.entries(scores)
+    .map(([name, value]) => `${name}=${value}`)
+    .join(", ");
+}
+
+function shouldUseExperimentDashboard(enabled: boolean | undefined): boolean {
+  return enabled === true
+    && resolveOutputFormat() === "terminal"
+    && Boolean(process.stdin.isTTY)
+    && Boolean(process.stdout.isTTY);
+}
+
+function dashboardStatusForExperimentResult(
+  stopReason: "max_experiments" | "cancelled"
+): "done" | "error" {
+  return stopReason === "cancelled" ? "done" : "done";
+}
+
+function createLineBuffer(emit: (line: string) => void): {
+  push(chunk: string): void;
+  flush(): void;
+} {
+  let pending = "";
+
+  return {
+    push(chunk: string): void {
+      pending += chunk;
+      let newlineIndex = pending.indexOf("\n");
+      while (newlineIndex !== -1) {
+        const raw = pending.slice(0, newlineIndex);
+        const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+        emit(line);
+        pending = pending.slice(newlineIndex + 1);
+        newlineIndex = pending.indexOf("\n");
+      }
+    },
+    flush(): void {
+      if (pending.length === 0) {
+        return;
+      }
+
+      const line = pending.endsWith("\r") ? pending.slice(0, -1) : pending;
+      emit(line);
+      pending = "";
+    }
+  };
+}
+
+function formatExperimentStageLabel(index: number): string {
+  return `experiment:${index}`;
+}
+
+function createExperimentDashboardRunAgent(options: {
+  appendOutput: (kind: "tool" | "error", message: string) => void;
+  activeStage: () => string;
+}): NonNullable<ExperimentRunOptions["runAgent"]> {
+  return async (input) => {
+    const errorBuffer = createLineBuffer((line) => {
+      options.appendOutput("error", `[${options.activeStage()}] ${line}`);
+    });
+
+    try {
+      const result = await acp.withAcpWriter((line) => {
+        options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
+      }, async () => await sdkSpawn.autonomous(input.agent, {
+        prompt: input.prompt,
+        cwd: input.cwd,
+        model: input.model,
+        mode: "yolo",
+        ...(input.signal ? { signal: input.signal } : {}),
+        useStdin: true,
+        tee: {
+          stderr: {
+            write(chunk: string) {
+              errorBuffer.push(chunk);
+            }
+          }
+        }
+      }));
+
+      errorBuffer.flush();
+      return result;
+    } catch (error) {
+      errorBuffer.flush();
+      throw error;
+    }
+  };
+}
+
+async function runExperimentWithDashboard(
+  options: ExperimentDashboardRunOptions
+): Promise<Awaited<ReturnType<typeof sdkRunExperiment>>> {
+  const dashboard = createDashboard({
+    title: "Experiment",
+    statsTitle: "Run",
+    rightPaneWidth: 32,
+    hints: [
+      { key: "q", label: "Quit" },
+      { key: "↑↓", label: "Scroll" },
+      { key: "F", label: "Follow" }
+    ]
+  });
+  const abortController = new AbortController();
+  const startedAt = Date.now();
+  let iterations = 0;
+  let currentExperimentIndex = 0;
+  let currentAction: string | undefined;
+  let status: "running" | "done" | "error" = "running";
+
+  const syncStats = (): void => {
+    dashboard.updateStats({
+      status,
+      iterations,
+      tokensIn: 0,
+      tokensOut: 0,
+      elapsedMs: Math.max(0, Date.now() - startedAt),
+      ...(currentAction ? { currentAction } : {})
+    });
+  };
+
+  const appendOutput = (
+    kind: "info" | "success" | "error" | "tool" | "status",
+    message: string
+  ): void => {
+    dashboard.appendOutput({
+      kind,
+      text: `${formatTimestamp(Date.now())} ${message}`,
+      ts: Date.now()
+    });
+  };
+
+  const requestCancellation = (): void => {
+    if (abortController.signal.aborted) {
+      return;
+    }
+
+    abortController.abort();
+    currentAction = "Cancelling";
+    appendOutput("status", "Cancellation requested");
+    syncStats();
+  };
+
+  dashboard.onCommand((command) => {
+    if (command === "quit") {
+      requestCancellation();
+    }
+  });
+  dashboard.start();
+  syncStats();
+  appendOutput("info", `Config · ${formatExperimentConfigSummary(options)}`);
+
+  const intervalId = global.setInterval(() => {
+    syncStats();
+  }, 1_000);
+  const sigintHandler = () => {
+    requestCancellation();
+  };
+  process.on("SIGINT", sigintHandler);
+
+  const runAgent = createExperimentDashboardRunAgent({
+    appendOutput,
+    activeStage: () => formatExperimentStageLabel(currentExperimentIndex)
+  });
+
+  try {
+    const result = await sdkRunExperiment({
+      ...options.runOptions,
+      signal: abortController.signal,
+      runAgent,
+      onExperimentStart(index, currentAgent) {
+        currentExperimentIndex = index;
+        currentAction = formatExperimentCurrentAction(index, options.maxExperiments, currentAgent);
+        appendOutput(
+          "status",
+          options.maxExperiments === undefined
+            ? `Experiment ${index} (${currentAgent})`
+            : `Experiment ${index}/${options.maxExperiments} (${currentAgent})`
+        );
+        syncStats();
+      },
+      onBaselineCollected(baseline) {
+        const entries = Object.entries(baseline)
+          .map(([name, value]) => `${name}=${value}`)
+          .join(", ");
+        appendOutput("info", `Baseline collected: ${entries}`);
+      },
+      onCommit(commitHash) {
+        appendOutput("info", `Committed ${commitHash.slice(0, 7)}`);
+      },
+      onMetricResult(metric, result) {
+        const score = result.score === null ? "-" : String(result.score);
+        const metricStatus = result.passed ? "passed" : "failed";
+        appendOutput("info", `${metric.name}: ${score} (${metricStatus})`);
+      },
+      onReset(targetHash) {
+        appendOutput("info", `Reset to ${targetHash.slice(0, 7)}`);
+      },
+      onExperimentComplete(index, entry) {
+        iterations = Math.max(iterations, index);
+        appendOutput(
+          entry.status === "keep" ? "success" : "error",
+          `Experiment ${index} ${entry.status} in ${formatDuration(entry.durationMs)} · scores: ${formatExperimentScores(entry.scores)}`
+        );
+        syncStats();
+      }
+    });
+
+    status = dashboardStatusForExperimentResult(result.stopReason);
+    iterations = result.experimentsCompleted;
+    syncStats();
+    return result;
+  } catch (error) {
+    status = "error";
+    currentAction = undefined;
+    appendOutput("error", error instanceof Error ? error.message : String(error));
+    syncStats();
+    throw error;
+  } finally {
+    global.clearInterval(intervalId);
+    process.off("SIGINT", sigintHandler);
+    dashboard.stop();
+    dashboard.destroy();
+  }
 }
 
 function resolveExperimentAgent(value: string | undefined, sourceLabel = "agent"): string {
@@ -361,12 +650,14 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .argument("[doc]", "Experiment doc path")
     .option("--agent <agent>", "Override the agent from frontmatter")
     .option("--max-experiments <n>", "Limit the number of experiments to run")
+    .option("--tui", "Show a live dashboard while the experiment is running")
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "experiment:run");
       const options = this.opts<{
         agent?: string;
         maxExperiments?: string;
+        tui?: boolean;
       }>();
 
       resources.logger.intro("experiment run");
@@ -396,7 +687,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
         }
 
         const maxExperiments = parseNonNegativeInt(options.maxExperiments, "max-experiments");
-        const result = await sdkRunExperiment({
+        const runOptions: Parameters<typeof sdkRunExperiment>[0] = {
           agent,
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
@@ -430,7 +721,15 @@ export function registerExperimentCommand(program: Command, container: CliContai
               `Experiment ${index} ${entry.status} in ${formatDuration(entry.durationMs)} · scores: ${scores}`
             );
           }
-        });
+        };
+        const result = shouldUseExperimentDashboard(options.tui)
+          ? await runExperimentWithDashboard({
+              agent,
+              docPath,
+              maxExperiments,
+              runOptions
+            })
+          : await sdkRunExperiment(runOptions);
 
         const summary = [
           `Experiments: ${result.experimentsCompleted}`,

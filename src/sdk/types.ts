@@ -24,6 +24,13 @@ export interface SpawnOptions {
   interactive?: boolean;
   /** Abort signal used to terminate the spawned agent */
   signal?: AbortSignal;
+  /** Send the prompt over stdin when the provider supports it */
+  useStdin?: boolean;
+  /** Mirror spawned stdout/stderr chunks to additional writers while preserving the final result */
+  tee?: {
+    stdout?: { write(chunk: string): void };
+    stderr?: { write(chunk: string): void };
+  };
   /**
    * Kill the spawned process after this many milliseconds of inactivity (no stdout data).
    * Disabled when undefined.

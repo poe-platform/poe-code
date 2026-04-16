@@ -27,18 +27,22 @@ export type { PipelineRunOptions, PipelineRunResult };
 export async function runPipeline(
   options: PipelineRunOptions
 ): Promise<PipelineRunResult> {
+  const runAgent = options.runAgent ?? (async (
+    input: Parameters<NonNullable<PipelineRunOptions["runAgent"]>>[0]
+  ) => {
+    return await sdkSpawn.autonomous(input.agent, {
+      prompt: input.prompt,
+      cwd: input.cwd,
+      logDir: input.logDir,
+      model: input.model,
+      mode: input.mode,
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.signal ? { signal: input.signal } : {})
+    });
+  });
+
   return runWorkspacePipeline({
     ...options,
-    runAgent: async (input: Parameters<NonNullable<PipelineRunOptions["runAgent"]>>[0]) => {
-      return await sdkSpawn.autonomous(input.agent, {
-        prompt: input.prompt,
-        cwd: input.cwd,
-        logDir: input.logDir,
-        model: input.model,
-        mode: input.mode,
-        ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-        ...(input.signal ? { signal: input.signal } : {})
-      });
-    }
+    runAgent
   });
 }

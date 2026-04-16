@@ -212,10 +212,11 @@ export function spawn(
           args: options.args,
           signal: options.signal,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
+          ...(options.tee ? { tee: options.tee } : {}),
           ...(options.activityTimeoutMs !== undefined
             ? { activityTimeoutMs: options.activityTimeoutMs }
             : {}),
-          useStdin: false
+          useStdin: options.useStdin ?? false
         });
 
         const middlewareContext: AcpSpawnContext = {
@@ -263,10 +264,11 @@ export function spawn(
           args: options.args,
           signal: options.signal,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
+          ...(options.tee ? { tee: options.tee } : {}),
           ...(options.activityTimeoutMs !== undefined
             ? { activityTimeoutMs: options.activityTimeoutMs }
             : {}),
-          useStdin: false
+          useStdin: options.useStdin ?? false
         });
       }
 
@@ -280,7 +282,7 @@ export function spawn(
         mode: options.mode,
         args: options.args,
         ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
-        useStdin: false
+        useStdin: options.useStdin ?? false
       });
     } catch (error) {
       resolveEventsOnce(emptyEvents);

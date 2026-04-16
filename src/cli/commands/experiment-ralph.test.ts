@@ -7,6 +7,7 @@ import { registerExperimentCommand } from "./experiment.js";
 import { registerRalphCommand } from "./ralph.js";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import { ValidationError } from "../errors.js";
+import type { Dashboard } from "@poe-code/design-system";
 import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
 import experimentRunYaml from "../../templates/experiment/run.yaml.mustache";
 import { parseFrontmatter } from "../../../packages/ralph/src/frontmatter/frontmatter.js";
@@ -43,10 +44,17 @@ vi.mock("../../sdk/ralph.js", () => ({
   })
 }));
 
+vi.mock("../../sdk/spawn.js", () => ({
+  spawn: Object.assign(vi.fn(), {
+    autonomous: vi.fn()
+  })
+}));
+
 vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
     ...actual,
+    createDashboard: vi.fn(),
     select: selectMock,
     promptText: promptTextMock,
     isCancel: isCancelMock,
@@ -59,6 +67,8 @@ import {
   readExperimentJournal as sdkReadExperimentJournal
 } from "../../sdk/experiment.js";
 import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
+import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import { acp, createDashboard } from "@poe-code/design-system";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -84,6 +94,77 @@ function getSpawnAgentOptions() {
   }));
 }
 
+function withMockedTerminal<T>(run: () => Promise<T>): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  const stdoutDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: true
+  });
+  Object.defineProperty(process.stdout, "isTTY", {
+    configurable: true,
+    value: true
+  });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      delete (process.stdin as NodeJS.ReadStream & { isTTY?: boolean }).isTTY;
+    }
+
+    if (stdoutDescriptor) {
+      Object.defineProperty(process.stdout, "isTTY", stdoutDescriptor);
+    } else {
+      delete (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY;
+    }
+  });
+}
+
+function createDashboardMock(): {
+  dashboard: Dashboard;
+  appendOutput: ReturnType<typeof vi.fn>;
+  updateStats: ReturnType<typeof vi.fn>;
+  start: ReturnType<typeof vi.fn>;
+  stop: ReturnType<typeof vi.fn>;
+  destroy: ReturnType<typeof vi.fn>;
+  onCommand: ReturnType<typeof vi.fn>;
+  commandHandlers: Array<(command: string) => void>;
+} {
+  const appendOutput = vi.fn();
+  const updateStats = vi.fn();
+  const start = vi.fn();
+  const stop = vi.fn();
+  const destroy = vi.fn();
+  const commandHandlers: Array<(command: string) => void> = [];
+  const onCommand = vi.fn((handler: (command: string) => void) => {
+    commandHandlers.push(handler);
+  });
+
+  return {
+    dashboard: {
+      appendOutput,
+      updateStats,
+      start,
+      stop,
+      destroy,
+      onCommand
+    },
+    appendOutput,
+    updateStats,
+    start,
+    stop,
+    destroy,
+    onCommand,
+    commandHandlers
+  };
+}
+
+const expectedTimestamp = (() => {
+  const date = new Date(0);
+  return `[${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}]`;
+})();
 describe("experiment run command", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -291,6 +372,305 @@ describe("experiment run command", () => {
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
+  });
+
+  it("routes experiment progress through the dashboard when --tui is enabled", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    vi.mocked(sdkRunExperiment).mockImplementationOnce(async (options) => {
+      options.onExperimentStart?.(1, "claude-code");
+      options.onBaselineCollected?.({ accuracy: 0.91, latency: 120 });
+      options.onMetricResult?.(
+        { name: "accuracy", script: "npm run eval", direction: "maximize" },
+        { score: 0.94, passed: true, output: "ok" }
+      );
+      options.onCommit?.("abc1234def");
+      options.onExperimentComplete?.(1, {
+        commit: "abc1234def",
+        status: "keep",
+        scores: { accuracy: 0.94, latency: 110 },
+        output: "ok",
+        agentOutput: "done",
+        durationMs: 2_000,
+        timestamp: "2026-04-01T00:00:00.000Z"
+      });
+
+      return {
+        stopReason: "max_experiments",
+        docPath: options.docPath,
+        experimentsCompleted: 1,
+        experimentsKept: 1,
+        totalDurationMs: 2_000
+      };
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--max-experiments",
+        "5",
+        "--tui"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Experiment",
+        statsTitle: "Run",
+        hints: [
+          { key: "q", label: "Quit" },
+          { key: "↑↓", label: "Scroll" },
+          { key: "F", label: "Follow" }
+        ]
+      })
+    );
+    expect(dashboardMock.start).toHaveBeenCalledTimes(1);
+    expect(dashboardMock.onCommand).toHaveBeenCalledTimes(1);
+    expect(dashboardMock.appendOutput.mock.calls.map(([item]) => item)).toEqual([
+      {
+        kind: "info",
+        text: `${expectedTimestamp} Config · Agent: claude-code · Max experiments: 5 · Doc: docs/loop.md`,
+        ts: 0
+      },
+      {
+        kind: "status",
+        text: `${expectedTimestamp} Experiment 1/5 (claude-code)`,
+        ts: 0
+      },
+      {
+        kind: "info",
+        text: `${expectedTimestamp} Baseline collected: accuracy=0.91, latency=120`,
+        ts: 0
+      },
+      {
+        kind: "info",
+        text: `${expectedTimestamp} accuracy: 0.94 (passed)`,
+        ts: 0
+      },
+      {
+        kind: "info",
+        text: `${expectedTimestamp} Committed abc1234`,
+        ts: 0
+      },
+      {
+        kind: "success",
+        text: `${expectedTimestamp} Experiment 1 keep in 2s · scores: accuracy=0.94, latency=110`,
+        ts: 0
+      }
+    ]);
+    expect(dashboardMock.updateStats).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "done",
+        iterations: 1,
+        tokensIn: 0,
+        tokensOut: 0,
+        currentAction: "Experiment 1/5 · claude-code"
+      })
+    );
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+    expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
+    expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("streams experiment child-agent output into the dashboard via ACP writer and stderr tee", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    vi.mocked(sdkSpawn.autonomous).mockImplementationOnce(async (_agent, input) => {
+      acp.getAcpWriter()("Running experiment step");
+      acp.getAcpWriter()("Evaluating metrics");
+      input.tee?.stderr?.write("Metric warning\npartial stderr");
+
+      return {
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      };
+    });
+
+    vi.mocked(sdkRunExperiment).mockImplementationOnce(async (options) => {
+      options.onExperimentStart?.(1, "claude-code");
+      await options.runAgent?.({
+        agent: "claude-code",
+        prompt: "Run experiment iteration",
+        cwd,
+        signal: options.signal
+      });
+      options.onExperimentComplete?.(1, {
+        commit: "abc1234def",
+        status: "keep",
+        scores: { accuracy: 0.95 },
+        output: "ok",
+        agentOutput: "done",
+        durationMs: 2_000,
+        timestamp: "2026-04-01T00:00:00.000Z"
+      });
+
+      return {
+        stopReason: "max_experiments",
+        docPath: options.docPath,
+        experimentsCompleted: 1,
+        experimentsKept: 1,
+        totalDurationMs: 2_000
+      };
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--max-experiments",
+        "3",
+        "--tui"
+      ])
+    );
+
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runAgent: expect.any(Function),
+        signal: expect.any(AbortSignal)
+      })
+    );
+    expect(vi.mocked(sdkSpawn.autonomous)).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({
+        prompt: "Run experiment iteration",
+        cwd,
+        mode: "yolo",
+        signal: expect.any(AbortSignal),
+        useStdin: true,
+        tee: expect.objectContaining({
+          stderr: expect.any(Object)
+        })
+      })
+    );
+
+    const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
+    expect(
+      outputs.some((item) =>
+        item.kind === "tool"
+        && item.text.includes("[experiment:1] Running experiment step")
+      )
+    ).toBe(true);
+    expect(
+      outputs.some((item) =>
+        item.kind === "tool"
+        && item.text.includes("[experiment:1] Evaluating metrics")
+      )
+    ).toBe(true);
+    expect(
+      outputs.some((item) =>
+        item.kind === "error"
+        && item.text.includes("[experiment:1] Metric warning")
+      )
+    ).toBe(true);
+    expect(
+      outputs.some((item) =>
+        item.kind === "error"
+        && item.text.includes("[experiment:1] partial stderr")
+      )
+    ).toBe(true);
+  });
+
+  it("aborts experiment when the dashboard quit command is used", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    vi.mocked(sdkRunExperiment).mockImplementationOnce(async (options) => {
+      dashboardMock.commandHandlers[0]?.("quit");
+
+      expect(options.signal?.aborted).toBe(true);
+
+      return {
+        stopReason: "cancelled",
+        docPath: options.docPath,
+        experimentsCompleted: 0,
+        experimentsKept: 0,
+        totalDurationMs: 1_000
+      };
+    });
+
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--max-experiments",
+        "5",
+        "--tui"
+      ])
+    );
+
+    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+      kind: "status",
+      text: `${expectedTimestamp} Cancellation requested`,
+      ts: 0
+    });
+    expect(process.exitCode).toBe(130);
+    expect(logs.some((message) => message.includes("Experiment run cancelled."))).toBe(true);
   });
 });
 
@@ -702,6 +1082,8 @@ describe("ralph run command", () => {
   afterEach(() => {
     vi.clearAllMocks();
     isCancelMock.mockReturnValue(false);
+    process.exitCode = undefined;
+    vi.useRealTimers();
   });
 
   it("calls the Ralph SDK with explicit CLI options", async () => {
@@ -971,6 +1353,265 @@ describe("ralph run command", () => {
     ).rejects.toBeInstanceOf(ValidationError);
 
     expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
+  it("routes Ralph progress through the dashboard when --tui is enabled", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    vi.mocked(sdkRunRalph).mockImplementationOnce(async (options) => {
+      options.onIterationStart?.(1, 5, "claude-code");
+      options.onIterationComplete?.(1, 2_000, true);
+
+      return {
+        stopReason: "max_iterations",
+        docPath: options.docPath,
+        iterationsCompleted: 1,
+        totalDurationMs: 2_000
+      };
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--iterations",
+        "5",
+        "--tui"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Ralph",
+        statsTitle: "Run",
+        hints: [
+          { key: "q", label: "Quit" },
+          { key: "↑↓", label: "Scroll" },
+          { key: "F", label: "Follow" }
+        ]
+      })
+    );
+    expect(dashboardMock.start).toHaveBeenCalledTimes(1);
+    expect(dashboardMock.onCommand).toHaveBeenCalledTimes(1);
+    expect(dashboardMock.appendOutput.mock.calls.map(([item]) => item)).toEqual([
+      {
+        kind: "info",
+        text: `${expectedTimestamp} Config · Agent: claude-code · Iterations: 5 · Doc: docs/loop.md`,
+        ts: 0
+      },
+      {
+        kind: "status",
+        text: `${expectedTimestamp} Iteration 1/5 (claude-code)`,
+        ts: 0
+      },
+      {
+        kind: "success",
+        text: `${expectedTimestamp} Iteration 1 done in 2s`,
+        ts: 0
+      }
+    ]);
+    expect(dashboardMock.updateStats).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "done",
+        iterations: 1,
+        tokensIn: 0,
+        tokensOut: 0,
+        currentAction: "Iteration 1/5 · claude-code"
+      })
+    );
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+    expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
+    expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts Ralph when the dashboard quit command is used", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    vi.mocked(sdkRunRalph).mockImplementationOnce(async (options) => {
+      dashboardMock.commandHandlers[0]?.("quit");
+
+      expect(options.signal?.aborted).toBe(true);
+
+      return {
+        stopReason: "cancelled",
+        docPath: options.docPath,
+        iterationsCompleted: 0,
+        totalDurationMs: 1_000
+      };
+    });
+
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--iterations",
+        "5",
+        "--tui"
+      ])
+    );
+
+    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+      kind: "status",
+      text: `${expectedTimestamp} Cancellation requested`,
+      ts: 0
+    });
+    expect(process.exitCode).toBe(130);
+    expect(logs.some((message) => message.includes("Ralph run cancelled."))).toBe(true);
+  });
+
+  it("streams Ralph child-agent output into the dashboard via ACP writer and stderr tee", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    vi.mocked(sdkSpawn.autonomous).mockImplementationOnce(async (_agent, input) => {
+      acp.getAcpWriter()("Analyzing doc");
+      acp.getAcpWriter()("Drafting update");
+      input.tee?.stderr?.write("Tool warning\npartial stderr");
+
+      return {
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      };
+    });
+
+    vi.mocked(sdkRunRalph).mockImplementationOnce(async (options) => {
+      options.onIterationStart?.(1, 5, "claude-code");
+      await options.runAgent?.({
+        agent: "claude-code",
+        prompt: "Inspect the plan doc",
+        cwd,
+        signal: options.signal
+      });
+      options.onIterationComplete?.(1, 2_000, true);
+
+      return {
+        stopReason: "max_iterations",
+        docPath: options.docPath,
+        iterationsCompleted: 1,
+        totalDurationMs: 2_000
+      };
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--iterations",
+        "5",
+        "--tui"
+      ])
+    );
+
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runAgent: expect.any(Function),
+        signal: expect.any(AbortSignal)
+      })
+    );
+    expect(vi.mocked(sdkSpawn.autonomous)).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({
+        prompt: "Inspect the plan doc",
+        cwd,
+        mode: "yolo",
+        signal: expect.any(AbortSignal),
+        useStdin: true,
+        tee: expect.objectContaining({
+          stderr: expect.any(Object)
+        })
+      })
+    );
+
+    const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
+    expect(
+      outputs.some((item) =>
+        item.kind === "tool"
+        && item.text.includes("[iteration:1] Analyzing doc")
+      )
+    ).toBe(true);
+    expect(
+      outputs.some((item) =>
+        item.kind === "tool"
+        && item.text.includes("[iteration:1] Drafting update")
+      )
+    ).toBe(true);
+    expect(
+      outputs.some((item) =>
+        item.kind === "error"
+        && item.text.includes("[iteration:1] Tool warning")
+      )
+    ).toBe(true);
+    expect(
+      outputs.some((item) =>
+        item.kind === "error"
+        && item.text.includes("[iteration:1] partial stderr")
+      )
+    ).toBe(true);
   });
 });
 

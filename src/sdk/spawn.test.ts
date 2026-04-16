@@ -1086,4 +1086,43 @@ describe("spawn.autonomous()", () => {
       })
     );
   });
+
+  it("forwards tee and useStdin through autonomous spawns", async () => {
+    const tee = {
+      stderr: {
+        write: vi.fn()
+      }
+    };
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementationOnce(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    await spawn.autonomous("codex", {
+      prompt: "stream through stdin",
+      cwd: "/repo",
+      useStdin: true,
+      tee
+    });
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: "stream through stdin",
+        cwd: "/repo",
+        useStdin: true,
+        tee
+      })
+    );
+  });
 });

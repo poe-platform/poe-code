@@ -369,7 +369,7 @@ describe("spawnCore", () => {
   it("prefers explicit model over configured values", async () => {
     await fs.writeFile(
       resolveConfigPath(homeDir),
-      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.6", opencode: "openai/gpt-5.4" } }, null, 2)}\n`,
+      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.7", opencode: "openai/gpt-5.4" } }, null, 2)}\n`,
       { encoding: "utf8" }
     );
 
@@ -383,14 +383,14 @@ describe("spawnCore", () => {
   it("falls back to the global configured model when no agent override exists", async () => {
     await fs.writeFile(
       resolveConfigPath(homeDir),
-      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.6" } }, null, 2)}\n`,
+      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.7" } }, null, 2)}\n`,
       { encoding: "utf8" }
     );
 
     const { container } = createContainerWithDependencies({ fs });
 
     await expect(resolveConfiguredModel(container, "opencode")).resolves.toBe(
-      "anthropic/claude-opus-4.6"
+      "anthropic/claude-opus-4.7"
     );
   });
 

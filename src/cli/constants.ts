@@ -1,5 +1,5 @@
 export const FRONTIER_MODELS = [
-  "anthropic/claude-opus-4.6",
+  "anthropic/claude-opus-4.7",
   "anthropic/claude-sonnet-4.6",
   "openai/gpt-5.3-codex",
   "openai/gpt-5.4",
@@ -16,7 +16,7 @@ export const DEFAULT_VIDEO_BOT = "google/veo-3.1";
 export const CLAUDE_CODE_VARIANTS = {
   haiku: "anthropic/claude-haiku-4.5",
   sonnet: "anthropic/claude-sonnet-4.6",
-  opus: "anthropic/claude-opus-4.6"
+  opus: "anthropic/claude-opus-4.7"
 } as const;
 
 export const DEFAULT_CLAUDE_CODE_MODEL = CLAUDE_CODE_VARIANTS.sonnet;
@@ -41,7 +41,7 @@ export const CODEX_MODELS = [
   "openai/gpt-5.2-pro",
   "openai/gpt-5.1",
   "openai/gpt-5.1-codex-mini",
-  "anthropic/claude-opus-4.6"
+  "anthropic/claude-opus-4.7"
 ] as const;
 export const DEFAULT_CODEX_MODEL = CODEX_MODELS[0];
 

@@ -949,7 +949,7 @@ describe("models command", () => {
     fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
-        id: "claude-opus-4.6",
+        id: "claude-opus-4.7",
         owned_by: "Anthropic",
         parameters: [
           { name: "web_search", schema: { type: "boolean" }, default_value: false, description: "Enable web search." },
@@ -972,7 +972,7 @@ describe("models command", () => {
 
     const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
 
-    expect(output).toContain("anthropic/claude-opus-4.6");
+    expect(output).toContain("anthropic/claude-opus-4.7");
     expect(output).toContain("web_search");
     expect(output).toContain("boolean");
     expect(output).toContain("false");
@@ -1056,7 +1056,7 @@ describe("models command", () => {
     fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
-        id: "claude-opus-4.6",
+        id: "claude-opus-4.7",
         owned_by: "Anthropic",
         context_length: 983040,
         supported_features: ["tools", "web_search"],
@@ -1073,7 +1073,7 @@ describe("models command", () => {
 
     const output = await runModels({ fs, httpClient, logs, args: ["--view", "raw"] });
 
-    expect(output).toContain("id: claude-opus-4.6");
+    expect(output).toContain("id: claude-opus-4.7");
     expect(output).toContain("owned_by: Anthropic");
     expect(output).toContain("output_effort");
   });

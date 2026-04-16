@@ -67,10 +67,10 @@ describe("poe-agent CLI", () => {
   });
 
   it("passes --model option", async () => {
-    await runProgram(["--model", "anthropic/claude-opus-4.6", "Test prompt"]);
+    await runProgram(["--model", "anthropic/claude-opus-4.7", "Test prompt"]);
 
     expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
-      expect.objectContaining({ model: "anthropic/claude-opus-4.6" })
+      expect.objectContaining({ model: "anthropic/claude-opus-4.7" })
     );
   });
 

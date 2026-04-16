@@ -1,7 +1,6 @@
 tasks:
-  - id: echo-no-tui
-    title: Simple echo for no-tui test
+  - id: no-tui-echo
+    title: Simple echo for no-TUI fallback test
     prompt: |
       Run `echo "no-tui-ok"` and report the output. Do not change any files.
-    status:
-      implement: done
+    status: done

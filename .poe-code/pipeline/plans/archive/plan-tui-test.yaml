@@ -1,0 +1,6 @@
+tasks:
+  - id: tui-test
+    title: Echo test for TUI verification
+    prompt: |
+      Run `echo "hello from pipeline TUI test"` and report what you see.
+    status: done

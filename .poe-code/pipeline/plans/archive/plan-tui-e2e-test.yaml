@@ -1,0 +1,7 @@
+tasks:
+  - id: tui-e2e-test
+    title: Echo test for TUI E2E verification
+    prompt: |
+      Run `echo "hello from pipeline TUI test"` and report what you see.
+    status:
+      implement: done

@@ -68,7 +68,7 @@ import {
 } from "../../sdk/experiment.js";
 import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { acp, createDashboard } from "@poe-code/design-system";
+import { acp, createDashboard, withOutputFormat } from "@poe-code/design-system";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -94,17 +94,20 @@ function getSpawnAgentOptions() {
   }));
 }
 
-function withMockedTerminal<T>(run: () => Promise<T>): Promise<T> {
+function withMockedTerminal<T>(
+  run: () => Promise<T>,
+  options: { stdin?: boolean; stdout?: boolean } = {}
+): Promise<T> {
   const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
   const stdoutDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
 
   Object.defineProperty(process.stdin, "isTTY", {
     configurable: true,
-    value: true
+    value: options.stdin ?? true
   });
   Object.defineProperty(process.stdout, "isTTY", {
     configurable: true,
-    value: true
+    value: options.stdout ?? true
   });
 
   return run().finally(() => {
@@ -495,6 +498,43 @@ describe("experiment run command", () => {
     );
     expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to the logger path when --tui is used without a TTY stdout", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "experiment",
+          "run",
+          "docs/loop.md",
+          "--agent",
+          "claude",
+          "--max-experiments",
+          "5",
+          "--tui"
+        ]),
+      { stdout: false }
+    );
+
+    expect(vi.mocked(createDashboard)).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
   });
 
   it("streams experiment child-agent output into the dashboard via ACP writer and stderr tee", async () => {
@@ -1446,6 +1486,43 @@ describe("ralph run command", () => {
     );
     expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to the logger path when --tui is used with non-terminal output", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withOutputFormat("markdown", () =>
+      withMockedTerminal(() =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "ralph",
+          "run",
+          "docs/loop.md",
+          "--agent",
+          "claude",
+          "--iterations",
+          "5",
+          "--tui"
+        ])
+      )
+    );
+
+    expect(vi.mocked(createDashboard)).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
   });
 
   it("aborts Ralph when the dashboard quit command is used", async () => {

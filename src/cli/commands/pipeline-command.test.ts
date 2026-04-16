@@ -48,7 +48,7 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 
 import { runPipeline as sdkRunPipeline } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { createDashboard } from "@poe-code/design-system";
+import { createDashboard, withOutputFormat } from "@poe-code/design-system";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -67,17 +67,20 @@ function createBaseProgram(): Command {
   return program;
 }
 
-function withMockedTerminal<T>(run: () => Promise<T>): Promise<T> {
+function withMockedTerminal<T>(
+  run: () => Promise<T>,
+  options: { stdin?: boolean; stdout?: boolean } = {}
+): Promise<T> {
   const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
   const stdoutDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
 
   Object.defineProperty(process.stdin, "isTTY", {
     configurable: true,
-    value: true
+    value: options.stdin ?? true
   });
   Object.defineProperty(process.stdout, "isTTY", {
     configurable: true,
-    value: true
+    value: options.stdout ?? true
   });
 
   return run().finally(() => {
@@ -577,6 +580,42 @@ describe("pipeline run command", () => {
     );
     expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to the logger path when --tui is used with non-terminal output", async () => {
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withOutputFormat("json", () =>
+      withMockedTerminal(() =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "pipeline",
+          "run",
+          "--plan",
+          "custom-plan.yaml",
+          "--agent",
+          "claude",
+          "--tui"
+        ])
+      )
+    );
+
+    expect(vi.mocked(createDashboard)).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
   });
 
   it("aborts the pipeline when the dashboard quit command is used", async () => {

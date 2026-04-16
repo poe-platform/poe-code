@@ -8,4 +8,4 @@ status:
 
 # TUI E2E Test
 
-Run `echo "ralph-dashboard-ok"` and report the output. Do not change any files.
+Run `echo "ralph-tui-ok"` and report the output. Do not change any files.

@@ -1,0 +1,11 @@
+tasks:
+  - id: slow-task
+    title: Slow task for quit test
+    prompt: |
+      Think about the meaning of life for a while, then run `echo "still-thinking"`. Do not change any files.
+    status: done
+  - id: another-task
+    title: Another task that should not run
+    prompt: |
+      Run `echo "should-not-reach"`. Do not change any files.
+    status: done

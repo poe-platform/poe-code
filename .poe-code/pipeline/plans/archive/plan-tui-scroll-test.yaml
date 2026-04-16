@@ -1,28 +1,17 @@
 tasks:
-  - id: scroll-test
-    title: Generate output for scroll verification
+  - id: verbose-task
+    title: Verbose echo task to test scrolling
     prompt: |
-      Run the following commands one by one:
-      echo "line-01"
-      echo "line-02"
-      echo "line-03"
-      echo "line-04"
-      echo "line-05"
-      echo "line-06"
-      echo "line-07"
-      echo "line-08"
-      echo "line-09"
-      echo "line-10"
-      echo "line-11"
-      echo "line-12"
-      echo "line-13"
-      echo "line-14"
-      echo "line-15"
-      echo "line-16"
-      echo "line-17"
-      echo "line-18"
-      echo "line-19"
-      echo "line-20"
-      Report the output. Do not change any files.
-    status:
-      implement: done
+      Run the following commands in sequence:
+      echo "line-1-alpha"
+      echo "line-2-bravo"
+      echo "line-3-charlie"
+      echo "line-4-delta"
+      echo "line-5-echo"
+      echo "line-6-foxtrot"
+      echo "line-7-golf"
+      echo "line-8-hotel"
+      echo "line-9-india"
+      echo "line-10-juliet"
+      Do not change any files.
+    status: done

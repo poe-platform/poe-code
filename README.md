@@ -1,4 +1,4 @@
-![poe-code banner](docs/banners/kimi-k2.5-fw.jpg)
+![poe-code banner](docs/banners/claude-opus-4-7.jpg)
 
 <div align="center">
   <h1>Poe Code ⚡</h1>

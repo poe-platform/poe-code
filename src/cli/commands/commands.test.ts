@@ -252,7 +252,7 @@ describe("configure command", () => {
       status: 200,
       json: async () => ({
         data: [
-          { id: "claude-opus-4.6", context_window: { context_length: 983040 } },
+          { id: "claude-opus-4.7", context_window: { context_length: 983040 } },
           { id: "claude-sonnet-4.6", context_window: { context_length: 983040 } },
           { id: "gpt-5.3-codex", context_window: { context_length: 400000 } },
           { id: "gpt-5.4", context_window: { context_length: 1050000 } },
@@ -279,7 +279,7 @@ describe("configure command", () => {
     expect(provider.name).toBe("custom_poe");
     expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
     expect(provider.models).toEqual([
-      { name: "anthropic/claude-opus-4.6", context_limit: 983040 },
+      { name: "anthropic/claude-opus-4.7", context_limit: 983040 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 983040 },
       { name: "openai/gpt-5.3-codex", context_limit: 400000 },
       { name: "openai/gpt-5.4", context_limit: 1050000 },

@@ -1679,7 +1679,7 @@ describe("goose service", () => {
         json: async () => ({
           data: [
             {
-              id: "claude-opus-4.6",
+              id: "claude-opus-4.7",
               context_window: { context_length: 983040 }
             },
             {
@@ -2006,7 +2006,7 @@ function buildCustomProviderModelsFixture(): Array<Record<string, unknown>> {
 
 function buildGooseModelContextLimitsFixture(): Record<string, number> {
   return {
-    "anthropic/claude-opus-4.6": 983040,
+    "anthropic/claude-opus-4.7": 983040,
     "anthropic/claude-sonnet-4.6": 983040,
     "openai/gpt-5.3-codex": 400000,
     "openai/gpt-5.4": 1050000,

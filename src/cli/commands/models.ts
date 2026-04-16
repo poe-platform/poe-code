@@ -218,7 +218,7 @@ export function registerModelsCommand(
       "  $ poe-code models --endpoint /v1/responses",
       "  $ poe-code models --input image --view pricing",
       "  $ poe-code models --search claude --view parameters",
-      "  $ poe-code models --model claude-opus-4.6 --view raw",
+      "  $ poe-code models --model claude-opus-4.7 --view raw",
       "  $ poe-code models --since 2w --output text"
     ].join("\n"))
     .action(async function (this: Command) {

@@ -131,6 +131,50 @@ if (providerEntryPoints.length > 0) {
   });
 }
 
+// Bundle cmdkit entry points — inlines workspace packages so consumers
+// don't need @poe-code/* workspace deps at runtime.
+const cmdkitEntries = ["index", "cli", "mcp", "sdk", "renderer"].map((name) =>
+  path.join(rootDir, "packages/cmdkit/src", `${name}.ts`)
+);
+
+await esbuild.build({
+  entryPoints: cmdkitEntries,
+  bundle: true,
+  platform: "node",
+  target: "node18",
+  format: "esm",
+  outdir: path.join(rootDir, "packages/cmdkit/dist"),
+  entryNames: "[name]",
+  external: externalDeps,
+  alias: workspaceAliases,
+  sourcemap: true,
+  plugins: [stripShebangPlugin],
+});
+
+// Rewrite @poe-code/* bare-specifier imports in cmdkit .d.ts files
+// to relative paths so types resolve from the shipped tarball.
+const cmdkitDtsDir = path.join(rootDir, "packages/cmdkit/dist");
+const dtsFiles = (await readdir(cmdkitDtsDir)).filter((f) => f.endsWith(".d.ts"));
+const dtsRewriteMap = {
+  '"@poe-code/cmdkit-schema"': '"../../cmdkit-schema/dist/index.js"',
+  '"@poe-code/design-system"': '"../../design-system/dist/index.js"',
+  '"tiny-stdio-mcp-server"': '"../../tiny-stdio-mcp-server/dist/index.js"',
+};
+for (const f of dtsFiles) {
+  const fp = path.join(cmdkitDtsDir, f);
+  let content = await readFile(fp, "utf8");
+  let changed = false;
+  for (const [from, to] of Object.entries(dtsRewriteMap)) {
+    if (content.includes(from)) {
+      content = content.replaceAll(from, to);
+      changed = true;
+    }
+  }
+  if (changed) {
+    await writeFile(fp, content);
+  }
+}
+
 // Generate a CJS entry point with a Node.js version gate.
 // Written in ES5 syntax so even ancient Node versions parse it and
 // print a friendly error instead of crashing on modern syntax.

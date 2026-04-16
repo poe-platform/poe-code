@@ -95,7 +95,11 @@
     "tiny-stdio-mcp-test-server": "packages/tiny-stdio-mcp-test-server/dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "packages/cmdkit/dist",
+    "packages/cmdkit-schema/dist",
+    "packages/design-system/dist",
+    "packages/tiny-stdio-mcp-server/dist"
   ],
   "engines": {
     "node": ">=20"

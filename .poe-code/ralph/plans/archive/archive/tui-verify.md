@@ -6,6 +6,6 @@ status:
   iteration: 1
 ---
 
-# TUI Dashboard Verification
+# TUI Dashboard Verify
 
-Run `echo "hello from ralph TUI test"` and report what you see.
+Run `echo "ralph-dashboard-ok"` and report the output. Do not change any files.

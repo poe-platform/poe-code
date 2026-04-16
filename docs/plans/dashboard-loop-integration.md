@@ -65,7 +65,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 44
+  round: 50
   review_turn: 0
 ---
 
@@ -120,7 +120,7 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 - [x] Extract shared CLI dashboard helpers so pipeline, ralph, and experiment reuse the same duration/timestamp/TTY/line-buffer logic.
 - [x] Add `tui` config knob to pipeline, ralph, and experiment config scopes so the dashboard can be enabled by default without `--tui` flag.
 - [x] Allow `--no-tui` to override the per-command `tui` config knob for one-off non-dashboard runs.
-- [x] Fix broken experiment-loop tests: builder changed `extends` tests from boolean to string but did not update the parser at `packages/experiment-loop/src/frontmatter/frontmatter.ts`. Revert the experiment-loop test changes — they are unrelated to this plan.
+- [x] Fix broken experiment-loop tests: reverted the unrelated `packages/experiment-loop/src/experiment-loop.test.ts` changes that switched `extends` expectations from boolean to string, restoring alignment with the current boolean-only parser.
 
 ## 2. User-facing shape
 

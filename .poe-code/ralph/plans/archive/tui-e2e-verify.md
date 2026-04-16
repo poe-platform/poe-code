@@ -6,6 +6,6 @@ status:
   iteration: 1
 ---
 
-# TUI E2E Verify
+# TUI Ralph E2E Verify
 
 Run `echo "ralph-tui-ok"` and report the output. Do not change any files.

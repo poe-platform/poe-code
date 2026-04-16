@@ -8,4 +8,4 @@ status:
 
 # No-TUI Check
 
-Run `echo "no-tui-check-ok"` and report the output. Do not change any files.
+Run `echo "no-tui-ok"` and report the output. Do not change any files.

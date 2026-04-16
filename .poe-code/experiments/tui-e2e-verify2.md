@@ -1,0 +1,14 @@
+---
+agent: claude-code
+metric:
+  - name: echo_check
+    script: echo 42
+    direction: stable
+baseline:
+  echo_check: 42
+maxExperiments: 1
+---
+
+# TUI E2E Verify 2
+
+Run `echo "experiment-tui-e2e-ok"` and report the output. Do not change any files.

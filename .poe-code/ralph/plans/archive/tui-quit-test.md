@@ -2,8 +2,8 @@
 agent: claude-code
 iterations: 10
 status:
-  state: open
-  iteration: 0
+  state: completed
+  iteration: 1
 ---
 
 # TUI Quit Test

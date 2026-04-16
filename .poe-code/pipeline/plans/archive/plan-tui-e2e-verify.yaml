@@ -1,6 +1,6 @@
 tasks:
-  - id: tui-echo
-    title: Simple echo for TUI verification
+  - id: echo-verify
+    title: Echo test for TUI dashboard verification
     prompt: |
-      Run `echo "dashboard-tui-pipeline-ok"` and report the output. Do not change any files.
+      Run `echo "pipeline-tui-ok"` and report the output. Do not change any files.
     status: done

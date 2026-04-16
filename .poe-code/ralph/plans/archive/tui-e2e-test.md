@@ -1,6 +1,6 @@
 ---
 agent: claude-code
-iterations: 2
+iterations: 1
 status:
   state: completed
   iteration: 1
@@ -8,4 +8,4 @@ status:
 
 # TUI E2E Test
 
-Run `echo "hello from ralph TUI test"` and report what you see.
+Run `echo "ralph-dashboard-ok"` and report the output. Do not change any files.

@@ -543,6 +543,47 @@ describe("experiment run command", () => {
     );
   });
 
+  it("lets --no-tui override the experiment.tui config value", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/.poe-code/config.json": JSON.stringify({
+          experiment: { tui: true }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--max-experiments",
+        "5",
+        "--no-tui"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
   it("uses the POE_EXPERIMENT_TUI env value when set", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
@@ -584,6 +625,50 @@ describe("experiment run command", () => {
     expect(vi.mocked(createDashboard)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
+  it("lets --no-tui override the POE_EXPERIMENT_TUI env value", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd,
+        homeDir,
+        variables: {
+          POE_EXPERIMENT_TUI: "1"
+        }
+      },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--max-experiments",
+        "5",
+        "--no-tui"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
         signal: expect.any(AbortSignal)
       })
     );
@@ -1620,6 +1705,47 @@ describe("ralph run command", () => {
     );
   });
 
+  it("lets --no-tui override the ralph.tui config value", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/.poe-code/config.json": JSON.stringify({
+          ralph: { tui: true }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--iterations",
+        "5",
+        "--no-tui"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
   it("uses the POE_RALPH_TUI env value when set", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
@@ -1661,6 +1787,50 @@ describe("ralph run command", () => {
     expect(vi.mocked(createDashboard)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
       expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
+  it("lets --no-tui override the POE_RALPH_TUI env value", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd,
+        homeDir,
+        variables: {
+          POE_RALPH_TUI: "1"
+        }
+      },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--iterations",
+        "5",
+        "--no-tui"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
         signal: expect.any(AbortSignal)
       })
     );

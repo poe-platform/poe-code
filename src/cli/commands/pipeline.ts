@@ -632,6 +632,7 @@ export function registerPipelineCommand(
     .option("--agent <name>", "Agent to run each pipeline step with")
     .option("--model <model>", "Model override passed to the agent")
     .option("--tui", "Show a live dashboard while the pipeline is running")
+    .option("--no-tui", "Disable the live dashboard for this pipeline run")
     .option("--task <id>", "Run only the specified task")
     .option("--plan <path>", "Path to the pipeline plan file")
     .option("--plans <paths...>", "Paths to pipeline plan files to run sequentially")

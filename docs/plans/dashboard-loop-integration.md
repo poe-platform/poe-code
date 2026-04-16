@@ -65,7 +65,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 22
+  round: 26
   review_turn: 0
 ---
 
@@ -104,7 +104,7 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 
 ### Decisions
 
-- **Opt-in via `--tui`.** Dashboard stays off by default and only runs for explicit interactive invocations. Non-TTY runs still use the existing logger path because each command gates the dashboard behind `resolveOutputFormat() === "terminal"` plus `stdin`/`stdout` TTY checks.
+- **Opt-in via `--tui` or config, with `--no-tui` escape hatch.** Dashboard stays off by default and only runs for explicit interactive invocations unless the per-command `tui` config knob enables it. Non-TTY runs still use the existing logger path because each command gates the dashboard behind `resolveOutputFormat() === "terminal"` plus `stdin`/`stdout` TTY checks, and `--no-tui` disables the dashboard for a single run even when config enables it.
 - **Only `quit` + scroll are wired.** `edit`, `pause`, `retry` are not hooked up — they have no agreed semantics per loop yet and are out of scope. The CLI integrations pass a reduced footer hint set (`q`, scroll, follow) so the dashboard only advertises commands that work.
 - **Child-agent output must reach the left pane in human-readable form.** Pipeline reuses ACP event rendering via `renderAcpEvent` and also buffers tee'd stdout/stderr; Ralph and Experiment wrap `sdkSpawn.autonomous()` in `acp.withAcpWriter()` and tee stderr separately. In all three cases the dashboard receives stage-tagged lines (`task:step`, `iteration:n`, `experiment:n`) rather than raw JSON event streams.
 
@@ -119,6 +119,8 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 - [x] Stream child-agent output into `appendOutput` from the experiment integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
 - [x] Extract shared CLI dashboard helpers so pipeline, ralph, and experiment reuse the same duration/timestamp/TTY/line-buffer logic.
 - [x] Add `tui` config knob to pipeline, ralph, and experiment config scopes so the dashboard can be enabled by default without `--tui` flag.
+- [x] Allow `--no-tui` to override the per-command `tui` config knob for one-off non-dashboard runs.
+- [x] Fix broken experiment-loop tests: builder changed `extends` tests from boolean to string but did not update the parser at `packages/experiment-loop/src/frontmatter/frontmatter.ts`. Revert the experiment-loop test changes — they are unrelated to this plan.
 
 ## 2. User-facing shape
 
@@ -185,9 +187,9 @@ That keeps `@poe-code/pipeline`, `@poe-code/ralph`, and `@poe-code/experiment-lo
 
 Each command follows the same shape:
 
-1. Parse normal CLI options plus `--tui`.
+1. Parse normal CLI options plus `--tui` / `--no-tui`.
 2. Call `shouldUse*Dashboard()` to require all of:
-   - `--tui`
+   - effective TUI enablement from CLI/config
    - terminal output format
    - TTY stdin
    - TTY stdout
@@ -212,10 +214,10 @@ Each command follows the same shape:
 
 ### Flags, env vars, config knobs
 
-- New flag: `--tui` on `pipeline run`, `ralph run`, and `experiment run`.
+- New flags: `--tui` and `--no-tui` on `pipeline run`, `ralph run`, and `experiment run`.
 - No new env vars.
 - No new persisted config field in this iteration.
-- Resolved: a per-command `tui: true` config knob was added (`pipeline.tui`, `ralph.tui`, `experiment.tui`) with env vars `POE_PIPELINE_TUI`, `POE_RALPH_TUI`, `POE_EXPERIMENT_TUI`. CLI `--tui` flag takes precedence over config.
+- Resolved: a per-command `tui: true` config knob was added (`pipeline.tui`, `ralph.tui`, `experiment.tui`) with env vars `POE_PIPELINE_TUI`, `POE_RALPH_TUI`, `POE_EXPERIMENT_TUI`. CLI `--tui` and `--no-tui` flags take precedence over config.
 
 ## 4. Interfaces and test plan
 

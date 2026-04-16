@@ -680,6 +680,7 @@ export function registerRalphCommand(
     .option("--agent <name>", "Override the agent from frontmatter")
     .option("--iterations <n>", "Override iterations from frontmatter")
     .option("--tui", "Show a live dashboard while Ralph is running")
+    .option("--no-tui", "Disable the live dashboard for this Ralph run")
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "ralph:run");

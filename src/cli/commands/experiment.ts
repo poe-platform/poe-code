@@ -604,6 +604,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .option("--agent <agent>", "Override the agent from frontmatter")
     .option("--max-experiments <n>", "Limit the number of experiments to run")
     .option("--tui", "Show a live dashboard while the experiment is running")
+    .option("--no-tui", "Disable the live dashboard for this experiment run")
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "experiment:run");

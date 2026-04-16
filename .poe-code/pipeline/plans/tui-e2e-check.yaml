@@ -1,0 +1,9 @@
+tasks:
+  - id: echo-check
+    title: Echo check for TUI dashboard verification
+    prompt: |
+      Run `echo "pipeline-tui-ok"` and report the output. Do not change any files.
+    status:
+      implement: done
+      test: open
+      commit: open

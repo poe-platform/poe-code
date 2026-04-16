@@ -297,7 +297,7 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 | `--stdin` | `false` | Read the prompt from stdin. |
 | `-i, --interactive` | `false` | Launch in interactive TUI mode (inherits stdio). |
 | `--mode <mode>` | `yolo` | Permission mode: `yolo` (full access), `edit` (file edits only), `read` (read-only). |
-| `--mcp-config <json>` | None | MCP servers to inject at spawn time. JSON format: `{"name": {"command": "...", "args": [...], "env": {...}}}` |
+| `--mcp-servers <json\|@file>` | None | MCP servers to inject at spawn time. Accepts inline JSON or `@path/to/file.json`. Deprecated alias: `--mcp-config`. |
 
 **Behavior:**
 
@@ -330,9 +330,12 @@ echo "Hello" | poe-code spawn claude-code -
 # Interactive TUI mode
 poe-code spawn claude-code -i
 
-# With MCP servers injected at spawn time
+# With MCP servers injected at spawn time (inline JSON)
 poe-code spawn claude-code "Use the filesystem tool" \
-  --mcp-config '{"fs": {"command": "/usr/local/bin/fs-server"}}'
+  --mcp-servers '{"fs": {"command": "/usr/local/bin/fs-server"}}'
+
+# With MCP servers loaded from a JSON file
+poe-code spawn claude-code "Use the filesystem tool" --mcp-servers @./mcp.json
 
 # Specify working directory
 poe-code spawn codex "Fix tests" -C /path/to/project
@@ -1209,7 +1212,7 @@ Config not required for isolation (`requiresConfig: false`).
 | `edit` | `--permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit` |
 | `read` | `--permission-mode plan` |
 
-**MCP args:** JSON format via `--mcp-config`
+**MCP args:** JSON format via `--mcp-servers` (also accepts `@path/to/file.json`; `--mcp-config` is deprecated alias)
 
 ---
 
@@ -1428,7 +1431,7 @@ Config probe: `.kimi/config.toml`
 | `edit` | (empty) |
 | `read` | (empty) |
 
-**MCP args:** JSON format via `--mcp-config`
+**MCP args:** JSON format via `--mcp-servers` (also accepts `@path/to/file.json`; `--mcp-config` is deprecated alias)
 
 ---
 
@@ -1763,7 +1766,10 @@ Inject MCP servers into an agent session at spawn time. This allows agents to us
 **CLI:**
 ```bash
 poe-code spawn claude-code "Use the database tool" \
-  --mcp-config '{"db": {"command": "/usr/local/bin/db-server", "args": ["--port", "5432"]}}'
+  --mcp-servers '{"db": {"command": "/usr/local/bin/db-server", "args": ["--port", "5432"]}}'
+
+# Or load the same structure from disk
+poe-code spawn claude-code "Use the database tool" --mcp-servers @./mcp.json
 ```
 
 **SDK:**
@@ -1784,9 +1790,9 @@ const { result } = spawn("claude-code", {
 
 | Agent | Format | Flag |
 |-------|--------|------|
-| Claude Code | JSON: `--mcp-config '{"mcpServers": {...}}'` | `--mcp-config` |
+| Claude Code | JSON or `@file` via `--mcp-servers` | `--mcp-servers` |
 | Codex | TOML inline tables via `-c` flags | `-c mcp_servers.name.command="..."` |
-| Kimi | JSON: `--mcp-config '{"mcpServers": {...}}'` | `--mcp-config` |
+| Kimi | JSON or `@file` via `--mcp-servers` | `--mcp-servers` |
 | Goose | Repeated extension flags | `--with-extension "<command> <args...>"` |
 | OpenCode | Not supported at spawn time | N/A |
 
@@ -1869,7 +1875,7 @@ Modes:
   yolo: --dangerously-skip-permissions
   edit: --permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit
   read: --permission-mode plan
-MCP: --mcp-config <JSON>
+MCP: --mcp-servers <JSON\|@file> (deprecated alias: --mcp-config)
 Stdin: omit prompt flag, add --input-format text
 Interactive: (no extra args)
 Resume: --resume <threadId>
@@ -1920,7 +1926,7 @@ Modes:
   yolo: --yolo
   edit: (none)
   read: (none)
-MCP: --mcp-config <JSON>
+MCP: --mcp-servers <JSON\|@file> (deprecated alias: --mcp-config)
 Stdin: omit prompt flag, add --input-format stream-json
 Interactive prompt flag: -p
 Resume: --session <threadId> --work-dir <cwd>

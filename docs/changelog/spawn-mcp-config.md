@@ -1,6 +1,7 @@
 # Spawn-time MCP Server Injection
 
 Pass MCP servers directly at spawn time via `--mcp-servers`, removing the need to pre-configure agent config files.
+The CLI accepts inline JSON or `@path/to/file.json` (deprecated alias: `--mcp-config`).
 
 ## Supported Agents
 
@@ -25,6 +26,11 @@ poe-code spawn --mcp-servers '{
 ```
 
 Each entry requires `command` (string). `args` (string array) and `env` (string record) are optional.
+
+```bash
+# Load the same payload from disk
+poe-code spawn --mcp-servers @./mcp.json claude-code "Use the tools from my-server"
+```
 
 ## SDK
 

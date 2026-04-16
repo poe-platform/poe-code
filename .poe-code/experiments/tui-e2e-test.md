@@ -9,6 +9,6 @@ baseline:
 maxExperiments: 1
 ---
 
-# TUI E2E Verify 2
+# TUI E2E Test
 
-Run `echo "experiment-tui-e2e-ok"` and report the output. Do not change any files.
+Run `echo "experiment-tui-ok"` and report the output. Do not change any files.

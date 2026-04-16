@@ -1,0 +1,11 @@
+---
+agent: claude-code
+iterations: 1
+status:
+  state: completed
+  iteration: 1
+---
+
+# No-TUI Check
+
+Run `echo "no-tui-check-ok"` and report the output. Do not change any files.

@@ -500,6 +500,95 @@ describe("experiment run command", () => {
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
   });
 
+  it("uses the experiment.tui config value when set", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/.poe-code/config.json": JSON.stringify({
+          experiment: { tui: true }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--max-experiments",
+        "5"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
+  it("uses the POE_EXPERIMENT_TUI env value when set", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd,
+        homeDir,
+        variables: {
+          POE_EXPERIMENT_TUI: "1"
+        }
+      },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--max-experiments",
+        "5"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
   it("falls back to the logger path when --tui is used without a TTY stdout", async () => {
     const container = createCliContainer({
       fs: createMemFs({
@@ -1486,6 +1575,95 @@ describe("ralph run command", () => {
     );
     expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses the ralph.tui config value when set", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/.poe-code/config.json": JSON.stringify({
+          ralph: { tui: true }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--iterations",
+        "5"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
+  it("uses the POE_RALPH_TUI env value when set", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd,
+        homeDir,
+        variables: {
+          POE_RALPH_TUI: "1"
+        }
+      },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "claude",
+        "--iterations",
+        "5"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
   });
 
   it("falls back to the logger path when --tui is used with non-terminal output", async () => {

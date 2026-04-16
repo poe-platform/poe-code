@@ -58,6 +58,12 @@ export const ralphConfigScope = defineScope("ralph", {
     default: "",
     env: "POE_RALPH_PLAN_DIRECTORY",
     doc: "Custom directory for Ralph plan documents"
+  },
+  tui: {
+    type: "boolean",
+    default: false,
+    env: "POE_RALPH_TUI",
+    doc: "Enable the Ralph dashboard by default for terminal TTY runs"
   }
 });
 
@@ -67,6 +73,12 @@ export const pipelineConfigScope = defineScope("pipeline", {
     default: "",
     env: "POE_PIPELINE_PLAN_DIRECTORY",
     doc: "Custom directory for Pipeline plan files"
+  },
+  tui: {
+    type: "boolean",
+    default: false,
+    env: "POE_PIPELINE_TUI",
+    doc: "Enable the Pipeline dashboard by default for terminal TTY runs"
   }
 });
 
@@ -76,6 +88,12 @@ export const experimentConfigScope = defineScope("experiment", {
     default: "",
     env: "POE_EXPERIMENT_PLAN_DIRECTORY",
     doc: "Custom directory for Experiment doc files"
+  },
+  tui: {
+    type: "boolean",
+    default: false,
+    env: "POE_EXPERIMENT_TUI",
+    doc: "Enable the Experiment dashboard by default for terminal TTY runs"
   }
 });
 

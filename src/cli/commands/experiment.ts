@@ -444,9 +444,12 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
   return Number.parseInt(trimmed, 10);
 }
 
-async function resolveExperimentPlanDirectory(
+async function resolveExperimentCommandConfig(
   container: CliContainer
-): Promise<string | undefined> {
+): Promise<{
+  planDirectory?: string;
+  tui: boolean;
+}> {
   const configDoc = await readMergedDocument(
     container.fs,
     container.env.configPath,
@@ -457,8 +460,11 @@ async function resolveExperimentPlanDirectory(
     configDoc[experimentConfigScope.scope],
     container.env.variables
   );
-  const dir = experimentConfig.plan_directory?.trim();
-  return dir || undefined;
+  const planDirectory = experimentConfig.plan_directory?.trim();
+  return {
+    ...(planDirectory ? { planDirectory } : {}),
+    tui: experimentConfig.tui === true
+  };
 }
 
 async function resolveDocPath(options: {
@@ -610,12 +616,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
       resources.logger.intro("experiment run");
 
       try {
-        const planDirectory = await resolveExperimentPlanDirectory(container);
+        const commandConfig = await resolveExperimentCommandConfig(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
-          planDirectory,
+          planDirectory: commandConfig.planDirectory,
           selectMessage: "Select the experiment doc to run:",
           cancelMessage: "Experiment run cancelled."
         });
@@ -669,7 +675,8 @@ export function registerExperimentCommand(program: Command, container: CliContai
             );
           }
         };
-        const result = shouldUseInteractiveDashboard(options.tui)
+        const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
+        const result = useDashboard
           ? await runExperimentWithDashboard({
               agent,
               docPath,
@@ -709,12 +716,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
       resources.logger.intro("experiment journal");
 
       try {
-        const planDirectory = await resolveExperimentPlanDirectory(container);
+        const commandConfig = await resolveExperimentCommandConfig(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
-          planDirectory,
+          planDirectory: commandConfig.planDirectory,
           selectMessage: "Select the experiment doc journal to view:",
           cancelMessage: "Experiment journal cancelled."
         });
@@ -783,12 +790,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
       }>();
 
       try {
-        const planDirectory = await resolveExperimentPlanDirectory(container);
+        const commandConfig = await resolveExperimentCommandConfig(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
-          planDirectory,
+          planDirectory: commandConfig.planDirectory,
           selectMessage: "Select the experiment doc to log to:",
           cancelMessage: "Journal log cancelled."
         });
@@ -853,12 +860,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
       try {
         resources.logger.intro("experiment validate");
 
-        const planDirectory = await resolveExperimentPlanDirectory(container);
+        const commandConfig = await resolveExperimentCommandConfig(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
-          planDirectory,
+          planDirectory: commandConfig.planDirectory,
           selectMessage: "Select the experiment doc to validate:",
           cancelMessage: "Experiment validate cancelled."
         });

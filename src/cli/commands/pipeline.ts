@@ -60,7 +60,10 @@ import {
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
 
-async function resolvePipelinePlanDirectory(container: CliContainer): Promise<string | undefined> {
+async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
+  planDirectory?: string;
+  tui: boolean;
+}> {
   const configDoc = await readMergedDocument(
     container.fs,
     container.env.configPath,
@@ -71,8 +74,11 @@ async function resolvePipelinePlanDirectory(container: CliContainer): Promise<st
     configDoc[pipelineConfigScope.scope],
     container.env.variables
   );
-  const dir = pipelineConfig.plan_directory?.trim();
-  return dir || undefined;
+  const planDirectory = pipelineConfig.plan_directory?.trim();
+  return {
+    ...(planDirectory ? { planDirectory } : {}),
+    tui: pipelineConfig.tui === true
+  };
 }
 
 const DEFAULT_PIPELINE_AGENT = "claude-code";
@@ -670,7 +676,7 @@ export function registerPipelineCommand(
           agent = resolvePipelineAgent(selected as string);
         }
 
-        const planDirectory = await resolvePipelinePlanDirectory(container);
+        const commandConfig = await resolvePipelineCommandConfig(container);
         const maxRuns = resolveMaxRuns(options.maxRuns);
 
         if (options.plan && options.plans && options.plans.length > 0) {
@@ -680,7 +686,7 @@ export function registerPipelineCommand(
         const planPaths = await resolvePlanPaths({
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
-          ...(planDirectory ? { planDirectory } : {}),
+          ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
           ...(options.plan ? { plan: options.plan } : {}),
           ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
           assumeYes: flags.assumeYes,
@@ -725,7 +731,7 @@ export function registerPipelineCommand(
             agent,
             cwd: container.env.cwd,
             homeDir: container.env.homeDir,
-            ...(planDirectory ? { planDirectory } : {}),
+            ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
             ...(options.model ? { model: options.model } : {}),
             ...(options.task ? { task: options.task } : {}),
             plan: planPath,
@@ -733,7 +739,8 @@ export function registerPipelineCommand(
             assumeYes: flags.assumeYes
           };
 
-          const result = shouldUseInteractiveDashboard(options.tui)
+          const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
+          const result = useDashboard
             ? await runPipelineWithDashboard({
                 agent,
                 ...(options.model ? { model: options.model } : {}),
@@ -911,12 +918,12 @@ export function registerPipelineCommand(
     .command("plan-path")
     .description("Print the directory where pipeline plan files should be placed.")
     .action(async function () {
-      const planDirectory = await resolvePipelinePlanDirectory(container);
+      const commandConfig = await resolvePipelineCommandConfig(container);
 
       const resolvedPath = await resolvePlanDirectory({
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
-        planDirectory,
+        planDirectory: commandConfig.planDirectory,
         fs: container.fs
       });
 

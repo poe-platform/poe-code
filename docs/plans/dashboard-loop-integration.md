@@ -65,7 +65,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 18
+  round: 22
   review_turn: 0
 ---
 
@@ -118,6 +118,7 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 - [x] Stream child-agent output into `appendOutput` from the ralph integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
 - [x] Stream child-agent output into `appendOutput` from the experiment integration (route `spawnAutonomous` via `acp.withAcpWriter`, stage-tagged, prompts via stdin).
 - [x] Extract shared CLI dashboard helpers so pipeline, ralph, and experiment reuse the same duration/timestamp/TTY/line-buffer logic.
+- [x] Add `tui` config knob to pipeline, ralph, and experiment config scopes so the dashboard can be enabled by default without `--tui` flag.
 
 ## 2. User-facing shape
 
@@ -214,7 +215,7 @@ Each command follows the same shape:
 - New flag: `--tui` on `pipeline run`, `ralph run`, and `experiment run`.
 - No new env vars.
 - No new persisted config field in this iteration.
-- Open question: do we later want a per-command `tui: true` config knob, or is explicit `--tui` enough for interactive workflows?
+- Resolved: a per-command `tui: true` config knob was added (`pipeline.tui`, `ralph.tui`, `experiment.tui`) with env vars `POE_PIPELINE_TUI`, `POE_RALPH_TUI`, `POE_EXPERIMENT_TUI`. CLI `--tui` flag takes precedence over config.
 
 ## 4. Interfaces and test plan
 
@@ -316,4 +317,4 @@ No migration is required:
 
 ### Follow-up candidates
 
-- Consider a persisted config knob only if interactive users ask for it repeatedly.
+- ~~Consider a persisted config knob only if interactive users ask for it repeatedly.~~ Done — `tui` config knob shipped in round 20.

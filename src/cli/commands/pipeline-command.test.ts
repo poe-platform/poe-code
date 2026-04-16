@@ -582,6 +582,100 @@ describe("pipeline run command", () => {
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
   });
 
+  it("uses the pipeline.tui config value when set", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/config.json",
+      `${JSON.stringify({ pipeline: { tui: true } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "pipeline",
+        "run",
+        "--agent",
+        "codex",
+        "--plan",
+        "custom-plan.yaml"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
+  it("uses the POE_PIPELINE_TUI env value when set", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd,
+        homeDir,
+        variables: {
+          POE_PIPELINE_TUI: "1"
+        }
+      },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "pipeline",
+        "run",
+        "--agent",
+        "codex",
+        "--plan",
+        "custom-plan.yaml"
+      ])
+    );
+
+    expect(vi.mocked(createDashboard)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
+
   it("falls back to the logger path when --tui is used with non-terminal output", async () => {
     const fs = createMemFs();
     await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });

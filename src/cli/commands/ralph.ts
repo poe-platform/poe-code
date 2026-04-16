@@ -286,9 +286,12 @@ function resolveAbsoluteDocPath(container: CliContainer, docPath: string): strin
     : path.resolve(container.env.cwd, docPath);
 }
 
-async function resolvePlanDirectory(
+async function resolveRalphCommandConfig(
   container: CliContainer
-): Promise<string | undefined> {
+): Promise<{
+  planDirectory?: string;
+  tui: boolean;
+}> {
   const configDoc = await readMergedDocument(
     container.fs,
     container.env.configPath,
@@ -299,8 +302,11 @@ async function resolvePlanDirectory(
     configDoc[ralphConfigScope.scope],
     container.env.variables
   );
-  const configDir = ralphConfig.plan_directory?.trim();
-  return configDir || undefined;
+  const planDirectory = ralphConfig.plan_directory?.trim();
+  return {
+    ...(planDirectory ? { planDirectory } : {}),
+    tui: ralphConfig.tui === true
+  };
 }
 
 function formatDocHint(frontmatter: RalphFrontmatter): string | undefined {
@@ -611,12 +617,12 @@ export function registerRalphCommand(
       resources.logger.intro("ralph init");
 
       try {
-        const planDirectory = await resolvePlanDirectory(container);
+        const commandConfig = await resolveRalphCommandConfig(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
-          planDirectory
+          planDirectory: commandConfig.planDirectory
         });
         if (!docPath) {
           return;
@@ -686,12 +692,12 @@ export function registerRalphCommand(
       resources.logger.intro("ralph run");
 
       try {
-        const planDirectory = await resolvePlanDirectory(container);
+        const commandConfig = await resolveRalphCommandConfig(container);
         const docPath = await resolveDocPath({
           container,
           program,
           providedDoc: docArg,
-          planDirectory
+          planDirectory: commandConfig.planDirectory
         });
         if (!docPath) {
           return;
@@ -723,7 +729,8 @@ export function registerRalphCommand(
           docPath,
           maxIterations
         };
-        const result = shouldUseInteractiveDashboard(options.tui)
+        const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
+        const result = useDashboard
           ? await runRalphWithDashboard({
               agent,
               docPath,

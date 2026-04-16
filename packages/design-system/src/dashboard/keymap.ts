@@ -24,7 +24,7 @@ const defaultBindings: Record<Command, string[]> = {
   pageUp: ["pageup"],
   pageDown: ["pagedown"],
   scrollToTop: ["home", "g"],
-  scrollToBottom: ["end", "G"]
+  scrollToBottom: ["end", "G", "f", "F"]
 };
 
 type Binding = {

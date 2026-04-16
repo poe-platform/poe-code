@@ -30,17 +30,19 @@ export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, state: Output
   }
 
   const visualLines = computeVisualLines(state.items, rect.width);
+  const showBanner = !state.autoFollow && rect.height >= 2;
+  const contentHeight = showBanner ? rect.height - 1 : rect.height;
   const startLine = state.autoFollow
-    ? Math.max(visualLines.length - rect.height, 0)
+    ? Math.max(visualLines.length - contentHeight, 0)
     : clampScrollOffset(state.scrollOffset, visualLines.length);
   const textRect: Rect = {
     x: rect.x + TEXT_OFFSET,
     y: rect.y,
     width: rect.width - TEXT_OFFSET,
-    height: rect.height
+    height: contentHeight
   };
 
-  for (let row = 0; row < rect.height; row += 1) {
+  for (let row = 0; row < contentHeight; row += 1) {
     const line = visualLines[startLine + row];
     if (line === undefined) {
       continue;
@@ -76,6 +78,45 @@ export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, state: Output
 
     buffer.putInRect(textRect, row, line.text, line.style);
   }
+
+  if (showBanner) {
+    const hiddenBelow = Math.max(0, visualLines.length - (startLine + contentHeight));
+    renderFollowBanner(buffer, rect, hiddenBelow);
+  }
+}
+
+function renderFollowBanner(buffer: ScreenBuffer, rect: Rect, hiddenBelow: number): void {
+  const bannerRow = rect.height - 1;
+  const themeName = resolveThemeName();
+  const keyStyle: CellStyle = themeName === "light"
+    ? { fg: "#006699", bold: true }
+    : { fg: "cyan", bold: true };
+  const labelStyle = getMutedStyle(themeName);
+
+  const message = hiddenBelow > 0
+    ? `↓ F to follow · ${hiddenBelow} more`
+    : "↓ F to follow";
+  const cells = buildBannerCells(message, keyStyle, labelStyle);
+  const clipped = cells.slice(0, rect.width);
+  const startX = rect.x + Math.max(0, Math.floor((rect.width - clipped.length) / 2));
+  const y = rect.y + bannerRow;
+
+  for (let index = 0; index < clipped.length; index += 1) {
+    const cell = clipped[index]!;
+    buffer.put(startX + index, y, cell.ch, cell.style);
+  }
+}
+
+function buildBannerCells(
+  message: string,
+  keyStyle: CellStyle,
+  labelStyle: CellStyle
+): Array<{ ch: string; style: CellStyle }> {
+  const cells: Array<{ ch: string; style: CellStyle }> = [];
+  for (const ch of message) {
+    cells.push({ ch, style: ch === "F" ? keyStyle : labelStyle });
+  }
+  return cells;
 }
 
 export function computeVisualLines(items: OutputItem[], width: number): VisualLine[] {

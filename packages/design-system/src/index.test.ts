@@ -53,7 +53,8 @@ describe("design-system root exports", () => {
       { key: "e", label: "Edit" },
       { key: "p", label: "Pause" },
       { key: "r", label: "Retry" },
-      { key: "↑↓", label: "Scroll" }
+      { key: "↑↓", label: "Scroll" },
+      { key: "F", label: "Follow" }
     ]);
   });
 

@@ -664,7 +664,7 @@ describe("output pane", () => {
     renderOutputPane(buffer, rect, {
       items,
       scrollOffset: 0,
-      autoFollow: false
+      autoFollow: true
     });
 
     expect(readRow(buffer, 1)).toBe(" ◇  alpha beta  ");
@@ -677,8 +677,8 @@ describe("output pane", () => {
   });
 
   it("renderOutputPane respects scrollOffset when auto-follow is disabled", () => {
-    const buffer = new ScreenBuffer(16, 6);
-    const rect: Rect = { x: 1, y: 1, width: 13, height: 3 };
+    const buffer = new ScreenBuffer(16, 7);
+    const rect: Rect = { x: 1, y: 1, width: 13, height: 4 };
     const items: OutputItem[] = [
       { kind: "info", text: "alpha beta gamma", ts: 1 },
       { kind: "success", text: "done", ts: 2 },
@@ -691,9 +691,11 @@ describe("output pane", () => {
       autoFollow: false
     });
 
+    // With autoFollow=false, last row is reserved for the follow banner.
     expect(readRow(buffer, 1)).toBe(" │  gamma       ");
     expect(readRow(buffer, 2)).toBe(" ◆  done        ");
     expect(readRow(buffer, 3)).toBe(" ■  oops        ");
+    expect(readRow(buffer, 4)).toContain("F to follow");
   });
 
   it("renderOutputPane ignores scrollOffset while auto-follow is enabled", () => {
@@ -712,6 +714,70 @@ describe("output pane", () => {
 
     expect(readRow(buffer, 1)).toBe(" │  gamma       ");
     expect(readRow(buffer, 2)).toBe(" ◆  done        ");
+  });
+
+  it("renderOutputPane shows a follow banner when auto-follow is disabled", () => {
+    const buffer = new ScreenBuffer(30, 5);
+    const rect: Rect = { x: 0, y: 0, width: 30, height: 4 };
+    const items: OutputItem[] = [
+      { kind: "info", text: "alpha", ts: 1 },
+      { kind: "info", text: "beta", ts: 2 },
+      { kind: "info", text: "gamma", ts: 3 },
+      { kind: "info", text: "delta", ts: 4 }
+    ];
+
+    renderOutputPane(buffer, rect, {
+      items,
+      scrollOffset: 0,
+      autoFollow: false
+    });
+
+    expect(readRow(buffer, 3)).toContain("F to follow");
+    expect(readRow(buffer, 3)).toContain("1 more");
+  });
+
+  it("renderOutputPane does not show a follow banner when auto-follow is enabled", () => {
+    const buffer = new ScreenBuffer(30, 5);
+    const rect: Rect = { x: 0, y: 0, width: 30, height: 4 };
+    const items: OutputItem[] = [
+      { kind: "info", text: "alpha", ts: 1 },
+      { kind: "info", text: "beta", ts: 2 },
+      { kind: "info", text: "gamma", ts: 3 },
+      { kind: "info", text: "delta", ts: 4 }
+    ];
+
+    renderOutputPane(buffer, rect, {
+      items,
+      scrollOffset: 0,
+      autoFollow: true
+    });
+
+    expect(readRow(buffer, 3)).not.toContain("follow");
+    expect(readRow(buffer, 3)).toContain("delta");
+  });
+
+  it("renderOutputPane reserves the last row for the banner but keeps recent content visible", () => {
+    const buffer = new ScreenBuffer(30, 6);
+    const rect: Rect = { x: 0, y: 0, width: 30, height: 5 };
+    const items: OutputItem[] = [
+      { kind: "info", text: "alpha", ts: 1 },
+      { kind: "info", text: "beta", ts: 2 },
+      { kind: "info", text: "gamma", ts: 3 },
+      { kind: "info", text: "delta", ts: 4 }
+    ];
+
+    renderOutputPane(buffer, rect, {
+      items,
+      scrollOffset: 0,
+      autoFollow: false
+    });
+
+    // With 4 items and 5 rows (4 content + 1 banner), we can see alpha..delta
+    expect(readRow(buffer, 0)).toContain("alpha");
+    expect(readRow(buffer, 1)).toContain("beta");
+    expect(readRow(buffer, 2)).toContain("gamma");
+    expect(readRow(buffer, 3)).toContain("delta");
+    expect(readRow(buffer, 4)).toContain("F to follow");
   });
 });
 
@@ -1183,7 +1249,8 @@ describe("footer", () => {
       { key: "e", label: "Edit" },
       { key: "p", label: "Pause" },
       { key: "r", label: "Retry" },
-      { key: "↑↓", label: "Scroll" }
+      { key: "↑↓", label: "Scroll" },
+      { key: "F", label: "Follow" }
     ]);
   });
 
@@ -1258,6 +1325,8 @@ describe("keymap", () => {
     expect(resolve(key({ ch: "g" }))).toBe("scrollToTop");
     expect(resolve(key({ name: "end" }))).toBe("scrollToBottom");
     expect(resolve(key({ ch: "G", shift: true }))).toBe("scrollToBottom");
+    expect(resolve(key({ ch: "f" }))).toBe("scrollToBottom");
+    expect(resolve(key({ ch: "F", shift: true }))).toBe("scrollToBottom");
   });
 
   it("resolves ctrl+c to quit", () => {

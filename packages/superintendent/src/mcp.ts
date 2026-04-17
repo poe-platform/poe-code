@@ -24,6 +24,8 @@ const MCP_NAME = "superintendent";
 const MCP_VERSION = "0.0.1";
 const SUPERINTENDENT_TOOLS_SUBCOMMAND = "superintendent-tools";
 const SUPERINTENDENT_TOOLS_SERVER_NAME = "superintendent-agentic-tools";
+const WORKFLOW_TRANSITION_SUBCOMMAND = "workflow-transition";
+const WORKFLOW_TRANSITION_SERVER_NAME = "superintendent-workflow-transition";
 
 export type SuperintendentToolsPayload = {
   docPath: string;
@@ -45,6 +47,11 @@ export async function main(argv: string[] = process.argv): Promise<void> {
   try {
     if (argv[2] === SUPERINTENDENT_TOOLS_SUBCOMMAND) {
       await runSuperintendentToolsServer(argv[3]);
+      return;
+    }
+
+    if (argv[2] === WORKFLOW_TRANSITION_SUBCOMMAND) {
+      await runWorkflowTransitionServer(argv[3]);
       return;
     }
 
@@ -72,6 +79,23 @@ async function runSuperintendentToolsServer(encodedPayload: string | undefined):
 function registerWorkflowTool(server: Server, state: StatusBlock["state"]): void {
   const tool = createWorkflowTool("superintendent", state);
 
+  registerWorkflowToolDefinition(server, tool);
+}
+
+async function runWorkflowTransitionServer(encodedTool: string | undefined): Promise<void> {
+  const tool = decodeWorkflowTool(encodedTool);
+
+  const server = createServer({
+    name: WORKFLOW_TRANSITION_SERVER_NAME,
+    version: MCP_VERSION
+  });
+
+  registerWorkflowToolDefinition(server, tool);
+
+  await server.listen();
+}
+
+function registerWorkflowToolDefinition(server: Server, tool: WorkflowToolDefinition): void {
   server.tool(tool.name, tool.description, tool.inputSchema, async (input) => {
     const transition = parseWorkflowCall(input);
     assertAllowedAction(tool, transition.action);
@@ -163,6 +187,60 @@ function assertAllowedAction(
 
 function invalidSuperintendentToolsPayloadError(): Error {
   return new Error("Invalid superintendent-tools payload");
+}
+
+function decodeWorkflowTool(encodedTool: string | undefined): WorkflowToolDefinition {
+  if (typeof encodedTool !== "string" || encodedTool.trim().length === 0) {
+    throw invalidWorkflowTransitionPayloadError();
+  }
+
+  try {
+    const decoded = Buffer.from(encodedTool, "base64").toString("utf8");
+    const parsed = JSON.parse(decoded) as unknown;
+
+    if (!isWorkflowToolDefinition(parsed)) {
+      throw invalidWorkflowTransitionPayloadError();
+    }
+
+    return parsed;
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === invalidWorkflowTransitionPayloadError().message
+    ) {
+      throw error;
+    }
+
+    throw invalidWorkflowTransitionPayloadError();
+  }
+}
+
+function invalidWorkflowTransitionPayloadError(): Error {
+  return new Error("Invalid workflow-transition payload");
+}
+
+function isWorkflowToolDefinition(value: unknown): value is WorkflowToolDefinition {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (value.name !== "workflow.transition" || typeof value.description !== "string") {
+    return false;
+  }
+
+  const inputSchema = value.inputSchema;
+
+  if (!isRecord(inputSchema) || inputSchema.type !== "object") {
+    return false;
+  }
+
+  const properties = inputSchema.properties;
+
+  if (!isRecord(properties) || !isRecord(properties.action)) {
+    return false;
+  }
+
+  return properties.action.type === "string";
 }
 
 function isSuperintendentToolsPayload(value: unknown): value is SuperintendentToolsPayload {

@@ -311,6 +311,78 @@ describe("superintendent MCP entry point", () => {
     expect(createServerMock).not.toHaveBeenCalled();
   });
 
+  it("registers the encoded workflow.transition tool when workflow-transition subcommand is used", async () => {
+    const ownerTool = createWorkflowTool("owner", "review");
+    const encodedTool = Buffer.from(JSON.stringify(ownerTool), "utf8").toString("base64");
+
+    const { main } = await import("./mcp.js");
+
+    await main([
+      "node",
+      "/repo/packages/superintendent/dist/mcp.js",
+      "workflow-transition",
+      encodedTool
+    ]);
+
+    expect(createMCPServerMock).not.toHaveBeenCalled();
+    expect(mcpListenMock).not.toHaveBeenCalled();
+    expect(createServerMock).toHaveBeenCalledWith({
+      name: "superintendent-workflow-transition",
+      version: "0.0.1"
+    });
+    expect(serverListenMock).toHaveBeenCalledTimes(1);
+    expect(serverToolMock).toHaveBeenCalledTimes(1);
+    expect(serverToolMock).toHaveBeenCalledWith(
+      ownerTool.name,
+      ownerTool.description,
+      ownerTool.inputSchema,
+      expect.any(Function)
+    );
+  });
+
+  it("workflow-transition handler accepts allowed actions and rejects others", async () => {
+    const ownerTool = createWorkflowTool("owner", "review");
+    const encodedTool = Buffer.from(JSON.stringify(ownerTool), "utf8").toString("base64");
+
+    const { main } = await import("./mcp.js");
+
+    await main([
+      "node",
+      "/repo/packages/superintendent/dist/mcp.js",
+      "workflow-transition",
+      encodedTool
+    ]);
+
+    const handler = serverToolMock.mock.calls[0]?.[3] as (input: unknown) => Promise<unknown>;
+
+    await expect(handler({ action: "approve_completion" })).resolves.toBe(
+      "Recorded workflow transition: approve_completion"
+    );
+    await expect(
+      handler({ action: "request_changes", feedback: "Task 2 not done" })
+    ).resolves.toBe("Recorded workflow transition: request_changes");
+    await expect(
+      handler({ action: "request_review", summary: "ready" })
+    ).rejects.toThrow(
+      'workflow.transition action "request_review" is not allowed for this role/state'
+    );
+  });
+
+  it("fails when the workflow-transition payload is invalid", async () => {
+    const { main } = await import("./mcp.js");
+
+    await expect(
+      main([
+        "node",
+        "/repo/packages/superintendent/dist/mcp.js",
+        "workflow-transition",
+        "not-base64"
+      ])
+    ).rejects.toThrow("Invalid workflow-transition payload");
+    expect(createMCPServerMock).not.toHaveBeenCalled();
+    expect(createServerMock).not.toHaveBeenCalled();
+  });
+
   it("does not start the MCP server as a side effect of importing the module", async () => {
     await import("./mcp.js");
 

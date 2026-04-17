@@ -6,20 +6,25 @@ const spawn = (): AgentPlugin => ({
     {
       name: "spawn",
       description: "Spawn a fresh sub-agent to handle a sub-task",
+      policy: {
+        read: true,
+        edit: true
+      },
       inputSchema: {
         type: "object",
         properties: {
           task: {
-            type: "string",
-          },
+            type: "string"
+          }
         },
-        required: ["task"],
+        required: ["task"]
       },
       async call(args, ctx) {
-        return ctx.spawn((args as { task: string }).task);
-      },
-    },
-  ],
+        const result = await ctx.spawn((args as { task: string }).task);
+        return result.output;
+      }
+    }
+  ]
 });
 
 export default spawn;

@@ -40,6 +40,57 @@ export function getOptionalString(args: unknown, key: string): string | undefine
   return value;
 }
 
+export function getOptionalBoolean(args: unknown, key: string): boolean | undefined {
+  if (!isObjectRecord(args)) {
+    throw new Error(`Tool argument "${key}" must be a boolean`);
+  }
+
+  const value = args[key];
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "boolean") {
+    throw new Error(`Tool argument "${key}" must be a boolean`);
+  }
+
+  return value;
+}
+
+export function getOptionalNumber(args: unknown, key: string): number | undefined {
+  if (!isObjectRecord(args)) {
+    throw new Error(`Tool argument "${key}" must be a number`);
+  }
+
+  const value = args[key];
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`Tool argument "${key}" must be a finite number`);
+  }
+
+  return value;
+}
+
+export function getOptionalNonNegativeInteger(args: unknown, key: string): number | undefined {
+  if (!isObjectRecord(args)) {
+    throw new Error(`Tool argument "${key}" must be a non-negative integer`);
+  }
+
+  const value = args[key];
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw new Error(`Tool argument "${key}" must be a non-negative integer`);
+  }
+
+  return value;
+}
+
 export function resolveAllowedPath(cwd: string, allowedPaths: string[], inputPath: string): string {
   const resolvedPath = path.resolve(cwd, inputPath);
   const isAllowed = allowedPaths.some(allowedPath => {

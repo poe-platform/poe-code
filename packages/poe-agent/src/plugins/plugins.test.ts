@@ -96,6 +96,34 @@ describe("poe-agent-plugin-audit-log", () => {
     expect(record.tool).toBe("search_web");
     expect(Number.isNaN(Date.parse(String(record.ts)))).toBe(false);
   });
+
+  it("writes compaction summaries with dropped message counts", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(volume).promises;
+    appendFileMock.mockImplementation(fs.appendFile.bind(fs));
+
+    const plugin = auditLog("/audit.jsonl");
+    await plugin.hooks?.postCompaction?.({
+      tokenCount: 42,
+      summary: "Kept the open bug and latest file edits.",
+      droppedMessages: [
+        { role: "user", content: "first" },
+        { role: "assistant", content: "second" },
+      ],
+      messages: [{ role: "system", content: "Compacted context summary:\n..." }],
+      signal: new AbortController().signal,
+    });
+
+    const line = volume.readFileSync("/audit.jsonl", "utf8").trim();
+    const record = JSON.parse(line) as Record<string, unknown>;
+
+    expect(record).toMatchObject({
+      event: "compaction",
+      summary: "Kept the open bug and latest file edits.",
+      droppedMessageCount: 2,
+    });
+    expect(Number.isNaN(Date.parse(String(record.ts)))).toBe(false);
+  });
 });
 
 // --- poe-agent-plugin-environment ---
@@ -321,6 +349,67 @@ describe("poe-agent-plugin-max-iterations", () => {
       expect(terminal.error.message).toContain("preIteration");
     }
   });
+
+  it("does not leak iteration state across runs", async () => {
+    const plugin = maxIterations(1);
+
+    const createEvents = async (): Promise<AcpEvent[]> => {
+      const runContext = createRunContext();
+      runContext.hooks.add(plugin);
+
+      const host: AcpHost = {
+        handle: vi.fn(async () => ({ status: "success", result: "ok" })),
+        fork: vi.fn(async request => ({ output: request.prompt, messages: [] })),
+        spawn: vi.fn(async prompt => ({ output: prompt, messages: [] })),
+      };
+
+      let callCount = 0;
+      const model: AcpModel = {
+        complete: vi.fn(async () => {
+          callCount += 1;
+          return {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: `tool-${callCount}`,
+                  tool: "always_call_tool",
+                  args: { iteration: callCount },
+                },
+              ],
+            },
+          };
+        }),
+      };
+
+      return collectEvents(
+        runAcpCore({
+          prompt: "Always call a tool",
+          runContext,
+          host,
+          model,
+        }),
+      );
+    };
+
+    const firstRunEvents = await createEvents();
+    const secondRunEvents = await createEvents();
+
+    for (const events of [firstRunEvents, secondRunEvents]) {
+      expect(events.map(event => event.type)).toEqual([
+        "tool.intent",
+        "tool.result",
+        "session.error",
+      ]);
+
+      const terminal = events[events.length - 1];
+      expect(terminal?.type).toBe("session.error");
+      if (terminal?.type === "session.error") {
+        expect(terminal.error.name).toBe("AbortError");
+        expect(terminal.error.message).toContain("preIteration");
+      }
+    }
+  });
 });
 
 // --- poe-agent-plugin-scratchpad ---
@@ -398,13 +487,37 @@ async function callToolByName(
   pluginTools: Array<{ name: string; call: (args: unknown, ctx: ToolContext) => unknown | Promise<unknown> }>,
   name: string,
   args: unknown,
+  ctx: ToolContext = pluginsToolContext,
 ): Promise<unknown> {
   const tool = pluginTools.find(candidate => candidate.name === name);
   if (!tool) {
     throw new Error(`Tool not found: ${name}`);
   }
 
-  return tool.call(args, pluginsToolContext);
+  return tool.call(args, ctx);
+}
+
+function createNodeCommand(code: string): string {
+  return `${JSON.stringify(process.execPath)} -e ${JSON.stringify(code)}`;
+}
+
+async function waitForBackgroundOutput(
+  plugin: { tools?: Array<{ name: string; call: (args: unknown, ctx: ToolContext) => unknown | Promise<unknown> }> },
+  handle: string,
+  expectedOutput: string,
+): Promise<void> {
+  const deadline = Date.now() + 2_000;
+
+  while (Date.now() < deadline) {
+    const output = await callToolByName(plugin.tools ?? [], "read_background", { handle });
+    if (typeof output === "string" && output.includes(expectedOutput)) {
+      return;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+
+  throw new Error(`Timed out waiting for background output: ${expectedOutput}`);
 }
 
 describe("poe-agent built-in plugins", () => {
@@ -454,7 +567,13 @@ describe("poe-agent built-in plugins", () => {
     });
 
     expect(plugin.name).toBe("poe-agent-plugin-files");
-    expect(plugin.tools?.map(tool => tool.name)).toEqual(["read_file", "edit_file", "list_files"]);
+    expect(plugin.tools?.map(tool => tool.name)).toEqual([
+      "read_file",
+      "edit_file",
+      "list_files",
+      "grep",
+      "glob",
+    ]);
 
     await expect(callToolByName(plugin.tools ?? [], "read_file", { path: "README.md" })).resolves.toBe(
       "hello",
@@ -476,7 +595,176 @@ describe("poe-agent built-in plugins", () => {
     await expect(callToolByName(plugin.tools ?? [], "list_files", {})).resolves.toBe("app.ts\nREADME.md");
   });
 
+  it("files plugin grep delegates to the provided search implementation", async () => {
+    const searchContent = vi.fn(async () => "src/app.ts:2:const value = 1;");
+    const fs = createFsFromVolume(
+      Volume.fromJSON(
+        {
+          "/workspace/project/src/app.ts": "const value = 1;\n",
+        },
+        "/",
+      ),
+    ).promises;
+    const plugin = filesPlugin({
+      cwd: "/workspace/project",
+      allowedPaths: ["/workspace/project"],
+      fs,
+      searchContent,
+    });
+    const signal = new AbortController().signal;
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "grep", {
+        pattern: "value",
+        path: "src",
+        glob: "*.ts",
+        output_mode: "content",
+        line_numbers: true,
+        ignore_case: true,
+      }, { ...pluginsToolContext, signal }),
+    ).resolves.toBe("src/app.ts:2:const value = 1;");
+
+    expect(searchContent).toHaveBeenCalledWith({
+      pattern: "value",
+      path: "/workspace/project/src",
+      glob: "*.ts",
+      outputMode: "content",
+      lineNumbers: true,
+      ignoreCase: true,
+      signal,
+    });
+  });
+
+  it("files plugin glob returns matches sorted by modified time descending", async () => {
+    const volume = Volume.fromJSON(
+      {
+        "/workspace/project/src/alpha.ts": "export const alpha = 1;\n",
+        "/workspace/project/src/beta.ts": "export const beta = 2;\n",
+      },
+      "/",
+    );
+    volume.utimesSync("/workspace/project/src/alpha.ts", new Date(1_000), new Date(1_000));
+    volume.utimesSync("/workspace/project/src/beta.ts", new Date(2_000), new Date(2_000));
+
+    const fs = createFsFromVolume(volume).promises;
+    const globFiles = vi.fn(async () => [
+      "/workspace/project/src/alpha.ts",
+      "/workspace/project/src/beta.ts",
+    ]);
+    const plugin = filesPlugin({
+      cwd: "/workspace/project",
+      allowedPaths: ["/workspace/project"],
+      fs,
+      globFiles,
+    });
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "glob", {
+        pattern: "**/*.ts",
+        path: "src",
+      }),
+    ).resolves.toBe("src/beta.ts\nsrc/alpha.ts");
+
+    expect(globFiles).toHaveBeenCalledWith({
+      pattern: "**/*.ts",
+      cwd: "/workspace/project/src",
+    });
+  });
+
+  it("files plugin supports line-based read_file offset and limit", async () => {
+    const fs = createMemFs({
+      "/workspace/project/notes.md": "zero\none\ntwo\nthree\n",
+    });
+    const plugin = filesPlugin({
+      cwd: "/workspace/project",
+      allowedPaths: ["/workspace/project"],
+      fs,
+    });
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "read_file", {
+        path: "notes.md",
+        offset: 1,
+        limit: 2,
+      }),
+    ).resolves.toBe("one\ntwo\n");
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "read_file", {
+        path: "notes.md",
+        offset: 3,
+      }),
+    ).resolves.toBe("three\n");
+  });
+
+  it("files plugin returns image tool results for image files", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    volume.mkdirSync("/workspace/project", { recursive: true });
+    volume.writeFileSync("/workspace/project/diagram.png", Buffer.from("png-binary"));
+    const fs = createFsFromVolume(volume).promises as unknown as ToolExecutorFileSystem;
+    const plugin = filesPlugin({
+      cwd: "/workspace/project",
+      allowedPaths: ["/workspace/project"],
+      fs,
+    });
+
+    await expect(callToolByName(plugin.tools ?? [], "read_file", { path: "diagram.png" })).resolves.toEqual(
+      {
+        type: "image",
+        mimeType: "image/png",
+        data: Buffer.from("png-binary").toString("base64"),
+      },
+    );
+  });
+
+  it("files plugin supports edit_file replace_all and overwrite", async () => {
+    const fs = createMemFs({
+      "/workspace/project/app.ts": "const value = 1;\nconst value = 1;\n",
+    });
+    const plugin = filesPlugin({
+      cwd: "/workspace/project",
+      allowedPaths: ["/workspace/project"],
+      fs,
+    });
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "edit_file", {
+        command: "str_replace",
+        path: "app.ts",
+        old_str: "const value = 1;",
+        new_str: "const value = 2;",
+      }),
+    ).rejects.toThrow("old_str appears 2 times");
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "edit_file", {
+        command: "str_replace",
+        path: "app.ts",
+        old_str: "const value = 1;",
+        new_str: "const value = 2;",
+        replace_all: true,
+      }),
+    ).resolves.toBe("Edited file: app.ts");
+
+    await expect(callToolByName(plugin.tools ?? [], "read_file", { path: "app.ts" })).resolves.toBe(
+      "const value = 2;\nconst value = 2;\n",
+    );
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "edit_file", {
+        command: "overwrite",
+        path: "app.ts",
+        file_text: "export const value = 3;\n",
+      }),
+    ).resolves.toBe("Overwrote file: app.ts");
+
+    await expect(callToolByName(plugin.tools ?? [], "read_file", { path: "app.ts" })).resolves.toBe(
+      "export const value = 3;\n",
+    );
+  });
+
   it("shell plugin resolves cwd and delegates to provided runner", async () => {
+    const signal = new AbortController().signal;
     const runCommand = vi.fn(async () => "ok");
     const plugin = shellPlugin({
       cwd: "/workspace/project",
@@ -485,13 +773,93 @@ describe("poe-agent built-in plugins", () => {
     });
 
     expect(plugin.name).toBe("poe-agent-plugin-shell");
-    expect(plugin.tools?.map(tool => tool.name)).toEqual(["run_command"]);
+    expect(plugin.tools?.map(tool => tool.name)).toEqual([
+      "run_command",
+      "read_background",
+      "kill_background",
+    ]);
 
     await expect(
-      callToolByName(plugin.tools ?? [], "run_command", { command: "ls -la", cwd: "./subdir" }),
+      plugin.tools?.[0]?.call(
+        { command: "ls -la", cwd: "./subdir", timeout: 45 },
+        {
+          ...pluginsToolContext,
+          signal,
+        },
+      ),
     ).resolves.toBe("ok");
 
-    expect(runCommand).toHaveBeenCalledWith("ls -la", "/workspace/project/subdir");
+    expect(runCommand).toHaveBeenCalledWith("ls -la", "/workspace/project/subdir", {
+      signal,
+      timeoutMs: 45_000,
+    });
+  });
+
+  it("shell plugin starts background commands, reads buffered output, and kills them", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd],
+    });
+
+    const handle = await callToolByName(plugin.tools ?? [], "run_command", {
+      command: createNodeCommand("process.stdout.write('ready\\n'); setInterval(() => {}, 1_000);"),
+      run_in_background: true,
+    });
+
+    expect(handle).toBeTypeOf("string");
+
+    await waitForBackgroundOutput(plugin, String(handle), "ready");
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "kill_background", {
+        handle,
+      }),
+    ).resolves.toBe(`Killed background command: ${handle}`);
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "read_background", {
+        handle,
+      }),
+    ).resolves.toContain("Status: exited");
+  });
+
+  it("shell plugin times out foreground commands", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd],
+    });
+
+    await expect(
+      callToolByName(plugin.tools ?? [], "run_command", {
+        command: createNodeCommand("setTimeout(() => {}, 5_000);"),
+        timeout: 0.05,
+      }),
+    ).rejects.toThrow("Command timed out after 0.05 seconds");
+  });
+
+  it("shell plugin aborts foreground commands when the tool signal is aborted", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd],
+    });
+    const runCommandTool = plugin.tools?.find(tool => tool.name === "run_command");
+    const controller = new AbortController();
+    const callPromise = runCommandTool?.call(
+      {
+        command: createNodeCommand("setTimeout(() => {}, 5_000);"),
+      },
+      {
+        ...pluginsToolContext,
+        signal: controller.signal,
+      },
+    );
+
+    controller.abort(new Error("stop"));
+
+    await expect(callPromise).rejects.toThrow("Command aborted");
   });
 
   it("web plugin delegates to provided search implementation", async () => {
@@ -499,12 +867,93 @@ describe("poe-agent built-in plugins", () => {
     const plugin = webPlugin({ searchWeb });
 
     expect(plugin.name).toBe("poe-agent-plugin-web");
-    expect(plugin.tools?.map(tool => tool.name)).toEqual(["search_web"]);
+    expect(plugin.tools?.map(tool => tool.name)).toEqual(["search_web", "fetch_url"]);
 
     await expect(callToolByName(plugin.tools ?? [], "search_web", { query: "poe" })).resolves.toBe(
       "results",
     );
-    expect(searchWeb).toHaveBeenCalledWith("poe");
+    expect(searchWeb).toHaveBeenCalledWith("poe", {
+      signal: pluginsToolContext.signal,
+    });
+  });
+
+  it("web plugin fetch_url converts HTML responses to markdown", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response("<html><body><h1>Example</h1><p>Hello <strong>world</strong>.</p></body></html>", {
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+        },
+      }),
+    );
+    const plugin = webPlugin({ fetch: fetchMock });
+
+    const output = await callToolByName(plugin.tools ?? [], "fetch_url", {
+      url: "https://example.com/docs",
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith("https://example.com/docs", {
+      signal: pluginsToolContext.signal,
+    });
+    expect(output).toContain("URL: https://example.com/docs");
+    expect(output).toContain("Content type: text/html");
+    expect(output).toContain("# Example");
+    expect(output).toContain("Hello **world**.");
+    expect(output).toContain("Showing characters 0-");
+    expect(output).not.toContain("More content available");
+  });
+
+  it("web plugin fetch_url paginates long response bodies with offset", async () => {
+    const body = "0123456789".repeat(2_500);
+    const fetchMock = vi.fn(async () =>
+      new Response(body, {
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+        },
+      }),
+    );
+    const plugin = webPlugin({ fetch: fetchMock });
+
+    const firstPage = await callToolByName(plugin.tools ?? [], "fetch_url", {
+      url: "https://example.com/log",
+    });
+    const secondPage = await callToolByName(plugin.tools ?? [], "fetch_url", {
+      url: "https://example.com/log",
+      offset: 20_000,
+    });
+
+    expect(firstPage).toContain("Showing characters 0-20000 of 25000.");
+    expect(firstPage).toContain("More content available at offset 20000.");
+    expect(firstPage).toContain("0123456789");
+    expect(secondPage).toContain("Showing characters 20000-25000 of 25000.");
+    expect(secondPage).not.toContain("More content available");
+    expect(secondPage).toContain("0123456789");
+  });
+
+  it("web plugin fetch_url aborts when ctx.signal fires", async () => {
+    const controller = new AbortController();
+    const fetchMock = vi.fn(
+      (_input: string | URL | Request, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        }),
+    );
+    const plugin = webPlugin({ fetch: fetchMock });
+
+    const tool = plugin.tools?.find(candidate => candidate.name === "fetch_url");
+    if (!tool) {
+      throw new Error("fetch_url tool not found");
+    }
+
+    const pending = tool.call(
+      { url: "https://example.com" },
+      { ...pluginsToolContext, signal: controller.signal },
+    );
+
+    controller.abort();
+
+    await expect(pending).rejects.toThrow("Aborted");
   });
 
   it("spawn plugin exposes spawn tool that calls ctx.spawn(task)", async () => {
@@ -521,10 +970,9 @@ describe("poe-agent built-in plugins", () => {
     expect(plugin.tools?.map(tool => tool.name)).toEqual(["spawn"]);
 
     const tool = plugin.tools?.[0];
-    await expect(tool?.call({ task: "investigate tests" }, spawnContext)).resolves.toEqual({
-      output: "spawned",
-      messages: [],
-    });
+    await expect(tool?.call({ task: "investigate tests" }, spawnContext)).resolves.toEqual(
+      "spawned",
+    );
     expect(spawn).toHaveBeenCalledWith("investigate tests");
     expect(fork).not.toHaveBeenCalled();
   });

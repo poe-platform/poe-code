@@ -129,6 +129,35 @@ Body
     expect(result.frontmatter.owner.cwd).toBeUndefined();
   });
 
+  it("defaults agent to claude-code when omitted on each role", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  prompt: build
+inspectors:
+  testing:
+    prompt: test
+superintendent:
+  prompt: review
+owner:
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.builder.agent).toBe("claude-code");
+    expect(result.frontmatter.inspectors?.testing.agent).toBe("claude-code");
+    expect(result.frontmatter.superintendent.agent).toBe("claude-code");
+    expect(result.frontmatter.owner.agent).toBe("claude-code");
+  });
+
   it("rejects non-string cwd", () => {
     const content = `---
 kind: superintendent

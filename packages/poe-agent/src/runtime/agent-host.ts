@@ -6,14 +6,16 @@ import {
   type McpServer,
   type NewSessionResponse,
   type PromptResponse,
-  type SessionNotification,
+  type SessionNotification
 } from "@poe-code/poe-acp-client";
 import {
   createAgentSession,
   type AgentSession,
-  type CreateAgentSessionOptions,
+  type CreateAgentSessionOptions
 } from "../agent-session.js";
+import type { SpawnMode } from "@poe-code/agent-spawn";
 import { runAcpCore, type AcpModel } from "./acp-core.js";
+import { applyHookDecision, createNotificationHookContext } from "./hooks.js";
 import { createRunContext, type RunContext } from "./run-context.js";
 import type {
   AcpEvent,
@@ -24,22 +26,20 @@ import type {
   ToolAckResult,
   ToolContext,
   ToolEvent,
-  ToolIntent,
+  ToolIntent
 } from "./types.js";
 
 type InMemorySession = Pick<AgentSession, "sendMessage" | "dispose">;
-type InMemoryCreateSession = (
-  options: CreateAgentSessionOptions,
-) => Promise<InMemorySession>;
+type InMemoryCreateSession = (options: CreateAgentSessionOptions) => Promise<InMemorySession>;
 
 type InMemoryNotificationHandler = (
   params: unknown,
-  context: { method: string },
+  context: { method: string }
 ) => void | Promise<void>;
 
 type InMemoryRequestHandler = (
   params: unknown,
-  context: { id: string | number | null; method: string },
+  context: { id: string | number | null; method: string }
 ) => unknown | Promise<unknown>;
 
 type InMemoryAcpTransport = {
@@ -66,6 +66,7 @@ export type AgentHostOptions = {
   runContext: RunContext;
   model: AcpModel;
   baseSystemPrompt?: string;
+  maxIterations?: number;
   emit?(event: AcpEvent): void;
   createSpawnSession(): AgentHostSpawnSession | Promise<AgentHostSpawnSession>;
 };
@@ -80,6 +81,7 @@ export type CreateProcessSpawnSessionOptions = {
 export type CreateInMemorySpawnSessionOptions = {
   model: string;
   cwd: string;
+  mode?: SpawnMode;
   baseUrl?: string;
   mcpServers?: CreateAgentSessionOptions["mcpServers"];
   createSession?: InMemoryCreateSession;
@@ -89,6 +91,7 @@ export class AgentHost implements AcpHost {
   readonly #runContext: RunContext;
   readonly #model: AcpModel;
   readonly #baseSystemPrompt?: string;
+  readonly #maxIterations?: number;
   readonly #emit?: (event: AcpEvent) => void;
   readonly #createSpawnSession: AgentHostOptions["createSpawnSession"];
   #forkSequence = 0;
@@ -97,6 +100,7 @@ export class AgentHost implements AcpHost {
     this.#runContext = options.runContext;
     this.#model = options.model;
     this.#baseSystemPrompt = options.baseSystemPrompt;
+    this.#maxIterations = options.maxIterations;
     this.#emit = options.emit;
     this.#createSpawnSession = options.createSpawnSession;
   }
@@ -106,36 +110,37 @@ export class AgentHost implements AcpHost {
     if (!tool) {
       return {
         status: "error",
-        result: `Unknown tool: ${intent.tool}`,
+        result: `Unknown tool: ${intent.tool}`
       };
     }
 
     const toolContext: ToolContext = {
-      fork: async prompt => {
+      fork: async (prompt) => {
         this.#forkSequence += 1;
         return this.fork({
           forkId: `fork-${this.#forkSequence}`,
           prompt,
           context: {
             messages: [...this.#runContext.messages],
-            toolCalls: [],
-          },
+            toolCalls: []
+          }
         });
       },
-      spawn: async prompt => this.spawn(prompt),
+      spawn: async (prompt) => this.spawn(prompt),
       signal: this.#runContext.abortController.signal,
+      notify: async (notification) => this.#notify(notification)
     };
 
     try {
       const result = await this.#consumeToolInvocation(tool.invoke(intent.args, toolContext));
       return {
         status: "success",
-        result,
+        result
       };
     } catch (error) {
       return {
         status: "error",
-        result: toErrorMessage(error),
+        result: toErrorMessage(error)
       };
     }
   }
@@ -144,7 +149,7 @@ export class AgentHost implements AcpHost {
     this.#emit?.({
       type: "fork.start",
       forkId: request.forkId,
-      prompt: request.prompt,
+      prompt: request.prompt
     });
 
     try {
@@ -152,7 +157,7 @@ export class AgentHost implements AcpHost {
       this.#emit?.({
         type: "fork.complete",
         forkId: request.forkId,
-        result,
+        result
       });
       return result;
     } catch (error) {
@@ -160,7 +165,7 @@ export class AgentHost implements AcpHost {
       this.#emit?.({
         type: "fork.error",
         forkId: request.forkId,
-        error: message,
+        error: message
       });
       throw error;
     }
@@ -199,9 +204,9 @@ export class AgentHost implements AcpHost {
         messages: [
           {
             role: "assistant",
-            content: output,
-          },
-        ],
+            content: output
+          }
+        ]
       };
     } finally {
       await spawnSession.client.dispose();
@@ -209,7 +214,7 @@ export class AgentHost implements AcpHost {
   }
 
   async #consumeToolInvocation(
-    invocation: AsyncGenerator<ToolEvent, unknown, void>,
+    invocation: AsyncGenerator<ToolEvent, unknown, void>
   ): Promise<unknown> {
     const signal = this.#runContext.abortController.signal;
     let closed = false;
@@ -247,14 +252,14 @@ export class AgentHost implements AcpHost {
         if (next.value.type === "message.delta") {
           this.#emit?.({
             type: "message.delta",
-            content: next.value.content,
+            content: next.value.content
           });
           continue;
         }
 
         this.#emit?.({
           type: "progress",
-          message: next.value.message,
+          message: next.value.message
         });
       }
     } finally {
@@ -262,9 +267,32 @@ export class AgentHost implements AcpHost {
     }
   }
 
+  async #notify(notification: { event: string; message?: string; data?: unknown }): Promise<void> {
+    const signal = this.#runContext.abortController.signal;
+    if (signal.aborted) {
+      return;
+    }
+
+    const context = createNotificationHookContext({
+      event: notification.event,
+      message: notification.message,
+      data: notification.data,
+      messages: this.#runContext.messages,
+      signal
+    });
+
+    try {
+      const decision = await this.#runContext.hooks.run("notification", context);
+      await applyHookDecision("notification", decision, context);
+    } catch (error) {
+      await this.#runContext.dispose().catch(() => undefined);
+      throw error;
+    }
+  }
+
   async #runFork(request: ForkRequest): Promise<ForkResult> {
     const childContext = createRunContext({
-      activeSkills: this.#runContext.activeSkills,
+      activeSkills: this.#runContext.activeSkills
     });
     childContext.messages.push(...request.context.messages);
     childContext.tools.copyFrom(this.#runContext.tools);
@@ -273,7 +301,7 @@ export class AgentHost implements AcpHost {
 
     const removeAbortListener = linkAbortController(
       this.#runContext.abortController.signal,
-      childContext.abortController,
+      childContext.abortController
     );
     childContext.registerDisposeHook(removeAbortListener);
 
@@ -281,7 +309,8 @@ export class AgentHost implements AcpHost {
       runContext: childContext,
       model: this.#model,
       baseSystemPrompt: this.#baseSystemPrompt,
-      createSpawnSession: this.#createSpawnSession,
+      maxIterations: this.#maxIterations,
+      createSpawnSession: this.#createSpawnSession
     });
 
     const childEvents = runAcpCore({
@@ -290,13 +319,14 @@ export class AgentHost implements AcpHost {
       host: childHost,
       model: this.#model,
       baseSystemPrompt: this.#baseSystemPrompt,
+      maxIterations: this.#maxIterations
     });
 
     for await (const event of childEvents) {
       if (event.type === "session.complete") {
         return {
           output: event.result.output,
-          messages: event.result.messages,
+          messages: event.result.messages
         };
       }
 
@@ -310,25 +340,25 @@ export class AgentHost implements AcpHost {
 }
 
 export function createProcessSpawnSession(
-  options: CreateProcessSpawnSessionOptions,
+  options: CreateProcessSpawnSessionOptions
 ): AgentHostSpawnSession {
   const cwd = options.cwd ?? process.cwd();
   const client = new AcpClient({
     command: options.command,
     args: options.args,
     cwd,
-    ...(options.env === undefined ? {} : { env: options.env }),
+    ...(options.env === undefined ? {} : { env: options.env })
   });
 
   return {
     client,
     cwd,
-    mcpServers: [],
+    mcpServers: []
   };
 }
 
 export function createInMemorySpawnSession(
-  options: CreateInMemorySpawnSessionOptions,
+  options: CreateInMemorySpawnSessionOptions
 ): AgentHostSpawnSession {
   const transport = createInMemoryAcpTransport(options);
   const client = new AcpClient({ transport });
@@ -336,12 +366,12 @@ export function createInMemorySpawnSession(
   return {
     client,
     cwd: options.cwd,
-    mcpServers: [],
+    mcpServers: []
   };
 }
 
 export function createInMemoryAcpTransport(
-  options: CreateInMemorySpawnSessionOptions,
+  options: CreateInMemorySpawnSessionOptions
 ): InMemoryAcpTransport {
   const createSession = options.createSession ?? createAgentSession;
   const sessions = new Map<string, InMemorySession>();
@@ -352,7 +382,7 @@ export function createInMemoryAcpTransport(
   let sessionCounter = 0;
   let resolveClosed: ((event: AcpTransportClosedEvent) => void) | undefined;
 
-  const closedPromise = new Promise<AcpTransportClosedEvent>(resolve => {
+  const closedPromise = new Promise<AcpTransportClosedEvent>((resolve) => {
     resolveClosed = resolve;
   });
 
@@ -366,12 +396,12 @@ export function createInMemoryAcpTransport(
     const activeSessions = Array.from(sessions.values());
     sessions.clear();
 
-    void Promise.all(activeSessions.map(async session => session.dispose())).finally(() => {
+    void Promise.all(activeSessions.map(async (session) => session.dispose())).finally(() => {
       resolveClosed?.({
         code: 0,
         signal: null,
         reason,
-        stderr: "",
+        stderr: ""
       });
     });
   };
@@ -385,12 +415,12 @@ export function createInMemoryAcpTransport(
           protocolVersion: request?.protocolVersion ?? 1,
           agentInfo: {
             name: "poe-agent",
-            version: "0.0.1",
+            version: "0.0.1"
           },
           agentCapabilities: {
             sessionCapabilities: {},
-            promptCapabilities: {},
-          },
+            promptCapabilities: {}
+          }
         };
         return response as TResult;
       }
@@ -400,8 +430,9 @@ export function createInMemoryAcpTransport(
         const session = await createSession({
           model: options.model,
           cwd: request?.cwd ?? options.cwd,
+          ...(options.mode === undefined ? {} : { mode: options.mode }),
           ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
-          ...(options.mcpServers === undefined ? {} : { mcpServers: options.mcpServers }),
+          ...(options.mcpServers === undefined ? {} : { mcpServers: options.mcpServers })
         });
         sessionCounter += 1;
         const sessionId = `poe-agent-spawn-${sessionCounter}`;
@@ -428,9 +459,9 @@ export function createInMemoryAcpTransport(
                 sessionUpdate: "agent_message_chunk",
                 content: {
                   type: "text",
-                  text: reply.content,
-                },
-              },
+                  text: reply.content
+                }
+              }
             };
 
             for (const handler of handlers) {
@@ -479,7 +510,7 @@ export function createInMemoryAcpTransport(
     },
     dispose(reason?: Error): void {
       closeTransport(reason ?? new Error("In-memory ACP transport disposed."));
-    },
+    }
   };
 }
 

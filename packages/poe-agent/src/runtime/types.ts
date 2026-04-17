@@ -1,6 +1,30 @@
+import type { SpawnMode } from "@poe-code/agent-spawn";
+
+export type ToolResultTextPart = {
+  type: "text";
+  text: string;
+};
+
+export type ToolResultImagePart = {
+  type: "image";
+  mimeType: string;
+  data: string;
+};
+
+export type ToolResultErrorPart = {
+  type: "error";
+  code: string;
+  message: string;
+  retriable: boolean;
+};
+
+export type ToolResultPart = ToolResultTextPart | ToolResultImagePart | ToolResultErrorPart;
+
+export type ToolResult = string | ToolResultPart | ToolResultPart[];
+
 export type ChatMessage = {
   role: "system" | "user" | "assistant" | "tool";
-  content: string;
+  content: string | ToolResultPart[];
   reasoning_content?: string;
   reasoning?: string;
   name?: string;
@@ -74,21 +98,29 @@ export type ToolContext = {
   fork(prompt: string): Promise<ForkResult>;
   spawn(prompt: string): Promise<RunOutput>;
   signal: AbortSignal;
+  notify?(notification: { event: string; message?: string; data?: unknown }): void | Promise<void>;
 };
 
 export type ToolEvent =
   | { type: "message.delta"; content: string }
   | { type: "progress"; message: string };
 
+export type ToolPolicy = {
+  read: boolean;
+  edit: boolean;
+  validate?(args: unknown, mode: SpawnMode): string | void | Promise<string | void>;
+};
+
 export type Tool = {
   name: string;
   description?: string;
   inputSchema?: unknown;
   visibility?: "model" | "skill" | "internal";
+  policy?: ToolPolicy;
   call(
     args: unknown,
-    ctx: ToolContext,
-  ): unknown | Promise<unknown> | AsyncGenerator<ToolEvent, unknown, void>;
+    ctx: ToolContext
+  ): ToolResult | Promise<ToolResult> | AsyncGenerator<ToolEvent, ToolResult, void>;
 };
 
 export type NormalizedTool = {
@@ -96,5 +128,6 @@ export type NormalizedTool = {
   description?: string;
   inputSchema?: unknown;
   visibility: "model" | "skill" | "internal";
-  invoke(args: unknown, ctx: ToolContext): AsyncGenerator<ToolEvent, unknown, void>;
+  policy?: ToolPolicy;
+  invoke(args: unknown, ctx: ToolContext): AsyncGenerator<ToolEvent, ToolResult, void>;
 };

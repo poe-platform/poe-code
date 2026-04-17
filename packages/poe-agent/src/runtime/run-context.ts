@@ -1,4 +1,5 @@
 import { HookRegistry } from "./hooks.js";
+import type { McpServerConfig } from "./plugin-types.js";
 import { PromptRegistry } from "./prompts.js";
 import { ToolRegistry } from "./tools.js";
 import type { ChatMessage } from "./types.js";
@@ -36,6 +37,8 @@ export class RunContext {
   readonly tools = new ToolRegistry();
   readonly prompts = new PromptRegistry();
   readonly hooks = new HookRegistry();
+  readonly session = new Map<string, unknown>();
+  readonly mcpServers: McpServerConfig[] = [];
   readonly activeSkills: string[];
   readonly abortController = new AbortController();
   readonly childRuns = new Set<Promise<unknown>>();

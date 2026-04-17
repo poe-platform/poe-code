@@ -152,6 +152,16 @@ describe("PluginApiImpl", () => {
       visibility: "skill",
     });
 
+    expect(context.mcpServers).toEqual([
+      {
+        name: "repo",
+        command: "node",
+        args: ["server.js"],
+        env: { NODE_ENV: "test" },
+        visibility: "skill",
+      },
+    ]);
+
     await api.flushSetup();
 
     expect(stdioTransportConstructorMock).toHaveBeenCalledWith(
@@ -169,6 +179,10 @@ describe("PluginApiImpl", () => {
     expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(2, { cursor: "page-2" });
 
     expect(context.tools.get("repo.search")?.visibility).toBe("skill");
+    expect(context.tools.get("repo.search")?.policy).toEqual({
+      read: false,
+      edit: true,
+    });
     expect(context.tools.get("repo.status")?.visibility).toBe("skill");
 
     const toolContext = createToolContext();
@@ -263,6 +277,64 @@ describe("PluginApiImpl", () => {
         signal: signalController.signal,
       },
     );
+  });
+
+  it("preserves MCP multimodal content and structured errors", async () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+
+    mcpClientListToolsMock.mockResolvedValueOnce({
+      tools: [
+        {
+          name: "inspect",
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: { type: "string" },
+            },
+          },
+        },
+      ],
+    });
+    mcpClientCallToolMock
+      .mockResolvedValueOnce({
+        content: [
+          { type: "text", text: "Screenshot captured" },
+          { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+        ],
+      })
+      .mockResolvedValueOnce({
+        isError: true,
+        content: [{ type: "text", text: "MCP rejected the request" }],
+      });
+
+    api.addMcp({
+      name: "repo",
+      command: "node",
+      args: ["server.js"],
+    });
+    await api.flushSetup();
+
+    const tool = context.tools.get("repo.inspect");
+    const successInvocation = tool?.invoke({ query: "diagram" }, createToolContext());
+    await expect(successInvocation?.next()).resolves.toEqual({
+      done: true,
+      value: [
+        { type: "text", text: "Screenshot captured" },
+        { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+      ],
+    });
+
+    const errorInvocation = tool?.invoke({ query: "broken" }, createToolContext());
+    await expect(errorInvocation?.next()).resolves.toEqual({
+      done: true,
+      value: {
+        type: "error",
+        code: "mcp_tool_error",
+        message: "MCP rejected the request",
+        retriable: false,
+      },
+    });
   });
 
   it("merges process env with MCP env overrides", async () => {
@@ -378,6 +450,7 @@ describe("runPluginSetup", () => {
         tool: "alpha.static",
         args: {},
         intentId: "intent-1",
+        session: new Map(),
         messages: [],
         signal: new AbortController().signal,
       }),

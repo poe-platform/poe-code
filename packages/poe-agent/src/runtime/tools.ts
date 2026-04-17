@@ -1,18 +1,18 @@
 import { DuplicateToolError } from "./errors.js";
-import type { NormalizedTool, Tool, ToolEvent } from "./types.js";
+import type { NormalizedTool, Tool, ToolEvent, ToolResult } from "./types.js";
 
 function normalizeName(name: string): string {
   return name.trim();
 }
 
 function isAsyncGeneratorResult(
-  value: unknown,
-): value is AsyncGenerator<ToolEvent, unknown, void> {
+  value: unknown
+): value is AsyncGenerator<ToolEvent, ToolResult, void> {
   if (typeof value !== "object" || value === null) {
     return false;
   }
 
-  const candidate = value as Partial<AsyncGenerator<ToolEvent, unknown, void>>;
+  const candidate = value as Partial<AsyncGenerator<ToolEvent, ToolResult, void>>;
   return (
     typeof candidate.next === "function" &&
     typeof candidate.return === "function" &&
@@ -22,16 +22,16 @@ function isAsyncGeneratorResult(
 }
 
 function createNonStreamingInvocation(
-  result: unknown | Promise<unknown>,
-): AsyncGenerator<ToolEvent, unknown, void> {
-  return (async function* (): AsyncGenerator<ToolEvent, unknown, void> {
+  result: ToolResult | Promise<ToolResult>
+): AsyncGenerator<ToolEvent, ToolResult, void> {
+  return (async function* (): AsyncGenerator<ToolEvent, ToolResult, void> {
     yield* [];
     return await result;
   })();
 }
 
-function createFailingInvocation(error: unknown): AsyncGenerator<ToolEvent, unknown, void> {
-  return (async function* (): AsyncGenerator<ToolEvent, unknown, void> {
+function createFailingInvocation(error: unknown): AsyncGenerator<ToolEvent, ToolResult, void> {
+  return (async function* (): AsyncGenerator<ToolEvent, ToolResult, void> {
     yield* [];
     throw error;
   })();
@@ -97,6 +97,7 @@ export function normalizeTool(tool: Tool): NormalizedTool {
     description: tool.description,
     inputSchema: tool.inputSchema,
     visibility: tool.visibility ?? "model",
+    policy: tool.policy,
     invoke(args, ctx) {
       try {
         const result = call(args, ctx);
@@ -108,7 +109,7 @@ export function normalizeTool(tool: Tool): NormalizedTool {
       } catch (error) {
         return createFailingInvocation(error);
       }
-    },
+    }
   };
 }
 
@@ -134,7 +135,7 @@ export class ToolRegistry {
 
   getActiveTools(activeSkills?: string[]): NormalizedTool[] {
     const normalizedActiveSkills = normalizeActiveSkills(activeSkills);
-    return this.getAll().filter(tool => isToolVisibleToModel(tool, normalizedActiveSkills));
+    return this.getAll().filter((tool) => isToolVisibleToModel(tool, normalizedActiveSkills));
   }
 
   copyFrom(registry: ToolRegistry): void {

@@ -4,18 +4,25 @@ import {
   createPostToolUseHookContext,
   createPreIterationHookContext,
   createPreToolUseHookContext,
-  AbortError,
+  createSessionStartHookContext,
+  createStopHookContext,
+  createUserPromptSubmitHookContext,
+  dispatchHook,
+  AbortError
 } from "./hooks.js";
+import type { HookContextByEvent, HookEvent } from "./plugin-types.js";
 import type { RunContext } from "./run-context.js";
+import { estimateMessageContentSize, toToolMessageContent } from "./tool-results.js";
 import type {
   AcpEvent,
   AcpHost,
   ChatMessage,
   ForkResult,
   RunResult,
+  ToolResultPart,
   ToolAckResult,
   ToolCallRecord,
-  ToolIntent,
+  ToolIntent
 } from "./types.js";
 
 export type AcpModelToolDefinition = {
@@ -57,7 +64,7 @@ export type AcpModelResponse = {
 
 export type AcpModelRequestMessage = {
   role: "system" | "user" | "assistant" | "tool";
-  content: string;
+  content: string | ToolResultPart[];
   reasoning_content?: string;
   reasoning?: string;
   name?: string;
@@ -145,7 +152,7 @@ class AsyncEventQueue<T> implements AsyncIterableIterator<T> {
       return { done: true, value: undefined as never };
     }
 
-    return new Promise<IteratorResult<T>>(resolve => {
+    return new Promise<IteratorResult<T>>((resolve) => {
       this.#resolvers.push(resolve);
     });
   }
@@ -163,13 +170,18 @@ export function runAcpCore(options: RunAcpCoreOptions): AsyncIterable<AcpEvent> 
   return events;
 }
 
-async function execute(options: RunAcpCoreOptions, events: AsyncEventQueue<AcpEvent>): Promise<void> {
+async function execute(
+  options: RunAcpCoreOptions,
+  events: AsyncEventQueue<AcpEvent>
+): Promise<void> {
   const signal = wireAbortSignal(options.signal, options.runContext.abortController);
   const cleanupAbortSignal = signal.cleanup;
+  const toolCalls: ToolCallRecord[] = [];
 
   let terminalEmitted = false;
   const baseDisposeRun = options.disposeRun ?? (() => options.runContext.dispose());
   let disposed = false;
+  let stopHookRan = false;
   const disposeRun = async (): Promise<void> => {
     if (disposed) {
       return;
@@ -197,23 +209,70 @@ async function execute(options: RunAcpCoreOptions, events: AsyncEventQueue<AcpEv
     events.close();
   };
 
+  const runStopHook = async (context: {
+    status: "completed" | "error";
+    output?: string;
+    error?: Error;
+  }): Promise<void> => {
+    stopHookRan = true;
+
+    const stopContext = createStopHookContext({
+      ...context,
+      toolCalls,
+      messages: options.runContext.messages,
+      signal: signal.value,
+      disposeRun
+    });
+    const stopDecision = await options.runContext.hooks.run("stop", stopContext);
+    await applyHookDecision("stop", stopDecision, stopContext);
+  };
+
   try {
     const result = await runLoop({
       ...options,
       signal: signal.value,
       emit,
       disposeRun,
+      toolCalls
+    });
+    await runStopHook({
+      status: "completed",
+      output: result.output
     });
 
     await disposeRun();
-    emitTerminal({ type: "session.complete", result });
+    emitTerminal({
+      type: "session.complete",
+      result: {
+        ...result,
+        messages: [...options.runContext.messages],
+        toolCalls: [...toolCalls]
+      }
+    });
   } catch (error) {
     let finalError = toError(error);
+
+    if (!stopHookRan) {
+      try {
+        await runStopHook({
+          status: "error",
+          error: finalError
+        });
+      } catch (stopError) {
+        finalError = new AggregateError(
+          [finalError, toError(stopError)],
+          "Run failed and stop hook failed."
+        );
+      }
+    }
 
     try {
       await disposeRun();
     } catch (disposeError) {
-      finalError = new AggregateError([finalError, disposeError], "Run failed and disposal failed.");
+      finalError = new AggregateError(
+        [finalError, disposeError],
+        "Run failed and disposal failed."
+      );
     }
 
     emitTerminal({ type: "session.error", error: finalError });
@@ -227,27 +286,53 @@ async function runLoop(
   options: RunAcpCoreOptions & {
     signal: AbortSignal;
     emit(event: AcpEvent): void;
-  },
+    toolCalls: ToolCallRecord[];
+  }
 ): Promise<RunResult> {
   assertNotAborted(options.signal);
 
-  const toolCalls: ToolCallRecord[] = [];
+  let prompt = options.prompt;
   let iterationNumber = 0;
-  const maxIterations = options.maxIterations ?? 100;
 
-  options.runContext.messages.push({
-    role: "user",
-    content: options.prompt,
+  const sessionStartContext = createSessionStartHookContext({
+    session: options.runContext.session,
+    messages: options.runContext.messages,
+    signal: options.signal,
+    disposeRun: options.disposeRun
   });
+  const sessionStartDecision = await options.runContext.hooks.run(
+    "sessionStart",
+    sessionStartContext
+  );
+  await applyHookDecision("sessionStart", sessionStartDecision, sessionStartContext);
+
+  const promptMessage: ChatMessage = {
+    role: "user",
+    content: prompt
+  };
+  options.runContext.messages.push(promptMessage);
+
+  const userPromptContext = createUserPromptSubmitHookContext({
+    prompt,
+    messages: options.runContext.messages,
+    signal: options.signal,
+    disposeRun: options.disposeRun
+  });
+  const userPromptDecision = await options.runContext.hooks.run(
+    "userPromptSubmit",
+    userPromptContext
+  );
+  await applyHookDecision("userPromptSubmit", userPromptDecision, userPromptContext);
+  prompt = syncSubmittedUserPrompt(promptMessage, prompt, userPromptContext.prompt);
 
   while (true) {
     assertNotAborted(options.signal);
 
-    if (iterationNumber >= maxIterations) {
-      throw new Error("Maximum tool call iterations reached");
-    }
-
     iterationNumber += 1;
+
+    if (options.maxIterations !== undefined && iterationNumber > options.maxIterations) {
+      throw new AbortError("Maximum tool call iterations reached.");
+    }
 
     const preIterationContext = createPreIterationHookContext({
       iterationNumber,
@@ -258,59 +343,71 @@ async function runLoop(
         host: options.host,
         emit: options.emit,
         messages: options.runContext.messages,
-        toolCalls,
+        toolCalls: options.toolCalls
       }),
-      disposeRun: options.disposeRun,
+      complete: createIterationCompleteRunner({
+        model: options.model,
+        signal: options.signal
+      }),
+      runHook: createIterationHookRunner({
+        runContext: options.runContext,
+        disposeRun: options.disposeRun
+      }),
+      disposeRun: options.disposeRun
     });
-    const preIterationDecision = await options.runContext.hooks.run("preIteration", preIterationContext);
+    const preIterationDecision = await options.runContext.hooks.run(
+      "preIteration",
+      preIterationContext
+    );
     const preIterationDispatch = await applyHookDecision(
       "preIteration",
       preIterationDecision,
-      preIterationContext,
+      preIterationContext
     );
 
     if (preIterationDispatch.type === "skip") {
       await runPostIterationHooks({
         runContext: options.runContext,
+        model: options.model,
         signal: options.signal,
         iterationNumber,
-        toolCalls,
+        toolCalls: options.toolCalls,
         host: options.host,
         emit: options.emit,
-        disposeRun: options.disposeRun,
+        disposeRun: options.disposeRun
       });
       continue;
     }
 
     const compiledPrompt = await options.runContext.prompts.compile(
-      options.prompt,
-      options.baseSystemPrompt,
+      prompt,
+      options.baseSystemPrompt
     );
 
     const response = await options.model.complete({
       messages: toModelRequestMessages(options.runContext.messages, compiledPrompt.system),
       tools: options.runContext.tools
         .getActiveTools(options.runContext.activeSkills)
-        .map(tool => ({
+        .map((tool) => ({
           name: tool.name,
           description: tool.description,
-          inputSchema: tool.inputSchema,
+          inputSchema: tool.inputSchema
         })),
-      signal: options.signal,
+      signal: options.signal
     });
 
     const normalizedResponse = normalizeModelResponse(response, iterationNumber);
     const resolvedContent = await emitMessageDeltas({
       response,
       fallbackContent: normalizedResponse.content,
-      emit: options.emit,
+      emit: options.emit
     });
 
     options.runContext.messages.push(
       createAssistantMessage({
         ...normalizedResponse,
-        content: resolvedContent,
-      }),
+        content: resolvedContent
+      })
     );
 
     for (const toolCall of normalizedResponse.toolCalls) {
@@ -322,26 +419,27 @@ async function runLoop(
         host: options.host,
         emit: options.emit,
         signal: options.signal,
-        toolCalls,
-        disposeRun: options.disposeRun,
+        toolCalls: options.toolCalls,
+        disposeRun: options.disposeRun
       });
     }
 
     await runPostIterationHooks({
       runContext: options.runContext,
+      model: options.model,
       signal: options.signal,
       iterationNumber,
-      toolCalls,
+      toolCalls: options.toolCalls,
       host: options.host,
       emit: options.emit,
-      disposeRun: options.disposeRun,
+      disposeRun: options.disposeRun
     });
 
     if (normalizedResponse.toolCalls.length === 0) {
       return {
         output: resolvedContent,
         messages: [...options.runContext.messages],
-        toolCalls,
+        toolCalls: [...options.toolCalls]
       };
     }
   }
@@ -360,9 +458,10 @@ async function runSingleToolCall(options: {
     tool: options.toolCall.tool,
     args: options.toolCall.args,
     intentId: options.toolCall.intentId,
+    session: options.runContext.session,
     messages: options.runContext.messages,
     signal: options.signal,
-    disposeRun: options.disposeRun,
+    disposeRun: options.disposeRun
   });
 
   const preToolDecision = await options.runContext.hooks.run("preToolUse", preToolContext);
@@ -371,7 +470,7 @@ async function runSingleToolCall(options: {
   const mutableOutcome: MutableToolOutcome = {
     intentId: preToolContext.intentId,
     tool: preToolContext.tool,
-    args: preToolContext.args,
+    args: preToolContext.args
   };
 
   if (preToolDispatch.type === "skip") {
@@ -383,19 +482,19 @@ async function runSingleToolCall(options: {
       type: "tool.intent",
       intentId: mutableOutcome.intentId,
       tool: mutableOutcome.tool,
-      args: mutableOutcome.args,
+      args: mutableOutcome.args
     });
 
     const intent: ToolIntent = {
       intentId: mutableOutcome.intentId,
       tool: mutableOutcome.tool,
-      args: mutableOutcome.args,
+      args: mutableOutcome.args
     };
 
     const ack = await waitForToolAck({
       host: options.host,
       intent,
-      signal: options.signal,
+      signal: options.signal
     });
 
     if (ack.status === "success") {
@@ -411,9 +510,10 @@ async function runSingleToolCall(options: {
     intentId: mutableOutcome.intentId,
     result: mutableOutcome.result,
     error: mutableOutcome.error,
+    session: options.runContext.session,
     messages: options.runContext.messages,
     signal: options.signal,
-    disposeRun: options.disposeRun,
+    disposeRun: options.disposeRun
   });
   const postToolDecision = await options.runContext.hooks.run("postToolUse", postToolContext);
   await applyHookDecision("postToolUse", postToolDecision, postToolContext);
@@ -430,14 +530,14 @@ async function runSingleToolCall(options: {
     options.emit({
       type: "tool.result",
       intentId: mutableOutcome.intentId,
-      result: mutableOutcome.result,
+      result: mutableOutcome.result
     });
 
     options.runContext.messages.push({
       role: "tool",
       name: mutableOutcome.tool,
       toolCallId: mutableOutcome.intentId,
-      content: toMessageContent(mutableOutcome.result),
+      content: toToolMessageContent(mutableOutcome.result)
     });
 
     options.toolCalls.push({
@@ -445,7 +545,7 @@ async function runSingleToolCall(options: {
       tool: mutableOutcome.tool,
       args: mutableOutcome.args,
       status: "success",
-      result: mutableOutcome.result,
+      result: mutableOutcome.result
     });
 
     return;
@@ -454,14 +554,14 @@ async function runSingleToolCall(options: {
   options.emit({
     type: "tool.error",
     intentId: mutableOutcome.intentId,
-    error: mutableOutcome.error,
+    error: mutableOutcome.error
   });
 
   options.runContext.messages.push({
     role: "tool",
     name: mutableOutcome.tool,
     toolCallId: mutableOutcome.intentId,
-    content: `Error: ${mutableOutcome.error}`,
+    content: `Error: ${mutableOutcome.error}`
   });
 
   options.toolCalls.push({
@@ -469,12 +569,13 @@ async function runSingleToolCall(options: {
     tool: mutableOutcome.tool,
     args: mutableOutcome.args,
     status: "error",
-    error: mutableOutcome.error,
+    error: mutableOutcome.error
   });
 }
 
 async function runPostIterationHooks(options: {
   runContext: RunContext;
+  model: AcpModel;
   signal: AbortSignal;
   iterationNumber: number;
   toolCalls: ToolCallRecord[];
@@ -491,13 +592,21 @@ async function runPostIterationHooks(options: {
       host: options.host,
       emit: options.emit,
       messages: options.runContext.messages,
-      toolCalls: options.toolCalls,
+      toolCalls: options.toolCalls
     }),
-    disposeRun: options.disposeRun,
+    complete: createIterationCompleteRunner({
+      model: options.model,
+      signal: options.signal
+    }),
+    runHook: createIterationHookRunner({
+      runContext: options.runContext,
+      disposeRun: options.disposeRun
+    }),
+    disposeRun: options.disposeRun
   });
   const postIterationDecision = await options.runContext.hooks.run(
     "postIteration",
-    postIterationContext,
+    postIterationContext
   );
   await applyHookDecision("postIteration", postIterationDecision, postIterationContext);
 }
@@ -519,7 +628,7 @@ function createForkRunner(options: ForkRunnerOptions): (prompt: string) => Promi
     options.emit({
       type: "fork.start",
       forkId,
-      prompt,
+      prompt
     });
 
     try {
@@ -528,14 +637,14 @@ function createForkRunner(options: ForkRunnerOptions): (prompt: string) => Promi
         prompt,
         context: {
           messages: [...options.messages],
-          toolCalls: [...options.toolCalls],
-        },
+          toolCalls: [...options.toolCalls]
+        }
       });
 
       options.emit({
         type: "fork.complete",
         forkId,
-        result,
+        result
       });
 
       return result;
@@ -545,12 +654,52 @@ function createForkRunner(options: ForkRunnerOptions): (prompt: string) => Promi
       options.emit({
         type: "fork.error",
         forkId,
-        error: message,
+        error: message
       });
 
       throw error;
     }
   };
+}
+
+function createIterationCompleteRunner(options: { model: AcpModel; signal: AbortSignal }) {
+  return async (messages: ChatMessage[]): Promise<string> => {
+    assertNotAborted(options.signal);
+
+    const response = await options.model.complete({
+      messages: toModelRequestMessages(messages, undefined),
+      tools: [],
+      signal: options.signal
+    });
+
+    return normalizeModelResponse(response, 0).content;
+  };
+}
+
+function createIterationHookRunner(options: {
+  runContext: RunContext;
+  disposeRun?(): void | Promise<void>;
+}) {
+  return async <TEvent extends HookEvent>(event: TEvent, context: HookContextByEvent[TEvent]) =>
+    dispatchHook({
+      registry: options.runContext.hooks,
+      event,
+      ctx: context,
+      disposeRun: options.disposeRun
+    });
+}
+
+function syncSubmittedUserPrompt(
+  promptMessage: ChatMessage,
+  originalPrompt: string,
+  prompt: string
+): string {
+  if (typeof promptMessage.content === "string" && promptMessage.content !== originalPrompt) {
+    return promptMessage.content;
+  }
+
+  promptMessage.content = prompt;
+  return prompt;
 }
 
 type NormalizedModelResponse = {
@@ -567,7 +716,10 @@ type NormalizedModelToolCall = {
   rawArguments?: string;
 };
 
-function normalizeModelResponse(response: AcpModelResponse, iterationNumber: number): NormalizedModelResponse {
+function normalizeModelResponse(
+  response: AcpModelResponse,
+  iterationNumber: number
+): NormalizedModelResponse {
   const message = response.message;
   const messageContent = message?.content;
   const reasoningContent =
@@ -578,21 +730,19 @@ function normalizeModelResponse(response: AcpModelResponse, iterationNumber: num
   const content = contentFromMessage ?? response.content ?? "";
 
   const rawToolCalls =
-    message?.toolCalls ??
-    response.toolCalls ??
-    fromOpenAiToolCalls(message?.tool_calls);
+    message?.toolCalls ?? response.toolCalls ?? fromOpenAiToolCalls(message?.tool_calls);
 
   return {
     content,
     ...(reasoningContent === undefined ? {} : { reasoningContent }),
     ...(reasoning === undefined ? {} : { reasoning }),
-    toolCalls: normalizeModelToolCalls(rawToolCalls, iterationNumber),
+    toolCalls: normalizeModelToolCalls(rawToolCalls, iterationNumber)
   };
 }
 
 function normalizeModelToolCalls(
   rawToolCalls: AcpModelToolCall[] | undefined,
-  iterationNumber: number,
+  iterationNumber: number
 ): NormalizedModelToolCall[] {
   if (!rawToolCalls || rawToolCalls.length === 0) {
     return [];
@@ -619,8 +769,8 @@ function normalizeModelToolCalls(
       ...(normalizedArgs.rawArguments === undefined
         ? {}
         : {
-            rawArguments: normalizedArgs.rawArguments,
-          }),
+            rawArguments: normalizedArgs.rawArguments
+          })
     });
   }
 
@@ -638,7 +788,11 @@ function normalizeToolName(raw: AcpModelToolCall): string | undefined {
   return tool.length > 0 ? tool : undefined;
 }
 
-function normalizeIntentId(raw: AcpModelToolCall, iterationNumber: number, toolIndex: number): string {
+function normalizeIntentId(
+  raw: AcpModelToolCall,
+  iterationNumber: number,
+  toolIndex: number
+): string {
   const directId = raw.intentId ?? raw.id;
   if (typeof directId === "string") {
     const normalized = directId.trim();
@@ -660,7 +814,7 @@ function normalizeToolArguments(raw: AcpModelToolCall): { args: unknown; rawArgu
   try {
     return {
       args: JSON.parse(args) as unknown,
-      rawArguments: args,
+      rawArguments: args
     };
   } catch {
     return { args };
@@ -677,16 +831,16 @@ function fromOpenAiToolCalls(
           arguments?: string;
         };
       }>
-    | undefined,
+    | undefined
 ): AcpModelToolCall[] {
   if (!toolCalls || toolCalls.length === 0) {
     return [];
   }
 
-  return toolCalls.map(toolCall => ({
+  return toolCalls.map((toolCall) => ({
     id: toolCall.id,
     name: toolCall.function?.name,
-    arguments: toolCall.function?.arguments,
+    arguments: toolCall.function?.arguments
   }));
 }
 
@@ -697,44 +851,48 @@ function createAssistantMessage(response: NormalizedModelResponse): ChatMessage 
     ...(response.reasoningContent === undefined
       ? {}
       : {
-          reasoning_content: response.reasoningContent,
+          reasoning_content: response.reasoningContent
         }),
     ...(response.reasoning === undefined
       ? {}
       : {
-          reasoning: response.reasoning,
-        }),
+          reasoning: response.reasoning
+        })
   };
 
   if (response.toolCalls.length === 0) {
     return message;
   }
 
-  const toolCalls = response.toolCalls.map(toolCall => ({
+  const toolCalls = response.toolCalls.map((toolCall) => ({
     id: toolCall.intentId,
     type: "function" as const,
     function: {
       name: toolCall.tool,
-      arguments: toolCall.rawArguments ?? serializeToolArguments(toolCall.args),
-    },
+      arguments: toolCall.rawArguments ?? serializeToolArguments(toolCall.args)
+    }
   }));
 
   return {
     ...message,
-    ...(toolCalls.length === 0 ? {} : { tool_calls: toolCalls }),
+    ...(toolCalls.length === 0 ? {} : { tool_calls: toolCalls })
   } as ChatMessage;
 }
 
 function toModelRequestMessages(
   messages: ChatMessage[],
-  compiledSystemPrompt: string | undefined,
+  compiledSystemPrompt: string | undefined
 ): AcpModelRequestMessage[] {
   const modelMessages: AcpModelRequestMessage[] = [];
 
-  if (compiledSystemPrompt !== undefined && compiledSystemPrompt.length > 0 && !hasSystemMessage(messages)) {
+  if (
+    compiledSystemPrompt !== undefined &&
+    compiledSystemPrompt.length > 0 &&
+    !hasSystemMessage(messages)
+  ) {
     modelMessages.push({
       role: "system",
-      content: compiledSystemPrompt,
+      content: compiledSystemPrompt
     });
   }
 
@@ -745,7 +903,7 @@ function toModelRequestMessages(
         role: message.role,
         ...(message.toolCallId === undefined ? {} : { tool_call_id: message.toolCallId }),
         ...(message.name === undefined ? {} : { name: message.name }),
-        content: message.content,
+        content: message.content
       };
     } else {
       modelMessage = {
@@ -754,13 +912,13 @@ function toModelRequestMessages(
         ...(message.reasoning_content === undefined
           ? {}
           : {
-              reasoning_content: message.reasoning_content,
+              reasoning_content: message.reasoning_content
             }),
         ...(message.reasoning === undefined
           ? {}
           : {
-              reasoning: message.reasoning,
-            }),
+              reasoning: message.reasoning
+            })
       };
 
       if (message.name !== undefined) {
@@ -768,8 +926,9 @@ function toModelRequestMessages(
       }
     }
 
-    const maybeToolCalls = (message as ChatMessage & { tool_calls?: AcpModelRequestMessage["tool_calls"] })
-      .tool_calls;
+    const maybeToolCalls = (
+      message as ChatMessage & { tool_calls?: AcpModelRequestMessage["tool_calls"] }
+    ).tool_calls;
     if (maybeToolCalls && maybeToolCalls.length > 0) {
       modelMessage.tool_calls = maybeToolCalls;
     }
@@ -806,7 +965,7 @@ async function emitMessageDeltas(options: {
       chunks.push(chunk);
       options.emit({
         type: "message.delta",
-        content: chunk,
+        content: chunk
       });
     }
   }
@@ -815,7 +974,7 @@ async function emitMessageDeltas(options: {
     chunks.push(options.fallbackContent);
     options.emit({
       type: "message.delta",
-      content: options.fallbackContent,
+      content: options.fallbackContent
     });
   }
 
@@ -826,7 +985,7 @@ function estimateTokenCount(messages: ChatMessage[]): number {
   let count = 0;
 
   for (const message of messages) {
-    count += message.content.length;
+    count += estimateMessageContentSize(message.content);
   }
 
   return count;
@@ -835,22 +994,6 @@ function estimateTokenCount(messages: ChatMessage[]): number {
 function serializeToolArguments(value: unknown): string {
   if (typeof value === "string") {
     return value;
-  }
-
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}
-
-function toMessageContent(value: unknown): string {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (value === undefined) {
-    return "";
   }
 
   try {
@@ -924,7 +1067,7 @@ function assertNotAborted(signal: AbortSignal): void {
 
 function wireAbortSignal(
   externalSignal: AbortSignal | undefined,
-  runAbortController: AbortController,
+  runAbortController: AbortController
 ): {
   value: AbortSignal;
   cleanup(): void;
@@ -934,7 +1077,7 @@ function wireAbortSignal(
       value: runAbortController.signal,
       cleanup() {
         return;
-      },
+      }
     };
   }
 
@@ -954,6 +1097,6 @@ function wireAbortSignal(
     value: runAbortController.signal,
     cleanup() {
       externalSignal.removeEventListener("abort", onAbort);
-    },
+    }
   };
 }

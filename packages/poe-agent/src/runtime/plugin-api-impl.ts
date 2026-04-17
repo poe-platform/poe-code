@@ -4,16 +4,18 @@ import {
   type CallToolResult,
   type ContentItem,
   type ResourceContents,
-  type Tool as McpTool,
+  type Tool as McpTool
 } from "tiny-mcp-client";
 import { AbortError } from "./hooks.js";
+import { cloneMcpServerConfig } from "./config.js";
 import type { McpServerConfig, PluginApi } from "./plugin-types.js";
-import type { Tool } from "./types.js";
+import { toolResultPartToText } from "./tool-results.js";
+import type { Tool, ToolResult, ToolResultPart } from "./types.js";
 import type { RunContext } from "./run-context.js";
 
 const DEFAULT_MCP_CLIENT_INFO = {
   name: "poe-agent",
-  version: "0.0.1",
+  version: "0.0.1"
 };
 
 export class PluginApiImpl implements PluginApi {
@@ -28,8 +30,14 @@ export class PluginApiImpl implements PluginApi {
     this.#runContext.tools.register(tool);
   }
 
+  getTool(name: string) {
+    return this.#runContext.tools.get(name);
+  }
+
   addMcp(config: McpServerConfig): void {
-    this.#setupQueue = this.#setupQueue.then(() => this.#setupMcp(config));
+    const clonedConfig = cloneMcpServerConfig(config);
+    this.#runContext.mcpServers.push(clonedConfig);
+    this.#setupQueue = this.#setupQueue.then(() => this.#setupMcp(clonedConfig));
   }
 
   async flushSetup(): Promise<void> {
@@ -45,11 +53,11 @@ export class PluginApiImpl implements PluginApi {
           ? undefined
           : {
               ...process.env,
-              ...config.env,
-            },
+              ...config.env
+            }
     });
     const client = new McpClient({
-      clientInfo: DEFAULT_MCP_CLIENT_INFO,
+      clientInfo: DEFAULT_MCP_CLIENT_INFO
     });
 
     this.#runContext.registerDisposeHook(async () => {
@@ -83,14 +91,21 @@ export class PluginApiImpl implements PluginApi {
       description: mcpTool.description,
       inputSchema: mcpTool.inputSchema,
       visibility: config.visibility ?? "model",
-      call: async (args, ctx) => {
-        const result = await client.callTool({
-          name: mcpTool.name,
-          arguments: toMcpArguments(args),
-        }, { signal: ctx.signal });
-
-        return callToolResultToString(result);
+      policy: {
+        read: false,
+        edit: true
       },
+      call: async (args, ctx) => {
+        const result = await client.callTool(
+          {
+            name: mcpTool.name,
+            arguments: toMcpArguments(args)
+          },
+          { signal: ctx.signal }
+        );
+
+        return callToolResultToToolResult(result);
+      }
     };
   }
 }
@@ -111,26 +126,50 @@ function toMcpArguments(args: unknown): Record<string, unknown> | undefined {
   return args as Record<string, unknown>;
 }
 
-function callToolResultToString(result: CallToolResult): string {
-  const content = result.content.map(contentItemToString).join("\n");
+function callToolResultToToolResult(result: CallToolResult): ToolResult {
+  const content = result.content.map(contentItemToToolResultPart);
 
   if (result.isError) {
-    throw new Error(content);
+    return {
+      type: "error",
+      code: "mcp_tool_error",
+      message: content.map((part) => toolResultPartToText(part)).join("\n"),
+      retriable: false
+    };
+  }
+
+  if (content.length === 0) {
+    return "";
+  }
+
+  if (content.length === 1) {
+    const [single] = content;
+    return single.type === "text" ? single.text : single;
   }
 
   return content;
 }
 
-function contentItemToString(item: ContentItem): string {
+function contentItemToToolResultPart(item: ContentItem): ToolResultPart {
   switch (item.type) {
     case "text":
-      return item.text;
+      return { type: "text", text: item.text };
     case "image":
-      return `[image: ${item.mimeType}]`;
+      return {
+        type: "image",
+        mimeType: item.mimeType,
+        data: item.data
+      };
     case "audio":
-      return `[audio: ${item.mimeType}]`;
+      return {
+        type: "text",
+        text: `[audio: ${item.mimeType}]`
+      };
     case "resource":
-      return resourceToString(item.resource);
+      return {
+        type: "text",
+        text: resourceToString(item.resource)
+      };
   }
 }
 
@@ -141,4 +180,3 @@ function resourceToString(resource: ResourceContents): string {
 
   return `[blob: ${resource.uri}]`;
 }
-

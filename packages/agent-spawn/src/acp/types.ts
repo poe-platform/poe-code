@@ -61,12 +61,18 @@ export interface ToolCall {
 }
 
 /** ACP-compatible type - @see https://agentclientprotocol.com/ - no package dependency, structural compatibility only */
+export type ToolCallContent =
+  | { type: "text"; text: string }
+  | { type: "image"; mimeType: string; data: string };
+
+/** ACP-compatible type - @see https://agentclientprotocol.com/ - no package dependency, structural compatibility only */
 export interface ToolCallUpdate {
   sessionUpdate: "tool_call_update";
   toolCallId: string;
   kind?: ToolKind;
   status?: ToolCallStatus;
   rawOutput?: unknown;
+  content?: ToolCallContent[];
   _meta?: Record<string, unknown>;
 }
 

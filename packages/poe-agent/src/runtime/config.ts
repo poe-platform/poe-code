@@ -3,7 +3,6 @@ import type { AgentPlugin, McpServerConfig } from "./plugin-types.js";
 export type ResolvedAgentConfig = {
   model?: string;
   plugins: AgentPlugin[];
-  mcpServers: McpServerConfig[];
 };
 
 type AgentPluginWithDependencies = AgentPlugin & {
@@ -103,27 +102,11 @@ export function createResolvedAgentConfig(input: Partial<ResolvedAgentConfig> = 
   return Object.freeze({
     ...(model === undefined || model.length === 0 ? {} : { model }),
     plugins: Object.freeze((input.plugins ?? []).map(plugin => cloneAgentPlugin(plugin))) as AgentPlugin[],
-    mcpServers: Object.freeze(
-      (input.mcpServers ?? []).map(config => cloneMcpServerConfig(config)),
-    ) as McpServerConfig[],
   }) as ResolvedAgentConfig;
 }
 
 export function toRuntimePlugins(config: ResolvedAgentConfig): AgentPlugin[] {
-  const plugins = [...config.plugins];
-
-  for (const mcpServer of config.mcpServers) {
-    plugins.push(
-      Object.freeze({
-        name: `mcp:${mcpServer.name}`,
-        setup(api) {
-          api.addMcp(mcpServer);
-        },
-      }),
-    );
-  }
-
-  return plugins;
+  return [...config.plugins];
 }
 
 export function resolvePluginSetupOrder(plugins: AgentPlugin[]): AgentPlugin[] {

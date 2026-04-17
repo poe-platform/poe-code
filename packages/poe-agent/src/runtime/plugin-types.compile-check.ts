@@ -3,9 +3,15 @@ import type {
   HookDecision,
   IterationContext,
   McpServerConfig,
+  NotificationContext,
+  PostCompactionContext,
+  PreCompactionContext,
   PluginApi,
   PromptContext,
+  SessionStartContext,
+  StopContext,
   ToolUseContext,
+  UserPromptSubmitContext
 } from "./plugin-types.js";
 import type { McpSpawnServer } from "@poe-code/agent-spawn";
 import type { Tool } from "./types.js";
@@ -13,17 +19,33 @@ import type { Tool } from "./types.js";
 declare const tool: Tool;
 declare const toolUseContext: ToolUseContext;
 declare const iterationContext: IterationContext;
+declare const sessionStartContext: SessionStartContext;
+declare const userPromptSubmitContext: UserPromptSubmitContext;
+declare const preCompactionContext: PreCompactionContext;
+declare const postCompactionContext: PostCompactionContext;
+declare const notificationContext: NotificationContext;
+declare const stopContext: StopContext;
 declare const pluginApi: PluginApi;
+
+type Assert<T extends true> = T;
+type AssertExact<Actual, Expected> =
+  (<T>() => T extends Actual ? 1 : 2) extends <T>() => T extends Expected ? 1 : 2 ? true : false;
+type ignoredIterationCompactionOptionKeys = Assert<
+  AssertExact<
+    keyof import("./plugin-types.js").IterationCompactionOptions,
+    "contextWindow" | "keepLastTurns" | "summarise" | "threshold"
+  >
+>;
 
 const hookDecisions: HookDecision[] = [
   undefined,
   "skip",
   "abort",
-  { reject: "missing permission" },
+  { reject: "missing permission" }
 ];
 
 const promptContext: PromptContext = {
-  userPrompt: "fix this bug",
+  userPrompt: "fix this bug"
 };
 
 const mcpConfig: McpServerConfig = {
@@ -31,14 +53,11 @@ const mcpConfig: McpServerConfig = {
   command: "node",
   args: ["server.js"],
   env: { NODE_ENV: "test" },
-  visibility: "skill",
+  visibility: "skill"
 };
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
-type ignoredMcpServerConfigExtendsSpawnServer = AssertAssignable<
-  McpSpawnServer,
-  McpServerConfig
->;
+type ignoredMcpServerConfigExtendsSpawnServer = AssertAssignable<McpSpawnServer, McpServerConfig>;
 type ignoredMcpServerConfigCanBeBuiltFromSpawnServer = AssertAssignable<
   McpServerConfig,
   McpSpawnServer & { name: string }
@@ -47,8 +66,16 @@ type ignoredMcpServerConfigCanBeBuiltFromSpawnServer = AssertAssignable<
 const plugin: AgentPlugin = {
   name: "example-plugin",
   tools: [tool],
-  prompt: async ctx => ({ ...ctx, metadata: { ...ctx.metadata, touched: true } }),
+  prompt: async (ctx) => ({ ...ctx, metadata: { ...ctx.metadata, touched: true } }),
   hooks: {
+    sessionStart(ctx) {
+      void ctx;
+      return hookDecisions[0];
+    },
+    userPromptSubmit(ctx) {
+      void ctx;
+      return hookDecisions[3];
+    },
     preToolUse(ctx) {
       void ctx;
       return hookDecisions[1];
@@ -58,24 +85,53 @@ const plugin: AgentPlugin = {
       return hookDecisions[3];
     },
     preIteration(ctx) {
+      void ctx.complete;
+      void ctx.runHook;
       void ctx;
       return hookDecisions[0];
     },
     async postIteration(ctx) {
       const fork = await ctx.fork("quick check");
+      const completion = await ctx.complete([{ role: "user", content: "quick check" }]);
+      const notification = await ctx.runHook("notification", notificationContext);
+      void completion;
+      void notification;
       void fork;
       return hookDecisions[2];
     },
+    preCompaction(ctx) {
+      void ctx;
+      return hookDecisions[1];
+    },
+    postCompaction(ctx) {
+      void ctx;
+      return hookDecisions[0];
+    },
+    notification(ctx) {
+      void ctx;
+      return hookDecisions[1];
+    },
+    stop(ctx) {
+      void ctx;
+      return hookDecisions[0];
+    }
   },
   async setup(api) {
     api.addTool(tool);
     api.addMcp(mcpConfig);
   },
-  async dispose() {},
+  async dispose() {}
 };
 
 void promptContext;
 void plugin;
+void toolUseContext.session;
 void toolUseContext;
 void iterationContext;
+void sessionStartContext;
+void userPromptSubmitContext;
+void preCompactionContext;
+void postCompactionContext;
+void notificationContext;
+void stopContext;
 void pluginApi;

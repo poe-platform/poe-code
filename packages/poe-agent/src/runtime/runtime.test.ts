@@ -1,21 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 import { runAcpCore, type AcpModel, type AcpModelResponse } from "./acp-core.js";
 import { AgentHost, createInMemorySpawnSession } from "./agent-host.js";
-import {
-  createResolvedAgentConfig,
-  resolvePluginSetupOrder,
-  toRuntimePlugins,
-  type ResolvedAgentConfig,
-} from "./config.js";
+import { createResolvedAgentConfig, resolvePluginSetupOrder, toRuntimePlugins } from "./config.js";
+import mcpPlugin from "../plugins/poe-agent-plugin-mcp.js";
 import { DuplicateToolError, PluginSetupError, PromptTransformError } from "./errors.js";
 import {
   AbortError,
   HookRegistry,
   applyHookDecision,
+  createNotificationHookContext,
+  createPostCompactionHookContext,
   createPostIterationHookContext,
+  createPreCompactionHookContext,
   createPostToolUseHookContext,
   createPreIterationHookContext,
   createPreToolUseHookContext,
+  createSessionStartHookContext,
+  createStopHookContext,
+  createUserPromptSubmitHookContext
 } from "./hooks.js";
 import { PromptRegistry } from "./prompts.js";
 import { createRunContext } from "./run-context.js";
@@ -39,7 +41,7 @@ function createModel(responses: Array<AcpModelResponse | Error>): AcpModel {
       }
 
       return next;
-    }),
+    })
   };
 }
 
@@ -50,6 +52,14 @@ async function collectEvents(events: AsyncIterable<AcpEvent>): Promise<AcpEvent[
   }
 
   return collected;
+}
+
+function createIterationComplete(result = "summary note") {
+  return vi.fn(async () => result);
+}
+
+function createIterationRunHook() {
+  return vi.fn(async () => ({ type: "continue" as const }));
 }
 
 // --- errors ---
@@ -105,67 +115,57 @@ describe("runtime errors", () => {
 
 describe("runtime/config", () => {
   it("creates frozen config snapshots with cloned arrays", () => {
-    const input: ResolvedAgentConfig = {
+    const input = {
       model: "gpt-5",
       plugins: [
         {
           name: "plugin-a",
-          tools: [{ name: "tool.a", call: () => "ok" }],
-        },
-      ],
-      mcpServers: [
-        {
-          name: "repo",
-          command: "node",
-          args: ["server.js"],
-          env: { NODE_ENV: "test" },
-        },
-      ],
+          tools: [{ name: "tool.a", call: () => "ok" }]
+        }
+      ]
     };
 
     const resolved = createResolvedAgentConfig(input);
 
     expect(Object.isFrozen(resolved)).toBe(true);
     expect(Object.isFrozen(resolved.plugins)).toBe(true);
-    expect(Object.isFrozen(resolved.mcpServers)).toBe(true);
+    expect("mcpServers" in resolved).toBe(false);
 
     input.plugins.push({ name: "plugin-b" });
-    input.mcpServers[0]?.args?.push("--watch");
 
     expect(resolved.plugins).toHaveLength(1);
-    expect(resolved.mcpServers[0]?.args).toEqual(["server.js"]);
   });
 
   it("resolves dependencies in topological order", () => {
     const ordered = resolvePluginSetupOrder([
       {
         name: "beta",
-        dependencies: ["alpha"],
+        dependencies: ["alpha"]
       },
       {
-        name: "alpha",
+        name: "alpha"
       },
       {
         name: "gamma",
-        dependencies: ["beta"],
-      },
+        dependencies: ["beta"]
+      }
     ]);
 
-    expect(ordered.map(plugin => plugin.name)).toEqual(["alpha", "beta", "gamma"]);
+    expect(ordered.map((plugin) => plugin.name)).toEqual(["alpha", "beta", "gamma"]);
   });
 
   it("resolves dependencies even when plugin names contain extra whitespace", () => {
     const ordered = resolvePluginSetupOrder([
       {
         name: " beta ",
-        dependencies: ["alpha"],
+        dependencies: ["alpha"]
       },
       {
-        name: " alpha ",
-      },
+        name: " alpha "
+      }
     ]);
 
-    expect(ordered.map(plugin => plugin.name)).toEqual([" alpha ", " beta "]);
+    expect(ordered.map((plugin) => plugin.name)).toEqual([" alpha ", " beta "]);
   });
 
   it("throws for plugin dependency cycles", () => {
@@ -173,31 +173,27 @@ describe("runtime/config", () => {
       resolvePluginSetupOrder([
         {
           name: "alpha",
-          dependencies: ["beta"],
+          dependencies: ["beta"]
         },
         {
           name: "beta",
-          dependencies: ["alpha"],
-        },
-      ]),
+          dependencies: ["alpha"]
+        }
+      ])
     ).toThrow('Circular plugin dependencies detected: "alpha" -> "beta" -> "alpha".');
   });
 
-  it("creates synthetic MCP setup plugins", () => {
+  it("keeps MCP in the plugin list instead of a separate config bucket", () => {
     const runtimePlugins = toRuntimePlugins(
       createResolvedAgentConfig({
-        plugins: [{ name: "alpha" }],
-        mcpServers: [
-          {
-            name: "repo",
-            command: "node",
-            args: ["server.js"],
-          },
-        ],
-      }),
+        plugins: [
+          { name: "alpha" },
+          mcpPlugin({ name: "repo", command: "node", args: ["server.js"] })
+        ]
+      })
     );
 
-    expect(runtimePlugins.map(plugin => plugin.name)).toEqual(["alpha", "mcp:repo"]);
+    expect(runtimePlugins.map((plugin) => plugin.name)).toEqual(["alpha", "mcp:repo"]);
   });
 });
 
@@ -205,7 +201,7 @@ describe("runtime/config", () => {
 
 function createErrorLogger() {
   return {
-    error: vi.fn<(message: string, error?: unknown) => void>(),
+    error: vi.fn<(message: string, error?: unknown) => void>()
   };
 }
 
@@ -275,8 +271,8 @@ describe("RunContext", () => {
     await expect(context.dispose()).rejects.toEqual(
       expect.objectContaining({
         name: "AggregateError",
-        errors: [expect.any(Error), expect.any(Error)],
-      }),
+        errors: [expect.any(Error), expect.any(Error)]
+      })
     );
 
     expect(logger.error).toHaveBeenCalledTimes(2);
@@ -300,7 +296,7 @@ describe("RunContext", () => {
     const context = createRunContext();
     const order: string[] = [];
     let release = () => undefined;
-    const blocker = new Promise<void>(resolve => {
+    const blocker = new Promise<void>((resolve) => {
       release = resolve;
     });
 
@@ -330,7 +326,7 @@ describe("PromptRegistry", () => {
     await expect(registry.compile("Fix tests", "Base system")).resolves.toEqual({
       baseSystemPrompt: "Base system",
       system: "Base system",
-      userPrompt: "Fix tests",
+      userPrompt: "Fix tests"
     });
   });
 
@@ -338,7 +334,7 @@ describe("PromptRegistry", () => {
     const registry = new PromptRegistry();
 
     await expect(registry.compile("Fix tests")).resolves.toEqual({
-      userPrompt: "Fix tests",
+      userPrompt: "Fix tests"
     });
   });
 
@@ -346,21 +342,21 @@ describe("PromptRegistry", () => {
     const registry = new PromptRegistry();
     const callOrder: string[] = [];
 
-    registry.addTransform(ctx => {
+    registry.addTransform((ctx) => {
       callOrder.push("first");
       return {
         ...ctx,
         metadata: { order: ["first"] },
-        system: `${ctx.system ?? ""}\nfirst`.trim(),
+        system: `${ctx.system ?? ""}\nfirst`.trim()
       };
     });
 
-    registry.addTransform(async ctx => {
+    registry.addTransform(async (ctx) => {
       callOrder.push("second");
       return {
         ...ctx,
         metadata: { order: [...((ctx.metadata?.order as string[] | undefined) ?? []), "second"] },
-        system: `${ctx.system ?? ""}\nsecond`.trim(),
+        system: `${ctx.system ?? ""}\nsecond`.trim()
       };
     });
 
@@ -375,20 +371,20 @@ describe("PromptRegistry", () => {
     const registry = new PromptRegistry();
     const callOrder: string[] = [];
 
-    registry.addTransform(async ctx => {
+    registry.addTransform(async (ctx) => {
       await Promise.resolve();
       callOrder.push("first");
       return {
         ...ctx,
-        system: "first",
+        system: "first"
       };
     });
 
-    registry.addTransform(async ctx => {
+    registry.addTransform(async (ctx) => {
       callOrder.push("second");
       return {
         ...ctx,
-        system: `${ctx.system ?? ""}\nsecond`.trim(),
+        system: `${ctx.system ?? ""}\nsecond`.trim()
       };
     });
 
@@ -402,20 +398,20 @@ describe("PromptRegistry", () => {
     const registry = new PromptRegistry();
     const seenUserPrompts: string[] = [];
 
-    registry.addTransform(ctx => {
+    registry.addTransform((ctx) => {
       seenUserPrompts.push(ctx.userPrompt);
       return {
         ...ctx,
         userPrompt: `${ctx.userPrompt} merged`,
-        system: `${ctx.system ?? ""}\n${ctx.userPrompt}`.trim(),
+        system: `${ctx.system ?? ""}\n${ctx.userPrompt}`.trim()
       };
     });
 
-    registry.addTransform(ctx => {
+    registry.addTransform((ctx) => {
       seenUserPrompts.push(ctx.userPrompt);
       return {
         ...ctx,
-        metadata: { transformed: true },
+        metadata: { transformed: true }
       };
     });
 
@@ -430,15 +426,15 @@ describe("PromptRegistry", () => {
     const registry = new PromptRegistry();
     const seenUserPrompts: string[] = [];
 
-    registry.addTransform(ctx => {
+    registry.addTransform((ctx) => {
       ctx.userPrompt = "mutated";
       return ctx;
     });
 
-    registry.addTransform(ctx => {
+    registry.addTransform((ctx) => {
       seenUserPrompts.push(ctx.userPrompt);
       return {
-        ...ctx,
+        ...ctx
       };
     });
 
@@ -451,11 +447,11 @@ describe("PromptRegistry", () => {
   it("does not leak state across multiple compile calls", async () => {
     const registry = new PromptRegistry();
 
-    registry.addTransform(ctx => ({
+    registry.addTransform((ctx) => ({
       ...ctx,
       metadata: {
-        invocations: ((ctx.metadata?.invocations as number | undefined) ?? 0) + 1,
-      },
+        invocations: ((ctx.metadata?.invocations as number | undefined) ?? 0) + 1
+      }
     }));
 
     const first = await registry.compile("one", "Base");
@@ -465,14 +461,14 @@ describe("PromptRegistry", () => {
       baseSystemPrompt: "Base",
       system: "Base",
       userPrompt: "one",
-      metadata: { invocations: 1 },
+      metadata: { invocations: 1 }
     });
 
     expect(second).toEqual({
       baseSystemPrompt: "Base",
       system: "Base",
       userPrompt: "two",
-      metadata: { invocations: 1 },
+      metadata: { invocations: 1 }
     });
   });
 });
@@ -483,7 +479,7 @@ function createToolContext(): ToolContext {
   return {
     fork: async () => ({ output: "", messages: [] }),
     spawn: async () => ({ output: "", messages: [] }),
-    signal: new AbortController().signal,
+    signal: new AbortController().signal
   };
 }
 
@@ -492,15 +488,15 @@ describe("normalizeTool", () => {
     expect(() =>
       normalizeTool({
         name: "   ",
-        call: () => "ok",
-      }),
+        call: () => "ok"
+      })
     ).toThrow("Tool name must be a non-empty string.");
   });
 
   it("wraps sync call() as an async generator", async () => {
     const tool: Tool = {
       name: "sync-tool",
-      call: () => ({ ok: true }),
+      call: () => ({ ok: true })
     };
 
     const normalized = normalizeTool(tool);
@@ -513,7 +509,7 @@ describe("normalizeTool", () => {
   it("wraps async call() as an async generator", async () => {
     const tool: Tool = {
       name: "async-tool",
-      call: async () => ({ ok: "async" }),
+      call: async () => ({ ok: "async" })
     };
 
     const normalized = normalizeTool(tool);
@@ -530,18 +526,18 @@ describe("normalizeTool", () => {
 
     const normalized = normalizeTool({
       name: "streaming-tool",
-      call,
+      call
     });
 
     const invocation = normalized.invoke({}, createToolContext());
 
     await expect(invocation.next()).resolves.toEqual({
       done: false,
-      value: { type: "progress", message: "step-1" },
+      value: { type: "progress", message: "step-1" }
     });
     await expect(invocation.next()).resolves.toEqual({
       done: true,
-      value: { done: true },
+      value: { done: true }
     });
   });
 
@@ -550,7 +546,7 @@ describe("normalizeTool", () => {
       name: "sync-throw",
       call: () => {
         throw new Error("sync failure");
-      },
+      }
     };
 
     const normalized = normalizeTool(tool);
@@ -562,11 +558,13 @@ describe("normalizeTool", () => {
       name: "async-throw",
       call: async () => {
         throw new Error("async failure");
-      },
+      }
     };
 
     const normalized = normalizeTool(tool);
-    await expect(normalized.invoke({}, createToolContext()).next()).rejects.toThrow("async failure");
+    await expect(normalized.invoke({}, createToolContext()).next()).rejects.toThrow(
+      "async failure"
+    );
   });
 });
 
@@ -576,11 +574,11 @@ describe("ToolRegistry", () => {
 
     registry.register({
       name: "  search.web  ",
-      call: () => "ok",
+      call: () => "ok"
     });
 
     expect(registry.get("search.web")?.name).toBe("search.web");
-    expect(registry.getAll().map(tool => tool.name)).toEqual(["search.web"]);
+    expect(registry.getAll().map((tool) => tool.name)).toEqual(["search.web"]);
   });
 
   it("throws DuplicateToolError on name collision", () => {
@@ -588,13 +586,13 @@ describe("ToolRegistry", () => {
 
     registry.register({
       name: "search.web",
-      call: () => "first",
+      call: () => "first"
     });
 
     expect(() => {
       registry.register({
         name: " search.web ",
-        call: () => "second",
+        call: () => "second"
       });
     }).toThrowError(DuplicateToolError);
   });
@@ -604,31 +602,33 @@ describe("ToolRegistry", () => {
 
     registry.register({
       name: "always-visible",
-      call: () => "model",
+      call: () => "model"
     });
     registry.register({
       name: "repo.search",
       visibility: "skill",
-      call: () => "skill",
+      call: () => "skill"
     });
     registry.register({
       name: "internal.audit",
       visibility: "internal",
-      call: () => "internal",
+      call: () => "internal"
     });
 
-    expect(registry.getActiveTools().map(tool => tool.name)).toEqual(["always-visible"]);
-    expect(registry.getActiveTools(["repo"]).map(tool => tool.name)).toEqual([
+    expect(registry.getActiveTools().map((tool) => tool.name)).toEqual(["always-visible"]);
+    expect(registry.getActiveTools(["repo"]).map((tool) => tool.name)).toEqual([
       "always-visible",
-      "repo.search",
+      "repo.search"
     ]);
-    expect(registry.getActiveTools(["repo.search"]).map(tool => tool.name)).toEqual([
+    expect(registry.getActiveTools(["repo.search"]).map((tool) => tool.name)).toEqual([
       "always-visible",
-      "repo.search",
+      "repo.search"
     ]);
 
     expect(registry.get("internal.audit")?.visibility).toBe("internal");
-    expect(registry.getActiveTools(["internal"]).map(tool => tool.name)).toEqual(["always-visible"]);
+    expect(registry.getActiveTools(["internal"]).map((tool) => tool.name)).toEqual([
+      "always-visible"
+    ]);
   });
 
   it("matches namespace wildcard selectors", () => {
@@ -637,10 +637,10 @@ describe("ToolRegistry", () => {
     registry.register({
       name: "git.status",
       visibility: "skill",
-      call: () => "ok",
+      call: () => "ok"
     });
 
-    expect(registry.getActiveTools(["git.*"]).map(tool => tool.name)).toEqual(["git.status"]);
+    expect(registry.getActiveTools(["git.*"]).map((tool) => tool.name)).toEqual(["git.status"]);
   });
 
   it("normalizes active skill names before matching", () => {
@@ -649,11 +649,15 @@ describe("ToolRegistry", () => {
     registry.register({
       name: "repo.search",
       visibility: "skill",
-      call: () => "ok",
+      call: () => "ok"
     });
 
-    expect(registry.getActiveTools(["  repo  ", "repo", ""])).toEqual([registry.get("repo.search")]);
-    expect(registry.getActiveTools(["  repo.*  ", "repo.*"])).toEqual([registry.get("repo.search")]);
+    expect(registry.getActiveTools(["  repo  ", "repo", ""])).toEqual([
+      registry.get("repo.search")
+    ]);
+    expect(registry.getActiveTools(["  repo.*  ", "repo.*"])).toEqual([
+      registry.get("repo.search")
+    ]);
   });
 
   it("keeps MCP tool namespace prefixes to avoid collisions", () => {
@@ -661,14 +665,14 @@ describe("ToolRegistry", () => {
 
     registry.register({
       name: "status",
-      call: () => "local",
+      call: () => "local"
     });
     registry.register({
       name: "mcp-server.status",
-      call: () => "remote",
+      call: () => "remote"
     });
 
-    expect(registry.getAll().map(tool => tool.name)).toEqual(["status", "mcp-server.status"]);
+    expect(registry.getAll().map((tool) => tool.name)).toEqual(["status", "mcp-server.status"]);
     expect(registry.get("mcp-server.status")).toBeDefined();
   });
 });
@@ -689,8 +693,8 @@ describe("HookRegistry", () => {
       hooks: {
         preToolUse() {
           calls.push("first");
-        },
-      },
+        }
+      }
     });
 
     registry.add({
@@ -698,16 +702,17 @@ describe("HookRegistry", () => {
       hooks: {
         preToolUse() {
           calls.push("second");
-        },
-      },
+        }
+      }
     });
 
     const ctx = createPreToolUseHookContext({
       tool: "read_file",
       args: { path: "README.md" },
       intentId: "intent-1",
+      session: new Map(),
       messages: [],
-      signal: createSignal(),
+      signal: createSignal()
     });
 
     const decision = await registry.run("preToolUse", ctx);
@@ -726,8 +731,8 @@ describe("HookRegistry", () => {
         preToolUse() {
           calls.push("first");
           return "skip";
-        },
-      },
+        }
+      }
     });
 
     registry.add({
@@ -736,8 +741,8 @@ describe("HookRegistry", () => {
         preToolUse() {
           calls.push("second");
           return { reject: "blocked" };
-        },
-      },
+        }
+      }
     });
 
     const decision = await registry.run(
@@ -746,9 +751,10 @@ describe("HookRegistry", () => {
         tool: "run_command",
         args: { command: "rm -rf /" },
         intentId: "intent-2",
+        session: new Map(),
         messages: [],
-        signal: createSignal(),
-      }),
+        signal: createSignal()
+      })
     );
 
     expect(calls).toEqual(["first", "second"]);
@@ -763,8 +769,8 @@ describe("HookRegistry", () => {
       hooks: {
         preIteration() {
           return;
-        },
-      },
+        }
+      }
     });
 
     registry.add({
@@ -772,8 +778,8 @@ describe("HookRegistry", () => {
       hooks: {
         preIteration() {
           return undefined;
-        },
-      },
+        }
+      }
     });
 
     const decision = await registry.run(
@@ -783,8 +789,10 @@ describe("HookRegistry", () => {
         tokenCount: 42,
         messages: [],
         signal: createSignal(),
-        fork: async prompt => ({ output: prompt, messages: [] }),
-      }),
+        fork: async (prompt) => ({ output: prompt, messages: [] }),
+        complete: createIterationComplete(),
+        runHook: createIterationRunHook()
+      })
     );
 
     expect(decision).toBeUndefined();
@@ -800,8 +808,8 @@ describe("HookRegistry", () => {
         postIteration() {
           calls.push("first");
           return "abort";
-        },
-      },
+        }
+      }
     });
 
     registry.add({
@@ -810,8 +818,8 @@ describe("HookRegistry", () => {
         postIteration() {
           calls.push("second");
           return;
-        },
-      },
+        }
+      }
     });
 
     const decision = await registry.run(
@@ -821,12 +829,126 @@ describe("HookRegistry", () => {
         tokenCount: 9,
         messages: [],
         signal: createSignal(),
-        fork: async prompt => ({ output: prompt, messages: [] }),
-      }),
+        fork: async (prompt) => ({ output: prompt, messages: [] }),
+        complete: createIterationComplete(),
+        runHook: createIterationRunHook()
+      })
     );
 
     expect(calls).toEqual(["first", "second"]);
     expect(decision).toBe("abort");
+  });
+
+  it("supports session, compaction, notification, and stop hooks", async () => {
+    const registry = new HookRegistry();
+    const calls: string[] = [];
+
+    registry.add({
+      name: "lifecycle",
+      hooks: {
+        sessionStart() {
+          calls.push("sessionStart");
+        },
+        userPromptSubmit() {
+          calls.push("userPromptSubmit");
+        },
+        preCompaction() {
+          calls.push("preCompaction");
+        },
+        postCompaction() {
+          calls.push("postCompaction");
+        },
+        notification() {
+          calls.push("notification");
+          return "skip";
+        },
+        stop() {
+          calls.push("stop");
+        }
+      }
+    });
+
+    expect(
+      await registry.run(
+        "sessionStart",
+        createSessionStartHookContext({
+          session: new Map(),
+          messages: [],
+          signal: createSignal()
+        })
+      )
+    ).toBeUndefined();
+
+    expect(
+      await registry.run(
+        "userPromptSubmit",
+        createUserPromptSubmitHookContext({
+          prompt: "hello",
+          messages: [{ role: "user", content: "hello" }],
+          signal: createSignal()
+        })
+      )
+    ).toBeUndefined();
+
+    expect(
+      await registry.run(
+        "preCompaction",
+        createPreCompactionHookContext({
+          tokenCount: 42,
+          force: false,
+          messages: [],
+          signal: createSignal()
+        })
+      )
+    ).toBeUndefined();
+
+    expect(
+      await registry.run(
+        "postCompaction",
+        createPostCompactionHookContext({
+          tokenCount: 12,
+          summary: "summary",
+          droppedMessages: [{ role: "assistant", content: "dropped" }],
+          messages: [{ role: "system", content: "summary" }],
+          signal: createSignal()
+        })
+      )
+    ).toBeUndefined();
+
+    expect(
+      await registry.run(
+        "notification",
+        createNotificationHookContext({
+          event: "tool.progress",
+          message: "working",
+          data: { intentId: "intent-1" },
+          messages: [],
+          signal: createSignal()
+        })
+      )
+    ).toBe("skip");
+
+    expect(
+      await registry.run(
+        "stop",
+        createStopHookContext({
+          status: "completed",
+          output: "done",
+          toolCalls: [],
+          messages: [{ role: "assistant", content: "done" }],
+          signal: createSignal()
+        })
+      )
+    ).toBeUndefined();
+
+    expect(calls).toEqual([
+      "sessionStart",
+      "userPromptSubmit",
+      "preCompaction",
+      "postCompaction",
+      "notification",
+      "stop"
+    ]);
   });
 });
 
@@ -834,13 +956,15 @@ describe("hook context factories", () => {
   it("creates mutable preToolUse context", () => {
     const args = { path: "README.md" };
     const messages: ChatMessage[] = [{ role: "user", content: "read it" }];
+    const session = new Map<string, unknown>([["mode", "read"]]);
 
     const ctx = createPreToolUseHookContext({
       tool: "read_file",
       args,
       intentId: "intent-3",
+      session,
       messages,
-      signal: createSignal(),
+      signal: createSignal()
     });
 
     ctx.args = { path: "package.json" };
@@ -849,28 +973,34 @@ describe("hook context factories", () => {
     expect(ctx.args).toEqual({ path: "package.json" });
     expect(ctx.messages).toHaveLength(2);
     expect(ctx.messages).toBe(messages);
+    expect(ctx.session).toBe(session);
   });
 
   it("creates postToolUse context with result and error", () => {
+    const session = new Map<string, unknown>([["mode", "edit"]]);
     const ctx = createPostToolUseHookContext({
       tool: "search",
       args: { q: "hooks" },
       intentId: "intent-4",
       result: { total: 1 },
       error: "partial",
+      session,
       messages: [],
-      signal: createSignal(),
+      signal: createSignal()
     });
 
     expect(ctx.result).toEqual({ total: 1 });
     expect(ctx.error).toBe("partial");
+    expect(ctx.session).toBe(session);
   });
 
-  it("creates pre/post iteration contexts with mutable messages and fork", async () => {
+  it("creates pre/post iteration contexts with mutable messages, fork, completion, and hook access", async () => {
     const fork = vi.fn(async (prompt: string) => ({
       output: `summary:${prompt}`,
-      messages: [],
+      messages: []
     }));
+    const complete = vi.fn(async () => "summary note");
+    const runHook = vi.fn(async () => ({ type: "skip" as const }));
     const messages: ChatMessage[] = [{ role: "user", content: "start" }];
 
     const preCtx = createPreIterationHookContext({
@@ -879,6 +1009,8 @@ describe("hook context factories", () => {
       messages,
       signal: createSignal(),
       fork,
+      complete,
+      runHook
     });
 
     preCtx.messages.push({ role: "assistant", content: "working" });
@@ -889,14 +1021,112 @@ describe("hook context factories", () => {
       messages: preCtx.messages,
       signal: preCtx.signal,
       fork,
+      complete,
+      runHook
     });
 
     const forkResult = await postCtx.fork("compact");
+    const completeResult = await postCtx.complete([{ role: "user", content: "compact" }]);
+    const hookResult = await postCtx.runHook(
+      "notification",
+      createNotificationHookContext({
+        event: "background-output",
+        messages: postCtx.messages,
+        signal: postCtx.signal
+      })
+    );
 
     expect(postCtx.messages).toHaveLength(2);
     expect(postCtx.messages).toBe(messages);
     expect(forkResult).toEqual({ output: "summary:compact", messages: [] });
+    expect(completeResult).toBe("summary note");
+    expect(hookResult).toEqual({ type: "skip" });
     expect(fork).toHaveBeenCalledWith("compact");
+    expect(complete).toHaveBeenCalledWith([{ role: "user", content: "compact" }]);
+    expect(runHook).toHaveBeenCalledWith(
+      "notification",
+      expect.objectContaining({
+        event: "background-output",
+        messages
+      })
+    );
+  });
+
+  it("creates session, prompt, compaction, notification, and stop contexts", () => {
+    const messages: ChatMessage[] = [{ role: "user", content: "draft" }];
+    const toolCalls = [
+      {
+        intentId: "intent-1",
+        tool: "read_file",
+        args: { path: "README.md" },
+        status: "success" as const,
+        result: "ok"
+      }
+    ];
+    const droppedMessages: ChatMessage[] = [{ role: "assistant", content: "older reply" }];
+
+    const sessionStart = createSessionStartHookContext({
+      session: new Map(),
+      messages,
+      signal: createSignal()
+    });
+    sessionStart.messages.push({ role: "assistant", content: "seeded" });
+
+    const userPromptSubmit = createUserPromptSubmitHookContext({
+      prompt: "draft",
+      messages,
+      signal: createSignal()
+    });
+    userPromptSubmit.prompt = "rewritten";
+
+    const preCompaction = createPreCompactionHookContext({
+      tokenCount: 120,
+      force: false,
+      messages,
+      signal: createSignal()
+    });
+    preCompaction.force = true;
+
+    const postCompaction = createPostCompactionHookContext({
+      tokenCount: 40,
+      summary: "summary note",
+      droppedMessages,
+      messages,
+      signal: createSignal()
+    });
+
+    const notification = createNotificationHookContext({
+      event: "tool.progress",
+      message: "working",
+      data: { handle: "bg-1" },
+      messages,
+      signal: createSignal()
+    });
+
+    const stop = createStopHookContext({
+      status: "completed",
+      output: "done",
+      toolCalls,
+      messages,
+      signal: createSignal()
+    });
+
+    expect(sessionStart.messages).toBe(messages);
+    expect(sessionStart.messages).toHaveLength(2);
+    expect(userPromptSubmit.prompt).toBe("rewritten");
+    expect(preCompaction.force).toBe(true);
+    expect(postCompaction.summary).toBe("summary note");
+    expect(postCompaction.droppedMessages).toBe(droppedMessages);
+    expect(notification).toEqual({
+      event: "tool.progress",
+      message: "working",
+      data: { handle: "bg-1" },
+      messages,
+      signal: notification.signal
+    });
+    expect(stop.status).toBe("completed");
+    expect(stop.output).toBe("done");
+    expect(stop.toolCalls).toEqual(toolCalls);
   });
 });
 
@@ -910,8 +1140,10 @@ describe("applyHookDecision", () => {
         tokenCount: 1,
         messages: [],
         signal: createSignal(),
-        fork: async prompt => ({ output: prompt, messages: [] }),
-      }),
+        fork: async (prompt) => ({ output: prompt, messages: [] }),
+        complete: createIterationComplete(),
+        runHook: createIterationRunHook()
+      })
     );
     const postResult = await applyHookDecision(
       "postIteration",
@@ -921,8 +1153,10 @@ describe("applyHookDecision", () => {
         tokenCount: 1,
         messages: [],
         signal: createSignal(),
-        fork: async prompt => ({ output: prompt, messages: [] }),
-      }),
+        fork: async (prompt) => ({ output: prompt, messages: [] }),
+        complete: createIterationComplete(),
+        runHook: createIterationRunHook()
+      })
     );
 
     expect(preResult).toEqual({ type: "skip" });
@@ -937,9 +1171,10 @@ describe("applyHookDecision", () => {
         tool: "run_command",
         args: { command: "rm -rf /" },
         intentId: "intent-5",
+        session: new Map(),
         messages: [],
-        signal: createSignal(),
-      }),
+        signal: createSignal()
+      })
     );
 
     expect(result).toEqual({ type: "tool_error", error: "denied" });
@@ -953,12 +1188,14 @@ describe("applyHookDecision", () => {
       tokenCount: 7,
       messages: [],
       signal: createSignal(),
-      fork: async prompt => ({ output: prompt, messages: [] }),
-      disposeRun,
+      fork: async (prompt) => ({ output: prompt, messages: [] }),
+      complete: createIterationComplete(),
+      runHook: createIterationRunHook(),
+      disposeRun
     });
 
     await expect(applyHookDecision("preIteration", "abort", ctx)).rejects.toBeInstanceOf(
-      AbortError,
+      AbortError
     );
     expect(disposeRun).toHaveBeenCalledTimes(1);
   });
@@ -971,14 +1208,15 @@ describe("applyHookDecision", () => {
       args: { path: "README.md" },
       intentId: "intent-6",
       result: "ok",
+      session: new Map(),
       messages: [],
       signal: createSignal(),
-      disposeRun,
+      disposeRun
     });
 
-    await expect(
-      applyHookDecision("postToolUse", { reject: "fatal" }, ctx),
-    ).rejects.toBeInstanceOf(AbortError);
+    await expect(applyHookDecision("postToolUse", { reject: "fatal" }, ctx)).rejects.toBeInstanceOf(
+      AbortError
+    );
     expect(disposeRun).toHaveBeenCalledTimes(1);
   });
 
@@ -992,14 +1230,42 @@ describe("applyHookDecision", () => {
       tokenCount: 13,
       messages: [],
       signal: createSignal(),
-      fork: async prompt => ({ output: prompt, messages: [] }),
-      disposeRun,
+      fork: async (prompt) => ({ output: prompt, messages: [] }),
+      complete: createIterationComplete(),
+      runHook: createIterationRunHook(),
+      disposeRun
     });
 
     await expect(applyHookDecision("preIteration", "abort", ctx)).rejects.toBeInstanceOf(
-      AbortError,
+      AbortError
     );
     expect(disposeRun).toHaveBeenCalledTimes(1);
+  });
+
+  it("maps skip to skip for notification and preCompaction hooks", async () => {
+    const notificationResult = await applyHookDecision(
+      "notification",
+      "skip",
+      createNotificationHookContext({
+        event: "tool.progress",
+        message: "working",
+        messages: [],
+        signal: createSignal()
+      })
+    );
+    const preCompactionResult = await applyHookDecision(
+      "preCompaction",
+      "skip",
+      createPreCompactionHookContext({
+        tokenCount: 10,
+        force: false,
+        messages: [],
+        signal: createSignal()
+      })
+    );
+
+    expect(notificationResult).toEqual({ type: "skip" });
+    expect(preCompactionResult).toEqual({ type: "skip" });
   });
 });
 
@@ -1009,7 +1275,7 @@ function createNeverModel(): AcpModel {
   return {
     complete: vi.fn(async () => {
       throw new Error("Unexpected model call");
-    }),
+    })
   };
 }
 
@@ -1021,18 +1287,18 @@ describe("AgentHost.handle", () => {
       model: createNeverModel(),
       createSpawnSession: () => {
         throw new Error("spawn not configured");
-      },
+      }
     });
 
     const result = await host.handle({
       intentId: "intent-1",
       tool: "missing.tool",
-      args: {},
+      args: {}
     });
 
     expect(result).toEqual({
       status: "error",
-      result: "Unknown tool: missing.tool",
+      result: "Unknown tool: missing.tool"
     });
   });
 
@@ -1046,7 +1312,7 @@ describe("AgentHost.handle", () => {
         yield { type: "progress", message: "working" };
         yield { type: "message.delta", content: "chunk" };
         return { ok: true };
-      },
+      }
     });
 
     const host = new AgentHost({
@@ -1057,22 +1323,79 @@ describe("AgentHost.handle", () => {
       },
       createSpawnSession: () => {
         throw new Error("spawn not configured");
-      },
+      }
     });
 
     const result = await host.handle({
       intentId: "intent-2",
       tool: "demo",
-      args: {},
+      args: {}
     });
 
     expect(result).toEqual({
       status: "success",
-      result: { ok: true },
+      result: { ok: true }
     });
     expect(emitted).toEqual([
       { type: "progress", message: "working" },
-      { type: "message.delta", content: "chunk" },
+      { type: "message.delta", content: "chunk" }
+    ]);
+  });
+
+  it("dispatches notification hooks when a tool emits a notification", async () => {
+    const runContext = createRunContext();
+    const notifications: Array<{ event: string; message?: string; data?: unknown }> = [];
+
+    runContext.hooks.add({
+      name: "notification-listener",
+      hooks: {
+        notification(ctx) {
+          notifications.push({
+            event: ctx.event,
+            message: ctx.message,
+            data: ctx.data
+          });
+        }
+      }
+    });
+
+    runContext.tools.register({
+      name: "demo",
+      async call(args, ctx) {
+        await ctx.notify?.({
+          event: "tool.progress",
+          message: "working",
+          data: args
+        });
+
+        return "done";
+      }
+    });
+
+    const host = new AgentHost({
+      runContext,
+      model: createNeverModel(),
+      createSpawnSession: () => {
+        throw new Error("spawn not configured");
+      }
+    });
+
+    const result = await host.handle({
+      intentId: "intent-notify",
+      tool: "demo",
+      args: { step: 1 }
+    });
+
+    expect(result).toEqual({
+      status: "success",
+      result: "done"
+    });
+    expect(notifications).toEqual([
+      {
+        event: "tool.progress",
+        message: "working",
+        data: { step: 1 }
+      }
     ]);
   });
 
@@ -1082,7 +1405,7 @@ describe("AgentHost.handle", () => {
       name: "broken",
       call: () => {
         throw new Error("boom");
-      },
+      }
     });
 
     const host = new AgentHost({
@@ -1090,18 +1413,18 @@ describe("AgentHost.handle", () => {
       model: createNeverModel(),
       createSpawnSession: () => {
         throw new Error("spawn not configured");
-      },
+      }
     });
 
     const result = await host.handle({
       intentId: "intent-3",
       tool: "broken",
-      args: {},
+      args: {}
     });
 
     expect(result).toEqual({
       status: "error",
-      result: "boom",
+      result: "boom"
     });
   });
 
@@ -1114,7 +1437,7 @@ describe("AgentHost.handle", () => {
       call: async function* () {
         yield { type: "progress", message: "started" };
         throw new Error("stream exploded");
-      },
+      }
     });
 
     const host = new AgentHost({
@@ -1125,18 +1448,18 @@ describe("AgentHost.handle", () => {
       },
       createSpawnSession: () => {
         throw new Error("spawn not configured");
-      },
+      }
     });
 
     const result = await host.handle({
       intentId: "intent-4",
       tool: "broken-stream",
-      args: {},
+      args: {}
     });
 
     expect(result).toEqual({
       status: "error",
-      result: "stream exploded",
+      result: "stream exploded"
     });
     expect(emitted).toEqual([{ type: "progress", message: "started" }]);
   });
@@ -1146,26 +1469,28 @@ describe("AgentHost.handle", () => {
     let settleNext:
       | ((value: IteratorResult<{ type: "progress"; message: string }, string>) => void)
       | undefined;
-    const pendingNext = new Promise<IteratorResult<{ type: "progress"; message: string }, string>>(resolve => {
-      settleNext = resolve;
-    });
+    const pendingNext = new Promise<IteratorResult<{ type: "progress"; message: string }, string>>(
+      (resolve) => {
+        settleNext = resolve;
+      }
+    );
 
     const invocation = {
       next: vi
         .fn<() => Promise<IteratorResult<{ type: "progress"; message: string }, string>>>()
         .mockResolvedValueOnce({
           done: false,
-          value: { type: "progress", message: "started" },
+          value: { type: "progress", message: "started" }
         })
         .mockReturnValueOnce(pendingNext),
       return: vi.fn(async () => {
         settleNext?.({
           done: true,
-          value: "aborted",
+          value: "aborted"
         });
         return {
           done: true,
-          value: "aborted",
+          value: "aborted"
         };
       }),
       throw: vi.fn(async (error: unknown) => {
@@ -1173,12 +1498,12 @@ describe("AgentHost.handle", () => {
       }),
       [Symbol.asyncIterator]() {
         return invocation;
-      },
+      }
     };
 
     runContext.tools.register({
       name: "streaming",
-      call: () => invocation,
+      call: () => invocation
     });
 
     const host = new AgentHost({
@@ -1186,13 +1511,13 @@ describe("AgentHost.handle", () => {
       model: createNeverModel(),
       createSpawnSession: () => {
         throw new Error("spawn not configured");
-      },
+      }
     });
 
     const handlePromise = host.handle({
       intentId: "intent-5",
       tool: "streaming",
-      args: {},
+      args: {}
     });
 
     await vi.waitFor(() => {
@@ -1204,7 +1529,7 @@ describe("AgentHost.handle", () => {
     const result = await handlePromise;
     expect(result).toEqual({
       status: "success",
-      result: "aborted",
+      result: "aborted"
     });
     expect(invocation.return).toHaveBeenCalledTimes(1);
   });
@@ -1214,28 +1539,28 @@ describe("AgentHost.fork", () => {
   it("forks with cloned run state and emits fork lifecycle events", async () => {
     const runContext = createRunContext({ activeSkills: ["repo"] });
     runContext.messages.push({ role: "user", content: "existing context" });
-    runContext.prompts.addTransform(ctx => ({
+    runContext.prompts.addTransform((ctx) => ({
       ...ctx,
-      system: `fork-system:${ctx.userPrompt}`,
+      system: `fork-system:${ctx.userPrompt}`
     }));
     runContext.tools.register({
       name: "echo",
-      call: () => "echo-result",
+      call: () => "echo-result"
     });
 
     const model = createModel([
       {
         message: {
           content: "",
-          toolCalls: [{ id: "tool-echo", tool: "echo", args: {} }],
-        },
+          toolCalls: [{ id: "tool-echo", tool: "echo", args: {} }]
+        }
       },
       {
         message: {
           content: "fork done",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     const emitted: AcpEvent[] = [];
@@ -1247,7 +1572,7 @@ describe("AgentHost.fork", () => {
       },
       createSpawnSession: () => {
         throw new Error("spawn not configured");
-      },
+      }
     });
 
     const result = await host.fork({
@@ -1255,16 +1580,16 @@ describe("AgentHost.fork", () => {
       prompt: "child task",
       context: {
         messages: [...runContext.messages],
-        toolCalls: [],
-      },
+        toolCalls: []
+      }
     });
 
     expect(result.output).toBe("fork done");
     expect(result.messages).toEqual(
       expect.arrayContaining([
         { role: "user", content: "existing context" },
-        { role: "user", content: "child task" },
-      ]),
+        { role: "user", content: "child task" }
+      ])
     );
     expect(runContext.messages).toEqual([{ role: "user", content: "existing context" }]);
 
@@ -1272,17 +1597,15 @@ describe("AgentHost.fork", () => {
     expect(firstModelCall?.tools).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          name: "echo",
-        }),
-      ]),
+          name: "echo"
+        })
+      ])
     );
     expect(firstModelCall?.messages).toEqual(
-      expect.arrayContaining([
-        { role: "system", content: "fork-system:child task" },
-      ]),
+      expect.arrayContaining([{ role: "system", content: "fork-system:child task" }])
     );
 
-    expect(emitted.map(event => event.type)).toEqual(["fork.start", "fork.complete"]);
+    expect(emitted.map((event) => event.type)).toEqual(["fork.start", "fork.complete"]);
   });
 
   it("aborting the parent run aborts the forked child run", async () => {
@@ -1290,19 +1613,19 @@ describe("AgentHost.fork", () => {
     const model: AcpModel = {
       complete: vi.fn(async ({ signal }) => {
         if (!signal.aborted) {
-          await new Promise<void>(resolve => {
+          await new Promise<void>((resolve) => {
             signal.addEventListener(
               "abort",
               () => {
                 resolve();
               },
-              { once: true },
+              { once: true }
             );
           });
         }
 
         throw new Error("child aborted");
-      }),
+      })
     };
 
     const emitted: AcpEvent[] = [];
@@ -1314,7 +1637,7 @@ describe("AgentHost.fork", () => {
       },
       createSpawnSession: () => {
         throw new Error("spawn not configured");
-      },
+      }
     });
 
     const forkRun = host.fork({
@@ -1322,8 +1645,8 @@ describe("AgentHost.fork", () => {
       prompt: "will abort",
       context: {
         messages: [],
-        toolCalls: [],
-      },
+        toolCalls: []
+      }
     });
 
     await vi.waitFor(() => {
@@ -1334,7 +1657,7 @@ describe("AgentHost.fork", () => {
     runContext.abortController.abort(new Error("stop parent"));
 
     await forkRejection;
-    expect(emitted.map(event => event.type)).toEqual(["fork.start", "fork.error"]);
+    expect(emitted.map((event) => event.type)).toEqual(["fork.start", "fork.error"]);
   });
 
   it("emits fork lifecycle events once when invoked from the model loop", async () => {
@@ -1343,15 +1666,15 @@ describe("AgentHost.fork", () => {
       {
         message: {
           content: "child response",
-          toolCalls: [],
-        },
+          toolCalls: []
+        }
       },
       {
         message: {
           content: "parent response",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     runContext.hooks.add({
@@ -1362,8 +1685,8 @@ describe("AgentHost.fork", () => {
           if (latestMessage?.role === "user" && latestMessage.content === "parent prompt") {
             await ctx.fork("child prompt");
           }
-        },
-      },
+        }
+      }
     });
 
     const events = await collectEvents(
@@ -1375,14 +1698,14 @@ describe("AgentHost.fork", () => {
           model,
           createSpawnSession: () => {
             throw new Error("spawn not configured");
-          },
+          }
         }),
-        model,
-      }),
+        model
+      })
     );
 
-    expect(events.filter(event => event.type === "fork.start")).toHaveLength(1);
-    expect(events.filter(event => event.type === "fork.complete")).toHaveLength(1);
+    expect(events.filter((event) => event.type === "fork.start")).toHaveLength(1);
+    expect(events.filter((event) => event.type === "fork.complete")).toHaveLength(1);
   });
 
   it("does not duplicate fork lifecycle events when host emit is wired", async () => {
@@ -1392,15 +1715,15 @@ describe("AgentHost.fork", () => {
       {
         message: {
           content: "child response",
-          toolCalls: [],
-        },
+          toolCalls: []
+        }
       },
       {
         message: {
           content: "parent response",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     runContext.hooks.add({
@@ -1411,8 +1734,8 @@ describe("AgentHost.fork", () => {
           if (latestMessage?.role === "user" && latestMessage.content === "parent prompt") {
             await ctx.fork("child prompt");
           }
-        },
-      },
+        }
+      }
     });
 
     await collectEvents(
@@ -1427,14 +1750,71 @@ describe("AgentHost.fork", () => {
           },
           createSpawnSession: () => {
             throw new Error("spawn not configured");
-          },
+          }
         }),
-        model,
-      }),
+        model
+      })
     );
 
-    expect(emitted.filter(event => event.type === "fork.start")).toHaveLength(1);
-    expect(emitted.filter(event => event.type === "fork.complete")).toHaveLength(1);
+    expect(emitted.filter((event) => event.type === "fork.start")).toHaveLength(1);
+    expect(emitted.filter((event) => event.type === "fork.complete")).toHaveLength(1);
+  });
+
+  it("passes the run-level max-iterations limit to forked runs", async () => {
+    const runContext = createRunContext();
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          toolCalls: [
+            {
+              id: "tool-1",
+              tool: "always_call_tool",
+              args: { iteration: 1 }
+            }
+          ]
+        }
+      }
+    ]);
+
+    runContext.hooks.add({
+      name: "fork-once",
+      hooks: {
+        async preIteration(ctx) {
+          const latestMessage = ctx.messages[ctx.messages.length - 1];
+          if (latestMessage?.role === "user" && latestMessage.content === "parent prompt") {
+            await ctx.fork("child prompt");
+          }
+        }
+      }
+    });
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "parent prompt",
+        runContext,
+        host: new AgentHost({
+          runContext,
+          model,
+          maxIterations: 1,
+          createSpawnSession: () => {
+            throw new Error("spawn not configured");
+          }
+        }),
+        model,
+        maxIterations: 1
+      })
+    );
+
+    expect((model.complete as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
+    expect(events.filter((event) => event.type === "fork.start")).toHaveLength(1);
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.error");
+    if (terminal?.type === "session.error") {
+      expect(terminal.error.name).toBe("AbortError");
+      expect(terminal.error.message).toContain("Maximum tool call iterations reached");
+    }
   });
 });
 
@@ -1445,12 +1825,12 @@ describe("AgentHost.spawn", () => {
 
     const sendMessage = vi.fn(async (prompt: string) => ({
       role: "assistant" as const,
-      content: `spawned:${prompt}`,
+      content: `spawned:${prompt}`
     }));
     const disposeSession = vi.fn(async () => undefined);
     const createSession = vi.fn(async () => ({
       sendMessage,
-      dispose: disposeSession,
+      dispose: disposeSession
     }));
 
     const host = new AgentHost({
@@ -1460,21 +1840,23 @@ describe("AgentHost.spawn", () => {
         createInMemorySpawnSession({
           model: "test-model",
           cwd: "/tmp/poe-agent",
-          createSession,
-        }),
+          mode: "read",
+          createSession
+        })
     });
 
     const result = await host.spawn("hello child");
 
     expect(result).toEqual({
       output: "spawned:hello child",
-      messages: [{ role: "assistant", content: "spawned:hello child" }],
+      messages: [{ role: "assistant", content: "spawned:hello child" }]
     });
     expect(createSession).toHaveBeenCalledWith(
       expect.objectContaining({
         model: "test-model",
         cwd: "/tmp/poe-agent",
-      }),
+        mode: "read"
+      })
     );
     expect(sendMessage).toHaveBeenCalledTimes(1);
     expect(sendMessage.mock.calls[0]?.[0]).toBe("hello child");
@@ -1500,15 +1882,15 @@ describe("AgentHost.spawn", () => {
             async *[Symbol.asyncIterator]() {
               yield* [];
               return;
-            },
+            }
           })),
-          dispose,
-        },
-      }),
+          dispose
+        }
+      })
     });
 
     await expect(host.spawn("hello child")).rejects.toThrow(
-      "Spawned session ended with stop reason: cancelled",
+      "Spawned session ended with stop reason: cancelled"
     );
     expect(dispose).toHaveBeenCalledTimes(1);
   });
@@ -1530,11 +1912,11 @@ describe("AgentHost.spawn", () => {
             async *[Symbol.asyncIterator]() {
               yield* [];
               throw new Error("stream broken");
-            },
+            }
           })),
-          dispose,
-        },
-      }),
+          dispose
+        }
+      })
     });
 
     await expect(host.spawn("hello child")).rejects.toThrow("stream broken");
@@ -1546,9 +1928,9 @@ describe("AgentHost.spawn", () => {
 
 function createHost(): AcpHost {
   return {
-    handle: vi.fn(async intent => ({ status: "success", result: { ok: true, intent } })),
-    fork: vi.fn(async request => ({ output: request.prompt, messages: [] })),
-    spawn: vi.fn(async prompt => ({ output: prompt, messages: [] })),
+    handle: vi.fn(async (intent) => ({ status: "success", result: { ok: true, intent } })),
+    fork: vi.fn(async (request) => ({ output: request.prompt, messages: [] })),
+    spawn: vi.fn(async (prompt) => ({ output: prompt, messages: [] }))
   };
 }
 
@@ -1563,12 +1945,111 @@ function createTokenBudget(max: number) {
         if (total > max) {
           return "abort" as const;
         }
-      },
-    },
+      }
+    }
   };
 }
 
 describe("runAcpCore", () => {
+  it("aborts when the run-level max-iterations limit is exceeded", async () => {
+    const runContext = createRunContext();
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          toolCalls: [
+            {
+              id: "tool-1",
+              tool: "always_call_tool",
+              args: { iteration: 1 }
+            }
+          ]
+        }
+      }
+    ]);
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "Always call a tool",
+        runContext,
+        host: createHost(),
+        model,
+        maxIterations: 1
+      })
+    );
+
+    expect((model.complete as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
+    expect(events.map((event) => event.type)).toEqual([
+      "tool.intent",
+      "tool.result",
+      "session.error"
+    ]);
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.error");
+    if (terminal?.type === "session.error") {
+      expect(terminal.error.name).toBe("AbortError");
+      expect(terminal.error.message).toContain("Maximum tool call iterations reached");
+    }
+  });
+
+  it("runs sessionStart and userPromptSubmit before the first model call", async () => {
+    const runContext = createRunContext();
+    const hookOrder: string[] = [];
+
+    runContext.prompts.addTransform((ctx) => ({
+      ...ctx,
+      system: `prompt:${ctx.userPrompt}`
+    }));
+    runContext.hooks.add({
+      name: "lifecycle",
+      hooks: {
+        sessionStart(ctx) {
+          hookOrder.push("sessionStart");
+          ctx.messages.push({ role: "assistant", content: "seeded context" });
+        },
+        userPromptSubmit(ctx) {
+          hookOrder.push(`userPromptSubmit:${ctx.prompt}`);
+          ctx.prompt = "rewritten prompt";
+        }
+      }
+    });
+
+    const model = createModel([
+      {
+        message: {
+          content: "done",
+          toolCalls: []
+        }
+      }
+    ]);
+
+    await collectEvents(
+      runAcpCore({
+        prompt: "original prompt",
+        runContext,
+        host: createHost(),
+        model
+      })
+    );
+
+    expect(hookOrder).toEqual(["sessionStart", "userPromptSubmit:original prompt"]);
+    expect((model.complete as ReturnType<typeof vi.fn>).mock.calls[0]?.[0]?.messages).toEqual([
+      {
+        role: "system",
+        content: "prompt:rewritten prompt"
+      },
+      {
+        role: "assistant",
+        content: "seeded context"
+      },
+      {
+        role: "user",
+        content: "rewritten prompt"
+      }
+    ]);
+  });
+
   it("emits intent/result events, applies hooks, and completes when the model returns final text", async () => {
     const runContext = createRunContext();
     const hookOrder: string[] = [];
@@ -1581,8 +2062,8 @@ describe("runAcpCore", () => {
         },
         postToolUse() {
           hookOrder.push("post-tool");
-        },
-      },
+        }
+      }
     });
 
     const host = createHost();
@@ -1594,18 +2075,18 @@ describe("runAcpCore", () => {
             {
               id: "tool-1",
               tool: "read_file",
-              args: { path: "README.md" },
-            },
-          ],
-        },
+              args: { path: "README.md" }
+            }
+          ]
+        }
       },
       {
         deltas: ["Done"],
         message: {
           content: "Done",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     const events = await collectEvents(
@@ -1613,21 +2094,21 @@ describe("runAcpCore", () => {
         prompt: "Read the README",
         runContext,
         host,
-        model,
-      }),
+        model
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual([
+    expect(events.map((event) => event.type)).toEqual([
       "tool.intent",
       "tool.result",
       "message.delta",
-      "session.complete",
+      "session.complete"
     ]);
 
     expect((host.handle as ReturnType<typeof vi.fn>).mock.calls[0]?.[0]).toEqual({
       intentId: "tool-1",
       tool: "read_file",
-      args: { path: "README.md" },
+      args: { path: "README.md" }
     });
 
     expect(hookOrder).toEqual(["pre-tool", "post-tool"]);
@@ -1647,10 +2128,10 @@ describe("runAcpCore", () => {
             intent: {
               intentId: "tool-1",
               tool: "read_file",
-              args: { path: "README.md" },
-            },
-          },
-        },
+              args: { path: "README.md" }
+            }
+          }
+        }
       ]);
     }
   });
@@ -1666,17 +2147,17 @@ describe("runAcpCore", () => {
             {
               id: "tool-1",
               tool: "read_file",
-              args: { path: "README.md" },
-            },
-          ],
-        },
+              args: { path: "README.md" }
+            }
+          ]
+        }
       },
       {
         message: {
           content: "Done",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     await collectEvents(
@@ -1684,8 +2165,8 @@ describe("runAcpCore", () => {
         prompt: "Read the README",
         runContext,
         host,
-        model,
-      }),
+        model
+      })
     );
 
     const secondRequest = (model.complete as ReturnType<typeof vi.fn>).mock.calls[1]?.[0] as
@@ -1694,11 +2175,105 @@ describe("runAcpCore", () => {
     expect(secondRequest).toBeDefined();
     const snapshotHashInput = JSON.stringify({
       model: secondRequest?.model,
-      messages: secondRequest?.messages,
+      messages: secondRequest?.messages
     });
     expect(snapshotHashInput).toContain(
-      '"role":"tool","tool_call_id":"tool-1","name":"read_file","content":"',
+      '"role":"tool","tool_call_id":"tool-1","name":"read_file","content":"'
     );
+  });
+
+  it("threads multimodal tool results into follow-up model requests", async () => {
+    const runContext = createRunContext();
+    const host: AcpHost = {
+      handle: vi.fn(async () => ({
+        status: "success",
+        result: [
+          { type: "text", text: "Screenshot captured" },
+          { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+          {
+            type: "error",
+            code: "parse_error",
+            message: "Retry with valid JSON",
+            retriable: true
+          }
+        ]
+      })),
+      fork: vi.fn(async (request) => ({ output: request.prompt, messages: [] })),
+      spawn: vi.fn(async (prompt) => ({ output: prompt, messages: [] }))
+    };
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          toolCalls: [
+            {
+              id: "tool-1",
+              tool: "read_file",
+              args: { path: "diagram.png" }
+            }
+          ]
+        }
+      },
+      {
+        message: {
+          content: "Done",
+          toolCalls: []
+        }
+      }
+    ]);
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "Read the diagram",
+        runContext,
+        host,
+        model
+      })
+    );
+
+    const secondRequest = (model.complete as ReturnType<typeof vi.fn>).mock.calls[1]?.[0] as
+      | { messages?: Array<Record<string, unknown>> }
+      | undefined;
+    const toolMessage = secondRequest?.messages?.find((message) => message.role === "tool");
+
+    expect(toolMessage).toEqual({
+      role: "tool",
+      tool_call_id: "tool-1",
+      name: "read_file",
+      content: [
+        { type: "text", text: "Screenshot captured" },
+        { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+        {
+          type: "error",
+          code: "parse_error",
+          message: "Retry with valid JSON",
+          retriable: true
+        }
+      ]
+    });
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.complete");
+    if (terminal?.type === "session.complete") {
+      expect(terminal.result.toolCalls).toEqual([
+        {
+          intentId: "tool-1",
+          tool: "read_file",
+          args: { path: "diagram.png" },
+          status: "success",
+          result: [
+            { type: "text", text: "Screenshot captured" },
+            { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+            {
+              type: "error",
+              code: "parse_error",
+              message: "Retry with valid JSON",
+              retriable: true
+            }
+          ]
+        }
+      ]);
+    }
   });
 
   it("preserves raw model tool argument JSON when echoing assistant tool calls", async () => {
@@ -1715,18 +2290,18 @@ describe("runAcpCore", () => {
               type: "function",
               function: {
                 name: "edit_file",
-                arguments: rawArguments,
-              },
-            },
-          ],
-        },
+                arguments: rawArguments
+              }
+            }
+          ]
+        }
       },
       {
         message: {
           content: "Done",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     await collectEvents(
@@ -1734,8 +2309,8 @@ describe("runAcpCore", () => {
         prompt: "Create a file",
         runContext,
         host,
-        model,
-      }),
+        model
+      })
     );
 
     expect(host.handle).toHaveBeenCalledWith({
@@ -1743,14 +2318,21 @@ describe("runAcpCore", () => {
       tool: "edit_file",
       args: {
         command: "create",
-        path: "/workspace/test-document.txt",
-      },
+        path: "/workspace/test-document.txt"
+      }
     });
 
     const secondRequest = (model.complete as ReturnType<typeof vi.fn>).mock.calls[1]?.[0] as
-      | { messages?: Array<{ role?: string; tool_calls?: Array<{ function?: { arguments?: string } }> }> }
+      | {
+          messages?: Array<{
+            role?: string;
+            tool_calls?: Array<{ function?: { arguments?: string } }>;
+          }>;
+        }
       | undefined;
-    const assistantMessage = secondRequest?.messages?.find(message => message.role === "assistant");
+    const assistantMessage = secondRequest?.messages?.find(
+      (message) => message.role === "assistant"
+    );
     expect(assistantMessage?.tool_calls?.[0]?.function?.arguments).toBe(rawArguments);
   });
 
@@ -1769,18 +2351,18 @@ describe("runAcpCore", () => {
               type: "function",
               function: {
                 name: "edit_file",
-                arguments: '{"command": "create", "path": "/workspace/test-document.txt"}',
-              },
-            },
-          ],
-        },
+                arguments: '{"command": "create", "path": "/workspace/test-document.txt"}'
+              }
+            }
+          ]
+        }
       },
       {
         message: {
           content: "Done",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     await collectEvents(
@@ -1788,14 +2370,16 @@ describe("runAcpCore", () => {
         prompt: "Create a file",
         runContext,
         host,
-        model,
-      }),
+        model
+      })
     );
 
     const secondRequest = (model.complete as ReturnType<typeof vi.fn>).mock.calls[1]?.[0] as
       | { messages?: Array<Record<string, unknown>> }
       | undefined;
-    const assistantMessage = secondRequest?.messages?.find(message => message.role === "assistant");
+    const assistantMessage = secondRequest?.messages?.find(
+      (message) => message.role === "assistant"
+    );
     expect(assistantMessage?.reasoning_content).toBe("Need to create file first");
     expect(assistantMessage?.reasoning).toBe("Need to create file first");
   });
@@ -1807,8 +2391,8 @@ describe("runAcpCore", () => {
       hooks: {
         preToolUse() {
           return { reject: "blocked" };
-        },
-      },
+        }
+      }
     });
 
     const host = createHost();
@@ -1820,17 +2404,17 @@ describe("runAcpCore", () => {
             {
               id: "tool-2",
               tool: "run_command",
-              args: { command: "rm -rf /" },
-            },
-          ],
-        },
+              args: { command: "rm -rf /" }
+            }
+          ]
+        }
       },
       {
         message: {
           content: "Recovered",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     const events = await collectEvents(
@@ -1838,14 +2422,14 @@ describe("runAcpCore", () => {
         prompt: "Do dangerous thing",
         runContext,
         host,
-        model,
-      }),
+        model
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual([
+    expect(events.map((event) => event.type)).toEqual([
       "tool.error",
       "message.delta",
-      "session.complete",
+      "session.complete"
     ]);
 
     expect(host.handle).not.toHaveBeenCalled();
@@ -1859,8 +2443,8 @@ describe("runAcpCore", () => {
           tool: "run_command",
           args: { command: "rm -rf /" },
           status: "error",
-          error: "blocked",
-        },
+          error: "blocked"
+        }
       ]);
     }
   });
@@ -1884,19 +2468,19 @@ describe("runAcpCore", () => {
           if (ctx.tool === "run_command" && isForbidden(ctx.args)) {
             return { reject: "Blocked forbidden command" };
           }
-        },
-      },
+        }
+      }
     });
 
     const host = createHost();
-    host.handle = vi.fn(async intent => ({
+    host.handle = vi.fn(async (intent) => ({
       status: "success",
-      result: `executed:${(intent.args as { command?: string }).command ?? ""}`,
+      result: `executed:${(intent.args as { command?: string }).command ?? ""}`
     }));
 
     let callNumber = 0;
     const model: AcpModel = {
-      complete: vi.fn(async request => {
+      complete: vi.fn(async (request) => {
         callNumber += 1;
 
         if (callNumber === 1) {
@@ -1907,10 +2491,10 @@ describe("runAcpCore", () => {
                 {
                   id: "blocked-command",
                   tool: "run_command",
-                  args: { command: "rm -rf /tmp/demo" },
-                },
-              ],
-            },
+                  args: { command: "rm -rf /tmp/demo" }
+                }
+              ]
+            }
           };
         }
 
@@ -1919,7 +2503,7 @@ describe("runAcpCore", () => {
             role: "tool",
             content: "Error: Blocked forbidden command",
             name: "run_command",
-            tool_call_id: "blocked-command",
+            tool_call_id: "blocked-command"
           });
 
           return {
@@ -1929,10 +2513,10 @@ describe("runAcpCore", () => {
                 {
                   id: "safe-command",
                   tool: "run_command",
-                  args: { command: "ls -la" },
-                },
-              ],
-            },
+                  args: { command: "ls -la" }
+                }
+              ]
+            }
           };
         }
 
@@ -1941,19 +2525,19 @@ describe("runAcpCore", () => {
             role: "tool",
             content: "executed:ls -la",
             name: "run_command",
-            tool_call_id: "safe-command",
+            tool_call_id: "safe-command"
           });
 
           return {
             message: {
               content: "Recovered",
-              toolCalls: [],
-            },
+              toolCalls: []
+            }
           };
         }
 
         throw new Error("Unexpected model call");
-      }),
+      })
     };
 
     const events = await collectEvents(
@@ -1961,23 +2545,23 @@ describe("runAcpCore", () => {
         prompt: "Run shell commands",
         runContext,
         host,
-        model,
-      }),
+        model
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual([
+    expect(events.map((event) => event.type)).toEqual([
       "tool.error",
       "tool.intent",
       "tool.result",
       "message.delta",
-      "session.complete",
+      "session.complete"
     ]);
 
     expect(host.handle).toHaveBeenCalledTimes(1);
     expect(host.handle).toHaveBeenCalledWith({
       intentId: "safe-command",
       tool: "run_command",
-      args: { command: "ls -la" },
+      args: { command: "ls -la" }
     });
 
     const terminal = events[events.length - 1];
@@ -1989,15 +2573,15 @@ describe("runAcpCore", () => {
           tool: "run_command",
           args: { command: "rm -rf /tmp/demo" },
           status: "error",
-          error: "Blocked forbidden command",
+          error: "Blocked forbidden command"
         },
         {
           intentId: "safe-command",
           tool: "run_command",
           args: { command: "ls -la" },
           status: "success",
-          result: "executed:ls -la",
-        },
+          result: "executed:ls -la"
+        }
       ]);
     }
   });
@@ -2021,19 +2605,19 @@ describe("runAcpCore", () => {
           if (ctx.tool === "run_command" && isForbidden(ctx.args)) {
             return { reject: "Blocked forbidden command" };
           }
-        },
-      },
+        }
+      }
     });
 
     const host = createHost();
-    host.handle = vi.fn(async intent => ({
+    host.handle = vi.fn(async (intent) => ({
       status: "success",
-      result: `executed:${(intent.args as { command?: string }).command ?? ""}`,
+      result: `executed:${(intent.args as { command?: string }).command ?? ""}`
     }));
 
     let callNumber = 0;
     const model: AcpModel = {
-      complete: vi.fn(async request => {
+      complete: vi.fn(async (request) => {
         callNumber += 1;
 
         if (callNumber === 1) {
@@ -2044,45 +2628,45 @@ describe("runAcpCore", () => {
                 {
                   id: "blocked-command",
                   tool: "run_command",
-                  args: { command: "rm -rf /tmp/demo" },
+                  args: { command: "rm -rf /tmp/demo" }
                 },
                 {
                   id: "safe-command",
                   tool: "run_command",
-                  args: { command: "ls -la" },
-                },
-              ],
-            },
+                  args: { command: "ls -la" }
+                }
+              ]
+            }
           };
         }
 
         if (callNumber === 2) {
-          const toolMessages = request.messages.filter(message => message.role === "tool");
+          const toolMessages = request.messages.filter((message) => message.role === "tool");
           expect(toolMessages).toEqual([
             {
               role: "tool",
               content: "Error: Blocked forbidden command",
               name: "run_command",
-              tool_call_id: "blocked-command",
+              tool_call_id: "blocked-command"
             },
             {
               role: "tool",
               content: "executed:ls -la",
               name: "run_command",
-              tool_call_id: "safe-command",
-            },
+              tool_call_id: "safe-command"
+            }
           ]);
 
           return {
             message: {
               content: "done",
-              toolCalls: [],
-            },
+              toolCalls: []
+            }
           };
         }
 
         throw new Error("Unexpected model call");
-      }),
+      })
     };
 
     const events = await collectEvents(
@@ -2090,23 +2674,23 @@ describe("runAcpCore", () => {
         prompt: "Run shell commands",
         runContext,
         host,
-        model,
-      }),
+        model
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual([
+    expect(events.map((event) => event.type)).toEqual([
       "tool.error",
       "tool.intent",
       "tool.result",
       "message.delta",
-      "session.complete",
+      "session.complete"
     ]);
 
     expect(host.handle).toHaveBeenCalledTimes(1);
     expect(host.handle).toHaveBeenCalledWith({
       intentId: "safe-command",
       tool: "run_command",
-      args: { command: "ls -la" },
+      args: { command: "ls -la" }
     });
   });
 
@@ -2132,27 +2716,27 @@ describe("runAcpCore", () => {
                 {
                   id: "tool-budget-1",
                   tool: "read_file",
-                  args: { path: "README.md" },
-                },
-              ],
-            },
+                  args: { path: "README.md" }
+                }
+              ]
+            }
           },
           {
             message: {
               content: "final",
-              toolCalls: [],
-            },
-          },
+              toolCalls: []
+            }
+          }
         ]),
-        disposeRun,
-      }),
+        disposeRun
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual([
+    expect(events.map((event) => event.type)).toEqual([
       "tool.intent",
       "tool.result",
       "message.delta",
-      "session.error",
+      "session.error"
     ]);
     expect(disposeRun).toHaveBeenCalled();
 
@@ -2183,26 +2767,26 @@ describe("runAcpCore", () => {
                 {
                   id: "tool-budget-2",
                   tool: "read_file",
-                  args: { path: "README.md" },
-                },
-              ],
-            },
+                  args: { path: "README.md" }
+                }
+              ]
+            }
           },
           {
             message: {
               content: "within budget",
-              toolCalls: [],
-            },
-          },
-        ]),
-      }),
+              toolCalls: []
+            }
+          }
+        ])
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual([
+    expect(events.map((event) => event.type)).toEqual([
       "tool.intent",
       "tool.result",
       "message.delta",
-      "session.complete",
+      "session.complete"
     ]);
 
     const terminal = events[events.length - 1];
@@ -2225,14 +2809,14 @@ describe("runAcpCore", () => {
           {
             message: {
               content: "efgh",
-              toolCalls: [],
-            },
-          },
-        ]),
-      }),
+              toolCalls: []
+            }
+          }
+        ])
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual(["message.delta", "session.complete"]);
+    expect(events.map((event) => event.type)).toEqual(["message.delta", "session.complete"]);
 
     const terminal = events[events.length - 1];
     expect(terminal?.type).toBe("session.complete");
@@ -2253,17 +2837,17 @@ describe("runAcpCore", () => {
           if (calls === 1) {
             return "skip";
           }
-        },
-      },
+        }
+      }
     });
 
     const model = createModel([
       {
         message: {
           content: "ok",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     const events = await collectEvents(
@@ -2271,12 +2855,92 @@ describe("runAcpCore", () => {
         prompt: "Say ok",
         runContext,
         host: createHost(),
-        model,
-      }),
+        model
+      })
     );
 
     expect((model.complete as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
-    expect(events.map(event => event.type)).toEqual(["message.delta", "session.complete"]);
+    expect(events.map((event) => event.type)).toEqual(["message.delta", "session.complete"]);
+  });
+
+  it("runs stop hooks before completing and exposes the final result", async () => {
+    const runContext = createRunContext();
+    const stopCalls: Array<{ status: string; output?: string; messageCount: number }> = [];
+
+    runContext.hooks.add({
+      name: "stop",
+      hooks: {
+        stop(ctx) {
+          stopCalls.push({
+            status: ctx.status,
+            output: ctx.output,
+            messageCount: ctx.messages.length
+          });
+        }
+      }
+    });
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "Hello",
+        runContext,
+        host: createHost(),
+        model: createModel([
+          {
+            message: {
+              content: "done",
+              toolCalls: []
+            }
+          }
+        ])
+      })
+    );
+
+    expect(stopCalls).toEqual([
+      {
+        status: "completed",
+        output: "done",
+        messageCount: 2
+      }
+    ]);
+    expect(events.map((event) => event.type)).toEqual(["message.delta", "session.complete"]);
+  });
+
+  it("lets stop hooks veto finalization", async () => {
+    const runContext = createRunContext();
+
+    runContext.hooks.add({
+      name: "stop",
+      hooks: {
+        stop() {
+          return { reject: "finalization blocked" };
+        }
+      }
+    });
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "Hello",
+        runContext,
+        host: createHost(),
+        model: createModel([
+          {
+            message: {
+              content: "done",
+              toolCalls: []
+            }
+          }
+        ])
+      })
+    );
+
+    expect(events.map((event) => event.type)).toEqual(["message.delta", "session.error"]);
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.error");
+    if (terminal?.type === "session.error") {
+      expect(terminal.error).toBeInstanceOf(AbortError);
+      expect(terminal.error.message).toContain("stop");
+    }
   });
 
   it("emits exactly one terminal session.error event when aborted before execution", async () => {
@@ -2288,9 +2952,9 @@ describe("runAcpCore", () => {
       {
         message: {
           content: "should not run",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     const events = await collectEvents(
@@ -2299,8 +2963,8 @@ describe("runAcpCore", () => {
         runContext,
         host: createHost(),
         model,
-        signal: controller.signal,
-      }),
+        signal: controller.signal
+      })
     );
 
     expect((model.complete as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
@@ -2318,8 +2982,8 @@ describe("runAcpCore", () => {
         prompt: "Hello",
         runContext,
         host: createHost(),
-        model: createModel([new Error("model failed")]),
-      }),
+        model: createModel([new Error("model failed")])
+      })
     );
 
     expect(events).toHaveLength(1);
@@ -2344,11 +3008,11 @@ describe("runAcpCore", () => {
             {
               id: "tool-host-fail",
               tool: "read_file",
-              args: { path: "README.md" },
-            },
-          ],
-        },
-      },
+              args: { path: "README.md" }
+            }
+          ]
+        }
+      }
     ]);
 
     const events = await collectEvents(
@@ -2356,12 +3020,12 @@ describe("runAcpCore", () => {
         prompt: "Read the README",
         runContext,
         host,
-        model,
-      }),
+        model
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual(["tool.intent", "session.error"]);
-    expect(events.filter(event => event.type === "session.error")).toHaveLength(1);
+    expect(events.map((event) => event.type)).toEqual(["tool.intent", "session.error"]);
+    expect(events.filter((event) => event.type === "session.error")).toHaveLength(1);
 
     const terminal = events[events.length - 1];
     expect(terminal?.type).toBe("session.error");
@@ -2378,9 +3042,9 @@ describe("runAcpCore", () => {
     const host = createHost();
     host.handle = vi.fn(
       () =>
-        new Promise(resolve => {
+        new Promise((resolve) => {
           releaseHost = () => resolve({ status: "success", result: "late" });
-        }),
+        })
     );
 
     const model = createModel([
@@ -2391,11 +3055,11 @@ describe("runAcpCore", () => {
             {
               id: "tool-waiting",
               tool: "read_file",
-              args: { path: "README.md" },
-            },
-          ],
-        },
-      },
+              args: { path: "README.md" }
+            }
+          ]
+        }
+      }
     ]);
 
     const eventsPromise = collectEvents(
@@ -2404,8 +3068,8 @@ describe("runAcpCore", () => {
         runContext,
         host,
         model,
-        signal: controller.signal,
-      }),
+        signal: controller.signal
+      })
     );
 
     await vi.waitFor(() => {
@@ -2416,8 +3080,8 @@ describe("runAcpCore", () => {
 
     const events = await eventsPromise;
 
-    expect(events.filter(event => event.type === "session.error")).toHaveLength(1);
-    expect(events.map(event => event.type)).toEqual(["tool.intent", "session.error"]);
+    expect(events.filter((event) => event.type === "session.error")).toHaveLength(1);
+    expect(events.map((event) => event.type)).toEqual(["tool.intent", "session.error"]);
 
     const terminal = events[events.length - 1];
     expect(terminal?.type).toBe("session.error");
@@ -2434,9 +3098,9 @@ describe("runAcpCore", () => {
       {
         deltas: ["Hello", " ", "stream"],
         message: {
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     const events = await collectEvents(
@@ -2444,20 +3108,20 @@ describe("runAcpCore", () => {
         prompt: "Say hello",
         runContext,
         host: createHost(),
-        model,
-      }),
+        model
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual([
+    expect(events.map((event) => event.type)).toEqual([
       "message.delta",
       "message.delta",
       "message.delta",
-      "session.complete",
+      "session.complete"
     ]);
 
     expect(runContext.messages).toEqual([
       { role: "user", content: "Say hello" },
-      { role: "assistant", content: "Hello stream" },
+      { role: "assistant", content: "Hello stream" }
     ]);
 
     const terminal = events[events.length - 1];
@@ -2477,17 +3141,17 @@ describe("runAcpCore", () => {
             {
               id: "tool-3",
               tool: "read_file",
-              args: { path: "README.md" },
-            },
-          ],
-        },
+              args: { path: "README.md" }
+            }
+          ]
+        }
       },
       {
         message: {
           content: "",
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     const events = await collectEvents(
@@ -2495,8 +3159,8 @@ describe("runAcpCore", () => {
         prompt: "Read and stay quiet",
         runContext,
         host: createHost(),
-        model,
-      }),
+        model
+      })
     );
 
     const terminal = events[events.length - 1];
@@ -2515,9 +3179,9 @@ describe("runAcpCore", () => {
           throw new Error("stream failed");
         })(),
         message: {
-          toolCalls: [],
-        },
-      },
+          toolCalls: []
+        }
+      }
     ]);
 
     const events = await collectEvents(
@@ -2525,11 +3189,11 @@ describe("runAcpCore", () => {
         prompt: "Stream then fail",
         runContext,
         host: createHost(),
-        model,
-      }),
+        model
+      })
     );
 
-    expect(events.map(event => event.type)).toEqual(["message.delta", "session.error"]);
+    expect(events.map((event) => event.type)).toEqual(["message.delta", "session.error"]);
 
     const terminal = events[events.length - 1];
     expect(terminal?.type).toBe("session.error");

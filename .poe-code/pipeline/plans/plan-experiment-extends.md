@@ -1,3 +1,4 @@
+---
 vars:
   design_doc: "{{file 'docs/plans/experiment-extends.md'}}"
 
@@ -200,3 +201,8 @@ tasks:
       implement: open
       test: open
       commit: open
+---
+
+# Context
+
+Tracks the experiment `extends` work. Related design doc: `docs/plans/experiment-extends.md`.

@@ -265,7 +265,7 @@ describe("pipeline run command", () => {
       });
       return {
         stopReason: "completed",
-        planPath: ".poe-code/pipeline/plans/plan.yaml",
+        planPath: ".poe-code/pipeline/plans/plan.md",
         runsCompleted: 1,
         totalDurationMs: 3_000,
         metrics: {
@@ -282,7 +282,7 @@ describe("pipeline run command", () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
     await fs.writeFile(
-      "/repo/.poe-code/pipeline/plans/plan.yaml",
+      "/repo/.poe-code/pipeline/plans/plan.md",
       "tasks: []\n",
       { encoding: "utf8" }
     );
@@ -326,7 +326,7 @@ describe("pipeline run command", () => {
     const logs: string[] = [];
     vi.mocked(sdkRunPipeline).mockResolvedValueOnce({
       stopReason: "failed",
-      planPath: ".poe-code/pipeline/plans/plan.yaml",
+      planPath: ".poe-code/pipeline/plans/plan.md",
       runsCompleted: 1,
       totalDurationMs: 1_000,
       metrics: {
@@ -344,7 +344,7 @@ describe("pipeline run command", () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
     await fs.writeFile(
-      "/repo/.poe-code/pipeline/plans/plan.yaml",
+      "/repo/.poe-code/pipeline/plans/plan.md",
       "tasks: []\n",
       { encoding: "utf8" }
     );
@@ -866,6 +866,76 @@ describe("pipeline run command", () => {
     expect(logs.some((message) => message.includes("Pipeline run cancelled."))).toBe(true);
   });
 
+  it("cancels the pipeline when SIGINT is received in dashboard mode", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+
+    try {
+      vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+        process.emit("SIGINT");
+
+        expect(options.signal?.aborted).toBe(true);
+
+        return {
+          stopReason: "cancelled",
+          planPath: "custom-plan.yaml",
+          runsCompleted: 0,
+          totalDurationMs: 1_000,
+          metrics: {
+            totalInputTokens: 0,
+            totalOutputTokens: 0,
+            totalCachedTokens: 0,
+            tasksCompleted: 0,
+            tasksFailed: 0,
+            stepsCompleted: 0
+          }
+        };
+      });
+
+      const logs: string[] = [];
+      const fs = createMemFs();
+      await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+      const container = createCliContainer({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        logger: (message) => logs.push(message)
+      });
+      const program = createBaseProgram();
+      registerPipelineCommand(program, container);
+
+      await withMockedTerminal(() =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          "pipeline",
+          "run",
+          "--tui",
+          "--agent",
+          "codex",
+          "--plan",
+          "custom-plan.yaml"
+        ])
+      );
+
+      expect(exitSpy).not.toHaveBeenCalled();
+      expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+        kind: "status",
+        text: `${expectedTimestamp} Cancellation requested`,
+        ts: 0
+      });
+      expect(process.exitCode).toBe(130);
+      expect(logs.some((message) => message.includes("Pipeline run cancelled."))).toBe(true);
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
   it("streams child-agent stdout and stderr into the dashboard via tee", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
@@ -1153,6 +1223,27 @@ describe("pipeline run command", () => {
 describe("pipeline validate command", () => {
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("describes markdown plans in help output", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    const pipelineCommand = program.commands.find((cmd) => cmd.name() === "pipeline");
+    const validateCommand = pipelineCommand?.commands.find((cmd) => cmd.name() === "validate");
+
+    expect(validateCommand).toBeDefined();
+
+    const help = validateCommand?.helpInformation() ?? "";
+    expect(help).toContain("Validate a pipeline plan markdown file without running it.");
+    expect(help).toContain("Path to the pipeline plan markdown file");
+    expect(help).not.toContain("YAML");
   });
 
   it("validates a plan file and reports success", async () => {
@@ -1455,6 +1546,15 @@ describe("pipeline plan-path command", () => {
 describe("pipeline install command", () => {
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("ships markdown frontmatter instructions in the pipeline skill template", () => {
+    expect(pipelineSkillPlan).toContain("Generate a Pipeline plan markdown file");
+    expect(pipelineSkillPlan).toContain("Write a markdown pipeline plan with YAML frontmatter.");
+    expect(pipelineSkillPlan).toContain("`<plan-path>/plan-<name>.md`");
+    expect(pipelineSkillPlan).toContain("`plan-<project>-<name>.md`");
+    expect(pipelineSkillPlan).toContain("```markdown");
+    expect(pipelineSkillPlan).toContain("# Context");
   });
 
   it("installs the pipeline skill and scaffolds local steps and plans paths", async () => {

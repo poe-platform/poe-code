@@ -2,11 +2,25 @@ import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
 import type { PipelineFileSystem, PipelineStatus } from "../types.js";
 
 type WritableFs = Pick<PipelineFileSystem, "readFile" | "writeFile">;
+type WritableDocument = MarkdownPlanDocument | YamlPlanDocument;
+
+type MarkdownPlanDocument = {
+  kind: "markdown";
+  bom: string;
+  lineBreak: "\n" | "\r\n";
+  frontmatterText: string;
+  frontmatterSuffix: string;
+  body: string;
+};
+
+type YamlPlanDocument = {
+  kind: "yaml";
+};
 
 function getTasksNode(document: ReturnType<typeof parseDocument>): YAMLSeq {
   const tasksNode = document.get("tasks", true);
   if (!tasksNode || !isSeq(tasksNode)) {
-    throw new Error("Invalid plan YAML: expected \"tasks\" to be a sequence.");
+    throw new Error('Invalid plan YAML: expected "tasks" to be a sequence.');
   }
   return tasksNode as YAMLSeq;
 }
@@ -30,6 +44,124 @@ export async function readPlanFile(
   return fs.readFile(planPath, "utf8");
 }
 
+function splitWritableDocument(content: string): WritableDocument {
+  const bom = content.startsWith("\uFEFF") ? "\uFEFF" : "";
+  const normalizedContent = bom ? content.slice(1) : content;
+  const lineBreak = readOpeningLineBreak(normalizedContent);
+
+  if (lineBreak === undefined) {
+    return { kind: "yaml" };
+  }
+
+  const frontmatterStart = 3 + lineBreak.length;
+  const closingFenceIndex = findClosingFence(normalizedContent, frontmatterStart);
+  const frontmatterEnd = readFrontmatterEnd(normalizedContent, closingFenceIndex);
+  const bodyStart = readBodyStart(normalizedContent, closingFenceIndex + 4);
+
+  return {
+    kind: "markdown",
+    bom,
+    lineBreak,
+    frontmatterText: normalizedContent.slice(frontmatterStart, frontmatterEnd),
+    frontmatterSuffix: normalizedContent.slice(frontmatterEnd, bodyStart),
+    body: normalizedContent.slice(bodyStart)
+  };
+}
+
+function readOpeningLineBreak(content: string): "\n" | "\r\n" | undefined {
+  if (!content.startsWith("---")) {
+    return undefined;
+  }
+
+  const nextCharacter = content[3];
+  if (nextCharacter === "\n") {
+    return "\n";
+  }
+
+  if (nextCharacter === "\r" && content[4] === "\n") {
+    return "\r\n";
+  }
+
+  return nextCharacter === undefined ? "\n" : undefined;
+}
+
+function findClosingFence(content: string, searchFrom: number): number {
+  let currentIndex = searchFrom - 1;
+
+  while (currentIndex < content.length) {
+    const candidateIndex = content.indexOf("\n---", currentIndex);
+
+    if (candidateIndex === -1) {
+      throw new Error("Invalid plan markdown: missing closing frontmatter delimiter.");
+    }
+
+    const fenceEnd = candidateIndex + 4;
+    const nextCharacter = content[fenceEnd];
+
+    if (nextCharacter === "\n" || nextCharacter === undefined) {
+      return candidateIndex;
+    }
+
+    if (nextCharacter === "\r" && content[fenceEnd + 1] === "\n") {
+      return candidateIndex;
+    }
+
+    currentIndex = fenceEnd;
+  }
+
+  throw new Error("Invalid plan markdown: missing closing frontmatter delimiter.");
+}
+
+function readFrontmatterEnd(content: string, closingFenceIndex: number): number {
+  return content[closingFenceIndex - 1] === "\r" ? closingFenceIndex - 1 : closingFenceIndex;
+}
+
+function readBodyStart(content: string, bodyStart: number): number {
+  const nextCharacter = content[bodyStart];
+
+  if (nextCharacter === "\n") {
+    return bodyStart + 1;
+  }
+
+  if (nextCharacter === "\r" && content[bodyStart + 1] === "\n") {
+    return bodyStart + 2;
+  }
+
+  return bodyStart;
+}
+
+function formatYamlContent(serialized: string, lineBreak: "\n" | "\r\n"): string {
+  const normalized = serialized.endsWith("\n") ? serialized.slice(0, -1) : serialized;
+
+  if (lineBreak === "\n") {
+    return normalized;
+  }
+
+  return normalized.replaceAll("\n", lineBreak);
+}
+
+function serializeDocument(
+  parts: WritableDocument,
+  document: ReturnType<typeof parseDocument>
+): string {
+  if (document.errors.length > 0) {
+    throw new Error(`Invalid plan YAML: ${document.errors[0]?.message ?? "failed to parse plan."}`);
+  }
+
+  if (parts.kind === "yaml") {
+    return document.toString();
+  }
+
+  return [
+    parts.bom,
+    "---",
+    parts.lineBreak,
+    formatYamlContent(document.toString(), parts.lineBreak),
+    parts.frontmatterSuffix,
+    parts.body
+  ].join("");
+}
+
 export async function writeTaskStatus(options: {
   fs: WritableFs;
   planPath: string;
@@ -38,7 +170,8 @@ export async function writeTaskStatus(options: {
   stepName?: string;
 }): Promise<void> {
   const content = await readPlanFile(options.fs, options.planPath);
-  const document = parseDocument(content);
+  const parts = splitWritableDocument(content);
+  const document = parseDocument(parts.kind === "markdown" ? parts.frontmatterText : content);
   const tasksNode = getTasksNode(document);
   const taskNode = getTaskNode(tasksNode, options.taskId);
 
@@ -52,7 +185,7 @@ export async function writeTaskStatus(options: {
     taskNode.set("status", options.status);
   }
 
-  await options.fs.writeFile(options.planPath, document.toString(), {
+  await options.fs.writeFile(options.planPath, serializeDocument(parts, document), {
     encoding: "utf8"
   });
 }

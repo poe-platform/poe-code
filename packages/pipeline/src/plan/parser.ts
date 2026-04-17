@@ -11,6 +11,32 @@ import type {
 } from "../types.js";
 import { isRecord } from "../utils.js";
 
+function trimCarriageReturn(value: string): string {
+  return value.endsWith("\r") ? value.slice(0, -1) : value;
+}
+
+function stripBom(value: string): string {
+  return value.startsWith("\uFEFF") ? value.slice(1) : value;
+}
+
+function getYamlContent(planContent: string): string {
+  const content = stripBom(planContent);
+  const lines = content.split("\n");
+
+  if (trimCarriageReturn(lines[0] ?? "") !== "---") {
+    return content;
+  }
+
+  for (let index = 1; index < lines.length; index += 1) {
+    if (trimCarriageReturn(lines[index] ?? "") !== "---") {
+      continue;
+    }
+    return lines.slice(1, index).join("\n");
+  }
+
+  throw new Error("Invalid plan markdown: missing closing frontmatter delimiter.");
+}
+
 function asRequiredString(value: unknown, field: string): string {
   if (typeof value === "string" && value.length > 0) {
     return value;
@@ -106,10 +132,11 @@ function parseMcpConfig(value: unknown): McpSpawnConfig {
 }
 
 export function parsePlan(
-  yamlContent: string,
+  planContent: string,
   options: { availableSteps?: ResolvedStepDefinitions } = {}
 ): PipelinePlan {
   let document: unknown;
+  const yamlContent = getYamlContent(planContent);
   try {
     document = parse(yamlContent);
   } catch (error) {

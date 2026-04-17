@@ -1,6 +1,6 @@
 ---
 name: poe-code-pipeline-plan
-description: 'Generate a Pipeline plan (YAML) from a user request. Triggers on: create a pipeline plan, write plan for, plan this feature, pipeline plan.'
+description: 'Generate a Pipeline plan markdown file with YAML frontmatter from a user request. Triggers on: create a pipeline plan, write plan for, plan this feature, pipeline plan.'
 ---
 
 ## If The Request Is Empty
@@ -9,15 +9,15 @@ Ask the user for a one-sentence description of what they want to build.
 
 ## Goal
 
-Write a YAML pipeline plan. Before writing, determine where to place it:
+Write a markdown pipeline plan with YAML frontmatter. Before writing, determine where to place it:
 
 1. Run `poe-code pipeline plan-path` to get the plans directory.
-2. Write the plan to `<plan-path>/plan-<name>.yaml`. If the plan path is under the global `~/.poe-code` directory, prefix the filename with the project name: `plan-<project>-<name>.yaml`.
+2. Write the plan to `<plan-path>/plan-<name>.md`. If the plan path is under the global `~/.poe-code` directory, prefix the filename with the project name: `plan-<project>-<name>.md`.
 3. Find the `steps.yaml` file. Check these locations in order and use the first one found:
    a. `<project-root>/.poe-code/pipeline/steps.yaml` (project-level)
    b. `~/.poe-code/pipeline/steps.yaml` (user-global)
    If found, read it to determine available steps and note any `setup`/`teardown` hooks defined there. If not found in either location, use stepless tasks.
-4. If the user has an existing Markdown plan document (e.g. in `docs/plans/`), link it via `vars` so it is available in every prompt without repeating the path.
+4. Decide what belongs in the markdown body. If the user already has a Markdown design/context doc (for example in `docs/plans/`), use that content as the plan body when it makes sense. If they want to keep the source doc separate, link it via `vars` so it is available in every prompt without repeating the path.
 
 ## Rules
 
@@ -31,13 +31,16 @@ Write a YAML pipeline plan. Before writing, determine where to place it:
 - `setup` and `teardown` defined in `steps.yaml` are inherited automatically.
 - To disable an inherited hook for a specific plan, set `setup: false` or `teardown: false`.
 - To override an inherited hook, define the full block with an `prompt` field.
-- If the user has an existing Markdown plan document, add a `vars` block with a `plan_doc` key pointing to the file path. The pipeline runtime reads the file and makes its contents available as a named placeholder in every prompt.
+- If the user keeps an existing Markdown plan document as a separate file, add a `vars` block with a `plan_doc` key pointing to the file path. The pipeline runtime reads the file and makes its contents available as a named placeholder in every prompt.
 - `vars` values are plain strings. Use the `file` include syntax inside a value to load a file at runtime (path relative to project root): write `var_name: "` followed by the file include tag and a closing `"`.
 - Each var name becomes a double-curly-brace placeholder usable in any task, step, setup, or teardown prompt.
+- The markdown body is for context, notes, acceptance criteria, or the design doc. Keep executable pipeline config in the YAML frontmatter.
+- Do not rely on the body alone for runtime context. Each task prompt must still include everything it needs directly or via `vars` placeholders.
 
 ## Output Format
 
-```yaml
+```markdown
+---
 # vars: optional. Define named values available as double-curly-brace placeholders in every prompt.
 # Each value is a plain string. To load a file at runtime, write the value using the
 # file include syntax: double-curly-brace file followed by a quoted path.
@@ -69,6 +72,13 @@ tasks:
     #   implement: open
     #   test: open
     #   commit: open
+---
+
+# Context
+
+Paste the design doc, notes, acceptance criteria, or implementation details here.
+This body is for human-readable context and future tooling.
+Any context needed at runtime must still appear in each task prompt or via vars placeholders.
 ```
 
 ## After Writing

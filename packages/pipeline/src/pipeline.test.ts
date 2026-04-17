@@ -11,11 +11,7 @@ import {
   selectNextExecution,
   type ExecutionSelection
 } from "./run/runner.js";
-import {
-  createPipelineSimulation,
-  failTurn,
-  successTurn
-} from "./testing/simulation.js";
+import { createPipelineSimulation, failTurn, successTurn } from "./testing/simulation.js";
 import type {
   AgentRunUsage,
   AgentRunInput,
@@ -415,11 +411,7 @@ describe("loadResolvedSteps", () => {
           "  prompt: Global teardown",
           ""
         ].join("\n"),
-        "/repo/.poe-code/pipeline/steps.yaml": [
-          "setup:",
-          "  prompt: Project setup",
-          ""
-        ].join("\n")
+        "/repo/.poe-code/pipeline/steps.yaml": ["setup:", "  prompt: Project setup", ""].join("\n")
       })
     });
 
@@ -591,13 +583,13 @@ describe("resolvePlanPath", () => {
   });
 
   it("prompts for selection even with a single discovered plan", async () => {
-    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-demo.yaml");
+    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-demo.md");
 
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-demo.yaml": "tasks: []\n"
+        "/repo/.poe-code/pipeline/plans/plan-demo.md": "tasks: []\n"
       }),
       selectPlan: select
     });
@@ -605,11 +597,14 @@ describe("resolvePlanPath", () => {
     expect(select).toHaveBeenCalledWith(
       expect.objectContaining({
         options: [
-          { label: ".poe-code/pipeline/plans/plan-demo.yaml (0/0)", value: ".poe-code/pipeline/plans/plan-demo.yaml" }
+          {
+            label: ".poe-code/pipeline/plans/plan-demo.md (0/0)",
+            value: ".poe-code/pipeline/plans/plan-demo.md"
+          }
         ]
       })
     );
-    expect(result).toBe(".poe-code/pipeline/plans/plan-demo.yaml");
+    expect(result).toBe(".poe-code/pipeline/plans/plan-demo.md");
   });
 
   it("returns null with a single plan when no selectPlan callback is provided", async () => {
@@ -617,7 +612,7 @@ describe("resolvePlanPath", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-demo.yaml": "tasks: []\n"
+        "/repo/.poe-code/pipeline/plans/plan-demo.md": "tasks: []\n"
       })
     });
 
@@ -630,11 +625,11 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       assumeYes: true,
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-demo.yaml": "tasks: []\n"
+        "/repo/.poe-code/pipeline/plans/plan-demo.md": "tasks: []\n"
       })
     });
 
-    expect(result).toBe(".poe-code/pipeline/plans/plan-demo.yaml");
+    expect(result).toBe(".poe-code/pipeline/plans/plan-demo.md");
   });
 
   it("selects the first plan alphabetically with --yes", async () => {
@@ -643,22 +638,22 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       assumeYes: true,
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-beta.yaml": "tasks: []\n",
-        "/repo/.poe-code/pipeline/plans/plan-alpha.yaml": "tasks: []\n"
+        "/repo/.poe-code/pipeline/plans/plan-beta.md": "tasks: []\n",
+        "/repo/.poe-code/pipeline/plans/plan-alpha.md": "tasks: []\n"
       })
     });
 
-    expect(result).toBe(".poe-code/pipeline/plans/plan-alpha.yaml");
+    expect(result).toBe(".poe-code/pipeline/plans/plan-alpha.md");
   });
 
   it("prompts when multiple plans exist", async () => {
-    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-beta.yaml");
+    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-beta.md");
 
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-beta.yaml": [
+        "/repo/.poe-code/pipeline/plans/plan-beta.md": [
           "tasks:",
           "  - id: one",
           "    title: One",
@@ -666,7 +661,7 @@ describe("resolvePlanPath", () => {
           "    status: open",
           ""
         ].join("\n"),
-        "/repo/.poe-code/pipeline/plans/plan-alpha.yaml": [
+        "/repo/.poe-code/pipeline/plans/plan-alpha.md": [
           "tasks:",
           "  - id: one",
           "    title: One",
@@ -685,12 +680,18 @@ describe("resolvePlanPath", () => {
     expect(select).toHaveBeenCalledWith(
       expect.objectContaining({
         options: [
-          { label: ".poe-code/pipeline/plans/plan-alpha.yaml (1/2)", value: ".poe-code/pipeline/plans/plan-alpha.yaml" },
-          { label: ".poe-code/pipeline/plans/plan-beta.yaml (0/1)", value: ".poe-code/pipeline/plans/plan-beta.yaml" }
+          {
+            label: ".poe-code/pipeline/plans/plan-alpha.md (1/2)",
+            value: ".poe-code/pipeline/plans/plan-alpha.md"
+          },
+          {
+            label: ".poe-code/pipeline/plans/plan-beta.md (0/1)",
+            value: ".poe-code/pipeline/plans/plan-beta.md"
+          }
         ]
       })
     );
-    expect(result).toBe(".poe-code/pipeline/plans/plan-beta.yaml");
+    expect(result).toBe(".poe-code/pipeline/plans/plan-beta.md");
   });
 
   it("returns null when no plans exist and interactive mode can prompt for a path", async () => {
@@ -719,13 +720,13 @@ describe("resolvePlanPath", () => {
   });
 
   it("discovers plans from global ~/.poe-code/pipeline/plans/", async () => {
-    const select = vi.fn().mockResolvedValue("~/.poe-code/pipeline/plans/plan-global.yaml");
+    const select = vi.fn().mockResolvedValue("~/.poe-code/pipeline/plans/plan-global.md");
 
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/home/test/.poe-code/pipeline/plans/plan-global.yaml": "tasks: []\n"
+        "/home/test/.poe-code/pipeline/plans/plan-global.md": "tasks: []\n"
       }),
       selectPlan: select
     });
@@ -733,22 +734,25 @@ describe("resolvePlanPath", () => {
     expect(select).toHaveBeenCalledWith(
       expect.objectContaining({
         options: [
-          { label: "~/.poe-code/pipeline/plans/plan-global.yaml (0/0)", value: "~/.poe-code/pipeline/plans/plan-global.yaml" }
+          {
+            label: "~/.poe-code/pipeline/plans/plan-global.md (0/0)",
+            value: "~/.poe-code/pipeline/plans/plan-global.md"
+          }
         ]
       })
     );
-    expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.yaml");
+    expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.md");
   });
 
   it("merges project and global plans, project first", async () => {
-    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-local.yaml");
+    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-local.md");
 
     await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-local.yaml": "tasks: []\n",
-        "/home/test/.poe-code/pipeline/plans/plan-global.yaml": "tasks: []\n"
+        "/repo/.poe-code/pipeline/plans/plan-local.md": "tasks: []\n",
+        "/home/test/.poe-code/pipeline/plans/plan-global.md": "tasks: []\n"
       }),
       selectPlan: select
     });
@@ -756,8 +760,14 @@ describe("resolvePlanPath", () => {
     expect(select).toHaveBeenCalledWith(
       expect.objectContaining({
         options: [
-          { label: ".poe-code/pipeline/plans/plan-local.yaml (0/0)", value: ".poe-code/pipeline/plans/plan-local.yaml" },
-          { label: "~/.poe-code/pipeline/plans/plan-global.yaml (0/0)", value: "~/.poe-code/pipeline/plans/plan-global.yaml" }
+          {
+            label: ".poe-code/pipeline/plans/plan-local.md (0/0)",
+            value: ".poe-code/pipeline/plans/plan-local.md"
+          },
+          {
+            label: "~/.poe-code/pipeline/plans/plan-global.md (0/0)",
+            value: "~/.poe-code/pipeline/plans/plan-global.md"
+          }
         ]
       })
     );
@@ -769,23 +779,23 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       assumeYes: true,
       fs: createFs({
-        "/home/test/.poe-code/pipeline/plans/plan-global.yaml": "tasks: []\n"
+        "/home/test/.poe-code/pipeline/plans/plan-global.md": "tasks: []\n"
       })
     });
 
-    expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.yaml");
+    expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.md");
   });
 
   it("scans only the custom planDirectory when provided", async () => {
-    const select = vi.fn().mockResolvedValue("custom-plans/plan-custom.yaml");
+    const select = vi.fn().mockResolvedValue("custom-plans/plan-custom.md");
 
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       planDirectory: "custom-plans",
       fs: createFs({
-        "/repo/custom-plans/plan-custom.yaml": "tasks: []\n",
-        "/repo/.poe-code/pipeline/plans/plan-default.yaml": "tasks: []\n"
+        "/repo/custom-plans/plan-custom.md": "tasks: []\n",
+        "/repo/.poe-code/pipeline/plans/plan-default.md": "tasks: []\n"
       }),
       selectPlan: select
     });
@@ -793,11 +803,11 @@ describe("resolvePlanPath", () => {
     expect(select).toHaveBeenCalledWith(
       expect.objectContaining({
         options: [
-          { label: "custom-plans/plan-custom.yaml (0/0)", value: "custom-plans/plan-custom.yaml" }
+          { label: "custom-plans/plan-custom.md (0/0)", value: "custom-plans/plan-custom.md" }
         ]
       })
     );
-    expect(result).toBe("custom-plans/plan-custom.yaml");
+    expect(result).toBe("custom-plans/plan-custom.md");
   });
 
   it("auto-selects from custom planDirectory with --yes", async () => {
@@ -807,11 +817,11 @@ describe("resolvePlanPath", () => {
       planDirectory: "/abs/plans",
       assumeYes: true,
       fs: createFs({
-        "/abs/plans/plan-one.yaml": "tasks: []\n"
+        "/abs/plans/plan-one.md": "tasks: []\n"
       })
     });
 
-    expect(result).toBe("/abs/plans/plan-one.yaml");
+    expect(result).toBe("/abs/plans/plan-one.md");
   });
 
   it("resolves tilde planDirectory paths", async () => {
@@ -821,11 +831,38 @@ describe("resolvePlanPath", () => {
       planDirectory: "~/my-plans",
       assumeYes: true,
       fs: createFs({
-        "/home/test/my-plans/plan-tilde.yaml": "tasks: []\n"
+        "/home/test/my-plans/plan-tilde.md": "tasks: []\n"
       })
     });
 
-    expect(result).toBe("~/my-plans/plan-tilde.yaml");
+    expect(result).toBe("~/my-plans/plan-tilde.md");
+  });
+
+  it("ignores yaml and yml plans during discovery", async () => {
+    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-current.md");
+
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/plans/plan-current.md": "tasks: []\n",
+        "/repo/.poe-code/pipeline/plans/plan-legacy.yaml": "tasks: []\n",
+        "/repo/.poe-code/pipeline/plans/plan-older.yml": "tasks: []\n"
+      }),
+      selectPlan: select
+    });
+
+    expect(select).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          {
+            label: ".poe-code/pipeline/plans/plan-current.md (0/0)",
+            value: ".poe-code/pipeline/plans/plan-current.md"
+          }
+        ]
+      })
+    );
+    expect(result).toBe(".poe-code/pipeline/plans/plan-current.md");
   });
 });
 
@@ -845,17 +882,19 @@ describe("resolvePlanPaths", () => {
   });
 
   it("prompts for multiselect when discovered plans exist", async () => {
-    const selectPlans = vi.fn().mockResolvedValue([
-      ".poe-code/pipeline/plans/plan-alpha.yaml",
-      ".poe-code/pipeline/plans/plan-beta.yaml"
-    ]);
+    const selectPlans = vi
+      .fn()
+      .mockResolvedValue([
+        ".poe-code/pipeline/plans/plan-alpha.md",
+        ".poe-code/pipeline/plans/plan-beta.md"
+      ]);
 
     const result = await resolvePlanPaths({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-beta.yaml": "tasks: []\n",
-        "/repo/.poe-code/pipeline/plans/plan-alpha.yaml": "tasks: []\n"
+        "/repo/.poe-code/pipeline/plans/plan-beta.md": "tasks: []\n",
+        "/repo/.poe-code/pipeline/plans/plan-alpha.md": "tasks: []\n"
       }),
       selectPlans
     });
@@ -864,14 +903,20 @@ describe("resolvePlanPaths", () => {
       expect.objectContaining({
         required: true,
         options: [
-          { label: ".poe-code/pipeline/plans/plan-alpha.yaml (0/0)", value: ".poe-code/pipeline/plans/plan-alpha.yaml" },
-          { label: ".poe-code/pipeline/plans/plan-beta.yaml (0/0)", value: ".poe-code/pipeline/plans/plan-beta.yaml" }
+          {
+            label: ".poe-code/pipeline/plans/plan-alpha.md (0/0)",
+            value: ".poe-code/pipeline/plans/plan-alpha.md"
+          },
+          {
+            label: ".poe-code/pipeline/plans/plan-beta.md (0/0)",
+            value: ".poe-code/pipeline/plans/plan-beta.md"
+          }
         ]
       })
     );
     expect(result).toEqual([
-      ".poe-code/pipeline/plans/plan-alpha.yaml",
-      ".poe-code/pipeline/plans/plan-beta.yaml"
+      ".poe-code/pipeline/plans/plan-alpha.md",
+      ".poe-code/pipeline/plans/plan-beta.md"
     ]);
   });
 });
@@ -929,15 +974,70 @@ describe("resolvePlanDirectory", () => {
 });
 
 describe("parsePlan", () => {
+  it("parses markdown frontmatter and ignores the body", () => {
+    const plan = parsePlan(
+      [
+        "---",
+        "vars:",
+        "  plan_doc: docs/plans/my-feature.md",
+        "tasks:",
+        "  - id: task-1",
+        "    title: Fix timeout",
+        "    prompt: Fix the timeout regression",
+        "    status: open",
+        "---",
+        "# Context",
+        "",
+        "The markdown body is for humans and agents.",
+        ""
+      ].join("\n")
+    );
+
+    expect(plan).toEqual({
+      vars: {
+        plan_doc: "docs/plans/my-feature.md"
+      },
+      tasks: [
+        {
+          id: "task-1",
+          title: "Fix timeout",
+          prompt: "Fix the timeout regression",
+          status: "open"
+        }
+      ]
+    });
+  });
+
+  it("rejects markdown frontmatter without a closing delimiter", () => {
+    expect(() =>
+      parsePlan(
+        [
+          "---",
+          "tasks:",
+          "  - id: task-1",
+          "    title: Fix timeout",
+          "    prompt: Fix the timeout regression",
+          "    status: open",
+          "",
+          "# Context",
+          "Missing the closing frontmatter delimiter.",
+          ""
+        ].join("\n")
+      )
+    ).toThrow(/closing frontmatter delimiter/i);
+  });
+
   it("parses a stepless task plan", () => {
-    const plan = parsePlan([
-      "tasks:",
-      "  - id: task-1",
-      "    title: Fix timeout",
-      "    prompt: Fix the timeout regression",
-      "    status: open",
-      ""
-    ].join("\n"));
+    const plan = parsePlan(
+      [
+        "tasks:",
+        "  - id: task-1",
+        "    title: Fix timeout",
+        "    prompt: Fix the timeout regression",
+        "    status: open",
+        ""
+      ].join("\n")
+    );
 
     expect(plan).toEqual({
       tasks: [
@@ -1007,31 +1107,35 @@ describe("parsePlan", () => {
 
   it("rejects duplicate task ids", () => {
     expect(() =>
-      parsePlan([
-        "tasks:",
-        "  - id: dup",
-        "    title: One",
-        "    prompt: A",
-        "    status: open",
-        "  - id: dup",
-        "    title: Two",
-        "    prompt: B",
-        "    status: done",
-        ""
-      ].join("\n"))
+      parsePlan(
+        [
+          "tasks:",
+          "  - id: dup",
+          "    title: One",
+          "    prompt: A",
+          "    status: open",
+          "  - id: dup",
+          "    title: Two",
+          "    prompt: B",
+          "    status: done",
+          ""
+        ].join("\n")
+      )
     ).toThrow(/duplicate task id/i);
   });
 
   it("rejects invalid scalar task statuses", () => {
     expect(() =>
-      parsePlan([
-        "tasks:",
-        "  - id: task-1",
-        "    title: Invalid",
-        "    prompt: Invalid",
-        "    status: maybe",
-        ""
-      ].join("\n"))
+      parsePlan(
+        [
+          "tasks:",
+          "  - id: task-1",
+          "    title: Invalid",
+          "    prompt: Invalid",
+          "    status: maybe",
+          ""
+        ].join("\n")
+      )
     ).toThrow(/invalid task status/i);
   });
 
@@ -1062,17 +1166,19 @@ describe("parsePlan", () => {
   });
 
   it("parses mcp block with command, args, and env", () => {
-    const plan = parsePlan([
-      "mcp:",
-      "  my-server:",
-      "    command: npx",
-      "    args:",
-      "      - my-server",
-      "    env:",
-      "      FOO: bar",
-      "tasks: []",
-      ""
-    ].join("\n"));
+    const plan = parsePlan(
+      [
+        "mcp:",
+        "  my-server:",
+        "    command: npx",
+        "    args:",
+        "      - my-server",
+        "    env:",
+        "      FOO: bar",
+        "tasks: []",
+        ""
+      ].join("\n")
+    );
 
     expect(plan.mcp).toEqual({
       "my-server": { command: "npx", args: ["my-server"], env: { FOO: "bar" } }
@@ -1080,13 +1186,9 @@ describe("parsePlan", () => {
   });
 
   it("parses mcp block with command only", () => {
-    const plan = parsePlan([
-      "mcp:",
-      "  minimal:",
-      "    command: my-tool",
-      "tasks: []",
-      ""
-    ].join("\n"));
+    const plan = parsePlan(
+      ["mcp:", "  minimal:", "    command: my-tool", "tasks: []", ""].join("\n")
+    );
 
     expect(plan.mcp).toEqual({ minimal: { command: "my-tool" } });
   });
@@ -1097,41 +1199,33 @@ describe("parsePlan", () => {
   });
 
   it("rejects mcp that is not an object", () => {
-    expect(() =>
-      parsePlan([
-        "mcp: not-an-object",
-        "tasks: []",
-        ""
-      ].join("\n"))
-    ).toThrow(/mcp.*must be an object/i);
+    expect(() => parsePlan(["mcp: not-an-object", "tasks: []", ""].join("\n"))).toThrow(
+      /mcp.*must be an object/i
+    );
   });
 
   it("rejects mcp server entry missing command", () => {
     expect(() =>
-      parsePlan([
-        "mcp:",
-        "  bad-server:",
-        "    args: [foo]",
-        "tasks: []",
-        ""
-      ].join("\n"))
+      parsePlan(["mcp:", "  bad-server:", "    args: [foo]", "tasks: []", ""].join("\n"))
     ).toThrow(/command.*non-empty string/i);
   });
 
   it("parses setup and teardown from plan", () => {
-    const plan = parsePlan([
-      "setup:",
-      "  prompt: Prepare workspace",
-      "teardown:",
-      "  mode: read",
-      "  prompt: Run final checks",
-      "tasks:",
-      "  - id: task-1",
-      "    title: Fix",
-      "    prompt: Fix it",
-      "    status: open",
-      ""
-    ].join("\n"));
+    const plan = parsePlan(
+      [
+        "setup:",
+        "  prompt: Prepare workspace",
+        "teardown:",
+        "  mode: read",
+        "  prompt: Run final checks",
+        "tasks:",
+        "  - id: task-1",
+        "    title: Fix",
+        "    prompt: Fix it",
+        "    status: open",
+        ""
+      ].join("\n")
+    );
 
     expect(plan.setup).toEqual({ mode: "yolo", prompt: "Prepare workspace" });
     expect(plan.teardown).toEqual({ mode: "read", prompt: "Run final checks" });
@@ -1144,44 +1238,29 @@ describe("parsePlan", () => {
   });
 
   it("rejects setup missing instruction", () => {
-    expect(() =>
-      parsePlan([
-        "setup:",
-        "  mode: read",
-        "tasks: []",
-        ""
-      ].join("\n"))
-    ).toThrow(/setup.*missing a prompt/i);
+    expect(() => parsePlan(["setup:", "  mode: read", "tasks: []", ""].join("\n"))).toThrow(
+      /setup.*missing a prompt/i
+    );
   });
 
   it("maps setup: false to null (disabled)", () => {
-    const plan = parsePlan([
-      "setup: false",
-      "tasks: []",
-      ""
-    ].join("\n"));
+    const plan = parsePlan(["setup: false", "tasks: []", ""].join("\n"));
 
     expect(plan.setup).toBeNull();
   });
 
   it("maps teardown: false to null (disabled)", () => {
-    const plan = parsePlan([
-      "teardown: false",
-      "tasks: []",
-      ""
-    ].join("\n"));
+    const plan = parsePlan(["teardown: false", "tasks: []", ""].join("\n"));
 
     expect(plan.teardown).toBeNull();
   });
 
   it("parses vars as a string record", () => {
-    const plan = parsePlan([
-      "vars:",
-      "  plan_doc: docs/plans/my-feature.md",
-      "  env: production",
-      "tasks: []",
-      ""
-    ].join("\n"));
+    const plan = parsePlan(
+      ["vars:", "  plan_doc: docs/plans/my-feature.md", "  env: production", "tasks: []", ""].join(
+        "\n"
+      )
+    );
 
     expect(plan.vars).toEqual({
       plan_doc: "docs/plans/my-feature.md",
@@ -1195,15 +1274,15 @@ describe("parsePlan", () => {
   });
 
   it("throws when vars is not an object", () => {
-    expect(() =>
-      parsePlan("vars: just-a-string\ntasks: []\n")
-    ).toThrow(/"vars" must be an object/i);
+    expect(() => parsePlan("vars: just-a-string\ntasks: []\n")).toThrow(
+      /"vars" must be an object/i
+    );
   });
 
   it("throws when a var value is not a string", () => {
-    expect(() =>
-      parsePlan("vars:\n  bad: 123\ntasks: []\n")
-    ).toThrow(/vars\["bad"\] must be a string/i);
+    expect(() => parsePlan("vars:\n  bad: 123\ntasks: []\n")).toThrow(
+      /vars\["bad"\] must be a string/i
+    );
   });
 });
 
@@ -1292,6 +1371,44 @@ describe("writeTaskStatus", () => {
     expect(contents).toContain("implement: done");
     expect(contents).toContain("test: done");
   });
+
+  it("updates markdown frontmatter and preserves the body verbatim", async () => {
+    const body = [
+      "# Context",
+      "",
+      "Keep this body exactly as written.",
+      "",
+      "---",
+      "",
+      "Even this thematic break stays in the markdown body.",
+      ""
+    ].join("\n");
+    const fs = createFs({
+      "/repo/plan.md": [
+        "---",
+        "vars:",
+        "  plan_doc: docs/plans/my-feature.md",
+        "tasks:",
+        "  - id: task-1",
+        "    title: One",
+        "    prompt: First",
+        "    status: open",
+        "---",
+        body
+      ].join("\n")
+    });
+
+    await writeTaskStatus({
+      fs,
+      planPath: "/repo/plan.md",
+      taskId: "task-1",
+      status: "done"
+    });
+
+    const contents = await readPlanFile(fs, "/repo/plan.md");
+    expect(contents).toContain("status: done");
+    expect(contents.endsWith(body)).toBe(true);
+  });
 });
 
 function getSelection(plan: PipelinePlan): ExecutionSelection {
@@ -1301,9 +1418,7 @@ function getSelection(plan: PipelinePlan): ExecutionSelection {
 describe("selectNextExecution", () => {
   it("selects the first open stepless task", () => {
     const selection = getSelection({
-      tasks: [
-        { id: "one", title: "One", prompt: "One", status: "open" }
-      ]
+      tasks: [{ id: "one", title: "One", prompt: "One", status: "open" }]
     });
 
     expect(selection).toMatchObject({
@@ -1535,27 +1650,19 @@ describe("resolveFileIncludes", () => {
   });
 
   it("supports double-quoted paths", async () => {
-    const result = await resolveFileIncludes(
-      '{{file "notes.txt"}}',
-      "/repo",
-      readFile
-    );
+    const result = await resolveFileIncludes('{{file "notes.txt"}}', "/repo", readFile);
     expect(result).toBe("Important notes.");
   });
 
   it("resolves paths relative to cwd", async () => {
-    const result = await resolveFileIncludes(
-      "{{file 'docs/context.md'}}",
-      "/repo",
-      readFile
-    );
+    const result = await resolveFileIncludes("{{file 'docs/context.md'}}", "/repo", readFile);
     expect(result).toBe("# Context\nSome context here.");
   });
 
   it("throws when the referenced file does not exist", async () => {
-    await expect(
-      resolveFileIncludes("{{file 'missing.md'}}", "/repo", readFile)
-    ).rejects.toThrow("File not found: /repo/missing.md");
+    await expect(resolveFileIncludes("{{file 'missing.md'}}", "/repo", readFile)).rejects.toThrow(
+      "File not found: /repo/missing.md"
+    );
   });
 });
 
@@ -2027,10 +2134,7 @@ describe("createPipelineSimulation", () => {
     });
     expect(result.lastStepName).toBe("test");
     expect(runs).toHaveLength(2);
-    expect(prompts).toEqual([
-      "Implement auth-hardening",
-      "Test auth-hardening"
-    ]);
+    expect(prompts).toEqual(["Implement auth-hardening", "Test auth-hardening"]);
     expect(task?.status).toEqual({
       implement: "done",
       test: "failed",
@@ -2185,14 +2289,10 @@ describe("createPipelineSimulation", () => {
 
     expect(result.stopReason).toBe("completed");
 
-    const archiveEntries = await fs.readdir(
-      "/repo/.poe-code/pipeline/plans/archive"
-    );
+    const archiveEntries = await fs.readdir("/repo/.poe-code/pipeline/plans/archive");
     expect(archiveEntries).toContain("plan.yaml");
 
-    const originalEntries = await fs.readdir(
-      "/repo/.poe-code/pipeline/plans"
-    );
+    const originalEntries = await fs.readdir("/repo/.poe-code/pipeline/plans");
     expect(originalEntries).not.toContain("plan.yaml");
   });
 
@@ -2325,9 +2425,7 @@ describe("createPipelineSimulation", () => {
       plan: {
         setup: { mode: "yolo", prompt: "Prepare the workspace" },
         teardown: { mode: "yolo", prompt: "Clean up" },
-        tasks: [
-          { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
-        ]
+        tasks: [{ id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }]
       },
       turns: [successTurn(), successTurn(), successTurn()]
     });
@@ -2335,11 +2433,7 @@ describe("createPipelineSimulation", () => {
     const { result, prompts } = await sim.run();
 
     expect(result.stopReason).toBe("completed");
-    expect(prompts).toEqual([
-      "Prepare the workspace",
-      "Do task 1",
-      "Clean up"
-    ]);
+    expect(prompts).toEqual(["Prepare the workspace", "Do task 1", "Clean up"]);
     expect(result.metrics.stepsCompleted).toBe(3);
     expect(result.metrics.tasksCompleted).toBe(1);
   });
@@ -2348,9 +2442,7 @@ describe("createPipelineSimulation", () => {
     const sim = createPipelineSimulation({
       plan: {
         setup: { mode: "yolo", prompt: "Setup" },
-        tasks: [
-          { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
-        ]
+        tasks: [{ id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }]
       },
       turns: [failTurn("setup failed")]
     });
@@ -2398,9 +2490,7 @@ describe("createPipelineSimulation", () => {
     const sim = createPipelineSimulation({
       plan: {
         teardown: { mode: "yolo", prompt: "Teardown" },
-        tasks: [
-          { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
-        ]
+        tasks: [{ id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }]
       },
       turns: [successTurn(), failTurn("teardown failed")]
     });
@@ -2490,9 +2580,7 @@ describe("createPipelineSimulation", () => {
       },
       plan: {
         setup: { mode: "yolo", prompt: "{{file 'docs/setup-instructions.md'}}" },
-        tasks: [
-          { id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }
-        ]
+        tasks: [{ id: "task-1", title: "Task 1", prompt: "Do task 1", status: "open" }]
       },
       turns: [successTurn(), successTurn()]
     });

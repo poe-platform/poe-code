@@ -820,8 +820,8 @@ export function registerPipelineCommand(
 
   pipeline
     .command("validate")
-    .description("Validate a pipeline plan YAML file without running it.")
-    .argument("<file>", "Path to the pipeline plan YAML file")
+    .description("Validate a pipeline plan markdown file without running it.")
+    .argument("<file>", "Path to the pipeline plan markdown file")
     .option("--preview", "Expand and display all prompt content for each task and step.")
     .action(async function (this: Command, file: string) {
       const flags = resolveCommandFlags(program);

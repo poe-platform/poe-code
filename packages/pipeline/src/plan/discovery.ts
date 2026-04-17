@@ -30,10 +30,7 @@ function createDefaultFs(): DiscoveryFs {
 
 function isPlanCandidateFile(name: string): boolean {
   const lower = name.toLowerCase();
-  return (
-    lower.startsWith("plan") &&
-    (lower.endsWith(".yaml") || lower.endsWith(".yml"))
-  );
+  return lower.startsWith("plan") && lower.endsWith(".md");
 }
 
 function countCompletedTasks(planPath: string, content: string): PlanCandidate {
@@ -308,7 +305,7 @@ export async function resolvePlanPaths(options: {
 
   const selectedPath = await options.promptForPath({
     message: "Enter the pipeline plan path",
-    placeholder: ".poe-code/pipeline/plans/plan.yaml"
+    placeholder: ".poe-code/pipeline/plans/plan.md"
   });
   return selectedPath ? [selectedPath] : null;
 }

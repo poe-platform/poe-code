@@ -1,0 +1,156 @@
+import { describe, expect, it, vi } from "vitest";
+import type { ToolContext } from "../runtime/types.js";
+import webPlugin from "./poe-agent-plugin-web.js";
+
+type TestTool = {
+  name: string;
+  call: (args: unknown, ctx: ToolContext) => unknown | Promise<unknown>;
+};
+
+function createToolContext(signal: AbortSignal): ToolContext {
+  return {
+    fork: async () => {
+      throw new Error("fork is not supported in plugin tests");
+    },
+    spawn: async () => {
+      throw new Error("spawn is not supported in plugin tests");
+    },
+    signal,
+  };
+}
+
+async function callTool(
+  tools: TestTool[] | undefined,
+  name: string,
+  args: unknown,
+  signal: AbortSignal = new AbortController().signal,
+): Promise<unknown> {
+  const tool = tools?.find(candidate => candidate.name === name);
+  if (!tool) {
+    throw new Error(`Tool not found: ${name}`);
+  }
+
+  return tool.call(args, createToolContext(signal));
+}
+
+describe("poe-agent-plugin-web", () => {
+  it("search_web flattens abstract text and nested related topics from DuckDuckGo", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          AbstractText: "Primary answer",
+          RelatedTopics: [
+            { Text: "First related" },
+            { Topics: [{ Text: "Nested related" }] },
+          ],
+        }),
+        {
+          headers: {
+            "content-type": "application/json",
+          },
+        },
+      ),
+    );
+    const plugin = webPlugin({ fetch: fetchMock });
+
+    await expect(callTool(plugin.tools, "search_web", { query: "poe" })).resolves.toBe(
+      "Primary answer\nFirst related\nNested related",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("https://api.duckduckgo.com/");
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("q=poe");
+    expect(fetchMock.mock.calls[0]?.[1]).toEqual({
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("passes the tool signal through search_web", async () => {
+    const controller = new AbortController();
+    const fetchMock = vi.fn(
+      (_input: string | URL | Request, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        }),
+    );
+    const plugin = webPlugin({ fetch: fetchMock });
+    const pending = callTool(plugin.tools, "search_web", { query: "poe" }, controller.signal);
+
+    controller.abort();
+
+    await expect(pending).rejects.toThrow("Aborted");
+  });
+
+  it("fetch_url converts HTML responses to markdown", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response("<html><body><h1>Example</h1><p>Hello <strong>world</strong>.</p></body></html>", {
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+        },
+      }),
+    );
+    const plugin = webPlugin({ fetch: fetchMock });
+
+    const output = await callTool(plugin.tools, "fetch_url", {
+      url: "https://example.com/docs",
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith("https://example.com/docs", {
+      signal: expect.any(AbortSignal),
+    });
+    expect(output).toContain("URL: https://example.com/docs");
+    expect(output).toContain("Content type: text/html");
+    expect(output).toContain("# Example");
+    expect(output).toContain("Hello **world**.");
+    expect(output).not.toContain("More content available");
+  });
+
+  it("fetch_url paginates long bodies with offset", async () => {
+    const body = "0123456789".repeat(2_500);
+    const fetchMock = vi.fn(async () =>
+      new Response(body, {
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+        },
+      }),
+    );
+    const plugin = webPlugin({ fetch: fetchMock });
+
+    const firstPage = await callTool(plugin.tools, "fetch_url", {
+      url: "https://example.com/log",
+    });
+    const secondPage = await callTool(plugin.tools, "fetch_url", {
+      url: "https://example.com/log",
+      offset: 20_000,
+    });
+
+    expect(firstPage).toContain("Showing characters 0-20000 of 25000.");
+    expect(firstPage).toContain("More content available at offset 20000.");
+    expect(secondPage).toContain("Showing characters 20000-25000 of 25000.");
+    expect(secondPage).not.toContain("More content available");
+  });
+
+  it("passes the tool signal through fetch_url", async () => {
+    const controller = new AbortController();
+    const fetchMock = vi.fn(
+      (_input: string | URL | Request, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        }),
+    );
+    const plugin = webPlugin({ fetch: fetchMock });
+    const pending = callTool(
+      plugin.tools,
+      "fetch_url",
+      { url: "https://example.com" },
+      controller.signal,
+    );
+
+    controller.abort();
+
+    await expect(pending).rejects.toThrow("Aborted");
+  });
+});

@@ -300,6 +300,24 @@ describe("TerminalBuffer", () => {
       expect(readLine(buf, 1).slice(0, 5)).toBe("CCCCC");
       expect(readLine(buf, 2).slice(0, 1)).toBe("D");
     });
+
+    it("respects DECSET/DECRST auto-wrap mode", () => {
+      const buf = new TerminalBuffer(5, 3);
+
+      buf.write("\x1b[?7lABCDE");
+      expect(buf.displayBuffer.cursorX).toBe(4);
+      expect(buf.displayBuffer.cursorY).toBe(0);
+
+      buf.write("Z");
+      expect(readLine(buf, 0).slice(0, 5)).toBe("ABCDZ");
+      expect(buf.displayBuffer.cursorX).toBe(4);
+      expect(buf.displayBuffer.cursorY).toBe(0);
+
+      buf.write("\x1b[?7hY");
+      expect(readLine(buf, 0).slice(0, 5)).toBe("ABCDY");
+      expect(buf.displayBuffer.cursorX).toBe(0);
+      expect(buf.displayBuffer.cursorY).toBe(1);
+    });
   });
 
   describe("scrolling", () => {
@@ -1131,4 +1149,3 @@ describe("TerminalSession", () => {
     expect(screen.rawLines[0]).toContain("\u001b[38;2;162;0;255mhello\u001b[0m world");
   });
 });
-

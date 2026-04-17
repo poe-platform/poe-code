@@ -153,6 +153,8 @@ describe("createTerminalDriver", () => {
     driver.enterRawMode();
     driver.enterAltScreen();
     driver.enterAltScreen();
+    driver.disableLineWrap();
+    driver.disableLineWrap();
     driver.hideCursor();
     driver.hideCursor();
     driver.moveTo(-2.4, 1.9);
@@ -164,7 +166,9 @@ describe("createTerminalDriver", () => {
 
     expect(stdin.rawModes).toEqual([true]);
     expect(stdin.resumeCount).toBe(1);
-    expect(stdout.output).toBe("\u001b[?1049h\u001b[?25l\u001b[2;1HA\u001b[1;2HB\u001b[3;3HC");
+    expect(stdout.output).toBe(
+      "\u001b[?1049h\u001b[?7l\u001b[?25l\u001b[2;1HA\u001b[1;2HB\u001b[3;3HC"
+    );
 
     driver.destroy();
     driver.destroy();
@@ -172,15 +176,16 @@ describe("createTerminalDriver", () => {
     expect(stdin.rawModes).toEqual([true, false]);
     expect(stdin.pauseCount).toBe(1);
     expect(stdout.output).toBe(
-      "\u001b[?1049h\u001b[?25l\u001b[2;1HA\u001b[1;2HB\u001b[3;3HC\u001b[?1049l\u001b[?25h"
+      "\u001b[?1049h\u001b[?7l\u001b[?25l\u001b[2;1HA\u001b[1;2HB\u001b[3;3HC\u001b[?7h\u001b[?1049l\u001b[?25h"
     );
 
     driver.write("ignored");
     driver.enterAltScreen();
+    driver.disableLineWrap();
     driver.hideCursor();
 
     expect(stdout.output).toBe(
-      "\u001b[?1049h\u001b[?25l\u001b[2;1HA\u001b[1;2HB\u001b[3;3HC\u001b[?1049l\u001b[?25h"
+      "\u001b[?1049h\u001b[?7l\u001b[?25l\u001b[2;1HA\u001b[1;2HB\u001b[3;3HC\u001b[?7h\u001b[?1049l\u001b[?25h"
     );
   });
 

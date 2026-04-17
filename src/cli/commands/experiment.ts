@@ -41,6 +41,7 @@ import {
   createDashboardLineBuffer,
   formatDashboardDuration,
   formatDashboardTimestamp,
+  registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
 
@@ -333,10 +334,10 @@ async function runExperimentWithDashboard(
     syncStats();
   };
 
-  dashboard.onCommand((command) => {
-    if (command === "quit") {
-      requestCancellation();
-    }
+  registerDashboardQuitCommands({
+    abortController,
+    dashboard,
+    requestCancellation
   });
   dashboard.start();
   syncStats();

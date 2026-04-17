@@ -17,6 +17,7 @@ export type DashboardStats = {
 
 export type Command =
   | "quit"
+  | "forceQuit"
   | "edit"
   | "pause"
   | "retry"

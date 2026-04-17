@@ -886,6 +886,69 @@ describe("experiment run command", () => {
     expect(process.exitCode).toBe(130);
     expect(logs.some((message) => message.includes("Experiment run cancelled."))).toBe(true);
   });
+
+  it("cancels experiment when SIGINT is received in dashboard mode", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+
+    try {
+      vi.mocked(sdkRunExperiment).mockImplementationOnce(async (options) => {
+        process.emit("SIGINT");
+
+        expect(options.signal?.aborted).toBe(true);
+
+        return {
+          stopReason: "cancelled",
+          docPath: options.docPath,
+          experimentsCompleted: 0,
+          experimentsKept: 0,
+          totalDurationMs: 1_000
+        };
+      });
+
+      const logs: string[] = [];
+      const container = createCliContainer({
+        fs: createMemFs({
+          "/repo/docs/loop.md": "# Loop"
+        }),
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        logger: (message) => logs.push(message)
+      });
+      const program = createBaseProgram();
+      registerExperimentCommand(program, container);
+
+      await withMockedTerminal(() =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "experiment",
+          "run",
+          "docs/loop.md",
+          "--agent",
+          "claude",
+          "--max-experiments",
+          "5",
+          "--tui"
+        ])
+      );
+
+      expect(exitSpy).not.toHaveBeenCalled();
+      expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+        kind: "status",
+        text: `${expectedTimestamp} Cancellation requested`,
+        ts: 0
+      });
+      expect(process.exitCode).toBe(130);
+      expect(logs.some((message) => message.includes("Experiment run cancelled."))).toBe(true);
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
 });
 
 describe("experiment journal command", () => {
@@ -1927,6 +1990,68 @@ describe("ralph run command", () => {
     });
     expect(process.exitCode).toBe(130);
     expect(logs.some((message) => message.includes("Ralph run cancelled."))).toBe(true);
+  });
+
+  it("cancels Ralph when SIGINT is received in dashboard mode", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+
+    try {
+      vi.mocked(sdkRunRalph).mockImplementationOnce(async (options) => {
+        process.emit("SIGINT");
+
+        expect(options.signal?.aborted).toBe(true);
+
+        return {
+          stopReason: "cancelled",
+          docPath: options.docPath,
+          iterationsCompleted: 0,
+          totalDurationMs: 1_000
+        };
+      });
+
+      const logs: string[] = [];
+      const container = createCliContainer({
+        fs: createMemFs({
+          "/repo/docs/loop.md": "# Loop"
+        }),
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        logger: (message) => logs.push(message)
+      });
+      const program = createBaseProgram();
+      registerRalphCommand(program, container);
+
+      await withMockedTerminal(() =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "ralph",
+          "run",
+          "docs/loop.md",
+          "--agent",
+          "claude",
+          "--iterations",
+          "5",
+          "--tui"
+        ])
+      );
+
+      expect(exitSpy).not.toHaveBeenCalled();
+      expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+        kind: "status",
+        text: `${expectedTimestamp} Cancellation requested`,
+        ts: 0
+      });
+      expect(process.exitCode).toBe(130);
+      expect(logs.some((message) => message.includes("Ralph run cancelled."))).toBe(true);
+    } finally {
+      exitSpy.mockRestore();
+    }
   });
 
   it("streams Ralph child-agent output into the dashboard via ACP writer and stderr tee", async () => {

@@ -2,6 +2,7 @@ import type { KeypressEvent } from "./terminal.js";
 import type { Command } from "./types.js";
 
 const commands: Command[] = [
+  "forceQuit",
   "quit",
   "edit",
   "pause",
@@ -15,7 +16,8 @@ const commands: Command[] = [
 ];
 
 const defaultBindings: Record<Command, string[]> = {
-  quit: ["q", "Ctrl+C"],
+  forceQuit: ["Ctrl+C"],
+  quit: ["q"],
   edit: ["e"],
   pause: ["p"],
   retry: ["r"],

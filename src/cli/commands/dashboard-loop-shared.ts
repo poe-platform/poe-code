@@ -1,8 +1,14 @@
-import { resolveOutputFormat } from "@poe-code/design-system";
+import { resolveOutputFormat, type Dashboard } from "@poe-code/design-system";
 
 type DashboardIo = {
   stdin: { isTTY?: boolean | undefined };
   stdout: { isTTY?: boolean | undefined };
+};
+
+type DashboardQuitCommandOptions = {
+  abortController: AbortController;
+  dashboard: Pick<Dashboard, "destroy" | "onCommand" | "stop">;
+  requestCancellation: () => void;
 };
 
 export function formatDashboardDuration(ms: number): string {
@@ -61,4 +67,22 @@ export function shouldUseInteractiveDashboard(
     && resolveOutputFormat() === "terminal"
     && Boolean(io.stdin.isTTY)
     && Boolean(io.stdout.isTTY);
+}
+
+export function registerDashboardQuitCommands(options: DashboardQuitCommandOptions): void {
+  options.dashboard.onCommand((command) => {
+    if (command === "quit") {
+      options.requestCancellation();
+      return;
+    }
+
+    if (command !== "forceQuit") {
+      return;
+    }
+
+    options.abortController.abort();
+    options.dashboard.stop();
+    options.dashboard.destroy();
+    process.exit(130);
+  });
 }

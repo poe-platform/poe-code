@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const resolveOutputFormatMock = vi.hoisted(() => vi.fn());
 
@@ -14,6 +14,7 @@ import {
   createDashboardLineBuffer,
   formatDashboardDuration,
   formatDashboardTimestamp,
+  registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
 
@@ -21,6 +22,10 @@ describe("dashboard loop shared helpers", () => {
   beforeEach(() => {
     resolveOutputFormatMock.mockReset();
     resolveOutputFormatMock.mockReturnValue("terminal");
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("formats dashboard durations in seconds and minutes", () => {
@@ -75,5 +80,53 @@ describe("dashboard loop shared helpers", () => {
         stdout: { isTTY: false }
       })
     ).toBe(false);
+  });
+
+  it("routes quit commands through requestCancellation", () => {
+    const commandHandlers: Array<(command: string) => void> = [];
+    const requestCancellation = vi.fn();
+
+    registerDashboardQuitCommands({
+      abortController: new AbortController(),
+      dashboard: {
+        onCommand(handler) {
+          commandHandlers.push(handler);
+        },
+        stop: vi.fn(),
+        destroy: vi.fn()
+      },
+      requestCancellation
+    });
+
+    commandHandlers[0]?.("quit");
+
+    expect(requestCancellation).toHaveBeenCalledTimes(1);
+  });
+
+  it("force quits by aborting, tearing down the dashboard, and exiting 130", () => {
+    const commandHandlers: Array<(command: string) => void> = [];
+    const abortController = new AbortController();
+    const stop = vi.fn();
+    const destroy = vi.fn();
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+
+    registerDashboardQuitCommands({
+      abortController,
+      dashboard: {
+        onCommand(handler) {
+          commandHandlers.push(handler);
+        },
+        stop,
+        destroy
+      },
+      requestCancellation: vi.fn()
+    });
+
+    commandHandlers[0]?.("forceQuit");
+
+    expect(abortController.signal.aborted).toBe(true);
+    expect(stop).toHaveBeenCalledTimes(1);
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(exitSpy).toHaveBeenCalledWith(130);
   });
 });

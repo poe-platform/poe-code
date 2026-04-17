@@ -24,6 +24,7 @@ import { createStore } from "./store.js";
 import { createDashboard } from "./dashboard.js";
 import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 import { resetThemeCache } from "../internal/theme-detect.js";
+import { TerminalBuffer } from "../../../terminal-pilot/src/terminal-buffer.js";
 import type { DashboardLayout } from "./layout.js";
 import type { KeypressEvent } from "./terminal.js";
 import type { DashboardState, DashboardStats, OutputItem, Rect } from "./types.js";
@@ -34,6 +35,29 @@ function readRow(buffer: ScreenBuffer, y: number): string {
 
 function stripTerminalControl(value: string): string {
   return value.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "");
+}
+
+function renderTerminalOutput(value: string, width: number, height: number): string[] {
+  const terminal = new TerminalBuffer(width, height);
+  terminal.write(value);
+
+  return Array.from({ length: height }, (_, row) => {
+    const line = terminal.displayBuffer.data[row] ?? [];
+    return Array.from({ length: width }, (_, column) => line[column]?.[1] ?? " ").join("");
+  });
+}
+
+function readScreenRect(screen: string[], rect: Rect): string[] {
+  return screen
+    .slice(rect.y, rect.y + rect.height)
+    .map((row) => row.slice(rect.x, rect.x + rect.width));
+}
+
+function footerDividerRow(layout: DashboardLayout): string {
+  const leftWidth = Math.max(layout.divider.x - layout.footerDivider.left, 0);
+  const rightWidth = Math.max(layout.footerDivider.right - layout.divider.x, 0);
+
+  return `├${"─".repeat(leftWidth)}┴${"─".repeat(rightWidth)}┤`;
 }
 
 class TestDashboardStdin extends PassThrough {
@@ -1329,10 +1353,11 @@ describe("keymap", () => {
     expect(resolve(key({ ch: "F", shift: true }))).toBe("scrollToBottom");
   });
 
-  it("resolves ctrl+c to quit", () => {
+  it("resolves ctrl+c to forceQuit so consumers can distinguish immediate kill from graceful quit", () => {
     const resolve = createKeymap();
 
-    expect(resolve(key({ name: "c", ctrl: true }))).toBe("quit");
+    expect(resolve(key({ name: "c", ctrl: true }))).toBe("forceQuit");
+    expect(resolve(key({ ch: "q" }))).toBe("quit");
   });
 
   it("returns undefined for unknown keys", () => {
@@ -1345,7 +1370,8 @@ describe("keymap", () => {
   it("replaces default bindings with overrides", () => {
     const resolve = createKeymap({
       edit: ["x"],
-      quit: ["escape"]
+      quit: ["escape"],
+      forceQuit: []
     });
 
     expect(resolve(key({ ch: "e" }))).toBeUndefined();
@@ -1457,6 +1483,113 @@ describe("createDashboard", () => {
       expect(commands).toEqual([]);
 
       dashboard.destroy();
+    });
+  });
+
+  it("re-renders the right pane when stats change after start", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout();
+      const dashboard = createDashboard({ stdin, stdout });
+
+      dashboard.start();
+      dashboard.updateStats({
+        status: "running",
+        iterations: 3,
+        tokensIn: 120,
+        tokensOut: 45,
+        elapsedMs: 2_000,
+        currentAction: "Generating patch"
+      });
+
+      const screen = renderTerminalOutput(stdout.output, stdout.columns ?? 80, stdout.rows ?? 24);
+
+      expect(screen[1]).toContain("Status");
+      expect(screen[1]).toContain("Running");
+      expect(screen[2]).toContain("Iteration");
+      expect(screen[2]).toContain("3");
+      expect(screen[3]).toContain("Elapsed");
+      expect(screen[3]).toContain("00:00:02");
+      expect(screen[5]).toContain("Tokens In");
+      expect(screen[5]).toContain("120");
+      expect(screen[6]).toContain("Tokens Out");
+      expect(screen[6]).toContain("45");
+      expect(screen[9]).toContain("Current:");
+      expect(screen[10]).toContain("Generating patch");
+
+      dashboard.stop();
+      dashboard.destroy();
+    });
+  });
+
+  it("keeps the divider row clean and the stats pane aligned after repeated updates", () => {
+    withOutputFormat("terminal", () => {
+      const actions = [
+        "Planning next step",
+        "Executing tool call",
+        "Reviewing tool results",
+        "Updating working memory",
+        "Preparing final response"
+      ];
+      const sizes = [
+        { cols: 120, rows: 32 },
+        { cols: 160, rows: 50 }
+      ];
+
+      for (const size of sizes) {
+        const stdin = new TestDashboardStdin();
+        const stdout = new TestDashboardStdout(size.cols, size.rows);
+        const dashboard = createDashboard({
+          stdin,
+          stdout,
+          title: "Agent Output",
+          statsTitle: "Stats"
+        });
+
+        dashboard.start();
+        dashboard.updateStats({ status: "running", currentAction: "Connecting to provider" });
+
+        for (let iteration = 1; iteration <= 30; iteration += 1) {
+          dashboard.appendOutput({
+            kind: "tool",
+            text: iteration % 2 === 0
+              ? "Running npm test -- --runInBand"
+              : "Tool execution returned a non-zero exit code",
+            ts: iteration
+          });
+          dashboard.updateStats({
+            status: iteration === 30 ? "done" : "running",
+            iterations: iteration,
+            tokensIn: iteration * 137,
+            tokensOut: iteration * 89,
+            elapsedMs: iteration * 1_000,
+            currentAction: iteration === 30 ? "Completed" : actions[(iteration - 1) % actions.length]
+          });
+        }
+
+        const screen = renderTerminalOutput(stdout.output, stdout.columns ?? size.cols, stdout.rows ?? size.rows);
+        const layout = computeDashboardLayout({
+          totalWidth: stdout.columns ?? size.cols,
+          totalHeight: stdout.rows ?? size.rows
+        });
+
+        expect(screen[0]).toContain("┌─ Agent Output");
+        expect(screen[layout.footerDivider.y]).toBe(footerDividerRow(layout));
+        expect(readScreenRect(screen, { ...layout.rightPane, height: 10 })).toEqual([
+          "Status               Done",
+          "Iteration              30",
+          "Elapsed          00:00:30",
+          "                         ",
+          "Tokens In           4,110",
+          "Tokens Out          2,670",
+          "Total               6,780",
+          "                         ",
+          "Current:                 ",
+          "  Completed              "
+        ]);
+
+        dashboard.destroy();
+      }
     });
   });
 });

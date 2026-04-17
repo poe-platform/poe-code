@@ -16,6 +16,8 @@ export type TerminalDriver = {
   exitRawMode(): void;
   enterAltScreen(): void;
   exitAltScreen(): void;
+  disableLineWrap(): void;
+  enableLineWrap(): void;
   hideCursor(): void;
   showCursor(): void;
   moveTo(x: number, y: number): void;
@@ -61,6 +63,7 @@ export function createTerminalDriver(opts?: {
   const keypressListeners = new Set<(str: string | undefined, key: ReadlineKey) => void>();
   let rawMode = false;
   let altScreen = false;
+  let lineWrapEnabled = true;
   let cursorHidden = false;
   let destroyed = false;
 
@@ -102,6 +105,24 @@ export function createTerminalDriver(opts?: {
 
     write("\u001b[?1049l");
     altScreen = false;
+  }
+
+  function disableLineWrap(): void {
+    if (destroyed || !lineWrapEnabled) {
+      return;
+    }
+
+    write("\u001b[?7l");
+    lineWrapEnabled = false;
+  }
+
+  function enableLineWrap(): void {
+    if (destroyed || lineWrapEnabled) {
+      return;
+    }
+
+    write("\u001b[?7h");
+    lineWrapEnabled = true;
   }
 
   function hideCursor(): void {
@@ -220,6 +241,7 @@ export function createTerminalDriver(opts?: {
     resizeListeners.clear();
 
     exitRawMode();
+    enableLineWrap();
     exitAltScreen();
     showCursor();
     destroyed = true;
@@ -230,6 +252,8 @@ export function createTerminalDriver(opts?: {
     exitRawMode,
     enterAltScreen,
     exitAltScreen,
+    disableLineWrap,
+    enableLineWrap,
     hideCursor,
     showCursor,
     moveTo,

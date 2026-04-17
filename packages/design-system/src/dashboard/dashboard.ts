@@ -94,6 +94,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
 
     driver.enterRawMode();
     driver.enterAltScreen();
+    driver.disableLineWrap();
     driver.hideCursor();
 
     render();

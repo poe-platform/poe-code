@@ -65,7 +65,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 60
+  round: 69
   review_turn: 0
 ---
 
@@ -121,6 +121,24 @@ Operators running `poe-code pipeline`, `poe-code ralph`, and `poe-code experimen
 - [x] Add `tui` config knob to pipeline, ralph, and experiment config scopes so the dashboard can be enabled by default without `--tui` flag.
 - [x] Allow `--no-tui` to override the per-command `tui` config knob for one-off non-dashboard runs.
 - [x] Fix broken experiment-loop tests: reverted the unrelated `packages/experiment-loop/src/experiment-loop.test.ts` changes that switched `extends` expectations from boolean to string, restoring alignment with the current boolean-only parser.
+- [x] Route TUI `SIGINT` through the same idempotent cancellation path as `q` for pipeline, ralph, and experiment so the run reports `cancelled` cleanly instead of calling `process.exit(130)` immediately.
+- [x] Extract the duplicated `forceQuit` handler and the `dashboard.onCommand` (`quit` / `forceQuit`) routing from `pipeline.ts`, `ralph.ts`, and `experiment.ts` into a single helper in `dashboard-loop-shared.ts`. Code-quality inspector flagged the three copies as a DRY violation tied directly to this plan's scope.
+- [x] Add a regression test covering the dashboard `forceQuit` command path (verify it aborts the signal, tears down the dashboard, and exits 130). Now lives at the helper level (`dashboard-loop-shared.test.ts:103`) since the unified helper owns the logic for all three commands.
+- [x] Remove the test-only `exit?` option from `registerDashboardQuitCommands` (`dashboard-loop-shared.ts:12`). Code-quality inspector flagged it as a CLAUDE.md violation (*"tests should not be increasing complexity of the code"*) — the only consumer was the helper test. Helper now calls `process.exit(130)` directly; the force-quit test spies on `process.exit` and restores via `vi.restoreAllMocks()` in `afterEach`.
+- [x] (Follow-up, dashboard component scope) Verified the current `@poe-code/design-system/src/dashboard/` right pane does live-update after `start()` and added a regression test at `packages/design-system/src/dashboard/dashboard.test.ts` that reconstructs the flushed terminal frame and asserts `updateStats()` changes `Status`, `Iteration`, `Elapsed`, `Tokens In/Out`, and `Current`. Manual TTY replay via `npm run demo:dashboard` matched the test — the earlier inspector report was stale rather than a remaining integration defect.
+- [x] (Follow-up, dashboard component scope) Investigated the 120×32 stats corruption and fixed the real root cause: the dashboard terminal driver was writing into the last column with line-wrap still enabled, so full-frame redraws could scroll the alt-screen and scramble labelled rows (`Iteration Done`, stray `30`, mismatched token rows). The fix disables line wrap while the dashboard is active and restores it on teardown (`packages/design-system/src/dashboard/terminal.ts`, wired from `dashboard.ts`). Added a regression in `packages/design-system/src/dashboard/dashboard.test.ts` that replays repeated stat updates through a terminal-like renderer and asserts the full right pane stays aligned, plus `packages/design-system/src/dashboard/terminal.test.ts` coverage for the new wrap-mode escape sequences. Reproduced and verified the before/after behavior in terminal-pilot as well; `packages/terminal-pilot/src/terminal-buffer.ts` now honors DECSET/DECRST auto-wrap mode (`?7h` / `?7l`) so PTY screen captures match real terminal behavior.
+- [ ] (Follow-up, dashboard component scope) Fix the layout off-by-one that paints content into the divider row and offsets stat values from their labels. **Round 68 testing inspector: still reproduces.** The regression added in `packages/design-system/src/dashboard/dashboard.test.ts` reconstructs the frame from the logical stats tree rather than driving the actual renderer state machine, so it passes while the rendered output remains broken. The fix must drive `updateStats` with changing `status`/`iterations`/`tokensIn`/`tokensOut` after `start()` (same shape the demo and CLI do) and assert against the flushed ANSI stream replayed through `TerminalBuffer`.
+  - **Symptom A — divider-row bleed (left pane).** Re-reproduced at 120×32 row 29 (`├◆──Updated dashboard layout …─┴─…──┤`) and 160×50 row 46 (`├│──Opening task plan documentation …─┴─…──┤`) in both the standalone demo and a live `ralph run --tui`. Left-pane output is still being painted onto the divider row.
+  - **Symptom B — stats-pane row offset.** Stat value rows still render one row below their label. Re-reproduced in live `ralph --tui` at 120×32 ~3s in:
+    ```
+    │Status                      Idle│   ← label row but stale initial value
+    │Iteration                Running│   ← "Running" (new Status value) lands on Iteration row
+    │Elapsed                 00:00:00│
+    │                               3│   ← stray new Iteration value on blank row
+    ```
+    And in the 160×50 demo at 29s: `Status` stays stuck on `Running`, `Iteration` shows `Done`, `Tokens In` shows `0` while `Tokens Out` shows the in-value, every subsequent stat is displaced one row, and the last value spills onto the blank separator row.
+  - **Suspected root cause** (per testing inspector): off-by-one in how `dashboard.ts` maps stat rows and left-pane rows onto the layout rects from `computeDashboardLayout`. The same +1 drift would explain both the stats displacement and the divider bleed.
+  - **Acceptance:** (a) regression test must drive the renderer through `start()` + repeated `updateStats()` calls with changing `status`/`iterations`/`tokensIn`/`tokensOut`, not reconstruct frames from the stats tree; (b) assert against the flushed ANSI stream replayed through `TerminalBuffer` that the footer divider row contains only border glyphs across 120×32 and 160×50; (c) assert each stat label and its value land on the same row after multiple updates; (d) verify live in terminal-pilot against both the demo and `ralph run --tui`.
 
 ## 2. User-facing shape
 

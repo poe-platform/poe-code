@@ -36,6 +36,7 @@ export class TerminalBuffer {
   private _state = State.Normal;
   private _csiParams = "";
   private _csiPrivate = "";
+  private _autoWrap = true;
   private _style: SgrStyleState = createDefaultStyleState();
   private _styleSequence = "";
 
@@ -198,7 +199,10 @@ export class TerminalBuffer {
 
     if (this._csiPrivate === "?") {
       if (final === "h" || final === "l") {
-        // Only handle alt screen (1049) — ignore everything else
+        if (params.includes(7)) {
+          this._autoWrap = final === "h";
+        }
+
         if (params.includes(1049)) {
           if (final === "h") {
             this._screen = this._makeScreen(this._cols, this._rows);
@@ -430,6 +434,12 @@ export class TerminalBuffer {
       // Printable character (including multi-byte Unicode via code points)
       this._setChar(this._cursorY, this._cursorX, ch);
       this._cursorX++;
+
+      if (!this._autoWrap) {
+        this._cursorX = Math.min(this._cursorX, this._cols - 1);
+        return;
+      }
+
       if (this._cursorX >= this._cols) {
         // Auto-wrap
         this._cursorX = 0;

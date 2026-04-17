@@ -18,6 +18,12 @@ const ignoredScope = defineScope("core", {
     type: "boolean",
     default: false,
     doc: "Whether config is enabled"
+  },
+  plugins: {
+    type: "json",
+    default: null as Array<{ name: string; options?: unknown }> | null,
+    parse: (value: unknown) => value as Array<{ name: string; options?: unknown }> | null,
+    doc: "Configured poe-agent plugins"
   }
 });
 
@@ -27,6 +33,7 @@ type ignoredInferConfigShape = AssertAssignable<
     apiKey: string;
     maxRetries: number;
     enabled: boolean;
+    plugins: Array<{ name: string; options?: unknown }> | null;
   }
 >;
 
@@ -35,7 +42,12 @@ declare const scopedConfig: ScopedConfig<typeof ignoredScope.schema>;
 const ignoredApiKeyPromise = scopedConfig.get("apiKey");
 const ignoredRetriesPromise = scopedConfig.get("maxRetries");
 const ignoredEnabledPromise = scopedConfig.get("enabled");
+const ignoredPluginsPromise = scopedConfig.get("plugins");
 
 type ignoredGetApiKey = AssertAssignable<Promise<string>, typeof ignoredApiKeyPromise>;
 type ignoredGetRetries = AssertAssignable<Promise<number>, typeof ignoredRetriesPromise>;
 type ignoredGetEnabled = AssertAssignable<Promise<boolean>, typeof ignoredEnabledPromise>;
+type ignoredGetPlugins = AssertAssignable<
+  Promise<Array<{ name: string; options?: unknown }> | null>,
+  typeof ignoredPluginsPromise
+>;

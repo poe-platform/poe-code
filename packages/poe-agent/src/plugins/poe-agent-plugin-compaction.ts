@@ -10,6 +10,12 @@ import type {
 } from "../runtime/plugin-types.js";
 import { estimateMessageContentSize } from "../runtime/tool-results.js";
 import type { ChatMessage } from "../runtime/types.js";
+import {
+  readOptionalNonNegativeInteger,
+  rejectUnknownKeys,
+  toOptionsObject
+} from "./parse-options.js";
+import type { PluginSpec } from "./registry.js";
 
 const DEFAULT_CONTEXT_WINDOW = 200_000;
 const DEFAULT_THRESHOLD_RATIO = 0.8;
@@ -223,3 +229,31 @@ function estimateTokenCount(messages: ChatMessage[]): number {
 }
 
 export default compactionPlugin;
+
+export type CompactionPluginConfigOptions = Pick<
+  CompactionPluginOptions,
+  "threshold" | "contextWindow" | "keepLastTurns"
+>;
+
+export const spec: PluginSpec<CompactionPluginConfigOptions> = {
+  name: "compaction",
+  parseOptions(input) {
+    const obj = toOptionsObject(input);
+    rejectUnknownKeys(obj, ["threshold", "contextWindow", "keepLastTurns"]);
+    const options: CompactionPluginConfigOptions = {};
+    const threshold = readOptionalNonNegativeInteger(obj, "threshold");
+    if (threshold !== undefined) {
+      options.threshold = threshold;
+    }
+    const contextWindow = readOptionalNonNegativeInteger(obj, "contextWindow");
+    if (contextWindow !== undefined) {
+      options.contextWindow = contextWindow;
+    }
+    const keepLastTurns = readOptionalNonNegativeInteger(obj, "keepLastTurns");
+    if (keepLastTurns !== undefined) {
+      options.keepLastTurns = keepLastTurns;
+    }
+    return options;
+  },
+  factory: options => compactionPlugin(options),
+};

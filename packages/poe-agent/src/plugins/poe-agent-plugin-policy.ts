@@ -1,5 +1,7 @@
 import type { SpawnMode } from "@poe-code/agent-spawn";
 import type { AgentPlugin, PluginApi } from "../runtime/plugin-types.js";
+import { readRequiredEnum, rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
+import type { PluginSpec } from "./registry.js";
 
 export type PolicyPluginOptions = {
   mode: SpawnMode | (() => SpawnMode);
@@ -63,3 +65,19 @@ function resolveMode(mode: PolicyPluginOptions["mode"]): SpawnMode {
 }
 
 export default policyPlugin;
+
+export type PolicyPluginConfigOptions = {
+  mode: SpawnMode;
+};
+
+export const spec: PluginSpec<PolicyPluginConfigOptions> = {
+  name: "policy",
+  parseOptions(input) {
+    const obj = toOptionsObject(input);
+    rejectUnknownKeys(obj, ["mode"]);
+    return {
+      mode: readRequiredEnum(obj, "mode", ["read", "edit", "yolo"] as const),
+    };
+  },
+  factory: options => policyPlugin(options),
+};

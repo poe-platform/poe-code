@@ -6,6 +6,10 @@ import {
   readMergedDocument,
   writeScope
 } from "@poe-code/poe-code-config";
+import {
+  parseNullablePluginConfigEntries,
+  type PluginConfigEntry
+} from "@poe-code/poe-agent";
 import { superintendentConfigScope } from "@poe-code/superintendent";
 import type { FileSystem } from "../utils/file-system.js";
 
@@ -106,12 +110,22 @@ export const planConfigScope = defineScope("plan", {
   }
 });
 
+export const agentConfigScope = defineScope("agent", {
+  plugins: {
+    type: "json",
+    default: null as PluginConfigEntry[] | null,
+    parse: parseNullablePluginConfigEntries,
+    doc: "Ordered poe-agent plugin registry entries. Null keeps the built-in default bundle."
+  }
+});
+
 export const knownConfigScopes = [
   coreConfigScope,
   ralphConfigScope,
   pipelineConfigScope,
   experimentConfigScope,
   planConfigScope,
+  agentConfigScope,
   superintendentConfigScope
 ] as const;
 

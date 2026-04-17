@@ -1,5 +1,7 @@
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import { loadSystemPromptSync } from "../system-prompt.js";
+import { rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
+import type { PluginSpec } from "./registry.js";
 
 const systemPromptPlugin = (): AgentPlugin => ({
   name: "poe-agent-plugin-system-prompt",
@@ -18,5 +20,16 @@ const systemPromptPlugin = (): AgentPlugin => ({
     };
   },
 });
+
+export type SystemPromptPluginConfigOptions = Record<string, never>;
+
+export const spec: PluginSpec<SystemPromptPluginConfigOptions> = {
+  name: "system-prompt",
+  parseOptions(input) {
+    rejectUnknownKeys(toOptionsObject(input), []);
+    return {} as SystemPromptPluginConfigOptions;
+  },
+  factory: () => systemPromptPlugin(),
+};
 
 export default systemPromptPlugin;

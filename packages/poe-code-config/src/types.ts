@@ -1,6 +1,7 @@
 import type { FileSystem } from "@poe-code/config-mutations";
 
-export type ConfigFieldType = "string" | "number" | "boolean";
+export type PrimitiveConfigFieldType = "string" | "number" | "boolean";
+export type ConfigFieldType = PrimitiveConfigFieldType | "json";
 
 export interface TypeMap {
   string: string;
@@ -8,17 +9,33 @@ export interface TypeMap {
   boolean: boolean;
 }
 
-export interface SchemaField<T extends ConfigFieldType = ConfigFieldType> {
+export interface PrimitiveSchemaField<T extends PrimitiveConfigFieldType = PrimitiveConfigFieldType> {
   type: T;
   default: TypeMap[T];
   doc: string;
   env?: string;
 }
 
+export interface JsonSchemaField<T = unknown> {
+  type: "json";
+  default: T;
+  parse: (value: unknown) => T;
+  doc: string;
+  env?: string;
+}
+
+export type SchemaField = PrimitiveSchemaField | JsonSchemaField;
+
+export type InferSchemaField<T extends SchemaField> = T extends PrimitiveSchemaField<infer U>
+  ? TypeMap[U]
+  : T extends JsonSchemaField<infer U>
+    ? U
+    : never;
+
 export type ScopeSchema = Record<string, SchemaField>;
 
 export type InferConfig<S extends ScopeSchema> = {
-  [K in keyof S]: TypeMap[S[K]["type"]];
+  [K in keyof S]: InferSchemaField<S[K]>;
 };
 
 export interface ScopeDefinition<S extends ScopeSchema> {

@@ -5,12 +5,19 @@ import { parse as parseShellCommand } from "shell-quote";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import type { ToolContext } from "../runtime/types.js";
 import {
+  readOptionalString,
+  readOptionalStringArray,
+  rejectUnknownKeys,
+  toOptionsObject
+} from "./parse-options.js";
+import {
   getOptionalBoolean,
   getOptionalNumber,
   getOptionalString,
   getRequiredString,
   resolveAllowedPath
 } from "./plugin-args.js";
+import type { PluginSpec } from "./registry.js";
 
 type RunCommandOptions = {
   signal: AbortSignal;
@@ -25,6 +32,8 @@ type ShellPluginOptions = {
   allowedPaths?: string[];
   runCommand?: RunCommandFn;
 };
+
+export type ShellPluginConfigOptions = Pick<ShellPluginOptions, "cwd" | "allowedPaths">;
 
 type SpawnedCommandOutcome = {
   aborted: boolean;
@@ -851,3 +860,22 @@ function getCommandFailureMessage(
 }
 
 export default shellPlugin;
+
+export const spec: PluginSpec<ShellPluginConfigOptions> = {
+  name: "shell",
+  parseOptions(input) {
+    const obj = toOptionsObject(input);
+    rejectUnknownKeys(obj, ["cwd", "allowedPaths"]);
+    const options: ShellPluginConfigOptions = {};
+    const cwd = readOptionalString(obj, "cwd");
+    if (cwd !== undefined) {
+      options.cwd = cwd;
+    }
+    const allowedPaths = readOptionalStringArray(obj, "allowedPaths");
+    if (allowedPaths !== undefined) {
+      options.allowedPaths = allowedPaths;
+    }
+    return options;
+  },
+  factory: options => shellPlugin(options),
+};

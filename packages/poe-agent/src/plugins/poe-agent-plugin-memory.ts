@@ -2,6 +2,8 @@ import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
+import { readOptionalString, rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
+import type { PluginSpec } from "./registry.js";
 
 const AGENTS_FILE = "AGENTS.md";
 const USER_MEMORY_DIRECTORY = path.join(".config", "poe-code");
@@ -13,6 +15,8 @@ export type MemoryPluginOptions = {
   homeDir?: string;
   fs?: MemoryPluginFileSystem;
 };
+
+export type MemoryPluginConfigOptions = Pick<MemoryPluginOptions, "cwd" | "homeDir">;
 
 const memoryPlugin = (options: MemoryPluginOptions = {}): AgentPlugin => {
   const cwd = path.resolve(options.cwd ?? process.cwd());
@@ -201,3 +205,22 @@ function isMissingFileError(error: unknown): boolean {
 }
 
 export default memoryPlugin;
+
+export const spec: PluginSpec<MemoryPluginConfigOptions> = {
+  name: "memory",
+  parseOptions(input) {
+    const obj = toOptionsObject(input);
+    rejectUnknownKeys(obj, ["cwd", "homeDir"]);
+    const options: MemoryPluginConfigOptions = {};
+    const cwd = readOptionalString(obj, "cwd");
+    if (cwd !== undefined) {
+      options.cwd = cwd;
+    }
+    const homeDir = readOptionalString(obj, "homeDir");
+    if (homeDir !== undefined) {
+      options.homeDir = homeDir;
+    }
+    return options;
+  },
+  factory: options => memoryPlugin(options),
+};

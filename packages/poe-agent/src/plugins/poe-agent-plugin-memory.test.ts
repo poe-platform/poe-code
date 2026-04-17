@@ -1,8 +1,21 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
-import memoryPlugin from "./poe-agent-plugin-memory.js";
+import memoryPlugin, { spec as memoryPluginSpec } from "./poe-agent-plugin-memory.js";
 
 describe("poe-agent-plugin-memory", () => {
+  it("validates config options with its plugin spec", () => {
+    expect(
+      memoryPluginSpec.parseOptions({
+        cwd: "/workspace/project",
+        homeDir: "/home/test",
+      }),
+    ).toEqual({
+      cwd: "/workspace/project",
+      homeDir: "/home/test",
+    });
+    expect(() => memoryPluginSpec.parseOptions({ homeDir: 123 })).toThrow();
+  });
+
   it("loads project and user AGENTS.md content with recursive @imports", async () => {
     const volume = Volume.fromJSON(
       {

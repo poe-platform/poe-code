@@ -92,6 +92,21 @@ describe("poe-agent-plugin-files", () => {
     );
   });
 
+  it("validates config options with its plugin spec", async () => {
+    const { spec: filesPluginSpec } = await import("./poe-agent-plugin-files.js");
+
+    expect(
+      filesPluginSpec.parseOptions({
+        cwd: "/workspace/project",
+        allowedPaths: ["src", "tests"],
+      }),
+    ).toEqual({
+      cwd: "/workspace/project",
+      allowedPaths: ["src", "tests"],
+    });
+    expect(() => filesPluginSpec.parseOptions({ allowedPaths: [1] })).toThrow();
+  });
+
   it("supports line-based read_file offset and limit", async () => {
     const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const fs = createFsFromVolume(

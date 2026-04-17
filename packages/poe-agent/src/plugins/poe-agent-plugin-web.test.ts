@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ToolContext } from "../runtime/types.js";
-import webPlugin from "./poe-agent-plugin-web.js";
+import webPlugin, { spec as webPluginSpec } from "./poe-agent-plugin-web.js";
 
 type TestTool = {
   name: string;
@@ -34,6 +34,11 @@ async function callTool(
 }
 
 describe("poe-agent-plugin-web", () => {
+  it("validates config options with its plugin spec", () => {
+    expect(webPluginSpec.parseOptions({})).toEqual({});
+    expect(() => webPluginSpec.parseOptions({ fetch: true })).toThrow();
+  });
+
   it("search_web flattens abstract text and nested related topics from DuckDuckGo", async () => {
     const fetchMock = vi.fn(async () =>
       new Response(

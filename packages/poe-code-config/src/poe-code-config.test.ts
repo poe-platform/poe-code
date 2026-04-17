@@ -278,7 +278,49 @@ describe("createConfigStore", () => {
       poeBaseUrl: "https://api.poe.com/v1"
     });
   });
+
+  it("supports json fields with schema validation", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const store = createConfigStore({ fs, filePath: configPath });
+    const agentScope = defineScope("agent", {
+      plugins: {
+        type: "json" as const,
+        default: null as Array<{ name: string; options?: unknown }> | null,
+        parse: parseNullablePluginEntries,
+        doc: "Configured poe-agent plugins"
+      }
+    });
+
+    await store.scope(agentScope).set("plugins", [{ name: "web" }]);
+
+    await expect(store.scope(agentScope).get("plugins")).resolves.toEqual([{ name: "web" }]);
+  });
 });
+
+function parseNullablePluginEntries(
+  value: unknown
+): Array<{ name: string; options?: unknown }> | null {
+  if (value === null) {
+    return null;
+  }
+  if (!Array.isArray(value)) {
+    throw new Error("expected an array or null");
+  }
+  return value.map((entry, index) => {
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+      throw new Error(`[${index}]: expected an object`);
+    }
+    const record = entry as Record<string, unknown>;
+    if (typeof record.name !== "string") {
+      throw new Error(`[${index}].name: expected a string`);
+    }
+    const parsed: { name: string; options?: unknown } = { name: record.name };
+    if ("options" in record) {
+      parsed.options = record.options;
+    }
+    return parsed;
+  });
+}
 
 describe("collectEnvOverrides", () => {
   const coreScope = defineScope("core", {
@@ -846,6 +888,43 @@ describe("resolveScope", () => {
       timeout: 45,
       enabled: true
     });
+  });
+
+  it("parses json values from file and env", () => {
+    const jsonSchema = {
+      plugins: {
+        type: "json" as const,
+        default: null as Array<{ name: string; options?: unknown }> | null,
+        env: "POE_AGENT_PLUGINS",
+        parse: parseNullablePluginEntries,
+        doc: "Configured poe-agent plugins"
+      }
+    };
+
+    expect(resolveScope(jsonSchema, { plugins: [{ name: "web" }] })).toEqual({
+      plugins: [{ name: "web" }]
+    });
+
+    expect(
+      resolveScope(jsonSchema, undefined, {
+        POE_AGENT_PLUGINS: JSON.stringify([{ name: "shell", options: { cwd: "." } }])
+      })
+    ).toEqual({
+      plugins: [{ name: "shell", options: { cwd: "." } }]
+    });
+  });
+
+  it("throws for invalid json values", () => {
+    const jsonSchema = {
+      plugins: {
+        type: "json" as const,
+        default: null as Array<{ name: string; options?: unknown }> | null,
+        parse: parseNullablePluginEntries,
+        doc: "Configured poe-agent plugins"
+      }
+    };
+
+    expect(() => resolveScope(jsonSchema, { plugins: "nope" })).toThrow("plugins");
   });
 });
 

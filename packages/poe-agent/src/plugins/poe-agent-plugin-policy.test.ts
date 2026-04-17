@@ -12,7 +12,7 @@ import { createRunContext, type RunContext } from "../runtime/run-context.js";
 import filesPlugin from "./poe-agent-plugin-files.js";
 import mcpPlugin from "./poe-agent-plugin-mcp.js";
 import shellPlugin from "./poe-agent-plugin-shell.js";
-import policyPlugin from "./poe-agent-plugin-policy.js";
+import policyPlugin, { spec as policyPluginSpec } from "./poe-agent-plugin-policy.js";
 import spawnPlugin from "./poe-agent-plugin-spawn.js";
 
 const mcpClientConnectMock = vi.hoisted(() => vi.fn(async () => undefined));
@@ -90,6 +90,11 @@ function expectToolError(result: HookDispatchResult, expectedText: string): void
 }
 
 describe("poe-agent-plugin-policy", () => {
+  it("validates config options with its plugin spec", () => {
+    expect(policyPluginSpec.parseOptions({ mode: "read" })).toEqual({ mode: "read" });
+    expect(() => policyPluginSpec.parseOptions({ mode: "read-only" })).toThrow();
+  });
+
   it("blocks mutating file tools in read mode while allowing read-only file tools", async () => {
     const { runContext, signal } = await setupRunContext([
       filesPlugin({ cwd: "/workspace/project" }),

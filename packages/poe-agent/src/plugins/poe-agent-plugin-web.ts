@@ -1,6 +1,8 @@
 import TurndownService from "turndown";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
+import { rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
 import { getOptionalNonNegativeInteger, getRequiredString } from "./plugin-args.js";
+import type { PluginSpec } from "./registry.js";
 
 type FetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 type SearchWebFn = (query: string, options: { signal: AbortSignal }) => Promise<string>;
@@ -9,6 +11,8 @@ type WebPluginOptions = {
   searchWeb?: SearchWebFn;
   fetch?: FetchFn;
 };
+
+export type WebPluginConfigOptions = Record<string, never>;
 
 interface DuckDuckGoTopic {
   Text?: string;
@@ -190,3 +194,12 @@ function formatFetchedBody(content: string, contentType: string): string {
 }
 
 export default webPlugin;
+
+export const spec: PluginSpec<WebPluginConfigOptions> = {
+  name: "web",
+  parseOptions(input) {
+    rejectUnknownKeys(toOptionsObject(input), []);
+    return {} as WebPluginConfigOptions;
+  },
+  factory: () => webPlugin(),
+};

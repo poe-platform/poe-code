@@ -5,6 +5,12 @@ import { promisify } from "node:util";
 import fastGlob from "fast-glob";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import {
+  readOptionalString,
+  readOptionalStringArray,
+  rejectUnknownKeys,
+  toOptionsObject
+} from "./parse-options.js";
+import {
   getOptionalBoolean,
   getOptionalNonNegativeInteger,
   getOptionalString,
@@ -12,6 +18,7 @@ import {
   isObjectRecord,
   resolveAllowedPath
 } from "./plugin-args.js";
+import type { PluginSpec } from "./registry.js";
 
 type PluginFileSystem = Pick<
   typeof fsPromises,
@@ -46,6 +53,8 @@ type FilesPluginOptions = {
   searchContent?: SearchContentFn;
   globFiles?: GlobFilesFn;
 };
+
+export type FilesPluginConfigOptions = Pick<FilesPluginOptions, "cwd" | "allowedPaths">;
 
 const execFile = promisify(execFileCallback);
 
@@ -574,3 +583,22 @@ function detectImageMimeType(filePath: string): string | undefined {
 }
 
 export default filesPlugin;
+
+export const spec: PluginSpec<FilesPluginConfigOptions> = {
+  name: "files",
+  parseOptions(input) {
+    const obj = toOptionsObject(input);
+    rejectUnknownKeys(obj, ["cwd", "allowedPaths"]);
+    const options: FilesPluginConfigOptions = {};
+    const cwd = readOptionalString(obj, "cwd");
+    if (cwd !== undefined) {
+      options.cwd = cwd;
+    }
+    const allowedPaths = readOptionalStringArray(obj, "allowedPaths");
+    if (allowedPaths !== undefined) {
+      options.allowedPaths = allowedPaths;
+    }
+    return options;
+  },
+  factory: options => filesPlugin(options),
+};

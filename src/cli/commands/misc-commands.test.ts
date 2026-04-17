@@ -18,7 +18,9 @@ const disposeMock = vi.hoisted(() => vi.fn());
 const renderAcpEventMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/poe-agent", () => ({
-  createAgentSession: createAgentSessionMock
+  createAgentSession: createAgentSessionMock,
+  parseNullablePluginConfigEntries: (value: unknown) => value,
+  parsePluginConfigEntries: (value: unknown) => value
 }));
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {

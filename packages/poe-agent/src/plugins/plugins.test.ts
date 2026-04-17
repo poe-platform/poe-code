@@ -15,7 +15,7 @@ import filesPlugin from "./poe-agent-plugin-files.js";
 import shellPlugin from "./poe-agent-plugin-shell.js";
 import skillsPlugin from "./poe-agent-plugin-skills.js";
 import spawnPlugin from "./poe-agent-plugin-spawn.js";
-import systemPromptPlugin from "./poe-agent-plugin-system-prompt.js";
+import systemPromptPlugin, { spec as systemPromptPluginSpec } from "./poe-agent-plugin-system-prompt.js";
 import webPlugin from "./poe-agent-plugin-web.js";
 
 const appendFileMock = vi.hoisted(() => vi.fn());
@@ -127,6 +127,13 @@ describe("poe-agent-plugin-audit-log", () => {
 });
 
 // --- poe-agent-plugin-environment ---
+
+describe("poe-agent-plugin-system-prompt", () => {
+  it("validates config options with its plugin spec", () => {
+    expect(systemPromptPluginSpec.parseOptions({})).toEqual({});
+    expect(() => systemPromptPluginSpec.parseOptions({ enabled: true })).toThrow();
+  });
+});
 
 describe("poe-agent-plugin-environment", () => {
   it("adds cwd and node version when system is missing", () => {

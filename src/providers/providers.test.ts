@@ -41,7 +41,9 @@ const sendMessageMock = vi.hoisted(() => vi.fn());
 const disposeMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/poe-agent", () => ({
-  createAgentSession: createAgentSessionMock
+  createAgentSession: createAgentSessionMock,
+  parseNullablePluginConfigEntries: (value: unknown) => value,
+  parsePluginConfigEntries: (value: unknown) => value
 }));
 
 const resolveVariantModel = (variant: keyof typeof CLAUDE_CODE_VARIANTS): string =>
@@ -2075,6 +2077,7 @@ describe("poe-agent provider", () => {
     const initializeSpy = vi.spyOn(AcpClient.prototype, "initialize");
     const newSessionSpy = vi.spyOn(AcpClient.prototype, "newSession");
     const promptSpy = vi.spyOn(AcpClient.prototype, "prompt");
+    const fs = createMockFs(undefined, homeDir);
 
     const { events, done } = spawnPoeAgentWithAcp({
       prompt: "Summarize this diff",
@@ -2086,7 +2089,11 @@ describe("poe-agent provider", () => {
           args: ["serve", "word-of-the-day"],
           env: { MCP_LOG_LEVEL: "debug" }
         }
-      }
+      },
+      homeDir,
+      configPath: `${homeDir}/.poe-code/config.json`,
+      projectConfigPath: "/workspace/project/.poe-code/config.json",
+      fs
     });
     const received: unknown[] = [];
     const collectPromise = (async () => {
@@ -2158,8 +2165,13 @@ describe("poe-agent provider", () => {
   });
 
   it("uses default model when none is provided", async () => {
+    const fs = createMockFs(undefined, homeDir);
     const { done } = spawnPoeAgentWithAcp({
-      prompt: "Explain this function"
+      prompt: "Explain this function",
+      homeDir,
+      configPath: `${homeDir}/.poe-code/config.json`,
+      projectConfigPath: `${process.cwd()}/.poe-code/config.json`,
+      fs
     });
     await done;
 
@@ -2169,10 +2181,56 @@ describe("poe-agent provider", () => {
     });
   });
 
-  it("forwards baseUrl override to createAgentSession", async () => {
+  it("loads agent.plugins from poe-code-config and forwards pluginsConfig", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            agent: {
+              plugins: [
+                { name: "system-prompt" },
+                { name: "memory" },
+                { name: "policy", options: { mode: "read" } },
+              ],
+            },
+          },
+          null,
+          2
+        )}\n`,
+      },
+      homeDir
+    );
+
     const { done } = spawnPoeAgentWithAcp({
       prompt: "Explain this function",
-      baseUrl: "http://proxy.example.com/v1"
+      cwd: "/workspace/project",
+      homeDir,
+      configPath: `${homeDir}/.poe-code/config.json`,
+      projectConfigPath: "/workspace/project/.poe-code/config.json",
+      fs,
+    });
+    await done;
+
+    expect(createAgentSessionMock).toHaveBeenCalledWith({
+      model: DEFAULT_FRONTIER_MODEL,
+      cwd: "/workspace/project",
+      pluginsConfig: [
+        { name: "system-prompt" },
+        { name: "memory" },
+        { name: "policy", options: { mode: "read" } },
+      ],
+    });
+  });
+
+  it("forwards baseUrl override to createAgentSession", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const { done } = spawnPoeAgentWithAcp({
+      prompt: "Explain this function",
+      baseUrl: "http://proxy.example.com/v1",
+      homeDir,
+      configPath: `${homeDir}/.poe-code/config.json`,
+      projectConfigPath: `${process.cwd()}/.poe-code/config.json`,
+      fs
     });
     await done;
 

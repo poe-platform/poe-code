@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   auditLogPlugin,
+  builtinPluginRegistry,
   compactionPlugin,
   environmentPlugin,
   filesPlugin,
@@ -8,7 +9,10 @@ import {
   maxIterationsPlugin,
   mcpPlugin,
   memoryPlugin,
+  parsePluginConfigEntries,
+  parsePluginConfigEntry,
   policyPlugin,
+  resolvePluginsFromConfig,
   scratchpadPlugin,
   shellPlugin,
   skillsPlugin,
@@ -49,5 +53,12 @@ describe("package root exports", () => {
     expect(spawnPlugin).toBe(spawn);
     expect(systemPromptPlugin).toBe(systemPrompt);
     expect(webPlugin).toBe(web);
+  });
+
+  it("re-exports plugin registry helpers without deep imports", () => {
+    expect(builtinPluginRegistry.get("web")).toBeDefined();
+    expect(parsePluginConfigEntry({ name: "web" })).toEqual({ name: "web" });
+    expect(parsePluginConfigEntries([{ name: "web" }])).toEqual([{ name: "web" }]);
+    expect(typeof resolvePluginsFromConfig).toBe("function");
   });
 });

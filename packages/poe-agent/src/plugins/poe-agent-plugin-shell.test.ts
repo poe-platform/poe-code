@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ToolContext } from "../runtime/types.js";
-import shellPlugin from "./poe-agent-plugin-shell.js";
+import shellPlugin, { spec as shellPluginSpec } from "./poe-agent-plugin-shell.js";
 
 type TestTool = {
   name: string;
@@ -59,6 +59,19 @@ async function waitForBackgroundOutput(
 }
 
 describe("poe-agent-plugin-shell", () => {
+  it("validates config options with its plugin spec", () => {
+    expect(
+      shellPluginSpec.parseOptions({
+        cwd: "/workspace/project",
+        allowedPaths: ["src"],
+      }),
+    ).toEqual({
+      cwd: "/workspace/project",
+      allowedPaths: ["src"],
+    });
+    expect(() => shellPluginSpec.parseOptions({ cwd: 123 })).toThrow();
+  });
+
   it("resolves cwd and timeout before delegating to the injected runner", async () => {
     const signal = new AbortController().signal;
     const runCommand = vi.fn(async () => "ok");

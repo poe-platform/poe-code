@@ -1,8 +1,9 @@
 import type {
   InferConfig,
+  InferSchemaField,
+  JsonSchemaField,
   SchemaField,
-  ScopeSchema,
-  TypeMap
+  ScopeSchema
 } from "./types.js";
 
 export function resolveScope<S extends ScopeSchema>(
@@ -14,8 +15,8 @@ export function resolveScope<S extends ScopeSchema>(
 
   for (const key of Object.keys(schema) as Array<keyof S & string>) {
     const field = schema[key];
-    const envValue = resolveEnvValue(field, env);
-    const fileValue = resolveFileValue(field, fileValues?.[key]);
+    const envValue = resolveEnvValue(field, env, key);
+    const fileValue = resolveFileValue(field, fileValues?.[key], key);
     resolved[key] = (envValue ?? fileValue ?? field.default) as InferConfig<S>[typeof key];
   }
 
@@ -24,8 +25,9 @@ export function resolveScope<S extends ScopeSchema>(
 
 function resolveEnvValue<T extends SchemaField>(
   field: T,
-  env: Record<string, string | undefined>
-): TypeMap[T["type"]] | undefined {
+  env: Record<string, string | undefined>,
+  key: string
+): InferSchemaField<T> | undefined {
   if (!field.env) {
     return undefined;
   }
@@ -35,27 +37,31 @@ function resolveEnvValue<T extends SchemaField>(
     return undefined;
   }
 
-  return coerceValue(field, raw);
+  return coerceValue(field, raw, key);
 }
 
 function resolveFileValue<T extends SchemaField>(
   field: T,
-  value: unknown
-): TypeMap[T["type"]] | undefined {
-  return coerceValue(field, value);
+  value: unknown,
+  key: string
+): InferSchemaField<T> | undefined {
+  return coerceValue(field, value, key);
 }
 
 function coerceValue<T extends SchemaField>(
   field: T,
-  value: unknown
-): TypeMap[T["type"]] | undefined {
+  value: unknown,
+  key: string
+): InferSchemaField<T> | undefined {
   switch (field.type) {
     case "string":
-      return typeof value === "string" ? value as TypeMap[T["type"]] : undefined;
+      return typeof value === "string" ? value as InferSchemaField<T> : undefined;
     case "number":
-      return coerceNumber(value) as TypeMap[T["type"]] | undefined;
+      return coerceNumber(value) as InferSchemaField<T> | undefined;
     case "boolean":
-      return coerceBoolean(value) as TypeMap[T["type"]] | undefined;
+      return coerceBoolean(value) as InferSchemaField<T> | undefined;
+    case "json":
+      return coerceJson(field, value, key) as InferSchemaField<T> | undefined;
   }
 }
 
@@ -86,4 +92,34 @@ function coerceBoolean(value: unknown): boolean | undefined {
   }
 
   return undefined;
+}
+
+function coerceJson<T>(
+  field: JsonSchemaField<T>,
+  value: unknown,
+  key: string
+): T | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const parsedValue = parseJsonValue(value, key);
+  try {
+    return field.parse(parsedValue);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Invalid JSON value.";
+    throw new Error(`Invalid config value for "${key}": ${message}`);
+  }
+}
+
+function parseJsonValue(value: unknown, key: string): unknown {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new Error(`Invalid config value for "${key}": expected valid JSON.`);
+  }
 }

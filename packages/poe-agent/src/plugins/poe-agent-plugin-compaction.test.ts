@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createRunContext } from "../runtime/run-context.js";
 import { runAcpCore, type AcpModel, type AcpModelResponse } from "../runtime/acp-core.js";
 import type { AcpEvent, AcpHost, ChatMessage } from "../runtime/types.js";
-import compactionPlugin from "./poe-agent-plugin-compaction.js";
+import compactionPlugin, { spec as compactionPluginSpec } from "./poe-agent-plugin-compaction.js";
 
 async function collectEvents(events: AsyncIterable<AcpEvent>): Promise<AcpEvent[]> {
   const collected: AcpEvent[] = [];
@@ -50,6 +50,21 @@ function getSessionMessages(events: AcpEvent[]): ChatMessage[] {
 }
 
 describe("poe-agent-plugin-compaction", () => {
+  it("validates config options with its plugin spec", () => {
+    expect(
+      compactionPluginSpec.parseOptions({
+        threshold: 20,
+        contextWindow: 100,
+        keepLastTurns: 2,
+      }),
+    ).toEqual({
+      threshold: 20,
+      contextWindow: 100,
+      keepLastTurns: 2,
+    });
+    expect(() => compactionPluginSpec.parseOptions({ threshold: "20" })).toThrow();
+  });
+
   it("uses the plugin contextWindow option to derive the default threshold", async () => {
     const runContext = createRunContext();
     runContext.messages.push(

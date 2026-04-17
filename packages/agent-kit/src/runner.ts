@@ -25,7 +25,11 @@ export interface DocumentWorkflowOptions {
   docPath: string;
   fs: WorkflowFileSystem;
   runAgent: RunAgentFn;
-  readConfig: (content: string) => { frontmatter: any; body: string };
+  readConfig: (
+    content: string
+  ) =>
+    | { frontmatter: any; body: string }
+    | Promise<{ frontmatter: any; body: string }>;
   signal?: AbortSignal;
   onIterationStart?: (iteration: number) => void | Promise<void>;
   onIterationEnd?: (
@@ -231,26 +235,31 @@ function mergeErrors(primary: unknown, secondary: unknown): unknown {
 export async function runDocumentWorkflow(
   options: DocumentWorkflowOptions
 ): Promise<void> {
-  const content = await options.fs.readFile(options.docPath, "utf8");
-  const { frontmatter } = options.readConfig(content);
-  const workflow = parseWorkflowDocument(frontmatter);
+  const readWorkflow = async (): Promise<ParsedWorkflowDocument> => {
+    const content = await options.fs.readFile(options.docPath, "utf8");
+    const { frontmatter } = await options.readConfig(content);
+    return parseWorkflowDocument(frontmatter);
+  };
+
+  const initialWorkflow = await readWorkflow();
   const releaseLock = await lockWorkflow(options.docPath, { fs: options.fs });
 
   let pendingError: unknown;
+  let currentWorkflow = initialWorkflow;
 
   try {
     throwIfAborted(options.signal);
 
-    if (workflow.setup) {
-      await runWorkflowHook(workflow.setup, {
+    if (initialWorkflow.setup) {
+      await runWorkflowHook(initialWorkflow.setup, {
         cwd: options.cwd,
-        participants: workflow.participants,
+        participants: initialWorkflow.participants,
         runAgent: options.runAgent,
         ...(options.signal ? { signal: options.signal } : {})
       });
     }
 
-    if (workflow.maxIterations === 0 || workflow.stages.length === 0) {
+    if (initialWorkflow.maxIterations === 0 || initialWorkflow.stages.length === 0) {
       await options.onIterationStart?.(0);
       await options.onIterationEnd?.(0, "nothing_to_run");
       return;
@@ -258,19 +267,22 @@ export async function runDocumentWorkflow(
 
     let shouldStop = false;
 
-    for (let iteration = 0; iteration < workflow.maxIterations; iteration += 1) {
+    for (let iteration = 0; iteration < initialWorkflow.maxIterations; iteration += 1) {
       throwIfAborted(options.signal);
+
+      currentWorkflow = iteration === 0 ? initialWorkflow : await readWorkflow();
+
       await options.onIterationStart?.(iteration);
 
       let iterationResult: IterationResult = "completed";
 
-      for (const stage of workflow.stages) {
+      for (const stage of currentWorkflow.stages) {
         throwIfAborted(options.signal);
 
         try {
           const stageResult = await runWorkflowStage(stage, {
             cwd: options.cwd,
-            participants: workflow.participants,
+            participants: currentWorkflow.participants,
             runAgent: options.runAgent,
             iteration,
             ...(options.signal ? { signal: options.signal } : {})
@@ -300,10 +312,10 @@ export async function runDocumentWorkflow(
     pendingError = error;
   } finally {
     try {
-      if (workflow.teardown) {
-        await runWorkflowHook(workflow.teardown, {
+      if (currentWorkflow.teardown) {
+        await runWorkflowHook(currentWorkflow.teardown, {
           cwd: options.cwd,
-          participants: workflow.participants,
+          participants: currentWorkflow.participants,
           runAgent: options.runAgent,
           ...(options.signal ? { signal: options.signal } : {})
         });

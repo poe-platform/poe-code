@@ -46,11 +46,6 @@ export async function runRalph(
     options.homeDir
   );
   const config = await resolveDocumentConfig(options, fs, absoluteDocPath);
-  const workflowFrontmatter = createWorkflowFrontmatter(
-    config.agents,
-    config.maxIterations,
-    config.prompt
-  );
   const startTime = Date.now();
   let iterationsCompleted = 0;
   let currentIterationStart = 0;
@@ -71,10 +66,22 @@ export async function runRalph(
       docPath: absoluteDocPath,
       fs,
       signal: options.signal,
-      readConfig: () => ({
-        frontmatter: workflowFrontmatter,
-        body: config.prompt
-      }),
+      readConfig: async (content) => {
+        const fresh = await resolveDocumentConfigFromContent(
+          options,
+          fs,
+          absoluteDocPath,
+          content
+        );
+        return {
+          frontmatter: createWorkflowFrontmatter(
+            fresh.agents,
+            fresh.maxIterations,
+            fresh.prompt
+          ),
+          body: fresh.prompt
+        };
+      },
       runAgent: async (input) => {
         const specifier = parseAgentSpecifier(input.agent);
 
@@ -239,16 +246,16 @@ function createRunResult(
   };
 }
 
-async function resolveDocumentConfig(
+async function resolveDocumentConfigFromContent(
   options: RalphRunOptions,
   fs: RalphFileSystem,
-  absoluteDocPath: string
+  absoluteDocPath: string,
+  content: string
 ): Promise<{
   agents: AgentSpecifier[];
   maxIterations: number;
   prompt: string;
 }> {
-  const rawContent = await fs.readFile(absoluteDocPath, "utf8");
   const resolved = await resolve(
     [
       {
@@ -258,7 +265,7 @@ async function resolveDocumentConfig(
       {
         source: "document",
         filePath: absoluteDocPath,
-        content: rawContent
+        content
       },
       {
         source: "base",
@@ -288,6 +295,19 @@ async function resolveDocumentConfig(
       current_file: absoluteDocPath
     })
   };
+}
+
+async function resolveDocumentConfig(
+  options: RalphRunOptions,
+  fs: RalphFileSystem,
+  absoluteDocPath: string
+): Promise<{
+  agents: AgentSpecifier[];
+  maxIterations: number;
+  prompt: string;
+}> {
+  const rawContent = await fs.readFile(absoluteDocPath, "utf8");
+  return resolveDocumentConfigFromContent(options, fs, absoluteDocPath, rawContent);
 }
 
 function createWorkflowFrontmatter(

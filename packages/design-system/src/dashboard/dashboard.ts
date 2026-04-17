@@ -111,7 +111,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       }
 
       if (isScrollCommand(command)) {
-        activeStore.dispatch(command, currentLayout.leftPane.height);
+        activeStore.dispatch(command, currentLayout.leftPane.width, currentLayout.leftPane.height);
         return;
       }
 

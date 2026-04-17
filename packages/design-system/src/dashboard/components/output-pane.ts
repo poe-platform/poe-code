@@ -34,7 +34,7 @@ export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, state: Output
   const contentHeight = showBanner ? rect.height - 1 : rect.height;
   const startLine = state.autoFollow
     ? Math.max(visualLines.length - contentHeight, 0)
-    : clampScrollOffset(state.scrollOffset, visualLines.length);
+    : clampScrollOffset(state.scrollOffset, visualLines.length, contentHeight);
   const textRect: Rect = {
     x: rect.x + TEXT_OFFSET,
     y: rect.y,
@@ -218,15 +218,16 @@ export function scrollUp(state: OutputPaneState, lines: number): OutputPaneState
 export function scrollDown(
   state: OutputPaneState,
   lines: number,
-  totalVisualLines: number
+  totalVisualLines: number,
+  paneHeight: number
 ): OutputPaneState {
+  // A manual scroll disables auto-follow, so the banner reserves one row.
+  const contentHeight = Math.max(0, normalizeCount(paneHeight) - 1);
+  const maxOffset = Math.max(0, normalizeCount(totalVisualLines) - contentHeight);
   return {
     ...state,
     autoFollow: false,
-    scrollOffset: Math.min(
-      clampScrollOffset(totalVisualLines - 1, totalVisualLines),
-      state.scrollOffset + normalizeCount(lines)
-    )
+    scrollOffset: Math.min(maxOffset, state.scrollOffset + normalizeCount(lines))
   };
 }
 
@@ -422,8 +423,12 @@ function splitLogicalLines(value: string): string[] {
   return lines;
 }
 
-function clampScrollOffset(scrollOffset: number, totalVisualLines: number): number {
-  const maxOffset = Math.max(0, normalizeCount(totalVisualLines) - 1);
+function clampScrollOffset(
+  scrollOffset: number,
+  totalVisualLines: number,
+  contentHeight: number
+): number {
+  const maxOffset = Math.max(0, normalizeCount(totalVisualLines) - normalizeCount(contentHeight));
   return Math.max(0, Math.min(normalizeCount(scrollOffset), maxOffset));
 }
 

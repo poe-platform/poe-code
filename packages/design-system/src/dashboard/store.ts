@@ -1,4 +1,5 @@
 import {
+  computeVisualLines,
   scrollDown,
   scrollToBottom,
   scrollToTop,
@@ -10,7 +11,7 @@ export type DashboardStore = {
   getState(): DashboardState;
   appendOutput(item: OutputItem): void;
   updateStats(partial: Partial<DashboardStats>): void;
-  dispatch(command: Command, paneHeight: number): void;
+  dispatch(command: Command, paneWidth: number, paneHeight: number): void;
   onChange(handler: () => void): () => void;
 };
 
@@ -42,12 +43,9 @@ export function createStore(): DashboardStore {
   }
 
   function appendOutput(item: OutputItem): void {
-    const output = [...state.output, item];
-
     state = {
       ...state,
-      output,
-      outputScroll: state.autoFollow ? Math.max(0, output.length - 1) : state.outputScroll
+      output: [...state.output, item]
     };
     notify();
   }
@@ -63,9 +61,12 @@ export function createStore(): DashboardStore {
     notify();
   }
 
-  function dispatch(command: Command, paneHeight: number): void {
-    const totalVisualLines = state.output.length;
-    const currentPaneState = state.autoFollow
+  function dispatch(command: Command, paneWidth: number, paneHeight: number): void {
+    const totalVisualLines = computeVisualLines(state.output, paneWidth).length;
+    // When auto-follow is on the renderer draws bottom-aligned regardless of scrollOffset.
+    // Seed scrollOffset from the actual rendered position so a transition out of
+    // auto-follow (e.g. pressing ↑ after F) doesn't snap the view elsewhere.
+    const seededPaneState = state.autoFollow
       ? toStateFromPane(
           state,
           scrollToBottom(toPaneState(state), totalVisualLines, paneHeight)
@@ -73,45 +74,45 @@ export function createStore(): DashboardStore {
       : state;
 
     if (command === "scrollUp") {
-      state = toStateFromPane(currentPaneState, scrollUp(toPaneState(currentPaneState), 1));
+      state = toStateFromPane(seededPaneState, scrollUp(toPaneState(seededPaneState), 1));
       notify();
       return;
     }
 
     if (command === "scrollDown") {
       state = toStateFromPane(
-        currentPaneState,
-        scrollDown(toPaneState(currentPaneState), 1, totalVisualLines)
+        seededPaneState,
+        scrollDown(toPaneState(seededPaneState), 1, totalVisualLines, paneHeight)
       );
       notify();
       return;
     }
 
     if (command === "pageUp") {
-      state = toStateFromPane(currentPaneState, scrollUp(toPaneState(currentPaneState), paneHeight));
+      state = toStateFromPane(seededPaneState, scrollUp(toPaneState(seededPaneState), paneHeight));
       notify();
       return;
     }
 
     if (command === "pageDown") {
       state = toStateFromPane(
-        currentPaneState,
-        scrollDown(toPaneState(currentPaneState), paneHeight, totalVisualLines)
+        seededPaneState,
+        scrollDown(toPaneState(seededPaneState), paneHeight, totalVisualLines, paneHeight)
       );
       notify();
       return;
     }
 
     if (command === "scrollToTop") {
-      state = toStateFromPane(currentPaneState, scrollToTop(toPaneState(currentPaneState)));
+      state = toStateFromPane(seededPaneState, scrollToTop(toPaneState(seededPaneState)));
       notify();
       return;
     }
 
     if (command === "scrollToBottom") {
       state = toStateFromPane(
-        currentPaneState,
-        scrollToBottom(toPaneState(currentPaneState), totalVisualLines, paneHeight)
+        seededPaneState,
+        scrollToBottom(toPaneState(seededPaneState), totalVisualLines, paneHeight)
       );
       notify();
     }

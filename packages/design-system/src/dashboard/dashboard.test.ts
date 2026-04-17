@@ -658,7 +658,21 @@ describe("output pane", () => {
     const state = { items: [], scrollOffset: 2, autoFollow: true };
 
     expect(scrollUp(state, 5)).toEqual({ items: [], scrollOffset: 0, autoFollow: false });
-    expect(scrollDown(state, 5, 4)).toEqual({ items: [], scrollOffset: 3, autoFollow: false });
+    // 4 visual lines, pane height 4 => content height (pane - banner) = 3, max offset = 1
+    expect(scrollDown(state, 5, 4, 4)).toEqual({ items: [], scrollOffset: 1, autoFollow: false });
+  });
+
+  it("scrollDown never leaves the pane with empty rows beneath the last line", () => {
+    // 10 visual lines, pane height 5 => banner reserves 1 row, content height 4, max offset 6.
+    const state = { items: [], scrollOffset: 0, autoFollow: false };
+
+    expect(scrollDown(state, 100, 10, 5).scrollOffset).toBe(6);
+  });
+
+  it("scrollDown does nothing when all content already fits the pane", () => {
+    const state = { items: [], scrollOffset: 0, autoFollow: false };
+
+    expect(scrollDown(state, 100, 3, 10).scrollOffset).toBe(0);
   });
 
   it("scrollToBottom enables auto-follow", () => {
@@ -670,11 +684,33 @@ describe("output pane", () => {
   });
 
   it("manual scrolling disables auto-follow", () => {
-    expect(scrollDown({ items: [], scrollOffset: 0, autoFollow: true }, 1, 3).autoFollow).toBe(
+    expect(scrollDown({ items: [], scrollOffset: 0, autoFollow: true }, 1, 3, 4).autoFollow).toBe(
       false
     );
     expect(scrollUp({ items: [], scrollOffset: 3, autoFollow: true }, 1).autoFollow).toBe(false);
     expect(scrollToTop({ items: [], scrollOffset: 3, autoFollow: true }).autoFollow).toBe(false);
+  });
+
+  it("renderOutputPane stops at last line and does not scroll past end", () => {
+    const buffer = new ScreenBuffer(16, 6);
+    const rect: Rect = { x: 0, y: 0, width: 16, height: 5 };
+    const items: OutputItem[] = [
+      { kind: "info", text: "alpha", ts: 1 },
+      { kind: "info", text: "beta", ts: 2 },
+      { kind: "info", text: "gamma", ts: 3 }
+    ];
+
+    renderOutputPane(buffer, rect, {
+      items,
+      scrollOffset: 999,
+      autoFollow: false
+    });
+
+    // With content height 4 (5 - banner) and 3 visual lines, the view must stay at offset 0.
+    expect(readRow(buffer, 0)).toContain("alpha");
+    expect(readRow(buffer, 1)).toContain("beta");
+    expect(readRow(buffer, 2)).toContain("gamma");
+    expect(readRow(buffer, 4)).toContain("F to follow");
   });
 
   it("renderOutputPane renders the expected lines in the rect", () => {
@@ -832,13 +868,12 @@ describe("store", () => {
     expect(store.getState().output).toEqual([item]);
   });
 
-  it("appendOutput with autoFollow adjusts scroll", () => {
+  it("appendOutput with autoFollow leaves the renderer free to stay bottom-aligned", () => {
     const store = createStore();
 
     store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
     store.appendOutput({ kind: "info", text: "beta", ts: 2 });
 
-    expect(store.getState().outputScroll).toBe(1);
     expect(store.getState().autoFollow).toBe(true);
   });
 
@@ -871,14 +906,14 @@ describe("store", () => {
     store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
     store.appendOutput({ kind: "info", text: "beta", ts: 2 });
     store.appendOutput({ kind: "info", text: "gamma", ts: 3 });
-    store.dispatch("scrollToTop", 2);
+    store.dispatch("scrollToTop", 80, 2);
 
     expect(store.getState().outputScroll).toBe(0);
 
-    store.dispatch("scrollDown", 2);
+    store.dispatch("scrollDown", 80, 2);
     expect(store.getState().outputScroll).toBe(1);
 
-    store.dispatch("scrollUp", 2);
+    store.dispatch("scrollUp", 80, 2);
     expect(store.getState().outputScroll).toBe(0);
   });
 
@@ -887,11 +922,49 @@ describe("store", () => {
 
     store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
     store.appendOutput({ kind: "info", text: "beta", ts: 2 });
-    store.dispatch("scrollToTop", 2);
+    store.dispatch("scrollToTop", 80, 2);
     store.appendOutput({ kind: "info", text: "gamma", ts: 3 });
 
     expect(store.getState().outputScroll).toBe(0);
     expect(store.getState().autoFollow).toBe(false);
+  });
+
+  it("scrollToBottom followed by scrollUp reveals the line above the bottom, not the top", () => {
+    const store = createStore();
+    // One long item that wraps to many visual lines in a narrow pane.
+    store.appendOutput({ kind: "info", text: "x".repeat(200), ts: 1 });
+
+    store.dispatch("scrollToTop", 20, 5);
+    expect(store.getState().outputScroll).toBe(0);
+    expect(store.getState().autoFollow).toBe(false);
+
+    store.dispatch("scrollToBottom", 20, 5);
+    expect(store.getState().autoFollow).toBe(true);
+
+    store.dispatch("scrollUp", 20, 5);
+
+    const state = store.getState();
+    expect(state.autoFollow).toBe(false);
+    // Must not snap to the top (offset 0) — user expected one line above the bottom.
+    expect(state.outputScroll).toBeGreaterThan(0);
+  });
+
+  it("dispatch clamps scrollDown so the pane is never left showing empty rows past content", () => {
+    const store = createStore();
+
+    for (let index = 0; index < 5; index += 1) {
+      store.appendOutput({ kind: "info", text: `item-${index}`, ts: index });
+    }
+    store.dispatch("scrollToTop", 80, 4);
+
+    store.dispatch("scrollDown", 80, 4);
+    store.dispatch("scrollDown", 80, 4);
+    store.dispatch("scrollDown", 80, 4);
+    store.dispatch("scrollDown", 80, 4);
+    store.dispatch("scrollDown", 80, 4);
+
+    // 5 visual lines, pane height 4 => banner + 3 content rows => max offset = 2.
+    expect(store.getState().outputScroll).toBe(2);
   });
 
   it("dispatch ignores passthrough commands", () => {
@@ -904,10 +977,10 @@ describe("store", () => {
 
     const before = store.getState();
 
-    store.dispatch("quit", 2);
-    store.dispatch("edit", 2);
-    store.dispatch("pause", 2);
-    store.dispatch("retry", 2);
+    store.dispatch("quit", 80, 2);
+    store.dispatch("edit", 80, 2);
+    store.dispatch("pause", 80, 2);
+    store.dispatch("retry", 80, 2);
 
     expect(store.getState()).toEqual(before);
     expect(calls).toEqual([]);
@@ -923,7 +996,7 @@ describe("store", () => {
 
     store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
     store.updateStats({ status: "running" });
-    store.dispatch("scrollToTop", 1);
+    store.dispatch("scrollToTop", 80, 1);
 
     expect(calls).toBe(3);
   });

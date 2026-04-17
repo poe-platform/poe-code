@@ -25,7 +25,7 @@ poe-code spawn --mcp-servers '{
 }' claude-code "Use the tools from my-server"
 ```
 
-Each entry requires `command` (string). `args` (string array) and `env` (string record) are optional.
+Each entry requires `command` (string). `args` (string array), `env` (string record), and `timeout` (positive number, seconds) are optional.
 
 ```bash
 # Load the same payload from disk
@@ -42,7 +42,8 @@ const { events, result } = spawn("claude-code", "Use the tools", {
     "my-server": {
       command: "my-mcp-server",
       args: ["--port", "3000"],
-      env: { API_KEY: "sk-..." }
+      env: { API_KEY: "sk-..." },
+      timeout: 30
     }
   }
 });
@@ -56,6 +57,7 @@ The CLI validates the JSON structure before spawning:
 - Each entry must be an object with a non-empty `command` string
 - `args` must be an array of strings (if present)
 - `env` must be an object of string values (if present)
+- `timeout` must be a positive number (seconds) (if present)
 
 Invalid input produces a specific error pointing to the malformed entry.
 

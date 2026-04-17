@@ -74,6 +74,8 @@ Exposed server tools:
 Runtime-injected workflow tool:
 
 - `workflow.transition` — injected automatically for superintendent/owner runs when the current state allows transitions
+- `builder.run` — available to superintendent turns for targeted builder follow-ups
+- `inspector.run` — available to superintendent turns for targeted inspector reruns
 
 `superintendent.run` uses the same runtime loop as the CLI command, but the MCP surface runs without the interactive dashboard.
 
@@ -145,9 +147,11 @@ Re-exported from `./testing/index.js`:
 
 ## Environment variables
 
-There are no superintendent-specific environment variables.
+Superintendent-specific config env var:
 
-The package does respect these generic runtime variables:
+- `POE_SUPERINTENDENT_PLAN_DIRECTORY` — override where `superintendent run` discovers plan docs
+
+The package also respects these generic runtime variables:
 
 - `HOME` / `USERPROFILE` — used when resolving workflow-relative document paths for `run`
 - `EDITOR` / `VISUAL` — used by the dashboard edit action; falls back to `vi`
@@ -202,6 +206,7 @@ status:
 
 - `command` — required executable
 - `args` — optional string array of arguments
+- `timeout` — optional positive number of seconds for tool-call timeout
 
 ### Role config
 

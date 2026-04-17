@@ -47,7 +47,7 @@ agent:
 Use `agent:provider/model` notation:
 
 ```yaml
-agent: claude-code:anthropic/claude-opus-4.6
+agent: claude-code:anthropic/claude-opus-4.7
 ```
 
 ## Template Variables
@@ -92,11 +92,27 @@ POE_RALPH_PLAN_DIRECTORY=docs/plans poe-code ralph run
 poe-code ralph run docs/plans/refactor-auth.md
 ```
 
+## Dashboard Configuration
+
+Ralph runs can render the live dashboard in terminal TTY mode.
+
+```bash
+# One-off flags
+poe-code ralph run --tui
+poe-code ralph run --no-tui
+
+# Config default (.poe-code/config.json)
+# { "ralph": { "tui": true } }
+
+# Env override
+POE_RALPH_TUI=true poe-code ralph run
+```
+
 ## CLI
 
 ```bash
 poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
-poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>]
+poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--tui|--no-tui]
 ```
 
 ## Package API

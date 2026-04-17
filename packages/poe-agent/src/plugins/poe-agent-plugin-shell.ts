@@ -1,12 +1,24 @@
-import { exec as execCallback } from "node:child_process";
+import { spawn } from "node:child_process";
 import path from "node:path";
-import { promisify } from "node:util";
+import type { SpawnMode } from "@poe-code/agent-spawn";
+import { parse as parseShellCommand } from "shell-quote";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
-import { getOptionalString, getRequiredString, resolveAllowedPath } from "./plugin-args.js";
+import type { ToolContext } from "../runtime/types.js";
+import {
+  getOptionalBoolean,
+  getOptionalNumber,
+  getOptionalString,
+  getRequiredString,
+  resolveAllowedPath
+} from "./plugin-args.js";
 
-const exec = promisify(execCallback);
+type RunCommandOptions = {
+  signal: AbortSignal;
+  timeoutMs: number;
+  notify?: ToolContext["notify"];
+};
 
-type RunCommandFn = (command: string, cwd: string) => Promise<string>;
+type RunCommandFn = (command: string, cwd: string, options: RunCommandOptions) => Promise<string>;
 
 type ShellPluginOptions = {
   cwd?: string;
@@ -14,78 +26,828 @@ type ShellPluginOptions = {
   runCommand?: RunCommandFn;
 };
 
+type SpawnedCommandOutcome = {
+  aborted: boolean;
+  timedOut: boolean;
+  exitCode: number | null;
+  exitSignal: NodeJS.Signals | null;
+  error?: Error;
+};
+
+type SpawnedCommand = {
+  stdout: { value: string };
+  stderr: { value: string };
+  terminate(): void;
+  completion: Promise<SpawnedCommandOutcome>;
+};
+
+type BackgroundCommand = {
+  handle: string;
+  stdout: { value: string };
+  stderr: { value: string };
+  status: "running" | "exited";
+  exitCode: number | null;
+  exitSignal: NodeJS.Signals | null;
+  timedOut: boolean;
+  error?: string;
+  terminate(): void;
+  completion: Promise<void>;
+};
+
+type ShellOutputNotification = {
+  event: "shell.stdout" | "shell.stderr";
+  message: string;
+  data: {
+    background: boolean;
+    command: string;
+    cwd: string;
+    handle?: string;
+    stream: "stdout" | "stderr";
+  };
+};
+
+const defaultTimeoutSeconds = 120;
+const maxTimeoutSeconds = 600;
+const terminateGracePeriodMs = 1_000;
+
 const shellPlugin = (options: ShellPluginOptions = {}): AgentPlugin => {
   const cwd = path.resolve(options.cwd ?? process.cwd());
-  const allowedPaths = (options.allowedPaths ?? [cwd]).map(allowedPath =>
-    path.resolve(cwd, allowedPath),
+  const allowedPaths = (options.allowedPaths ?? [cwd]).map((allowedPath) =>
+    path.resolve(cwd, allowedPath)
   );
   const runCommand = options.runCommand ?? defaultRunCommand;
+  const backgroundCommands = new Map<string, BackgroundCommand>();
+  let nextHandle = 0;
 
   const runCommandTool = {
     name: "run_command",
-    description: "Run a shell command.",
+    description:
+      "Run a shell command. Set run_in_background to true to start it and receive a handle string for read_background or kill_background.",
+    policy: {
+      read: true,
+      edit: true,
+      validate: validateRunCommandPolicy
+    },
     inputSchema: {
       type: "object",
       properties: {
         command: {
           type: "string",
-          description: "Command to execute.",
+          description: "Command to execute."
         },
         cwd: {
           type: "string",
-          description: "Working directory for command execution.",
+          description: "Working directory for command execution."
         },
+        timeout: {
+          type: "number",
+          description: "Timeout in seconds. Defaults to 120 and cannot exceed 600."
+        },
+        run_in_background: {
+          type: "boolean",
+          description:
+            "When true, start the command and return a background handle instead of waiting."
+        }
       },
-      required: ["command"],
+      required: ["command"]
     },
-    async call(args: unknown): Promise<string> {
+    async call(args: unknown, ctx: ToolContext): Promise<string> {
       const command = getRequiredString(args, "command");
       const commandCwdArg = getOptionalString(args, "cwd");
-      const commandCwd = commandCwdArg
-        ? resolveAllowedPath(cwd, allowedPaths, commandCwdArg)
-        : cwd;
+      const commandCwd = commandCwdArg ? resolveAllowedPath(cwd, allowedPaths, commandCwdArg) : cwd;
+      const timeoutMs = parseTimeoutMs(args);
+      const runInBackground = getOptionalBoolean(args, "run_in_background") ?? false;
 
-      return runCommand(command, commandCwd);
+      if (runInBackground) {
+        if (ctx.signal.aborted) {
+          throw new Error("Command aborted");
+        }
+
+        nextHandle += 1;
+        const handle = `background-${nextHandle}`;
+        backgroundCommands.set(
+          handle,
+          createBackgroundCommand(handle, command, commandCwd, timeoutMs, ctx.notify)
+        );
+        return handle;
+      }
+
+      return runCommand(command, commandCwd, {
+        signal: ctx.signal,
+        timeoutMs,
+        notify: ctx.notify
+      });
+    }
+  };
+
+  const readBackgroundTool = {
+    name: "read_background",
+    description:
+      "Read the latest buffered stdout/stderr and status for a background command handle.",
+    policy: {
+      read: true,
+      edit: true
     },
+    inputSchema: {
+      type: "object",
+      properties: {
+        handle: {
+          type: "string",
+          description: "Handle returned by run_command when run_in_background is true."
+        }
+      },
+      required: ["handle"]
+    },
+    async call(args: unknown): Promise<string> {
+      const handle = getRequiredString(args, "handle");
+      const backgroundCommand = getBackgroundCommand(backgroundCommands, handle);
+      return formatBackgroundCommand(backgroundCommand);
+    }
+  };
+
+  const killBackgroundTool = {
+    name: "kill_background",
+    description: "Terminate a background command handle.",
+    policy: {
+      read: true,
+      edit: true
+    },
+    inputSchema: {
+      type: "object",
+      properties: {
+        handle: {
+          type: "string",
+          description: "Handle returned by run_command when run_in_background is true."
+        }
+      },
+      required: ["handle"]
+    },
+    async call(args: unknown): Promise<string> {
+      const handle = getRequiredString(args, "handle");
+      const backgroundCommand = getBackgroundCommand(backgroundCommands, handle);
+
+      if (backgroundCommand.status === "exited") {
+        return `Background command already exited: ${handle}`;
+      }
+
+      backgroundCommand.terminate();
+      await backgroundCommand.completion;
+      return `Killed background command: ${handle}`;
+    }
   };
 
   return {
     name: "poe-agent-plugin-shell",
-    tools: [runCommandTool],
+    tools: [runCommandTool, readBackgroundTool, killBackgroundTool],
+    async dispose(): Promise<void> {
+      const pendingStops: Promise<void>[] = [];
+
+      for (const backgroundCommand of backgroundCommands.values()) {
+        if (backgroundCommand.status === "exited") {
+          continue;
+        }
+
+        backgroundCommand.terminate();
+        pendingStops.push(backgroundCommand.completion.catch(() => undefined));
+      }
+
+      await Promise.all(pendingStops);
+      backgroundCommands.clear();
+    }
   };
 };
 
-async function defaultRunCommand(command: string, cwd: string): Promise<string> {
+function parseTimeoutMs(args: unknown): number {
+  const timeoutSeconds = getOptionalNumber(args, "timeout") ?? defaultTimeoutSeconds;
+
+  if (timeoutSeconds <= 0) {
+    throw new Error('Tool argument "timeout" must be greater than 0');
+  }
+
+  if (timeoutSeconds > maxTimeoutSeconds) {
+    throw new Error(`Tool argument "timeout" must not exceed ${maxTimeoutSeconds}`);
+  }
+
+  return timeoutSeconds * 1_000;
+}
+
+function getBackgroundCommand(
+  backgroundCommands: Map<string, BackgroundCommand>,
+  handle: string
+): BackgroundCommand {
+  const backgroundCommand = backgroundCommands.get(handle);
+  if (!backgroundCommand) {
+    throw new Error(`Unknown background handle: ${handle}`);
+  }
+
+  return backgroundCommand;
+}
+
+function createBackgroundCommand(
+  handle: string,
+  command: string,
+  cwd: string,
+  timeoutMs: number,
+  notify?: ToolContext["notify"]
+): BackgroundCommand {
+  const spawned = spawnShellCommand(command, cwd, {
+    timeoutMs,
+    notify,
+    background: true,
+    handle
+  });
+
+  const backgroundCommand: BackgroundCommand = {
+    handle,
+    stdout: spawned.stdout,
+    stderr: spawned.stderr,
+    status: "running",
+    exitCode: null,
+    exitSignal: null,
+    timedOut: false,
+    terminate: spawned.terminate,
+    completion: spawned.completion.then((outcome) => {
+      backgroundCommand.status = "exited";
+      backgroundCommand.exitCode = outcome.exitCode;
+      backgroundCommand.exitSignal = outcome.exitSignal;
+      backgroundCommand.timedOut = outcome.timedOut;
+      if (outcome.error) {
+        backgroundCommand.error = outcome.error.message;
+      }
+    })
+  };
+
+  return backgroundCommand;
+}
+
+function validateRunCommandPolicy(args: unknown, mode: SpawnMode): string | void {
+  let command: string;
+
   try {
-    const result = await exec(command, {
-      cwd,
-      timeout: 30_000,
-      maxBuffer: 1024 * 1024,
-    });
+    command = getRequiredString(args, "command");
+  } catch {
+    return;
+  }
 
-    const combinedOutput = [result.stdout, result.stderr]
-      .map(output => output.trim())
-      .filter(output => output.length > 0)
-      .join("\n");
+  let entries: ReturnType<typeof parseShellCommand>;
 
-    return combinedOutput || "Command completed with no output";
+  try {
+    entries = parseShellCommand(command);
   } catch (error) {
-    if (error instanceof Error) {
-      const stderr = Reflect.get(error, "stderr");
-      if (typeof stderr === "string" && stderr.trim().length > 0) {
-        throw new Error(`Command failed: ${stderr.trim()}`);
-      }
+    return toPolicyErrorMessage(error, mode);
+  }
 
-      const stdout = Reflect.get(error, "stdout");
-      if (typeof stdout === "string" && stdout.trim().length > 0) {
-        throw new Error(`Command failed: ${stdout.trim()}`);
-      }
+  if (entries.length === 0) {
+    return `Command is not allowed in ${mode} mode.`;
+  }
 
-      throw new Error(`Command failed: ${error.message}`);
+  const segments: string[][] = [];
+  let currentSegment: string[] = [];
+
+  for (const entry of entries) {
+    if (typeof entry === "string") {
+      currentSegment.push(entry);
+      continue;
     }
 
-    throw new Error(`Command failed: ${String(error)}`);
+    if ("op" in entry) {
+      if (entry.op === "|" || entry.op === "||" || entry.op === "&&" || entry.op === ";") {
+        if (currentSegment.length > 0) {
+          segments.push(currentSegment);
+          currentSegment = [];
+        }
+        continue;
+      }
+
+      if (mode === "read") {
+        return `Shell redirection is not allowed in ${mode} mode.`;
+      }
+
+      continue;
+    }
   }
+
+  if (currentSegment.length > 0) {
+    segments.push(currentSegment);
+  }
+
+  for (const segment of segments) {
+    const commandParts = stripLeadingAssignments(segment);
+    const commandName = commandParts[0];
+
+    if (!commandName) {
+      continue;
+    }
+
+    const commandArgs = commandParts.slice(1);
+
+    if (mode === "read") {
+      if (!isReadOnlyCommand(commandName, commandArgs)) {
+        return `Command "${commandName}" is not allowed in ${mode} mode.`;
+      }
+
+      continue;
+    }
+
+    const blockedReason = getBlockedEditModeReason(commandName, commandArgs);
+    if (blockedReason) {
+      return blockedReason;
+    }
+  }
+}
+
+function stripLeadingAssignments(tokens: string[]): string[] {
+  let index = 0;
+
+  while (index < tokens.length && isEnvironmentAssignment(tokens[index])) {
+    index += 1;
+  }
+
+  return tokens.slice(index);
+}
+
+function isEnvironmentAssignment(token: string | undefined): boolean {
+  if (!token) {
+    return false;
+  }
+
+  const equalsIndex = token.indexOf("=");
+  return equalsIndex > 0 && !token.startsWith("/") && !token.startsWith("./");
+}
+
+function isReadOnlyCommand(commandName: string, args: string[]): boolean {
+  switch (commandName) {
+    case "pwd":
+    case "ls":
+    case "cat":
+    case "head":
+    case "tail":
+    case "sed":
+    case "awk":
+    case "grep":
+    case "rg":
+    case "find":
+    case "stat":
+    case "wc":
+    case "sort":
+    case "cut":
+    case "uniq":
+    case "which":
+    case "whereis":
+    case "basename":
+    case "dirname":
+    case "echo":
+    case "printf":
+    case "env":
+    case "printenv":
+    case "true":
+    case "false":
+    case "test":
+    case "[":
+    case "realpath":
+    case "readlink":
+    case "du":
+      return true;
+    case "git":
+      return isReadOnlyGitCommand(args);
+    default:
+      return false;
+  }
+}
+
+function isReadOnlyGitCommand(args: string[]): boolean {
+  const subcommand = args.find((arg) => !arg.startsWith("-"));
+
+  switch (subcommand) {
+    case "status":
+    case "diff":
+    case "log":
+    case "show":
+    case "rev-parse":
+    case "ls-files":
+    case "grep":
+    case "blame":
+    case "merge-base":
+    case "cat-file":
+    case "reflog":
+      return true;
+    default:
+      return false;
+  }
+}
+
+function getBlockedEditModeReason(commandName: string, args: string[]): string | undefined {
+  if (commandName === "rm" && isRecursiveForceDelete(args)) {
+    return 'Command "rm -rf" is blocked in edit mode.';
+  }
+
+  if (commandName === "git") {
+    const subcommand = args.find((arg) => !arg.startsWith("-"));
+    if (
+      subcommand === "add" ||
+      subcommand === "branch" ||
+      subcommand === "checkout" ||
+      subcommand === "cherry-pick" ||
+      subcommand === "clean" ||
+      subcommand === "commit" ||
+      subcommand === "merge" ||
+      subcommand === "push" ||
+      subcommand === "rebase" ||
+      subcommand === "reset" ||
+      subcommand === "restore" ||
+      subcommand === "stash" ||
+      subcommand === "switch" ||
+      subcommand === "tag"
+    ) {
+      return `Command "git ${subcommand}" is blocked in edit mode.`;
+    }
+  }
+
+  if (commandName === "curl" && isCurlWrite(args)) {
+    return 'Command "curl" is blocked in edit mode because it performs a network write.';
+  }
+
+  if (commandName === "wget" && isWgetWrite(args)) {
+    return 'Command "wget" is blocked in edit mode because it performs a network write.';
+  }
+}
+
+function isRecursiveForceDelete(args: string[]): boolean {
+  let hasRecursive = false;
+  let hasForce = false;
+
+  for (const arg of args) {
+    if (arg === "--recursive") {
+      hasRecursive = true;
+      continue;
+    }
+
+    if (arg === "--force") {
+      hasForce = true;
+      continue;
+    }
+
+    if (!arg.startsWith("-") || arg.startsWith("--")) {
+      continue;
+    }
+
+    if (arg.includes("r") || arg.includes("R")) {
+      hasRecursive = true;
+    }
+
+    if (arg.includes("f")) {
+      hasForce = true;
+    }
+  }
+
+  return hasRecursive && hasForce;
+}
+
+function isCurlWrite(args: string[]): boolean {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    const next = args[index + 1];
+
+    if (
+      arg === "-d" ||
+      arg === "--data" ||
+      arg === "--data-binary" ||
+      arg === "--data-raw" ||
+      arg === "-F" ||
+      arg === "--form" ||
+      arg === "-T" ||
+      arg === "--upload-file" ||
+      arg.startsWith("--data=") ||
+      arg.startsWith("--data-binary=") ||
+      arg.startsWith("--data-raw=") ||
+      arg.startsWith("--form=") ||
+      arg.startsWith("--upload-file=")
+    ) {
+      return true;
+    }
+
+    if ((arg === "-X" || arg === "--request") && next) {
+      return !isReadOnlyHttpMethod(next);
+    }
+
+    if (arg.startsWith("--request=")) {
+      return !isReadOnlyHttpMethod(arg.slice("--request=".length));
+    }
+  }
+
+  return false;
+}
+
+function isWgetWrite(args: string[]): boolean {
+  for (const arg of args) {
+    if (
+      arg === "--body-data" ||
+      arg === "--body-file" ||
+      arg === "--post-data" ||
+      arg === "--post-file" ||
+      arg.startsWith("--body-data=") ||
+      arg.startsWith("--body-file=") ||
+      arg.startsWith("--post-data=") ||
+      arg.startsWith("--post-file=")
+    ) {
+      return true;
+    }
+
+    if (arg.startsWith("--method=")) {
+      return !isReadOnlyHttpMethod(arg.slice("--method=".length));
+    }
+  }
+
+  return false;
+}
+
+function isReadOnlyHttpMethod(method: string): boolean {
+  const normalizedMethod = method.trim().toUpperCase();
+  return (
+    normalizedMethod === "GET" || normalizedMethod === "HEAD" || normalizedMethod === "OPTIONS"
+  );
+}
+
+function toPolicyErrorMessage(error: unknown, mode: SpawnMode): string {
+  if (error instanceof Error) {
+    return `Unable to evaluate command policy in ${mode} mode: ${error.message}`;
+  }
+
+  return `Unable to evaluate command policy in ${mode} mode.`;
+}
+
+function formatBackgroundCommand(backgroundCommand: BackgroundCommand): string {
+  const lines = [`Handle: ${backgroundCommand.handle}`, `Status: ${backgroundCommand.status}`];
+
+  if (backgroundCommand.exitCode !== null) {
+    lines.push(`Exit code: ${backgroundCommand.exitCode}`);
+  }
+
+  if (backgroundCommand.exitSignal !== null) {
+    lines.push(`Signal: ${backgroundCommand.exitSignal}`);
+  }
+
+  if (backgroundCommand.timedOut) {
+    lines.push("Timed out: true");
+  }
+
+  if (backgroundCommand.error) {
+    lines.push(`Error: ${backgroundCommand.error}`);
+  }
+
+  lines.push("STDOUT:");
+  lines.push(formatCapturedOutput(backgroundCommand.stdout.value));
+  lines.push("STDERR:");
+  lines.push(formatCapturedOutput(backgroundCommand.stderr.value));
+
+  return lines.join("\n");
+}
+
+async function defaultRunCommand(
+  command: string,
+  cwd: string,
+  options: RunCommandOptions
+): Promise<string> {
+  const spawned = spawnShellCommand(command, cwd, options);
+  const outcome = await spawned.completion;
+
+  if (outcome.timedOut) {
+    throw new Error(`Command timed out after ${options.timeoutMs / 1_000} seconds`);
+  }
+
+  if (outcome.aborted) {
+    throw new Error("Command aborted");
+  }
+
+  if (outcome.error) {
+    throw new Error(`Command failed: ${outcome.error.message}`);
+  }
+
+  if (outcome.exitCode !== 0) {
+    throw new Error(getCommandFailureMessage(spawned.stdout.value, spawned.stderr.value, outcome));
+  }
+
+  const combinedOutput = combineOutput(spawned.stdout.value, spawned.stderr.value);
+  return combinedOutput || "Command completed with no output";
+}
+
+function spawnShellCommand(
+  command: string,
+  cwd: string,
+  options: {
+    signal?: AbortSignal;
+    timeoutMs: number;
+    notify?: ToolContext["notify"];
+    background?: boolean;
+    handle?: string;
+  }
+): SpawnedCommand {
+  const stdout = { value: "" };
+  const stderr = { value: "" };
+  const pendingNotifications = new Set<Promise<void>>();
+  let notificationError: Error | undefined;
+  const child = spawn(command, {
+    cwd,
+    shell: true,
+    stdio: ["ignore", "pipe", "pipe"],
+    ...(process.platform === "win32" ? {} : { detached: true })
+  });
+
+  const notify = (stream: ShellOutputNotification["data"]["stream"], message: string): void => {
+    if (options.notify === undefined || message.length === 0) {
+      return;
+    }
+
+    const pending = Promise.resolve(
+      options.notify({
+        event: stream === "stdout" ? "shell.stdout" : "shell.stderr",
+        message,
+        data: {
+          background: options.background ?? false,
+          command,
+          cwd,
+          ...(options.handle === undefined ? {} : { handle: options.handle }),
+          stream
+        }
+      } satisfies ShellOutputNotification)
+    )
+      .catch((error) => {
+        if (notificationError === undefined) {
+          notificationError = toError(error);
+          terminate();
+        }
+      })
+      .finally(() => {
+        pendingNotifications.delete(pending);
+      });
+
+    pendingNotifications.add(pending);
+  };
+
+  child.stdout?.setEncoding("utf8");
+  child.stdout?.on("data", (chunk: string | Buffer) => {
+    const value = chunk.toString();
+    stdout.value += value;
+    notify("stdout", value);
+  });
+
+  child.stderr?.setEncoding("utf8");
+  child.stderr?.on("data", (chunk: string | Buffer) => {
+    const value = chunk.toString();
+    stderr.value += value;
+    notify("stderr", value);
+  });
+
+  let terminated = false;
+  let aborted = false;
+  let timedOut = false;
+  let escalationTimer: NodeJS.Timeout | undefined;
+
+  const clearEscalationTimer = (): void => {
+    if (escalationTimer === undefined) {
+      return;
+    }
+
+    clearTimeout(escalationTimer);
+    escalationTimer = undefined;
+  };
+
+  const killProcess = (signal: NodeJS.Signals): void => {
+    try {
+      if (process.platform !== "win32" && child.pid !== undefined) {
+        process.kill(-child.pid, signal);
+        return;
+      }
+
+      child.kill(signal);
+    } catch {
+      return;
+    }
+  };
+
+  const terminate = (): void => {
+    if (terminated) {
+      return;
+    }
+
+    terminated = true;
+    killProcess("SIGTERM");
+    escalationTimer = setTimeout(() => {
+      killProcess("SIGKILL");
+    }, terminateGracePeriodMs);
+  };
+
+  const cleanupAbort = bindAbortSignal(options.signal, () => {
+    aborted = true;
+    terminate();
+  });
+
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    terminate();
+  }, options.timeoutMs);
+
+  const completion = new Promise<SpawnedCommandOutcome>((resolve) => {
+    const resolveOutcome = (outcome: SpawnedCommandOutcome): void => {
+      void Promise.allSettled(Array.from(pendingNotifications)).then(() => {
+        resolve({
+          ...outcome,
+          ...(outcome.error === undefined && notificationError ? { error: notificationError } : {})
+        });
+      });
+    };
+
+    child.once("error", (error) => {
+      clearTimeout(timeout);
+      clearEscalationTimer();
+      cleanupAbort();
+      resolveOutcome({
+        aborted,
+        timedOut,
+        exitCode: null,
+        exitSignal: null,
+        error: error instanceof Error ? error : new Error(String(error))
+      });
+    });
+
+    child.once("close", (code, signal) => {
+      clearTimeout(timeout);
+      clearEscalationTimer();
+      cleanupAbort();
+      resolveOutcome({
+        aborted,
+        timedOut,
+        exitCode: code,
+        exitSignal: signal,
+        ...(notificationError === undefined ? {} : { error: notificationError })
+      });
+    });
+  });
+
+  return {
+    stdout,
+    stderr,
+    terminate,
+    completion
+  };
+}
+
+function bindAbortSignal(signal: AbortSignal | undefined, onAbort: () => void): () => void {
+  if (signal === undefined) {
+    return () => {};
+  }
+
+  if (signal.aborted) {
+    onAbort();
+    return () => {};
+  }
+
+  signal.addEventListener("abort", onAbort, { once: true });
+
+  return () => {
+    signal.removeEventListener("abort", onAbort);
+  };
+}
+
+function toError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new Error(String(error));
+}
+
+function combineOutput(stdout: string, stderr: string): string {
+  return [stdout, stderr]
+    .map((output) => output.trim())
+    .filter((output) => output.length > 0)
+    .join("\n");
+}
+
+function formatCapturedOutput(output: string): string {
+  const trimmed = output.trim();
+  return trimmed.length > 0 ? trimmed : "(empty)";
+}
+
+function getCommandFailureMessage(
+  stdout: string,
+  stderr: string,
+  outcome: SpawnedCommandOutcome
+): string {
+  const combinedOutput = combineOutput(stdout, stderr);
+  if (combinedOutput.length > 0) {
+    return `Command failed: ${combinedOutput}`;
+  }
+
+  if (outcome.exitSignal !== null) {
+    return `Command failed with signal ${outcome.exitSignal}`;
+  }
+
+  if (outcome.exitCode !== null) {
+    return `Command failed with exit code ${outcome.exitCode}`;
+  }
+
+  return "Command failed";
 }
 
 export default shellPlugin;

@@ -2,8 +2,8 @@
 agent: claude-code
 iterations: 10
 status:
-  state: completed
-  iteration: 1
+  state: in_progress
+  iteration: 0
 ---
 
 # Dashboard Quit Test

@@ -56,6 +56,7 @@ type SpawnWithAutonomous = typeof spawn & {
 const WORKFLOW_SERVER_NAME = "owner-workflow";
 const WORKFLOW_SERVER_COMMAND = "poe-superintendent-mcp";
 const WORKFLOW_SERVER_SUBCOMMAND = "workflow-transition";
+const WORKFLOW_SERVER_TIMEOUT_SECONDS = 7200;
 
 export async function runOwnerReview(
   doc: SuperintendentDoc,
@@ -104,7 +105,8 @@ function createWorkflowServer(): McpSpawnConfig[string] {
 
   return {
     command: WORKFLOW_SERVER_COMMAND,
-    args: [WORKFLOW_SERVER_SUBCOMMAND, encodeJson(workflowTool)]
+    args: [WORKFLOW_SERVER_SUBCOMMAND, encodeJson(workflowTool)],
+    timeout: WORKFLOW_SERVER_TIMEOUT_SECONDS
   };
 }
 

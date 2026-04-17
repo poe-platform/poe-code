@@ -10,7 +10,7 @@ const { autonomousMock } = vi.hoisted(() => ({
         mode?: string;
         prompt: string;
         cwd?: string;
-        mcpServers?: Record<string, { command: string; args?: string[] }>;
+        mcpServers?: Record<string, { command: string; args?: string[]; timeout?: number }>;
       }
     ) => Promise<unknown>
   >()
@@ -216,6 +216,23 @@ describe("runOwnerReview", () => {
     });
   });
 
+  it("sets a timeout on the owner workflow MCP server", async () => {
+    autonomousMock.mockImplementation(async (_, { mcpServers }) => {
+      const workflowServer = findWorkflowServer(mcpServers);
+      expect(workflowServer?.timeout).toBe(7200);
+
+      return {
+        toolCalls: [
+          { name: "workflow.transition", arguments: { action: "approve_completion" } }
+        ]
+      };
+    });
+
+    const { runOwnerReview } = await import("./run-owner-review.js");
+
+    await runOwnerReview(document, {});
+  });
+
   it("returns approve_completion when the owner calls the workflow tool", async () => {
     autonomousMock.mockResolvedValue({
       sessionResult: {
@@ -299,12 +316,18 @@ describe("runOwnerReview", () => {
   });
 });
 
-function readWorkflowTool(
-  mcpServers: Record<string, { command: string; args?: string[] }> | undefined
-): unknown {
-  const workflowServer = Object.values(mcpServers ?? {}).find(
+function findWorkflowServer(
+  mcpServers: Record<string, { command: string; args?: string[]; timeout?: number }> | undefined
+): { command: string; args?: string[]; timeout?: number } | undefined {
+  return Object.values(mcpServers ?? {}).find(
     (server) => server.command === "poe-superintendent-mcp" && server.args?.[0] === "workflow-transition"
   );
+}
+
+function readWorkflowTool(
+  mcpServers: Record<string, { command: string; args?: string[]; timeout?: number }> | undefined
+): unknown {
+  const workflowServer = findWorkflowServer(mcpServers);
 
   expect(workflowServer).toBeDefined();
 

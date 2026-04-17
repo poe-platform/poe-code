@@ -1,6 +1,6 @@
-import path from "node:path";
 import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
+import { resolveRoleCwd } from "./resolve-cwd.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 import { parseWorkflowCall, type WorkflowTransition } from "./workflow-tool.js";
 
@@ -46,7 +46,7 @@ type SpawnWithAutonomous = typeof spawn & {
   ) => Promise<AutonomousOutput>;
 };
 
-const SUPERINTENDENT_TOOLS_SERVER_NAME = "__superintendent_tools__";
+const SUPERINTENDENT_TOOLS_SERVER_NAME = "superintendent-tools";
 const SUPERINTENDENT_TOOLS_SERVER_COMMAND = "poe-superintendent-mcp";
 const SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND = "superintendent-tools";
 const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
@@ -63,7 +63,7 @@ export async function runSuperintendent(
     agent: doc.frontmatter.superintendent.agent,
     mode: doc.frontmatter.superintendent.mode,
     prompt,
-    cwd: path.dirname(doc.filePath),
+    cwd: resolveRoleCwd(doc.frontmatter.superintendent, doc.filePath),
     mcpServers: buildMcpServers(doc)
   });
   const transition = extractTransition(result);
@@ -303,10 +303,9 @@ function readToolCallArguments(toolCall: ToolCallLike): unknown {
 }
 
 function isWorkflowToolName(name: string | undefined): boolean {
-  return (
-    name === "workflow.transition" ||
-    name === `${SUPERINTENDENT_TOOLS_SERVER_NAME}.workflow.transition`
-  );
+  if (!name) return false;
+  if (name === "workflow.transition") return true;
+  return name.startsWith("mcp__") && name.endsWith("__workflow.transition");
 }
 
 function parseJsonValue(value: unknown): unknown {

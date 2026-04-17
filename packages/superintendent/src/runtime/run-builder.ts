@@ -1,6 +1,6 @@
-import path from "node:path";
 import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { SuperintendentDoc } from "../document/parse.js";
+import { resolveRoleCwd } from "./resolve-cwd.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 
 export type BuilderResult = {
@@ -51,7 +51,7 @@ export async function runBuilder(
     agent: doc.frontmatter.builder.agent,
     mode: doc.frontmatter.builder.mode,
     prompt,
-    cwd: path.dirname(doc.filePath),
+    cwd: resolveRoleCwd(doc.frontmatter.builder, doc.filePath),
     mcpServers: buildMcpServers(doc)
   });
   const log = extractLog(result);

@@ -74,21 +74,46 @@ function createFs(files: Record<string, string>): TestFs {
   };
 }
 
-function createDocument(options: { maxRounds?: number; withInspectors?: boolean } = {}): string {
-  const inspectors =
+type InspectorSpec = {
+  name: string;
+  prompt: string;
+};
+
+function createDocument(
+  options: {
+    maxRounds?: number;
+    withInspectors?: boolean;
+    inspectors?: InspectorSpec[];
+    superintendentPrompt?: string;
+  } = {}
+): string {
+  const inspectorSpecs: InspectorSpec[] | undefined =
     options.withInspectors === false
-      ? ""
-      : [
-          "inspectors:",
-          "  code-quality:",
-          "    agent: codex",
-          "    prompt: |",
-          "      Inspect {{builder.summary}}",
-          "  manual-qa:",
+      ? undefined
+      : options.inspectors ?? [
+          { name: "code-quality", prompt: "Inspect {{builder.summary}}" },
+          { name: "manual-qa", prompt: "Validate {{inspectors.code-quality}}" }
+        ];
+
+  const inspectors = inspectorSpecs
+    ? [
+        "inspectors:",
+        ...inspectorSpecs.flatMap((spec) => [
+          `  ${spec.name}:`,
           "    agent: claude-code",
           "    prompt: |",
-          "      Validate {{inspectors.code-quality}}"
-        ].join("\n");
+          `      ${spec.prompt}`
+        ])
+      ].join("\n")
+    : "";
+
+  const superintendentPrompt =
+    options.superintendentPrompt ??
+    (inspectorSpecs
+      ? `Review {{builder.summary}} ${inspectorSpecs
+          .map((spec) => `{{inspectors.${spec.name}}}`)
+          .join(" ")}`
+      : "Review {{builder.summary}}");
 
   return [
     "---",
@@ -102,7 +127,7 @@ function createDocument(options: { maxRounds?: number; withInspectors?: boolean 
     "superintendent:",
     "  agent: claude-code",
     "  prompt: |",
-    "    Review {{builder.summary}}",
+    `    ${superintendentPrompt}`,
     "owner:",
     "  agent: claude-code",
     "  prompt: |",
@@ -585,5 +610,105 @@ describe("runLoop", () => {
       round: 1,
       review_turn: 0
     });
+  });
+
+  it("skips inspectors that are not referenced in the superintendent prompt", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs } = createFs({
+      [docPath]: createDocument({
+        inspectors: [
+          { name: "code-quality", prompt: "Check {{builder.summary}}" },
+          { name: "security", prompt: "Audit {{builder.summary}}" }
+        ],
+        superintendentPrompt: "Review {{builder.summary}} {{inspectors.code-quality}}"
+      })
+    });
+
+    runBuilderMock.mockResolvedValue({
+      summary: "Builder finished round 1",
+      log: "log"
+    });
+    runInspectorMock.mockImplementationOnce(async (name) => ({
+      name,
+      summary: `${name} ok`
+    }));
+    runSuperintendentMock.mockResolvedValue({
+      summary: "Done",
+      transition: { action: "request_review", summary: "Done" }
+    });
+    runOwnerReviewMock.mockResolvedValue({
+      transition: { action: "approve_completion" }
+    });
+
+    const { runLoop } = await import("./loop.js");
+    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs });
+
+    expect(runInspectorMock).toHaveBeenCalledTimes(1);
+    expect(runInspectorMock.mock.calls[0]?.[0]).toBe("code-quality");
+  });
+
+  it("auto-runs inspectors transitively referenced through other inspector prompts", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs } = createFs({
+      [docPath]: createDocument({
+        inspectors: [
+          { name: "code-quality", prompt: "Check {{builder.summary}}" },
+          { name: "manual-qa", prompt: "Validate {{inspectors.code-quality}}" },
+          { name: "security", prompt: "Audit {{builder.summary}}" }
+        ],
+        superintendentPrompt: "Review {{inspectors.manual-qa}}"
+      })
+    });
+
+    runBuilderMock.mockResolvedValue({
+      summary: "Builder finished round 1",
+      log: "log"
+    });
+    runInspectorMock.mockImplementation(async (name) => ({
+      name,
+      summary: `${name} ok`
+    }));
+    runSuperintendentMock.mockResolvedValue({
+      summary: "Done",
+      transition: { action: "request_review", summary: "Done" }
+    });
+    runOwnerReviewMock.mockResolvedValue({
+      transition: { action: "approve_completion" }
+    });
+
+    const { runLoop } = await import("./loop.js");
+    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs });
+
+    expect(runInspectorMock).toHaveBeenCalledTimes(2);
+    expect(runInspectorMock.mock.calls.map((call) => call[0])).toEqual([
+      "code-quality",
+      "manual-qa"
+    ]);
+  });
+
+  it("skips every inspector when the superintendent prompt references none", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs } = createFs({
+      [docPath]: createDocument({
+        inspectors: [
+          { name: "code-quality", prompt: "Check {{builder.summary}}" }
+        ],
+        superintendentPrompt: "Review {{builder.summary}}"
+      })
+    });
+
+    runBuilderMock.mockResolvedValue({ summary: "Done", log: "log" });
+    runSuperintendentMock.mockResolvedValue({
+      summary: "Done",
+      transition: { action: "request_review", summary: "Done" }
+    });
+    runOwnerReviewMock.mockResolvedValue({
+      transition: { action: "approve_completion" }
+    });
+
+    const { runLoop } = await import("./loop.js");
+    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs });
+
+    expect(runInspectorMock).not.toHaveBeenCalled();
   });
 });

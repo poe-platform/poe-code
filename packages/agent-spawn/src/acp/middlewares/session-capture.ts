@@ -38,6 +38,7 @@ function updateSessionFromEvent(
     const id = readString((event as { id?: unknown }).id);
     const kind = readString((event as { kind?: unknown }).kind);
     const title = readString((event as { title?: unknown }).title);
+    const input = (event as { input?: unknown }).input;
 
     let toolCall = id ? toolCallsById.get(id) : undefined;
     if (!toolCall) {
@@ -56,6 +57,9 @@ function updateSessionFromEvent(
     }
     if (title) {
       toolCall.title = title;
+    }
+    if (input !== undefined) {
+      toolCall.input = input;
     }
 
     return;

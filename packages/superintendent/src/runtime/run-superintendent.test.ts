@@ -137,6 +137,49 @@ describe("runSuperintendent", () => {
     });
   });
 
+  it("uses an absolute cwd from the superintendent config unchanged", async () => {
+    autonomousMock.mockImplementation(async (_, { cwd }) => {
+      expect(cwd).toBe("/other/workspace");
+      return "ok";
+    });
+
+    const { runSuperintendent } = await import("./run-superintendent.js");
+
+    await runSuperintendent(
+      {
+        ...document,
+        frontmatter: {
+          ...document.frontmatter,
+          superintendent: { ...document.frontmatter.superintendent, cwd: "/other/workspace" }
+        }
+      },
+      {}
+    );
+  });
+
+  it("resolves a relative superintendent cwd against the document directory", async () => {
+    autonomousMock.mockImplementation(async (_, { cwd }) => {
+      expect(cwd).toBe("/repo/packages/agent-kit");
+      return "ok";
+    });
+
+    const { runSuperintendent } = await import("./run-superintendent.js");
+
+    await runSuperintendent(
+      {
+        ...document,
+        frontmatter: {
+          ...document.frontmatter,
+          superintendent: {
+            ...document.frontmatter.superintendent,
+            cwd: "../../packages/agent-kit"
+          }
+        }
+      },
+      {}
+    );
+  });
+
   it("parses a workflow transition from a structured tool call", async () => {
     autonomousMock.mockResolvedValue({
       summary: "All planned work is complete",
@@ -162,16 +205,16 @@ describe("runSuperintendent", () => {
     });
   });
 
-  it("uses the transition summary when the MCP server namespace prefixes the tool call", async () => {
+  it("extracts the transition from a Claude-Code-namespaced MCP tool call in sessionResult", async () => {
     autonomousMock.mockResolvedValue({
       sessionResult: {
         toolCalls: [
           {
-            name: "__superintendent_tools__.workflow.transition",
-            arguments: JSON.stringify({
+            title: "mcp__superintendent-tools__workflow.transition",
+            input: {
               action: "request_review",
               summary: "Ready for owner review"
-            })
+            }
           }
         ]
       }

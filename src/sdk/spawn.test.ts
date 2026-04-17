@@ -218,6 +218,50 @@ describe("SDK spawn()", () => {
     });
   });
 
+  it("exposes middleware-captured sessionResult on the spawn result", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+      ctx.sessionResult = {
+        output: "done",
+        messages: ["done"],
+        toolCalls: [
+          {
+            id: "call-1",
+            title: "mcp__superintendent-tools__workflow.transition",
+            input: { action: "request_review", summary: "ready" }
+          }
+        ]
+      };
+    });
+
+    const { result } = spawn("codex", "test prompt");
+
+    await expect(result).resolves.toMatchObject({
+      sessionResult: {
+        toolCalls: [
+          expect.objectContaining({
+            title: "mcp__superintendent-tools__workflow.transition",
+            input: { action: "request_review", summary: "ready" }
+          })
+        ]
+      }
+    });
+  });
+
   it("accepts deprecated mcpConfig as the SDK option name", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

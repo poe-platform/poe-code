@@ -5,6 +5,7 @@ export interface SessionToolCall {
   id?: string;
   kind?: string;
   title?: string;
+  input?: unknown;
   path?: string;
 }
 

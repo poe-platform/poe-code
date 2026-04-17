@@ -191,7 +191,8 @@ export function spawn(
           exitCode: final.exitCode,
           ...(threadId ? { threadId } : {}),
           ...(final.usage ? { usage: final.usage } : {}),
-          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {})
+          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
+          ...(middlewareContext.sessionResult ? { sessionResult: middlewareContext.sessionResult } : {})
         };
       }
 
@@ -249,7 +250,8 @@ export function spawn(
           exitCode: final.exitCode,
           ...(threadId ? { threadId } : {}),
           ...(usage ? { usage } : {}),
-          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {})
+          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
+          ...(middlewareContext.sessionResult ? { sessionResult: middlewareContext.sessionResult } : {})
         };
       }
 

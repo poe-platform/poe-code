@@ -258,11 +258,19 @@ export async function runSuperintendentCommand(
 
   if (!useDashboard) {
     let activeStage: RunSession["activeStage"] = undefined;
+    const headlessAbort = new AbortController();
+    const headlessSigint = () => {
+      headlessAbort.abort();
+      exitProcess(130);
+    };
+    process.on("SIGINT", headlessSigint);
+    try {
     const result = await runLoopImpl({
       docPath: selectedDocPath,
       cwd: options.cwd,
       homeDir: options.homeDir,
       ...(options.fs ? { fs } : {}),
+      signal: headlessAbort.signal,
       callbacks: {
         onBuilderStart: () => {
           activeStage = "builder";
@@ -310,6 +318,9 @@ export async function runSuperintendentCommand(
       docPath: selectedDocPath,
       builderAgent: selectedBuilderAgent
     };
+    } finally {
+      process.off("SIGINT", headlessSigint);
+    }
   }
 
   const session: RunSession = {
@@ -457,7 +468,21 @@ export async function runSuperintendentCommand(
     syncStats();
   }, 1_000);
 
+  const abortController = new AbortController();
+
+  const forceQuit = () => {
+    abortController.abort();
+    session.dashboard.stop();
+    session.dashboard.destroy();
+    exitProcess(130);
+  };
+
   const handleDashboardCommand = (command: string) => {
+    if (command === "forceQuit") {
+      forceQuit();
+      return;
+    }
+
     if (command === "quit") {
       if (!session.stopRequested) {
         session.stopRequested = true;
@@ -509,9 +534,7 @@ export async function runSuperintendentCommand(
   syncStats();
 
   const sigintHandler = () => {
-    session.dashboard.stop();
-    session.dashboard.destroy();
-    exitProcess(130);
+    forceQuit();
   };
   process.on("SIGINT", sigintHandler);
 
@@ -527,6 +550,7 @@ export async function runSuperintendentCommand(
         homeDir: options.homeDir,
         ...(options.fs ? { fs } : {}),
         callbacks,
+        signal: abortController.signal,
         runAgent: createAgentRunner({
           session,
           executeAgent: options.executeAgent,
@@ -895,8 +919,9 @@ async function executeSpawnAgentStreaming(
   let capturedUsage:
     | { inputTokens: number; outputTokens: number; cachedTokens?: number }
     | undefined;
+  let lastAgentMessage = "";
 
-  const teeUsage = (source: AsyncIterable<AcpEvent>): AsyncIterable<AcpEvent> =>
+  const tapEvents = (source: AsyncIterable<AcpEvent>): AsyncIterable<AcpEvent> =>
     (async function* () {
       for await (const event of source) {
         if (event.event === "usage") {
@@ -908,6 +933,8 @@ async function executeSpawnAgentStreaming(
               ? { cachedTokens: usageEvent.cachedTokens }
               : {})
           };
+        } else if (event.event === "agent_message") {
+          lastAgentMessage = (event as { text: string }).text;
         }
         yield event;
       }
@@ -917,7 +944,7 @@ async function executeSpawnAgentStreaming(
     spawnAutonomous<Omit<SpawnStreamingOptions, "agentId">, SpawnResult>(
       (service, options) => {
         const { events, done } = spawnStreaming({ ...options, agentId: service });
-        return { events: teeUsage(events), result: done };
+        return { events: tapEvents(events), result: done };
       },
       {
         service: agent,
@@ -936,6 +963,7 @@ async function executeSpawnAgentStreaming(
     stdout: (result as SpawnResult).stdout,
     stderr: (result as SpawnResult).stderr,
     exitCode: (result as SpawnResult).exitCode,
+    ...(lastAgentMessage ? { summary: lastAgentMessage } : {}),
     ...(capturedUsage ? { usage: capturedUsage } : {})
   };
 }

@@ -147,6 +147,41 @@ describe("acp/middlewares/sessionCapture", () => {
     });
   });
 
+  it("captures tool input arguments from tool_start events", async () => {
+    const sourceEvents: AcpEvent[] = [
+      {
+        event: "tool_start",
+        id: "call-1",
+        kind: "other",
+        title: "mcp__superintendent-agentic-tools__workflow.transition",
+        input: { action: "request_review", summary: "Board complete" }
+      } as AcpEvent,
+      { event: "tool_complete", id: "call-1", kind: "other", path: "Recorded workflow transition: request_review" }
+    ];
+
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        for (const event of sourceEvents) {
+          yield event;
+        }
+      })();
+    };
+
+    const ctx = createContext();
+    await applyMiddlewares([sessionCapture, source], ctx);
+    await collect(ctx.eventStream!);
+
+    expect(ctx.sessionResult?.toolCalls).toEqual([
+      {
+        id: "call-1",
+        kind: "other",
+        title: "mcp__superintendent-agentic-tools__workflow.transition",
+        input: { action: "request_review", summary: "Board complete" },
+        path: "Recorded workflow transition: request_review"
+      }
+    ]);
+  });
+
   it("builds sessionResult from preloaded events even without an event stream", async () => {
     const preloadedEvents: AcpEvent[] = [
       { event: "session_start", threadId: "thread-preloaded" },

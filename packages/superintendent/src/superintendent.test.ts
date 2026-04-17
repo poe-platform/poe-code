@@ -1550,17 +1550,21 @@ describe("createSuperintendentSimulation", () => {
     const manualQaAgent = "claude-code";
     const superintendentAgent = "gemini";
     const codeQualitySummary = "all good";
+    const superintendentPrompt =
+      "Superintendent review builder={{builder.summary}} inspector={{inspectors.code-quality}} manual={{inspectors.manual-qa}}";
     const inspectorDoc = createDoc({
       tasks: [false],
       includeManualQaInspector: true,
       manualQaAgent,
-      superintendentAgent
+      superintendentAgent,
+      superintendentPrompt
     });
     const builderUpdatedDoc = createDoc({
       tasks: [true],
       includeManualQaInspector: true,
       manualQaAgent,
-      superintendentAgent
+      superintendentAgent,
+      superintendentPrompt
     });
 
     const simulation = createSuperintendentSimulation({

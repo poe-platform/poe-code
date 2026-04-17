@@ -23,6 +23,7 @@ export type SuperintendentFrontmatter = {
 export type AgentRoleConfig = {
   agent: string;
   mode?: string;
+  cwd?: string;
   mcp?: Record<string, McpConfig>;
   prompt: string;
 };
@@ -189,6 +190,8 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
     agent: expectString(role.agent, `${roleName}.agent`, filePath),
     mode:
       role.mode === undefined ? undefined : expectString(role.mode, `${roleName}.mode`, filePath),
+    cwd:
+      role.cwd === undefined ? undefined : expectString(role.cwd, `${roleName}.cwd`, filePath),
     mcp,
     prompt: expectString(role.prompt, `${roleName}.prompt`, filePath)
   };

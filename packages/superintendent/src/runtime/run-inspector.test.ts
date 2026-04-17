@@ -110,6 +110,46 @@ describe("runInspector", () => {
     ).rejects.toThrow("inspector failed");
   });
 
+  it("uses an absolute cwd from the inspector config unchanged", async () => {
+    autonomousMock.mockImplementation(async (_, { cwd }) => {
+      expect(cwd).toBe("/other/workspace");
+      return "ok";
+    });
+
+    const { runInspector } = await import("./run-inspector.js");
+
+    await runInspector(
+      "code-quality",
+      {
+        agent: "codex",
+        cwd: "/other/workspace",
+        prompt: "noop"
+      },
+      document,
+      {}
+    );
+  });
+
+  it("resolves a relative cwd against the document directory", async () => {
+    autonomousMock.mockImplementation(async (_, { cwd }) => {
+      expect(cwd).toBe("/repo/packages/agent-kit");
+      return "ok";
+    });
+
+    const { runInspector } = await import("./run-inspector.js");
+
+    await runInspector(
+      "code-quality",
+      {
+        agent: "codex",
+        cwd: "../../packages/agent-kit",
+        prompt: "noop"
+      },
+      document,
+      {}
+    );
+  });
+
   it("uses the prompt override verbatim when provided, skipping template resolution", async () => {
     autonomousMock.mockImplementation(async (_, { prompt }) => {
       expect(prompt).toBe("Re-check after the latest fix");

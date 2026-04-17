@@ -1,6 +1,6 @@
-import path from "node:path";
 import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
+import { resolveRoleCwd } from "./resolve-cwd.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 import {
   createWorkflowTool,
@@ -53,7 +53,7 @@ type SpawnWithAutonomous = typeof spawn & {
   ) => Promise<AutonomousOutput>;
 };
 
-const WORKFLOW_SERVER_NAME = "__owner_workflow_transition__";
+const WORKFLOW_SERVER_NAME = "owner-workflow";
 const WORKFLOW_SERVER_COMMAND = "poe-superintendent-mcp";
 const WORKFLOW_SERVER_SUBCOMMAND = "workflow-transition";
 
@@ -66,7 +66,7 @@ export async function runOwnerReview(
     agent: doc.frontmatter.owner.agent,
     mode: doc.frontmatter.owner.mode,
     prompt,
-    cwd: path.dirname(doc.filePath),
+    cwd: resolveRoleCwd(doc.frontmatter.owner, doc.filePath),
     mcpServers: buildMcpServers(doc)
   });
 
@@ -262,16 +262,16 @@ function readToolCallArguments(toolCall: ToolCallLike): unknown {
 }
 
 function isWorkflowToolName(name: string | undefined): boolean {
-  return name === "workflow.transition" || name === `${WORKFLOW_SERVER_NAME}.workflow.transition`;
+  if (!name) return false;
+  if (name === "workflow.transition") return true;
+  return name.startsWith("mcp__") && name.endsWith("__workflow.transition");
 }
 
 function readWorkflowTransitionTextPayload(line: string): string | undefined {
-  for (const toolName of ["workflow.transition", `${WORKFLOW_SERVER_NAME}.workflow.transition`]) {
-    const prefix = `${toolName}(`;
+  const prefix = "workflow.transition(";
 
-    if (line.startsWith(prefix) && line.endsWith(")")) {
-      return line.slice(prefix.length, -1).trim();
-    }
+  if (line.startsWith(prefix) && line.endsWith(")")) {
+    return line.slice(prefix.length, -1).trim();
   }
 
   return undefined;

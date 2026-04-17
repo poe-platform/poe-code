@@ -106,6 +106,54 @@ describe("runOwnerReview", () => {
     });
   });
 
+  it("uses an absolute cwd from the owner config unchanged", async () => {
+    autonomousMock.mockImplementation(async (_, { cwd }) => {
+      expect(cwd).toBe("/other/workspace");
+      return {
+        toolCalls: [
+          { name: "workflow.transition", arguments: { action: "approve_completion" } }
+        ]
+      };
+    });
+
+    const { runOwnerReview } = await import("./run-owner-review.js");
+
+    await runOwnerReview(
+      {
+        ...document,
+        frontmatter: {
+          ...document.frontmatter,
+          owner: { ...document.frontmatter.owner, cwd: "/other/workspace" }
+        }
+      },
+      {}
+    );
+  });
+
+  it("resolves a relative owner cwd against the document directory", async () => {
+    autonomousMock.mockImplementation(async (_, { cwd }) => {
+      expect(cwd).toBe("/repo/packages/agent-kit");
+      return {
+        toolCalls: [
+          { name: "workflow.transition", arguments: { action: "approve_completion" } }
+        ]
+      };
+    });
+
+    const { runOwnerReview } = await import("./run-owner-review.js");
+
+    await runOwnerReview(
+      {
+        ...document,
+        frontmatter: {
+          ...document.frontmatter,
+          owner: { ...document.frontmatter.owner, cwd: "../../packages/agent-kit" }
+        }
+      },
+      {}
+    );
+  });
+
   it("injects the workflow tool for the owner in review state", async () => {
     autonomousMock.mockImplementation(async (_, { mcpServers }) => {
       expect(readWorkflowTool(mcpServers)).toEqual(createWorkflowTool("owner", "review"));

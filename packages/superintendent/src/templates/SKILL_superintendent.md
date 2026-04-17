@@ -13,6 +13,16 @@ There is exactly **one plan document per feature**, at `docs/plans/<name>.md`. T
 
 If `docs/plans/<name>.md` already exists (e.g. drafted by `/poe-code-plan`), augment it in place by adding the YAML frontmatter at the top and a `## Task Board` section at the bottom. Do not create a second file.
 
+## Before Writing: Study Existing Plans
+
+Before drafting a new plan, find existing superintendent plans in this repo and use them as a reference for inspector choices, prompt phrasing, Task Board granularity, and MCP wiring.
+
+1. Run `grep -l "^kind: superintendent" docs/plans/*.md` to list existing plans.
+2. Read the most recent 1–2 (prefer ones whose scope resembles the current task).
+3. Reuse inspector names, role phrasing, and structural conventions from those plans unless the new task clearly warrants deviation. Do not copy body content — only patterns.
+
+If no existing plans are found, fall back to the template below.
+
 ## Document Shape
 
 1. **YAML frontmatter** — wires the runtime (agents, prompts, MCP servers).
@@ -141,6 +151,22 @@ Pin a specific model:
 builder:
   agent: claude-code:anthropic/claude-opus-4.6
 ```
+
+## Optional: Working Directory
+
+Any role may set `cwd` to override the default (the directory containing the plan doc). Absolute paths are used as-is; relative paths resolve against the plan doc's directory.
+
+```yaml
+builder:
+  agent: claude-code
+  cwd: ../../packages/agent-kit
+  prompt: |
+    Build the next task.
+```
+
+## Auto-Run vs On-Demand Inspectors
+
+An inspector auto-runs each round only if its summary is referenced in the superintendent prompt via `{{inspectors.<name>}}` (transitively — if an auto-run inspector's own prompt references another inspector, that one also auto-runs). Inspectors configured but not referenced remain available: the superintendent can invoke them mid-round via the `inspector.run` MCP tool.
 
 ## Rules
 

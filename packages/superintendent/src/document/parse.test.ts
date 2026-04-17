@@ -94,6 +94,66 @@ status:
     });
   });
 
+  it("parses optional cwd on each role", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  cwd: ../../packages/agent-kit
+  prompt: build
+inspectors:
+  testing:
+    agent: claude-code
+    cwd: /absolute/workspace
+    prompt: test
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.builder.cwd).toBe("../../packages/agent-kit");
+    expect(result.frontmatter.inspectors?.testing.cwd).toBe("/absolute/workspace");
+    expect(result.frontmatter.superintendent.cwd).toBeUndefined();
+    expect(result.frontmatter.owner.cwd).toBeUndefined();
+  });
+
+  it("rejects non-string cwd", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  cwd: 42
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/builder\.cwd must be a string/i);
+  });
+
   it("parses inline mcp on a role in addition to global mcp", () => {
     const content = `---
 kind: superintendent

@@ -106,6 +106,46 @@ describe("runBuilder", () => {
     await expect(runBuilder(document, {})).rejects.toThrow("builder failed");
   });
 
+  it("uses an absolute cwd from the builder config unchanged", async () => {
+    autonomousMock.mockImplementation(async (_, { cwd }) => {
+      expect(cwd).toBe("/other/workspace");
+      return "ok";
+    });
+
+    const { runBuilder } = await import("./run-builder.js");
+
+    await runBuilder(
+      {
+        ...document,
+        frontmatter: {
+          ...document.frontmatter,
+          builder: { ...document.frontmatter.builder, cwd: "/other/workspace" }
+        }
+      },
+      {}
+    );
+  });
+
+  it("resolves a relative builder cwd against the document directory", async () => {
+    autonomousMock.mockImplementation(async (_, { cwd }) => {
+      expect(cwd).toBe("/repo/packages/agent-kit");
+      return "ok";
+    });
+
+    const { runBuilder } = await import("./run-builder.js");
+
+    await runBuilder(
+      {
+        ...document,
+        frontmatter: {
+          ...document.frontmatter,
+          builder: { ...document.frontmatter.builder, cwd: "../../packages/agent-kit" }
+        }
+      },
+      {}
+    );
+  });
+
   it("uses the prompt override verbatim when provided, skipping template resolution", async () => {
     autonomousMock.mockImplementation(async (_, { prompt }) => {
       expect(prompt).toBe("Fix the failing test in foo.test.ts");

@@ -9,6 +9,7 @@ import { runBuilder, type BuilderResult } from "./run-builder.js";
 import { runInspector, type InspectorResult } from "./run-inspector.js";
 import { runOwnerReview, type OwnerResult } from "./run-owner-review.js";
 import { runSuperintendent, type SuperintendentResult } from "./run-superintendent.js";
+import { collectReferencedInspectors } from "./templates.js";
 
 export type SuperintendentStopReason =
   | "completed"
@@ -135,8 +136,7 @@ export async function runLoop(
 
   try {
     return await withInjectedAgentRunner(options, async () => {
-      let doc = await readDocument(options.fs, options.docPath);
-      let state = createLoopState(doc);
+      let state = createLoopState(await readDocument(options.fs, options.docPath));
       let context: TemplateLoopContext = {
         inspectors: {}
       };
@@ -153,13 +153,16 @@ export async function runLoop(
           const roundSnapshot = await readDocumentContent(options.fs, options.docPath);
           state = beginRound(state);
           emitStateChange(options.callbacks, state);
-          doc = await writeLoopState(options.fs, options.docPath, state);
+          await writeLoopState(options.fs, options.docPath, state);
 
           options.callbacks.onBuilderStart?.();
 
           let builderResult: BuilderResult;
           try {
-            builderResult = await runBuilder(doc, createTemplateContext(context));
+            builderResult = await runBuilder(
+              await readDocument(options.fs, options.docPath),
+              createTemplateContext(context)
+            );
           } catch (error) {
             await restoreDocument(options.fs, options.docPath, roundSnapshot);
             const normalizedError = toError(error);
@@ -173,7 +176,7 @@ export async function runLoop(
             builder: builderResult,
             inspectors: {}
           };
-          doc = await writeLoopState(options.fs, options.docPath, state);
+          await writeLoopState(options.fs, options.docPath, state);
 
           const stopReason = readInterruptionReason(options, state);
 
@@ -184,13 +187,21 @@ export async function runLoop(
             return finishLoop(options.callbacks, state, stopReason);
           }
 
-          for (const [name, config] of Object.entries(doc.frontmatter.inspectors ?? {})) {
+          const docForInspectors = await readDocument(options.fs, options.docPath);
+          const inspectorEntries = filterAutoRunInspectors(docForInspectors);
+
+          for (const [name, config] of inspectorEntries) {
             options.callbacks.onInspectorStart?.(name);
             const inspectorSnapshot = await readDocumentContent(options.fs, options.docPath);
 
             let inspectorResult: InspectorResult;
             try {
-              inspectorResult = await runInspector(name, config, doc, createTemplateContext(context));
+              inspectorResult = await runInspector(
+                name,
+                config,
+                await readDocument(options.fs, options.docPath),
+                createTemplateContext(context)
+              );
             } catch (error) {
               await restoreDocument(options.fs, options.docPath, inspectorSnapshot);
               const normalizedError = toError(error);
@@ -206,7 +217,7 @@ export async function runLoop(
                 [inspectorResult.name]: inspectorResult.summary
               }
             };
-            doc = await writeLoopState(options.fs, options.docPath, state);
+            await writeLoopState(options.fs, options.docPath, state);
 
             const stopReason = readInterruptionReason(options, state);
 
@@ -218,7 +229,7 @@ export async function runLoop(
             }
           }
 
-          const superintendentResult = await executeSuperintendent(options, doc, context);
+          const superintendentResult = await executeSuperintendent(options, context);
           context = {
             ...context,
             superintendentSummary: superintendentResult.summary
@@ -237,7 +248,7 @@ export async function runLoop(
             emitStateChange(options.callbacks, state);
           }
 
-          doc = await writeLoopState(options.fs, options.docPath, state);
+          await writeLoopState(options.fs, options.docPath, state);
 
           if (state.state === "in_progress") {
             options.callbacks.onRoundComplete?.(state.round);
@@ -257,8 +268,11 @@ export async function runLoop(
           continue;
         }
 
-        if (context.ownerFeedback && shouldContinueReview(doc)) {
-          const superintendentResult = await executeSuperintendent(options, doc, context);
+        if (
+          context.ownerFeedback &&
+          shouldContinueReview(await readDocument(options.fs, options.docPath))
+        ) {
+          const superintendentResult = await executeSuperintendent(options, context);
 
           if (superintendentResult.transition?.action !== "request_review") {
             throw new Error("Superintendent must call request_review to continue a review exchange");
@@ -269,7 +283,7 @@ export async function runLoop(
             superintendentSummary: superintendentResult.summary,
             ownerFeedback: undefined
           };
-          doc = await writeLoopState(options.fs, options.docPath, state);
+          await writeLoopState(options.fs, options.docPath, state);
 
           {
             const stopReason = readInterruptionReason(options, state);
@@ -286,7 +300,10 @@ export async function runLoop(
         const ownerSnapshot = await readDocumentContent(options.fs, options.docPath);
         let ownerResult: OwnerResult;
         try {
-          ownerResult = await runOwnerReview(doc, createTemplateContext(context));
+          ownerResult = await runOwnerReview(
+            await readDocument(options.fs, options.docPath),
+            createTemplateContext(context)
+          );
         } catch (error) {
           await restoreDocument(options.fs, options.docPath, ownerSnapshot);
           throw toError(error);
@@ -303,11 +320,14 @@ export async function runLoop(
             ...context,
             ownerFeedback: ownerResult.transition.feedback
           };
-          state = applyOwnerFeedback(state, shouldContinueReview(doc));
+          state = applyOwnerFeedback(
+            state,
+            shouldContinueReview(await readDocument(options.fs, options.docPath))
+          );
         }
 
         emitStateChange(options.callbacks, state);
-        doc = await writeLoopState(options.fs, options.docPath, state);
+        await writeLoopState(options.fs, options.docPath, state);
 
         if (state.state !== "review") {
           options.callbacks.onRoundComplete?.(state.round);
@@ -396,7 +416,7 @@ async function writeLoopState(
   fs: SuperintendentFileSystem,
   docPath: string,
   state: LoopState
-): Promise<SuperintendentDoc> {
+): Promise<void> {
   const content = await fs.readFile(docPath, "utf8");
   const updatedContent = updateStatus(docPath, content, {
     state: state.state,
@@ -404,7 +424,6 @@ async function writeLoopState(
     review_turn: state.reviewTurn
   });
   await fs.writeFile(docPath, updatedContent, { encoding: "utf8" });
-  return parseSuperintendentDoc(docPath, updatedContent);
 }
 
 async function restoreDocument(
@@ -469,12 +488,12 @@ function applyOwnerFeedback(state: LoopState, continueReview: boolean): LoopStat
 
 async function executeSuperintendent(
   options: LoopRuntime,
-  doc: SuperintendentDoc,
   context: TemplateLoopContext
 ): Promise<SuperintendentResult> {
   options.callbacks.onSuperintendentStart?.();
   const snapshot = await readDocumentContent(options.fs, options.docPath);
   try {
+    const doc = await readDocument(options.fs, options.docPath);
     const result = await runSuperintendent(doc, createTemplateContext(context));
     options.callbacks.onSuperintendentComplete?.(result);
     return result;
@@ -541,6 +560,36 @@ function finishLoop(
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
+}
+
+function filterAutoRunInspectors(
+  doc: SuperintendentDoc
+): Array<[string, NonNullable<SuperintendentDoc["frontmatter"]["inspectors"]>[string]]> {
+  const inspectors = doc.frontmatter.inspectors ?? {};
+  const configuredNames = new Set(Object.keys(inspectors));
+  const selected = new Set<string>();
+  const queue = [...collectReferencedInspectors(doc.frontmatter.superintendent.prompt)].filter(
+    (name) => configuredNames.has(name)
+  );
+
+  while (queue.length > 0) {
+    const name = queue.shift() as string;
+
+    if (selected.has(name)) {
+      continue;
+    }
+
+    selected.add(name);
+    const inspectorPrompt = inspectors[name]?.prompt ?? "";
+
+    for (const referenced of collectReferencedInspectors(inspectorPrompt)) {
+      if (configuredNames.has(referenced) && !selected.has(referenced)) {
+        queue.push(referenced);
+      }
+    }
+  }
+
+  return Object.entries(inspectors).filter(([name]) => selected.has(name));
 }
 
 async function withInjectedAgentRunner<T>(

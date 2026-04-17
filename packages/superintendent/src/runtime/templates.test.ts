@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveTemplate } from "./templates.js";
+import { collectReferencedInspectors, resolveTemplate } from "./templates.js";
 
 describe("resolveTemplate", () => {
   it("resolves {{plan.path}} correctly", () => {
@@ -92,6 +92,18 @@ describe("resolveTemplate", () => {
     expect(resolveTemplate("Nothing to interpolate here.", {})).toBe(
       "Nothing to interpolate here."
     );
+  });
+
+  it("collects referenced inspector names including hyphenated ones and whitespace variants", () => {
+    expect(
+      collectReferencedInspectors(
+        "Code: {{inspectors.code-quality}}\nQA: {{ inspectors.manual-qa }}\nNot matched: {{inspectors}}"
+      )
+    ).toEqual(new Set(["code-quality", "manual-qa"]));
+  });
+
+  it("returns an empty set when no inspectors are referenced", () => {
+    expect(collectReferencedInspectors("Review {{builder.summary}}")).toEqual(new Set());
   });
 
   it("handles multiple variables in one template", () => {

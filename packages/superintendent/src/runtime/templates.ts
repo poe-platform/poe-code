@@ -7,12 +7,23 @@ export type TemplateContext = {
 };
 
 const templateVariablePattern = /{{\s*([A-Za-z0-9_.-]+)\s*}}/g;
+const inspectorReferencePattern = /{{\s*inspectors\.([A-Za-z0-9_-]+)\s*}}/g;
 
 export function resolveTemplate(template: string, context: Partial<TemplateContext>): string {
   return template.replace(templateVariablePattern, (match, variablePath: string) => {
     const value = readTemplateValue(context, variablePath);
     return typeof value === "string" ? value : match;
   });
+}
+
+export function collectReferencedInspectors(template: string): Set<string> {
+  const names = new Set<string>();
+
+  for (const match of template.matchAll(inspectorReferencePattern)) {
+    names.add(match[1]);
+  }
+
+  return names;
 }
 
 function readTemplateValue(context: Partial<TemplateContext>, variablePath: string): unknown {

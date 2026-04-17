@@ -1,4 +1,4 @@
-import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
+import type { McpSpawnConfig, SessionResult, SpawnMode } from "@poe-code/agent-spawn";
 
 /**
  * Options for spawning a provider CLI.
@@ -64,6 +64,8 @@ export interface SpawnResult {
   usage?: SpawnUsage;
   /** Path to the JSONL spawn log file (if logging was active) */
   logFile?: string;
+  /** Captured session messages and tool calls (ACP streaming only) */
+  sessionResult?: SessionResult;
 }
 
 export interface GenerateOptions {

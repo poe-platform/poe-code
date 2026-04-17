@@ -1,6 +1,6 @@
-import path from "node:path";
 import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { AgentRoleConfig, SuperintendentDoc } from "../document/parse.js";
+import { resolveRoleCwd } from "./resolve-cwd.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 
 export type InspectorResult = {
@@ -50,7 +50,7 @@ export async function runInspector(
     agent: config.agent,
     mode: config.mode,
     prompt,
-    cwd: path.dirname(doc.filePath),
+    cwd: resolveRoleCwd(config, doc.filePath),
     mcpServers: buildMcpServers(doc, config)
   });
 

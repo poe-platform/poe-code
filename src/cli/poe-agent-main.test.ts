@@ -116,7 +116,7 @@ describe("poe-agent CLI", () => {
     await runProgram(["Test prompt"]);
 
     const call = spawnPoeAgentWithAcpMock.mock.calls[0]?.[0];
-    expect(call?.model).toBe("anthropic/claude-sonnet-4.6");
+    expect(call?.model).toBe("anthropic/claude-opus-4.7");
   });
 
   it("propagates non-zero exit code as error", async () => {

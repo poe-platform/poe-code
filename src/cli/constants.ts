@@ -6,7 +6,7 @@ export const FRONTIER_MODELS = [
   "google/gemini-3.1-pro"
 ] as const;
 
-export const DEFAULT_FRONTIER_MODEL = "anthropic/claude-sonnet-4.6";
+export const DEFAULT_FRONTIER_MODEL = "anthropic/claude-opus-4.7";
 
 export const DEFAULT_TEXT_MODEL = "anthropic/claude-sonnet-4.6";
 export const DEFAULT_IMAGE_BOT = "google/nano-banana-pro";

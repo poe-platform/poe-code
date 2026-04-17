@@ -88,12 +88,41 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 - `apiKey?: string`
 - `cwd?: string`
 - `allowedPaths?: string[]`
+- `pluginsConfig?: Array<{ name: string; options?: unknown }>`
 - `mcpServers?: Record<string, McpServerDefinition>`
 - `baseUrl?: string`
 - `fetch?: typeof fetch`
 - `maxToolCallIterations?: number`
 
 `McpServerDefinition` supports both `stdio` and `http` at the type level, but `createAgentSession()` currently accepts only `stdio` definitions.
+
+`pluginsConfig` resolves plugin names from the built-in registry. Supported names are:
+
+- `system-prompt`
+- `files`
+- `shell`
+- `web`
+- `memory`
+- `compaction`
+- `policy`
+
+Example:
+
+```ts
+await createAgentSession({
+  model: "anthropic/claude-sonnet-4.6",
+  pluginsConfig: [
+    { name: "system-prompt" },
+    { name: "files", options: { allowedPaths: ["src"] } },
+    { name: "memory" },
+    { name: "policy", options: { mode: "read" } }
+  ]
+});
+```
+
+If `pluginsConfig` is omitted, `createAgentSession()` keeps the default bundle (`system-prompt`, `files`, `shell`, `web`).
+
+`mcpServers` stays separate from `pluginsConfig`; MCP servers still use the dedicated `mcpServers` option.
 
 ## Built-in plugins
 

@@ -23,6 +23,14 @@ type ignoredCreateAgentSessionOptionsAllowsPlugins = AssertAssignable<
   }
 >;
 
+type ignoredCreateAgentSessionOptionsAllowsPluginsConfig = AssertAssignable<
+  CreateAgentSessionOptions,
+  {
+    model: string;
+    pluginsConfig: [{ name: "web" }];
+  }
+>;
+
 type ignoredCreateAgentSessionOptionsMcpServersType = AssertAssignable<
   Record<string, McpServerDefinition> | undefined,
   CreateAgentSessionOptions["mcpServers"]

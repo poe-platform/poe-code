@@ -99,7 +99,7 @@ function collectScopeEnvOverrides<S extends ScopeSchema>(
 function coerceEnvValue(
   type: ConfigFieldType,
   raw: string | undefined
-): string | number | boolean | undefined {
+): unknown {
   if (raw === undefined) {
     return undefined;
   }
@@ -113,6 +113,13 @@ function coerceEnvValue(
     }
     const parsed = Number(raw);
     return Number.isNaN(parsed) ? undefined : parsed;
+  }
+  if (type === "json") {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return undefined;
+    }
   }
   if (raw === "true" || raw === "1") {
     return true;

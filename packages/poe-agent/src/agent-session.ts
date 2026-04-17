@@ -10,6 +10,10 @@ import policyPlugin from "./plugins/poe-agent-plugin-policy.js";
 import shellPlugin from "./plugins/poe-agent-plugin-shell.js";
 import systemPromptPlugin from "./plugins/poe-agent-plugin-system-prompt.js";
 import webPlugin from "./plugins/poe-agent-plugin-web.js";
+import {
+  resolvePluginsFromConfig,
+  type PluginConfigEntry,
+} from "./plugins/resolve-plugins.js";
 import type { AgentPlugin } from "./runtime/plugin-types.js";
 import { getStructuredToolResultParts } from "./runtime/tool-results.js";
 import type { AcpEvent, RunResult } from "./runtime/types.js";
@@ -49,6 +53,7 @@ export interface CreateAgentSessionOptions {
   cwd?: string;
   allowedPaths?: string[];
   plugins?: AgentPlugin[];
+  pluginsConfig?: PluginConfigEntry[];
   mcpServers?: Record<string, McpServerDefinition>;
   baseUrl?: string;
   fetch?: AgentRunOptions["fetch"];
@@ -68,13 +73,21 @@ export async function createAgentSession(
     throw new Error("Missing model. Provide a non-empty model to createAgentSession.");
   }
 
+  if (options.plugins && options.pluginsConfig) {
+    throw new Error("Cannot provide both plugins and pluginsConfig.");
+  }
+
   let builder = agent().model(model);
-  const plugins = options.plugins ?? [
-    systemPromptPlugin(),
-    filesPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
-    shellPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
-    webPlugin(),
-  ];
+  const plugins = options.plugins
+    ?? (options.pluginsConfig !== undefined
+      ? resolvePluginsFromConfig(options.pluginsConfig)
+      : undefined)
+    ?? [
+      systemPromptPlugin(),
+      filesPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
+      shellPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
+      webPlugin(),
+    ];
 
   for (const plugin of plugins) {
     builder = builder.use(plugin);

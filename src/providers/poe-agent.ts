@@ -1,3 +1,5 @@
+import fsPromises from "node:fs/promises";
+import os from "node:os";
 import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
 import type {
   AcpEvent,
@@ -19,7 +21,15 @@ import {
   type ToolCallStatus,
   type ToolKind,
 } from "@poe-code/poe-acp-client";
+import type { FileSystem as ConfigFileSystem } from "@poe-code/config-mutations";
+import {
+  createConfigStore,
+  resolveConfigPath,
+  resolveProjectConfigPath
+} from "@poe-code/poe-code-config";
+import type { PluginConfigEntry } from "@poe-code/poe-agent";
 import { createProvider } from "./create-provider.js";
+import { agentConfigScope } from "../services/config.js";
 import type {
   EmptyProviderOptions
 } from "./spawn-options.js";
@@ -43,6 +53,10 @@ interface PoeAgentLifecycleOptions {
   cwd: string;
   mcpServers?: McpSpawnConfig;
   baseUrl?: string;
+  homeDir?: string;
+  configPath?: string;
+  projectConfigPath?: string;
+  fs?: Pick<ConfigFileSystem, "mkdir" | "readFile" | "writeFile">;
   onEvent?: (event: AcpEvent) => void;
 }
 
@@ -457,11 +471,52 @@ function emitEvent(
   callback(event);
 }
 
+async function loadConfiguredPlugins(
+  options: Pick<PoeAgentLifecycleOptions, "cwd" | "homeDir" | "configPath" | "projectConfigPath" | "fs">
+): Promise<PluginConfigEntry[] | undefined> {
+  const fs = createConfigFileSystem(options.fs);
+  const homeDir = options.homeDir ?? os.homedir();
+  const store = createConfigStore({
+    fs,
+    filePath: options.configPath ?? resolveConfigPath(homeDir),
+    projectFilePath: options.projectConfigPath ?? resolveProjectConfigPath(options.cwd)
+  });
+  const plugins = await store.scope(agentConfigScope).get("plugins");
+  return plugins ?? undefined;
+}
+
+function createConfigFileSystem(
+  fs: Pick<ConfigFileSystem, "mkdir" | "readFile" | "writeFile"> | undefined
+): ConfigFileSystem {
+  if (fs) {
+    return fs as ConfigFileSystem;
+  }
+
+  return {
+    readFile(filePath: string, encoding?: BufferEncoding): Promise<string | Buffer> {
+      return encoding
+        ? fsPromises.readFile(filePath, encoding)
+        : fsPromises.readFile(filePath);
+    },
+    async writeFile(
+      filePath: string,
+      data: string | NodeJS.ArrayBufferView,
+      options?: { encoding?: BufferEncoding }
+    ): Promise<void> {
+      await fsPromises.writeFile(filePath, data, options);
+    },
+    async mkdir(filePath: string, options?: { recursive?: boolean }): Promise<void> {
+      await fsPromises.mkdir(filePath, options);
+    }
+  } as unknown as ConfigFileSystem;
+}
+
 function createInMemoryAcpTransport(options: {
   model: string;
   cwd: string;
   mcpServers?: McpSpawnConfig;
   baseUrl?: string;
+  pluginsConfig?: PluginConfigEntry[];
 }): InMemoryAcpTransport {
   const sessions = new Map<string, AgentSessionRuntime>();
   const notificationHandlers = new Map<string, Array<(params: unknown, context: { method: string }) => void | Promise<void>>>();
@@ -526,6 +581,7 @@ function createInMemoryAcpTransport(options: {
           cwd: request.cwd || options.cwd,
           ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
           ...(sessionMcpServers ? { mcpServers: sessionMcpServers } : {}),
+          ...(options.pluginsConfig !== undefined ? { pluginsConfig: options.pluginsConfig } : {}),
         });
         const sessionId = `poe-agent-session-${sessionCounter + 1}`;
         sessionCounter += 1;
@@ -612,12 +668,14 @@ async function runPoeAgentAcpLifecycle(
   const toolState = createToolRenderState();
   let sessionId = "";
   let assistantText = "";
+  const pluginsConfig = await loadConfiguredPlugins(options);
 
   const transport = createInMemoryAcpTransport({
     model: options.model,
     cwd: options.cwd,
     baseUrl: options.baseUrl,
     mcpServers: options.mcpServers,
+    pluginsConfig,
   });
 
   const client = new AcpClient({ transport });
@@ -676,6 +734,10 @@ export function spawnPoeAgentWithAcp(options: {
   cwd?: string;
   mcpServers?: McpSpawnConfig;
   baseUrl?: string;
+  homeDir?: string;
+  configPath?: string;
+  projectConfigPath?: string;
+  fs?: Pick<ConfigFileSystem, "mkdir" | "readFile" | "writeFile">;
 }): { events: AsyncIterable<AcpEvent>; done: Promise<PoeAgentSpawnResult> } {
   const queue = createEventQueue<AcpEvent>();
   const model = options.model ?? DEFAULT_FRONTIER_MODEL;
@@ -687,6 +749,10 @@ export function spawnPoeAgentWithAcp(options: {
     cwd,
     baseUrl: options.baseUrl,
     mcpServers: options.mcpServers,
+    homeDir: options.homeDir,
+    configPath: options.configPath,
+    projectConfigPath: options.projectConfigPath,
+    fs: options.fs,
     onEvent: (event) => {
       queue.push(event);
     },

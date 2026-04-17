@@ -7,6 +7,7 @@ const filesPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "file-tools" })));
 const shellPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "shell-tools" })));
 const webPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "web-tools" })));
 const policyPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "policy" })));
+const resolvePluginsFromConfigMock = vi.hoisted(() => vi.fn());
 
 const acpMock = vi.hoisted(
   () => vi.fn<(prompt: string, options?: Record<string, unknown>) => Promise<AcpSession>>(),
@@ -26,22 +27,31 @@ vi.mock("./agent.js", () => ({
 
 vi.mock("./plugins/poe-agent-plugin-system-prompt.js", () => ({
   default: systemPromptPluginMock,
+  spec: { name: "system-prompt" },
 }));
 
 vi.mock("./plugins/poe-agent-plugin-files.js", () => ({
   default: filesPluginMock,
+  spec: { name: "files" },
 }));
 
 vi.mock("./plugins/poe-agent-plugin-shell.js", () => ({
   default: shellPluginMock,
+  spec: { name: "shell" },
 }));
 
 vi.mock("./plugins/poe-agent-plugin-web.js", () => ({
   default: webPluginMock,
+  spec: { name: "web" },
 }));
 
 vi.mock("./plugins/poe-agent-plugin-policy.js", () => ({
   default: policyPluginMock,
+  spec: { name: "policy" },
+}));
+
+vi.mock("./plugins/resolve-plugins.js", () => ({
+  resolvePluginsFromConfig: resolvePluginsFromConfigMock,
 }));
 
 function asAsyncIterable(events: AcpEvent[]): AsyncIterable<AcpEvent> {
@@ -69,6 +79,7 @@ describe("createAgentSession", () => {
     shellPluginMock.mockClear();
     webPluginMock.mockClear();
     policyPluginMock.mockClear();
+    resolvePluginsFromConfigMock.mockReset();
     acpMock.mockReset();
     useMock.mockReset();
     modelMock.mockReset();
@@ -184,6 +195,41 @@ describe("createAgentSession", () => {
       "custom-b",
       "policy",
     ]);
+  });
+
+  it("uses pluginsConfig instead of the default plugin bundle", async () => {
+    const { createAgentSession } = await import("./agent-session.js");
+
+    resolvePluginsFromConfigMock.mockReturnValue([{ name: "config-a" }, { name: "config-b" }]);
+
+    const session = await createAgentSession({
+      model: "Claude-Sonnet-4.5",
+      pluginsConfig: [{ name: "web" }],
+    });
+
+    await session.sendMessage("hello");
+
+    expect(resolvePluginsFromConfigMock).toHaveBeenCalledWith([{ name: "web" }]);
+    expect(systemPromptPluginMock).not.toHaveBeenCalled();
+    expect(filesPluginMock).not.toHaveBeenCalled();
+    expect(shellPluginMock).not.toHaveBeenCalled();
+    expect(webPluginMock).not.toHaveBeenCalled();
+    expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
+      "config-a",
+      "config-b",
+    ]);
+  });
+
+  it("rejects using plugins and pluginsConfig together", async () => {
+    const { createAgentSession } = await import("./agent-session.js");
+
+    await expect(
+      createAgentSession({
+        model: "Claude-Sonnet-4.5",
+        plugins: [{ name: "custom" }],
+        pluginsConfig: [{ name: "web" }],
+      }),
+    ).rejects.toThrow("plugins and pluginsConfig");
   });
 
   it("maps ACP stream events to legacy session updates and returns assistant message", async () => {

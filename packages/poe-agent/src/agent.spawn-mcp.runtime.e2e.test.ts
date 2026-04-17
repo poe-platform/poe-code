@@ -236,16 +236,7 @@ describe("runtime spawn + MCP plugin e2e", () => {
       message.role === "tool" && message.name === "spawn" && message.tool_call_id === "spawn-1",
     );
     expect(spawnToolMessage).toBeDefined();
-    expect(() => JSON.parse(spawnToolMessage?.content ?? "")).not.toThrow();
-    expect(JSON.parse(spawnToolMessage?.content ?? "{}")).toEqual({
-      output: "child-result:Inspect suspected flaky test",
-      messages: [
-        {
-          role: "assistant",
-          content: "child-result:Inspect suspected flaky test",
-        },
-      ],
-    });
+    expect(spawnToolMessage?.content).toBe("child-result:Inspect suspected flaky test");
 
     expect(result.output).toBe("Parent finished after child report");
     expect(result.toolCalls).toEqual([
@@ -254,15 +245,7 @@ describe("runtime spawn + MCP plugin e2e", () => {
         tool: "spawn",
         args: { task: "Inspect suspected flaky test" },
         status: "success",
-        result: {
-          output: "child-result:Inspect suspected flaky test",
-          messages: [
-            {
-              role: "assistant",
-              content: "child-result:Inspect suspected flaky test",
-            },
-          ],
-        },
+        result: "child-result:Inspect suspected flaky test",
       },
     ]);
     expect(disposeChildSession).toHaveBeenCalledTimes(1);

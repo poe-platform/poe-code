@@ -6,6 +6,7 @@ const systemPromptPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "system-pro
 const filesPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "file-tools" })));
 const shellPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "shell-tools" })));
 const webPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "web-tools" })));
+const policyPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "policy" })));
 
 const acpMock = vi.hoisted(
   () => vi.fn<(prompt: string, options?: Record<string, unknown>) => Promise<AcpSession>>(),
@@ -39,6 +40,10 @@ vi.mock("./plugins/poe-agent-plugin-web.js", () => ({
   default: webPluginMock,
 }));
 
+vi.mock("./plugins/poe-agent-plugin-policy.js", () => ({
+  default: policyPluginMock,
+}));
+
 function asAsyncIterable(events: AcpEvent[]): AsyncIterable<AcpEvent> {
   return {
     async *[Symbol.asyncIterator]() {
@@ -63,6 +68,7 @@ describe("createAgentSession", () => {
     filesPluginMock.mockClear();
     shellPluginMock.mockClear();
     webPluginMock.mockClear();
+    policyPluginMock.mockClear();
     acpMock.mockReset();
     useMock.mockReset();
     modelMock.mockReset();
@@ -135,6 +141,49 @@ describe("createAgentSession", () => {
     ]);
 
     expect(Object.keys(session).sort()).toEqual(["dispose", "sendMessage"]);
+  });
+
+  it("adds the policy plugin when mode is provided", async () => {
+    const { createAgentSession } = await import("./agent-session.js");
+
+    const session = await createAgentSession({
+      model: "Claude-Sonnet-4.5",
+      mode: "read",
+    });
+
+    await session.sendMessage("hello");
+
+    expect(policyPluginMock).toHaveBeenCalledWith({ mode: "read" });
+    expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
+      "system-prompt",
+      "file-tools",
+      "shell-tools",
+      "web-tools",
+      "policy",
+    ]);
+  });
+
+  it("uses explicit session plugins instead of the default plugin bundle", async () => {
+    const { createAgentSession } = await import("./agent-session.js");
+    const customPlugins = [{ name: "custom-a" }, { name: "custom-b" }];
+
+    const session = await createAgentSession({
+      model: "Claude-Sonnet-4.5",
+      mode: "edit",
+      plugins: customPlugins,
+    });
+
+    await session.sendMessage("hello");
+
+    expect(systemPromptPluginMock).not.toHaveBeenCalled();
+    expect(filesPluginMock).not.toHaveBeenCalled();
+    expect(shellPluginMock).not.toHaveBeenCalled();
+    expect(webPluginMock).not.toHaveBeenCalled();
+    expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
+      "custom-a",
+      "custom-b",
+      "policy",
+    ]);
   });
 
   it("maps ACP stream events to legacy session updates and returns assistant message", async () => {
@@ -221,6 +270,70 @@ describe("createAgentSession", () => {
         },
       },
     ]);
+  });
+
+  it("maps multimodal tool results into legacy tool_call_update content", async () => {
+    const multimodalResult = [
+      { type: "text", text: "Screenshot captured" },
+      { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+    ] as const;
+
+    acpMock.mockImplementationOnce(() =>
+      createAcpSession([
+        {
+          type: "tool.intent",
+          intentId: "call-1",
+          tool: "read_file",
+          args: { path: "diagram.png" },
+        },
+        {
+          type: "tool.result",
+          intentId: "call-1",
+          result: multimodalResult,
+        },
+        {
+          type: "session.complete",
+          result: {
+            output: "Done",
+            messages: [{ role: "assistant", content: "Done" }],
+            toolCalls: [
+              {
+                intentId: "call-1",
+                tool: "read_file",
+                args: { path: "diagram.png" },
+                status: "success",
+                result: multimodalResult,
+              },
+            ],
+          },
+        },
+      ]),
+    );
+
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({
+      model: "Claude-Sonnet-4.5",
+      apiKey: "test-key",
+    });
+
+    const updates: SessionUpdate[] = [];
+    await session.sendMessage("Read diagram", {
+      onSessionUpdate(update) {
+        updates.push(update);
+      },
+    });
+
+    expect(updates).toContainEqual({
+      sessionUpdate: "tool_call_update",
+      toolCallId: "call-1",
+      kind: "execute",
+      status: "completed",
+      rawOutput: multimodalResult,
+      content: [
+        { type: "text", text: "Screenshot captured" },
+        { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+      ],
+    });
   });
 
   it("emits assistant chunk from final output when no message.delta events were streamed", async () => {

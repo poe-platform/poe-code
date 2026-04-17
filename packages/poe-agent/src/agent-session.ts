@@ -1,13 +1,17 @@
 import type {
   SessionUpdate,
+  SpawnMode,
   ToolCall as AcpToolCall,
   ToolCallUpdate as AcpToolCallUpdate,
 } from "@poe-code/agent-spawn";
 import { agent, normalizeNonEmptyString, type AgentBuilder, type AgentRunOptions } from "./agent.js";
 import filesPlugin from "./plugins/poe-agent-plugin-files.js";
+import policyPlugin from "./plugins/poe-agent-plugin-policy.js";
 import shellPlugin from "./plugins/poe-agent-plugin-shell.js";
 import systemPromptPlugin from "./plugins/poe-agent-plugin-system-prompt.js";
 import webPlugin from "./plugins/poe-agent-plugin-web.js";
+import type { AgentPlugin } from "./runtime/plugin-types.js";
+import { getStructuredToolResultParts } from "./runtime/tool-results.js";
 import type { AcpEvent, RunResult } from "./runtime/types.js";
 
 type ChatMessage = { role: string; content: string };
@@ -44,10 +48,12 @@ export interface CreateAgentSessionOptions {
   apiKey?: string;
   cwd?: string;
   allowedPaths?: string[];
+  plugins?: AgentPlugin[];
   mcpServers?: Record<string, McpServerDefinition>;
   baseUrl?: string;
   fetch?: AgentRunOptions["fetch"];
   maxToolCallIterations?: number;
+  mode?: SpawnMode;
 }
 
 type LegacyAcpRunOptions = AgentRunOptions & {
@@ -62,12 +68,17 @@ export async function createAgentSession(
     throw new Error("Missing model. Provide a non-empty model to createAgentSession.");
   }
 
-  let builder = agent()
-    .model(model)
-    .use(systemPromptPlugin())
-    .use(filesPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }))
-    .use(shellPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }))
-    .use(webPlugin());
+  let builder = agent().model(model);
+  const plugins = options.plugins ?? [
+    systemPromptPlugin(),
+    filesPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
+    shellPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
+    webPlugin(),
+  ];
+
+  for (const plugin of plugins) {
+    builder = builder.use(plugin);
+  }
 
   for (const [name, definition] of Object.entries(options.mcpServers ?? {})) {
     if (definition.transport !== "stdio") {
@@ -82,6 +93,10 @@ export async function createAgentSession(
       args: definition.args,
       env: definition.env,
     });
+  }
+
+  if (options.mode) {
+    builder = builder.use(policyPlugin({ mode: options.mode }));
   }
 
   return adaptAcpToLegacySession(builder, options);
@@ -211,12 +226,14 @@ function handleEvent(
       return;
     }
 
+    const content = toLegacyToolCallContent(event.result);
     onSessionUpdate({
       sessionUpdate: "tool_call_update",
       toolCallId: event.intentId,
       kind: "execute",
       status: "completed",
       rawOutput: event.result,
+      ...(content === undefined ? {} : { content }),
     });
     return;
   }
@@ -251,4 +268,35 @@ function handleEvent(
       },
     });
   }
+}
+
+function toLegacyToolCallContent(
+  result: unknown,
+): AcpToolCallUpdate["content"] | undefined {
+  const parts = getStructuredToolResultParts(result);
+  if (!parts) {
+    return undefined;
+  }
+
+  return parts.map(part => {
+    if (part.type === "text") {
+      return {
+        type: "text" as const,
+        text: part.text,
+      };
+    }
+
+    if (part.type === "image") {
+      return {
+        type: "image" as const,
+        mimeType: part.mimeType,
+        data: part.data,
+      };
+    }
+
+    return {
+      type: "text" as const,
+      text: JSON.stringify(part),
+    };
+  });
 }

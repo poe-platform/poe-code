@@ -15,6 +15,14 @@ type ignoredCreateAgentSessionOptionsStillAllowsExistingFields = AssertAssignabl
   }
 >;
 
+type ignoredCreateAgentSessionOptionsAllowsPlugins = AssertAssignable<
+  CreateAgentSessionOptions,
+  {
+    model: string;
+    plugins: [];
+  }
+>;
+
 type ignoredCreateAgentSessionOptionsMcpServersType = AssertAssignable<
   Record<string, McpServerDefinition> | undefined,
   CreateAgentSessionOptions["mcpServers"]

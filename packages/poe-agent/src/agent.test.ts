@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import maxIterationsPlugin from "./plugins/poe-agent-plugin-max-iterations.js";
 import type { AcpModel, AcpModelResponse } from "./runtime/acp-core.js";
 import { agent } from "./agent.js";
 import type { AcpEvent } from "./runtime/types.js";
@@ -177,6 +178,101 @@ describe("agent builder", () => {
         reasoning: "Need to create the file first.",
       }),
     );
+  });
+
+  it("serializes multimodal tool results for Poe chat completions requests", async () => {
+    const requests: Array<{ messages: Array<Record<string, unknown>> }> = [];
+    const responses = [
+      {
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              content: "",
+              tool_calls: [
+                {
+                  id: "call-1",
+                  type: "function",
+                  function: {
+                    name: "read_file",
+                    arguments: '{"path":"diagram.png"}',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              content: "done",
+            },
+          },
+        ],
+      },
+    ];
+
+    const fetchMock = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      requests.push(JSON.parse(String(init?.body)) as { messages: Array<Record<string, unknown>> });
+      const payload = responses.shift();
+      return new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    });
+
+    await agent()
+      .model("anthropic/claude-sonnet-4.6")
+      .use({
+        name: "files",
+        tools: [
+          {
+            name: "read_file",
+            inputSchema: {
+              type: "object",
+              properties: {},
+            },
+            call: async () => [
+              { type: "text", text: "Screenshot captured" },
+              { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+              {
+                type: "error",
+                code: "parse_error",
+                message: "Retry with valid JSON",
+                retriable: true,
+              },
+            ],
+          },
+        ],
+      })
+      .run("Read the diagram", {
+        apiKey: "test-key",
+        baseUrl: "http://localhost:3456",
+        fetch: fetchMock,
+      });
+
+    const toolMessage = requests[1]?.messages?.find(message => message.role === "tool");
+    expect(toolMessage).toEqual({
+      role: "tool",
+      tool_call_id: "call-1",
+      name: "read_file",
+      content: [
+        { type: "text", text: "Screenshot captured" },
+        {
+          type: "image_url",
+          image_url: {
+            url: "data:image/png;base64,YmFzZTY0LWltYWdl",
+          },
+        },
+        {
+          type: "text",
+          text: '{"type":"error","code":"parse_error","message":"Retry with valid JSON","retriable":true}',
+        },
+      ],
+    });
   });
 
   it("keeps reused builders isolated and immutable", async () => {
@@ -990,6 +1086,138 @@ describe("agent builder", () => {
     expect(childSignal?.aborted).toBe(true);
     expect(model.complete).toHaveBeenCalledTimes(2);
     expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses one max-iterations abort path when plugin and run option are both configured", async () => {
+    let callCount = 0;
+    const model: AcpModel = {
+      complete: vi.fn(async () => {
+        callCount += 1;
+
+        return {
+          message: {
+            content: "",
+            toolCalls: [
+              {
+                id: `tool-${callCount}`,
+                tool: "always_call_tool",
+                args: { iteration: callCount },
+              },
+            ],
+          },
+        };
+      }),
+    };
+
+    const events = await collectEvents(
+      agent()
+        .model("gpt-5")
+        .use(maxIterationsPlugin(5))
+        .use({
+          name: "always-call-tool",
+          tools: [
+            {
+              name: "always_call_tool",
+              async call() {
+                return "ok";
+              },
+            },
+          ],
+        })
+        .stream("Always call a tool", {
+          acpModel: model,
+          maxIterations: 2,
+        }),
+    );
+
+    expect((model.complete as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(2);
+    expect(events.map(event => event.type)).toEqual([
+      "tool.intent",
+      "tool.result",
+      "tool.intent",
+      "tool.result",
+      "session.error",
+    ]);
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.error");
+    if (terminal?.type === "session.error") {
+      expect(terminal.error.name).toBe("AbortError");
+      expect(terminal.error.message).toContain("Maximum tool call iterations reached");
+    }
+  });
+
+  it("keeps the run-level max-iterations safety net when another plugin reuses the same name", async () => {
+    let callCount = 0;
+    const model: AcpModel = {
+      complete: vi.fn(async () => {
+        callCount += 1;
+
+        if (callCount <= 3) {
+          return {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: `tool-${callCount}`,
+                  tool: "always_call_tool",
+                  args: { iteration: callCount },
+                },
+              ],
+            },
+          };
+        }
+
+        return {
+          message: {
+            content: "done",
+            toolCalls: [],
+          },
+        };
+      }),
+    };
+
+    const events = await collectEvents(
+      agent()
+        .model("gpt-5")
+        .use({
+          name: "max-iterations",
+          hooks: {
+            preIteration() {},
+          },
+        })
+        .use({
+          name: "always-call-tool",
+          tools: [
+            {
+              name: "always_call_tool",
+              async call() {
+                return "ok";
+              },
+            },
+          ],
+        })
+        .stream("Always call a tool", {
+          acpModel: model,
+          maxIterations: 2,
+        }),
+    );
+
+    expect((model.complete as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(2);
+    expect(events.map(event => event.type)).toEqual([
+      "tool.intent",
+      "tool.result",
+      "tool.intent",
+      "tool.result",
+      "session.error",
+    ]);
+
+    const terminal = events[events.length - 1];
+    expect(terminal?.type).toBe("session.error");
+    if (terminal?.type === "session.error") {
+      expect(terminal.error.name).toBe("AbortError");
+      expect(terminal.error.message).toContain("Maximum tool call iterations reached");
+    }
   });
 
   it("resumes only when requested and keeps runs isolated", async () => {

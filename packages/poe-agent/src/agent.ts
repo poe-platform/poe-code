@@ -1,6 +1,8 @@
-import { createSecretStore } from "auth-store";
 import type { CreateAgentSessionOptions } from "./agent-session.js";
-import { runAcpCore, type AcpModel, type AcpModelRequestMessage } from "./runtime/acp-core.js";
+import { createPoeAcpModel, type PoeFetchFn } from "./models/poe.js";
+import mcpPlugin from "./plugins/poe-agent-plugin-mcp.js";
+import { POLICY_MODE_SESSION_KEY } from "./plugins/poe-agent-plugin-policy.js";
+import { runAcpCore, type AcpModel } from "./runtime/acp-core.js";
 import {
   AgentHost,
   createInMemorySpawnSession,
@@ -10,7 +12,6 @@ import { AbortError } from "./runtime/hooks.js";
 import {
   createResolvedAgentConfig,
   cloneAgentPlugin,
-  cloneMcpServerConfig,
   resolvePluginSetupOrder,
   toRuntimePlugins,
   type ResolvedAgentConfig
@@ -30,8 +31,6 @@ import type {
   ToolIntent
 } from "./runtime/types.js";
 
-type FetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
-
 export type AgentRunOptions = {
   signal?: AbortSignal;
   resume?: RunResult;
@@ -42,7 +41,7 @@ export type AgentRunOptions = {
   acpModel?: AcpModel;
   apiKey?: string;
   baseUrl?: string;
-  fetch?: FetchFn;
+  fetch?: PoeFetchFn;
   cwd?: string;
   baseSystemPrompt?: string;
   createSpawnSession?: AgentHostOptions["createSpawnSession"];
@@ -96,10 +95,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
     return new ImmutableAgentBuilder(
       createResolvedAgentConfig({
         ...this.#config,
-        mcpServers: [
-          ...this.#config.mcpServers,
-          ...configs.map((config) => cloneMcpServerConfig(config))
-        ]
+        plugins: [...this.#config.plugins, ...configs.map(config => mcpPlugin(config))]
       })
     );
   }
@@ -114,6 +110,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
       runContext: prepared.runContext,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
+      maxIterations: prepared.maxIterations,
       createSpawnSession: prepared.createSpawnSession
     });
     const host = new CallerAcpHost(
@@ -127,7 +124,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
       host,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
-      maxIterations: options.maxIterations
+      maxIterations: prepared.maxIterations
     });
 
     return {
@@ -191,6 +188,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
       runContext: prepared.runContext,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
+      maxIterations: prepared.maxIterations,
       createSpawnSession: prepared.createSpawnSession
     });
 
@@ -200,7 +198,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
       host,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
-      maxIterations: options.maxIterations
+      maxIterations: prepared.maxIterations
     });
   }
 
@@ -218,6 +216,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
       const plugins = resolvePluginSetupOrder(toRuntimePlugins(this.#config));
       await runPluginSetup(plugins, runContext);
       assertNotAborted(runContext.abortController.signal);
+      const spawnMcpServers =
+        runContext.mcpServers.length === 0 ? undefined : toSpawnMcpServers(runContext.mcpServers);
 
       injectResumeMessages(runContext.messages, options.resume?.messages);
 
@@ -237,19 +237,22 @@ class ImmutableAgentBuilder implements AgentBuilder {
       return {
         runContext,
         baseSystemPrompt,
+        maxIterations: options.maxIterations ?? 100,
         createSpawnSession:
           options.createSpawnSession ??
-          (() =>
-            createInMemorySpawnSession({
+          (() => {
+            const mode = runContext.session.get(
+              POLICY_MODE_SESSION_KEY
+            ) as CreateAgentSessionOptions["mode"];
+
+            return createInMemorySpawnSession({
               model: modelName,
               cwd: options.cwd ?? process.cwd(),
+              ...(mode === undefined ? {} : { mode }),
               ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
-              ...(this.#config.mcpServers.length === 0
-                ? {}
-                : {
-                    mcpServers: toSpawnMcpServers(this.#config.mcpServers)
-                  })
-            })),
+              ...(spawnMcpServers === undefined ? {} : { mcpServers: spawnMcpServers })
+            });
+          }),
         model
       };
     } catch (error) {
@@ -275,6 +278,7 @@ type PreparedRun = {
   runContext: RunContext;
   model: AcpModel;
   baseSystemPrompt?: string;
+  maxIterations: number;
   createSpawnSession: AgentHostOptions["createSpawnSession"];
 };
 
@@ -357,107 +361,6 @@ class CallerAcpHost implements AcpHost {
   }
 }
 
-async function createPoeAcpModel(options: {
-  model: string;
-  apiKey?: string;
-  baseUrl?: string;
-  fetch?: FetchFn;
-}): Promise<AcpModel> {
-  const apiKey = await resolveApiKey(options.apiKey);
-  const fetchFn = options.fetch ?? globalThis.fetch;
-  const endpoint = toChatCompletionsUrl(options.baseUrl ?? "https://api.poe.com");
-
-  return {
-    async complete(request) {
-      const payload = {
-        model: options.model,
-        messages: request.messages,
-        ...(request.tools.length === 0
-          ? {}
-          : {
-              tools: request.tools.map((tool) => ({
-                type: "function",
-                function: {
-                  name: tool.name,
-                  description: tool.description ?? "",
-                  parameters: normalizeToolInputSchema(tool.inputSchema)
-                }
-              }))
-            })
-      };
-
-      const response = await fetchFn(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`
-        },
-        body: JSON.stringify(payload),
-        signal: request.signal
-      });
-
-      if (!response.ok) {
-        const details = await response.text().catch(() => "");
-        throw new Error(
-          `Poe API request failed (${response.status}): ${details || response.statusText}`
-        );
-      }
-
-      const json = (await response.json()) as {
-        choices?: Array<{ message?: AcpModelRequestMessage }>;
-      };
-      const message = json.choices?.[0]?.message;
-
-      if (!message) {
-        throw new Error("Poe API response did not include an assistant message.");
-      }
-
-      return {
-        message: {
-          content: message.content,
-          ...(message.reasoning_content === undefined
-            ? {}
-            : {
-                reasoning_content: message.reasoning_content
-              }),
-          ...(message.reasoning === undefined
-            ? {}
-            : {
-                reasoning: message.reasoning
-              }),
-          ...(message.tool_calls === undefined
-            ? {}
-            : {
-                tool_calls: message.tool_calls
-              })
-        }
-      };
-    }
-  };
-}
-
-async function resolveApiKey(explicitApiKey: string | undefined): Promise<string> {
-  const normalizedExplicitApiKey = normalizeNonEmptyString(explicitApiKey);
-  if (normalizedExplicitApiKey) {
-    return normalizedExplicitApiKey;
-  }
-
-  const { store } = createSecretStore({
-    backendEnvVar: "POE_AUTH_BACKEND",
-    fileStore: {
-      salt: "poe-code:encrypted-file-auth-store:v1",
-      defaultDirectory: ".poe-code",
-      defaultFileName: "credentials.enc"
-    }
-  });
-  const storedApiKey = normalizeNonEmptyString(await store.get());
-  if (storedApiKey) {
-    return storedApiKey;
-  }
-
-  throw new Error("Missing Poe API key. Provide apiKey or run 'poe-code login'.");
-}
-
 function resolveModelName(configModel: string | undefined, model: AcpModel | undefined): string {
   const normalized = normalizeNonEmptyString(configModel);
   if (normalized) {
@@ -471,41 +374,6 @@ function resolveModelName(configModel: string | undefined, model: AcpModel | und
   throw new Error("Missing model. Configure one with .model(...).", {
     cause: undefined
   });
-}
-
-function toChatCompletionsUrl(baseUrl: string): string {
-  const trimmedBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-
-  if (trimmedBaseUrl.endsWith("/v1")) {
-    return `${trimmedBaseUrl}/chat/completions`;
-  }
-
-  return `${trimmedBaseUrl}/v1/chat/completions`;
-}
-
-function normalizeToolInputSchema(schema: unknown): {
-  type: "object";
-  properties: Record<string, unknown>;
-  required?: string[];
-} {
-  if (typeof schema === "object" && schema !== null && !Array.isArray(schema)) {
-    const objectSchema = schema as {
-      type?: string;
-      properties?: Record<string, unknown>;
-      required?: string[];
-    };
-
-    return {
-      type: objectSchema.type === "object" ? "object" : "object",
-      properties: objectSchema.properties ?? {},
-      ...(objectSchema.required === undefined ? {} : { required: [...objectSchema.required] })
-    };
-  }
-
-  return {
-    type: "object",
-    properties: {}
-  };
 }
 
 function toSpawnMcpServers(

@@ -177,7 +177,11 @@ describe("runtime core e2e", () => {
       "read_file",
       "edit_file",
       "list_files",
+      "grep",
+      "glob",
       "run_command",
+      "read_background",
+      "kill_background",
     ]);
 
     const firstMessages = modelCalls[0]?.messages ?? [];
@@ -379,13 +383,18 @@ describe("runtime core e2e", () => {
       "read_file",
       "edit_file",
       "list_files",
+      "grep",
+      "glob",
     ]);
 
     expect(researcherTools).toEqual([
       "read_file",
       "edit_file",
       "list_files",
+      "grep",
+      "glob",
       "search_web",
+      "fetch_url",
     ]);
     expect(researcherTools).not.toContain("run_command");
 
@@ -393,7 +402,11 @@ describe("runtime core e2e", () => {
       "read_file",
       "edit_file",
       "list_files",
+      "grep",
+      "glob",
       "run_command",
+      "read_background",
+      "kill_background",
     ]);
     expect(writerTools).not.toContain("search_web");
 

@@ -174,13 +174,29 @@ POE_PIPELINE_PLAN_DIRECTORY=docs/plans poe-code pipeline run
 poe-code pipeline run --plan docs/plans/my-feature.yaml
 ```
 
+## Dashboard Configuration
+
+Pipeline can render a live dashboard in terminal TTY runs.
+
+```bash
+# One-off flags
+poe-code pipeline run --tui
+poe-code pipeline run --no-tui
+
+# Config default (.poe-code/config.json)
+# { "pipeline": { "tui": true } }
+
+# Env override
+POE_PIPELINE_TUI=true poe-code pipeline run
+```
+
 ## CLI
 
 ```bash
 poe-code pipeline install [--agent <name>] [--local|--global] [--force]
 poe-code pipeline validate <file> [--preview]
 poe-code pipeline plan-path
-poe-code pipeline run [--agent <name>] [--model <model>] [--task <id>] [--plan <path>] [--max-runs <n>]
+poe-code pipeline run [--agent <name>] [--model <model>] [--tui|--no-tui] [--task <id>] [--plan <path>] [--plans <paths...>] [--max-runs <n>]
 ```
 
 ## Package API

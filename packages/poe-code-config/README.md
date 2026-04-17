@@ -36,7 +36,7 @@ Example:
 ```json
 {
   "models": {
-    "default": "anthropic/claude-opus-4.6",
+    "default": "anthropic/claude-opus-4.7",
     "codex": "openai/gpt-5.3-codex"
   }
 }

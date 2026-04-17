@@ -297,7 +297,7 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 | `--stdin` | `false` | Read the prompt from stdin. |
 | `-i, --interactive` | `false` | Launch in interactive TUI mode (inherits stdio). |
 | `--mode <mode>` | `yolo` | Permission mode: `yolo` (full access), `edit` (file edits only), `read` (read-only). |
-| `--mcp-servers <json\|@file>` | None | MCP servers to inject at spawn time. Accepts inline JSON or `@path/to/file.json`. Deprecated alias: `--mcp-config`. |
+| `--mcp-servers <json\|@file>` | None | MCP servers to inject at spawn time. Accepts inline JSON or `@path/to/file.json`. Supports `command`, optional `args`, `env`, and `timeout` (seconds). Deprecated alias: `--mcp-config`. |
 
 **Behavior:**
 
@@ -540,7 +540,7 @@ poe-code generate audio [prompt]
 ```bash
 # Text generation (default subcommand)
 poe-code generate "Explain monads in simple terms"
-poe-code generate text "Write a haiku about coding" --model anthropic/claude-opus-4.6
+poe-code generate text "Write a haiku about coding" --model anthropic/claude-opus-4.7
 
 # Image generation
 poe-code generate image "A futuristic city at sunset"
@@ -673,7 +673,7 @@ poe-code models --feature reasoning
 poe-code models --input image
 
 # Parameters for one exact model
-poe-code models --model claude-opus-4.6 --view parameters
+poe-code models --model claude-opus-4.7 --view parameters
 
 # Raw YAML output for scripting
 poe-code models --provider openai --view raw
@@ -956,7 +956,7 @@ Generate text using the Poe API.
 import { generate } from "poe-code";
 
 const result = await generate("Explain quantum computing", {
-  model: "anthropic/claude-opus-4.6",
+  model: "anthropic/claude-opus-4.7",
   params: { temperature: "0.7", max_tokens: "1000" }
 });
 
@@ -1127,6 +1127,7 @@ interface McpSpawnServer {
   command: string;
   args?: string[];
   env?: Record<string, string>;
+  timeout?: number; // seconds
 }
 ```
 
@@ -1151,7 +1152,7 @@ interface McpSpawnServer {
 |-------------|----------|
 | haiku | `anthropic/claude-haiku-4.5` |
 | sonnet (default) | `anthropic/claude-sonnet-4.6` |
-| opus | `anthropic/claude-opus-4.6` |
+| opus | `anthropic/claude-opus-4.7` |
 
 **Configuration mutations (configure):**
 
@@ -1300,7 +1301,7 @@ Config probe: `config.toml` (isolated file).
 
 | Model ID |
 |----------|
-| `anthropic/claude-opus-4.6` |
+| `anthropic/claude-opus-4.7` |
 | `anthropic/claude-sonnet-4.6` |
 | `openai/gpt-5.2` |
 | `google/gemini-3-pro` |
@@ -2107,7 +2108,7 @@ Output shows:
 
 ```typescript
 const FRONTIER_MODELS = [
-  "anthropic/claude-opus-4.6",
+  "anthropic/claude-opus-4.7",
   "anthropic/claude-sonnet-4.6",
   "openai/gpt-5.3-codex",
   "openai/gpt-5.4",
@@ -2121,7 +2122,7 @@ const FRONTIER_MODELS = [
 const CLAUDE_CODE_VARIANTS = {
   haiku: "anthropic/claude-haiku-4.5",
   sonnet: "anthropic/claude-sonnet-4.6",
-  opus: "anthropic/claude-opus-4.6"
+  opus: "anthropic/claude-opus-4.7"
 };
 ```
 

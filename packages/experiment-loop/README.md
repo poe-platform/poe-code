@@ -57,7 +57,7 @@ From the CLI: `poe-code experiment run --agent claude-code,codex`
 Use `agent:provider/model` notation:
 
 ```yaml
-agent: claude-code:anthropic/claude-opus-4.6
+agent: claude-code:anthropic/claude-opus-4.7
 ```
 
 ## Metric Scripts
@@ -117,10 +117,26 @@ POE_EXPERIMENT_PLAN_DIRECTORY=docs/experiments poe-code experiment run
 poe-code experiment run docs/experiments/optimize-tests.md
 ```
 
+## Dashboard Configuration
+
+Experiment runs can use the live terminal dashboard.
+
+```bash
+# One-off flags
+poe-code experiment run --tui
+poe-code experiment run --no-tui
+
+# Config default (.poe-code/config.json)
+# { "experiment": { "tui": true } }
+
+# Env override
+POE_EXPERIMENT_TUI=true poe-code experiment run
+```
+
 ## CLI
 
 ```bash
-poe-code experiment run [doc]       [--agent <name>]
+poe-code experiment run [doc]       [--agent <name>] [--max-experiments <n>] [--tui|--no-tui]
 poe-code experiment validate [doc]
 poe-code experiment journal [doc]
 poe-code experiment install

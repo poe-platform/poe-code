@@ -29,6 +29,26 @@ vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
 }));
 
+const spawnPoeAgentWithAcpMock = vi.hoisted(() =>
+  vi.fn(() => ({
+    events: (async function* () {})(),
+    done: Promise.resolve({
+      stdout: "poe-agent output\n",
+      stderr: "",
+      exitCode: 0
+    })
+  }))
+);
+
+vi.mock("../../providers/poe-agent.js", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../../providers/poe-agent.js")>();
+  return {
+    ...actual,
+    spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock
+  };
+});
+
 vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/workspace-resolver")>();
   return {
@@ -518,6 +538,71 @@ describe("spawn command", () => {
     expect(logs).toContain("custom:Explain the change");
     expect(commandCalls).toHaveLength(0);
     expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("routes spawn poe-agent through in-process handler", async () => {
+    spawnPoeAgentWithAcpMock.mockClear();
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "poe-agent",
+      "Explain the change"
+    ]);
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+    expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledOnce();
+    expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: "Explain the change" })
+    );
+  });
+
+  it("honors --dry-run for spawn poe-agent", async () => {
+    spawnPoeAgentWithAcpMock.mockClear();
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "spawn",
+      "poe-agent",
+      "Explain the change"
+    ]);
+
+    expect(spawnPoeAgentWithAcpMock).not.toHaveBeenCalled();
+    expect(logs.some((line) => line.includes("Dry run: would spawn Poe Agent."))).toBe(true);
+  });
+
+  it("lists poe-agent in spawn help", () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    const spawnCommand = program.commands.find((cmd) => cmd.name() === "spawn");
+    expect(spawnCommand?.helpInformation()).toContain("poe-agent");
   });
 
   it("includes extra services in spawn help output", () => {

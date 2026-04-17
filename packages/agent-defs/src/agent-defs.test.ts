@@ -6,6 +6,7 @@ import {
   openCodeAgent,
   kimiAgent,
   gooseAgent,
+  poeAgentAgent,
   allAgents,
   resolveAgentId,
   normalizeAgentId,
@@ -19,7 +20,8 @@ const expectedAgents: AgentDefinition[] = [
   codexAgent,
   openCodeAgent,
   kimiAgent,
-  gooseAgent
+  gooseAgent,
+  poeAgentAgent
 ];
 
 const normalizeKey = (value: string): string => value.toLowerCase();
@@ -32,6 +34,7 @@ describe("agent-defs package", () => {
     expect(openCodeAgent).toBeDefined();
     expect(kimiAgent).toBeDefined();
     expect(gooseAgent).toBeDefined();
+    expect(poeAgentAgent).toBeDefined();
   });
 
   it.each(expectedAgents)("$id has all required fields", (agent) => {

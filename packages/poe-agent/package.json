@@ -16,11 +16,16 @@
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",
-    "auth-store": "*",
     "@poe-code/poe-acp-client": "*",
-    "tiny-mcp-client": "*"
+    "auth-store": "*",
+    "fast-glob": "^3.3.3",
+    "shell-quote": "^1.8.3",
+    "tiny-mcp-client": "*",
+    "turndown": "^7.2.4"
   },
   "devDependencies": {
+    "@types/shell-quote": "^1.7.5",
+    "@types/turndown": "^5.0.6",
     "tiny-stdio-mcp-test-server": "*"
   },
   "files": [

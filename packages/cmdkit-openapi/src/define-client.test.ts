@@ -190,12 +190,13 @@ describe("defineClient", () => {
     expect(client.root.children.map((child) => child.name)).toEqual(["login"]);
   });
 
-  it("returns a root group that can be nested under another cmdkit group", () => {
+  it("returns a root group that preserves merged children when nested under another cmdkit group", () => {
     const client = defineClient({
       name: "internal-agent",
       baseUrl: "https://example.com/api",
       auth: createAuthProvider([]),
       commands: [defineGroup({ name: "bots", children: [createCommand("list")] })],
+      handwrittenCommands: [defineGroup({ name: "bots", children: [createCommand("view")] })],
     });
 
     const wrapper = defineGroup({
@@ -210,9 +211,24 @@ describe("defineClient", () => {
         {
           kind: "group",
           name: "bots",
-          children: [{ name: "list" }],
+          children: [{ name: "list" }, { name: "view" }],
         },
       ],
+    });
+
+    const nestedClient = wrapper.children[0];
+
+    expect(nestedClient?.kind).toBe("group");
+
+    const nestedBotsGroup =
+      nestedClient?.kind === "group"
+        ? nestedClient.children.find((child) => child.name === "bots")
+        : undefined;
+
+    expect(nestedBotsGroup).toMatchObject({
+      kind: "group",
+      name: "bots",
+      children: [{ name: "list" }, { name: "view" }],
     });
   });
 });

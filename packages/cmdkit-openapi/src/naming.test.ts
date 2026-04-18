@@ -43,6 +43,18 @@ describe("naming", () => {
     ).toBe("public-events");
   });
 
+  it("falls back to the collection verb for generic GET operationIds", () => {
+    expect(deriveVerb("get", "/users", { operationId: "listUsers" }, "listUsers", "users")).toBe(
+      "list"
+    );
+  });
+
+  it("keeps the path tail for non-collection GET operationIds that match it", () => {
+    expect(
+      deriveVerb("get", "/bots/search", { operationId: "viewSearch" }, "viewSearch", "bots")
+    ).toBe("search");
+  });
+
   it("drops duplicated tag prefixes from slash-delimited operationIds", () => {
     expect(
       deriveVerb(

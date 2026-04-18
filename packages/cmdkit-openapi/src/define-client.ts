@@ -69,6 +69,9 @@ function mergeChildren<TServices extends object>(
     mergeInto(merged, entry.nodes, [], entry.source, nodeSources);
   }
 
+  // defineGroup snapshots its children at construction time, while mergeInto mutates an
+  // existing group's children after that snapshot. Re-cloning here re-materializes each
+  // merged group so nesting client.root under another group preserves the merged children.
   return merged.map((node) => cloneNode(node));
 }
 

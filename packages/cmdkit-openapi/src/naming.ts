@@ -2,9 +2,15 @@ import { UserError } from "@poe-code/cmdkit";
 
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 
-export const METHOD_DEFAULTS: Partial<
-  Record<HttpMethod, { collection: string; resource: string; confirm?: true }>
-> = {
+type MethodDefaults = {
+  collection: string;
+  resource: string;
+  confirm?: true;
+  genericVerbs?: readonly string[];
+  preferOperationIdWhenPathTailIsGeneric?: true;
+};
+
+export const METHOD_DEFAULTS: Partial<Record<HttpMethod, MethodDefaults>> = {
   delete: {
     collection: "delete",
     resource: "delete",
@@ -12,7 +18,9 @@ export const METHOD_DEFAULTS: Partial<
   },
   get: {
     collection: "list",
-    resource: "view"
+    resource: "view",
+    genericVerbs: ["get", "list", "view"],
+    preferOperationIdWhenPathTailIsGeneric: true
   }
 };
 
@@ -51,16 +59,16 @@ export function deriveVerb(
       return defaults.resource;
     }
 
-    if (method === "get") {
-      const derived = deriveVerbFromOperationId(method, operation.operationId, noun);
+    if (defaults.preferOperationIdWhenPathTailIsGeneric === true) {
+      const derived = deriveVerbFromOperationId(method, operation.operationId, noun, defaults);
       const pathTail = lastSegment === undefined ? undefined : toKebabCase(lastSegment);
 
       if (derived !== undefined) {
-        if (pathTail === undefined || derived.verb !== pathTail) {
-          return derived.verb;
+        if (pathTail === undefined || derived !== pathTail) {
+          return derived;
         }
 
-        if (!derived.startsWithList) {
+        if (!operationIdStartsWithCollectionVerb(method, operation.operationId, noun, defaults)) {
           return pathTail;
         }
       }
@@ -72,7 +80,7 @@ export function deriveVerb(
   const derived = deriveVerbFromOperationId(method, operation.operationId, noun);
 
   if (derived !== undefined) {
-    return derived.verb;
+    return derived;
   }
 
   throw new UserError(
@@ -127,38 +135,70 @@ function isPathTemplateSegment(segment: string | undefined): boolean {
 function deriveVerbFromOperationId(
   method: HttpMethod,
   operationId: string | undefined,
+  noun: string,
+  defaults?: Pick<MethodDefaults, "genericVerbs">
+): string | undefined {
+  const words = normalizeOperationIdWords(method, operationId, noun);
+
+  if (words === undefined) {
+    return undefined;
+  }
+
+  const verbWords = stripLeadingGenericVerb(words, defaults?.genericVerbs);
+
+  return verbWords.length === 0 ? undefined : verbWords.join("-");
+}
+
+function operationIdStartsWithCollectionVerb(
+  method: HttpMethod,
+  operationId: string | undefined,
+  noun: string,
+  defaults: Pick<MethodDefaults, "collection">
+): boolean {
+  const words = normalizeOperationIdWords(method, operationId, noun);
+  return words?.[0] === defaults.collection;
+}
+
+function normalizeOperationIdWords(
+  method: HttpMethod,
+  operationId: string | undefined,
   noun: string
-): { verb: string; startsWithList: boolean } | undefined {
+): string[] | undefined {
   if (operationId === undefined) {
     return undefined;
   }
 
-  let words = splitWords(operationId);
   const nounWords = splitWords(noun);
+  return dedupeAdjacentWords(
+    trimTrailingNounUnlessItConsumesAll(
+      trimTrailingMethod(
+        trimLeadingWords(splitWords(operationId).filter((word) => !isVersionWord(word)), nounWords),
+        method
+      ),
+      nounWords
+    )
+  );
+}
 
-  words = trimLeadingWords(words, nounWords);
-  words = trimTrailingMethod(words, method);
-  words = words.filter((word) => !isVersionWord(word));
-  words = dedupeAdjacentWords(words);
-
-  const startsWithList = words[0] === "list";
-
-  if (method === "get" && words.length > 1 && isGenericGetVerb(words[0])) {
-    words = words.slice(1);
+function stripLeadingGenericVerb(
+  words: string[],
+  genericVerbs: readonly string[] | undefined
+): string[] {
+  if (genericVerbs === undefined || words.length <= 1 || !genericVerbs.includes(words[0] ?? "")) {
+    return words;
   }
 
+  let start = 1;
+  while (start < words.length - 1 && words[start] === words[0]) {
+    start += 1;
+  }
+
+  return words.slice(start);
+}
+
+function trimTrailingNounUnlessItConsumesAll(words: string[], nounWords: string[]): string[] {
   const withoutTrailingNoun = trimTrailingWords(words, nounWords);
-  words = withoutTrailingNoun.length === 0 ? words : withoutTrailingNoun;
-  words = dedupeAdjacentWords(words);
-
-  if (words.length === 0) {
-    return undefined;
-  }
-
-  return {
-    verb: words.join("-"),
-    startsWithList
-  };
+  return withoutTrailingNoun.length === 0 ? words : withoutTrailingNoun;
 }
 
 function trimLeadingWords(words: string[], prefix: string[]): string[] {
@@ -211,10 +251,6 @@ function dedupeAdjacentWords(words: string[]): string[] {
   }
 
   return deduped;
-}
-
-function isGenericGetVerb(word: string | undefined): boolean {
-  return word === "get" || word === "list" || word === "view";
 }
 
 function isVersionWord(word: string): boolean {

@@ -2,6 +2,7 @@ import { access, readFile, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "@poe-code/cmdkit-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
 
@@ -277,8 +278,10 @@ function validateSchemaValue(schema: AnySchema, value: unknown, label: string): 
       return value;
 
     case "number":
-      if (typeof value !== "number" || !Number.isFinite(value)) {
-        throw new UserError(`Invalid value for "${label}". Expected a number.`);
+      if (!isValidNumberSchemaValue(value, unwrappedSchema)) {
+        throw new UserError(
+          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(unwrappedSchema)}.`
+        );
       }
       return value;
 

@@ -369,6 +369,36 @@ describe("runCLI", () => {
     });
   });
 
+  it("rejects fractional values for integer-flavored number params", async () => {
+    const handler = vi.fn(async (ctx: { params: { count: number } }) => ctx.params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        count: S.Number({
+          jsonType: "integer",
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "cmdkit", "deploy", "--count", "1.5"];
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain(
+      'Invalid value for "count". Expected an integer.'
+    );
+    expect(process.exitCode).toBe(1);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it("prompts for missing required params, uses select for enums, and confirms resolved values", async () => {
     const handler = vi.fn(async (ctx: { params: { name: string; mode: "safe" | "fast" } }) => ctx.params);
 

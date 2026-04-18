@@ -29,6 +29,7 @@ import type {
   Scope,
 } from "./index.js";
 import { UserError, assertCommandRequirements, getCommandSourcePath, resolveCommandSecrets } from "./index.js";
+import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 
@@ -379,8 +380,10 @@ function parseScalarValue(value: string, schema: ScalarSchema, label: string): s
 
     case "number": {
       const parsed = Number(value);
-      if (!Number.isFinite(parsed)) {
-        throw new InvalidArgumentError(`Invalid value for "${label}". Expected a number.`);
+      if (!isValidNumberSchemaValue(parsed, schema)) {
+        throw new InvalidArgumentError(
+          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(schema)}.`
+        );
       }
       return parsed;
     }
@@ -1125,7 +1128,7 @@ function validatePresetScalarValue(
       return value;
 
     case "number":
-      if (typeof value !== "number" || !Number.isFinite(value)) {
+      if (!isValidNumberSchemaValue(value, schema)) {
         break;
       }
       return value;

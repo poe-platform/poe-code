@@ -857,6 +857,47 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("rejects fractional MCP arguments for integer params", async () => {
+    const run = defineCommand({
+      name: "run",
+      scope: ["mcp"],
+      params: S.Object({
+        count: S.Number({
+          jsonType: "integer",
+        }),
+      }),
+      handler: async ({ params }) => params,
+    });
+
+    const root = defineGroup({
+      name: "root",
+      children: [run],
+    });
+
+    const server = createMCPServer(root, {
+      name: "cmdkit-test",
+      version: "1.0.0",
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(
+        client.callTool({
+          name: "root__run",
+          arguments: {
+            count: 1.5,
+          },
+        })
+      ).rejects.toSatisfy(
+        (error: unknown) =>
+          error instanceof Error &&
+          error.message.includes('Invalid value for "count". Expected an integer.')
+      );
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("includes null in MCP enum schemas for nullable enum params", async () => {
     const run = defineCommand({
       name: "run",
@@ -1848,5 +1889,31 @@ describe("createSDK", () => {
     expect(result).toEqual({
       limit: null,
     });
+  });
+
+  it("rejects fractional SDK values for integer params", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "configure-limit",
+          scope: ["sdk"],
+          params: S.Object({
+            limit: S.Number({
+              jsonType: "integer",
+            }),
+          }),
+          handler: async ({ params }) => params,
+        }),
+      ],
+    });
+
+    const sdk = createSDK(root);
+
+    await expect(
+      sdk.configureLimit({
+        limit: 1.5,
+      })
+    ).rejects.toThrow('Invalid value for "limit". Expected an integer.');
   });
 });

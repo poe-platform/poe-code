@@ -10,6 +10,7 @@ import {
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "@poe-code/cmdkit-schema";
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
 
@@ -38,8 +39,23 @@ interface ToolDefinition<TServices extends object> {
 export interface RunMCPOptions<TServices extends object = Record<string, unknown>> {
   name: string;
   version: string;
+  /**
+   * Optional allowlist of MCP tool names or group prefixes.
+   *
+   * Tool names always use `__`-joined snake_case path segments, for example
+   * `root__bot__create`.
+   *
+   * Passing a group prefix like `root__bot` includes every descendant tool in
+   * that subtree.
+   */
   tools?: string[];
   services?: TServices;
+  /**
+   * Controls MCP input-schema key casing and accepted argument-key casing.
+   *
+   * This does not change tool names. Tool names always stay `__`-joined
+   * snake_case path segments.
+   */
   casing?: Casing;
 }
 
@@ -362,8 +378,10 @@ function validateSchemaValue(
       return value;
 
     case "number":
-      if (typeof value !== "number" || !Number.isFinite(value)) {
-        throw new UserError(`Invalid value for "${label}". Expected a number.`);
+      if (!isValidNumberSchemaValue(value, unwrappedSchema)) {
+        throw new UserError(
+          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(unwrappedSchema)}.`
+        );
       }
       return value;
 

@@ -204,9 +204,14 @@ type GeneratedParamScope = "cli" | "mcp" | "sdk";
 interface GeneratedRequestField {
   location: Exclude<GeneratedParam["location"], "transport">;
   omitWhenUndefinedExpression: string;
-  render: "inline" | "wrapped";
   wireName: string;
   valueExpression: string;
+}
+
+interface GeneratedRequestSectionRenders {
+  body?: "inline" | "wrapped";
+  path?: "wrapped";
+  query?: "wrapped";
 }
 
 interface CollectedCommandParams {
@@ -214,6 +219,7 @@ interface CollectedCommandParams {
   preflightBlocks: GeneratedPreflightBlock[];
   requestFields: GeneratedRequestField[];
   optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
+  sectionRenders: GeneratedRequestSectionRenders;
   requestBodyDescription?: string;
 }
 
@@ -246,7 +252,6 @@ interface CreateArrayParamOptions {
   operationId: string;
   context: string;
   location: "query" | "body";
-  render: GeneratedRequestField["render"];
   querySerialization?: QueryArraySerialization;
   supportsNullFlag: boolean;
 }
@@ -340,6 +345,7 @@ function createGeneratedCommand(
       params: collected.params,
       preflightBlocks: collected.preflightBlocks,
       requestFields: collected.requestFields,
+      sectionRenders: collected.sectionRenders,
       optionalSections: collected.optionalSections
     })
   };
@@ -384,6 +390,7 @@ function collectParams(
     ),
     preflightBlocks: [...operationParams.preflightBlocks, ...requestBodyParams.preflightBlocks],
     requestFields: [...operationParams.requestFields, ...requestBodyParams.requestFields],
+    sectionRenders: { ...operationParams.sectionRenders, ...requestBodyParams.sectionRenders },
     optionalSections: new Set([
       ...operationParams.optionalSections,
       ...requestBodyParams.optionalSections
@@ -428,6 +435,7 @@ function collectOperationParameters(
     params,
     preflightBlocks,
     requestFields,
+    sectionRenders: {},
     optionalSections: new Set(),
     requestBodyDescription: undefined
   };
@@ -444,6 +452,7 @@ function collectRequestBodyParams(
       params: [],
       preflightBlocks: [],
       requestFields: [],
+      sectionRenders: {},
       optionalSections: new Set(),
       requestBodyDescription: undefined
     };
@@ -485,12 +494,12 @@ function collectRequestBodyParams(
             ? { ...schema, description: requestBody.description }
             : schema,
           bodyOptional,
-          operationId,
-          "inline"
+          operationId
         )
       ],
       bodyOptional,
-      requestBody.description
+      requestBody.description,
+      "inline"
     );
   }
 
@@ -531,7 +540,12 @@ function collectRequestBodyParams(
     assemblies.push(generated);
   }
 
-  return createCollectedRequestBodyParams(assemblies, bodyOptional, requestBody.description);
+  return createCollectedRequestBodyParams(
+    assemblies,
+    bodyOptional,
+    requestBody.description,
+    "wrapped"
+  );
 }
 
 function assertSupportedSuccessResponses(
@@ -601,7 +615,6 @@ function createGeneratedParameter(
       operationId,
       context: `parameter ${JSON.stringify(parameter.name)}`,
       location: "query",
-      render: "wrapped",
       querySerialization: resolveQueryArraySerialization(parameter, operationId),
       // Query null currently serializes as an empty string on the wire, so v1 does not
       // synthesize a CLI-only --<name>-null helper for query arrays.
@@ -629,7 +642,6 @@ function createGeneratedParameter(
     preflightBlocks: [],
     requestField: {
       location: parameter.in,
-      render: "wrapped",
       wireName: parameter.name,
       valueExpression: renderParamAccess(paramName),
       omitWhenUndefinedExpression: `${renderParamAccess(paramName)} === undefined`
@@ -642,8 +654,7 @@ function createBodyField(
   name: string,
   schema: OpenApiSchemaObject,
   optional: boolean,
-  operationId: string,
-  render: GeneratedRequestField["render"] = "wrapped"
+  operationId: string
 ): GeneratedParameterAssembly {
   if (schema.type === "object") {
     throw new UserError(
@@ -661,7 +672,6 @@ function createBodyField(
       operationId,
       context: `request body field ${JSON.stringify(name)}`,
       location: "body",
-      render,
       querySerialization: undefined,
       supportsNullFlag: true
     });
@@ -715,7 +725,6 @@ function createBodyField(
     preflightBlocks,
     requestField: {
       location: "body",
-      render,
       wireName: name,
       valueExpression: definition.nullable === true ? resolvedName : paramAccess,
       omitWhenUndefinedExpression:
@@ -736,7 +745,6 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     operationId,
     context,
     location,
-    render,
     querySerialization,
     supportsNullFlag
   } = options;
@@ -829,7 +837,6 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     ],
     requestField: {
       location,
-      render,
       wireName: name,
       valueExpression:
         location === "query"
@@ -843,12 +850,14 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
 function createCollectedRequestBodyParams(
   assemblies: ReadonlyArray<GeneratedParameterAssembly>,
   bodyOptional: boolean,
-  requestBodyDescription: string | undefined
+  requestBodyDescription: string | undefined,
+  bodyRender: GeneratedRequestSectionRenders["body"]
 ): CollectedCommandParams {
   return {
     params: assemblies.flatMap((assembly) => assembly.params),
     preflightBlocks: assemblies.flatMap((assembly) => assembly.preflightBlocks),
     requestFields: assemblies.map((assembly) => assembly.requestField),
+    sectionRenders: { body: bodyRender },
     optionalSections: bodyOptional
       ? new Set<Exclude<GeneratedParam["location"], "transport">>(["body"])
       : new Set(),
@@ -1277,6 +1286,7 @@ function createCommandFile(options: {
   params: GeneratedParam[];
   preflightBlocks: GeneratedPreflightBlock[];
   requestFields: GeneratedRequestField[];
+  sectionRenders: GeneratedRequestSectionRenders;
   optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
   confirm: boolean;
 }): string {
@@ -1326,7 +1336,7 @@ function createCommandFile(options: {
   lines.push("      dryRun: params.dryRun,");
   lines.push("      verbose: params.verbose,");
   lines.push(
-    ...renderRequestShape(options.requestFields, options.optionalSections)
+    ...renderRequestShape(options.requestFields, options.sectionRenders, options.optionalSections)
   );
   lines.push("    });");
   lines.push("  },");
@@ -1526,30 +1536,6 @@ function renderQueryArrayValueExpression(
   return `${resolvedName} === undefined || ${resolvedName} === null ? ${resolvedName} : ${resolvedName}.join(${JSON.stringify(separator)})`;
 }
 
-function renderRequestShape(
-  requestFields: GeneratedRequestField[],
-  optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>
-): string[] {
-  const lines: string[] = [];
-
-  for (const section of REQUEST_PARAM_SECTIONS) {
-    const sectionFields = requestFields.filter((param) => param.location === section.location);
-    if (sectionFields.length === 0) {
-      continue;
-    }
-
-    lines.push(
-      ...REQUEST_FIELD_RENDERERS[sectionFields[0]?.render ?? "wrapped"](
-        section,
-        sectionFields,
-        optionalSections.has(section.location)
-      )
-    );
-  }
-
-  return lines;
-}
-
 const REQUEST_FIELD_RENDERERS = {
   inline: (
     section: (typeof REQUEST_PARAM_SECTIONS)[number],
@@ -1602,13 +1588,35 @@ const REQUEST_FIELD_RENDERERS = {
     ];
   }
 } as const satisfies Record<
-  GeneratedRequestField["render"],
+  NonNullable<GeneratedRequestSectionRenders["body"]>,
   (
     section: (typeof REQUEST_PARAM_SECTIONS)[number],
     sectionFields: GeneratedRequestField[],
     optional: boolean
   ) => string[]
 >;
+
+function renderRequestShape(
+  requestFields: GeneratedRequestField[],
+  sectionRenders: GeneratedRequestSectionRenders,
+  optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>
+): string[] {
+  const lines: string[] = [];
+
+  for (const section of REQUEST_PARAM_SECTIONS) {
+    const sectionFields = requestFields.filter((param) => param.location === section.location);
+    if (sectionFields.length === 0) {
+      continue;
+    }
+
+    const render = sectionRenders[section.location] ?? "wrapped";
+    lines.push(
+      ...REQUEST_FIELD_RENDERERS[render](section, sectionFields, optionalSections.has(section.location))
+    );
+  }
+
+  return lines;
+}
 
 function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
   const groups = new Map<string, GeneratedCommand[]>();

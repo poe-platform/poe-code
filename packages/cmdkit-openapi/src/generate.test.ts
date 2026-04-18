@@ -2455,6 +2455,60 @@ describe("generate", () => {
     expect(commandFile?.contents).not.toContain('body: {\n');
   });
 
+  it("renders query params alongside a top-level array body without nesting the body payload", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/import": {
+          post: {
+            tags: ["bots"],
+            operationId: "importBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              },
+              {
+                name: "mode",
+                in: "query",
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: { type: "string" }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Imported."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/import-bot.ts");
+
+    expect(commandFile?.contents).toContain("query: {");
+    expect(commandFile?.contents).toContain('"mode": params.mode,');
+    expect(commandFile?.contents).toContain(`      ...(resolvedBody === undefined
+        ? {}
+        : {
+            body: resolvedBody,
+          }),`);
+    expect(commandFile?.contents).not.toContain('body: {\n');
+  });
+
   it("generates a command for a top-level array request body", () => {
     const files = generate(
       createDocument({

@@ -1,6 +1,7 @@
 import type { Command, CommandNode, Group, Scope } from "@poe-code/cmdkit";
 import { UserError } from "@poe-code/cmdkit";
 import type { AuthProvider, TokenSource } from "./auth/types.js";
+import { toMcpPrefix } from "./naming.js";
 
 export interface OpenApiClientServices {
   baseUrl: string;
@@ -38,7 +39,7 @@ export function defineClient<TServices extends object = Record<string, never>>(
   const mergedChildren = mergeChildren([
     { nodes: options.commands, source: "generated" },
     { nodes: options.handwrittenCommands ?? [], source: "handwritten" },
-    { nodes: options.auth.commands.map((command) => cloneNode(command, CLI_SCOPE)), source: "auth" },
+    { nodes: options.auth.commands.map((command) => cloneNode(command, CLI_SCOPE)), source: "auth" }
   ]);
 
   return {
@@ -53,12 +54,12 @@ export function defineClient<TServices extends object = Record<string, never>>(
       description: undefined,
       scope: undefined,
       requires: undefined,
-      default: undefined,
+      default: undefined
     },
     services: {
       baseUrl: options.baseUrl,
-      tokenSource: options.auth,
-    },
+      tokenSource: options.auth
+    }
   };
 }
 
@@ -68,7 +69,7 @@ function mergeChildren<TServices extends object>(
     source: CommandSource;
   }>
 ): CommandNode<TServices>[] {
-  const nodeSources = new WeakMap<object, CommandSource>();
+  const nodeSources = new Map<object, CommandSource>();
   const merged: CommandNode<TServices>[] = [];
 
   for (const entry of entries) {
@@ -83,7 +84,7 @@ function mergeInto<TServices extends object>(
   incoming: CommandNode<TServices>[],
   path: string[],
   source: CommandSource,
-  nodeSources: WeakMap<object, CommandSource>
+  nodeSources: Map<object, CommandSource>
 ): void {
   for (const candidate of incoming) {
     const nextNode = cloneNode(candidate);
@@ -96,7 +97,11 @@ function mergeInto<TServices extends object>(
     }
 
     if (existing.kind !== "group" || nextNode.kind !== "group") {
-      throw createCollisionError([...path, nextNode.name], getRegisteredSource(nodeSources, existing), source);
+      throw createCollisionError(
+        [...path, nextNode.name],
+        getRegisteredSource(nodeSources, existing),
+        source
+      );
     }
 
     mergeInto(existing.children, nextNode.children, [...path, nextNode.name], source, nodeSources);
@@ -106,7 +111,7 @@ function mergeInto<TServices extends object>(
 function registerSource<TServices extends object>(
   node: CommandNode<TServices>,
   source: CommandSource,
-  nodeSources: WeakMap<object, CommandSource>
+  nodeSources: Map<object, CommandSource>
 ): void {
   nodeSources.set(node, source);
 
@@ -118,7 +123,7 @@ function registerSource<TServices extends object>(
 }
 
 function getRegisteredSource<TNode extends object>(
-  nodeSources: WeakMap<object, CommandSource>,
+  nodeSources: Map<object, CommandSource>,
   node: TNode
 ): CommandSource {
   const source = nodeSources.get(node);
@@ -130,7 +135,11 @@ function getRegisteredSource<TNode extends object>(
   return source;
 }
 
-function createCollisionError(path: string[], left: CommandSource, right: CommandSource): UserError {
+function createCollisionError(
+  path: string[],
+  left: CommandSource,
+  right: CommandSource
+): UserError {
   return new UserError(
     `Command path ${JSON.stringify(path.join(" "))} is defined more than once (${left} and ${right}).`
   );
@@ -163,7 +172,7 @@ function cloneCommand<TServices extends object>(
     confirm: command.confirm,
     requires: command.requires,
     handler: command.handler,
-    render: command.render,
+    render: command.render
   };
 }
 
@@ -183,7 +192,7 @@ function cloneGroup<TServices extends object>(
     secrets: { ...group.secrets },
     requires: group.requires,
     children,
-    default: defaultCommand,
+    default: defaultCommand
   };
 }
 
@@ -217,10 +226,6 @@ function isValidClientName(name: string): boolean {
   }
 
   return true;
-}
-
-function toMcpPrefix(name: string): string {
-  return name.replaceAll("-", "_");
 }
 
 function cloneScope(scope: Scope[] | undefined, scopeOverride?: Scope[]): Scope[] | undefined {

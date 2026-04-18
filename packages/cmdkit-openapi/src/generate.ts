@@ -1,11 +1,37 @@
 import { UserError } from "@poe-code/cmdkit";
+import {
+  deriveNoun,
+  deriveVerb,
+  normalizeParamName,
+  toCamelCase,
+  toPascalCase,
+  type HttpMethod
+} from "./naming.js";
 
 const HTTP_METHOD_ORDER = ["get", "post", "put", "patch", "delete"] as const;
-
-type HttpMethod = (typeof HTTP_METHOD_ORDER)[number];
 type OpenApiOperationMap = Partial<Record<HttpMethod, OpenApiOperationObject>>;
 type OpenApiParameterLocation = "path" | "query";
 type ParamKind = "string" | "number" | "boolean" | "enum";
+type OpenApiScalarType = "string" | "number" | "integer" | "boolean";
+
+const SCHEMA_TYPE_TO_KIND = {
+  boolean: { kind: "boolean" },
+  integer: { kind: "number", jsonType: "integer" },
+  number: { kind: "number" },
+  string: { kind: "string" }
+} as const satisfies Record<
+  OpenApiScalarType,
+  Pick<GeneratedParamDefinition, "kind"> & Partial<Pick<GeneratedParamDefinition, "jsonType">>
+>;
+
+const REQUEST_PARAM_SECTIONS = [
+  { location: "path", key: "pathParams" },
+  { location: "query", key: "query" },
+  { location: "body", key: "body" }
+] as const satisfies ReadonlyArray<{
+  location: GeneratedParam["location"];
+  key: "pathParams" | "query" | "body";
+}>;
 
 export interface OpenApiDocument {
   openapi?: string;
@@ -130,11 +156,13 @@ export function generate(document: OpenApiDocument, options: GenerateOptions): G
       .slice()
       .sort((left, right) => compareGeneratedCommandPaths(left, right))
       .map(({ filePath, contents }) => ({ path: filePath, contents })),
-    createIndexFile(commands),
+    createIndexFile(commands)
   ];
 }
 
-function collectOperations(paths: Record<string, OpenApiPathItemObject | undefined>): OperationEntry[] {
+function collectOperations(
+  paths: Record<string, OpenApiPathItemObject | undefined>
+): OperationEntry[] {
   return Object.entries(paths)
     .sort(([left], [right]) => left.localeCompare(right))
     .flatMap(([path, pathItem]) => {
@@ -157,7 +185,7 @@ function createGeneratedCommand(entry: OperationEntry, specSha: string): Generat
   const operationId = entry.operation.operationId ?? `${entry.method.toUpperCase()} ${entry.path}`;
   const noun = deriveNoun(entry.operation, operationId);
   const verb = deriveVerb(entry.method, entry.path, entry.operation, operationId);
-  const params = collectParams(entry, noun, operationId);
+  const params = collectParams(entry, operationId);
   const exportName = `${toCamelCase(noun)}${toPascalCase(verb)}Command`;
   const filePath = `${noun}/${verb}.ts`;
 
@@ -176,65 +204,26 @@ function createGeneratedCommand(entry: OperationEntry, specSha: string): Generat
       description: entry.operation.summary ?? entry.operation.description,
       method: entry.method.toUpperCase(),
       path: entry.path,
-      params,
-    }),
+      params
+    })
   };
 }
 
-function deriveNoun(operation: OpenApiOperationObject, operationId: string): string {
-  const noun = operation.tags?.[0];
-
-  if (typeof noun !== "string" || noun.length === 0) {
-    throw new UserError(`Operation ${JSON.stringify(operationId)} must define tags[0] to derive a command noun.`);
-  }
-
-  return toKebabCase(noun);
-}
-
-function deriveVerb(
-  method: HttpMethod,
-  path: string,
-  operation: OpenApiOperationObject,
-  operationId: string
-): string {
-  const segments = splitPathSegments(path);
-  const actionsIndex = segments.indexOf("actions");
-
-  if (actionsIndex >= 0) {
-    const action = segments[actionsIndex + 1];
-
-    if (action !== undefined) {
-      return toKebabCase(action);
-    }
-  }
-
-  const lastSegment = segments.at(-1);
-  const lastSegmentIsPathParam = lastSegment !== undefined && isPathTemplateSegment(lastSegment);
-
-  if (method === "get") {
-    return lastSegmentIsPathParam ? "view" : "list";
-  }
-
-  if (operation.operationId !== undefined) {
-    return toKebabCase(operation.operationId);
-  }
-
-  throw new UserError(
-    `Operation ${JSON.stringify(operationId)} is missing an operationId, so cmdkit-openapi cannot derive a stable command verb.`
-  );
-}
-
-function collectParams(entry: OperationEntry, noun: string, operationId: string): GeneratedParam[] {
+function collectParams(entry: OperationEntry, operationId: string): GeneratedParam[] {
   const params = [
-    ...collectOperationParameters(entry.pathItem.parameters ?? [], entry.operation.parameters ?? [], noun, operationId),
-    ...collectRequestBodyParams(entry.operation, noun, operationId),
+    ...collectOperationParameters(
+      entry.pathItem.parameters ?? [],
+      entry.operation.parameters ?? [],
+      operationId
+    ),
+    ...collectRequestBodyParams(entry.operation, operationId),
     {
       paramName: "dryRun",
       originalName: "dryRun",
       location: "transport",
       description: "Print the HTTP request and exit without sending it.",
       optional: true,
-      definition: { kind: "boolean" },
+      definition: { kind: "boolean" }
     } satisfies GeneratedParam,
     {
       paramName: "verbose",
@@ -243,8 +232,8 @@ function collectParams(entry: OperationEntry, noun: string, operationId: string)
       description: "Log the request line to stderr.",
       shortFlag: "v",
       optional: true,
-      definition: { kind: "boolean" },
-    } satisfies GeneratedParam,
+      definition: { kind: "boolean" }
+    } satisfies GeneratedParam
   ];
 
   const deduped = new Map<string, GeneratedParam>();
@@ -267,7 +256,6 @@ function collectParams(entry: OperationEntry, noun: string, operationId: string)
 function collectOperationParameters(
   pathItemParameters: OpenApiParameter[],
   operationParameters: OpenApiParameter[],
-  noun: string,
   operationId: string
 ): GeneratedParam[] {
   const merged = new Map<string, OpenApiParameterObject>();
@@ -282,12 +270,11 @@ function collectOperationParameters(
     merged.set(`${resolved.in}:${resolved.name}`, resolved);
   }
 
-  return [...merged.values()].map((parameter) => createGeneratedParameter(parameter, noun, operationId));
+  return [...merged.values()].map((parameter) => createGeneratedParameter(parameter, operationId));
 }
 
 function collectRequestBodyParams(
   operation: OpenApiOperationObject,
-  noun: string,
   operationId: string
 ): GeneratedParam[] {
   if (operation.requestBody === undefined) {
@@ -295,7 +282,9 @@ function collectRequestBodyParams(
   }
 
   if (isReferenceObject(operation.requestBody)) {
-    throw new UserError(`Operation ${JSON.stringify(operationId)} uses a $ref requestBody, which is not supported yet.`);
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses a $ref requestBody, which is not supported yet.`
+    );
   }
 
   const content = operation.requestBody.content?.["application/json"];
@@ -319,42 +308,53 @@ function collectRequestBodyParams(
 
   return Object.entries(schema.properties).map(([name, property]) => {
     const propertySchema = expectSchema(property, operationId, `requestBody.properties.${name}`);
-    return createBodyParameter(name, noun, propertySchema, bodyOptional || !required.has(name), operationId);
+    return createBodyParameter(
+      name,
+      propertySchema,
+      bodyOptional || !required.has(name),
+      operationId
+    );
   });
 }
 
 function createGeneratedParameter(
   parameter: OpenApiParameterObject,
-  noun: string,
   operationId: string
 ): GeneratedParam {
   const schema = expectSchema(parameter.schema, operationId, `parameters.${parameter.name}`);
   const optional = parameter.in === "path" ? false : parameter.required !== true;
 
   return {
-    paramName: normalizeParamName(parameter.name, noun),
+    paramName: normalizeParamName(parameter.name),
     originalName: parameter.name,
     location: parameter.in,
     description: parameter.description ?? schema.description,
     optional,
-    definition: createParamDefinition(schema, operationId, `parameter ${JSON.stringify(parameter.name)}`),
+    definition: createParamDefinition(
+      schema,
+      operationId,
+      `parameter ${JSON.stringify(parameter.name)}`
+    )
   };
 }
 
 function createBodyParameter(
   name: string,
-  noun: string,
   schema: OpenApiSchemaObject,
   optional: boolean,
   operationId: string
 ): GeneratedParam {
   return {
-    paramName: normalizeParamName(name, noun),
+    paramName: normalizeParamName(name),
     originalName: name,
     location: "body",
     description: schema.description,
     optional,
-    definition: createParamDefinition(schema, operationId, `request body field ${JSON.stringify(name)}`),
+    definition: createParamDefinition(
+      schema,
+      operationId,
+      `request body field ${JSON.stringify(name)}`
+    )
   };
 }
 
@@ -369,29 +369,18 @@ function createParamDefinition(
     return {
       kind: "enum",
       enumValues,
-      ...(schema.default === undefined ? {} : { defaultValue: schema.default }),
+      ...(schema.default === undefined ? {} : { defaultValue: schema.default })
     };
   }
 
-  if (schema.type === "string") {
-    return {
-      kind: "string",
-      ...(schema.default === undefined ? {} : { defaultValue: schema.default }),
-    };
-  }
+  const scalarDefinition =
+    schema.type === undefined ? undefined : SCHEMA_TYPE_TO_KIND[schema.type as OpenApiScalarType];
 
-  if (schema.type === "number" || schema.type === "integer") {
+  if (scalarDefinition !== undefined) {
     return {
-      kind: "number",
-      ...(schema.type === "integer" ? { jsonType: "integer" as const } : {}),
-      ...(schema.default === undefined ? {} : { defaultValue: schema.default }),
-    };
-  }
-
-  if (schema.type === "boolean") {
-    return {
-      kind: "boolean",
-      ...(schema.default === undefined ? {} : { defaultValue: schema.default }),
+      kind: scalarDefinition.kind,
+      ...(scalarDefinition.jsonType === undefined ? {} : { jsonType: scalarDefinition.jsonType }),
+      ...(schema.default === undefined ? {} : { defaultValue: schema.default })
     };
   }
 
@@ -400,7 +389,9 @@ function createParamDefinition(
   );
 }
 
-function normalizeEnumValues(enumValues: unknown[] | undefined): ReadonlyArray<string | number | boolean> | undefined {
+function normalizeEnumValues(
+  enumValues: unknown[] | undefined
+): ReadonlyArray<string | number | boolean> | undefined {
   if (enumValues === undefined) {
     return undefined;
   }
@@ -408,7 +399,8 @@ function normalizeEnumValues(enumValues: unknown[] | undefined): ReadonlyArray<s
   if (
     enumValues.length === 0 ||
     enumValues.some(
-      (value) => typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean"
+      (value) =>
+        typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean"
     )
   ) {
     throw new UserError("OpenAPI enums must contain only string, number, or boolean values.");
@@ -419,7 +411,9 @@ function normalizeEnumValues(enumValues: unknown[] | undefined): ReadonlyArray<s
 
 function expectParameter(parameter: OpenApiParameter, operationId: string): OpenApiParameterObject {
   if (isReferenceObject(parameter)) {
-    throw new UserError(`Operation ${JSON.stringify(operationId)} uses a $ref parameter, which is not supported yet.`);
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses a $ref parameter, which is not supported yet.`
+    );
   }
 
   if (parameter.in !== "path" && parameter.in !== "query") {
@@ -437,11 +431,15 @@ function expectSchema(
   context: string
 ): OpenApiSchemaObject {
   if (schema === undefined) {
-    throw new UserError(`Operation ${JSON.stringify(operationId)} is missing a schema for ${context}.`);
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} is missing a schema for ${context}.`
+    );
   }
 
   if (isReferenceObject(schema)) {
-    throw new UserError(`Operation ${JSON.stringify(operationId)} uses a $ref in ${context}, which is not supported yet.`);
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses a $ref in ${context}, which is not supported yet.`
+    );
   }
 
   return schema;
@@ -485,7 +483,7 @@ function createCommandFile(options: {
     'import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";',
     "",
     `export const ${options.exportName} = defineCommand<OpenApiClientServices>({`,
-    `  name: ${JSON.stringify(options.verb)},`,
+    `  name: ${JSON.stringify(options.verb)},`
   ];
 
   if (options.description !== undefined) {
@@ -561,26 +559,20 @@ function renderConstArray(values: ReadonlyArray<string | number | boolean>): str
 }
 
 function renderRequestShape(params: GeneratedParam[]): string[] {
-  const pathParams = params.filter((param) => param.location === "path");
-  const queryParams = params.filter((param) => param.location === "query");
-  const bodyParams = params.filter((param) => param.location === "body");
   const lines: string[] = [];
 
-  if (pathParams.length > 0) {
-    lines.push("      pathParams: {");
-    lines.push(...pathParams.map((param) => `        ${JSON.stringify(param.originalName)}: params.${param.paramName},`));
-    lines.push("      },");
-  }
+  for (const section of REQUEST_PARAM_SECTIONS) {
+    const sectionParams = params.filter((param) => param.location === section.location);
+    if (sectionParams.length === 0) {
+      continue;
+    }
 
-  if (queryParams.length > 0) {
-    lines.push("      query: {");
-    lines.push(...queryParams.map((param) => `        ${JSON.stringify(param.originalName)}: params.${param.paramName},`));
-    lines.push("      },");
-  }
-
-  if (bodyParams.length > 0) {
-    lines.push("      body: {");
-    lines.push(...bodyParams.map((param) => `        ${JSON.stringify(param.originalName)}: params.${param.paramName},`));
+    lines.push(`      ${section.key}: {`);
+    lines.push(
+      ...sectionParams.map(
+        (param) => `        ${JSON.stringify(param.originalName)}: params.${param.paramName},`
+      )
+    );
     lines.push("      },");
   }
 
@@ -611,7 +603,9 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
       .sort((left, right) => left.verb.localeCompare(right.verb));
 
     for (const command of nounCommands ?? []) {
-      lines.push(`import { ${command.exportName} } from ${JSON.stringify(`./${command.filePath.replace(/\.ts$/, ".js")}`)};`);
+      lines.push(
+        `import { ${command.exportName} } from ${JSON.stringify(`./${command.filePath.replace(/\.ts$/, ".js")}`)};`
+      );
     }
   }
 
@@ -636,7 +630,7 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
 
   return {
     path: "index.ts",
-    contents: lines.join("\n"),
+    contents: lines.join("\n")
   };
 }
 
@@ -647,102 +641,6 @@ function compareGeneratedCommandPaths(left: GeneratedCommand, right: GeneratedCo
   }
 
   return left.verb.localeCompare(right.verb);
-}
-
-function splitPathSegments(path: string): string[] {
-  return path.split("/").filter((segment) => segment.length > 0);
-}
-
-function isPathTemplateSegment(segment: string): boolean {
-  return segment.startsWith("{") && segment.endsWith("}");
-}
-
-function normalizeParamName(name: string, noun: string): string {
-  const normalized = toCamelCase(name);
-  const singularNoun = toCamelCase(toSingular(noun));
-
-  if (!normalized.startsWith(singularNoun) || normalized.length === singularNoun.length) {
-    return normalized;
-  }
-
-  const nextCharacter = normalized[singularNoun.length];
-  if (nextCharacter === undefined || nextCharacter !== nextCharacter.toUpperCase()) {
-    return normalized;
-  }
-
-  return `${nextCharacter.toLowerCase()}${normalized.slice(singularNoun.length + 1)}`;
-}
-
-function toSingular(value: string): string {
-  if (value.endsWith("ies") && value.length > 3) {
-    return `${value.slice(0, -3)}y`;
-  }
-
-  if (value.endsWith("s") && value.length > 1) {
-    return value.slice(0, -1);
-  }
-
-  return value;
-}
-
-function toPascalCase(value: string): string {
-  const camel = toCamelCase(value);
-  return camel.length === 0 ? camel : `${camel[0]?.toUpperCase() ?? ""}${camel.slice(1)}`;
-}
-
-function toCamelCase(value: string): string {
-  const words = splitWords(value);
-
-  return words
-    .map((word, index) =>
-      index === 0 ? word : `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`
-    )
-    .join("");
-}
-
-function toKebabCase(value: string): string {
-  return splitWords(value).join("-");
-}
-
-function splitWords(value: string): string[] {
-  const words: string[] = [];
-  let current = "";
-
-  for (let index = 0; index < value.length; index += 1) {
-    const character = value[index] ?? "";
-
-    if (character === "-" || character === "_" || character === " " || character === ".") {
-      if (current.length > 0) {
-        words.push(current.toLowerCase());
-        current = "";
-      }
-      continue;
-    }
-
-    const lower = character.toLowerCase();
-    const upper = character.toUpperCase();
-    const previous = value[index - 1];
-    const next = value[index + 1];
-    const isUppercase = character !== lower && character === upper;
-    const previousIsLowercase =
-      previous !== undefined && previous === previous.toLowerCase() && previous !== previous.toUpperCase();
-    const nextIsLowercase =
-      next !== undefined && next === next.toLowerCase() && next !== next.toUpperCase();
-
-    if (isUppercase && current.length > 0 && (previousIsLowercase || nextIsLowercase)) {
-      words.push(current.toLowerCase());
-      current = character;
-      continue;
-    }
-
-    current += character;
-  }
-
-  if (current.length > 0) {
-    words.push(current.toLowerCase());
-  }
-
-  return words;
 }
 
 function isReferenceObject(value: unknown): value is OpenApiReferenceObject {

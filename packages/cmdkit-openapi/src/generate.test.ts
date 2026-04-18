@@ -7,9 +7,9 @@ function createDocument(paths: OpenApiDocument["paths"]): OpenApiDocument {
     openapi: "3.0.3",
     info: {
       title: "Internal Agent API",
-      version: "1.0.0",
+      version: "1.0.0"
     },
-    paths,
+    paths
   };
 }
 
@@ -27,8 +27,8 @@ describe("generate", () => {
                 name: "botHandle",
                 in: "path",
                 required: true,
-                schema: { type: "string" },
-              },
+                schema: { type: "string" }
+              }
             ],
             requestBody: {
               required: true,
@@ -38,11 +38,11 @@ describe("generate", () => {
                     type: "object",
                     required: ["official"],
                     properties: {
-                      official: { type: "boolean" },
-                    },
-                  },
-                },
-              },
+                      official: { type: "boolean" }
+                    }
+                  }
+                }
+              }
             },
             responses: {
               "200": {
@@ -50,14 +50,14 @@ describe("generate", () => {
                 content: {
                   "application/json": {
                     schema: {
-                      type: "object",
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }),
       { specSha: "spec-sha-123" }
     );
@@ -77,8 +77,8 @@ describe("generate", () => {
                 name: "botHandle",
                 in: "path",
                 required: true,
-                schema: { type: "string" },
-              },
+                schema: { type: "string" }
+              }
             ],
             requestBody: {
               required: true,
@@ -88,19 +88,19 @@ describe("generate", () => {
                     type: "object",
                     required: ["official"],
                     properties: {
-                      official: { type: "boolean" },
-                    },
-                  },
-                },
-              },
+                      official: { type: "boolean" }
+                    }
+                  }
+                }
+              }
             },
             responses: {
               "200": {
-                description: "Updated.",
-              },
-            },
-          },
-        },
+                description: "Updated."
+              }
+            }
+          }
+        }
       }),
       { specSha: "spec-sha-123" }
     );
@@ -109,6 +109,53 @@ describe("generate", () => {
 
     expect(commandFile?.contents).toContain('import { defineCommand, S } from "@poe-code/cmdkit";');
     expect(commandFile?.contents).toContain("params: S.Object({");
+  });
+
+  it("keeps explicit camel-cased param names instead of stripping the noun prefix", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-official": {
+          post: {
+            tags: ["bots"],
+            operationId: "setOfficial",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["official"],
+                    properties: {
+                      official: { type: "boolean" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/set-official.ts");
+
+    expect(commandFile?.contents).toContain("botHandle: S.String()");
+    expect(commandFile?.contents).toContain('"botHandle": params.botHandle');
+    expect(commandFile?.contents).not.toContain("handle: S.String()");
   });
 
   it("generates an enum JSON body command", () => {
@@ -124,8 +171,8 @@ describe("generate", () => {
                 name: "botHandle",
                 in: "path",
                 required: true,
-                schema: { type: "string" },
-              },
+                schema: { type: "string" }
+              }
             ],
             requestBody: {
               required: true,
@@ -137,12 +184,12 @@ describe("generate", () => {
                     properties: {
                       mode: {
                         type: "string",
-                        enum: ["off", "auto", "forced"],
-                      },
-                    },
-                  },
-                },
-              },
+                        enum: ["off", "auto", "forced"]
+                      }
+                    }
+                  }
+                }
+              }
             },
             responses: {
               "200": {
@@ -150,14 +197,14 @@ describe("generate", () => {
                 content: {
                   "application/json": {
                     schema: {
-                      type: "object",
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }),
       { specSha: "spec-sha-123" }
     );
@@ -177,13 +224,13 @@ describe("generate", () => {
               {
                 name: "owner",
                 in: "query",
-                schema: { type: "string" },
+                schema: { type: "string" }
               },
               {
                 name: "limit",
                 in: "query",
-                schema: { type: "integer", default: 50 },
-              },
+                schema: { type: "integer", default: 50 }
+              }
             ],
             responses: {
               "200": {
@@ -191,14 +238,14 @@ describe("generate", () => {
                 content: {
                   "application/json": {
                     schema: {
-                      type: "object",
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }),
       { specSha: "spec-sha-123" }
     );
@@ -218,8 +265,8 @@ describe("generate", () => {
                 name: "botHandle",
                 in: "path",
                 required: true,
-                schema: { type: "string" },
-              },
+                schema: { type: "string" }
+              }
             ],
             requestBody: {
               required: false,
@@ -229,19 +276,49 @@ describe("generate", () => {
                     type: "object",
                     required: ["description"],
                     properties: {
-                      description: { type: "string" },
-                    },
-                  },
-                },
-              },
+                      description: { type: "string" }
+                    }
+                  }
+                }
+              }
             },
             responses: {
               "200": {
-                description: "Updated.",
-              },
-            },
-          },
-        },
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files).toMatchSnapshot();
+  });
+
+  it("uses delete as the verb for delete-by-id operations", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          delete: {
+            tags: ["bots"],
+            operationId: "deleteBot",
+            summary: "Delete a bot.",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            responses: {
+              "204": {
+                description: "Deleted."
+              }
+            }
+          }
+        }
       }),
       { specSha: "spec-sha-123" }
     );
@@ -258,15 +335,17 @@ describe("generate", () => {
               operationId: "listBots",
               responses: {
                 "200": {
-                  description: "List.",
-                },
-              },
-            },
-          },
+                  description: "List."
+                }
+              }
+            }
+          }
         }),
         { specSha: "spec-sha-123" }
       )
-    ).toThrowError(new UserError('Operation "listBots" must define tags[0] to derive a command noun.'));
+    ).toThrowError(
+      new UserError('Operation "listBots" must define tags[0] to derive a command noun.')
+    );
   });
 
   it("throws when two operations resolve to the same noun and verb", () => {
@@ -279,10 +358,10 @@ describe("generate", () => {
               operationId: "listBots",
               responses: {
                 "200": {
-                  description: "List.",
-                },
-              },
-            },
+                  description: "List."
+                }
+              }
+            }
           },
           "/bots/list": {
             get: {
@@ -290,11 +369,11 @@ describe("generate", () => {
               operationId: "listBotsAgain",
               responses: {
                 "200": {
-                  description: "List.",
-                },
-              },
-            },
-          },
+                  description: "List."
+                }
+              }
+            }
+          }
         }),
         { specSha: "spec-sha-123" }
       )

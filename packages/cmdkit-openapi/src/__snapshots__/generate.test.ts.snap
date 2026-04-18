@@ -184,7 +184,7 @@ export const botsSetConversationStartersCommand = defineCommand<OpenApiClientSer
   params: S.Object({
     botHandle: S.String(),
     dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
-    starters: S.Array(S.String(), { maxItems: 4 }),
+    starters: S.Optional(S.Array(S.String(), { maxItems: 4 })),
     startersJson: S.Optional(S.String({ description: "JSON-encoded value for starters.", scope: ["cli"] })),
     verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),

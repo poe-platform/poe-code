@@ -718,13 +718,14 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
   const resolvedName = `resolved${toPascalCase(helperBaseName)}`;
   const emitsNullHelper = supportsNullFlag && directDefinition.nullable === true;
   const paramAccess = renderParamAccess(paramName);
+  const directParamOptional = optional || location === "body";
   const params: GeneratedParam[] = [
     {
       paramName,
       sourceName: name,
       location,
       description,
-      optional,
+      optional: directParamOptional,
       definition: directDefinition
     } satisfies GeneratedParam,
     {

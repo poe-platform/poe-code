@@ -910,7 +910,7 @@ describe("generate", () => {
     expect(commandFile?.contents).toContain('"bot_handle": S.String()');
     expect(commandFile?.contents).toContain('"x-trace-id": S.Optional(S.String())');
     expect(commandFile?.contents).toContain('"user_name": S.String()');
-    expect(commandFile?.contents).toContain("status: S.Array(S.String()");
+    expect(commandFile?.contents).toContain("status: S.Optional(S.Array(S.String()");
     expect(commandFile?.contents).not.toContain("statu: S.");
     expect(commandFile?.contents).toContain('"bot_handle": params.bot_handle');
     expect(commandFile?.contents).toContain('"x-trace-id": params["x-trace-id"]');
@@ -1274,6 +1274,56 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("emits the direct array param as optional when a required body array also has a JSON helper", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-conversation-starters": {
+          post: {
+            tags: ["bots"],
+            operationId: "setConversationStarters",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["starters"],
+                    properties: {
+                      starters: {
+                        type: "array",
+                        items: {
+                          type: "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(
+      files.find((file) => file.path === "bots/set-conversation-starters.ts")?.contents
+    ).toContain("starters: S.Optional(S.Array(S.String()))");
+  });
+
   it("omits readOnly request-body fields from generated command params", () => {
     const files = generate(
       createDocument({
@@ -1531,7 +1581,7 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/set-conversation-starters.ts");
 
     expect(commandFile?.contents).toContain("botHandle: S.String()");
-    expect(commandFile?.contents).toContain("starters: S.Array(S.String())");
+    expect(commandFile?.contents).toContain("starters: S.Optional(S.Array(S.String()))");
   });
 
   it("throws when local component refs form a cycle", () => {
@@ -1667,7 +1717,7 @@ describe("generate", () => {
       'limit: S.Optional(S.Number({ minimum: 1, maximum: 100, jsonType: "integer" }))'
     );
     expect(startersCommand?.contents).toContain(
-      'starters: S.Array(S.String({ minLength: 3, maxLength: 120, pattern: "^[a-z].+$", format: "date-time" }), { minItems: 1, maxItems: 4'
+      'starters: S.Optional(S.Array(S.String({ minLength: 3, maxLength: 120, pattern: "^[a-z].+$", format: "date-time" }), { minItems: 1, maxItems: 4'
     );
   });
 

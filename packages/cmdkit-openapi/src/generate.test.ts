@@ -473,6 +473,56 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("uses the first tag when multiple tags are present", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots", "ignored"],
+            operationId: "listBots",
+            responses: {
+              "200": {
+                description: "List."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).toContain("bots/list.ts");
+  });
+
+  it("uses view as the verb for get-by-id operations", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          get: {
+            tags: ["bots"],
+            operationId: "viewBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "Viewed."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).toContain("bots/view.ts");
+  });
+
   it("treats required body fields as optional when the request body is optional", () => {
     const files = generate(
       createDocument({
@@ -597,6 +647,50 @@ describe("generate", () => {
     );
 
     expect(files).toMatchSnapshot();
+  });
+
+  it("keeps request-body flags on delete operations", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          delete: {
+            tags: ["bots"],
+            operationId: "deleteBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      reason: { type: "string" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "204": {
+                description: "Deleted."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/delete.ts")?.contents).toContain(
+      "reason: S.Optional(S.String())"
+    );
   });
 
   it("generates array body params with a repeatable CLI flag, a JSON variant, and MCP array fidelity", () => {
@@ -1016,6 +1110,47 @@ describe("generate", () => {
     );
   });
 
+  it("throws when a request body omits application/json content", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}/import": {
+            post: {
+              tags: ["bots"],
+              operationId: "importBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/xml": {
+                    schema: { type: "string" }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Imported."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "importBot" must define requestBody.content["application/json"] in v1.'
+      )
+    );
+  });
+
   it("allows non-JSON error responses when success responses stay JSON", () => {
     expect(() =>
       generate(
@@ -1077,6 +1212,30 @@ describe("generate", () => {
       )
     ).toThrowError(
       new UserError('Operation "listBots" must define tags[0] to derive a command noun.')
+    );
+  });
+
+  it("throws when an ambiguous operation omits operationId", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/search": {
+            post: {
+              tags: ["bots"],
+              responses: {
+                "200": {
+                  description: "Searched."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "POST /bots/search" is missing an operationId, so cmdkit-openapi cannot derive a stable command verb.'
+      )
     );
   });
 
@@ -1150,6 +1309,153 @@ describe("generate", () => {
       new UserError(
         'Generated command path "bots list" is defined more than once ("listBots" and "listBotsAgain").'
       )
+    );
+  });
+
+  it("throws when the OpenAPI document is missing paths", () => {
+    expect(() =>
+      generate(
+        {
+          openapi: "3.0.3",
+          info: {
+            title: "Internal Agent API",
+            version: "1.0.0"
+          }
+        },
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(new UserError('OpenAPI document must define a top-level "paths" object.'));
+  });
+
+  it("emits the same files for identical input", () => {
+    const document = createDocument({
+      "/bots/{handle}/actions/update-description": {
+        put: {
+          tags: ["bots"],
+          operationId: "updateDescription",
+          parameters: [
+            {
+              name: "handle",
+              in: "path",
+              required: true,
+              schema: { type: "string" }
+            }
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["description"],
+                  properties: {
+                    description: { type: "string" }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Updated."
+            }
+          }
+        }
+      }
+    });
+
+    expect(generate(document, { specSha: "spec-sha-123" })).toEqual(
+      generate(document, { specSha: "spec-sha-123" })
+    );
+  });
+
+  it("serializes JSON bodies for put operations", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          put: {
+            tags: ["bots"],
+            operationId: "replaceBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["description"],
+                    properties: {
+                      description: { type: "string" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Replaced."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/replace-bot.ts")?.contents).toContain(
+      '"description": params.description'
+    );
+  });
+
+  it("serializes JSON bodies for patch operations", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          patch: {
+            tags: ["bots"],
+            operationId: "patchBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["description"],
+                    properties: {
+                      description: { type: "string" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Patched."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/patch-bot.ts")?.contents).toContain(
+      '"description": params.description'
     );
   });
 });

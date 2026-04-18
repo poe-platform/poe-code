@@ -206,6 +206,13 @@ describe("defineClient", () => {
     expect(wrapper.children[0]).toMatchObject({
       kind: "group",
       name: "internal-agent",
+      children: [
+        {
+          kind: "group",
+          name: "bots",
+          children: [{ name: "list" }],
+        },
+      ],
     });
   });
 });

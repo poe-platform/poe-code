@@ -473,6 +473,57 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("generates query-array params with a repeatable CLI flag, a JSON variant, and query serialization", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            summary: "List bots.",
+            parameters: [
+              {
+                name: "tags",
+                in: "query",
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "string"
+                  }
+                }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "List.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain('tags: S.Optional(S.Array(S.String(), { scope: ["mcp", "sdk"] }))');
+    expect(commandFile?.contents).toContain('tag: S.Optional(S.Array(S.String(), { scope: ["cli"] }))');
+    expect(commandFile?.contents).toContain(
+      'tagsJson: S.Optional(S.String({ description: "JSON-encoded value for tags.", scope: ["cli"] }))'
+    );
+    expect(commandFile?.contents).toContain(
+      "let resolvedTags = params.tags !== undefined ? params.tags : params.tag;"
+    );
+    expect(commandFile?.contents).toContain('"tags": resolvedTags');
+  });
+
   it("uses the first tag when multiple tags are present", () => {
     const files = generate(
       createDocument({
@@ -748,6 +799,61 @@ describe("generate", () => {
     );
 
     expect(files).toMatchSnapshot();
+  });
+
+  it("adds a null helper flag for nullable array body fields", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-conversation-starters": {
+          post: {
+            tags: ["bots"],
+            operationId: "setConversationStarters",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      starters: {
+                        type: "array",
+                        nullable: true,
+                        items: {
+                          type: "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/set-conversation-starters.ts");
+
+    expect(commandFile?.contents).toContain("startersNull: S.Optional(S.Boolean(");
+    expect(commandFile?.contents).toContain(
+      "let resolvedStarters = params.starters !== undefined ? params.starters : params.starter;"
+    );
+    expect(commandFile?.contents).toContain("if (params.startersNull) {");
+    expect(commandFile?.contents).toContain("resolvedStarters = null;");
   });
 
   it("marks generated delete commands as confirmable", () => {
@@ -1069,6 +1175,37 @@ describe("generate", () => {
       new UserError(
         'Operation "viewBot" path "/bots/{handle}" references "{handle}" but does not define a matching path parameter.'
       )
+    );
+  });
+
+  it("throws when a path parameter is not marked required", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: false,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError('Operation "viewBot" path parameter "handle" must set required: true.')
     );
   });
 

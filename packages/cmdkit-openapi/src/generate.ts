@@ -331,9 +331,9 @@ function collectParams(
 
   return {
     params: [...deduped.values()].sort((left, right) => left.paramName.localeCompare(right.paramName)),
-    preflightLines: requestBodyParams.preflightLines,
+    preflightLines: [...operationParams.preflightLines, ...requestBodyParams.preflightLines],
     requestFields: [...operationParams.requestFields, ...requestBodyParams.requestFields],
-    requiresUserError: requestBodyParams.requiresUserError
+    requiresUserError: operationParams.requiresUserError || requestBodyParams.requiresUserError
   };
 }
 
@@ -384,20 +384,24 @@ function collectOperationParameters(
 
   assertPathTemplateParameters(path, merged, operationId);
 
-  const params = [...merged.values()].map((parameter) =>
-    createGeneratedParameter(document, parameter, operationId)
-  );
+  const params: GeneratedParam[] = [];
+  const preflightLines: string[] = [];
+  const requestFields: GeneratedRequestField[] = [];
+  let requiresUserError = false;
+
+  for (const parameter of merged.values()) {
+    const generated = createGeneratedParameter(document, parameter, operationId);
+    params.push(...generated.params);
+    preflightLines.push(...generated.preflightLines);
+    requestFields.push(generated.requestField);
+    requiresUserError ||= generated.requiresUserError;
+  }
 
   return {
     params,
-    preflightLines: [],
-    requestFields: params.map((param) => ({
-      location: param.location,
-      originalName: param.originalName,
-      valueExpression: `params.${param.paramName}`,
-      omitWhenUndefinedExpression: `params.${param.paramName} === undefined`
-    })) as GeneratedRequestField[],
-    requiresUserError: false
+    preflightLines,
+    requestFields,
+    requiresUserError
   };
 }
 
@@ -503,22 +507,148 @@ function createGeneratedParameter(
   document: OpenApiDocument,
   parameter: SupportedOpenApiParameterObject,
   operationId: string
-): GeneratedParam {
+): {
+  params: GeneratedParam[];
+  preflightLines: string[];
+  requestField: GeneratedRequestField;
+  requiresUserError: boolean;
+} {
   const schema = expectSchema(document, parameter.schema, operationId, `parameters.${parameter.name}`);
-  const optional = parameter.in === "path" ? false : parameter.required !== true;
+
+  if (parameter.in === "path" && parameter.required !== true) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(parameter.name)} must set required: true.`
+    );
+  }
+
+  if (parameter.in === "query" && schema.type === "array") {
+    return createArrayQueryParameter(
+      document,
+      parameter.name,
+      parameter.description ?? schema.description,
+      schema,
+      parameter.required !== true,
+      operationId
+    );
+  }
+
+  const paramName = normalizeParamName(parameter.name);
+  return {
+    params: [
+      {
+        paramName,
+        originalName: parameter.name,
+        location: parameter.in,
+        description: parameter.description ?? schema.description,
+        optional: parameter.required !== true,
+        definition: createParamDefinition(
+          document,
+          schema,
+          operationId,
+          `parameter ${JSON.stringify(parameter.name)}`
+        )
+      } satisfies GeneratedParam
+    ],
+    preflightLines: [],
+    requestField: {
+      location: parameter.in,
+      originalName: parameter.name,
+      valueExpression: `params.${paramName}`,
+      omitWhenUndefinedExpression: `params.${paramName} === undefined`
+    },
+    requiresUserError: false
+  };
+}
+
+function createArrayQueryParameter(
+  document: OpenApiDocument,
+  name: string,
+  description: string | undefined,
+  schema: OpenApiSchemaObject,
+  optional: boolean,
+  operationId: string
+): {
+  params: GeneratedParam[];
+  preflightLines: string[];
+  requestField: GeneratedRequestField;
+  requiresUserError: boolean;
+} {
+  const paramName = normalizeParamName(name);
+  const directDefinition = createParamDefinition(
+    document,
+    schema,
+    operationId,
+    `parameter ${JSON.stringify(name)}`
+  );
+  const repeatableParamName = deriveArrayCliParamName(name);
+  const jsonParamName = `${paramName}Json`;
+  const resolvedName = `resolved${toPascalCase(paramName)}`;
 
   return {
-    paramName: normalizeParamName(parameter.name),
-    originalName: parameter.name,
-    location: parameter.in,
-    description: parameter.description ?? schema.description,
-    optional,
-    definition: createParamDefinition(
-      document,
-      schema,
-      operationId,
-      `parameter ${JSON.stringify(parameter.name)}`
-    )
+    params: [
+      {
+        paramName,
+        originalName: name,
+        location: "query",
+        description,
+        optional,
+        scope: ["mcp", "sdk"],
+        definition: directDefinition
+      } satisfies GeneratedParam,
+      {
+        paramName: repeatableParamName,
+        originalName: repeatableParamName,
+        location: "transport",
+        description,
+        optional: true,
+        scope: ["cli"],
+        definition: directDefinition
+      } satisfies GeneratedParam,
+      {
+        paramName: jsonParamName,
+        originalName: jsonParamName,
+        location: "transport",
+        description: `JSON-encoded value for ${name}.`,
+        optional: true,
+        scope: ["cli"],
+        definition: { kind: "string" }
+      } satisfies GeneratedParam
+    ],
+    preflightLines: [
+      `    if (params.${paramName} !== undefined && (params.${repeatableParamName} !== undefined || params.${jsonParamName} !== undefined)) {`,
+      `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(paramName)}", "--${toCliFlag(repeatableParamName)}", and "--${toCliFlag(jsonParamName)}" cannot be combined.`)});`,
+      "    }",
+      `    if (params.${repeatableParamName} !== undefined && params.${jsonParamName} !== undefined) {`,
+      `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(repeatableParamName)}" and "--${toCliFlag(jsonParamName)}" are mutually exclusive.`)});`,
+      "    }",
+      `    let ${resolvedName} = params.${paramName} !== undefined ? params.${paramName} : params.${repeatableParamName};`,
+      `    if (params.${jsonParamName} !== undefined) {`,
+      "      let parsedJson: unknown;",
+      "      try {",
+      `        parsedJson = JSON.parse(params.${jsonParamName});`,
+      "      } catch (error) {",
+      `        throw new UserError(${JSON.stringify(`Invalid value for "--${toCliFlag(jsonParamName)}". Expected valid JSON.`)});`,
+      "      }",
+      "      if (!Array.isArray(parsedJson)) {",
+      `        throw new UserError(${JSON.stringify(`Invalid value for "--${toCliFlag(jsonParamName)}". Expected a JSON array.`)});`,
+      "      }",
+      `      ${resolvedName} = parsedJson;`,
+      "    }",
+      ...(optional
+        ? []
+        : [
+            `    if (${resolvedName} === undefined) {`,
+            `      throw new UserError(${JSON.stringify(`Missing required parameter "${toCliFlag(repeatableParamName)}".`)});`,
+            "    }"
+          ])
+    ],
+    requestField: {
+      location: "query",
+      originalName: name,
+      valueExpression: resolvedName,
+      omitWhenUndefinedExpression: `${resolvedName} === undefined`
+    },
+    requiresUserError: true
   };
 }
 
@@ -610,6 +740,7 @@ function createArrayBodyField(
   );
   const repeatableParamName = deriveArrayCliParamName(name);
   const jsonParamName = `${paramName}Json`;
+  const nullParamName = `${paramName}Null`;
   const resolvedName = `resolved${toPascalCase(paramName)}`;
   const params: GeneratedParam[] = [
     {
@@ -640,14 +771,34 @@ function createArrayBodyField(
       definition: { kind: "string" }
     } satisfies GeneratedParam
   ];
+
+  if (directDefinition.nullable === true) {
+    params.push({
+      paramName: nullParamName,
+      originalName: nullParamName,
+      location: "transport",
+      description: `Send null for ${name}.`,
+      optional: true,
+      scope: ["cli"],
+      definition: { kind: "boolean" }
+    });
+  }
+
   const preflightLines = [
+    ...(directDefinition.nullable === true
+      ? [
+          `    if (params.${nullParamName} && (params.${paramName} !== undefined || params.${repeatableParamName} !== undefined || params.${jsonParamName} !== undefined)) {`,
+          `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(nullParamName)}", "--${toCliFlag(paramName)}", "--${toCliFlag(repeatableParamName)}", and "--${toCliFlag(jsonParamName)}" cannot be combined.`)});`,
+          "    }"
+        ]
+      : []),
     `    if (params.${paramName} !== undefined && (params.${repeatableParamName} !== undefined || params.${jsonParamName} !== undefined)) {`,
     `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(paramName)}", "--${toCliFlag(repeatableParamName)}", and "--${toCliFlag(jsonParamName)}" cannot be combined.`)});`,
     "    }",
     `    if (params.${repeatableParamName} !== undefined && params.${jsonParamName} !== undefined) {`,
     `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(repeatableParamName)}" and "--${toCliFlag(jsonParamName)}" are mutually exclusive.`)});`,
     "    }",
-    `    let ${resolvedName} = params.${paramName} ?? params.${repeatableParamName};`,
+    `    let ${resolvedName} = params.${paramName} !== undefined ? params.${paramName} : params.${repeatableParamName};`,
     `    if (params.${jsonParamName} !== undefined) {`,
     "      let parsedJson: unknown;",
     "      try {",
@@ -659,7 +810,10 @@ function createArrayBodyField(
     `        throw new UserError(${JSON.stringify(`Invalid value for "--${toCliFlag(jsonParamName)}". Expected a JSON array.`)});`,
     "      }",
     `      ${resolvedName} = parsedJson;`,
-    "    }"
+    "    }",
+    ...(directDefinition.nullable === true
+      ? [`    if (params.${nullParamName}) {`, `      ${resolvedName} = null;`, "    }"]
+      : [])
   ];
 
   if (!optional) {

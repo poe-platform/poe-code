@@ -200,7 +200,7 @@ export const botsSetConversationStartersCommand = defineCommand<OpenApiClientSer
     if (params.starter !== undefined && params.startersJson !== undefined) {
       throw new UserError("Options \\"--starter\\" and \\"--starters-json\\" are mutually exclusive.");
     }
-    let resolvedStarters = params.starters ?? params.starter;
+    let resolvedStarters = params.starters !== undefined ? params.starters : params.starter;
     if (params.startersJson !== undefined) {
       let parsedJson: unknown;
       try {

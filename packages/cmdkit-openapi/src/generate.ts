@@ -569,6 +569,12 @@ function createGeneratedParameter(
     );
   }
 
+  if (parameter.in === "path" && (schema.type === "array" || schema.type === "object")) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(parameter.name)} must use a scalar schema (string, number, integer, or boolean).`
+    );
+  }
+
   if (parameter.in === "query" && schema.type === "array") {
     return createArrayParam({
       document,

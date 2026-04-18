@@ -1857,6 +1857,80 @@ describe("generate", () => {
     );
   });
 
+  it("throws when a path parameter uses an array schema", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{botHandle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "botHandle",
+                  in: "path",
+                  required: true,
+                  schema: {
+                    type: "array",
+                    items: { type: "string" }
+                  }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Bot."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" path parameter "botHandle" must use a scalar schema (string, number, integer, or boolean).'
+      )
+    );
+  });
+
+  it("throws when a path parameter uses an object schema", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{botHandle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "botHandle",
+                  in: "path",
+                  required: true,
+                  schema: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" }
+                    }
+                  }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Bot."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" path parameter "botHandle" must use a scalar schema (string, number, integer, or boolean).'
+      )
+    );
+  });
+
   it("throws when GET operations resolve to the same noun and verb", () => {
     expect(() =>
       generate(

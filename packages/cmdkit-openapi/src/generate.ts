@@ -255,7 +255,7 @@ function createGeneratedCommand(
   const operationId = entry.operation.operationId ?? `${entry.method.toUpperCase()} ${entry.path}`;
   assertSupportedSuccessResponses(document, entry.operation, operationId);
   const noun = deriveNoun(entry.operation, operationId);
-  const verb = deriveVerb(entry.method, entry.path, entry.operation, operationId);
+  const verb = deriveVerb(entry.method, entry.path, entry.operation, operationId, noun);
   const collected = collectParams(document, entry, operationId);
   const methodDefaults = METHOD_DEFAULTS[entry.method];
   const exportName = `${toCamelCase(noun)}${toPascalCase(verb)}Command`;

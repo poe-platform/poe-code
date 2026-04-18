@@ -32,7 +32,8 @@ export function deriveVerb(
   method: HttpMethod,
   path: string,
   operation: { operationId?: string },
-  operationId: string
+  operationId: string,
+  noun: string
 ): string {
   const segments = splitPathSegments(path);
   const actionsIndex = segments.indexOf("actions");
@@ -45,11 +46,33 @@ export function deriveVerb(
   const defaults = METHOD_DEFAULTS[method];
   if (defaults !== undefined) {
     const lastSegment = segments.at(-1);
-    return isPathTemplateSegment(lastSegment) ? defaults.resource : defaults.collection;
+
+    if (isPathTemplateSegment(lastSegment)) {
+      return defaults.resource;
+    }
+
+    if (method === "get") {
+      const derived = deriveVerbFromOperationId(method, operation.operationId, noun);
+      const pathTail = lastSegment === undefined ? undefined : toKebabCase(lastSegment);
+
+      if (derived !== undefined) {
+        if (pathTail === undefined || derived.verb !== pathTail) {
+          return derived.verb;
+        }
+
+        if (!derived.startsWithList) {
+          return pathTail;
+        }
+      }
+    }
+
+    return defaults.collection;
   }
 
-  if (operation.operationId !== undefined) {
-    return toKebabCase(operation.operationId);
+  const derived = deriveVerbFromOperationId(method, operation.operationId, noun);
+
+  if (derived !== undefined) {
+    return derived.verb;
   }
 
   throw new UserError(
@@ -77,7 +100,11 @@ export function toKebabCase(value: string): string {
 }
 
 export function splitWords(value: string): string[] {
-  const normalized = value.replaceAll("-", " ").replaceAll("_", " ").replaceAll(".", " ");
+  const normalized = value
+    .replaceAll("-", " ")
+    .replaceAll("_", " ")
+    .replaceAll(".", " ")
+    .replaceAll("/", " ");
   return normalized
     .split(" ")
     .flatMap(splitCamelCaseWord)
@@ -95,6 +122,113 @@ function splitPathSegments(path: string): string[] {
 
 function isPathTemplateSegment(segment: string | undefined): boolean {
   return segment !== undefined && segment.startsWith("{") && segment.endsWith("}");
+}
+
+function deriveVerbFromOperationId(
+  method: HttpMethod,
+  operationId: string | undefined,
+  noun: string
+): { verb: string; startsWithList: boolean } | undefined {
+  if (operationId === undefined) {
+    return undefined;
+  }
+
+  let words = splitWords(operationId);
+  const nounWords = splitWords(noun);
+
+  words = trimLeadingWords(words, nounWords);
+  words = trimTrailingMethod(words, method);
+  words = words.filter((word) => !isVersionWord(word));
+  words = dedupeAdjacentWords(words);
+
+  const startsWithList = words[0] === "list";
+
+  if (method === "get" && words.length > 1 && isGenericGetVerb(words[0])) {
+    words = words.slice(1);
+  }
+
+  const withoutTrailingNoun = trimTrailingWords(words, nounWords);
+  words = withoutTrailingNoun.length === 0 ? words : withoutTrailingNoun;
+  words = dedupeAdjacentWords(words);
+
+  if (words.length === 0) {
+    return undefined;
+  }
+
+  return {
+    verb: words.join("-"),
+    startsWithList
+  };
+}
+
+function trimLeadingWords(words: string[], prefix: string[]): string[] {
+  if (prefix.length === 0 || prefix.length > words.length) {
+    return words;
+  }
+
+  for (let index = 0; index < prefix.length; index += 1) {
+    if (words[index] !== prefix[index]) {
+      return words;
+    }
+  }
+
+  return words.slice(prefix.length);
+}
+
+function trimTrailingWords(words: string[], suffix: string[]): string[] {
+  if (suffix.length === 0 || suffix.length >= words.length) {
+    return words;
+  }
+
+  const start = words.length - suffix.length;
+
+  for (let index = 0; index < suffix.length; index += 1) {
+    if (words[start + index] !== suffix[index]) {
+      return words;
+    }
+  }
+
+  return words.slice(0, start);
+}
+
+function trimTrailingMethod(words: string[], method: HttpMethod): string[] {
+  return words.at(-1) === method ? words.slice(0, -1) : words;
+}
+
+function dedupeAdjacentWords(words: string[]): string[] {
+  if (words.length === 0) {
+    return [];
+  }
+
+  const deduped = [words[0] ?? ""];
+
+  for (let index = 1; index < words.length; index += 1) {
+    const word = words[index] ?? "";
+
+    if (word !== deduped.at(-1)) {
+      deduped.push(word);
+    }
+  }
+
+  return deduped;
+}
+
+function isGenericGetVerb(word: string | undefined): boolean {
+  return word === "get" || word === "list" || word === "view";
+}
+
+function isVersionWord(word: string): boolean {
+  if (!word.startsWith("v") || word.length < 2) {
+    return false;
+  }
+
+  for (const character of word.slice(1)) {
+    if (character < "0" || character > "9") {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function splitCamelCaseWord(value: string): string[] {

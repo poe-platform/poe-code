@@ -14,9 +14,45 @@ describe("naming", () => {
   });
 
   it("uses delete as the default delete verb", () => {
-    expect(deriveVerb("delete", "/bots/{handle}", { operationId: "deleteBot" }, "deleteBot")).toBe(
-      "delete"
-    );
+    expect(
+      deriveVerb("delete", "/bots/{handle}", { operationId: "deleteBot" }, "deleteBot", "bots")
+    ).toBe("delete");
+  });
+
+  it("uses the operationId for singleton GET endpoints", () => {
+    expect(
+      deriveVerb(
+        "get",
+        "/v1/whoami",
+        { operationId: "whoami_v1_whoami_get" },
+        "whoami_v1_whoami_get",
+        "agent"
+      )
+    ).toBe("whoami");
+  });
+
+  it("preserves GET qualifiers from operationId when the path tail is too generic", () => {
+    expect(
+      deriveVerb(
+        "get",
+        "/events",
+        { operationId: "activity/list-public-events" },
+        "activity/list-public-events",
+        "activity"
+      )
+    ).toBe("public-events");
+  });
+
+  it("drops duplicated tag prefixes from slash-delimited operationIds", () => {
+    expect(
+      deriveVerb(
+        "post",
+        "/repos/{owner}/{repo}/environments/{environment_name}/variables",
+        { operationId: "actions/create-environment-variable" },
+        "actions/create-environment-variable",
+        "actions"
+      )
+    ).toBe("create-environment-variable");
   });
 
   it("keeps explicit camel-cased parameter names", () => {
@@ -24,11 +60,12 @@ describe("naming", () => {
   });
 
   it("splits separators and camelCase words", () => {
-    expect(splitWords("set-image_comprehension.Mode")).toEqual([
+    expect(splitWords("set-image_comprehension.Mode/path")).toEqual([
       "set",
       "image",
       "comprehension",
-      "mode"
+      "mode",
+      "path"
     ]);
   });
 

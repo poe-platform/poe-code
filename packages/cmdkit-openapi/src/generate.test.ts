@@ -621,6 +621,86 @@ describe("generate", () => {
     expect(files.map((file) => file.path)).toContain("bots/view.ts");
   });
 
+  it("uses the operationId-derived verb for singleton GET endpoints", () => {
+    const files = generate(
+      createDocument({
+        "/v1/whoami": {
+          get: {
+            tags: ["agent"],
+            operationId: "whoami_v1_whoami_get",
+            summary: "Whoami",
+            responses: {
+              "200": {
+                description: "Viewed."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).toContain("agent/whoami.ts");
+  });
+
+  it("drops duplicated tag prefixes from slash-delimited operationIds", () => {
+    const files = generate(
+      createDocument({
+        "/repos/{owner}/{repo}/environments/{environment_name}/variables": {
+          post: {
+            tags: ["actions"],
+            operationId: "actions/create-environment-variable",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["name", "value"],
+                    properties: {
+                      name: { type: "string" },
+                      value: { type: "string" }
+                    }
+                  }
+                }
+              }
+            },
+            parameters: [
+              {
+                name: "owner",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              },
+              {
+                name: "repo",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              },
+              {
+                name: "environment_name",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            responses: {
+              "201": {
+                description: "Created."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).toContain("actions/create-environment-variable.ts");
+    expect(files.find((file) => file.path === "actions/create-environment-variable.ts")?.contents)
+      .toContain("export const actionsCreateEnvironmentVariableCommand");
+  });
+
   it("treats required body fields as optional when the request body is optional", () => {
     const files = generate(
       createDocument({
@@ -1471,23 +1551,23 @@ describe("generate", () => {
       generate(
         createDocument({
           "/bots": {
-            get: {
+            post: {
               tags: ["bots"],
-              operationId: "listBots",
+              operationId: "createBot",
               responses: {
-                "200": {
-                  description: "List."
+                "201": {
+                  description: "Created."
                 }
               }
             }
           },
-          "/bots/list": {
-            get: {
+          "/bots/create": {
+            post: {
               tags: ["bots"],
-              operationId: "listBotsAgain",
+              operationId: "bots/create-bot",
               responses: {
-                "200": {
-                  description: "List."
+                "201": {
+                  description: "Created."
                 }
               }
             }
@@ -1497,7 +1577,7 @@ describe("generate", () => {
       )
     ).toThrowError(
       new UserError(
-        'Generated command path "bots list" is defined more than once ("listBots" and "listBotsAgain").'
+        'Generated command path "bots create-bot" is defined more than once ("createBot" and "bots/create-bot").'
       )
     );
   });

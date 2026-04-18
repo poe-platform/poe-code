@@ -923,10 +923,24 @@ function assertPathTemplateParameters(
   parameters: ReadonlyMap<string, OpenApiParameterObject>,
   operationId: string
 ): void {
-  for (const placeholder of collectPathPlaceholders(path)) {
+  const placeholders = new Set(collectPathPlaceholders(path));
+
+  for (const placeholder of placeholders) {
     if (!parameters.has(`path:${placeholder}`)) {
       throw new UserError(
         `Operation ${JSON.stringify(operationId)} path ${JSON.stringify(path)} references ${JSON.stringify(`{${placeholder}}`)} but does not define a matching path parameter.`
+      );
+    }
+  }
+
+  for (const parameter of parameters.values()) {
+    if (parameter.in !== "path") {
+      continue;
+    }
+
+    if (!placeholders.has(parameter.name)) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} path ${JSON.stringify(path)} declares path parameter ${JSON.stringify(parameter.name)} but the path template does not include ${JSON.stringify(`{${parameter.name}}`)}.`
       );
     }
   }

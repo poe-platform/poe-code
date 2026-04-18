@@ -1890,6 +1890,39 @@ describe("generate", () => {
     );
   });
 
+  it("throws when a declared path parameter does not appear in the path template", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" path "/bots" declares path parameter "handle" but the path template does not include "{handle}".'
+      )
+    );
+  });
+
   it("throws when a path parameter is not marked required", () => {
     expect(() =>
       generate(

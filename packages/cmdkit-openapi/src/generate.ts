@@ -176,18 +176,23 @@ interface GeneratedRequestField {
 
 interface CollectedCommandParams {
   params: GeneratedParam[];
-  preflightLines: string[];
+  preflightBlocks: GeneratedPreflightBlock[];
   requestFields: GeneratedRequestField[];
-  requiresUserError: boolean;
   optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
   requestBodyDescription?: string;
 }
 
 interface GeneratedParameterAssembly {
   params: GeneratedParam[];
-  preflightLines: string[];
+  preflightBlocks: GeneratedPreflightBlock[];
   requestField: GeneratedRequestField;
-  requiresUserError: boolean;
+}
+
+type GeneratedCommandImport = "UserError";
+
+interface GeneratedPreflightBlock {
+  code: string[];
+  imports?: readonly GeneratedCommandImport[];
 }
 
 interface CreateArrayParamOptions {
@@ -287,10 +292,9 @@ function createGeneratedCommand(
       ),
       method: entry.method.toUpperCase(),
       path: entry.path,
-      ...(methodDefaults?.confirm === true ? { confirm: true } : {}),
+      confirm: methodDefaults?.confirm === true,
       params: collected.params,
-      preflightLines: collected.preflightLines,
-      requiresUserError: collected.requiresUserError,
+      preflightBlocks: collected.preflightBlocks,
       requestFields: collected.requestFields,
       optionalSections: collected.optionalSections
     })
@@ -363,9 +367,8 @@ function collectParams(
     params: [...deduped.values()].sort((left, right) =>
       left.paramName.localeCompare(right.paramName)
     ),
-    preflightLines: [...operationParams.preflightLines, ...requestBodyParams.preflightLines],
+    preflightBlocks: [...operationParams.preflightBlocks, ...requestBodyParams.preflightBlocks],
     requestFields: [...operationParams.requestFields, ...requestBodyParams.requestFields],
-    requiresUserError: operationParams.requiresUserError || requestBodyParams.requiresUserError,
     optionalSections: new Set([
       ...operationParams.optionalSections,
       ...requestBodyParams.optionalSections
@@ -422,23 +425,20 @@ function collectOperationParameters(
   assertPathTemplateParameters(path, merged, operationId);
 
   const params: GeneratedParam[] = [];
-  const preflightLines: string[] = [];
+  const preflightBlocks: GeneratedPreflightBlock[] = [];
   const requestFields: GeneratedRequestField[] = [];
-  let requiresUserError = false;
 
   for (const parameter of merged.values()) {
     const generated = createGeneratedParameter(document, parameter, operationId);
     params.push(...generated.params);
-    preflightLines.push(...generated.preflightLines);
+    preflightBlocks.push(...generated.preflightBlocks);
     requestFields.push(generated.requestField);
-    requiresUserError ||= generated.requiresUserError;
   }
 
   return {
     params,
-    preflightLines,
+    preflightBlocks,
     requestFields,
-    requiresUserError,
     optionalSections: new Set(),
     requestBodyDescription: undefined
   };
@@ -452,9 +452,8 @@ function collectRequestBodyParams(
   if (operation.requestBody === undefined) {
     return {
       params: [],
-      preflightLines: [],
+      preflightBlocks: [],
       requestFields: [],
-      requiresUserError: false,
       optionalSections: new Set(),
       requestBodyDescription: undefined
     };
@@ -485,9 +484,8 @@ function collectRequestBodyParams(
   const required = new Set(schema.required ?? []);
   const bodyOptional = requestBody.required !== true;
   const params: GeneratedParam[] = [];
-  const preflightLines: string[] = [];
+  const preflightBlocks: GeneratedPreflightBlock[] = [];
   const requestFields: GeneratedRequestField[] = [];
-  let requiresUserError = false;
 
   for (const [name, property] of Object.entries(schema.properties)) {
     const propertySchema = expectSchema(
@@ -505,18 +503,17 @@ function collectRequestBodyParams(
     );
 
     params.push(...generated.params);
-    preflightLines.push(...generated.preflightLines);
+    preflightBlocks.push(...generated.preflightBlocks);
     requestFields.push(generated.requestField);
-    requiresUserError ||= generated.requiresUserError;
   }
 
   return {
     params,
-    preflightLines,
+    preflightBlocks,
     requestFields,
-    requiresUserError,
-    optionalSections:
-      requestBody.required === true ? new Set() : new Set<Exclude<GeneratedParam["location"], "transport">>(["body"]),
+    optionalSections: bodyOptional
+      ? new Set<Exclude<GeneratedParam["location"], "transport">>(["body"])
+      : new Set(),
     requestBodyDescription: requestBody.description
   };
 }
@@ -606,14 +603,13 @@ function createGeneratedParameter(
         )
       } satisfies GeneratedParam
     ],
-    preflightLines: [],
+    preflightBlocks: [],
     requestField: {
       location: parameter.in,
       originalName: parameter.name,
       valueExpression: `params.${paramName}`,
       omitWhenUndefinedExpression: `params.${paramName} === undefined`
-    },
-    requiresUserError: false
+    }
   };
 }
 
@@ -656,7 +652,7 @@ function createBodyField(
       definition
     } satisfies GeneratedParam
   ];
-  const preflightLines: string[] = [];
+  const preflightBlocks: GeneratedPreflightBlock[] = [];
   const resolvedName = `resolved${toPascalCase(paramName)}`;
 
   if (definition.nullable === true) {
@@ -669,17 +665,20 @@ function createBodyField(
       scope: ["cli"],
       definition: { kind: "boolean" }
     });
-    preflightLines.push(
-      `    if (params.${paramName} !== undefined && params.${paramName} !== null && params.${paramName}Null) {`,
-      `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(paramName)}" and "--${toCliFlag(`${paramName}Null`)}" are mutually exclusive.`)});`,
-      "    }",
-      `    const ${resolvedName} = params.${paramName}Null ? null : params.${paramName};`
-    );
+    preflightBlocks.push({
+      imports: ["UserError"],
+      code: [
+        `    if (params.${paramName} !== undefined && params.${paramName} !== null && params.${paramName}Null) {`,
+        `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(paramName)}" and "--${toCliFlag(`${paramName}Null`)}" are mutually exclusive.`)});`,
+        "    }",
+        `    const ${resolvedName} = params.${paramName}Null ? null : params.${paramName};`
+      ]
+    });
   }
 
   return {
     params,
-    preflightLines,
+    preflightBlocks,
     requestField: {
       location: "body",
       originalName: name,
@@ -688,8 +687,7 @@ function createBodyField(
         definition.nullable === true
           ? `${resolvedName} === undefined`
           : `params.${paramName} === undefined`
-    },
-    requiresUserError: definition.nullable === true
+    }
   };
 }
 
@@ -712,6 +710,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
   const jsonParamName = `${paramName}Json`;
   const nullParamName = `${paramName}Null`;
   const resolvedName = `resolved${toPascalCase(paramName)}`;
+  const emitsNullHelper = supportsNullFlag && directDefinition.nullable === true;
   const params: GeneratedParam[] = [
     {
       paramName,
@@ -742,7 +741,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     } satisfies GeneratedParam
   ];
 
-  if (supportsNullFlag && directDefinition.nullable === true) {
+  if (emitsNullHelper) {
     params.push({
       paramName: nullParamName,
       sourceName: name,
@@ -754,8 +753,8 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     });
   }
 
-  const preflightLines = [
-    ...(supportsNullFlag && directDefinition.nullable === true
+  const preflightCode = [
+    ...(emitsNullHelper
       ? [
           `    if (params.${nullParamName} && (params.${paramName} !== undefined || params.${repeatableParamName} !== undefined || params.${jsonParamName} !== undefined)) {`,
           `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(nullParamName)}", "--${toCliFlag(paramName)}", "--${toCliFlag(repeatableParamName)}", and "--${toCliFlag(jsonParamName)}" cannot be combined.`)});`,
@@ -781,13 +780,11 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     "      }",
     `      ${resolvedName} = parsedJson;`,
     "    }",
-    ...(supportsNullFlag && directDefinition.nullable === true
-      ? [`    if (params.${nullParamName}) {`, `      ${resolvedName} = null;`, "    }"]
-      : [])
+    ...(emitsNullHelper ? [`    if (params.${nullParamName}) {`, `      ${resolvedName} = null;`, "    }"] : [])
   ];
 
   if (!optional) {
-    preflightLines.push(
+    preflightCode.push(
       `    if (${resolvedName} === undefined) {`,
       `      throw new UserError(${JSON.stringify(`Missing required parameter "${toCliFlag(repeatableParamName)}".`)});`,
       "    }"
@@ -796,7 +793,12 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
 
   return {
     params,
-    preflightLines,
+    preflightBlocks: [
+      {
+        imports: ["UserError"],
+        code: preflightCode
+      }
+    ],
     requestField: {
       location,
       originalName: name,
@@ -805,8 +807,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
           ? renderQueryArrayValueExpression(resolvedName, querySerialization ?? "repeat")
           : resolvedName,
       omitWhenUndefinedExpression: `${resolvedName} === undefined`
-    },
-    requiresUserError: true
+    }
   };
 }
 
@@ -1062,10 +1063,7 @@ function expectParameter(
     );
   }
 
-  return {
-    ...parameter,
-    in: parameter.in
-  };
+  return parameter as SupportedOpenApiParameterObject;
 }
 
 function isEnumPrimitiveValue(value: unknown): value is string | number | boolean {
@@ -1207,19 +1205,26 @@ function createCommandFile(options: {
   method: string;
   path: string;
   params: GeneratedParam[];
-  preflightLines: string[];
-  requiresUserError: boolean;
+  preflightBlocks: GeneratedPreflightBlock[];
   requestFields: GeneratedRequestField[];
   optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
-  confirm?: true;
+  confirm: boolean;
 }): string {
+  const commandImports = new Set<GeneratedCommandImport>();
+
+  for (const block of options.preflightBlocks) {
+    for (const imported of block.imports ?? []) {
+      commandImports.add(imported);
+    }
+  }
+
   const lines = [
     "/**",
     " * Generated by @poe-code/cmdkit-openapi.",
     ` * spec-sha: ${options.specSha}`,
     ` * operation-id: ${options.operationId}`,
     " */",
-    options.requiresUserError
+    commandImports.has("UserError")
       ? 'import { defineCommand, S, UserError } from "@poe-code/cmdkit";'
       : 'import { defineCommand, S } from "@poe-code/cmdkit";',
     'import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";',
@@ -1233,14 +1238,14 @@ function createCommandFile(options: {
   }
 
   lines.push('  scope: ["cli", "mcp", "sdk"] as const,');
-  if (options.confirm === true) {
+  if (options.confirm) {
     lines.push("  confirm: true,");
   }
   lines.push("  params: S.Object({");
   lines.push(...renderParamLines(options.params));
   lines.push("  }),");
   lines.push("  handler: async ({ params, baseUrl, tokenSource, fetch }) => {");
-  lines.push(...options.preflightLines);
+  lines.push(...options.preflightBlocks.flatMap((block) => block.code));
   lines.push("    return requestJson({");
   lines.push("      baseUrl,");
   lines.push(`      path: ${JSON.stringify(options.path)},`);
@@ -1282,12 +1287,8 @@ function renderParamLines(params: GeneratedParam[]): string[] {
 }
 
 function renderParamSchema(param: GeneratedParam): string {
-  const schema = renderRequiredParamSchema(param);
+  const schema = renderDefinition(param.definition, param.description, param.shortFlag, param.scope);
   return param.optional ? `S.Optional(${schema})` : schema;
-}
-
-function renderRequiredParamSchema(param: GeneratedParam): string {
-  return renderDefinition(param.definition, param.description, param.shortFlag, param.scope);
 }
 
 function renderDefinition(

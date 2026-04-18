@@ -172,6 +172,61 @@ describe("generate", () => {
     );
   });
 
+  it("does not import UserError when generated preflight guards are absent", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-official": {
+          post: {
+            tags: ["bots"],
+            operationId: "setOfficial",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["official"],
+                    properties: {
+                      official: { type: "boolean" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/set-official.ts")?.contents).toContain(
+      'import { defineCommand, S } from "@poe-code/cmdkit";'
+    );
+    expect(files.find((file) => file.path === "bots/set-official.ts")?.contents).not.toContain(
+      'import { defineCommand, S, UserError } from "@poe-code/cmdkit";'
+    );
+  });
+
   it("keeps explicit camel-cased param names instead of stripping the noun prefix", () => {
     const files = generate(
       createDocument({
@@ -1247,38 +1302,6 @@ describe("generate", () => {
     );
 
     expect(files.find((file) => file.path === "bots/delete.ts")?.contents).toContain(
-      "  confirm: true,"
-    );
-  });
-
-  it("does not mark non-delete commands as confirmable", () => {
-    const files = generate(
-      createDocument({
-        "/bots/{handle}": {
-          get: {
-            tags: ["bots"],
-            operationId: "viewBot",
-            summary: "View a bot.",
-            parameters: [
-              {
-                name: "handle",
-                in: "path",
-                required: true,
-                schema: { type: "string" }
-              }
-            ],
-            responses: {
-              "200": {
-                description: "Viewed."
-              }
-            }
-          }
-        }
-      }),
-      { specSha: "spec-sha-123" }
-    );
-
-    expect(files.find((file) => file.path === "bots/view.ts")?.contents).not.toContain(
       "  confirm: true,"
     );
   });

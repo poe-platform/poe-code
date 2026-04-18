@@ -342,6 +342,21 @@ describe("requestJson", () => {
     });
   });
 
+  it("throws an HttpError with raw text bodies for client errors", async () => {
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        tokenSource: createTokenSource("abc"),
+        fetch: vi.fn(async () => createTextResponse("forbidden", 403)),
+      })
+    ).rejects.toMatchObject<HttpError>({
+      status: 403,
+      body: "forbidden",
+    });
+  });
+
   it("throws an HttpError with raw text bodies for server errors", async () => {
     await expect(
       requestJson({

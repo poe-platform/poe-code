@@ -135,6 +135,89 @@ describe("defineClient", () => {
     }
   });
 
+  it("round-trips a generated MCP command through tiny-mcp-client", async () => {
+    const client = defineClient({
+      name: "internal-agent",
+      baseUrl: "https://example.com/api",
+      auth: createAuthProvider([
+        defineGroup({
+          name: "auth",
+          children: [createCommand("login")],
+        }),
+      ]),
+      commands: [
+        defineGroup({
+          name: "bots",
+          scope: ["mcp"],
+          children: [
+            defineCommand({
+              name: "view",
+              scope: ["mcp"],
+              params: S.Object({
+                botHandle: S.String(),
+                limit: S.Optional(
+                  S.Number({
+                    jsonType: "integer",
+                  })
+                ),
+              }),
+              handler: async ({ params }) => ({
+                botHandle: params.botHandle,
+                limit: params.limit ?? null,
+              }),
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const server = createMCPServer(client.root, {
+      name: client.name,
+      version: "1.0.0",
+      services: client.services,
+    });
+    const { client: mcpClient, cleanup } = await createClientPair(server);
+
+    try {
+      const tools = await mcpClient.listTools();
+      const tool = tools.tools.find((candidate) => candidate.name === "internal_agent__bots__view");
+
+      expect(tool).toMatchObject({
+        inputSchema: {
+          type: "object",
+          properties: {
+            bot_handle: {
+              type: "string",
+            },
+            limit: {
+              type: "integer",
+            },
+          },
+          required: ["bot_handle"],
+        },
+      });
+
+      const result = await mcpClient.callTool({
+        name: "internal_agent__bots__view",
+        arguments: {
+          bot_handle: "my-bot",
+          limit: 2,
+        },
+      });
+
+      expect(result).toMatchObject({
+        content: [
+          {
+            type: "text",
+            text: '{"botHandle":"my-bot","limit":2}',
+          },
+        ],
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("derives the MCP prefix from the client name", () => {
     const client = defineClient({
       name: "internal-agent",

@@ -118,6 +118,61 @@ describe("generate", () => {
     expect(commandFile?.contents).toContain("params: S.Object({");
   });
 
+  it("renders option-less scalar, enum, and array definitions without extra arguments", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/update-metadata": {
+          post: {
+            tags: ["bots"],
+            operationId: "updateMetadata",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["label", "status"],
+                    properties: {
+                      label: { type: "string" },
+                      status: {
+                        type: "string",
+                        enum: ["draft", "published"]
+                      },
+                      tags: {
+                        type: "array",
+                        items: { type: "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/update-metadata.ts");
+
+    expect(commandFile?.contents).toContain("label: S.String()");
+    expect(commandFile?.contents).toContain('status: S.Enum(["draft","published"] as const)');
+    expect(commandFile?.contents).toContain("tags: S.Optional(S.Array(S.String()))");
+  });
+
   it("imports UserError when generated preflight guards are present", () => {
     const files = generate(
       createDocument({
@@ -1829,6 +1884,103 @@ describe("generate", () => {
     ).toThrowError(
       new UserError(
         'Operation "importBot" must define requestBody.content["application/json"] in v1.'
+      )
+    );
+  });
+
+  it("throws when a GET operation defines a request body", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      properties: {
+                        includeArchived: { type: "boolean" }
+                      }
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Viewed."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" uses unsupported requestBody on GET. Request bodies are not supported on GET in v1.'
+      )
+    );
+  });
+
+  it("throws when a request body field is a nested object", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            patch: {
+              tags: ["bots"],
+              operationId: "updateBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      properties: {
+                        metadata: {
+                          type: "object",
+                          properties: {
+                            theme: { type: "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Updated."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "updateBot" uses unsupported request body field "metadata". Nested object body fields are not supported in v1.'
       )
     );
   });

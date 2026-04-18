@@ -10,6 +10,7 @@ import {
 } from "./naming.js";
 
 const HTTP_METHOD_ORDER = ["get", "post", "put", "patch", "delete"] as const;
+const METHODS_WITHOUT_REQUEST_BODY = new Set<HttpMethod>(["get"]);
 type OpenApiOperationMap = Partial<Record<HttpMethod, OpenApiOperationObject>>;
 type OpenApiParameterLocation = "path" | "query" | "header" | "cookie";
 type SupportedOpenApiParameterLocation = "path" | "query";
@@ -35,6 +36,28 @@ const REQUEST_PARAM_SECTIONS = [
   key: "pathParams" | "query" | "body";
   omittable: boolean;
 }>;
+
+const TRANSPORT_PARAMS = [
+  {
+    paramName: "dryRun",
+    sourceName: "dryRun",
+    location: "transport",
+    description: "Print the HTTP request and exit without sending it.",
+    scope: ["cli", "sdk"],
+    optional: true,
+    definition: { kind: "boolean" }
+  },
+  {
+    paramName: "verbose",
+    sourceName: "verbose",
+    location: "transport",
+    description: "Log the request line to stderr.",
+    shortFlag: "v",
+    scope: ["cli", "sdk"],
+    optional: true,
+    definition: { kind: "boolean" }
+  }
+] as const satisfies ReadonlyArray<GeneratedParam>;
 
 export interface OpenApiDocument {
   openapi?: string;
@@ -190,6 +213,13 @@ interface GeneratedParameterAssembly {
   requestField: GeneratedRequestField;
 }
 
+interface RenderSchemaOptionsInput {
+  definition: GeneratedParamDefinition;
+  description?: string;
+  shortFlag?: string;
+  scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
+}
+
 type GeneratedCommandImport = "UserError";
 
 interface GeneratedPreflightBlock {
@@ -315,29 +345,13 @@ function collectParams(
     entry.operation.parameters ?? [],
     operationId
   );
-  const requestBodyParams = collectRequestBodyParams(document, entry.operation, operationId);
-  const transportParams = [
-    {
-      paramName: "dryRun",
-      sourceName: "dryRun",
-      location: "transport",
-      description: "Print the HTTP request and exit without sending it.",
-      scope: ["cli", "sdk"],
-      optional: true,
-      definition: { kind: "boolean" }
-    } satisfies GeneratedParam,
-    {
-      paramName: "verbose",
-      sourceName: "verbose",
-      location: "transport",
-      description: "Log the request line to stderr.",
-      shortFlag: "v",
-      scope: ["cli", "sdk"],
-      optional: true,
-      definition: { kind: "boolean" }
-    } satisfies GeneratedParam
-  ];
-  const params = [...operationParams.params, ...requestBodyParams.params, ...transportParams];
+  const requestBodyParams = collectRequestBodyParams(
+    document,
+    entry.operation,
+    operationId,
+    entry.method
+  );
+  const params = [...operationParams.params, ...requestBodyParams.params, ...TRANSPORT_PARAMS];
   const deduped = new Map<string, GeneratedParam>();
 
   for (const param of params) {
@@ -410,7 +424,8 @@ function collectOperationParameters(
 function collectRequestBodyParams(
   document: OpenApiDocument,
   operation: OpenApiOperationObject,
-  operationId: string
+  operationId: string,
+  method: HttpMethod
 ): CollectedCommandParams {
   if (operation.requestBody === undefined) {
     return {
@@ -420,6 +435,12 @@ function collectRequestBodyParams(
       optionalSections: new Set(),
       requestBodyDescription: undefined
     };
+  }
+
+  if (METHODS_WITHOUT_REQUEST_BODY.has(method)) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses unsupported requestBody on ${method.toUpperCase()}. Request bodies are not supported on GET in v1.`
+    );
   }
 
   const requestBody = expectRequestBody(
@@ -594,6 +615,12 @@ function createBodyField(
   optional: boolean,
   operationId: string
 ): GeneratedParameterAssembly {
+  if (schema.type === "object") {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses unsupported request body field ${JSON.stringify(name)}. Nested object body fields are not supported in v1.`
+    );
+  }
+
   if (schema.type === "array") {
     return createArrayParam({
       document,
@@ -1247,27 +1274,37 @@ function renderDefinition(
   shortFlag?: string,
   scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]]
 ): string {
-  const schema = {
+  const options = renderSchemaOptions({
+    definition,
     description,
     shortFlag,
-    scope,
-    definition
-  } satisfies Pick<GeneratedParam, "description" | "shortFlag" | "scope" | "definition">;
-  const options = renderSchemaOptions(schema as GeneratedParam);
+    scope
+  });
 
   if (definition.kind === "enum") {
-    return `S.Enum(${renderConstArray(definition.enumValues ?? [])}${options})`;
+    const enumValues = renderConstArray(definition.enumValues ?? []);
+    return renderSchemaCall("S.Enum", enumValues, options);
   }
 
   if (definition.kind === "array") {
-    return `S.Array(${renderDefinition(definition.itemDefinition ?? { kind: "string" }, undefined, undefined, undefined)}${options})`;
+    const itemDefinition = renderDefinition(
+      definition.itemDefinition ?? { kind: "string" },
+      undefined,
+      undefined,
+      undefined
+    );
+    return renderSchemaCall("S.Array", itemDefinition, options);
   }
 
-  const builderName = definition.kind[0]?.toUpperCase() + definition.kind.slice(1);
-  return `S.${builderName}(${options.length === 0 ? "" : options.slice(2)})`;
+  const builderName = definition.kind[0].toUpperCase() + definition.kind.slice(1);
+  return renderSchemaCall(`S.${builderName}`, options);
 }
 
-function renderSchemaOptions(param: GeneratedParam): string {
+function renderSchemaCall(builder: string, ...args: Array<string | undefined>): string {
+  return `${builder}(${args.filter((arg): arg is string => arg !== undefined).join(", ")})`;
+}
+
+function renderSchemaOptions(param: RenderSchemaOptionsInput): string | undefined {
   const entries: string[] = [];
 
   if (param.description !== undefined) {
@@ -1326,7 +1363,7 @@ function renderSchemaOptions(param: GeneratedParam): string {
     entries.push("nullable: true");
   }
 
-  return entries.length === 0 ? "" : `, { ${entries.join(", ")} }`;
+  return entries.length === 0 ? undefined : `{ ${entries.join(", ")} }`;
 }
 
 function renderConstArray(values: ReadonlyArray<string | number | boolean>): string {

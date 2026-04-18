@@ -832,6 +832,40 @@ describe("runCLI", () => {
     expect(stdoutWrite).not.toHaveBeenCalled();
   });
 
+  it("forces JSON output when a command-scoped --json flag is passed", async () => {
+    const renderRich = vi.fn();
+    const renderJson = vi.fn((result: unknown) => result);
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        json: S.Optional(S.Boolean()),
+      }),
+      handler: async () => ({
+        ok: true,
+      }),
+      render: {
+        rich: renderRich,
+        json: renderJson,
+      },
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "cmdkit", "deploy", "--json", "--yes"];
+
+    await runCLI(root);
+
+    expect([
+      renderRich.mock.calls.length,
+      renderJson.mock.calls.length,
+      readStdout(stdoutWrite),
+    ]).toEqual([0, 1, '{\n  "ok": true\n}\n']);
+  });
+
   it("reports validation errors when prompts are skipped and required params are missing", async () => {
     const deploy = defineCommand({
       name: "deploy",

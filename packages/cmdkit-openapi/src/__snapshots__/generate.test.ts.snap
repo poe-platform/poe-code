@@ -18,6 +18,7 @@ export const botsSetOfficialCommand = defineCommand<OpenApiClientServices>({
   params: S.Object({
     botHandle: S.String(),
     dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
+    json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] })),
     official: S.Boolean(),
     verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),
@@ -73,6 +74,7 @@ export const botsListCommand = defineCommand<OpenApiClientServices>({
   scope: ["cli", "mcp", "sdk"] as const,
   params: S.Object({
     dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
+    json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] })),
     limit: S.Optional(S.Number({ default: 50, jsonType: "integer" })),
     owner: S.Optional(S.String()),
     verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
@@ -128,6 +130,7 @@ export const botsSetImageComprehensionCommand = defineCommand<OpenApiClientServi
   params: S.Object({
     botHandle: S.String(),
     dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
+    json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] })),
     mode: S.Enum(["off","auto","forced"] as const),
     verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),
@@ -184,6 +187,7 @@ export const botsSetConversationStartersCommand = defineCommand<OpenApiClientSer
   params: S.Object({
     botHandle: S.String(),
     dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
+    json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] })),
     starter: S.Optional(S.Array(S.String(), { scope: ["cli"], maxItems: 4 })),
     starters: S.Array(S.String(), { scope: ["mcp", "sdk"], maxItems: 4 }),
     startersJson: S.Optional(S.String({ description: "JSON-encoded value for starters.", scope: ["cli"] })),

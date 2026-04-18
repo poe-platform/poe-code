@@ -1,5 +1,6 @@
 import { UserError } from "@poe-code/cmdkit";
 import {
+  METHOD_DEFAULTS,
   deriveNoun,
   deriveVerb,
   normalizeParamName,
@@ -11,6 +12,7 @@ import {
 const HTTP_METHOD_ORDER = ["get", "post", "put", "patch", "delete"] as const;
 type OpenApiOperationMap = Partial<Record<HttpMethod, OpenApiOperationObject>>;
 type OpenApiParameterLocation = "path" | "query" | "header" | "cookie";
+type SupportedOpenApiParameterLocation = "path" | "query";
 type ParamKind = "string" | "number" | "boolean" | "enum" | "array";
 type OpenApiScalarType = "string" | "number" | "integer" | "boolean";
 
@@ -72,6 +74,10 @@ export interface OpenApiParameterObject {
   description?: string;
   schema?: OpenApiSchemaObject | OpenApiReferenceObject;
 }
+
+type SupportedOpenApiParameterObject = Omit<OpenApiParameterObject, "in"> & {
+  in: SupportedOpenApiParameterLocation;
+};
 
 export interface OpenApiRequestBodyObject {
   required?: boolean;
@@ -169,6 +175,7 @@ interface CollectedCommandParams {
   params: GeneratedParam[];
   preflightLines: string[];
   requestFields: GeneratedRequestField[];
+  requiresUserError: boolean;
 }
 
 interface OperationEntry {
@@ -231,6 +238,7 @@ function createGeneratedCommand(
   const noun = deriveNoun(entry.operation, operationId);
   const verb = deriveVerb(entry.method, entry.path, entry.operation, operationId);
   const collected = collectParams(document, entry, operationId);
+  const methodDefaults = METHOD_DEFAULTS[entry.method];
   const exportName = `${toCamelCase(noun)}${toPascalCase(verb)}Command`;
   const filePath = `${noun}/${verb}.ts`;
 
@@ -249,9 +257,10 @@ function createGeneratedCommand(
       description: entry.operation.summary ?? entry.operation.description,
       method: entry.method.toUpperCase(),
       path: entry.path,
-      confirm: entry.method === "delete",
+      ...(methodDefaults?.confirm === true ? { confirm: true } : {}),
       params: collected.params,
       preflightLines: collected.preflightLines,
+      requiresUserError: collected.requiresUserError,
       requestFields: collected.requestFields,
       optionalSections: collectOptionalRequestSections(document, entry.operation)
     })
@@ -290,7 +299,20 @@ function collectParams(
       scope: ["cli", "sdk"],
       optional: true,
       definition: { kind: "boolean" }
-    } satisfies GeneratedParam
+    } satisfies GeneratedParam,
+    ...(hasJsonSuccessResponseSchema(document, entry.operation, operationId)
+      ? [
+          {
+            paramName: "json",
+            originalName: "json",
+            location: "transport",
+            description: "Print the response as raw JSON.",
+            scope: ["cli", "sdk"],
+            optional: true,
+            definition: { kind: "boolean" }
+          } satisfies GeneratedParam
+        ]
+      : [])
   ];
   const params = [...operationParams.params, ...requestBodyParams.params, ...transportParams];
   const deduped = new Map<string, GeneratedParam>();
@@ -310,8 +332,35 @@ function collectParams(
   return {
     params: [...deduped.values()].sort((left, right) => left.paramName.localeCompare(right.paramName)),
     preflightLines: requestBodyParams.preflightLines,
-    requestFields: [...operationParams.requestFields, ...requestBodyParams.requestFields]
+    requestFields: [...operationParams.requestFields, ...requestBodyParams.requestFields],
+    requiresUserError: requestBodyParams.requiresUserError
   };
+}
+
+function hasJsonSuccessResponseSchema(
+  document: OpenApiDocument,
+  operation: OpenApiOperationObject,
+  operationId: string
+): boolean {
+  for (const [statusCode, response] of Object.entries(operation.responses ?? {})) {
+    if (!isSuccessStatusCode(statusCode)) {
+      continue;
+    }
+
+    const resolvedResponse = expectResponse(document, response, operationId, statusCode);
+
+    for (const [mediaType, content] of Object.entries(resolvedResponse.content ?? {})) {
+      if (content === undefined || !isJsonMediaType(mediaType)) {
+        continue;
+      }
+
+      if (content.schema !== undefined) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 function collectOperationParameters(
@@ -321,7 +370,7 @@ function collectOperationParameters(
   operationParameters: OpenApiParameter[],
   operationId: string
 ): CollectedCommandParams {
-  const merged = new Map<string, OpenApiParameterObject>();
+  const merged = new Map<string, SupportedOpenApiParameterObject>();
 
   for (const parameter of pathItemParameters) {
     const resolved = expectParameter(document, parameter, operationId);
@@ -347,7 +396,8 @@ function collectOperationParameters(
       originalName: param.originalName,
       valueExpression: `params.${param.paramName}`,
       omitWhenUndefinedExpression: `params.${param.paramName} === undefined`
-    })) as GeneratedRequestField[]
+    })) as GeneratedRequestField[],
+    requiresUserError: false
   };
 }
 
@@ -360,7 +410,8 @@ function collectRequestBodyParams(
     return {
       params: [],
       preflightLines: [],
-      requestFields: []
+      requestFields: [],
+      requiresUserError: false
     };
   }
 
@@ -386,6 +437,7 @@ function collectRequestBodyParams(
   const params: GeneratedParam[] = [];
   const preflightLines: string[] = [];
   const requestFields: GeneratedRequestField[] = [];
+  let requiresUserError = false;
 
   for (const [name, property] of Object.entries(schema.properties)) {
     const propertySchema = expectSchema(document, property, operationId, `requestBody.properties.${name}`);
@@ -400,12 +452,17 @@ function collectRequestBodyParams(
     params.push(...generated.params);
     preflightLines.push(...generated.preflightLines);
     requestFields.push(generated.requestField);
+
+    if (generated.preflightLines.length > 0) {
+      requiresUserError = true;
+    }
   }
 
   return {
     params,
     preflightLines,
-    requestFields
+    requestFields,
+    requiresUserError
   };
 }
 
@@ -444,7 +501,7 @@ function assertSupportedSuccessResponses(
 
 function createGeneratedParameter(
   document: OpenApiDocument,
-  parameter: OpenApiParameterObject,
+  parameter: SupportedOpenApiParameterObject,
   operationId: string
 ): GeneratedParam {
   const schema = expectSchema(document, parameter.schema, operationId, `parameters.${parameter.name}`);
@@ -775,10 +832,7 @@ function normalizeEnumValues(
   }
 
   if (
-    filteredValues.some(
-      (value) =>
-        typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean"
-    )
+    filteredValues.some((value) => !isEnumPrimitiveValue(value))
   ) {
     throw new UserError(
       `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. OpenAPI enums must contain only string, number, boolean, or null values.`
@@ -793,7 +847,7 @@ function normalizeEnumValues(
     );
   }
 
-  return filteredValues as ReadonlyArray<string | number | boolean>;
+  return filteredValues.filter(isEnumPrimitiveValue);
 }
 
 function resolveLocalReference(
@@ -831,7 +885,7 @@ function expectParameter(
   document: OpenApiDocument,
   parameter: OpenApiParameter,
   operationId: string
-): OpenApiParameterObject {
+): SupportedOpenApiParameterObject {
   if (isReferenceObject(parameter)) {
     return expectParameter(
       document,
@@ -846,7 +900,14 @@ function expectParameter(
     );
   }
 
-  return parameter;
+  return {
+    ...parameter,
+    in: parameter.in
+  };
+}
+
+function isEnumPrimitiveValue(value: unknown): value is string | number | boolean {
+  return typeof value === "string" || typeof value === "number" || typeof value === "boolean";
 }
 
 function expectRequestBody(
@@ -976,18 +1037,18 @@ function createCommandFile(options: {
   path: string;
   params: GeneratedParam[];
   preflightLines: string[];
+  requiresUserError: boolean;
   requestFields: GeneratedRequestField[];
   optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
-  confirm: boolean;
+  confirm?: true;
 }): string {
-  const needsUserErrorImport = options.preflightLines.some((line) => line.includes("UserError"));
   const lines = [
     "/**",
     " * Generated by @poe-code/cmdkit-openapi.",
     ` * spec-sha: ${options.specSha}`,
     ` * operation-id: ${options.operationId}`,
     " */",
-    needsUserErrorImport
+    options.requiresUserError
       ? 'import { defineCommand, S, UserError } from "@poe-code/cmdkit";'
       : 'import { defineCommand, S } from "@poe-code/cmdkit";',
     'import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";',
@@ -1001,7 +1062,7 @@ function createCommandFile(options: {
   }
 
   lines.push('  scope: ["cli", "mcp", "sdk"] as const,');
-  if (options.confirm) {
+  if (options.confirm === true) {
     lines.push("  confirm: true,");
   }
   lines.push("  params: S.Object({");

@@ -2,16 +2,19 @@ import { UserError } from "@poe-code/cmdkit";
 
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 
-const DEFAULT_VERBS_BY_METHOD = {
+export const METHOD_DEFAULTS: Partial<
+  Record<HttpMethod, { collection: string; resource: string; confirm?: true }>
+> = {
   delete: {
     collection: "delete",
-    resource: "delete"
+    resource: "delete",
+    confirm: true
   },
   get: {
     collection: "list",
     resource: "view"
   }
-} as const satisfies Partial<Record<HttpMethod, { collection: string; resource: string }>>;
+};
 
 export function deriveNoun(operation: { tags?: string[] }, operationId: string): string {
   const noun = operation.tags?.[0];
@@ -39,7 +42,7 @@ export function deriveVerb(
     return toKebabCase(action);
   }
 
-  const defaults = DEFAULT_VERBS_BY_METHOD[method as keyof typeof DEFAULT_VERBS_BY_METHOD];
+  const defaults = METHOD_DEFAULTS[method];
   if (defaults !== undefined) {
     const lastSegment = segments.at(-1);
     return isPathTemplateSegment(lastSegment) ? defaults.resource : defaults.collection;

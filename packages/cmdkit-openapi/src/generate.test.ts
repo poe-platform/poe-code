@@ -96,7 +96,14 @@ describe("generate", () => {
             },
             responses: {
               "200": {
-                description: "Updated."
+                description: "Updated.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
               }
             }
           }
@@ -109,6 +116,60 @@ describe("generate", () => {
 
     expect(commandFile?.contents).toContain('import { defineCommand, S } from "@poe-code/cmdkit";');
     expect(commandFile?.contents).toContain("params: S.Object({");
+  });
+
+  it("imports UserError when generated preflight guards are present", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-limit": {
+          post: {
+            tags: ["bots"],
+            operationId: "setLimit",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      limit: {
+                        type: "integer",
+                        nullable: true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/set-limit.ts")?.contents).toContain(
+      'import { defineCommand, S, UserError } from "@poe-code/cmdkit";'
+    );
   });
 
   it("keeps explicit camel-cased param names instead of stripping the noun prefix", () => {
@@ -142,7 +203,14 @@ describe("generate", () => {
             },
             responses: {
               "200": {
-                description: "Updated."
+                description: "Updated.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
               }
             }
           }
@@ -189,7 +257,14 @@ describe("generate", () => {
             },
             responses: {
               "200": {
-                description: "Updated."
+                description: "Updated.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
               }
             }
           }
@@ -205,6 +280,54 @@ describe("generate", () => {
     );
     expect(commandFile?.contents).toContain(
       'verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] }))'
+    );
+    expect(commandFile?.contents).toContain(
+      'json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] }))'
+    );
+  });
+
+  it("omits the generated json transport param when the success response has no body schema", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-official": {
+          post: {
+            tags: ["bots"],
+            operationId: "setOfficial",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["official"],
+                    properties: {
+                      official: { type: "boolean" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "204": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/set-official.ts")?.contents).not.toContain(
+      'json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] }))'
     );
   });
 
@@ -561,6 +684,38 @@ describe("generate", () => {
     );
 
     expect(files.find((file) => file.path === "bots/delete.ts")?.contents).toContain("  confirm: true,");
+  });
+
+  it("does not mark non-delete commands as confirmable", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          get: {
+            tags: ["bots"],
+            operationId: "viewBot",
+            summary: "View a bot.",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "Viewed."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/view.ts")?.contents).not.toContain(
+      "  confirm: true,"
+    );
   });
 
   it("resolves local component refs in request bodies and parameter schemas", () => {

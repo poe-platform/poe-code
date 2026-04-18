@@ -1735,8 +1735,9 @@ async function executeCommand<TServices extends object>(
     getTheme,
     note,
   };
-  const globalFlags = getGlobalFlags(state.actionCommand);
-  const output = resolveOutput(globalFlags);
+  const optionValues = state.actionCommand.optsWithGlobals() as Record<string, unknown>;
+  const globalFlags = optionValues as GlobalFlags;
+  const output = optionValues.json === true ? "json" : resolveOutput(globalFlags);
   const shouldPrompt = !globalFlags.yes && Boolean(process.stdin.isTTY);
   const runtime = await resolveFixtureRuntime(state.command, services, requirementOptions);
   const preflightContext = {
@@ -1756,7 +1757,7 @@ async function executeCommand<TServices extends object>(
     const params = await resolveParams(
       state.fields,
       state.positionalValues,
-      state.actionCommand.optsWithGlobals() as Record<string, unknown>,
+      optionValues,
       globalFlags.preset,
       shouldPrompt
     );

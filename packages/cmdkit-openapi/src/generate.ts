@@ -608,6 +608,10 @@ function renderSchemaOptions(param: GeneratedParam): string {
     entries.push(`short: ${JSON.stringify(param.shortFlag)}`);
   }
 
+  if (param.location === "transport") {
+    entries.push('scope: ["cli", "sdk"]');
+  }
+
   if (param.definition.jsonType !== undefined) {
     entries.push(`jsonType: ${JSON.stringify(param.definition.jsonType)}`);
   }

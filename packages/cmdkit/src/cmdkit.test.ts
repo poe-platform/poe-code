@@ -763,6 +763,47 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("filters params whose schema scope excludes MCP", async () => {
+    const run = defineCommand({
+      name: "run",
+      scope: ["mcp"],
+      params: S.Object({
+        endpoint: S.String(),
+        dryRun: S.Optional(S.Boolean({ scope: ["cli", "sdk"] })),
+        verbose: S.Optional(S.Boolean({ scope: ["cli", "sdk"] })),
+      }),
+      handler: async ({ params }) => params,
+    });
+
+    const root = defineGroup({
+      name: "root",
+      children: [run],
+    });
+
+    const server = createMCPServer(root, {
+      name: "cmdkit-test",
+      version: "1.0.0",
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = await client.listTools();
+
+      expect(result.tools).toHaveLength(1);
+      expect(result.tools[0]?.inputSchema).toEqual({
+        type: "object",
+        properties: {
+          endpoint: {
+            type: "string",
+          },
+        },
+        required: ["endpoint"],
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("includes all descendants when a nested group is allowlisted and supports camel casing", async () => {
     const create = defineCommand({
       name: "create-bot",

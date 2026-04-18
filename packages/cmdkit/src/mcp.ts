@@ -191,6 +191,36 @@ function applySchemaCasing(schema: JsonSchema, casing: Casing): JsonSchema {
   };
 }
 
+function filterSchemaForScope(schema: AnySchema, scope: "cli" | "mcp" | "sdk"): AnySchema | undefined {
+  if (schema.scope !== undefined && !schema.scope.includes(scope)) {
+    return undefined;
+  }
+
+  if (schema.kind === "optional") {
+    const inner = filterSchemaForScope(schema.inner, scope);
+    return inner === undefined ? undefined : { ...schema, inner };
+  }
+
+  if (schema.kind === "array") {
+    const item = filterSchemaForScope(schema.item, scope);
+    return item === undefined ? undefined : { ...schema, item };
+  }
+
+  if (schema.kind !== "object") {
+    return schema;
+  }
+
+  return {
+    ...schema,
+    shape: Object.fromEntries(
+      Object.entries(schema.shape).flatMap(([key, childSchema]) => {
+        const filtered = filterSchemaForScope(childSchema, scope);
+        return filtered === undefined ? [] : [[key, filtered]];
+      })
+    ),
+  };
+}
+
 function collectParamSummaries(
   schema: ObjectSchema<any>,
   casing: Casing,
@@ -215,23 +245,24 @@ function collectParamSummaries(
   return summaries;
 }
 
-function buildToolDescription<TServices extends object>(
-  command: Command<TServices, any, any, any>,
+function buildToolDescription(
+  description: string | undefined,
+  params: ObjectSchema<any>,
   casing: Casing
 ): string {
-  const summary = collectParamSummaries(command.params, casing);
+  const summary = collectParamSummaries(params, casing);
   const parameterSummary =
     summary.length === 0 ? "" : `Parameters: ${summary.join(", ")}.`;
 
-  if (command.description === undefined) {
+  if (description === undefined) {
     return parameterSummary;
   }
 
   if (parameterSummary.length === 0) {
-    return command.description;
+    return description;
   }
 
-  return `${command.description} ${parameterSummary}`;
+  return `${description} ${parameterSummary}`;
 }
 
 function matchesAllowlist(toolName: string, allowlist: string[] | undefined): boolean {
@@ -258,15 +289,20 @@ function enumerateTools<TServices extends object>(
       }
 
       const name = [...path, node.name].join(".");
+      const params = filterSchemaForScope(node.params, "mcp");
       if (!matchesAllowlist(name, allowlist)) {
         return;
+      }
+
+      if (params === undefined || params.kind !== "object") {
+        throw new Error(`Bug: command "${name}" must define an object params schema for MCP.`);
       }
 
       tools.push({
         command: node,
         name,
-        description: buildToolDescription(node, casing),
-        inputSchema: applySchemaCasing(toJsonSchema(node.params), casing),
+        description: buildToolDescription(node.description, params, casing),
+        inputSchema: applySchemaCasing(toJsonSchema(params), casing),
       });
       return;
     }

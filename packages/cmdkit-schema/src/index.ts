@@ -11,6 +11,7 @@ type EnumValue = string | number | boolean;
 type NumberJsonType = "number" | "integer";
 type NonEmptyReadonlyArray<T> = readonly [T, ...T[]];
 type ObjectShape = Record<string, AnySchema>;
+type SchemaScope = "cli" | "mcp" | "sdk";
 type OptionalKeys<TShape extends ObjectShape> = {
   [TKey in keyof TShape]: TShape[TKey] extends OptionalSchema<any> ? TKey : never;
 }[keyof TShape];
@@ -30,6 +31,7 @@ type SchemaOptions<TDefault> = {
   description?: string;
   default?: TDefault;
   short?: string;
+  scope?: readonly SchemaScope[];
 };
 
 interface SchemaBase<TKind extends SchemaKind, TStatic> {
@@ -37,6 +39,7 @@ interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly description?: string;
   readonly default?: TStatic;
   readonly short?: string;
+  readonly scope?: readonly SchemaScope[];
   readonly __static?: TStatic;
 }
 

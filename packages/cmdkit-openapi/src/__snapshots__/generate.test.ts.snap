@@ -17,9 +17,9 @@ export const botsSetOfficialCommand = defineCommand<OpenApiClientServices>({
   scope: ["cli", "mcp", "sdk"] as const,
   params: S.Object({
     botHandle: S.String(),
-    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it." })),
+    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
     official: S.Boolean(),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v" })),
+    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),
   handler: async ({ params, baseUrl, tokenSource, fetch }) => {
     return requestJson({
@@ -72,10 +72,10 @@ export const botsListCommand = defineCommand<OpenApiClientServices>({
   description: "List bots.",
   scope: ["cli", "mcp", "sdk"] as const,
   params: S.Object({
-    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it." })),
+    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
     limit: S.Optional(S.Number({ default: 50, jsonType: "integer" })),
     owner: S.Optional(S.String()),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v" })),
+    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),
   handler: async ({ params, baseUrl, tokenSource, fetch }) => {
     return requestJson({
@@ -127,9 +127,9 @@ export const botsSetImageComprehensionCommand = defineCommand<OpenApiClientServi
   scope: ["cli", "mcp", "sdk"] as const,
   params: S.Object({
     botHandle: S.String(),
-    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it." })),
+    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
     mode: S.Enum(["off","auto","forced"] as const),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v" })),
+    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),
   handler: async ({ params, baseUrl, tokenSource, fetch }) => {
     return requestJson({
@@ -183,9 +183,9 @@ export const botsSetStatusCodeCommand = defineCommand<OpenApiClientServices>({
   scope: ["cli", "mcp", "sdk"] as const,
   params: S.Object({
     botHandle: S.String(),
-    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it." })),
+    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
     statusCode: S.Enum([1,2] as const, { jsonType: "integer" }),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v" })),
+    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),
   handler: async ({ params, baseUrl, tokenSource, fetch }) => {
     return requestJson({
@@ -239,8 +239,8 @@ export const botsSetDescriptionCommand = defineCommand<OpenApiClientServices>({
   params: S.Object({
     botHandle: S.String(),
     description: S.Optional(S.String()),
-    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it." })),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v" })),
+    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
+    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),
   handler: async ({ params, baseUrl, tokenSource, fetch }) => {
     return requestJson({
@@ -297,9 +297,9 @@ export const botsDeleteCommand = defineCommand<OpenApiClientServices>({
   description: "Delete a bot.",
   scope: ["cli", "mcp", "sdk"] as const,
   params: S.Object({
-    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it." })),
+    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
     handle: S.String(),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v" })),
+    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
   }),
   handler: async ({ params, baseUrl, tokenSource, fetch }) => {
     return requestJson({

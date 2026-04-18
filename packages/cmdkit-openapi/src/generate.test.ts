@@ -1546,6 +1546,50 @@ describe("generate", () => {
     );
   });
 
+  it("throws when GET operations resolve to the same noun and verb", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/search": {
+            get: {
+              tags: ["bots"],
+              operationId: "getSearch",
+              responses: {
+                "200": {
+                  description: "Search."
+                }
+              }
+            }
+          },
+          "/bots/{botHandle}/search": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewSearch",
+              parameters: [
+                {
+                  name: "botHandle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Search."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Generated command path "bots search" is defined more than once ("viewSearch" and "getSearch").'
+      )
+    );
+  });
+
   it("throws when two operations resolve to the same noun and verb", () => {
     expect(() =>
       generate(

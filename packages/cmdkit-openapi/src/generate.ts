@@ -187,6 +187,7 @@ function collectOperations(
 
 function createGeneratedCommand(entry: OperationEntry, specSha: string): GeneratedCommand {
   const operationId = entry.operation.operationId ?? `${entry.method.toUpperCase()} ${entry.path}`;
+  assertSupportedSuccessResponses(entry.operation, operationId);
   const noun = deriveNoun(entry.operation, operationId);
   const verb = deriveVerb(entry.method, entry.path, entry.operation, operationId);
   const params = collectParams(entry, operationId);
@@ -328,6 +329,42 @@ function collectRequestBodyParams(
   });
 }
 
+function assertSupportedSuccessResponses(
+  operation: OpenApiOperationObject,
+  operationId: string
+): void {
+  for (const [statusCode, response] of Object.entries(operation.responses ?? {})) {
+    if (!isSuccessStatusCode(statusCode)) {
+      continue;
+    }
+
+    if (isReferenceObject(response)) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} uses a $ref success response for status ${JSON.stringify(statusCode)}, which is not supported yet.`
+      );
+    }
+
+    const declaredMediaTypes = Object.entries(response.content ?? {})
+      .filter(([, mediaType]) => mediaType !== undefined)
+      .map(([mediaType]) => mediaType);
+
+    if (
+      declaredMediaTypes.length === 0 ||
+      declaredMediaTypes.every((mediaType) => isJsonMediaType(mediaType))
+    ) {
+      continue;
+    }
+
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} declares unsupported success response content type(s) for status ${JSON.stringify(statusCode)}: ${declaredMediaTypes
+        .map((mediaType) => JSON.stringify(mediaType))
+        .join(
+          ", "
+        )}. Only application/json responses (or empty success responses) are supported in v1.`
+    );
+  }
+}
+
 function createGeneratedParameter(
   parameter: OpenApiParameterObject,
   operationId: string
@@ -436,6 +473,19 @@ function collectPathPlaceholders(path: string): string[] {
   }
 
   return placeholders;
+}
+
+function isSuccessStatusCode(statusCode: string): boolean {
+  if (statusCode.length !== 3) {
+    return false;
+  }
+
+  return statusCode[0] === "2";
+}
+
+function isJsonMediaType(mediaType: string): boolean {
+  const normalized = mediaType.toLowerCase();
+  return normalized.includes("application/json") || normalized.includes("+json");
 }
 
 function normalizeEnumValues(
@@ -651,7 +701,8 @@ function renderRequestShape(
       lines.push(`            ${section.key}: {`);
       lines.push(
         ...sectionParams.map(
-          (param) => `              ${JSON.stringify(param.originalName)}: params.${param.paramName},`
+          (param) =>
+            `              ${JSON.stringify(param.originalName)}: params.${param.paramName},`
         )
       );
       lines.push("            },");

@@ -200,8 +200,12 @@ describe("generate", () => {
 
     const commandFile = files.find((file) => file.path === "bots/set-official.ts");
 
-    expect(commandFile?.contents).toContain('dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] }))');
-    expect(commandFile?.contents).toContain('verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] }))');
+    expect(commandFile?.contents).toContain(
+      'dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] }))'
+    );
+    expect(commandFile?.contents).toContain(
+      'verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] }))'
+    );
   });
 
   it("generates an enum JSON body command", () => {
@@ -431,7 +435,8 @@ describe("generate", () => {
 
     const commandFile = files.find((file) => file.path === "bots/update-profile.ts");
 
-    expect(commandFile?.contents).toContain(`      ...(params.description === undefined && params.displayName === undefined
+    expect(commandFile?.contents)
+      .toContain(`      ...(params.description === undefined && params.displayName === undefined
         ? {}
         : {
             body: {
@@ -526,6 +531,86 @@ describe("generate", () => {
         'Operation "viewBot" path "/bots/{handle}" references "{handle}" but does not define a matching path parameter.'
       )
     );
+  });
+
+  it("throws when an operation declares a non-JSON success response", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}/export": {
+            get: {
+              tags: ["bots"],
+              operationId: "exportBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Exported.",
+                  content: {
+                    "text/plain": {
+                      schema: { type: "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "exportBot" declares unsupported success response content type(s) for status "200": "text/plain". Only application/json responses (or empty success responses) are supported in v1.'
+      )
+    );
+  });
+
+  it("allows non-JSON error responses when success responses stay JSON", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed.",
+                  content: {
+                    "application/json": {
+                      schema: { type: "object" }
+                    }
+                  }
+                },
+                "400": {
+                  description: "Bad request.",
+                  content: {
+                    "text/plain": {
+                      schema: { type: "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).not.toThrow();
   });
 
   it("throws when an operation has no tags", () => {

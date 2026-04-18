@@ -121,6 +121,7 @@ interface GeneratedParam {
   location: "path" | "query" | "body" | "transport";
   description?: string;
   shortFlag?: string;
+  scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
   optional: boolean;
   definition: GeneratedParamDefinition;
 }
@@ -131,6 +132,8 @@ interface GeneratedParamDefinition {
   enumValues?: ReadonlyArray<string | number | boolean>;
   jsonType?: "integer";
 }
+
+type GeneratedParamScope = "cli" | "mcp" | "sdk";
 
 interface OperationEntry {
   method: HttpMethod;
@@ -225,6 +228,7 @@ function collectParams(entry: OperationEntry, operationId: string): GeneratedPar
       originalName: "dryRun",
       location: "transport",
       description: "Print the HTTP request and exit without sending it.",
+      scope: ["cli", "sdk"],
       optional: true,
       definition: { kind: "boolean" }
     } satisfies GeneratedParam,
@@ -234,6 +238,7 @@ function collectParams(entry: OperationEntry, operationId: string): GeneratedPar
       location: "transport",
       description: "Log the request line to stderr.",
       shortFlag: "v",
+      scope: ["cli", "sdk"],
       optional: true,
       definition: { kind: "boolean" }
     } satisfies GeneratedParam
@@ -608,8 +613,8 @@ function renderSchemaOptions(param: GeneratedParam): string {
     entries.push(`short: ${JSON.stringify(param.shortFlag)}`);
   }
 
-  if (param.location === "transport") {
-    entries.push('scope: ["cli", "sdk"]');
+  if (param.scope !== undefined) {
+    entries.push(`scope: [${param.scope.map((scope) => JSON.stringify(scope)).join(", ")}]`);
   }
 
   if (param.definition.jsonType !== undefined) {

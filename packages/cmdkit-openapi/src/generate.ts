@@ -369,19 +369,20 @@ function createParamDefinition(
   operationId: string,
   context: string
 ): GeneratedParamDefinition {
+  const scalarDefinition =
+    schema.type === undefined || !(schema.type in SCHEMA_TYPE_TO_KIND)
+      ? undefined
+      : SCHEMA_TYPE_TO_KIND[schema.type as OpenApiScalarType];
   const enumValues = normalizeEnumValues(schema.enum);
 
   if (enumValues !== undefined) {
     return {
       kind: "enum",
       enumValues,
-      ...(schema.type === "integer" ? { jsonType: "integer" as const } : {}),
+      ...(scalarDefinition?.jsonType === undefined ? {} : { jsonType: scalarDefinition.jsonType }),
       ...(schema.default === undefined ? {} : { defaultValue: schema.default })
     };
   }
-
-  const scalarDefinition =
-    schema.type === undefined ? undefined : SCHEMA_TYPE_TO_KIND[schema.type as OpenApiScalarType];
 
   if (scalarDefinition !== undefined) {
     return {

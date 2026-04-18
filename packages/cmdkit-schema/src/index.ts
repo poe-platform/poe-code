@@ -8,6 +8,7 @@ type SchemaKind =
   | "object"
   | "optional";
 type EnumValue = string | number | boolean;
+type JsonSchemaEnumValue = EnumValue | null;
 type NumberJsonType = "number" | "integer";
 type NonEmptyReadonlyArray<T> = readonly [T, ...T[]];
 type ObjectShape = Record<string, AnySchema>;
@@ -66,7 +67,7 @@ export interface JsonSchema {
   type?: JsonSchemaType;
   description?: string;
   default?: unknown;
-  enum?: ReadonlyArray<EnumValue>;
+  enum?: ReadonlyArray<JsonSchemaEnumValue>;
   format?: string;
   items?: JsonSchema;
   maxItems?: number;
@@ -317,7 +318,10 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
 
     case "enum": {
       const jsonSchema: JsonSchema = {
-        enum: [...unwrappedSchema.values],
+        enum:
+          unwrappedSchema.nullable === true
+            ? [...unwrappedSchema.values, null]
+            : [...unwrappedSchema.values],
       };
       const enumType = unwrappedSchema.jsonType ?? getEnumJsonType(unwrappedSchema.values);
 

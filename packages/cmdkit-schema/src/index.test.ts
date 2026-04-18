@@ -205,6 +205,20 @@ describe("@poe-code/cmdkit-schema", () => {
     } satisfies JsonSchema);
   });
 
+  it("serializes nullable enums with null in the advertised enum list", () => {
+    expect(
+      toJsonSchema(
+        S.Enum(["off", "auto", "forced"] as const, {
+          nullable: true,
+        })
+      )
+    ).toEqual({
+      type: "string",
+      enum: ["off", "auto", "forced", null],
+      nullable: true,
+    } satisfies JsonSchema);
+  });
+
   it("serializes numeric, boolean, and mixed enums to JSON Schema", () => {
     expect(toJsonSchema(S.Enum([1, 2, 3] as const))).toEqual({
       type: "number",

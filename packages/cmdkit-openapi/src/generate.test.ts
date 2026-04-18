@@ -432,6 +432,56 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("rejects enum values whose primitive type disagrees with schema.type", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{botHandle}/actions/set-image-comprehension": {
+            post: {
+              tags: ["bots"],
+              operationId: "setImageComprehension",
+              parameters: [
+                {
+                  name: "botHandle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      required: ["mode"],
+                      properties: {
+                        mode: {
+                          type: "string",
+                          enum: [1, 2]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Updated."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "setImageComprehension" uses unsupported request body field "mode". Enum values must match declared schema.type "string".'
+      )
+    );
+  });
+
   it("generates a scalar query command", () => {
     const files = generate(
       createDocument({
@@ -1116,6 +1166,58 @@ describe("generate", () => {
     expect(commandFile?.contents).toContain("botHandle: S.String()");
     expect(commandFile?.contents).toContain(
       'starters: S.Array(S.String(), { scope: ["mcp", "sdk"] })'
+    );
+  });
+
+  it("throws when local component refs form a cycle", () => {
+    expect(() =>
+      generate(
+        {
+          openapi: "3.0.3",
+          info: {
+            title: "Internal Agent API",
+            version: "1.0.0"
+          },
+          components: {
+            schemas: {
+              CycleA: {
+                $ref: "#/components/schemas/CycleB"
+              },
+              CycleB: {
+                $ref: "#/components/schemas/CycleA"
+              }
+            }
+          },
+          paths: {
+            "/bots/{botHandle}": {
+              get: {
+                tags: ["bots"],
+                operationId: "viewBot",
+                parameters: [
+                  {
+                    name: "botHandle",
+                    in: "path",
+                    required: true,
+                    schema: {
+                      $ref: "#/components/schemas/CycleA"
+                    }
+                  }
+                ],
+                responses: {
+                  "200": {
+                    description: "Viewed."
+                  }
+                }
+              }
+            }
+          }
+        },
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" uses circular $ref chain in parameter "botHandle": "#/components/schemas/CycleA" -> "#/components/schemas/CycleB" -> "#/components/schemas/CycleA".'
+      )
     );
   });
 

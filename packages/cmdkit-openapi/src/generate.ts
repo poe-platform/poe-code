@@ -540,7 +540,7 @@ function createGeneratedParameter(
     document,
     parameter.schema,
     operationId,
-    `parameters.${parameter.name}`
+    `parameter ${JSON.stringify(parameter.name)}`
   );
 
   if (parameter.in === "path" && parameter.required !== true) {
@@ -808,7 +808,8 @@ function createParamDefinition(
     schema.enum,
     operationId,
     context,
-    schema.nullable === true
+    schema.nullable === true,
+    schema.type
   );
 
   if (enumValues !== undefined) {
@@ -917,7 +918,8 @@ function normalizeEnumValues(
   enumValues: unknown[] | undefined,
   operationId: string,
   context: string,
-  nullable: boolean
+  nullable: boolean,
+  schemaType: OpenApiSchemaObject["type"]
 ): ReadonlyArray<string | number | boolean> | undefined {
   if (enumValues === undefined) {
     return undefined;
@@ -949,6 +951,30 @@ function normalizeEnumValues(
     throw new UserError(
       `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. Enums must not mix primitive types.`
     );
+  }
+
+  if (schemaType !== undefined) {
+    const matchesSchemaType = filteredValues.every((value) => {
+      if (schemaType === "integer") {
+        return typeof value === "number" && Number.isInteger(value);
+      }
+
+      if (schemaType === "number") {
+        return typeof value === "number";
+      }
+
+      if (schemaType === "string" || schemaType === "boolean") {
+        return typeof value === schemaType;
+      }
+
+      return true;
+    });
+
+    if (!matchesSchemaType) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. Enum values must match declared schema.type ${JSON.stringify(schemaType)}.`
+      );
+    }
   }
 
   return filteredValues.filter(isEnumPrimitiveValue);
@@ -988,13 +1014,16 @@ function unescapeJsonPointerSegment(segment: string): string {
 function expectParameter(
   document: OpenApiDocument,
   parameter: OpenApiParameter,
-  operationId: string
+  operationId: string,
+  refChain: readonly string[] = []
 ): SupportedOpenApiParameterObject {
   if (isReferenceObject(parameter)) {
+    assertAcyclicRef(parameter.$ref, refChain, operationId, "parameter");
     return expectParameter(
       document,
       resolveLocalReference(document, parameter.$ref, operationId, "parameter") as OpenApiParameter,
-      operationId
+      operationId,
+      [...refChain, parameter.$ref]
     );
   }
 
@@ -1018,19 +1047,22 @@ function expectRequestBody(
   document: OpenApiDocument,
   requestBody: OpenApiRequestBodyObject | OpenApiReferenceObject,
   operationId: string,
-  context: string
+  context: string,
+  refChain: readonly string[] = []
 ): OpenApiRequestBodyObject {
   if (!isReferenceObject(requestBody)) {
     return requestBody;
   }
 
+  assertAcyclicRef(requestBody.$ref, refChain, operationId, context);
   return expectRequestBody(
     document,
     resolveLocalReference(document, requestBody.$ref, operationId, context) as
       | OpenApiRequestBodyObject
       | OpenApiReferenceObject,
     operationId,
-    context
+    context,
+    [...refChain, requestBody.$ref]
   );
 }
 
@@ -1038,22 +1070,23 @@ function expectResponse(
   document: OpenApiDocument,
   response: OpenApiResponseObject | OpenApiReferenceObject,
   operationId: string,
-  statusCode: string
+  statusCode: string,
+  refChain: readonly string[] = []
 ): OpenApiResponseObject {
   if (!isReferenceObject(response)) {
     return response;
   }
 
+  const context = `success response for status ${JSON.stringify(statusCode)}`;
+  assertAcyclicRef(response.$ref, refChain, operationId, context);
   return expectResponse(
     document,
-    resolveLocalReference(
-      document,
-      response.$ref,
-      operationId,
-      `success response for status ${JSON.stringify(statusCode)}`
-    ) as OpenApiResponseObject | OpenApiReferenceObject,
+    resolveLocalReference(document, response.$ref, operationId, context) as
+      | OpenApiResponseObject
+      | OpenApiReferenceObject,
     operationId,
-    statusCode
+    statusCode,
+    [...refChain, response.$ref]
   );
 }
 
@@ -1061,7 +1094,8 @@ function expectSchema(
   document: OpenApiDocument,
   schema: OpenApiSchemaObject | OpenApiReferenceObject | undefined,
   operationId: string,
-  context: string
+  context: string,
+  refChain: readonly string[] = []
 ): OpenApiSchemaObject {
   if (schema === undefined) {
     throw new UserError(
@@ -1070,17 +1104,36 @@ function expectSchema(
   }
 
   if (isReferenceObject(schema)) {
+    assertAcyclicRef(schema.$ref, refChain, operationId, context);
     return expectSchema(
       document,
       resolveLocalReference(document, schema.$ref, operationId, context) as
         | OpenApiSchemaObject
         | OpenApiReferenceObject,
       operationId,
-      context
+      context,
+      [...refChain, schema.$ref]
     );
   }
 
   return schema;
+}
+
+function assertAcyclicRef(
+  ref: string,
+  refChain: readonly string[],
+  operationId: string,
+  context: string
+): void {
+  if (!refChain.includes(ref)) {
+    return;
+  }
+
+  throw new UserError(
+    `Operation ${JSON.stringify(operationId)} uses circular $ref chain in ${context}: ${[...refChain, ref]
+      .map((value) => JSON.stringify(value))
+      .join(" -> ")}.`
+  );
 }
 
 function expectArrayItemsSchema(

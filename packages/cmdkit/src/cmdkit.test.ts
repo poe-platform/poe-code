@@ -857,6 +857,50 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("includes null in MCP enum schemas for nullable enum params", async () => {
+    const run = defineCommand({
+      name: "run",
+      scope: ["mcp"],
+      params: S.Object({
+        mode: S.Optional(
+          S.Enum(["off", "auto", "forced"] as const, {
+            nullable: true,
+          })
+        ),
+      }),
+      handler: async ({ params }) => params,
+    });
+
+    const root = defineGroup({
+      name: "root",
+      children: [run],
+    });
+
+    const server = createMCPServer(root, {
+      name: "cmdkit-test",
+      version: "1.0.0",
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = await client.listTools();
+
+      expect(result.tools[0]?.inputSchema).toEqual({
+        type: "object",
+        properties: {
+          mode: {
+            type: "string",
+            enum: ["off", "auto", "forced", null],
+            nullable: true,
+          },
+        },
+        required: [],
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("includes all descendants when a nested group is allowlisted and supports camel casing", async () => {
     const create = defineCommand({
       name: "create-bot",

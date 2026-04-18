@@ -1107,7 +1107,11 @@ function validatePresetScalarValue(
   schema: ScalarSchema,
   fieldPath: string,
   presetPath: string
-): string | number | boolean {
+): string | number | boolean | null {
+  if (value === null && schema.nullable === true) {
+    return null;
+  }
+
   switch (schema.kind) {
     case "string":
       if (typeof value !== "string") {

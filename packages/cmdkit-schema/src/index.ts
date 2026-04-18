@@ -12,6 +12,23 @@ type NumberJsonType = "number" | "integer";
 type NonEmptyReadonlyArray<T> = readonly [T, ...T[]];
 type ObjectShape = Record<string, AnySchema>;
 type SchemaScope = "cli" | "mcp" | "sdk";
+type StringMetadata = {
+  format?: string;
+  maxLength?: number;
+  minLength?: number;
+  nullable?: boolean;
+  pattern?: string;
+};
+type NumberMetadata = {
+  maximum?: number;
+  minimum?: number;
+  nullable?: boolean;
+};
+type ArrayMetadata = {
+  maxItems?: number;
+  minItems?: number;
+  nullable?: boolean;
+};
 type OptionalKeys<TShape extends ObjectShape> = {
   [TKey in keyof TShape]: TShape[TKey] extends OptionalSchema<any> ? TKey : never;
 }[keyof TShape];
@@ -30,6 +47,7 @@ type InferObject<TShape extends ObjectShape> = {
 type SchemaOptions<TDefault> = {
   description?: string;
   default?: TDefault;
+  nullable?: boolean;
   short?: string;
   scope?: readonly SchemaScope[];
 };
@@ -38,6 +56,7 @@ interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly kind: TKind;
   readonly description?: string;
   readonly default?: TStatic;
+  readonly nullable?: boolean;
   readonly short?: string;
   readonly scope?: readonly SchemaScope[];
   readonly __static?: TStatic;
@@ -48,14 +67,23 @@ export interface JsonSchema {
   description?: string;
   default?: unknown;
   enum?: ReadonlyArray<EnumValue>;
+  format?: string;
   items?: JsonSchema;
+  maxItems?: number;
+  maximum?: number;
+  maxLength?: number;
+  minItems?: number;
+  minimum?: number;
+  minLength?: number;
+  nullable?: boolean;
+  pattern?: string;
   properties?: Record<string, JsonSchema>;
   required?: string[];
 }
 
-export type StringSchema = SchemaBase<"string", string>;
+export interface StringSchema extends SchemaBase<"string", string>, StringMetadata {}
 
-export interface NumberSchema extends SchemaBase<"number", number> {
+export interface NumberSchema extends SchemaBase<"number", number>, NumberMetadata {
   readonly jsonType?: NumberJsonType;
 }
 
@@ -66,11 +94,12 @@ export interface EnumSchema<TValues extends NonEmptyReadonlyArray<EnumValue>>
   readonly values: TValues;
   readonly jsonType?: "integer";
   readonly labels?: Partial<Record<string, string>>;
+  readonly nullable?: boolean;
   readonly loadOptions?: () => Array<{ label: string; value: string }> | Promise<Array<{ label: string; value: string }>>;
 }
 
 export interface ArraySchema<TItem extends AnySchema>
-  extends SchemaBase<"array", Array<Static<TItem>>> {
+  extends SchemaBase<"array", Array<Static<TItem>>>, ArrayMetadata {
   readonly item: TItem;
 }
 
@@ -109,7 +138,55 @@ function withMetadata<TSchema extends AnySchema>(
     jsonSchema.default = schema.default;
   }
 
+  if (schema.nullable === true) {
+    jsonSchema.nullable = true;
+  }
+
   return jsonSchema;
+}
+
+function withStringMetadata(schema: StringSchema, jsonSchema: JsonSchema): JsonSchema {
+  if (schema.minLength !== undefined) {
+    jsonSchema.minLength = schema.minLength;
+  }
+
+  if (schema.maxLength !== undefined) {
+    jsonSchema.maxLength = schema.maxLength;
+  }
+
+  if (schema.pattern !== undefined) {
+    jsonSchema.pattern = schema.pattern;
+  }
+
+  if (schema.format !== undefined) {
+    jsonSchema.format = schema.format;
+  }
+
+  return withMetadata(schema, jsonSchema);
+}
+
+function withNumberMetadata(schema: NumberSchema, jsonSchema: JsonSchema): JsonSchema {
+  if (schema.minimum !== undefined) {
+    jsonSchema.minimum = schema.minimum;
+  }
+
+  if (schema.maximum !== undefined) {
+    jsonSchema.maximum = schema.maximum;
+  }
+
+  return withMetadata(schema, jsonSchema);
+}
+
+function withArrayMetadata(schema: ArraySchema<any>, jsonSchema: JsonSchema): JsonSchema {
+  if (schema.minItems !== undefined) {
+    jsonSchema.minItems = schema.minItems;
+  }
+
+  if (schema.maxItems !== undefined) {
+    jsonSchema.maxItems = schema.maxItems;
+  }
+
+  return withMetadata(schema, jsonSchema);
 }
 
 function getEnumJsonType(values: ReadonlyArray<EnumValue>): JsonSchemaType | undefined {
@@ -158,14 +235,16 @@ function unwrapOptional(schema: AnySchema): Exclude<AnySchema, OptionalSchema<An
 }
 
 export const S = {
-  String(options: SchemaOptions<string> = {}): StringSchema {
+  String(options: SchemaOptions<string> & StringMetadata = {}): StringSchema {
     return {
       kind: "string",
       ...options,
     };
   },
 
-  Number(options: SchemaOptions<number> & { jsonType?: NumberJsonType } = {}): NumberSchema {
+  Number(
+    options: SchemaOptions<number> & NumberMetadata & { jsonType?: NumberJsonType } = {}
+  ): NumberSchema {
     return {
       kind: "number",
       ...options,
@@ -184,6 +263,7 @@ export const S = {
     options: SchemaOptions<TValues[number]> & {
       jsonType?: "integer";
       labels?: Partial<Record<string, string>>;
+      nullable?: boolean;
       loadOptions?: () => Array<{ label: string; value: string }> | Promise<Array<{ label: string; value: string }>>;
     } = {}
   ): EnumSchema<TValues> {
@@ -198,7 +278,7 @@ export const S = {
 
   Array<TItem extends AnySchema>(
     item: TItem,
-    options: SchemaOptions<Array<Static<TItem>>> = {}
+    options: SchemaOptions<Array<Static<TItem>>> & ArrayMetadata = {}
   ): ArraySchema<TItem> {
     return {
       kind: "array",
@@ -227,10 +307,10 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
 
   switch (unwrappedSchema.kind) {
     case "string":
-      return withMetadata(unwrappedSchema, { type: "string" });
+      return withStringMetadata(unwrappedSchema, { type: "string" });
 
     case "number":
-      return withMetadata(unwrappedSchema, { type: unwrappedSchema.jsonType ?? "number" });
+      return withNumberMetadata(unwrappedSchema, { type: unwrappedSchema.jsonType ?? "number" });
 
     case "boolean":
       return withMetadata(unwrappedSchema, { type: "boolean" });
@@ -249,7 +329,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
     }
 
     case "array":
-      return withMetadata(unwrappedSchema, {
+      return withArrayMetadata(unwrappedSchema, {
         type: "array",
         items: toJsonSchema(unwrappedSchema.item),
       });

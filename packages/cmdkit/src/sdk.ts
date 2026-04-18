@@ -265,6 +265,10 @@ function validateEnum(value: unknown, schema: Extract<AnySchema, { kind: "enum" 
 function validateSchemaValue(schema: AnySchema, value: unknown, label: string): unknown {
   const unwrappedSchema = unwrapOptional(schema);
 
+  if (value === null && unwrappedSchema.nullable === true) {
+    return null;
+  }
+
   switch (unwrappedSchema.kind) {
     case "string":
       if (typeof value !== "string") {

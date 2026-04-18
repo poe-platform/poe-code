@@ -350,6 +350,10 @@ function validateSchemaValue(
 ): unknown {
   const unwrappedSchema = unwrapOptional(schema);
 
+  if (value === null && unwrappedSchema.nullable === true) {
+    return null;
+  }
+
   switch (unwrappedSchema.kind) {
     case "string":
       if (typeof value !== "string") {

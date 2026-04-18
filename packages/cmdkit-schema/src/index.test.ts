@@ -113,6 +113,57 @@ describe("@poe-code/cmdkit-schema", () => {
     } satisfies JsonSchema);
   });
 
+  it("serializes nullable schemas and preserves non-validating JSON Schema metadata", () => {
+    expect(
+      toJsonSchema(
+        S.String({
+          nullable: true,
+          minLength: 3,
+          maxLength: 40,
+          pattern: "^[a-z]+$",
+          format: "date-time",
+        })
+      )
+    ).toEqual({
+      type: "string",
+      nullable: true,
+      minLength: 3,
+      maxLength: 40,
+      pattern: "^[a-z]+$",
+      format: "date-time",
+    } satisfies JsonSchema);
+
+    expect(
+      toJsonSchema(
+        S.Number({
+          jsonType: "integer",
+          minimum: 1,
+          maximum: 100,
+        })
+      )
+    ).toEqual({
+      type: "integer",
+      minimum: 1,
+      maximum: 100,
+    } satisfies JsonSchema);
+
+    expect(
+      toJsonSchema(
+        S.Array(S.String(), {
+          minItems: 1,
+          maxItems: 4,
+        })
+      )
+    ).toEqual({
+      type: "array",
+      items: {
+        type: "string",
+      },
+      minItems: 1,
+      maxItems: 4,
+    } satisfies JsonSchema);
+  });
+
   it("serializes integer-flavored number schemas as JSON Schema integers", () => {
     expect(toJsonSchema(S.Number({ description: "Count", default: 3, jsonType: "integer" }))).toEqual({
       type: "integer",

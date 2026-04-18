@@ -804,6 +804,59 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("preserves nullable metadata in MCP schemas and accepts null arguments", async () => {
+    const run = defineCommand({
+      name: "run",
+      scope: ["mcp"],
+      params: S.Object({
+        limit: S.Optional(
+          S.Number({
+            jsonType: "integer",
+            nullable: true,
+          })
+        ),
+      }),
+      handler: async ({ params }) => params,
+    });
+
+    const root = defineGroup({
+      name: "root",
+      children: [run],
+    });
+
+    const server = createMCPServer(root, {
+      name: "cmdkit-test",
+      version: "1.0.0",
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = await client.listTools();
+
+      expect(result.tools[0]?.inputSchema).toEqual({
+        type: "object",
+        properties: {
+          limit: {
+            type: "integer",
+            nullable: true,
+          },
+        },
+        required: [],
+      });
+
+      const callResult = await client.callTool({
+        name: "root__run",
+        arguments: {
+          limit: null,
+        },
+      });
+
+      expect(callResult.isError).not.toBe(true);
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("includes all descendants when a nested group is allowlisted and supports camel casing", async () => {
     const create = defineCommand({
       name: "create-bot",
@@ -1722,5 +1775,34 @@ describe("createSDK", () => {
     const sdk = createSDK(root);
 
     await expect(sdk.explode({})).rejects.toBe(failure);
+  });
+
+  it("accepts nullable SDK parameters", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "configure-limit",
+          scope: ["sdk"],
+          params: S.Object({
+            limit: S.Optional(
+              S.Number({
+                nullable: true,
+              })
+            ),
+          }),
+          handler: async ({ params }) => params,
+        }),
+      ],
+    });
+
+    const sdk = createSDK(root);
+    const result = await sdk.configureLimit({
+      limit: null,
+    });
+
+    expect(result).toEqual({
+      limit: null,
+    });
   });
 });

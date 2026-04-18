@@ -172,7 +172,7 @@ type GeneratedParamScope = "cli" | "mcp" | "sdk";
 interface GeneratedRequestField {
   location: Exclude<GeneratedParam["location"], "transport">;
   omitWhenUndefinedExpression: string;
-  originalName: string;
+  wireName: string;
   valueExpression: string;
 }
 
@@ -580,7 +580,7 @@ function createGeneratedParameter(
     preflightBlocks: [],
     requestField: {
       location: parameter.in,
-      originalName: parameter.name,
+      wireName: parameter.name,
       valueExpression: renderParamAccess(paramName),
       omitWhenUndefinedExpression: `${renderParamAccess(paramName)} === undefined`
     }
@@ -657,7 +657,7 @@ function createBodyField(
     preflightBlocks,
     requestField: {
       location: "body",
-      originalName: name,
+      wireName: name,
       valueExpression: definition.nullable === true ? resolvedName : paramAccess,
       omitWhenUndefinedExpression:
         definition.nullable === true
@@ -765,7 +765,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     ],
     requestField: {
       location,
-      originalName: name,
+      wireName: name,
       valueExpression:
         location === "query"
           ? renderQueryArrayValueExpression(resolvedName, querySerialization ?? "repeat")
@@ -1403,7 +1403,7 @@ function renderRequestShape(
       lines.push(
         ...sectionFields.map(
           (param) =>
-            `              ${JSON.stringify(param.originalName)}: ${param.valueExpression},`
+            `              ${JSON.stringify(param.wireName)}: ${param.valueExpression},`
         )
       );
       lines.push("            },");
@@ -1414,7 +1414,7 @@ function renderRequestShape(
     lines.push(`      ${section.key}: {`);
     lines.push(
       ...sectionFields.map(
-        (param) => `        ${JSON.stringify(param.originalName)}: ${param.valueExpression},`
+        (param) => `        ${JSON.stringify(param.wireName)}: ${param.valueExpression},`
       )
     );
     lines.push("      },");

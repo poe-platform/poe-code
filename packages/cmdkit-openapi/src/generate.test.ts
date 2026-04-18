@@ -281,7 +281,7 @@ describe("generate", () => {
     expect(commandFile?.contents).not.toContain("handle: S.String()");
   });
 
-  it("marks generated transport params as non-MCP", () => {
+  it("marks generated transport params as non-MCP without a per-command json flag", () => {
     const files = generate(
       createDocument({
         "/bots/{botHandle}/actions/set-official": {
@@ -336,7 +336,7 @@ describe("generate", () => {
     expect(commandFile?.contents).toContain(
       'verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] }))'
     );
-    expect(commandFile?.contents).toContain(
+    expect(commandFile?.contents).not.toContain(
       'json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] }))'
     );
   });
@@ -578,7 +578,7 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
-  it("generates query-array params with a repeatable CLI flag, a JSON variant, and query serialization", () => {
+  it("generates query-array params with a plural CLI flag, a JSON variant, and query serialization", () => {
     const files = generate(
       createDocument({
         "/bots": {
@@ -618,18 +618,11 @@ describe("generate", () => {
 
     const commandFile = files.find((file) => file.path === "bots/list.ts");
 
-    expect(commandFile?.contents).toContain(
-      'tags: S.Optional(S.Array(S.String(), { scope: ["mcp", "sdk"] }))'
-    );
-    expect(commandFile?.contents).toContain(
-      'tag: S.Optional(S.Array(S.String(), { scope: ["cli"] }))'
-    );
+    expect(commandFile?.contents).toContain('tags: S.Optional(S.Array(S.String()))');
     expect(commandFile?.contents).toContain(
       'tagsJson: S.Optional(S.String({ description: "JSON-encoded value for tags.", scope: ["cli"] }))'
     );
-    expect(commandFile?.contents).toContain(
-      "let resolvedTags = params.tags !== undefined ? params.tags : params.tag;"
-    );
+    expect(commandFile?.contents).toContain("let resolvedTags = params.tags;");
     expect(commandFile?.contents).toContain('"tags": resolvedTags');
   });
 
@@ -806,6 +799,67 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/list.ts");
 
     expect(commandFile?.contents).not.toContain("tagsNull");
+  });
+
+  it("preserves original OpenAPI names in generated params and skips array singularization", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{bot_handle}/actions/set-preferences": {
+          post: {
+            tags: ["bots"],
+            operationId: "setPreferences",
+            parameters: [
+              {
+                name: "bot_handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              },
+              {
+                name: "x-trace-id",
+                in: "query",
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["user_name", "status"],
+                    properties: {
+                      user_name: { type: "string" },
+                      status: {
+                        type: "array",
+                        items: { type: "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/set-preferences.ts");
+
+    expect(commandFile?.contents).toContain('"bot_handle": S.String()');
+    expect(commandFile?.contents).toContain('"x-trace-id": S.Optional(S.String())');
+    expect(commandFile?.contents).toContain('"user_name": S.String()');
+    expect(commandFile?.contents).toContain("status: S.Array(S.String()");
+    expect(commandFile?.contents).not.toContain("statu: S.");
+    expect(commandFile?.contents).toContain('"bot_handle": params.bot_handle');
+    expect(commandFile?.contents).toContain('"x-trace-id": params["x-trace-id"]');
+    expect(commandFile?.contents).toContain('"user_name": params.user_name');
   });
 
   it("uses the first tag when multiple tags are present", () => {
@@ -1165,6 +1219,57 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("omits readOnly request-body fields from generated command params", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-profile": {
+          post: {
+            tags: ["bots"],
+            operationId: "setProfile",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["displayName", "serverManaged"],
+                    properties: {
+                      displayName: { type: "string" },
+                      serverManaged: { type: "string", readOnly: true }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files).toMatchSnapshot();
+  });
+
   it("appends requestBody.description to the generated command description", () => {
     const files = generate(
       createDocument({
@@ -1267,9 +1372,7 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/set-conversation-starters.ts");
 
     expect(commandFile?.contents).toContain("startersNull: S.Optional(S.Boolean(");
-    expect(commandFile?.contents).toContain(
-      "let resolvedStarters = params.starters !== undefined ? params.starters : params.starter;"
-    );
+    expect(commandFile?.contents).toContain("let resolvedStarters = params.starters;");
     expect(commandFile?.contents).toContain("if (params.startersNull) {");
     expect(commandFile?.contents).toContain("resolvedStarters = null;");
   });
@@ -1373,9 +1476,7 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/set-conversation-starters.ts");
 
     expect(commandFile?.contents).toContain("botHandle: S.String()");
-    expect(commandFile?.contents).toContain(
-      'starters: S.Array(S.String(), { scope: ["mcp", "sdk"] })'
-    );
+    expect(commandFile?.contents).toContain("starters: S.Array(S.String())");
   });
 
   it("throws when local component refs form a cycle", () => {
@@ -1511,7 +1612,7 @@ describe("generate", () => {
       'limit: S.Optional(S.Number({ minimum: 1, maximum: 100, jsonType: "integer" }))'
     );
     expect(startersCommand?.contents).toContain(
-      'starters: S.Array(S.String({ minLength: 3, maxLength: 120, pattern: "^[a-z].+$", format: "date-time" }), { scope: ["mcp", "sdk"], minItems: 1, maxItems: 4'
+      'starters: S.Array(S.String({ minLength: 3, maxLength: 120, pattern: "^[a-z].+$", format: "date-time" }), { minItems: 1, maxItems: 4'
     );
   });
 
@@ -2011,42 +2112,45 @@ describe("generate", () => {
     );
   });
 
-  it("reports the OpenAPI source name when an array CLI helper collides with another param", () => {
-    expect(() =>
-      generate(
-        createDocument({
-          "/bots": {
-            get: {
-              tags: ["bots"],
-              operationId: "listBots",
-              parameters: [
-                {
-                  name: "tags",
-                  in: "query",
-                  schema: {
-                    type: "array",
-                    items: {
-                      type: "string"
-                    }
+  it("keeps plural array params distinct from neighboring scalar params", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "tags",
+                in: "query",
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "string"
                   }
-                },
-                {
-                  name: "tag",
-                  in: "query",
-                  schema: { type: "string" }
                 }
-              ],
-              responses: {
-                "200": {
-                  description: "List."
-                }
+              },
+              {
+                name: "tag",
+                in: "query",
+                schema: { type: "string" }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "List."
               }
             }
           }
-        }),
-        { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(new UserError('Operation "listBots" maps both "tags" and "tag" to flag "tag".'));
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain("tag: S.Optional(S.String())");
+    expect(commandFile?.contents).toContain("tags: S.Optional(S.Array(S.String()))");
   });
 
   it("throws when the OpenAPI document is missing paths", () => {

@@ -11,6 +11,7 @@ import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
+import { filterSchemaForScope } from "./schema-scope.js";
 
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
 
@@ -205,41 +206,6 @@ function applySchemaCasing(schema: JsonSchema, casing: Casing): JsonSchema {
     properties,
     ...(required === undefined ? {} : { required }),
   };
-}
-
-function filterSchemaForScope(schema: AnySchema, scope: "cli" | "mcp" | "sdk"): AnySchema | undefined {
-  if (schema.scope !== undefined && !schema.scope.includes(scope)) {
-    return undefined;
-  }
-
-  switch (schema.kind) {
-    case "optional": {
-      const inner = filterSchemaForScope(schema.inner, scope);
-      return inner === undefined ? undefined : { ...schema, inner };
-    }
-
-    case "array": {
-      const item = filterSchemaForScope(schema.item, scope);
-      return item === undefined ? undefined : { ...schema, item };
-    }
-
-    case "string":
-    case "number":
-    case "boolean":
-    case "enum":
-      return schema;
-
-    case "object":
-      return {
-        ...schema,
-        shape: Object.fromEntries(
-          Object.entries(schema.shape).flatMap(([key, childSchema]) => {
-            const filtered = filterSchemaForScope(childSchema, scope);
-            return filtered === undefined ? [] : [[key, filtered]];
-          })
-        ),
-      };
-  }
 }
 
 function collectParamSummaries(

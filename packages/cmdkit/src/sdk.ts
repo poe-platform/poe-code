@@ -3,6 +3,7 @@ import type { AnySchema, ObjectSchema, Static } from "@poe-code/cmdkit-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
+import { filterSchemaForScope } from "./schema-scope.js";
 
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
 
@@ -408,7 +409,13 @@ export function createSDK(
 
         await assertCommandRequirements(node, { ...baseContext, params: undefined });
 
-        const validatedParams = validateSDKArguments(node.params, params);
+        const paramsSchema = filterSchemaForScope(node.params, "sdk");
+
+        if (paramsSchema === undefined || paramsSchema.kind !== "object") {
+          throw new Error(`Bug: command "${node.name}" must define an object params schema for SDK.`);
+        }
+
+        const validatedParams = validateSDKArguments(paramsSchema, params);
         return node.handler({
           ...baseContext,
           params: validatedParams,

@@ -763,6 +763,61 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("preserves required array params for MCP when CLI-only helper flags make the direct param optional", async () => {
+    const generate = defineCommand({
+      name: "generate",
+      description: "Generate starters",
+      scope: ["mcp"],
+      params: S.Object({
+        starters: S.Optional(
+          S.Array(S.String(), {
+            requiredScopes: ["mcp", "sdk"],
+          })
+        ),
+        startersJson: S.Optional(
+          S.String({
+            description: "JSON-encoded value for starters.",
+            scope: ["cli"],
+          })
+        ),
+      }),
+      handler: async () => "generated",
+    });
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineGroup({
+          name: "bots",
+          children: [generate],
+        }),
+      ],
+    });
+    const server = createMCPServer(root, {
+      name: "cmdkit-test",
+      version: "1.0.0",
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = await client.listTools();
+
+      expect(result.tools[0]?.inputSchema).toEqual({
+        type: "object",
+        properties: {
+          starters: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+        },
+        required: ["starters"],
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("filters params whose schema scope excludes MCP", async () => {
     const run = defineCommand({
       name: "run",
@@ -1692,6 +1747,80 @@ describe("createSDK", () => {
         api_key: "secret",
       },
     });
+  });
+
+  it("treats required array params as required in the SDK even when CLI-only helper flags make the direct param optional", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineGroup({
+          name: "bots",
+          children: [
+            defineCommand({
+              name: "set-conversation-starters",
+              scope: ["sdk"],
+              params: S.Object({
+                starters: S.Optional(
+                  S.Array(S.String(), {
+                    requiredScopes: ["mcp", "sdk"],
+                  })
+                ),
+                startersJson: S.Optional(
+                  S.String({
+                    scope: ["cli"],
+                  })
+                ),
+              }),
+              handler: async ({ params }) => params,
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const sdk = createSDK(root);
+
+    await expect(sdk.bots.setConversationStarters({})).rejects.toThrow(
+      'Missing required parameter "starters".'
+    );
+  });
+
+  it("rejects CLI-only helper flags in the SDK argument surface", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineGroup({
+          name: "bots",
+          children: [
+            defineCommand({
+              name: "set-conversation-starters",
+              scope: ["sdk"],
+              params: S.Object({
+                starters: S.Optional(
+                  S.Array(S.String(), {
+                    requiredScopes: ["mcp", "sdk"],
+                  })
+                ),
+                startersJson: S.Optional(
+                  S.String({
+                    scope: ["cli"],
+                  })
+                ),
+              }),
+              handler: async ({ params }) => params,
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const sdk = createSDK(root);
+
+    await expect(
+      sdk.bots.setConversationStarters({
+        startersJson: '["a"]',
+      })
+    ).rejects.toThrow('Unexpected parameter "startersJson".');
   });
 
   it("includes only sdk-scoped commands", () => {

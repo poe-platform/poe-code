@@ -1274,7 +1274,7 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
-  it("emits the direct array param as optional when a required body array also has a JSON helper", () => {
+  it("emits required scopes on body arrays that are CLI-optional because they also have a JSON helper", () => {
     const files = generate(
       createDocument({
         "/bots/{botHandle}/actions/set-conversation-starters": {
@@ -1321,7 +1321,43 @@ describe("generate", () => {
 
     expect(
       files.find((file) => file.path === "bots/set-conversation-starters.ts")?.contents
-    ).toContain("starters: S.Optional(S.Array(S.String()))");
+    ).toContain('starters: S.Optional(S.Array(S.String(), { requiredScopes: ["mcp", "sdk"] }))');
+  });
+
+  it("emits required scopes on query arrays that are CLI-optional because they also have a JSON helper", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "tags",
+                in: "query",
+                required: true,
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "string"
+                  }
+                }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "List."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(
+      files.find((file) => file.path === "bots/list.ts")?.contents
+    ).toContain('tags: S.Optional(S.Array(S.String(), { requiredScopes: ["mcp", "sdk"] }))');
   });
 
   it("omits readOnly request-body fields from generated command params", () => {
@@ -1581,7 +1617,9 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/set-conversation-starters.ts");
 
     expect(commandFile?.contents).toContain("botHandle: S.String()");
-    expect(commandFile?.contents).toContain("starters: S.Optional(S.Array(S.String()))");
+    expect(commandFile?.contents).toContain(
+      'starters: S.Optional(S.Array(S.String(), { requiredScopes: ["mcp", "sdk"] }))'
+    );
   });
 
   it("throws when local component refs form a cycle", () => {

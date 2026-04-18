@@ -188,6 +188,7 @@ interface GeneratedParamDefinition {
   minLength?: number;
   nullable?: boolean;
   pattern?: string;
+  requiredScopes?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
 }
 
 type GeneratedParamScope = "cli" | "mcp" | "sdk";
@@ -718,7 +719,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
   const resolvedName = `resolved${toPascalCase(helperBaseName)}`;
   const emitsNullHelper = supportsNullFlag && directDefinition.nullable === true;
   const paramAccess = renderParamAccess(paramName);
-  const directParamOptional = optional || location === "body";
+  const directParamOptional = true;
   const params: GeneratedParam[] = [
     {
       paramName,
@@ -726,7 +727,10 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
       location,
       description,
       optional: directParamOptional,
-      definition: directDefinition
+      definition: {
+        ...directDefinition,
+        ...(optional ? {} : { requiredScopes: ["mcp", "sdk"] as const })
+      }
     } satisfies GeneratedParam,
     {
       paramName: jsonParamName,
@@ -1365,6 +1369,10 @@ function renderSchemaOptions(param: RenderSchemaOptionsInput): string | undefine
 
   if (param.definition.nullable === true) {
     entries.push("nullable: true");
+  }
+
+  if (param.definition.requiredScopes !== undefined) {
+    entries.push(`requiredScopes: [${param.definition.requiredScopes.map((scope) => JSON.stringify(scope)).join(", ")}]`);
   }
 
   return entries.length === 0 ? undefined : `{ ${entries.join(", ")} }`;

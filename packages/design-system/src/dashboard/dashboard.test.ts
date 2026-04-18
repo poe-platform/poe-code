@@ -7,11 +7,7 @@ import { defaultHints, renderFooter } from "./components/footer.js";
 import { createKeymap } from "./keymap.js";
 import {
   computeVisualLines,
-  renderOutputPane,
-  scrollDown,
-  scrollToBottom,
-  scrollToTop,
-  scrollUp
+  renderOutputPane
 } from "./components/output-pane.js";
 import {
   formatElapsed,
@@ -27,7 +23,7 @@ import { resetThemeCache } from "../internal/theme-detect.js";
 import { TerminalBuffer } from "../../../terminal-pilot/src/terminal-buffer.js";
 import type { DashboardLayout } from "./layout.js";
 import type { KeypressEvent } from "./terminal.js";
-import type { DashboardState, DashboardStats, OutputItem, Rect } from "./types.js";
+import type { DashboardStats, OutputItem, Rect } from "./types.js";
 
 function readRow(buffer: ScreenBuffer, y: number): string {
   return Array.from({ length: buffer.width }, (_, x) => buffer.get(x, y).ch).join("");
@@ -643,74 +639,28 @@ describe("output pane", () => {
       { kind: "tool", text: "\u001b[31mRED\u001b[0m plain", ts: 1 }
     ];
 
-    renderOutputPane(buffer, { x: 0, y: 0, width: 30, height: 1 }, {
-      items,
-      scrollOffset: 0,
-      autoFollow: true
-    });
+    renderOutputPane(buffer, { x: 0, y: 0, width: 30, height: 1 }, items);
 
     expect(buffer.get(3, 0)).toEqual({ ch: "R", style: { fg: "red" } });
     expect(buffer.get(5, 0)).toEqual({ ch: "D", style: { fg: "red" } });
     expect(buffer.get(7, 0)).toEqual({ ch: "p", style: {} });
   });
 
-  it("scroll up and down clamp to valid offsets", () => {
-    const state = { items: [], scrollOffset: 2, autoFollow: true };
-
-    expect(scrollUp(state, 5)).toEqual({ items: [], scrollOffset: 0, autoFollow: false });
-    // 4 visual lines, pane height 4 => content height (pane - banner) = 3, max offset = 1
-    expect(scrollDown(state, 5, 4, 4)).toEqual({ items: [], scrollOffset: 1, autoFollow: false });
-  });
-
-  it("scrollDown never leaves the pane with empty rows beneath the last line", () => {
-    // 10 visual lines, pane height 5 => banner reserves 1 row, content height 4, max offset 6.
-    const state = { items: [], scrollOffset: 0, autoFollow: false };
-
-    expect(scrollDown(state, 100, 10, 5).scrollOffset).toBe(6);
-  });
-
-  it("scrollDown does nothing when all content already fits the pane", () => {
-    const state = { items: [], scrollOffset: 0, autoFollow: false };
-
-    expect(scrollDown(state, 100, 3, 10).scrollOffset).toBe(0);
-  });
-
-  it("scrollToBottom enables auto-follow", () => {
-    expect(scrollToBottom({ items: [], scrollOffset: 1, autoFollow: false }, 10, 4)).toEqual({
-      items: [],
-      scrollOffset: 6,
-      autoFollow: true
-    });
-  });
-
-  it("manual scrolling disables auto-follow", () => {
-    expect(scrollDown({ items: [], scrollOffset: 0, autoFollow: true }, 1, 3, 4).autoFollow).toBe(
-      false
-    );
-    expect(scrollUp({ items: [], scrollOffset: 3, autoFollow: true }, 1).autoFollow).toBe(false);
-    expect(scrollToTop({ items: [], scrollOffset: 3, autoFollow: true }).autoFollow).toBe(false);
-  });
-
-  it("renderOutputPane stops at last line and does not scroll past end", () => {
-    const buffer = new ScreenBuffer(16, 6);
-    const rect: Rect = { x: 0, y: 0, width: 16, height: 5 };
+  it("renderOutputPane renders the most recent lines when content exceeds pane height", () => {
+    const buffer = new ScreenBuffer(16, 3);
+    const rect: Rect = { x: 0, y: 0, width: 16, height: 3 };
     const items: OutputItem[] = [
       { kind: "info", text: "alpha", ts: 1 },
       { kind: "info", text: "beta", ts: 2 },
-      { kind: "info", text: "gamma", ts: 3 }
+      { kind: "info", text: "gamma", ts: 3 },
+      { kind: "info", text: "delta", ts: 4 }
     ];
 
-    renderOutputPane(buffer, rect, {
-      items,
-      scrollOffset: 999,
-      autoFollow: false
-    });
+    renderOutputPane(buffer, rect, items);
 
-    // With content height 4 (5 - banner) and 3 visual lines, the view must stay at offset 0.
-    expect(readRow(buffer, 0)).toContain("alpha");
-    expect(readRow(buffer, 1)).toContain("beta");
-    expect(readRow(buffer, 2)).toContain("gamma");
-    expect(readRow(buffer, 4)).toContain("F to follow");
+    expect(readRow(buffer, 0)).toContain("beta");
+    expect(readRow(buffer, 1)).toContain("gamma");
+    expect(readRow(buffer, 2)).toContain("delta");
   });
 
   it("renderOutputPane renders the expected lines in the rect", () => {
@@ -721,11 +671,7 @@ describe("output pane", () => {
       { kind: "success", text: "done", ts: 2 }
     ];
 
-    renderOutputPane(buffer, rect, {
-      items,
-      scrollOffset: 0,
-      autoFollow: true
-    });
+    renderOutputPane(buffer, rect, items);
 
     expect(readRow(buffer, 1)).toBe(" ◇  alpha beta  ");
     expect(readRow(buffer, 2)).toBe(" │  gamma       ");
@@ -736,108 +682,19 @@ describe("output pane", () => {
     expect(buffer.get(4, 3)).toEqual({ ch: "d", style: { fg: "green" } });
   });
 
-  it("renderOutputPane respects scrollOffset when auto-follow is disabled", () => {
-    const buffer = new ScreenBuffer(16, 7);
-    const rect: Rect = { x: 1, y: 1, width: 13, height: 4 };
-    const items: OutputItem[] = [
-      { kind: "info", text: "alpha beta gamma", ts: 1 },
-      { kind: "success", text: "done", ts: 2 },
-      { kind: "error", text: "oops", ts: 3 }
-    ];
-
-    renderOutputPane(buffer, rect, {
-      items,
-      scrollOffset: 1,
-      autoFollow: false
-    });
-
-    // With autoFollow=false, last row is reserved for the follow banner.
-    expect(readRow(buffer, 1)).toBe(" │  gamma       ");
-    expect(readRow(buffer, 2)).toBe(" ◆  done        ");
-    expect(readRow(buffer, 3)).toBe(" ■  oops        ");
-    expect(readRow(buffer, 4)).toContain("F to follow");
-  });
-
-  it("renderOutputPane ignores scrollOffset while auto-follow is enabled", () => {
+  it("renderOutputPane leaves empty rows when content is shorter than the pane", () => {
     const buffer = new ScreenBuffer(16, 5);
-    const rect: Rect = { x: 1, y: 1, width: 13, height: 2 };
+    const rect: Rect = { x: 0, y: 0, width: 16, height: 4 };
     const items: OutputItem[] = [
-      { kind: "info", text: "alpha beta gamma", ts: 1 },
-      { kind: "success", text: "done", ts: 2 }
+      { kind: "info", text: "alpha", ts: 1 }
     ];
 
-    renderOutputPane(buffer, rect, {
-      items,
-      scrollOffset: 0,
-      autoFollow: true
-    });
+    renderOutputPane(buffer, rect, items);
 
-    expect(readRow(buffer, 1)).toBe(" │  gamma       ");
-    expect(readRow(buffer, 2)).toBe(" ◆  done        ");
-  });
-
-  it("renderOutputPane shows a follow banner when auto-follow is disabled", () => {
-    const buffer = new ScreenBuffer(30, 5);
-    const rect: Rect = { x: 0, y: 0, width: 30, height: 4 };
-    const items: OutputItem[] = [
-      { kind: "info", text: "alpha", ts: 1 },
-      { kind: "info", text: "beta", ts: 2 },
-      { kind: "info", text: "gamma", ts: 3 },
-      { kind: "info", text: "delta", ts: 4 }
-    ];
-
-    renderOutputPane(buffer, rect, {
-      items,
-      scrollOffset: 0,
-      autoFollow: false
-    });
-
-    expect(readRow(buffer, 3)).toContain("F to follow");
-    expect(readRow(buffer, 3)).toContain("1 more");
-  });
-
-  it("renderOutputPane does not show a follow banner when auto-follow is enabled", () => {
-    const buffer = new ScreenBuffer(30, 5);
-    const rect: Rect = { x: 0, y: 0, width: 30, height: 4 };
-    const items: OutputItem[] = [
-      { kind: "info", text: "alpha", ts: 1 },
-      { kind: "info", text: "beta", ts: 2 },
-      { kind: "info", text: "gamma", ts: 3 },
-      { kind: "info", text: "delta", ts: 4 }
-    ];
-
-    renderOutputPane(buffer, rect, {
-      items,
-      scrollOffset: 0,
-      autoFollow: true
-    });
-
-    expect(readRow(buffer, 3)).not.toContain("follow");
-    expect(readRow(buffer, 3)).toContain("delta");
-  });
-
-  it("renderOutputPane reserves the last row for the banner but keeps recent content visible", () => {
-    const buffer = new ScreenBuffer(30, 6);
-    const rect: Rect = { x: 0, y: 0, width: 30, height: 5 };
-    const items: OutputItem[] = [
-      { kind: "info", text: "alpha", ts: 1 },
-      { kind: "info", text: "beta", ts: 2 },
-      { kind: "info", text: "gamma", ts: 3 },
-      { kind: "info", text: "delta", ts: 4 }
-    ];
-
-    renderOutputPane(buffer, rect, {
-      items,
-      scrollOffset: 0,
-      autoFollow: false
-    });
-
-    // With 4 items and 5 rows (4 content + 1 banner), we can see alpha..delta
     expect(readRow(buffer, 0)).toContain("alpha");
-    expect(readRow(buffer, 1)).toContain("beta");
-    expect(readRow(buffer, 2)).toContain("gamma");
-    expect(readRow(buffer, 3)).toContain("delta");
-    expect(readRow(buffer, 4)).toContain("F to follow");
+    expect(readRow(buffer, 1).trim()).toBe("");
+    expect(readRow(buffer, 2).trim()).toBe("");
+    expect(readRow(buffer, 3).trim()).toBe("");
   });
 });
 
@@ -845,17 +702,13 @@ describe("store", () => {
   it("initial state is correct", () => {
     expect(createStore().getState()).toEqual({
       output: [],
-      outputScroll: 0,
-      autoFollow: true,
       stats: {
         status: "idle",
         iterations: 0,
         tokensIn: 0,
         tokensOut: 0,
         elapsedMs: 0
-      },
-      paused: false,
-      activeDialog: { kind: "none" }
+      }
     });
   });
 
@@ -868,13 +721,17 @@ describe("store", () => {
     expect(store.getState().output).toEqual([item]);
   });
 
-  it("appendOutput with autoFollow leaves the renderer free to stay bottom-aligned", () => {
+  it("appendOutput caps retained history to bound memory", () => {
     const store = createStore();
 
-    store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
-    store.appendOutput({ kind: "info", text: "beta", ts: 2 });
+    for (let index = 0; index < 500; index += 1) {
+      store.appendOutput({ kind: "info", text: `item-${index}`, ts: index });
+    }
 
-    expect(store.getState().autoFollow).toBe(true);
+    const output = store.getState().output;
+    expect(output).toHaveLength(256);
+    expect(output[0]?.text).toBe("item-244");
+    expect(output.at(-1)?.text).toBe("item-499");
   });
 
   it("updateStats merges partial updates", () => {
@@ -900,92 +757,6 @@ describe("store", () => {
     });
   });
 
-  it("dispatch scrollUp and scrollDown change scroll offset", () => {
-    const store = createStore();
-
-    store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
-    store.appendOutput({ kind: "info", text: "beta", ts: 2 });
-    store.appendOutput({ kind: "info", text: "gamma", ts: 3 });
-    store.dispatch("scrollToTop", 80, 2);
-
-    expect(store.getState().outputScroll).toBe(0);
-
-    store.dispatch("scrollDown", 80, 2);
-    expect(store.getState().outputScroll).toBe(1);
-
-    store.dispatch("scrollUp", 80, 2);
-    expect(store.getState().outputScroll).toBe(0);
-  });
-
-  it("appendOutput preserves manual scroll position when autoFollow is disabled", () => {
-    const store = createStore();
-
-    store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
-    store.appendOutput({ kind: "info", text: "beta", ts: 2 });
-    store.dispatch("scrollToTop", 80, 2);
-    store.appendOutput({ kind: "info", text: "gamma", ts: 3 });
-
-    expect(store.getState().outputScroll).toBe(0);
-    expect(store.getState().autoFollow).toBe(false);
-  });
-
-  it("scrollToBottom followed by scrollUp reveals the line above the bottom, not the top", () => {
-    const store = createStore();
-    // One long item that wraps to many visual lines in a narrow pane.
-    store.appendOutput({ kind: "info", text: "x".repeat(200), ts: 1 });
-
-    store.dispatch("scrollToTop", 20, 5);
-    expect(store.getState().outputScroll).toBe(0);
-    expect(store.getState().autoFollow).toBe(false);
-
-    store.dispatch("scrollToBottom", 20, 5);
-    expect(store.getState().autoFollow).toBe(true);
-
-    store.dispatch("scrollUp", 20, 5);
-
-    const state = store.getState();
-    expect(state.autoFollow).toBe(false);
-    // Must not snap to the top (offset 0) — user expected one line above the bottom.
-    expect(state.outputScroll).toBeGreaterThan(0);
-  });
-
-  it("dispatch clamps scrollDown so the pane is never left showing empty rows past content", () => {
-    const store = createStore();
-
-    for (let index = 0; index < 5; index += 1) {
-      store.appendOutput({ kind: "info", text: `item-${index}`, ts: index });
-    }
-    store.dispatch("scrollToTop", 80, 4);
-
-    store.dispatch("scrollDown", 80, 4);
-    store.dispatch("scrollDown", 80, 4);
-    store.dispatch("scrollDown", 80, 4);
-    store.dispatch("scrollDown", 80, 4);
-    store.dispatch("scrollDown", 80, 4);
-
-    // 5 visual lines, pane height 4 => banner + 3 content rows => max offset = 2.
-    expect(store.getState().outputScroll).toBe(2);
-  });
-
-  it("dispatch ignores passthrough commands", () => {
-    const store = createStore();
-    const calls: DashboardState[] = [];
-
-    store.onChange(() => {
-      calls.push(store.getState());
-    });
-
-    const before = store.getState();
-
-    store.dispatch("quit", 80, 2);
-    store.dispatch("edit", 80, 2);
-    store.dispatch("pause", 80, 2);
-    store.dispatch("retry", 80, 2);
-
-    expect(store.getState()).toEqual(before);
-    expect(calls).toEqual([]);
-  });
-
   it("onChange fires after mutations", () => {
     const store = createStore();
     let calls = 0;
@@ -996,9 +767,8 @@ describe("store", () => {
 
     store.appendOutput({ kind: "info", text: "alpha", ts: 1 });
     store.updateStats({ status: "running" });
-    store.dispatch("scrollToTop", 80, 1);
 
-    expect(calls).toBe(3);
+    expect(calls).toBe(2);
   });
 
   it("onChange unsubscribe stops future notifications", () => {
@@ -1340,14 +1110,12 @@ describe("footer", () => {
     resetThemeCache();
   });
 
-  it("returns the standard footer hints", () => {
+  it("returns the standard footer hints without scroll or follow", () => {
     expect(defaultHints()).toEqual([
       { key: "q", label: "Quit" },
       { key: "e", label: "Edit" },
       { key: "p", label: "Pause" },
-      { key: "r", label: "Retry" },
-      { key: "↑↓", label: "Scroll" },
-      { key: "F", label: "Follow" }
+      { key: "r", label: "Retry" }
     ]);
   });
 
@@ -1412,18 +1180,23 @@ describe("keymap", () => {
     expect(resolve(key({ ch: "e" }))).toBe("edit");
     expect(resolve(key({ ch: "p" }))).toBe("pause");
     expect(resolve(key({ ch: "r" }))).toBe("retry");
-    expect(resolve(key({ name: "up" }))).toBe("scrollUp");
-    expect(resolve(key({ ch: "k" }))).toBe("scrollUp");
-    expect(resolve(key({ name: "down" }))).toBe("scrollDown");
-    expect(resolve(key({ ch: "j" }))).toBe("scrollDown");
-    expect(resolve(key({ name: "pageup" }))).toBe("pageUp");
-    expect(resolve(key({ name: "pagedown" }))).toBe("pageDown");
-    expect(resolve(key({ name: "home" }))).toBe("scrollToTop");
-    expect(resolve(key({ ch: "g" }))).toBe("scrollToTop");
-    expect(resolve(key({ name: "end" }))).toBe("scrollToBottom");
-    expect(resolve(key({ ch: "G", shift: true }))).toBe("scrollToBottom");
-    expect(resolve(key({ ch: "f" }))).toBe("scrollToBottom");
-    expect(resolve(key({ ch: "F", shift: true }))).toBe("scrollToBottom");
+  });
+
+  it("does not resolve former scroll keys to any command", () => {
+    const resolve = createKeymap();
+
+    expect(resolve(key({ name: "up" }))).toBeUndefined();
+    expect(resolve(key({ name: "down" }))).toBeUndefined();
+    expect(resolve(key({ name: "pageup" }))).toBeUndefined();
+    expect(resolve(key({ name: "pagedown" }))).toBeUndefined();
+    expect(resolve(key({ name: "home" }))).toBeUndefined();
+    expect(resolve(key({ name: "end" }))).toBeUndefined();
+    expect(resolve(key({ ch: "j" }))).toBeUndefined();
+    expect(resolve(key({ ch: "k" }))).toBeUndefined();
+    expect(resolve(key({ ch: "g" }))).toBeUndefined();
+    expect(resolve(key({ ch: "G", shift: true }))).toBeUndefined();
+    expect(resolve(key({ ch: "f" }))).toBeUndefined();
+    expect(resolve(key({ ch: "F", shift: true }))).toBeUndefined();
   });
 
   it("resolves ctrl+c to forceQuit so consumers can distinguish immediate kill from graceful quit", () => {
@@ -1452,14 +1225,6 @@ describe("keymap", () => {
     expect(resolve(key({ ch: "q" }))).toBeUndefined();
     expect(resolve(key({ name: "escape" }))).toBe("quit");
     expect(resolve(key({ name: "c", ctrl: true }))).toBeUndefined();
-  });
-
-  it("supports shifted character overrides", () => {
-    const resolve = createKeymap({
-      scrollToBottom: ["shift+g"]
-    });
-
-    expect(resolve(key({ ch: "G", shift: true }))).toBe("scrollToBottom");
   });
 });
 
@@ -1500,7 +1265,7 @@ describe("createDashboard", () => {
     });
   });
 
-  it("calls onCommand handlers for non-scroll commands", () => {
+  it("calls onCommand handlers for resolved commands", () => {
     withOutputFormat("terminal", () => {
       const stdin = new TestDashboardStdin();
       const stdout = new TestDashboardStdout();
@@ -1539,7 +1304,7 @@ describe("createDashboard", () => {
     });
   });
 
-  it("does not emit scroll commands to onCommand handlers", () => {
+  it("ignores former scroll keys because navigation is disabled", () => {
     withOutputFormat("terminal", () => {
       const stdin = new TestDashboardStdin();
       const stdout = new TestDashboardStdout();
@@ -1552,6 +1317,8 @@ describe("createDashboard", () => {
 
       dashboard.start();
       stdin.emit("data", Buffer.from("\u001b[A"));
+      stdin.emit("data", Buffer.from("j"));
+      stdin.emit("data", Buffer.from("f"));
 
       expect(commands).toEqual([]);
 

@@ -15,34 +15,15 @@ export type DashboardStats = {
   currentAction?: string;
 };
 
-export type Command =
-  | "quit"
-  | "forceQuit"
-  | "edit"
-  | "pause"
-  | "retry"
-  | "scrollUp"
-  | "scrollDown"
-  | "pageUp"
-  | "pageDown"
-  | "scrollToTop"
-  | "scrollToBottom";
-
-export type DialogState =
-  | { kind: "none" }
-  | { kind: "edit"; initialValue: string };
+export type Command = "quit" | "forceQuit" | "edit" | "pause" | "retry";
 
 export type DashboardState = {
   output: OutputItem[];
-  outputScroll: number;
-  autoFollow: boolean;
   stats: DashboardStats;
-  paused: boolean;
-  activeDialog: DialogState;
 };
 
 export type CellStyle = {
-  fg?: string; // hex or chalk color name
+  fg?: string;
   bg?: string;
   bold?: boolean;
   dim?: boolean;

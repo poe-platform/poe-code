@@ -40,11 +40,7 @@ export function renderDashboardSnapshot(opts: SnapshotOptions = {}): string {
     rightTitle: statsTitle,
     style: { dim: true }
   });
-  renderOutputPane(buffer, layout.leftPane, {
-    items,
-    scrollOffset: 0,
-    autoFollow: true
-  });
+  renderOutputPane(buffer, layout.leftPane, items);
   renderStatsPane(buffer, layout.rightPane, stats);
   renderFooter(buffer, layout.footer, defaultHints());
 

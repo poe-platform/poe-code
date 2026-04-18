@@ -29,9 +29,7 @@ export function defaultHints(): FooterHint[] {
     { key: "q", label: "Quit" },
     { key: "e", label: "Edit" },
     { key: "p", label: "Pause" },
-    { key: "r", label: "Retry" },
-    { key: "↑↓", label: "Scroll" },
-    { key: "F", label: "Follow" }
+    { key: "r", label: "Retry" }
   ];
 }
 

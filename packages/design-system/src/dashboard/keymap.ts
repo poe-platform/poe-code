@@ -1,32 +1,14 @@
 import type { KeypressEvent } from "./terminal.js";
 import type { Command } from "./types.js";
 
-const commands: Command[] = [
-  "forceQuit",
-  "quit",
-  "edit",
-  "pause",
-  "retry",
-  "scrollUp",
-  "scrollDown",
-  "pageUp",
-  "pageDown",
-  "scrollToTop",
-  "scrollToBottom"
-];
+const commands: Command[] = ["forceQuit", "quit", "edit", "pause", "retry"];
 
 const defaultBindings: Record<Command, string[]> = {
   forceQuit: ["Ctrl+C"],
   quit: ["q"],
   edit: ["e"],
   pause: ["p"],
-  retry: ["r"],
-  scrollUp: ["up", "k"],
-  scrollDown: ["down", "j"],
-  pageUp: ["pageup"],
-  pageDown: ["pagedown"],
-  scrollToTop: ["home", "g"],
-  scrollToBottom: ["end", "G", "f", "F"]
+  retry: ["r"]
 };
 
 type Binding = {

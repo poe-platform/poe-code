@@ -50,11 +50,6 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   });
   let driver: ReturnType<typeof createTerminalDriver> | undefined;
   let store: DashboardStore | undefined;
-  let currentLayout = computeDashboardLayout({
-    totalWidth: 0,
-    totalHeight: 0,
-    rightPaneWidth
-  });
   let previousBuffer = new ScreenBuffer(0, 0);
   let unsubscribeStore: (() => void) | undefined;
   let unsubscribeKeypress: (() => void) | undefined;
@@ -107,11 +102,6 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       const command = resolveCommand(event);
 
       if (command === undefined) {
-        return;
-      }
-
-      if (isScrollCommand(command)) {
-        activeStore.dispatch(command, currentLayout.leftPane.width, currentLayout.leftPane.height);
         return;
       }
 
@@ -171,7 +161,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     }
 
     const { cols, rows } = driver.getSize();
-    currentLayout = computeDashboardLayout({
+    const layout = computeDashboardLayout({
       totalWidth: cols,
       totalHeight: rows,
       rightPaneWidth
@@ -180,18 +170,14 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     const nextBuffer = new ScreenBuffer(cols, rows);
     const state = getStore().getState();
 
-    renderBorder(nextBuffer, currentLayout, {
+    renderBorder(nextBuffer, layout, {
       leftTitle: title,
       rightTitle: statsTitle,
       style: { dim: true }
     });
-    renderOutputPane(nextBuffer, currentLayout.leftPane, {
-      items: state.output,
-      scrollOffset: state.outputScroll,
-      autoFollow: state.autoFollow
-    });
-    renderStatsPane(nextBuffer, currentLayout.rightPane, state.stats);
-    renderFooter(nextBuffer, currentLayout.footer, footerHints);
+    renderOutputPane(nextBuffer, layout.leftPane, state.output);
+    renderStatsPane(nextBuffer, layout.rightPane, state.stats);
+    renderFooter(nextBuffer, layout.footer, footerHints);
 
     driver.flush(diff(previousBuffer, nextBuffer));
     previousBuffer = nextBuffer;
@@ -234,13 +220,4 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
 
 function isTerminalMode(): boolean {
   return resolveOutputFormat() === "terminal";
-}
-
-function isScrollCommand(command: Command): boolean {
-  return command === "scrollUp"
-    || command === "scrollDown"
-    || command === "pageUp"
-    || command === "pageDown"
-    || command === "scrollToTop"
-    || command === "scrollToBottom";
 }

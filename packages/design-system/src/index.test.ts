@@ -52,9 +52,7 @@ describe("design-system root exports", () => {
       { key: "q", label: "Quit" },
       { key: "e", label: "Edit" },
       { key: "p", label: "Pause" },
-      { key: "r", label: "Retry" },
-      { key: "↑↓", label: "Scroll" },
-      { key: "F", label: "Follow" }
+      { key: "r", label: "Retry" }
     ]);
   });
 
@@ -82,16 +80,11 @@ describe("design-system root exports", () => {
       elapsedMs: number;
     }>();
     expectTypeOf<Command>().toEqualTypeOf<
+      | "forceQuit"
       | "quit"
       | "edit"
       | "pause"
       | "retry"
-      | "scrollUp"
-      | "scrollDown"
-      | "pageUp"
-      | "pageDown"
-      | "scrollToTop"
-      | "scrollToBottom"
     >();
     expectTypeOf<DashboardState>().toMatchTypeOf<{
       output: OutputItem[];

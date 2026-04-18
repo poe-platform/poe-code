@@ -40,6 +40,7 @@ type ScalarSchema = Exclude<PrimitiveSchema, ArraySchema<any>>;
 type FieldSchema = Exclude<PrimitiveSchema, { kind: "optional" }>;
 
 interface GlobalFlags {
+  json?: boolean;
   preset?: string;
   yes?: boolean;
   output?: OutputMode;
@@ -1016,6 +1017,10 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
 }
 
 function resolveOutput(globalFlags: GlobalFlags): OutputMode {
+  if (globalFlags.json === true) {
+    return "json";
+  }
+
   if (globalFlags.output !== undefined) {
     return globalFlags.output;
   }
@@ -1737,7 +1742,7 @@ async function executeCommand<TServices extends object>(
   };
   const optionValues = state.actionCommand.optsWithGlobals() as Record<string, unknown>;
   const globalFlags = optionValues as GlobalFlags;
-  const output = optionValues.json === true ? "json" : resolveOutput(globalFlags);
+  const output = resolveOutput(globalFlags);
   const shouldPrompt = !globalFlags.yes && Boolean(process.stdin.isTTY);
   const runtime = await resolveFixtureRuntime(state.command, services, requirementOptions);
   const preflightContext = {

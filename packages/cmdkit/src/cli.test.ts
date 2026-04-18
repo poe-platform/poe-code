@@ -855,7 +855,7 @@ describe("runCLI", () => {
       children: [deploy],
     });
 
-    process.argv = ["node", "cmdkit", "deploy", "--json", "--yes"];
+    process.argv = ["node", "cmdkit", "deploy", "--output", "md", "--json", "--yes"];
 
     await runCLI(root);
 

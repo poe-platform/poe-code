@@ -306,6 +306,60 @@ describe("generate", () => {
     );
   });
 
+  it("emits auth: required for operations that use the default auth mode", () => {
+    const files = generate(
+      createDocument({
+        "/status": {
+          get: {
+            tags: ["status"],
+            operationId: "getStatus",
+            responses: {
+              "200": {
+                description: "OK."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path !== "index.ts")?.contents).toContain(
+      '      auth: "required",'
+    );
+  });
+
+  it("inherits auth: none from document-level security: []", () => {
+    const files = generate(
+      {
+        openapi: "3.0.3",
+        info: {
+          title: "Internal Agent API",
+          version: "1.0.0"
+        },
+        security: [],
+        paths: {
+          "/status": {
+            get: {
+              tags: ["status"],
+              operationId: "getStatus",
+              responses: {
+                "200": {
+                  description: "OK."
+                }
+              }
+            }
+          }
+        }
+      },
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path !== "index.ts")?.contents).toContain(
+      '      auth: "none",'
+    );
+  });
+
   it("keeps explicit camel-cased param names instead of stripping the noun prefix", () => {
     const files = generate(
       createDocument({

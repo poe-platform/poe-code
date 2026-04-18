@@ -117,6 +117,7 @@ describe("@poe-code/cmdkit-openapi", () => {
       baseUrl: string;
       path: string;
       method: string;
+      auth: "required" | "none";
       tokenSource: TokenSource;
     }>();
   });

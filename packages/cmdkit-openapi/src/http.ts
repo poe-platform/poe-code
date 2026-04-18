@@ -10,7 +10,7 @@ export interface HttpRequestOptions {
   path: string;
   method: string;
   tokenSource: TokenSource;
-  auth?: "required" | "none";
+  auth: "required" | "none";
   fetch?: typeof globalThis.fetch;
   pathParams?: Record<string, string | number | boolean>;
   query?: Record<string, QueryValue>;

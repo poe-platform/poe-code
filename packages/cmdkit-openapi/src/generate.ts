@@ -65,6 +65,7 @@ export interface OpenApiDocument {
     title?: string;
     version?: string;
   };
+  security?: OpenApiSecurityRequirementObject[];
   paths?: Record<string, OpenApiPathItemObject | undefined>;
   components?: {
     parameters?: Record<string, OpenApiParameterObject | OpenApiReferenceObject>;
@@ -334,7 +335,7 @@ function createGeneratedCommand(
       ),
       method: entry.method.toUpperCase(),
       path: entry.path,
-      auth: getOperationAuthMode(entry.operation),
+      auth: getOperationAuthMode(document, entry.operation),
       confirm: methodDefaults?.confirm === true,
       params: collected.params,
       preflightBlocks: collected.preflightBlocks,
@@ -1319,9 +1320,7 @@ function createCommandFile(options: {
   lines.push("      baseUrl,");
   lines.push(`      path: ${JSON.stringify(options.path)},`);
   lines.push(`      method: ${JSON.stringify(options.method)},`);
-  if (options.auth === "none") {
-    lines.push('      auth: "none",');
-  }
+  lines.push(`      auth: ${JSON.stringify(options.auth)},`);
   lines.push("      tokenSource,");
   lines.push("      fetch,");
   lines.push("      dryRun: params.dryRun,");
@@ -1356,8 +1355,12 @@ function mergeCommandDescriptions(
   return `${operationDescription}\n\nRequest body: ${requestBodyDescription}`;
 }
 
-function getOperationAuthMode(operation: OpenApiOperationObject): "required" | "none" {
-  return operation.security?.length === 0 ? "none" : "required";
+function getOperationAuthMode(
+  document: OpenApiDocument,
+  operation: OpenApiOperationObject
+): "required" | "none" {
+  const security = operation.security ?? document.security;
+  return security?.length === 0 ? "none" : "required";
 }
 
 function renderParamLines(params: GeneratedParam[]): string[] {

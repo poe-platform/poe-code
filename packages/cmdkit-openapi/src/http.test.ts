@@ -49,6 +49,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
     });
@@ -92,6 +93,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
     });
@@ -122,6 +124,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createUnauthenticatedTokenSource(),
       fetch: fetchMock,
     }).catch(() => undefined);
@@ -136,6 +139,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: { toUpperCase } as unknown as string,
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: vi.fn(async () => createJsonResponse({ ok: true })),
     });
@@ -162,6 +166,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots/{handle}",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
       pathParams: { handle: "my-bot" },
@@ -180,6 +185,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots/{handle}",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
       pathParams: { handle: "team/red" },
@@ -215,6 +221,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
       query: {
@@ -238,6 +245,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
       query: {
@@ -260,6 +268,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "POST",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
       body: { official: true },
@@ -283,6 +292,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com/",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
     });
@@ -354,6 +364,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc", { invalidate }),
       fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401)),
     }).catch(() => undefined);
@@ -384,6 +395,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots/{handle}",
       method: "POST",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: vi.fn(),
       pathParams: { handle: "my-bot" },
@@ -404,6 +416,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
       dryRun: true,
@@ -420,6 +433,7 @@ describe("requestJson", () => {
       baseUrl: "https://api.example.com",
       path: "/bots",
       method: "GET",
+      auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: vi.fn(async () => createJsonResponse({ ok: true })),
       verbose: true,

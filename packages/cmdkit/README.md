@@ -37,6 +37,8 @@ export const root = defineGroup({
 - `defineCommand(config)` creates a typed command definition with inferred `params` and `secrets`.
 - `defineGroup(config)` creates a command group and inherits `secrets`, `requires`, and `scope` through descendants.
 - `UserError` marks expected user-facing failures.
+- `createMCPServer(root, options)` exposes `mcp`-scoped commands as MCP tools.
+- `runMCP(root, options)` starts the stdio MCP server for the given command tree.
 
 ## Environment variables
 
@@ -69,6 +71,14 @@ export const root = defineGroup({
 - `requires?: { auth?: boolean; apiVersion?: string; check?: (ctx) => Promise<{ ok: boolean; message?: string }> }`: inherited preconditions.
 - `children: Array<Command | Group>`: nested commands and groups.
 - `default?: Command`: default child command used by runners when no child token matches.
+
+### `createMCPServer(root, options)` / `runMCP(root, options)`
+
+- `name: string`: MCP server name.
+- `version: string`: MCP server version.
+- `services?: TServices`: extra services merged into the handler context.
+- `tools?: string[]`: optional allowlist of MCP tool names or group prefixes. Tool names use `__`-joined snake_case path segments like `root__bot__create`; passing `root__bot` includes every descendant tool in that subtree.
+- `casing?: "snake" | "camel"`: changes MCP input-schema property names and accepted argument keys only. It does **not** change MCP tool names, which always stay `__`-joined snake_case.
 
 ### Handler context
 

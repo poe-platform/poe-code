@@ -72,7 +72,9 @@ export interface OpenApiParameterObject {
   in: OpenApiParameterLocation;
   required?: boolean;
   description?: string;
+  explode?: boolean;
   schema?: OpenApiSchemaObject | OpenApiReferenceObject;
+  style?: string;
 }
 
 type SupportedOpenApiParameterObject = Omit<OpenApiParameterObject, "in"> & {
@@ -80,6 +82,7 @@ type SupportedOpenApiParameterObject = Omit<OpenApiParameterObject, "in"> & {
 };
 
 export interface OpenApiRequestBodyObject {
+  description?: string;
   required?: boolean;
   content?: Record<string, OpenApiMediaTypeObject | undefined>;
 }
@@ -176,6 +179,8 @@ interface CollectedCommandParams {
   preflightLines: string[];
   requestFields: GeneratedRequestField[];
   requiresUserError: boolean;
+  optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
+  requestBodyDescription?: string;
 }
 
 interface GeneratedParameterAssembly {
@@ -194,8 +199,11 @@ interface CreateArrayParamOptions {
   operationId: string;
   context: string;
   location: "query" | "body";
+  querySerialization?: QueryArraySerialization;
   supportsNullFlag: boolean;
 }
+
+type QueryArraySerialization = "repeat" | "comma" | "pipe";
 
 interface OperationEntry {
   method: HttpMethod;
@@ -273,7 +281,10 @@ function createGeneratedCommand(
       noun,
       verb,
       exportName,
-      description: entry.operation.summary ?? entry.operation.description,
+      description: mergeCommandDescriptions(
+        entry.operation.summary ?? entry.operation.description,
+        collected.requestBodyDescription
+      ),
       method: entry.method.toUpperCase(),
       path: entry.path,
       ...(methodDefaults?.confirm === true ? { confirm: true } : {}),
@@ -281,7 +292,7 @@ function createGeneratedCommand(
       preflightLines: collected.preflightLines,
       requiresUserError: collected.requiresUserError,
       requestFields: collected.requestFields,
-      optionalSections: collectOptionalRequestSections(document, entry.operation)
+      optionalSections: collected.optionalSections
     })
   };
 }
@@ -354,7 +365,12 @@ function collectParams(
     ),
     preflightLines: [...operationParams.preflightLines, ...requestBodyParams.preflightLines],
     requestFields: [...operationParams.requestFields, ...requestBodyParams.requestFields],
-    requiresUserError: operationParams.requiresUserError || requestBodyParams.requiresUserError
+    requiresUserError: operationParams.requiresUserError || requestBodyParams.requiresUserError,
+    optionalSections: new Set([
+      ...operationParams.optionalSections,
+      ...requestBodyParams.optionalSections
+    ]),
+    requestBodyDescription: requestBodyParams.requestBodyDescription
   };
 }
 
@@ -422,7 +438,9 @@ function collectOperationParameters(
     params,
     preflightLines,
     requestFields,
-    requiresUserError
+    requiresUserError,
+    optionalSections: new Set(),
+    requestBodyDescription: undefined
   };
 }
 
@@ -436,7 +454,9 @@ function collectRequestBodyParams(
       params: [],
       preflightLines: [],
       requestFields: [],
-      requiresUserError: false
+      requiresUserError: false,
+      optionalSections: new Set(),
+      requestBodyDescription: undefined
     };
   }
 
@@ -494,7 +514,10 @@ function collectRequestBodyParams(
     params,
     preflightLines,
     requestFields,
-    requiresUserError
+    requiresUserError,
+    optionalSections:
+      requestBody.required === true ? new Set() : new Set<Exclude<GeneratedParam["location"], "transport">>(["body"]),
+    requestBodyDescription: requestBody.description
   };
 }
 
@@ -559,6 +582,7 @@ function createGeneratedParameter(
       operationId,
       context: `parameter ${JSON.stringify(parameter.name)}`,
       location: "query",
+      querySerialization: resolveQueryArraySerialization(parameter, operationId),
       // Query null currently serializes as an empty string on the wire, so v1 does not
       // synthesize a CLI-only --<name>-null helper for query arrays.
       supportsNullFlag: false
@@ -610,6 +634,7 @@ function createBodyField(
       operationId,
       context: `request body field ${JSON.stringify(name)}`,
       location: "body",
+      querySerialization: undefined,
       supportsNullFlag: true
     });
   }
@@ -678,6 +703,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     operationId,
     context,
     location,
+    querySerialization,
     supportsNullFlag
   } = options;
   const paramName = normalizeParamName(name);
@@ -774,7 +800,10 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     requestField: {
       location,
       originalName: name,
-      valueExpression: resolvedName,
+      valueExpression:
+        location === "query"
+          ? renderQueryArrayValueExpression(resolvedName, querySerialization ?? "repeat")
+          : resolvedName,
       omitWhenUndefinedExpression: `${resolvedName} === undefined`
     },
     requiresUserError: true
@@ -1168,27 +1197,6 @@ function assertUniqueCommandPaths(commands: GeneratedCommand[]): void {
   }
 }
 
-function collectOptionalRequestSections(
-  document: OpenApiDocument,
-  operation: OpenApiOperationObject
-): Set<Exclude<GeneratedParam["location"], "transport">> {
-  const optionalSections = new Set<Exclude<GeneratedParam["location"], "transport">>();
-
-  if (
-    operation.requestBody !== undefined &&
-    expectRequestBody(
-      document,
-      operation.requestBody,
-      operation.operationId ?? "requestBody",
-      "requestBody"
-    ).required !== true
-  ) {
-    optionalSections.add("body");
-  }
-
-  return optionalSections;
-}
-
 function createCommandFile(options: {
   specSha: string;
   operationId: string;
@@ -1248,6 +1256,25 @@ function createCommandFile(options: {
   lines.push("");
 
   return lines.join("\n");
+}
+
+function mergeCommandDescriptions(
+  operationDescription: string | undefined,
+  requestBodyDescription: string | undefined
+): string | undefined {
+  if (requestBodyDescription === undefined || requestBodyDescription.length === 0) {
+    return operationDescription;
+  }
+
+  if (operationDescription === undefined || operationDescription.length === 0) {
+    return requestBodyDescription;
+  }
+
+  if (operationDescription === requestBodyDescription) {
+    return operationDescription;
+  }
+
+  return `${operationDescription}\n\nRequest body: ${requestBodyDescription}`;
 }
 
 function renderParamLines(params: GeneratedParam[]): string[] {
@@ -1353,6 +1380,38 @@ function renderSchemaOptions(param: GeneratedParam): string {
 
 function renderConstArray(values: ReadonlyArray<string | number | boolean>): string {
   return `${JSON.stringify(values)} as const`;
+}
+
+function resolveQueryArraySerialization(
+  parameter: SupportedOpenApiParameterObject,
+  operationId: string
+): QueryArraySerialization {
+  const style = parameter.style ?? "form";
+  const explode = parameter.explode ?? (style === "form");
+
+  if (style === "form") {
+    return explode ? "repeat" : "comma";
+  }
+
+  if (style === "pipeDelimited" && explode === false) {
+    return "pipe";
+  }
+
+  throw new UserError(
+    `Operation ${JSON.stringify(operationId)} uses unsupported query-array serialization for parameter ${JSON.stringify(parameter.name)}. Supported in v1: form (explode true/false) and pipeDelimited.`
+  );
+}
+
+function renderQueryArrayValueExpression(
+  resolvedName: string,
+  serialization: QueryArraySerialization
+): string {
+  if (serialization === "repeat") {
+    return resolvedName;
+  }
+
+  const separator = serialization === "comma" ? "," : "|";
+  return `${resolvedName} === undefined || ${resolvedName} === null ? ${resolvedName} : ${resolvedName}.join(${JSON.stringify(separator)})`;
 }
 
 function renderRequestShape(

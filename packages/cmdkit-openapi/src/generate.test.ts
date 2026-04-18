@@ -578,6 +578,138 @@ describe("generate", () => {
     expect(commandFile?.contents).toContain('"tags": resolvedTags');
   });
 
+  it("serializes form explode=false query arrays as comma-delimited strings", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "tags",
+                in: "query",
+                style: "form",
+                explode: false,
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "string"
+                  }
+                }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "List.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/list.ts")?.contents).toContain(
+      '"tags": resolvedTags === undefined || resolvedTags === null ? resolvedTags : resolvedTags.join(",")'
+    );
+  });
+
+  it("serializes pipeDelimited query arrays as pipe-delimited strings", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "tags",
+                in: "query",
+                style: "pipeDelimited",
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "string"
+                  }
+                }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "List.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/list.ts")?.contents).toContain(
+      '"tags": resolvedTags === undefined || resolvedTags === null ? resolvedTags : resolvedTags.join("|")'
+    );
+  });
+
+  it("rejects unsupported query-array serialization styles", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots": {
+            get: {
+              tags: ["bots"],
+              operationId: "listBots",
+              parameters: [
+                {
+                  name: "tags",
+                  in: "query",
+                  style: "deepObject",
+                  schema: {
+                    type: "array",
+                    items: {
+                      type: "string"
+                    }
+                  }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "List.",
+                  content: {
+                    "application/json": {
+                      schema: {
+                        type: "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "listBots" uses unsupported query-array serialization for parameter "tags". Supported in v1: form (explode true/false) and pipeDelimited.'
+      )
+    );
+  });
+
   it("does not add a null helper flag for nullable query arrays", () => {
     const files = generate(
       createDocument({
@@ -976,6 +1108,60 @@ describe("generate", () => {
     );
 
     expect(files).toMatchSnapshot();
+  });
+
+  it("appends requestBody.description to the generated command description", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-official": {
+          post: {
+            tags: ["bots"],
+            operationId: "setOfficial",
+            summary: "Mark a bot as official.",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              description: "Requires elevated reviewer approval.",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["official"],
+                    properties: {
+                      official: { type: "boolean" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/set-official.ts")?.contents).toContain(
+      'description: "Mark a bot as official.\\n\\nRequest body: Requires elevated reviewer approval.",'
+    );
   });
 
   it("adds a null helper flag for nullable array body fields", () => {

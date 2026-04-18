@@ -136,7 +136,7 @@ interface GeneratedCommand {
 
 interface GeneratedParam {
   paramName: string;
-  originalName: string;
+  sourceName: string;
   location: "path" | "query" | "body" | "transport";
   description?: string;
   shortFlag?: string;
@@ -176,6 +176,25 @@ interface CollectedCommandParams {
   preflightLines: string[];
   requestFields: GeneratedRequestField[];
   requiresUserError: boolean;
+}
+
+interface GeneratedParameterAssembly {
+  params: GeneratedParam[];
+  preflightLines: string[];
+  requestField: GeneratedRequestField;
+  requiresUserError: boolean;
+}
+
+interface CreateArrayParamOptions {
+  document: OpenApiDocument;
+  name: string;
+  description?: string;
+  schema: OpenApiSchemaObject;
+  optional: boolean;
+  operationId: string;
+  context: string;
+  location: "query" | "body";
+  supportsNullFlag: boolean;
 }
 
 interface OperationEntry {
@@ -283,7 +302,7 @@ function collectParams(
   const transportParams = [
     {
       paramName: "dryRun",
-      originalName: "dryRun",
+      sourceName: "dryRun",
       location: "transport",
       description: "Print the HTTP request and exit without sending it.",
       scope: ["cli", "sdk"],
@@ -292,7 +311,7 @@ function collectParams(
     } satisfies GeneratedParam,
     {
       paramName: "verbose",
-      originalName: "verbose",
+      sourceName: "verbose",
       location: "transport",
       description: "Log the request line to stderr.",
       shortFlag: "v",
@@ -304,7 +323,7 @@ function collectParams(
       ? [
           {
             paramName: "json",
-            originalName: "json",
+            sourceName: "json",
             location: "transport",
             description: "Print the response as raw JSON.",
             scope: ["cli", "sdk"],
@@ -322,7 +341,7 @@ function collectParams(
 
     if (existing !== undefined) {
       throw new UserError(
-        `Operation ${JSON.stringify(operationId)} maps both ${JSON.stringify(existing.originalName)} and ${JSON.stringify(param.originalName)} to flag ${JSON.stringify(param.paramName)}.`
+        `Operation ${JSON.stringify(operationId)} maps both ${JSON.stringify(existing.sourceName)} and ${JSON.stringify(param.sourceName)} to flag ${JSON.stringify(param.paramName)}.`
       );
     }
 
@@ -330,7 +349,9 @@ function collectParams(
   }
 
   return {
-    params: [...deduped.values()].sort((left, right) => left.paramName.localeCompare(right.paramName)),
+    params: [...deduped.values()].sort((left, right) =>
+      left.paramName.localeCompare(right.paramName)
+    ),
     preflightLines: [...operationParams.preflightLines, ...requestBodyParams.preflightLines],
     requestFields: [...operationParams.requestFields, ...requestBodyParams.requestFields],
     requiresUserError: operationParams.requiresUserError || requestBodyParams.requiresUserError
@@ -419,7 +440,12 @@ function collectRequestBodyParams(
     };
   }
 
-  const requestBody = expectRequestBody(document, operation.requestBody, operationId, "requestBody");
+  const requestBody = expectRequestBody(
+    document,
+    operation.requestBody,
+    operationId,
+    "requestBody"
+  );
   const content = requestBody.content?.["application/json"];
 
   if (content === undefined) {
@@ -444,7 +470,12 @@ function collectRequestBodyParams(
   let requiresUserError = false;
 
   for (const [name, property] of Object.entries(schema.properties)) {
-    const propertySchema = expectSchema(document, property, operationId, `requestBody.properties.${name}`);
+    const propertySchema = expectSchema(
+      document,
+      property,
+      operationId,
+      `requestBody.properties.${name}`
+    );
     const generated = createBodyField(
       document,
       name,
@@ -456,10 +487,7 @@ function collectRequestBodyParams(
     params.push(...generated.params);
     preflightLines.push(...generated.preflightLines);
     requestFields.push(generated.requestField);
-
-    if (generated.preflightLines.length > 0) {
-      requiresUserError = true;
-    }
+    requiresUserError ||= generated.requiresUserError;
   }
 
   return {
@@ -507,13 +535,13 @@ function createGeneratedParameter(
   document: OpenApiDocument,
   parameter: SupportedOpenApiParameterObject,
   operationId: string
-): {
-  params: GeneratedParam[];
-  preflightLines: string[];
-  requestField: GeneratedRequestField;
-  requiresUserError: boolean;
-} {
-  const schema = expectSchema(document, parameter.schema, operationId, `parameters.${parameter.name}`);
+): GeneratedParameterAssembly {
+  const schema = expectSchema(
+    document,
+    parameter.schema,
+    operationId,
+    `parameters.${parameter.name}`
+  );
 
   if (parameter.in === "path" && parameter.required !== true) {
     throw new UserError(
@@ -522,14 +550,19 @@ function createGeneratedParameter(
   }
 
   if (parameter.in === "query" && schema.type === "array") {
-    return createArrayQueryParameter(
+    return createArrayParam({
       document,
-      parameter.name,
-      parameter.description ?? schema.description,
+      name: parameter.name,
+      description: parameter.description ?? schema.description,
       schema,
-      parameter.required !== true,
-      operationId
-    );
+      optional: parameter.required !== true,
+      operationId,
+      context: `parameter ${JSON.stringify(parameter.name)}`,
+      location: "query",
+      // Query null currently serializes as an empty string on the wire, so v1 does not
+      // synthesize a CLI-only --<name>-null helper for query arrays.
+      supportsNullFlag: false
+    });
   }
 
   const paramName = normalizeParamName(parameter.name);
@@ -537,7 +570,7 @@ function createGeneratedParameter(
     params: [
       {
         paramName,
-        originalName: parameter.name,
+        sourceName: parameter.name,
         location: parameter.in,
         description: parameter.description ?? schema.description,
         optional: parameter.required !== true,
@@ -560,111 +593,25 @@ function createGeneratedParameter(
   };
 }
 
-function createArrayQueryParameter(
-  document: OpenApiDocument,
-  name: string,
-  description: string | undefined,
-  schema: OpenApiSchemaObject,
-  optional: boolean,
-  operationId: string
-): {
-  params: GeneratedParam[];
-  preflightLines: string[];
-  requestField: GeneratedRequestField;
-  requiresUserError: boolean;
-} {
-  const paramName = normalizeParamName(name);
-  const directDefinition = createParamDefinition(
-    document,
-    schema,
-    operationId,
-    `parameter ${JSON.stringify(name)}`
-  );
-  const repeatableParamName = deriveArrayCliParamName(name);
-  const jsonParamName = `${paramName}Json`;
-  const resolvedName = `resolved${toPascalCase(paramName)}`;
-
-  return {
-    params: [
-      {
-        paramName,
-        originalName: name,
-        location: "query",
-        description,
-        optional,
-        scope: ["mcp", "sdk"],
-        definition: directDefinition
-      } satisfies GeneratedParam,
-      {
-        paramName: repeatableParamName,
-        originalName: repeatableParamName,
-        location: "transport",
-        description,
-        optional: true,
-        scope: ["cli"],
-        definition: directDefinition
-      } satisfies GeneratedParam,
-      {
-        paramName: jsonParamName,
-        originalName: jsonParamName,
-        location: "transport",
-        description: `JSON-encoded value for ${name}.`,
-        optional: true,
-        scope: ["cli"],
-        definition: { kind: "string" }
-      } satisfies GeneratedParam
-    ],
-    preflightLines: [
-      `    if (params.${paramName} !== undefined && (params.${repeatableParamName} !== undefined || params.${jsonParamName} !== undefined)) {`,
-      `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(paramName)}", "--${toCliFlag(repeatableParamName)}", and "--${toCliFlag(jsonParamName)}" cannot be combined.`)});`,
-      "    }",
-      `    if (params.${repeatableParamName} !== undefined && params.${jsonParamName} !== undefined) {`,
-      `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(repeatableParamName)}" and "--${toCliFlag(jsonParamName)}" are mutually exclusive.`)});`,
-      "    }",
-      `    let ${resolvedName} = params.${paramName} !== undefined ? params.${paramName} : params.${repeatableParamName};`,
-      `    if (params.${jsonParamName} !== undefined) {`,
-      "      let parsedJson: unknown;",
-      "      try {",
-      `        parsedJson = JSON.parse(params.${jsonParamName});`,
-      "      } catch (error) {",
-      `        throw new UserError(${JSON.stringify(`Invalid value for "--${toCliFlag(jsonParamName)}". Expected valid JSON.`)});`,
-      "      }",
-      "      if (!Array.isArray(parsedJson)) {",
-      `        throw new UserError(${JSON.stringify(`Invalid value for "--${toCliFlag(jsonParamName)}". Expected a JSON array.`)});`,
-      "      }",
-      `      ${resolvedName} = parsedJson;`,
-      "    }",
-      ...(optional
-        ? []
-        : [
-            `    if (${resolvedName} === undefined) {`,
-            `      throw new UserError(${JSON.stringify(`Missing required parameter "${toCliFlag(repeatableParamName)}".`)});`,
-            "    }"
-          ])
-    ],
-    requestField: {
-      location: "query",
-      originalName: name,
-      valueExpression: resolvedName,
-      omitWhenUndefinedExpression: `${resolvedName} === undefined`
-    },
-    requiresUserError: true
-  };
-}
-
 function createBodyField(
   document: OpenApiDocument,
   name: string,
   schema: OpenApiSchemaObject,
   optional: boolean,
   operationId: string
-): {
-  params: GeneratedParam[];
-  preflightLines: string[];
-  requestField: GeneratedRequestField;
-} {
+): GeneratedParameterAssembly {
   if (schema.type === "array") {
-    return createArrayBodyField(document, name, schema, optional, operationId);
+    return createArrayParam({
+      document,
+      name,
+      description: schema.description,
+      schema,
+      optional,
+      operationId,
+      context: `request body field ${JSON.stringify(name)}`,
+      location: "body",
+      supportsNullFlag: true
+    });
   }
 
   const paramName = normalizeParamName(name);
@@ -677,7 +624,7 @@ function createBodyField(
   const params: GeneratedParam[] = [
     {
       paramName,
-      originalName: name,
+      sourceName: name,
       location: "body",
       description: schema.description,
       optional,
@@ -690,7 +637,7 @@ function createBodyField(
   if (definition.nullable === true) {
     params.push({
       paramName: `${paramName}Null`,
-      originalName: `${name}Null`,
+      sourceName: name,
       location: "transport",
       description: `Send null for ${name}.`,
       optional: true,
@@ -716,28 +663,25 @@ function createBodyField(
         definition.nullable === true
           ? `${resolvedName} === undefined`
           : `params.${paramName} === undefined`
-    }
+    },
+    requiresUserError: definition.nullable === true
   };
 }
 
-function createArrayBodyField(
-  document: OpenApiDocument,
-  name: string,
-  schema: OpenApiSchemaObject,
-  optional: boolean,
-  operationId: string
-): {
-  params: GeneratedParam[];
-  preflightLines: string[];
-  requestField: GeneratedRequestField;
-} {
-  const paramName = normalizeParamName(name);
-  const directDefinition = createParamDefinition(
+function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterAssembly {
+  const {
     document,
+    name,
+    description,
     schema,
+    optional,
     operationId,
-    `request body field ${JSON.stringify(name)}`
-  );
+    context,
+    location,
+    supportsNullFlag
+  } = options;
+  const paramName = normalizeParamName(name);
+  const directDefinition = createParamDefinition(document, schema, operationId, context);
   const repeatableParamName = deriveArrayCliParamName(name);
   const jsonParamName = `${paramName}Json`;
   const nullParamName = `${paramName}Null`;
@@ -745,25 +689,25 @@ function createArrayBodyField(
   const params: GeneratedParam[] = [
     {
       paramName,
-      originalName: name,
-      location: "body",
-      description: schema.description,
+      sourceName: name,
+      location,
+      description,
       optional,
       scope: ["mcp", "sdk"],
       definition: directDefinition
     } satisfies GeneratedParam,
     {
       paramName: repeatableParamName,
-      originalName: repeatableParamName,
+      sourceName: name,
       location: "transport",
-      description: schema.description,
+      description,
       optional: true,
       scope: ["cli"],
       definition: directDefinition
     } satisfies GeneratedParam,
     {
       paramName: jsonParamName,
-      originalName: jsonParamName,
+      sourceName: name,
       location: "transport",
       description: `JSON-encoded value for ${name}.`,
       optional: true,
@@ -772,10 +716,10 @@ function createArrayBodyField(
     } satisfies GeneratedParam
   ];
 
-  if (directDefinition.nullable === true) {
+  if (supportsNullFlag && directDefinition.nullable === true) {
     params.push({
       paramName: nullParamName,
-      originalName: nullParamName,
+      sourceName: name,
       location: "transport",
       description: `Send null for ${name}.`,
       optional: true,
@@ -785,7 +729,7 @@ function createArrayBodyField(
   }
 
   const preflightLines = [
-    ...(directDefinition.nullable === true
+    ...(supportsNullFlag && directDefinition.nullable === true
       ? [
           `    if (params.${nullParamName} && (params.${paramName} !== undefined || params.${repeatableParamName} !== undefined || params.${jsonParamName} !== undefined)) {`,
           `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(nullParamName)}", "--${toCliFlag(paramName)}", "--${toCliFlag(repeatableParamName)}", and "--${toCliFlag(jsonParamName)}" cannot be combined.`)});`,
@@ -811,7 +755,7 @@ function createArrayBodyField(
     "      }",
     `      ${resolvedName} = parsedJson;`,
     "    }",
-    ...(directDefinition.nullable === true
+    ...(supportsNullFlag && directDefinition.nullable === true
       ? [`    if (params.${nullParamName}) {`, `      ${resolvedName} = null;`, "    }"]
       : [])
   ];
@@ -828,11 +772,12 @@ function createArrayBodyField(
     params,
     preflightLines,
     requestField: {
-      location: "body",
+      location,
       originalName: name,
       valueExpression: resolvedName,
       omitWhenUndefinedExpression: `${resolvedName} === undefined`
-    }
+    },
+    requiresUserError: true
   };
 }
 
@@ -859,7 +804,12 @@ function createParamDefinition(
     schema.type === undefined || !(schema.type in SCHEMA_TYPE_TO_KIND)
       ? undefined
       : SCHEMA_TYPE_TO_KIND[schema.type as OpenApiScalarType];
-  const enumValues = normalizeEnumValues(schema.enum, operationId, context, schema.nullable === true);
+  const enumValues = normalizeEnumValues(
+    schema.enum,
+    operationId,
+    context,
+    schema.nullable === true
+  );
 
   if (enumValues !== undefined) {
     return {
@@ -867,7 +817,9 @@ function createParamDefinition(
       enumValues,
       ...(scalarDefinition?.jsonType === undefined ? {} : { jsonType: scalarDefinition.jsonType }),
       ...(schema.default === undefined ? {} : { defaultValue: schema.default }),
-      ...(schema.nullable === true || schema.enum?.includes(null) === true ? { nullable: true } : {})
+      ...(schema.nullable === true || schema.enum?.includes(null) === true
+        ? { nullable: true }
+        : {})
     };
   }
 
@@ -985,9 +937,7 @@ function normalizeEnumValues(
     );
   }
 
-  if (
-    filteredValues.some((value) => !isEnumPrimitiveValue(value))
-  ) {
+  if (filteredValues.some((value) => !isEnumPrimitiveValue(value))) {
     throw new UserError(
       `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. OpenAPI enums must contain only string, number, boolean, or null values.`
     );
@@ -1076,7 +1026,9 @@ function expectRequestBody(
 
   return expectRequestBody(
     document,
-    resolveLocalReference(document, requestBody.$ref, operationId, context) as OpenApiRequestBodyObject | OpenApiReferenceObject,
+    resolveLocalReference(document, requestBody.$ref, operationId, context) as
+      | OpenApiRequestBodyObject
+      | OpenApiReferenceObject,
     operationId,
     context
   );
@@ -1171,8 +1123,12 @@ function collectOptionalRequestSections(
 
   if (
     operation.requestBody !== undefined &&
-    expectRequestBody(document, operation.requestBody, operation.operationId ?? "requestBody", "requestBody")
-      .required !== true
+    expectRequestBody(
+      document,
+      operation.requestBody,
+      operation.operationId ?? "requestBody",
+      "requestBody"
+    ).required !== true
   ) {
     optionalSections.add("body");
   }
@@ -1360,9 +1316,7 @@ function renderRequestShape(
 
     if (section.omittable && optionalSections.has(section.location)) {
       lines.push(
-        `      ...(${sectionFields
-          .map((param) => param.omitWhenUndefinedExpression)
-          .join(" && ")}`
+        `      ...(${sectionFields.map((param) => param.omitWhenUndefinedExpression).join(" && ")}`
       );
       lines.push("        ? {}");
       lines.push("        : {");

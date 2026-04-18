@@ -513,8 +513,12 @@ describe("generate", () => {
 
     const commandFile = files.find((file) => file.path === "bots/list.ts");
 
-    expect(commandFile?.contents).toContain('tags: S.Optional(S.Array(S.String(), { scope: ["mcp", "sdk"] }))');
-    expect(commandFile?.contents).toContain('tag: S.Optional(S.Array(S.String(), { scope: ["cli"] }))');
+    expect(commandFile?.contents).toContain(
+      'tags: S.Optional(S.Array(S.String(), { scope: ["mcp", "sdk"] }))'
+    );
+    expect(commandFile?.contents).toContain(
+      'tag: S.Optional(S.Array(S.String(), { scope: ["cli"] }))'
+    );
     expect(commandFile?.contents).toContain(
       'tagsJson: S.Optional(S.String({ description: "JSON-encoded value for tags.", scope: ["cli"] }))'
     );
@@ -522,6 +526,49 @@ describe("generate", () => {
       "let resolvedTags = params.tags !== undefined ? params.tags : params.tag;"
     );
     expect(commandFile?.contents).toContain('"tags": resolvedTags');
+  });
+
+  it("does not add a null helper flag for nullable query arrays", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "tags",
+                in: "query",
+                schema: {
+                  type: "array",
+                  nullable: true,
+                  items: {
+                    type: "string"
+                  }
+                }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "List.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).not.toContain("tagsNull");
   });
 
   it("uses the first tag when multiple tags are present", () => {
@@ -883,7 +930,9 @@ describe("generate", () => {
       { specSha: "spec-sha-123" }
     );
 
-    expect(files.find((file) => file.path === "bots/delete.ts")?.contents).toContain("  confirm: true,");
+    expect(files.find((file) => file.path === "bots/delete.ts")?.contents).toContain(
+      "  confirm: true,"
+    );
   });
 
   it("does not mark non-delete commands as confirmable", () => {
@@ -985,7 +1034,9 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/set-conversation-starters.ts");
 
     expect(commandFile?.contents).toContain("botHandle: S.String()");
-    expect(commandFile?.contents).toContain('starters: S.Array(S.String(), { scope: ["mcp", "sdk"] })');
+    expect(commandFile?.contents).toContain(
+      'starters: S.Array(S.String(), { scope: ["mcp", "sdk"] })'
+    );
   });
 
   it("preserves OpenAPI scalar and array constraints in generated MCP schemas", () => {
@@ -1063,11 +1114,11 @@ describe("generate", () => {
     );
 
     const listCommand = files.find((file) => file.path === "bots/list.ts");
-    const startersCommand = files.find(
-      (file) => file.path === "bots/set-conversation-starters.ts"
-    );
+    const startersCommand = files.find((file) => file.path === "bots/set-conversation-starters.ts");
 
-    expect(listCommand?.contents).toContain('limit: S.Optional(S.Number({ minimum: 1, maximum: 100, jsonType: "integer" }))');
+    expect(listCommand?.contents).toContain(
+      'limit: S.Optional(S.Number({ minimum: 1, maximum: 100, jsonType: "integer" }))'
+    );
     expect(startersCommand?.contents).toContain(
       'starters: S.Array(S.String({ minLength: 3, maxLength: 120, pattern: "^[a-z].+$", format: "date-time" }), { scope: ["mcp", "sdk"], minItems: 1, maxItems: 4'
     );
@@ -1118,7 +1169,9 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/set-limit.ts");
 
     expect(commandFile?.contents).toContain("limitNull: S.Optional(S.Boolean(");
-    expect(commandFile?.contents).toContain("const resolvedLimit = params.limitNull ? null : params.limit;");
+    expect(commandFile?.contents).toContain(
+      "const resolvedLimit = params.limitNull ? null : params.limit;"
+    );
   });
 
   it("accepts a path placeholder satisfied by a path-item parameter", () => {
@@ -1447,6 +1500,44 @@ describe("generate", () => {
         'Generated command path "bots list" is defined more than once ("listBots" and "listBotsAgain").'
       )
     );
+  });
+
+  it("reports the OpenAPI source name when an array CLI helper collides with another param", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots": {
+            get: {
+              tags: ["bots"],
+              operationId: "listBots",
+              parameters: [
+                {
+                  name: "tags",
+                  in: "query",
+                  schema: {
+                    type: "array",
+                    items: {
+                      type: "string"
+                    }
+                  }
+                },
+                {
+                  name: "tag",
+                  in: "query",
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "List."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(new UserError('Operation "listBots" maps both "tags" and "tag" to flag "tag".'));
   });
 
   it("throws when the OpenAPI document is missing paths", () => {

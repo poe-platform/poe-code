@@ -83,6 +83,7 @@ export interface OpenApiOperationObject {
   summary?: string;
   description?: string;
   operationId?: string;
+  security?: OpenApiSecurityRequirementObject[];
   parameters?: OpenApiParameter[];
   requestBody?: OpenApiRequestBodyObject | OpenApiReferenceObject;
   responses?: Record<string, OpenApiResponseObject | OpenApiReferenceObject>;
@@ -121,6 +122,7 @@ export interface OpenApiMediaTypeObject {
 
 export interface OpenApiSchemaObject {
   type?: "string" | "number" | "integer" | "boolean" | "object" | "array";
+  additionalProperties?: boolean | OpenApiSchemaObject | OpenApiReferenceObject;
   allOf?: Array<OpenApiSchemaObject | OpenApiReferenceObject>;
   anyOf?: Array<OpenApiSchemaObject | OpenApiReferenceObject>;
   description?: string;
@@ -146,6 +148,8 @@ export interface OpenApiSchemaObject {
 export interface OpenApiReferenceObject {
   $ref: string;
 }
+
+type OpenApiSecurityRequirementObject = Record<string, string[]>;
 
 export interface GenerateOptions {
   specSha: string;
@@ -330,6 +334,7 @@ function createGeneratedCommand(
       ),
       method: entry.method.toUpperCase(),
       path: entry.path,
+      auth: getOperationAuthMode(entry.operation),
       confirm: methodDefaults?.confirm === true,
       params: collected.params,
       preflightBlocks: collected.preflightBlocks,
@@ -485,6 +490,12 @@ function collectRequestBodyParams(
       ],
       bodyOptional,
       requestBody.description
+    );
+  }
+
+  if (schema.additionalProperties !== undefined && schema.additionalProperties !== false) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses unsupported requestBody. Object request bodies with additionalProperties are not supported in v1.`
     );
   }
 
@@ -1247,6 +1258,7 @@ function createCommandFile(options: {
   description?: string;
   method: string;
   path: string;
+  auth: "required" | "none";
   params: GeneratedParam[];
   preflightBlocks: GeneratedPreflightBlock[];
   requestFields: GeneratedRequestField[];
@@ -1293,6 +1305,9 @@ function createCommandFile(options: {
   lines.push("      baseUrl,");
   lines.push(`      path: ${JSON.stringify(options.path)},`);
   lines.push(`      method: ${JSON.stringify(options.method)},`);
+  if (options.auth === "none") {
+    lines.push('      auth: "none",');
+  }
   lines.push("      tokenSource,");
   lines.push("      fetch,");
   lines.push("      dryRun: params.dryRun,");
@@ -1325,6 +1340,10 @@ function mergeCommandDescriptions(
   }
 
   return `${operationDescription}\n\nRequest body: ${requestBodyDescription}`;
+}
+
+function getOperationAuthMode(operation: OpenApiOperationObject): "required" | "none" {
+  return operation.security?.length === 0 ? "none" : "required";
 }
 
 function renderParamLines(params: GeneratedParam[]): string[] {

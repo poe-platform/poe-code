@@ -57,7 +57,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 70
+  round: 71
   review_turn: 0
 ---
 
@@ -76,8 +76,13 @@ OpenAPI document, and (2) a thin auth abstraction so each REST client gets
 
 ## Design constraints
 
-- **Codegen, not runtime reflection.** Commands are emitted as committed `.ts` files so
+- **Codegen is the default.** Commands are emitted as committed `.ts` files so
   diffs are reviewable and types are real. No runtime OpenAPI parsing in the hot path.
+- **Runtime generation is an opt-in alternative.** Consumers can skip the build step
+  and build the command tree from the spec on startup instead. Same parser, same
+  naming, same auth plumbing — just no files and no types for the emitted surface.
+  Trades zero-build ergonomics for startup cost and loss of reviewable diffs. See
+  the "Runtime generation mode" section for the API and trade-offs.
 - **Drift guard via hash.** An `openapi.lock` file captures the spec SHA; CI re-runs the
   generator and fails on any diff.
 - **No client-side validation.** The server validates. Generator emits argv coercion
@@ -138,25 +143,16 @@ YAGNI for v1.
 
 ### Endpoint examples — CLI + MCP side by side
 
-Five cases cover every shape the generator needs to handle in v1.
-
-#### 1. POST with path param + scalar body — `set-official`
-
-OpenAPI: `POST /bots/{botHandle}/actions/set-official` body `{ official: boolean }`.
-
-CLI:
+Canonical case (POST with path param + scalar body) — `POST /bots/{botHandle}/actions/set-official` body `{ official: boolean }`:
 
 ```
 internal-agent bots set-official --bot-handle my-bot --official true
 internal-agent bots set-official --bot-handle my-bot --no-official   # boolean sugar
 ```
 
-MCP tool:
-
 ```json
 {
   "name": "internal_agent__bots__set_official",
-  "description": "Mark a bot as official.",
   "inputSchema": {
     "type": "object",
     "required": ["botHandle", "official"],
@@ -168,112 +164,12 @@ MCP tool:
 }
 ```
 
-#### 2. POST with enum body — `set-image-comprehension`
+Shape variants the generator must handle in v1:
 
-Body: `{ mode: "off" | "auto" | "forced" }`.
-
-CLI:
-
-```
-internal-agent bots set-image-comprehension --bot-handle my-bot --mode auto
-```
-
-MCP tool:
-
-```json
-{
-  "name": "internal_agent__bots__set_image_comprehension",
-  "inputSchema": {
-    "type": "object",
-    "required": ["botHandle", "mode"],
-    "properties": {
-      "botHandle": { "type": "string" },
-      "mode":      { "type": "string", "enum": ["off", "auto", "forced"] }
-    }
-  }
-}
-```
-
-#### 3. POST with array body — `set-conversation-starters`
-
-Body: `{ starters: string[] }` (max 4).
-
-CLI — repeatable flag for humans, `--*-json` for scripts (mutually exclusive):
-
-```
-internal-agent bots set-conversation-starters --bot-handle my-bot \
-  --starter "Tell me a joke" --starter "Summarize this" --starter "Draft an email"
-
-internal-agent bots set-conversation-starters --bot-handle my-bot \
-  --starters-json '["a","b","c"]'
-```
-
-MCP tool — arrays are native, no flag gymnastics:
-
-```json
-{
-  "name": "internal_agent__bots__set_conversation_starters",
-  "inputSchema": {
-    "type": "object",
-    "required": ["botHandle", "starters"],
-    "properties": {
-      "botHandle": { "type": "string" },
-      "starters":  { "type": "array", "items": { "type": "string" }, "maxItems": 4 }
-    }
-  }
-}
-```
-
-#### 4. GET with query params + pagination — `list`
-
-`GET /bots?owner=&cursor=&limit=`.
-
-CLI — pretty table for TTY, JSON when piped or `--json`:
-
-```
-internal-agent bots list --owner alice --limit 50
-internal-agent bots list --owner alice --cursor eyJ... --json
-```
-
-MCP tool:
-
-```json
-{
-  "name": "internal_agent__bots__list",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "owner":  { "type": "string" },
-      "cursor": { "type": "string" },
-      "limit":  { "type": "integer", "minimum": 1, "maximum": 100 }
-    }
-  }
-}
-```
-
-#### 5. GET by id + DELETE — single resource
-
-`GET /bots/{botHandle}` and `DELETE /bots/{botHandle}`.
-
-CLI — `DELETE` auto-injects confirm prompt and `--yes`:
-
-```
-internal-agent bots view   --bot-handle my-bot
-internal-agent bots delete --bot-handle my-bot --yes
-```
-
-MCP tool (DELETE — no confirm, one-shot):
-
-```json
-{
-  "name": "internal_agent__bots__delete",
-  "inputSchema": {
-    "type": "object",
-    "required": ["botHandle"],
-    "properties": { "botHandle": { "type": "string" } }
-  }
-}
-```
+- **Enum body** (`{ mode: "off"|"auto"|"forced" }`) — `--mode auto`; MCP carries `enum`.
+- **Array body** (`{ starters: string[] }`) — CLI repeatable `--starter` + script-friendly `--starters-json`, mutually exclusive. MCP gets native array.
+- **Query params** (`GET /bots?owner=&cursor=&limit=`) — scalar flags; pretty table for TTY, JSON when piped or `--json`.
+- **GET by id / DELETE** (`/bots/{botHandle}`) — verbs `view` / `delete`; DELETE auto-injects confirm prompt + `--yes` (CLI only, MCP is one-shot).
 
 ### Cross-cutting conventions baked into every generated command
 
@@ -289,12 +185,32 @@ MCP tool (DELETE — no confirm, one-shot):
 The CLI↔MCP name mapping is the one real asymmetry and is hardcoded in `naming.ts` —
 one place to change it, not per-command branching.
 
+## Runtime generation mode
+
+Opt-in alternative to codegen: build the command tree from the spec at process startup, return it as `Command[]`, hand it to `defineClient` like any other command list. No files, no lock, no committed output.
+
+```ts
+import { defineClient, commandsFromSpec, bearerTokenAuth } from "@poe-code/cmdkit-openapi";
+
+export default defineClient({
+  name: "internal-agent",
+  baseUrl: "https://www.i.quora.com/api/internal_agent",
+  auth: bearerTokenAuth({ ... }),
+  commands: await commandsFromSpec("./openapi.json"),
+});
+```
+
+`commandsFromSpec(source, opts?)` accepts a path, URL, or pre-parsed OpenAPI doc and returns `Promise<Command[]>`. Reuses the in-memory stage of `generate()` — same naming, param flattening, MCP schema, auth injection. Handwritten commands still merge via `defineClient`'s collision check.
+
+**Trade-offs.** Lose reviewable diffs on spec changes, typed `generated` imports, and the `openapi.lock` drift guard; pay startup cost on every launch. Use codegen for shipping CLIs and CI-guarded consumers; use runtime for experiments, one-off probes, or consumers that can't own a generated directory.
+
 ## Package layout
 
 ```
 packages/cmdkit-openapi/
   src/
-    generate.ts              # pure: (spec, opts) → files[]
+    generate.ts              # pure: (spec, opts) → { files[], commands[] }
+    runtime.ts               # commandsFromSpec: spec → Command[] in memory
     bin/generate.ts          # CLI wrapper: read spec, write files, update lock
     define-client.ts         # merge generated + handwritten, conflict check, register
     http.ts                  # shared fetch wrapper: auth header, error mapping, --dry-run
@@ -320,9 +236,7 @@ src/
 
 ## AuthProvider
 
-Pattern: **Strategy + Provider/Contributor**, modelled on Azure SDK's `TokenCredential`
-and Go `oauth2.TokenSource` (small single-method interfaces), not Passport.js
-(heavyweight strategy registry).
+Strategy + Provider/Contributor pattern (modelled on Azure `TokenCredential` / Go `oauth2.TokenSource`, not Passport).
 
 ### Interfaces
 
@@ -366,47 +280,9 @@ export function bearerTokenAuth(opts: {
 
 **Contributed commands** (under `<commandPrefix> …`, default `auth`):
 
-#### `internal-agent auth login`
-
-Interactive (TTY):
-
-```
-$ internal-agent auth login
-? Paste your internal API key: ****************
-✓ Authenticated as kjopek@quora.com (employee: true)
-  Stored in macOS Keychain.
-```
-
-Non-interactive:
-
-```
-internal-agent auth login --token "$IA_TOKEN"
-cat key.txt | internal-agent auth login --token-stdin
-```
-
-Flow: read token (flag/stdin/prompt) → call `whoamiPath` if set → reject if `!is_employee`
-→ store via `auth-store` → print identity + storage location.
-
-#### `internal-agent auth logout`
-
-```
-$ internal-agent auth logout
-✓ Removed stored credential.
-```
-
-Idempotent — exit 0 even if nothing was stored.
-
-#### `internal-agent auth status`
-
-```
-$ internal-agent auth status
-✓ Logged in as kjopek@quora.com
-  Token source: keychain
-  Host: i.quora.com (VPN required)
-```
-
-Source precedence shown explicitly so "why is my command 401ing" is diagnosable in
-one command.
+- `auth login` — reads token (flag / `--token-stdin` / TTY prompt) → calls `whoamiPath` if set → rejects if `!is_employee` → stores via `auth-store`.
+- `auth logout` — removes stored credential; idempotent.
+- `auth status` — prints resolved token source (env / keychain / none) and identity if `whoamiPath` is set. Explicit source precedence makes 401s diagnosable in one command.
 
 ### 401 handling
 
@@ -416,10 +292,7 @@ re-login rather than silently re-sending a dead token.
 
 ### Forward compatibility
 
-Future providers (e.g. `oauthAuth`, `mTlsAuth`) implement the same `AuthProvider` shape
-and drop into `defineClient` with zero changes to consumer code or generated commands.
-The interface is the forward-compat seam; the implementations are YAGNI-gated until a
-real API needs them.
+Future providers (`oauthAuth`, `mTlsAuth`, …) implement the same `AuthProvider` shape and drop in with zero changes to consumer code or generated commands. YAGNI-gated until a real API needs them.
 
 ## Generator behavior
 
@@ -625,32 +498,11 @@ shape rather than re-testing parser behavior locally.
 
 ### Famous spec smoke runs (manual verification)
 
-Run the generator against a handful of well-known public OpenAPI documents and
-eyeball the output. Goal is to surface shape mismatches the fixture suite misses;
-endpoints do not need to execute — auth-gated calls are expected to 401.
-
-For each spec: download, run `generate()`, commit the output under
-`packages/cmdkit-openapi/fixtures/famous/<name>/`, and note any operations that
-throw or produce obviously wrong commands in a short `NOTES.md` beside the output.
-
-- Petstore (`https://petstore3.swagger.io/api/v3/openapi.json`) — canonical tiny spec.
-- GitHub REST (`https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json`) — huge, deeply tagged.
-- Stripe (`https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json`) — nested schemas, polymorphism.
-- Slack (`https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json`) — form-encoded bodies (expected to throw on JSON-only guard).
-- DigitalOcean (`https://raw.githubusercontent.com/digitalocean/openapi/main/specification/DigitalOcean-public.v2.yaml`) — YAML input.
-
-Outcome captured in the consumer `NOTES.md` per spec:
-
-- Counts: operations in spec, commands emitted, operations skipped (with reason).
-- Any `throw` not already covered by the error-case tests → file a follow-up test.
-- Spot-check 3 emitted commands per spec against the source operation for correctness.
+Run `generate()` against well-known public specs; commit output + `NOTES.md` under `packages/cmdkit-openapi/fixtures/famous/<name>/` with counts (emitted / skipped+reason), 3-command spot checks, and any uncovered throws filed as follow-up tests. Specs: Petstore (tiny), GitHub REST (huge, deeply tagged), Stripe (nested schemas), Slack (form-encoded — JSON-only guard fires), DigitalOcean (YAML input). Auth-gated calls 401, execution not required.
 
 ### Not covered by tests in this plan
 
-- End-to-end against a live internal API (first consumer package owns this).
-- OAuth flows (out of scope).
-- Pagination, retries, streaming (out of scope).
-- Functional execution of famous-spec commands — auth-gated, 401s expected.
+Live-API e2e (owned by first consumer package), OAuth, pagination, retries, streaming.
 
 ## Out of scope
 
@@ -689,10 +541,8 @@ Outcome captured in the consumer `NOTES.md` per spec:
 - [x] `http.ts` KISS (round 11): collapse `appendQueryValue` + `appendQueryScalar` at `http.ts:131-152` into one function. `appendQueryScalar` is only called from inside the array branch and the scalar fallthrough of `appendQueryValue`; the split adds a function without adding clarity. Non-blocking, ~5-line diff.
 - [x] `bearerTokenAuth` testing literal coverage (round 11): the positive whoami-verified test at `bearer-token-auth.test.ts:291` asserts the returned email but does not assert `mocks.set` was called with the token. Add `expect(mocks.set).toHaveBeenCalledWith("<token>")` so the "stores" half of the Testing-section bullet is literally covered (mirrors the `.not.toHaveBeenCalled()` additions made to the rejection tests in round 10).
 - [x] `bearerTokenAuth` testing literal coverage (round 12): the whoamiPath-unset login test at `bearer-token-auth.test.ts:277-289` asserts `fetch` was not called but does not assert `mocks.set` received the token. The Testing-section bullet says "skips verification, **stores as-is**" — add `expect(mocks.set).toHaveBeenCalledWith("<token>")` so the "stores" half is literally covered (same pattern as the round-11 fix above).
-- [x] ~~Upstream fix in cmdkit to unblock the `generate()` milestone: `defineCommand` / `HandlerContext` / SDK typing now accept a plain TS param shape (`packages/cmdkit/src/params.ts`, `index.ts`, `sdk.ts`), and `bearer-token-auth.ts:53-57` switched to the plain shape. Resolves the round-11 hard blocker and honors the "no cmdkit-schema / no zod" constraint for generated output. (Builder round 15.)~~ **REVERTED.** The "no cmdkit-schema" premise was a misreading of the project rule (see Design constraints). cmdkit-schema is the chosen params definition format. The plain-TS param shape work in `packages/cmdkit/src/params.ts` + `normalize-command-params.ts` and the consumer migrations in `packages/cmdkit/src/**`, `packages/superintendent/src/commands/**`, `packages/terminal-pilot/src/commands/**`, `packages/github-workflows/src/commands.ts`, and `packages/cmdkit-openapi/src/bearer-token-auth.ts` have been rolled back. Generator and handwritten commands both target `S.Object(...)`.
-- [x] ~~cmdkit cleanup follow-up (KISS, non-blocking): collapse the dual param surface now that plain shapes are the canonical input. `CommandParamsDefinition = ObjectSchema<any> | CommandParamShape` at `packages/cmdkit/src/params.ts:94` keeps two live forms; migrate any remaining `S.Object(...)` callsites, drop the union (and the `isObjectSchema` guard at `:118`), remove the `@poe-code/cmdkit-schema` import at `:1`, and drop the `S` / schema re-exports at `packages/cmdkit/src/index.ts:775-790`. Does not block the `generate()` milestone — the generator can target the plain shape directly.~~ **OBSOLETE.** Superseded by the revert above — there is no dual param surface to collapse; `S.Object(...)` is the single form.
+- [x] Plain-TS param-shape detour (rounds 11–16) was reverted — cmdkit-schema (`S.Object(...)`) is the canonical params format for both generated and handwritten commands (see Design constraints).
 - [x] `http.ts` test cleanup (round 16, code-quality inspector): `packages/cmdkit-openapi/src/http.test.ts:172-183` and `:185-196` are duplicate "invalid path template" tests — same call, one asserts `instanceof UserError`, the other asserts the message. Merge into a single test asserting both.
-- [x] ~~cmdkit internals note (round 16, code-quality inspector — non-blocking, scope clarification): `packages/cmdkit/src/normalize-command-params.ts` still imports `S` from `@poe-code/cmdkit-schema` to wrap plain shapes into `ObjectSchema` at runtime. The round-15 task collapsed the **public** param surface to plain TS (params.ts and index.ts are clean); fully removing `cmdkit-schema` from `cmdkit` runtime internals (`cli.ts`, `sdk.ts`, `mcp.ts` all still import it) is a larger refactor not scoped to this plan. The no-cmdkit-schema feedback applies to **consumer/generated code** — the generator will target `CommandParamShape` directly and will not pull in `cmdkit-schema`. No action required in this plan.~~ **OBSOLETE.** The premise (public param surface should be plain TS) is wrong — cmdkit-schema is the chosen format on both the public and internal surfaces. No action.
 - [x] Implement `defineClient` with handwritten + generated merge, hard-fail collision detection, CLI-scope enforcement for auth commands, and `name` → MCP prefix derivation.
 - [x] `defineClient` KISS follow-ups from round 18 code-quality inspector (all non-blocking, readability-only; declarative contract is intact): (a) collapse the two collision-throw branches at `define-client.ts:98-104` into one — the only recurse case is group+group, everything else is a collision (`if (existing.kind !== "group" || nextNode.kind !== "group") throw …`); (b) drop the dead `?? "generated"` fallback at `define-client.ts:126-131` in `createCollisionError` — `registerSource` always tags every incoming node before `mergeInto`, so `nodeSources.get(existing)` can't be undefined; silent fallback would mask a real bug; (c) unwind the nested ternary picking `scope` at `define-client.ts:176-180` into a 4-line if/else or extracted helper; (d) replace the manual char loop in `toMcpPrefix` at `define-client.ts:220-228` with `name.replaceAll("-", "_")` — the regex ban in CLAUDE.md applies to config-file parsing, not string transforms. (Nit 5 on the `bearerTokenAuth` `TokenSource` shim at `bearer-token-auth.ts:262-266` was reviewed and marked acceptable as-is — no action.)
 - [x] `defineClient` nits from round 19 code-quality inspector (non-blocking, pick up alongside the next edit in this file — do not spin a dedicated round): (a) `define-client.ts:47-57` builds the root `Group` as an object literal with explicit `undefined` for `description`/`scope`/`requires`/`default`; swap to `defineGroup({ name, children: mergedChildren })` from `@poe-code/cmdkit` to match construction idiom used elsewhere and drop the undefineds; (b) `mergeChildren`'s `WeakMap<object, CommandSource>` at `define-client.ts:71` never escapes the call — a plain `Map` behaves identically and is the simpler default. Skip the `any`-in-`cloneCommand`/`cloneGroup` note (borderline generic-variance smell; no action until the AST generics are tightened upstream).
@@ -740,7 +590,7 @@ Outcome captured in the consumer `NOTES.md` per spec:
 - [x] `generate()` spec-fidelity gaps from round 37 spec-fidelity inspector (builder round 63): (a) query-array params now stay array-shaped through the generated request object, with focused coverage pinning repeat/comma/pipe serialization in `generate.test.ts`; (b) GET operations now fail fast with `UserError` when they declare a `requestBody` (DELETE bodies remain supported — the existing delete-body generation test still passes, matching the broader plan/testing contract); (c) nested object request-body fields now throw an explicit unsupported-in-v1 `UserError`, and focused generator tests pin the behavior. Suite: `@poe-code/cmdkit-openapi` 147/147, root `npm run lint:types` green.
 - [x] `generate()` code-quality nit from round 37 inspector (builder round 52, bundled with task 726): `expectParameter` now returns `parameter as SupportedOpenApiParameterObject` — the `...parameter, in: parameter.in` spread is gone. The negative `UserError`-import test was added alongside task 726(a)'s declarative preflight refactor, closing the positive-only coverage gap.
 - [x] `generate()` spec-fidelity gaps from round 38 spec-fidelity inspector: (a) top-level scalar + array JSON request bodies now generate a single top-level `body` request payload instead of forcing object-shaped bodies, reusing the existing scalar/array CLI helpers (`--body`, `--body-json`, `--body-null`) where applicable; (b) `expectSchema` now rejects `oneOf` / `anyOf` / `allOf` with composition-aware `UserError`s that name the unsupported keyword; ~~(c) media-type lookup inconsistency~~ **done in builder round 64** — request-body media selection now uses `isJsonMediaType`; (d) path params with array/object schemas now fail fast with a scalar-only error; (e) header/cookie params still reject in v1, but the error now explains that only path/query params are supported and headers/cookies belong in auth or handwritten commands; (f) required query arrays still do **not** auto-invent `minItems: 1` — intentional per the “don’t invent constraints” policy. Coverage added in `generate.test.ts` for top-level scalar bodies, top-level array bodies, keyword-specific composition errors, and clarified header/cookie errors.
-- [ ] `generate()` spec-fidelity gaps from round 40 spec-fidelity inspector (generate-time sanity checks; bundle under task 711 when constraint work lands — none block milestones 6–7): (a) **Per-operation `security` ignored.** `http.ts:143-148` always attaches `Authorization: Bearer <token>`; operations declaring `security: []` (explicitly public) or alternative schemes aren't reflected — every call gets the default auth header. Either read `operation.security` at generate time and gate the auth-header injection per command, or document that `security` is intentionally v1-uniform. (b) **Optional body + required children = silent partial body.** When `requestBody.required === false`, every property is forced `S.Optional`, including those in `schema.required`; a caller supplying *some* body fields but not the required ones sends a partial body and relies on server-side rejection. Consistent with "no client-side validation," but the MCP `inputSchema` claims the field is optional when OpenAPI says it's required-if-body-present — add an `anyOf` (all-required or none) at generate time, or document the asymmetry. (c) **`additionalProperties` / empty `properties` bodies emit no fields.** A `requestBody` with `properties: {}` + `additionalProperties: true` generates a command with no body params; nothing will ever send body content. Emit a `--body-json` fallback or reject at generate time. (d) **Query `null` serializes as empty string.** `appendQueryValue` in `http.ts` turns `null` into `""`, which is indistinguishable from an empty-string intent on the wire. Minor; OpenAPI has no canonical null-in-query encoding. No action unless a consumer hits it.
+- [x] `generate()` spec-fidelity gaps from round 40 spec-fidelity inspector (builder round 72): public operations that declare `security: []` now emit `auth: "none"` and skip bearer-token resolution/header injection at runtime, object request bodies that rely on `additionalProperties` now fail fast with a `UserError` instead of generating a no-op body surface, the optional-body/required-child asymmetry remains an explicit documented v1 limitation and stays tracked under task 779(a), and scalar query `null` continues to map to the existing empty-string wire encoding until a real consumer needs a different convention. Coverage: new generator assertions for `security: []` and `additionalProperties`, plus an `http.ts` runtime test proving `auth: "none"` omits `Authorization`.
 - [x] Runtime argv coverage gap from round 40 testing inspector (documentation note; non-blocking): added consumer-level invocation coverage in `packages/internal-agent-cli/src/bin.test.ts` so a real generated command is exercised at runtime through the actual CLI entrypoint. The new tests pin JSON output, `--dry-run` passthrough, and `-v` request logging; broader enum/number/DELETE-confirm semantics remain owned by `@poe-code/cmdkit` and stay covered in that package's test suite.
 - [x] `generate()` — array-param assembly duplication from round 41 code-quality inspector: `createArrayQueryParameter` and `createArrayBodyField` are now a single `createArrayParam({ location, supportsNullFlag, … })` dispatched through from both `createGeneratedParameter` (query) and `createBodyField` (body); the four-field return shape is captured once as `GeneratedParameterAssembly`. Collision bookkeeping on `GeneratedParam` moved from the misleading `originalName: <derivedCliName>` to `sourceName: <openApiName>`, so `Operation "listBots" maps both "tags" and "tag" to flag "tag"` now names the real OpenAPI source rather than the CLI alias (regression test at `generate.test.ts:1505` pins it). `requiresUserError` is now derived from the assembly return rather than a `preflightLines.length > 0` sniff on the body path.
 - [x] `generate()` — query-array nullable asymmetry from round 41 code-quality + spec-fidelity inspectors: resolved as intentional omission (option b). Query `null` already serializes to an empty string on the wire (see 735(d)) so a CLI-only `--<name>-null` helper would add no signal. `createArrayParam` now takes a `supportsNullFlag` option (`query → false`, `body → true`); the rationale lives in an inline comment at the query dispatch site (`generate.ts:562-564`) and a focused regression test at `generate.test.ts:531` asserts that nullable query arrays emit no `<name>Null` flag.
@@ -792,3 +642,8 @@ Outcome captured in the consumer `NOTES.md` per spec:
 - [ ] `requestBody.description` duplication from round 70 spec-fidelity inspector (cosmetic, new in task 787's diff): when a top-level scalar/array request body schema has no `description` but `requestBody.description` is set, the schema-merge at `generate.ts:479-483` lifts that description into the `body` param's description, and `mergeCommandDescriptions` also appends `Request body: …` into the command description, so the same string surfaces twice. Either skip the merge-into-param when `requestBody.description` is already carried by the command description, or suppress the `Request body:` append when the body is a passthrough scalar/array (the param-level description already carries it).
 - [ ] `render` discriminator at wrong level from round 71 code-quality inspector (must-fix before the renderer grows a third mode or a second inline field ever lands): the round-70/71 refactor landed `render: "wrapped" | "inline"` on `GeneratedRequestField`, but `renderRequestShape` at `generate.ts:1506` reads only `sectionFields[0]?.render` and applies it to the whole section — mixed render values in one section would silently drop every field after the first on the inline path. Same class of "wrong level" trap killed in rounds 24 (`location === "body"` body-omit branch → `REQUEST_PARAM_SECTIONS.omittable`), 27 (`jsonType` spread), 29 (`transport` scope), and 34 (`delete` confirm). The type also allows `render: "inline"` on path / query sections even though emitting `query: <expr>` with no wire-name wrapping would break URL construction — same root cause. Fix: move the discriminator onto `CollectedCommandParams` as a per-section map (mirroring `optionalSections`), so each section has exactly one `render` value and non-body sections can't accept `"inline"` at the type level. Alternative if the move is disruptive: keep the per-field tag but throw at `renderRequestShape` entry when a section mixes render modes.
 - [ ] Round-71 code-quality nits from code-quality inspector (non-blocking, fold into the next edit on `generate.ts` — do not spin a dedicated round): (a) **Drop the `render = "wrapped"` default on `createBodyField`** at `generate.ts:634` — per "explicit over implicit / state the actual value directly," pass `"wrapped"` at the properties-loop call site (`generate.ts:512-518`) so both call sites declare their render mode the same way. The top-level path already passes `"inline"` explicitly; the default hides the convention. (b) **`REQUEST_FIELD_RENDERERS` declared after its caller** at `generate.ts:1517` vs. the `renderRequestShape` call site at `:1506`. Works (hoisted `const`, used at call time), but reads backwards — hoist the table above `renderRequestShape`. Overlaps with the round-71 must-fix above on the same lines; bundle if both land together.
+- [ ] Runtime generation mode — `commandsFromSpec(source, opts?)`: reuse the in-memory stage of `generate()` to build `Command[]` from a path / URL / pre-parsed spec, no file emission, no lock. Wire into `defineClient` as a plain `commands: [...]` input so merge + conflict detection keep working unchanged. Testing: happy path against the same fixtures the codegen snapshots use, a mix with handwritten commands (collision detection still fires), and one spec-fetch error case. Out of scope: type-generation for consumer code (no `generated` import) and streaming / incremental rebuilds.
+- [ ] `auth` mode implicit default from round 72 code-quality inspector (task 743 follow-up; violates the "explicit over implicit" user preference): task 743 emits only `auth: "none"` on generated commands — `"required"` is encoded by *omission* at `generate.ts:1308-1310`, and the `HttpRequestOptions.auth?` field treats `undefined` as `"required"` at `http.ts:13,40`. A reader of a generated command file has to know the default. Fix: always emit the resolved literal on the generated command (`auth: "required"` or `auth: "none"`) and make `HttpRequestOptions.auth` required (typed `"required" | "none"`, not optional). Same class of rule as the "state the actual value directly" preference already pinned in memory.
+- [ ] Document-level `security` inheritance ignored from round 72 code-quality + spec-fidelity inspectors (task 743 follow-up; spec-fidelity gap): `getOperationAuthMode` at `generate.ts:1345` only reads `operation.security?.length === 0`. OpenAPI 3.0/3.1 says an operation inherits the document-root `security` when its own field is absent, so a document with root `security: []` and no per-op override silently renders every operation as `"required"`. Fix: thread `document.security` into the helper and fall back to document-level `security` (treat root `security: []` as `"none"` for inheriting operations). Alternative if we want v1 to stay narrow: throw a `UserError` at generate time when the document declares a root `security` field, so future specs fail loud instead of silently misgenerating. Bundle with the explicit-emission fix above — both touch `getOperationAuthMode` / the emitted `auth` line.
+- [ ] Query-array comma / pipe percent-encoding from round 72 spec-fidelity inspector (wire-level fidelity; non-blocking, no confirmed consumer breakage): `renderQueryArrayValueExpression` joins `form` + `explode: false` arrays as `"a,b,c"` and `pipeDelimited` arrays as `"a|b|c"`, but `appendQueryValue` at `http.ts:132` pipes the joined string through `URLSearchParams.append`, which percent-encodes `,` → `%2C` and `|` → `%7C`. Most OpenAPI servers tolerate `%2C` but strict `pipeDelimited` receivers may not. Fix only if a real consumer trips on it; when it does, build the query string manually for these two shapes so the raw separator reaches the wire. Cross-ref tasks 709 / 749 (query-array serialization work) — same code paths.
+- [ ] `deprecated` flag not surfaced from round 72 spec-fidelity inspector (cosmetic; non-blocking): neither `operation.deprecated` nor `parameter.deprecated` are read anywhere in `generate.ts`. Generated command / parameter descriptions carry no deprecation indicator in CLI `--help` or MCP tool descriptions. Fix: thread a `deprecated: true` marker into the command + param descriptions (prefix with `[DEPRECATED]` or append a note) so agents and CLI users see the signal.

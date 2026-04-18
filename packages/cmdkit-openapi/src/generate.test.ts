@@ -282,6 +282,30 @@ describe("generate", () => {
     );
   });
 
+  it("emits auth: none for operations that declare security: []", () => {
+    const files = generate(
+      createDocument({
+        "/status": {
+          get: {
+            tags: ["status"],
+            operationId: "getStatus",
+            security: [],
+            responses: {
+              "200": {
+                description: "OK."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path !== "index.ts")?.contents).toContain(
+      '      auth: "none",'
+    );
+  });
+
   it("keeps explicit camel-cased param names instead of stripping the noun prefix", () => {
     const files = generate(
       createDocument({
@@ -1971,6 +1995,51 @@ describe("generate", () => {
       )
     ).toThrowError(
       new UserError('Operation "importBot" must define a JSON request body media type in v1.')
+    );
+  });
+
+  it("throws when a request body relies on additionalProperties", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}/import": {
+            post: {
+              tags: ["bots"],
+              operationId: "importBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      properties: {},
+                      additionalProperties: true
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Imported."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "importBot" uses unsupported requestBody. Object request bodies with additionalProperties are not supported in v1.'
+      )
     );
   });
 

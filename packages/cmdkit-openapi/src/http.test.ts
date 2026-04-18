@@ -63,6 +63,28 @@ describe("requestJson", () => {
     );
   });
 
+  it("skips token resolution and omits the Authorization header when auth is disabled", async () => {
+    const tokenSource = createTokenSource("abc");
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/status",
+      method: "GET",
+      auth: "none",
+      tokenSource,
+      fetch: fetchMock,
+    });
+
+    expect(tokenSource.getToken).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/status",
+      expect.objectContaining({
+        headers: {},
+      })
+    );
+  });
+
   it("omits the JSON content type when the request has no body", async () => {
     const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
 

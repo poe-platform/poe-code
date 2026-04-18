@@ -10,6 +10,7 @@ export interface HttpRequestOptions {
   path: string;
   method: string;
   tokenSource: TokenSource;
+  auth?: "required" | "none";
   fetch?: typeof globalThis.fetch;
   pathParams?: Record<string, string | number | boolean>;
   query?: Record<string, QueryValue>;
@@ -36,7 +37,7 @@ export class HttpError extends Error {
 export async function requestJson<TResult = unknown>(
   options: HttpRequestOptions
 ): Promise<TResult | undefined> {
-  const token = await options.tokenSource.getToken();
+  const token = options.auth === "none" ? undefined : await options.tokenSource.getToken();
   const method = options.method.toUpperCase();
   const hasBody = options.body !== undefined;
   const serializedBody = hasBody ? JSON.stringify(options.body) : undefined;
@@ -140,9 +141,9 @@ function appendQueryValue(searchParams: URLSearchParams, key: string, value: Que
   }
 }
 
-function createHeaders(token: string, hasBody: boolean): Record<string, string> {
+function createHeaders(token: string | undefined, hasBody: boolean): Record<string, string> {
   return {
-    Authorization: `Bearer ${token}`,
+    ...(token === undefined ? {} : { Authorization: `Bearer ${token}` }),
     ...(hasBody ? { "Content-Type": "application/json" } : {}),
   };
 }

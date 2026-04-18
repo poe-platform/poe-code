@@ -137,6 +137,83 @@ describe("runGenerateCli", () => {
     );
   });
 
+  it("returns a user-facing error when fetching the spec fails with a network error", async () => {
+    const harness = createCliHarness();
+    harness.services.fetch.mockRejectedValue(new Error("socket hang up"));
+
+    const exitCode = await runGenerateCli(
+      ["node", "generate", "--input", "https://example.com/openapi.json"],
+      harness.services
+    );
+
+    expect([exitCode, harness.stderr()]).toEqual([
+      1,
+      'Failed to read OpenAPI document "https://example.com/openapi.json": socket hang up\n'
+    ]);
+  });
+
+  it("returns a user-facing error when fetching the spec returns a non-2xx response", async () => {
+    const harness = createCliHarness();
+    harness.services.fetch.mockResolvedValue(
+      new Response("nope", {
+        status: 503,
+        statusText: "Service Unavailable"
+      })
+    );
+
+    const exitCode = await runGenerateCli(
+      ["node", "generate", "--input", "https://example.com/openapi.json"],
+      harness.services
+    );
+
+    expect([exitCode, harness.stderr()]).toEqual([
+      1,
+      'Failed to fetch "https://example.com/openapi.json": 503 Service Unavailable\n'
+    ]);
+  });
+
+  it("returns a user-facing error when fetching the spec returns invalid JSON", async () => {
+    const harness = createCliHarness();
+    harness.services.fetch.mockResolvedValue(
+      new Response('{"openapi": ', {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      })
+    );
+
+    const exitCode = await runGenerateCli(
+      ["node", "generate", "--input", "https://example.com/openapi.json"],
+      harness.services
+    );
+
+    expect({
+      exitCode,
+      stderr: harness.stderr()
+    }).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining(
+        'Failed to parse OpenAPI document "https://example.com/openapi.json":'
+      )
+    });
+  });
+
+  it("returns a user-facing error when fetching the spec times out", async () => {
+    const harness = createCliHarness();
+    harness.services.fetch.mockRejectedValue(
+      Object.assign(new Error("Request timed out"), { name: "TimeoutError" })
+    );
+
+    const exitCode = await runGenerateCli(
+      ["node", "generate", "--input", "https://example.com/openapi.json"],
+      harness.services
+    );
+
+    expect([exitCode, harness.stderr()]).toEqual([
+      1,
+      'Failed to read OpenAPI document "https://example.com/openapi.json": Request timed out\n'
+    ]);
+  });
+
   it("is idempotent when the spec and lock are unchanged", async () => {
     const specText = createSpec("List bots.");
     const harness = createCliHarness({ "/repo/openapi.json": specText });

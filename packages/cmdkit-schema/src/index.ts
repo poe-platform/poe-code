@@ -1,4 +1,4 @@
-type JsonSchemaType = "string" | "number" | "boolean" | "array" | "object";
+type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object";
 type SchemaKind =
   | "string"
   | "number"
@@ -8,6 +8,7 @@ type SchemaKind =
   | "object"
   | "optional";
 type EnumValue = string | number | boolean;
+type NumberJsonType = "number" | "integer";
 type NonEmptyReadonlyArray<T> = readonly [T, ...T[]];
 type ObjectShape = Record<string, AnySchema>;
 type OptionalKeys<TShape extends ObjectShape> = {
@@ -51,7 +52,9 @@ export interface JsonSchema {
 
 export type StringSchema = SchemaBase<"string", string>;
 
-export type NumberSchema = SchemaBase<"number", number>;
+export interface NumberSchema extends SchemaBase<"number", number> {
+  readonly jsonType?: NumberJsonType;
+}
 
 export type BooleanSchema = SchemaBase<"boolean", boolean>;
 
@@ -158,7 +161,7 @@ export const S = {
     };
   },
 
-  Number(options: SchemaOptions<number> = {}): NumberSchema {
+  Number(options: SchemaOptions<number> & { jsonType?: NumberJsonType } = {}): NumberSchema {
     return {
       kind: "number",
       ...options,
@@ -222,7 +225,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
       return withMetadata(unwrappedSchema, { type: "string" });
 
     case "number":
-      return withMetadata(unwrappedSchema, { type: "number" });
+      return withMetadata(unwrappedSchema, { type: unwrappedSchema.jsonType ?? "number" });
 
     case "boolean":
       return withMetadata(unwrappedSchema, { type: "boolean" });

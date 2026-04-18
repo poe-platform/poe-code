@@ -113,6 +113,14 @@ describe("@poe-code/cmdkit-schema", () => {
     } satisfies JsonSchema);
   });
 
+  it("serializes integer-flavored number schemas as JSON Schema integers", () => {
+    expect(toJsonSchema(S.Number({ description: "Count", default: 3, jsonType: "integer" }))).toEqual({
+      type: "integer",
+      description: "Count",
+      default: 3,
+    } satisfies JsonSchema);
+  });
+
   it("serializes enum schemas with enum values and defaults", () => {
     expect(
       toJsonSchema(

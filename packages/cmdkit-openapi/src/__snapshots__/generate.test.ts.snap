@@ -198,9 +198,13 @@ export const botsSetDescriptionCommand = defineCommand<OpenApiClientServices>({
       pathParams: {
         "botHandle": params.botHandle,
       },
-      body: {
-        "description": params.description,
-      },
+      ...(params.description === undefined
+        ? {}
+        : {
+            body: {
+              "description": params.description,
+            },
+          }),
     });
   },
 });

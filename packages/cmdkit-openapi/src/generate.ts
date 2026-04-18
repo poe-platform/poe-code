@@ -14,15 +14,15 @@ type OpenApiParameterLocation = "path" | "query";
 type ParamKind = "string" | "number" | "boolean" | "enum";
 type OpenApiScalarType = "string" | "number" | "integer" | "boolean";
 
-const SCHEMA_TYPE_TO_KIND = {
+const SCHEMA_TYPE_TO_KIND: Record<
+  OpenApiScalarType,
+  { kind: Exclude<ParamKind, "enum">; jsonType?: "integer" }
+> = {
   boolean: { kind: "boolean" },
   integer: { kind: "number", jsonType: "integer" },
   number: { kind: "number" },
   string: { kind: "string" }
-} as const satisfies Record<
-  OpenApiScalarType,
-  Pick<GeneratedParamDefinition, "kind"> & Partial<Pick<GeneratedParamDefinition, "jsonType">>
->;
+};
 
 const REQUEST_PARAM_SECTIONS = [
   { location: "path", key: "pathParams" },
@@ -204,7 +204,11 @@ function createGeneratedCommand(entry: OperationEntry, specSha: string): Generat
       description: entry.operation.summary ?? entry.operation.description,
       method: entry.method.toUpperCase(),
       path: entry.path,
-      params
+      params,
+      omitOptionalBodyWhenEmpty:
+        entry.operation.requestBody !== undefined &&
+        !isReferenceObject(entry.operation.requestBody) &&
+        entry.operation.requestBody.required !== true
     })
   };
 }
@@ -472,6 +476,7 @@ function createCommandFile(options: {
   method: string;
   path: string;
   params: GeneratedParam[];
+  omitOptionalBodyWhenEmpty: boolean;
 }): string {
   const lines = [
     "/**",
@@ -503,7 +508,7 @@ function createCommandFile(options: {
   lines.push("      fetch,");
   lines.push("      dryRun: params.dryRun,");
   lines.push("      verbose: params.verbose,");
-  lines.push(...renderRequestShape(options.params));
+  lines.push(...renderRequestShape(options.params, options.omitOptionalBodyWhenEmpty));
   lines.push("    });");
   lines.push("  },");
   lines.push("});");
@@ -558,12 +563,31 @@ function renderConstArray(values: ReadonlyArray<string | number | boolean>): str
   return `${JSON.stringify(values)} as const`;
 }
 
-function renderRequestShape(params: GeneratedParam[]): string[] {
+function renderRequestShape(params: GeneratedParam[], omitOptionalBodyWhenEmpty: boolean): string[] {
   const lines: string[] = [];
 
   for (const section of REQUEST_PARAM_SECTIONS) {
     const sectionParams = params.filter((param) => param.location === section.location);
     if (sectionParams.length === 0) {
+      continue;
+    }
+
+    if (section.location === "body" && omitOptionalBodyWhenEmpty) {
+      lines.push(
+        `      ...(${sectionParams
+          .map((param) => `params.${param.paramName} === undefined`)
+          .join(" && ")}`
+      );
+      lines.push("        ? {}");
+      lines.push("        : {");
+      lines.push("            body: {");
+      lines.push(
+        ...sectionParams.map(
+          (param) => `              ${JSON.stringify(param.originalName)}: params.${param.paramName},`
+        )
+      );
+      lines.push("            },");
+      lines.push("          }),");
       continue;
     }
 

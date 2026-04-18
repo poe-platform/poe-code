@@ -296,6 +296,58 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("omits the generated body option when an optional request body has no defined fields", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/update-profile": {
+          post: {
+            tags: ["bots"],
+            operationId: "updateProfile",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      description: { type: "string" },
+                      displayName: { type: "string" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/update-profile.ts");
+
+    expect(commandFile?.contents).toContain(`      ...(params.description === undefined && params.displayName === undefined
+        ? {}
+        : {
+            body: {
+              "description": params.description,
+              "displayName": params.displayName,
+            },
+          }),`);
+  });
+
   it("uses delete as the verb for delete-by-id operations", () => {
     const files = generate(
       createDocument({

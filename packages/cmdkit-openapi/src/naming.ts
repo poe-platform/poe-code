@@ -10,8 +10,11 @@ const DEFAULT_VERBS_BY_METHOD = {
   get: {
     collection: "list",
     resource: "view"
-  }
-} as const satisfies Partial<Record<HttpMethod, { collection: string; resource: string }>>;
+  },
+  patch: undefined,
+  post: undefined,
+  put: undefined
+} as const satisfies Record<HttpMethod, { collection: string; resource: string } | undefined>;
 
 export function deriveNoun(operation: { tags?: string[] }, operationId: string): string {
   const noun = operation.tags?.[0];

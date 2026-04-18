@@ -992,6 +992,123 @@ describe("spawn command", () => {
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
+  it("reads positional prompt from an absolute @file path", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = "/tmp/prompt.md";
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "Review the diff carefully.\n", { encoding: "utf8" });
+
+    await program.parseAsync(["node", "cli", "spawn", "codex", `@${filePath}`]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Review the diff carefully.",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000
+    });
+  });
+
+  it("resolves relative positional prompt @file paths against the CLI cwd", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = path.join(cwd, "prompt.md");
+    await fs.mkdir(cwd, { recursive: true });
+    await fs.writeFile(filePath, "Summarize the file.\n", { encoding: "utf8" });
+
+    await program.parseAsync(["node", "cli", "spawn", "codex", "@prompt.md"]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Summarize the file.",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000
+    });
+  });
+
+  it("rejects positional prompt when the referenced @file does not exist", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const missingPath = path.join(cwd, "missing.md");
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "codex", "@missing.md"])
+    ).rejects.toThrow(missingPath);
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects positional prompt when @ has no file path", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "codex", "@"])
+    ).rejects.toThrow("prompt @<path> requires a file path after '@'");
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("treats stdin starting with @ as literal prompt text, not a file reference", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    const stdinStream = Readable.from([Buffer.from("@not-a-file.md")]);
+    Object.defineProperty(stdinStream, "isTTY", { value: false });
+    const stdinSpy = vi
+      .spyOn(process, "stdin", "get")
+      .mockReturnValue(stdinStream as NodeJS.ReadStream);
+
+    try {
+      await program.parseAsync(["node", "cli", "spawn", "--stdin", "codex"]);
+    } finally {
+      stdinSpy.mockRestore();
+    }
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "@not-a-file.md",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000
+    });
+  });
+
   it("rejects --mcp-servers for agents without spawn-time MCP support", async () => {
     vi.mocked(supportsMcpAtSpawn).mockReturnValueOnce(false);
     const { runner } = createCommandRunnerStub();

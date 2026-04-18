@@ -87,7 +87,7 @@ export function registerSpawnCommand(
       (value: string) => parsePositiveInt(value, "--activity-timeout-ms")
     )
     .argument("<agent>", serviceDescription)
-    .argument("[prompt]", "Prompt text to send (or '-' / stdin)")
+    .argument("[prompt]", "Prompt text to send, '@path/to/file' to load from a file, or '-' / stdin")
     .argument("[agentArgs...]", "Additional arguments forwarded to the agent CLI")
     .action(async function (
       this: Command,
@@ -126,6 +126,10 @@ export function registerSpawnCommand(
 
       if (promptText === "-") {
         promptText = undefined;
+      }
+
+      if (promptText !== undefined) {
+        promptText = await resolvePromptInput(promptText, container.fs, container.env.cwd);
       }
 
       if (!promptText && shouldReadFromStdin) {
@@ -400,6 +404,32 @@ async function confirmUnconfiguredService(
   }
 
   return shouldProceed === true;
+}
+
+async function resolvePromptInput(
+  input: string,
+  fs: FileSystem,
+  baseDir: string
+): Promise<string> {
+  if (!input.startsWith("@")) {
+    return input;
+  }
+
+  const rawPath = input.slice(1);
+  if (rawPath.length === 0) {
+    throw new ValidationError("prompt @<path> requires a file path after '@'");
+  }
+
+  const filePath = path.isAbsolute(rawPath) ? rawPath : path.join(baseDir, rawPath);
+
+  try {
+    const contents = await fs.readFile(filePath, "utf8");
+    return contents.trim();
+  } catch (error) {
+    throw new ValidationError(
+      `prompt could not read file "${filePath}": ${(error as Error).message}`
+    );
+  }
 }
 
 async function resolveMcpSpawnInput(

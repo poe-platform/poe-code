@@ -196,29 +196,34 @@ function filterSchemaForScope(schema: AnySchema, scope: "cli" | "mcp" | "sdk"): 
     return undefined;
   }
 
-  if (schema.kind === "optional") {
-    const inner = filterSchemaForScope(schema.inner, scope);
-    return inner === undefined ? undefined : { ...schema, inner };
-  }
+  switch (schema.kind) {
+    case "optional": {
+      const inner = filterSchemaForScope(schema.inner, scope);
+      return inner === undefined ? undefined : { ...schema, inner };
+    }
 
-  if (schema.kind === "array") {
-    const item = filterSchemaForScope(schema.item, scope);
-    return item === undefined ? undefined : { ...schema, item };
-  }
+    case "array": {
+      const item = filterSchemaForScope(schema.item, scope);
+      return item === undefined ? undefined : { ...schema, item };
+    }
 
-  if (schema.kind !== "object") {
-    return schema;
-  }
+    case "string":
+    case "number":
+    case "boolean":
+    case "enum":
+      return schema;
 
-  return {
-    ...schema,
-    shape: Object.fromEntries(
-      Object.entries(schema.shape).flatMap(([key, childSchema]) => {
-        const filtered = filterSchemaForScope(childSchema, scope);
-        return filtered === undefined ? [] : [[key, filtered]];
-      })
-    ),
-  };
+    case "object":
+      return {
+        ...schema,
+        shape: Object.fromEntries(
+          Object.entries(schema.shape).flatMap(([key, childSchema]) => {
+            const filtered = filterSchemaForScope(childSchema, scope);
+            return filtered === undefined ? [] : [[key, filtered]];
+          })
+        ),
+      };
+  }
 }
 
 function collectParamSummaries(
@@ -270,9 +275,13 @@ function matchesAllowlist(toolName: string, allowlist: string[] | undefined): bo
     return true;
   }
 
-  const segments = toolName.split(".");
-  const candidates = segments.map((_segment, index) => segments.slice(0, index + 1).join("."));
+  const segments = toolName.split("__");
+  const candidates = segments.map((_segment, index) => segments.slice(0, index + 1).join("__"));
   return candidates.some((candidate) => allowlist.includes(candidate));
+}
+
+function formatToolName(path: string[]): string {
+  return path.map((segment) => formatSegment(segment, "snake")).join("__");
 }
 
 function enumerateTools<TServices extends object>(
@@ -288,7 +297,7 @@ function enumerateTools<TServices extends object>(
         return;
       }
 
-      const name = [...path, node.name].join(".");
+      const name = formatToolName([...path, node.name]);
       const params = filterSchemaForScope(node.params, "mcp");
       if (!matchesAllowlist(name, allowlist)) {
         return;
@@ -314,8 +323,10 @@ function enumerateTools<TServices extends object>(
     }
   }
 
+  const rootPath = root.name.length === 0 ? [] : [root.name];
+
   for (const child of root.children) {
-    visit(child, []);
+    visit(child, rootPath);
   }
 
   return tools;

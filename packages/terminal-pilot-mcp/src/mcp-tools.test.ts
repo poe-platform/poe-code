@@ -5,19 +5,19 @@ import { terminalPilotGroup } from "terminal-pilot/commands";
 import type { TerminalPilotRuntime } from "terminal-pilot/commands";
 
 const EXPECTED_TOOL_NAMES = [
-  "create-session",
-  "fill",
-  "type",
-  "press-key",
-  "send-signal",
-  "wait-for",
-  "wait-for-exit",
-  "read-screen",
-  "read-history",
-  "resize",
-  "close-session",
-  "get-session",
-  "list-sessions"
+  "terminal_pilot__create_session",
+  "terminal_pilot__fill",
+  "terminal_pilot__type",
+  "terminal_pilot__press_key",
+  "terminal_pilot__send_signal",
+  "terminal_pilot__wait_for",
+  "terminal_pilot__wait_for_exit",
+  "terminal_pilot__read_screen",
+  "terminal_pilot__read_history",
+  "terminal_pilot__resize",
+  "terminal_pilot__close_session",
+  "terminal_pilot__get_session",
+  "terminal_pilot__list_sessions"
 ];
 
 const runtime: TerminalPilotRuntime = {

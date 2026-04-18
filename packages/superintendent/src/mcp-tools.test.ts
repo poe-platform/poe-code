@@ -46,12 +46,12 @@ vi.mock("./runtime/run-inspector.js", () => ({
 }));
 
 const EXPECTED_TOOL_NAMES = [
-  "superintendent.run",
-  "superintendent.validate",
-  "superintendent.complete",
-  "superintendent.builder.run",
-  "superintendent.inspector.run",
-  "superintendent.inspector.list"
+  "superintendent__run",
+  "superintendent__validate",
+  "superintendent__complete",
+  "superintendent__builder__run",
+  "superintendent__inspector__run",
+  "superintendent__inspector__list"
 ];
 
 const documentPath = "/repo/.poe-code/superintendent/plan.md";
@@ -197,7 +197,7 @@ describe("superintendent MCP tool surface", () => {
       expect(
         readJsonToolResult(
           await client.callTool({
-            name: "superintendent.run",
+            name: "superintendent__run",
             arguments: {
               doc: documentPath,
               agent: "codex"
@@ -223,7 +223,7 @@ describe("superintendent MCP tool surface", () => {
       expect(
         readJsonToolResult(
           await client.callTool({
-            name: "superintendent.validate",
+            name: "superintendent__validate",
             arguments: {
               path: documentPath
             }
@@ -237,7 +237,7 @@ describe("superintendent MCP tool surface", () => {
       expect(
         readJsonToolResult(
           await client.callTool({
-            name: "superintendent.complete",
+            name: "superintendent__complete",
             arguments: {
               path: documentPath,
               reason: "done"
@@ -254,7 +254,7 @@ describe("superintendent MCP tool surface", () => {
       expect(
         readJsonToolResult(
           await client.callTool({
-            name: "superintendent.builder.run",
+            name: "superintendent__builder__run",
             arguments: {
               path: documentPath
             }
@@ -268,7 +268,7 @@ describe("superintendent MCP tool surface", () => {
       expect(
         readJsonToolResult(
           await client.callTool({
-            name: "superintendent.inspector.run",
+            name: "superintendent__inspector__run",
             arguments: {
               path: documentPath,
               name: "code-quality"
@@ -283,7 +283,7 @@ describe("superintendent MCP tool surface", () => {
       expect(
         readJsonToolResult(
           await client.callTool({
-            name: "superintendent.inspector.list",
+            name: "superintendent__inspector__list",
             arguments: {
               path: documentPath
             }

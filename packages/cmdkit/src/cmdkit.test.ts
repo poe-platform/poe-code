@@ -723,14 +723,14 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "cmdkit-test",
       version: "1.0.0",
-      tools: ["usage", "bot"],
+      tools: ["root__usage", "root__bot"],
     });
     const { client, cleanup } = await createClient(server);
 
     try {
       const result = await client.listTools();
 
-      expect(result.tools.map((tool) => tool.name)).toEqual(["usage", "bot.create"]);
+      expect(result.tools.map((tool) => tool.name)).toEqual(["root__usage", "root__bot__create"]);
       expect(result.tools[0]?.inputSchema).toEqual({
         type: "object",
         properties: {
@@ -845,7 +845,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "cmdkit-test",
       version: "1.0.0",
-      tools: ["bot-admin.bot"],
+      tools: ["root__bot_admin__bot"],
       casing: "camel",
     });
     const { client, cleanup } = await createClient(server);
@@ -854,8 +854,8 @@ describe("createMCPServer", () => {
       const result = await client.listTools();
 
       expect(result.tools.map((tool) => tool.name)).toEqual([
-        "bot-admin.bot.create-bot",
-        "bot-admin.bot.remove-bot",
+        "root__bot_admin__bot__create_bot",
+        "root__bot_admin__bot__remove_bot",
       ]);
       expect(result.tools[0]).toMatchObject({
         description: "Create a bot Parameters: botName (required), botConfig.apiKey (required).",
@@ -928,12 +928,12 @@ describe("createMCPServer", () => {
       const result = await client.listTools();
 
       expect(result.tools.map((tool) => tool.name)).toEqual([
-        "terminal-pilot.create-session",
-        "terminal-png.render",
+        "terminal_pilot__create_session",
+        "terminal_png__render",
       ]);
 
       const callResult = await client.callTool({
-        name: "terminal-pilot.create-session",
+        name: "terminal_pilot__create_session",
         arguments: {
           name: "demo",
         },
@@ -993,7 +993,7 @@ describe("createMCPServer", () => {
 
     try {
       const callPromise = client.callTool({
-        name: "deploy",
+        name: "root__deploy",
         arguments: {},
       });
 
@@ -1035,7 +1035,7 @@ describe("createMCPServer", () => {
     const { client, cleanup } = await createClient(server);
 
     try {
-      await expect(client.callTool({ name: "deploy", arguments: {} })).rejects.toSatisfy((error: unknown) => {
+      await expect(client.callTool({ name: "root__deploy", arguments: {} })).rejects.toSatisfy((error: unknown) => {
         expect(error).toBeInstanceOf(McpError);
         expect(error).toMatchObject({
           code: ERROR_INVALID_PARAMS,
@@ -1071,7 +1071,7 @@ describe("createMCPServer", () => {
 
     try {
       const callPromise = client.callTool({
-        name: "deploy",
+        name: "root__deploy",
         arguments: {},
       });
 
@@ -1160,7 +1160,7 @@ describe("createMCPServer", () => {
 
     try {
       const result = await client.callTool({
-        name: "deploy",
+        name: "root__deploy",
         arguments: {
           botName: "demo",
         },
@@ -1208,7 +1208,7 @@ describe("createMCPServer", () => {
 
     try {
       const callPromise = client.callTool({
-        name: "explode",
+        name: "root__explode",
         arguments: {},
       });
 

@@ -23,6 +23,8 @@ superintendent:
   prompt: |
     Review builder and inspector output, update the Task Board in {{plan.path}}, and request owner review when complete. Reject scope creep into pagination, retries, or OAuth.
 
+    You can choose to commit work.
+
     Builder summary:
     {{builder.summary}}
 
@@ -44,6 +46,10 @@ owner:
 
     Your career depends on this, so make it good
 
+    Run e2e tests
+    Run smoke tests
+    And commit 
+
     Superintendent summary:
     {{superintendent.summary}}
 
@@ -51,7 +57,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 0
+  round: 21
   review_turn: 0
 ---
 
@@ -76,6 +82,11 @@ OpenAPI document, and (2) a thin auth abstraction so each REST client gets
   generator and fails on any diff.
 - **No client-side validation.** The server validates. Generator emits argv coercion
   (string→number/bool/array) only — that's parsing, not validation. No zod.
+- **Params are declared with `@poe-code/cmdkit-schema` (`S.Object({...})`).** This is
+  the chosen definition format for command params across the codebase. The generator
+  emits `S.Object(...)`; handwritten auth commands use `S.Object(...)`. The earlier
+  "no cmdkit-schema" reading of the project-level no-zod rule was wrong — that rule
+  is about *runtime validation*, not *declarative definition*. cmdkit-schema stays.
 - **gh-style naming.** `<noun> <verb> --flag value`. Noun comes from OpenAPI `tags[0]`;
   verb from `operationId` or method+path tail. Path params become required flags, never
   positional.
@@ -319,7 +330,7 @@ Two-interface split so MCP-path code never sees `commands`:
 
 ```ts
 export interface TokenSource {
-  getToken(): Promise<string | null>;
+  getToken(): Promise<string>;    // throws UserError if unresolved
   invalidate?(): Promise<void>;   // called on 401
 }
 
@@ -351,7 +362,7 @@ export function bearerTokenAuth(opts: {
 
 1. `opts.envVar` env var — CI escape hatch, always wins.
 2. `@poe-code/auth-store` entry under `opts.serviceName`.
-3. `null` — commands print `run 'internal-agent auth login' first` and exit 2.
+3. Nothing resolved → `getToken()` throws `UserError("run '<commandPrefix> login' first")`, which `http.ts` lets propagate before `fetch`. Exit 2 comes from cmdkit's `UserError` renderer.
 
 **Contributed commands** (under `<commandPrefix> …`, default `auth`):
 
@@ -518,7 +529,7 @@ Error cases:
 Auth header:
 
 - `TokenSource.getToken()` returns `"abc"` → `Authorization: Bearer abc` set on request.
-- `TokenSource.getToken()` returns `null` → request rejected before fetch with exit-2 message.
+- `TokenSource.getToken()` throws `UserError` → error propagates before `fetch` is called (no request made).
 
 Request shape:
 
@@ -548,8 +559,8 @@ Token resolution:
 
 - Env var set + store set → env wins.
 - Env var unset + store set → store used.
-- Env var unset + store empty → returns `null`.
-- `invalidate()` → store entry deleted; next `getToken()` returns env if set, else `null`.
+- Env var unset + store empty → `getToken()` throws `UserError` pointing at `<commandPrefix> login`.
+- `invalidate()` → store entry deleted; next `getToken()` returns env if set, else throws `UserError`.
 
 `login` command:
 
@@ -659,12 +670,33 @@ Outcome captured in the consumer `NOTES.md` per spec:
 
 ## Task Board
 
-- [ ] Scaffold `@poe-code/cmdkit-openapi` package with `AuthProvider` / `TokenSource` / `CommandContributor` interfaces and a README listing env vars and options.
-- [ ] Implement `http.ts` — shared fetch wrapper: auth header injection, URL joining, query/body serialization, non-2xx throw shape, 401 → `invalidate()`, `--dry-run`, `-v`.
-- [ ] Implement `bearerTokenAuth` using `@poe-code/auth-store`: env → store → null resolution, `login` / `logout` / `status` commands, whoami verification, `is_employee` gate.
-- [ ] Implement `defineClient` with handwritten + generated merge, hard-fail collision detection, CLI-scope enforcement for auth commands, and `name` → MCP prefix derivation.
-- [ ] Implement pure `generate()` happy path: path params, scalar body, enum body, scalar query. Snapshot tests per case.
-- [ ] Extend `generate()`: array bodies (repeatable flag + `-json` variant), booleans, `DELETE` auto-confirm, `$ref` resolution, enum+nullable edge cases.
+- [x] Scaffold `@poe-code/cmdkit-openapi` package with `AuthProvider` / `TokenSource` / `CommandContributor` interfaces and a README listing env vars and options.
+- [x] Implement `http.ts` — shared fetch wrapper: auth header injection, URL joining, query/body serialization, non-2xx throw shape, 401 → `invalidate()`, `--dry-run`, `-v`.
+- [x] `http.ts` follow-up: redact bearer token in `--dry-run` output (print `Authorization: Bearer ****`). Update the dry-run test to assert redaction so CI logs can never capture a live token.
+- [x] `http.ts` follow-up (KISS): replace the manual `substitutePathParams` index-walker with a `String.prototype.replace(/\{([^}]+)\}/g, …)` one-liner; collapse the duplicated empty/JSON parsing by branching on `response.ok` before parsing.
+- [x] `http.ts` hygiene: drop the pure-proxy `defaultWriteStdout` / `defaultWriteStderr` helpers (violates CLAUDE.md "no proxy-only functions"); remove `missingTokenMessage` from `HttpRequestOptions` and have `TokenSource.getToken()` throw its own `UserError` when unresolved; swap the raw `Error` thrown for non-JSON 2xx bodies to `HttpError` (include the offending `content-type` in the message) so the taxonomy stays consistent. Also: collapse the query-serialization `undefined` guard to `for (const [k, v] of Object.entries(query ?? {}))`, and drop the unreachable `|| "/"` fallback on `normalizedPath` (`normalizedPath` is always anchored).
+- [x] Delete `packages/cmdkit-openapi/src/index.compile-check.ts` — `expectTypeOf` in `src/index.test.ts` already enforces the same public-surface shapes; the `IgnoredXExport` naming is misleading and the file is pure duplication. (Flagged by code-quality inspector as a must-fix in round 5; builder round 5 did not remove it.)
+- [x] `http.ts` minor cleanups from code-quality inspector (round 5): (a) fold `appendQueryParams` into its caller or merge with `appendQueryValue` — it is a proxy-only iterator; (b) thread a single `hasBody` boolean so `createHeaders` and the `fetch` body assignment don't each re-check `body === undefined`. (Inspector round 6 withdrew the earlier "pick one validation pass in `substitutePathParams`" sub-item: the `replace` callback catches missing params for a well-formed template while the post-check catches malformed templates like `/bots/{handle`. Keep both.)
+- [x] `http.ts` hygiene (round 6, reflagged in round 7): (a) hoist `options.method.toUpperCase()` once — it is computed at `http.ts:45` and again at `http.ts:57`; (b) align error taxonomy in `substitutePathParams` — the two raw `Error` throws at `http.ts:116` and `http.ts:122` are user-facing "your template/params are wrong" failures, swap them to `UserError` (same rationale as the token-source case in the earlier hygiene pass).
+- [x] Implement `bearerTokenAuth` using `@poe-code/auth-store`: env → store → null resolution, `login` / `logout` / `status` commands, whoami verification, `is_employee` gate.
+- [x] `bearerTokenAuth` follow-ups from round 9 inspectors: (a) remove the `as any` cast at `bearer-token-auth.ts:196` by fixing the `defineGroup` children generic or the `defineCommand` result type — no type escape hatches in the declarative API; (b) declare `fetch` explicitly on `BearerTokenAuthCommandServices` rather than relying on it being present on the cmdkit `HandlerContext` (satisfies the "explicit over implicit" rule); (c) add an explicit test for `logout` when the store is empty (assert `exit 0`, no throw, `store.delete` called) to literally cover the Testing-section bullet; (d) consider inlining the single-caller `formatStorageMessage` helper (borderline — leave if readability wins).
+- [x] `bearerTokenAuth` follow-ups from round 10 inspectors: (a) `formatLoginMessage` at `bearer-token-auth.ts:302-312` has a dead branch — control flow guarantees `result.isEmployee` is either `undefined` (whoami unset) or `true` (employee check passed), so the `(employee: ${result.isEmployee})` suffix only ever renders `(employee: true)`. Collapse to two branches: email+employee-confirmed vs. email-only vs. no-email; (b) tighten the four login-rejection tests at `bearer-token-auth.test.ts:266-339` (`non-employee`, `whoami 401`, `network error`, `both --token and --token-stdin`) — each asserts `.rejects.toThrow` but should also assert `expect(mocks.set).not.toHaveBeenCalled()` to literally cover the "rejects, does not store" Testing-section wording; (c) add an `invalidate()` round-trip test that covers the env-fallback half of the Testing bullet — after `invalidate()`, `getToken()` should return the env value if set, else throw `UserError`.
+- [x] `http.ts` KISS (round 11): collapse `appendQueryValue` + `appendQueryScalar` at `http.ts:131-152` into one function. `appendQueryScalar` is only called from inside the array branch and the scalar fallthrough of `appendQueryValue`; the split adds a function without adding clarity. Non-blocking, ~5-line diff.
+- [x] `bearerTokenAuth` testing literal coverage (round 11): the positive whoami-verified test at `bearer-token-auth.test.ts:291` asserts the returned email but does not assert `mocks.set` was called with the token. Add `expect(mocks.set).toHaveBeenCalledWith("<token>")` so the "stores" half of the Testing-section bullet is literally covered (mirrors the `.not.toHaveBeenCalled()` additions made to the rejection tests in round 10).
+- [x] `bearerTokenAuth` testing literal coverage (round 12): the whoamiPath-unset login test at `bearer-token-auth.test.ts:277-289` asserts `fetch` was not called but does not assert `mocks.set` received the token. The Testing-section bullet says "skips verification, **stores as-is**" — add `expect(mocks.set).toHaveBeenCalledWith("<token>")` so the "stores" half is literally covered (same pattern as the round-11 fix above).
+- [x] ~~Upstream fix in cmdkit to unblock the `generate()` milestone: `defineCommand` / `HandlerContext` / SDK typing now accept a plain TS param shape (`packages/cmdkit/src/params.ts`, `index.ts`, `sdk.ts`), and `bearer-token-auth.ts:53-57` switched to the plain shape. Resolves the round-11 hard blocker and honors the "no cmdkit-schema / no zod" constraint for generated output. (Builder round 15.)~~ **REVERTED.** The "no cmdkit-schema" premise was a misreading of the project rule (see Design constraints). cmdkit-schema is the chosen params definition format. The plain-TS param shape work in `packages/cmdkit/src/params.ts` + `normalize-command-params.ts` and the consumer migrations in `packages/cmdkit/src/**`, `packages/superintendent/src/commands/**`, `packages/terminal-pilot/src/commands/**`, `packages/github-workflows/src/commands.ts`, and `packages/cmdkit-openapi/src/bearer-token-auth.ts` have been rolled back. Generator and handwritten commands both target `S.Object(...)`.
+- [x] ~~cmdkit cleanup follow-up (KISS, non-blocking): collapse the dual param surface now that plain shapes are the canonical input. `CommandParamsDefinition = ObjectSchema<any> | CommandParamShape` at `packages/cmdkit/src/params.ts:94` keeps two live forms; migrate any remaining `S.Object(...)` callsites, drop the union (and the `isObjectSchema` guard at `:118`), remove the `@poe-code/cmdkit-schema` import at `:1`, and drop the `S` / schema re-exports at `packages/cmdkit/src/index.ts:775-790`. Does not block the `generate()` milestone — the generator can target the plain shape directly.~~ **OBSOLETE.** Superseded by the revert above — there is no dual param surface to collapse; `S.Object(...)` is the single form.
+- [x] `http.ts` test cleanup (round 16, code-quality inspector): `packages/cmdkit-openapi/src/http.test.ts:172-183` and `:185-196` are duplicate "invalid path template" tests — same call, one asserts `instanceof UserError`, the other asserts the message. Merge into a single test asserting both.
+- [x] ~~cmdkit internals note (round 16, code-quality inspector — non-blocking, scope clarification): `packages/cmdkit/src/normalize-command-params.ts` still imports `S` from `@poe-code/cmdkit-schema` to wrap plain shapes into `ObjectSchema` at runtime. The round-15 task collapsed the **public** param surface to plain TS (params.ts and index.ts are clean); fully removing `cmdkit-schema` from `cmdkit` runtime internals (`cli.ts`, `sdk.ts`, `mcp.ts` all still import it) is a larger refactor not scoped to this plan. The no-cmdkit-schema feedback applies to **consumer/generated code** — the generator will target `CommandParamShape` directly and will not pull in `cmdkit-schema`. No action required in this plan.~~ **OBSOLETE.** The premise (public param surface should be plain TS) is wrong — cmdkit-schema is the chosen format on both the public and internal surfaces. No action.
+- [x] Implement `defineClient` with handwritten + generated merge, hard-fail collision detection, CLI-scope enforcement for auth commands, and `name` → MCP prefix derivation.
+- [x] `defineClient` KISS follow-ups from round 18 code-quality inspector (all non-blocking, readability-only; declarative contract is intact): (a) collapse the two collision-throw branches at `define-client.ts:98-104` into one — the only recurse case is group+group, everything else is a collision (`if (existing.kind !== "group" || nextNode.kind !== "group") throw …`); (b) drop the dead `?? "generated"` fallback at `define-client.ts:126-131` in `createCollisionError` — `registerSource` always tags every incoming node before `mergeInto`, so `nodeSources.get(existing)` can't be undefined; silent fallback would mask a real bug; (c) unwind the nested ternary picking `scope` at `define-client.ts:176-180` into a 4-line if/else or extracted helper; (d) replace the manual char loop in `toMcpPrefix` at `define-client.ts:220-228` with `name.replaceAll("-", "_")` — the regex ban in CLAUDE.md applies to config-file parsing, not string transforms. (Nit 5 on the `bearerTokenAuth` `TokenSource` shim at `bearer-token-auth.ts:262-266` was reviewed and marked acceptable as-is — no action.)
+- [ ] `defineClient` nits from round 19 code-quality inspector (non-blocking, pick up alongside the next edit in this file — do not spin a dedicated round): (a) `define-client.ts:47-57` builds the root `Group` as an object literal with explicit `undefined` for `description`/`scope`/`requires`/`default`; swap to `defineGroup({ name, children: mergedChildren })` from `@poe-code/cmdkit` to match construction idiom used elsewhere and drop the undefineds; (b) `mergeChildren`'s `WeakMap<object, CommandSource>` at `define-client.ts:71` never escapes the call — a plain `Map` behaves identically and is the simpler default. Skip the `any`-in-`cloneCommand`/`cloneGroup` note (borderline generic-variance smell; no action until the AST generics are tightened upstream).
+- [x] Implement pure `generate()` happy path: path params, scalar body, enum body, scalar query. Snapshot tests per case.
+- [ ] `generate()` post-revert params format (must-fix — uncovered during round 20 superintendent review): the `cmdkit-schema` revert recorded in tasks 687/688 restored `S.Object(...)` as the canonical params format (`defineCommand`'s generic is `ObjectSchema<any>` at `packages/cmdkit/src/index.ts:722-741`), but the generator currently emits plain TS shapes (see `packages/cmdkit-openapi/src/__snapshots__/generate.test.ts.snap:18-25,74-83`) and `bearer-token-auth.ts:53-57` still uses `{ token: { type: "string", optional: true } } as const`. Tests compile today only because `ObjectSchema<any>` is loose. Switch both the generator output and the built-in provider to `S.Object({ … })` so the public surface is consistent with the rest of the repo. Regenerate snapshots.
+- [ ] `generate()` happy-path bugs from round 20 inspectors (must-fix before milestone 4): (a) `createParamDefinition` at `generate.ts:363-368` collapses OpenAPI `type: "integer"` to cmdkit `"number"`, so emitted MCP `inputSchema` advertises `{"type":"number"}` instead of `{"type":"integer"}` (plan §4 `list` example requires integer); preserve the integer distinction; (b) generated handler at `generate.ts:478-487` destructures only `{ params, baseUrl, tokenSource, fetch }` and never threads `dryRun` / `verbose` into `requestJson`, so the cross-cutting `--dry-run` / `-v` row at plan:279-281 is unreachable from any generated command — add them to the handler context pass-through; (c) `collectRequestBodyParams` does not honor `requestBody.required: false` — when the body itself is optional, required-within-body fields should still emit as optional flags. Snapshot tests must pin all three.
+- [ ] `generate()` declarative-drift and naming hygiene from round 20 code-quality inspector (fix before milestone 4 extends the renderer): (a) replace the four-branch `createParamDefinition` ladder at `generate.ts:341-380` with a `SCHEMA_TYPE_TO_KIND` table plus a single build path (enum stays one-line special-cased for `values`) — adding a scalar type becomes a one-line map entry; (b) extract a `renderDefaultLine(defaultValue)` helper out of `renderParamDefinition` at `generate.ts:514-531` so the enum and non-enum arms stop re-doing the default-line dance; (c) table-ize `renderRequestShape` at `generate.ts:537-562` — one pass over `[["path","pathParams"],["query","query"],["body","body"]]` replaces the triple-branch; (d) drop the `toSingular` + prefix-stripping inside `normalizeParamName` at `generate.ts:634-660`: `botHandle` must stay `botHandle` (camelCase → `--bot-handle`), never silently renamed to `handle`. `toSingular` is an English-only heuristic that mis-handles `address` / `news` / `kiss`, and the stripping violates the user's "explicit over implicit — no deriving behavior from naming conventions" rule. Alias overrides can land later if ergonomics demand; (e) table-ize `deriveVerb`'s method-based branching at `generate.ts:212` (`{ get: hasPathId ? "view" : "list", … }`) so the upcoming `DELETE` confirm-injection doesn't tempt another `if (method === "delete")`; (f) extract `naming.ts` per plan:299 — `deriveNoun`, `deriveVerb`, `toKebabCase`, `splitWords`, `normalizeParamName`, and `toMcpPrefix` (currently in `define-client.ts:222-224`) belong together, and `generate.ts` is already 724 lines covering parse + collect + render + string ops + index assembly; (g) trim `splitWords` at `generate.ts:681-720` to a two-line tokenizer (collapse `-/_/space/.` then split on lower→upper boundaries).
+- [ ] `generate()` test coverage gaps on shipped code from round 20 testing inspector (roll into the "Cover every test case" task; does not block milestone 4): add tests for behaviors already implemented but unexercised — `GET /bots/{h}` → verb `view` (generate.ts:212-213); `DELETE /bots/{h}` → verb `delete` via `deriveVerb` fallthrough; `tags: ["a","b"]` → first wins; spec missing `paths` → throws (generate.ts:117); `requestBody.content["application/xml"]`-only → throws (generate.ts:285-287); `PUT` and `PATCH` with body emit JSON body same as `POST`; deterministic output (same input → identical bytes, including stable key/file ordering).
+- [ ] Extend `generate()`: array bodies (repeatable flag + `-json` variant), booleans, `DELETE` auto-confirm, `$ref` resolution, enum+nullable edge cases. Also carry over schema-constraint fidelity from round 20 spec-fidelity inspector — read and preserve `minimum` / `maximum` / `minLength` / `maxLength` / `minItems` / `maxItems` / `pattern` / `format` on the `OpenApiSchemaObject` so plan §4 `list` (`limit: {type:"integer", minimum:1, maximum:100}`) and plan §3 (`starters: {maxItems:4}`) round-trip into the MCP `inputSchema` 1:1. Also test the cookie/header `unsupported parameter location` throw at `generate.ts:404-408` (plan:508-510 currently only covers XML / ambiguous / missing-paths).
 - [ ] Implement `bin/generate.ts` + `openapi.lock` drift guard (`--check` exits non-zero on drift).
 - [ ] Create first consumer package `internal-agent-cli`: real OpenAPI spec, committed `generated/` output, `bearerTokenAuth` wired, smoke test via `npm run dev`.
 - [ ] MCP surface smoke test with `tiny-mcp-client`: confirm generated tools register, confirm auth commands are absent.

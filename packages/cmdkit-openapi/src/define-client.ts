@@ -1,5 +1,5 @@
 import type { Command, CommandNode, Group, Scope } from "@poe-code/cmdkit";
-import { UserError } from "@poe-code/cmdkit";
+import { defineCommand, defineGroup, UserError } from "@poe-code/cmdkit";
 import type { AuthProvider, TokenSource } from "./auth/types.js";
 import { toMcpPrefix } from "./naming.js";
 
@@ -45,17 +45,10 @@ export function defineClient<TServices extends object = Record<string, never>>(
   return {
     name: options.name,
     mcpPrefix: toMcpPrefix(options.name),
-    root: {
-      kind: "group",
+    root: defineGroup({
       name: options.name,
-      aliases: [],
-      children: mergedChildren,
-      secrets: {},
-      description: undefined,
-      scope: undefined,
-      requires: undefined,
-      default: undefined
-    },
+      children: mergedChildren
+    }),
     services: {
       baseUrl: options.baseUrl,
       tokenSource: options.auth
@@ -76,7 +69,7 @@ function mergeChildren<TServices extends object>(
     mergeInto(merged, entry.nodes, [], entry.source, nodeSources);
   }
 
-  return merged;
+  return merged.map((node) => cloneNode(node));
 }
 
 function mergeInto<TServices extends object>(
@@ -160,8 +153,7 @@ function cloneCommand<TServices extends object>(
   command: Command<TServices, any, any, any>,
   scopeOverride?: Scope[]
 ): Command<TServices, any, any, any> {
-  return {
-    kind: "command",
+  return defineCommand({
     name: command.name,
     description: command.description,
     aliases: [...command.aliases],
@@ -173,7 +165,7 @@ function cloneCommand<TServices extends object>(
     requires: command.requires,
     handler: command.handler,
     render: command.render
-  };
+  });
 }
 
 function cloneGroup<TServices extends object>(
@@ -183,8 +175,7 @@ function cloneGroup<TServices extends object>(
   const children = group.children.map((child) => cloneNode(child, scopeOverride));
   const defaultCommand = findCommand(children, group.default?.name);
 
-  return {
-    kind: "group",
+  return defineGroup({
     name: group.name,
     description: group.description,
     aliases: [...group.aliases],
@@ -193,7 +184,7 @@ function cloneGroup<TServices extends object>(
     requires: group.requires,
     children,
     default: defaultCommand
-  };
+  });
 }
 
 function validateClientName(name: string): void {

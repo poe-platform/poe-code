@@ -22,6 +22,10 @@
   "dependencies": {
     "@poe-code/cmdkit": "*",
     "@poe-code/design-system": "*",
-    "auth-store": "*"
+    "auth-store": "*",
+    "yaml": "^2.8.2"
+  },
+  "bin": {
+    "cmdkit-openapi-generate": "dist/bin/generate.js"
   }
 }

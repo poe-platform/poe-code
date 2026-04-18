@@ -1,0 +1,201 @@
+import { createHash } from "node:crypto";
+import path from "node:path";
+import { describe, expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { generate, type OpenApiDocument } from "./generate.js";
+import { runGenerateCli } from "./bin/generate.js";
+import { stringifyOpenApiLock } from "./lock.js";
+
+function createSpec(summary: string): string {
+  const document: OpenApiDocument = {
+    openapi: "3.0.3",
+    info: {
+      title: "Internal Agent API",
+      version: "1.0.0"
+    },
+    paths: {
+      "/bots": {
+        get: {
+          tags: ["bots"],
+          operationId: "listBots",
+          summary,
+          responses: {
+            "200": {
+              description: "Listed.",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  return JSON.stringify(document, null, 2);
+}
+
+function createCliHarness(initialFiles: Record<string, string> = {}) {
+  const volume = Volume.fromJSON(initialFiles, "/");
+  const fs = createFsFromVolume(volume).promises;
+  let stdout = "";
+  let stderr = "";
+
+  return {
+    fs,
+    stdout: () => stdout,
+    stderr: () => stderr,
+    services: {
+      cwd: "/repo",
+      fs,
+      fetch: vi.fn<typeof fetch>(),
+      stdout: {
+        write(chunk: string | Uint8Array) {
+          stdout += typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
+          return true;
+        }
+      },
+      stderr: {
+        write(chunk: string | Uint8Array) {
+          stderr += typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
+          return true;
+        }
+      }
+    }
+  };
+}
+
+function computeSpecSha(specText: string): string {
+  return `sha256:${createHash("sha256").update(specText).digest("hex")}`;
+}
+
+function createExpectedFiles(specText: string, options?: { includeInputFile?: boolean }) {
+  const specSha = computeSpecSha(specText);
+  const generatedFiles = generate(JSON.parse(specText) as OpenApiDocument, { specSha });
+  const expectedFiles = Object.fromEntries(
+    generatedFiles.map((file) => [path.posix.join("src/generated", file.path), file.contents])
+  );
+
+  return {
+    ...(options?.includeInputFile === false ? {} : { "openapi.json": specText }),
+    "openapi.lock": stringifyOpenApiLock({ specSha }),
+    ...expectedFiles
+  };
+}
+
+async function readRepoFiles(
+  fs: ReturnType<typeof createFsFromVolume>["promises"],
+  directory: string,
+  rootDir: string = directory
+): Promise<Record<string, string>> {
+  const entries = await fs.readdir(directory);
+  const files: Record<string, string> = {};
+
+  for (const entry of entries) {
+    const absolutePath = path.posix.join(directory, entry);
+    const stats = await fs.stat(absolutePath);
+
+    if (stats.isDirectory()) {
+      Object.assign(files, await readRepoFiles(fs, absolutePath, rootDir));
+      continue;
+    }
+
+    files[path.posix.relative(rootDir, absolutePath)] = await fs.readFile(absolutePath, "utf8");
+  }
+
+  return files;
+}
+
+describe("runGenerateCli", () => {
+  it("creates generated files and openapi.lock on the first run", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+
+    await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual(createExpectedFiles(specText));
+  });
+
+  it("supports reading the spec from a URL", async () => {
+    const specText = createSpec("List bots from URL.");
+    const harness = createCliHarness();
+    harness.services.fetch.mockResolvedValue(
+      new Response(specText, {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      })
+    );
+
+    await runGenerateCli(["node", "generate", "--input", "https://example.com/openapi.json"], harness.services);
+
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual(
+      createExpectedFiles(specText, { includeInputFile: false })
+    );
+  });
+
+  it("is idempotent when the spec and lock are unchanged", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+
+    await runGenerateCli(["node", "generate"], harness.services);
+    const before = await readRepoFiles(harness.fs, "/repo");
+
+    await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual(before);
+  });
+
+  it("updates generated files and openapi.lock when the spec changes", async () => {
+    const originalSpec = createSpec("List bots.");
+    const updatedSpec = createSpec("List every bot.");
+    const harness = createCliHarness({ "/repo/openapi.json": originalSpec });
+
+    await runGenerateCli(["node", "generate"], harness.services);
+    await harness.fs.writeFile("/repo/openapi.json", updatedSpec, "utf8");
+
+    await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual(createExpectedFiles(updatedSpec));
+  });
+
+  it("returns a non-zero exit code and leaves files untouched when --check detects drift", async () => {
+    const originalSpec = createSpec("List bots.");
+    const updatedSpec = createSpec("List every bot.");
+    const harness = createCliHarness({ "/repo/openapi.json": originalSpec });
+
+    await runGenerateCli(["node", "generate"], harness.services);
+    await harness.fs.writeFile("/repo/openapi.json", updatedSpec, "utf8");
+    const before = await readRepoFiles(harness.fs, "/repo");
+
+    const exitCode = await runGenerateCli(["node", "generate", "--check"], harness.services);
+
+    expect([exitCode, await readRepoFiles(harness.fs, "/repo")]).toEqual([1, before]);
+  });
+
+  it("treats a malformed lock file as missing and regenerates it", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+
+    await runGenerateCli(["node", "generate"], harness.services);
+    await harness.fs.writeFile("/repo/openapi.lock", "not json\n", "utf8");
+
+    await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual(createExpectedFiles(specText));
+  });
+
+  it("returns a user-facing error when the input file is missing", async () => {
+    const harness = createCliHarness();
+
+    const exitCode = await runGenerateCli(["node", "generate"], harness.services);
+
+    expect([exitCode, harness.stderr()]).toEqual([
+      1,
+      "Failed to read OpenAPI document \"openapi.json\": ENOENT: no such file or directory, open '/repo/openapi.json'\n"
+    ]);
+  });
+});

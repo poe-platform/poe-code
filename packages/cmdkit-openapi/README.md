@@ -14,6 +14,22 @@ const auth = bearerTokenAuth({
 });
 ```
 
+## Generator CLI
+
+`cmdkit-openapi-generate` reads an OpenAPI document from disk or a URL, writes generated
+command files, and stores the current spec hash in `openapi.lock`.
+
+- `--input <path-or-url>` — OpenAPI document to read. Defaults to `openapi.json`.
+- `--output <dir>` — directory for generated files. Defaults to `src/generated`.
+- `--lock <path>` — lock file path. Defaults to `openapi.lock`.
+- `--check` — exits non-zero when generated files or `openapi.lock` would change.
+
+### CI drift check
+
+```sh
+cmdkit-openapi-generate --check
+```
+
 ## Exports
 
 - `bearerTokenAuth(opts)`

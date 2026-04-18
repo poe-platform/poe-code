@@ -1882,10 +1882,92 @@ describe("generate", () => {
         { specSha: "spec-sha-123" }
       )
     ).toThrowError(
-      new UserError(
-        'Operation "importBot" must define requestBody.content["application/json"] in v1.'
-      )
+      new UserError('Operation "importBot" must define a JSON request body media type in v1.')
     );
+  });
+
+  it("accepts request bodies declared as application/json with parameters", () => {
+    expect(
+      generate(
+        createDocument({
+          "/bots/{handle}/import": {
+            post: {
+              tags: ["bots"],
+              operationId: "importBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json; charset=utf-8": {
+                    schema: {
+                      type: "object",
+                      properties: {
+                        official: { type: "boolean" }
+                      }
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Imported."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      ).some((file) => file.contents.includes('"official": params.official'))
+    ).toBe(true);
+  });
+
+  it("accepts request bodies declared as vendor json media types", () => {
+    expect(
+      generate(
+        createDocument({
+          "/bots/{handle}/import": {
+            post: {
+              tags: ["bots"],
+              operationId: "importBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/vnd.api+json": {
+                    schema: {
+                      type: "object",
+                      properties: {
+                        official: { type: "boolean" }
+                      }
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Imported."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      ).some((file) => file.contents.includes('"official": params.official'))
+    ).toBe(true);
   });
 
   it("throws when a GET operation defines a request body", () => {

@@ -449,11 +449,14 @@ function collectRequestBodyParams(
     operationId,
     "requestBody"
   );
-  const content = requestBody.content?.["application/json"];
+  const content = Object.entries(requestBody.content ?? {}).find(
+    ([mediaType, mediaTypeObject]) =>
+      mediaTypeObject !== undefined && isJsonMediaType(mediaType)
+  )?.[1];
 
   if (content === undefined) {
     throw new UserError(
-      `Operation ${JSON.stringify(operationId)} must define requestBody.content["application/json"] in v1.`
+      `Operation ${JSON.stringify(operationId)} must define a JSON request body media type in v1.`
     );
   }
 

@@ -57,7 +57,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 54
+  round: 55
   review_turn: 0
 ---
 
@@ -147,8 +147,8 @@ OpenAPI: `POST /bots/{botHandle}/actions/set-official` body `{ official: boolean
 CLI:
 
 ```
-internal-agent bots set-official --handle my-bot --official true
-internal-agent bots set-official --handle my-bot --no-official   # boolean sugar
+internal-agent bots set-official --bot-handle my-bot --official true
+internal-agent bots set-official --bot-handle my-bot --no-official   # boolean sugar
 ```
 
 MCP tool:
@@ -159,10 +159,10 @@ MCP tool:
   "description": "Mark a bot as official.",
   "inputSchema": {
     "type": "object",
-    "required": ["handle", "official"],
+    "required": ["botHandle", "official"],
     "properties": {
-      "handle":   { "type": "string" },
-      "official": { "type": "boolean" }
+      "botHandle": { "type": "string" },
+      "official":  { "type": "boolean" }
     }
   }
 }
@@ -175,7 +175,7 @@ Body: `{ mode: "off" | "auto" | "forced" }`.
 CLI:
 
 ```
-internal-agent bots set-image-comprehension --handle my-bot --mode auto
+internal-agent bots set-image-comprehension --bot-handle my-bot --mode auto
 ```
 
 MCP tool:
@@ -185,10 +185,10 @@ MCP tool:
   "name": "internal_agent__bots__set_image_comprehension",
   "inputSchema": {
     "type": "object",
-    "required": ["handle", "mode"],
+    "required": ["botHandle", "mode"],
     "properties": {
-      "handle": { "type": "string" },
-      "mode":   { "type": "string", "enum": ["off", "auto", "forced"] }
+      "botHandle": { "type": "string" },
+      "mode":      { "type": "string", "enum": ["off", "auto", "forced"] }
     }
   }
 }
@@ -201,10 +201,10 @@ Body: `{ starters: string[] }` (max 4).
 CLI — repeatable flag for humans, `--*-json` for scripts (mutually exclusive):
 
 ```
-internal-agent bots set-conversation-starters --handle my-bot \
+internal-agent bots set-conversation-starters --bot-handle my-bot \
   --starter "Tell me a joke" --starter "Summarize this" --starter "Draft an email"
 
-internal-agent bots set-conversation-starters --handle my-bot \
+internal-agent bots set-conversation-starters --bot-handle my-bot \
   --starters-json '["a","b","c"]'
 ```
 
@@ -215,10 +215,10 @@ MCP tool — arrays are native, no flag gymnastics:
   "name": "internal_agent__bots__set_conversation_starters",
   "inputSchema": {
     "type": "object",
-    "required": ["handle", "starters"],
+    "required": ["botHandle", "starters"],
     "properties": {
-      "handle":   { "type": "string" },
-      "starters": { "type": "array", "items": { "type": "string" }, "maxItems": 4 }
+      "botHandle": { "type": "string" },
+      "starters":  { "type": "array", "items": { "type": "string" }, "maxItems": 4 }
     }
   }
 }
@@ -253,13 +253,13 @@ MCP tool:
 
 #### 5. GET by id + DELETE — single resource
 
-`GET /bots/{handle}` and `DELETE /bots/{handle}`.
+`GET /bots/{botHandle}` and `DELETE /bots/{botHandle}`.
 
 CLI — `DELETE` auto-injects confirm prompt and `--yes`:
 
 ```
-internal-agent bots view   --handle my-bot
-internal-agent bots delete --handle my-bot --yes
+internal-agent bots view   --bot-handle my-bot
+internal-agent bots delete --bot-handle my-bot --yes
 ```
 
 MCP tool (DELETE — no confirm, one-shot):
@@ -269,8 +269,8 @@ MCP tool (DELETE — no confirm, one-shot):
   "name": "internal_agent__bots__delete",
   "inputSchema": {
     "type": "object",
-    "required": ["handle"],
-    "properties": { "handle": { "type": "string" } }
+    "required": ["botHandle"],
+    "properties": { "botHandle": { "type": "string" } }
   }
 }
 ```
@@ -718,7 +718,7 @@ Outcome captured in the consumer `NOTES.md` per spec:
 - [x] Cover every test case from the Testing section above; ensure snapshots are stable and tests run under the project's speed budget. Added the missing generator coverage for first-tag wins, GET-by-id → `view`, XML-only request bodies, missing `paths`, ambiguous missing-`operationId` verbs, PUT/PATCH JSON bodies, DELETE-with-body params, and deterministic output; tightened the `defineClient` nesting assertion so merged children remain visible after re-wrapping. Full `packages/cmdkit-openapi/src/**` + `packages/internal-agent-cli/src/client.test.ts` suite passes (124 tests, ~0.6s on Vitest).
 - [x] Famous-spec smoke: ran `generate()` against Petstore, GitHub REST, Stripe, Slack, DigitalOcean via a one-op-at-a-time smoke pass; committed reduced generated output under `packages/cmdkit-openapi/fixtures/famous/<name>/` with `openapi.lock` + `NOTES.md` (counts, grouped skip reasons, spot checks, and obvious mismatches like Petstore GET naming drift and GitHub slashy `operationId` export/name breakage). Auth-gated execution was not required.
 - [x] Manual verification pass on the famous-spec output: recorded `--help` / `--dry-run` findings in each fixture `NOTES.md`. Runnable samples were verified for Petstore (`store delete`) and GitHub (`billing view`) via ad hoc cmdkit roots, confirming the rendered flags and dry-run URLs. Stripe, Slack, and DigitalOcean still emit no runnable commands, so their notes now mark the manual pass as blocked on empty fixture output rather than a new CLI regression.
-- [ ] Plan Target-UX examples (§1/§2/§3/§5) are stale post-task-697(d) from round 31 spec-fidelity inspector (plan-doc fix, non-blocking): the OpenAPI paths use `{botHandle}` but the CLI examples still show `--handle my-bot` and MCP `inputSchema` properties still show `handle`. Task 697(d) kills the `toSingular` / prefix-stripping heuristic, so `botHandle` is preserved — rendered flag is `--bot-handle` and MCP property is `botHandle`. Pass over the Target UX section and sync CLI flags + MCP `properties`/`required` arrays to the decided behavior (either change the examples to `--bot-handle` / `botHandle`, or change the OpenAPI paths to `/bots/{handle}` so `--handle` is consistent — pick one).
+- [x] Plan Target-UX examples (§1/§2/§3/§5) are stale post-task-697(d) from round 31 spec-fidelity inspector (plan-doc fix, non-blocking): synced the Target UX examples to the post-task-697(d) naming contract — path params now stay `botHandle`, CLI examples use `--bot-handle`, and MCP `inputSchema` `properties` / `required` arrays use `botHandle` consistently across the affected examples.
 - [ ] Cmdkit MCP surface changelog / docs notes from round 31 code-quality inspector (non-blocking, fold into next README edit): task 710 changed two public-ish shapes on `packages/cmdkit` — (a) MCP tool names are now snake_case + `__`-joined, and the `casing` option on `RunMCPOptions` no longer influences tool naming (only parameter-key casing); tighten the `RunMCPOptions.casing` docstring / type comment to reflect that; (b) the allowlist key format changed from `.`-join to `__`-join, so any external `tools: ["group.child"]` consumer silently matches nothing after this change. No known external consumers, but worth a changelog entry when cmdkit ships next.
 - [x] `defineClient` merge-then-reclone invariant from round 33 code-quality + testing inspectors (non-blocking, folded into the next edit on this file): took option (a). `mergeChildren` now carries an inline comment explaining that the trailing `cloneNode` pass re-snapshots groups after `mergeInto` mutates `existing.children`, because `defineGroup` captures an immutable child snapshot at construction time. `define-client.test.ts` now nests a client whose `bots` group is merged from generated + handwritten commands and asserts the wrapped group still exposes both `list` and `view`, so deleting the re-clone regresses behavior visibly.
 - [x] `generate()` declarative-drift regressions from round 34 code-quality inspector: (a) `confirm: entry.method === "delete"` replaced — `METHOD_DEFAULTS` in `naming.ts` now carries per-method `confirm` alongside verbs, and the generator spreads `methodDefaults?.confirm` at the declaration site so adding a future confirm-requiring method is a one-line table entry. (b) `UserError` import is tracked via an explicit `requiresUserError` flag on `CollectedCommandParams` threaded into `createCommandFile` — no more `line.includes("UserError")` string-sniffing.
@@ -757,3 +757,5 @@ Outcome captured in the consumer `NOTES.md` per spec:
 - [ ] `stripLeadingGenericVerb` dead loop from round 52 code-quality inspector (YAGNI cleanup, non-blocking — fold into the next edit on `naming.ts`): the `while (start < words.length - 1 && words[start] === words[0])` loop at `naming.ts:191-194` is unreachable. `normalizeOperationIdWords` terminates with `dedupeAdjacentWords`, so by the time the loop runs, `words[0] !== words[1]` is guaranteed and the loop body never executes. Collapse the body to `return words.slice(1)`. No behavior change expected; tests stay green. (Inspector also flagged two nits marked as no-action: `genericVerbs` + `preferOperationIdWhenPathTailIsGeneric` travel together but are defensibly kept separate per the explicit-over-implicit rule; `normalizeOperationIdWords` called twice in the GET path is a minor repeated-work nit, refactor only if it becomes hot.)
 - [ ] `generate()` spec-fidelity gaps flagged by round 53 spec-fidelity inspector (generate-time sanity + fidelity fixes; bundle under task 711 when constraint work lands — none block milestone 7): (a) **OPTIONS / HEAD / TRACE silently dropped.** `HTTP_METHOD_ORDER` at `generate.ts:12` covers only GET/POST/PUT/PATCH/DELETE; a path item declaring `head` / `options` / `trace` yields zero commands and zero warnings. Either emit a clear generate-time `UserError` naming the operationId + method, or explicitly document the v1 subset so spec authors don't silently lose operations. Same class of sanity check as task 703 / 712 / 732 / 734a. (b) **Required + nullable scalar body field unreachable from CLI.** `createBodyField` (`generate.ts:658-677`) marks the primary `paramName` with no `scope` restriction; when that field is required (body required + listed in `schema.required`) and `nullable: true`, cmdkit's required-validation forces `--<name>` and the preflight marks `--<name>` + `--<name>-null` mutually exclusive, so no CLI invocation can send `null`. Either gate the primary to `scope: ["mcp","sdk"]` when a null helper exists, or relax the preflight so `--<name>-null` satisfies required. Not covered by existing tests (the scalar-nullable snapshot uses `requestBody.required: false`, which forces the field optional). Adjacent to tasks 725 / 740 but a different concrete bug. (c) **Nullable query array advertises `null` to MCP/SDK but wire sends empty string.** `createArrayParam` (`generate.ts:713-723`) still copies `nullable: true` into the MCP/SDK schema for query arrays even though `supportsNullFlag: false` and `http.ts:139` coerces `null` → `""` (see task 738 + task 735d). Either strip `nullable: true` from the query-array definition (symmetry with the decision not to emit `--<name>-null` CLI-side) or document the wire mapping explicitly. (d) **`mergeCommandDescriptions` concat is an invention.** Already tracked as task 754(c) follow-up — the `operationDescription + "\n\nRequest body: …"` format at `generate.ts:1266-1283` is not an OpenAPI concept; MCP descriptions drift from spec-verbatim. Fold into 754(c) when that lands.
 - [ ] `generate()` spec-fidelity bugs flagged by round 52 spec-fidelity inspector (generate-time sanity + fidelity fixes; bundle under task 711 when constraint work lands — none block milestone 7): ~~(a) **Array path params silently accepted, runtime-incorrect.**~~ **done in builder round 54** — `createGeneratedParameter` at `generate.ts:572` now throws a `UserError` when `parameter.in === "path"` and `schema.type` is `array` or `object`, listing the scalar types (string/number/integer/boolean) allowed. Symmetric with the adjacent `parameter.in === "path" && schema.type === "array"` query branch. Coverage: two focused generator tests at `generate.test.ts` pin both rejections (array + object path schemas). Same class of sanity check as task 703 / 712 / 732a. (b) **`readOnly` / `writeOnly` ignored on body fields.** `collectRequestBodyParams` at `generate.ts:490` iterates every `schema.properties` entry; spec says `readOnly: true` must be stripped from *request* bodies (they are response-only). Generator emits them as CLI/MCP params that, if set, either get rejected server-side or silently ignored. Strip `readOnly: true` from request bodies; symmetrically, `writeOnly: true` on response shapes (only relevant once response schemas are inspected for something other than the `--json` gate, so minor today). (c) **Per-command `json` param is dead after task 731.** `hasJsonSuccessResponseSchema(...)` at `generate.ts:337-349` still injects a per-command `json: S.Optional(S.Boolean({ scope: ["cli", "sdk"] }))` transport param, but task 731 promoted `json` to cmdkit's `GlobalFlags` and the generated handler never consumes `params.json` (only `dryRun`/`verbose` flow into `requestJson`). The global flag reaches `resolveOutput` authoritatively; the per-command declaration is dead code. Drop the injection (and the `hasJsonSuccessResponseSchema` gate) or document why both are needed. Low-risk cleanup.
+- [ ] `generate()` enum schema-type validation declarative-drift from round 55 code-quality inspector (non-blocking table extraction; fold into the next edit on `generate.ts`): `normalizeEnumValues` at `generate.ts:993-1007` validates enum values against `schema.type` with a string-branched ladder (`if (schemaType === "integer") … if (schemaType === "number") … if (schemaType === "string" || schemaType === "boolean")`), duplicating knowledge that already lives in `SCHEMA_TYPE_TO_KIND` at `generate.ts:17-25`. Same class of rule-duplication killed in rounds 24–27. Fix: extend each `SCHEMA_TYPE_TO_KIND` entry with a `matches(value: unknown): boolean` predicate and replace the if-chain with `SCHEMA_TYPE_TO_KIND[schemaType]?.matches(value) ?? true`. One source of truth; adding a future `format: "float"` marker becomes a table entry, not a second `if`.
+- [ ] `generate()` query-array serialization duplicated branching from round 55 code-quality inspector (non-blocking table extraction; fold into the next edit on `generate.ts`): `resolveQueryArraySerialization` at `generate.ts:1392-1410` and `renderQueryArrayValueExpression` at `generate.ts:1412-1422` both branch on the `(style, explode)` tuple in two mirrored places — the first maps the tuple to a mode, the second maps the mode to a render strategy. Extract a single `QUERY_ARRAY_SERIALIZATION` table keyed by `(style, explode)` carrying both the mode label and the render strategy (`renderValueExpression(resolvedName)`); lookup replaces both functions. Same declarative style as `METHOD_DEFAULTS` / `REQUEST_PARAM_SECTIONS` / `SCHEMA_TYPE_TO_KIND`.

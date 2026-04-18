@@ -212,6 +212,53 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("preserves integer enums in the emitted MCP schema", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-status-code": {
+          post: {
+            tags: ["bots"],
+            operationId: "setStatusCode",
+            summary: "Set a status code.",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["statusCode"],
+                    properties: {
+                      statusCode: {
+                        type: "integer",
+                        enum: [1, 2]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files).toMatchSnapshot();
+  });
+
   it("generates a scalar query command", () => {
     const files = generate(
       createDocument({

@@ -137,6 +137,23 @@ describe("@poe-code/cmdkit-schema", () => {
     } satisfies JsonSchema);
   });
 
+  it("serializes integer-flavored enums as JSON Schema integers", () => {
+    expect(
+      toJsonSchema(
+        S.Enum([1, 2, 3] as const, {
+          description: "Status code",
+          default: 2,
+          jsonType: "integer",
+        })
+      )
+    ).toEqual({
+      type: "integer",
+      enum: [1, 2, 3],
+      description: "Status code",
+      default: 2,
+    } satisfies JsonSchema);
+  });
+
   it("serializes numeric, boolean, and mixed enums to JSON Schema", () => {
     expect(toJsonSchema(S.Enum([1, 2, 3] as const))).toEqual({
       type: "number",

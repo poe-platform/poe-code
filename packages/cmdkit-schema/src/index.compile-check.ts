@@ -18,6 +18,7 @@ const ignoredStringSchema = S.String({ description: "Name", default: "guest" });
 const ignoredNumberSchema = S.Number({ description: "Count", default: 1 });
 const ignoredBooleanSchema = S.Boolean({ description: "Enabled", default: false });
 const ignoredEnumSchema = S.Enum(["admin", "user"] as const, { default: "admin" });
+const ignoredIntegerEnumSchema = S.Enum([1, 2] as const, { jsonType: "integer" });
 const ignoredArraySchema = S.Array(S.String(), { default: ["a"] });
 const ignoredObjectSchema = S.Object({
   name: S.String(),
@@ -31,6 +32,10 @@ type ignoredBooleanMatches = AssertAssignable<BooleanSchema, typeof ignoredBoole
 type ignoredEnumMatches = AssertAssignable<
   EnumSchema<readonly ["admin", "user"]>,
   typeof ignoredEnumSchema
+>;
+type ignoredIntegerEnumMatches = AssertAssignable<
+  EnumSchema<readonly [1, 2]>,
+  typeof ignoredIntegerEnumSchema
 >;
 type ignoredArrayMatches = AssertAssignable<ArraySchema<StringSchema>, typeof ignoredArraySchema>;
 type ignoredObjectMatches = AssertAssignable<
@@ -60,6 +65,7 @@ type ignoredStaticString = AssertAssignable<string, Static<typeof ignoredStringS
 type ignoredStaticNumber = AssertAssignable<number, Static<typeof ignoredNumberSchema>>;
 type ignoredStaticBoolean = AssertAssignable<boolean, Static<typeof ignoredBooleanSchema>>;
 type ignoredStaticEnum = AssertAssignable<"admin" | "user", Static<typeof ignoredEnumSchema>>;
+type ignoredStaticIntegerEnum = AssertAssignable<1 | 2, Static<typeof ignoredIntegerEnumSchema>>;
 type ignoredStaticArray = AssertAssignable<string[], Static<typeof ignoredArraySchema>>;
 type ignoredStaticObject = AssertAssignable<
   { name: string; retries?: number },

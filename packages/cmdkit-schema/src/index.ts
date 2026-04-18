@@ -61,6 +61,7 @@ export type BooleanSchema = SchemaBase<"boolean", boolean>;
 export interface EnumSchema<TValues extends NonEmptyReadonlyArray<EnumValue>>
   extends SchemaBase<"enum", TValues[number]> {
   readonly values: TValues;
+  readonly jsonType?: "integer";
   readonly labels?: Partial<Record<string, string>>;
   readonly loadOptions?: () => Array<{ label: string; value: string }> | Promise<Array<{ label: string; value: string }>>;
 }
@@ -178,6 +179,7 @@ export const S = {
   Enum<const TValues extends NonEmptyReadonlyArray<EnumValue>>(
     values: TValues,
     options: SchemaOptions<TValues[number]> & {
+      jsonType?: "integer";
       labels?: Partial<Record<string, string>>;
       loadOptions?: () => Array<{ label: string; value: string }> | Promise<Array<{ label: string; value: string }>>;
     } = {}
@@ -234,7 +236,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
       const jsonSchema: JsonSchema = {
         enum: [...unwrappedSchema.values],
       };
-      const enumType = getEnumJsonType(unwrappedSchema.values);
+      const enumType = unwrappedSchema.jsonType ?? getEnumJsonType(unwrappedSchema.values);
 
       if (enumType !== undefined) {
         jsonSchema.type = enumType;

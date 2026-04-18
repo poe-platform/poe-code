@@ -375,6 +375,7 @@ function createParamDefinition(
     return {
       kind: "enum",
       enumValues,
+      ...(schema.type === "integer" ? { jsonType: "integer" as const } : {}),
       ...(schema.default === undefined ? {} : { defaultValue: schema.default })
     };
   }

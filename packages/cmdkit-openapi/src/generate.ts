@@ -121,6 +121,8 @@ export interface OpenApiMediaTypeObject {
 
 export interface OpenApiSchemaObject {
   type?: "string" | "number" | "integer" | "boolean" | "object" | "array";
+  allOf?: Array<OpenApiSchemaObject | OpenApiReferenceObject>;
+  anyOf?: Array<OpenApiSchemaObject | OpenApiReferenceObject>;
   description?: string;
   default?: unknown;
   enum?: unknown[];
@@ -133,6 +135,7 @@ export interface OpenApiSchemaObject {
   minimum?: number;
   minLength?: number;
   nullable?: boolean;
+  oneOf?: Array<OpenApiSchemaObject | OpenApiReferenceObject>;
   pattern?: string;
   required?: string[];
   properties?: Record<string, OpenApiSchemaObject | OpenApiReferenceObject>;
@@ -196,6 +199,7 @@ type GeneratedParamScope = "cli" | "mcp" | "sdk";
 interface GeneratedRequestField {
   location: Exclude<GeneratedParam["location"], "transport">;
   omitWhenUndefinedExpression: string;
+  render: "inline" | "wrapped";
   wireName: string;
   valueExpression: string;
 }
@@ -237,6 +241,7 @@ interface CreateArrayParamOptions {
   operationId: string;
   context: string;
   location: "query" | "body";
+  render: GeneratedRequestField["render"];
   querySerialization?: QueryArraySerialization;
   supportsNullFlag: boolean;
 }
@@ -462,18 +467,35 @@ function collectRequestBodyParams(
   }
 
   const schema = expectSchema(document, content.schema, operationId, "requestBody");
+  const bodyOptional = requestBody.required !== true;
 
-  if (schema.type !== "object" || schema.properties === undefined) {
+  if (schema.type !== "object") {
+    return createCollectedRequestBodyParams(
+      [
+        createBodyField(
+          document,
+          "body",
+          schema.description === undefined && requestBody.description !== undefined
+            ? { ...schema, description: requestBody.description }
+            : schema,
+          bodyOptional,
+          operationId,
+          "inline"
+        )
+      ],
+      bodyOptional,
+      requestBody.description
+    );
+  }
+
+  if (schema.properties === undefined) {
     throw new UserError(
       `Operation ${JSON.stringify(operationId)} must define an object-shaped JSON request body.`
     );
   }
 
   const required = new Set(schema.required ?? []);
-  const bodyOptional = requestBody.required !== true;
-  const params: GeneratedParam[] = [];
-  const preflightBlocks: GeneratedPreflightBlock[] = [];
-  const requestFields: GeneratedRequestField[] = [];
+  const assemblies: GeneratedParameterAssembly[] = [];
 
   for (const [name, property] of Object.entries(schema.properties)) {
     const propertySchema = expectSchema(
@@ -494,21 +516,10 @@ function collectRequestBodyParams(
       bodyOptional || !required.has(name),
       operationId
     );
-
-    params.push(...generated.params);
-    preflightBlocks.push(...generated.preflightBlocks);
-    requestFields.push(generated.requestField);
+    assemblies.push(generated);
   }
 
-  return {
-    params,
-    preflightBlocks,
-    requestFields,
-    optionalSections: bodyOptional
-      ? new Set<Exclude<GeneratedParam["location"], "transport">>(["body"])
-      : new Set(),
-    requestBodyDescription: requestBody.description
-  };
+  return createCollectedRequestBodyParams(assemblies, bodyOptional, requestBody.description);
 }
 
 function assertSupportedSuccessResponses(
@@ -578,6 +589,7 @@ function createGeneratedParameter(
       operationId,
       context: `parameter ${JSON.stringify(parameter.name)}`,
       location: "query",
+      render: "wrapped",
       querySerialization: resolveQueryArraySerialization(parameter, operationId),
       // Query null currently serializes as an empty string on the wire, so v1 does not
       // synthesize a CLI-only --<name>-null helper for query arrays.
@@ -605,6 +617,7 @@ function createGeneratedParameter(
     preflightBlocks: [],
     requestField: {
       location: parameter.in,
+      render: "wrapped",
       wireName: parameter.name,
       valueExpression: renderParamAccess(paramName),
       omitWhenUndefinedExpression: `${renderParamAccess(paramName)} === undefined`
@@ -617,7 +630,8 @@ function createBodyField(
   name: string,
   schema: OpenApiSchemaObject,
   optional: boolean,
-  operationId: string
+  operationId: string,
+  render: GeneratedRequestField["render"] = "wrapped"
 ): GeneratedParameterAssembly {
   if (schema.type === "object") {
     throw new UserError(
@@ -635,6 +649,7 @@ function createBodyField(
       operationId,
       context: `request body field ${JSON.stringify(name)}`,
       location: "body",
+      render,
       querySerialization: undefined,
       supportsNullFlag: true
     });
@@ -688,6 +703,7 @@ function createBodyField(
     preflightBlocks,
     requestField: {
       location: "body",
+      render,
       wireName: name,
       valueExpression: definition.nullable === true ? resolvedName : paramAccess,
       omitWhenUndefinedExpression:
@@ -708,6 +724,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     operationId,
     context,
     location,
+    render,
     querySerialization,
     supportsNullFlag
   } = options;
@@ -800,6 +817,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     ],
     requestField: {
       location,
+      render,
       wireName: name,
       valueExpression:
         location === "query"
@@ -807,6 +825,22 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
           : resolvedName,
       omitWhenUndefinedExpression: `${resolvedName} === undefined`
     }
+  };
+}
+
+function createCollectedRequestBodyParams(
+  assemblies: ReadonlyArray<GeneratedParameterAssembly>,
+  bodyOptional: boolean,
+  requestBodyDescription: string | undefined
+): CollectedCommandParams {
+  return {
+    params: assemblies.flatMap((assembly) => assembly.params),
+    preflightBlocks: assemblies.flatMap((assembly) => assembly.preflightBlocks),
+    requestFields: assemblies.map((assembly) => assembly.requestField),
+    optionalSections: bodyOptional
+      ? new Set<Exclude<GeneratedParam["location"], "transport">>(["body"])
+      : new Set(),
+    requestBodyDescription
   };
 }
 
@@ -1044,7 +1078,7 @@ function expectParameter(
 
   if (parameter.in !== "path" && parameter.in !== "query") {
     throw new UserError(
-      `Operation ${JSON.stringify(operationId)} uses unsupported parameter location ${JSON.stringify(parameter.in)}.`
+      `Operation ${JSON.stringify(operationId)} uses unsupported parameter location ${JSON.stringify(parameter.in)}. Only path and query parameters are supported in v1; use auth or handwritten commands for headers/cookies.`
     );
   }
 
@@ -1128,7 +1162,31 @@ function expectSchema(
     );
   }
 
+  const compositionKeyword = getCompositionKeyword(schema);
+
+  if (compositionKeyword !== undefined) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. JSON Schema composition keyword ${JSON.stringify(compositionKeyword)} is not supported in v1.`
+    );
+  }
+
   return schema;
+}
+
+function getCompositionKeyword(schema: OpenApiSchemaObject): "allOf" | "anyOf" | "oneOf" | undefined {
+  if (schema.allOf !== undefined) {
+    return "allOf";
+  }
+
+  if (schema.anyOf !== undefined) {
+    return "anyOf";
+  }
+
+  if (schema.oneOf !== undefined) {
+    return "oneOf";
+  }
+
+  return undefined;
 }
 
 function assertAcyclicRef(
@@ -1239,7 +1297,9 @@ function createCommandFile(options: {
   lines.push("      fetch,");
   lines.push("      dryRun: params.dryRun,");
   lines.push("      verbose: params.verbose,");
-  lines.push(...renderRequestShape(options.requestFields, options.optionalSections));
+  lines.push(
+    ...renderRequestShape(options.requestFields, options.optionalSections)
+  );
   lines.push("    });");
   lines.push("  },");
   lines.push("});");
@@ -1442,35 +1502,77 @@ function renderRequestShape(
       continue;
     }
 
-    if (section.omittable && optionalSections.has(section.location)) {
-      lines.push(
-        `      ...(${sectionFields.map((param) => param.omitWhenUndefinedExpression).join(" && ")}`
-      );
-      lines.push("        ? {}");
-      lines.push("        : {");
-      lines.push(`            ${section.key}: {`);
-      lines.push(
-        ...sectionFields.map(
-          (param) =>
-            `              ${JSON.stringify(param.wireName)}: ${param.valueExpression},`
-        )
-      );
-      lines.push("            },");
-      lines.push("          }),");
-      continue;
-    }
-
-    lines.push(`      ${section.key}: {`);
     lines.push(
-      ...sectionFields.map(
-        (param) => `        ${JSON.stringify(param.wireName)}: ${param.valueExpression},`
+      ...REQUEST_FIELD_RENDERERS[sectionFields[0]?.render ?? "wrapped"](
+        section,
+        sectionFields,
+        optionalSections.has(section.location)
       )
     );
-    lines.push("      },");
   }
 
   return lines;
 }
+
+const REQUEST_FIELD_RENDERERS = {
+  inline: (
+    section: (typeof REQUEST_PARAM_SECTIONS)[number],
+    sectionFields: GeneratedRequestField[],
+    optional: boolean
+  ): string[] => {
+    const [field] = sectionFields;
+
+    if (field === undefined) {
+      return [];
+    }
+
+    if (!optional) {
+      return [`      ${section.key}: ${field.valueExpression},`];
+    }
+
+    return [
+      `      ...(${field.omitWhenUndefinedExpression}`,
+      "        ? {}",
+      "        : {",
+      `            ${section.key}: ${field.valueExpression},`,
+      "          }),"
+    ];
+  },
+  wrapped: (
+    section: (typeof REQUEST_PARAM_SECTIONS)[number],
+    sectionFields: GeneratedRequestField[],
+    optional: boolean
+  ): string[] => {
+    if (!optional) {
+      return [
+        `      ${section.key}: {`,
+        ...sectionFields.map(
+          (param) => `        ${JSON.stringify(param.wireName)}: ${param.valueExpression},`
+        ),
+        "      },"
+      ];
+    }
+
+    return [
+      `      ...(${sectionFields.map((param) => param.omitWhenUndefinedExpression).join(" && ")}`,
+      "        ? {}",
+      "        : {",
+      `            ${section.key}: {`,
+      ...sectionFields.map(
+        (param) => `              ${JSON.stringify(param.wireName)}: ${param.valueExpression},`
+      ),
+      "            },",
+      "          }),"
+    ];
+  }
+} as const satisfies Record<
+  GeneratedRequestField["render"],
+  (
+    section: (typeof REQUEST_PARAM_SECTIONS)[number],
+    sectionFields: GeneratedRequestField[],
+    optional: boolean
+  ) => string[]
+>;
 
 function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
   const groups = new Map<string, GeneratedCommand[]>();

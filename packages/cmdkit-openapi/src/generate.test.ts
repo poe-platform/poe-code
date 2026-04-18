@@ -2155,6 +2155,371 @@ describe("generate", () => {
     );
   });
 
+  it("generates a command for a top-level scalar request body", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/import": {
+          post: {
+            tags: ["bots"],
+            operationId: "importBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "string",
+                    description: "Raw import payload."
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Imported."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/import-bot.ts");
+
+    expect(commandFile?.contents).toContain('body: S.String({ description: "Raw import payload." })');
+    expect(commandFile?.contents).toContain("body: params.body,");
+    expect(commandFile?.contents).not.toContain('body: {\n');
+  });
+
+  it("omits an optional top-level scalar body when it is undefined", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/import": {
+          post: {
+            tags: ["bots"],
+            operationId: "importBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "string",
+                    description: "Raw import payload."
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Imported."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/import-bot.ts");
+
+    expect(commandFile?.contents).toContain(`      ...(params.body === undefined
+        ? {}
+        : {
+            body: params.body,
+          }),`);
+  });
+
+  it("renders query params alongside a top-level scalar body without nesting the body payload", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/import": {
+          post: {
+            tags: ["bots"],
+            operationId: "importBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              },
+              {
+                name: "mode",
+                in: "query",
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "string",
+                    description: "Raw import payload."
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Imported."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/import-bot.ts");
+
+    expect(commandFile?.contents).toContain("query: {");
+    expect(commandFile?.contents).toContain('"mode": params.mode,');
+    expect(commandFile?.contents).toContain(`      ...(params.body === undefined
+        ? {}
+        : {
+            body: params.body,
+          }),`);
+    expect(commandFile?.contents).not.toContain('body: {\n');
+  });
+
+  it("generates a command for a top-level array request body", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/import": {
+          post: {
+            tags: ["bots"],
+            operationId: "importBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: { type: "string" }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Imported."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/import-bot.ts");
+
+    expect(commandFile?.contents).toContain(
+      'bodyJson: S.Optional(S.String({ description: "JSON-encoded value for body.", scope: ["cli"] }))'
+    );
+    expect(commandFile?.contents).toContain("let resolvedBody = params.body;");
+    expect(commandFile?.contents).toContain("body: resolvedBody,");
+  });
+
+  it("omits an optional top-level array body when it is undefined", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/import": {
+          post: {
+            tags: ["bots"],
+            operationId: "importBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: { type: "string" }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Imported."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/import-bot.ts");
+
+    expect(commandFile?.contents).toContain(`      ...(resolvedBody === undefined
+        ? {}
+        : {
+            body: resolvedBody,
+          }),`);
+  });
+
+  it("throws a oneOf-specific error", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            patch: {
+              tags: ["bots"],
+              operationId: "updateBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      oneOf: [{ type: "string" }, { type: "integer" }]
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Updated."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "updateBot" uses unsupported requestBody. JSON Schema composition keyword "oneOf" is not supported in v1.'
+      )
+    );
+  });
+
+  it("throws an anyOf-specific error", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            patch: {
+              tags: ["bots"],
+              operationId: "updateBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      anyOf: [{ type: "string" }, { type: "integer" }]
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Updated."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "updateBot" uses unsupported requestBody. JSON Schema composition keyword "anyOf" is not supported in v1.'
+      )
+    );
+  });
+
+  it("throws an allOf-specific error", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            patch: {
+              tags: ["bots"],
+              operationId: "updateBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      allOf: [{ type: "string" }, { maxLength: 100 }]
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Updated."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "updateBot" uses unsupported requestBody. JSON Schema composition keyword "allOf" is not supported in v1.'
+      )
+    );
+  });
+
   it("allows non-JSON error responses when success responses stay JSON", () => {
     expect(() =>
       generate(
@@ -2276,7 +2641,48 @@ describe("generate", () => {
         { specSha: "spec-sha-123" }
       )
     ).toThrowError(
-      new UserError('Operation "listBots" uses unsupported parameter location "header".')
+      new UserError(
+        'Operation "listBots" uses unsupported parameter location "header". Only path and query parameters are supported in v1; use auth or handwritten commands for headers/cookies.'
+      )
+    );
+  });
+
+  it("throws when an operation uses an unsupported cookie parameter", () => {
+    expect(() =>
+      generate(
+        {
+          openapi: "3.0.3",
+          info: {
+            title: "Internal Agent API",
+            version: "1.0.0"
+          },
+          paths: {
+            "/bots": {
+              get: {
+                tags: ["bots"],
+                operationId: "listBots",
+                parameters: [
+                  {
+                    name: "session",
+                    in: "cookie",
+                    schema: { type: "string" }
+                  } as never
+                ],
+                responses: {
+                  "200": {
+                    description: "List."
+                  }
+                }
+              }
+            }
+          }
+        },
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "listBots" uses unsupported parameter location "cookie". Only path and query parameters are supported in v1; use auth or handwritten commands for headers/cookies.'
+      )
     );
   });
 

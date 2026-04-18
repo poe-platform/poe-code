@@ -25,12 +25,13 @@ const SCHEMA_TYPE_TO_KIND: Record<
 };
 
 const REQUEST_PARAM_SECTIONS = [
-  { location: "path", key: "pathParams" },
-  { location: "query", key: "query" },
-  { location: "body", key: "body" }
+  { location: "path", key: "pathParams", omittable: false },
+  { location: "query", key: "query", omittable: false },
+  { location: "body", key: "body", omittable: true }
 ] as const satisfies ReadonlyArray<{
-  location: GeneratedParam["location"];
+  location: Exclude<GeneratedParam["location"], "transport">;
   key: "pathParams" | "query" | "body";
+  omittable: boolean;
 }>;
 
 export interface OpenApiDocument {
@@ -205,10 +206,7 @@ function createGeneratedCommand(entry: OperationEntry, specSha: string): Generat
       method: entry.method.toUpperCase(),
       path: entry.path,
       params,
-      omitOptionalBodyWhenEmpty:
-        entry.operation.requestBody !== undefined &&
-        !isReferenceObject(entry.operation.requestBody) &&
-        entry.operation.requestBody.required !== true
+      optionalSections: collectOptionalRequestSections(entry.operation)
     })
   };
 }
@@ -216,6 +214,7 @@ function createGeneratedCommand(entry: OperationEntry, specSha: string): Generat
 function collectParams(entry: OperationEntry, operationId: string): GeneratedParam[] {
   const params = [
     ...collectOperationParameters(
+      entry.path,
       entry.pathItem.parameters ?? [],
       entry.operation.parameters ?? [],
       operationId
@@ -258,6 +257,7 @@ function collectParams(entry: OperationEntry, operationId: string): GeneratedPar
 }
 
 function collectOperationParameters(
+  path: string,
   pathItemParameters: OpenApiParameter[],
   operationParameters: OpenApiParameter[],
   operationId: string
@@ -273,6 +273,8 @@ function collectOperationParameters(
     const resolved = expectParameter(parameter, operationId);
     merged.set(`${resolved.in}:${resolved.name}`, resolved);
   }
+
+  assertPathTemplateParameters(path, merged, operationId);
 
   return [...merged.values()].map((parameter) => createGeneratedParameter(parameter, operationId));
 }
@@ -393,6 +395,42 @@ function createParamDefinition(
   );
 }
 
+function assertPathTemplateParameters(
+  path: string,
+  parameters: ReadonlyMap<string, OpenApiParameterObject>,
+  operationId: string
+): void {
+  for (const placeholder of collectPathPlaceholders(path)) {
+    if (!parameters.has(`path:${placeholder}`)) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} path ${JSON.stringify(path)} references ${JSON.stringify(`{${placeholder}}`)} but does not define a matching path parameter.`
+      );
+    }
+  }
+}
+
+function collectPathPlaceholders(path: string): string[] {
+  const placeholders: string[] = [];
+  let searchFrom = 0;
+
+  while (searchFrom < path.length) {
+    const start = path.indexOf("{", searchFrom);
+    if (start === -1) {
+      break;
+    }
+
+    const end = path.indexOf("}", start + 1);
+    if (end === -1) {
+      break;
+    }
+
+    placeholders.push(path.slice(start + 1, end));
+    searchFrom = end + 1;
+  }
+
+  return placeholders;
+}
+
 function normalizeEnumValues(
   enumValues: unknown[] | undefined
 ): ReadonlyArray<string | number | boolean> | undefined {
@@ -466,6 +504,22 @@ function assertUniqueCommandPaths(commands: GeneratedCommand[]): void {
   }
 }
 
+function collectOptionalRequestSections(
+  operation: OpenApiOperationObject
+): Set<Exclude<GeneratedParam["location"], "transport">> {
+  const optionalSections = new Set<Exclude<GeneratedParam["location"], "transport">>();
+
+  if (
+    operation.requestBody !== undefined &&
+    !isReferenceObject(operation.requestBody) &&
+    operation.requestBody.required !== true
+  ) {
+    optionalSections.add("body");
+  }
+
+  return optionalSections;
+}
+
 function createCommandFile(options: {
   specSha: string;
   operationId: string;
@@ -476,7 +530,7 @@ function createCommandFile(options: {
   method: string;
   path: string;
   params: GeneratedParam[];
-  omitOptionalBodyWhenEmpty: boolean;
+  optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
 }): string {
   const lines = [
     "/**",
@@ -508,7 +562,7 @@ function createCommandFile(options: {
   lines.push("      fetch,");
   lines.push("      dryRun: params.dryRun,");
   lines.push("      verbose: params.verbose,");
-  lines.push(...renderRequestShape(options.params, options.omitOptionalBodyWhenEmpty));
+  lines.push(...renderRequestShape(options.params, options.optionalSections));
   lines.push("    });");
   lines.push("  },");
   lines.push("});");
@@ -563,7 +617,10 @@ function renderConstArray(values: ReadonlyArray<string | number | boolean>): str
   return `${JSON.stringify(values)} as const`;
 }
 
-function renderRequestShape(params: GeneratedParam[], omitOptionalBodyWhenEmpty: boolean): string[] {
+function renderRequestShape(
+  params: GeneratedParam[],
+  optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>
+): string[] {
   const lines: string[] = [];
 
   for (const section of REQUEST_PARAM_SECTIONS) {
@@ -572,7 +629,7 @@ function renderRequestShape(params: GeneratedParam[], omitOptionalBodyWhenEmpty:
       continue;
     }
 
-    if (section.location === "body" && omitOptionalBodyWhenEmpty) {
+    if (section.omittable && optionalSections.has(section.location)) {
       lines.push(
         `      ...(${sectionParams
           .map((param) => `params.${param.paramName} === undefined`)
@@ -580,7 +637,7 @@ function renderRequestShape(params: GeneratedParam[], omitOptionalBodyWhenEmpty:
       );
       lines.push("        ? {}");
       lines.push("        : {");
-      lines.push("            body: {");
+      lines.push(`            ${section.key}: {`);
       lines.push(
         ...sectionParams.map(
           (param) => `              ${JSON.stringify(param.originalName)}: params.${param.paramName},`

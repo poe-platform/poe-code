@@ -378,6 +378,63 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("accepts a path placeholder satisfied by a path-item parameter", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          parameters: [
+            {
+              name: "handle",
+              in: "path",
+              required: true,
+              schema: { type: "string" }
+            }
+          ],
+          get: {
+            tags: ["bots"],
+            operationId: "viewBot",
+            summary: "View a bot.",
+            responses: {
+              "200": {
+                description: "Viewed."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/view.ts")?.contents).toContain(
+      '"handle": params.handle'
+    );
+  });
+
+  it("throws when a path placeholder has no matching path parameter", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              responses: {
+                "200": {
+                  description: "Viewed."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" path "/bots/{handle}" references "{handle}" but does not define a matching path parameter.'
+      )
+    );
+  });
+
   it("throws when an operation has no tags", () => {
     expect(() =>
       generate(

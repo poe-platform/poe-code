@@ -10,11 +10,8 @@ const DEFAULT_VERBS_BY_METHOD = {
   get: {
     collection: "list",
     resource: "view"
-  },
-  patch: undefined,
-  post: undefined,
-  put: undefined
-} as const satisfies Record<HttpMethod, { collection: string; resource: string } | undefined>;
+  }
+} as const satisfies Partial<Record<HttpMethod, { collection: string; resource: string }>>;
 
 export function deriveNoun(operation: { tags?: string[] }, operationId: string): string {
   const noun = operation.tags?.[0];
@@ -42,7 +39,7 @@ export function deriveVerb(
     return toKebabCase(action);
   }
 
-  const defaults = DEFAULT_VERBS_BY_METHOD[method];
+  const defaults = DEFAULT_VERBS_BY_METHOD[method as keyof typeof DEFAULT_VERBS_BY_METHOD];
   if (defaults !== undefined) {
     const lastSegment = segments.at(-1);
     return isPathTemplateSegment(lastSegment) ? defaults.resource : defaults.collection;

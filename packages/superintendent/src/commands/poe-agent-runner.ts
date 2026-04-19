@@ -1,9 +1,11 @@
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import {
   agent as defaultAgent,
+  compactionPlugin,
   filesPlugin,
   policyPlugin,
   shellPlugin,
+  skillsPlugin,
   systemPromptPlugin,
   webPlugin
 } from "@poe-code/poe-agent";
@@ -37,7 +39,9 @@ export async function executePoeAgent(
     .use(systemPromptPlugin())
     .use(filesPlugin({ cwd: input.cwd }))
     .use(shellPlugin({ cwd: input.cwd }))
-    .use(webPlugin());
+    .use(webPlugin())
+    .use(compactionPlugin())
+    .use(skillsPlugin({ definitions: {} }));
   if (input.mode) {
     builder = builder.use(policyPlugin({ mode: input.mode as SpawnMode }));
   }

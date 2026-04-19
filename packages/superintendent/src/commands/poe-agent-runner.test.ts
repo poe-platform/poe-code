@@ -214,7 +214,9 @@ describe("executePoeAgent", () => {
         "poe-agent-plugin-system-prompt",
         "poe-agent-plugin-files",
         "poe-agent-plugin-shell",
-        "poe-agent-plugin-web"
+        "poe-agent-plugin-web",
+        "poe-agent-plugin-compaction",
+        "skills"
       ])
     );
   });

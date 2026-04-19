@@ -265,7 +265,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: qa-doc
     title: Write manual QA walkthrough
@@ -297,7 +297,7 @@ tasks:
 
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done

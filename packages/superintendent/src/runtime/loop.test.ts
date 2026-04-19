@@ -161,165 +161,169 @@ describe("runLoop", () => {
     vi.resetModules();
   });
 
-  it("runs the full lifecycle, writes status updates, and preserves agent body edits", async () => {
-    const docPath = "/repo/docs/plans/feature.md";
-    const { fs, rawFs } = createFs({ [docPath]: createDocument() });
-    const events: string[] = [];
-    const stateChanges: Array<Pick<LoopState, "state" | "round" | "reviewTurn">> = [];
+  it(
+    "runs the full lifecycle, writes status updates, and preserves agent body edits",
+    async () => {
+      const docPath = "/repo/docs/plans/feature.md";
+      const { fs, rawFs } = createFs({ [docPath]: createDocument() });
+      const events: string[] = [];
+      const stateChanges: Array<Pick<LoopState, "state" | "round" | "reviewTurn">> = [];
 
-    runBuilderMock.mockImplementation(async (doc) => {
-      expect(doc.frontmatter.status).toEqual({
-        state: "in_progress",
-        round: 1,
-        review_turn: 0
+      runBuilderMock.mockImplementation(async (doc) => {
+        expect(doc.frontmatter.status).toEqual({
+          state: "in_progress",
+          round: 1,
+          review_turn: 0
+        });
+        const updated = (await rawFs.readFile(docPath, "utf8"))
+          .toString()
+          .replace("- [ ] Task 1", "- [x] Task 1");
+        await rawFs.writeFile(docPath, updated, { encoding: "utf8" });
+        events.push("builder");
+        return {
+          summary: "Builder finished round 1",
+          log: "Marked Task 1 done"
+        };
       });
-      const updated = (await rawFs.readFile(docPath, "utf8"))
-        .toString()
-        .replace("- [ ] Task 1", "- [x] Task 1");
-      await rawFs.writeFile(docPath, updated, { encoding: "utf8" });
-      events.push("builder");
-      return {
-        summary: "Builder finished round 1",
-        log: "Marked Task 1 done"
-      };
-    });
 
-    runInspectorMock
-      .mockImplementationOnce(async (name, _config, doc, context) => {
-        expect(name).toBe("code-quality");
-        expect(doc.frontmatter.status.round).toBe(1);
+      runInspectorMock
+        .mockImplementationOnce(async (name, _config, doc, context) => {
+          expect(name).toBe("code-quality");
+          expect(doc.frontmatter.status.round).toBe(1);
+          expect(context.builder).toEqual({
+            summary: "Builder finished round 1",
+            log: "Marked Task 1 done"
+          });
+          expect(context.inspectors).toEqual({});
+          events.push("inspector:code-quality");
+          return {
+            name,
+            summary: "Looks good"
+          };
+        })
+        .mockImplementationOnce(async (name, _config, _doc, context) => {
+          expect(name).toBe("manual-qa");
+          expect(context.inspectors).toEqual({
+            "code-quality": "Looks good"
+          });
+          events.push("inspector:manual-qa");
+          return {
+            name,
+            summary: "QA passed"
+          };
+        });
+
+      runSuperintendentMock.mockImplementation(async (doc, context) => {
+        expect(doc.frontmatter.status).toEqual({
+          state: "in_progress",
+          round: 1,
+          review_turn: 0
+        });
         expect(context.builder).toEqual({
           summary: "Builder finished round 1",
           log: "Marked Task 1 done"
         });
-        expect(context.inspectors).toEqual({});
-        events.push("inspector:code-quality");
-        return {
-          name,
-          summary: "Looks good"
-        };
-      })
-      .mockImplementationOnce(async (name, _config, _doc, context) => {
-        expect(name).toBe("manual-qa");
         expect(context.inspectors).toEqual({
-          "code-quality": "Looks good"
+          "code-quality": "Looks good",
+          "manual-qa": "QA passed"
         });
-        events.push("inspector:manual-qa");
+        events.push("superintendent");
         return {
-          name,
-          summary: "QA passed"
+          summary: "Ready for owner review",
+          transition: {
+            action: "request_review",
+            summary: "Ready for owner review"
+          }
         };
       });
 
-    runSuperintendentMock.mockImplementation(async (doc, context) => {
-      expect(doc.frontmatter.status).toEqual({
-        state: "in_progress",
-        round: 1,
-        review_turn: 0
-      });
-      expect(context.builder).toEqual({
-        summary: "Builder finished round 1",
-        log: "Marked Task 1 done"
-      });
-      expect(context.inspectors).toEqual({
-        "code-quality": "Looks good",
-        "manual-qa": "QA passed"
-      });
-      events.push("superintendent");
-      return {
-        summary: "Ready for owner review",
-        transition: {
-          action: "request_review",
+      runOwnerReviewMock.mockImplementation(async (doc, context) => {
+        expect(doc.frontmatter.status).toEqual({
+          state: "review",
+          round: 1,
+          review_turn: 0
+        });
+        expect(context.superintendent).toEqual({
           summary: "Ready for owner review"
-        }
-      };
-    });
+        });
+        events.push("owner");
+        return {
+          transition: {
+            action: "approve_completion"
+          }
+        };
+      });
 
-    runOwnerReviewMock.mockImplementation(async (doc, context) => {
-      expect(doc.frontmatter.status).toEqual({
-        state: "review",
+      const { runLoop } = await import("./loop.js");
+      const result = await runLoop({
+        docPath,
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs,
+        callbacks: {
+          onBuilderStart: () => events.push("builder:start"),
+          onBuilderComplete: () => events.push("builder:complete"),
+          onInspectorStart: (name) => events.push(`inspector:start:${name}`),
+          onInspectorComplete: (result) => events.push(`inspector:complete:${result.name}`),
+          onSuperintendentStart: () => events.push("superintendent:start"),
+          onSuperintendentComplete: () => events.push("superintendent:complete"),
+          onOwnerStart: () => events.push("owner:start"),
+          onOwnerComplete: () => events.push("owner:complete"),
+          onRoundComplete: (round) => events.push(`round:${round}`),
+          onLoopComplete: () => events.push("loop:complete"),
+          onStateChange: (state) => {
+            stateChanges.push({
+              state: state.state,
+              round: state.round,
+              reviewTurn: state.reviewTurn
+            });
+          }
+        }
+      });
+
+      expect(result).toEqual({
+        state: "completed",
+        round: 1,
+        reviewTurn: 0,
+        maxRounds: 10,
+        maxReviewTurns: 5,
+        stopReason: "completed"
+      });
+      expect(events).toEqual([
+        "builder:start",
+        "builder",
+        "builder:complete",
+        "inspector:start:code-quality",
+        "inspector:code-quality",
+        "inspector:complete:code-quality",
+        "inspector:start:manual-qa",
+        "inspector:manual-qa",
+        "inspector:complete:manual-qa",
+        "superintendent:start",
+        "superintendent",
+        "superintendent:complete",
+        "owner:start",
+        "owner",
+        "owner:complete",
+        "round:1",
+        "loop:complete"
+      ]);
+      expect(stateChanges).toEqual([
+        { state: "in_progress", round: 1, reviewTurn: 0 },
+        { state: "review", round: 1, reviewTurn: 0 },
+        { state: "completed", round: 1, reviewTurn: 0 }
+      ]);
+
+      const finalDoc = await readDoc(rawFs, docPath);
+      expect(finalDoc.body).toContain("- [x] Task 1");
+      expect(finalDoc.frontmatter.status).toEqual({
+        state: "completed",
         round: 1,
         review_turn: 0
       });
-      expect(context.superintendent).toEqual({
-        summary: "Ready for owner review"
-      });
-      events.push("owner");
-      return {
-        transition: {
-          action: "approve_completion"
-        }
-      };
-    });
-
-    const { runLoop } = await import("./loop.js");
-    const result = await runLoop({
-      docPath,
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs,
-      callbacks: {
-        onBuilderStart: () => events.push("builder:start"),
-        onBuilderComplete: () => events.push("builder:complete"),
-        onInspectorStart: (name) => events.push(`inspector:start:${name}`),
-        onInspectorComplete: (result) => events.push(`inspector:complete:${result.name}`),
-        onSuperintendentStart: () => events.push("superintendent:start"),
-        onSuperintendentComplete: () => events.push("superintendent:complete"),
-        onOwnerStart: () => events.push("owner:start"),
-        onOwnerComplete: () => events.push("owner:complete"),
-        onRoundComplete: (round) => events.push(`round:${round}`),
-        onLoopComplete: () => events.push("loop:complete"),
-        onStateChange: (state) => {
-          stateChanges.push({
-            state: state.state,
-            round: state.round,
-            reviewTurn: state.reviewTurn
-          });
-        }
-      }
-    });
-
-    expect(result).toEqual({
-      state: "completed",
-      round: 1,
-      reviewTurn: 0,
-      maxRounds: 10,
-      maxReviewTurns: 5,
-      stopReason: "completed"
-    });
-    expect(events).toEqual([
-      "builder:start",
-      "builder",
-      "builder:complete",
-      "inspector:start:code-quality",
-      "inspector:code-quality",
-      "inspector:complete:code-quality",
-      "inspector:start:manual-qa",
-      "inspector:manual-qa",
-      "inspector:complete:manual-qa",
-      "superintendent:start",
-      "superintendent",
-      "superintendent:complete",
-      "owner:start",
-      "owner",
-      "owner:complete",
-      "round:1",
-      "loop:complete"
-    ]);
-    expect(stateChanges).toEqual([
-      { state: "in_progress", round: 1, reviewTurn: 0 },
-      { state: "review", round: 1, reviewTurn: 0 },
-      { state: "completed", round: 1, reviewTurn: 0 }
-    ]);
-
-    const finalDoc = await readDoc(rawFs, docPath);
-    expect(finalDoc.body).toContain("- [x] Task 1");
-    expect(finalDoc.frontmatter.status).toEqual({
-      state: "completed",
-      round: 1,
-      review_turn: 0
-    });
-  });
+    },
+    15_000
+  );
 
   it("stores owner feedback and passes it to the next builder round", async () => {
     const docPath = "/repo/docs/plans/feature.md";

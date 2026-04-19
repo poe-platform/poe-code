@@ -1,8 +1,14 @@
 import { join } from "node:path";
-import { isNotFound } from "@poe-code/config-mutations";
+import type { Command } from "commander";
+import type { CliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
+import { resolveCommandFlags } from "./shared.js";
 import {
+  applySymlinkOps,
+  formatLoggedPath,
+  isPermissionError,
   isSymlinkPointingTo,
+  tryLstat,
   type SymlinkOp
 } from "./utils-symlink-ops.js";
 
@@ -10,6 +16,57 @@ const CANONICAL_FILE = "AGENTS.md";
 const LEGACY_FILE = "CLAUDE.md";
 const BOTH_FILES_CONFLICT =
   "both CLAUDE.md and AGENTS.md exist as regular files. Resolve manually: diff the files, keep the one you want as AGENTS.md, then re-run this command.";
+
+interface UtilsSymlinkAgentsOptions {
+  cwd?: string;
+}
+
+export function registerUtilsSymlinkAgentsCommand(
+  parent: Command,
+  container: CliContainer
+): void {
+  parent
+    .command("agents")
+    .description("Symlink CLAUDE.md <- AGENTS.md (AGENTS.md is canonical).")
+    .option("--dry-run", "Simulate commands without writing changes.")
+    .option("--cwd <dir>", "Operate on <dir> instead of the current working directory.")
+    .action(async function (this: Command, options: UtilsSymlinkAgentsOptions) {
+      const flags = resolveCommandFlags(this);
+      const logger = container.loggerFactory.create({
+        dryRun: flags.dryRun,
+        verbose: flags.verbose,
+        scope: "utils:symlink:agents"
+      });
+
+      if (container.env.platform === "win32") {
+        logger.error("Symlink commands are not supported on Windows.");
+        process.exitCode = 2;
+        return;
+      }
+
+      const targetCwd = options.cwd ?? container.env.cwd;
+
+      try {
+        const ops = await planAgentsSymlink(container.fs, targetCwd);
+        const result = await applySymlinkOps(container.fs, ops, {
+          dryRun: flags.dryRun,
+          log: (message) => {
+            logger.info(formatLoggedPath(message, { cwd: targetCwd, homeDir: container.env.homeDir }));
+          }
+        });
+
+        process.exitCode = result.conflicts > 0 ? 1 : 0;
+      } catch (error) {
+        if (isPermissionError(error)) {
+          logger.error(error.message);
+          process.exitCode = 2;
+          return;
+        }
+
+        throw error;
+      }
+    });
+}
 
 export async function planAgentsSymlink(
   fs: FileSystem,
@@ -52,13 +109,3 @@ export async function planAgentsSymlink(
   ];
 }
 
-async function tryLstat(fs: FileSystem, path: string) {
-  try {
-    return await fs.lstat(path);
-  } catch (error) {
-    if (isNotFound(error)) {
-      return null;
-    }
-    throw error;
-  }
-}

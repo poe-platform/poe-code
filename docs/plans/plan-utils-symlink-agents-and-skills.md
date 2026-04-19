@@ -95,7 +95,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: wire-cli-commands
     title: Wire utils symlink parent and subcommands into CLI
@@ -126,9 +126,9 @@ tasks:
       - `npm run dev -- utils symlink --help` prints the help text from section 2.
       - `npm run typecheck` and `npm run lint` clean.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: spot-test-and-screenshots

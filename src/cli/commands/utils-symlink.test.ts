@@ -1,6 +1,23 @@
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FileSystem } from "../../utils/file-system.js";
+
+const { selectMock, cancelMock } = vi.hoisted(() => ({
+  selectMock: vi.fn(),
+  cancelMock: vi.fn()
+}));
+
+vi.mock("@poe-code/design-system", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
+  return {
+    ...actual,
+    select: selectMock,
+    isCancel: (value: unknown) => value === "__cancel__",
+    cancel: cancelMock
+  };
+});
+
+import { createProgram } from "../program.js";
 import { planAgentsSymlink } from "./utils-symlink-agents.js";
 import {
   planSkillsSymlink,
@@ -32,6 +49,18 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   volume.mkdirSync(cwd, { recursive: true });
   volume.mkdirSync(homeDir, { recursive: true });
   return createFsFromVolume(volume).promises as unknown as FileSystem;
+}
+
+function createCliProgram(fs: FileSystem, logs: string[]) {
+  return createProgram({
+    fs,
+    prompts: vi.fn().mockResolvedValue({}),
+    env: { cwd, homeDir },
+    logger: (message) => {
+      logs.push(message);
+    },
+    suppressCommanderOutput: true
+  });
 }
 
 async function readRepoState(fs: FileSystem): Promise<Record<string, string>> {
@@ -235,6 +264,136 @@ describe.each([
     await setup?.(fs);
 
     await expect(planSkillsSymlink(fs, targets)).resolves.toEqual(expected);
+  });
+});
+
+describe("utils symlink skills command", () => {
+  beforeEach(() => {
+    selectMock.mockReset();
+    cancelMock.mockReset();
+    process.exitCode = undefined;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it("errors when both --local and --global are passed", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const program = createCliProgram(fs, logs);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "utils",
+      "symlink",
+      "skills",
+      "--local",
+      "--global"
+    ]);
+
+    expect(logs).toContain("Use either --local or --global, not both.");
+    expect(process.exitCode).toBe(1);
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("uses local targets when --local is passed", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const lstatSpy = vi.spyOn(fs, "lstat");
+    const program = createCliProgram(fs, logs);
+
+    await program.parseAsync(["node", "cli", "utils", "symlink", "skills", "--local"]);
+
+    const checkedPaths = lstatSpy.mock.calls.map(([path]) => path);
+    expect(checkedPaths).toContain(localTargets.claudeDir);
+    expect(checkedPaths).toContain(localTargets.agentsDir);
+    expect(checkedPaths).not.toContain(globalTargets.claudeDir);
+    expect(checkedPaths).not.toContain(globalTargets.agentsDir);
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(0);
+  });
+
+  it("uses global targets when --global is passed", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const lstatSpy = vi.spyOn(fs, "lstat");
+    const program = createCliProgram(fs, logs);
+
+    await program.parseAsync(["node", "cli", "utils", "symlink", "skills", "--global"]);
+
+    const checkedPaths = lstatSpy.mock.calls.map(([path]) => path);
+    expect(checkedPaths).toContain(globalTargets.claudeDir);
+    expect(checkedPaths).toContain(globalTargets.agentsDir);
+    expect(checkedPaths).not.toContain(localTargets.claudeDir);
+    expect(checkedPaths).not.toContain(localTargets.agentsDir);
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(0);
+  });
+
+  it("defaults to global scope when --yes is passed without a scope flag", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const lstatSpy = vi.spyOn(fs, "lstat");
+    const program = createCliProgram(fs, logs);
+
+    await program.parseAsync(["node", "cli", "utils", "symlink", "skills", "--yes"]);
+
+    const checkedPaths = lstatSpy.mock.calls.map(([path]) => path);
+    expect(checkedPaths).toContain(globalTargets.claudeDir);
+    expect(checkedPaths).toContain(globalTargets.agentsDir);
+    expect(checkedPaths).not.toContain(localTargets.claudeDir);
+    expect(checkedPaths).not.toContain(localTargets.agentsDir);
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(0);
+  });
+
+  it("prompts for scope and uses global targets when select returns global", async () => {
+    const stdoutDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+    const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+    Object.defineProperty(process.stdout, "isTTY", {
+      configurable: true,
+      value: false
+    });
+    Object.defineProperty(process.stdin, "isTTY", {
+      configurable: true,
+      value: false
+    });
+
+    try {
+      selectMock.mockResolvedValueOnce("global");
+
+      const fs = createMemFs();
+      const logs: string[] = [];
+      const lstatSpy = vi.spyOn(fs, "lstat");
+      const program = createCliProgram(fs, logs);
+
+      await program.parseAsync(["node", "cli", "utils", "symlink", "skills"]);
+
+      const checkedPaths = lstatSpy.mock.calls.map(([path]) => path);
+      expect(checkedPaths).toContain(globalTargets.claudeDir);
+      expect(checkedPaths).toContain(globalTargets.agentsDir);
+      expect(checkedPaths).not.toContain(localTargets.claudeDir);
+      expect(checkedPaths).not.toContain(localTargets.agentsDir);
+      expect(selectMock).toHaveBeenCalledWith({
+        message: "Select scope:",
+        options: [
+          { value: "global", label: "Global" },
+          { value: "local", label: "Local" }
+        ]
+      });
+      expect(process.exitCode).toBe(0);
+    } finally {
+      if (stdoutDescriptor) {
+        Object.defineProperty(process.stdout, "isTTY", stdoutDescriptor);
+      }
+      if (stdinDescriptor) {
+        Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+      }
+    }
   });
 });
 

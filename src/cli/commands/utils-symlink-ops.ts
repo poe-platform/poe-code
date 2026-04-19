@@ -1,6 +1,34 @@
 import { isNotFound } from "@poe-code/config-mutations";
 import type { FileSystem } from "../../utils/file-system.js";
 
+export async function tryLstat(fs: FileSystem, path: string) {
+  try {
+    return await fs.lstat(path);
+  } catch (error) {
+    if (isNotFound(error)) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export function formatLoggedPath(
+  message: string,
+  env: { cwd: string; homeDir: string }
+): string {
+  return message
+    .replaceAll(`${env.cwd}/`, "")
+    .replaceAll(`${env.homeDir}/`, "~/");
+}
+
+export function isPermissionError(error: unknown): error is NodeJS.ErrnoException {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    (error.code === "EACCES" || error.code === "EPERM")
+  );
+}
+
 export type SymlinkOp =
   | { kind: "rename"; from: string; to: string }
   | { kind: "symlink"; target: string; path: string }

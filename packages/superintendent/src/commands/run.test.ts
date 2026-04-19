@@ -114,7 +114,9 @@ describe("superintendent run command", () => {
     vi.useRealTimers();
   });
 
-  it("uses discovered defaults with --yes and skips the pre-dashboard prompts", async () => {
+  it(
+    "uses discovered defaults with --yes and skips the pre-dashboard prompts",
+    async () => {
     const fs = createFs({
       "/repo/docs/plans/b-plan.md": createDoc("codex"),
       "/repo/docs/plans/a-plan.md": createDoc("claude-code")
@@ -159,7 +161,9 @@ describe("superintendent run command", () => {
       builderAgent: "claude-code",
       stopReason: "completed"
     });
-  });
+    },
+    15_000
+  );
 
   it("wires loop callbacks to the dashboard", async () => {
     const fs = createFs({

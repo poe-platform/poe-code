@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { registerConfigCommand } from "./config.js";
+import { registerUtilsSymlinkCommand } from "./utils-symlink.js";
 
 export function registerUtilsCommand(program: Command, container: CliContainer): void {
   const utils = program
@@ -9,4 +10,5 @@ export function registerUtilsCommand(program: Command, container: CliContainer):
     .addHelpCommand(false);
 
   registerConfigCommand(utils, container);
+  registerUtilsSymlinkCommand(utils, container);
 }

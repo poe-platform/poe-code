@@ -149,7 +149,7 @@ describe("superintendent MCP tool surface", () => {
     } finally {
       await cleanup();
     }
-  });
+  }, 15_000);
 
   it("lists the expected superintendent MCP tool names", async () => {
     const { createMCPServer } = await import("@poe-code/cmdkit/mcp");

@@ -33,7 +33,7 @@ export async function loadMarkdownDocument(
   const resolvedFile = resolveMarkdownPath(file, dependencies.cwd);
   const source = await readMarkdownFile(resolvedFile, file, dependencies.fs ?? defaultFs);
   const parsed = parse(source);
-  const frontmatter = normalizeFrontmatter(parsed.frontmatter);
+  const frontmatter = parsed.frontmatter ?? {};
 
   assertValidFrontmatter(source, file, frontmatter);
 
@@ -62,10 +62,6 @@ async function readMarkdownFile(
   } catch (error) {
     throw toUserError(error, originalFile);
   }
-}
-
-function normalizeFrontmatter(frontmatter?: Record<string, unknown>): Record<string, unknown> {
-  return frontmatter ?? {};
 }
 
 function assertValidFrontmatter(
@@ -101,9 +97,8 @@ function getInvalidRawFrontmatter(
     return undefined;
   }
 
-  return normalizeYamlBlock(yamlBlock) === normalizeYamlBlock(rawValue)
-    ? normalizeYamlBlock(yamlBlock)
-    : undefined;
+  const normalized = normalizeYamlBlock(yamlBlock);
+  return normalized === normalizeYamlBlock(rawValue) ? normalized : undefined;
 }
 
 function getLeadingFrontmatterBlock(source: string): string | undefined {

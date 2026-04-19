@@ -418,17 +418,157 @@ Read-only commands (`ls`, `show`, `search`, `status`) do not take the lock.
 - **Path traversal.** `memory write`/`append`/`show`/`edit` resolve the target path and reject anything that escapes `<repo>/.poe-code/memory/pages/` (for writes) or the memory root (for reads).
 - **Binary or non-markdown files.** Rejected on write. `ls`/`search` skip them with a warning.
 - **Oversized page.** If a write produces a page over `maxPageBytes`, reconcile warns but does not fail. Pages this large are a smell (split them), not an error.
-- **Agent ingest/lint crashes or times out.** Reconcile still runs — whatever pages were written before the crash remain, `INDEX.md`/`LOG.md` are regenerated to match on-disk state, the CLI exits non-zero.
+- **Agent ingest/lint crashes or times out.** Reconcile still runs — whatever pages were written before the crash remain, `INDEX.md`/`LOG.md` are regenerated to match on-disk state, the CLI exits non-zero. Cache is not written.
 - **Agent produces malformed YAML frontmatter.** Reconcile's frontmatter reader falls back to (filename as name, empty description). Warning printed. Nothing is destroyed.
 - **URL ingest.** Fetch is best-effort with a 30s timeout. 401/403/5xx → skip with a clear error. No retries in v1.
 - **Empty memory.** `ls`/`status` print a friendly "no pages yet; run `poe-code memory ingest <source>` or `poe-code memory write <path>`".
 - **`.poe-code/memory/` exists but lacks `INDEX.md`/`LOG.md`.** Reconcile regenerates both next write. `status` reports "degraded, run any write command to heal".
+- **Confidence tag with nonexistent source path.** `lint` reports it as an issue with the resolved path + "file does not exist". Not destructive.
+- **Inline `source=` references an out-of-range line.** `lint` reports old vs current EOF; suggests re-verifying.
+- **`inferred` confidence outside `(0, 1]`.** Reject on parse. `0` is reserved for "guess" and rejected; the author should have used `ambiguous`.
+- **Cache hit but source file is now deleted.** Treated as miss (key re-derives from current state; we can't hash a missing file); cache entry kept for audit.
+- **Cache entry references a prompt version or agent id that no longer exists.** Different key by definition → treated as miss.
+- **Token counter throws on a weird file.** Count as 0, warn once per run, surface in `missingSources`.
+- **MCP client calls `append_to_page` with writes disabled.** Return `McpError.methodNotFound` (matches stdio server convention) — the tool is not advertised in `tools/list`.
+- **MCP server started but memory not initialized.** Advertise 0 tools; every call returns a clear error pointing at `memory init`. Don't auto-init.
+- **`query` with empty memory.** Return `answer: ""`, exit 0, print "memory is empty; add pages first".
+- **`query` budget too small to even fit INDEX.md.** Error: "budget too small; needs at least N tokens".
+- **`explain` on a page with no `sources:`.** Still works — summarises the page alone; `inboundPages` may also be empty.
 
 ### 3.8 Open questions
 
 - Open question: Do we want a `poe-code memory diff` command that shows what changed between the latest ingest/lint and HEAD (reading `LOG.md`)? Useful for reviewing agent-driven edits before committing. Probably yes, but v1 can ship without it.
 - Open question: Should `lint` and `ingest` share prompts or keep two distinct ones? Shared keeps the behavior coherent; distinct keeps each prompt focused. Leaning distinct.
 - Open question: Ingestable URLs — do we fetch rendered HTML → markdown (via an existing package), or only accept already-markdown URLs? HTML→markdown is work; restricting to markdown is a sharp edge.
+- Open question: HTML-comment tags (`<!-- memory:extracted ... -->`) vs a fenced-code convention (` ```memory:extracted ... ``` `). Comments win on invisibility; fenced wins on multi-line claims. Prototype both, ship one.
+- Open question: should cache hits update `last_touched_at` on the pages they "would have" touched? Leaning no — `last_touched_at` should reflect actual writes.
+- Open question: should `query` be able to call out to `search_memory` as a tool instead of flattening context upfront? More powerful, harder to bound tokens, matches graphify's MCP approach. Lean no for v1; revisit when spawn-hooks land.
+- Open question: does `tokenfill` counting a full source file match what an agent would actually see? It's an upper bound — agents chunk and drop. The ratio is still directionally right. A dedicated `memory bench` command is deferred.
+
+### 3.9 Confidence tagging
+
+**Format.** HTML comment, single line, before the claim it qualifies. Regex-parseable, invisible in rendered markdown, `git diff`-friendly, survives `git blame`.
+
+```text
+<!-- memory:<verb> key=value key="quoted value" ... -->
+```
+
+Verbs and required keys:
+
+- `extracted` — requires `source=<path>[#Lstart[-Lend]]`; optional `note`.
+- `inferred` — requires `confidence=<float 0..1>`; optional `note`, optional `source`.
+- `ambiguous` — requires `reason`; no other keys.
+
+Scope of a tag: until the next blank line or next `memory:*` tag, whichever comes first. Parsers treat the intervening paragraph as the claim body. No nesting.
+
+**Why HTML comment, not a sidecar file or richer frontmatter.** Frontmatter only supports page-level metadata; we need claim-level. Sidecar files double the read cost and drift. HTML comments render invisibly, are one-liners, and survive every obvious plumbing (copy/paste, `git blame`, `grep`).
+
+**Writing them.** The ingest/lint prompt templates instruct the agent to emit these tags on every non-trivial claim. The reconcile step parses the final file and (a) denormalizes every `source=` onto frontmatter `sources:`, (b) refuses to promote a write that has zero tagged claims when page body is >200 chars and `memory.confidence.rejectUntagged` is true.
+
+**Lint checks.**
+
+1. Every `extracted` tag resolves: path exists (repo-relative), line range in bounds. Stale → issue.
+2. Every `inferred` tag has `confidence` in `(0, 1]` and above `minInferredConfidence`. Otherwise issue.
+3. Every `ambiguous` tag has a non-empty `reason`.
+4. Page body >200 chars with zero tags → warn (likely raw agent text).
+5. Frontmatter `sources:` is a superset of inline-tag sources — never less, never stale. Reconcile keeps this true; lint catches it if someone hand-edits a page and breaks invariant.
+
+`lint --fix` lets the agent repair these; `lint` alone reports and exits non-zero on any issue.
+
+### 3.10 Ingest cache
+
+**Location.** `<repo>/.poe-code/memory/.cache/ingest/<sha>.json`. Inside memory root so `memory clear` also wipes it. Cache dir is created lazily on first write.
+
+**Cache key.**
+
+```ts
+const key = sha256(
+  sourceBytes +                    // the file/URL content at ingest time
+  indexMdBytes +                   // state of INDEX.md when ingest started
+  promptTemplateVersion +          // bumped in-repo when prompt changes
+  agentId                          // e.g. "claude-code@1.2.3"
+);
+```
+
+Every component is in the key for a reason:
+
+- `sourceBytes` — the only thing that *should* invalidate on user change.
+- `indexMdBytes` — a new page added elsewhere can change how the agent routes this ingest.
+- `promptTemplateVersion` — prompt changes shift behavior; stale results after a prompt improvement are worse than re-running.
+- `agentId` — swapping agents is a different run.
+
+**Cache value.**
+
+```ts
+type IngestCacheEntry = {
+  key: string;
+  ingestedAt: string;               // ISO-8601
+  sourceLabel: string;              // the path or URL passed in
+  diff: MemoryDiff;                 // what changed (for audit)
+  exitCode: number;
+  durationMs: number;
+  memoryTokens: number;             // snapshot at ingest time
+  sourceTokens: number;
+  promptTemplateVersion: string;
+  agentId: string;
+};
+```
+
+**Hit behavior.** On hit: log the hit, skip the spawn, still run reconcile (so `INDEX.md`/`LOG.md` reflect current tree), record a `LOG.md` entry only if there was actually a diff — cache hits with empty diffs skip the LOG line to avoid noise.
+
+**Flags.** `--force` bypasses read-side cache (and writes a fresh entry); `--no-cache-write` does a normal spawn but does not persist. Both are orthogonal to `memory.cache.enabled` (which turns the whole thing off).
+
+**Eviction.** Nothing automatic. `memory cache clear [--older-than <duration>]` is explicit. `--older-than` accepts `30d`, `24h`, `90m`.
+
+### 3.11 Token-reduction benchmark
+
+**Counter.** `packages/tokenfill/` already contains a tokenizer. Expose (or re-use) `countTokens(text: string): number` and call it directly. No new tokenizer dep.
+
+**What counts as "memory tokens".** `countTokens(body)` summed across every page. `INDEX.md` and `LOG.md` are excluded — they're structural, not content.
+
+**What counts as "source tokens".** Union of paths in every page's frontmatter `sources:`. For each unique path, `countTokens(fs.readFile(path))`. Missing paths are counted as 0 and listed separately (`missingSources`).
+
+**Ratio.** `sourceTokens / max(memoryTokens, 1)`. The `max` avoids divide-by-zero on empty memory.
+
+**Where it's reported.** `status` by default (can be skipped with `--no-tokens`); `ingest` and `lint` completion lines include it as `memory=X, sources=Y, ratio=Z×`. `IngestCacheEntry` snapshots the two counts at ingest time for per-run audit.
+
+### 3.12 MCP server
+
+**Package wiring.** Use `packages/tiny-stdio-mcp-server/` — the same server the other stdio MCP tools in this repo use. No new deps.
+
+**Tool surface** (snake_case, matching the recent `superintendent` MCP convention — see commit `60d733af`):
+
+| Tool | Args | Returns | Gate |
+|---|---|---|---|
+| `list_pages` | `{}` | `{ pages: { rel_path, description }[] }` | always |
+| `read_page` | `{ rel_path }` | `{ rel_path, frontmatter, body, bytes }` | always |
+| `search_memory` | `{ query, limit? }` | `{ hits: SearchHit[] }` | always |
+| `append_to_page` | `{ rel_path, content, reason }` | `{ diff }` | writes |
+| `status` | `{}` | `StatusOf & { tokens: TokenStats }` | always |
+
+**Write gating.** `--allow-writes` (or `memory.mcp.allowWrites: true`) flips write tools on. Default off. When disabled, write tools are *not* advertised in `tools/list` — a client that has never seen them won't try to call them.
+
+**Concurrency.** The MCP server takes the same lockfile as `writePage`/`appendToPage` for write tools. Reads don't lock. Two clients appending concurrently serialize via the lock.
+
+**Process lifecycle.** `poe-code memory serve --mcp` is a foreground process. Ctrl-C releases the lock. Expected wiring is via the user's MCP config (`~/.mcp.json` / project `.mcp.json`), not manual invocation. `--print-mcp-config` prints the JSON snippet and exits (no server started).
+
+### 3.13 Query / explain
+
+Both commands are thin spawn wrappers that build a prompt with memory as the only readable context.
+
+**Context preparation.**
+
+1. Read `INDEX.md`, all pages, and frontmatter.
+2. If combined `countTokens(...)` exceeds `--budget` (default 4096), include `INDEX.md` plus top-ranked pages. Ranking is a cheap TF-idf over page names + descriptions matched against the query — no embeddings.
+3. Pass the selected pages verbatim in the prompt. The spawned agent is given *no tools* — we want a pure transform question → answer, not a fresh ingest.
+
+**Prompt contract.** The prompt tells the agent: "answer using only the provided memory pages. Cite pages and sections with `[rel_path §section]`. If the memory does not answer the question, say so."
+
+**`explain <page>`.** Special case: context = the named page + every page listed in its frontmatter `sources:` that happens to be another memory page + every page that lists it in its `sources:` (reverse edges). Produces a 1-2 paragraph summary plus a links graph.
+
+**Output format.** Human by default; `--json` returns `QueryResult` from §4.1. Confidence labels on citations come from the cited page's tags — lookup by `section` heading.
+
+**No session state.** Each invocation is a fresh spawn. No chat, no history. Follow-ups re-run.
 
 ## 4. Interfaces and test plan
 
@@ -443,6 +583,30 @@ export type PageFrontmatter = {
   name?: string;          // defaults to basename on read
   description?: string;   // rendered by INDEX.md
   lastTouchedAt?: string; // ISO-8601; stamped by reconcile
+  sources?: SourceRef[];  // denormalized from inline `memory:*` tags
+};
+
+export type SourceRef = {
+  path: string;           // repo-relative path or URL
+  startLine?: number;
+  endLine?: number;
+};
+
+export type ConfidenceVerb = "extracted" | "inferred" | "ambiguous";
+
+export type ConfidenceTag =
+  | { verb: "extracted"; source: SourceRef; note?: string }
+  | { verb: "inferred"; confidence: number; source?: SourceRef; note?: string }
+  | { verb: "ambiguous"; reason: string };
+
+export type TaggedClaim = {
+  tag: ConfidenceTag;
+  body: string;           // the paragraph after the tag
+  lineNumber: number;     // 1-based line where the tag sits
+};
+
+export type PageWithClaims = MemoryPage & {
+  claims: TaggedClaim[];
 };
 
 export type MemoryPage = {
@@ -494,6 +658,8 @@ export type IngestOptions = {
   reason?: string;
   timeoutMs?: number;
   dryRun?: boolean;
+  force?: boolean;          // bypass cache
+  noCacheWrite?: boolean;   // do not persist a cache entry on miss
 };
 
 export type LintOptions = {
@@ -503,8 +669,77 @@ export type LintOptions = {
   dryRun?: boolean;
 };
 
-export type IngestResult = { diff: MemoryDiff; exitCode: number; durationMs: number };
-export type LintResult = { diff: MemoryDiff; issues: string[]; exitCode: number; durationMs: number };
+export type IngestResult = {
+  diff: MemoryDiff;
+  exitCode: number;
+  durationMs: number;
+  cacheHit: boolean;
+  tokens: TokenStats;
+};
+export type LintResult = {
+  diff: MemoryDiff;
+  issues: string[];         // includes confidence-tag audit output
+  exitCode: number;
+  durationMs: number;
+  tokens: TokenStats;
+};
+
+// Ingest cache
+export type IngestCacheKey = string; // sha256 hex
+
+export type IngestCacheEntry = {
+  key: IngestCacheKey;
+  ingestedAt: string;               // ISO-8601
+  sourceLabel: string;
+  diff: MemoryDiff;
+  exitCode: number;
+  durationMs: number;
+  memoryTokens: number;
+  sourceTokens: number;
+  promptTemplateVersion: string;
+  agentId: string;
+};
+
+// Token benchmark
+export type TokenStats = {
+  memoryTokens: number;
+  sourceTokens: number;
+  reductionRatio: number;           // sourceTokens / max(memoryTokens, 1)
+  missingSources: string[];         // referenced but not on disk
+};
+
+// MCP
+export type McpServerOptions = {
+  root: MemoryRoot;
+  allowWrites: boolean;
+};
+
+// Query / explain
+export type QueryOptions = {
+  question: string;
+  budget: number;
+  agent?: string;
+  spawnFn?: SpawnFn;
+};
+
+export type QueryCitation = {
+  relPath: string;
+  section?: string;
+  confidence: ConfidenceVerb;
+};
+
+export type QueryResult = {
+  answer: string;
+  citations: QueryCitation[];
+  tokensUsed: number;
+  budget: number;
+  exitCode: number;
+};
+
+export type ExplainResult = QueryResult & {
+  inboundPages: string[];
+  outboundSources: SourceRef[];
+};
 ```
 
 ### 4.2 Public API of `packages/memory/`
@@ -556,9 +791,125 @@ export function reconcile(
 // Agent-spawning commands
 export function ingest(root: MemoryRoot, opts: IngestOptions): Promise<IngestResult>;
 export function lint(root: MemoryRoot, opts: LintOptions): Promise<LintResult>;
+
+// Confidence tagging
+export function parseClaims(body: string): TaggedClaim[];
+export function serializeTag(tag: ConfidenceTag): string;
+export function auditClaims(
+  root: MemoryRoot,
+  repoRoot: string
+): Promise<{ page: string; issues: string[] }[]>;
+
+// Ingest cache
+export function computeIngestKey(input: {
+  sourceBytes: Buffer;
+  indexMdBytes: Buffer;
+  promptTemplateVersion: string;
+  agentId: string;
+}): IngestCacheKey;
+
+export function readCacheEntry(
+  root: MemoryRoot,
+  key: IngestCacheKey
+): Promise<IngestCacheEntry | null>;
+
+export function writeCacheEntry(
+  root: MemoryRoot,
+  entry: IngestCacheEntry
+): Promise<void>;
+
+export function clearCache(
+  root: MemoryRoot,
+  opts?: { olderThanMs?: number }
+): Promise<{ removed: number }>;
+
+// Token benchmark
+export function computeTokenStats(
+  root: MemoryRoot,
+  repoRoot: string
+): Promise<TokenStats>;
+
+// MCP server
+export function startMemoryMcpServer(
+  opts: McpServerOptions
+): Promise<{ stop: () => Promise<void> }>;
+export function printMcpConfig(): string;   // returns the JSON snippet
+
+// Query / explain
+export function query(
+  root: MemoryRoot,
+  opts: QueryOptions
+): Promise<QueryResult>;
+export function explain(
+  root: MemoryRoot,
+  relPath: string,
+  opts: Omit<QueryOptions, "question">
+): Promise<ExplainResult>;
 ```
 
-`ingest` and `lint` take an optional injected `spawnFn: SpawnFn` in their options (not shown above for brevity — defaulted from `agent-spawn`) so tests can substitute a fake without involving real processes.
+`ingest`, `lint`, `query`, and `explain` all take an optional injected `spawnFn: SpawnFn` in their options (not shown above for brevity — defaulted from `agent-spawn`) so tests can substitute a fake without involving real processes.
+
+`statusOf` returns an augmented shape that adds `tokens: TokenStats` unless `--no-tokens` is passed at the CLI layer.
+
+**`ingest` composition.** The updated flow:
+
+```ts
+export async function ingest(
+  root: MemoryRoot,
+  opts: IngestOptions & { spawnFn?: SpawnFn }
+): Promise<IngestResult> {
+  const source = await materializeSource(opts.source);
+  const indexMd = await fs.readFile(path.join(root, "INDEX.md"));
+  const agentId = await resolveAgentId(opts.agent);
+  const key = computeIngestKey({
+    sourceBytes: source.bytes,
+    indexMdBytes: indexMd,
+    promptTemplateVersion: INGEST_PROMPT_VERSION,
+    agentId,
+  });
+
+  if (!opts.force && cacheEnabled()) {
+    const hit = await readCacheEntry(root, key);
+    if (hit) {
+      return {
+        diff: { created: [], updated: [], deleted: [] },
+        exitCode: 0,
+        durationMs: 0,
+        cacheHit: true,
+        tokens: await computeTokenStats(root, repoRoot),
+      };
+    }
+  }
+
+  const prompt = buildIngestPrompt(root, source);
+  if (opts.dryRun) {
+    console.log(prompt);
+    return { diff: emptyDiff, exitCode: 0, durationMs: 0, cacheHit: false,
+             tokens: await computeTokenStats(root, repoRoot) };
+  }
+
+  const before = await snapshot(root);
+  const { exitCode, durationMs } = await runWithTimeout(
+    (opts.spawnFn ?? defaultSpawnFn)(opts.agent ?? resolveAgent(), prompt),
+    opts.timeoutMs ?? configuredTimeout()
+  );
+  const diff = await withLock(root, () =>
+    reconcile(root, before, "ingest", opts.reason ?? `ingest ${source.label}`)
+  );
+  const tokens = await computeTokenStats(root, repoRoot);
+
+  if (!opts.noCacheWrite && cacheEnabled() && exitCode === 0) {
+    await writeCacheEntry(root, {
+      key, ingestedAt: new Date().toISOString(), sourceLabel: source.label,
+      diff, exitCode, durationMs,
+      memoryTokens: tokens.memoryTokens, sourceTokens: tokens.sourceTokens,
+      promptTemplateVersion: INGEST_PROMPT_VERSION, agentId,
+    });
+  }
+
+  return { diff, exitCode, durationMs, cacheHit: false, tokens };
+}
+```
 
 ### 4.3 CLI layer
 
@@ -589,10 +940,22 @@ All unit tests use `memfs` for filesystem work (per CLAUDE.md). No tests write r
 | Lock handling | unit (memfs, fake timers) | two concurrent writes serialize; stale lock (dead pid) is stolen |
 | Frontmatter parser | unit | 10+ inputs: valid, missing, malformed, extra fields, CRLF |
 | `searchMemory` | unit (memfs) | returns ripgrep-shaped hits; handles no matches; handles 0-byte files |
-| `ingest` | unit (memfs, injected `spawnFn`) | calls `spawnFn` with expected CWD + prompt; reconcile runs regardless of spawn success/failure; timeout aborts cleanly; `--dry-run` prints prompt and returns without spawning |
-| `lint` | unit (memfs, injected `spawnFn`) | `--fix=false` does not mutate memory; `--fix=true` lets spawn edit; issues list is the agent's stdout summary |
+| `ingest` | unit (memfs, injected `spawnFn`) | calls `spawnFn` with expected CWD + prompt; reconcile runs regardless of spawn success/failure; timeout aborts cleanly; `--dry-run` prints prompt and returns without spawning; cache hit skips spawn; `--force` spawns anyway; `--no-cache-write` does not persist |
+| `lint` | unit (memfs, injected `spawnFn`) | `--fix=false` does not mutate memory; `--fix=true` lets spawn edit; issues list includes agent output *and* `auditClaims` output |
+| `parseClaims` | unit | parses all three verbs; errors on missing required keys; multi-line paragraphs; CRLF; scoping stops at blank line or next tag |
+| `serializeTag` | unit | round-trips with `parseClaims` for every verb |
+| `auditClaims` | unit (memfs) | flags stale `extracted` line ranges; inferred confidence out of range / below `minInferredConfidence`; ambiguous missing reason; untagged long body only when `rejectUntagged` true |
+| `computeIngestKey` | unit | deterministic; changes when any of the 4 inputs change; identical inputs → identical key |
+| `readCacheEntry` / `writeCacheEntry` | unit (memfs) | write then read returns identical; missing key → null; corrupted JSON → null + warning |
+| `clearCache` | unit (memfs, fake timers) | `olderThanMs` filter works; no arg wipes all |
+| `computeTokenStats` | unit (memfs) | matches hand-counted `tokenfill` output; missing sources listed in `missingSources`; ratio = source/max(memory,1) |
+| reconcile: `sources:` denormalization | unit (memfs) | inline `source=` refs on claims land in frontmatter `sources:`; agent-written `sources:` is overwritten, not merged |
+| `startMemoryMcpServer` | unit (stdio mock via `tiny-stdio-mcp-server` helpers) | `list_pages`/`read_page`/`search_memory`/`status` return expected shapes; `append_to_page` is not advertised without `allowWrites`; concurrent `append_to_page` serializes via the lock; writes when memory not initialized error without corrupting state |
+| `printMcpConfig` | unit | returns parseable JSON with `poe-code memory serve --mcp` command |
+| `query` | unit (memfs, injected `spawnFn`) | builds prompt with INDEX.md + ranked pages; respects budget (trims lowest-ranked first); no tools exposed to spawned agent; citations parsed from agent stdout |
+| `explain` | unit (memfs, injected `spawnFn`) | includes `sources:`-cited pages (outbound) and pages that cite this one (inbound); summary non-empty |
 | CLI commands | cmdkit smoke tests | each subcommand parses flags, calls the right package function with the right args (mocked package) |
-| Screenshot | `npm run screenshot-poe-code` | `memory ls`, `memory status`, `memory ingest <file> --dry-run` look right in the design system |
+| Screenshot | `npm run screenshot-poe-code` | `memory ls`, `memory status`, `memory ingest <file> --dry-run`, `memory query "…"`, `memory cache status`, `memory serve --mcp --print-mcp-config` look right in the design system |
 
 No LLM is called in unit tests. `ingest`/`lint` tests inject a fake `spawnFn` that emits canned events and touches specified files — this is the only integration point, and the pattern matches how `agent-spawn` is already tested elsewhere.
 

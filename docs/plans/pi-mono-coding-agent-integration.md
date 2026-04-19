@@ -5,132 +5,135 @@ version: 1
 builder:
   agent: claude-code
   prompt: |
-    Build the highest-priority open task from {{plan.path}}.
+    Implement the highest-priority open task from {{plan.path}}. Tests before code.
 
 inspectors:
-  pi-mono-reference:
+  spawn-parity:
     agent: claude-code
     prompt: |
-      Fetch https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent and enumerate every feature, tool, hook, config option, and dependency. Flag anything missing from the builder's notes.
+      Compare the new `pi-mono` config against the other entries in `packages/agent-spawn/src/configs/` — mode matrix, flag shapes, stdin mode, registry wiring, tests. Flag any parity gap.
 
-  poe-agent-mapping:
+  configure-path:
     agent: claude-code
     prompt: |
-      Review @poe-code/poe-agent (plugins, runtime, hooks, types). For each pi-mono feature the builder listed, mark it as: already-present, partial, or missing. Call out any naming or contract mismatches that would block a drop-in compliant agent.
+      Run `poe-code configure --agent pi-mono` in both prompted and `--yes` form and confirm it writes `~/.pi/agent/settings.json` + credential storage with the POE OpenAI-compat endpoint. Reject if it prompts when `--yes` is passed.
 
-  gaps-and-risks:
+  live-spawn:
     agent: claude-code
     prompt: |
-      Identify open questions, licensing concerns, and integration risks (breaking AgentPlugin API, duplicated plugins, LLM provider assumptions, MCP differences). Reject scope creep — this plan is discovery only, not implementation.
+      Run `npm run dev -- spawn --agent pi-mono --prompt "say hi"`. Confirm tokens stream and the process exits 0. Capture any stderr and attach.
 
 superintendent:
   agent: claude-code
   prompt: |
-    Review builder and inspector output, update the Task Board in {{plan.path}}, and decide whether we have enough information to build a pi-mono-compliant agent inside @poe-code/poe-agent. If any feature, contract, or risk is unresolved, send it back to the builder. Request owner review once the discovery board is complete.
+    Review builder and inspector output, update the Task Board in {{plan.path}}, and hand to owner only when every task is checked and every inspector accepted.
 
     Builder summary:
     {{builder.summary}}
 
     Inspector summaries:
 
-    ## pi-mono reference
-    {{inspectors.pi-mono-reference}}
+    ## spawn parity
+    {{inspectors.spawn-parity}}
 
-    ## poe-agent mapping
-    {{inspectors.poe-agent-mapping}}
+    ## configure path
+    {{inspectors.configure-path}}
 
-    ## Gaps and risks
-    {{inspectors.gaps-and-risks}}
+    ## live spawn
+    {{inspectors.live-spawn}}
 
 owner:
   agent: claude-code
   prompt: |
-    Decide whether the discovery is complete: do we have every feature, contract, and risk we need to write a follow-up implementation plan for a pi-mono-compliant poe-agent? Approve or send back with specific feedback.
-
-    Superintendent summary:
-    {{superintendent.summary}}
+    Approve or send back based on {{superintendent.summary}}. Reject if any Task Board item is open, any inspector is red, or new code lacks tests.
 
 max_rounds: 100
 
 status:
-  state: in_progress
+  state: build
   round: 0
   review_turn: 0
 ---
 
-# pi-mono coding-agent Integration — Discovery
+# pi-mono coding-agent — Integration
 
 ## Summary
 
-Before writing a line of integration code, produce a complete, verifiable picture of what `badlogic/pi-mono/packages/coding-agent` actually provides and how each feature maps onto `@poe-code/poe-agent`. The output of this plan is a discovery document: feature inventory, contract diff, and open questions — enough to write a follow-up implementation plan with confidence.
+Add `pi-mono` as a first-class agent in poe-code: declare it in `@poe-code/agent-defs`, wire its CLI into `@poe-code/agent-spawn`, and teach `poe-code configure --agent pi-mono` to set up an OpenAI-compatible provider pointed at Poe using the user's API key.
 
-## 1. Problem
+## 1. Goals
 
-We want `@poe-code/poe-agent` to be a compliant superset (or drop-in peer) of pi-mono's coding-agent. Today we do not have a written inventory of:
+- `poe-code configure --agent pi-mono` walks the user through model + API-key setup and writes pi-mono's own `~/.pi/agent/settings.json` so `pi "..."` works against Poe out of the box.
+- `poe-code spawn --agent pi-mono --prompt "..."` spawns pi-mono's CLI with prompt streaming parity against codex / opencode.
+- pi-mono appears in the interactive `configure` agent picker and in `--help`, alongside existing agents.
 
-- Every tool pi-mono ships (name, args, return shape, side effects).
-- Every hook / lifecycle event and its decision contract.
-- The LLM / provider abstraction (streaming, tool-use shape, images, errors).
-- The config format (env vars, CLI args, file-based config).
-- The MCP surface (server spec, transport, tool-namespacing).
-- Memory / context model (AGENTS.md, compaction, conversation store).
-- The policy / permission model (modes, allowlists, command parsing).
-- Build & runtime deps (which libraries, versions, licences).
+## 2. Non-goals
 
-Without that inventory, any integration work risks missing features, duplicating plugins we already have, or locking us into an incompatible contract.
+- Porting pi-mono tools, hooks, extensions, slash commands, or MCP semantics into `@poe-code/poe-agent`.
+- Embedding pi-mono's runtime in-process.
+- Introducing a provider abstraction inside `@poe-code/poe-agent`.
+- Session JSONL / fork / tree / RPC-mode parity.
+- Bun-compiled binary distribution — we assume the npm-installed `pi` binary is on `PATH`.
 
-### Out of scope
+## 3. Decisions (locked)
 
-- Writing the integration code.
-- Porting pi-mono features into poe-code.
-- Changes to `@poe-code/agent-spawn`, `@poe-code/cmdkit`, or the design system.
-- Deciding the final architecture — that belongs in the follow-up implementation plan.
+- **Runtime**: spawn pi-mono's published `pi` CLI as an external process, following [packages/agent-spawn/src/configs/codex.ts](packages/agent-spawn/src/configs/codex.ts) / [packages/agent-spawn/src/configs/opencode.ts](packages/agent-spawn/src/configs/opencode.ts). No ACP adapter in v1 — text-mode streaming only.
+- **Provider / auth**: use pi-mono's built-in `openai-completions` wire protocol pointed at `https://api.poe.com/v1` (the same base `@poe-code/poe-code-config` already defines via `POE_BASE_URL`). The user's `POE_API_KEY` is reused — no new credential store.
+- **Install expectation**: `pi` must be on `PATH`. Detection reuses the same `binaryName` convention as codex / opencode in `@poe-code/agent-defs`.
 
-## 2. Principles
+## 4. Surface changes
 
-- Discovery only. Produce documents, not code.
-- Be exhaustive: every exported symbol, every tool, every hook, every config key.
-- Cite sources: every claim in the feature inventory links to the pi-mono file and line range.
-- Map, don't merge: the mapping doc compares, it does not pick a winner.
-- No regexes, no "probably" — if something is unclear, add it to the open-questions list.
+### New files
 
-## 3. Deliverables
+- [packages/agent-defs/src/agents/pi-mono.ts](packages/agent-defs/src/agents/pi-mono.ts) — `AgentDefinition` with `id: "pi-mono"`, `binaryName: "pi"`, `configPath: "~/.pi/agent/settings.json"`, branding. Model after [packages/agent-defs/src/agents/codex.ts](packages/agent-defs/src/agents/codex.ts).
+- `packages/agent-defs/src/agents/pi-mono.test.ts` — resolves id + alias (`pi`), validates metadata shape.
+- [packages/agent-spawn/src/configs/pi-mono.ts](packages/agent-spawn/src/configs/pi-mono.ts) — `CliSpawnConfig` declaring `promptFlag: "-p"` (print mode), `modelFlag: "--model"`, `defaultArgs` for machine-readable output (`--json` where pi-mono supports it), mode matrix, stdin mode. No MCP — pi-mono has no MCP concept.
+- `packages/agent-spawn/src/configs/pi-mono.test.ts` — snapshot arg vectors for print, json, yolo/edit/read modes, model flag on/off, stdin mode.
 
-All deliverables live under `docs/plans/pi-mono/` (create the folder as part of task 1):
+### Modified files
 
-1. `feature-inventory.md` — exhaustive list of pi-mono coding-agent features with source links.
-2. `contract-diff.md` — side-by-side of pi-mono ↔ poe-agent for tools, hooks, plugin API, tool-result shape, MCP, memory, policy, compaction.
-3. `dependency-audit.md` — pi-mono runtime deps + licences + poe-code equivalents (if any).
-4. `open-questions.md` — unresolved items blocking an implementation plan (ambiguous contracts, missing docs, licence questions, provider assumptions).
-5. `integration-options.md` — candidate integration shapes (vendored fork, adapter layer, plugin ports) with trade-offs — no decision, just options.
+- [packages/agent-defs/src/agents/index.ts](packages/agent-defs/src/agents/index.ts) — export `piMonoAgent`.
+- [packages/agent-spawn/src/configs/index.ts](packages/agent-spawn/src/configs/index.ts) — add `piMonoSpawnConfig` to `allSpawnConfigs`.
+- [src/cli/commands/configure.ts](src/cli/commands/configure.ts) — add pi-mono to the picker; on selection, prompt for model + API key (reusing the existing POE API-key path), then write `~/.pi/agent/settings.json` with `defaultProvider` wired to Poe's OpenAI-compat endpoint.
+- Each touched package README — add pi-mono to the supported-agents list.
 
-## 4. Investigation Checklist
+### Untouched (guard-rail)
 
-Each deliverable must cover these dimensions; the superintendent rejects any deliverable that skips one without a recorded reason in `open-questions.md`.
+- `packages/poe-agent/**` — out of scope. That package's alignment with pi-mono is the discovery-side concern, not this integration.
+- `packages/cmdkit*/**`, `packages/design-system/**` — consumed, not modified.
 
-- **Tools**: name, JSON schema / arg types, return shape, streaming, cancellation, images, structured errors.
-- **Hooks / lifecycle**: every event, argument shape, decision contract, ordering guarantees.
-- **Plugin / extension API**: how third parties add tools, prompts, hooks, MCP servers.
-- **System prompt**: static content, dynamic injections, per-provider variants.
-- **Memory**: file lookup paths, `@import` behaviour, precedence rules.
-- **Compaction / context management**: trigger, strategy, hook points.
-- **Policy / permissions**: modes, per-tool metadata vs central config, command parsing library.
-- **MCP**: server config shape, transport (stdio/http), tool namespacing, visibility to model vs skill.
-- **LLM / provider layer**: which providers are supported, streaming protocol, tool-use protocol, images, errors.
-- **Config**: env vars, CLI args, file config, precedence.
-- **Logging / audit**: what is persisted, where, format.
-- **Tests**: what test surface exists upstream, and what would we need for parity.
+## 5. Test plan (TDD, per CLAUDE.md)
 
-## Task Board
+1. `agent-defs/src/agents/pi-mono.test.ts` — id + alias resolution, metadata shape.
+2. `agent-spawn/src/configs/pi-mono.test.ts` — arg-vector snapshots across every mode combination listed above.
+3. Extend [packages/agent-spawn/src/configs/configs.test.ts](packages/agent-spawn/src/configs/configs.test.ts) so the registry lookup + `supportsMcpAtSpawn("pi-mono") === false` are asserted.
+4. Configure-flow unit test using `memfs` — `poe-code configure --agent pi-mono --model <m> --yes` writes the expected `settings.json` and does not prompt. Assert the provider block points at `https://api.poe.com/v1`.
+5. Spot-tests (not CI):
+   - `npm run dev -- configure --agent pi-mono`
+   - `npm run dev -- configure --agent pi-mono --yes`
+   - `npm run dev -- spawn --agent pi-mono --prompt "say hi"`
+   - `npm run screenshot-poe-code -- configure` (visual check that pi-mono appears in the picker with correct branding)
 
-- [ ] Create `docs/plans/pi-mono/` folder and stub the five deliverable files with section skeletons
-- [ ] Enumerate every pi-mono coding-agent tool (args, return, side effects) into `feature-inventory.md` with source links
-- [ ] Enumerate every pi-mono hook / lifecycle event and its decision contract into `feature-inventory.md`
-- [ ] Document pi-mono's plugin / extension API, system prompt flow, memory lookup, compaction, and policy model in `feature-inventory.md`
-- [ ] Document pi-mono's MCP surface, LLM/provider abstraction, config precedence, and audit/logging in `feature-inventory.md`
-- [ ] Fill `contract-diff.md` — side-by-side pi-mono ↔ poe-agent for tools, hooks, plugin API, tool-result shape, MCP, memory, policy, compaction
-- [ ] Fill `dependency-audit.md` — pi-mono runtime deps, versions, licences, poe-code equivalents
-- [ ] Fill `open-questions.md` with every ambiguity, missing doc, and licence question flagged during discovery
-- [ ] Fill `integration-options.md` with candidate integration shapes (vendored fork, adapter, plugin ports) and trade-offs
-- [ ] Cross-check the discovery against [docs/plans/poe-agent-agentic-features.md](docs/plans/poe-agent-agentic-features.md) — mark overlaps so the two plans do not double-cover work
-- [ ] Superintendent review: confirm every feature in `feature-inventory.md` appears in `contract-diff.md`, and every `open-questions.md` item has an owner or a resolution path
+## 6. Task Board
+
+- [ ] Add `piMonoAgent` + tests in `@poe-code/agent-defs`; export from the barrel.
+- [ ] Add `piMonoSpawnConfig` + tests in `@poe-code/agent-spawn`; register in `allSpawnConfigs`; extend `configs.test.ts`.
+- [ ] Extend `poe-code configure` to offer pi-mono, prompt for model + API key, and write `~/.pi/agent/settings.json` pointing at `https://api.poe.com/v1`. Cover with a `memfs`-backed unit test.
+- [ ] Verify `poe-code configure --agent pi-mono --yes` accepts defaults and never prompts.
+- [ ] Spot-test `spawn --agent pi-mono --prompt "..."`; confirm streaming, exit code 0.
+- [ ] Run `npm run screenshot-poe-code -- configure`; confirm pi-mono renders in the picker with intended branding.
+- [ ] Update READMEs for `agent-defs`, `agent-spawn`, and the top-level poe-code supported-agents list.
+
+## 7. Deferred (explicitly out of v1)
+
+- **ACP adapter for pi-mono** — its NDJSON shape matches none of the existing adapters. Decide in a follow-up whether to write one or keep pi-mono spawn-only.
+- **Session / fork / tree continuity** — pi-mono owns `~/.pi/agent/sessions/*.jsonl`; cross-invocation continuity from poe-code is future work.
+- **MCP surface** — pi-mono has no MCP concept; leave `mcpArgs` / `mcpEnv` unset. Revisit only with a concrete use case.
+- **Managed fd / rg binaries** — pi-mono can self-download these to `~/.pi/agent/bin`. Not a poe-code concern unless we lock down egress in CI.
+- **Provider abstraction inside `poe-agent`** — tracked separately; this plan does not touch `@poe-code/poe-agent`.
+
+## References
+
+- Sibling spawn configs: [packages/agent-spawn/src/configs/](packages/agent-spawn/src/configs/).
+- Sibling agent defs: [packages/agent-defs/src/agents/](packages/agent-defs/src/agents/).
+- Configure entry point: [src/cli/commands/configure.ts](src/cli/commands/configure.ts).

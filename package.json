@@ -136,7 +136,6 @@
     "@poe-code/design-system": "*",
     "@poe-code/experiment-loop": "*",
     "@poe-code/github-workflows": "*",
-    "@poe-code/internal-agent-cli": "*",
     "@poe-code/plan-browser": "*",
     "@poe-code/pipeline": "*",
     "@poe-code/poe-acp-client": "*",

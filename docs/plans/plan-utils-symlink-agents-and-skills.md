@@ -62,7 +62,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: skills-planner
     title: Implement planSkillsSymlink and resolveSkillsTargets
@@ -92,9 +92,9 @@ tasks:
 
       Verification: `npm run test -- utils-symlink` all green; `npm run typecheck` clean.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: wire-cli-commands

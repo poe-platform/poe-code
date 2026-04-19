@@ -188,7 +188,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: wire-inline-mcp
     title: Wire resolveDefaultAgent into mcp configure (inline select pattern)
@@ -220,10 +220,10 @@ tasks:
 
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: wire-remaining
     title: Wire resolveDefaultAgent into remaining prompt sites

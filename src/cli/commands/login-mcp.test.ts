@@ -18,12 +18,28 @@ function stripAnsi(value: string): string {
 const {
   configureMock,
   unconfigureMock,
-  resolveAgentSupportMock
+  resolveAgentSupportMock,
+  selectMock,
+  cancelMock
 } = vi.hoisted(() => ({
   configureMock: vi.fn(),
   unconfigureMock: vi.fn(),
-  resolveAgentSupportMock: vi.fn()
+  resolveAgentSupportMock: vi.fn(),
+  selectMock: vi.fn(),
+  cancelMock: vi.fn()
 }));
+
+vi.mock("@poe-code/design-system", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>(
+    "@poe-code/design-system"
+  );
+  return {
+    ...actual,
+    select: selectMock,
+    isCancel: (value: unknown) => value === "__cancel__",
+    cancel: cancelMock
+  };
+});
 
 vi.mock("../oauth-login.js", () => ({
   resolveApiKeyViaOAuth: vi.fn(async () => "sk-poe-OAuthKeyFromBrowserFlowTestValue1234567890abc")
@@ -379,6 +395,8 @@ describe("mcp command", () => {
     configureMock.mockReset();
     unconfigureMock.mockReset();
     resolveAgentSupportMock.mockReset();
+    selectMock.mockReset();
+    cancelMock.mockReset();
     resolveAgentSupportMock.mockImplementation((input: string) => ({
       status: "supported",
       input,
@@ -646,6 +664,124 @@ describe("mcp command", () => {
     const [, entry] = configureMock.mock.calls[0] ?? [];
     expect(entry.config.args).toEqual(expect.arrayContaining(["mcp", "serve"]));
     expect(entry.config.args).not.toContain("--agent");
+  });
+
+  it("uses core.defaultAgent for configure without prompting", async () => {
+    const { program, fs } = await createMcpProgram();
+    await fs.writeFile(
+      resolveConfigPath("/home/test"),
+      `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
+      "utf8"
+    );
+    selectMock.mockImplementation(() => {
+      throw new Error("select should not be called");
+    });
+
+    await program.parseAsync(["node", "cli", "mcp", "configure"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(configureMock).toHaveBeenCalledTimes(1);
+    expect(configureMock).toHaveBeenCalledWith(
+      "claude-code",
+      expect.any(Object),
+      expect.any(Object)
+    );
+  });
+
+  it("prefers core.defaultAgent over --yes for configure", async () => {
+    const { program, fs } = await createMcpProgram();
+    await fs.writeFile(
+      resolveConfigPath("/home/test"),
+      `${JSON.stringify({ core: { defaultAgent: "codex" } }, null, 2)}\n`,
+      "utf8"
+    );
+    selectMock.mockImplementation(() => {
+      throw new Error("select should not be called");
+    });
+
+    await program.parseAsync(["node", "cli", "mcp", "configure", "--yes"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(configureMock).toHaveBeenCalledWith(
+      "codex",
+      expect.any(Object),
+      expect.any(Object)
+    );
+  });
+
+  it("drops the model portion of core.defaultAgent for configure", async () => {
+    const { program, fs } = await createMcpProgram();
+    await fs.writeFile(
+      resolveConfigPath("/home/test"),
+      `${JSON.stringify(
+        { core: { defaultAgent: "claude-code:anthropic/claude-sonnet-4.6" } },
+        null,
+        2
+      )}\n`,
+      "utf8"
+    );
+    selectMock.mockImplementation(() => {
+      throw new Error("select should not be called");
+    });
+
+    await program.parseAsync(["node", "cli", "mcp", "configure"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(configureMock).toHaveBeenCalledWith(
+      "claude-code",
+      expect.any(Object),
+      expect.any(Object)
+    );
+  });
+
+  it("throws for an invalid core.defaultAgent before prompting", async () => {
+    const { program, fs } = await createMcpProgram();
+    await fs.writeFile(
+      resolveConfigPath("/home/test"),
+      `${JSON.stringify({ core: { defaultAgent: "unknown-agent" } }, null, 2)}\n`,
+      "utf8"
+    );
+    selectMock.mockImplementation(() => {
+      throw new Error("select should not be called");
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "mcp", "configure"])
+    ).rejects.toThrow('Invalid value for core.defaultAgent: "unknown-agent"');
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(configureMock).not.toHaveBeenCalled();
+  });
+
+  it("prompts for agent selection when no defaultAgent is configured", async () => {
+    const { program } = await createMcpProgram();
+    selectMock.mockResolvedValue("codex");
+
+    await program.parseAsync(["node", "cli", "mcp", "configure"]);
+
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to configure:",
+      options: [
+        { value: "claude-desktop", label: "claude-desktop" },
+        { value: "claude-code", label: "claude-code" },
+        { value: "codex", label: "codex" }
+      ]
+    });
+    expect(configureMock).toHaveBeenCalledWith(
+      "codex",
+      expect.any(Object),
+      expect.any(Object)
+    );
+  });
+
+  it("cancels configure when agent selection is cancelled", async () => {
+    const { program } = await createMcpProgram();
+    selectMock.mockResolvedValue("__cancel__");
+
+    await program.parseAsync(["node", "cli", "mcp", "configure"]);
+
+    expect(cancelMock).toHaveBeenCalledWith("Operation cancelled");
+    expect(configureMock).not.toHaveBeenCalled();
   });
 
   it("includes --output-format when agent config has mcpOutputFormat", async () => {

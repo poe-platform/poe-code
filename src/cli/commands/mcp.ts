@@ -1,9 +1,14 @@
 import type { Command } from "commander";
 import { select, isCancel, cancel } from "@poe-code/design-system";
+import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import { initializeClient } from "../../services/client-instance.js";
 import { runMcpServerWithTransport, formatMcpToolsDocs } from "../mcp-server.js";
-import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import {
+  createExecutionResources,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
 import { parseMcpOutputFormatPreferences } from "../mcp-output-format.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import {
@@ -100,7 +105,10 @@ export function registerMcpCommand(
 
       let agent = agentArg;
       if (!agent) {
-        if (options.yes) {
+        const fromConfig = await resolveDefaultAgent(container);
+        if (fromConfig !== null) {
+          agent = parseAgentSpecifier(fromConfig).agent;
+        } else if (options.yes) {
           agent = DEFAULT_MCP_AGENT;
         } else {
           const selected = await select({

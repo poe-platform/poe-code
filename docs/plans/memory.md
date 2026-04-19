@@ -964,9 +964,16 @@ Manual QA (markdown checklist — per CLAUDE.md, QA is a doc, not a script) live
 - `poe-code memory init` in a repo without `.poe-code/` creates `.poe-code/memory/{INDEX.md,LOG.md,pages/}`.
 - `poe-code memory write packages/foo.md --reason hello` appends a line to `LOG.md` and adds an entry to `INDEX.md`.
 - `poe-code memory ingest <a local markdown file> --dry-run` prints a prompt containing both the source and the current `INDEX.md`, does not spawn.
-- `poe-code memory ingest <a local markdown file>` actually spawns the configured agent; after exit, `INDEX.md` and `LOG.md` reflect whatever pages changed.
-- `poe-code memory lint` (no `--fix`) prints issues and leaves memory untouched.
-- `poe-code memory clear --yes` wipes memory to the empty state.
+- `poe-code memory ingest <a local markdown file>` actually spawns the configured agent; after exit, `INDEX.md` and `LOG.md` reflect whatever pages changed, and the completion line shows a token-reduction ratio.
+- Re-run the same ingest → `cache hit` line appears, no spawn. Edit the source by one byte, re-run → `cache miss`, spawn fires, cache entry is rewritten.
+- `poe-code memory lint` (no `--fix`) prints issues, including at least one confidence-tag issue on a hand-edited stale `source=` ref, and leaves memory untouched.
+- `poe-code memory status` prints `memory pages`, `cited sources`, `reduction` columns.
+- `poe-code memory cache status` lists entries and byte totals; `cache clear --older-than 0d --yes` empties it.
+- `poe-code memory serve --mcp --print-mcp-config` prints valid JSON. Register it in a Claude Code `.mcp.json`, launch a session, call `list_pages` → returns the same pages as `memory ls`.
+- With `--allow-writes`, the same session can call `append_to_page`; without it, the tool is missing from `tools/list`.
+- `poe-code memory query "<something answerable from memory>"` returns an answer with at least one citation; a question with no basis in memory returns "memory does not answer this".
+- `poe-code memory explain pages/packages/foo.md` produces a short summary and lists inbound/outbound pages.
+- `poe-code memory clear --yes` wipes memory and `.cache/` to the empty state.
 - Running two concurrent `memory write` commands: second waits, no corruption.
 
 ### 4.5 Rollout and migration
@@ -985,37 +992,51 @@ All under `packages/memory/` unless noted.
 
 | File | Purpose |
 |---|---|
-| `package.json` | Name `@poe-code/memory`, deps on `workspace-resolver`, `poe-code-config`, `agent-spawn`, `cmdkit`, `yaml` (if not already resident) |
+| `package.json` | Name `@poe-code/memory`, deps on `workspace-resolver`, `poe-code-config`, `agent-spawn`, `cmdkit`, `tokenfill`, `tiny-stdio-mcp-server`, `yaml` |
 | `tsconfig.json` | Standard package tsconfig matching other packages |
-| `README.md` | CLI reference, config knobs, on-disk layout |
+| `README.md` | CLI reference, config knobs, on-disk layout, confidence-tag format, MCP snippet |
 | `QA.md` | Manual checklist from §4.4 |
 | `src/index.ts` | Barrel — re-exports types + public API from §4.2 |
-| `src/types.ts` | All types from §4.1 |
-| `src/paths.ts` | `resolveMemoryRoot`, `assertSafeRelPath`, path constants |
-| `src/frontmatter.ts` | `parseFrontmatter(raw): { frontmatter, body }`, `serializeFrontmatter(fm, body): string` |
+| `src/types.ts` | All types from §4.1 (includes confidence, cache, tokens, MCP, query types) |
+| `src/paths.ts` | `resolveMemoryRoot`, `assertSafeRelPath`, path constants (including `.cache/ingest/`) |
+| `src/frontmatter.ts` | `parseFrontmatter`, `serializeFrontmatter`, `SourceRef` (de)serialization |
 | `src/pages.ts` | `listPages`, `readPage` (no lock) |
-| `src/write.ts` | `writePage`, `appendToPage`, `clearMemory` (take lock, call reconcile) |
-| `src/reconcile.ts` | `snapshot`, `reconcile`, `renderIndex`, `appendLogEntries` |
-| `src/search.ts` | `searchMemory` (ripgrep shell-out, same pattern other packages use) |
-| `src/status.ts` | `statusOf` |
+| `src/write.ts` | `writePage`, `appendToPage`, `clearMemory` (take lock, call reconcile, also wipe `.cache/` on clear) |
+| `src/reconcile.ts` | `snapshot`, `reconcile`, `renderIndex`, `appendLogEntries`, `denormalizeSources` |
+| `src/search.ts` | `searchMemory` (ripgrep shell-out) |
+| `src/status.ts` | `statusOf` — returns `StatusOf & { tokens?: TokenStats }` |
 | `src/lock.ts` | `withLock(root, fn)`, stale-pid detection |
 | `src/init.ts` | `initMemory` |
-| `src/ingest.ts` | `ingest` — builds prompt, snapshots, calls `spawnFn`, reconciles |
-| `src/lint.ts` | `lint` — same pattern as ingest, different prompt |
-| `src/prompts/ingest.ts` | The ingest prompt string, with placeholders |
-| `src/prompts/lint.ts` | The lint prompt string |
-| `src/cli/index.ts` | cmdkit `memory` command group; imports and registers subcommands |
+| `src/ingest.ts` | `ingest` — cache check → prompt → spawn → reconcile → cache write |
+| `src/lint.ts` | `lint` — spawn + `auditClaims` pass |
+| `src/prompts/ingest.ts` | ingest prompt string + `INGEST_PROMPT_VERSION` constant |
+| `src/prompts/lint.ts` | lint prompt string |
+| `src/prompts/query.ts` | query prompt string + `QUERY_PROMPT_VERSION` |
+| `src/prompts/explain.ts` | explain prompt string |
+| `src/confidence.ts` | `parseClaims`, `serializeTag`, tag regex |
+| `src/audit.ts` | `auditClaims` — walks pages, resolves `SourceRef`s, returns issues |
+| `src/cache.ts` | `computeIngestKey`, `readCacheEntry`, `writeCacheEntry`, `clearCache` |
+| `src/tokens.ts` | `computeTokenStats` via `tokenfill` |
+| `src/mcp.ts` | `startMemoryMcpServer`, `printMcpConfig`, tool definitions, write-gate logic |
+| `src/query.ts` | `query` + TF-idf page ranker + `selectPagesForBudget` |
+| `src/explain.ts` | `explain` — reuses query primitives, computes inbound/outbound |
+| `src/cli/index.ts` | cmdkit `memory` command group; imports and registers all subcommands |
 | `src/cli/init.cli.ts` | `poe-code memory init` |
 | `src/cli/ls.cli.ts` | `poe-code memory ls` |
 | `src/cli/show.cli.ts` | `poe-code memory show <path>` |
-| `src/cli/edit.cli.ts` | `poe-code memory edit <path>` (shells out to `$EDITOR`, then writes) |
-| `src/cli/write.cli.ts` | `poe-code memory write <path>` (reads stdin) |
-| `src/cli/append.cli.ts` | `poe-code memory append <path>` (reads stdin) |
+| `src/cli/edit.cli.ts` | `poe-code memory edit <path>` |
+| `src/cli/write.cli.ts` | `poe-code memory write <path>` |
+| `src/cli/append.cli.ts` | `poe-code memory append <path>` |
 | `src/cli/search.cli.ts` | `poe-code memory search <query>` |
-| `src/cli/ingest.cli.ts` | `poe-code memory ingest <source>` with `--agent --reason --timeout-ms --dry-run --yes` |
+| `src/cli/ingest.cli.ts` | `poe-code memory ingest <source>` with `--agent --reason --timeout-ms --dry-run --yes --force --no-cache-write` |
 | `src/cli/lint.cli.ts` | `poe-code memory lint` with `--fix --agent --timeout-ms --dry-run --yes` |
-| `src/cli/status.cli.ts` | `poe-code memory status` |
+| `src/cli/status.cli.ts` | `poe-code memory status` with `--no-tokens` |
 | `src/cli/clear.cli.ts` | `poe-code memory clear --yes` |
+| `src/cli/cache-status.cli.ts` | `poe-code memory cache status` |
+| `src/cli/cache-clear.cli.ts` | `poe-code memory cache clear --older-than <d> --yes` |
+| `src/cli/serve.cli.ts` | `poe-code memory serve --mcp --allow-writes --print-mcp-config` |
+| `src/cli/query.cli.ts` | `poe-code memory query <question>` with `--budget --agent --json` |
+| `src/cli/explain.cli.ts` | `poe-code memory explain <rel-path>` with `--budget --agent --json` |
 | `src/*.test.ts` | One colocated test per module per the test table in §4.4 |
 
 ### 5.2 Files changed

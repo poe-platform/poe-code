@@ -107,9 +107,17 @@ export const pipelineDocumentSchema: JsonSchema = {
   title: "Pipeline plan document",
   type: "object",
   properties: {
+    $schema: {
+      type: "string",
+      const: pipelineDocumentSchemaId
+    },
     kind: {
       type: "string",
       const: "pipeline"
+    },
+    version: {
+      type: "integer",
+      const: 1
     },
     tasks: {
       type: "array",
@@ -155,7 +163,7 @@ export const pipelineDocumentSchema: JsonSchema = {
       additionalProperties: mcpServerSchema
     }
   },
-  required: ["kind", "tasks"],
+  required: ["kind", "version", "tasks"],
   additionalProperties: false
 };
 

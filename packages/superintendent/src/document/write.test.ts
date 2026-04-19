@@ -34,31 +34,30 @@ status:
 - [ ] Implement the status writer
 `;
 
-const baseCrLfContent =
-  [
-    "\uFEFF---",
-    "kind: superintendent",
-    "version: 1",
-    "builder:",
-    "  agent: claude-code",
-    "  prompt: |",
-    "    Build the next task.",
-    "superintendent:",
-    "  agent: claude-code",
-    "  prompt: review",
-    "owner:",
-    "  agent: claude-code",
-    "  prompt: approve",
-    "status:",
-    "  state: review",
-    "  round: 3",
-    "  review_turn: 2",
-    "---",
-    "# Task Board",
-    "",
-    "- [ ] Implement the status writer",
-    ""
-  ].join("\r\n");
+const baseCrLfContent = [
+  "\uFEFF---",
+  "kind: superintendent",
+  "version: 1",
+  "builder:",
+  "  agent: claude-code",
+  "  prompt: |",
+  "    Build the next task.",
+  "superintendent:",
+  "  agent: claude-code",
+  "  prompt: review",
+  "owner:",
+  "  agent: claude-code",
+  "  prompt: approve",
+  "status:",
+  "  state: review",
+  "  round: 3",
+  "  review_turn: 2",
+  "---",
+  "# Task Board",
+  "",
+  "- [ ] Implement the status writer",
+  ""
+].join("\r\n");
 
 describe("superintendent document write helpers", () => {
   it("updateStatus preserves body and other frontmatter", () => {
@@ -73,10 +72,48 @@ describe("superintendent document write helpers", () => {
     const updated = parseSuperintendentDoc(filePath, updatedContent);
 
     expect(updated.body).toBe(original.body);
+    expect(updatedContent).toContain(
+      `---\n$schema: https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json\nkind: superintendent\nversion: 1\n`
+    );
     expect(updated.frontmatter).toEqual({
       ...original.frontmatter,
       status: nextStatus
     });
+  });
+
+  it("deletes legacy camelCase aliases when rewriting frontmatter", () => {
+    const content = `---
+kind: superintendent
+version: 1
+planPath: docs/plans/legacy.md
+maxExperiments: 4
+metricTimeout: 30
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: review
+  round: 3
+  review_turn: 2
+---
+Body
+`;
+
+    const updatedContent = updateStatus(filePath, content, {
+      state: "completed",
+      round: 4,
+      review_turn: 0
+    });
+
+    expect(updatedContent).not.toContain("planPath:");
+    expect(updatedContent).not.toContain("maxExperiments:");
+    expect(updatedContent).not.toContain("metricTimeout:");
   });
 
   it("incrementRound increments correctly", () => {

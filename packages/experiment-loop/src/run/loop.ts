@@ -117,7 +117,7 @@ function validateMaxExperiments(maxExperiments: number | undefined): number {
   }
 
   if (!Number.isInteger(maxExperiments) || maxExperiments < 0) {
-    throw new Error("maxExperiments must be a non-negative integer.");
+    throw new Error("max_experiments must be a non-negative integer.");
   }
 
   return maxExperiments;
@@ -223,9 +223,7 @@ function baselineFromResults(metrics: MetricDef[], results: EvalResult[]): Recor
   );
 }
 
-function deriveStateFromJournal(
-  entries: JournalEntry[]
-): {
+function deriveStateFromJournal(entries: JournalEntry[]): {
   experimentsCompleted: number;
   experimentsKept: number;
   baseline: Record<string, number> | null;
@@ -322,8 +320,8 @@ export async function runExperimentLoop(
     baseline = journalState.baseline ?? initialFrontmatter.baseline;
 
     if (baseline === null) {
-      const metricTimeoutMs = initialFrontmatter.metricTimeout
-        ? initialFrontmatter.metricTimeout * 1000
+      const metricTimeoutMs = initialFrontmatter.metric_timeout
+        ? initialFrontmatter.metric_timeout * 1000
         : undefined;
       const baselineResults = await evaluateChain(
         initialMetrics,
@@ -348,7 +346,7 @@ export async function runExperimentLoop(
       const { body, frontmatter } = doc;
 
       const maxExperiments = validateMaxExperiments(
-        options.maxExperiments ?? frontmatter.maxExperiments
+        options.maxExperiments ?? frontmatter.max_experiments
       );
       if (experimentsCompleted >= maxExperiments) {
         break;
@@ -400,15 +398,14 @@ export async function runExperimentLoop(
       }
 
       const journalAfter = await journal.readAll();
-      let newEntry = journalAfter.length > journalLengthBefore
-        ? journalAfter[journalAfter.length - 1]!
-        : null;
+      let newEntry =
+        journalAfter.length > journalLengthBefore ? journalAfter[journalAfter.length - 1]! : null;
 
       experimentsCompleted += 1;
 
       if (newEntry && !newEntry.scores && metrics.length > 0) {
-        const metricTimeoutMs = frontmatter.metricTimeout
-          ? frontmatter.metricTimeout * 1000
+        const metricTimeoutMs = frontmatter.metric_timeout
+          ? frontmatter.metric_timeout * 1000
           : undefined;
         const results = await evaluateChain(
           metrics,

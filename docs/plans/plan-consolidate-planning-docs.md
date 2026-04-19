@@ -241,7 +241,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: writers-canonical-frontmatter
     title: Writers emit canonical kind, version, and snake_case fields
@@ -267,9 +267,9 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: templates-default-docs-plans

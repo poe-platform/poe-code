@@ -168,9 +168,12 @@ describe("@poe-code/experiment-loop public exports", () => {
       type: "object",
       properties: {
         kind: { const: "experiment" },
-        baseline: {}
+        version: { type: "integer" },
+        baseline: {},
+        max_experiments: { type: "integer" },
+        metric_timeout: { type: "integer" }
       },
-      required: ["kind", "baseline"]
+      required: ["kind", "version", "baseline"]
     });
   });
 });
@@ -566,12 +569,20 @@ describe("parseExperimentFrontmatter", () => {
     });
   });
 
-  it("parses metricTimeout from frontmatter", () => {
+  it("parses metric_timeout from frontmatter", () => {
+    const content = ["---", "metric_timeout: 120", "baseline: null", "---", "Body"].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.metric_timeout).toBe(120);
+  });
+
+  it("ignores legacy camelCase metricTimeout frontmatter", () => {
     const content = ["---", "metricTimeout: 120", "baseline: null", "---", "Body"].join("\n");
 
     const result = parseExperimentFrontmatter(content);
 
-    expect(result.frontmatter.metricTimeout).toBe(120);
+    expect(result.frontmatter.metric_timeout).toBeUndefined();
   });
 
   it("parses extends from frontmatter", () => {
@@ -606,7 +617,7 @@ describe("parseExperimentFrontmatter", () => {
     expect(result.frontmatter.agent).toEqual(["claude-code", "codex"]);
   });
 
-  it("parses maxExperiments from frontmatter", () => {
+  it("parses max_experiments from frontmatter", () => {
     const content = [
       "---",
       "agent: claude-code",
@@ -614,7 +625,7 @@ describe("parseExperimentFrontmatter", () => {
       "  name: tests",
       "  script: npm test",
       "  direction: maximize",
-      "maxExperiments: 10",
+      "max_experiments: 10",
       "baseline: null",
       "---",
       "Body"
@@ -622,15 +633,23 @@ describe("parseExperimentFrontmatter", () => {
 
     const result = parseExperimentFrontmatter(content);
 
-    expect(result.frontmatter.maxExperiments).toBe(10);
+    expect(result.frontmatter.max_experiments).toBe(10);
   });
 
-  it("omits maxExperiments when not present", () => {
+  it("ignores legacy camelCase maxExperiments frontmatter", () => {
+    const content = ["---", "maxExperiments: 10", "baseline: null", "---", "Body"].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.max_experiments).toBeUndefined();
+  });
+
+  it("omits max_experiments when not present", () => {
     const content = ["---", "baseline: null", "---", "Body"].join("\n");
 
     const result = parseExperimentFrontmatter(content);
 
-    expect(result.frontmatter.maxExperiments).toBeUndefined();
+    expect(result.frontmatter.max_experiments).toBeUndefined();
   });
 
   it("parses a metric chain", () => {
@@ -776,18 +795,63 @@ describe("writeExperimentFrontmatter", () => {
     expect(reparsed).toEqual(parsed);
   });
 
-  it("writes a YAML frontmatter block with baseline null and no status fields", async () => {
+  it("writes canonical YAML frontmatter with snake_case fields and no status fields", async () => {
     const fs = createFs();
     const docPath = "/repo/experiment.md";
 
-    await writeExperimentFrontmatter(docPath, { baseline: null }, "# Experiment\n", fs);
+    await writeExperimentFrontmatter(
+      docPath,
+      {
+        baseline: null,
+        max_experiments: 3,
+        metric_timeout: 120
+      },
+      "# Experiment\n",
+      fs
+    );
 
     const written = await fs.readFile(docPath, "utf8");
 
     expect(written).toContain("---\n");
+    expect(written).toContain(
+      `$schema: ${experimentDocumentSchemaId}\nkind: experiment\nversion: 1\n`
+    );
     expect(written).toContain("baseline: null\n");
+    expect(written).toContain("max_experiments: 3\n");
+    expect(written).toContain("metric_timeout: 120\n");
+    expect(written).not.toContain("maxExperiments");
+    expect(written).not.toContain("metricTimeout");
     expect(written).not.toContain("status");
     expect(written.endsWith("# Experiment\n")).toBe(true);
+  });
+
+  it("drops legacy camelCase aliases when rewriting a parsed document", async () => {
+    const fs = createFs();
+    const docPath = "/repo/experiment.md";
+    const original = [
+      "---",
+      "maxExperiments: 3",
+      "metricTimeout: 120",
+      "baseline: null",
+      "---",
+      "# Experiment",
+      ""
+    ].join("\n");
+
+    const parsed = parseExperimentFrontmatter(original);
+
+    await writeExperimentFrontmatter(docPath, parsed.frontmatter, parsed.body, fs);
+
+    const written = await fs.readFile(docPath, "utf8");
+
+    expect(written).toContain(
+      `$schema: ${experimentDocumentSchemaId}\nkind: experiment\nversion: 1\n`
+    );
+    expect(written).toContain("baseline: null\n");
+    expect(written).not.toContain("maxExperiments");
+    expect(written).not.toContain("metricTimeout");
+    expect(written).not.toContain("max_experiments");
+    expect(written).not.toContain("metric_timeout");
   });
 });
 
@@ -2161,7 +2225,7 @@ describe("runExperimentLoop", () => {
     expect(keepEntry.scores).toEqual({ tests: 7 });
   });
 
-  it("uses maxExperiments from frontmatter when not provided via options", async () => {
+  it("uses max_experiments from frontmatter when not provided via options", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({
       [docPath]: [
@@ -2172,7 +2236,7 @@ describe("runExperimentLoop", () => {
         "  script: node scripts/metric-tests.mjs",
         "  direction: maximize",
         "baseline: { tests: 1 }",
-        "maxExperiments: 2",
+        "max_experiments: 2",
         "---",
         "# Improve the tests"
       ].join("\n")

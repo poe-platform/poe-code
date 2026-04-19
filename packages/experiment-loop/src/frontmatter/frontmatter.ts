@@ -1,5 +1,6 @@
 import matter from "gray-matter";
 import { dirname } from "node:path";
+import { stringify } from "yaml";
 import type { ExperimentFileSystem, MetricDef } from "../types.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
@@ -28,8 +29,8 @@ export interface ExperimentFrontmatter {
   extends?: boolean;
   metric?: MetricDef | MetricDef[];
   baseline: Record<string, number> | null;
-  maxExperiments?: number;
-  metricTimeout?: number;
+  max_experiments?: number;
+  metric_timeout?: number;
 }
 
 export const experimentDocumentSchemaId =
@@ -65,9 +66,17 @@ export const experimentDocumentSchema: JsonSchema = {
   title: "Experiment plan document",
   type: "object",
   properties: {
+    $schema: {
+      type: "string",
+      const: experimentDocumentSchemaId
+    },
     kind: {
       type: "string",
       const: "experiment"
+    },
+    version: {
+      type: "integer",
+      const: 1
     },
     agent: {
       anyOf: [
@@ -111,16 +120,16 @@ export const experimentDocumentSchema: JsonSchema = {
         }
       ]
     },
-    maxExperiments: {
+    max_experiments: {
       type: "integer",
       minimum: 0
     },
-    metricTimeout: {
+    metric_timeout: {
       type: "integer",
       minimum: 0
     }
   },
-  required: ["kind", "baseline"],
+  required: ["kind", "version", "baseline"],
   additionalProperties: false
 };
 
@@ -144,7 +153,8 @@ export async function writeExperimentFrontmatter(
 ): Promise<void> {
   await fs.mkdir(dirname(docPath), { recursive: true });
 
-  const serialized = matter.stringify(body, serializeFrontmatter(frontmatter));
+  const yaml = stringify(serializeFrontmatter(frontmatter)).trimEnd();
+  const serialized = `---\n${yaml}\n---\n${body}`;
   const content =
     body.endsWith("\n") || !serialized.endsWith("\n") ? serialized : serialized.slice(0, -1);
 
@@ -156,29 +166,36 @@ export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontm
   const agent = parseAgent(parsed?.agent);
   const extendsValue = parseBoolean(parsed?.extends);
   const metric = parseMetric(parsed?.metric);
-  const maxExperiments = parseNonNegativeInteger(parsed?.maxExperiments);
-  const metricTimeout = parseNonNegativeInteger(parsed?.metricTimeout);
+  const max_experiments = parseNonNegativeInteger(parsed?.max_experiments);
+  const metric_timeout = parseNonNegativeInteger(parsed?.metric_timeout);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
     ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(metric !== undefined ? { metric } : {}),
     baseline: parseBaseline(parsed?.baseline),
-    ...(maxExperiments !== undefined ? { maxExperiments } : {}),
-    ...(metricTimeout !== undefined ? { metricTimeout } : {})
+    ...(max_experiments !== undefined ? { max_experiments } : {}),
+    ...(metric_timeout !== undefined ? { metric_timeout } : {})
   };
 }
 
 function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string, unknown> {
   return {
+    $schema: experimentDocumentSchemaId,
+    kind: "experiment",
+    version: 1,
     ...(frontmatter.agent !== undefined ? { agent: frontmatter.agent } : {}),
     ...(frontmatter.extends !== undefined ? { extends: frontmatter.extends } : {}),
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),
     baseline: frontmatter.baseline,
-    ...(frontmatter.maxExperiments !== undefined
-      ? { maxExperiments: frontmatter.maxExperiments }
+    // Frontmatter is declarative config only. Runtime experiment outcomes live in the
+    // journal sidecar, so we intentionally do not persist any derived status here.
+    ...(frontmatter.max_experiments !== undefined
+      ? { max_experiments: frontmatter.max_experiments }
       : {}),
-    ...(frontmatter.metricTimeout !== undefined ? { metricTimeout: frontmatter.metricTimeout } : {})
+    ...(frontmatter.metric_timeout !== undefined
+      ? { metric_timeout: frontmatter.metric_timeout }
+      : {})
   };
 }
 

@@ -198,6 +198,10 @@ export const superintendentDocumentSchema: JsonSchema = {
   title: "Superintendent plan document",
   type: "object",
   properties: {
+    $schema: {
+      type: "string",
+      const: superintendentDocumentSchemaId
+    },
     kind: {
       type: "string",
       const: "superintendent"
@@ -234,6 +238,10 @@ export const superintendentBaseDocumentSchema: JsonSchema = {
   title: "Superintendent base document",
   type: "object",
   properties: {
+    $schema: {
+      type: "string",
+      const: superintendentBaseDocumentSchemaId
+    },
     kind: {
       type: "string",
       const: "superintendent-base"

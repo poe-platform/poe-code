@@ -30,7 +30,7 @@ The user's own words. No framing, no justification. Note explicit non-goals.
 
 ### 2. User-facing shape
 
-Concrete end state. Pick the form:
+Concrete end state. This is the most important to get right. For example, practical usage.
 
 - CLI: README section — commands, flags, example invocations, example output.
 - UI: ASCII mockups.

@@ -42,9 +42,17 @@ export const ralphDocumentSchema: JsonSchema = {
   title: "Ralph plan document",
   type: "object",
   properties: {
+    $schema: {
+      type: "string",
+      const: ralphDocumentSchemaId
+    },
     kind: {
       type: "string",
       const: "ralph"
+    },
+    version: {
+      type: "integer",
+      const: 1
     },
     agent: {
       anyOf: [
@@ -85,7 +93,7 @@ export const ralphDocumentSchema: JsonSchema = {
       additionalProperties: false
     }
   },
-  required: ["kind", "status"],
+  required: ["kind", "version", "status"],
   additionalProperties: false
 };
 
@@ -125,7 +133,10 @@ export function parseFrontmatter(content: string): {
 }
 
 export function writeFrontmatter(data: RalphFrontmatter, body: string): string {
-  const serialized: RalphFrontmatter = {
+  const serialized = {
+    $schema: ralphDocumentSchemaId,
+    kind: "ralph",
+    version: 1,
     ...(data.agent !== undefined ? { agent: data.agent } : {}),
     ...(data.extends !== undefined ? { extends: data.extends } : {}),
     ...(data.iterations !== undefined ? { iterations: data.iterations } : {}),

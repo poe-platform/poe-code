@@ -1,5 +1,6 @@
 import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
 import type { PipelineFileSystem, PipelineStatus } from "../types.js";
+import { pipelineDocumentSchemaId } from "./parser.js";
 
 type WritableFs = Pick<PipelineFileSystem, "readFile" | "writeFile">;
 type WritableDocument = MarkdownPlanDocument | YamlPlanDocument;
@@ -35,6 +36,38 @@ function getTaskNode(tasksNode: YAMLSeq, taskId: string): YAMLMap {
     }
   }
   throw new Error(`Task "${taskId}" not found in plan.`);
+}
+
+function getTopLevelMap(document: ReturnType<typeof parseDocument>): YAMLMap {
+  if (!document.contents || !isMap(document.contents)) {
+    throw new Error("Invalid plan YAML: expected a top-level object.");
+  }
+
+  return document.contents as YAMLMap;
+}
+
+function reorderTopLevelKeys(map: YAMLMap, keys: string[]): void {
+  const remaining = [...map.items];
+  const ordered = keys.flatMap((key) => {
+    const index = remaining.findIndex((item) => item.key?.toString() === key);
+
+    return index === -1 ? [] : remaining.splice(index, 1);
+  });
+
+  map.items = [...ordered, ...remaining];
+}
+
+function canonicalizeDocument(document: ReturnType<typeof parseDocument>): void {
+  const map = getTopLevelMap(document);
+
+  map.delete("maxExperiments");
+  map.delete("metricTimeout");
+  map.delete("planPath");
+
+  map.set("$schema", pipelineDocumentSchemaId);
+  map.set("kind", "pipeline");
+  map.set("version", 1);
+  reorderTopLevelKeys(map, ["$schema", "kind", "version"]);
 }
 
 export async function readPlanFile(
@@ -184,6 +217,8 @@ export async function writeTaskStatus(options: {
   } else {
     taskNode.set("status", options.status);
   }
+
+  canonicalizeDocument(document);
 
   await options.fs.writeFile(options.planPath, serializeDocument(parts, document), {
     encoding: "utf8"

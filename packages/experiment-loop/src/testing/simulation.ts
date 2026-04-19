@@ -1,10 +1,13 @@
 import path from "node:path";
-import matter from "gray-matter";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveWorkflowPath } from "@poe-code/agent-kit";
+import { stringify } from "yaml";
 import { baselineFromEntry, ExperimentJournal } from "../journal/journal.js";
 import { runExperimentLoop } from "../run/loop.js";
-import { parseExperimentFrontmatter } from "../frontmatter/frontmatter.js";
+import {
+  experimentDocumentSchemaId,
+  parseExperimentFrontmatter
+} from "../frontmatter/frontmatter.js";
 import { evaluateChain } from "../evaluator/evaluator.js";
 import type {
   AgentRunInput,
@@ -231,7 +234,11 @@ function snapshotsEqual(left: GitSnapshot, right: GitSnapshot): boolean {
   });
 }
 
-async function restoreSnapshot(rawFs: RawFs, current: GitSnapshot, target: GitSnapshot): Promise<void> {
+async function restoreSnapshot(
+  rawFs: RawFs,
+  current: GitSnapshot,
+  target: GitSnapshot
+): Promise<void> {
   for (const filePath of Object.keys(current)) {
     if (filePath in target) {
       continue;
@@ -270,7 +277,10 @@ async function createSimulationGit(options: {
 
     async commitAll(message, cwd): Promise<string> {
       commitAllCalls.push({ message, cwd });
-      const currentSnapshot = omitPaths(await readTree(options.rawFs, options.cwd), options.excludedPaths);
+      const currentSnapshot = omitPaths(
+        await readTree(options.rawFs, options.cwd),
+        options.excludedPaths
+      );
       const headSnapshot = snapshots.get(headHash) ?? {};
 
       if (snapshotsEqual(currentSnapshot, headSnapshot)) {
@@ -292,7 +302,10 @@ async function createSimulationGit(options: {
         throw new Error(`Unknown commit hash: ${commitHash}`);
       }
 
-      const currentSnapshot = omitPaths(await readTree(options.rawFs, options.cwd), options.excludedPaths);
+      const currentSnapshot = omitPaths(
+        await readTree(options.rawFs, options.cwd),
+        options.excludedPaths
+      );
       await restoreSnapshot(options.rawFs, currentSnapshot, targetSnapshot);
       headHash = commitHash;
     },
@@ -309,7 +322,10 @@ function createSimulationExec(metricResults: MetricResultQueue | undefined): {
   execCalls: SimulationExecCall[];
 } {
   const queues = new Map(
-    Object.entries(metricResults ?? {}).map(([key, result]) => [key, normalizeMetricResult(result).queue])
+    Object.entries(metricResults ?? {}).map(([key, result]) => [
+      key,
+      normalizeMetricResult(result).queue
+    ])
   );
   const execCalls: SimulationExecCall[] = [];
 
@@ -385,20 +401,31 @@ function scoresPassBaseline(
 export function createExperimentDoc(options: CreateExperimentDocOptions = {}): string {
   const body = options.body ?? "# Improve the implementation\n\nShip a better change.\n";
 
-  return matter.stringify(body, {
+  const yaml = stringify({
+    $schema: experimentDocumentSchemaId,
+    kind: "experiment",
+    version: 1,
     agent: options.agent ?? "claude-code",
-    metric: options.metric ?? { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
+    metric: options.metric ?? {
+      name: "tests",
+      script: "node scripts/metric-tests.mjs",
+      direction: "maximize"
+    },
     baseline: options.baseline ?? null
-  });
+  }).trimEnd();
+
+  return `---\n${yaml}\n---\n${body}`;
 }
 
-export function metricResult(options: {
-  score?: number;
-  stdout?: string;
-  stderr?: string;
-  exitCode?: number;
-  passed?: boolean;
-} = {}): SimulationMetricResult {
+export function metricResult(
+  options: {
+    score?: number;
+    stdout?: string;
+    stderr?: string;
+    exitCode?: number;
+    passed?: boolean;
+  } = {}
+): SimulationMetricResult {
   const stdout = options.stdout ?? (options.score === undefined ? "" : `${options.score}\n`);
 
   return {
@@ -447,7 +474,6 @@ export function agentMakesChanges(
   );
 }
 
-
 export function createExperimentLoopSimulation(options: ExperimentLoopSimulationOptions): {
   run: () => Promise<SimulationResult>;
 } {
@@ -481,7 +507,9 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
         fs,
         git,
         exec,
-        onBaselineCollected: (b) => { collectedBaseline = b; },
+        onBaselineCollected: (b) => {
+          collectedBaseline = b;
+        },
         runAgent: async (input) => {
           const turn = turns.shift();
 
@@ -526,8 +554,7 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
           const preHash = await git.currentHash(cwd);
           const results = await evaluateChain(metrics, cwd, exec);
           const passed =
-            currentBaseline !== null &&
-            scoresPassBaseline(metrics, results, currentBaseline);
+            currentBaseline !== null && scoresPassBaseline(metrics, results, currentBaseline);
 
           let commitHash: string;
           let status: "keep" | "discard";
@@ -543,7 +570,9 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
           const scores = Object.fromEntries(
             metrics
               .map((m, i) => [m.name, results[i]?.score] as const)
-              .filter((entry): entry is [string, number] => entry[1] !== undefined && entry[1] !== null)
+              .filter(
+                (entry): entry is [string, number] => entry[1] !== undefined && entry[1] !== null
+              )
           );
 
           const agentOutputStr = `${turn.output.stdout}${turn.output.stderr}`;

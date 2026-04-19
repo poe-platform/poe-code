@@ -1,8 +1,12 @@
 import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveWorkflowPath } from "@poe-code/agent-kit";
-import { parseDocument } from "yaml";
-import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
+import { isMap, parseDocument, type YAMLMap } from "yaml";
+import {
+  parseSuperintendentDoc,
+  superintendentDocumentSchemaId,
+  type SuperintendentDoc
+} from "../document/parse.js";
 import {
   runLoop,
   type AgentRunInput,
@@ -378,6 +382,7 @@ function writeMaxRounds(filePath: string, content: string, maxRounds: number): s
   }
 
   frontmatterDocument.set("max_rounds", maxRounds);
+  canonicalizeFrontmatter(frontmatterDocument);
 
   return [
     parts.bom,
@@ -387,6 +392,38 @@ function writeMaxRounds(filePath: string, content: string, maxRounds: number): s
     parts.frontmatterSuffix,
     parts.body
   ].join("");
+}
+
+function getTopLevelMap(frontmatterDocument: ReturnType<typeof parseDocument>): YAMLMap {
+  if (!frontmatterDocument.contents || !isMap(frontmatterDocument.contents)) {
+    throw new Error("Expected superintendent frontmatter to be a top-level object.");
+  }
+
+  return frontmatterDocument.contents as YAMLMap;
+}
+
+function reorderTopLevelKeys(map: YAMLMap, keys: string[]): void {
+  const remaining = [...map.items];
+  const ordered = keys.flatMap((key) => {
+    const index = remaining.findIndex((item) => item.key?.toString() === key);
+
+    return index === -1 ? [] : remaining.splice(index, 1);
+  });
+
+  map.items = [...ordered, ...remaining];
+}
+
+function canonicalizeFrontmatter(frontmatterDocument: ReturnType<typeof parseDocument>): void {
+  const map = getTopLevelMap(frontmatterDocument);
+
+  map.delete("maxExperiments");
+  map.delete("metricTimeout");
+  map.delete("planPath");
+
+  map.set("$schema", superintendentDocumentSchemaId);
+  map.set("kind", "superintendent");
+  map.set("version", 1);
+  reorderTopLevelKeys(map, ["$schema", "kind", "version"]);
 }
 
 function splitDocument(

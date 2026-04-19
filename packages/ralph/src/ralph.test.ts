@@ -116,9 +116,10 @@ describe("@poe-code/ralph public exports", () => {
       type: "object",
       properties: {
         kind: { const: "ralph" },
+        version: { type: "integer" },
         status: { type: "object" }
       },
-      required: ["kind", "status"]
+      required: ["kind", "version", "status"]
     });
 
     void runResult;
@@ -432,6 +433,9 @@ describe("writeFrontmatter", () => {
     expect(result).toBe(
       [
         "---",
+        `$schema: ${ralphDocumentSchemaId}`,
+        "kind: ralph",
+        "version: 1",
         "agent: claude-code",
         "iterations: 3",
         "status:",
@@ -471,7 +475,19 @@ describe("writeFrontmatter", () => {
     const result = writeFrontmatter(data, body);
 
     expect(result).toBe(
-      ["---", "status:", "  state: open", "  iteration: 0", "---", "# Plan", "", "Body"].join("\n")
+      [
+        "---",
+        `$schema: ${ralphDocumentSchemaId}`,
+        "kind: ralph",
+        "version: 1",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# Plan",
+        "",
+        "Body"
+      ].join("\n")
     );
   });
 });

@@ -103,9 +103,10 @@ describe("@poe-code/pipeline public exports", () => {
       type: "object",
       properties: {
         kind: { const: "pipeline" },
+        version: { type: "integer" },
         tasks: { type: "array" }
       },
-      required: ["kind", "tasks"]
+      required: ["kind", "version", "tasks"]
     });
 
     void input;
@@ -1170,7 +1171,18 @@ describe("writeTaskStatus", () => {
       status: "done"
     });
 
-    await expect(readPlanFile(fs, "/repo/plan.yaml")).resolves.toContain("status: done");
+    await expect(readPlanFile(fs, "/repo/plan.yaml")).resolves.toContain(
+      [
+        `$schema: ${pipelineDocumentSchemaId}`,
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: task-1",
+        "    title: One",
+        "    prompt: First",
+        "    status: done"
+      ].join("\n")
+    );
   });
 
   it("updates only a single step status", async () => {
@@ -1250,6 +1262,7 @@ describe("writeTaskStatus", () => {
     const fs = createFs({
       "/repo/plan.md": [
         "---",
+        "planPath: docs/plans/legacy.md",
         "vars:",
         "  plan_doc: docs/plans/my-feature.md",
         "tasks:",
@@ -1270,8 +1283,44 @@ describe("writeTaskStatus", () => {
     });
 
     const contents = await readPlanFile(fs, "/repo/plan.md");
+    expect(contents).toContain(
+      `---\n$schema: ${pipelineDocumentSchemaId}\nkind: pipeline\nversion: 1\n`
+    );
+    expect(contents).not.toContain("planPath:");
     expect(contents).toContain("status: done");
     expect(contents.endsWith(body)).toBe(true);
+  });
+
+  it("deletes legacy camelCase aliases when rewriting yaml plans", async () => {
+    const fs = createFs({
+      "/repo/plan.yaml": [
+        "planPath: docs/plans/legacy.md",
+        "maxExperiments: 4",
+        "metricTimeout: 30",
+        "tasks:",
+        "  - id: task-1",
+        "    title: One",
+        "    prompt: First",
+        "    status: open",
+        ""
+      ].join("\n")
+    });
+
+    await writeTaskStatus({
+      fs,
+      planPath: "/repo/plan.yaml",
+      taskId: "task-1",
+      status: "done"
+    });
+
+    const contents = await readPlanFile(fs, "/repo/plan.yaml");
+    expect(contents).toContain(
+      `$schema: ${pipelineDocumentSchemaId}\nkind: pipeline\nversion: 1\n`
+    );
+    expect(contents).not.toContain("planPath:");
+    expect(contents).not.toContain("maxExperiments:");
+    expect(contents).not.toContain("metricTimeout:");
+    expect(contents).toContain("status: done");
   });
 });
 

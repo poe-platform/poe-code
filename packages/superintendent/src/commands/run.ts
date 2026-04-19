@@ -55,6 +55,7 @@ export type RunCommandOptions = {
   cwd: string;
   homeDir: string;
   docPath?: string;
+  builderAgent?: string;
   planDirectory?: string;
   assumeYes?: boolean;
   interactive?: boolean;
@@ -104,6 +105,10 @@ type RunSession = {
 
 const runParams = S.Object({
   doc: S.Optional(S.String({ description: "Path to the superintendent markdown document" })),
+  agent: S.Optional(S.String({
+    description:
+      "Override the builder agent for this run. Precedence: --agent > plan frontmatter builder.agent."
+  })),
   tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" }))
 });
 
@@ -123,6 +128,7 @@ export const runCommand = defineCommand({
       cwd,
       homeDir,
       docPath: params.doc,
+      ...(params.agent ? { builderAgent: params.agent } : {}),
       assumeYes: process.argv.includes("--yes"),
       interactive: Boolean(process.stdin.isTTY),
       useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
@@ -175,6 +181,7 @@ export const runMcpCommand = defineCommand({
       cwd,
       homeDir,
       docPath: params.doc,
+      ...(params.agent ? { builderAgent: params.agent } : {}),
       assumeYes: true,
       interactive: false,
       useDashboard: false,
@@ -289,7 +296,7 @@ export async function runSuperintendentCommand(
     homeDir: options.homeDir
   });
   const document = parseSuperintendentDoc(selectedDocPath, await fs.readFile(selectedDocPath, "utf8"));
-  const builderAgent = document.frontmatter.builder.agent;
+  const builderAgent = options.builderAgent ?? document.frontmatter.builder.agent;
   const selectedBuilderAgent = resolveAgentId(builderAgent) ?? builderAgent;
 
   if (!useDashboard) {

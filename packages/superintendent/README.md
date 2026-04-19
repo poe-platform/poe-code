@@ -31,7 +31,7 @@ node packages/superintendent/dist/cli.js --help
 Main commands:
 
 ```sh
-npx tsx packages/superintendent/src/cli.ts run <doc>
+npx tsx packages/superintendent/src/cli.ts run <doc> [--agent <builder-agent>]
 npx tsx packages/superintendent/src/cli.ts validate <doc>
 npx tsx packages/superintendent/src/cli.ts complete <doc> [--reason <text>]
 npx tsx packages/superintendent/src/cli.ts builder run <doc>
@@ -41,7 +41,7 @@ npx tsx packages/superintendent/src/cli.ts inspector run <doc> [name]
 
 Behavior notes:
 
-- `run` starts the full loop and uses the live dashboard in terminal output. The builder agent is taken from the plan's `builder.agent` frontmatter field — edit the plan to change it.
+- `run` starts the full loop and uses the live dashboard in terminal output. The builder agent comes from the plan's `builder.agent` frontmatter; pass `--agent <id>` to override for a single run.
 - `validate` checks frontmatter, supported prompt variables, and the Task Board shape.
 - `complete` force-transitions the document status to `completed`.
 - `builder run` executes only the builder role.

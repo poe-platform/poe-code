@@ -1049,7 +1049,11 @@ async function withOutputFormat<T>(output: OutputMode, fn: () => Promise<T>): Pr
   try {
     return await fn();
   } finally {
-    process.env.OUTPUT_FORMAT = previous;
+    if (previous === undefined) {
+      delete process.env.OUTPUT_FORMAT;
+    } else {
+      process.env.OUTPUT_FORMAT = previous;
+    }
     resetOutputFormatCache();
   }
 }

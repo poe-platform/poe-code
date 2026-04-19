@@ -193,6 +193,14 @@ function setTTY(stream: NodeJS.WriteStream | NodeJS.ReadStream, value: boolean):
   });
 }
 
+function restoreOutputFormat(): void {
+  if (originalOutputFormat === undefined) {
+    delete process.env.OUTPUT_FORMAT;
+  } else {
+    process.env.OUTPUT_FORMAT = originalOutputFormat;
+  }
+}
+
 function readStdout(stdoutWrite: ReturnType<typeof vi.spyOn>): string {
   return stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
 }
@@ -208,7 +216,7 @@ describe("runCLI", () => {
     promptState.isCancel.mockImplementation((value: unknown) => typeof value === "symbol");
     process.argv = [...originalArgv];
     process.exitCode = undefined;
-    process.env.OUTPUT_FORMAT = originalOutputFormat;
+    restoreOutputFormat();
     delete process.env.CMDKIT_FIXTURE;
     setTTY(process.stdout, true);
     setTTY(process.stdin, true);
@@ -217,7 +225,7 @@ describe("runCLI", () => {
   afterEach(() => {
     process.argv = [...originalArgv];
     process.exitCode = undefined;
-    process.env.OUTPUT_FORMAT = originalOutputFormat;
+    restoreOutputFormat();
     process.env.CMDKIT_FIXTURE = originalFixtureSelector;
 
     if (stdoutTTY) {

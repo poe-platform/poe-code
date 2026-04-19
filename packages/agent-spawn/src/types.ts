@@ -46,6 +46,14 @@ export interface SpawnOptions {
    * Resets on every chunk of stdout/stderr received. Disabled when undefined.
    */
   activityTimeoutMs?: number;
+  /**
+   * Directory for the spawn log file. When set together with `logFileName`, stdout
+   * (and stderr for CLI spawns) are appended to `<logDir>/<logFileName>`, and the
+   * absolute path is returned in `SpawnResult.logFile`.
+   */
+  logDir?: string;
+  /** Overrides the auto-generated log filename. Must be used together with `logDir`. */
+  logFileName?: string;
 }
 
 export interface SpawnUsage {

@@ -51,6 +51,7 @@ describe("design-system root exports", () => {
     expect(defaultHints()).toEqual([
       { key: "q", label: "Quit" },
       { key: "e", label: "Edit" },
+      { key: "l", label: "Log" },
       { key: "p", label: "Pause" },
       { key: "r", label: "Retry" }
     ]);
@@ -85,6 +86,7 @@ describe("design-system root exports", () => {
       | "edit"
       | "pause"
       | "retry"
+      | "view-log"
     >();
     expectTypeOf<DashboardState>().toMatchTypeOf<{
       output: OutputItem[];

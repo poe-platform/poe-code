@@ -1926,7 +1926,7 @@ describe("createPipelineSimulation", () => {
     expect(runs[0]?.logDir).toBe("");
   });
 
-  it("leaves logDir undefined when not configured", async () => {
+  it("defaults logDir to ~/.poe-code/logs/pipeline/<plan-slug> when not configured", async () => {
     const sim = createPipelineSimulation({
       plan: {
         tasks: [
@@ -1953,7 +1953,8 @@ describe("createPipelineSimulation", () => {
     });
 
     expect(runs).toHaveLength(1);
-    expect(runs[0]?.logDir).toBeUndefined();
+    expect(runs[0]?.logDir).toBe("/home/test/.poe-code/logs/pipeline/plan");
+    expect(runs[0]?.logFileName).toMatch(/^\d{8}-\d{6}-\d{3}-quick-fix\.jsonl$/);
   });
 
   it("runs stepped tasks in order and marks each step done", async () => {

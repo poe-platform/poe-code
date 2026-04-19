@@ -1,5 +1,5 @@
 import * as fsPromises from "node:fs/promises";
-import { lockWorkflow, resolveWorkflowPath } from "@poe-code/agent-kit";
+import { lockWorkflow, makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-kit";
 import { spawn, type McpSpawnConfig } from "@poe-code/agent-spawn";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";
@@ -92,6 +92,7 @@ export type RunLoopOptions = {
   callbacks?: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   signal?: AbortSignal;
+  logDir?: string;
 };
 
 type LoopRuntime = {
@@ -102,6 +103,7 @@ type LoopRuntime = {
   callbacks: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   signal?: AbortSignal;
+  logDir?: string;
 };
 
 type TemplateLoopContext = {
@@ -161,7 +163,8 @@ export async function runLoop(
           try {
             builderResult = await runBuilder(
               await readDocument(options.fs, options.docPath),
-              createTemplateContext(context)
+              createTemplateContext(context),
+              buildRoleLogOptions(options.logDir, "builder")
             );
           } catch (error) {
             await restoreDocument(options.fs, options.docPath, roundSnapshot);
@@ -200,7 +203,8 @@ export async function runLoop(
                 name,
                 config,
                 await readDocument(options.fs, options.docPath),
-                createTemplateContext(context)
+                createTemplateContext(context),
+                buildRoleLogOptions(options.logDir, `inspector-${name}`)
               );
             } catch (error) {
               await restoreDocument(options.fs, options.docPath, inspectorSnapshot);
@@ -302,7 +306,8 @@ export async function runLoop(
         try {
           ownerResult = await runOwnerReview(
             await readDocument(options.fs, options.docPath),
-            createTemplateContext(context)
+            createTemplateContext(context),
+            buildRoleLogOptions(options.logDir, "owner")
           );
         } catch (error) {
           await restoreDocument(options.fs, options.docPath, ownerSnapshot);
@@ -356,7 +361,8 @@ function normalizeOptions(input: string | RunLoopOptions, callbacks?: LoopCallba
       fs: input.fs ?? createDefaultFs(),
       callbacks: input.callbacks ?? {},
       ...(input.runAgent ? { runAgent: input.runAgent } : {}),
-      ...(input.signal ? { signal: input.signal } : {})
+      ...(input.signal ? { signal: input.signal } : {}),
+      ...(input.logDir ? { logDir: input.logDir } : {})
     };
   }
 
@@ -494,13 +500,25 @@ async function executeSuperintendent(
   const snapshot = await readDocumentContent(options.fs, options.docPath);
   try {
     const doc = await readDocument(options.fs, options.docPath);
-    const result = await runSuperintendent(doc, createTemplateContext(context));
+    const result = await runSuperintendent(
+      doc,
+      createTemplateContext(context),
+      buildRoleLogOptions(options.logDir, "superintendent")
+    );
     options.callbacks.onSuperintendentComplete?.(result);
     return result;
   } catch (error) {
     await restoreDocument(options.fs, options.docPath, snapshot);
     throw toError(error);
   }
+}
+
+function buildRoleLogOptions(
+  logDir: string | undefined,
+  role: string
+): { logDir?: string; logFileName?: string } {
+  if (!logDir) return {};
+  return { logDir, logFileName: makeRunLogFileName(role) };
 }
 
 function shouldContinueReview(doc: SuperintendentDoc): boolean {

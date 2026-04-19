@@ -15,7 +15,7 @@ export type DashboardStats = {
   currentAction?: string;
 };
 
-export type Command = "quit" | "forceQuit" | "edit" | "pause" | "retry";
+export type Command = "quit" | "forceQuit" | "edit" | "pause" | "retry" | "view-log";
 
 export type DashboardState = {
   output: OutputItem[];

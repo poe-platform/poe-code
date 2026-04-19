@@ -41,6 +41,8 @@ export interface AgentRunInput {
   cwd: string;
   model?: string;
   signal?: AbortSignal;
+  logDir?: string;
+  logFileName?: string;
 }
 
 export interface AgentRunResult {

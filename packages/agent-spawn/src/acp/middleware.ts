@@ -19,6 +19,7 @@ export interface SpawnContext {
   sessionId: string;
   agent: string;
   logDir?: string;
+  logFileName?: string;
   events: AcpEvent[];
   usage: SpawnUsage;
   eventStream?: AsyncIterable<AcpEvent>;

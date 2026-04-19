@@ -1114,6 +1114,7 @@ describe("footer", () => {
     expect(defaultHints()).toEqual([
       { key: "q", label: "Quit" },
       { key: "e", label: "Edit" },
+      { key: "l", label: "Log" },
       { key: "p", label: "Pause" },
       { key: "r", label: "Retry" }
     ]);
@@ -1178,6 +1179,7 @@ describe("keymap", () => {
 
     expect(resolve(key({ ch: "q" }))).toBe("quit");
     expect(resolve(key({ ch: "e" }))).toBe("edit");
+    expect(resolve(key({ ch: "l" }))).toBe("view-log");
     expect(resolve(key({ ch: "p" }))).toBe("pause");
     expect(resolve(key({ ch: "r" }))).toBe("retry");
   });

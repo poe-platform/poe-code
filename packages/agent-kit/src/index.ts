@@ -33,3 +33,9 @@ export {
   runDocumentWorkflowSequence,
   type DocumentWorkflowSequenceOptions
 } from "./sequence.js";
+export {
+  makeRunLogFileName,
+  resolveRunLogDir,
+  slugifyPlanPath,
+  type ResolveRunLogDirOptions
+} from "./run-logs.js";

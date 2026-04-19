@@ -500,18 +500,16 @@ describe("createRalphSimulation", () => {
       iterationsCompleted: 2
     });
     expect(prompts).toEqual(["Ship the change", "Ship the change"]);
-    expect(runs).toEqual([
-      {
+    expect(runs).toHaveLength(2);
+    for (const run of runs) {
+      expect(run).toMatchObject({
         agent: "codex",
         prompt: "Ship the change",
-        cwd: "/repo"
-      },
-      {
-        agent: "codex",
-        prompt: "Ship the change",
-        cwd: "/repo"
-      }
-    ]);
+        cwd: "/repo",
+        logDir: "/home/test/.poe-code/logs/ralph/plan"
+      });
+      expect(run.logFileName).toMatch(/^\d{8}-\d{6}-\d{3}-codex\.jsonl$/);
+    }
   });
 
   it("cycles agents round-robin across iterations", async () => {

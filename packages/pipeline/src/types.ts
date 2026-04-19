@@ -70,6 +70,7 @@ export interface AgentRunInput {
   mode: StepMode;
   cwd: string;
   logDir?: string;
+  logFileName?: string;
   model?: string;
   mcpServers?: McpSpawnConfig;
   signal?: AbortSignal;

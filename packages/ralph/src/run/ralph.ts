@@ -1,6 +1,8 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import {
+  makeRunLogFileName,
+  resolveRunLogDir,
   resolveWorkflowPath,
   runDocumentWorkflow
 } from "@poe-code/agent-kit";
@@ -45,6 +47,11 @@ export async function runRalph(
     options.cwd,
     options.homeDir
   );
+  const runLogDir = resolveRunLogDir({
+    planPath: absoluteDocPath,
+    runner: "ralph",
+    homeDir: options.homeDir
+  });
   const config = await resolveDocumentConfig(options, fs, absoluteDocPath);
   const startTime = Date.now();
   let iterationsCompleted = 0;
@@ -90,6 +97,8 @@ export async function runRalph(
             agent: specifier.agent,
             prompt: input.prompt,
             cwd: input.cwd,
+            logDir: runLogDir,
+            logFileName: makeRunLogFileName(specifier.agent),
             ...(specifier.model ?? input.model
               ? { model: specifier.model ?? input.model }
               : {}),

@@ -15,6 +15,8 @@ type AutonomousInput = {
   prompt: string;
   cwd?: string;
   mcpServers?: McpSpawnConfig;
+  logDir?: string;
+  logFileName?: string;
 };
 
 type AutonomousOutput =
@@ -37,6 +39,8 @@ type SpawnWithAutonomous = typeof spawn & {
 
 export type RunBuilderOptions = {
   promptOverride?: string;
+  logDir?: string;
+  logFileName?: string;
 };
 
 export async function runBuilder(
@@ -52,7 +56,9 @@ export async function runBuilder(
     mode: doc.frontmatter.builder.mode,
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.builder, doc.filePath),
-    mcpServers: buildMcpServers(doc)
+    mcpServers: buildMcpServers(doc),
+    ...(options.logDir ? { logDir: options.logDir } : {}),
+    ...(options.logFileName ? { logFileName: options.logFileName } : {})
   });
   const log = extractLog(result);
 
@@ -107,7 +113,9 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
       cwd: input.cwd,
       prompt: input.prompt,
       mode: input.mode,
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.logDir ? { logDir: input.logDir } : {}),
+      ...(input.logFileName ? { logFileName: input.logFileName } : {})
     });
   }
 
@@ -115,7 +123,9 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
     cwd: input.cwd,
     prompt: input.prompt,
     mode: input.mode as SpawnMode | undefined,
-    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+    ...(input.logDir ? { logDir: input.logDir } : {}),
+    ...(input.logFileName ? { logFileName: input.logFileName } : {})
   });
 
   return {

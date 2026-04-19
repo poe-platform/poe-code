@@ -1,7 +1,12 @@
 import { exec as execCallback } from "node:child_process";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
-import { lockWorkflow, resolveWorkflowPath } from "@poe-code/agent-kit";
+import {
+  lockWorkflow,
+  makeRunLogFileName,
+  resolveRunLogDir,
+  resolveWorkflowPath
+} from "@poe-code/agent-kit";
 import { resolve } from "@poe-code/config-extends";
 import {
   parseExperimentFrontmatterData,
@@ -250,6 +255,11 @@ export async function runExperimentLoop(
   }
 
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
+  const runLogDir = resolveRunLogDir({
+    planPath: absoluteDocPath,
+    runner: "experiment",
+    homeDir: options.homeDir
+  });
   const startTime = Date.now();
   let releaseLock: (() => Promise<void>) | undefined;
 
@@ -374,6 +384,10 @@ export async function runExperimentLoop(
           agent: currentSpecifier.agent,
           prompt,
           cwd: options.cwd,
+          logDir: runLogDir,
+          logFileName: makeRunLogFileName(
+            `experiment-${experimentIndex}-${currentSpecifier.agent}`
+          ),
           ...(model ? { model } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });

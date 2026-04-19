@@ -1,7 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
-import { lockWorkflow } from "@poe-code/agent-kit";
+import { lockWorkflow, makeRunLogFileName, resolveRunLogDir } from "@poe-code/agent-kit";
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";
@@ -128,6 +128,11 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     options.cwd,
     options.homeDir
   );
+  const runLogDir = options.logDir ?? resolveRunLogDir({
+    planPath: absolutePlanPath,
+    runner: "pipeline",
+    homeDir: options.homeDir
+  });
   if (options.onPlanResolved) {
     const content = await fs.readFile(absolutePlanPath, "utf8");
     const plan = parsePlan(content);
@@ -183,7 +188,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         prompt: phasePrompt,
         mode: phaseDef.mode,
         cwd: options.cwd,
-        logDir: options.logDir,
+        logDir: runLogDir,
+        logFileName: makeRunLogFileName(phase),
         ...((phaseDef.model ?? options.model) ? { model: phaseDef.model ?? options.model } : {}),
         ...(mcp ? { mcpServers: mcp } : {}),
         ...(options.signal ? { signal: options.signal } : {})
@@ -333,12 +339,16 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       let result: AgentRunResult;
       try {
+        const role = selection.stepName
+          ? `${selection.task.id}-${selection.stepName}`
+          : selection.task.id;
         result = await runAgent({
           agent,
           prompt,
           mode,
           cwd: options.cwd,
-          logDir: options.logDir,
+          logDir: runLogDir,
+          logFileName: makeRunLogFileName(role),
           ...(model ? { model } : {}),
           ...(plan.mcp ? { mcpServers: plan.mcp } : {}),
           ...(options.signal ? { signal: options.signal } : {})

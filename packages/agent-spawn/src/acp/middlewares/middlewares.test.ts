@@ -249,6 +249,34 @@ describe("acp/middlewares/spawnLog", () => {
     expect(lines.map((line) => JSON.parse(line))).toEqual(sourceEvents);
   });
 
+  it("honors ctx.logFileName over the auto-generated filename", async () => {
+    const sourceEvents: AcpEvent[] = [
+      { event: "agent_message", text: "custom filename" }
+    ];
+
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        for (const event of sourceEvents) {
+          yield event;
+        }
+      })();
+    };
+
+    const ctx = createContext({
+      agent: "codex",
+      logDir: "/tmp/spawn-logs",
+      logFileName: "20260320-123456-789-builder.jsonl",
+      startedAt: new Date("2026-03-20T12:34:56.789Z")
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    await collect(ctx.eventStream!);
+
+    const files = await fs.readdir("/tmp/spawn-logs");
+    expect(files).toEqual(["20260320-123456-789-builder.jsonl"]);
+    expect(ctx.logFile).toBe("/tmp/spawn-logs/20260320-123456-789-builder.jsonl");
+  });
+
   it("uses the default spawn log directory when ctx.logDir is missing", async () => {
     const sourceEvents: AcpEvent[] = [{ event: "agent_message", text: "default dir" }];
 

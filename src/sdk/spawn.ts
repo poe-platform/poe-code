@@ -166,6 +166,7 @@ export function spawn(
           sessionId: "unknown",
           agent: service,
           logDir: options.logDir,
+          logFileName: options.logFileName,
           events: [],
           usage: {
             inputTokens: 0,
@@ -224,6 +225,7 @@ export function spawn(
           sessionId: "unknown",
           agent: service,
           logDir: options.logDir,
+          logFileName: options.logFileName,
           events: [],
           usage: {
             inputTokens: 0,
@@ -270,6 +272,8 @@ export function spawn(
           ...(options.activityTimeoutMs !== undefined
             ? { activityTimeoutMs: options.activityTimeoutMs }
             : {}),
+          ...(options.logDir ? { logDir: options.logDir } : {}),
+          ...(options.logFileName ? { logFileName: options.logFileName } : {}),
           useStdin: options.useStdin ?? false
         });
       }

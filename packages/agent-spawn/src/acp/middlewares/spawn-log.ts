@@ -43,6 +43,9 @@ function resolveStartedAt(value: Date | undefined): Date {
 
 function resolveLogFilePath(ctx: SpawnContext): string {
   const baseDir = ctx.logDir ?? path.join(homedir(), ".poe-code", "spawn-logs");
+  if (ctx.logFileName) {
+    return path.join(baseDir, ctx.logFileName);
+  }
   const startedAt = resolveStartedAt(ctx.startedAt);
   const { day, time, milliseconds } = formatTimestamp(startedAt);
   const fileName = `${day}-${time}-${milliseconds}-${normalizeAgent(ctx.agent)}.jsonl`;

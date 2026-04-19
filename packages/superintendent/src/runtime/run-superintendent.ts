@@ -11,6 +11,7 @@ import { parseWorkflowCall, type WorkflowTransition } from "./workflow-tool.js";
 export type SuperintendentResult = {
   summary: string;
   transition?: WorkflowTransition;
+  log_path?: string;
 };
 
 type AutonomousInput = {
@@ -19,6 +20,8 @@ type AutonomousInput = {
   prompt: string;
   cwd?: string;
   mcpServers?: McpSpawnConfig;
+  logDir?: string;
+  logFileName?: string;
 };
 
 type ToolCallLike = {
@@ -40,6 +43,7 @@ type AutonomousOutput =
       text?: unknown;
       toolCalls?: unknown;
       sessionResult?: unknown;
+      logFile?: unknown;
     };
 
 type SpawnWithAutonomous = typeof spawn & {
@@ -54,9 +58,15 @@ const SUPERINTENDENT_TOOLS_SERVER_COMMAND = "poe-superintendent-mcp";
 const SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND = "superintendent-tools";
 const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
 
+export type RunSuperintendentOptions = {
+  logDir?: string;
+  logFileName?: string;
+};
+
 export async function runSuperintendent(
   doc: SuperintendentDoc,
-  context: Partial<TemplateContext>
+  context: Partial<TemplateContext>,
+  options: RunSuperintendentOptions = {}
 ): Promise<SuperintendentResult> {
   const userPrompt = resolveTemplate(
     doc.frontmatter.superintendent.prompt,
@@ -72,13 +82,17 @@ export async function runSuperintendent(
     mode: doc.frontmatter.superintendent.mode,
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.superintendent, doc.filePath),
-    mcpServers: buildMcpServers(doc)
+    mcpServers: buildMcpServers(doc),
+    ...(options.logDir ? { logDir: options.logDir } : {}),
+    ...(options.logFileName ? { logFileName: options.logFileName } : {})
   });
   const transition = extractTransition(result);
+  const logPath = extractLogPath(result);
 
   return {
     summary: extractSummary(result, transition),
-    ...(transition ? { transition } : {})
+    ...(transition ? { transition } : {}),
+    ...(logPath ? { log_path: logPath } : {})
   };
 }
 
@@ -142,7 +156,9 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
       cwd: input.cwd,
       prompt: input.prompt,
       mode: input.mode,
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.logDir ? { logDir: input.logDir } : {}),
+      ...(input.logFileName ? { logFileName: input.logFileName } : {})
     });
   }
 
@@ -150,12 +166,20 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
     cwd: input.cwd,
     prompt: input.prompt,
     mode: input.mode as SpawnMode | undefined,
-    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+    ...(input.logDir ? { logDir: input.logDir } : {}),
+    ...(input.logFileName ? { logFileName: input.logFileName } : {})
   });
 
   return {
-    stdout: result.stdout
+    stdout: result.stdout,
+    ...(result.logFile ? { logFile: result.logFile } : {})
   };
+}
+
+function extractLogPath(result: AutonomousOutput): string | undefined {
+  if (typeof result === "string") return undefined;
+  return typeof result.logFile === "string" ? result.logFile : undefined;
 }
 
 function extractTransition(result: AutonomousOutput): WorkflowTransition | undefined {

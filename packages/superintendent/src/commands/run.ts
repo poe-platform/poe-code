@@ -1,7 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
-import { discoverWorkflowDocs, resolveWorkflowPath } from "@poe-code/agent-kit";
+import { discoverWorkflowDocs, resolveRunLogDir, resolveWorkflowPath } from "@poe-code/agent-kit";
 import {
   allSpawnConfigs,
   getSpawnConfig,
@@ -92,6 +92,7 @@ type RunSession = {
   tokensIn: number;
   tokensOut: number;
   resumeWaiters: Array<() => void>;
+  latestLogFile?: string;
 };
 
 const runParams = S.Object({
@@ -246,6 +247,11 @@ export async function runSuperintendentCommand(
     fs,
     selectPrompt
   });
+  const runLogDir = resolveRunLogDir({
+    planPath: selectedDocPath,
+    runner: "superintendent",
+    homeDir: options.homeDir
+  });
   const document = parseSuperintendentDoc(selectedDocPath, await fs.readFile(selectedDocPath, "utf8"));
   const selectedBuilderAgent = await resolveBuilderAgent({
     document,
@@ -270,6 +276,7 @@ export async function runSuperintendentCommand(
       homeDir: options.homeDir,
       ...(options.fs ? { fs } : {}),
       signal: headlessAbort.signal,
+      logDir: runLogDir,
       callbacks: {
         onBuilderStart: () => {
           activeStage = "builder";
@@ -330,6 +337,7 @@ export async function runSuperintendentCommand(
       hints: [
         { key: "q", label: "Quit" },
         { key: "e", label: "Edit" },
+        { key: "l", label: "Log" },
         { key: "p", label: "Pause" },
         { key: "↑↓", label: "Scroll" },
         { key: "F", label: "Follow" }
@@ -373,9 +381,10 @@ export async function runSuperintendentCommand(
       appendEvent("status", "Builder starting");
       syncStats();
     },
-    onBuilderComplete: () => {
+    onBuilderComplete: (result) => {
       session.activeStage = undefined;
       session.currentAction = undefined;
+      if (result.log_path) session.latestLogFile = result.log_path;
       appendEvent("success", "Builder completed");
       syncStats();
     },
@@ -394,6 +403,7 @@ export async function runSuperintendentCommand(
     onInspectorComplete: (result) => {
       session.activeStage = undefined;
       session.currentAction = undefined;
+      if (result.log_path) session.latestLogFile = result.log_path;
       appendEvent("info", `Inspector ${result.name} completed`);
       syncStats();
     },
@@ -412,6 +422,7 @@ export async function runSuperintendentCommand(
     onSuperintendentComplete: (result) => {
       session.activeStage = undefined;
       session.currentAction = undefined;
+      if (result.log_path) session.latestLogFile = result.log_path;
       appendEvent(
         "info",
         result.transition?.action === "request_review"
@@ -429,6 +440,7 @@ export async function runSuperintendentCommand(
     onOwnerComplete: (result) => {
       session.activeStage = undefined;
       session.currentAction = undefined;
+      if (result.log_path) session.latestLogFile = result.log_path;
       appendEvent(
         result.transition.action === "approve_completion" ? "success" : "info",
         result.transition.action === "approve_completion"
@@ -521,6 +533,22 @@ export async function runSuperintendentCommand(
       appendEvent("info", "Plan reopened in $EDITOR");
       syncStats();
     }
+
+    if (command === "view-log") {
+      if (!session.latestLogFile) {
+        appendEvent("info", "No log file available yet");
+        syncStats();
+        return;
+      }
+
+      const editor = resolveEditor(env);
+      if (editor.mode === "tty") {
+        session.pauseRequested = true;
+      }
+      editPlan(session.dashboard, session.latestLogFile, env, options.openInEditor);
+      appendEvent("info", `Log opened: ${path.basename(session.latestLogFile)}`);
+      syncStats();
+    }
   };
 
   session.dashboard.onCommand(handleDashboardCommand);
@@ -545,6 +573,7 @@ export async function runSuperintendentCommand(
         ...(options.fs ? { fs } : {}),
         callbacks,
         signal: abortController.signal,
+        logDir: runLogDir,
         runAgent: createAgentRunner({
           session,
           executeAgent: options.executeAgent,

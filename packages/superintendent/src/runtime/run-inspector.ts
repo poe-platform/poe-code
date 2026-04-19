@@ -6,6 +6,7 @@ import { resolveTemplate, type TemplateContext } from "./templates.js";
 export type InspectorResult = {
   name: string;
   summary: string;
+  log_path?: string;
 };
 
 type AutonomousInput = {
@@ -14,6 +15,8 @@ type AutonomousInput = {
   prompt: string;
   cwd?: string;
   mcpServers?: McpSpawnConfig;
+  logDir?: string;
+  logFileName?: string;
 };
 
 type AutonomousOutput =
@@ -23,6 +26,7 @@ type AutonomousOutput =
       output?: unknown;
       stdout?: unknown;
       text?: unknown;
+      logFile?: unknown;
     };
 
 type SpawnWithAutonomous = typeof spawn & {
@@ -34,6 +38,8 @@ type SpawnWithAutonomous = typeof spawn & {
 
 export type RunInspectorOptions = {
   promptOverride?: string;
+  logDir?: string;
+  logFileName?: string;
 };
 
 export async function runInspector(
@@ -51,12 +57,16 @@ export async function runInspector(
     mode: config.mode,
     prompt,
     cwd: resolveRoleCwd(config, doc.filePath),
-    mcpServers: buildMcpServers(doc, config)
+    mcpServers: buildMcpServers(doc, config),
+    ...(options.logDir ? { logDir: options.logDir } : {}),
+    ...(options.logFileName ? { logFileName: options.logFileName } : {})
   });
 
+  const logPath = extractLogPath(output);
   return {
     name,
-    summary: extractSummary(output)
+    summary: extractSummary(output),
+    ...(logPath ? { log_path: logPath } : {})
   };
 }
 
@@ -133,7 +143,9 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
       cwd: input.cwd,
       prompt: input.prompt,
       mode: input.mode,
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.logDir ? { logDir: input.logDir } : {}),
+      ...(input.logFileName ? { logFileName: input.logFileName } : {})
     });
   }
 
@@ -141,12 +153,20 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
     cwd: input.cwd,
     prompt: input.prompt,
     mode: input.mode as SpawnMode | undefined,
-    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+    ...(input.logDir ? { logDir: input.logDir } : {}),
+    ...(input.logFileName ? { logFileName: input.logFileName } : {})
   });
 
   return {
-    stdout: result.stdout
+    stdout: result.stdout,
+    ...(result.logFile ? { logFile: result.logFile } : {})
   };
+}
+
+function extractLogPath(result: AutonomousOutput): string | undefined {
+  if (typeof result === "string") return undefined;
+  return typeof result.logFile === "string" ? result.logFile : undefined;
 }
 
 function extractSummary(result: AutonomousOutput): string {

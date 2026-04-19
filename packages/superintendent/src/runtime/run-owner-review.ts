@@ -16,6 +16,7 @@ type OwnerTransition = Extract<
 
 export type OwnerResult = {
   transition: OwnerTransition;
+  log_path?: string;
 };
 
 type AutonomousInput = {
@@ -24,6 +25,8 @@ type AutonomousInput = {
   prompt: string;
   cwd?: string;
   mcpServers?: McpSpawnConfig;
+  logDir?: string;
+  logFileName?: string;
 };
 
 type ToolCallLike = {
@@ -42,6 +45,7 @@ type AutonomousOutput =
       toolCalls?: unknown;
       sessionResult?: unknown;
       stdout?: unknown;
+      logFile?: unknown;
     };
 
 type SpawnWithAutonomous = typeof spawn & {
@@ -56,9 +60,15 @@ const WORKFLOW_SERVER_COMMAND = "poe-superintendent-mcp";
 const WORKFLOW_SERVER_SUBCOMMAND = "workflow-transition";
 const WORKFLOW_SERVER_TIMEOUT_SECONDS = 7200;
 
+export type RunOwnerReviewOptions = {
+  logDir?: string;
+  logFileName?: string;
+};
+
 export async function runOwnerReview(
   doc: SuperintendentDoc,
-  context: Partial<TemplateContext>
+  context: Partial<TemplateContext>,
+  options: RunOwnerReviewOptions = {}
 ): Promise<OwnerResult> {
   const userPrompt = resolveTemplate(
     doc.frontmatter.owner.prompt,
@@ -70,11 +80,15 @@ export async function runOwnerReview(
     mode: doc.frontmatter.owner.mode,
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.owner, doc.filePath),
-    mcpServers: buildMcpServers(doc)
+    mcpServers: buildMcpServers(doc),
+    ...(options.logDir ? { logDir: options.logDir } : {}),
+    ...(options.logFileName ? { logFileName: options.logFileName } : {})
   });
 
+  const logPath = extractLogPath(result);
   return {
-    transition: extractOwnerTransition(result)
+    transition: extractOwnerTransition(result),
+    ...(logPath ? { log_path: logPath } : {})
   };
 }
 
@@ -128,7 +142,9 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
       cwd: input.cwd,
       prompt: input.prompt,
       mode: input.mode,
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.logDir ? { logDir: input.logDir } : {}),
+      ...(input.logFileName ? { logFileName: input.logFileName } : {})
     });
   }
 
@@ -136,12 +152,20 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
     cwd: input.cwd,
     prompt: input.prompt,
     mode: input.mode as SpawnMode | undefined,
-    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {})
+    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+    ...(input.logDir ? { logDir: input.logDir } : {}),
+    ...(input.logFileName ? { logFileName: input.logFileName } : {})
   });
 
   return {
-    stdout: result.stdout
+    stdout: result.stdout,
+    ...(result.logFile ? { logFile: result.logFile } : {})
   };
+}
+
+function extractLogPath(result: AutonomousOutput): string | undefined {
+  if (typeof result === "string") return undefined;
+  return typeof result.logFile === "string" ? result.logFile : undefined;
 }
 
 function extractOwnerTransition(result: AutonomousOutput): OwnerTransition {

@@ -1,4 +1,6 @@
 import { spawn as spawnChildProcess } from "node:child_process";
+import { mkdirSync, openSync, writeSync, closeSync } from "node:fs";
+import path from "node:path";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
@@ -173,6 +175,9 @@ export async function spawn(
     return { stdout: "", stderr: "", exitCode: 0 };
   }
 
+  const logFilePath = resolveSpawnLogPath(options);
+  const logFd = logFilePath ? openSpawnLog(logFilePath) : undefined;
+
   const child = spawnChildProcess(binaryName, spawnArgs, {
     cwd: options.cwd,
     stdio: [stdinMode ? "pipe" : "inherit", "pipe", "pipe"],
@@ -231,6 +236,7 @@ export async function spawn(
       stdout += chunk;
       resetActivityTimer?.();
       if (options.tee?.stdout) options.tee.stdout.write(chunk);
+      appendSpawnLog(logFd, chunk);
     });
 
     stderrStream.setEncoding("utf8");
@@ -238,10 +244,12 @@ export async function spawn(
       stderr += chunk;
       resetActivityTimer?.();
       if (options.tee?.stderr) options.tee.stderr.write(chunk);
+      appendSpawnLog(logFd, chunk);
     });
 
     child.on("error", (error) => {
       cleanup();
+      closeSpawnLog(logFd);
       if (aborted) {
         reject(createAbortError());
         return;
@@ -251,6 +259,7 @@ export async function spawn(
 
     child.on("close", (code) => {
       cleanup();
+      closeSpawnLog(logFd);
       if (aborted) {
         reject(createAbortError());
         return;
@@ -262,8 +271,43 @@ export async function spawn(
       resolve({
         stdout,
         stderr,
-        exitCode: code ?? 1
+        exitCode: code ?? 1,
+        ...(logFilePath ? { logFile: logFilePath } : {})
       });
     });
   });
+}
+
+function resolveSpawnLogPath(options: SpawnOptions): string | undefined {
+  if (!options.logDir || !options.logFileName) {
+    return undefined;
+  }
+  return path.join(options.logDir, options.logFileName);
+}
+
+function openSpawnLog(filePath: string): number | undefined {
+  try {
+    mkdirSync(path.dirname(filePath), { recursive: true });
+    return openSync(filePath, "a");
+  } catch {
+    return undefined;
+  }
+}
+
+function appendSpawnLog(fd: number | undefined, chunk: string): void {
+  if (fd === undefined) return;
+  try {
+    writeSync(fd, chunk);
+  } catch {
+    // ignore — logging is best-effort
+  }
+}
+
+function closeSpawnLog(fd: number | undefined): void {
+  if (fd === undefined) return;
+  try {
+    closeSync(fd);
+  } catch {
+    // ignore
+  }
 }

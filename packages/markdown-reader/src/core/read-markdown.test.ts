@@ -141,6 +141,35 @@ describe("readMarkdown", () => {
     );
   });
 
+  it("preserves existing UserError instances from the filesystem dependency", async () => {
+    const wrappedError = new UserError("already wrapped");
+    const readMarkdown = createReadMarkdown({
+      fs: {
+        async readFile() {
+          throw wrappedError;
+        }
+      },
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "docs/already-wrapped.md" })).rejects.toBe(wrappedError);
+  });
+
+  it("stringifies non-Error filesystem failures into a UserError", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: {
+        async readFile() {
+          throw 123;
+        }
+      },
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "docs/non-error.md" })).rejects.toThrowError(
+      new UserError("123")
+    );
+  });
+
   it("throws a UserError when the frontmatter is malformed", async () => {
     const readMarkdown = createReadMarkdown({
       fs: createMemFs({

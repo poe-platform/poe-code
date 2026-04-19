@@ -41,6 +41,7 @@
     "headless"
   ],
   "dependencies": {
+    "@poe-code/cmdkit": "*",
     "@clack/prompts": "^1.0.0",
     "@resvg/resvg-js": "^2.6.2",
     "chalk": "^5.6.2",
@@ -50,10 +51,7 @@
     "jsonc-parser": "^3.3.1",
     "mustache": "^4.2.0",
     "node-pty": "^1.1.0",
-    "smol-toml": "^1.6.0"
-  },
-  "devDependencies": {
-    "@poe-code/cmdkit": "*",
+    "smol-toml": "^1.6.0",
     "terminal-pilot": "*"
   }
 }

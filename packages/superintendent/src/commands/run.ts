@@ -1,6 +1,6 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { spawnSync as nodeSpawnSync } from "node:child_process";
+import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
 import { discoverWorkflowDocs, resolveWorkflowPath } from "@poe-code/agent-kit";
 import {
   allSpawnConfigs,
@@ -513,6 +513,10 @@ export async function runSuperintendentCommand(
     }
 
     if (command === "edit") {
+      const editor = resolveEditor(env);
+      if (editor.mode === "tty") {
+        session.pauseRequested = true;
+      }
       editPlan(session.dashboard, selectedDocPath, env, options.openInEditor);
       appendEvent("info", "Plan reopened in $EDITOR");
       syncStats();
@@ -992,10 +996,17 @@ function editPlan(
   env: Record<string, string | undefined>,
   openInEditor: RunCommandOptions["openInEditor"]
 ): void {
-  dashboard.stop();
+  const editor = resolveEditor(env);
+  const open = openInEditor ?? openInEditorWithSystem;
 
+  if (editor.mode === "gui") {
+    open(absolutePath, env);
+    return;
+  }
+
+  dashboard.stop();
   try {
-    (openInEditor ?? openInEditorWithSystem)(absolutePath, env);
+    open(absolutePath, env);
   } finally {
     dashboard.start();
   }
@@ -1006,12 +1017,47 @@ function openInEditorWithSystem(
   env: Record<string, string | undefined>
 ): void {
   const editor = resolveEditor(env);
-  nodeSpawnSync(editor, [absolutePath], { stdio: "inherit" });
+  if (editor.mode === "gui") {
+    const child = nodeSpawn(editor.command, [...editor.args, absolutePath], {
+      stdio: "ignore",
+      detached: true
+    });
+    child.unref();
+    return;
+  }
+  nodeSpawnSync(editor.command, [...editor.args, absolutePath], { stdio: "inherit" });
 }
 
-function resolveEditor(env: Record<string, string | undefined>): string {
-  const editor = env.EDITOR?.trim() || env.VISUAL?.trim() || "vi";
-  return editor.length > 0 ? editor : "vi";
+type ResolvedEditor = {
+  command: string;
+  args: string[];
+  mode: "gui" | "tty";
+};
+
+const GUI_EDITOR_BINARIES = new Set([
+  "code",
+  "code-insiders",
+  "cursor",
+  "windsurf",
+  "subl"
+]);
+
+function resolveEditor(env: Record<string, string | undefined>): ResolvedEditor {
+  const raw = (env.EDITOR?.trim() || env.VISUAL?.trim() || "").trim();
+
+  if (raw.length === 0) {
+    if (env.TERM_PROGRAM === "vscode") {
+      return { command: "code", args: [], mode: "gui" };
+    }
+    return { command: "vi", args: [], mode: "tty" };
+  }
+
+  const parts = raw.split(/\s+/);
+  const command = parts[0] ?? "vi";
+  const args = parts.slice(1);
+  const binary = path.basename(command);
+  const mode: "gui" | "tty" = GUI_EDITOR_BINARIES.has(binary) ? "gui" : "tty";
+  return { command, args, mode };
 }
 
 function releaseWaiters(session: RunSession): void {

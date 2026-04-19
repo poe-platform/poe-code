@@ -569,80 +569,139 @@ describe("superintendent run command", () => {
     expect(callOrder.indexOf("destroy")).toBeLessThan(callOrder.indexOf("exit:130"));
   });
 
-  it("opens the plan in $EDITOR immediately on edit command without pausing the loop", async () => {
-    const docPath = "/repo/.poe-code/superintendent/plan.md";
-    const fs = createFs({
-      [docPath]: createDoc("claude-code")
+  describe("edit command", () => {
+    type EditHarness = {
+      commandHandler: () => (command: string) => void;
+      dashboardMock: ReturnType<typeof createDashboardMock>;
+      openInEditor: ReturnType<typeof vi.fn>;
+      shouldPause: () => boolean;
+      promise: Promise<unknown>;
+      finish: () => Promise<void>;
+    };
+
+    const setupEditHarness = async (env: Record<string, string | undefined>): Promise<EditHarness> => {
+      const docPath = "/repo/.poe-code/superintendent/plan.md";
+      const fs = createFs({ [docPath]: createDoc("claude-code") });
+
+      let capturedHandler: ((command: string) => void) | undefined;
+      const dashboardMock = createDashboardMock();
+      dashboardMock.onCommand.mockImplementation((handler: (command: string) => void) => {
+        capturedHandler = handler;
+      });
+
+      type LoopResult = {
+        state: "in_progress" | "review" | "completed";
+        round: number;
+        reviewTurn: number;
+        maxRounds: number;
+        maxReviewTurns: number;
+        stopReason: "completed";
+      };
+      let resolveLoop: (value: LoopResult) => void = () => {};
+      let capturedShouldPause: (() => boolean) | undefined;
+      const runLoopMock = vi.fn(
+        (options: { callbacks?: { shouldPause?: () => boolean } }) => {
+          capturedShouldPause = options.callbacks?.shouldPause;
+          return new Promise<LoopResult>((resolve) => { resolveLoop = resolve; });
+        }
+      );
+      const openInEditor = vi.fn();
+
+      const { runSuperintendentCommand } = await import("./run.js");
+      const promise = runSuperintendentCommand({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath,
+        builderAgent: "claude-code",
+        assumeYes: true,
+        interactive: true,
+        useDashboard: true,
+        fs,
+        createDashboard: () => dashboardMock.dashboard,
+        runLoop: runLoopMock,
+        now: () => 0,
+        setInterval: (() => 0) as typeof global.setInterval,
+        clearInterval: vi.fn(),
+        openInEditor,
+        env,
+        stderr: { write: () => true } as NodeJS.WritableStream
+      });
+
+      await new Promise((resolve) => setImmediate(resolve));
+
+      return {
+        commandHandler: () => {
+          if (!capturedHandler) throw new Error("command handler not registered");
+          return capturedHandler;
+        },
+        dashboardMock,
+        openInEditor,
+        shouldPause: () => {
+          if (!capturedShouldPause) throw new Error("shouldPause not captured");
+          return capturedShouldPause();
+        },
+        promise,
+        finish: async () => {
+          resolveLoop({
+            state: "completed",
+            round: 0,
+            reviewTurn: 0,
+            maxRounds: 100,
+            maxReviewTurns: 5,
+            stopReason: "completed"
+          });
+          await promise;
+        }
+      };
+    };
+
+    it("pauses the dashboard and the loop for a TTY editor and opens it immediately", async () => {
+      const docPath = "/repo/.poe-code/superintendent/plan.md";
+      const harness = await setupEditHarness({ EDITOR: "vi" });
+
+      expect(harness.shouldPause()).toBe(false);
+      harness.commandHandler()("edit");
+
+      expect(harness.openInEditor).toHaveBeenCalledWith(docPath, { EDITOR: "vi" });
+      expect(harness.dashboardMock.stop).toHaveBeenCalled();
+      expect(harness.dashboardMock.start).toHaveBeenCalled();
+      expect(harness.shouldPause()).toBe(true);
+      expect(harness.dashboardMock.appendOutput).not.toHaveBeenCalledWith(
+        expect.objectContaining({ text: expect.stringContaining("Edit requested after current agent") })
+      );
+      expect(harness.dashboardMock.appendOutput).toHaveBeenCalledWith(
+        expect.objectContaining({ text: expect.stringContaining("Plan reopened in $EDITOR") })
+      );
+
+      await harness.finish();
     });
 
-    let commandHandler: ((command: string) => void) | undefined;
-    const dashboardMock = createDashboardMock();
-    dashboardMock.onCommand.mockImplementation((handler: (command: string) => void) => {
-      commandHandler = handler;
+    it("leaves the dashboard and loop running when EDITOR is a GUI editor", async () => {
+      const docPath = "/repo/.poe-code/superintendent/plan.md";
+      const harness = await setupEditHarness({ EDITOR: "code --wait" });
+      harness.dashboardMock.stop.mockClear();
+
+      harness.commandHandler()("edit");
+
+      expect(harness.openInEditor).toHaveBeenCalledWith(docPath, { EDITOR: "code --wait" });
+      expect(harness.dashboardMock.stop).not.toHaveBeenCalled();
+      expect(harness.shouldPause()).toBe(false);
+
+      await harness.finish();
     });
 
-    let resolveLoop: (value: {
-      state: "in_progress" | "review" | "completed";
-      round: number;
-      reviewTurn: number;
-      maxRounds: number;
-      maxReviewTurns: number;
-      stopReason: "completed";
-    }) => void = () => {};
-    const runLoopMock = vi.fn(
-      () =>
-        new Promise<{
-          state: "in_progress" | "review" | "completed";
-          round: number;
-          reviewTurn: number;
-          maxRounds: number;
-          maxReviewTurns: number;
-          stopReason: "completed";
-        }>((resolve) => {
-          resolveLoop = resolve;
-        })
-    );
-    const openInEditor = vi.fn();
+    it("defaults to code (GUI) when running inside a VSCode terminal with no EDITOR", async () => {
+      const docPath = "/repo/.poe-code/superintendent/plan.md";
+      const harness = await setupEditHarness({ TERM_PROGRAM: "vscode" });
+      harness.dashboardMock.stop.mockClear();
 
-    const { runSuperintendentCommand } = await import("./run.js");
-    const promise = runSuperintendentCommand({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      docPath,
-      builderAgent: "claude-code",
-      assumeYes: true,
-      interactive: true,
-      useDashboard: true,
-      fs,
-      createDashboard: () => dashboardMock.dashboard,
-      runLoop: runLoopMock,
-      now: () => 0,
-      setInterval: (() => 0) as typeof global.setInterval,
-      clearInterval: vi.fn(),
-      openInEditor,
-      env: { EDITOR: "vi" },
-      stderr: { write: () => true } as NodeJS.WritableStream
+      harness.commandHandler()("edit");
+
+      expect(harness.openInEditor).toHaveBeenCalledWith(docPath, { TERM_PROGRAM: "vscode" });
+      expect(harness.dashboardMock.stop).not.toHaveBeenCalled();
+      expect(harness.shouldPause()).toBe(false);
+
+      await harness.finish();
     });
-
-    await new Promise((resolve) => setImmediate(resolve));
-    commandHandler?.("edit");
-
-    expect(openInEditor).toHaveBeenCalledWith(docPath, { EDITOR: "vi" });
-    expect(dashboardMock.appendOutput).not.toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining("Edit requested after current agent") })
-    );
-    expect(dashboardMock.appendOutput).toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining("Plan reopened in $EDITOR") })
-    );
-
-    resolveLoop({
-      state: "completed",
-      round: 0,
-      reviewTurn: 0,
-      maxRounds: 100,
-      maxReviewTurns: 5,
-      stopReason: "completed"
-    });
-    await promise;
   });
 });

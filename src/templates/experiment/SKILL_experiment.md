@@ -9,30 +9,33 @@ Ask the user what they want to optimize, fix, or measure.
 
 ## Goal
 
-Create an experiment doc and metric script(s) for the autonomous experiment loop.
+Create an experiment doc in the shared plan directory and metric script(s) for the autonomous experiment loop.
 
 ## Steps
 
-1. Create an experiment doc at `.poe-code/experiments/<name>.md` with YAML frontmatter.
+1. Create an experiment doc at `docs/plans/<name>.md` with YAML frontmatter.
 2. Create metric script(s) that output a single number to stdout and add them as `metric:*` npm scripts in `package.json`.
 
 ## Frontmatter Format
 
 ```yaml
 ---
+kind: experiment
+version: 1
 agent: claude-code
 metric:
-  name: <metric-name>
+  name: <metric_name>
   script: <full command to run in cwd>
-  direction: minimize | maximize
+  direction: minimize | maximize | stable
   delta: <optional, acceptable variance from baseline>
 baseline: null
-status:
-  state: open
-  experiment: 0
-  kept: 0
+# Optional:
+# max_experiments: 10
+# metric_timeout: 120
 ---
 ```
+
+Use snake_case for frontmatter fields. Do **not** write runtime state like `status` into the document frontmatter — the journal sidecar is authoritative.
 
 To pin a specific model, use the agent specifier notation `agent:provider/model`:
 
@@ -121,11 +124,15 @@ console.log(stdout.trim());
 ## Rules
 
 - Each metric script must be idempotent and self-contained.
+- Experiment docs live in `docs/plans/<name>.md` by default.
+- Frontmatter fields are snake_case only.
 - Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better, `direction: stable` when the value must not change.
 - Use `delta` to allow variance. Without delta, comparisons are strict (must improve or stay equal). With `delta: 5`, a regression up to 5 is tolerated for minimize/maximize, and stable accepts ±5 drift.
 - Metric scripts must output raw values, not pass/fail — the loop handles baseline comparison.
 - The `baseline` field starts as `null` — the loop measures it automatically before the first experiment.
-- Do not add `maxExperiments` to the frontmatter unless the user explicitly requests a limit. The loop defaults to unlimited.
+- Do not add `max_experiments` to the frontmatter unless the user explicitly requests a limit. The loop defaults to unlimited.
+- Use `metric_timeout` if the user wants to override the default metric timeout.
+- Do not write `status` in frontmatter. Runtime progress belongs in the journal file, not the plan doc.
 
 ## After Writing
 
@@ -142,12 +149,12 @@ console.log(stdout.trim());
 
 ```text
 Created:
-  .poe-code/experiments/<name>.md
+  docs/plans/<name>.md
   scripts/metric-<name>.mjs  (if needed)
 
 Verification (3 runs):
   metric:<name>  →  42, 43, 42  (variance: 0.3)  ✓ stable
 
 Run with:
-  poe-code experiment run .poe-code/experiments/<name>.md
+  poe-code experiment run docs/plans/<name>.md
 ```

@@ -11,13 +11,12 @@ Ask the user for a one-sentence description of what they want to build.
 
 Write a markdown pipeline plan with YAML frontmatter. Before writing, determine where to place it:
 
-1. Run `poe-code pipeline plan-path` to get the plans directory.
-2. Write the plan to `<plan-path>/plan-<name>.md`. If the plan path is under the global `~/.poe-code` directory, prefix the filename with the project name: `plan-<project>-<name>.md`.
-3. Find the `steps.yaml` file. Check these locations in order and use the first one found:
+1. Write the plan to `docs/plans/plan-<name>.md` by default.
+2. Find the `steps.yaml` file. Check these locations in order and use the first one found:
    a. `<project-root>/.poe-code/pipeline/steps.yaml` (project-level)
    b. `~/.poe-code/pipeline/steps.yaml` (user-global)
    If found, read it to determine available steps and note any `setup`/`teardown` hooks defined there. If not found in either location, use stepless tasks.
-4. Decide what belongs in the markdown body. If the user already has a Markdown design/context doc (for example in `docs/plans/`), use that content as the plan body when it makes sense. If they want to keep the source doc separate, link it via `vars` so it is available in every prompt without repeating the path.
+3. Decide what belongs in the markdown body. If the user already has a Markdown design/context doc (for example in `docs/plans/`), use that content as the plan body when it makes sense. If they want to keep the source doc separate, link it via `vars` so it is available in every prompt without repeating the path.
 
 ## Rules
 
@@ -36,11 +35,15 @@ Write a markdown pipeline plan with YAML frontmatter. Before writing, determine 
 - Each var name becomes a double-curly-brace placeholder usable in any task, step, setup, or teardown prompt.
 - The markdown body is for context, notes, acceptance criteria, or the design doc. Keep executable pipeline config in the YAML frontmatter.
 - Do not rely on the body alone for runtime context. Each task prompt must still include everything it needs directly or via `vars` placeholders.
+- Start the frontmatter with canonical metadata: `kind: pipeline` and `version: 1`.
 
 ## Output Format
 
 ```markdown
 ---
+kind: pipeline
+version: 1
+
 # vars: optional. Define named values available as double-curly-brace placeholders in every prompt.
 # Each value is a plain string. To load a file at runtime, write the value using the
 # file include syntax: double-curly-brace file followed by a quoted path.

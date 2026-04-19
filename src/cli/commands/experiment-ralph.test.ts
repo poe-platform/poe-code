@@ -1235,6 +1235,14 @@ describe("experiment install command", () => {
     isCancelMock.mockReturnValue(false);
   });
 
+  it("ships shared docs/plans instructions with canonical experiment frontmatter", () => {
+    expect(experimentSkillPlan).toContain("docs/plans/<name>.md");
+    expect(experimentSkillPlan).toContain("kind: experiment");
+    expect(experimentSkillPlan).toContain("version: 1");
+    expect(experimentSkillPlan).toContain("max_experiments");
+    expect(experimentSkillPlan).toContain("metric_timeout");
+  });
+
   it("installs the experiment skill and scaffolds local experiments directory", async () => {
     const fs = createMemFs();
     const container = createCliContainer({

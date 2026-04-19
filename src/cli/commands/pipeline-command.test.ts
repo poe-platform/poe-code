@@ -1601,8 +1601,9 @@ describe("pipeline install command", () => {
   it("ships markdown frontmatter instructions in the pipeline skill template", () => {
     expect(pipelineSkillPlan).toContain("Generate a Pipeline plan markdown file");
     expect(pipelineSkillPlan).toContain("Write a markdown pipeline plan with YAML frontmatter.");
-    expect(pipelineSkillPlan).toContain("`<plan-path>/plan-<name>.md`");
-    expect(pipelineSkillPlan).toContain("`plan-<project>-<name>.md`");
+    expect(pipelineSkillPlan).toContain("`docs/plans/plan-<name>.md`");
+    expect(pipelineSkillPlan).toContain("kind: pipeline");
+    expect(pipelineSkillPlan).toContain("version: 1");
     expect(pipelineSkillPlan).toContain("```markdown");
     expect(pipelineSkillPlan).toContain("# Context");
   });

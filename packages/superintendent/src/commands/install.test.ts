@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import { installCommand, type InstallResult } from "./install.js";
 
@@ -19,6 +20,15 @@ const renderPrimitives = {
 };
 
 describe("superintendent install command", () => {
+  it("ships canonical superintendent frontmatter instructions in the skill template", async () => {
+    const template = await readFile(new URL("../templates/SKILL_superintendent.md", import.meta.url), "utf8");
+
+    expect(template).toContain("docs/plans/<name>.md");
+    expect(template).toContain("$schema:");
+    expect(template).toContain("kind: superintendent");
+    expect(template).toContain("version: 1");
+  });
+
   it("has correct command shape", () => {
     expect(installCommand.name).toBe("install");
     expect(installCommand.scope).toEqual(["cli", "sdk"]);

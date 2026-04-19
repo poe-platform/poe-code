@@ -270,7 +270,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: templates-default-docs-plans
     title: Harness templates default to docs/plans with canonical metadata
@@ -296,10 +296,10 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 ---
 
 ## Context

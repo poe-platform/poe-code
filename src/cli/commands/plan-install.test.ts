@@ -43,6 +43,13 @@ describe("plan install command", () => {
     vi.clearAllMocks();
   });
 
+  it("ships canonical metadata instructions in the generic plan skill template", () => {
+    expect(planSkillTemplate).toContain("Write `docs/plans/<name>.md`");
+    expect(planSkillTemplate).toContain("kind: plan");
+    expect(planSkillTemplate).toContain("version: 1");
+    expect(planSkillTemplate).toContain("```yaml");
+  });
+
   it("installs the plan skill locally for claude-code", async () => {
     const fs = createMemFs();
     const container = createCliContainer({

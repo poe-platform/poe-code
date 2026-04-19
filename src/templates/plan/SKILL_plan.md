@@ -9,7 +9,16 @@ Ask: "What do you want to build?"
 
 ## Goal
 
-Write `docs/plans/<name>.md` — five levels, each deeper than the last. `<name>` is kebab-case. If the session passed a `Plan directory:` line, use that instead.
+Write `docs/plans/<name>.md` as a generic plan doc — five levels, each deeper than the last. Start the document with canonical YAML frontmatter:
+
+```yaml
+---
+kind: plan
+version: 1
+---
+```
+
+`<name>` is kebab-case. If the session passed a `Plan directory:` line, use that directory instead of `docs/plans`.
 
 ## Chat vs document
 
@@ -71,6 +80,11 @@ Contracts + validation, aimed at autonomous execution.
 ## Output Format
 
 ```markdown
+---
+kind: plan
+version: 1
+---
+
 # <Feature name>
 
 One-line summary.
@@ -99,6 +113,7 @@ One-line summary.
 ## Rules
 
 - Plans go in the configured plan directory. Nowhere else.
+- Generic plan docs must start with `kind: plan` and `version: 1`.
 - Use the level headings verbatim.
 - Signatures and file lists only — no full implementations.
 - One-liner request → stop after level 1 and confirm, unless told to wing it.

@@ -11,6 +11,8 @@ Ask the user for a one-sentence description of what they want to build autonomou
 
 There is exactly **one plan document per feature**, at `docs/plans/<name>.md`. The superintendent frontmatter and Task Board live in that same file alongside the feature plan body.
 
+Use canonical frontmatter metadata at the top of the document:
+
 If `docs/plans/<name>.md` already exists (e.g. drafted by `/poe-code-plan`), augment it in place by adding the YAML frontmatter at the top and a `## Task Board` section at the bottom. Do not create a second file.
 
 ## Before Writing: Study Existing Plans
@@ -34,6 +36,7 @@ Role prompts are one line. Do not repeat anything that lives in `CLAUDE.md` (TDD
 
 ```yaml
 ---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json
 kind: superintendent
 version: 1
 
@@ -171,6 +174,7 @@ An inspector auto-runs each round only if its summary is referenced in the super
 ## Rules
 
 - One plan document per feature: `docs/plans/<name>.md`. Do not create a second file in `.poe-code/superintendent/`.
+- Superintendent docs must start with `$schema`, `kind: superintendent`, and `version: 1`.
 - Role prompts are one line where possible. Do not restate CLAUDE.md.
 - Do not link the plan path inside every prompt — `{{plan.path}}` is in the template context.
 - `builder`, `superintendent`, and `owner` roles are required. `inspectors` is optional.

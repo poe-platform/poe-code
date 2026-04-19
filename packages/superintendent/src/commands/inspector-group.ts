@@ -75,8 +75,10 @@ export const inspectorRunCommand = defineCommand({
     const content = await readDocument(params.path, fs);
     const document = parseSuperintendentDoc(params.path, content);
 
+    const defaultCwd = process.cwd();
+
     if (params.name === undefined) {
-      return runAllInspectors(document, {});
+      return runAllInspectors(document, {}, { defaultCwd });
     }
 
     const config = document.frontmatter.inspectors?.[params.name];
@@ -85,7 +87,7 @@ export const inspectorRunCommand = defineCommand({
       throw new UserError(`Inspector not found: ${params.name}`);
     }
 
-    return [await runInspector(params.name, config, document, {})];
+    return [await runInspector(params.name, config, document, {}, { defaultCwd })];
   },
   render: {
     rich: (result, { logger }) => {

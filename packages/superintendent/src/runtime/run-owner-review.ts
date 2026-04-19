@@ -61,6 +61,7 @@ const WORKFLOW_SERVER_SUBCOMMAND = "workflow-transition";
 const WORKFLOW_SERVER_TIMEOUT_SECONDS = 7200;
 
 export type RunOwnerReviewOptions = {
+  defaultCwd: string;
   logDir?: string;
   logFileName?: string;
 };
@@ -68,7 +69,7 @@ export type RunOwnerReviewOptions = {
 export async function runOwnerReview(
   doc: SuperintendentDoc,
   context: Partial<TemplateContext>,
-  options: RunOwnerReviewOptions = {}
+  options: RunOwnerReviewOptions
 ): Promise<OwnerResult> {
   const userPrompt = resolveTemplate(
     doc.frontmatter.owner.prompt,
@@ -79,7 +80,7 @@ export async function runOwnerReview(
     agent: doc.frontmatter.owner.agent,
     mode: doc.frontmatter.owner.mode,
     prompt,
-    cwd: resolveRoleCwd(doc.frontmatter.owner, doc.filePath),
+    cwd: resolveRoleCwd(doc.frontmatter.owner, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
     ...(options.logDir ? { logDir: options.logDir } : {}),
     ...(options.logFileName ? { logFileName: options.logFileName } : {})

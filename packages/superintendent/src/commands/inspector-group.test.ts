@@ -108,7 +108,8 @@ describe("superintendent inspector commands", () => {
 
     expect(runAllInspectorsMock).toHaveBeenCalledWith(
       expect.objectContaining({ filePath: path.resolve(targetPath) }),
-      {}
+      {},
+      { defaultCwd: process.cwd() }
     );
     expect(result).toEqual([
       { name: "code-quality", summary: "quality-ok" },
@@ -147,7 +148,8 @@ describe("superintendent inspector commands", () => {
         prompt: "Validate {{builder.log}}\n"
       }),
       expect.objectContaining({ filePath: path.resolve(targetPath) }),
-      {}
+      {},
+      { defaultCwd: process.cwd() }
     );
     expect(result).toEqual([{ name: "manual-qa", summary: "qa-ok" }]);
   });

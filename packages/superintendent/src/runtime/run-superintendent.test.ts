@@ -101,12 +101,15 @@ describe("runSuperintendent", () => {
         },
         {
           builder: {
-            summary: "Builder finished task 1"
+            summary: "Builder finished task 1",
+            log: "",
+            log_path: ""
           },
           owner: {
             feedback: "Needs one more pass"
           }
-        }
+        },
+        { defaultCwd: "/repo/docs/plans" }
       )
     ).resolves.toEqual({
       summary: "Continuing planning work"
@@ -134,7 +137,7 @@ describe("runSuperintendent", () => {
 
     const { runSuperintendent } = await import("./run-superintendent.js");
 
-    await expect(runSuperintendent(document, {})).resolves.toEqual({
+    await expect(runSuperintendent(document, {}, { defaultCwd: "/repo/docs/plans" })).resolves.toEqual({
       summary: "Still planning"
     });
   });
@@ -155,7 +158,8 @@ describe("runSuperintendent", () => {
           superintendent: { ...document.frontmatter.superintendent, cwd: "/other/workspace" }
         }
       },
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -178,7 +182,8 @@ describe("runSuperintendent", () => {
           }
         }
       },
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -198,7 +203,7 @@ describe("runSuperintendent", () => {
 
     const { runSuperintendent } = await import("./run-superintendent.js");
 
-    await expect(runSuperintendent(document, {})).resolves.toEqual({
+    await expect(runSuperintendent(document, {}, { defaultCwd: "/repo/docs/plans" })).resolves.toEqual({
       summary: "All planned work is complete",
       transition: {
         action: "request_review",
@@ -224,7 +229,7 @@ describe("runSuperintendent", () => {
 
     const { runSuperintendent } = await import("./run-superintendent.js");
 
-    await expect(runSuperintendent(document, {})).resolves.toEqual({
+    await expect(runSuperintendent(document, {}, { defaultCwd: "/repo/docs/plans" })).resolves.toEqual({
       summary: "Ready for owner review",
       transition: {
         action: "request_review",
@@ -238,7 +243,7 @@ describe("runSuperintendent", () => {
 
     const { runSuperintendent } = await import("./run-superintendent.js");
 
-    await expect(runSuperintendent(document, {})).resolves.toEqual({
+    await expect(runSuperintendent(document, {}, { defaultCwd: "/repo/docs/plans" })).resolves.toEqual({
       summary: "Continue with the next batch of tasks"
     });
   });
@@ -257,7 +262,7 @@ describe("runSuperintendent", () => {
 
     const { runSuperintendent } = await import("./run-superintendent.js");
 
-    await runSuperintendent(document, {});
+    await runSuperintendent(document, {}, { defaultCwd: "/repo/docs/plans" });
   });
 
   it("lists configured inspector names in the system prompt", async () => {
@@ -282,7 +287,8 @@ describe("runSuperintendent", () => {
           }
         }
       },
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -295,7 +301,7 @@ describe("runSuperintendent", () => {
 
     const { runSuperintendent } = await import("./run-superintendent.js");
 
-    await runSuperintendent(document, {});
+    await runSuperintendent(document, {}, { defaultCwd: "/repo/docs/plans" });
   });
 
 });

@@ -39,6 +39,7 @@ type SpawnWithAutonomous = typeof spawn & {
 
 export type RunBuilderOptions = {
   promptOverride?: string;
+  defaultCwd: string;
   logDir?: string;
   logFileName?: string;
 };
@@ -46,7 +47,7 @@ export type RunBuilderOptions = {
 export async function runBuilder(
   doc: SuperintendentDoc,
   context: Partial<TemplateContext>,
-  options: RunBuilderOptions = {}
+  options: RunBuilderOptions
 ): Promise<BuilderResult> {
   const prompt =
     options.promptOverride ??
@@ -55,7 +56,7 @@ export async function runBuilder(
     agent: doc.frontmatter.builder.agent,
     mode: doc.frontmatter.builder.mode,
     prompt,
-    cwd: resolveRoleCwd(doc.frontmatter.builder, doc.filePath),
+    cwd: resolveRoleCwd(doc.frontmatter.builder, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
     ...(options.logDir ? { logDir: options.logDir } : {}),
     ...(options.logFileName ? { logFileName: options.logFileName } : {})

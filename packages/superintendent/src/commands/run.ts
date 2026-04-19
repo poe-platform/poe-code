@@ -3,7 +3,6 @@ import * as fsPromises from "node:fs/promises";
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
 import { resolveRunLogDir, resolveWorkflowPath } from "@poe-code/agent-kit";
 import {
-  allSpawnConfigs,
   applyMiddlewares,
   getSpawnConfig,
   renderAcpStream,
@@ -56,7 +55,6 @@ export type RunCommandOptions = {
   cwd: string;
   homeDir: string;
   docPath?: string;
-  builderAgent?: string;
   planDirectory?: string;
   assumeYes?: boolean;
   interactive?: boolean;
@@ -106,7 +104,6 @@ type RunSession = {
 
 const runParams = S.Object({
   doc: S.Optional(S.String({ description: "Path to the superintendent markdown document" })),
-  agent: S.Optional(S.String({ description: "Override the builder agent" })),
   tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" }))
 });
 
@@ -126,7 +123,6 @@ export const runCommand = defineCommand({
       cwd,
       homeDir,
       docPath: params.doc,
-      builderAgent: params.agent,
       assumeYes: process.argv.includes("--yes"),
       interactive: Boolean(process.stdin.isTTY),
       useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
@@ -179,7 +175,6 @@ export const runMcpCommand = defineCommand({
       cwd,
       homeDir,
       docPath: params.doc,
-      builderAgent: params.agent,
       assumeYes: true,
       interactive: false,
       useDashboard: false,
@@ -293,17 +288,9 @@ export async function runSuperintendentCommand(
     runner: "superintendent",
     homeDir: options.homeDir
   });
-  const document = parseSuperintendentDoc(
-    selectedDocPath,
-    await fs.readFile(selectedDocPath, "utf8")
-  );
-  const selectedBuilderAgent = await resolveBuilderAgent({
-    document,
-    explicitAgent: options.builderAgent,
-    assumeYes,
-    interactive,
-    selectPrompt
-  });
+  const document = parseSuperintendentDoc(selectedDocPath, await fs.readFile(selectedDocPath, "utf8"));
+  const builderAgent = document.frontmatter.builder.agent;
+  const selectedBuilderAgent = resolveAgentId(builderAgent) ?? builderAgent;
 
   if (!useDashboard) {
     let activeStage: RunSession["activeStage"] = undefined;
@@ -799,49 +786,6 @@ function isMissingDirectory(error: unknown): boolean {
   }
   const code = (error as { code?: unknown }).code;
   return code === "ENOENT" || code === "ENOTDIR";
-}
-
-async function resolveBuilderAgent(options: {
-  document: ReturnType<typeof parseSuperintendentDoc>;
-  explicitAgent?: string;
-  assumeYes: boolean;
-  interactive: boolean;
-  selectPrompt: typeof select;
-}): Promise<string> {
-  if (options.explicitAgent) {
-    return resolveAgentId(options.explicitAgent) ?? options.explicitAgent;
-  }
-
-  const defaultAgent =
-    resolveAgentId(options.document.frontmatter.builder.agent) ??
-    options.document.frontmatter.builder.agent;
-
-  if (options.assumeYes || !options.interactive) {
-    return defaultAgent;
-  }
-
-  const agents = listSelectableAgents(defaultAgent);
-  const selected = await options.selectPrompt({
-    message: "Select builder agent",
-    options: agents.map((agent) => ({ label: agent, value: agent })),
-    initialValue: defaultAgent
-  });
-
-  if (isCancel(selected)) {
-    cancel("Operation cancelled.");
-    throw new UserError("Operation cancelled.");
-  }
-
-  return resolveAgentId(selected) ?? selected;
-}
-
-function listSelectableAgents(defaultAgent: string): string[] {
-  const available = new Set<string>([
-    ...allSpawnConfigs.map((config) => config.agentId),
-    defaultAgent
-  ]);
-
-  return [...available].sort((left, right) => left.localeCompare(right));
 }
 
 function createAgentRunner(options: {

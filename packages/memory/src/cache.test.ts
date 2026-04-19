@@ -1,0 +1,166 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { vol } from "memfs";
+
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return fs.promises;
+});
+
+const { clearCache, computeIngestKey, readCacheEntry, writeCacheEntry } = await import("./cache.js");
+
+const baseEntry = {
+  key: "abc123",
+  ingestedAt: "2026-04-19T10:00:00.000Z",
+  sourceLabel: "docs/memory.md",
+  diff: {
+    created: ["pages/new-page.md"],
+    updated: ["pages/architecture.md"],
+    deleted: []
+  },
+  exitCode: 0,
+  durationMs: 1234,
+  memoryTokens: 120,
+  sourceTokens: 840,
+  promptTemplateVersion: "v1",
+  agentId: "claude-code@1.2.3"
+} as const;
+
+describe("computeIngestKey", () => {
+  it("is deterministic and separates each cache-key component", () => {
+    const left = computeIngestKey({
+      sourceBytes: Buffer.from("ab"),
+      indexMdBytes: Buffer.from("c"),
+      promptTemplateVersion: "d",
+      agentId: "e"
+    });
+
+    const right = computeIngestKey({
+      sourceBytes: Buffer.from("a"),
+      indexMdBytes: Buffer.from("bc"),
+      promptTemplateVersion: "d",
+      agentId: "e"
+    });
+
+    expect(left).toHaveLength(64);
+    expect(left).toMatch(/^[0-9a-f]{64}$/);
+    expect(
+      computeIngestKey({
+        sourceBytes: Buffer.from("ab"),
+        indexMdBytes: Buffer.from("c"),
+        promptTemplateVersion: "d",
+        agentId: "e"
+      })
+    ).toBe(left);
+    expect(right).not.toBe(left);
+  });
+});
+
+describe("readCacheEntry and writeCacheEntry", () => {
+  beforeEach(() => {
+    vol.reset();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("writes a cache entry into the ingest cache directory and reads it back", async () => {
+    await writeCacheEntry("/repo/.poe-code/memory", baseEntry);
+
+    await expect(
+      vol.promises.readFile("/repo/.poe-code/memory/.cache/ingest/abc123.json", "utf8")
+    ).resolves.toContain('"sourceLabel":"docs/memory.md"');
+
+    await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).resolves.toEqual(baseEntry);
+  });
+
+  it("returns null when the cache entry does not exist", async () => {
+    await expect(readCacheEntry("/repo/.poe-code/memory", "missing")).resolves.toBeNull();
+  });
+
+  it("returns null and warns when the cache entry JSON is malformed", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/bad.json": "{not valid json"
+    });
+
+    await expect(readCacheEntry("/repo/.poe-code/memory", "bad")).resolves.toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      'Ignoring ingest cache entry "bad": Expected property name or \'}\' in JSON at position 1 (line 1 column 2)'
+    );
+  });
+
+  it("returns null and warns when the cache entry shape is invalid", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/bad-shape.json": JSON.stringify({
+        key: "bad-shape",
+        diff: { created: [], updated: [], deleted: [] }
+      })
+    });
+
+    await expect(readCacheEntry("/repo/.poe-code/memory", "bad-shape")).resolves.toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      'Ignoring ingest cache entry "bad-shape": Expected string at "ingestedAt".'
+    );
+  });
+});
+
+describe("clearCache", () => {
+  beforeEach(() => {
+    vol.reset();
+    vi.setSystemTime(new Date("2026-04-19T12:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("returns zero when the cache directory does not exist", async () => {
+    await expect(clearCache("/repo/.poe-code/memory")).resolves.toEqual({ removed: 0 });
+  });
+
+  it("removes the whole cache directory when no age filter is provided", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/first.json": JSON.stringify(baseEntry),
+      "/repo/.poe-code/memory/.cache/ingest/second.json": JSON.stringify({
+        ...baseEntry,
+        key: "second"
+      })
+    });
+
+    await expect(clearCache("/repo/.poe-code/memory")).resolves.toEqual({ removed: 2 });
+    await expect(vol.promises.stat("/repo/.poe-code/memory/.cache")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("removes only entries older than the requested age", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/old.json": JSON.stringify({
+        ...baseEntry,
+        key: "old",
+        ingestedAt: "2026-04-19T09:00:00.000Z"
+      }),
+      "/repo/.poe-code/memory/.cache/ingest/new.json": JSON.stringify({
+        ...baseEntry,
+        key: "new",
+        ingestedAt: "2026-04-19T11:30:00.000Z"
+      })
+    });
+
+    await expect(clearCache("/repo/.poe-code/memory", { olderThanMs: 60 * 60 * 1000 })).resolves.toEqual({
+      removed: 1
+    });
+
+    await expect(vol.promises.stat("/repo/.poe-code/memory/.cache/ingest/old.json")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(vol.promises.readFile("/repo/.poe-code/memory/.cache/ingest/new.json", "utf8")).resolves.toContain(
+      '"key":"new"'
+    );
+  });
+});

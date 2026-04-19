@@ -109,7 +109,10 @@ function registerBuilderTool(server: Server, docPath: string): void {
   server.tool(tool.name, tool.description, tool.inputSchema, async (input) => {
     const { prompt } = parseBuilderRunInput(input);
     const freshDoc = await readSuperintendentDoc(docPath);
-    const result = await runBuilder(freshDoc, {}, { promptOverride: prompt });
+    const result = await runBuilder(freshDoc, {}, {
+      promptOverride: prompt,
+      defaultCwd: process.cwd()
+    });
     return JSON.stringify(result);
   });
 }
@@ -135,7 +138,10 @@ function registerInspectorTool(
       config,
       freshDoc,
       {},
-      parsed.prompt ? { promptOverride: parsed.prompt } : {}
+      {
+        defaultCwd: process.cwd(),
+        ...(parsed.prompt ? { promptOverride: parsed.prompt } : {})
+      }
     );
     return JSON.stringify(result);
   });

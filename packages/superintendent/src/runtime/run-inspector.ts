@@ -38,6 +38,7 @@ type SpawnWithAutonomous = typeof spawn & {
 
 export type RunInspectorOptions = {
   promptOverride?: string;
+  defaultCwd: string;
   logDir?: string;
   logFileName?: string;
 };
@@ -47,7 +48,7 @@ export async function runInspector(
   config: AgentRoleConfig,
   doc: SuperintendentDoc,
   context: Partial<TemplateContext>,
-  options: RunInspectorOptions = {}
+  options: RunInspectorOptions
 ): Promise<InspectorResult> {
   const prompt =
     options.promptOverride ??
@@ -56,7 +57,7 @@ export async function runInspector(
     agent: config.agent,
     mode: config.mode,
     prompt,
-    cwd: resolveRoleCwd(config, doc.filePath),
+    cwd: resolveRoleCwd(config, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc, config),
     ...(options.logDir ? { logDir: options.logDir } : {}),
     ...(options.logFileName ? { logFileName: options.logFileName } : {})
@@ -98,7 +99,8 @@ function buildMcpServers(
 
 export async function runAllInspectors(
   doc: SuperintendentDoc,
-  context: Partial<TemplateContext>
+  context: Partial<TemplateContext>,
+  options: { defaultCwd: string }
 ): Promise<InspectorResult[]> {
   const inspectors = doc.frontmatter.inspectors;
 
@@ -110,10 +112,16 @@ export async function runAllInspectors(
   const results: InspectorResult[] = [];
 
   for (const [name, config] of Object.entries(inspectors)) {
-    const result = await runInspector(name, config, doc, {
-      ...context,
-      inspectors: inspectorSummaries
-    });
+    const result = await runInspector(
+      name,
+      config,
+      doc,
+      {
+        ...context,
+        inspectors: inspectorSummaries
+      },
+      options
+    );
 
     results.push(result);
     inspectorSummaries[name] = result.summary;

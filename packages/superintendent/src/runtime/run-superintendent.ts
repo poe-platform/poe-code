@@ -59,6 +59,7 @@ const SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND = "superintendent-tools";
 const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
 
 export type RunSuperintendentOptions = {
+  defaultCwd: string;
   logDir?: string;
   logFileName?: string;
 };
@@ -66,7 +67,7 @@ export type RunSuperintendentOptions = {
 export async function runSuperintendent(
   doc: SuperintendentDoc,
   context: Partial<TemplateContext>,
-  options: RunSuperintendentOptions = {}
+  options: RunSuperintendentOptions
 ): Promise<SuperintendentResult> {
   const userPrompt = resolveTemplate(
     doc.frontmatter.superintendent.prompt,
@@ -81,7 +82,7 @@ export async function runSuperintendent(
     agent: doc.frontmatter.superintendent.agent,
     mode: doc.frontmatter.superintendent.mode,
     prompt,
-    cwd: resolveRoleCwd(doc.frontmatter.superintendent, doc.filePath),
+    cwd: resolveRoleCwd(doc.frontmatter.superintendent, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
     ...(options.logDir ? { logDir: options.logDir } : {}),
     ...(options.logFileName ? { logFileName: options.logFileName } : {})

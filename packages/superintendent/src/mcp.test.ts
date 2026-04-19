@@ -224,7 +224,8 @@ describe("superintendent MCP entry point", () => {
     expect(readFileMock).toHaveBeenCalledWith(PAYLOAD.docPath, "utf8");
     expect(parseSuperintendentDocMock).toHaveBeenCalledWith(PAYLOAD.docPath, "doc-content");
     expect(runBuilderMock).toHaveBeenCalledWith(freshDoc, {}, {
-      promptOverride: "Fix the failing test in foo.test.ts"
+      promptOverride: "Fix the failing test in foo.test.ts",
+      defaultCwd: process.cwd()
     });
     expect(result).toBe(
       JSON.stringify({ summary: "Builder summary", log: "log", log_path: "/tmp/builder.jsonl" })
@@ -271,7 +272,10 @@ describe("superintendent MCP entry point", () => {
       inspectorConfig,
       freshDoc,
       {},
-      { promptOverride: "Re-check after the latest fix" }
+      {
+        defaultCwd: process.cwd(),
+        promptOverride: "Re-check after the latest fix"
+      }
     );
     expect(result).toBe(JSON.stringify({ name: "code-quality", summary: "Looks good" }));
   });

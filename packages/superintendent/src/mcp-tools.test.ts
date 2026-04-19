@@ -199,14 +199,13 @@ describe("superintendent MCP tool surface", () => {
           await client.callTool({
             name: "superintendent__run",
             arguments: {
-              doc: documentPath,
-              agent: "codex"
+              doc: documentPath
             }
           })
         )
       ).toEqual({
         docPath: documentPath,
-        builderAgent: "codex",
+        builderAgent: "claude-code",
         state: "completed",
         round: 1,
         reviewTurn: 0,

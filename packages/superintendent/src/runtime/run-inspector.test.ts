@@ -84,7 +84,8 @@ describe("runInspector", () => {
             summary: "Builder finished task 1",
             log: "Changed files"
           }
-        }
+        },
+        { defaultCwd: "/repo/docs/plans" }
       )
     ).resolves.toEqual({
       name: "code-quality",
@@ -105,7 +106,8 @@ describe("runInspector", () => {
           prompt: ""
         },
         document,
-        {}
+        {},
+        { defaultCwd: "/repo" }
       )
     ).rejects.toThrow("inspector failed");
   });
@@ -126,7 +128,8 @@ describe("runInspector", () => {
         prompt: "noop"
       },
       document,
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -146,7 +149,8 @@ describe("runInspector", () => {
         prompt: "noop"
       },
       document,
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -166,7 +170,7 @@ describe("runInspector", () => {
       },
       document,
       {},
-      { promptOverride: "Re-check after the latest fix" }
+      { defaultCwd: "/repo", promptOverride: "Re-check after the latest fix" }
     );
 
     expect(autonomousMock).toHaveBeenCalledTimes(1);
@@ -199,12 +203,16 @@ describe("runAllInspectors", () => {
     );
 
     const { runAllInspectors } = await import("./run-inspector.js");
-    const runPromise = runAllInspectors(document, {
-      builder: {
-        summary: "Builder finished task 1",
-        log: "Changed files"
-      }
-    });
+    const runPromise = runAllInspectors(
+      document,
+      {
+        builder: {
+          summary: "Builder finished task 1",
+          log: "Changed files"
+        }
+      },
+      { defaultCwd: "/repo" }
+    );
 
     await vi.waitFor(() => {
       expect(calls).toEqual(["start:codex"]);
@@ -241,12 +249,16 @@ describe("runAllInspectors", () => {
     const { runAllInspectors } = await import("./run-inspector.js");
 
     await expect(
-      runAllInspectors(document, {
-        builder: {
-          summary: "Builder finished task 1",
-          log: "Changed files"
-        }
-      })
+      runAllInspectors(
+        document,
+        {
+          builder: {
+            summary: "Builder finished task 1",
+            log: "Changed files"
+          }
+        },
+        { defaultCwd: "/repo" }
+      )
     ).resolves.toEqual([
       { name: "code-quality", summary: "quality-ok" },
       { name: "manual-qa", summary: "qa-ok" }
@@ -265,7 +277,8 @@ describe("runAllInspectors", () => {
             inspectors: undefined
           }
         },
-        {}
+        {},
+        { defaultCwd: "/repo" }
       )
     ).resolves.toEqual([]);
     expect(autonomousMock).not.toHaveBeenCalled();

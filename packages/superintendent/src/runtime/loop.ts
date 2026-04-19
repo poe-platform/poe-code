@@ -173,7 +173,7 @@ export async function runLoop(
             builderResult = await runBuilder(
               await readDocument(options.fs, options.docPath),
               createTemplateContext(context),
-              buildRoleLogOptions(options.logDir, "builder")
+              buildRoleOptions(options, "builder")
             );
           } catch (error) {
             await restoreDocument(options.fs, options.docPath, roundSnapshot);
@@ -214,7 +214,7 @@ export async function runLoop(
                 config,
                 await readDocument(options.fs, options.docPath),
                 createTemplateContext(context),
-                buildRoleLogOptions(options.logDir, `inspector-${name}`)
+                buildRoleOptions(options, `inspector-${name}`)
               );
             } catch (error) {
               await restoreDocument(options.fs, options.docPath, inspectorSnapshot);
@@ -329,7 +329,7 @@ export async function runLoop(
           ownerResult = await runOwnerReview(
             await readDocument(options.fs, options.docPath),
             createTemplateContext(context),
-            buildRoleLogOptions(options.logDir, "owner")
+            buildRoleOptions(options, "owner")
           );
         } catch (error) {
           await restoreDocument(options.fs, options.docPath, ownerSnapshot);
@@ -544,7 +544,7 @@ async function executeSuperintendent(
     const result = await runSuperintendent(
       doc,
       createTemplateContext(context),
-      buildRoleLogOptions(options.logDir, "superintendent")
+      buildRoleOptions(options, "superintendent")
     );
     options.callbacks.onSuperintendentComplete?.(result);
     return result;
@@ -554,12 +554,18 @@ async function executeSuperintendent(
   }
 }
 
-function buildRoleLogOptions(
-  logDir: string | undefined,
+function buildRoleOptions(
+  options: LoopRuntime,
   role: string
-): { logDir?: string; logFileName?: string } {
-  if (!logDir) return {};
-  return { logDir, logFileName: makeRunLogFileName(role) };
+): { defaultCwd: string; logDir?: string; logFileName?: string } {
+  const base: { defaultCwd: string; logDir?: string; logFileName?: string } = {
+    defaultCwd: options.cwd
+  };
+  if (options.logDir) {
+    base.logDir = options.logDir;
+    base.logFileName = makeRunLogFileName(role);
+  }
+  return base;
 }
 
 function shouldContinueReview(doc: SuperintendentDoc): boolean {

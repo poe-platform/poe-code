@@ -97,11 +97,15 @@ describe("runOwnerReview", () => {
     const { runOwnerReview } = await import("./run-owner-review.js");
 
     await expect(
-      runOwnerReview(document, {
-        superintendent: {
-          summary: "Superintendent says the board is complete"
-        }
-      })
+      runOwnerReview(
+        document,
+        {
+          superintendent: {
+            summary: "Superintendent says the board is complete"
+          }
+        },
+        { defaultCwd: "/repo/docs/plans" }
+      )
     ).resolves.toEqual({
       transition: {
         action: "approve_completion"
@@ -129,7 +133,8 @@ describe("runOwnerReview", () => {
           owner: { ...document.frontmatter.owner, cwd: "/other/workspace" }
         }
       },
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -153,7 +158,8 @@ describe("runOwnerReview", () => {
           owner: { ...document.frontmatter.owner, cwd: "../../packages/agent-kit" }
         }
       },
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -176,11 +182,11 @@ describe("runOwnerReview", () => {
     const { runOwnerReview } = await import("./run-owner-review.js");
 
     await expect(
-      runOwnerReview(document, {
-        superintendent: {
-          summary: "Ready"
-        }
-      })
+      runOwnerReview(
+        document,
+        { superintendent: { summary: "Ready" } },
+        { defaultCwd: "/repo/docs/plans" }
+      )
     ).resolves.toEqual({
       transition: {
         action: "approve_completion"
@@ -212,7 +218,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await expect(runOwnerReview(documentWithMcpTimeout, {})).resolves.toEqual({
+    await expect(runOwnerReview(documentWithMcpTimeout, {}, { defaultCwd: "/repo/docs/plans" })).resolves.toEqual({
       transition: {
         action: "approve_completion"
       }
@@ -233,7 +239,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await runOwnerReview(document, {});
+    await runOwnerReview(document, {}, { defaultCwd: "/repo/docs/plans" });
   });
 
   it("returns approve_completion when the owner calls the workflow tool", async () => {
@@ -252,7 +258,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await expect(runOwnerReview(document, {})).resolves.toEqual({
+    await expect(runOwnerReview(document, {}, { defaultCwd: "/repo/docs/plans" })).resolves.toEqual({
       transition: {
         action: "approve_completion"
       }
@@ -274,7 +280,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await expect(runOwnerReview(document, {})).resolves.toEqual({
+    await expect(runOwnerReview(document, {}, { defaultCwd: "/repo/docs/plans" })).resolves.toEqual({
       transition: {
         action: "request_changes",
         feedback: "Task 2 is not done"
@@ -293,7 +299,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await expect(runOwnerReview(document, {})).rejects.toThrow(
+    await expect(runOwnerReview(document, {}, { defaultCwd: "/repo/docs/plans" })).rejects.toThrow(
       "Owner review must end with workflow_transition"
     );
   });
@@ -309,7 +315,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await expect(runOwnerReview(document, {})).rejects.toThrow(
+    await expect(runOwnerReview(document, {}, { defaultCwd: "/repo/docs/plans" })).rejects.toThrow(
       /Owner review must end with workflow_transition\. Observed tool calls: Read, Bash\. See spawn log: \/tmp\/logs\/owner\.jsonl/
     );
   });
@@ -321,7 +327,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await expect(runOwnerReview(document, {})).rejects.toThrow(
+    await expect(runOwnerReview(document, {}, { defaultCwd: "/repo/docs/plans" })).rejects.toThrow(
       "Owner review must end with workflow_transition. No tool calls were captured."
     );
   });
@@ -344,7 +350,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await runOwnerReview(document, {});
+    await runOwnerReview(document, {}, { defaultCwd: "/repo/docs/plans" });
   });
 
   it("rejects transitions that are not valid for the owner review state", async () => {
@@ -362,7 +368,7 @@ describe("runOwnerReview", () => {
 
     const { runOwnerReview } = await import("./run-owner-review.js");
 
-    await expect(runOwnerReview(document, {})).rejects.toThrow(
+    await expect(runOwnerReview(document, {}, { defaultCwd: "/repo/docs/plans" })).rejects.toThrow(
       "Owner review returned invalid transition: request_review"
     );
   });

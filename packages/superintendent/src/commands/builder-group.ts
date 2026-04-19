@@ -17,7 +17,7 @@ export const builderRunCommand = defineCommand({
     const content = await readDocument(params.path, fs);
     const document = parseSuperintendentDoc(params.path, content);
 
-    return runBuilder(document, {});
+    return runBuilder(document, {}, { defaultCwd: process.cwd() });
   },
   render: {
     rich: (result, { logger }) => {

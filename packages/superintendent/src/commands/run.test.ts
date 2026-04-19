@@ -255,7 +255,6 @@ describe("superintendent run command", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       docPath: "/repo/docs/plans/plan.md",
-      builderAgent: "codex",
       interactive: true,
       useDashboard: true,
       fs,
@@ -291,7 +290,7 @@ describe("superintendent run command", () => {
     expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({
-      builderAgent: "codex",
+      builderAgent: "claude-code",
       state: "completed",
       stopReason: "completed"
     });
@@ -347,7 +346,6 @@ describe("superintendent run command", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       docPath: "/repo/docs/plans/plan.md",
-      builderAgent: "codex",
       assumeYes: true,
       interactive: true,
       useDashboard: true,
@@ -577,7 +575,6 @@ describe("superintendent run command", () => {
         cwd: "/repo",
         homeDir: "/home/test",
         docPath: "/repo/docs/plans/plan.md",
-        builderAgent: "claude-code",
         assumeYes: true,
         interactive: true,
         useDashboard: true,
@@ -634,7 +631,6 @@ describe("superintendent run command", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       docPath: "/repo/docs/plans/plan.md",
-      builderAgent: "claude-code",
       assumeYes: true,
       interactive: true,
       useDashboard: true,
@@ -696,7 +692,6 @@ describe("superintendent run command", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       docPath: "/repo/docs/plans/plan.md",
-      builderAgent: "claude-code",
       assumeYes: true,
       interactive: true,
       useDashboard: true,
@@ -768,7 +763,6 @@ describe("superintendent run command", () => {
         cwd: "/repo",
         homeDir: "/home/test",
         docPath,
-        builderAgent: "claude-code",
         assumeYes: true,
         interactive: true,
         useDashboard: true,

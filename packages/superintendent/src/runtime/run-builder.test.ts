@@ -61,11 +61,11 @@ describe("runBuilder", () => {
 
     const { runBuilder } = await import("./run-builder.js");
 
-    await runBuilder(document, {
-      superintendent: {
-        summary: "Previous round complete"
-      }
-    });
+    await runBuilder(
+      document,
+      { superintendent: { summary: "Previous round complete" } },
+      { defaultCwd: "/repo/docs/plans" }
+    );
 
     expect(autonomousMock).toHaveBeenCalledTimes(1);
   });
@@ -75,7 +75,7 @@ describe("runBuilder", () => {
 
     const { runBuilder } = await import("./run-builder.js");
 
-    await expect(runBuilder(document, {})).resolves.toEqual({
+    await expect(runBuilder(document, {}, { defaultCwd: "/repo" })).resolves.toEqual({
       summary: "Implemented the next task",
       log: "Implemented the next task\nUpdated tests and docs",
       log_path: ""
@@ -91,7 +91,7 @@ describe("runBuilder", () => {
 
     const { runBuilder } = await import("./run-builder.js");
 
-    await expect(runBuilder(document, {})).resolves.toEqual({
+    await expect(runBuilder(document, {}, { defaultCwd: "/repo" })).resolves.toEqual({
       summary: "Builder finished cleanly",
       log: "Applied the requested changes",
       log_path: "/tmp/spawn-logs/20260415-120000-000-claude-code.jsonl"
@@ -103,7 +103,7 @@ describe("runBuilder", () => {
 
     const { runBuilder } = await import("./run-builder.js");
 
-    await expect(runBuilder(document, {})).rejects.toThrow("builder failed");
+    await expect(runBuilder(document, {}, { defaultCwd: "/repo" })).rejects.toThrow("builder failed");
   });
 
   it("uses an absolute cwd from the builder config unchanged", async () => {
@@ -122,7 +122,8 @@ describe("runBuilder", () => {
           builder: { ...document.frontmatter.builder, cwd: "/other/workspace" }
         }
       },
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -142,7 +143,8 @@ describe("runBuilder", () => {
           builder: { ...document.frontmatter.builder, cwd: "../../packages/agent-kit" }
         }
       },
-      {}
+      {},
+      { defaultCwd: "/repo" }
     );
   });
 
@@ -154,7 +156,10 @@ describe("runBuilder", () => {
 
     const { runBuilder } = await import("./run-builder.js");
 
-    await runBuilder(document, {}, { promptOverride: "Fix the failing test in foo.test.ts" });
+    await runBuilder(document, {}, {
+      defaultCwd: "/repo",
+      promptOverride: "Fix the failing test in foo.test.ts"
+    });
 
     expect(autonomousMock).toHaveBeenCalledTimes(1);
   });

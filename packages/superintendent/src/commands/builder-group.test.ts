@@ -73,7 +73,8 @@ describe("superintendent builder run", () => {
       expect.objectContaining({
         filePath: path.resolve(targetPath)
       }),
-      {}
+      {},
+      { defaultCwd: process.cwd() }
     );
     expect(result).toEqual({
       summary: "Implemented builder run",

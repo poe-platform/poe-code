@@ -969,6 +969,7 @@ async function executeSpawnAgent(
     stdout: result.stdout,
     stderr: result.stderr,
     exitCode: result.exitCode,
+    ...(result.logFile ? { logFile: result.logFile } : {}),
     ...(result.usage ? { usage: result.usage } : {})
   };
 }
@@ -1043,10 +1044,12 @@ async function executeSpawnAgentStreaming(
     )
   );
 
+  const typedResult = result as SpawnResult;
   return {
-    stdout: (result as SpawnResult).stdout,
-    stderr: (result as SpawnResult).stderr,
-    exitCode: (result as SpawnResult).exitCode,
+    stdout: typedResult.stdout,
+    stderr: typedResult.stderr,
+    exitCode: typedResult.exitCode,
+    ...(typedResult.logFile ? { logFile: typedResult.logFile } : {}),
     ...(lastAgentMessage ? { summary: lastAgentMessage } : {}),
     ...(capturedUsage ? { usage: capturedUsage } : {}),
     ...(capturedToolCalls.length > 0 ? { toolCalls: capturedToolCalls } : {})

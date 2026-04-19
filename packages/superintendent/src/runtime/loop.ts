@@ -59,6 +59,7 @@ export interface AgentRunResult {
   exitCode: number;
   summary?: string;
   log?: string;
+  logFile?: string;
   output?: string;
   text?: string;
   transition?: unknown;

@@ -2,13 +2,15 @@ import { readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 describe("@poe-code/markdown-reader", () => {
-  it("exports the markdown reader SDK entry points", async () => {
+  it("exports the markdown reader SDK and MCP entry points", async () => {
     const module = await import("./index.js");
 
     expect(module).toEqual(
       expect.objectContaining({
+        markdownGroup: expect.any(Object),
         readMarkdown: expect.any(Function),
-        readSection: expect.any(Function)
+        readSection: expect.any(Function),
+        runMarkdownReaderMcp: expect.any(Function)
       })
     );
   });

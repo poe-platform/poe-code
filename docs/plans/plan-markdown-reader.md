@@ -219,7 +219,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: mcp-server
     title: Implement standalone markdown-reader MCP server
@@ -255,9 +255,9 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: sdk-barrel

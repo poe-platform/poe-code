@@ -568,4 +568,81 @@ describe("superintendent run command", () => {
     expect(dashboardMock.destroy).toHaveBeenCalled();
     expect(callOrder.indexOf("destroy")).toBeLessThan(callOrder.indexOf("exit:130"));
   });
+
+  it("opens the plan in $EDITOR immediately on edit command without pausing the loop", async () => {
+    const docPath = "/repo/.poe-code/superintendent/plan.md";
+    const fs = createFs({
+      [docPath]: createDoc("claude-code")
+    });
+
+    let commandHandler: ((command: string) => void) | undefined;
+    const dashboardMock = createDashboardMock();
+    dashboardMock.onCommand.mockImplementation((handler: (command: string) => void) => {
+      commandHandler = handler;
+    });
+
+    let resolveLoop: (value: {
+      state: "in_progress" | "review" | "completed";
+      round: number;
+      reviewTurn: number;
+      maxRounds: number;
+      maxReviewTurns: number;
+      stopReason: "completed";
+    }) => void = () => {};
+    const runLoopMock = vi.fn(
+      () =>
+        new Promise<{
+          state: "in_progress" | "review" | "completed";
+          round: number;
+          reviewTurn: number;
+          maxRounds: number;
+          maxReviewTurns: number;
+          stopReason: "completed";
+        }>((resolve) => {
+          resolveLoop = resolve;
+        })
+    );
+    const openInEditor = vi.fn();
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const promise = runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath,
+      builderAgent: "claude-code",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor,
+      env: { EDITOR: "vi" },
+      stderr: { write: () => true } as NodeJS.WritableStream
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    commandHandler?.("edit");
+
+    expect(openInEditor).toHaveBeenCalledWith(docPath, { EDITOR: "vi" });
+    expect(dashboardMock.appendOutput).not.toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining("Edit requested after current agent") })
+    );
+    expect(dashboardMock.appendOutput).toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining("Plan reopened in $EDITOR") })
+    );
+
+    resolveLoop({
+      state: "completed",
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed"
+    });
+    await promise;
+  });
 });

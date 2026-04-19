@@ -88,7 +88,6 @@ type RunSession = {
   stopRequested: boolean;
   pauseRequested: boolean;
   paused: boolean;
-  pendingEdit: boolean;
   activeStage?: "builder" | "superintendent" | "owner" | { inspector: string };
   tokensIn: number;
   tokensOut: number;
@@ -342,7 +341,6 @@ export async function runSuperintendentCommand(
     stopRequested: false,
     pauseRequested: false,
     paused: false,
-    pendingEdit: false,
     activeStage: undefined,
     tokensIn: 0,
     tokensOut: 0,
@@ -515,16 +513,8 @@ export async function runSuperintendentCommand(
     }
 
     if (command === "edit") {
-      if (session.paused) {
-        editPlan(session.dashboard, selectedDocPath, env, options.openInEditor);
-        appendEvent("info", "Plan reopened in $EDITOR");
-        syncStats();
-        return;
-      }
-
-      session.pendingEdit = true;
-      session.pauseRequested = true;
-      appendEvent("status", "Edit requested after current agent");
+      editPlan(session.dashboard, selectedDocPath, env, options.openInEditor);
+      appendEvent("info", "Plan reopened in $EDITOR");
       syncStats();
     }
   };
@@ -567,13 +557,6 @@ export async function runSuperintendentCommand(
         session.paused = true;
         session.pauseRequested = false;
         syncStats();
-
-        if (session.pendingEdit) {
-          session.pendingEdit = false;
-          editPlan(session.dashboard, selectedDocPath, env, options.openInEditor);
-          appendEvent("info", "Plan reopened in $EDITOR");
-          syncStats();
-        }
 
         if (session.stopRequested) {
           return {
@@ -982,7 +965,7 @@ function readDashboardStatus(session: RunSession): "idle" | "running" | "paused"
 
 function formatCurrentAction(session: RunSession): string {
   if (session.paused) {
-    return session.pendingEdit ? "paused · waiting to edit plan" : "paused";
+    return "paused";
   }
 
   const segments = [

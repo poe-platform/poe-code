@@ -407,6 +407,14 @@ describe("generate", () => {
           title: "Internal Agent API",
           version: "1.0.0"
         },
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: "http",
+              scheme: "bearer"
+            }
+          }
+        },
         security: [{ bearerAuth: [] }],
         paths: {
           "/status": {
@@ -427,6 +435,80 @@ describe("generate", () => {
 
     expect(files.find((file) => file.path !== "index.ts")?.contents).toContain(
       '      auth: "required",'
+    );
+  });
+
+  it("rejects document-level security that references an undefined scheme", () => {
+    expect(() =>
+      generate(
+        {
+          openapi: "3.0.3",
+          info: {
+            title: "Internal Agent API",
+            version: "1.0.0"
+          },
+          security: [{ bearerAuth: [] }],
+          paths: {
+            "/status": {
+              get: {
+                tags: ["status"],
+                operationId: "getStatus",
+                responses: {
+                  "200": {
+                    description: "OK."
+                  }
+                }
+              }
+            }
+          }
+        },
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "getStatus" references undefined security scheme "bearerAuth" in document security. Expected components.securitySchemes to define it.'
+      )
+    );
+  });
+
+  it("rejects operation-level security that references an undefined scheme", () => {
+    expect(() =>
+      generate(
+        {
+          openapi: "3.0.3",
+          info: {
+            title: "Internal Agent API",
+            version: "1.0.0"
+          },
+          components: {
+            securitySchemes: {
+              bearerAuth: {
+                type: "http",
+                scheme: "bearer"
+              }
+            }
+          },
+          paths: {
+            "/status": {
+              get: {
+                tags: ["status"],
+                operationId: "getStatus",
+                security: [{ sessionAuth: [] }],
+                responses: {
+                  "200": {
+                    description: "OK."
+                  }
+                }
+              }
+            }
+          }
+        },
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "getStatus" references undefined security scheme "sessionAuth" in operation security. Expected components.securitySchemes to define it.'
+      )
     );
   });
 
@@ -2604,6 +2686,99 @@ describe("generate", () => {
         { specSha: "spec-sha-123" }
       )
     ).not.toThrow();
+  });
+
+  it("throws when a success response schema uses nested oneOf composition", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed.",
+                  content: {
+                    "application/json": {
+                      schema: {
+                        type: "object",
+                        properties: {
+                          result: {
+                            oneOf: [{ type: "string" }, { type: "integer" }]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" uses unsupported success response schema for status "200" property "result". JSON Schema composition keyword "oneOf" is not supported in v1.'
+      )
+    );
+  });
+
+  it("throws when a success response schema relies on nested additionalProperties", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed.",
+                  content: {
+                    "application/json": {
+                      schema: {
+                        type: "object",
+                        properties: {
+                          metadata: {
+                            type: "object",
+                            additionalProperties: {
+                              type: "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" uses unsupported success response schema for status "200" property "metadata". Object response schemas with additionalProperties are not supported in v1.'
+      )
+    );
   });
 
   it("throws when a request body omits application/json content", () => {

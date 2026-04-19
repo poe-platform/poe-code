@@ -74,6 +74,7 @@ export interface OpenApiDocument {
   security?: OpenApiSecurityRequirementObject[];
   paths?: Record<string, OpenApiPathItemObject | undefined>;
   components?: {
+    securitySchemes?: Record<string, unknown>;
     parameters?: Record<string, OpenApiParameterObject | OpenApiReferenceObject>;
     requestBodies?: Record<string, OpenApiRequestBodyObject | OpenApiReferenceObject>;
     responses?: Record<string, OpenApiResponseObject | OpenApiReferenceObject>;
@@ -484,7 +485,7 @@ function createGeneratedCommand(
     ),
     method: entry.method.toUpperCase(),
     path: entry.path,
-    auth: getOperationAuthMode(document, operation),
+    auth: getOperationAuthMode(document, operation, operationId),
     confirm: methodDefaults?.confirm === true,
     params: collected.params,
     paramsSchemaOptions: collected.paramsSchemaOptions,
@@ -711,6 +712,23 @@ function assertSupportedSuccessResponses(
       declaredMediaTypes.length === 0 ||
       declaredMediaTypes.every((mediaType) => isJsonMediaType(mediaType))
     ) {
+      for (const [mediaType, mediaTypeObject] of Object.entries(resolvedResponse.content ?? {})) {
+        if (
+          mediaTypeObject === undefined ||
+          mediaTypeObject.schema === undefined ||
+          !isJsonMediaType(mediaType)
+        ) {
+          continue;
+        }
+
+        assertSupportedSuccessResponseSchema(
+          document,
+          mediaTypeObject.schema,
+          operationId,
+          `success response schema for status ${JSON.stringify(statusCode)}`
+        );
+      }
+
       continue;
     }
 
@@ -720,6 +738,42 @@ function assertSupportedSuccessResponses(
         .join(
           ", "
         )}. Only application/json responses (or empty success responses) are supported in v1.`
+    );
+  }
+}
+
+function assertSupportedSuccessResponseSchema(
+  document: OpenApiDocument,
+  schema: OpenApiSchemaObject | OpenApiReferenceObject,
+  operationId: string,
+  context: string
+): void {
+  const resolvedSchema = expectSchema(document, schema, operationId, context);
+
+  if (
+    resolvedSchema.additionalProperties !== undefined &&
+    resolvedSchema.additionalProperties !== false
+  ) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. Object response schemas with additionalProperties are not supported in v1.`
+    );
+  }
+
+  for (const [propertyName, propertySchema] of Object.entries(resolvedSchema.properties ?? {})) {
+    assertSupportedSuccessResponseSchema(
+      document,
+      propertySchema,
+      operationId,
+      `${context} property ${JSON.stringify(propertyName)}`
+    );
+  }
+
+  if (resolvedSchema.items !== undefined) {
+    assertSupportedSuccessResponseSchema(
+      document,
+      resolvedSchema.items,
+      operationId,
+      `${context} items`
     );
   }
 }
@@ -1558,9 +1612,25 @@ function mergeCommandDescriptions(
 
 function getOperationAuthMode(
   document: OpenApiDocument,
-  operation: OpenApiOperationObject
+  operation: OpenApiOperationObject,
+  operationId: string
 ): "required" | "none" {
   const security = operation.security ?? document.security;
+  const securityScope = operation.security === undefined ? "document" : "operation";
+  const definedSchemes = document.components?.securitySchemes;
+
+  for (const requirement of security ?? []) {
+    for (const schemeName of Object.keys(requirement)) {
+      if (definedSchemes !== undefined && schemeName in definedSchemes) {
+        continue;
+      }
+
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} references undefined security scheme ${JSON.stringify(schemeName)} in ${securityScope} security. Expected components.securitySchemes to define it.`
+      );
+    }
+  }
+
   return security === undefined || security.length === 0 ? "none" : "required";
 }
 

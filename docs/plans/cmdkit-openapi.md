@@ -63,7 +63,7 @@ max_rounds: 110
 
 status:
   state: in_progress
-  round: 94
+  round: 97
   review_turn: 0
 ---
 
@@ -553,13 +553,14 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 - **Structural-IR dispatch-table sweep + SRP file-split.** Writer and runtime now share tables keyed on IR kind: `FIELD_ASSEMBLERS[location][schemaKind]`, `DEFINITION_RENDERERS` / `RUNTIME_DEFINITION_BUILDERS`, `VALUE_EXPRESSION_OPERATIONS` / `VALUE_REFERENCE_OPERATIONS`, `PREFLIGHT_BLOCK_OPERATIONS` (symmetric render + execute), `REQUEST_SECTION_OPERATIONS`. Shared `groupByNoun(...)` helper; runtime-only execution moved out of `generate.ts` into `runtime.ts` / `interpreter.ts` / `request-shape.ts`. Parity test drives one fixture through codegen + runtime and asserts identical behavior (`runtime.test.ts`). `isIdentifierName` consolidated into `naming.ts`; redundant path-shape pre-check and dead `renderParamAccess` removed. Build-green fixes: `bearer-token-auth.ts` whoami passes `auth`; `spec-source.ts` URL/path narrowing type-checks.
 - **Wildcard + `default` success status codes.** `isSuccessStatusCode` now accepts `2xx` / `2XX` / `default` in addition to exact `2\d\d`; non-success wildcards (`4XX`, `5XX`, …) stay ignored so JSON-media guards only fire on success responses. Covered by `generate.test.ts` (non-JSON `2XX` throws, non-JSON `default` throws, non-JSON `4XX` alongside JSON `200` allowed).
 - **`S.Object` metadata consistency.** Added `withObjectMetadata` in `cmdkit-schema` mirroring the existing `withString/Number/Array` helpers; `S.Object` now accepts `additionalProperties` the same way other schema kinds carry metadata, removing the ad-hoc conditional spread in `toJsonSchema`.
+- **Security-scheme sanity check.** Generated commands now fail fast when document-level or operation-level `security` references a scheme name that is missing from `components.securitySchemes`, with targeted `UserError`s naming the operation and scope. Covered in `generate.test.ts`.
+- **Success-response schema guardrails.** Generate-time validation now walks JSON success-response schemas (including nested properties / array items) and rejects unsupported composition (`oneOf` / `anyOf` / `allOf`) plus `additionalProperties` before we attempt MCP `outputSchema` emission. Covered in `generate.test.ts`.
+- **Famous fixtures untracked.** `packages/cmdkit-openapi/fixtures/famous/` added to `.gitignore` and removed from the index via `git rm -r --cached`; exploratory-testing output no longer travels with the repo. `npm test --workspace=@poe-code/cmdkit-openapi` green without the tracked tree (215 tests).
 
 ### Open
 
 **Generate-time spec-sanity checks (remaining).**
 
-- Cross-check `security` scheme names against `components.securitySchemes`.
-- Walk success-response schemas for unsupported composition (`oneOf`/`anyOf`/`allOf`, `additionalProperties`); prerequisite for MCP `outputSchema` emission.
 - Reject path params with non-default `style` / `explode: true`.
 - Reject `nullable: true` on path params.
 - Fail required-but-empty request body at generate time (not silently drop).
@@ -593,7 +594,6 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 
 **Famous fixtures — untrack.**
 
-- Add `packages/cmdkit-openapi/fixtures/famous/` to `.gitignore` (the tree is exploratory-testing output, not source). Run `git rm -r --cached packages/cmdkit-openapi/fixtures/famous/` to drop tracked copies without deleting the working tree. Confirm `npm test --workspace=@poe-code/cmdkit-openapi` still passes without the tracked fixtures.
 - Regen `packages/internal-agent-cli/src/generated/agent/whoami.ts` so it carries the `auth: "required"` literal the generator now always emits. Run `npm run generate --workspace=@poe-code/internal-agent-cli` and refresh `openapi.lock` if the SHA moved. (This is a committed consumer fixture, not a famous-spec fixture — stays tracked.)
 
 **Spec-fidelity bugs surfaced by famous-spec smokes.**
@@ -606,6 +606,11 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 - Body-field `format: date-time` on a top-level scalar body field (currently only covered inside array items in `generate.test.ts`). Add a positive snapshot: `body: { scheduled_at: { type: "string", format: "date-time" } }`.
 - Boolean body `--no-official` literal `toContain` assertion.
 - DELETE-with-body re-asserts `confirm: true` alongside body flags.
+- Missing-`tags` error asserts the operationId appears in the message; `defineClient` collision error asserts both source names appear; MCP `inputSchema.required` has at least one explicit (non-snapshot) assertion.
+
+**Latent recursion hazards (bundle when one trips).**
+
+- `assertSupportedSuccessResponseSchema` (`generate.ts:745`) and `createParamDefinition` (`generate.ts:1086`) recurse into `properties` / `items` without a cross-call visited-refs `Set<string>`. `expectSchema`'s `refChain` only catches single-ref-resolution cycles (A→B→A), not A whose property `$ref`s back to A. No famous spec trips this today; fix when a real spec with a self-referential response/param schema lands — thread a shared `visitedRefs` through both walkers.
 
 **Build hygiene.**
 

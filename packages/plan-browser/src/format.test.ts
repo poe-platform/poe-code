@@ -4,6 +4,7 @@ import {
   formatExperimentDetail,
   formatPipelinePlanMarkdown,
   formatRalphDetail,
+  formatSuperintendentDetail,
   getLastExperimentState,
   loadPlanPreviewMarkdown,
   readPlanMetadata
@@ -24,7 +25,7 @@ describe("format helpers", () => {
       "# Plan"
     ].join("\n"));
 
-    expect(formatRalphDetail(data)).toBe("codex · ×3 · in_progress 2");
+    expect(formatRalphDetail(data)).toBe("codex · in_progress 2");
   });
 
   it("formats experiment detail strings", () => {
@@ -45,9 +46,39 @@ describe("format helpers", () => {
       "# Improve tests"
     ].join("\n"));
 
-    expect(formatExperimentDetail(frontmatter, "open")).toBe(
-      "claude-code, codex · maximize/minimize · open"
-    );
+    expect(formatExperimentDetail(frontmatter, "open")).toBe("maximize/minimize · open");
+  });
+
+  it("formats superintendent detail strings", () => {
+    expect(
+      formatSuperintendentDetail({
+        status: {
+          state: "review",
+          round: 4,
+          review_turn: 12
+        }
+      })
+    ).toBe("review 12");
+
+    expect(
+      formatSuperintendentDetail({
+        status: {
+          state: "in_progress",
+          round: 4,
+          review_turn: 0
+        }
+      })
+    ).toBe("in progress");
+
+    expect(
+      formatSuperintendentDetail({
+        status: {
+          state: "build",
+          round: 0,
+          review_turn: 0
+        }
+      })
+    ).toBe("build");
   });
 
   it("returns the last experiment journal status when present", () => {
@@ -97,7 +128,7 @@ describe("format helpers", () => {
     expect(deriveMarkdownTitle("Body only", "fallback.md")).toBe("fallback.md");
   });
 
-  it("reads generic kind metadata with detail and format fields", async () => {
+  it("reads generic kind metadata with a heading-based detail summary", async () => {
     const metadata = await readPlanMetadata({
       kind: "plan",
       absolutePath: "/repo/docs/plans/feature-plan.md",
@@ -116,6 +147,23 @@ describe("format helpers", () => {
 
     expect(metadata).toEqual({
       title: "Feature plan",
+      detail: "Feature plan",
+      format: "markdown"
+    });
+  });
+
+  it("falls back to design doc when a generic plan has no heading", async () => {
+    const metadata = await readPlanMetadata({
+      kind: "plan",
+      absolutePath: "/repo/docs/plans/feature-plan.md",
+      path: "docs/plans/feature-plan.md",
+      fs: {
+        readFile: async () => "Body only\n"
+      }
+    });
+
+    expect(metadata).toEqual({
+      title: "feature-plan.md",
       detail: "design doc",
       format: "markdown"
     });
@@ -143,6 +191,54 @@ describe("format helpers", () => {
     expect(metadata).toEqual({
       title: "plan-feature.md",
       detail: "1/1 done",
+      format: "markdown"
+    });
+  });
+
+  it("reads superintendent metadata from status blocks", async () => {
+    const metadata = await readPlanMetadata({
+      kind: "superintendent",
+      absolutePath: "/repo/docs/plans/review-feature.md",
+      path: "docs/plans/review-feature.md",
+      fs: {
+        readFile: async () => [
+          "---",
+          "kind: superintendent",
+          "status:",
+          "  state: review",
+          "  round: 4",
+          "  review_turn: 12",
+          "---",
+          "# Review feature"
+        ].join("\n")
+      }
+    });
+
+    expect(metadata).toEqual({
+      title: "Review feature",
+      detail: "review 12",
+      format: "markdown"
+    });
+  });
+
+  it("reads superintendent base metadata as a non-runnable base doc", async () => {
+    const metadata = await readPlanMetadata({
+      kind: "superintendent-base",
+      absolutePath: "/repo/docs/plans/base.md",
+      path: "docs/plans/base.md",
+      fs: {
+        readFile: async () => [
+          "---",
+          "kind: superintendent-base",
+          "---",
+          "# Shared base"
+        ].join("\n")
+      }
+    });
+
+    expect(metadata).toEqual({
+      title: "Shared base",
+      detail: "base doc",
       format: "markdown"
     });
   });

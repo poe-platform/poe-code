@@ -1,11 +1,8 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { parseDocument } from "yaml";
 import { readMergedDocument } from "@poe-code/poe-code-config";
-import { readPlanMetadata } from "./format.js";
+import { readPlanMetadata, splitFrontmatter } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
-
-const FRONTMATTER_FENCE = "---";
 
 function createDefaultFs(): DiscoveryFs {
   return {
@@ -101,80 +98,6 @@ async function resolveSharedPlanDirectory(options: {
     : "docs/plans";
 }
 
-function stripBom(content: string): string {
-  return content.startsWith("\uFEFF") ? content.slice(1) : content;
-}
-
-function readOpeningLineBreak(content: string): "\n" | "\r\n" | undefined {
-  if (!content.startsWith(FRONTMATTER_FENCE)) {
-    return undefined;
-  }
-
-  const nextCharacter = content[FRONTMATTER_FENCE.length];
-  if (nextCharacter === "\n") {
-    return "\n";
-  }
-
-  if (nextCharacter === "\r" && content[FRONTMATTER_FENCE.length + 1] === "\n") {
-    return "\r\n";
-  }
-
-  return nextCharacter === undefined ? "\n" : undefined;
-}
-
-function findClosingFence(content: string, searchFrom: number, filePath: string): number {
-  let currentIndex = searchFrom - 1;
-
-  while (currentIndex < content.length) {
-    const candidateIndex = content.indexOf(`\n${FRONTMATTER_FENCE}`, currentIndex);
-
-    if (candidateIndex === -1) {
-      throw new Error(`${filePath}: missing YAML frontmatter end delimiter (---)`);
-    }
-
-    const fenceEnd = candidateIndex + FRONTMATTER_FENCE.length + 1;
-    const nextCharacter = content[fenceEnd];
-
-    if (nextCharacter === "\n" || nextCharacter === undefined) {
-      return candidateIndex;
-    }
-
-    if (nextCharacter === "\r" && content[fenceEnd + 1] === "\n") {
-      return candidateIndex;
-    }
-
-    currentIndex = fenceEnd;
-  }
-
-  throw new Error(`${filePath}: missing YAML frontmatter end delimiter (---)`);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function readFrontmatter(content: string, filePath: string): Record<string, unknown> | undefined {
-  const normalizedContent = stripBom(content);
-  const openingLineBreak = readOpeningLineBreak(normalizedContent);
-
-  if (openingLineBreak === undefined) {
-    return undefined;
-  }
-
-  const frontmatterStart = FRONTMATTER_FENCE.length + openingLineBreak.length;
-  const closingFenceIndex = findClosingFence(normalizedContent, frontmatterStart, filePath);
-  const frontmatterEnd =
-    normalizedContent[closingFenceIndex - 1] === "\r" ? closingFenceIndex - 1 : closingFenceIndex;
-  const document = parseDocument(normalizedContent.slice(frontmatterStart, frontmatterEnd));
-
-  if (document.errors.length > 0) {
-    throw new Error(`${filePath}: invalid YAML frontmatter: ${document.errors[0]?.message}`);
-  }
-
-  const parsed = document.toJSON();
-  return isRecord(parsed) ? parsed : {};
-}
-
 function toPlanKind(value: unknown, filePath: string): PlanKind {
   if (
     value === "plan" ||
@@ -191,17 +114,17 @@ function toPlanKind(value: unknown, filePath: string): PlanKind {
 }
 
 function classifyPlanKind(content: string, filePath: string): PlanKind {
-  const frontmatter = readFrontmatter(content, filePath);
+  const { data } = splitFrontmatter(content, filePath);
 
-  if (frontmatter === undefined) {
+  if (data === undefined) {
     return "plan";
   }
 
-  if (frontmatter.kind === undefined) {
+  if (data.kind === undefined) {
     throw new Error(`${filePath}: missing required frontmatter kind`);
   }
 
-  return toPlanKind(frontmatter.kind, filePath);
+  return toPlanKind(data.kind, filePath);
 }
 
 async function discoverSharedPlans(options: {

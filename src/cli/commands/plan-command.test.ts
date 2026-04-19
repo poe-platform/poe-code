@@ -1,15 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
+import { stripVTControlCharacters } from "node:util";
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerPlanCommand } from "./plan.js";
 
 const {
+  introMock,
   selectMock,
   confirmOrCancelMock,
   isCancelMock
 } = vi.hoisted(() => ({
+  introMock: vi.fn(),
   selectMock: vi.fn(),
   confirmOrCancelMock: vi.fn().mockResolvedValue(true),
   isCancelMock: vi.fn(() => false)
@@ -19,7 +22,7 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
     ...actual,
-    intro: vi.fn(),
+    intro: introMock,
     select: selectMock,
     confirmOrCancel: confirmOrCancelMock,
     isCancel: isCancelMock
@@ -77,11 +80,38 @@ describe("plan command", () => {
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(JSON.parse(output)).toEqual([
       expect.objectContaining({
-        source: "pipeline",
+        kind: "pipeline",
+        typeLabel: "Pipeline",
+        runner: "pipeline",
         name: "plan-a.md",
         detail: "0/1 done"
       })
     ]);
+    expect(introMock).not.toHaveBeenCalled();
+  });
+
+  it("renders kind and type columns in terminal list output", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/feature-design.md": "# Feature design\n"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "plan", "list"]);
+
+    const output = stripVTControlCharacters(
+      writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")
+    );
+    expect(output).toContain("Kind");
+    expect(output).toContain("Type");
+    expect(output).toContain("Detail");
+    expect(output).not.toContain("Source");
   });
 
   it("filters list output by source", async () => {
@@ -277,7 +307,9 @@ describe("plan command", () => {
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(JSON.parse(output)).toEqual(
       expect.objectContaining({
-        source: "pipeline",
+        kind: "pipeline",
+        typeLabel: "Pipeline",
+        runner: "pipeline",
         path: "docs/plans/plan-a.md"
       })
     );

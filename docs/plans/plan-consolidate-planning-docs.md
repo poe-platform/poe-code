@@ -54,7 +54,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: plan-browser-formatters
     title: Per-kind detail formatters in plan-browser
@@ -79,9 +79,9 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: cli-plan-list-kind

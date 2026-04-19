@@ -59,9 +59,18 @@ describe("discoverAllPlans", () => {
       "/repo/docs/plans/pi-mono.md": [
         "---",
         "kind: superintendent",
-        "version: 1",
+        "status:",
+        "  state: review",
+        "  round: 4",
+        "  review_turn: 12",
         "---",
         "# Pi mono integration"
+      ].join("\n"),
+      "/repo/docs/plans/planner-base.md": [
+        "---",
+        "kind: superintendent-base",
+        "---",
+        "# Planner base"
       ].join("\n")
     });
 
@@ -71,6 +80,7 @@ describe("discoverAllPlans", () => {
     await fs.utimes?.("/repo/docs/plans/spawn-hooks.md", now / 1000 - 20, now / 1000 - 20);
     await fs.utimes?.("/repo/docs/plans/speed-up-tests.md", now / 1000 - 10, now / 1000 - 10);
     await fs.utimes?.("/repo/docs/plans/pi-mono.md", now / 1000, now / 1000);
+    await fs.utimes?.("/repo/docs/plans/planner-base.md", now / 1000 - 5, now / 1000 - 5);
 
     const plans = await discoverAllPlans({
       cwd,
@@ -92,21 +102,28 @@ describe("discoverAllPlans", () => {
         kind: "superintendent",
         typeLabel: "Superintendent",
         runner: "superintendent",
-        detail: "design doc"
+        detail: "review 12"
+      },
+      {
+        path: "docs/plans/planner-base.md",
+        kind: "superintendent-base",
+        typeLabel: "Superintendent Base",
+        runner: undefined,
+        detail: "base doc"
       },
       {
         path: "docs/plans/speed-up-tests.md",
         kind: "experiment",
         typeLabel: "Experiment",
         runner: "experiment",
-        detail: "claude-code · minimize · keep"
+        detail: "minimize · keep"
       },
       {
         path: "docs/plans/spawn-hooks.md",
         kind: "ralph",
         typeLabel: "Ralph",
         runner: "ralph",
-        detail: "claude-code · ×3 · in_progress 2"
+        detail: "claude-code · in_progress 2"
       },
       {
         path: "docs/plans/plan-demo.md",
@@ -120,7 +137,7 @@ describe("discoverAllPlans", () => {
         kind: "plan",
         typeLabel: "Plan",
         runner: undefined,
-        detail: "design doc"
+        detail: "Architecture"
       }
     ]);
   });

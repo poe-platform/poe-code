@@ -222,6 +222,9 @@ async function renderPlanList(container: CliContainer, options: PlanCommandOptio
       format,
       JSON.stringify(
         plans.map((plan) => ({
+          kind: plan.kind,
+          typeLabel: plan.typeLabel,
+          runner: plan.runner,
           source: plan.kind,
           name: path.basename(plan.path),
           path: plan.path,
@@ -239,13 +242,15 @@ async function renderPlanList(container: CliContainer, options: PlanCommandOptio
     renderTable({
       theme: getTheme(),
       columns: [
-        { name: "source", title: "Source", alignment: "left", maxLen: 12 },
+        { name: "kind", title: "Kind", alignment: "left", maxLen: 20 },
+        { name: "type", title: "Type", alignment: "left", maxLen: 24 },
         { name: "name", title: "Name", alignment: "left", maxLen: 32 },
         { name: "detail", title: "Detail", alignment: "left", maxLen: 40 },
         { name: "updated", title: "Updated", alignment: "left", maxLen: 12 }
       ],
       rows: plans.map((plan) => ({
-        source: plan.kind,
+        kind: plan.kind,
+        type: plan.typeLabel,
         name: path.basename(plan.path),
         detail: plan.detail,
         updated: formatDate(plan.updatedAt)
@@ -264,9 +269,11 @@ async function executePlanAction(options: {
   source?: string;
   output?: string;
 }): Promise<void> {
-  intro(`plan ${options.action}`);
   const flags = resolveCommandFlags(options.program);
   const format = resolveOutputOption(options.output);
+  if (format === "terminal") {
+    intro(`plan ${options.action}`);
+  }
   const plans = await discoverPlans(options.container, resolveSource(options.source));
   const plan = await resolveSelectedPlan({
     container: options.container,
@@ -379,8 +386,11 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command) {
-      intro("plan list");
-      await renderPlanList(container, resolvePlanCommandOptions(this));
+      const options = resolvePlanCommandOptions(this);
+      if (resolveOutputOption(options.output) === "terminal") {
+        intro("plan list");
+      }
+      await renderPlanList(container, options);
     });
 
   plan
@@ -393,10 +403,12 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {
-      intro("plan view");
       const flags = resolveCommandFlags(program);
       const options = resolvePlanCommandOptions(this);
       const format = resolveOutputOption(options.output);
+      if (format === "terminal") {
+        intro("plan view");
+      }
       const plans = await discoverPlans(container, resolveSource(options.source));
       const plan = await resolveSelectedPlan({
         container,
@@ -412,6 +424,9 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
           format,
           JSON.stringify(
             {
+              kind: plan.kind,
+              typeLabel: plan.typeLabel,
+              runner: plan.runner,
               source: plan.kind,
               path: plan.path,
               title: plan.title,

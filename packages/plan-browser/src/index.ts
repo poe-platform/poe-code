@@ -6,9 +6,11 @@ export {
   formatPipelinePlanMarkdown,
   formatPipelineProgress,
   formatRalphDetail,
+  formatSuperintendentDetail,
   getLastExperimentState,
   loadPlanPreviewMarkdown,
-  readExperimentState
+  readExperimentState,
+  readPlanMetadata
 } from "./format.js";
 export { runPlanBrowser } from "./browser.js";
 export type { ActionFs, DiscoveryFs, PlanEntry, PlanFormat, PlanKind } from "./types.js";

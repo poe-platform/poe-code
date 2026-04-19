@@ -5,7 +5,10 @@ import {
   type ExperimentFrontmatter
 } from "@poe-code/experiment-loop";
 import { parseFrontmatter, type RalphFrontmatter } from "@poe-code/ralph";
+import { parseDocument } from "yaml";
 import type { DiscoveryFs, PlanEntry } from "./types.js";
+
+const FRONTMATTER_FENCE = "---";
 
 function isPipelineTaskDone(task: PipelineTask): boolean {
   if (typeof task.status === "string") {
@@ -28,15 +31,11 @@ export function formatRalphDetail(frontmatter: RalphFrontmatter): string {
     parts.push(Array.isArray(frontmatter.agent) ? frontmatter.agent.join(", ") : frontmatter.agent);
   }
 
-  if (frontmatter.iterations !== undefined) {
-    parts.push(`×${frontmatter.iterations}`);
-  }
-
-  if (frontmatter.status.state !== "open" || frontmatter.status.iteration > 0) {
-    parts.push(`${frontmatter.status.state} ${frontmatter.status.iteration}`);
-  } else {
-    parts.push("open");
-  }
+  parts.push(
+    frontmatter.status.state !== "open" || frontmatter.status.iteration > 0
+      ? `${frontmatter.status.state} ${frontmatter.status.iteration}`
+      : "open"
+  );
 
   return parts.join(" · ");
 }
@@ -46,10 +45,6 @@ export function formatExperimentDetail(
   state: string
 ): string {
   const parts: string[] = [];
-
-  if (frontmatter.agent !== undefined) {
-    parts.push(Array.isArray(frontmatter.agent) ? frontmatter.agent.join(", ") : frontmatter.agent);
-  }
 
   const metrics = frontmatter.metric === undefined
     ? []
@@ -64,6 +59,125 @@ export function formatExperimentDetail(
   parts.push(state);
 
   return parts.join(" · ");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stripBom(content: string): string {
+  return content.startsWith("\uFEFF") ? content.slice(1) : content;
+}
+
+function readOpeningLineBreak(content: string): "\n" | "\r\n" | undefined {
+  if (!content.startsWith(FRONTMATTER_FENCE)) {
+    return undefined;
+  }
+
+  const nextCharacter = content[FRONTMATTER_FENCE.length];
+  if (nextCharacter === "\n") {
+    return "\n";
+  }
+
+  if (nextCharacter === "\r" && content[FRONTMATTER_FENCE.length + 1] === "\n") {
+    return "\r\n";
+  }
+
+  return nextCharacter === undefined ? "\n" : undefined;
+}
+
+function findClosingFence(content: string, searchFrom: number, filePath: string): number {
+  let currentIndex = searchFrom - 1;
+
+  while (currentIndex < content.length) {
+    const candidateIndex = content.indexOf(`\n${FRONTMATTER_FENCE}`, currentIndex);
+
+    if (candidateIndex === -1) {
+      throw new Error(`${filePath}: missing YAML frontmatter end delimiter (---)`);
+    }
+
+    const fenceEnd = candidateIndex + FRONTMATTER_FENCE.length + 1;
+    const nextCharacter = content[fenceEnd];
+
+    if (nextCharacter === "\n" || nextCharacter === undefined) {
+      return candidateIndex;
+    }
+
+    if (nextCharacter === "\r" && content[fenceEnd + 1] === "\n") {
+      return candidateIndex;
+    }
+
+    currentIndex = fenceEnd;
+  }
+
+  throw new Error(`${filePath}: missing YAML frontmatter end delimiter (---)`);
+}
+
+function readBody(content: string, bodyStart: number): string {
+  const nextCharacter = content[bodyStart];
+
+  if (nextCharacter === "\n") {
+    return content.slice(bodyStart + 1);
+  }
+
+  if (nextCharacter === "\r" && content[bodyStart + 1] === "\n") {
+    return content.slice(bodyStart + 2);
+  }
+
+  return content.slice(bodyStart);
+}
+
+export function splitFrontmatter(content: string, filePath: string): {
+  body: string;
+  data: Record<string, unknown> | undefined;
+} {
+  const normalizedContent = stripBom(content);
+  const openingLineBreak = readOpeningLineBreak(normalizedContent);
+
+  if (openingLineBreak === undefined) {
+    return {
+      body: normalizedContent,
+      data: undefined
+    };
+  }
+
+  const frontmatterStart = FRONTMATTER_FENCE.length + openingLineBreak.length;
+  const closingFenceIndex = findClosingFence(normalizedContent, frontmatterStart, filePath);
+  const frontmatterEnd =
+    normalizedContent[closingFenceIndex - 1] === "\r" ? closingFenceIndex - 1 : closingFenceIndex;
+  const document = parseDocument(normalizedContent.slice(frontmatterStart, frontmatterEnd));
+
+  if (document.errors.length > 0) {
+    throw new Error(`${filePath}: invalid YAML frontmatter: ${document.errors[0]?.message}`);
+  }
+
+  const parsed = document.toJSON();
+
+  return {
+    body: readBody(normalizedContent, closingFenceIndex + FRONTMATTER_FENCE.length + 1),
+    data: isRecord(parsed) ? parsed : {}
+  };
+}
+
+function formatStateLabel(value: string): string {
+  return value.split("_").join(" ");
+}
+
+export function formatSuperintendentDetail(frontmatter: Record<string, unknown>): string {
+  const status = isRecord(frontmatter.status) ? frontmatter.status : undefined;
+  const state = typeof status?.state === "string" ? status.state.trim() : "";
+
+  if (state === "review") {
+    return typeof status?.review_turn === "number"
+      ? `review ${status.review_turn}`
+      : "review";
+  }
+
+  if (state.length > 0) {
+    return formatStateLabel(state);
+  }
+
+  return "in progress";
 }
 
 export function getLastExperimentState(journalContent: string): string {
@@ -86,13 +200,16 @@ export function getLastExperimentState(journalContent: string): string {
   return "open";
 }
 
-export function deriveMarkdownTitle(content: string, fallbackName: string): string {
-  const heading = content
+function extractFirstHeading(content: string): string | undefined {
+  const line = content
     .split("\n")
-    .map((line) => line.trim())
-    .find((line) => line.startsWith("# "));
+    .map((l) => l.trim())
+    .find((l) => l.startsWith("# "));
+  return line ? line.slice(2).trim() || undefined : undefined;
+}
 
-  return heading ? heading.slice(2).trim() || fallbackName : fallbackName;
+export function deriveMarkdownTitle(content: string, fallbackName: string): string {
+  return extractFirstHeading(content) ?? fallbackName;
 }
 
 function formatPipelineTaskDetails(task: PipelineTask): string | null {
@@ -217,9 +334,30 @@ export async function readPlanMetadata(options: {
     };
   }
 
+  if (options.kind === "superintendent") {
+    const parsed = splitFrontmatter(content, options.path);
+    return {
+      title: deriveMarkdownTitle(parsed.body, fallbackName),
+      detail: formatSuperintendentDetail(parsed.data ?? {}),
+      format: "markdown"
+    };
+  }
+
+  if (options.kind === "superintendent-base") {
+    const parsed = splitFrontmatter(content, options.path);
+    return {
+      title: deriveMarkdownTitle(parsed.body, fallbackName),
+      detail: "base doc",
+      format: "markdown"
+    };
+  }
+
+  const parsed = splitFrontmatter(content, options.path);
+  const heading = extractFirstHeading(parsed.body);
+
   return {
-    title: deriveMarkdownTitle(content, fallbackName),
-    detail: "design doc",
+    title: heading ?? fallbackName,
+    detail: heading ?? "design doc",
     format: resolveFormatFromPath(options.path)
   };
 }

@@ -780,7 +780,7 @@ function resolvePlanSessionAgent(value: string | undefined): string {
   return trimmed.length > 0 ? trimmed : DEFAULT_PLAN_AGENT;
 }
 
-async function resolvePlanDirectory(container: CliContainer): Promise<string> {
+export async function resolvePlanDirectory(container: CliContainer): Promise<string> {
   const document = await readMergedDocument(
     container.fs,
     container.env.configPath,

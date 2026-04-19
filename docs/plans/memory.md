@@ -1044,7 +1044,9 @@ All under `packages/memory/` unless noted.
 | File | Change |
 |---|---|
 | `src/cli/index.ts` (or wherever top-level `poe-code` commands are registered) | Register the `memory` command group from `@poe-code/memory/cli` |
-| `packages/poe-code-config/src/types.ts` | Add optional `memory?: { ingestAgent?: string; ingestTimeoutMs?: number; maxPageBytes?: number }` to the config type |
+| `packages/poe-code-config/src/types.ts` | Add optional `memory?` entry with `ingestAgent`, `ingestTimeoutMs`, `maxPageBytes`, `confidence.{rejectUntagged,minInferredConfidence}`, `cache.{enabled,maxAgeMs}`, `mcp.allowWrites`, `query.defaultBudgetTokens` |
+| `packages/tokenfill/src/index.ts` | Export `countTokens(text: string): number` if not already exported (otherwise no change) |
+| `packages/tiny-stdio-mcp-server/src/index.ts` | Support conditional tool advertisement (write tools gated by runtime flag) if not already supported |
 | Root `package.json` / workspace config | Include `packages/memory` in the workspace glob (likely already a wildcard) |
 
 Nothing else is modified. No changes to `agent-spawn`, `superintendent`, `experiment-loop`, `ralph`, or any wrapped-agent wiring — per out-of-scope in §1.
@@ -1063,26 +1065,100 @@ export async function reconcile(
 ): Promise<MemoryDiff> {
   // 1. walk pages/**/*.md → new snapshot
   // 2. diff before vs. after (by sha256 of body)
-  // 3. for each changed page, stamp `lastTouchedAt` in frontmatter
+  // 3. for each changed page:
+  //      - parse body for `memory:*` tags (src/confidence.ts)
+  //      - denormalize source= refs onto frontmatter.sources (authoritative)
+  //      - stamp lastTouchedAt
   // 4. regenerate INDEX.md from current frontmatter
   // 5. append one LOG.md entry per changed path
 }
 
-// src/ingest.ts
-export async function ingest(
+// src/confidence.ts
+const TAG_RE = /^<!--\s*memory:(?<verb>extracted|inferred|ambiguous)(?<rest>[^>]*?)-->\s*$/;
+export function parseClaims(body: string): TaggedClaim[];
+export function serializeTag(tag: ConfidenceTag): string;
+
+// src/audit.ts
+export async function auditClaims(
   root: MemoryRoot,
-  opts: IngestOptions & { spawnFn?: SpawnFn }
-): Promise<IngestResult> {
-  const source = await materializeSource(opts.source); // url → temp file
-  const prompt = buildIngestPrompt(root, source);
-  if (opts.dryRun) { console.log(prompt); return { diff: empty, exitCode: 0, durationMs: 0 }; }
-  const before = await snapshot(root);
-  const { exitCode, durationMs } = await runWithTimeout(
+  repoRoot: string
+): Promise<{ page: string; issues: string[] }[]> {
+  // 1. readPage for every page
+  // 2. parseClaims(page.body)
+  // 3. for each claim: resolve SourceRef relative to repoRoot,
+  //    verify existence + line range
+  // 4. check confidence range, reason presence, body-without-tag heuristic
+  // 5. aggregate and return
+}
+
+// src/cache.ts
+export function computeIngestKey(input: {
+  sourceBytes: Buffer;
+  indexMdBytes: Buffer;
+  promptTemplateVersion: string;
+  agentId: string;
+}): IngestCacheKey {
+  const h = createHash("sha256");
+  h.update(input.sourceBytes);          h.update("\0");
+  h.update(input.indexMdBytes);         h.update("\0");
+  h.update(input.promptTemplateVersion);h.update("\0");
+  h.update(input.agentId);
+  return h.digest("hex");
+}
+
+// src/tokens.ts
+export async function computeTokenStats(
+  root: MemoryRoot,
+  repoRoot: string
+): Promise<TokenStats> {
+  const pages = await listPages(root);
+  const memoryTokens = pages.reduce((a, p) => a + countTokens(p.body), 0);
+  const sources = new Set<string>();
+  for (const p of pages) for (const s of p.frontmatter.sources ?? []) sources.add(s.path);
+
+  let sourceTokens = 0;
+  const missing: string[] = [];
+  for (const s of sources) {
+    const abs = path.resolve(repoRoot, s);
+    try {
+      sourceTokens += countTokens(await fs.readFile(abs, "utf8"));
+    } catch {
+      missing.push(s);
+    }
+  }
+  return {
+    memoryTokens,
+    sourceTokens,
+    reductionRatio: sourceTokens / Math.max(memoryTokens, 1),
+    missingSources: missing,
+  };
+}
+
+// src/mcp.ts
+export async function startMemoryMcpServer(opts: McpServerOptions) {
+  const tools = buildTools(opts);        // filtered by opts.allowWrites
+  return startStdioServer({
+    name: "poe-code-memory",
+    version: PKG_VERSION,
+    tools,
+  });
+}
+
+// src/query.ts
+export async function query(
+  root: MemoryRoot,
+  opts: QueryOptions
+): Promise<QueryResult> {
+  const pages = await listPages(root);
+  const indexMd = await fs.readFile(path.join(root, "INDEX.md"), "utf8");
+  const selected = selectPagesForBudget(pages, opts.question, opts.budget);
+  const prompt = buildQueryPrompt(opts.question, indexMd, selected);
+  const { stdout, exitCode } = await runWithBudget(
     (opts.spawnFn ?? defaultSpawnFn)(opts.agent ?? resolveAgent(), prompt),
-    opts.timeoutMs ?? configuredTimeout()
+    opts.budget
   );
-  const diff = await withLock(root, () => reconcile(root, before, "ingest", opts.reason ?? `ingest ${source.label}`));
-  return { diff, exitCode, durationMs };
+  const parsed = parseQueryOutput(stdout);
+  return { ...parsed, budget: opts.budget, exitCode };
 }
 ```
 
@@ -1091,20 +1167,31 @@ export async function ingest(
 Sequenced so the branch stays green after each step. Each step is a commit.
 
 1. **Package skeleton.** `package.json`, `tsconfig.json`, empty `src/index.ts`, `src/types.ts` with all types from §4.1. README stub.
-2. **Paths + frontmatter.** `src/paths.ts`, `src/frontmatter.ts`, with tests. Both are pure functions — easiest to ship first.
-3. **Read side.** `src/pages.ts`, `src/search.ts`, `src/status.ts`, with tests against `memfs`. No locking needed.
-4. **Lock.** `src/lock.ts` with tests (fake timers, stale pid).
-5. **Init + clear.** `src/init.ts`, `src/clear` (part of `write.ts`), with tests.
-6. **Reconcile.** `src/reconcile.ts` (`snapshot`, `reconcile`, `renderIndex`, `appendLogEntries`) with tests. This is the trickiest pure module — get it right before writes.
-7. **Write + append.** `src/write.ts` composing lock + reconcile, with tests.
-8. **Config wiring.** Extend `poe-code-config` types; `resolveAgent()`, `configuredTimeout()` readers.
-9. **CLI — read commands.** `ls`, `show`, `search`, `status`, `init`, `clear`. Register command group. Run `npm run dev -- memory ls` as a spot check.
-10. **CLI — write commands.** `write`, `append`, `edit`. Spot-test each.
-11. **Ingest / lint.** `src/ingest.ts`, `src/lint.ts`, prompts, CLI wrappers. Tests use injected `spawnFn`. Manual QA runs real spawns against a test repo.
-12. **README + QA.md.** Finalize docs.
-13. **Screenshot pass.** `npm run screenshot-poe-code -- memory ls` and friends; verify design-system output.
+2. **Tokenfill export.** If `tokenfill` doesn't expose `countTokens(text: string): number`, add it + test. No behavior change elsewhere. (Grep first; skip if already present.)
+3. **Paths + frontmatter.** `src/paths.ts` (includes `.cache/ingest/` path constants), `src/frontmatter.ts` (parses + serializes `sources:`), with tests. Pure functions.
+4. **Read side.** `src/pages.ts`, `src/search.ts`, `src/status.ts`, with tests against `memfs`. No locking.
+5. **Lock.** `src/lock.ts` with tests (fake timers, stale pid).
+6. **Init + clear.** `src/init.ts`, `clearMemory` (part of `write.ts` — wipes `.cache/` too), with tests.
+7. **Confidence parser.** `src/confidence.ts` + tests. Pure, no filesystem.
+8. **Reconcile.** `src/reconcile.ts` composing `snapshot` + `diff` + `denormalizeSources` (calls `parseClaims`) + `renderIndex` + `appendLogEntries`. Tests include the new denormalization path.
+9. **Audit.** `src/audit.ts` + tests against memfs fixtures. Wire into `lint` in step 16.
+10. **Write + append.** `src/write.ts` composing lock + reconcile, with tests.
+11. **Cache primitives.** `src/cache.ts` + tests (memfs for disk I/O, pure hash fn).
+12. **Token stats.** `src/tokens.ts` + tests — seeds `TokenStats` computation from memfs fixtures.
+13. **Config wiring.** Extend `poe-code-config` types; add `resolveAgent()`, `configuredTimeout()`, `cacheEnabled()`, `mcpWritesAllowed()`, `defaultQueryBudget()` readers.
+14. **CLI — read commands.** `ls`, `show`, `search`, `status` (with `--no-tokens`), `init`, `clear`. Register command group. `npm run dev -- memory status` spot check.
+15. **CLI — write commands.** `write`, `append`, `edit`. Spot-test each.
+16. **Ingest integration.** `src/ingest.ts` composing cache + tokens per §4.2; `ingest.cli.ts` wires `--force` / `--no-cache-write`, prints `cacheHit` and token ratio. Tests with injected `spawnFn`.
+17. **Lint integration.** `src/lint.ts` invokes `auditClaims` as part of its pass; `lint.cli.ts` surfaces the combined issue list.
+18. **Cache CLI.** `cache-status.cli.ts`, `cache-clear.cli.ts`. Tests + screenshots.
+19. **MCP server.** `src/mcp.ts` + `serve.cli.ts`. Tests using `tiny-stdio-mcp-server` helpers. Manual QA: register in `.mcp.json`, invoke tools from Claude Code.
+20. **Query.** `src/query.ts` + `query.cli.ts`. Tests with injected `spawnFn`. Manual QA against a real memory tree.
+21. **Explain.** `src/explain.ts` + `explain.cli.ts`. Same test pattern; reuses query primitives.
+22. **README + QA.md.** Finalize docs (CLI reference, confidence-tag format, config knobs, MCP snippet, manual checklist from §4.4).
+23. **Screenshot pass.** `npm run screenshot-poe-code -- memory ls`, `memory status`, `memory query "…"`, `memory cache status`, `memory serve --print-mcp-config`. Verify design-system output.
 
 Each step leaves the tree compilable and the test suite green.
 
-- Open question: Does `memory edit` re-enter through `writePage` on save, or does it trust `$EDITOR` and call `reconcile` directly? Re-entry is cleaner (one write path) but costs a read-serialize-write roundtrip.
+- Open question: Does `memory edit` re-enter through `writePage` on save, or trust `$EDITOR` and call `reconcile` directly? Re-entry is cleaner (one write path) but costs a read-serialize-write roundtrip.
 - Open question: Is `yaml` already in the dependency tree, or do we need to add it? A grep before step 1 resolves this.
+- Open question: should steps 19 (MCP) and 20 (query) swap order? Query is more user-visible but MCP is the foundation for future integrations. Neither blocks the other — go in the order that's most reviewable.

@@ -3,17 +3,20 @@ import type { Command } from "commander";
 import { pathExists } from "@poe-code/config-mutations";
 import {
   collectEnvOverrides,
-  deepMergeDocuments,
   initProjectConfig,
   readDocument,
-  readMergedDocument,
   resolveEditTarget,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
 import { text } from "@poe-code/design-system";
 import type { CliContainer } from "../container.js";
 import { knownConfigScopes } from "../../services/config.js";
-import { createExecutionResources, resolveCommandFlags, shlexQuote } from "./shared.js";
+import {
+  createExecutionResources,
+  resolveCommandFlags,
+  resolveMergedDocument,
+  shlexQuote
+} from "./shared.js";
 
 interface ConfigEditCommandOptions {
   global?: boolean;
@@ -77,13 +80,8 @@ async function executeConfigShow(program: Command, container: CliContainer): Pro
   const resources = createExecutionResources(container, flags, "config:show");
   const globalDocument = await readDocument(container.fs, container.env.configPath);
   const projectDocument = await readDocument(container.fs, container.env.projectConfigPath);
-  const mergedDocument = await readMergedDocument(
-    container.fs,
-    container.env.configPath,
-    container.env.projectConfigPath
-  );
   const envOverrides = collectEnvOverrides(knownConfigScopes, container.env.variables);
-  const resolvedDocument = deepMergeDocuments(mergedDocument, envOverrides.document);
+  const resolvedDocument = await resolveMergedDocument(container);
 
   resources.logger.intro("config show");
   resources.logger.info(

@@ -27,7 +27,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: helpers
     title: Add resolveMergedDocument and resolveDefaultAgent
@@ -78,10 +78,10 @@ tasks:
 
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: refactor-config-show
     title: Use resolveMergedDocument in config show
@@ -100,10 +100,10 @@ tasks:
 
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: wire-configure
     title: Wire resolveDefaultAgent into configure/test/install

@@ -1,5 +1,11 @@
 import path from "node:path";
 import type { Command } from "commander";
+import {
+  collectEnvOverrides,
+  deepMergeDocuments,
+  readMergedDocument,
+  type ConfigDocument
+} from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import type {
   ProviderService,
@@ -15,7 +21,14 @@ import type { CommandCheck } from "../../utils/command-checks.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
 import { getSpawnConfig } from "@poe-code/agent-spawn";
-import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
+import {
+  allAgents,
+  formatAgentSpecifier,
+  parseAgentSpecifier,
+  resolveAgentId
+} from "@poe-code/agent-defs";
+import { knownConfigScopes } from "../../services/config.js";
+import { ValidationError } from "../errors.js";
 
 export interface CommandFlags {
   dryRun: boolean;
@@ -190,6 +203,45 @@ export async function applyIsolatedConfiguration(input: {
     },
     input.observers ? { observers: input.observers } : undefined
   );
+}
+
+export async function resolveMergedDocument(
+  container: CliContainer
+): Promise<ConfigDocument> {
+  const mergedDocument = await readMergedDocument(
+    container.fs,
+    container.env.configPath,
+    container.env.projectConfigPath
+  );
+  const envOverrides = collectEnvOverrides(knownConfigScopes, container.env.variables);
+  return deepMergeDocuments(mergedDocument, envOverrides.document);
+}
+
+export async function resolveDefaultAgent(
+  container: CliContainer
+): Promise<string | null> {
+  const document = await resolveMergedDocument(container);
+  const value = typeof document.core?.defaultAgent === "string" ? document.core.defaultAgent : "";
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const specifier = parseAgentSpecifier(trimmed);
+  const resolvedAgent = resolveAgentId(specifier.agent);
+
+  if (!resolvedAgent || !allAgents.some((agent) => agent.id === resolvedAgent)) {
+    const supportedAgents = allAgents.map((agent) => agent.id).join(", ");
+    throw new ValidationError(
+      `Invalid value for core.defaultAgent: "${value}". Supported agents: ${supportedAgents}`
+    );
+  }
+
+  return formatAgentSpecifier({
+    agent: resolvedAgent,
+    model: specifier.model
+  });
 }
 
 export function shlexQuote(value: string): string {

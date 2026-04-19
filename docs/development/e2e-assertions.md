@@ -132,7 +132,7 @@ This is important: we don't need to match the entire stdout, just one line.
 | Config structure | `container.readFile('/root/.claude/settings.json')` | Valid JSON |
 | Config: apiKeyHelper | parsed config | `apiKeyHelper` field starts with `echo ` |
 | Config: env.ANTHROPIC_BASE_URL | parsed config | Non-empty URL string |
-| Config: model | parsed config | One of: `claude-haiku-4.5`, `claude-sonnet-4.5`, `claude-opus-4.7` |
+| Config: model | parsed config | One of: `claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4.7` |
 | Post-configure message | `result.stdout` | Contains `vscode://settings/claudeCode.disableLoginPrompt` |
 
 **Expected config structure:**
@@ -187,7 +187,7 @@ experimental_bearer_token = "<api-key>"
 | Success message | `result.stdout` | Contains `Configured OpenCode CLI.` |
 | Config file exists | `container.fileExists('/root/.config/opencode/config.json')` | `true` |
 | Auth file exists | `container.fileExists('/root/.opencode-data/auth.json')` | `true` |
-| Config: model | parsed JSON | `"poe/claude-sonnet-4.5"` (default) |
+| Config: model | parsed JSON | `"poe/claude-sonnet-4.6"` (default) |
 | Config: enabled_providers | parsed JSON | Contains `"poe"` |
 | Auth: poe.type | parsed JSON | `"api"` |
 | Auth: poe.key | parsed JSON | Non-empty string (API key) |
@@ -196,7 +196,7 @@ experimental_bearer_token = "<api-key>"
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "poe/claude-sonnet-4.5",
+  "model": "poe/claude-sonnet-4.6",
   "enabled_providers": ["poe"]
 }
 ```
@@ -211,7 +211,7 @@ experimental_bearer_token = "<api-key>"
 }
 ```
 
-**Default model:** `anthropic/claude-sonnet-4.5` (provider-prefixed as `poe/claude-sonnet-4.5`)
+**Default model:** `anthropic/claude-sonnet-4.6` (provider-prefixed as `poe/claude-sonnet-4.6`)
 
 #### kimi
 
@@ -298,7 +298,7 @@ api_key = "<api-key>"
 | Health check output | `result.stdout` | Contains `OPEN_CODE_OK` on a line |
 | Success message | `result.stdout` | Contains `Tested OpenCode CLI.` |
 
-**Health check command:** `opencode --model poe/claude-sonnet-4.5 run "Output exactly: OPEN_CODE_OK"`
+**Health check command:** `opencode --model poe/claude-sonnet-4.6 run "Output exactly: OPEN_CODE_OK"`
 
 #### kimi
 | What | How to check | Expected |
@@ -407,6 +407,6 @@ it('test', async () => {
 |-------|------------|---------------------|
 | claude-code | `anthropic/claude-opus-4.7` | `claude-opus-4.7` |
 | codex | `openai/gpt-5.2-codex` | `gpt-5.2-codex` |
-| opencode | `anthropic/claude-sonnet-4.5` | `poe/claude-sonnet-4.5` (provider-prefixed) |
+| opencode | `anthropic/claude-sonnet-4.6` | `poe/claude-sonnet-4.6` (provider-prefixed) |
 | kimi | `novitaai/kimi-k2.5` | `poe/kimi-k2.5` (provider-prefixed) |
 | goose | `anthropic/claude-sonnet-4.6` | `anthropic/claude-sonnet-4.6` (provider kept) |

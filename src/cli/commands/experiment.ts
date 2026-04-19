@@ -11,7 +11,12 @@ import {
   renderTable,
   select
 } from "@poe-code/design-system";
-import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
+import {
+  resolveAgentId,
+  parseAgentSpecifier,
+  formatAgentSpecifier,
+  allAgents
+} from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import { resolveWorkflowPath } from "@poe-code/agent-kit";
 import {
@@ -20,14 +25,11 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import {
-  discoverExperimentDocs,
-  parseExperimentFrontmatter
-} from "@poe-code/experiment-loop";
+import { discoverExperimentDocs, parseExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
-import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
 import {
   runExperiment as sdkRunExperiment,
   readExperimentJournal as sdkReadExperimentJournal,
@@ -75,8 +77,7 @@ function resolveExperimentPaths(
     scope === "global"
       ? path.join(homeDir, ".poe-code", "experiments")
       : path.join(cwd, ".poe-code", "experiments");
-  const displayRoot =
-    scope === "global" ? "~/.poe-code/experiments" : ".poe-code/experiments";
+  const displayRoot = scope === "global" ? "~/.poe-code/experiments" : ".poe-code/experiments";
 
   return {
     experimentsPath: rootPath,
@@ -89,12 +90,7 @@ async function pathExistsOnDisk(targetPath: string): Promise<boolean> {
     await stat(targetPath);
     return true;
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
       return false;
     }
     throw error;
@@ -145,20 +141,12 @@ async function loadExperimentTemplates(): Promise<{ skillPlan: string; runYaml: 
   throw new Error("Experiment templates not found.");
 }
 
-async function pathExists(
-  fs: CliContainer["fs"],
-  targetPath: string
-): Promise<boolean> {
+async function pathExists(fs: CliContainer["fs"], targetPath: string): Promise<boolean> {
   try {
     await fs.stat(targetPath);
     return true;
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
       return false;
     }
     throw error;
@@ -175,9 +163,7 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
   if (!frontmatter.metric) {
     errors.push("Missing required field: metric");
   } else {
-    const metrics = Array.isArray(frontmatter.metric)
-      ? frontmatter.metric
-      : [frontmatter.metric];
+    const metrics = Array.isArray(frontmatter.metric) ? frontmatter.metric : [frontmatter.metric];
 
     for (const metric of metrics) {
       if (!metric.name || metric.name.trim().length === 0) {
@@ -186,7 +172,11 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
       if (!metric.script || metric.script.trim().length === 0) {
         errors.push(`Metric "${metric.name ?? "(unnamed)"}" is missing required field: script`);
       }
-      if (metric.direction !== "minimize" && metric.direction !== "maximize" && metric.direction !== "stable") {
+      if (
+        metric.direction !== "minimize" &&
+        metric.direction !== "maximize" &&
+        metric.direction !== "stable"
+      ) {
         errors.push(
           `Metric "${metric.name ?? "(unnamed)"}" has invalid direction: "${String(metric.direction)}". Must be "minimize", "maximize", or "stable"`
         );
@@ -222,15 +212,12 @@ function formatExperimentCurrentAction(
   maxExperiments: number | undefined,
   currentAgent: string
 ): string {
-  const progress = maxExperiments === undefined
-    ? `Experiment ${index}`
-    : `Experiment ${index}/${maxExperiments}`;
+  const progress =
+    maxExperiments === undefined ? `Experiment ${index}` : `Experiment ${index}/${maxExperiments}`;
   return `${progress} · ${currentAgent}`;
 }
 
-function formatExperimentScores(
-  scores: Record<string, number> | undefined
-): string {
+function formatExperimentScores(scores: Record<string, number> | undefined): string {
   if (!scores) {
     return "-";
   }
@@ -254,23 +241,27 @@ function createExperimentDashboardRunAgent(options: {
     });
 
     try {
-      const result = await acp.withAcpWriter((line) => {
-        options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
-      }, async () => await sdkSpawn.autonomous(input.agent, {
-        prompt: input.prompt,
-        cwd: input.cwd,
-        model: input.model,
-        mode: "yolo",
-        ...(input.signal ? { signal: input.signal } : {}),
-        useStdin: true,
-        tee: {
-          stderr: {
-            write(chunk: string) {
-              errorBuffer.push(chunk);
+      const result = await acp.withAcpWriter(
+        (line) => {
+          options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
+        },
+        async () =>
+          await sdkSpawn.autonomous(input.agent, {
+            prompt: input.prompt,
+            cwd: input.cwd,
+            model: input.model,
+            mode: "yolo",
+            ...(input.signal ? { signal: input.signal } : {}),
+            useStdin: true,
+            tee: {
+              stderr: {
+                write(chunk: string) {
+                  errorBuffer.push(chunk);
+                }
+              }
             }
-          }
-        }
-      }));
+          })
+      );
 
       errorBuffer.flush();
       return result;
@@ -426,7 +417,9 @@ function resolveExperimentAgent(value: string | undefined, sourceLabel = "agent"
   const resolved = resolveAgentId(specifier.agent);
   if (!resolved) {
     const supported = allAgents.map((a) => a.id).join(", ");
-    throw new ValidationError(`Unsupported ${sourceLabel}: ${specifier.agent}. Supported agents: ${supported}`);
+    throw new ValidationError(
+      `Unsupported ${sourceLabel}: ${specifier.agent}. Supported agents: ${supported}`
+    );
   }
 
   return formatAgentSpecifier({ agent: resolved, model: specifier.model });
@@ -438,16 +431,17 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
   }
 
   const trimmed = value.trim();
-  if (trimmed.length === 0 || [...trimmed].some((character) => character < "0" || character > "9")) {
+  if (
+    trimmed.length === 0 ||
+    [...trimmed].some((character) => character < "0" || character > "9")
+  ) {
     throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a non-negative integer.`);
   }
 
   return Number.parseInt(trimmed, 10);
 }
 
-async function resolveExperimentCommandConfig(
-  container: CliContainer
-): Promise<{
+async function resolveExperimentCommandConfig(container: CliContainer): Promise<{
   planDirectory?: string;
   tui: boolean;
 }> {
@@ -532,7 +526,12 @@ async function readExperimentDoc(
   }
 }
 
-async function promptForAgent(program: Command): Promise<string | null> {
+async function promptForAgent(container: CliContainer, program: Command): Promise<string | null> {
+  const fromConfig = await resolveDefaultAgent(container);
+  if (fromConfig !== null) {
+    return resolveExperimentAgent(fromConfig);
+  }
+
   const flags = resolveCommandFlags(program);
   if (flags.assumeYes) {
     return DEFAULT_EXPERIMENT_AGENT;
@@ -554,6 +553,7 @@ async function promptForAgent(program: Command): Promise<string | null> {
 }
 
 async function resolveRunAgent(options: {
+  container: CliContainer;
   program: Command;
   providedAgent?: string;
   frontmatterAgent?: string | string[];
@@ -569,11 +569,14 @@ async function resolveRunAgent(options: {
     return resolveExperimentAgent(options.frontmatterAgent, "frontmatter agent");
   }
 
-  return promptForAgent(options.program);
+  return promptForAgent(options.container, options.program);
 }
 
 function resolveAgentList(value: string): string | string[] {
-  const parts = value.split(",").map((p) => p.trim()).filter((p) => p.length > 0);
+  const parts = value
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
   if (parts.length === 0) {
     return resolveExperimentAgent(undefined);
   }
@@ -633,6 +636,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
 
         const doc = await readExperimentDoc(container, docPath);
         const agent = await resolveRunAgent({
+          container,
           program,
           providedAgent: options.agent,
           frontmatterAgent: doc.frontmatter.agent
@@ -670,7 +674,9 @@ export function registerExperimentCommand(program: Command, container: CliContai
           },
           onExperimentComplete(index, entry) {
             const scores = entry.scores
-              ? Object.entries(entry.scores).map(([k, v]) => `${k}=${v}`).join(", ")
+              ? Object.entries(entry.scores)
+                  .map(([k, v]) => `${k}=${v}`)
+                  .join(", ")
               : "-";
             resources.logger.info(
               `Experiment ${index} ${entry.status} in ${formatDashboardDuration(entry.durationMs)} · scores: ${scores}`
@@ -751,7 +757,9 @@ export function registerExperimentCommand(program: Command, container: CliContai
           index: String(index + 1),
           status: entry.status,
           scores: entry.scores
-            ? Object.entries(entry.scores).map(([k, v]) => `${k}=${v}`).join(", ")
+            ? Object.entries(entry.scores)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(", ")
             : "-",
           duration: formatDashboardDuration(entry.durationMs),
           timestamp: entry.timestamp,
@@ -853,11 +861,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .argument("[doc]", "Experiment doc path")
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(
-        container,
-        flags,
-        "experiment:validate"
-      );
+      const resources = createExecutionResources(container, flags, "experiment:validate");
 
       try {
         resources.logger.intro("experiment validate");
@@ -917,11 +921,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .option("--force", "Overwrite existing files")
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(
-        container,
-        flags,
-        "experiment:install"
-      );
+      const resources = createExecutionResources(container, flags, "experiment:install");
       const options = this.opts<ExperimentInstallCommandOptions>();
 
       if (options.local && options.global) {
@@ -931,7 +931,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
       try {
         let agent = options.agent;
         if (!agent) {
-          if (flags.assumeYes) {
+          const fromConfig = await resolveDefaultAgent(container);
+          if (fromConfig !== null) {
+            agent = parseAgentSpecifier(fromConfig).agent;
+          } else if (flags.assumeYes) {
             agent = DEFAULT_EXPERIMENT_AGENT;
           } else {
             const selected = await select({
@@ -1008,16 +1011,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
 
         if (!(await pathExists(container.fs, experimentPaths.experimentsPath))) {
           if (flags.dryRun) {
-            resources.logger.dryRun(
-              `Would create: ${experimentPaths.displayExperimentsPath}`
-            );
+            resources.logger.dryRun(`Would create: ${experimentPaths.displayExperimentsPath}`);
           } else {
             await container.fs.mkdir(experimentPaths.experimentsPath, {
               recursive: true
             });
-            resources.logger.info(
-              `Create: ${experimentPaths.displayExperimentsPath}`
-            );
+            resources.logger.info(`Create: ${experimentPaths.displayExperimentsPath}`);
           }
         }
 

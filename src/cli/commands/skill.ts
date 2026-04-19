@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { select, isCancel, cancel } from "@poe-code/design-system";
+import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import {
   supportedAgents,
@@ -8,15 +9,12 @@ import {
   resolveAgentSupport,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 
 const DEFAULT_SKILL_AGENT = "claude-code";
 
-export function registerSkillCommand(
-  program: Command,
-  container: CliContainer
-): void {
+export function registerSkillCommand(program: Command, container: CliContainer): void {
   const skill = program
     .command("skill")
     .description("Skill directory commands.")
@@ -52,7 +50,10 @@ export function registerSkillCommand(
 
       let agent: string | undefined = agentArg;
       if (!agent) {
-        if (flags.assumeYes) {
+        const fromConfig = await resolveDefaultAgent(container);
+        if (fromConfig !== null) {
+          agent = parseAgentSpecifier(fromConfig).agent;
+        } else if (flags.assumeYes) {
           agent = DEFAULT_SKILL_AGENT;
         } else {
           const selected = await select({
@@ -156,15 +157,20 @@ export function registerSkillCommand(
 
       let agent: string | undefined = agentArg;
       if (!agent) {
-        const selected = await select({
-          message: "Select agent to unconfigure:",
-          options: supportedAgents.map((a) => ({ value: a, label: a }))
-        });
-        if (isCancel(selected)) {
-          cancel("Operation cancelled");
-          return;
+        const fromConfig = await resolveDefaultAgent(container);
+        if (fromConfig !== null) {
+          agent = parseAgentSpecifier(fromConfig).agent;
+        } else {
+          const selected = await select({
+            message: "Select agent to unconfigure:",
+            options: supportedAgents.map((a) => ({ value: a, label: a }))
+          });
+          if (isCancel(selected)) {
+            cancel("Operation cancelled");
+            return;
+          }
+          agent = selected as string;
         }
-        agent = selected as string;
       }
 
       const support = resolveAgentSupport(agent);
@@ -200,8 +206,7 @@ export function registerSkillCommand(
         scope = selected as SkillScope;
       }
 
-      const displayPath =
-        scope === "global" ? config.globalSkillDir : config.localSkillDir;
+      const displayPath = scope === "global" ? config.globalSkillDir : config.localSkillDir;
 
       resources.logger.intro(`skill unconfigure ${resolvedAgent}`);
 
@@ -263,8 +268,6 @@ export function registerSkillCommand(
         }
       }
 
-      resources.logger.info(
-        `No skill directory found for ${resolvedAgent} at ${displayPath}.`
-      );
+      resources.logger.info(`No skill directory found for ${resolvedAgent} at ${displayPath}.`);
     });
 }

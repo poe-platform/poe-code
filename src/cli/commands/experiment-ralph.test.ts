@@ -12,12 +12,7 @@ import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md"
 import experimentRunYaml from "../../templates/experiment/run.yaml.mustache";
 import { parseFrontmatter } from "../../../packages/ralph/src/frontmatter/frontmatter.js";
 
-const {
-  selectMock,
-  promptTextMock,
-  isCancelMock,
-  cancelMock
-} = vi.hoisted(() => ({
+const { selectMock, promptTextMock, isCancelMock, cancelMock } = vi.hoisted(() => ({
   selectMock: vi.fn(),
   promptTextMock: vi.fn(),
   isCancelMock: vi.fn(() => false),
@@ -287,6 +282,41 @@ describe("experiment run command", () => {
       expect.objectContaining({
         agent: "claude-code",
         docPath: ".poe-code/experiments/plan-a.md"
+      })
+    );
+  });
+
+  it("uses core.defaultAgent for experiment run without prompting and preserves the model", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": "# Loop"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify(
+        { core: { defaultAgent: "claude-code:anthropic/claude-sonnet-4.6" } },
+        null,
+        2
+      )}
+`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code:anthropic/claude-sonnet-4.6",
+        docPath: "docs/loop.md"
       })
     );
   });
@@ -805,27 +835,24 @@ describe("experiment run command", () => {
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[experiment:1] Running experiment step")
+      outputs.some(
+        (item) =>
+          item.kind === "tool" && item.text.includes("[experiment:1] Running experiment step")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[experiment:1] Evaluating metrics")
+      outputs.some(
+        (item) => item.kind === "tool" && item.text.includes("[experiment:1] Evaluating metrics")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "error"
-        && item.text.includes("[experiment:1] Metric warning")
+      outputs.some(
+        (item) => item.kind === "error" && item.text.includes("[experiment:1] Metric warning")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "error"
-        && item.text.includes("[experiment:1] partial stderr")
+      outputs.some(
+        (item) => item.kind === "error" && item.text.includes("[experiment:1] partial stderr")
       )
     ).toBe(true);
   });
@@ -1232,9 +1259,9 @@ describe("experiment install command", () => {
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).resolves.toBe(experimentSkillPlan);
     await expect(fs.stat("/repo/.poe-code/experiments")).resolves.toBeDefined();
-    await expect(
-      fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")
-    ).resolves.toBe(experimentRunYaml);
+    await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
+      experimentRunYaml
+    );
   });
 
   it("defaults to claude-code and local scope with --yes", async () => {
@@ -1254,9 +1281,35 @@ describe("experiment install command", () => {
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).resolves.toBe(experimentSkillPlan);
     await expect(fs.stat("/repo/.poe-code/experiments")).resolves.toBeDefined();
+    await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
+      experimentRunYaml
+    );
+  });
+
+  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "experiment", "install", "--local"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
     await expect(
-      fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")
-    ).resolves.toBe(experimentRunYaml);
+      fs.readFile("/repo/.codex/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).resolves.toBe(experimentSkillPlan);
   });
 
   it("rejects --local and --global together", async () => {
@@ -1271,14 +1324,7 @@ describe("experiment install command", () => {
     registerExperimentCommand(program, container);
 
     await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "experiment",
-        "install",
-        "--local",
-        "--global"
-      ])
+      program.parseAsync(["node", "cli", "experiment", "install", "--local", "--global"])
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
@@ -1307,9 +1353,9 @@ describe("experiment install command", () => {
       fs.readFile("/home/test/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).resolves.toBe(experimentSkillPlan);
     await expect(fs.stat("/home/test/.poe-code/experiments")).resolves.toBeDefined();
-    await expect(
-      fs.readFile("/home/test/.poe-code/experiments/run.yaml", "utf8")
-    ).resolves.toBe(experimentRunYaml);
+    await expect(fs.readFile("/home/test/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
+      experimentRunYaml
+    );
   });
 
   it("does not recreate experiments directory if it already exists", async () => {
@@ -1341,17 +1387,19 @@ describe("experiment install command", () => {
       "--local"
     ]);
 
-    await expect(
-      fs.readFile("/repo/.poe-code/experiments/existing.md", "utf8")
-    ).resolves.toBe("# Existing");
+    await expect(fs.readFile("/repo/.poe-code/experiments/existing.md", "utf8")).resolves.toBe(
+      "# Existing"
+    );
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).resolves.toBe(experimentSkillPlan);
     const lines = loggerOutput.split("\n");
-    expect(lines.some((l) => l.includes("Create: .poe-code/experiments") && !l.includes("run.yaml"))).toBe(false);
-    await expect(
-      fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")
-    ).resolves.toBe(experimentRunYaml);
+    expect(
+      lines.some((l) => l.includes("Create: .poe-code/experiments") && !l.includes("run.yaml"))
+    ).toBe(false);
+    await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
+      experimentRunYaml
+    );
   });
 });
 
@@ -1586,14 +1634,7 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "ralph",
-      "run",
-      "docs/loop.md"
-    ]);
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "run", "docs/loop.md"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
@@ -1741,9 +1782,9 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await expect(
-      program.parseAsync(["node", "cli", "ralph", "run"])
-    ).rejects.toBeInstanceOf(ValidationError);
+    await expect(program.parseAsync(["node", "cli", "ralph", "run"])).rejects.toBeInstanceOf(
+      ValidationError
+    );
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
@@ -2311,27 +2352,23 @@ describe("ralph run command", () => {
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[iteration:1] Analyzing doc")
+      outputs.some(
+        (item) => item.kind === "tool" && item.text.includes("[iteration:1] Analyzing doc")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[iteration:1] Drafting update")
+      outputs.some(
+        (item) => item.kind === "tool" && item.text.includes("[iteration:1] Drafting update")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "error"
-        && item.text.includes("[iteration:1] Tool warning")
+      outputs.some(
+        (item) => item.kind === "error" && item.text.includes("[iteration:1] Tool warning")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "error"
-        && item.text.includes("[iteration:1] partial stderr")
+      outputs.some(
+        (item) => item.kind === "error" && item.text.includes("[iteration:1] partial stderr")
       )
     ).toBe(true);
   });
@@ -2425,10 +2462,7 @@ describe("ralph init command", () => {
 
     await program.parseAsync(["node", "cli", "ralph", "init"]);
 
-    const updated = await fs.readFile(
-      "/repo/.poe-code/ralph/plans/plan-a.md",
-      "utf8"
-    );
+    const updated = await fs.readFile("/repo/.poe-code/ralph/plans/plan-a.md", "utf8");
     const parsed = parseFrontmatter(updated);
     expect(parsed.data).toEqual({
       agent: "codex",
@@ -2453,14 +2487,7 @@ describe("ralph init command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "ralph",
-      "init",
-      "docs/loop.md"
-    ]);
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "init", "docs/loop.md"]);
 
     const updated = await fs.readFile("/repo/docs/loop.md", "utf8");
     const parsed = parseFrontmatter(updated);

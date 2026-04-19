@@ -10,9 +10,7 @@ const { selectMock, cancelMock } = vi.hoisted(() => {
 });
 
 vi.mock("@poe-code/design-system", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>(
-    "@poe-code/design-system"
-  );
+  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
   return {
     ...actual,
     select: selectMock,
@@ -59,15 +57,39 @@ describe("skill unconfigure command", () => {
       suppressCommanderOutput: true
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "skill",
-      "unconfigure",
-      "unknown"
-    ]);
+    await program.parseAsync(["node", "cli", "skill", "unconfigure", "unknown"]);
 
     expect(logs).toContain("Unknown agent: unknown");
+  });
+
+  it("uses core.defaultAgent for unconfigure without prompting and drops the model portion", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${homeDir}/.codex/skills`, { recursive: true });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      "utf8"
+    );
+
+    await program.parseAsync(["node", "cli", "skill", "unconfigure", "--global", "--force"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Removed skill directory for codex at ~/.codex/skills");
+    await expect(fs.stat(`${homeDir}/.codex/skills`)).rejects.toThrow("ENOENT");
   });
 
   it("warns when directory has files and --force is not set", async () => {
@@ -87,21 +109,12 @@ describe("skill unconfigure command", () => {
       suppressCommanderOutput: true
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "skill",
-      "unconfigure",
-      "claude-code",
-      "--global"
-    ]);
+    await program.parseAsync(["node", "cli", "skill", "unconfigure", "claude-code", "--global"]);
 
     expect(logs.some((line) => line.includes("has files"))).toBe(true);
     expect(logs.some((line) => line.includes("--force"))).toBe(true);
     await expect(fs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
-    await expect(fs.readdir(`${homeDir}/.claude/skills`)).resolves.toContain(
-      "a.txt"
-    );
+    await expect(fs.readdir(`${homeDir}/.claude/skills`)).resolves.toContain("a.txt");
   });
 
   it("removes directory when --force is set", async () => {
@@ -131,9 +144,7 @@ describe("skill unconfigure command", () => {
       "--force"
     ]);
 
-    expect(logs).toContain(
-      "Removed skill directory for claude-code at ~/.claude/skills"
-    );
+    expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
   });
 
@@ -158,9 +169,7 @@ describe("skill unconfigure command", () => {
     await program.parseAsync(["node", "cli", "skill", "unconfigure", "--force"]);
 
     expect(selectMock).toHaveBeenCalledTimes(2);
-    expect(logs).toContain(
-      "Removed skill directory for claude-code at ~/.claude/skills"
-    );
+    expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
   });
 });
@@ -190,13 +199,7 @@ describe("skill configure command", () => {
       suppressCommanderOutput: true
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "skill",
-      "configure",
-      "invalid-provider"
-    ]);
+    await program.parseAsync(["node", "cli", "skill", "configure", "invalid-provider"]);
 
     expect(logs).toContain("Unknown agent: invalid-provider");
   });
@@ -215,20 +218,11 @@ describe("skill configure command", () => {
       suppressCommanderOutput: true
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "skill",
-      "configure",
-      "claude-code",
-      "--global"
-    ]);
+    await program.parseAsync(["node", "cli", "skill", "configure", "claude-code", "--global"]);
 
     expect(logs).toContain("Configured skills for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
-    await expect(
-      fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)
-    ).resolves.toBeDefined();
+    await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 
   it("prompts for agent and scope when not provided", async () => {
@@ -252,6 +246,34 @@ describe("skill configure command", () => {
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(logs).toContain("Configured skills for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
+  });
+
+  it("uses core.defaultAgent for configure without prompting and drops the model portion", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      "utf8"
+    );
+
+    await program.parseAsync(["node", "cli", "skill", "configure", "--local"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Configured skills for codex at ./.codex/skills");
+    await expect(fs.stat(`${cwd}/.codex/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 
   it("uses defaults with --yes and does not prompt", async () => {

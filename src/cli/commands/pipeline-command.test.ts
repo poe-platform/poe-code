@@ -9,6 +9,11 @@ import pipelineSkillPlan from "../../templates/pipeline/SKILL_plan.md";
 import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache";
 import type { Dashboard } from "@poe-code/design-system";
 
+const { selectMock, cancelMock } = vi.hoisted(() => ({
+  selectMock: vi.fn(),
+  cancelMock: vi.fn()
+}));
+
 vi.mock("../../sdk/pipeline.js", () => ({
   runPipeline: vi.fn().mockResolvedValue({
     stopReason: "completed",
@@ -42,7 +47,10 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
     ...actual,
-    createDashboard: vi.fn()
+    createDashboard: vi.fn(),
+    select: selectMock,
+    isCancel: (value: unknown) => value === "__cancel__",
+    cancel: cancelMock
   };
 });
 
@@ -193,6 +201,36 @@ describe("pipeline run command", () => {
     );
   });
 
+  it("uses core.defaultAgent for pipeline run without prompting and preserves the model", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    await fs.writeFile("/repo/plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "pipeline", "run", "--plan", "plan.yaml"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex:openai/gpt-5.4",
+        plan: "plan.yaml"
+      })
+    );
+  });
+
   it("defaults to claude-code and resolves agent aliases", async () => {
     const fs = createMemFs();
     await fs.writeFile("/repo/plan.yaml", "tasks: []\n", { encoding: "utf8" });
@@ -281,11 +319,9 @@ describe("pipeline run command", () => {
 
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
-    await fs.writeFile(
-      "/repo/.poe-code/pipeline/plans/plan.md",
-      "tasks: []\n",
-      { encoding: "utf8" }
-    );
+    await fs.writeFile("/repo/.poe-code/pipeline/plans/plan.md", "tasks: []\n", {
+      encoding: "utf8"
+    });
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
@@ -295,25 +331,13 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "pipeline",
-      "run",
-      "--agent",
-      "codex"
-    ]);
+    await program.parseAsync(["node", "cli", "--yes", "pipeline", "run", "--agent", "codex"]);
 
     expect(
-      logs.some((message) =>
-        message.includes("Task task-1 done in 3s (tokens: 1234 in / 567 out)")
-      )
+      logs.some((message) => message.includes("Task task-1 done in 3s (tokens: 1234 in / 567 out)"))
     ).toBe(true);
     expect(
-      logs.some((message) =>
-        message.includes("Total tokens: 5000 input, 2000 output, 1000 cached")
-      )
+      logs.some((message) => message.includes("Total tokens: 5000 input, 2000 output, 1000 cached"))
     ).toBe(true);
     expect(
       logs.some((message) =>
@@ -343,11 +367,9 @@ describe("pipeline run command", () => {
 
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
-    await fs.writeFile(
-      "/repo/.poe-code/pipeline/plans/plan.md",
-      "tasks: []\n",
-      { encoding: "utf8" }
-    );
+    await fs.writeFile("/repo/.poe-code/pipeline/plans/plan.md", "tasks: []\n", {
+      encoding: "utf8"
+    });
 
     const container = createCliContainer({
       fs,
@@ -358,18 +380,12 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "pipeline",
-      "run",
-      "--agent",
-      "codex"
-    ]);
+    await program.parseAsync(["node", "cli", "--yes", "pipeline", "run", "--agent", "codex"]);
 
     expect(process.exitCode).toBe(1);
-    expect(logs.some((message) => message.includes("Pipeline failed at auth-hardening (test)."))).toBe(true);
+    expect(
+      logs.some((message) => message.includes("Pipeline failed at auth-hardening (test)."))
+    ).toBe(true);
     expect(logs.some((message) => message.includes("Pipeline blocked at"))).toBe(false);
   });
 
@@ -1059,33 +1075,33 @@ describe("pipeline run command", () => {
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[auth-hardening:implement] Inspecting repo...")
+      outputs.some(
+        (item) =>
+          item.kind === "tool" &&
+          item.text.includes("[auth-hardening:implement] Inspecting repo...")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[auth-hardening:implement] second line")
+      outputs.some(
+        (item) =>
+          item.kind === "tool" && item.text.includes("[auth-hardening:implement] second line")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[auth-hardening:implement] partial")
+      outputs.some(
+        (item) => item.kind === "tool" && item.text.includes("[auth-hardening:implement] partial")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "error"
-        && item.text.includes("[auth-hardening:implement] Tool warning")
+      outputs.some(
+        (item) =>
+          item.kind === "error" && item.text.includes("[auth-hardening:implement] Tool warning")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "error"
-        && item.text.includes("[auth-hardening:implement] partial stderr")
+      outputs.some(
+        (item) =>
+          item.kind === "error" && item.text.includes("[auth-hardening:implement] partial stderr")
       )
     ).toBe(true);
   });
@@ -1206,15 +1222,17 @@ describe("pipeline run command", () => {
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[auth-hardening:implement] first attempt output")
+      outputs.some(
+        (item) =>
+          item.kind === "tool" &&
+          item.text.includes("[auth-hardening:implement] first attempt output")
       )
     ).toBe(true);
     expect(
-      outputs.some((item) =>
-        item.kind === "tool"
-        && item.text.includes("[auth-hardening:implement] retry fallback output")
+      outputs.some(
+        (item) =>
+          item.kind === "tool" &&
+          item.text.includes("[auth-hardening:implement] retry fallback output")
       )
     ).toBe(true);
   });
@@ -1287,12 +1305,7 @@ describe("pipeline validate command", () => {
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
     await fs.writeFile(
       "/repo/.poe-code/pipeline/steps.yaml",
-      [
-        "steps:",
-        "  implement:",
-        "    prompt: Implement {{id}}",
-        ""
-      ].join("\n"),
+      ["steps:", "  implement:", "    prompt: Implement {{id}}", ""].join("\n"),
       { encoding: "utf8" }
     );
     await fs.writeFile(
@@ -1356,8 +1369,12 @@ describe("pipeline validate command", () => {
     registerPipelineCommand(program, container);
 
     await program.parseAsync([
-      "node", "cli", "pipeline", "validate",
-      "--preview", ".poe-code/pipeline/plans/plan-demo.yaml"
+      "node",
+      "cli",
+      "pipeline",
+      "validate",
+      "--preview",
+      ".poe-code/pipeline/plans/plan-demo.yaml"
     ]);
 
     expect(logs.join("\n")).toContain("Deploy to production.");
@@ -1392,8 +1409,12 @@ describe("pipeline validate command", () => {
     registerPipelineCommand(program, container);
 
     await program.parseAsync([
-      "node", "cli", "pipeline", "validate",
-      "--preview", ".poe-code/pipeline/plans/plan-demo.yaml"
+      "node",
+      "cli",
+      "pipeline",
+      "validate",
+      "--preview",
+      ".poe-code/pipeline/plans/plan-demo.yaml"
     ]);
 
     expect(logs.join("\n")).toContain("Deploy to staging.");
@@ -1404,11 +1425,9 @@ describe("pipeline validate command", () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
     await fs.mkdir("/repo/docs/plans", { recursive: true });
-    await fs.writeFile(
-      "/repo/docs/plans/feature.md",
-      "# Feature Plan\nBuild the thing.",
-      { encoding: "utf8" }
-    );
+    await fs.writeFile("/repo/docs/plans/feature.md", "# Feature Plan\nBuild the thing.", {
+      encoding: "utf8"
+    });
     await fs.writeFile(
       "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
       [
@@ -1437,8 +1456,12 @@ describe("pipeline validate command", () => {
     registerPipelineCommand(program, container);
 
     await program.parseAsync([
-      "node", "cli", "pipeline", "validate",
-      "--preview", ".poe-code/pipeline/plans/plan-demo.yaml"
+      "node",
+      "cli",
+      "pipeline",
+      "validate",
+      "--preview",
+      ".poe-code/pipeline/plans/plan-demo.yaml"
     ]);
 
     const output = logs.join("\n");
@@ -1491,8 +1514,12 @@ describe("pipeline validate command", () => {
     registerPipelineCommand(program, container);
 
     await program.parseAsync([
-      "node", "cli", "pipeline", "validate",
-      "--preview", ".poe-code/pipeline/plans/plan-demo.yaml"
+      "node",
+      "cli",
+      "pipeline",
+      "validate",
+      "--preview",
+      ".poe-code/pipeline/plans/plan-demo.yaml"
     ]);
 
     const output = logs.join("\n");
@@ -1581,9 +1608,9 @@ describe("pipeline install command", () => {
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).resolves.toBe(pipelineSkillPlan);
-    await expect(
-      fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")
-    ).resolves.toBe(pipelineStepsTemplate);
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
+      pipelineStepsTemplate
+    );
     await expect(fs.stat("/repo/.poe-code/pipeline/plans")).resolves.toBeDefined();
   });
 
@@ -1598,20 +1625,40 @@ describe("pipeline install command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "pipeline",
-      "install"
-    ]);
+    await program.parseAsync(["node", "cli", "--yes", "pipeline", "install"]);
 
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).resolves.toBe(pipelineSkillPlan);
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
+      pipelineStepsTemplate
+    );
+  });
+
+  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "pipeline", "install", "--local"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
     await expect(
-      fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")
-    ).resolves.toBe(pipelineStepsTemplate);
+      fs.readFile("/repo/.codex/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
+    ).resolves.toBe(pipelineSkillPlan);
   });
 
   it("does not overwrite steps.yaml without --force", async () => {
@@ -1640,9 +1687,9 @@ describe("pipeline install command", () => {
       "--local"
     ]);
 
-    await expect(
-      fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")
-    ).resolves.toBe("EXISTING_STEPS");
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
+      "EXISTING_STEPS"
+    );
 
     await program.parseAsync([
       "node",
@@ -1655,8 +1702,8 @@ describe("pipeline install command", () => {
       "--force"
     ]);
 
-    await expect(
-      fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")
-    ).resolves.toBe(pipelineStepsTemplate);
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
+      pipelineStepsTemplate
+    );
   });
 });

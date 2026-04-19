@@ -29,14 +29,12 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import {
-  readMergedDocument,
-  resolveScope
-} from "@poe-code/poe-code-config";
+import { parseAgentSpecifier } from "@poe-code/agent-defs";
+import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { planConfigScope } from "../../services/config.js";
-import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import planSkillTemplate from "../../templates/plan/SKILL_plan.md";
 
@@ -51,9 +49,10 @@ export interface BuildPlanPromptOptions {
 
 export function buildPlanPrompt(options: BuildPlanPromptOptions): string {
   const trimmedQuestion = options.question.trim();
-  const userSection = trimmedQuestion.length > 0
-    ? `User request: ${trimmedQuestion}`
-    : "The user has not yet stated what they want to plan. Follow the skill's \"If The Request Is Empty\" instruction and ask: What do you want to plan?";
+  const userSection =
+    trimmedQuestion.length > 0
+      ? `User request: ${trimmedQuestion}`
+      : 'The user has not yet stated what they want to plan. Follow the skill\'s "If The Request Is Empty" instruction and ask: What do you want to plan?';
 
   return [
     "Follow the skill below to draft a feature plan.",
@@ -100,7 +99,9 @@ function resolveOutputOption(value: string | undefined): OutputOption {
     return "terminal";
   }
 
-  throw new ValidationError(`Invalid --output value "${value}". Expected one of: terminal, md, json.`);
+  throw new ValidationError(
+    `Invalid --output value "${value}". Expected one of: terminal, md, json.`
+  );
 }
 
 function resolveSource(value: string | undefined): PlanSource | undefined {
@@ -112,7 +113,9 @@ function resolveSource(value: string | undefined): PlanSource | undefined {
     return value;
   }
 
-  throw new ValidationError(`Invalid --source value "${value}". Expected pipeline, experiment, or ralph.`);
+  throw new ValidationError(
+    `Invalid --source value "${value}". Expected pipeline, experiment, or ralph.`
+  );
 }
 
 function formatDate(timestamp: number): string {
@@ -149,10 +152,11 @@ async function resolveSelectedPlan(options: {
         ? providedPath
         : path.resolve(options.container.env.cwd, providedPath);
 
-    const matched = options.plans.find((plan) =>
-      plan.path === providedPath ||
-      plan.absolutePath === providedPath ||
-      plan.absolutePath === resolvedAbsolute
+    const matched = options.plans.find(
+      (plan) =>
+        plan.path === providedPath ||
+        plan.absolutePath === providedPath ||
+        plan.absolutePath === resolvedAbsolute
     );
     if (!matched) {
       throw new ValidationError(`Plan not found: ${providedPath}`);
@@ -201,10 +205,7 @@ function writeOutput(format: OutputOption, value: string): void {
   });
 }
 
-async function renderPlanList(
-  container: CliContainer,
-  options: PlanCommandOptions
-): Promise<void> {
+async function renderPlanList(container: CliContainer, options: PlanCommandOptions): Promise<void> {
   const format = resolveOutputOption(options.output);
   const source = resolveSource(options.source);
   const plans = await discoverPlans(container, source);
@@ -283,9 +284,10 @@ async function executePlanAction(options: {
 
   if (!flags.assumeYes) {
     const confirmed = await confirmOrCancel({
-      message: options.action === "archive"
-        ? `Archive ${path.basename(plan.path)}?`
-        : `Permanently delete ${path.basename(plan.path)}?`,
+      message:
+        options.action === "archive"
+          ? `Archive ${path.basename(plan.path)}?`
+          : `Permanently delete ${path.basename(plan.path)}?`,
       initialValue: true
     });
     if (!confirmed) {
@@ -307,10 +309,7 @@ async function executePlanAction(options: {
     return;
   }
 
-  await deletePlan(
-    plan,
-    options.container.fs as unknown as Parameters<typeof deletePlan>[1]
-  );
+  await deletePlan(plan, options.container.fs as unknown as Parameters<typeof deletePlan>[1]);
   writeOutput(
     format,
     format === "json"
@@ -489,7 +488,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       const resources = createExecutionResources(container, flags, "plan:install");
 
       try {
-        const agent = await resolvePlanAgent(options.agent, flags.assumeYes);
+        const agent = await resolvePlanAgent(container, options.agent, flags.assumeYes);
         if (agent === null) {
           return;
         }
@@ -547,7 +546,9 @@ async function resolvePlanQuestion(
   }
 
   if (assumeYes) {
-    throw new ValidationError("A question is required for `poe-code plan`. Pass it as the first argument.");
+    throw new ValidationError(
+      "A question is required for `poe-code plan`. Pass it as the first argument."
+    );
   }
 
   const entered = await promptText({
@@ -611,11 +612,17 @@ async function runPlanSession(options: RunPlanSessionOptions): Promise<void> {
 }
 
 async function resolvePlanAgent(
+  container: CliContainer,
   value: string | undefined,
   assumeYes: boolean
 ): Promise<string | null> {
   if (value && value.trim().length > 0) {
     return value.trim();
+  }
+
+  const fromConfig = await resolveDefaultAgent(container);
+  if (fromConfig !== null) {
+    return parseAgentSpecifier(fromConfig).agent;
   }
 
   if (assumeYes) {

@@ -11,29 +11,24 @@ import {
   promptText,
   select
 } from "@poe-code/design-system";
-import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
 import {
-  isActivityTimeoutError,
-  renderAcpEvent,
-  type AcpEvent
-} from "@poe-code/agent-spawn";
+  resolveAgentId,
+  parseAgentSpecifier,
+  formatAgentSpecifier,
+  allAgents
+} from "@poe-code/agent-defs";
+import { isActivityTimeoutError, renderAcpEvent, type AcpEvent } from "@poe-code/agent-spawn";
 import {
   installSkill,
   resolveAgentSupport,
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import {
-  readMergedDocument,
-  resolveScope
-} from "@poe-code/poe-code-config";
+import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { pipelineConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
-import {
-  createExecutionResources,
-  resolveCommandFlags
-} from "./shared.js";
+import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
 import {
   runPipeline as sdkRunPipeline,
   type AgentRunUsage,
@@ -117,7 +112,9 @@ function resolvePipelineAgent(value: string | undefined): string {
   const resolved = resolveAgentId(specifier.agent);
   if (!resolved) {
     const supported = allAgents.map((a) => a.id).join(", ");
-    throw new ValidationError(`Unsupported agent: ${specifier.agent}. Supported agents: ${supported}`);
+    throw new ValidationError(
+      `Unsupported agent: ${specifier.agent}. Supported agents: ${supported}`
+    );
   }
 
   return formatAgentSpecifier({ agent: resolved, model: specifier.model });
@@ -130,9 +127,7 @@ function resolveMaxRuns(value: string | undefined): number | undefined {
 
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed < 1) {
-    throw new ValidationError(
-      `Invalid max-runs "${value}". Expected a positive integer.`
-    );
+    throw new ValidationError(`Invalid max-runs "${value}". Expected a positive integer.`);
   }
 
   return parsed;
@@ -240,15 +235,18 @@ async function streamAcpEventsToDashboard(options: {
   let reasoningBuffer = "";
 
   const emitRendered = async (kind: "tool" | "error", event: AcpEvent): Promise<void> => {
-    await acp.withAcpWriter((line) => {
-      if (kind === "error") {
-        options.onErrorOutput(`${line}\n`);
-        return;
+    await acp.withAcpWriter(
+      (line) => {
+        if (kind === "error") {
+          options.onErrorOutput(`${line}\n`);
+          return;
+        }
+        options.onToolOutput(`${line}\n`);
+      },
+      async () => {
+        renderAcpEvent(event);
       }
-      options.onToolOutput(`${line}\n`);
-    }, async () => {
-      renderAcpEvent(event);
-    });
+    );
   };
 
   const flushMessageBuffer = async (): Promise<void> => {
@@ -377,9 +375,7 @@ function createPipelineDashboardRunAgent(options: {
   };
 }
 
-function dashboardStatusForResult(
-  result: PipelineRunResult
-): "done" | "error" {
+function dashboardStatusForResult(result: PipelineRunResult): "done" | "error" {
   return result.stopReason === "failed" ? "error" : "done";
 }
 
@@ -513,7 +509,11 @@ async function runPipelineWithDashboard(
   }
 }
 
-function resolvePipelinePaths(scope: SkillScope, cwd: string, homeDir: string): {
+function resolvePipelinePaths(
+  scope: SkillScope,
+  cwd: string,
+  homeDir: string
+): {
   plansPath: string;
   stepsPath: string;
   displayPlansPath: string;
@@ -523,8 +523,7 @@ function resolvePipelinePaths(scope: SkillScope, cwd: string, homeDir: string): 
     scope === "global"
       ? path.join(homeDir, ".poe-code", "pipeline")
       : path.join(cwd, ".poe-code", "pipeline");
-  const displayRoot =
-    scope === "global" ? "~/.poe-code/pipeline" : ".poe-code/pipeline";
+  const displayRoot = scope === "global" ? "~/.poe-code/pipeline" : ".poe-code/pipeline";
 
   return {
     plansPath: path.join(rootPath, "plans"),
@@ -570,12 +569,7 @@ async function pathExistsOnDisk(targetPath: string): Promise<boolean> {
     await stat(targetPath);
     return true;
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
       return false;
     }
     throw error;
@@ -598,30 +592,19 @@ async function findPackageRoot(entryFilePath: string): Promise<string> {
   }
 }
 
-async function pathExists(
-  fs: CliContainer["fs"],
-  targetPath: string
-): Promise<boolean> {
+async function pathExists(fs: CliContainer["fs"], targetPath: string): Promise<boolean> {
   try {
     await fs.stat(targetPath);
     return true;
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
       return false;
     }
     throw error;
   }
 }
 
-export function registerPipelineCommand(
-  program: Command,
-  container: CliContainer
-): void {
+export function registerPipelineCommand(program: Command, container: CliContainer): void {
   const pipeline = program
     .command("pipeline")
     .description("Run a fixed-step task pipeline plan.")
@@ -629,7 +612,9 @@ export function registerPipelineCommand(
 
   pipeline
     .command("run")
-    .description("Run the selected pipeline plan until completion, failure, cancellation, or max runs.")
+    .description(
+      "Run the selected pipeline plan until completion, failure, cancellation, or max runs."
+    )
     .option("--agent <name>", "Agent to run each pipeline step with")
     .option("--model <model>", "Model override passed to the agent")
     .option("--tui", "Show a live dashboard while the pipeline is running")
@@ -640,11 +625,7 @@ export function registerPipelineCommand(
     .option("--max-runs <n>", "Maximum number of agent executions to perform")
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(
-        container,
-        flags,
-        "pipeline:run"
-      );
+      const resources = createExecutionResources(container, flags, "pipeline:run");
       const options = this.opts<{
         agent?: string;
         model?: string;
@@ -661,21 +642,26 @@ export function registerPipelineCommand(
         let agent: string;
         if (options.agent) {
           agent = resolvePipelineAgent(options.agent);
-        } else if (flags.assumeYes) {
-          agent = DEFAULT_PIPELINE_AGENT;
         } else {
-          const selected = await select({
-            message: "Select agent to run pipeline steps with:",
-            options: supportedAgents.map((value) => ({
-              value,
-              label: value
-            }))
-          });
-          if (isCancel(selected)) {
-            cancel("Pipeline run cancelled.");
-            return;
+          const fromConfig = await resolveDefaultAgent(container);
+          if (fromConfig !== null) {
+            agent = resolvePipelineAgent(fromConfig);
+          } else if (flags.assumeYes) {
+            agent = DEFAULT_PIPELINE_AGENT;
+          } else {
+            const selected = await select({
+              message: "Select agent to run pipeline steps with:",
+              options: supportedAgents.map((value) => ({
+                value,
+                label: value
+              }))
+            });
+            if (isCancel(selected)) {
+              cancel("Pipeline run cancelled.");
+              return;
+            }
+            agent = resolvePipelineAgent(selected as string);
           }
-          agent = resolvePipelineAgent(selected as string);
         }
 
         const commandConfig = await resolvePipelineCommandConfig(container);
@@ -713,9 +699,7 @@ export function registerPipelineCommand(
               cancel("Pipeline run cancelled.");
               return null;
             }
-            return typeof value === "string" && value.trim().length > 0
-              ? value.trim()
-              : null;
+            return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
           }
         });
 
@@ -754,7 +738,9 @@ export function registerPipelineCommand(
             : await sdkRunPipeline({
                 ...runOptions,
                 onPlanReloadError(error: Error) {
-                  resources.logger.warn(`Plan reload failed, using last good state: ${error.message}`);
+                  resources.logger.warn(
+                    `Plan reload failed, using last good state: ${error.message}`
+                  );
                 },
                 onPlanResolved(summary: PlanSummary) {
                   resources.logger.resolved(
@@ -802,9 +788,7 @@ export function registerPipelineCommand(
           }
 
           if (result.stopReason === "max_runs") {
-            resources.logger.info(
-              `Reached max runs (${result.runsCompleted}).`
-            );
+            resources.logger.info(`Reached max runs (${result.runsCompleted}).`);
             resources.logger.resolved("Run summary", summary);
             return;
           }
@@ -812,7 +796,9 @@ export function registerPipelineCommand(
           resources.logger.resolved("Run summary", summary);
         }
 
-        resources.logger.success(planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished.");
+        resources.logger.success(
+          planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished."
+        );
       } finally {
         resources.context.finalize();
       }
@@ -825,11 +811,7 @@ export function registerPipelineCommand(
     .option("--preview", "Expand and display all prompt content for each task and step.")
     .action(async function (this: Command, file: string) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(
-        container,
-        flags,
-        "pipeline:validate"
-      );
+      const resources = createExecutionResources(container, flags, "pipeline:validate");
 
       try {
         resources.logger.intro("pipeline validate");
@@ -873,12 +855,14 @@ export function registerPipelineCommand(
           }
 
           const resolvedSetup = plan.setup === null ? undefined : (plan.setup ?? steps.setup);
-          const resolvedTeardown = plan.teardown === null ? undefined : (plan.teardown ?? steps.teardown);
+          const resolvedTeardown =
+            plan.teardown === null ? undefined : (plan.teardown ?? steps.teardown);
 
           if (resolvedSetup) {
-            const raw = Object.keys(resolvedVars).length > 0
-              ? interpolate(resolvedSetup.prompt, resolvedVars)
-              : resolvedSetup.prompt;
+            const raw =
+              Object.keys(resolvedVars).length > 0
+                ? interpolate(resolvedSetup.prompt, resolvedVars)
+                : resolvedSetup.prompt;
             const expanded = await resolveFileIncludes(raw, container.env.cwd, readFile);
             resources.logger.resolved("setup", expanded);
           }
@@ -886,7 +870,12 @@ export function registerPipelineCommand(
           for (const task of plan.tasks) {
             if (typeof task.status === "string") {
               const expanded = await resolveFileIncludes(
-                buildExecutionPrompt({ selection: { kind: "run", task }, steps: steps.steps, planPath: file, vars: resolvedVars }),
+                buildExecutionPrompt({
+                  selection: { kind: "run", task },
+                  steps: steps.steps,
+                  planPath: file,
+                  vars: resolvedVars
+                }),
                 container.env.cwd,
                 readFile
               );
@@ -894,7 +883,12 @@ export function registerPipelineCommand(
             } else {
               for (const stepName of Object.keys(task.status)) {
                 const expanded = await resolveFileIncludes(
-                  buildExecutionPrompt({ selection: { kind: "run", task, stepName }, steps: steps.steps, planPath: file, vars: resolvedVars }),
+                  buildExecutionPrompt({
+                    selection: { kind: "run", task, stepName },
+                    steps: steps.steps,
+                    planPath: file,
+                    vars: resolvedVars
+                  }),
                   container.env.cwd,
                   readFile
                 );
@@ -904,9 +898,10 @@ export function registerPipelineCommand(
           }
 
           if (resolvedTeardown) {
-            const raw = Object.keys(resolvedVars).length > 0
-              ? interpolate(resolvedTeardown.prompt, resolvedVars)
-              : resolvedTeardown.prompt;
+            const raw =
+              Object.keys(resolvedVars).length > 0
+                ? interpolate(resolvedTeardown.prompt, resolvedVars)
+                : resolvedTeardown.prompt;
             const expanded = await resolveFileIncludes(raw, container.env.cwd, readFile);
             resources.logger.resolved("teardown", expanded);
           }
@@ -941,11 +936,7 @@ export function registerPipelineCommand(
     .option("--force", "Overwrite an existing steps.yaml scaffold")
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(
-        container,
-        flags,
-        "pipeline:install"
-      );
+      const resources = createExecutionResources(container, flags, "pipeline:install");
       const options = this.opts<PipelineInstallCommandOptions>();
 
       if (options.local && options.global) {
@@ -955,7 +946,10 @@ export function registerPipelineCommand(
       try {
         let agent = options.agent;
         if (!agent) {
-          if (flags.assumeYes) {
+          const fromConfig = await resolveDefaultAgent(container);
+          if (fromConfig !== null) {
+            agent = parseAgentSpecifier(fromConfig).agent;
+          } else if (flags.assumeYes) {
             agent = DEFAULT_PIPELINE_AGENT;
           } else {
             const selected = await select({
@@ -1024,11 +1018,7 @@ export function registerPipelineCommand(
           resources.logger.info(`Create: ${skillResult.displayPath}`);
         }
 
-        const pipelinePaths = resolvePipelinePaths(
-          scope,
-          container.env.cwd,
-          container.env.homeDir
-        );
+        const pipelinePaths = resolvePipelinePaths(scope, container.env.cwd, container.env.homeDir);
 
         if (!(await pathExists(container.fs, pipelinePaths.plansPath))) {
           if (flags.dryRun) {
@@ -1041,9 +1031,7 @@ export function registerPipelineCommand(
 
         const stepsExists = await pathExists(container.fs, pipelinePaths.stepsPath);
         if (stepsExists && !options.force) {
-          resources.logger.info(
-            `Skip: ${pipelinePaths.displayStepsPath} (already exists)`
-          );
+          resources.logger.info(`Skip: ${pipelinePaths.displayStepsPath} (already exists)`);
         } else if (flags.dryRun) {
           resources.logger.dryRun(
             `Would ${stepsExists ? "overwrite" : "create"}: ${pipelinePaths.displayStepsPath}`

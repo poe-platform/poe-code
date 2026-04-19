@@ -17,18 +17,15 @@ type StringMetadata = {
   format?: string;
   maxLength?: number;
   minLength?: number;
-  nullable?: boolean;
   pattern?: string;
 };
 type NumberMetadata = {
   maximum?: number;
   minimum?: number;
-  nullable?: boolean;
 };
 type ArrayMetadata = {
   maxItems?: number;
   minItems?: number;
-  nullable?: boolean;
 };
 type ObjectMetadata = {
   additionalProperties?: boolean;

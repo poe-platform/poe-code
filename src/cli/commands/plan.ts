@@ -464,7 +464,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
 
   plan
     .command("install")
-    .description("Install the /plan five-altitudes skill.")
+    .description("Install the /plan five-levels skill.")
     .option("--agent <name>", "Agent to install the plan skill for")
     .option("--local", "Install project-local skill")
     .option("--global", "Install user-global skill")

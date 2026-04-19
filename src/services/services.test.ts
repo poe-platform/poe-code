@@ -4,6 +4,7 @@ import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
 import {
+  coreConfigScope,
   loadConfig,
   saveConfig,
   loadConfiguredServices,
@@ -51,6 +52,15 @@ describe("config store", () => {
   beforeEach(async () => {
     fs = createMemFs();
     await fs.mkdir(path.dirname(configPath), { recursive: true });
+  });
+
+  it("declares core.defaultAgent in the core config scope", () => {
+    expect(coreConfigScope.schema.defaultAgent).toEqual({
+      type: "string",
+      default: "",
+      env: "POE_DEFAULT_AGENT",
+      doc: "Agent (or agent:model) used when no --agent flag is provided; skips the selection prompt"
+    });
   });
 
   it("returns stored api key when file is valid json", async () => {

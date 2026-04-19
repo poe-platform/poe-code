@@ -48,6 +48,12 @@ export const coreConfigScope = defineScope("core", {
     env: "POE_API_KEY",
     doc: "Poe API key"
   },
+  defaultAgent: {
+    type: "string",
+    default: "",
+    env: "POE_DEFAULT_AGENT",
+    doc: "Agent (or agent:model) used when no --agent flag is provided; skips the selection prompt"
+  },
   poeBaseUrl: {
     type: "string",
     default: "https://api.poe.com/v1",

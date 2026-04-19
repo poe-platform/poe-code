@@ -279,12 +279,32 @@ describe("config command", () => {
     await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
     await fs.writeFile(
       globalConfigPath,
-      `${JSON.stringify({ core: { apiKey: "sk-global", poeBaseUrl: "https://global.example.test" } }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          core: {
+            apiKey: "sk-global",
+            defaultAgent: "claude",
+            poeBaseUrl: "https://global.example.test"
+          }
+        },
+        null,
+        2
+      )}\n`,
       { encoding: "utf8" }
     );
     await fs.writeFile(
       projectConfigPath,
-      `${JSON.stringify({ core: { apiKey: "sk-project" }, models: { default: "anthropic/claude-sonnet-4.5" } }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          core: {
+            apiKey: "sk-project",
+            defaultAgent: "codex:gpt-5.4"
+          },
+          models: { default: "anthropic/claude-sonnet-4.5" }
+        },
+        null,
+        2
+      )}\n`,
       { encoding: "utf8" }
     );
 
@@ -295,7 +315,8 @@ describe("config command", () => {
         cwd,
         homeDir,
         variables: {
-          POE_API_KEY: "sk-env"
+          POE_API_KEY: "sk-env",
+          POE_DEFAULT_AGENT: "opencode:o4-mini"
         }
       },
       logger: (message) => logs.push(message)
@@ -311,9 +332,13 @@ describe("config command", () => {
     expect(output).toContain("Environment variable overrides");
     expect(output).toContain("Resolved (merged)");
     expect(output).toContain('"apiKey": "sk-global"');
+    expect(output).toContain('"defaultAgent": "claude"');
     expect(output).toContain('"apiKey": "sk-project"');
+    expect(output).toContain('"defaultAgent": "codex:gpt-5.4"');
     expect(output).toContain("POE_API_KEY = sk-env");
+    expect(output).toContain("POE_DEFAULT_AGENT = opencode:o4-mini");
     expect(output).toContain('"apiKey": "sk-env"');
+    expect(output).toContain('"defaultAgent": "opencode:o4-mini"');
     expect(output).toContain('"poeBaseUrl": "https://global.example.test"');
     expect(output).toContain('"default": "anthropic/claude-sonnet-4.5"');
   });

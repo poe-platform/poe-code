@@ -49,6 +49,8 @@ export interface AgentRunInput {
   mode?: string;
   mcpServers?: McpSpawnConfig;
   signal?: AbortSignal;
+  logDir?: string;
+  logFileName?: string;
   onStdout?: (chunk: string) => void;
   onStderr?: (chunk: string) => void;
 }
@@ -122,6 +124,8 @@ type AutonomousOptions = {
   prompt: string;
   mode?: string;
   mcpServers?: McpSpawnConfig;
+  logDir?: string;
+  logFileName?: string;
 };
 
 type SpawnWithAutonomous = typeof spawn & {
@@ -665,6 +669,8 @@ async function withInjectedAgentRunner<T>(
       cwd: input.cwd ?? process.cwd(),
       ...(input.mode ? { mode: input.mode } : {}),
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.logDir ? { logDir: input.logDir } : {}),
+      ...(input.logFileName ? { logFileName: input.logFileName } : {}),
       ...(options.signal ? { signal: options.signal } : {})
     });
 

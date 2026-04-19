@@ -4,13 +4,14 @@ import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_proce
 import { resolveRunLogDir, resolveWorkflowPath } from "@poe-code/agent-kit";
 import {
   allSpawnConfigs,
+  applyMiddlewares,
   getSpawnConfig,
+  renderAcpStream,
   spawn,
-  spawnAutonomous,
+  spawnLog,
   spawnStreaming,
   type AcpEvent,
-  type SpawnResult,
-  type SpawnStreamingOptions
+  type AcpSpawnContext
 } from "@poe-code/agent-spawn";
 import { parseAgentSpecifier, resolveAgentId } from "@poe-code/agent-defs";
 import { executePoeAgent } from "./poe-agent-runner.js";
@@ -962,6 +963,8 @@ async function executeSpawnAgent(
     ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
+    ...(input.logDir ? { logDir: input.logDir } : {}),
+    ...(input.logFileName ? { logFileName: input.logFileName } : {}),
     ...(tee ? { tee } : {})
   });
 
@@ -1025,31 +1028,44 @@ async function executeSpawnAgentStreaming(
       }
     })();
 
-  const result = await acp.withAcpWriter(writer, () =>
-    spawnAutonomous<Omit<SpawnStreamingOptions, "agentId">, SpawnResult>(
-      (service, options) => {
-        const { events, done } = spawnStreaming({ ...options, agentId: service });
-        return { events: tapEvents(events), result: done };
-      },
-      {
-        service: agent,
-        prompt: input.prompt,
-        cwd: input.cwd,
-        useStdin: true,
-        ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
-        ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-        ...(input.signal ? { signal: input.signal } : {}),
-        ...(input.onStderr ? { tee: { stderr: { write: input.onStderr } } } : {})
-      }
-    )
-  );
+  const { events: rawEvents, done } = spawnStreaming({
+    agentId: agent,
+    prompt: input.prompt,
+    cwd: input.cwd,
+    useStdin: true,
+    ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
+    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+    ...(input.signal ? { signal: input.signal } : {}),
+    ...(input.onStderr ? { tee: { stderr: { write: input.onStderr } } } : {})
+  });
 
-  const typedResult = result as SpawnResult;
+  const middlewareContext: AcpSpawnContext = {
+    sessionId: "unknown",
+    agent,
+    events: [],
+    usage: { inputTokens: 0, outputTokens: 0 },
+    eventStream: rawEvents,
+    prompt: input.prompt,
+    cwd: input.cwd,
+    startedAt: new Date(),
+    ...(input.logDir ? { logDir: input.logDir } : {}),
+    ...(input.logFileName ? { logFileName: input.logFileName } : {}),
+    ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {})
+  };
+
+  await applyMiddlewares([spawnLog], middlewareContext);
+
+  const tapped = tapEvents(middlewareContext.eventStream ?? rawEvents);
+
+  await acp.withAcpWriter(writer, () => renderAcpStream(tapped));
+  const final = await done;
+
+  const logFile = middlewareContext.logFile ?? final.logFile;
   return {
-    stdout: typedResult.stdout,
-    stderr: typedResult.stderr,
-    exitCode: typedResult.exitCode,
-    ...(typedResult.logFile ? { logFile: typedResult.logFile } : {}),
+    stdout: final.stdout,
+    stderr: final.stderr,
+    exitCode: final.exitCode,
+    ...(logFile ? { logFile } : {}),
     ...(lastAgentMessage ? { summary: lastAgentMessage } : {}),
     ...(capturedUsage ? { usage: capturedUsage } : {}),
     ...(capturedToolCalls.length > 0 ? { toolCalls: capturedToolCalls } : {})

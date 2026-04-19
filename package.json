@@ -137,6 +137,7 @@
     "@poe-code/design-system": "*",
     "@poe-code/experiment-loop": "*",
     "@poe-code/github-workflows": "*",
+    "@poe-code/markdown-reader": "*",
     "@poe-code/plan-browser": "*",
     "@poe-code/pipeline": "*",
     "@poe-code/poe-acp-client": "*",

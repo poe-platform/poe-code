@@ -4,6 +4,10 @@
   "title": "Experiment plan document",
   "type": "object",
   "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json"
+    },
     "agent": {
       "anyOf": [
         {
@@ -40,7 +44,7 @@
       "type": "string",
       "const": "experiment"
     },
-    "maxExperiments": {
+    "max_experiments": {
       "type": "integer",
       "minimum": 0
     },
@@ -114,13 +118,18 @@
         }
       ]
     },
-    "metricTimeout": {
+    "metric_timeout": {
       "type": "integer",
       "minimum": 0
+    },
+    "version": {
+      "type": "integer",
+      "const": 1
     }
   },
   "required": [
     "kind",
+    "version",
     "baseline"
   ],
   "additionalProperties": false

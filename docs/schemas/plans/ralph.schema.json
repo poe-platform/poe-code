@@ -4,6 +4,10 @@
   "title": "Ralph plan document",
   "type": "object",
   "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://poe-platform.github.io/poe-code/schemas/plans/ralph.schema.json"
+    },
     "agent": {
       "anyOf": [
         {
@@ -53,10 +57,15 @@
         "iteration"
       ],
       "additionalProperties": false
+    },
+    "version": {
+      "type": "integer",
+      "const": 1
     }
   },
   "required": [
     "kind",
+    "version",
     "status"
   ],
   "additionalProperties": false

@@ -4,6 +4,10 @@
   "title": "Superintendent base document",
   "type": "object",
   "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://poe-platform.github.io/poe-code/schemas/plans/superintendent-base.schema.json"
+    },
     "builder": {
       "type": "object",
       "properties": {

@@ -11,9 +11,9 @@ const templateVariablePattern = /{{\s*([A-Za-z0-9_.-]+)\s*}}/g;
 const inspectorReferencePattern = /{{\s*inspectors\.([A-Za-z0-9_-]+)\s*}}/g;
 
 export function resolveTemplate(template: string, context: Partial<TemplateContext>): string {
-  return template.replace(templateVariablePattern, (match, variablePath: string) => {
+  return template.replace(templateVariablePattern, (_match, variablePath: string) => {
     const value = readTemplateValue(context, variablePath);
-    return typeof value === "string" ? value : match;
+    return typeof value === "string" ? value : "";
   });
 }
 

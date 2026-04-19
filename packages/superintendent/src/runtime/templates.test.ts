@@ -93,12 +93,20 @@ describe("resolveTemplate", () => {
     );
   });
 
-  it("leaves unknown variables as-is", () => {
+  it("resolves unknown variables to an empty string", () => {
     expect(
       resolveTemplate("Known: {{plan.path}} Unknown: {{builder.unknown}}", {
         plan: { path: "docs/plans/feature.md" }
       })
-    ).toBe("Known: docs/plans/feature.md Unknown: {{builder.unknown}}");
+    ).toBe("Known: docs/plans/feature.md Unknown: ");
+  });
+
+  it("resolves variables under a missing parent to an empty string", () => {
+    expect(
+      resolveTemplate("Log: {{superintendent.log_path}}", {
+        plan: { path: "docs/plans/feature.md" }
+      })
+    ).toBe("Log: ");
   });
 
   it("supports surrounding whitespace inside placeholders", () => {

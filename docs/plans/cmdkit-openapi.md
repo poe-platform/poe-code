@@ -394,6 +394,7 @@ Error cases:
 - Operation with `requestBody.content["application/xml"]` only → throws (JSON-only in v1).
 - Operation with no `operationId` and an ambiguous path → throws.
 - Spec missing `paths` → throws with clear message.
+- Path param with `style: label` or `explode: true` → throws with operationId in the error.
 
 ### `defineClient()`
 
@@ -541,7 +542,7 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 - **Auth.** `bearerTokenAuth` via `@poe-code/auth-store` (env → store → null resolution, `login` / `logout` / `status` commands, optional whoami + `is_employee` gate).
 - **Client wiring.** `defineClient` merges handwritten + generated trees with hard-fail collision detection, tags auth commands CLI-scope only, derives MCP prefix from `name`.
 - **`generate()`.** Pure happy path (path / query / body / enum scalars) through declarative emission (`SCHEMA_TYPE_TO_KIND`, `METHOD_DEFAULTS`, `REQUEST_PARAM_SECTIONS`, `FIELD_ASSEMBLERS`, `NULL_HELPER_SUPPORT`). Extensions: array bodies (repeatable flag + `--*-json`), booleans, `DELETE` auto-confirm, `$ref` resolution (local + component), enum + nullable edge cases, schema constraints (`minimum`/`maximum`/`minLength`/`maxLength`/`minItems`/`maxItems`/`pattern`/`format`), integer enums, query-array `style` / `explode`, top-level scalar + array request bodies, cross-cutting `--dry-run` / `-v` / `--json` threaded to handlers.
-- **Generate-time spec-sanity guards.** XML-only bodies, missing `paths`, ambiguous missing `operationId`, path-template ↔ `parameters[]` consistency (both directions), cookie/header params (rejected with migration hint), `oneOf`/`anyOf`/`allOf`, nested object request bodies, `additionalProperties`, array/object path params, `security: []` → `auth: "none"`, document-level `security` inheritance, circular `$ref`, integer-enum type preservation, mixed-primitive enum rejection, operation-level `$ref` (external refs fail fast, local resolve), noun → valid TS identifier, HEAD/OPTIONS/TRACE rejected. Every guard throws `UserError` naming the operationId.
+- **Generate-time spec-sanity guards.** XML-only bodies, missing `paths`, ambiguous missing `operationId`, path-template ↔ `parameters[]` consistency (both directions), path-param serialization locked to `style: simple` + `explode: false`, cookie/header params (rejected with migration hint), `oneOf`/`anyOf`/`allOf`, nested object request bodies, `additionalProperties`, array/object path params, `security: []` → `auth: "none"`, document-level `security` inheritance, circular `$ref`, integer-enum type preservation, mixed-primitive enum rejection, operation-level `$ref` (external refs fail fast, local resolve), noun → valid TS identifier, HEAD/OPTIONS/TRACE rejected. Every guard throws `UserError` naming the operationId.
 - **Naming (`naming.ts`).** Verbatim OpenAPI parameter names (`bot_handle` / `x-trace-id` preserved through params, `inputSchema` keys, and `pathParams`), camelCase preserved (`botHandle` stays `botHandle`), acronym-aware word splitting, GET-on-singleton derives verb from `operationId` intent, tag-missing falls back to first static non-`api`/non-version path segment, declarative `METHOD_DEFAULTS` table drives verb + `confirm`, MCP prefix derived from `defineClient({ name })`.
 - **Transport + MCP.** Transport flags (`dryRun` / `verbose`) carry `scope: ["cli","sdk"]` so MCP `inputSchema` never advertises them; MCP tool names are snake_case + `__`-joined with the root group name included for single-root servers; `cmdkit`'s global `--json` flag forces JSON over any renderer; generated commands emit `--json` when the response carries a schema; integer validation (`jsonType: "integer"`) enforced uniformly across CLI / MCP / SDK via `number-schema.ts`.
 - **`bin/generate.ts` + lock.** Reads path/URL/pre-parsed spec, writes files, updates `openapi.lock`; `--check` exits non-zero on drift.
@@ -559,9 +560,10 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 
 ### Open
 
-**Generate-time spec-sanity checks (remaining).**
+**Generate-time spec-sanity checks (remaining — bundle into one round).**
 
-- Reject path params with non-default `style` / `explode: true`.
+These are all same-pattern generate-time guards that throw a targeted `UserError` naming the operationId; ship them together.
+
 - Reject `nullable: true` on path params.
 - Fail required-but-empty request body at generate time (not silently drop).
 - Fail required body whose fields are all filtered by `readOnly`.

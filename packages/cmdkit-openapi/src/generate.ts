@@ -790,10 +790,13 @@ function createGeneratedParameter(
     `parameter ${JSON.stringify(parameter.name)}`
   );
 
-  if (parameter.in === "path" && parameter.required !== true) {
-    throw new UserError(
-      `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(parameter.name)} must set required: true.`
-    );
+  if (parameter.in === "path") {
+    if (parameter.required !== true) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(parameter.name)} must set required: true.`
+      );
+    }
+    assertSupportedPathParameterSerialization(parameter, operationId);
   }
 
   return createField({
@@ -810,6 +813,22 @@ function createGeneratedParameter(
         ? resolveQueryArraySerialization(parameter, operationId)
         : undefined
   });
+}
+
+function assertSupportedPathParameterSerialization(
+  parameter: SupportedOpenApiParameterObject,
+  operationId: string
+): void {
+  const style = parameter.style ?? "simple";
+  const explode = parameter.explode ?? false;
+
+  if (style === "simple" && explode === false) {
+    return;
+  }
+
+  throw new UserError(
+    `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(parameter.name)} uses unsupported serialization. Path parameters must use style "simple" with explode false in v1.`
+  );
 }
 
 function createBodyField(

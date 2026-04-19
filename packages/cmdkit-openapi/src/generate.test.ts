@@ -2532,6 +2532,74 @@ describe("generate", () => {
     );
   });
 
+  it("throws when a path parameter uses a non-default style", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  style: "label",
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" path parameter "handle" uses unsupported serialization. Path parameters must use style "simple" with explode false in v1.'
+      )
+    );
+  });
+
+  it("throws when a path parameter sets explode to true", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  explode: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" path parameter "handle" uses unsupported serialization. Path parameters must use style "simple" with explode false in v1.'
+      )
+    );
+  });
+
   it("throws when an operation declares a non-JSON success response", () => {
     expect(() =>
       generate(

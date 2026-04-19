@@ -12,7 +12,8 @@ import {
   type SpawnResult,
   type SpawnStreamingOptions
 } from "@poe-code/agent-spawn";
-import { resolveAgentId } from "@poe-code/agent-defs";
+import { parseAgentSpecifier, resolveAgentId } from "@poe-code/agent-defs";
+import { executePoeAgent } from "./poe-agent-runner.js";
 import { S, UserError, defineCommand } from "@poe-code/cmdkit";
 import {
   acp,
@@ -938,6 +939,10 @@ async function executeSpawnAgent(
     usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
   }
 > {
+  if (parseAgentSpecifier(agent).agent === "poe-agent") {
+    return executePoeAgent(agent, input);
+  }
+
   if ((input.onStdout || input.onStderr) && supportsStreaming(agent)) {
     return executeSpawnAgentStreaming(agent, input);
   }

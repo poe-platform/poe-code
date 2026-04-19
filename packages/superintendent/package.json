@@ -31,10 +31,12 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/agent-defs": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",
     "@poe-code/cmdkit": "*",
     "@poe-code/design-system": "*",
+    "@poe-code/poe-agent": "*",
     "@poe-code/poe-code-config": "*"
   }
 }

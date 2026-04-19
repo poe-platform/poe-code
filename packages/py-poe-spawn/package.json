@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "python3 -m compileall src/poe_spawn",
     "test:unit": "python3 -m unittest discover -s tests -t ."
   }
 }

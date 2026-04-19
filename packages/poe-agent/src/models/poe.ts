@@ -22,10 +22,33 @@ export async function createPoeAcpModel(options: CreatePoeAcpModelOptions): Prom
 
   return {
     async complete(request) {
+      const originalByApiName = new Map<string, string>();
+      const sanitize = (name: string): string => {
+        const api = sanitizeToolName(name);
+        if (api !== name && !originalByApiName.has(api)) {
+          originalByApiName.set(api, name);
+        }
+        return api;
+      };
+
       const payload = {
         model: options.model,
         messages: request.messages.map(message => ({
           ...message,
+          ...(message.role === "tool" && typeof message.name === "string"
+            ? { name: sanitize(message.name) }
+            : {}),
+          ...(message.tool_calls
+            ? {
+                tool_calls: message.tool_calls.map(call => ({
+                  ...call,
+                  function: {
+                    ...call.function,
+                    name: sanitize(call.function.name),
+                  },
+                })),
+              }
+            : {}),
           content: serializeProviderMessageContent(message.content),
         })),
         ...(request.tools.length === 0
@@ -34,7 +57,7 @@ export async function createPoeAcpModel(options: CreatePoeAcpModelOptions): Prom
               tools: request.tools.map(tool => ({
                 type: "function",
                 function: {
-                  name: tool.name,
+                  name: sanitize(tool.name),
                   description: tool.description ?? "",
                   parameters: normalizeToolInputSchema(tool.inputSchema),
                 },
@@ -103,13 +126,32 @@ export async function createPoeAcpModel(options: CreatePoeAcpModelOptions): Prom
           ...(message.tool_calls === undefined
             ? {}
             : {
-                tool_calls: message.tool_calls,
+                tool_calls: message.tool_calls.map(call => {
+                  const apiName = call.function?.name;
+                  if (apiName === undefined) {
+                    return call;
+                  }
+                  const original = originalByApiName.get(apiName);
+                  if (original === undefined) {
+                    return call;
+                  }
+                  return {
+                    ...call,
+                    function: { ...call.function, name: original },
+                  };
+                }),
               }),
         },
         ...(usage === undefined ? {} : { usage }),
       };
     },
   };
+}
+
+const INVALID_TOOL_NAME_CHAR = /[^a-zA-Z0-9_-]/g;
+
+function sanitizeToolName(name: string): string {
+  return name.replace(INVALID_TOOL_NAME_CHAR, "_");
 }
 
 function extractUsage(

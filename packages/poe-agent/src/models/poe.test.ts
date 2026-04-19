@@ -262,4 +262,85 @@ describe("createPoeAcpModel", () => {
       }),
     );
   });
+
+  it("sanitizes tool names with dots for the API and reverse-maps tool_calls in the response", async () => {
+    const fetchMock = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) => {
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: "ok",
+                tool_calls: [
+                  {
+                    id: "call-1",
+                    type: "function",
+                    function: {
+                      name: "superintendent-tools_workflow_transition",
+                      arguments: "{}",
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    });
+    const model = await createPoeAcpModel({
+      model: "openai/gpt-5.4",
+      apiKey: "k",
+      baseUrl: "http://localhost:3456/",
+      fetch: fetchMock,
+    });
+
+    const result = await model.complete({
+      messages: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "call-0",
+              type: "function",
+              function: {
+                name: "superintendent-tools.workflow_transition",
+                arguments: "{}",
+              },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call-0",
+          name: "superintendent-tools.workflow_transition",
+          content: "done",
+        },
+      ],
+      tools: [
+        {
+          name: "superintendent-tools.workflow_transition",
+          description: "d",
+          inputSchema: { type: "object" },
+        },
+      ],
+      signal: new AbortController().signal,
+    });
+
+    const sentBody = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
+    expect(sentBody.tools[0].function.name).toBe(
+      "superintendent-tools_workflow_transition",
+    );
+    expect(sentBody.messages[0].tool_calls[0].function.name).toBe(
+      "superintendent-tools_workflow_transition",
+    );
+    expect(sentBody.messages[1].name).toBe(
+      "superintendent-tools_workflow_transition",
+    );
+
+    expect(result.message?.tool_calls?.[0]?.function?.name).toBe(
+      "superintendent-tools.workflow_transition",
+    );
+  });
 });

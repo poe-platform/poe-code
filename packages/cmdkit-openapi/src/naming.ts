@@ -24,13 +24,23 @@ export const METHOD_DEFAULTS: Partial<Record<HttpMethod, MethodDefaults>> = {
   }
 };
 
-export function deriveNoun(operation: { tags?: string[] }, operationId: string): string {
+export function deriveNoun(
+  operation: { tags?: string[] },
+  path: string,
+  operationId: string
+): string {
   const noun = operation.tags?.[0];
 
   if (typeof noun !== "string" || noun.length === 0) {
-    throw new UserError(
-      `Operation ${JSON.stringify(operationId)} must define tags[0] to derive a command noun.`
-    );
+    const fallbackNoun = deriveNounFromPath(path);
+
+    if (fallbackNoun === undefined) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} must define tags[0] or a static resource segment in the path to derive a command noun.`
+      );
+    }
+
+    return fallbackNoun;
   }
 
   return toKebabCase(noun);
@@ -44,13 +54,6 @@ export function deriveVerb(
   noun: string
 ): string {
   const segments = splitPathSegments(path);
-  const actionsIndex = segments.indexOf("actions");
-  const action = actionsIndex >= 0 ? segments[actionsIndex + 1] : undefined;
-
-  if (action !== undefined) {
-    return toKebabCase(action);
-  }
-
   const defaults = METHOD_DEFAULTS[method];
   if (defaults !== undefined) {
     const lastSegment = segments.at(-1);
@@ -107,6 +110,10 @@ export function toKebabCase(value: string): string {
   return splitWords(value).join("-");
 }
 
+export function toCliFlag(value: string): string {
+  return toKebabCase(value);
+}
+
 export function splitWords(value: string): string[] {
   const normalized = value
     .replaceAll("-", " ")
@@ -124,8 +131,20 @@ export function toMcpPrefix(name: string): string {
   return name.replaceAll("-", "_");
 }
 
+export function isIdentifierName(value: string): boolean {
+  return /^[$A-Z_a-z][$\w]*$/u.test(value);
+}
+
 function splitPathSegments(path: string): string[] {
   return path.split("/").filter((segment) => segment.length > 0);
+}
+
+function deriveNounFromPath(path: string): string | undefined {
+  return splitPathSegments(path)
+    .find((segment) => !isPathTemplateSegment(segment) && segment !== "api" && !isVersionWord(segment))
+    ?.split("/")
+    .map((segment) => toKebabCase(segment))
+    .find((segment) => segment.length > 0);
 }
 
 function isPathTemplateSegment(segment: string | undefined): boolean {

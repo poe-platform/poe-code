@@ -1,0 +1,182 @@
+import fs from "node:fs/promises";
+import { defineCommand, defineGroup, S, type AnySchema, type CommandNode } from "@poe-code/cmdkit";
+import type { OpenApiClientServices } from "./define-client.js";
+import {
+  collectSchemaOptionEntries,
+  collectGeneratedCommands,
+  type GeneratedCommand,
+  type GeneratedParam,
+  type GeneratedParamDefinition,
+  type OpenApiDocument
+} from "./generate.js";
+import { groupByNoun } from "./group-by-noun.js";
+import { requestJson, type HttpRequestOptions } from "./http.js";
+import { buildRequestShape, executePreflightBlocks } from "./interpreter.js";
+import { parseOpenApiDocument, readOpenApiSourceText, type OpenApiSourceFileSystem } from "./spec-source.js";
+
+export type OpenApiDocumentSource = OpenApiDocument | string | URL;
+
+export interface CommandsFromSpecOptions {
+  cwd?: string;
+  fetch?: typeof globalThis.fetch;
+  fs?: OpenApiSourceFileSystem;
+}
+
+type GeneratedCommandHandler = (ctx: {
+  params: any;
+  baseUrl: string;
+  tokenSource: OpenApiClientServices["tokenSource"];
+  fetch?: typeof globalThis.fetch;
+}) => Promise<unknown>;
+const RUNTIME_COMMAND_SCOPE = ["cli", "mcp", "sdk"] as ["cli", "mcp", "sdk"];
+
+export async function commandsFromSpec(
+  source: OpenApiDocumentSource,
+  options: CommandsFromSpecOptions = {}
+): Promise<CommandNode<OpenApiClientServices>[]> {
+  const document = await resolveDocument(source, options);
+  return createRuntimeGroups(collectGeneratedCommands(document));
+}
+
+async function resolveDocument(
+  source: OpenApiDocumentSource,
+  options: CommandsFromSpecOptions
+): Promise<OpenApiDocument> {
+  if (typeof source !== "string" && !(source instanceof URL)) {
+    return source;
+  }
+
+  const sourceText = await readOpenApiSourceText(source, {
+    cwd: options.cwd ?? process.cwd(),
+    fetch: options.fetch ?? globalThis.fetch,
+    fs: options.fs ?? fs
+  });
+
+  return parseOpenApiDocument(sourceText, source);
+}
+
+function createRuntimeGroups(
+  commands: ReadonlyArray<GeneratedCommand>
+): CommandNode<OpenApiClientServices>[] {
+  return groupByNoun(commands).map(({ noun, commands: nounCommands }) =>
+    defineGroup({
+      name: noun,
+      children: nounCommands.map((command) => createRuntimeCommand(command))
+    })
+  );
+}
+
+function createRuntimeCommand(command: GeneratedCommand) {
+  const paramsSchema = S.Object(
+    Object.fromEntries(
+      command.params.map((param) => [param.paramName, createRuntimeParamSchema(param)])
+    ) as Record<string, AnySchema>,
+    command.paramsSchemaOptions
+  );
+
+  return defineCommand<
+    OpenApiClientServices,
+    string,
+    any,
+    undefined,
+    unknown,
+    ["cli", "mcp", "sdk"]
+  >({
+    name: command.verb,
+    ...(command.description === undefined ? {} : { description: command.description }),
+    scope: RUNTIME_COMMAND_SCOPE,
+    ...(command.confirm ? { confirm: true } : {}),
+    params: paramsSchema as any,
+    handler: createRuntimeHandler(command)
+  });
+}
+
+function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandler {
+  return async ({ params, baseUrl, tokenSource, fetch }) => {
+    const resolvedValues = executePreflightBlocks(command.preflightBlocks, params);
+    const requestShape = buildRequestShape(
+      command.requestFields,
+      command.sectionRenders,
+      command.optionalSections,
+      params,
+      resolvedValues
+    ) as Partial<Pick<HttpRequestOptions, "pathParams" | "query" | "body">>;
+
+    return requestJson({
+      baseUrl,
+      path: command.path,
+      method: command.method,
+      auth: command.auth,
+      tokenSource,
+      fetch,
+      dryRun: params.dryRun as boolean | undefined,
+      verbose: params.verbose as boolean | undefined,
+      ...requestShape
+    });
+  };
+}
+
+function createRuntimeParamSchema(param: GeneratedParam): AnySchema {
+  const definition = createRuntimeDefinition(
+    param.definition,
+    param.description,
+    param.shortFlag,
+    param.scope
+  );
+
+  return param.optional ? S.Optional(definition) : definition;
+}
+
+function createRuntimeDefinition(
+  definition: GeneratedParamDefinition,
+  description?: string,
+  shortFlag?: string,
+  scope?: readonly ["cli" | "mcp" | "sdk", ...Array<"cli" | "mcp" | "sdk">]
+): AnySchema {
+  const options = createRuntimeSchemaOptions(definition, description, shortFlag, scope);
+
+  return RUNTIME_DEFINITION_BUILDERS[definition.kind](definition as never, options);
+}
+
+const RUNTIME_DEFINITION_BUILDERS = {
+  array: (definition: Extract<GeneratedParamDefinition, { kind: "array" }>, options?: Record<string, unknown>) => {
+    const itemDefinition = createRuntimeDefinition(
+      definition.itemDefinition,
+      undefined,
+      undefined,
+      undefined
+    );
+    return options === undefined ? S.Array(itemDefinition) : S.Array(itemDefinition, options);
+  },
+  boolean: (_definition: Extract<GeneratedParamDefinition, { kind: "boolean" }>, options?: Record<string, unknown>) =>
+    options === undefined ? S.Boolean() : S.Boolean(options),
+  enum: (definition: Extract<GeneratedParamDefinition, { kind: "enum" }>, options?: Record<string, unknown>) =>
+    options === undefined ? S.Enum(definition.enumValues) : S.Enum(definition.enumValues, options),
+  number: (_definition: Extract<GeneratedParamDefinition, { kind: "number" }>, options?: Record<string, unknown>) =>
+    options === undefined ? S.Number() : S.Number(options),
+  string: (_definition: Extract<GeneratedParamDefinition, { kind: "string" }>, options?: Record<string, unknown>) =>
+    options === undefined ? S.String() : S.String(options)
+} as const satisfies {
+  [K in GeneratedParamDefinition["kind"]]: (
+    definition: Extract<GeneratedParamDefinition, { kind: K }>,
+    options?: Record<string, unknown>
+  ) => AnySchema;
+};
+
+function createRuntimeSchemaOptions(
+  definition: GeneratedParamDefinition,
+  description?: string,
+  shortFlag?: string,
+  scope?: readonly ["cli" | "mcp" | "sdk", ...Array<"cli" | "mcp" | "sdk">]
+) {
+  const options = Object.fromEntries(
+    collectSchemaOptionEntries({
+      definition,
+      description,
+      shortFlag,
+      scope
+    }).map(({ key, value }) => [key, Array.isArray(value) ? [...value] : value])
+  );
+
+  return Object.keys(options).length === 0 ? undefined : options;
+}

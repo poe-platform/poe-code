@@ -3,6 +3,7 @@ import type { CommandNode } from "@poe-code/cmdkit";
 import type {
   AuthProvider,
   BearerTokenAuthOptions,
+  CommandsFromSpecOptions,
   CommandContributor,
   DefineClientOptions,
   DefinedClient,
@@ -21,6 +22,7 @@ describe("@poe-code/cmdkit-openapi", () => {
     expect(Object.keys(entrypoint).sort()).toEqual([
       "HttpError",
       "bearerTokenAuth",
+      "commandsFromSpec",
       "defineClient",
       "generate",
       "requestJson",
@@ -109,6 +111,23 @@ describe("@poe-code/cmdkit-openapi", () => {
   it("exports generate() with the public signature", () => {
     expectTypeOf<typeof entrypoint.generate>().toMatchTypeOf<
       (document: OpenApiDocument, options: GenerateOptions) => GeneratedFile[]
+    >();
+  });
+
+  it("exports commandsFromSpec() with the public signature", () => {
+    expectTypeOf<CommandsFromSpecOptions>().toMatchTypeOf<{
+      cwd?: string;
+      fetch?: typeof globalThis.fetch;
+      fs?: {
+        readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
+      };
+    }>();
+
+    expectTypeOf<typeof entrypoint.commandsFromSpec>().toMatchTypeOf<
+      (
+        source: OpenApiDocument | string | URL,
+        options?: CommandsFromSpecOptions
+      ) => Promise<CommandNode<any>[]>
     >();
   });
 

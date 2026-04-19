@@ -39,6 +39,19 @@ function createSpec(summary: string): string {
   return JSON.stringify(document, null, 2);
 }
 
+function createEmptySpec(): string {
+  const document: OpenApiDocument = {
+    openapi: "3.0.3",
+    info: {
+      title: "Internal Agent API",
+      version: "1.0.0"
+    },
+    paths: {}
+  };
+
+  return JSON.stringify(document, null, 2);
+}
+
 function createCliHarness(initialFiles: Record<string, string> = {}) {
   const volume = Volume.fromJSON(initialFiles, "/");
   const fs = createFsFromVolume(volume).promises;
@@ -111,6 +124,19 @@ async function readRepoFiles(
 }
 
 describe("runGenerateCli", () => {
+  it("writes an explicit empty module when the spec has no operations", async () => {
+    const specText = createEmptySpec();
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+
+    await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual({
+      "openapi.json": specText,
+      "openapi.lock": stringifyOpenApiLock({ specSha: computeSpecSha(specText) }),
+      "src/generated/index.ts": "export {};"
+    });
+  });
+
   it("creates generated files and openapi.lock on the first run", async () => {
     const specText = createSpec("List bots.");
     const harness = createCliHarness({ "/repo/openapi.json": specText });

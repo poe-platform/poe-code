@@ -257,6 +257,7 @@ async function resolveIdentity(
     baseUrl: services.baseUrl,
     path: whoamiPath,
     method: "GET",
+    auth: "required",
     tokenSource: {
       getToken: async () => token,
     },

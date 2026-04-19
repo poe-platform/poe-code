@@ -3,10 +3,10 @@ import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse as parseYaml } from "yaml";
 import { UserError } from "@poe-code/cmdkit";
 import { generate, type OpenApiDocument, type GeneratedFile } from "../generate.js";
 import { readOpenApiLock, writeOpenApiLock } from "../lock.js";
+import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";
 
 interface GenerateCliFileSystem {
   mkdir(directoryPath: string, options?: { recursive?: boolean }): Promise<unknown>;
@@ -115,9 +115,9 @@ export async function syncGeneratedClient(
   options: GenerateCliOptions,
   services: Pick<GenerateCliServices, "cwd" | "fetch" | "fs">
 ): Promise<SyncGeneratedClientResult> {
-  const sourceText = await readSpecSource(options.input, services);
+  const sourceText = await readOpenApiSourceText(options.input, services);
   const specSha = createSpecSha(sourceText);
-  const document = parseDocument(sourceText, options.input);
+  const document = parseOpenApiDocument(sourceText, options.input);
   const generatedFiles = generate(document, { specSha });
   const outputDir = path.resolve(services.cwd, options.outputDir);
   const lockPath = path.resolve(services.cwd, options.lockPath);
@@ -215,65 +215,6 @@ function assignOptionValue(
   options.lockPath = value;
 }
 
-async function readSpecSource(
-  input: string,
-  services: Pick<GenerateCliServices, "cwd" | "fetch" | "fs">
-): Promise<string> {
-  const inputUrl = tryParseUrl(input);
-
-  try {
-    if (inputUrl === null) {
-      return await services.fs.readFile(path.resolve(services.cwd, input), "utf8");
-    }
-
-    if (inputUrl.protocol === "file:") {
-      return await services.fs.readFile(fileURLToPath(inputUrl), "utf8");
-    }
-
-    if (inputUrl.protocol !== "http:" && inputUrl.protocol !== "https:") {
-      throw new UserError(`Unsupported OpenAPI input URL protocol ${JSON.stringify(inputUrl.protocol)}.`);
-    }
-
-    const response = await services.fetch(inputUrl.toString());
-
-    if (!response.ok) {
-      throw new UserError(
-        `Failed to fetch ${JSON.stringify(inputUrl.toString())}: ${response.status} ${response.statusText}`
-      );
-    }
-
-    return await response.text();
-  } catch (error) {
-    if (error instanceof UserError) {
-      throw error;
-    }
-
-    throw new UserError(
-      `Failed to read OpenAPI document ${JSON.stringify(input)}: ${getErrorMessage(error)}`
-    );
-  }
-}
-
-function parseDocument(sourceText: string, input: string): OpenApiDocument {
-  let parsed: unknown;
-
-  try {
-    parsed = parseYaml(sourceText);
-  } catch (error) {
-    throw new UserError(
-      `Failed to parse OpenAPI document ${JSON.stringify(input)}: ${getErrorMessage(error)}`
-    );
-  }
-
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    throw new UserError(
-      `OpenAPI document ${JSON.stringify(input)} must parse to an object.`
-    );
-  }
-
-  return parsed as OpenApiDocument;
-}
-
 function createSpecSha(sourceText: string): string {
   return `sha256:${createHash("sha256").update(sourceText).digest("hex")}`;
 }
@@ -360,22 +301,6 @@ async function deleteGeneratedFiles(
   for (const filePath of filePaths) {
     await fs.rm(filePath, { force: true });
   }
-}
-
-function tryParseUrl(value: string): URL | null {
-  try {
-    return new URL(value);
-  } catch {
-    return null;
-  }
-}
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return String(error);
 }
 
 function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {

@@ -3,23 +3,31 @@ import {
   METHOD_DEFAULTS,
   deriveNoun,
   deriveVerb,
+  isIdentifierName,
   normalizeParamName,
   toCamelCase,
   toPascalCase,
   type HttpMethod
 } from "./naming.js";
+import { groupByNoun } from "./group-by-noun.js";
+import { renderPreflightBlock, renderRequestShape } from "./interpreter.js";
 
 const HTTP_METHOD_ORDER = ["get", "post", "put", "patch", "delete"] as const;
+const UNSUPPORTED_HTTP_METHODS = ["head", "options", "trace"] as const;
 const METHODS_WITHOUT_REQUEST_BODY = new Set<HttpMethod>(["get"]);
-type OpenApiOperationMap = Partial<Record<HttpMethod, OpenApiOperationObject>>;
+type OpenApiOperation = OpenApiOperationObject | OpenApiReferenceObject;
+type OpenApiOperationMap = Partial<Record<HttpMethod, OpenApiOperation>>;
 type OpenApiParameterLocation = "path" | "query" | "header" | "cookie";
 type SupportedOpenApiParameterLocation = "path" | "query";
 type ParamKind = "string" | "number" | "boolean" | "enum" | "array";
 type OpenApiScalarType = "string" | "number" | "integer" | "boolean";
+export type GeneratedRequestLocation = Exclude<GeneratedParam["location"], "transport">;
+type FieldSchemaKind = "array" | "object" | "scalar";
+type NullHelperShape = "scalar" | "array";
 
 const SCHEMA_TYPE_TO_KIND: Record<
   OpenApiScalarType,
-  { kind: Exclude<ParamKind, "enum">; jsonType?: "integer" }
+  { kind: GeneratedScalarParamDefinition["kind"]; jsonType?: "integer" }
 > = {
   boolean: { kind: "boolean" },
   integer: { kind: "number", jsonType: "integer" },
@@ -27,15 +35,13 @@ const SCHEMA_TYPE_TO_KIND: Record<
   string: { kind: "string" }
 };
 
-const REQUEST_PARAM_SECTIONS = [
-  { location: "path", key: "pathParams", omittable: false },
-  { location: "query", key: "query", omittable: false },
-  { location: "body", key: "body", omittable: true }
-] as const satisfies ReadonlyArray<{
-  location: Exclude<GeneratedParam["location"], "transport">;
-  key: "pathParams" | "query" | "body";
-  omittable: boolean;
-}>;
+const NULL_HELPER_SUPPORT = {
+  body: { array: true, scalar: true },
+  path: { array: false, scalar: false },
+  // Query null already serializes as the existing empty-string wire encoding, so v1
+  // keeps null-helper flags body-only until a real query-null convention lands.
+  query: { array: false, scalar: false }
+} as const satisfies Record<GeneratedRequestLocation, Record<NullHelperShape, boolean>>;
 
 const TRANSPORT_PARAMS = [
   {
@@ -161,16 +167,26 @@ export interface GeneratedFile {
   contents: string;
 }
 
-interface GeneratedCommand {
+export interface GeneratedCommand {
   noun: string;
   verb: string;
   exportName: string;
   filePath: string;
-  contents: string;
   operationId: string;
+  description?: string;
+  method: string;
+  path: string;
+  auth: "required" | "none";
+  confirm: boolean;
+  params: GeneratedParam[];
+  paramsSchemaOptions?: GeneratedObjectSchemaOptions;
+  preflightBlocks: GeneratedPreflightBlock[];
+  requestFields: GeneratedRequestField[];
+  sectionRenders: GeneratedRequestSectionRenders;
+  optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
 }
 
-interface GeneratedParam {
+export interface GeneratedParam {
   paramName: string;
   sourceName: string;
   location: "path" | "query" | "body" | "transport";
@@ -181,12 +197,9 @@ interface GeneratedParam {
   definition: GeneratedParamDefinition;
 }
 
-interface GeneratedParamDefinition {
-  kind: ParamKind;
+interface GeneratedParamDefinitionMetadata {
   defaultValue?: unknown;
-  enumValues?: ReadonlyArray<string | number | boolean>;
   format?: string;
-  itemDefinition?: GeneratedParamDefinition;
   jsonType?: "integer";
   maxItems?: number;
   maximum?: number;
@@ -199,23 +212,54 @@ interface GeneratedParamDefinition {
   requiredScopes?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
 }
 
-type GeneratedParamScope = "cli" | "mcp" | "sdk";
-
-interface GeneratedRequestField {
-  location: Exclude<GeneratedParam["location"], "transport">;
-  omitWhenUndefinedExpression: string;
-  wireName: string;
-  valueExpression: string;
+interface GeneratedScalarParamDefinition extends GeneratedParamDefinitionMetadata {
+  kind: "string" | "number" | "boolean";
 }
 
-interface GeneratedRequestSectionRenders {
-  body?: "inline" | "wrapped";
-  path?: "wrapped";
-  query?: "wrapped";
+interface GeneratedEnumParamDefinition extends GeneratedParamDefinitionMetadata {
+  kind: "enum";
+  enumValues: readonly [GeneratedEnumValue, ...GeneratedEnumValue[]];
+}
+
+interface GeneratedArrayParamDefinition extends GeneratedParamDefinitionMetadata {
+  kind: "array";
+  itemDefinition: GeneratedParamDefinition;
+}
+
+export type GeneratedParamDefinition =
+  | GeneratedScalarParamDefinition
+  | GeneratedEnumParamDefinition
+  | GeneratedArrayParamDefinition;
+
+type GeneratedParamScope = "cli" | "mcp" | "sdk";
+type GeneratedEnumValue = string | number | boolean;
+export type GeneratedValueReference =
+  | { kind: "param"; paramName: string }
+  | { kind: "resolved"; resolvedName: string };
+export type GeneratedValueExpression =
+  | { kind: "reference"; reference: GeneratedValueReference }
+  | { kind: "queryArray"; reference: GeneratedValueReference; serialization: QueryArraySerialization };
+
+export interface GeneratedRequestField {
+  location: Exclude<GeneratedParam["location"], "transport">;
+  omitWhenUndefinedReference: GeneratedValueReference;
+  wireName: string;
+  value: GeneratedValueExpression;
+}
+
+export type GeneratedRequestSectionRender = "inline" | "wrapped";
+
+export type GeneratedRequestSectionRenders = Partial<{
+  [K in GeneratedRequestLocation]: K extends "body" ? GeneratedRequestSectionRender : "wrapped";
+}>;
+
+export interface GeneratedObjectSchemaOptions {
+  additionalProperties?: boolean;
 }
 
 interface CollectedCommandParams {
   params: GeneratedParam[];
+  paramsSchemaOptions?: GeneratedObjectSchemaOptions;
   preflightBlocks: GeneratedPreflightBlock[];
   requestFields: GeneratedRequestField[];
   optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
@@ -236,12 +280,94 @@ interface RenderSchemaOptionsInput {
   scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
 }
 
-type GeneratedCommandImport = "UserError";
+export type GeneratedPreflightBlock =
+  | {
+      kind: "scalar-null";
+      paramName: string;
+      nullParamName: string;
+      resolvedName: string;
+      required: boolean;
+    }
+  | {
+      kind: "array";
+      paramName: string;
+      jsonParamName: string;
+      nullParamName?: string;
+      resolvedName: string;
+      required: boolean;
+    };
 
-interface GeneratedPreflightBlock {
-  code: string[];
-  imports?: readonly GeneratedCommandImport[];
+interface SchemaOptionEntry {
+  key: string;
+  value: unknown;
 }
+
+const SCHEMA_OPTION_SOURCES = [
+  {
+    key: "description",
+    get: (param: RenderSchemaOptionsInput) => param.description
+  },
+  {
+    key: "default",
+    get: (param: RenderSchemaOptionsInput) => param.definition.defaultValue
+  },
+  {
+    key: "short",
+    get: (param: RenderSchemaOptionsInput) => param.shortFlag
+  },
+  {
+    key: "scope",
+    get: (param: RenderSchemaOptionsInput) => param.scope
+  },
+  {
+    key: "minimum",
+    get: (param: RenderSchemaOptionsInput) => param.definition.minimum
+  },
+  {
+    key: "maximum",
+    get: (param: RenderSchemaOptionsInput) => param.definition.maximum
+  },
+  {
+    key: "minLength",
+    get: (param: RenderSchemaOptionsInput) => param.definition.minLength
+  },
+  {
+    key: "maxLength",
+    get: (param: RenderSchemaOptionsInput) => param.definition.maxLength
+  },
+  {
+    key: "minItems",
+    get: (param: RenderSchemaOptionsInput) => param.definition.minItems
+  },
+  {
+    key: "maxItems",
+    get: (param: RenderSchemaOptionsInput) => param.definition.maxItems
+  },
+  {
+    key: "pattern",
+    get: (param: RenderSchemaOptionsInput) => param.definition.pattern
+  },
+  {
+    key: "format",
+    get: (param: RenderSchemaOptionsInput) => param.definition.format
+  },
+  {
+    key: "jsonType",
+    get: (param: RenderSchemaOptionsInput) => param.definition.jsonType
+  },
+  {
+    key: "nullable",
+    get: (param: RenderSchemaOptionsInput) =>
+      param.definition.nullable === true ? true : undefined
+  },
+  {
+    key: "requiredScopes",
+    get: (param: RenderSchemaOptionsInput) => param.definition.requiredScopes
+  }
+] as const satisfies ReadonlyArray<{
+  key: string;
+  get: (param: RenderSchemaOptionsInput) => unknown;
+}>;
 
 interface CreateArrayParamOptions {
   document: OpenApiDocument;
@@ -253,7 +379,21 @@ interface CreateArrayParamOptions {
   context: string;
   location: "query" | "body";
   querySerialization?: QueryArraySerialization;
-  supportsNullFlag: boolean;
+}
+
+interface CreateScalarParamOptions {
+  document: OpenApiDocument;
+  name: string;
+  description?: string;
+  schema: OpenApiSchemaObject;
+  optional: boolean;
+  operationId: string;
+  context: string;
+  location: GeneratedRequestLocation;
+}
+
+interface CreateFieldOptions extends CreateScalarParamOptions {
+  querySerialization?: QueryArraySerialization;
 }
 
 type QueryArraySerialization = "repeat" | "comma" | "pipe";
@@ -261,30 +401,37 @@ type QueryArraySerialization = "repeat" | "comma" | "pipe";
 interface OperationEntry {
   method: HttpMethod;
   path: string;
-  operation: OpenApiOperationObject;
+  operation: OpenApiOperation;
   pathItem: OpenApiPathItemObject;
 }
 
 export function generate(document: OpenApiDocument, options: GenerateOptions): GeneratedFile[] {
+  const commands = collectGeneratedCommands(document);
+
+  return [
+    ...commands.map((command) => ({
+      path: command.filePath,
+      contents: createCommandFile({
+        specSha: options.specSha,
+        ...command
+      })
+    })),
+    createIndexFile(commands)
+  ];
+}
+
+export function collectGeneratedCommands(document: OpenApiDocument): GeneratedCommand[] {
   const paths = document.paths;
 
   if (paths === undefined) {
     throw new UserError('OpenAPI document must define a top-level "paths" object.');
   }
 
-  const commands = collectOperations(paths).map((entry) =>
-    createGeneratedCommand(document, entry, options.specSha)
-  );
+  const commands = collectOperations(paths).map((entry) => createGeneratedCommand(document, entry));
 
   assertUniqueCommandPaths(commands);
 
-  return [
-    ...commands
-      .slice()
-      .sort((left, right) => compareGeneratedCommandPaths(left, right))
-      .map(({ filePath, contents }) => ({ path: filePath, contents })),
-    createIndexFile(commands)
-  ];
+  return commands.slice().sort((left, right) => compareGeneratedCommandPaths(left, right));
 }
 
 function collectOperations(
@@ -296,6 +443,8 @@ function collectOperations(
       if (pathItem === undefined) {
         return [];
       }
+
+      assertSupportedHttpMethods(path, pathItem);
 
       return HTTP_METHOD_ORDER.flatMap((method) => {
         const operation = pathItem[method];
@@ -310,14 +459,15 @@ function collectOperations(
 
 function createGeneratedCommand(
   document: OpenApiDocument,
-  entry: OperationEntry,
-  specSha: string
+  entry: OperationEntry
 ): GeneratedCommand {
-  const operationId = entry.operation.operationId ?? `${entry.method.toUpperCase()} ${entry.path}`;
-  assertSupportedSuccessResponses(document, entry.operation, operationId);
-  const noun = deriveNoun(entry.operation, operationId);
-  const verb = deriveVerb(entry.method, entry.path, entry.operation, operationId, noun);
-  const collected = collectParams(document, entry, operationId);
+  const operation = expectOperation(document, entry.operation, entry.method, entry.path);
+  const operationId = operation.operationId ?? `${entry.method.toUpperCase()} ${entry.path}`;
+  assertSupportedSuccessResponses(document, operation, operationId);
+  const noun = deriveNoun(operation, entry.path, operationId);
+  assertValidGeneratedNoun(operationId, noun);
+  const verb = deriveVerb(entry.method, entry.path, operation, operationId, noun);
+  const collected = collectParams(document, entry, operation, operationId);
   const methodDefaults = METHOD_DEFAULTS[entry.method];
   const exportName = `${toCamelCase(noun)}${toPascalCase(verb)}Command`;
   const filePath = `${noun}/${verb}.ts`;
@@ -328,44 +478,39 @@ function createGeneratedCommand(
     exportName,
     filePath,
     operationId,
-    contents: createCommandFile({
-      specSha,
-      operationId,
-      noun,
-      verb,
-      exportName,
-      description: mergeCommandDescriptions(
-        entry.operation.summary ?? entry.operation.description,
-        collected.requestBodyDescription
-      ),
-      method: entry.method.toUpperCase(),
-      path: entry.path,
-      auth: getOperationAuthMode(document, entry.operation),
-      confirm: methodDefaults?.confirm === true,
-      params: collected.params,
-      preflightBlocks: collected.preflightBlocks,
-      requestFields: collected.requestFields,
-      sectionRenders: collected.sectionRenders,
-      optionalSections: collected.optionalSections
-    })
+    description: mergeCommandDescriptions(
+      operation.description ?? operation.summary,
+      collected.requestBodyDescription
+    ),
+    method: entry.method.toUpperCase(),
+    path: entry.path,
+    auth: getOperationAuthMode(document, operation),
+    confirm: methodDefaults?.confirm === true,
+    params: collected.params,
+    paramsSchemaOptions: collected.paramsSchemaOptions,
+    preflightBlocks: collected.preflightBlocks,
+    requestFields: collected.requestFields,
+    sectionRenders: collected.sectionRenders,
+    optionalSections: collected.optionalSections
   };
 }
 
 function collectParams(
   document: OpenApiDocument,
   entry: OperationEntry,
+  operation: OpenApiOperationObject,
   operationId: string
 ): CollectedCommandParams {
   const operationParams = collectOperationParameters(
     document,
     entry.path,
     entry.pathItem.parameters ?? [],
-    entry.operation.parameters ?? [],
+    operation.parameters ?? [],
     operationId
   );
   const requestBodyParams = collectRequestBodyParams(
     document,
-    entry.operation,
+    operation,
     operationId,
     entry.method
   );
@@ -385,9 +530,8 @@ function collectParams(
   }
 
   return {
-    params: [...deduped.values()].sort((left, right) =>
-      left.paramName.localeCompare(right.paramName)
-    ),
+    params: [...deduped.values()],
+    paramsSchemaOptions: requestBodyParams.paramsSchemaOptions,
     preflightBlocks: [...operationParams.preflightBlocks, ...requestBodyParams.preflightBlocks],
     requestFields: [...operationParams.requestFields, ...requestBodyParams.requestFields],
     sectionRenders: { ...operationParams.sectionRenders, ...requestBodyParams.sectionRenders },
@@ -433,9 +577,10 @@ function collectOperationParameters(
 
   return {
     params,
+    paramsSchemaOptions: undefined,
     preflightBlocks,
     requestFields,
-    sectionRenders: {},
+    sectionRenders: { path: "wrapped", query: "wrapped" },
     optionalSections: new Set(),
     requestBodyDescription: undefined
   };
@@ -450,6 +595,7 @@ function collectRequestBodyParams(
   if (operation.requestBody === undefined) {
     return {
       params: [],
+      paramsSchemaOptions: undefined,
       preflightBlocks: [],
       requestFields: [],
       sectionRenders: {},
@@ -485,21 +631,17 @@ function collectRequestBodyParams(
   const bodyOptional = requestBody.required !== true;
 
   if (schema.type !== "object") {
+    const bodySchema =
+      schema.description === undefined && requestBody.description !== undefined
+        ? { ...schema, description: requestBody.description }
+        : schema;
+
     return createCollectedRequestBodyParams(
-      [
-        createBodyField(
-          document,
-          "body",
-          schema.description === undefined && requestBody.description !== undefined
-            ? { ...schema, description: requestBody.description }
-            : schema,
-          bodyOptional,
-          operationId
-        )
-      ],
+      [createBodyField(document, "body", bodySchema, bodyOptional, operationId)],
       bodyOptional,
-      requestBody.description,
-      "inline"
+      schema.description === undefined ? undefined : requestBody.description,
+      "inline",
+      undefined
     );
   }
 
@@ -544,7 +686,8 @@ function collectRequestBodyParams(
     assemblies,
     bodyOptional,
     requestBody.description,
-    "wrapped"
+    "wrapped",
+    schema.additionalProperties === false ? { additionalProperties: false } : undefined
   );
 }
 
@@ -599,54 +742,20 @@ function createGeneratedParameter(
     );
   }
 
-  if (parameter.in === "path" && (schema.type === "array" || schema.type === "object")) {
-    throw new UserError(
-      `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(parameter.name)} must use a scalar schema (string, number, integer, or boolean).`
-    );
-  }
-
-  if (parameter.in === "query" && schema.type === "array") {
-    return createArrayParam({
-      document,
-      name: parameter.name,
-      description: parameter.description ?? schema.description,
-      schema,
-      optional: parameter.required !== true,
-      operationId,
-      context: `parameter ${JSON.stringify(parameter.name)}`,
-      location: "query",
-      querySerialization: resolveQueryArraySerialization(parameter, operationId),
-      // Query null currently serializes as an empty string on the wire, so v1 does not
-      // synthesize a CLI-only --<name>-null helper for query arrays.
-      supportsNullFlag: false
-    });
-  }
-
-  const paramName = parameter.name;
-  return {
-    params: [
-      {
-        paramName,
-        sourceName: parameter.name,
-        location: parameter.in,
-        description: parameter.description ?? schema.description,
-        optional: parameter.required !== true,
-        definition: createParamDefinition(
-          document,
-          schema,
-          operationId,
-          `parameter ${JSON.stringify(parameter.name)}`
-        )
-      } satisfies GeneratedParam
-    ],
-    preflightBlocks: [],
-    requestField: {
-      location: parameter.in,
-      wireName: parameter.name,
-      valueExpression: renderParamAccess(paramName),
-      omitWhenUndefinedExpression: `${renderParamAccess(paramName)} === undefined`
-    }
-  };
+  return createField({
+    document,
+    name: parameter.name,
+    description: parameter.description ?? schema.description,
+    schema,
+    optional: parameter.required !== true,
+    operationId,
+    context: `parameter ${JSON.stringify(parameter.name)}`,
+    location: parameter.in,
+    querySerialization:
+      parameter.in === "query" && schema.type === "array"
+        ? resolveQueryArraySerialization(parameter, operationId)
+        : undefined
+  });
 }
 
 function createBodyField(
@@ -656,50 +765,45 @@ function createBodyField(
   optional: boolean,
   operationId: string
 ): GeneratedParameterAssembly {
-  if (schema.type === "object") {
-    throw new UserError(
-      `Operation ${JSON.stringify(operationId)} uses unsupported request body field ${JSON.stringify(name)}. Nested object body fields are not supported in v1.`
-    );
-  }
-
-  if (schema.type === "array") {
-    return createArrayParam({
-      document,
-      name,
-      description: schema.description,
-      schema,
-      optional,
-      operationId,
-      context: `request body field ${JSON.stringify(name)}`,
-      location: "body",
-      querySerialization: undefined,
-      supportsNullFlag: true
-    });
-  }
-
-  const paramName = name;
-  const helperBaseName = normalizeParamName(name);
-  const definition = createParamDefinition(
+  return createField({
     document,
+    name,
+    description: schema.description,
     schema,
+    optional,
     operationId,
-    `request body field ${JSON.stringify(name)}`
-  );
+    context: `request body field ${JSON.stringify(name)}`,
+    location: "body"
+  });
+}
+
+function createField(options: CreateFieldOptions): GeneratedParameterAssembly {
+  return FIELD_ASSEMBLERS[options.location][getFieldSchemaKind(options.schema)](options);
+}
+
+function createScalarParam(options: CreateScalarParamOptions): GeneratedParameterAssembly {
+  const { document, name, description, schema, optional, operationId, context, location } = options;
+  const paramName = name;
+  const definition = createParamDefinition(document, schema, operationId, context);
+  const emitsNullHelper = supportsNullHelper(location, "scalar", definition.nullable);
   const params: GeneratedParam[] = [
     {
       paramName,
       sourceName: name,
-      location: "body",
-      description: schema.description,
-      optional,
-      definition
+      location,
+      description,
+      optional: optional || emitsNullHelper,
+      definition: {
+        ...definition,
+        ...(!optional && emitsNullHelper ? { requiredScopes: ["mcp", "sdk"] as const } : {})
+      }
     } satisfies GeneratedParam
   ];
   const preflightBlocks: GeneratedPreflightBlock[] = [];
+  const helperBaseName = normalizeParamName(name);
   const resolvedName = `resolved${toPascalCase(helperBaseName)}`;
-  const paramAccess = renderParamAccess(paramName);
 
-  if (definition.nullable === true) {
+  if (emitsNullHelper) {
     params.push({
       paramName: `${helperBaseName}Null`,
       sourceName: name,
@@ -710,13 +814,11 @@ function createBodyField(
       definition: { kind: "boolean" }
     });
     preflightBlocks.push({
-      imports: ["UserError"],
-      code: [
-        `    if (${paramAccess} !== undefined && ${paramAccess} !== null && params.${helperBaseName}Null) {`,
-        `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(paramName)}" and "--${toCliFlag(`${helperBaseName}Null`)}" are mutually exclusive.`)});`,
-        "    }",
-        `    const ${resolvedName} = params.${helperBaseName}Null ? null : ${paramAccess};`
-      ]
+      kind: "scalar-null",
+      paramName,
+      nullParamName: `${helperBaseName}Null`,
+      resolvedName,
+      required: !optional
     });
   }
 
@@ -724,38 +826,49 @@ function createBodyField(
     params,
     preflightBlocks,
     requestField: {
-      location: "body",
+      location,
       wireName: name,
-      valueExpression: definition.nullable === true ? resolvedName : paramAccess,
-      omitWhenUndefinedExpression:
-        definition.nullable === true
-          ? `${resolvedName} === undefined`
-          : `${paramAccess} === undefined`
+      value: emitsNullHelper
+        ? { kind: "reference", reference: { kind: "resolved", resolvedName } }
+        : { kind: "reference", reference: { kind: "param", paramName } },
+      omitWhenUndefinedReference: emitsNullHelper
+        ? { kind: "resolved", resolvedName }
+        : { kind: "param", paramName }
     }
   };
 }
 
+function getFieldSchemaKind(schema: OpenApiSchemaObject): FieldSchemaKind {
+  return schema.type === "array" ? "array" : schema.type === "object" ? "object" : "scalar";
+}
+
+function createPathScalarOnlyError(name: string, operationId: string): never {
+  throw new UserError(
+    `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(name)} must use a scalar schema (string, number, integer, or boolean).`
+  );
+}
+
+function createUnsupportedNestedBodyFieldError(name: string, operationId: string): never {
+  throw new UserError(
+    `Operation ${JSON.stringify(operationId)} uses unsupported request body field ${JSON.stringify(name)}. Nested object body fields are not supported in v1.`
+  );
+}
+
 function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterAssembly {
-  const {
-    document,
-    name,
-    description,
-    schema,
-    optional,
-    operationId,
-    context,
-    location,
-    querySerialization,
-    supportsNullFlag
-  } = options;
+  const { document, name, description, schema, optional, operationId, context, location } = options;
   const paramName = name;
   const helperBaseName = normalizeParamName(name);
-  const directDefinition = createParamDefinition(document, schema, operationId, context);
+  const directDefinition = createParamDefinition(
+    document,
+    location === "query" ? stripNullable(schema) : schema,
+    operationId,
+    context
+  );
   const jsonParamName = `${helperBaseName}Json`;
   const nullParamName = `${helperBaseName}Null`;
   const resolvedName = `resolved${toPascalCase(helperBaseName)}`;
-  const emitsNullHelper = supportsNullFlag && directDefinition.nullable === true;
-  const paramAccess = renderParamAccess(paramName);
+  const reference = { kind: "resolved", resolvedName } as const;
+  const emitsNullHelper = supportsNullHelper(location, "array", directDefinition.nullable);
   const directParamOptional = true;
   const params: GeneratedParam[] = [
     {
@@ -792,69 +905,120 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
     });
   }
 
-  const preflightCode = [
-    ...(emitsNullHelper
-      ? [
-          `    if (params.${nullParamName} && (${paramAccess} !== undefined || params.${jsonParamName} !== undefined)) {`,
-          `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(nullParamName)}", "--${toCliFlag(paramName)}", and "--${toCliFlag(jsonParamName)}" cannot be combined.`)});`,
-          "    }"
-        ]
-      : []),
-    `    if (${paramAccess} !== undefined && params.${jsonParamName} !== undefined) {`,
-    `      throw new UserError(${JSON.stringify(`Options "--${toCliFlag(paramName)}" and "--${toCliFlag(jsonParamName)}" are mutually exclusive.`)});`,
-    "    }",
-    `    let ${resolvedName} = ${paramAccess};`,
-    `    if (params.${jsonParamName} !== undefined) {`,
-    "      let parsedJson: unknown;",
-    "      try {",
-    `        parsedJson = JSON.parse(params.${jsonParamName});`,
-    "      } catch (error) {",
-    `        throw new UserError(${JSON.stringify(`Invalid value for "--${toCliFlag(jsonParamName)}". Expected valid JSON.`)});`,
-    "      }",
-    "      if (!Array.isArray(parsedJson)) {",
-    `        throw new UserError(${JSON.stringify(`Invalid value for "--${toCliFlag(jsonParamName)}". Expected a JSON array.`)});`,
-    "      }",
-    `      ${resolvedName} = parsedJson;`,
-    "    }",
-    ...(emitsNullHelper ? [`    if (params.${nullParamName}) {`, `      ${resolvedName} = null;`, "    }"] : [])
-  ];
-
-  if (!optional) {
-    preflightCode.push(
-      `    if (${resolvedName} === undefined) {`,
-      `      throw new UserError(${JSON.stringify(`Missing required parameter "${toCliFlag(paramName)}".`)});`,
-      "    }"
-    );
-  }
-
   return {
     params,
     preflightBlocks: [
       {
-        imports: ["UserError"],
-        code: preflightCode
+        kind: "array",
+        paramName,
+        jsonParamName,
+        ...(emitsNullHelper ? { nullParamName } : {}),
+        resolvedName,
+        required: !optional
       }
     ],
     requestField: {
       location,
       wireName: name,
-      valueExpression:
-        location === "query"
-          ? renderQueryArrayValueExpression(resolvedName, querySerialization ?? "repeat")
-          : resolvedName,
-      omitWhenUndefinedExpression: `${resolvedName} === undefined`
+      value: ARRAY_VALUE_EXPRESSIONS[location](reference, options.querySerialization),
+      omitWhenUndefinedReference: reference
     }
   };
+}
+
+const ARRAY_VALUE_EXPRESSIONS = {
+  body: (reference: GeneratedValueReference) => ({ kind: "reference", reference }),
+  query: (
+    reference: GeneratedValueReference,
+    querySerialization: QueryArraySerialization | undefined
+  ) => ({
+    kind: "queryArray",
+    reference,
+    serialization: expectQueryArraySerialization(querySerialization)
+  })
+} as const satisfies Record<
+  CreateArrayParamOptions["location"],
+  (
+    reference: GeneratedValueReference,
+    querySerialization?: QueryArraySerialization
+  ) => GeneratedValueExpression
+>;
+
+const FIELD_ASSEMBLERS = {
+  body: {
+    array: (options: CreateFieldOptions) =>
+      createArrayParam({
+        ...options,
+        location: "body"
+      }),
+    object: (options: CreateFieldOptions) =>
+      createUnsupportedNestedBodyFieldError(options.name, options.operationId),
+    scalar: (options: CreateFieldOptions) =>
+      createScalarParam({
+        ...options,
+        location: "body"
+      })
+  },
+  path: {
+    array: (options: CreateFieldOptions) => createPathScalarOnlyError(options.name, options.operationId),
+    object: (options: CreateFieldOptions) =>
+      createPathScalarOnlyError(options.name, options.operationId),
+    scalar: (options: CreateFieldOptions) =>
+      createScalarParam({
+        ...options,
+        location: "path"
+      })
+  },
+  query: {
+    array: (options: CreateFieldOptions) =>
+      createArrayParam({
+        ...options,
+        location: "query"
+      }),
+    object: (options: CreateFieldOptions) =>
+      createScalarParam({
+        ...options,
+        location: "query"
+      }),
+    scalar: (options: CreateFieldOptions) =>
+      createScalarParam({
+        ...options,
+        location: "query"
+      })
+  }
+} as const satisfies Record<
+  GeneratedRequestLocation,
+  Record<FieldSchemaKind, (options: CreateFieldOptions) => GeneratedParameterAssembly>
+>;
+
+function expectQueryArraySerialization(
+  querySerialization: QueryArraySerialization | undefined
+): QueryArraySerialization {
+  if (querySerialization === undefined) {
+    throw new Error("Missing query array serialization for generated query array field.");
+  }
+
+  return querySerialization;
+}
+
+function supportsNullHelper(
+  location: GeneratedRequestLocation,
+  shape: NullHelperShape,
+  nullable: boolean | undefined
+): boolean {
+  return nullable === true && NULL_HELPER_SUPPORT[location][shape];
 }
 
 function createCollectedRequestBodyParams(
   assemblies: ReadonlyArray<GeneratedParameterAssembly>,
   bodyOptional: boolean,
   requestBodyDescription: string | undefined,
-  bodyRender: GeneratedRequestSectionRenders["body"]
+  bodyRender: GeneratedRequestSectionRenders["body"],
+  paramsSchemaOptions: GeneratedObjectSchemaOptions | undefined
 ): CollectedCommandParams {
   return {
     params: assemblies.flatMap((assembly) => assembly.params),
+    paramsSchemaOptions,
     preflightBlocks: assemblies.flatMap((assembly) => assembly.preflightBlocks),
     requestFields: assemblies.map((assembly) => assembly.requestField),
     sectionRenders: { body: bodyRender },
@@ -978,13 +1142,6 @@ function collectPathPlaceholders(path: string): string[] {
   return placeholders;
 }
 
-function toCliFlag(name: string): string {
-  return name
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .replaceAll("_", "-")
-    .toLowerCase();
-}
-
 function isSuccessStatusCode(statusCode: string): boolean {
   if (statusCode.length !== 3) {
     return false;
@@ -1004,7 +1161,7 @@ function normalizeEnumValues(
   context: string,
   nullable: boolean,
   schemaType: OpenApiSchemaObject["type"]
-): ReadonlyArray<string | number | boolean> | undefined {
+): readonly [GeneratedEnumValue, ...GeneratedEnumValue[]] | undefined {
   if (enumValues === undefined) {
     return undefined;
   }
@@ -1061,7 +1218,10 @@ function normalizeEnumValues(
     }
   }
 
-  return filteredValues.filter(isEnumPrimitiveValue);
+  return filteredValues.filter(isEnumPrimitiveValue) as unknown as readonly [
+    GeneratedEnumValue,
+    ...GeneratedEnumValue[]
+  ];
 }
 
 function resolveLocalReference(
@@ -1118,6 +1278,30 @@ function expectParameter(
   }
 
   return parameter as SupportedOpenApiParameterObject;
+}
+
+function expectOperation(
+  document: OpenApiDocument,
+  operation: OpenApiOperation,
+  method: HttpMethod,
+  path: string,
+  refChain: readonly string[] = []
+): OpenApiOperationObject {
+  if (!isReferenceObject(operation)) {
+    return operation;
+  }
+
+  const operationId = `${method.toUpperCase()} ${path}`;
+  const context = `operation ${method.toUpperCase()} ${path}`;
+  assertAcyclicRef(operation.$ref, refChain, operationId, context);
+
+  return expectOperation(
+    document,
+    resolveLocalReference(document, operation.$ref, operationId, context) as OpenApiOperation,
+    method,
+    path,
+    [...refChain, operation.$ref]
+  );
 }
 
 function isEnumPrimitiveValue(value: unknown): value is string | number | boolean {
@@ -1209,16 +1393,10 @@ function expectSchema(
 }
 
 function getCompositionKeyword(schema: OpenApiSchemaObject): "allOf" | "anyOf" | "oneOf" | undefined {
-  if (schema.allOf !== undefined) {
-    return "allOf";
-  }
-
-  if (schema.anyOf !== undefined) {
-    return "anyOf";
-  }
-
-  if (schema.oneOf !== undefined) {
-    return "oneOf";
+  for (const keyword of ["allOf", "anyOf", "oneOf"] as const) {
+    if (schema[keyword] !== undefined) {
+      return keyword;
+    }
   }
 
   return undefined;
@@ -1284,19 +1462,14 @@ function createCommandFile(options: {
   path: string;
   auth: "required" | "none";
   params: GeneratedParam[];
+  paramsSchemaOptions?: GeneratedObjectSchemaOptions;
   preflightBlocks: GeneratedPreflightBlock[];
   requestFields: GeneratedRequestField[];
   sectionRenders: GeneratedRequestSectionRenders;
   optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
   confirm: boolean;
 }): string {
-  const commandImports = new Set<GeneratedCommandImport>();
-
-  for (const block of options.preflightBlocks) {
-    for (const imported of block.imports ?? []) {
-      commandImports.add(imported);
-    }
-  }
+  const requiresUserError = options.preflightBlocks.length > 0;
 
   const lines = [
     "/**",
@@ -1304,7 +1477,7 @@ function createCommandFile(options: {
     ` * spec-sha: ${options.specSha}`,
     ` * operation-id: ${options.operationId}`,
     " */",
-    commandImports.has("UserError")
+    requiresUserError
       ? 'import { defineCommand, S, UserError } from "@poe-code/cmdkit";'
       : 'import { defineCommand, S } from "@poe-code/cmdkit";',
     'import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";',
@@ -1323,9 +1496,13 @@ function createCommandFile(options: {
   }
   lines.push("  params: S.Object({");
   lines.push(...renderParamLines(options.params));
-  lines.push("  }),");
+  lines.push(
+    options.paramsSchemaOptions?.additionalProperties === false
+      ? "  }, { additionalProperties: false }),"
+      : "  }),"
+  );
   lines.push("  handler: async ({ params, baseUrl, tokenSource, fetch }) => {");
-  lines.push(...options.preflightBlocks.flatMap((block) => block.code));
+  lines.push(...options.preflightBlocks.flatMap((block) => renderPreflightBlock(block)));
   lines.push("    return requestJson({");
   lines.push("      baseUrl,");
   lines.push(`      path: ${JSON.stringify(options.path)},`);
@@ -1350,19 +1527,24 @@ function mergeCommandDescriptions(
   operationDescription: string | undefined,
   requestBodyDescription: string | undefined
 ): string | undefined {
-  if (requestBodyDescription === undefined || requestBodyDescription.length === 0) {
-    return operationDescription;
+  const operationText =
+    operationDescription === undefined || operationDescription.length === 0
+      ? undefined
+      : operationDescription;
+  const requestBodyText =
+    requestBodyDescription === undefined || requestBodyDescription.length === 0
+      ? undefined
+      : requestBodyDescription;
+
+  if (
+    operationText === undefined ||
+    requestBodyText === undefined ||
+    operationText === requestBodyText
+  ) {
+    return operationText ?? requestBodyText;
   }
 
-  if (operationDescription === undefined || operationDescription.length === 0) {
-    return requestBodyDescription;
-  }
-
-  if (operationDescription === requestBodyDescription) {
-    return operationDescription;
-  }
-
-  return `${operationDescription}\n\nRequest body: ${requestBodyDescription}`;
+  return `${operationText}\n\nRequest body: ${requestBodyText}`;
 }
 
 function getOperationAuthMode(
@@ -1370,7 +1552,45 @@ function getOperationAuthMode(
   operation: OpenApiOperationObject
 ): "required" | "none" {
   const security = operation.security ?? document.security;
-  return security?.length === 0 ? "none" : "required";
+  return security === undefined || security.length === 0 ? "none" : "required";
+}
+
+function assertSupportedHttpMethods(path: string, pathItem: OpenApiPathItemObject): void {
+  const rawPathItem = pathItem as Record<string, unknown>;
+
+  for (const method of UNSUPPORTED_HTTP_METHODS) {
+    const operation = rawPathItem[method];
+
+    if (operation === undefined) {
+      continue;
+    }
+
+    throw new UserError(
+      `Operation ${JSON.stringify(getOperationId(path, method, operation))} uses unsupported HTTP method ${JSON.stringify(method.toUpperCase())}. Supported in v1: GET, POST, PUT, PATCH, DELETE.`
+    );
+  }
+}
+
+function getOperationId(path: string, method: string, operation: unknown): string {
+  if (
+    operation !== null &&
+    typeof operation === "object" &&
+    "operationId" in operation &&
+    typeof operation.operationId === "string" &&
+    operation.operationId.length > 0
+  ) {
+    return operation.operationId;
+  }
+
+  return `${method.toUpperCase()} ${path}`;
+}
+
+function stripNullable(schema: OpenApiSchemaObject): OpenApiSchemaObject {
+  if (schema.nullable !== true) {
+    return schema;
+  }
+
+  return { ...schema, nullable: undefined };
 }
 
 function renderParamLines(params: GeneratedParam[]): string[] {
@@ -1394,93 +1614,43 @@ function renderDefinition(
     shortFlag,
     scope
   });
-
-  if (definition.kind === "enum") {
-    const enumValues = renderConstArray(definition.enumValues ?? []);
-    return renderSchemaCall("S.Enum", enumValues, options);
-  }
-
-  if (definition.kind === "array") {
-    const itemDefinition = renderDefinition(
-      definition.itemDefinition ?? { kind: "string" },
-      undefined,
-      undefined,
-      undefined
-    );
-    return renderSchemaCall("S.Array", itemDefinition, options);
-  }
-
-  const builderName = definition.kind[0].toUpperCase() + definition.kind.slice(1);
-  return renderSchemaCall(`S.${builderName}`, options);
+  const renderer = DEFINITION_RENDERERS[definition.kind] as (
+    definition: GeneratedParamDefinition,
+    options?: string
+  ) => string;
+  return renderer(definition, options);
 }
+
+const DEFINITION_RENDERERS = {
+  array: (definition: GeneratedArrayParamDefinition, options?: string) =>
+    renderSchemaCall(
+      "S.Array",
+      renderDefinition(definition.itemDefinition, undefined, undefined, undefined),
+      options
+    ),
+  boolean: (_definition: GeneratedScalarParamDefinition, options?: string) =>
+    renderSchemaCall("S.Boolean", options),
+  enum: (definition: GeneratedEnumParamDefinition, options?: string) =>
+    renderSchemaCall("S.Enum", renderConstArray(definition.enumValues), options),
+  number: (_definition: GeneratedScalarParamDefinition, options?: string) =>
+    renderSchemaCall("S.Number", options),
+  string: (_definition: GeneratedScalarParamDefinition, options?: string) =>
+    renderSchemaCall("S.String", options)
+} as const satisfies {
+  [K in GeneratedParamDefinition["kind"]]: (
+    definition: Extract<GeneratedParamDefinition, { kind: K }>,
+    options?: string
+  ) => string;
+};
 
 function renderSchemaCall(builder: string, ...args: Array<string | undefined>): string {
   return `${builder}(${args.filter((arg): arg is string => arg !== undefined).join(", ")})`;
 }
 
 function renderSchemaOptions(param: RenderSchemaOptionsInput): string | undefined {
-  const entries: string[] = [];
-
-  if (param.description !== undefined) {
-    entries.push(`description: ${JSON.stringify(param.description)}`);
-  }
-
-  if (param.definition.defaultValue !== undefined) {
-    entries.push(`default: ${JSON.stringify(param.definition.defaultValue)}`);
-  }
-
-  if (param.shortFlag !== undefined) {
-    entries.push(`short: ${JSON.stringify(param.shortFlag)}`);
-  }
-
-  if (param.scope !== undefined) {
-    entries.push(`scope: [${param.scope.map((scope) => JSON.stringify(scope)).join(", ")}]`);
-  }
-
-  if (param.definition.minimum !== undefined) {
-    entries.push(`minimum: ${JSON.stringify(param.definition.minimum)}`);
-  }
-
-  if (param.definition.maximum !== undefined) {
-    entries.push(`maximum: ${JSON.stringify(param.definition.maximum)}`);
-  }
-
-  if (param.definition.minLength !== undefined) {
-    entries.push(`minLength: ${JSON.stringify(param.definition.minLength)}`);
-  }
-
-  if (param.definition.maxLength !== undefined) {
-    entries.push(`maxLength: ${JSON.stringify(param.definition.maxLength)}`);
-  }
-
-  if (param.definition.minItems !== undefined) {
-    entries.push(`minItems: ${JSON.stringify(param.definition.minItems)}`);
-  }
-
-  if (param.definition.maxItems !== undefined) {
-    entries.push(`maxItems: ${JSON.stringify(param.definition.maxItems)}`);
-  }
-
-  if (param.definition.pattern !== undefined) {
-    entries.push(`pattern: ${JSON.stringify(param.definition.pattern)}`);
-  }
-
-  if (param.definition.format !== undefined) {
-    entries.push(`format: ${JSON.stringify(param.definition.format)}`);
-  }
-
-  if (param.definition.jsonType !== undefined) {
-    entries.push(`jsonType: ${JSON.stringify(param.definition.jsonType)}`);
-  }
-
-  if (param.definition.nullable === true) {
-    entries.push("nullable: true");
-  }
-
-  if (param.definition.requiredScopes !== undefined) {
-    entries.push(`requiredScopes: [${param.definition.requiredScopes.map((scope) => JSON.stringify(scope)).join(", ")}]`);
-  }
-
+  const entries = collectSchemaOptionEntries(param).map(
+    ({ key, value }) => `${key}: ${renderSchemaOptionValue(value)}`
+  );
   return entries.length === 0 ? undefined : `{ ${entries.join(", ")} }`;
 }
 
@@ -1496,12 +1666,110 @@ function renderObjectKey(name: string): string {
   return JSON.stringify(name);
 }
 
-function renderParamAccess(name: string): string {
-  return isIdentifierName(name) ? `params.${name}` : `params[${JSON.stringify(name)}]`;
+function assertValidGeneratedNoun(operationId: string, noun: string): void {
+  const identifier = toCamelCase(noun);
+
+  if (isTypeScriptIdentifier(identifier)) {
+    return;
+  }
+
+  throw new UserError(
+    `Operation ${JSON.stringify(operationId)} derives command noun ${JSON.stringify(noun)}, which maps to invalid TypeScript identifier ${JSON.stringify(identifier)}.`
+  );
 }
 
-function isIdentifierName(value: string): boolean {
-  return /^[$A-Z_a-z][$\w]*$/u.test(value);
+export function collectSchemaOptionEntries(param: RenderSchemaOptionsInput): SchemaOptionEntry[] {
+  return SCHEMA_OPTION_SOURCES.flatMap(({ key, get }) => {
+    const value = get(param);
+    return value === undefined ? [] : [{ key, value }];
+  });
+}
+
+function renderSchemaOptionValue(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => renderSchemaOptionValue(entry)).join(", ")}]`;
+  }
+
+  return JSON.stringify(value);
+}
+
+const RESERVED_TYPESCRIPT_IDENTIFIERS = new Set<string>([
+  "abstract",
+  "any",
+  "as",
+  "asserts",
+  "async",
+  "await",
+  "bigint",
+  "boolean",
+  "break",
+  "case",
+  "catch",
+  "class",
+  "const",
+  "continue",
+  "debugger",
+  "declare",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "enum",
+  "export",
+  "extends",
+  "false",
+  "finally",
+  "for",
+  "function",
+  "get",
+  "if",
+  "implements",
+  "import",
+  "in",
+  "infer",
+  "instanceof",
+  "interface",
+  "is",
+  "keyof",
+  "let",
+  "module",
+  "namespace",
+  "never",
+  "new",
+  "null",
+  "number",
+  "object",
+  "package",
+  "private",
+  "protected",
+  "public",
+  "readonly",
+  "return",
+  "satisfies",
+  "set",
+  "static",
+  "string",
+  "super",
+  "switch",
+  "symbol",
+  "this",
+  "throw",
+  "true",
+  "try",
+  "type",
+  "typeof",
+  "undefined",
+  "unique",
+  "unknown",
+  "var",
+  "void",
+  "while",
+  "with",
+  "yield"
+] as const);
+
+function isTypeScriptIdentifier(value: string): boolean {
+  return isIdentifierName(value) && !RESERVED_TYPESCRIPT_IDENTIFIERS.has(value);
 }
 
 function resolveQueryArraySerialization(
@@ -1524,124 +1792,20 @@ function resolveQueryArraySerialization(
   );
 }
 
-function renderQueryArrayValueExpression(
-  resolvedName: string,
-  serialization: QueryArraySerialization
-): string {
-  if (serialization === "repeat") {
-    return resolvedName;
-  }
-
-  const separator = serialization === "comma" ? "," : "|";
-  return `${resolvedName} === undefined || ${resolvedName} === null ? ${resolvedName} : ${resolvedName}.join(${JSON.stringify(separator)})`;
-}
-
-const REQUEST_FIELD_RENDERERS = {
-  inline: (
-    section: (typeof REQUEST_PARAM_SECTIONS)[number],
-    sectionFields: GeneratedRequestField[],
-    optional: boolean
-  ): string[] => {
-    const [field] = sectionFields;
-
-    if (field === undefined) {
-      return [];
-    }
-
-    if (!optional) {
-      return [`      ${section.key}: ${field.valueExpression},`];
-    }
-
-    return [
-      `      ...(${field.omitWhenUndefinedExpression}`,
-      "        ? {}",
-      "        : {",
-      `            ${section.key}: ${field.valueExpression},`,
-      "          }),"
-    ];
-  },
-  wrapped: (
-    section: (typeof REQUEST_PARAM_SECTIONS)[number],
-    sectionFields: GeneratedRequestField[],
-    optional: boolean
-  ): string[] => {
-    if (!optional) {
-      return [
-        `      ${section.key}: {`,
-        ...sectionFields.map(
-          (param) => `        ${JSON.stringify(param.wireName)}: ${param.valueExpression},`
-        ),
-        "      },"
-      ];
-    }
-
-    return [
-      `      ...(${sectionFields.map((param) => param.omitWhenUndefinedExpression).join(" && ")}`,
-      "        ? {}",
-      "        : {",
-      `            ${section.key}: {`,
-      ...sectionFields.map(
-        (param) => `              ${JSON.stringify(param.wireName)}: ${param.valueExpression},`
-      ),
-      "            },",
-      "          }),"
-    ];
-  }
-} as const satisfies Record<
-  NonNullable<GeneratedRequestSectionRenders["body"]>,
-  (
-    section: (typeof REQUEST_PARAM_SECTIONS)[number],
-    sectionFields: GeneratedRequestField[],
-    optional: boolean
-  ) => string[]
->;
-
-function renderRequestShape(
-  requestFields: GeneratedRequestField[],
-  sectionRenders: GeneratedRequestSectionRenders,
-  optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>
-): string[] {
-  const lines: string[] = [];
-
-  for (const section of REQUEST_PARAM_SECTIONS) {
-    const sectionFields = requestFields.filter((param) => param.location === section.location);
-    if (sectionFields.length === 0) {
-      continue;
-    }
-
-    const render = sectionRenders[section.location] ?? "wrapped";
-    lines.push(
-      ...REQUEST_FIELD_RENDERERS[render](section, sectionFields, optionalSections.has(section.location))
-    );
-  }
-
-  return lines;
-}
-
 function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
-  const groups = new Map<string, GeneratedCommand[]>();
+  const groups = groupByNoun(commands);
 
-  for (const command of commands) {
-    const current = groups.get(command.noun);
-
-    if (current === undefined) {
-      groups.set(command.noun, [command]);
-      continue;
-    }
-
-    current.push(command);
+  if (groups.length === 0) {
+    return {
+      path: "index.ts",
+      contents: "export {};"
+    };
   }
 
-  const nouns = [...groups.keys()].sort((left, right) => left.localeCompare(right));
   const lines = ['import { defineGroup } from "@poe-code/cmdkit";'];
 
-  for (const noun of nouns) {
-    const nounCommands = groups
-      .get(noun)
-      ?.slice()
-      .sort((left, right) => left.verb.localeCompare(right.verb));
-
-    for (const command of nounCommands ?? []) {
+  for (const { commands: nounCommands } of groups) {
+    for (const command of nounCommands) {
       lines.push(
         `import { ${command.exportName} } from ${JSON.stringify(`./${command.filePath.replace(/\.ts$/, ".js")}`)};`
       );
@@ -1652,17 +1816,10 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
     lines.push("");
   }
 
-  for (const noun of nouns) {
-    const nounCommands = groups
-      .get(noun)
-      ?.slice()
-      .sort((left, right) => left.verb.localeCompare(right.verb));
-
+  for (const { noun, commands: nounCommands } of groups) {
     lines.push(`export const ${toCamelCase(noun)} = defineGroup({`);
     lines.push(`  name: ${JSON.stringify(noun)},`);
-    lines.push(
-      `  children: [${(nounCommands ?? []).map((command) => command.exportName).join(", ")}],`
-    );
+    lines.push(`  children: [${nounCommands.map((command) => command.exportName).join(", ")}],`);
     lines.push("});");
     lines.push("");
   }

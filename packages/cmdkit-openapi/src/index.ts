@@ -1,6 +1,8 @@
 export { defineClient } from "./define-client.js";
 export { generate } from "./generate.js";
 export type { GenerateOptions, GeneratedFile, OpenApiDocument } from "./generate.js";
+export { commandsFromSpec } from "./runtime.js";
+export type { CommandsFromSpecOptions, OpenApiDocumentSource } from "./runtime.js";
 export type { DefineClientOptions, DefinedClient, OpenApiClientServices } from "./define-client.js";
 export type { AuthProvider, CommandContributor, TokenSource } from "./auth/types.js";
 export { bearerTokenAuth } from "./auth/bearer-token-auth.js";

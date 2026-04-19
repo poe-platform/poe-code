@@ -1,15 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { UserError } from "@poe-code/cmdkit";
-import { deriveNoun, deriveVerb, normalizeParamName, splitWords, toMcpPrefix } from "./naming.js";
+import {
+  deriveNoun,
+  deriveVerb,
+  normalizeParamName,
+  splitWords,
+  toCliFlag,
+  toMcpPrefix
+} from "./naming.js";
 
 describe("naming", () => {
   it("uses tags[0] as the noun", () => {
-    expect(deriveNoun({ tags: ["bots", "ignored"] }, "listBots")).toBe("bots");
+    expect(deriveNoun({ tags: ["bots", "ignored"] }, "/bots", "listBots")).toBe("bots");
   });
 
-  it("throws when tags[0] is missing", () => {
-    expect(() => deriveNoun({}, "listBots")).toThrowError(
-      new UserError('Operation "listBots" must define tags[0] to derive a command noun.')
+  it("falls back to the first static path segment when tags[0] is missing", () => {
+    expect(deriveNoun({}, "/v1/accounts", "listAccounts")).toBe("accounts");
+    expect(deriveNoun({}, "/api/v1/chat/completions", "createChatCompletion")).toBe("chat");
+  });
+
+  it("throws when tags[0] is missing and the path has no usable noun segment", () => {
+    expect(() => deriveNoun({}, "/{botHandle}", "viewBot")).toThrowError(
+      new UserError(
+        'Operation "viewBot" must define tags[0] or a static resource segment in the path to derive a command noun.'
+      )
     );
   });
 
@@ -67,6 +81,30 @@ describe("naming", () => {
     ).toBe("create-environment-variable");
   });
 
+  it("derives GET verbs for actions endpoints from the operationId instead of the path segment", () => {
+    expect(
+      deriveVerb(
+        "get",
+        "/repos/{owner}/{repo}/actions/workflows",
+        { operationId: "actions/list-repo-workflows" },
+        "actions/list-repo-workflows",
+        "actions"
+      )
+    ).toBe("repo-workflows");
+  });
+
+  it("keeps delete as the default verb for delete actions endpoints", () => {
+    expect(
+      deriveVerb(
+        "delete",
+        "/repos/{owner}/{repo}/actions/caches",
+        { operationId: "actions/delete-actions-cache-by-key" },
+        "actions/delete-actions-cache-by-key",
+        "actions"
+      )
+    ).toBe("delete");
+  });
+
   it("keeps explicit camel-cased parameter names", () => {
     expect(normalizeParamName("botHandle")).toBe("botHandle");
   });
@@ -89,5 +127,11 @@ describe("naming", () => {
 
   it("maps CLI names to MCP prefixes", () => {
     expect(toMcpPrefix("internal-agent")).toBe("internal_agent");
+  });
+
+  it("shares CLI flag kebab-casing across camelCase, snake_case, and acronyms", () => {
+    expect(toCliFlag("botHandle")).toBe("bot-handle");
+    expect(toCliFlag("bot_handle")).toBe("bot-handle");
+    expect(toCliFlag("userAPIKey")).toBe("user-api-key");
   });
 });

@@ -11,6 +11,8 @@ inspectors:
     prompt: |
       Review builder changes for convention, SOLID, KISS. Flag any if/case branching on provider or endpoint shape — the generator must stay declarative.
 
+      Fix or refactor issues.
+
   spec-fidelity:
     prompt: |
       Verify generated commands faithfully represent the OpenAPI operation: path/query/body params, enums, required fields, method semantics, MCP inputSchema shape. Flag deviations.
@@ -24,6 +26,8 @@ superintendent:
     Review builder and inspector output, update the Task Board in {{plan.path}}, and request owner review when complete. Reject scope creep into pagination, retries, or OAuth.
 
     You can choose to commit work.
+
+    Consolidate similar or simple tasks together so we are able to resolve them all and converge.
 
     Builder summary:
     {{builder.summary}}
@@ -53,11 +57,11 @@ owner:
     Superintendent summary:
     {{superintendent.summary}}
 
-max_rounds: 100
+max_rounds: 110
 
 status:
   state: in_progress
-  round: 92
+  round: 94
   review_turn: 0
 ---
 
@@ -544,20 +548,9 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 - **First consumer: `internal-agent-cli`.** Real spec, committed `src/generated/`, `client.ts` wiring `bearerTokenAuth({ serviceName: "poe-internal-agent", envVar: "INTERNAL_AGENT_TOKEN", whoamiPath: "/v1/whoami" })`, `bin.ts`, README, `openapi.lock`, MCP round-trip test (`internal_agent__agent__*` only, no auth), runtime invocation coverage in `bin.test.ts` (JSON output, `--dry-run`, `-v`).
 - **Famous-spec smokes.** Petstore / GitHub / Stripe / Slack / DigitalOcean under `packages/cmdkit-openapi/fixtures/famous/<name>/` with `openapi.lock` + `NOTES.md` (counts, grouped skip reasons, spot checks).
 - **Zero-command index emits valid empty module.** `generated/index.ts` now emits `export {};` when the spec yields no commands (no dangling `defineGroup` import); Slack + Stripe fixtures refreshed; covered in `generate.test.ts` + `generate-cli.test.ts`.
+- **Structural-IR dispatch-table sweep + SRP file-split.** Writer and runtime now share tables keyed on IR kind: `FIELD_ASSEMBLERS[location][schemaKind]`, `DEFINITION_RENDERERS` / `RUNTIME_DEFINITION_BUILDERS`, `VALUE_EXPRESSION_OPERATIONS` / `VALUE_REFERENCE_OPERATIONS`, `PREFLIGHT_BLOCK_OPERATIONS` (symmetric render + execute), `REQUEST_SECTION_OPERATIONS`. Shared `groupByNoun(...)` helper; runtime-only execution moved out of `generate.ts` into `runtime.ts` / `interpreter.ts` / `request-shape.ts`. Parity test drives one fixture through codegen + runtime and asserts identical behavior (`runtime.test.ts`). `isIdentifierName` consolidated into `naming.ts`; redundant path-shape pre-check and dead `renderParamAccess` removed. Build-green fixes: `bearer-token-auth.ts` whoami passes `auth`; `spec-source.ts` URL/path narrowing type-checks.
 
 ### Open
-
-**Structural-IR dispatch-table sweep + SRP file-split.** Writer and runtime encode the same invariants in two mirrored code paths. Unify so each IR kind's emitter + evaluator live in one place.
-
-- `createArrayParam` value-expression query-vs-reference branch → `Record<GeneratedRequestLocation, ...>` table.
-- `renderPreflightBlock` vs `executePreflightBlocks` → mirror tables keyed on `block.kind`.
-- `renderValueExpression` vs `getValueExpression` → `Record<value.kind, ...>`.
-- `buildRequestShape` render dispatch → twin `REQUEST_FIELD_BUILDERS` (or collocate emitter + builder per render kind).
-- `createRuntimeDefinition` switch → `Record<ParamKind, (d) => Schema>` paralleling `SCHEMA_TYPE_TO_KIND`.
-- `createIndexFile` vs `createRuntimeGroups` → shared `groupByNoun(commands)` helper.
-- Add writer↔interpreter parity test that drives one fixture through codegen + runtime and asserts identical behavior.
-- Tighten `GeneratedRequestSectionRenders` so each populated location is required at the type level (kills `?? "wrapped"`-class fallbacks).
-- Move runtime-only functions (`executePreflightBlocks`, `buildRequestShape`) out of `generate.ts` into `runtime.ts` / `interpreter.ts` (`generate.ts` is ~2,146 lines).
 
 **Generate-time spec-sanity checks (remaining).**
 
@@ -602,9 +595,8 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 
 **Spec-fidelity bugs surfaced by famous-spec smokes.**
 
-- **External `$ref` in operation `parameters` / `requestBody` silently dropped.** `resolveLocalReference` (`generate.ts:1241`) throws `UserError` on any ref not starting with `#/`, but callers for parameter- and body-scoped refs swallow the error path, so DigitalOcean operations whose params are `$ref: "./resources/droplets/parameters.yml#/..."` emit with only transport flags (sampled: `fixtures/famous/digitalocean/generated/droplets/list.ts` has zero spec-declared query params vs. 5 in the spec; `droplets/delete.ts` is missing the required `tag_name` query param and will 400). Fix: either resolve `$ref` to sibling files during parsing (load + merge, bounded to the spec's directory) or propagate the hard failure to the generator top-level so the op is reported with a targeted `UserError` instead of silently producing a broken command.
+- **External `$ref` in operation `parameters` / `requestBody` silently dropped.** `resolveLocalReference` (`generate.ts`) throws `UserError` on any ref not starting with `#/`, but callers for parameter- and body-scoped refs swallow the error path, so DigitalOcean operations whose params are `$ref: "./resources/droplets/parameters.yml#/..."` emit with only transport flags (sampled: `fixtures/famous/digitalocean/generated/droplets/list.ts` has zero spec-declared query params vs. 5 in the spec; `droplets/delete.ts` is missing the required `tag_name` query param and will 400). The current committed DO output under `fixtures/famous/digitalocean/generated/` is the reduced-spec version that demonstrates this regression. Fix: either resolve `$ref` to sibling files during parsing (load + merge, bounded to the spec's directory) or propagate the hard failure to the generator top-level so the op is reported with a targeted `UserError` instead of silently producing a broken command.
 - **Required body field demoted to `S.Optional` + runtime guard.** `fixtures/famous/github/generated/actions/add-custom-labels-to-self-hosted-runner-for-org.ts:15` emits `labels: S.Optional(S.Array(...))` with a runtime `UserError` fallback, even though the spec marks `labels` required at the schema level. Root cause is the interaction between the `labelsJson` dual-entry CLI convenience flag and the required-check. Fix: when a body field is `required: true` and there is no sibling `*Json` escape hatch, keep it non-optional; when there is, mark the group required (the preflight already handles "exactly-one") and drop the per-field runtime guard.
-- **Petstore `auth: "required"` on public operations (needs re-verification).** `fixtures/famous/petstore/generated/{store/place-order,store/delete,user/logout,user/delete}.ts` all emit `auth: "required"`. The derivation in `generate.ts:1562` correctly falls back to document-level `security`, so the issue is likely that the Petstore spec declares root-level security and these operations don't override with `security: []`. Before calling this a bug, reread the tracked spec and confirm the operation-level security arrays — if the spec is faithful and the operations are genuinely public, fix the inheritance; if not, drop this bullet.
 
 **Spec-fidelity test gap.**
 
@@ -612,20 +604,20 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 
 **Code-quality nits (bundle into next edit on listed files; no dedicated rounds).**
 
-- **Dead / unreachable code to delete:** `?? "repeat"` in `createArrayParam`; `?? []` in `createIndexFile` noun-map lookup; `expectQueryArraySerialization` defensive throw (tighten caller types or upgrade to `UserError`); `block.nullParamName!` bang (narrow on `!== undefined`); defensive `Array.isArray(value) ? [...value] : value` spread in `runtime.ts`; `stripLeadingGenericVerb` dead `while` loop (collapse to `return words.slice(1)`); duplicated path-shape pre-check vs `FIELD_ASSEMBLERS.path.{array,object}`; vestigial `.split("/").map(...)` in `deriveNounFromPath`; duplicate `toMatchObject` assertion in `define-client.test.ts` nesting test; `stripNullable` sets `nullable: undefined` instead of deleting the key.
+- **Dead / unreachable code to delete:** `?? "repeat"` in `createArrayParam`; `?? []` in `createIndexFile` noun-map lookup; `expectQueryArraySerialization` defensive throw (tighten caller types or upgrade to `UserError`); `block.nullParamName!` bang (narrow on `!== undefined`); defensive `Array.isArray(value) ? [...value] : value` spread in `runtime.ts`; `stripLeadingGenericVerb` dead `while` loop (collapse to `return words.slice(1)`); vestigial `.split("/").map(...)` in `deriveNounFromPath`; duplicate `toMatchObject` assertion in `define-client.test.ts` nesting test; `stripNullable` sets `nullable: undefined` instead of deleting the key.
 - **Proxy-only helpers (inline or give real intent):** `toCliFlag` (pure proxy to `toKebabCase` — or add leading-digit guard / reserved-flag collision); `supportsNullHelper`; `renderOmitWhenUndefinedExpression`; `stripNullable` single-caller helper.
 - **Ternary / if-chain → lookup tables (declarative style):** `getFieldSchemaKind` ternary → `{ array, object }` lookup + scalar default; `normalizeEnumValues` schema-type ladder → extend `SCHEMA_TYPE_TO_KIND` with `matches(value)` predicate; `resolveQueryArraySerialization` + `renderQueryArrayValueExpression` → single `QUERY_ARRAY_SERIALIZATION` table keyed by `(style, explode)`; `bin/generate.ts` `assignOptionValue` if-chain + repeated `--X <val>` / `--X=val` flag parsing → `Record<FlagName, ...>` + single loop.
 - **Silent fall-through → explicit throw:** `FIELD_ASSEMBLERS.query.object` mirrors `body.object`'s explicit throw naming `query` + the operationId.
 - **Single-purpose escape hatches (watch or inline):** `paramsSchemaOptions` one-field bag; `METHODS_WITHOUT_REQUEST_BODY = new Set(["get"])` (collapse to `method === "get"` or declarative when a second method joins); `renderSchemaCall(builder, ...args)` variadic (swap to `args: Array<string | undefined>` when a third shape lands); `BODY_FIELD_DISPATCH` keyed by `schema.type` once composition / top-level non-object work lands.
 - **Naming + error consistency:** use `GeneratedRequestLocation` alias across sibling declarations; pick one spelling for `"unsupported requestBody on GET"` vs `"unsupported request body field"`.
-- **Verbatim-name follow-ups:** unify `renderObjectKey` and `renderParamAccess` predicates; bundle `{ raw, helper, access }` names through `createBodyField` / `createArrayParam`; extend collision registry to cover synthesized `*Null` / `*Json` helpers vs declared params; memoize `renderParamAccess(paramName)` in `createGeneratedParameter`.
+- **Verbatim-name follow-ups:** bundle `{ raw, helper, access }` names through `createBodyField` / `createArrayParam`; extend collision registry to cover synthesized `*Null` / `*Json` helpers vs declared params; memoize `renderParamAccess(paramName)` in `createGeneratedParameter` (helper now lives only in `interpreter.ts`).
 - **`cmdkit` + `cmdkit-schema` dedup:** export `SchemaScope` from `cmdkit-schema` (remove redeclaration in `cmdkit/schema-scope.ts`); extract `assertObjectParamsSchema(node, surface)` to replace the duplicate `Bug: command ... must define an object params schema` throw in `mcp.ts` + `sdk.ts` (or leave); add one-line comment on the hardcoded `["mcp", "sdk"] as const` in `generate.ts` explaining why CLI is intentionally omitted; collapse `mcp.ts` multi-line JSDoc on `RunMCPOptions.tools` / `casing` to single line per CLAUDE.md.
 
 **Docs / plan-wording reconcile.**
 
 - Tighten task 727(a) wording: MCP `inputSchema` keys are normalized per `casing`; wire keys stay verbatim.
 - Update Testing-section naming bullets so missing/empty `tags` reads "falls back to first static non-`api`/non-version path segment; throws only when no fallback available."
-- Testing literal-coverage: boolean body `--no-official` `toContain`, DELETE-with-body `confirm: true` re-assert, `defineClient` duplicate-command error naming both operationIds, combined `login --token foo` stores + whoami assertion.
+- Testing literal-coverage: boolean body `--no-official` `toContain`, DELETE-with-body `confirm: true` re-assert.
 
 **Wire-level fidelity (low-priority).**
 

@@ -118,6 +118,76 @@ describe("generate", () => {
     expect(commandFile?.contents).toContain("params: S.Object({");
   });
 
+  it("sorts generated index imports and groups by noun and verb", () => {
+    const files = generate(
+      createDocument({
+        "/widgets/publish": {
+          post: {
+            tags: ["widgets"],
+            operationId: "publishWidgets",
+            responses: {
+              "200": {
+                description: "Published."
+              }
+            }
+          }
+        },
+        "/accounts/logout": {
+          post: {
+            tags: ["accounts"],
+            operationId: "logoutAccounts",
+            responses: {
+              "200": {
+                description: "Logged out."
+              }
+            }
+          }
+        },
+        "/widgets/archive": {
+          post: {
+            tags: ["widgets"],
+            operationId: "archiveWidgets",
+            responses: {
+              "200": {
+                description: "Archived."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "index.ts")?.contents).toMatchInlineSnapshot(`
+      "import { defineGroup } from "@poe-code/cmdkit";
+      import { accountsLogoutCommand } from "./accounts/logout.js";
+      import { widgetsArchiveCommand } from "./widgets/archive.js";
+      import { widgetsPublishCommand } from "./widgets/publish.js";
+
+      export const accounts = defineGroup({
+        name: "accounts",
+        children: [accountsLogoutCommand],
+      });
+
+      export const widgets = defineGroup({
+        name: "widgets",
+        children: [widgetsArchiveCommand, widgetsPublishCommand],
+      });
+      "
+    `);
+  });
+
+  it("emits an empty generated index module when the document has no operations", () => {
+    const files = generate(createDocument({}), { specSha: "spec-sha-123" });
+
+    expect(files).toEqual([
+      {
+        path: "index.ts",
+        contents: "export {};"
+      }
+    ]);
+  });
+
   it("renders option-less scalar, enum, and array definitions without extra arguments", () => {
     const files = generate(
       createDocument({
@@ -306,7 +376,7 @@ describe("generate", () => {
     );
   });
 
-  it("emits auth: required for operations that use the default auth mode", () => {
+  it("emits auth: none when neither the operation nor the document declares security", () => {
     const files = generate(
       createDocument({
         "/status": {
@@ -321,6 +391,37 @@ describe("generate", () => {
           }
         }
       }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path !== "index.ts")?.contents).toContain(
+      '      auth: "none",'
+    );
+  });
+
+  it("emits auth: required when the document declares security", () => {
+    const files = generate(
+      {
+        openapi: "3.0.3",
+        info: {
+          title: "Internal Agent API",
+          version: "1.0.0"
+        },
+        security: [{ bearerAuth: [] }],
+        paths: {
+          "/status": {
+            get: {
+              tags: ["status"],
+              operationId: "getStatus",
+              responses: {
+                "200": {
+                  description: "OK."
+                }
+              }
+            }
+          }
+        }
+      },
       { specSha: "spec-sha-123" }
     );
 
@@ -711,6 +812,73 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
+  it("preserves spec param order in generated params", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}/actions/set-official": {
+          post: {
+            tags: ["bots"],
+            operationId: "setOfficialWithFilters",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              },
+              {
+                name: "owner",
+                in: "query",
+                schema: { type: "string" }
+              },
+              {
+                name: "limit",
+                in: "query",
+                schema: { type: "integer", default: 50 }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["official"],
+                    properties: {
+                      official: { type: "boolean" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path !== "index.ts")?.contents).toContain(`params: S.Object({
+    botHandle: S.String(),
+    owner: S.Optional(S.String()),
+    limit: S.Optional(S.Number({ default: 50, jsonType: "integer" })),
+    official: S.Boolean(),
+    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
+    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
+  }),`);
+  });
+
   it("generates query-array params with a plural CLI flag, a JSON variant, and query serialization", () => {
     const files = generate(
       createDocument({
@@ -932,6 +1100,90 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/list.ts");
 
     expect(commandFile?.contents).not.toContain("tagsNull");
+  });
+
+  it("does not advertise nullable query arrays in generated params schemas", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "tags",
+                in: "query",
+                schema: {
+                  type: "array",
+                  nullable: true,
+                  items: {
+                    type: "string"
+                  }
+                }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "List.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/list.ts")?.contents).not.toContain(
+      "nullable: true"
+    );
+  });
+
+  it("does not add a null helper flag for nullable scalar query params", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "cursor",
+                in: "query",
+                schema: {
+                  type: "string",
+                  nullable: true
+                }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "List.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain('cursor: S.Optional(S.String({ nullable: true }))');
+    expect(commandFile?.contents).not.toContain("cursorNull");
   });
 
   it("preserves original OpenAPI names in generated params and skips array singularization", () => {
@@ -1543,6 +1795,53 @@ describe("generate", () => {
     );
   });
 
+  it("does not duplicate requestBody.description when a top-level scalar body param already carries it", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/import": {
+          post: {
+            tags: ["bots"],
+            operationId: "importBot",
+            summary: "Import a bot.",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              description: "Raw import payload.",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "string"
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Imported."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/import-bot.ts");
+
+    expect(commandFile?.contents).toContain('description: "Import a bot.",');
+    expect(commandFile?.contents).toContain('body: S.String({ description: "Raw import payload." })');
+    expect(commandFile?.contents).not.toContain(
+      'description: "Import a bot.\\n\\nRequest body: Raw import payload.",'
+    );
+  });
+
   it("adds a null helper flag for nullable array body fields", () => {
     const files = generate(
       createDocument({
@@ -1752,6 +2051,78 @@ describe("generate", () => {
     );
   });
 
+  it("resolves local operation refs", () => {
+    const files = generate(
+      {
+        openapi: "3.0.3",
+        info: {
+          title: "Internal Agent API",
+          version: "1.0.0"
+        },
+        "x-sharedOperations": {
+          listBots: {
+            tags: ["bots"],
+            operationId: "listBots",
+            summary: "List bots.",
+            parameters: [
+              {
+                name: "owner",
+                in: "query",
+                schema: {
+                  type: "string"
+                }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "Listed."
+              }
+            }
+          }
+        },
+        paths: {
+          "/bots": {
+            get: {
+              $ref: "#/x-sharedOperations/listBots"
+            } as unknown as OpenApiDocument["paths"][string]["get"]
+          }
+        }
+      } as OpenApiDocument,
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain('description: "List bots.",');
+    expect(commandFile?.contents).toContain("owner: S.Optional(S.String())");
+  });
+
+  it("throws when an operation uses an external ref", () => {
+    expect(() =>
+      generate(
+        {
+          openapi: "3.0.3",
+          info: {
+            title: "Internal Agent API",
+            version: "1.0.0"
+          },
+          paths: {
+            "/bots": {
+              get: {
+                $ref: "./operations/list-bots.json"
+              } as unknown as OpenApiDocument["paths"][string]["get"]
+            }
+          }
+        },
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "GET /bots" uses unsupported external $ref "./operations/list-bots.json" in operation GET /bots.'
+      )
+    );
+  });
+
   it("preserves OpenAPI scalar and array constraints in generated MCP schemas", () => {
     const files = generate(
       createDocument({
@@ -1886,6 +2257,77 @@ describe("generate", () => {
       "const resolvedLimit = params.limitNull ? null : params.limit;"
     );
   });
+
+  it("makes required nullable scalar body fields CLI-optional while keeping MCP and SDK required", () => {
+    const files = generate(
+      createDocument({
+        "/bots/actions/set-limit": {
+          post: {
+            tags: ["bots"],
+            operationId: "setBotLimit",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["limit"],
+                    properties: {
+                      limit: {
+                        type: "integer",
+                        nullable: true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/set-bot-limit.ts");
+
+    expect(commandFile?.contents).toContain(
+      'limit: S.Optional(S.Number({ jsonType: "integer", nullable: true, requiredScopes: ["mcp", "sdk"] }))'
+    );
+    expect(commandFile?.contents).toContain('throw new UserError("Missing required parameter \\"limit\\".");');
+  });
+
+  it.each(["head", "options", "trace"] as const)(
+    "throws for unsupported %s operations instead of silently dropping them",
+    (method) => {
+      expect(() =>
+        generate(
+          createDocument({
+            "/bots": {
+              [method]: {
+                tags: ["bots"],
+                operationId: `${method}Bots`,
+                responses: {
+                  "200": {
+                    description: "Listed."
+                  }
+                }
+              }
+            } as OpenApiDocument["paths"][string]
+          }),
+          { specSha: "spec-sha-123" }
+        )
+      ).toThrowError(
+        new UserError(
+          `Operation ${JSON.stringify(`${method}Bots`)} uses unsupported HTTP method ${JSON.stringify(method.toUpperCase())}. Supported in v1: GET, POST, PUT, PATCH, DELETE.`
+        )
+      );
+    }
+  );
 
   it("accepts a path placeholder satisfied by a path-item parameter", () => {
     const files = generate(
@@ -2772,13 +3214,65 @@ describe("generate", () => {
     ).not.toThrow();
   });
 
-  it("throws when an operation has no tags", () => {
+  it("falls back to a static path segment when an operation has no tags", () => {
+    const files = generate(
+      createDocument({
+        "/v1/accounts": {
+          get: {
+            operationId: "listAccounts",
+            responses: {
+              "200": {
+                description: "List."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "accounts/list.ts")).toBeDefined();
+  });
+
+  it("throws when an operation has no tags and no usable static path segment", () => {
     expect(() =>
       generate(
         createDocument({
-          "/bots": {
+          "/{botHandle}": {
             get: {
-              operationId: "listBots",
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "botHandle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Bot."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" must define tags[0] or a static resource segment in the path to derive a command noun.'
+      )
+    );
+  });
+
+  it("throws when a derived noun maps to an invalid TypeScript identifier", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/v2/1-clicks": {
+            get: {
+              operationId: "listOneClicks",
               responses: {
                 "200": {
                   description: "List."
@@ -2790,8 +3284,110 @@ describe("generate", () => {
         { specSha: "spec-sha-123" }
       )
     ).toThrowError(
-      new UserError('Operation "listBots" must define tags[0] to derive a command noun.')
+      new UserError(
+        'Operation "listOneClicks" derives command noun "1-clicks", which maps to invalid TypeScript identifier "1Clicks".'
+      )
     );
+  });
+
+  it("throws when a tag-derived noun maps to a reserved TypeScript identifier", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/defaults": {
+            get: {
+              tags: ["default"],
+              operationId: "listDefaults",
+              responses: {
+                "200": {
+                  description: "List."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "listDefaults" derives command noun "default", which maps to invalid TypeScript identifier "default".'
+      )
+    );
+  });
+
+  it("prefers operation.description over summary in generated command descriptions", () => {
+    const files = generate(
+      createDocument({
+        "/events": {
+          get: {
+            tags: ["activity"],
+            operationId: "listPublicEvents",
+            summary: "List public events.",
+            description: "Events may be delayed by 30 seconds to 6 hours.",
+            responses: {
+              "200": {
+                description: "List."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "activity/public-events.ts");
+
+    expect(commandFile?.contents).toContain(
+      'description: "Events may be delayed by 30 seconds to 6 hours.",'
+    );
+    expect(commandFile?.contents).not.toContain('description: "List public events.",');
+  });
+
+  it("preserves additionalProperties: false on generated params schemas for object request bodies", () => {
+    const files = generate(
+      createDocument({
+        "/campaigns/{campaignId}": {
+          patch: {
+            tags: ["campaigns"],
+            operationId: "updateCampaign",
+            parameters: [
+              {
+                name: "campaignId",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["name"],
+                    properties: {
+                      name: { type: "string" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "campaigns/update-campaign.ts");
+
+    expect(commandFile?.contents).toContain("params: S.Object({");
+    expect(commandFile?.contents).toContain('  }, { additionalProperties: false }),');
   });
 
   it("throws when an ambiguous operation omits operationId", () => {

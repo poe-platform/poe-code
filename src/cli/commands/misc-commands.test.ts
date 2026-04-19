@@ -595,6 +595,9 @@ describe("root command", () => {
     expect(plainOutput).toContain("Run a one-shot Poe agent prompt");
     expect(plainOutput).toContain("pipeline");
     expect(plainOutput).toContain("plan");
+    expect(plainOutput).toContain("plan markdown-read");
+    expect(plainOutput).toContain("plan markdown-read-section");
+    expect(plainOutput).toContain("plan markdown-reader-mcp");
     expect(plainOutput).toContain("ralph");
     expect(plainOutput).toContain("experiment");
     expect(plainOutput).toContain("github-workflows, gh");
@@ -637,6 +640,14 @@ describe("root command", () => {
     const experimentJournalHelp = await renderHelp(["experiment", "journal", "--help"]);
     expect(experimentJournalHelp).toContain("Usage: poe-code experiment journal [options] [doc]");
     expect(experimentJournalHelp).not.toContain("[command]");
+  });
+
+  it("shows markdown reader subcommands in plan help", async () => {
+    const planHelp = await renderHelp(["plan", "--help"]);
+
+    expect(planHelp).toContain("markdown-read [options] <file>");
+    expect(planHelp).toContain("markdown-read-section [options] <file> <section>");
+    expect(planHelp).toContain("markdown-reader-mcp");
   });
 
   it("registers a --verbose flag", () => {

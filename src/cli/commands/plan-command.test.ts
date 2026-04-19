@@ -18,6 +18,12 @@ const {
   isCancelMock: vi.fn(() => false)
 }));
 
+const { readMarkdownMock, readSectionMock, runMarkdownReaderMcpMock } = vi.hoisted(() => ({
+  readMarkdownMock: vi.fn(),
+  readSectionMock: vi.fn(),
+  runMarkdownReaderMcpMock: vi.fn().mockResolvedValue(undefined)
+}));
+
 vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
@@ -28,6 +34,12 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
     isCancel: isCancelMock
   };
 });
+
+vi.mock("@poe-code/markdown-reader", () => ({
+  readMarkdown: readMarkdownMock,
+  readSection: readSectionMock,
+  runMarkdownReaderMcp: runMarkdownReaderMcpMock
+}));
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -397,5 +409,105 @@ describe("plan command", () => {
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toBe("");
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+  });
+
+  it("reads markdown docs as a terminal TOC", async () => {
+    readMarkdownMock.mockResolvedValueOnce({
+      file: "docs/plans/markdown-reader.md",
+      frontmatter: {},
+      sections: [
+        { number: "2", title: "User-facing shape", depth: 2 },
+        { number: "2.1", title: "Command: plan markdown-read", depth: 3 }
+      ]
+    });
+
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "markdown-read",
+      "docs/plans/markdown-reader.md",
+      "--depth",
+      "3"
+    ]);
+
+    expect(readMarkdownMock).toHaveBeenCalledWith({
+      file: "docs/plans/markdown-reader.md",
+      depth: 3
+    });
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(output).toContain("file: docs/plans/markdown-reader.md");
+    expect(output).toContain("frontmatter:");
+    expect(output).toContain("(none)");
+    expect(output).toContain("sections:");
+    expect(output).toContain("2.1    Command: plan markdown-read");
+  });
+
+  it("reads a markdown section with markdown output by default", async () => {
+    readSectionMock.mockResolvedValueOnce({
+      file: "docs/plans/markdown-reader.md",
+      section: {
+        number: "2.1",
+        title: "Command: plan markdown-read",
+        depth: 3
+      },
+      markdown: "### Command: `plan markdown-read`\n\nBody.\n"
+    });
+
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "markdown-read-section",
+      "docs/plans/markdown-reader.md",
+      "2.1",
+      "--no-include-children"
+    ]);
+
+    expect(readSectionMock).toHaveBeenCalledWith({
+      file: "docs/plans/markdown-reader.md",
+      section: "2.1",
+      includeChildren: false
+    });
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(output).toContain("### Command: `plan markdown-read`");
+    expect(output).toContain("Body.");
+  });
+
+  it("runs the standalone markdown reader MCP server", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "plan", "markdown-reader-mcp"]);
+
+    expect(runMarkdownReaderMcpMock).toHaveBeenCalledTimes(1);
   });
 });

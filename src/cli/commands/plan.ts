@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { Command } from "commander";
+import { stringify as stringifyYaml } from "yaml";
 import {
   cancel,
   confirmOrCancel,
@@ -29,6 +30,11 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
+import {
+  readMarkdown,
+  readSection,
+  runMarkdownReaderMcp
+} from "@poe-code/markdown-reader";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
@@ -67,6 +73,8 @@ export function buildPlanPrompt(options: BuildPlanPromptOptions): string {
 }
 
 type OutputOption = "terminal" | "markdown" | "json";
+type MarkdownReadResult = Awaited<ReturnType<typeof readMarkdown>>;
+type MarkdownReadSectionResult = Awaited<ReturnType<typeof readSection>>;
 
 type PlanCommandOptions = {
   kind?: PlanKind;
@@ -127,6 +135,126 @@ function resolveKind(value: string | undefined): PlanKind | undefined {
 
 function formatDate(timestamp: number): string {
   return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function parseNonNegativeInt(value: string | undefined, fieldName: string): number | undefined {
+  if (value == null) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (
+    trimmed.length === 0 ||
+    [...trimmed].some((character) => character < "0" || character > "9")
+  ) {
+    throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a non-negative integer.`);
+  }
+
+  return Number.parseInt(trimmed, 10);
+}
+
+function formatFrontmatterLines(frontmatter: Record<string, unknown>): string[] {
+  if (Object.keys(frontmatter).length === 0) {
+    return ["  (none)"];
+  }
+
+  return stringifyYaml(frontmatter)
+    .trimEnd()
+    .split("\n")
+    .map((line) => `  ${line}`);
+}
+
+function getDisplayedSections(result: MarkdownReadResult): MarkdownReadResult["sections"] {
+  return result.sections.filter((section) => section.number !== null);
+}
+
+function formatDisplayedSectionTitle(section: MarkdownReadResult["sections"][number]): string {
+  if (!section.number) {
+    return section.title;
+  }
+
+  const numberedPrefix = `${section.number}. `;
+  return section.title.startsWith(numberedPrefix)
+    ? section.title.slice(numberedPrefix.length)
+    : section.title;
+}
+
+function formatMarkdownReadTerminalOutput(result: MarkdownReadResult): string {
+  const sections = getDisplayedSections(result);
+  const numberWidth = Math.max(0, ...sections.map((section) => section.number?.length ?? 0));
+  const sectionLines =
+    sections.length === 0
+      ? ["  (none)"]
+      : sections.map((section) => {
+          const number = (section.number ?? "").padEnd(numberWidth);
+          const separator = numberWidth > 0 ? "    " : "";
+          return `  ${number}${separator}${formatDisplayedSectionTitle(section)}`.trimEnd();
+        });
+
+  return [
+    `file: ${result.file}`,
+    "frontmatter:",
+    ...formatFrontmatterLines(result.frontmatter),
+    "sections:",
+    ...sectionLines
+  ].join("\n");
+}
+
+function formatMarkdownReadMarkdownOutput(result: MarkdownReadResult): string {
+  const sections = getDisplayedSections(result);
+  const frontmatterBlock =
+    Object.keys(result.frontmatter).length === 0 ? "(none)" : stringifyYaml(result.frontmatter).trimEnd();
+  const sectionLines =
+    sections.length === 0
+      ? ["- (none)"]
+      : sections.map((section) =>
+          section.number
+            ? `- \`${section.number}\` ${formatDisplayedSectionTitle(section)}`
+            : `- ${formatDisplayedSectionTitle(section)}`
+        );
+
+  return [
+    "## File",
+    "",
+    `\`${result.file}\``,
+    "",
+    "## Frontmatter",
+    "",
+    "```yaml",
+    frontmatterBlock,
+    "```",
+    "",
+    "## Sections",
+    "",
+    ...sectionLines
+  ].join("\n");
+}
+
+function formatMarkdownReadOutput(result: MarkdownReadResult, format: OutputOption): string {
+  if (format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  if (format === "markdown") {
+    return formatMarkdownReadMarkdownOutput(result);
+  }
+
+  return formatMarkdownReadTerminalOutput(result);
+}
+
+function formatMarkdownReadSectionOutput(
+  result: MarkdownReadSectionResult,
+  format: OutputOption
+): string {
+  if (format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  if (format === "terminal") {
+    return renderMarkdown(result.markdown).trimEnd();
+  }
+
+  return result.markdown.trimEnd();
 }
 
 async function discoverPlans(
@@ -440,6 +568,49 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
 
       const output = format === "markdown" ? markdown : renderMarkdown(markdown);
       writeOutput(format, output.trimEnd());
+    });
+
+  plan
+    .command("markdown-read")
+    .description("Read a markdown file and print its table of contents.")
+    .argument("<file>", "Markdown file")
+    .option("--depth <n>", "Limit the table of contents to headings at depth <= n")
+    .option("--output <format>", "Output format: terminal, md, or json")
+    .action(async function (this: Command, file: string) {
+      const options = this.opts<{ depth?: string; output?: string }>();
+      const format = resolveOutputOption(options.output);
+      const result = await readMarkdown({
+        file,
+        depth: parseNonNegativeInt(options.depth, "depth")
+      });
+
+      writeOutput(format, formatMarkdownReadOutput(result, format));
+    });
+
+  plan
+    .command("markdown-read-section")
+    .description("Read one section from a markdown file.")
+    .argument("<file>", "Markdown file")
+    .argument("<section>", "Section number or heading text")
+    .option("--no-include-children", "Exclude nested child sections")
+    .option("--output <format>", "Output format: terminal, md, or json")
+    .action(async function (this: Command, file: string, section: string) {
+      const options = this.opts<{ includeChildren?: boolean; output?: string }>();
+      const format = resolveOutputOption(options.output ?? "markdown");
+      const result = await readSection({
+        file,
+        section,
+        includeChildren: options.includeChildren
+      });
+
+      writeOutput(format, formatMarkdownReadSectionOutput(result, format));
+    });
+
+  plan
+    .command("markdown-reader-mcp")
+    .description("Run the standalone markdown reader MCP server.")
+    .action(async () => {
+      await runMarkdownReaderMcp();
     });
 
   plan

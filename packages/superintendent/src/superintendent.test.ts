@@ -1009,7 +1009,7 @@ describe("createSuperintendentSimulation", () => {
 
     const { prompts, readDoc, result, runs } = await simulation.run();
     const finalDoc = await readDoc();
-    const ownerTurns = runs.filter((run) => run.prompt.startsWith("Owner review "));
+    const ownerTurns = runs.filter((run) => run.prompt.includes("Owner review "));
 
     expect(result.round).toBe(2);
     expect(result.state).toBe("in_progress");
@@ -1454,7 +1454,7 @@ describe("createSuperintendentSimulation", () => {
     expect(prompts).toHaveLength(16);
     expect(
       reviewPhaseRuns.map((run) =>
-        run.prompt.startsWith("Owner review ") ? "owner" : "superintendent"
+        run.prompt.includes("Owner review ") ? "owner" : "superintendent"
       )
     ).toEqual([
       "owner",

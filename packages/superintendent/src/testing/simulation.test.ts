@@ -71,10 +71,9 @@ describe("createSuperintendentSimulation", () => {
 
     const result = await simulation.run();
 
-    expect(result.prompts.map((prompt) => prompt.trimEnd())).toEqual([
-      "Build /repo/.poe-code/superintendent/plan.md",
-      "Review Builder completed without output."
-    ]);
+    expect(result.prompts).toHaveLength(2);
+    expect(result.prompts[0]).toContain("Build /repo/.poe-code/superintendent/plan.md");
+    expect(result.prompts[1]).toContain("Review Builder completed without output.");
     expect(result.runs).toHaveLength(2);
   });
 
@@ -94,11 +93,10 @@ describe("createSuperintendentSimulation", () => {
     const result = await simulation.run();
 
     expect(result.result.state).toBe("completed");
-    expect(result.prompts.map((prompt) => prompt.trimEnd())).toEqual([
-      "Build /repo/.poe-code/superintendent/plan.md",
-      "Review Builder completed without output.",
-      "Review Ready for owner review"
-    ]);
+    expect(result.prompts).toHaveLength(3);
+    expect(result.prompts[0]).toContain("Build /repo/.poe-code/superintendent/plan.md");
+    expect(result.prompts[1]).toContain("Review Builder completed without output.");
+    expect(result.prompts[2]).toContain("Review Ready for owner review");
     await expect(result.readDoc()).resolves.toMatchObject({
       frontmatter: {
         status: {

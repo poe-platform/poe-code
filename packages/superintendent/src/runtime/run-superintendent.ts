@@ -1,6 +1,10 @@
 import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
+import {
+  buildSuperintendentSystemPrompt,
+  prependSystemPrompt
+} from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 import { parseWorkflowCall, type WorkflowTransition } from "./workflow-tool.js";
 
@@ -55,10 +59,15 @@ export async function runSuperintendent(
   doc: SuperintendentDoc,
   context: Partial<TemplateContext>
 ): Promise<SuperintendentResult> {
-  const prompt = resolveTemplate(
+  const userPrompt = resolveTemplate(
     doc.frontmatter.superintendent.prompt,
     buildTemplateContext(doc, context)
   );
+  const systemPrompt = buildSuperintendentSystemPrompt({
+    state: doc.frontmatter.status.state,
+    inspectorNames: Object.keys(doc.frontmatter.inspectors ?? {})
+  });
+  const prompt = prependSystemPrompt(systemPrompt, userPrompt);
   const result = await runAutonomous({
     agent: doc.frontmatter.superintendent.agent,
     mode: doc.frontmatter.superintendent.mode,

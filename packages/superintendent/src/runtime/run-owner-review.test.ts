@@ -73,9 +73,12 @@ describe("runOwnerReview", () => {
       expect(agent).toBe("claude-code");
       expect(mode).toBe("read");
       expect(cwd).toBe("/repo/docs/plans");
-      expect(prompt).toBe(
+      expect(prompt).toContain(
         "Review /repo/docs/plans/feature.md after Superintendent says the board is complete"
       );
+      expect(prompt).toContain("workflow.transition");
+      expect(prompt).toContain("approve_completion");
+      expect(prompt).toContain("request_changes");
       expect(prompt).not.toContain("{{plan.path}}");
       expect(prompt).not.toContain("{{superintendent.summary}}");
 
@@ -293,6 +296,27 @@ describe("runOwnerReview", () => {
     await expect(runOwnerReview(document, {})).rejects.toThrow(
       "Owner review must end with workflow.transition"
     );
+  });
+
+  it("prepends a system prompt ahead of the resolved owner prompt", async () => {
+    autonomousMock.mockImplementation(async (_, { prompt }) => {
+      expect(prompt.startsWith("# System")).toBe(true);
+      expect(prompt).toContain("# Task");
+      expect(prompt.indexOf("# System")).toBeLessThan(prompt.indexOf("# Task"));
+      expect(prompt).toContain("workflow.transition");
+      expect(prompt).toContain("approve_completion");
+      expect(prompt).toContain("request_changes");
+
+      return {
+        toolCalls: [
+          { name: "workflow.transition", arguments: { action: "approve_completion" } }
+        ]
+      };
+    });
+
+    const { runOwnerReview } = await import("./run-owner-review.js");
+
+    await runOwnerReview(document, {});
   });
 
   it("rejects transitions that are not valid for the owner review state", async () => {

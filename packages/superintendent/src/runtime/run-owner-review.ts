@@ -1,6 +1,7 @@
 import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
+import { buildOwnerSystemPrompt, prependSystemPrompt } from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 import {
   createWorkflowTool,
@@ -62,7 +63,11 @@ export async function runOwnerReview(
   doc: SuperintendentDoc,
   context: Partial<TemplateContext>
 ): Promise<OwnerResult> {
-  const prompt = resolveTemplate(doc.frontmatter.owner.prompt, buildTemplateContext(doc, context));
+  const userPrompt = resolveTemplate(
+    doc.frontmatter.owner.prompt,
+    buildTemplateContext(doc, context)
+  );
+  const prompt = prependSystemPrompt(buildOwnerSystemPrompt(), userPrompt);
   const result = await runAutonomous({
     agent: doc.frontmatter.owner.agent,
     mode: doc.frontmatter.owner.mode,

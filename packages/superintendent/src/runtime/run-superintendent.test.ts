@@ -68,9 +68,11 @@ describe("runSuperintendent", () => {
       expect(agent).toBe("codex");
       expect(mode).toBe("read");
       expect(cwd).toBe("/repo/docs/plans");
-      expect(prompt).toBe(
+      expect(prompt).toContain(
         "Review /repo/docs/plans/feature.md after Builder finished task 1 and Needs one more pass"
       );
+      expect(prompt).toContain("workflow.transition");
+      expect(prompt).toContain("request_review");
       expect(prompt).not.toContain("{{plan.path}}");
       expect(prompt).not.toContain("{{builder.summary}}");
       expect(prompt).not.toContain("{{owner.feedback}}");
@@ -239,6 +241,61 @@ describe("runSuperintendent", () => {
     await expect(runSuperintendent(document, {})).resolves.toEqual({
       summary: "Continue with the next batch of tasks"
     });
+  });
+
+  it("prepends a system prompt ahead of the resolved plan prompt", async () => {
+    autonomousMock.mockImplementation(async (_, { prompt }) => {
+      expect(prompt.startsWith("# System")).toBe(true);
+      expect(prompt).toContain("# Task");
+      expect(prompt.indexOf("# System")).toBeLessThan(prompt.indexOf("# Task"));
+      expect(prompt).toContain("workflow.transition");
+      expect(prompt).toContain("request_review");
+      expect(prompt).toContain("builder.run");
+
+      return "ok";
+    });
+
+    const { runSuperintendent } = await import("./run-superintendent.js");
+
+    await runSuperintendent(document, {});
+  });
+
+  it("lists configured inspector names in the system prompt", async () => {
+    autonomousMock.mockImplementation(async (_, { prompt }) => {
+      expect(prompt).toContain("inspector.run");
+      expect(prompt).toContain("code-quality");
+      expect(prompt).toContain("testing");
+
+      return "ok";
+    });
+
+    const { runSuperintendent } = await import("./run-superintendent.js");
+
+    await runSuperintendent(
+      {
+        ...document,
+        frontmatter: {
+          ...document.frontmatter,
+          inspectors: {
+            "code-quality": { agent: "claude-code", prompt: "Review quality" },
+            testing: { agent: "claude-code", prompt: "Run tests" }
+          }
+        }
+      },
+      {}
+    );
+  });
+
+  it("omits inspector.run from the system prompt when no inspectors are configured", async () => {
+    autonomousMock.mockImplementation(async (_, { prompt }) => {
+      expect(prompt).not.toContain("inspector.run");
+
+      return "ok";
+    });
+
+    const { runSuperintendent } = await import("./run-superintendent.js");
+
+    await runSuperintendent(document, {});
   });
 
 });

@@ -26,7 +26,8 @@ import { ralphConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
 import {
   createExecutionResources,
-  resolveCommandFlags
+  resolveCommandFlags,
+  resolveDefaultAgent
 } from "./shared.js";
 import {
   runRalph as sdkRunRalph,
@@ -434,7 +435,15 @@ function resolveConfiguredAgents(
   return value.map((entry) => resolveRalphAgent(entry, "frontmatter agent"));
 }
 
-async function promptForAgent(program: Command): Promise<string | null> {
+async function promptForAgent(
+  container: CliContainer,
+  program: Command
+): Promise<string | null> {
+  const fromConfig = await resolveDefaultAgent(container);
+  if (fromConfig !== null) {
+    return resolveRalphAgent(fromConfig);
+  }
+
   const flags = resolveCommandFlags(program);
   if (flags.assumeYes) {
     return DEFAULT_RALPH_AGENT;
@@ -456,6 +465,7 @@ async function promptForAgent(program: Command): Promise<string | null> {
 }
 
 async function resolveRunAgent(options: {
+  container: CliContainer;
   program: Command;
   providedAgent?: string;
   frontmatterAgent?: RalphFrontmatter["agent"];
@@ -469,7 +479,7 @@ async function resolveRunAgent(options: {
     return configured;
   }
 
-  return promptForAgent(options.program);
+  return promptForAgent(options.container, options.program);
 }
 
 async function resolveRunIterations(options: {
@@ -512,6 +522,7 @@ async function resolveRunIterations(options: {
 }
 
 async function resolveInitAgent(options: {
+  container: CliContainer;
   program: Command;
   providedAgent?: string;
 }): Promise<string | null> {
@@ -519,7 +530,7 @@ async function resolveInitAgent(options: {
     return resolveRalphAgent(options.providedAgent);
   }
 
-  return promptForAgent(options.program);
+  return promptForAgent(options.container, options.program);
 }
 
 async function resolveInitIterations(options: {
@@ -636,6 +647,7 @@ export function registerRalphCommand(
         }
 
         const agent = await resolveInitAgent({
+          container,
           program,
           providedAgent: options.agent
         });
@@ -707,6 +719,7 @@ export function registerRalphCommand(
 
         const doc = await readRalphDoc(container, docPath);
         const agent = await resolveRunAgent({
+          container,
           program,
           providedAgent: options.agent,
           frontmatterAgent: doc.data.agent

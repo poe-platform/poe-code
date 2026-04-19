@@ -150,7 +150,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: wire-ralph
     title: Wire resolveDefaultAgent into ralph and prove frontmatter precedence
@@ -185,9 +185,9 @@ tasks:
 
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: wire-inline-mcp

@@ -1434,6 +1434,178 @@ describe("ralph run command", () => {
     );
   });
 
+  it("uses core.defaultAgent for ralph run without prompting when frontmatter omits agent", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "iterations: 4",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# A"
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        docPath: "docs/loop.md",
+        maxIterations: 4
+      })
+    );
+  });
+
+  it("prefers frontmatter agent over core.defaultAgent for ralph run", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "agent: codex",
+        "iterations: 4",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# A"
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
+        docPath: "docs/loop.md",
+        maxIterations: 4
+      })
+    );
+  });
+
+  it("preserves the model from core.defaultAgent for ralph run", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "iterations: 4",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# A"
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify(
+        { core: { defaultAgent: "claude-code:anthropic/claude-sonnet-4.6" } },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code:anthropic/claude-sonnet-4.6",
+        docPath: "docs/loop.md",
+        maxIterations: 4
+      })
+    );
+  });
+
+  it("prefers core.defaultAgent over --yes for ralph run", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "iterations: 4",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# A"
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "codex" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "ralph",
+      "run",
+      "docs/loop.md"
+    ]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
+        docPath: "docs/loop.md",
+        maxIterations: 4
+      })
+    );
+  });
+
   it("prompts for missing agent, doc, and iterations when frontmatter does not provide them", async () => {
     selectMock
       .mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md")

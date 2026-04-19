@@ -1,0 +1,109 @@
+import { UserError } from "@poe-code/cmdkit";
+import { describe, expect, it } from "vitest";
+import type { Section } from "./scan.js";
+import { resolveSection } from "./resolve.js";
+
+const sections: Section[] = [
+  {
+    depth: 1,
+    title: "Markdown Reader",
+    number: null,
+    headingStart: 0,
+    bodyStart: 17,
+    bodyEnd: 17,
+    bodyEndNoChildren: 17
+  },
+  {
+    depth: 2,
+    title: "Overview",
+    number: "1",
+    headingStart: 17,
+    bodyStart: 30,
+    bodyEnd: 45,
+    bodyEndNoChildren: 45
+  },
+  {
+    depth: 2,
+    title: "Repeated",
+    number: "2",
+    headingStart: 45,
+    bodyStart: 58,
+    bodyEnd: 72,
+    bodyEndNoChildren: 72
+  },
+  {
+    depth: 3,
+    title: "Repeated",
+    number: "2.1",
+    headingStart: 72,
+    bodyStart: 87,
+    bodyEnd: 103,
+    bodyEndNoChildren: 103
+  }
+];
+
+describe("resolveSection", () => {
+  it("resolves by number and by title on the same section", () => {
+    const byNumber = resolveSection(sections, "1");
+    const byTitle = resolveSection(sections, "  Overview  ");
+
+    expect(byNumber).toBe(sections[1]);
+    expect(byTitle).toBe(sections[1]);
+  });
+
+  it("prefers an exact numeric path before checking titles", () => {
+    const section = resolveSection(
+      [
+        {
+          depth: 2,
+          title: "Numeric winner",
+          number: "2.1",
+          headingStart: 0,
+          bodyStart: 0,
+          bodyEnd: 0,
+          bodyEndNoChildren: 0
+        },
+        {
+          depth: 2,
+          title: "2.1",
+          number: "3",
+          headingStart: 0,
+          bodyStart: 0,
+          bodyEnd: 0,
+          bodyEndNoChildren: 0
+        }
+      ],
+      "2.1"
+    );
+
+    expect(section.title).toBe("Numeric winner");
+  });
+
+  it("does not trim numeric paths or do fuzzy title matching", () => {
+    expect(() => resolveSection(sections, " 1 ")).toThrowError(
+      new UserError(
+        "no section matching \" 1 \" (try 'read-markdown' to see the table of contents)"
+      )
+    );
+
+    expect(() => resolveSection(sections, "overview")).toThrowError(
+      new UserError(
+        "no section matching \"overview\" (try 'read-markdown' to see the table of contents)"
+      )
+    );
+  });
+
+  it("throws a UserError naming the missing id", () => {
+    expect(() => resolveSection(sections, "missing")).toThrowError(
+      new UserError(
+        "no section matching \"missing\" (try 'read-markdown' to see the table of contents)"
+      )
+    );
+  });
+
+  it("throws a UserError when the title is ambiguous", () => {
+    expect(() => resolveSection(sections, "Repeated")).toThrowError(
+      new UserError('multiple sections match "Repeated" (use numeric path e.g. 2.1)')
+    );
+  });
+});

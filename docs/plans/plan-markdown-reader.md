@@ -116,7 +116,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: core-resolve
     title: Implement resolveSection (numeric-then-title)
@@ -150,10 +150,10 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: core-orchestrators
     title: Implement readMarkdown and readSection orchestrators

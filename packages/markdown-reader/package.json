@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "cd ../.. && vitest run packages/markdown-reader/src/*.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/markdown-reader/src/*.test.ts"
+    "test": "cd ../.. && vitest run packages/markdown-reader/src/*.test.ts packages/markdown-reader/src/**/*.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/markdown-reader/src/*.test.ts packages/markdown-reader/src/**/*.test.ts"
   },
   "files": [
     "dist"

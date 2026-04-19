@@ -12,6 +12,7 @@ describe("@poe-code/markdown-reader scaffolding", () => {
     const fixturesPath = new URL("./testing/fixtures/", import.meta.url);
 
     expect(readdirSync(fixturesPath)).toEqual([
+      "markdown-reader-plan.md",
       "nested.md",
       "simple.md",
       "with-fenced-code.md",

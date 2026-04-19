@@ -1,5 +1,9 @@
 ---
 label: "GitHub: Pull Request Update Handler"
+allow:
+  - OWNER
+  - MEMBER
+  - COLLABORATOR
 ---
 Read {{url}} and re-review the updated pull request.
 

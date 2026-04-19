@@ -17,4 +17,5 @@ jobs:
       ISSUE_NUMBER: ${{ github.event.issue.number }}
       ISSUE_TITLE: ${{ github.event.issue.title }}
       ISSUE_BODY: ${{ github.event.issue.body }}
+      COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.issue.author_association }}
       GITHUB_REPOSITORY: ${{ github.repository }}

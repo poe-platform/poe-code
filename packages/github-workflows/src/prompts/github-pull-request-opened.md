@@ -1,5 +1,9 @@
 ---
 label: "GitHub: Pull Request Handler"
+allow:
+  - OWNER
+  - MEMBER
+  - COLLABORATOR
 ---
 Read {{url}} and review the pull request.
 

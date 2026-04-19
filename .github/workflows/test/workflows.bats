@@ -240,7 +240,7 @@ run_guard_in_docker() {
 @test "dry-run gh reusable workflows parse without error" {
   shopt -s nullglob
   local gh_workflows=(.github/workflows/gh-*.yml)
-  [ "${#gh_workflows[@]}" -eq 7 ]
+  [ "${#gh_workflows[@]}" -eq 8 ]
 
   local workflow
   for workflow in "${gh_workflows[@]}"; do

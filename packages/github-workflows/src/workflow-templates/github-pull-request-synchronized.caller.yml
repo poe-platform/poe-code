@@ -14,4 +14,5 @@ jobs:
     secrets: inherit
     with:
       PR_NUMBER: ${{ github.event.pull_request.number }}
+      COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
       GITHUB_REPOSITORY: ${{ github.repository }}

@@ -1,3 +1,4 @@
+import { dirname } from "node:path";
 import { isNotFound } from "@poe-code/config-mutations";
 import type { FileSystem } from "../../utils/file-system.js";
 
@@ -47,6 +48,7 @@ export async function applySymlinkOps(
       case "rename": {
         opts.log(`rename ${op.from} -> ${op.to}`);
         if (!opts.dryRun) {
+          await fs.mkdir(dirname(op.to), { recursive: true });
           await fs.rename(op.from, op.to);
         }
         break;
@@ -54,6 +56,7 @@ export async function applySymlinkOps(
       case "symlink": {
         opts.log(`symlink ${op.path} -> ${op.target}`);
         if (!opts.dryRun) {
+          await fs.mkdir(dirname(op.path), { recursive: true });
           await fs.symlink(op.target, op.path);
         }
         break;

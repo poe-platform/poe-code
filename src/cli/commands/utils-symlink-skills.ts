@@ -32,6 +32,7 @@ export function registerUtilsSymlinkSkillsCommand(
   parent
     .command("skills")
     .description("Move .claude/skills into .agents/skills and symlink it back.")
+    .configureHelp({})
     .option("--dry-run", "Simulate commands without writing changes.")
     .option("--cwd <dir>", "Operate on <dir> instead of the current working directory.")
     .option("--local", "Use local scope (in the current project)")

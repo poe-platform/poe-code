@@ -267,6 +267,20 @@ describe.each([
   });
 });
 
+describe("utils symlink subcommand help", () => {
+  it.each(["agents", "skills"])("%s --help shows its own flags, not the parent help", (sub) => {
+    const fs = createMemFs();
+    const program = createCliProgram(fs, []);
+    const symlink = program.commands
+      .find((c) => c.name() === "utils")
+      ?.commands.find((c) => c.name() === "symlink");
+    const subCmd = symlink?.commands.find((c) => c.name() === sub);
+    const help = subCmd?.helpInformation() ?? "";
+    expect(help).toContain("--dry-run");
+    expect(help).not.toContain("Poe - utils symlink");
+  });
+});
+
 describe("utils symlink skills command", () => {
   beforeEach(() => {
     selectMock.mockReset();
@@ -398,6 +412,49 @@ describe("utils symlink skills command", () => {
 });
 
 describe("applySymlinkOps", () => {
+  it("creates missing parent directories when applying skills rename and symlink ops", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(localTargets.claudeDir, { recursive: true });
+    await fs.writeFile(`${localTargets.claudeDir}/example.md`, "skill", { encoding: "utf8" });
+    const logs: string[] = [];
+    const ops = await planSkillsSymlink(fs, localTargets);
+
+    await expect(
+      applySymlinkOps(fs, ops, {
+        dryRun: false,
+        log: (message) => logs.push(message)
+      })
+    ).resolves.toEqual({ conflicts: 0 });
+
+    expect(await fs.readFile(`${localTargets.agentsDir}/example.md`, "utf8")).toBe("skill");
+    expect((await fs.lstat(localTargets.claudeDir)).isSymbolicLink()).toBe(true);
+    expect(await fs.readlink(localTargets.claudeDir)).toBe(localTargets.relativeTargetFromClaude);
+    expect(logs).toEqual([
+      "rename /repo/.claude/skills -> /repo/.agents/skills",
+      "symlink /repo/.claude/skills -> ../.agents/skills"
+    ]);
+  });
+
+  it("creates the missing legacy parent before symlinking existing agents skills", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(localTargets.agentsDir, { recursive: true });
+    await fs.writeFile(`${localTargets.agentsDir}/example.md`, "skill", { encoding: "utf8" });
+    const logs: string[] = [];
+    const ops = await planSkillsSymlink(fs, localTargets);
+
+    await expect(
+      applySymlinkOps(fs, ops, {
+        dryRun: false,
+        log: (message) => logs.push(message)
+      })
+    ).resolves.toEqual({ conflicts: 0 });
+
+    expect((await fs.lstat(localTargets.claudeDir)).isSymbolicLink()).toBe(true);
+    expect(await fs.readlink(localTargets.claudeDir)).toBe(localTargets.relativeTargetFromClaude);
+    expect(await fs.readFile(`${localTargets.claudeDir}/example.md`, "utf8")).toBe("skill");
+    expect(logs).toEqual(["symlink /repo/.claude/skills -> ../.agents/skills"]);
+  });
+
   it("does not mutate the filesystem during dry run and logs each op", async () => {
     const fs = createMemFs({ [`${cwd}/CLAUDE.md`]: "claude" });
     const before = await readRepoState(fs);

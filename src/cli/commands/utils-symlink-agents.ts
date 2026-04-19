@@ -28,6 +28,7 @@ export function registerUtilsSymlinkAgentsCommand(
   parent
     .command("agents")
     .description("Symlink CLAUDE.md <- AGENTS.md (AGENTS.md is canonical).")
+    .configureHelp({})
     .option("--dry-run", "Simulate commands without writing changes.")
     .option("--cwd <dir>", "Operate on <dir> instead of the current working directory.")
     .action(async function (this: Command, options: UtilsSymlinkAgentsOptions) {

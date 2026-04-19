@@ -129,7 +129,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: spot-test-and-screenshots
     title: Spot-test and screenshot the new commands
@@ -166,9 +166,9 @@ tasks:
 
       Out of scope: documentation changes to README (CLAUDE.md rule: do not touch README without user permission).
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 ---
 

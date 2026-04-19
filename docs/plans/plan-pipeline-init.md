@@ -40,7 +40,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: init-sdk-runner
     title: Add SDK entry point that spawns the agent for each selected source
@@ -101,10 +101,10 @@ tasks:
       `@poe-code/pipeline` — the new SDK entry lives in the root `poe-code`
       package.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: init-command
     title: Register `pipeline init` CLI subcommand with multiselect

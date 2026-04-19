@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 
 // SDK exports
 export { spawn } from "./sdk/spawn.js";
-export { runPipeline } from "./sdk/pipeline.js";
+export { runPipeline, runPipelineInit } from "./sdk/pipeline.js";
 export {
   createLogWriter,
   createStateStore,
@@ -59,7 +59,13 @@ export type {
   Supervisor,
   SupervisorOptions
 } from "./sdk/process-launcher.js";
-export type { PipelineRunOptions, PipelineRunResult } from "./sdk/pipeline.js";
+export type {
+  PipelineRunOptions,
+  PipelineRunResult,
+  PipelineInitRunOptions,
+  PipelineInitRunResult,
+  PipelineInitSource
+} from "./sdk/pipeline.js";
 export type { RalphRunOptions, RalphRunResult } from "./sdk/ralph.js";
 export type { AutomationDefinition } from "@poe-code/github-workflows";
 export type {

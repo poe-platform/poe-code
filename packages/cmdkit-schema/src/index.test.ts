@@ -301,6 +301,28 @@ describe("@poe-code/cmdkit-schema", () => {
     } satisfies JsonSchema);
   });
 
+  it("serializes object schemas with additionalProperties metadata", () => {
+    expect(
+      toJsonSchema(
+        S.Object(
+          {
+            name: S.String(),
+          },
+          { additionalProperties: false }
+        )
+      )
+    ).toEqual({
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+        },
+      },
+      required: ["name"],
+      additionalProperties: false,
+    } satisfies JsonSchema);
+  });
+
   it("treats double-wrapped optional object properties as optional", () => {
     const schema = S.Object({
       maybeName: S.Optional(S.Optional(S.String({ default: "guest" }))),

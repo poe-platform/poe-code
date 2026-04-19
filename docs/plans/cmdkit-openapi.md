@@ -59,11 +59,11 @@ owner:
     Superintendent summary:
     {{superintendent.summary}}
 
-max_rounds: 110
+max_rounds: 100
 
 status:
   state: in_progress
-  round: 97
+  round: 98
   review_turn: 0
 ---
 
@@ -557,24 +557,14 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 - **Security-scheme sanity check.** Generated commands now fail fast when document-level or operation-level `security` references a scheme name that is missing from `components.securitySchemes`, with targeted `UserError`s naming the operation and scope. Covered in `generate.test.ts`.
 - **Success-response schema guardrails.** Generate-time validation now walks JSON success-response schemas (including nested properties / array items) and rejects unsupported composition (`oneOf` / `anyOf` / `allOf`) plus `additionalProperties` before we attempt MCP `outputSchema` emission. Covered in `generate.test.ts`.
 - **Famous fixtures untracked.** `packages/cmdkit-openapi/fixtures/famous/` added to `.gitignore` and removed from the index via `git rm -r --cached`; exploratory-testing output no longer travels with the repo. `npm test --workspace=@poe-code/cmdkit-openapi` green without the tracked tree (215 tests).
+- **Generate-time spec-sanity checks (follow-up bundle).** Path params now reject `nullable: true`; required object request bodies fail fast when they declare zero writable fields or when every field is filtered by `readOnly`; parameter-level `content:` form rejects with a targeted `UserError`; per-operation `servers:` arrays reject with a targeted `UserError`; `operation.summary` fallback is covered explicitly in `generate.test.ts`.
 
 ### Open
-
-**Generate-time spec-sanity checks (remaining — bundle into one round).**
-
-These are all same-pattern generate-time guards that throw a targeted `UserError` naming the operationId; ship them together.
-
-- Reject `nullable: true` on path params.
-- Fail required-but-empty request body at generate time (not silently drop).
-- Fail required body whose fields are all filtered by `readOnly`.
-- Detect OpenAPI parameter `content:` form and fail with a targeted error.
-- Reject or document per-operation `servers:` arrays.
-- Fall back to `operation.summary` when `description` is absent.
 
 **MCP schema fidelity.**
 
 - Surface remaining JSON-Schema keywords (`multipleOf`, `exclusiveMinimum`/`exclusiveMaximum`, `uniqueItems`) on body field schemas.
-- Decide `nullable: true` policy: keep OAS-3.0 emission + document, or switch to JSON-Schema-2020-12 `type: [..., "null"]`. Same decision governs whether nullable enums re-add `null` to the emitted `enum` list.
+- Decide `nullable: true` policy: keep OAS-3.0 emission + document, or switch to JSON-Schema-2020-12 `type: [..., "null"]`. Same decision governs whether nullable enums re-add `null` to the emitted `enum` list, and whether query arrays continue to silently drop `nullable` via `stripNullable` (`generate.ts:973`) — the wire-level rationale is in the `NULL_HELPER_SUPPORT` comment, but the MCP `inputSchema` loses the null signal.
 - Mirror the `readOnly` filter with a `writeOnly` filter on request-body fields.
 - Emit MCP `outputSchema` from the declared 2xx JSON response schema.
 - Thread `deprecated: true` into command + param descriptions.
@@ -594,9 +584,9 @@ These are all same-pattern generate-time guards that throw a targeted `UserError
 - Rewrite `generated-array-cli.test.ts` to run `generate()` + memfs + dynamic import (not hand-built `defineCommand`); add negative case for missing-both-flags preflight.
 - `$ref` vs inline snapshot equivalence for `components/parameters`, `components/requestBodies`, `components/responses` (3 narrow positive snapshots).
 
-**Famous fixtures — untrack.**
+**Consumer fixture refresh.**
 
-- Regen `packages/internal-agent-cli/src/generated/agent/whoami.ts` so it carries the `auth: "required"` literal the generator now always emits. Run `npm run generate --workspace=@poe-code/internal-agent-cli` and refresh `openapi.lock` if the SHA moved. (This is a committed consumer fixture, not a famous-spec fixture — stays tracked.)
+- Regen `packages/internal-agent-cli/src/generated/agent/whoami.ts` so it carries the `auth: "required"` literal the generator now always emits. Run `npm run generate --workspace=@poe-code/internal-agent-cli` and refresh `openapi.lock` if the SHA moved.
 
 **Spec-fidelity bugs surfaced by famous-spec smokes.**
 

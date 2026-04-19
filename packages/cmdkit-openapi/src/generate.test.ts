@@ -3704,6 +3704,28 @@ describe("generate", () => {
     expect(commandFile?.contents).not.toContain('description: "List public events.",');
   });
 
+  it("falls back to operation.summary when description is absent", () => {
+    expect(
+      generate(
+        createDocument({
+          "/events": {
+            get: {
+              tags: ["activity"],
+              operationId: "listPublicEvents",
+              summary: "List public events.",
+              responses: {
+                "200": {
+                  description: "List."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      ).find((file) => file.path === "activity/public-events.ts")?.contents
+    ).toContain('description: "List public events.",');
+  });
+
   it("preserves additionalProperties: false on generated params schemas for object request bodies", () => {
     const files = generate(
       createDocument({
@@ -3849,6 +3871,109 @@ describe("generate", () => {
     ).toThrowError(
       new UserError(
         'Operation "listBots" uses unsupported parameter location "cookie". Only path and query parameters are supported in v1; use auth or handwritten commands for headers/cookies.'
+      )
+    );
+  });
+
+  it("throws when a path parameter is nullable", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{botHandle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "botHandle",
+                  in: "path",
+                  required: true,
+                  schema: {
+                    type: "string",
+                    nullable: true
+                  }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Bot."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "viewBot" path parameter "botHandle" uses unsupported nullable schema. Path parameters cannot be nullable in v1.'
+      )
+    );
+  });
+
+  it("throws when a parameter uses content instead of schema", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots": {
+            get: {
+              tags: ["bots"],
+              operationId: "listBots",
+              parameters: [
+                {
+                  name: "filter",
+                  in: "query",
+                  content: {
+                    "application/json": {
+                      schema: {
+                        type: "object",
+                        properties: {
+                          owner: { type: "string" }
+                        }
+                      }
+                    }
+                  }
+                } as never
+              ],
+              responses: {
+                "200": {
+                  description: "List."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "listBots" parameter "filter" uses unsupported parameter.content. Define path/query parameters with parameter.schema in v1.'
+      )
+    );
+  });
+
+  it("throws when an operation declares per-operation servers", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots": {
+            get: {
+              tags: ["bots"],
+              operationId: "listBots",
+              servers: [{ url: "https://alt.example.com" }],
+              responses: {
+                "200": {
+                  description: "List."
+                }
+              }
+            } as never
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "listBots" uses unsupported per-operation servers. Configure the client baseUrl instead.'
       )
     );
   });
@@ -4192,6 +4317,99 @@ describe("generate", () => {
 
     expect(files.find((file) => file.path === "bots/patch-bot.ts")?.contents).toContain(
       '"description": params.description'
+    );
+  });
+
+  it("throws when a required request body object has no writable fields", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            patch: {
+              tags: ["bots"],
+              operationId: "patchBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      properties: {}
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Patched."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "patchBot" requestBody is required but does not define any writable fields.'
+      )
+    );
+  });
+
+  it("throws when a required request body filters all fields via readOnly", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            patch: {
+              tags: ["bots"],
+              operationId: "patchBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      properties: {
+                        serverManaged: {
+                          type: "string",
+                          readOnly: true
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              responses: {
+                "200": {
+                  description: "Patched."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "patchBot" requestBody is required but all declared fields are readOnly.'
+      )
     );
   });
 });

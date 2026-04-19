@@ -92,6 +92,7 @@ export interface OpenApiOperationObject {
   description?: string;
   operationId?: string;
   security?: OpenApiSecurityRequirementObject[];
+  servers?: OpenApiServerObject[];
   parameters?: OpenApiParameter[];
   requestBody?: OpenApiRequestBodyObject | OpenApiReferenceObject;
   responses?: Record<string, OpenApiResponseObject | OpenApiReferenceObject>;
@@ -104,6 +105,7 @@ export interface OpenApiParameterObject {
   in: OpenApiParameterLocation;
   required?: boolean;
   description?: string;
+  content?: Record<string, OpenApiMediaTypeObject | undefined>;
   explode?: boolean;
   schema?: OpenApiSchemaObject | OpenApiReferenceObject;
   style?: string;
@@ -155,6 +157,11 @@ export interface OpenApiSchemaObject {
 
 export interface OpenApiReferenceObject {
   $ref: string;
+}
+
+interface OpenApiServerObject {
+  url: string;
+  description?: string;
 }
 
 type OpenApiSecurityRequirementObject = Record<string, string[]>;
@@ -464,6 +471,7 @@ function createGeneratedCommand(
 ): GeneratedCommand {
   const operation = expectOperation(document, entry.operation, entry.method, entry.path);
   const operationId = operation.operationId ?? `${entry.method.toUpperCase()} ${entry.path}`;
+  assertSupportedOperationMetadata(operation, operationId);
   assertSupportedSuccessResponses(document, operation, operationId);
   const noun = deriveNoun(operation, entry.path, operationId);
   assertValidGeneratedNoun(operationId, noun);
@@ -494,6 +502,17 @@ function createGeneratedCommand(
     sectionRenders: collected.sectionRenders,
     optionalSections: collected.optionalSections
   };
+}
+
+function assertSupportedOperationMetadata(
+  operation: OpenApiOperationObject,
+  operationId: string
+): void {
+  if (operation.servers !== undefined) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses unsupported per-operation servers. Configure the client baseUrl instead.`
+    );
+  }
 }
 
 function collectParams(
@@ -660,6 +679,7 @@ function collectRequestBodyParams(
 
   const required = new Set(schema.required ?? []);
   const assemblies: GeneratedParameterAssembly[] = [];
+  const declaredPropertyCount = Object.keys(schema.properties).length;
 
   for (const [name, property] of Object.entries(schema.properties)) {
     const propertySchema = expectSchema(
@@ -681,6 +701,16 @@ function collectRequestBodyParams(
       operationId
     );
     assemblies.push(generated);
+  }
+
+  if (!bodyOptional && assemblies.length === 0) {
+    const reason =
+      declaredPropertyCount === 0
+        ? "does not define any writable fields"
+        : "all declared fields are readOnly";
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} requestBody is required but ${reason}.`
+    );
   }
 
   return createCollectedRequestBodyParams(
@@ -796,6 +826,13 @@ function createGeneratedParameter(
         `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(parameter.name)} must set required: true.`
       );
     }
+
+    if (schema.nullable === true) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(parameter.name)} uses unsupported nullable schema. Path parameters cannot be nullable in v1.`
+      );
+    }
+
     assertSupportedPathParameterSerialization(parameter, operationId);
   }
 
@@ -1350,6 +1387,12 @@ function expectParameter(
       resolveLocalReference(document, parameter.$ref, operationId, "parameter") as OpenApiParameter,
       operationId,
       [...refChain, parameter.$ref]
+    );
+  }
+
+  if (parameter.content !== undefined) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} parameter ${JSON.stringify(parameter.name)} uses unsupported parameter.content. Define path/query parameters with parameter.schema in v1.`
     );
   }
 

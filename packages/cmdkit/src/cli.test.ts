@@ -820,6 +820,49 @@ describe("runCLI", () => {
     expect(readStdout(stdoutWrite)).toBe("rendered markdown\n");
   });
 
+  it.each([
+    {
+      argv: ["node", "cmdkit", "deploy", "--yes"],
+      expected: "terminal",
+      label: "rich",
+    },
+    {
+      argv: ["node", "cmdkit", "deploy", "--output", "md", "--yes"],
+      expected: "markdown",
+      label: "md",
+    },
+    {
+      argv: ["node", "cmdkit", "deploy", "--output", "json", "--yes"],
+      expected: "json",
+      label: "json",
+    },
+  ])("sets OUTPUT_FORMAT to $expected while running $label output", async ({ argv, expected }) => {
+    const seenOutputFormats: Array<string | undefined> = [];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        seenOutputFormats.push(process.env.OUTPUT_FORMAT);
+        return null;
+      },
+    });
+
+    const root = defineGroup({
+      name: "cmdkit",
+      children: [deploy],
+    });
+
+    process.argv = argv;
+
+    await runCLI(root);
+
+    expect(seenOutputFormats).toEqual([expected]);
+    expect(process.env.OUTPUT_FORMAT).toBe(originalOutputFormat);
+    expect(promptState.resetOutputFormatCache).toHaveBeenCalledTimes(2);
+    expect(stdoutWrite).toHaveBeenCalled();
+  });
+
   it("keeps rich output as the default when stdout is not a TTY", async () => {
     const renderRich = vi.fn();
     const renderJson = vi.fn((result: unknown) => result);

@@ -40,7 +40,7 @@ type PrimitiveSchema = Exclude<AnySchema, ObjectSchema<any>>;
 type ScalarSchema = Exclude<PrimitiveSchema, ArraySchema<any>>;
 type FieldSchema = Exclude<PrimitiveSchema, { kind: "optional" }>;
 
-interface GlobalFlags {
+interface ResolvedFlags {
   json?: boolean;
   preset?: string;
   yes?: boolean;
@@ -1019,28 +1019,26 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
   return parseScalarValue(entered, field.schema as ScalarSchema, field.displayPath);
 }
 
-function resolveOutput(globalFlags: GlobalFlags): OutputMode {
-  if (globalFlags.json === true) {
+function resolveOutput(resolvedFlags: ResolvedFlags): OutputMode {
+  if (resolvedFlags.json === true) {
     return "json";
   }
 
-  if (globalFlags.output !== undefined) {
-    return globalFlags.output;
+  if (resolvedFlags.output !== undefined) {
+    return resolvedFlags.output;
   }
 
   return "rich";
 }
 
+const DESIGN_SYSTEM_OUTPUT_BY_MODE = {
+  rich: "terminal",
+  md: "markdown",
+  json: "json",
+} as const satisfies Record<OutputMode, "terminal" | "markdown" | "json">;
+
 function toDesignSystemOutput(output: OutputMode): "terminal" | "markdown" | "json" {
-  if (output === "md") {
-    return "markdown";
-  }
-
-  if (output === "json") {
-    return "json";
-  }
-
-  return "terminal";
+  return DESIGN_SYSTEM_OUTPUT_BY_MODE[output];
 }
 
 async function withOutputFormat<T>(output: OutputMode, fn: () => Promise<T>): Promise<T> {
@@ -1726,8 +1724,8 @@ async function resolveParams(
   return params;
 }
 
-function getGlobalFlags(command: CommanderCommand): GlobalFlags {
-  const flags = command.optsWithGlobals() as GlobalFlags;
+function getResolvedFlags(command: CommanderCommand): ResolvedFlags {
+  const flags = command.optsWithGlobals() as ResolvedFlags;
   return flags;
 }
 
@@ -1744,9 +1742,9 @@ async function executeCommand<TServices extends object>(
     note,
   };
   const optionValues = state.actionCommand.optsWithGlobals() as Record<string, unknown>;
-  const globalFlags = optionValues as GlobalFlags;
-  const output = resolveOutput(globalFlags);
-  const shouldPrompt = !globalFlags.yes && Boolean(process.stdin.isTTY);
+  const resolvedFlags = optionValues as ResolvedFlags;
+  const output = resolveOutput(resolvedFlags);
+  const shouldPrompt = !resolvedFlags.yes && Boolean(process.stdin.isTTY);
   const runtime = await resolveFixtureRuntime(state.command, services, requirementOptions);
   const preflightContext = {
     ...runtime.services,
@@ -1766,7 +1764,7 @@ async function executeCommand<TServices extends object>(
       state.fields,
       state.positionalValues,
       optionValues,
-      globalFlags.preset,
+      resolvedFlags.preset,
       shouldPrompt
     );
 
@@ -1775,7 +1773,7 @@ async function executeCommand<TServices extends object>(
       params,
     } as HandlerContext<any, any, TServices>;
 
-    if (state.command.confirm && !globalFlags.yes && process.stdin.isTTY) {
+    if (state.command.confirm && !resolvedFlags.yes && process.stdin.isTTY) {
       for (const field of state.fields) {
         const value = field.path.reduce<unknown>(
           (current, segment) =>
@@ -1875,7 +1873,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     try {
       await executeCommand(state, services, requirementOptions);
     } catch (error) {
-      handleRunError(error, Boolean(getGlobalFlags(state.actionCommand).verbose));
+      handleRunError(error, Boolean(getResolvedFlags(state.actionCommand).verbose));
     }
   };
 

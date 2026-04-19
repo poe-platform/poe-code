@@ -298,6 +298,34 @@ describe("runOwnerReview", () => {
     );
   });
 
+  it("includes observed tool names and log path in the error when workflow_transition is not called", async () => {
+    autonomousMock.mockResolvedValue({
+      toolCalls: [
+        { title: "Read", input: { file_path: "/repo/docs/plans/feature.md" } },
+        { title: "Bash", input: { command: "ls" } }
+      ],
+      logFile: "/tmp/logs/owner.jsonl"
+    });
+
+    const { runOwnerReview } = await import("./run-owner-review.js");
+
+    await expect(runOwnerReview(document, {})).rejects.toThrow(
+      /Owner review must end with workflow_transition\. Observed tool calls: Read, Bash\. See spawn log: \/tmp\/logs\/owner\.jsonl/
+    );
+  });
+
+  it("notes when no tool calls were captured at all", async () => {
+    autonomousMock.mockResolvedValue({
+      stdout: "I think the work looks good."
+    });
+
+    const { runOwnerReview } = await import("./run-owner-review.js");
+
+    await expect(runOwnerReview(document, {})).rejects.toThrow(
+      "Owner review must end with workflow_transition. No tool calls were captured."
+    );
+  });
+
   it("prepends a system prompt ahead of the resolved owner prompt", async () => {
     autonomousMock.mockImplementation(async (_, { prompt }) => {
       expect(prompt.startsWith("# System")).toBe(true);

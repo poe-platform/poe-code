@@ -172,7 +172,7 @@ function extractOwnerTransition(result: AutonomousOutput): OwnerTransition {
   const transition = extractTransition(result);
 
   if (transition === undefined) {
-    throw new Error("Owner review must end with workflow_transition");
+    throw new Error(`Owner review must end with workflow_transition.${describeMissingTransition(result)}`);
   }
 
   if (transition.action !== "approve_completion" && transition.action !== "request_changes") {
@@ -180,6 +180,48 @@ function extractOwnerTransition(result: AutonomousOutput): OwnerTransition {
   }
 
   return transition;
+}
+
+function describeMissingTransition(result: AutonomousOutput): string {
+  const parts: string[] = [];
+  const names = collectToolNames(result);
+  parts.push(names.length === 0 ? " No tool calls were captured." : ` Observed tool calls: ${names.join(", ")}.`);
+
+  const logPath = extractLogPath(result);
+  if (logPath) {
+    parts.push(` See spawn log: ${logPath}`);
+  }
+
+  return parts.join("");
+}
+
+function collectToolNames(result: AutonomousOutput): string[] {
+  if (typeof result === "string") {
+    return [];
+  }
+
+  const names: string[] = [];
+  collectToolNamesFrom(result.toolCalls, names);
+
+  if (isRecord(result.sessionResult)) {
+    collectToolNamesFrom(result.sessionResult.toolCalls, names);
+  }
+
+  return names;
+}
+
+function collectToolNamesFrom(value: unknown, out: string[]): void {
+  if (!Array.isArray(value)) {
+    return;
+  }
+
+  for (const entry of value) {
+    const toolCall = readToolCall(entry);
+    const name = toolCall ? readToolCallName(toolCall) : undefined;
+    if (name) {
+      out.push(name);
+    }
+  }
 }
 
 function extractTransition(result: AutonomousOutput): WorkflowTransition | undefined {

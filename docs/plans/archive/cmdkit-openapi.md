@@ -63,7 +63,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 98
+  round: 100
   review_turn: 0
 ---
 

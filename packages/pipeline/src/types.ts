@@ -40,7 +40,6 @@ export interface PipelinePlan {
 }
 
 export interface PipelineConfig {
-  planPath?: string;
   [key: string]: unknown;
 }
 
@@ -52,11 +51,7 @@ export interface PipelineFileStat {
 
 export interface PipelineFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  writeFile(
-    path: string,
-    data: string,
-    options?: { encoding?: BufferEncoding }
-  ): Promise<void>;
+  writeFile(path: string, data: string, options?: { encoding?: BufferEncoding }): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<PipelineFileStat>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
@@ -148,11 +143,13 @@ export interface PipelineRunOptions {
   promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
   onPlanResolved?: (summary: PlanSummary) => void;
   onTaskStart?: (progress: TaskProgress) => void;
-  onTaskComplete?: (progress: TaskProgress & {
-    durationMs: number;
-    success: boolean;
-    usage?: AgentRunUsage;
-  }) => void;
+  onTaskComplete?: (
+    progress: TaskProgress & {
+      durationMs: number;
+      success: boolean;
+      usage?: AgentRunUsage;
+    }
+  ) => void;
   onPlanReloadError?: (error: Error) => void;
   signal?: AbortSignal;
 }

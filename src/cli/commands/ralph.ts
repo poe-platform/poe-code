@@ -9,7 +9,12 @@ import {
   select,
   text as designText
 } from "@poe-code/design-system";
-import { resolveAgentId, parseAgentSpecifier, formatAgentSpecifier, allAgents } from "@poe-code/agent-defs";
+import {
+  resolveAgentId,
+  parseAgentSpecifier,
+  formatAgentSpecifier,
+  allAgents
+} from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import {
   discoverDocs,
@@ -17,18 +22,11 @@ import {
   writeFrontmatter,
   type RalphFrontmatter
 } from "@poe-code/ralph";
-import {
-  readMergedDocument,
-  resolveScope
-} from "@poe-code/poe-code-config";
+import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
-import { ralphConfigScope } from "../../services/config.js";
+import { ralphConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
-import {
-  createExecutionResources,
-  resolveCommandFlags,
-  resolveDefaultAgent
-} from "./shared.js";
+import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
 import {
   runRalph as sdkRunRalph,
   type RalphRunOptions,
@@ -91,23 +89,27 @@ function createRalphDashboardRunAgent(options: {
     });
 
     try {
-      const result = await acp.withAcpWriter((line) => {
-        options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
-      }, async () => await sdkSpawn.autonomous(input.agent, {
-        prompt: input.prompt,
-        cwd: input.cwd,
-        model: input.model,
-        mode: "yolo",
-        ...(input.signal ? { signal: input.signal } : {}),
-        useStdin: true,
-        tee: {
-          stderr: {
-            write(chunk: string) {
-              errorBuffer.push(chunk);
+      const result = await acp.withAcpWriter(
+        (line) => {
+          options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
+        },
+        async () =>
+          await sdkSpawn.autonomous(input.agent, {
+            prompt: input.prompt,
+            cwd: input.cwd,
+            model: input.model,
+            mode: "yolo",
+            ...(input.signal ? { signal: input.signal } : {}),
+            useStdin: true,
+            tee: {
+              stderr: {
+                write(chunk: string) {
+                  errorBuffer.push(chunk);
+                }
+              }
             }
-          }
-        }
-      }));
+          })
+      );
 
       errorBuffer.flush();
       return result;
@@ -118,15 +120,11 @@ function createRalphDashboardRunAgent(options: {
   };
 }
 
-function dashboardStatusForResult(
-  result: RalphRunResult
-): "done" | "error" {
+function dashboardStatusForResult(result: RalphRunResult): "done" | "error" {
   return result.stopReason === "failed" ? "error" : "done";
 }
 
-async function runRalphWithDashboard(
-  options: RalphDashboardRunOptions
-): Promise<RalphRunResult> {
+async function runRalphWithDashboard(options: RalphDashboardRunOptions): Promise<RalphRunResult> {
   const dashboard = createDashboard({
     title: "Ralph",
     statsTitle: "Run",
@@ -236,10 +234,7 @@ async function runRalphWithDashboard(
   }
 }
 
-function resolveRalphAgent(
-  value: string | undefined,
-  sourceLabel = "agent"
-): string {
+function resolveRalphAgent(value: string | undefined, sourceLabel = "agent"): string {
   if (!value || value.trim().length === 0) {
     return DEFAULT_RALPH_AGENT;
   }
@@ -248,34 +243,29 @@ function resolveRalphAgent(
   const resolved = resolveAgentId(specifier.agent);
   if (!resolved) {
     const supported = allAgents.map((a) => a.id).join(", ");
-    throw new ValidationError(`Unsupported ${sourceLabel}: ${specifier.agent}. Supported agents: ${supported}`);
+    throw new ValidationError(
+      `Unsupported ${sourceLabel}: ${specifier.agent}. Supported agents: ${supported}`
+    );
   }
 
   return formatAgentSpecifier({ agent: resolved, model: specifier.model });
 }
 
-function parsePositiveInt(
-  value: string | undefined,
-  fieldName: string
-): number | undefined {
+function parsePositiveInt(value: string | undefined, fieldName: string): number | undefined {
   if (value == null) {
     return undefined;
   }
 
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed < 1) {
-    throw new ValidationError(
-      `Invalid ${fieldName} "${value}". Expected a positive integer.`
-    );
+    throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a positive integer.`);
   }
 
   return parsed;
 }
 
 function normalizeConfiguredIterations(value: number | undefined): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 1
-    ? value
-    : undefined;
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 ? value : undefined;
 }
 
 function resolveAbsoluteDocPath(container: CliContainer, docPath: string): string {
@@ -283,15 +273,11 @@ function resolveAbsoluteDocPath(container: CliContainer, docPath: string): strin
     return path.join(container.env.homeDir, docPath.slice(2));
   }
 
-  return path.isAbsolute(docPath)
-    ? docPath
-    : path.resolve(container.env.cwd, docPath);
+  return path.isAbsolute(docPath) ? docPath : path.resolve(container.env.cwd, docPath);
 }
 
-async function resolveRalphCommandConfig(
-  container: CliContainer
-): Promise<{
-  planDirectory?: string;
+async function resolveRalphCommandConfig(container: CliContainer): Promise<{
+  planDirectory: string;
   tui: boolean;
 }> {
   const configDoc = await readMergedDocument(
@@ -304,9 +290,13 @@ async function resolveRalphCommandConfig(
     configDoc[ralphConfigScope.scope],
     container.env.variables
   );
-  const planDirectory = ralphConfig.plan_directory?.trim();
+  const planConfig = resolveScope(
+    planConfigScope.schema,
+    configDoc[planConfigScope.scope],
+    container.env.variables
+  );
   return {
-    ...(planDirectory ? { planDirectory } : {}),
+    planDirectory: planConfig.plan_directory,
     tui: ralphConfig.tui === true
   };
 }
@@ -315,9 +305,7 @@ function formatDocHint(frontmatter: RalphFrontmatter): string | undefined {
   const parts: string[] = [];
 
   if (frontmatter.agent !== undefined) {
-    const agents = Array.isArray(frontmatter.agent)
-      ? frontmatter.agent
-      : [frontmatter.agent];
+    const agents = Array.isArray(frontmatter.agent) ? frontmatter.agent : [frontmatter.agent];
     if (agents.length > 0) {
       parts.push(agents.join(", "));
     }
@@ -334,10 +322,7 @@ function formatDocHint(frontmatter: RalphFrontmatter): string | undefined {
   return parts.length > 0 ? parts.join(" · ") : undefined;
 }
 
-async function readDocHint(
-  container: CliContainer,
-  docPath: string
-): Promise<string | undefined> {
+async function readDocHint(container: CliContainer, docPath: string): Promise<string | undefined> {
   const absolutePath = resolveAbsoluteDocPath(container, docPath);
   try {
     const content = await container.fs.readFile(absolutePath, "utf8");
@@ -352,7 +337,7 @@ async function resolveDocPath(options: {
   container: CliContainer;
   program: Command;
   providedDoc?: string;
-  planDirectory?: string;
+  planDirectory: string;
 }): Promise<string | null> {
   if (options.providedDoc && options.providedDoc.trim().length > 0) {
     return options.providedDoc.trim();
@@ -366,7 +351,7 @@ async function resolveDocPath(options: {
   });
   if (docs.length === 0) {
     throw new ValidationError(
-      "No markdown doc found under .poe-code/ralph/plans/ or ~/.poe-code/ralph/plans/. Provide a doc path."
+      `No markdown doc found under ${options.planDirectory}. Provide a doc path.`
     );
   }
 
@@ -375,9 +360,7 @@ async function resolveDocPath(options: {
     return docs[0]!.path;
   }
 
-  const hints = await Promise.all(
-    docs.map((doc) => readDocHint(options.container, doc.path))
-  );
+  const hints = await Promise.all(docs.map((doc) => readDocHint(options.container, doc.path)));
 
   const selected = await select({
     message: "Select the Ralph markdown doc to run:",
@@ -417,9 +400,7 @@ async function readRalphDoc(
   }
 }
 
-function resolveConfiguredAgents(
-  value: RalphFrontmatter["agent"]
-): string | string[] | undefined {
+function resolveConfiguredAgents(value: RalphFrontmatter["agent"]): string | string[] | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -435,10 +416,7 @@ function resolveConfiguredAgents(
   return value.map((entry) => resolveRalphAgent(entry, "frontmatter agent"));
 }
 
-async function promptForAgent(
-  container: CliContainer,
-  program: Command
-): Promise<string | null> {
+async function promptForAgent(container: CliContainer, program: Command): Promise<string | null> {
   const fromConfig = await resolveDefaultAgent(container);
   if (fromConfig !== null) {
     return resolveRalphAgent(fromConfig);
@@ -487,17 +465,12 @@ async function resolveRunIterations(options: {
   providedIterations?: string;
   frontmatterIterations?: number;
 }): Promise<number | null> {
-  const explicitIterations = parsePositiveInt(
-    options.providedIterations,
-    "iterations"
-  );
+  const explicitIterations = parsePositiveInt(options.providedIterations, "iterations");
   if (explicitIterations != null) {
     return explicitIterations;
   }
 
-  const configuredIterations = normalizeConfiguredIterations(
-    options.frontmatterIterations
-  );
+  const configuredIterations = normalizeConfiguredIterations(options.frontmatterIterations);
   if (configuredIterations != null) {
     return configuredIterations;
   }
@@ -515,10 +488,9 @@ async function resolveRunIterations(options: {
     return null;
   }
 
-  return parsePositiveInt(
-    typeof entered === "string" ? entered.trim() : undefined,
-    "iterations"
-  ) ?? null;
+  return (
+    parsePositiveInt(typeof entered === "string" ? entered.trim() : undefined, "iterations") ?? null
+  );
 }
 
 async function resolveInitAgent(options: {
@@ -537,10 +509,7 @@ async function resolveInitIterations(options: {
   program: Command;
   providedIterations?: string;
 }): Promise<number | null> {
-  const explicitIterations = parsePositiveInt(
-    options.providedIterations,
-    "iterations"
-  );
+  const explicitIterations = parsePositiveInt(options.providedIterations, "iterations");
   if (explicitIterations != null) {
     return explicitIterations;
   }
@@ -558,10 +527,9 @@ async function resolveInitIterations(options: {
     return null;
   }
 
-  return parsePositiveInt(
-    typeof entered === "string" ? entered.trim() : undefined,
-    "iterations"
-  ) ?? null;
+  return (
+    parsePositiveInt(typeof entered === "string" ? entered.trim() : undefined, "iterations") ?? null
+  );
 }
 
 function formatCurrentConfig(frontmatter: RalphFrontmatter): string | null {
@@ -603,10 +571,7 @@ function expandAgentList(
   return Array.from({ length: count }, (_, index) => agent[index % agent.length]!);
 }
 
-export function registerRalphCommand(
-  program: Command,
-  container: CliContainer
-): void {
+export function registerRalphCommand(program: Command, container: CliContainer): void {
   const ralph = program
     .command("ralph")
     .description("Run a simple iterative markdown loop.")

@@ -1,7 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
-import { discoverWorkflowDocs, resolveRunLogDir, resolveWorkflowPath } from "@poe-code/agent-kit";
+import { resolveRunLogDir, resolveWorkflowPath } from "@poe-code/agent-kit";
 import {
   allSpawnConfigs,
   getSpawnConfig,
@@ -25,12 +25,12 @@ import {
   type Dashboard
 } from "@poe-code/design-system";
 import {
+  planConfigScope,
   readMergedDocument,
   resolveConfigPath,
   resolveProjectConfigPath,
   resolveScope
 } from "@poe-code/poe-code-config";
-import { superintendentConfigScope } from "../config-scope.js";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import {
   runLoop,
@@ -68,9 +68,14 @@ export type RunCommandOptions = {
   }) => Dashboard;
   selectPrompt?: typeof select;
   runLoop?: (options: RunLoopOptions) => Promise<SuperintendentRunResult>;
-  executeAgent?: (agent: string, input: AgentRunInput) => Promise<AgentRunResult & {
-    usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
-  }>;
+  executeAgent?: (
+    agent: string,
+    input: AgentRunInput
+  ) => Promise<
+    AgentRunResult & {
+      usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
+    }
+  >;
   setInterval?: typeof global.setInterval;
   clearInterval?: typeof global.clearInterval;
   openInEditor?: (absolutePath: string, env: Record<string, string | undefined>) => void;
@@ -120,7 +125,7 @@ export const runCommand = defineCommand({
       interactive: Boolean(process.stdin.isTTY),
       useDashboard: resolveOutputFormat() === "terminal",
       env: process.env,
-      ...(planDirectory ? { planDirectory } : {})
+      planDirectory
     });
   },
   render: {
@@ -173,7 +178,7 @@ export const runMcpCommand = defineCommand({
       interactive: false,
       useDashboard: false,
       env: process.env,
-      ...(planDirectory ? { planDirectory } : {})
+      planDirectory
     });
   },
   render: runCommand.render
@@ -183,20 +188,14 @@ async function resolveSuperintendentPlanDirectory(
   cwd: string,
   homeDir: string,
   env: Record<string, string | undefined>
-): Promise<string | undefined> {
+): Promise<string> {
   const configPath = resolveConfigPath(homeDir);
   const projectConfigPath = resolveProjectConfigPath(cwd);
   try {
     const document = await readMergedDocument(configFs, configPath, projectConfigPath);
-    const resolved = resolveScope(
-      superintendentConfigScope.schema,
-      document[superintendentConfigScope.scope],
-      env
-    );
-    const dir = resolved.plan_directory?.trim();
-    return dir ? dir : undefined;
+    return resolveScope(planConfigScope.schema, document.plan, env).plan_directory;
   } catch {
-    return undefined;
+    return resolveScope(planConfigScope.schema, undefined, env).plan_directory;
   }
 }
 
@@ -252,7 +251,10 @@ export async function runSuperintendentCommand(
     runner: "superintendent",
     homeDir: options.homeDir
   });
-  const document = parseSuperintendentDoc(selectedDocPath, await fs.readFile(selectedDocPath, "utf8"));
+  const document = parseSuperintendentDoc(
+    selectedDocPath,
+    await fs.readFile(selectedDocPath, "utf8")
+  );
   const selectedBuilderAgent = await resolveBuilderAgent({
     document,
     explicitAgent: options.builderAgent,
@@ -270,60 +272,60 @@ export async function runSuperintendentCommand(
     };
     process.on("SIGINT", headlessSigint);
     try {
-    const result = await runLoopImpl({
-      docPath: selectedDocPath,
-      cwd: options.cwd,
-      homeDir: options.homeDir,
-      ...(options.fs ? { fs } : {}),
-      signal: headlessAbort.signal,
-      logDir: runLogDir,
-      callbacks: {
-        onBuilderStart: () => {
-          activeStage = "builder";
+      const result = await runLoopImpl({
+        docPath: selectedDocPath,
+        cwd: options.cwd,
+        homeDir: options.homeDir,
+        ...(options.fs ? { fs } : {}),
+        signal: headlessAbort.signal,
+        logDir: runLogDir,
+        callbacks: {
+          onBuilderStart: () => {
+            activeStage = "builder";
+          },
+          onBuilderComplete: () => {
+            activeStage = undefined;
+          },
+          onBuilderFailed: () => {
+            activeStage = undefined;
+          },
+          onInspectorStart: (name) => {
+            activeStage = { inspector: name };
+          },
+          onInspectorComplete: () => {
+            activeStage = undefined;
+          },
+          onInspectorFailed: () => {
+            activeStage = undefined;
+          },
+          onSuperintendentStart: () => {
+            activeStage = "superintendent";
+          },
+          onSuperintendentComplete: () => {
+            activeStage = undefined;
+          },
+          onOwnerStart: () => {
+            activeStage = "owner";
+          },
+          onOwnerComplete: () => {
+            activeStage = undefined;
+          }
         },
-        onBuilderComplete: () => {
-          activeStage = undefined;
-        },
-        onBuilderFailed: () => {
-          activeStage = undefined;
-        },
-        onInspectorStart: (name) => {
-          activeStage = { inspector: name };
-        },
-        onInspectorComplete: () => {
-          activeStage = undefined;
-        },
-        onInspectorFailed: () => {
-          activeStage = undefined;
-        },
-        onSuperintendentStart: () => {
-          activeStage = "superintendent";
-        },
-        onSuperintendentComplete: () => {
-          activeStage = undefined;
-        },
-        onOwnerStart: () => {
-          activeStage = "owner";
-        },
-        onOwnerComplete: () => {
-          activeStage = undefined;
-        }
-      },
-      runAgent: createAgentRunner({
-        session: undefined,
-        executeAgent: options.executeAgent,
-        selectedBuilderAgent,
-        activeStage: () => activeStage,
-        now,
-        stderr
-      })
-    });
+        runAgent: createAgentRunner({
+          session: undefined,
+          executeAgent: options.executeAgent,
+          selectedBuilderAgent,
+          activeStage: () => activeStage,
+          now,
+          stderr
+        })
+      });
 
-    return {
-      ...result,
-      docPath: selectedDocPath,
-      builderAgent: selectedBuilderAgent
-    };
+      return {
+        ...result,
+        docPath: selectedDocPath,
+        builderAgent: selectedBuilderAgent
+      };
     } finally {
       process.off("SIGINT", headlessSigint);
     }
@@ -516,10 +518,7 @@ export async function runSuperintendentCommand(
       }
 
       session.pauseRequested = !session.pauseRequested;
-      appendEvent(
-        "status",
-        session.pauseRequested ? "Pause requested" : "Pause request cancelled"
-      );
+      appendEvent("status", session.pauseRequested ? "Pause requested" : "Pause request cancelled");
       syncStats();
       return;
     }
@@ -684,19 +683,12 @@ async function discoverSuperintendentDocs(options: {
   planDirectory?: string;
   fs: SuperintendentFileSystem;
 }): Promise<string[]> {
-  const docs = options.planDirectory
-    ? await listPlanDirectoryDocs(
-        options.fs,
-        options.planDirectory,
-        options.cwd,
-        options.homeDir
-      )
-    : await discoverWorkflowDocs({
-        cwd: options.cwd,
-        homeDir: options.homeDir,
-        subDirectory: "superintendent",
-        fs: { readdir: options.fs.readdir }
-      });
+  const docs = await listPlanDirectoryDocs(
+    options.fs,
+    options.planDirectory ?? "docs/plans",
+    options.cwd,
+    options.homeDir
+  );
 
   const matches: string[] = [];
 
@@ -764,7 +756,9 @@ async function resolveBuilderAgent(options: {
     return resolveAgentId(options.explicitAgent) ?? options.explicitAgent;
   }
 
-  const defaultAgent = resolveAgentId(options.document.frontmatter.builder.agent) ?? options.document.frontmatter.builder.agent;
+  const defaultAgent =
+    resolveAgentId(options.document.frontmatter.builder.agent) ??
+    options.document.frontmatter.builder.agent;
 
   if (options.assumeYes || !options.interactive) {
     return defaultAgent;
@@ -885,19 +879,22 @@ function formatStageLabel(stage: RunSession["activeStage"]): string {
 async function executeSpawnAgent(
   agent: string,
   input: AgentRunInput
-): Promise<AgentRunResult & {
-  usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
-}> {
+): Promise<
+  AgentRunResult & {
+    usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
+  }
+> {
   if ((input.onStdout || input.onStderr) && supportsStreaming(agent)) {
     return executeSpawnAgentStreaming(agent, input);
   }
 
-  const tee = input.onStdout || input.onStderr
-    ? {
-        ...(input.onStdout ? { stdout: { write: input.onStdout } } : {}),
-        ...(input.onStderr ? { stderr: { write: input.onStderr } } : {})
-      }
-    : undefined;
+  const tee =
+    input.onStdout || input.onStderr
+      ? {
+          ...(input.onStdout ? { stdout: { write: input.onStdout } } : {}),
+          ...(input.onStderr ? { stderr: { write: input.onStderr } } : {})
+        }
+      : undefined;
 
   const result = await spawn(agent, {
     prompt: input.prompt,
@@ -925,9 +922,11 @@ function supportsStreaming(agent: string): boolean {
 async function executeSpawnAgentStreaming(
   agent: string,
   input: AgentRunInput
-): Promise<AgentRunResult & {
-  usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
-}> {
+): Promise<
+  AgentRunResult & {
+    usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
+  }
+> {
   const writer = (line: string) => {
     input.onStdout?.(`${line}\n`);
   };
@@ -942,7 +941,11 @@ async function executeSpawnAgentStreaming(
     (async function* () {
       for await (const event of source) {
         if (event.event === "usage") {
-          const usageEvent = event as { inputTokens: number; outputTokens: number; cachedTokens?: number };
+          const usageEvent = event as {
+            inputTokens: number;
+            outputTokens: number;
+            cachedTokens?: number;
+          };
           capturedUsage = {
             inputTokens: usageEvent.inputTokens,
             outputTokens: usageEvent.outputTokens,
@@ -991,7 +994,9 @@ async function executeSpawnAgentStreaming(
   };
 }
 
-function readDashboardStatus(session: RunSession): "idle" | "running" | "paused" | "done" | "error" {
+function readDashboardStatus(
+  session: RunSession
+): "idle" | "running" | "paused" | "done" | "error" {
   if (session.paused) {
     return "paused";
   }
@@ -1070,13 +1075,7 @@ type ResolvedEditor = {
   mode: "gui" | "tty";
 };
 
-const GUI_EDITOR_BINARIES = new Set([
-  "code",
-  "code-insiders",
-  "cursor",
-  "windsurf",
-  "subl"
-]);
+const GUI_EDITOR_BINARIES = new Set(["code", "code-insiders", "cursor", "windsurf", "subl"]);
 
 function resolveEditor(env: Record<string, string | undefined>): ResolvedEditor {
   const raw = (env.EDITOR?.trim() || env.VISUAL?.trim() || "").trim();

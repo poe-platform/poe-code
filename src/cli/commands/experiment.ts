@@ -36,7 +36,7 @@ import {
   appendExperimentJournalEntry as sdkAppendExperimentJournalEntry
 } from "../../sdk/experiment.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { experimentConfigScope } from "../../services/config.js";
+import { experimentConfigScope, planConfigScope } from "../../services/config.js";
 import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
 import {
@@ -442,7 +442,7 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
 }
 
 async function resolveExperimentCommandConfig(container: CliContainer): Promise<{
-  planDirectory?: string;
+  planDirectory: string;
   tui: boolean;
 }> {
   const configDoc = await readMergedDocument(
@@ -455,9 +455,13 @@ async function resolveExperimentCommandConfig(container: CliContainer): Promise<
     configDoc[experimentConfigScope.scope],
     container.env.variables
   );
-  const planDirectory = experimentConfig.plan_directory?.trim();
+  const planConfig = resolveScope(
+    planConfigScope.schema,
+    configDoc[planConfigScope.scope],
+    container.env.variables
+  );
   return {
-    ...(planDirectory ? { planDirectory } : {}),
+    planDirectory: planConfig.plan_directory,
     tui: experimentConfig.tui === true
   };
 }
@@ -466,7 +470,7 @@ async function resolveDocPath(options: {
   container: CliContainer;
   program: Command;
   providedDoc?: string;
-  planDirectory?: string;
+  planDirectory: string;
   selectMessage: string;
   cancelMessage: string;
 }): Promise<string | null> {
@@ -482,7 +486,7 @@ async function resolveDocPath(options: {
   });
   if (docs.length === 0) {
     throw new ValidationError(
-      "No markdown doc found under .poe-code/experiments/. Provide a doc path."
+      `No markdown doc found under ${options.planDirectory}. Provide a doc path.`
     );
   }
 

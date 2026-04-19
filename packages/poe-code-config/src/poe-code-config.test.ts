@@ -11,6 +11,7 @@ import {
   saveAgentModel,
   saveDefaultModel
 } from "./models.js";
+import { planConfigScope } from "./index.js";
 import { resolveScope } from "./resolve.js";
 import { defineScope } from "./schema.js";
 import { readDocument, readMergedDocument, resolveProjectConfigPath, writeScope } from "./store.js";
@@ -294,6 +295,25 @@ describe("createConfigStore", () => {
     await store.scope(agentScope).set("plugins", [{ name: "web" }]);
 
     await expect(store.scope(agentScope).get("plugins")).resolves.toEqual([{ name: "web" }]);
+  });
+});
+
+describe("planConfigScope", () => {
+  it("uses docs/plans by default and POE_PLAN_DIRECTORY as the only env override", () => {
+    expect(resolveScope(planConfigScope.schema, undefined, {}).plan_directory).toBe("docs/plans");
+    expect(
+      resolveScope(planConfigScope.schema, undefined, {
+        POE_PLAN_DIRECTORY: "custom/plans"
+      }).plan_directory
+    ).toBe("custom/plans");
+    expect(
+      collectEnvOverrides([planConfigScope], {
+        POE_PIPELINE_PLAN_DIRECTORY: "legacy/pipeline",
+        POE_EXPERIMENT_PLAN_DIRECTORY: "legacy/experiment",
+        POE_RALPH_PLAN_DIRECTORY: "legacy/ralph",
+        POE_SUPERINTENDENT_PLAN_DIRECTORY: "legacy/superintendent"
+      }).entries
+    ).toEqual([]);
   });
 });
 

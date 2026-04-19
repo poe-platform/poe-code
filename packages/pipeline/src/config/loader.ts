@@ -42,10 +42,7 @@ function parseStepConfigSource(
   };
 }
 
-function parseStepConfigData(
-  filePath: string,
-  document: unknown
-): ResolvedStepsConfig {
+function parseStepConfigData(filePath: string, document: unknown): ResolvedStepsConfig {
   if (document === null || document === undefined) {
     return { steps: {} };
   }
@@ -181,19 +178,8 @@ function parseConfigData(filePath: string, document: unknown): PipelineConfig {
     throw new Error(`Invalid pipeline config in "${filePath}": expected a top-level object.`);
   }
 
-  const planPath = document.planPath;
-  if (planPath !== undefined && typeof planPath !== "string") {
-    throw new Error(`Invalid planPath in "${filePath}": expected a string.`);
-  }
-
   const config = { ...document } as PipelineConfig;
   delete config.extends;
-
-  if (typeof planPath === "string" && planPath.trim().length > 0) {
-    config.planPath = planPath.trim();
-  } else {
-    delete config.planPath;
-  }
 
   return config;
 }
@@ -218,8 +204,6 @@ export async function loadPipelineConfig(options: {
     return globalConfig ?? {};
   }
 
-  const projectConfig = parseConfigDocument(projectPath, projectContent);
-
   const resolved = await resolve(
     [
       { source: "document", filePath: projectPath, content: projectContent },
@@ -228,15 +212,7 @@ export async function loadPipelineConfig(options: {
     { fs: options.fs, autoExtend: true }
   );
 
-  const config = parseConfigData(projectPath, resolved.data);
-
-  if (projectConfig.planPath !== undefined) {
-    config.planPath = projectConfig.planPath;
-  } else if (config.planPath === undefined && globalConfig?.planPath !== undefined && resolved.chain.length > 1) {
-    config.planPath = globalConfig.planPath;
-  }
-
-  return config;
+  return parseConfigData(projectPath, resolved.data);
 }
 
 export async function loadResolvedSteps(options: {

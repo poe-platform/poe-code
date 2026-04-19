@@ -1,6 +1,6 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { readMergedDocument } from "@poe-code/poe-code-config";
+import { planConfigScope, readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import { readPlanMetadata, splitFrontmatter } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
 
@@ -91,11 +91,7 @@ async function resolveSharedPlanDirectory(options: {
     options.configPath,
     options.projectConfigPath
   );
-  const configured = document.plan?.plan_directory;
-
-  return typeof configured === "string" && configured.trim().length > 0
-    ? configured.trim()
-    : "docs/plans";
+  return resolveScope(planConfigScope.schema, document.plan, options.variables).plan_directory;
 }
 
 function toPlanKind(value: unknown, filePath: string): PlanKind {

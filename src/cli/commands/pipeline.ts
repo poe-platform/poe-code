@@ -26,7 +26,7 @@ import {
 } from "@poe-code/agent-skill-config";
 import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
-import { pipelineConfigScope } from "../../services/config.js";
+import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
 import {
@@ -57,7 +57,7 @@ import {
 } from "./dashboard-loop-shared.js";
 
 async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
-  planDirectory?: string;
+  planDirectory: string;
   tui: boolean;
 }> {
   const configDoc = await readMergedDocument(
@@ -70,9 +70,13 @@ async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
     configDoc[pipelineConfigScope.scope],
     container.env.variables
   );
-  const planDirectory = pipelineConfig.plan_directory?.trim();
+  const planConfig = resolveScope(
+    planConfigScope.schema,
+    configDoc[planConfigScope.scope],
+    container.env.variables
+  );
   return {
-    ...(planDirectory ? { planDirectory } : {}),
+    planDirectory: planConfig.plan_directory,
     tui: pipelineConfig.tui === true
   };
 }
@@ -674,7 +678,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         const planPaths = await resolvePlanPaths({
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
-          ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
+          planDirectory: commandConfig.planDirectory,
           ...(options.plan ? { plan: options.plan } : {}),
           ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
           assumeYes: flags.assumeYes,
@@ -717,7 +721,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             agent,
             cwd: container.env.cwd,
             homeDir: container.env.homeDir,
-            ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
+            planDirectory: commandConfig.planDirectory,
             ...(options.model ? { model: options.model } : {}),
             ...(options.task ? { task: options.task } : {}),
             plan: planPath,
@@ -917,11 +921,10 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .action(async function () {
       const commandConfig = await resolvePipelineCommandConfig(container);
 
-      const resolvedPath = await resolvePlanDirectory({
+      const resolvedPath = resolvePlanDirectory({
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
-        planDirectory: commandConfig.planDirectory,
-        fs: container.fs
+        planDirectory: commandConfig.planDirectory
       });
 
       process.stdout.write(`${resolvedPath}\n`);

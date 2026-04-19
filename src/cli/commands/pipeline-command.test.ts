@@ -201,6 +201,45 @@ describe("pipeline run command", () => {
     );
   });
 
+  it("reads plan.plan_directory for pipeline discovery", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ plan: { plan_directory: "custom/plans" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--plan",
+      "custom-plan.yaml",
+      "--agent",
+      "codex"
+    ]);
+
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
+        plan: "custom-plan.yaml",
+        planDirectory: "custom/plans"
+      })
+    );
+  });
+
   it("uses core.defaultAgent for pipeline run without prompting and preserves the model", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
@@ -318,8 +357,8 @@ describe("pipeline run command", () => {
     });
 
     const fs = createMemFs();
-    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
-    await fs.writeFile("/repo/.poe-code/pipeline/plans/plan.md", "tasks: []\n", {
+    await fs.mkdir("/repo/docs/plans", { recursive: true });
+    await fs.writeFile("/repo/docs/plans/plan.md", "tasks: []\n", {
       encoding: "utf8"
     });
     const container = createCliContainer({
@@ -366,8 +405,8 @@ describe("pipeline run command", () => {
     });
 
     const fs = createMemFs();
-    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
-    await fs.writeFile("/repo/.poe-code/pipeline/plans/plan.md", "tasks: []\n", {
+    await fs.mkdir("/repo/docs/plans", { recursive: true });
+    await fs.writeFile("/repo/docs/plans/plan.md", "tasks: []\n", {
       encoding: "utf8"
     });
 
@@ -1534,7 +1573,7 @@ describe("pipeline plan-path command", () => {
     vi.restoreAllMocks();
   });
 
-  it("prints project plans path when local .poe-code directory exists", async () => {
+  it("prints the shared plans path", async () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code", { recursive: true });
 
@@ -1550,23 +1589,7 @@ describe("pipeline plan-path command", () => {
 
     await program.parseAsync(["node", "cli", "pipeline", "plan-path"]);
 
-    expect(writeSpy).toHaveBeenCalledWith("/repo/.poe-code/pipeline/plans\n");
-  });
-
-  it("prints global plans path when local .poe-code directory does not exist", async () => {
-    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
-    const container = createCliContainer({
-      fs: createMemFs(),
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await program.parseAsync(["node", "cli", "pipeline", "plan-path"]);
-
-    expect(writeSpy).toHaveBeenCalledWith("/home/test/.poe-code/pipeline/plans\n");
+    expect(writeSpy).toHaveBeenCalledWith("/repo/docs/plans\n");
   });
 });
 

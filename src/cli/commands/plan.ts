@@ -620,8 +620,7 @@ async function resolvePlanDirectory(container: CliContainer): Promise<string> {
     document[planConfigScope.scope],
     container.env.variables
   );
-  const configured = config.plan_directory?.trim();
-  return configured && configured.length > 0 ? configured : "docs/plans";
+  return config.plan_directory;
 }
 
 interface RunPlanSessionOptions {

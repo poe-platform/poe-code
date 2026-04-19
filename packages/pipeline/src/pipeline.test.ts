@@ -433,42 +433,12 @@ describe("loadResolvedSteps", () => {
 });
 
 describe("loadPipelineConfig", () => {
-  it("lets the project config override planPath", async () => {
-    const config = await loadPipelineConfig({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/home/test/.poe-code/pipeline/config.yaml": "planPath: global-plan.yaml\n",
-        "/repo/.poe-code/pipeline/config.yaml": "planPath: local-plan.yaml\n"
-      })
-    });
-
-    expect(config).toEqual({
-      planPath: "local-plan.yaml"
-    });
-  });
-
-  it("uses the global config when no project config exists", async () => {
-    const config = await loadPipelineConfig({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/home/test/.poe-code/pipeline/config.yaml": "planPath: global-plan.yaml\n"
-      })
-    });
-
-    expect(config).toEqual({
-      planPath: "global-plan.yaml"
-    });
-  });
-
   it("deep merges project config with global config", async () => {
     const config = await loadPipelineConfig({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
         "/home/test/.poe-code/pipeline/config.yaml": [
-          "planPath: global-plan.yaml",
           "defaults:",
           "  agent: codex",
           "  execution:",
@@ -477,7 +447,6 @@ describe("loadPipelineConfig", () => {
           ""
         ].join("\n"),
         "/repo/.poe-code/pipeline/config.yaml": [
-          "planPath: local-plan.yaml",
           "defaults:",
           "  execution:",
           "    retries: 3",
@@ -487,43 +456,10 @@ describe("loadPipelineConfig", () => {
     });
 
     expect(config).toEqual({
-      planPath: "local-plan.yaml",
       defaults: {
         agent: "codex",
         execution: {
           mode: "read",
-          retries: 3
-        }
-      }
-    });
-  });
-
-  it("keeps the global planPath when the project planPath is blank", async () => {
-    const config = await loadPipelineConfig({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/home/test/.poe-code/pipeline/config.yaml": [
-          "planPath: global-plan.yaml",
-          "defaults:",
-          "  agent: codex",
-          ""
-        ].join("\n"),
-        "/repo/.poe-code/pipeline/config.yaml": [
-          "planPath: '   '",
-          "defaults:",
-          "  execution:",
-          "    retries: 3",
-          ""
-        ].join("\n")
-      })
-    });
-
-    expect(config).toEqual({
-      planPath: "global-plan.yaml",
-      defaults: {
-        agent: "codex",
-        execution: {
           retries: 3
         }
       }
@@ -535,23 +471,12 @@ describe("loadPipelineConfig", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/home/test/.poe-code/pipeline/config.yaml": [
-          "planPath: global-plan.yaml",
-          "defaults:",
-          "  agent: codex",
-          ""
-        ].join("\n"),
-        "/repo/.poe-code/pipeline/config.yaml": [
-          "extends: false",
-          "planPath: local-plan.yaml",
-          ""
-        ].join("\n")
+        "/home/test/.poe-code/pipeline/config.yaml": ["defaults:", "  agent: codex", ""].join("\n"),
+        "/repo/.poe-code/pipeline/config.yaml": ["extends: false", ""].join("\n")
       })
     });
 
-    expect(config).toEqual({
-      planPath: "local-plan.yaml"
-    });
+    expect(config).toEqual({});
   });
 });
 
@@ -569,27 +494,30 @@ describe("resolvePlanPath", () => {
     expect(result).toBe("custom.yaml");
   });
 
-  it("uses config planPath when present", async () => {
+  it("ignores config planPath when discovering plans", async () => {
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
+      planDirectory: "docs/plans",
+      assumeYes: true,
       fs: createFs({
         "/repo/.poe-code/pipeline/config.yaml": "planPath: local-plan.yaml\n",
-        "/repo/local-plan.yaml": "tasks: []\n"
+        "/repo/local-plan.yaml": "tasks: []\n",
+        "/repo/docs/plans/plan-demo.md": "tasks: []\n"
       })
     });
 
-    expect(result).toBe("local-plan.yaml");
+    expect(result).toBe("docs/plans/plan-demo.md");
   });
 
   it("prompts for selection even with a single discovered plan", async () => {
-    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-demo.md");
+    const select = vi.fn().mockResolvedValue("docs/plans/plan-demo.md");
 
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-demo.md": "tasks: []\n"
+        "/repo/docs/plans/plan-demo.md": "tasks: []\n"
       }),
       selectPlan: select
     });
@@ -598,13 +526,13 @@ describe("resolvePlanPath", () => {
       expect.objectContaining({
         options: [
           {
-            label: ".poe-code/pipeline/plans/plan-demo.md (0/0)",
-            value: ".poe-code/pipeline/plans/plan-demo.md"
+            label: "docs/plans/plan-demo.md (0/0)",
+            value: "docs/plans/plan-demo.md"
           }
         ]
       })
     );
-    expect(result).toBe(".poe-code/pipeline/plans/plan-demo.md");
+    expect(result).toBe("docs/plans/plan-demo.md");
   });
 
   it("returns null with a single plan when no selectPlan callback is provided", async () => {
@@ -612,7 +540,7 @@ describe("resolvePlanPath", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-demo.md": "tasks: []\n"
+        "/repo/docs/plans/plan-demo.md": "tasks: []\n"
       })
     });
 
@@ -625,11 +553,11 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       assumeYes: true,
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-demo.md": "tasks: []\n"
+        "/repo/docs/plans/plan-demo.md": "tasks: []\n"
       })
     });
 
-    expect(result).toBe(".poe-code/pipeline/plans/plan-demo.md");
+    expect(result).toBe("docs/plans/plan-demo.md");
   });
 
   it("selects the first plan alphabetically with --yes", async () => {
@@ -638,22 +566,22 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       assumeYes: true,
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-beta.md": "tasks: []\n",
-        "/repo/.poe-code/pipeline/plans/plan-alpha.md": "tasks: []\n"
+        "/repo/docs/plans/plan-beta.md": "tasks: []\n",
+        "/repo/docs/plans/plan-alpha.md": "tasks: []\n"
       })
     });
 
-    expect(result).toBe(".poe-code/pipeline/plans/plan-alpha.md");
+    expect(result).toBe("docs/plans/plan-alpha.md");
   });
 
   it("prompts when multiple plans exist", async () => {
-    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-beta.md");
+    const select = vi.fn().mockResolvedValue("docs/plans/plan-beta.md");
 
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-beta.md": [
+        "/repo/docs/plans/plan-beta.md": [
           "tasks:",
           "  - id: one",
           "    title: One",
@@ -661,7 +589,7 @@ describe("resolvePlanPath", () => {
           "    status: open",
           ""
         ].join("\n"),
-        "/repo/.poe-code/pipeline/plans/plan-alpha.md": [
+        "/repo/docs/plans/plan-alpha.md": [
           "tasks:",
           "  - id: one",
           "    title: One",
@@ -681,17 +609,17 @@ describe("resolvePlanPath", () => {
       expect.objectContaining({
         options: [
           {
-            label: ".poe-code/pipeline/plans/plan-alpha.md (1/2)",
-            value: ".poe-code/pipeline/plans/plan-alpha.md"
+            label: "docs/plans/plan-alpha.md (1/2)",
+            value: "docs/plans/plan-alpha.md"
           },
           {
-            label: ".poe-code/pipeline/plans/plan-beta.md (0/1)",
-            value: ".poe-code/pipeline/plans/plan-beta.md"
+            label: "docs/plans/plan-beta.md (0/1)",
+            value: "docs/plans/plan-beta.md"
           }
         ]
       })
     );
-    expect(result).toBe(".poe-code/pipeline/plans/plan-beta.md");
+    expect(result).toBe("docs/plans/plan-beta.md");
   });
 
   it("returns null when no plans exist and interactive mode can prompt for a path", async () => {
@@ -719,72 +647,6 @@ describe("resolvePlanPath", () => {
     ).rejects.toThrow(/no plan found/i);
   });
 
-  it("discovers plans from global ~/.poe-code/pipeline/plans/", async () => {
-    const select = vi.fn().mockResolvedValue("~/.poe-code/pipeline/plans/plan-global.md");
-
-    const result = await resolvePlanPath({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/home/test/.poe-code/pipeline/plans/plan-global.md": "tasks: []\n"
-      }),
-      selectPlan: select
-    });
-
-    expect(select).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: [
-          {
-            label: "~/.poe-code/pipeline/plans/plan-global.md (0/0)",
-            value: "~/.poe-code/pipeline/plans/plan-global.md"
-          }
-        ]
-      })
-    );
-    expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.md");
-  });
-
-  it("merges project and global plans, project first", async () => {
-    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-local.md");
-
-    await resolvePlanPath({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-local.md": "tasks: []\n",
-        "/home/test/.poe-code/pipeline/plans/plan-global.md": "tasks: []\n"
-      }),
-      selectPlan: select
-    });
-
-    expect(select).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: [
-          {
-            label: ".poe-code/pipeline/plans/plan-local.md (0/0)",
-            value: ".poe-code/pipeline/plans/plan-local.md"
-          },
-          {
-            label: "~/.poe-code/pipeline/plans/plan-global.md (0/0)",
-            value: "~/.poe-code/pipeline/plans/plan-global.md"
-          }
-        ]
-      })
-    );
-  });
-
-  it("auto-selects from global plans with --yes when no project plans exist", async () => {
-    const result = await resolvePlanPath({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      assumeYes: true,
-      fs: createFs({
-        "/home/test/.poe-code/pipeline/plans/plan-global.md": "tasks: []\n"
-      })
-    });
-
-    expect(result).toBe("~/.poe-code/pipeline/plans/plan-global.md");
-  });
 
   it("scans only the custom planDirectory when provided", async () => {
     const select = vi.fn().mockResolvedValue("custom-plans/plan-custom.md");
@@ -839,15 +701,15 @@ describe("resolvePlanPath", () => {
   });
 
   it("ignores yaml and yml plans during discovery", async () => {
-    const select = vi.fn().mockResolvedValue(".poe-code/pipeline/plans/plan-current.md");
+    const select = vi.fn().mockResolvedValue("docs/plans/plan-current.md");
 
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-current.md": "tasks: []\n",
-        "/repo/.poe-code/pipeline/plans/plan-legacy.yaml": "tasks: []\n",
-        "/repo/.poe-code/pipeline/plans/plan-older.yml": "tasks: []\n"
+        "/repo/docs/plans/plan-current.md": "tasks: []\n",
+        "/repo/docs/plans/plan-legacy.yaml": "tasks: []\n",
+        "/repo/docs/plans/plan-older.yml": "tasks: []\n"
       }),
       selectPlan: select
     });
@@ -856,13 +718,13 @@ describe("resolvePlanPath", () => {
       expect.objectContaining({
         options: [
           {
-            label: ".poe-code/pipeline/plans/plan-current.md (0/0)",
-            value: ".poe-code/pipeline/plans/plan-current.md"
+            label: "docs/plans/plan-current.md (0/0)",
+            value: "docs/plans/plan-current.md"
           }
         ]
       })
     );
-    expect(result).toBe(".poe-code/pipeline/plans/plan-current.md");
+    expect(result).toBe("docs/plans/plan-current.md");
   });
 });
 
@@ -884,17 +746,14 @@ describe("resolvePlanPaths", () => {
   it("prompts for multiselect when discovered plans exist", async () => {
     const selectPlans = vi
       .fn()
-      .mockResolvedValue([
-        ".poe-code/pipeline/plans/plan-alpha.md",
-        ".poe-code/pipeline/plans/plan-beta.md"
-      ]);
+      .mockResolvedValue(["docs/plans/plan-alpha.md", "docs/plans/plan-beta.md"]);
 
     const result = await resolvePlanPaths({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/plans/plan-beta.md": "tasks: []\n",
-        "/repo/.poe-code/pipeline/plans/plan-alpha.md": "tasks: []\n"
+        "/repo/docs/plans/plan-beta.md": "tasks: []\n",
+        "/repo/docs/plans/plan-alpha.md": "tasks: []\n"
       }),
       selectPlans
     });
@@ -904,46 +763,32 @@ describe("resolvePlanPaths", () => {
         required: true,
         options: [
           {
-            label: ".poe-code/pipeline/plans/plan-alpha.md (0/0)",
-            value: ".poe-code/pipeline/plans/plan-alpha.md"
+            label: "docs/plans/plan-alpha.md (0/0)",
+            value: "docs/plans/plan-alpha.md"
           },
           {
-            label: ".poe-code/pipeline/plans/plan-beta.md (0/0)",
-            value: ".poe-code/pipeline/plans/plan-beta.md"
+            label: "docs/plans/plan-beta.md (0/0)",
+            value: "docs/plans/plan-beta.md"
           }
         ]
       })
     );
-    expect(result).toEqual([
-      ".poe-code/pipeline/plans/plan-alpha.md",
-      ".poe-code/pipeline/plans/plan-beta.md"
-    ]);
+    expect(result).toEqual(["docs/plans/plan-alpha.md", "docs/plans/plan-beta.md"]);
   });
 });
 
 describe("resolvePlanDirectory", () => {
-  it("returns project plans path when local .poe-code directory exists", async () => {
-    const result = await resolvePlanDirectory({
+  it("returns docs/plans relative to cwd when no planDirectory is set", () => {
+    const result = resolvePlanDirectory({
       cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({ "/repo/.poe-code/config.json": "{}" })
+      homeDir: "/home/test"
     });
 
-    expect(result).toBe("/repo/.poe-code/pipeline/plans");
+    expect(result).toBe("/repo/docs/plans");
   });
 
-  it("returns global plans path when local .poe-code directory does not exist", async () => {
-    const result = await resolvePlanDirectory({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs()
-    });
-
-    expect(result).toBe("/home/test/.poe-code/pipeline/plans");
-  });
-
-  it("uses custom planDirectory when provided", async () => {
-    const result = await resolvePlanDirectory({
+  it("uses custom planDirectory when provided", () => {
+    const result = resolvePlanDirectory({
       cwd: "/repo",
       homeDir: "/home/test",
       planDirectory: "custom-plans"
@@ -952,8 +797,8 @@ describe("resolvePlanDirectory", () => {
     expect(result).toBe("/repo/custom-plans");
   });
 
-  it("resolves tilde in custom planDirectory", async () => {
-    const result = await resolvePlanDirectory({
+  it("resolves tilde in custom planDirectory", () => {
+    const result = resolvePlanDirectory({
       cwd: "/repo",
       homeDir: "/home/test",
       planDirectory: "~/my-plans"
@@ -962,8 +807,8 @@ describe("resolvePlanDirectory", () => {
     expect(result).toBe("/home/test/my-plans");
   });
 
-  it("uses absolute custom planDirectory as-is", async () => {
-    const result = await resolvePlanDirectory({
+  it("uses absolute custom planDirectory as-is", () => {
+    const result = resolvePlanDirectory({
       cwd: "/repo",
       homeDir: "/home/test",
       planDirectory: "/abs/plans"

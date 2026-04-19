@@ -12,6 +12,7 @@ export type {
 } from "./types.js";
 
 export { defineScope } from "./schema.js";
+export { planConfigScope } from "./plan-scope.js";
 export { createConfigStore } from "./config.js";
 export { deepMergeDocuments } from "./merge.js";
 export {

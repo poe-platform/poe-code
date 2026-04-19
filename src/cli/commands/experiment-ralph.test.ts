@@ -265,8 +265,8 @@ describe("experiment run command", () => {
   it("discovers the first doc and default agent with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/experiments/plan-b.md": "# B",
-        "/repo/.poe-code/experiments/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": "# B",
+        "/repo/docs/plans/plan-a.md": "# A"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -281,7 +281,7 @@ describe("experiment run command", () => {
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
-        docPath: ".poe-code/experiments/plan-a.md"
+        docPath: "docs/plans/plan-a.md"
       })
     );
   });
@@ -321,10 +321,13 @@ describe("experiment run command", () => {
     );
   });
 
-  it("discovers docs from the home experiments directory when no local docs exist", async () => {
+  it("discovers docs from the shared plan directory config when it points home", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/home/test/.poe-code/experiments/plan-a.md": "# A"
+        "/repo/.poe-code/config.json": JSON.stringify({
+          plan: { plan_directory: "~/docs/plans" }
+        }),
+        "/home/test/docs/plans/plan-a.md": "# A"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -339,20 +342,18 @@ describe("experiment run command", () => {
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
-        docPath: "~/.poe-code/experiments/plan-a.md"
+        docPath: "~/docs/plans/plan-a.md"
       })
     );
   });
 
   it("prompts for missing doc and agent when frontmatter does not provide them", async () => {
-    selectMock
-      .mockResolvedValueOnce(".poe-code/experiments/plan-a.md")
-      .mockResolvedValueOnce("codex");
+    selectMock.mockResolvedValueOnce("docs/plans/plan-a.md").mockResolvedValueOnce("codex");
 
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/experiments/plan-b.md": "# B",
-        "/repo/.poe-code/experiments/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": "# B",
+        "/repo/docs/plans/plan-a.md": "# A"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -368,12 +369,12 @@ describe("experiment run command", () => {
       message: "Select the experiment doc to run:",
       options: [
         {
-          label: ".poe-code/experiments/plan-a.md",
-          value: ".poe-code/experiments/plan-a.md"
+          label: "docs/plans/plan-a.md",
+          value: "docs/plans/plan-a.md"
         },
         {
-          label: ".poe-code/experiments/plan-b.md",
-          value: ".poe-code/experiments/plan-b.md"
+          label: "docs/plans/plan-b.md",
+          value: "docs/plans/plan-b.md"
         }
       ]
     });
@@ -384,7 +385,7 @@ describe("experiment run command", () => {
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "codex",
-        docPath: ".poe-code/experiments/plan-a.md"
+        docPath: "docs/plans/plan-a.md"
       })
     );
   });
@@ -1034,8 +1035,8 @@ describe("experiment journal command", () => {
   it("discovers the first doc with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/experiments/plan-b.md": "# B",
-        "/repo/.poe-code/experiments/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": "# B",
+        "/repo/docs/plans/plan-a.md": "# A"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -1050,7 +1051,7 @@ describe("experiment journal command", () => {
     expect(vi.mocked(sdkReadExperimentJournal)).toHaveBeenCalledWith({
       cwd,
       homeDir,
-      docPath: ".poe-code/experiments/plan-a.md"
+      docPath: "docs/plans/plan-a.md"
     });
   });
 });
@@ -1196,7 +1197,7 @@ describe("experiment validate command", () => {
     let loggerOutput = "";
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/experiments/plan-a.md": [
+        "/repo/docs/plans/plan-a.md": [
           "---",
           "agent: claude-code",
           "metric:",
@@ -1648,15 +1649,13 @@ describe("ralph run command", () => {
   });
 
   it("prompts for missing agent, doc, and iterations when frontmatter does not provide them", async () => {
-    selectMock
-      .mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md")
-      .mockResolvedValueOnce("codex");
+    selectMock.mockResolvedValueOnce("docs/plans/plan-a.md").mockResolvedValueOnce("codex");
     promptTextMock.mockResolvedValue("4");
 
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/ralph/plans/plan-b.md": "# B",
-        "/repo/.poe-code/ralph/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": "# B",
+        "/repo/docs/plans/plan-a.md": "# A"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -1672,12 +1671,12 @@ describe("ralph run command", () => {
       message: "Select the Ralph markdown doc to run:",
       options: [
         {
-          label: ".poe-code/ralph/plans/plan-a.md",
-          value: ".poe-code/ralph/plans/plan-a.md"
+          label: "docs/plans/plan-a.md",
+          value: "docs/plans/plan-a.md"
         },
         {
-          label: ".poe-code/ralph/plans/plan-b.md",
-          value: ".poe-code/ralph/plans/plan-b.md"
+          label: "docs/plans/plan-b.md",
+          value: "docs/plans/plan-b.md"
         }
       ]
     });
@@ -1691,18 +1690,18 @@ describe("ralph run command", () => {
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "codex",
-        docPath: ".poe-code/ralph/plans/plan-a.md",
+        docPath: "docs/plans/plan-a.md",
         maxIterations: 4
       })
     );
   });
 
   it("shows frontmatter hints in the doc selection prompt", async () => {
-    selectMock.mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md");
+    selectMock.mockResolvedValueOnce("docs/plans/plan-a.md");
 
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/ralph/plans/plan-a.md": [
+        "/repo/docs/plans/plan-a.md": [
           "---",
           "agent: codex",
           "iterations: 3",
@@ -1712,7 +1711,7 @@ describe("ralph run command", () => {
           "---",
           "# A"
         ].join("\n"),
-        "/repo/.poe-code/ralph/plans/plan-b.md": "# B"
+        "/repo/docs/plans/plan-b.md": "# B"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -1724,11 +1723,11 @@ describe("ralph run command", () => {
     await program.parseAsync(["node", "cli", "ralph", "run"]);
 
     const call = selectMock.mock.calls[0]![0];
-    expect(call.options[0].label).toContain(".poe-code/ralph/plans/plan-a.md");
+    expect(call.options[0].label).toContain("docs/plans/plan-a.md");
     expect(call.options[0].label).toContain("codex");
     expect(call.options[0].label).toContain("×3");
     expect(call.options[0].label).toContain("in_progress 1");
-    expect(call.options[1].label).toBe(".poe-code/ralph/plans/plan-b.md");
+    expect(call.options[1].label).toBe("docs/plans/plan-b.md");
   });
 
   it("lets CLI flags override frontmatter values", async () => {
@@ -1794,8 +1793,8 @@ describe("ralph run command", () => {
   it("uses defaults with --yes when frontmatter does not provide values", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/ralph/plans/plan-b.md": "# B",
-        "/repo/.poe-code/ralph/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": "# B",
+        "/repo/docs/plans/plan-a.md": "# A"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -1811,7 +1810,7 @@ describe("ralph run command", () => {
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
-        docPath: ".poe-code/ralph/plans/plan-a.md",
+        docPath: "docs/plans/plan-a.md",
         maxIterations: 3
       })
     );
@@ -2444,11 +2443,9 @@ describe("ralph init command", () => {
 
   it("uses CLI prompts when agent and iterations are omitted", async () => {
     const fs = createMemFs({
-      "/repo/.poe-code/ralph/plans/plan-a.md": "# A"
+      "/repo/docs/plans/plan-a.md": "# A"
     });
-    selectMock
-      .mockResolvedValueOnce(".poe-code/ralph/plans/plan-a.md")
-      .mockResolvedValueOnce("codex");
+    selectMock.mockResolvedValueOnce("docs/plans/plan-a.md").mockResolvedValueOnce("codex");
     promptTextMock.mockResolvedValue("4");
 
     const container = createCliContainer({
@@ -2462,7 +2459,7 @@ describe("ralph init command", () => {
 
     await program.parseAsync(["node", "cli", "ralph", "init"]);
 
-    const updated = await fs.readFile("/repo/.poe-code/ralph/plans/plan-a.md", "utf8");
+    const updated = await fs.readFile("/repo/docs/plans/plan-a.md", "utf8");
     const parsed = parseFrontmatter(updated);
     expect(parsed.data).toEqual({
       agent: "codex",

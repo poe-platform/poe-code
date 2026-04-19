@@ -1,6 +1,5 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { loadPipelineConfig } from "../config/loader.js";
 import { parsePlan } from "./parser.js";
 import type { PipelineFileStat, PipelineFileSystem } from "../types.js";
 import { isNotFound } from "../utils.js";
@@ -50,14 +49,8 @@ function countCompletedTasks(planPath: string, content: string): PlanCandidate {
   };
 }
 
-async function ensurePlanExists(
-  fs: DiscoveryFs,
-  cwd: string,
-  planPath: string
-): Promise<void> {
-  const absolutePath = path.isAbsolute(planPath)
-    ? planPath
-    : path.resolve(cwd, planPath);
+async function ensurePlanExists(fs: DiscoveryFs, cwd: string, planPath: string): Promise<void> {
+  const absolutePath = path.isAbsolute(planPath) ? planPath : path.resolve(cwd, planPath);
 
   try {
     const stat = await fs.stat(absolutePath);
@@ -113,11 +106,8 @@ async function listPlanCandidates(
   homeDir: string,
   planDirectory?: string
 ): Promise<PlanCandidate[]> {
-  const customDir = planDirectory?.trim();
-  const candidates = customDir
-    ? await scanCustomPlanDir(fs, customDir, cwd, homeDir)
-    : await scanDefaultPlanDirs(fs, cwd, homeDir);
-
+  const dir = planDirectory?.trim() || "docs/plans";
+  const candidates = await scanCustomPlanDir(fs, dir, cwd, homeDir);
   candidates.sort((left, right) => left.path.localeCompare(right.path));
   return candidates;
 }
@@ -132,22 +122,6 @@ async function scanCustomPlanDir(
   return scanPlansDir(fs, absoluteDir, planDirectory);
 }
 
-async function scanDefaultPlanDirs(
-  fs: DiscoveryFs,
-  cwd: string,
-  homeDir: string
-): Promise<PlanCandidate[]> {
-  const projectDir = path.join(cwd, ".poe-code", "pipeline", "plans");
-  const globalDir = path.join(homeDir, ".poe-code", "pipeline", "plans");
-
-  const [projectCandidates, globalCandidates] = await Promise.all([
-    scanPlansDir(fs, projectDir, ".poe-code/pipeline/plans"),
-    scanPlansDir(fs, globalDir, "~/.poe-code/pipeline/plans")
-  ]);
-
-  return [...projectCandidates, ...globalCandidates];
-}
-
 function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): string {
   if (dir.startsWith("~/")) {
     return path.join(homeDir, dir.slice(2));
@@ -155,36 +129,21 @@ function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): st
   return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
 }
 
-export async function resolvePlanDirectory(options: {
+function describeDiscoveryDirectory(planDirectory?: string): string {
+  const configured = planDirectory?.trim();
+  return configured && configured.length > 0 ? configured : "docs/plans";
+}
+
+export function resolvePlanDirectory(options: {
   cwd: string;
   homeDir: string;
   planDirectory?: string;
-  fs?: { stat(path: string): Promise<{ isDirectory(): boolean }> };
-}): Promise<string> {
-  const customDir = options.planDirectory?.trim();
-  if (customDir) {
-    return resolveAbsoluteDirectory(customDir, options.cwd, options.homeDir);
-  }
-
-  const fs = options.fs ?? createDefaultFs();
-  const projectDir = path.join(options.cwd, ".poe-code");
-  try {
-    const stat = await fs.stat(projectDir);
-    if (stat.isDirectory()) {
-      return path.join(options.cwd, ".poe-code", "pipeline", "plans");
-    }
-  } catch {
-    // project config dir does not exist
-  }
-
-  return path.join(options.homeDir, ".poe-code", "pipeline", "plans");
+}): string {
+  const dir = options.planDirectory?.trim() || "docs/plans";
+  return resolveAbsoluteDirectory(dir, options.cwd, options.homeDir);
 }
 
-export function resolveAbsolutePlanPath(
-  planPath: string,
-  cwd: string,
-  homeDir: string
-): string {
+export function resolveAbsolutePlanPath(planPath: string, cwd: string, homeDir: string): string {
   if (planPath.startsWith("~/")) {
     return path.join(homeDir, planPath.slice(2));
   }
@@ -241,10 +200,9 @@ export async function resolvePlanPaths(options: {
 }): Promise<string[] | null> {
   const fs = options.fs ?? createDefaultFs();
 
-  const explicitPlans = [
-    ...(options.plan ? [options.plan] : []),
-    ...(options.plans ?? [])
-  ].map((planPath) => planPath.trim()).filter((planPath) => planPath.length > 0);
+  const explicitPlans = [...(options.plan ? [options.plan] : []), ...(options.plans ?? [])]
+    .map((planPath) => planPath.trim())
+    .filter((planPath) => planPath.length > 0);
 
   if (explicitPlans.length > 0) {
     for (const planPath of explicitPlans) {
@@ -253,18 +211,12 @@ export async function resolvePlanPaths(options: {
     return explicitPlans;
   }
 
-  const config = await loadPipelineConfig({
-    cwd: options.cwd,
-    homeDir: options.homeDir,
-    fs
-  });
-
-  if (config.planPath) {
-    await ensurePlanExists(fs, options.cwd, config.planPath);
-    return [config.planPath];
-  }
-
-  const candidates = await listPlanCandidates(fs, options.cwd, options.homeDir, options.planDirectory);
+  const candidates = await listPlanCandidates(
+    fs,
+    options.cwd,
+    options.homeDir,
+    options.planDirectory
+  );
 
   if (candidates.length >= 1) {
     if (options.assumeYes) {
@@ -294,8 +246,9 @@ export async function resolvePlanPaths(options: {
   }
 
   if (options.assumeYes) {
+    const directory = describeDiscoveryDirectory(options.planDirectory);
     throw new Error(
-      "No plan found under .poe-code/pipeline/plans/ or ~/.poe-code/pipeline/plans/. Provide --plan <path> to an existing plan file."
+      `No plan found under ${directory}. Provide --plan <path> to an existing plan file.`
     );
   }
 
@@ -305,7 +258,7 @@ export async function resolvePlanPaths(options: {
 
   const selectedPath = await options.promptForPath({
     message: "Enter the pipeline plan path",
-    placeholder: ".poe-code/pipeline/plans/plan.md"
+    placeholder: path.join(describeDiscoveryDirectory(options.planDirectory), "plan.md")
   });
   return selectedPath ? [selectedPath] : null;
 }

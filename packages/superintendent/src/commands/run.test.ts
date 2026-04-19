@@ -116,8 +116,8 @@ describe("superintendent run command", () => {
 
   it("uses discovered defaults with --yes and skips the pre-dashboard prompts", async () => {
     const fs = createFs({
-      "/repo/.poe-code/superintendent/b-plan.md": createDoc("codex"),
-      "/repo/.poe-code/superintendent/a-plan.md": createDoc("claude-code")
+      "/repo/docs/plans/b-plan.md": createDoc("codex"),
+      "/repo/docs/plans/a-plan.md": createDoc("claude-code")
     });
     const selectPrompt = vi.fn();
     const dashboardMock = createDashboardMock();
@@ -151,11 +151,11 @@ describe("superintendent run command", () => {
     expect(selectPrompt).not.toHaveBeenCalled();
     expect(runLoopMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        docPath: "/repo/.poe-code/superintendent/a-plan.md"
+        docPath: "/repo/docs/plans/a-plan.md"
       })
     );
     expect(result).toMatchObject({
-      docPath: "/repo/.poe-code/superintendent/a-plan.md",
+      docPath: "/repo/docs/plans/a-plan.md",
       builderAgent: "claude-code",
       stopReason: "completed"
     });
@@ -166,65 +166,85 @@ describe("superintendent run command", () => {
       "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
     });
     const dashboardMock = createDashboardMock();
-    const runLoopMock = vi.fn(async (options: { callbacks?: {
-      onStateChange?: (state: { state: "in_progress" | "review" | "completed"; round: number; reviewTurn: number; maxRounds: number; maxReviewTurns: number }) => void;
-      onBuilderStart?: () => void;
-      onBuilderComplete?: (result: { summary: string; log: string }) => void;
-      onInspectorStart?: (name: string) => void;
-      onInspectorComplete?: (result: { name: string; summary: string }) => void;
-      onSuperintendentStart?: () => void;
-      onSuperintendentComplete?: (result: { summary: string; transition: { action: "request_review"; summary: string } }) => void;
-      onOwnerStart?: () => void;
-      onOwnerComplete?: (result: { transition: { action: "approve_completion" } }) => void;
-      onRoundComplete?: (round: number) => void;
-      onLoopComplete?: (result: { state: "completed"; round: number; reviewTurn: number; maxRounds: number; maxReviewTurns: number; stopReason: "completed" }) => void;
-    } }) => {
-      options.callbacks?.onStateChange?.({
-        state: "in_progress",
-        round: 1,
-        reviewTurn: 0,
-        maxRounds: 100,
-        maxReviewTurns: 5
-      });
-      options.callbacks?.onBuilderStart?.();
-      options.callbacks?.onBuilderComplete?.({ summary: "Builder done", log: "Done" });
-      options.callbacks?.onInspectorStart?.("code-quality");
-      options.callbacks?.onInspectorComplete?.({ name: "code-quality", summary: "Looks good" });
-      options.callbacks?.onSuperintendentStart?.();
-      options.callbacks?.onSuperintendentComplete?.({
-        summary: "Ready for owner",
-        transition: { action: "request_review", summary: "Ready for owner" }
-      });
-      options.callbacks?.onStateChange?.({
-        state: "review",
-        round: 1,
-        reviewTurn: 0,
-        maxRounds: 100,
-        maxReviewTurns: 5
-      });
-      options.callbacks?.onOwnerStart?.();
-      options.callbacks?.onOwnerComplete?.({
-        transition: { action: "approve_completion" }
-      });
-      options.callbacks?.onStateChange?.({
-        state: "completed",
-        round: 1,
-        reviewTurn: 0,
-        maxRounds: 100,
-        maxReviewTurns: 5
-      });
-      options.callbacks?.onRoundComplete?.(1);
-      const result = {
-        state: "completed" as const,
-        round: 1,
-        reviewTurn: 0,
-        maxRounds: 100,
-        maxReviewTurns: 5,
-        stopReason: "completed" as const
-      };
-      options.callbacks?.onLoopComplete?.(result);
-      return result;
-    });
+    const runLoopMock = vi.fn(
+      async (options: {
+        callbacks?: {
+          onStateChange?: (state: {
+            state: "in_progress" | "review" | "completed";
+            round: number;
+            reviewTurn: number;
+            maxRounds: number;
+            maxReviewTurns: number;
+          }) => void;
+          onBuilderStart?: () => void;
+          onBuilderComplete?: (result: { summary: string; log: string }) => void;
+          onInspectorStart?: (name: string) => void;
+          onInspectorComplete?: (result: { name: string; summary: string }) => void;
+          onSuperintendentStart?: () => void;
+          onSuperintendentComplete?: (result: {
+            summary: string;
+            transition: { action: "request_review"; summary: string };
+          }) => void;
+          onOwnerStart?: () => void;
+          onOwnerComplete?: (result: { transition: { action: "approve_completion" } }) => void;
+          onRoundComplete?: (round: number) => void;
+          onLoopComplete?: (result: {
+            state: "completed";
+            round: number;
+            reviewTurn: number;
+            maxRounds: number;
+            maxReviewTurns: number;
+            stopReason: "completed";
+          }) => void;
+        };
+      }) => {
+        options.callbacks?.onStateChange?.({
+          state: "in_progress",
+          round: 1,
+          reviewTurn: 0,
+          maxRounds: 100,
+          maxReviewTurns: 5
+        });
+        options.callbacks?.onBuilderStart?.();
+        options.callbacks?.onBuilderComplete?.({ summary: "Builder done", log: "Done" });
+        options.callbacks?.onInspectorStart?.("code-quality");
+        options.callbacks?.onInspectorComplete?.({ name: "code-quality", summary: "Looks good" });
+        options.callbacks?.onSuperintendentStart?.();
+        options.callbacks?.onSuperintendentComplete?.({
+          summary: "Ready for owner",
+          transition: { action: "request_review", summary: "Ready for owner" }
+        });
+        options.callbacks?.onStateChange?.({
+          state: "review",
+          round: 1,
+          reviewTurn: 0,
+          maxRounds: 100,
+          maxReviewTurns: 5
+        });
+        options.callbacks?.onOwnerStart?.();
+        options.callbacks?.onOwnerComplete?.({
+          transition: { action: "approve_completion" }
+        });
+        options.callbacks?.onStateChange?.({
+          state: "completed",
+          round: 1,
+          reviewTurn: 0,
+          maxRounds: 100,
+          maxReviewTurns: 5
+        });
+        options.callbacks?.onRoundComplete?.(1);
+        const result = {
+          state: "completed" as const,
+          round: 1,
+          reviewTurn: 0,
+          maxRounds: 100,
+          maxReviewTurns: 5,
+          stopReason: "completed" as const
+        };
+        options.callbacks?.onLoopComplete?.(result);
+        return result;
+      }
+    );
 
     const { runSuperintendentCommand } = await import("./run.js");
     const result = await runSuperintendentCommand({
@@ -278,35 +298,45 @@ describe("superintendent run command", () => {
       "/repo/.poe-code/superintendent/plan.md": createDoc("codex")
     });
     const dashboardMock = createDashboardMock();
-    const executeAgent = vi.fn(async (_agent: string, input: {
-      onStdout?: (chunk: string) => void;
-      onStderr?: (chunk: string) => void;
-    }) => {
-      input.onStdout?.("thinking...\nplanning next step\npar");
-      input.onStdout?.("tial line completes\n");
-      input.onStderr?.("warning: low disk\n");
-      return {
-        stdout: "",
-        stderr: "",
-        exitCode: 0
-      };
-    });
-    const runLoopMock = vi.fn(async (options: {
-      callbacks?: { onBuilderStart?: () => void; onBuilderComplete?: (result: { summary: string; log: string }) => void };
-      runAgent?: (input: { agent: string; prompt: string; cwd: string }) => Promise<unknown>;
-    }) => {
-      options.callbacks?.onBuilderStart?.();
-      await options.runAgent?.({ agent: "codex", prompt: "Build", cwd: "/repo" });
-      options.callbacks?.onBuilderComplete?.({ summary: "done", log: "" });
-      return {
-        state: "completed" as const,
-        round: 1,
-        reviewTurn: 0,
-        maxRounds: 100,
-        maxReviewTurns: 5,
-        stopReason: "completed" as const
-      };
-    });
+    const executeAgent = vi.fn(
+      async (
+        _agent: string,
+        input: {
+          onStdout?: (chunk: string) => void;
+          onStderr?: (chunk: string) => void;
+        }
+      ) => {
+        input.onStdout?.("thinking...\nplanning next step\npar");
+        input.onStdout?.("tial line completes\n");
+        input.onStderr?.("warning: low disk\n");
+        return {
+          stdout: "",
+          stderr: "",
+          exitCode: 0
+        };
+      }
+    );
+    const runLoopMock = vi.fn(
+      async (options: {
+        callbacks?: {
+          onBuilderStart?: () => void;
+          onBuilderComplete?: (result: { summary: string; log: string }) => void;
+        };
+        runAgent?: (input: { agent: string; prompt: string; cwd: string }) => Promise<unknown>;
+      }) => {
+        options.callbacks?.onBuilderStart?.();
+        await options.runAgent?.({ agent: "codex", prompt: "Build", cwd: "/repo" });
+        options.callbacks?.onBuilderComplete?.({ summary: "done", log: "" });
+        return {
+          state: "completed" as const,
+          round: 1,
+          reviewTurn: 0,
+          maxRounds: 100,
+          maxReviewTurns: 5,
+          stopReason: "completed" as const
+        };
+      }
+    );
 
     const { runSuperintendentCommand } = await import("./run.js");
     await runSuperintendentCommand({
@@ -338,12 +368,14 @@ describe("superintendent run command", () => {
         expect.stringContaining("[builder] warning: low disk")
       ])
     );
-    const toolKind = outputs.find((item: { kind: string; text: string }) =>
-      item.kind === "tool" && item.text.includes("thinking...")
+    const toolKind = outputs.find(
+      (item: { kind: string; text: string }) =>
+        item.kind === "tool" && item.text.includes("thinking...")
     );
     expect(toolKind).toBeDefined();
-    const errKind = outputs.find((item: { kind: string; text: string }) =>
-      item.kind === "error" && item.text.includes("warning: low disk")
+    const errKind = outputs.find(
+      (item: { kind: string; text: string }) =>
+        item.kind === "error" && item.text.includes("warning: low disk")
     );
     expect(errKind).toBeDefined();
   });
@@ -579,7 +611,9 @@ describe("superintendent run command", () => {
       finish: () => Promise<void>;
     };
 
-    const setupEditHarness = async (env: Record<string, string | undefined>): Promise<EditHarness> => {
+    const setupEditHarness = async (
+      env: Record<string, string | undefined>
+    ): Promise<EditHarness> => {
       const docPath = "/repo/.poe-code/superintendent/plan.md";
       const fs = createFs({ [docPath]: createDoc("claude-code") });
 
@@ -599,12 +633,12 @@ describe("superintendent run command", () => {
       };
       let resolveLoop: (value: LoopResult) => void = () => {};
       let capturedShouldPause: (() => boolean) | undefined;
-      const runLoopMock = vi.fn(
-        (options: { callbacks?: { shouldPause?: () => boolean } }) => {
-          capturedShouldPause = options.callbacks?.shouldPause;
-          return new Promise<LoopResult>((resolve) => { resolveLoop = resolve; });
-        }
-      );
+      const runLoopMock = vi.fn((options: { callbacks?: { shouldPause?: () => boolean } }) => {
+        capturedShouldPause = options.callbacks?.shouldPause;
+        return new Promise<LoopResult>((resolve) => {
+          resolveLoop = resolve;
+        });
+      });
       const openInEditor = vi.fn();
 
       const { runSuperintendentCommand } = await import("./run.js");
@@ -667,7 +701,9 @@ describe("superintendent run command", () => {
       expect(harness.dashboardMock.start).toHaveBeenCalled();
       expect(harness.shouldPause()).toBe(true);
       expect(harness.dashboardMock.appendOutput).not.toHaveBeenCalledWith(
-        expect.objectContaining({ text: expect.stringContaining("Edit requested after current agent") })
+        expect.objectContaining({
+          text: expect.stringContaining("Edit requested after current agent")
+        })
       );
       expect(harness.dashboardMock.appendOutput).toHaveBeenCalledWith(
         expect.objectContaining({ text: expect.stringContaining("Plan reopened in $EDITOR") })

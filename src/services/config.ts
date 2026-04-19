@@ -2,14 +2,12 @@ import path from "node:path";
 import { createTimestamp, isNotFound, readFileIfExists } from "@poe-code/config-mutations";
 import {
   defineScope,
+  planConfigScope as sharedPlanConfigScope,
   readDocument,
   readMergedDocument,
   writeScope
 } from "@poe-code/poe-code-config";
-import {
-  parseNullablePluginConfigEntries,
-  type PluginConfigEntry
-} from "@poe-code/poe-agent";
+import { parseNullablePluginConfigEntries, type PluginConfigEntry } from "@poe-code/poe-agent";
 import { superintendentConfigScope } from "@poe-code/superintendent";
 import type { FileSystem } from "../utils/file-system.js";
 
@@ -63,12 +61,6 @@ export const coreConfigScope = defineScope("core", {
 });
 
 export const ralphConfigScope = defineScope("ralph", {
-  plan_directory: {
-    type: "string",
-    default: "",
-    env: "POE_RALPH_PLAN_DIRECTORY",
-    doc: "Custom directory for Ralph plan documents"
-  },
   tui: {
     type: "boolean",
     default: false,
@@ -78,12 +70,6 @@ export const ralphConfigScope = defineScope("ralph", {
 });
 
 export const pipelineConfigScope = defineScope("pipeline", {
-  plan_directory: {
-    type: "string",
-    default: "",
-    env: "POE_PIPELINE_PLAN_DIRECTORY",
-    doc: "Custom directory for Pipeline plan files"
-  },
   tui: {
     type: "boolean",
     default: false,
@@ -93,12 +79,6 @@ export const pipelineConfigScope = defineScope("pipeline", {
 });
 
 export const experimentConfigScope = defineScope("experiment", {
-  plan_directory: {
-    type: "string",
-    default: "",
-    env: "POE_EXPERIMENT_PLAN_DIRECTORY",
-    doc: "Custom directory for Experiment doc files"
-  },
   tui: {
     type: "boolean",
     default: false,
@@ -107,14 +87,7 @@ export const experimentConfigScope = defineScope("experiment", {
   }
 });
 
-export const planConfigScope = defineScope("plan", {
-  plan_directory: {
-    type: "string",
-    default: "docs/plans",
-    env: "POE_PLAN_DIRECTORY",
-    doc: "Directory where `poe-code plan <question>` writes planning documents"
-  }
-});
+export const planConfigScope = sharedPlanConfigScope;
 
 export const agentConfigScope = defineScope("agent", {
   plugins: {

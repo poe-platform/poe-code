@@ -36,9 +36,9 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: scaffold-package
@@ -291,7 +291,8 @@ tasks:
       commit: open
 
   - id: cli-wiring
-    title: Wire plan markdown-read / markdown-read-section / markdown-reader-mcp commander subcommands
+    title: Wire plan markdown-read / markdown-read-section / markdown-reader-mcp
+      commander subcommands
     prompt: |
       Wire the three new commander subcommands into the existing `plan` group
       per section 2 "User-facing shape" and section 5 "Files to change".

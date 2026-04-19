@@ -1,6 +1,9 @@
+import type { MdRange } from "../ast.js";
+
 type ExtractedFrontmatter = {
   frontmatter?: Record<string, unknown>;
   body: string;
+  range?: MdRange;
 };
 
 type Line = {
@@ -162,19 +165,22 @@ class YamlSubsetParser {
 }
 
 export function extractFrontmatter(markdown: string): ExtractedFrontmatter {
-  const content = stripBom(markdown);
-
-  if (!startsWithFrontmatterFence(content)) {
+  if (!startsWithFrontmatterFence(markdown)) {
     return { body: markdown };
   }
 
-  const openingLine = readLine(content, 0);
+  const openingLine = readLine(markdown, 0);
+
+  if (stripBom(openingLine.text) !== "---") {
+    return { body: markdown };
+  }
+
   let position = openingLine.nextPosition;
   let closingFenceStart: number | undefined;
   let closingFenceNextPosition: number | undefined;
 
-  while (position <= content.length) {
-    const line = readLine(content, position);
+  while (position <= markdown.length) {
+    const line = readLine(markdown, position);
 
     if (line.text === "---") {
       closingFenceStart = line.start;
@@ -182,7 +188,7 @@ export function extractFrontmatter(markdown: string): ExtractedFrontmatter {
       break;
     }
 
-    if (line.nextPosition >= content.length) {
+    if (line.nextPosition >= markdown.length) {
       break;
     }
 
@@ -194,16 +200,22 @@ export function extractFrontmatter(markdown: string): ExtractedFrontmatter {
   }
 
   const rawFrontmatter = sliceFrontmatterBlock(
-    content,
+    markdown,
     openingLine.nextPosition,
     closingFenceStart
   );
   const frontmatter = parseFrontmatterBlock(rawFrontmatter);
 
-  return {
-    frontmatter,
-    body: content.slice(closingFenceNextPosition)
-  };
+  return withRange(
+    {
+      frontmatter,
+      body: markdown.slice(closingFenceNextPosition)
+    },
+    {
+      start: 0,
+      end: Buffer.byteLength(markdown.slice(0, closingFenceNextPosition), "utf8")
+    }
+  );
 }
 
 function parseFrontmatterBlock(yamlBlock: string): Record<string, unknown> {
@@ -483,11 +495,27 @@ function sliceFrontmatterBlock(content: string, start: number, end: number): str
 }
 
 function startsWithFrontmatterFence(value: string): boolean {
-  return value.startsWith("---\n") || value.startsWith("---\r\n");
+  return (
+    value.startsWith("---\n") ||
+    value.startsWith("---\r\n") ||
+    value.startsWith("\uFEFF---\n") ||
+    value.startsWith("\uFEFF---\r\n")
+  );
 }
 
 function stripBom(value: string): string {
   return value.startsWith("\uFEFF") ? value.slice(1) : value;
+}
+
+function withRange<T extends ExtractedFrontmatter>(value: T, range: MdRange): T {
+  Object.defineProperty(value, "range", {
+    value: range,
+    enumerable: false,
+    configurable: true,
+    writable: true
+  });
+
+  return value;
 }
 
 function readLine(input: string, position: number): Line {

@@ -2651,6 +2651,73 @@ describe("parse", () => {
       }
     });
   });
+
+  it("tracks source ranges for frontmatter and representative block nodes", () => {
+    const markdown = [
+      "---",
+      "title: Demo",
+      "---",
+      "",
+      "# Heading",
+      "",
+      "Paragraph text",
+      "",
+      "```ts",
+      "const x = 1;",
+      "```",
+      "",
+      "- item"
+    ].join("\n");
+    const { ast } = parse(markdown);
+    const [frontmatterNode, headingNode, paragraphNode, codeNode, listNode] = ast.children;
+
+    expect(frontmatterNode?.range).toEqual({ start: 0, end: 20 });
+    expect(headingNode?.range).toEqual({ start: 21, end: 31 });
+    expect(paragraphNode?.range).toEqual({ start: 32, end: 47 });
+    expect(codeNode?.range).toEqual({ start: 48, end: 71 });
+    expect(listNode?.range).toEqual({ start: 72, end: 78 });
+
+    expect(markdown.slice(frontmatterNode!.range!.start, frontmatterNode!.range!.end)).toBe(
+      ["---", "title: Demo", "---", ""].join("\n")
+    );
+    expect(markdown.slice(headingNode!.range!.start, headingNode!.range!.end)).toBe("# Heading\n");
+    expect(markdown.slice(paragraphNode!.range!.start, paragraphNode!.range!.end)).toBe(
+      "Paragraph text\n"
+    );
+    expect(markdown.slice(codeNode!.range!.start, codeNode!.range!.end)).toBe(
+      ["```ts", "const x = 1;", "```", ""].join("\n")
+    );
+    expect(markdown.slice(listNode!.range!.start, listNode!.range!.end)).toBe("- item");
+  });
+
+  it("uses UTF-8 byte offsets and preserves BOM alignment", () => {
+    const markdown = ["\uFEFF---", "title: Hé", "---", "", "Paragraph 🌍"].join("\n");
+    const expectedFrontmatter = ["\uFEFF---", "title: Hé", "---", ""].join("\n");
+    const { ast } = parse(markdown);
+    const [frontmatterNode, paragraphNode] = ast.children;
+    const markdownBuffer = Buffer.from(markdown, "utf8");
+
+    expect(frontmatterNode?.range).toEqual({
+      start: 0,
+      end: Buffer.byteLength(expectedFrontmatter, "utf8")
+    });
+    expect(paragraphNode?.range).toEqual({
+      start: Buffer.byteLength(`${expectedFrontmatter}\n`, "utf8"),
+      end: Buffer.byteLength(markdown, "utf8")
+    });
+    expect(ast.range).toEqual({ start: 0, end: Buffer.byteLength(markdown, "utf8") });
+
+    expect(
+      markdownBuffer
+        .subarray(frontmatterNode!.range!.start, frontmatterNode!.range!.end)
+        .toString("utf8")
+    ).toBe(expectedFrontmatter);
+    expect(
+      markdownBuffer
+        .subarray(paragraphNode!.range!.start, paragraphNode!.range!.end)
+        .toString("utf8")
+    ).toBe("Paragraph 🌍");
+  });
 });
 
 describe("terminal markdown renderer", () => {

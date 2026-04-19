@@ -1,10 +1,11 @@
-import type { MdNode } from "../ast.js";
+import type { MdNode, MdRange } from "../ast.js";
 
 type ParsedInlineNode = {
   node: MdNode;
   end: number;
 };
 
+type OffsetMap = readonly number[];
 type InlineTextNode = Extract<MdNode, { type: "text" }>;
 type DelimiterMarker = "*" | "_" | "~";
 
@@ -121,6 +122,8 @@ const INLINE_HTML_TAGS = new Set([
 export type ParseInlineOptions = {
   footnoteLabels?: ReadonlySet<string>;
   allowLiteralAutolinks?: boolean;
+  offset?: number;
+  offsets?: OffsetMap;
 };
 
 export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNode[] {
@@ -128,15 +131,25 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
   const delimiters: Delimiter[] = [];
   const footnoteLabels = options.footnoteLabels;
   const allowLiteralAutolinks = options.allowLiteralAutolinks ?? true;
+  const offsets = options.offsets ?? createOffsetMap(raw, options.offset ?? 0);
   let textBuffer = "";
+  let textStart = 0;
   let index = 0;
 
-  const flushText = () => {
+  const appendText = (value: string, start: number) => {
+    if (textBuffer.length === 0) {
+      textStart = start;
+    }
+
+    textBuffer += value;
+  };
+
+  const flushText = (end = index) => {
     if (textBuffer.length === 0) {
       return;
     }
 
-    nodes.push({ type: "text", value: textBuffer });
+    nodes.push(createTextNode(textBuffer, createRange(offsets, textStart, end)));
     textBuffer = "";
   };
 
@@ -144,13 +157,13 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
     const char = raw[index];
 
     if (char === "\\" && index + 1 < raw.length && isEscapable(raw[index + 1])) {
-      textBuffer += raw[index + 1];
+      appendText(raw[index + 1], index);
       index += 2;
       continue;
     }
 
     if (char === "`") {
-      const code = parseInlineCode(raw, index);
+      const code = parseInlineCode(raw, index, offsets);
 
       if (code !== null) {
         flushText();
@@ -161,7 +174,7 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
     }
 
     if (char === "!" && index + 1 < raw.length && raw[index + 1] === "[") {
-      const image = parseImage(raw, index);
+      const image = parseImage(raw, index, offsets);
 
       if (image !== null) {
         flushText();
@@ -172,7 +185,7 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
     }
 
     if (char === "[") {
-      const footnoteReference = parseFootnoteReference(raw, index, footnoteLabels);
+      const footnoteReference = parseFootnoteReference(raw, index, footnoteLabels, offsets);
 
       if (footnoteReference !== null) {
         flushText();
@@ -181,7 +194,7 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
         continue;
       }
 
-      const link = parseLink(raw, index, footnoteLabels);
+      const link = parseLink(raw, index, footnoteLabels, offsets);
 
       if (link !== null) {
         flushText();
@@ -192,7 +205,7 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
     }
 
     if (char === "<") {
-      const autolink = parseAutolink(raw, index);
+      const autolink = parseAutolink(raw, index, offsets);
 
       if (autolink !== null) {
         flushText();
@@ -201,7 +214,7 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
         continue;
       }
 
-      const html = parseInlineHtmlTag(raw, index);
+      const html = parseInlineHtmlTag(raw, index, offsets);
 
       if (html !== null) {
         flushText();
@@ -214,8 +227,8 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
     if (char === "\n") {
       if (textBuffer.endsWith("\\")) {
         textBuffer = textBuffer.slice(0, -1);
-        flushText();
-        nodes.push({ type: "break" });
+        flushText(index - 1);
+        nodes.push(withRange({ type: "break" }, createRange(offsets, index, index + 1)));
         index += 1;
         continue;
       }
@@ -223,16 +236,17 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
       const trailingSpaceStart = findTrailingHardBreakSpaceStart(textBuffer);
 
       if (trailingSpaceStart !== -1) {
+        const trailingSpaceCount = textBuffer.length - trailingSpaceStart;
         textBuffer = textBuffer.slice(0, trailingSpaceStart);
-        flushText();
-        nodes.push({ type: "break" });
+        flushText(index - trailingSpaceCount);
+        nodes.push(withRange({ type: "break" }, createRange(offsets, index, index + 1)));
         index += 1;
         continue;
       }
     }
 
     if (allowLiteralAutolinks) {
-      const literalAutolink = parseLiteralAutolink(raw, index);
+      const literalAutolink = parseLiteralAutolink(raw, index, offsets);
 
       if (literalAutolink !== null) {
         flushText();
@@ -248,10 +262,10 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
       if (delimiter !== null) {
         flushText();
 
-        const node: InlineTextNode = {
-          type: "text",
-          value: raw.slice(index, index + delimiter.length)
-        };
+        const node = createTextNode(raw.slice(index, index + delimiter.length), {
+          start: offsets[index] ?? 0,
+          end: offsets[index + delimiter.length] ?? offsets[offsets.length - 1] ?? 0
+        });
 
         nodes.push(node);
         delimiters.push({
@@ -264,7 +278,7 @@ export function parseInline(raw: string, options: ParseInlineOptions = {}): MdNo
       }
     }
 
-    textBuffer += char;
+    appendText(char, index);
     index += 1;
   }
 
@@ -552,16 +566,21 @@ function buildInlineNodes(
     }
 
     if (delimiterEntry.delimiter.length > 0) {
-      appendNode({
-        type: "text",
-        value: delimiterEntry.delimiter.marker.repeat(delimiterEntry.delimiter.length)
-      });
+      appendNode(
+        createTextNode(
+          delimiterEntry.delimiter.marker.repeat(delimiterEntry.delimiter.length),
+          node.range
+        )
+      );
     }
 
     delimiterEntry.opens.sort((left, right) => right.sequence - left.sequence);
 
     for (const pair of delimiterEntry.opens) {
-      const wrapper = createDelimiterNode(pair.kind);
+      const wrapper = withRange(createDelimiterNode(pair.kind), {
+        start: pair.opener.node.range?.start ?? pair.opener.position,
+        end: pair.closer.node.range?.end ?? pair.closer.position
+      });
       appendNode(wrapper);
       stack.push({ pair, children: wrapper.children });
     }
@@ -575,6 +594,36 @@ function createDelimiterNode(kind: DelimiterPair["kind"]): Extract<
   { type: "emphasis" | "strong" | "strikethrough" }
 > {
   return { type: kind, children: [] };
+}
+
+function createTextNode(value: string, range?: MdRange): InlineTextNode {
+  return range === undefined ? { type: "text", value } : withRange({ type: "text", value }, range);
+}
+
+function withRange<T extends MdNode>(node: T, range: MdRange): T {
+  Object.defineProperty(node, "range", {
+    value: range,
+    enumerable: false,
+    configurable: true,
+    writable: true
+  });
+
+  return node;
+}
+
+function mergeRanges(left?: MdRange, right?: MdRange): MdRange | undefined {
+  if (left === undefined) {
+    return right;
+  }
+
+  if (right === undefined) {
+    return left;
+  }
+
+  return {
+    start: Math.min(left.start, right.start),
+    end: Math.max(left.end, right.end)
+  };
 }
 
 function normalizeInlineNodes(nodes: MdNode[]): MdNode[] {
@@ -591,6 +640,12 @@ function normalizeInlineNodes(nodes: MdNode[]): MdNode[] {
 
     if (previousNode?.type === "text" && nextNode.type === "text") {
       previousNode.value += nextNode.value;
+      const range = mergeRanges(previousNode.range, nextNode.range);
+
+      if (range !== undefined) {
+        withRange(previousNode, range);
+      }
+
       continue;
     }
 
@@ -611,13 +666,14 @@ function normalizeInlineNode(node: MdNode): MdNode | null {
     node.type === "strikethrough" ||
     node.type === "link"
   ) {
-    return { ...node, children: normalizeInlineNodes(node.children) };
+    const nextNode = { ...node, children: normalizeInlineNodes(node.children) };
+    return node.range === undefined ? nextNode : withRange(nextNode, node.range);
   }
 
   return node;
 }
 
-function parseInlineCode(input: string, start: number): ParsedInlineNode | null {
+function parseInlineCode(input: string, start: number, offsets?: OffsetMap): ParsedInlineNode | null {
   const fenceLength = readRunLength(input, start, "`");
   let index = start + fenceLength;
 
@@ -631,10 +687,19 @@ function parseInlineCode(input: string, start: number): ParsedInlineNode | null 
 
     if (closingFenceLength === fenceLength) {
       return {
-        node: {
-          type: "inlineCode",
-          value: input.slice(start + fenceLength, index)
-        },
+        node:
+          offsets === undefined
+            ? {
+                type: "inlineCode",
+                value: input.slice(start + fenceLength, index)
+              }
+            : withRange(
+                {
+                  type: "inlineCode",
+                  value: input.slice(start + fenceLength, index)
+                },
+                createRange(offsets, start, index + fenceLength)
+              ),
         end: index + fenceLength
       };
     }
@@ -648,7 +713,8 @@ function parseInlineCode(input: string, start: number): ParsedInlineNode | null 
 function parseLink(
   input: string,
   start: number,
-  footnoteLabels?: ReadonlySet<string>
+  footnoteLabels?: ReadonlySet<string>,
+  offsets?: OffsetMap
 ): ParsedInlineNode | null {
   const label = parseBracketedLabel(input, start);
 
@@ -663,20 +729,26 @@ function parseLink(
   }
 
   return {
-    node: {
-      type: "link",
-      url: destination.url,
-      ...(destination.title === undefined ? {} : { title: destination.title }),
-      children: parseInline(label.value, {
-        footnoteLabels,
-        allowLiteralAutolinks: false
-      })
-    },
+    node: withRange(
+      {
+        type: "link",
+        url: destination.url,
+        ...(destination.title === undefined ? {} : { title: destination.title }),
+        children: parseInline(label.value, {
+          footnoteLabels,
+          allowLiteralAutolinks: false,
+          ...(offsets === undefined
+            ? {}
+            : { offsets: sliceOffsetMap(offsets, label.contentStart, label.end - 1) })
+        })
+      },
+      offsets === undefined ? { start, end: destination.end } : createRange(offsets, start, destination.end)
+    ),
     end: destination.end
   };
 }
 
-function parseImage(input: string, start: number): ParsedInlineNode | null {
+function parseImage(input: string, start: number, offsets?: OffsetMap): ParsedInlineNode | null {
   const label = parseBracketedLabel(input, start + 1);
 
   if (label === null || label.end >= input.length || input[label.end] !== "(") {
@@ -690,12 +762,15 @@ function parseImage(input: string, start: number): ParsedInlineNode | null {
   }
 
   return {
-    node: {
-      type: "image",
-      url: destination.url,
-      alt: decodeEscapes(label.value),
-      ...(destination.title === undefined ? {} : { title: destination.title })
-    },
+    node: withRange(
+      {
+        type: "image",
+        url: destination.url,
+        alt: decodeEscapes(label.value),
+        ...(destination.title === undefined ? {} : { title: destination.title })
+      },
+      offsets === undefined ? { start, end: destination.end } : createRange(offsets, start, destination.end)
+    ),
     end: destination.end
   };
 }
@@ -703,7 +778,7 @@ function parseImage(input: string, start: number): ParsedInlineNode | null {
 function parseBracketedLabel(
   input: string,
   start: number
-): { value: string; end: number } | null {
+): { value: string; contentStart: number; end: number } | null {
   if (start >= input.length || input[start] !== "[") {
     return null;
   }
@@ -740,6 +815,7 @@ function parseBracketedLabel(
       if (depth === 0) {
         return {
           value: input.slice(start + 1, index),
+          contentStart: start + 1,
           end: index + 1
         };
       }
@@ -862,7 +938,7 @@ function findTrailingQuotedSegmentStart(
   return -1;
 }
 
-function parseAutolink(input: string, start: number): ParsedInlineNode | null {
+function parseAutolink(input: string, start: number, offsets?: OffsetMap): ParsedInlineNode | null {
   let index = start + 1;
 
   while (index < input.length && input[index] !== ">") {
@@ -886,11 +962,19 @@ function parseAutolink(input: string, start: number): ParsedInlineNode | null {
   }
 
   return {
-    node: {
-      type: "link",
-      url,
-      children: [{ type: "text", value: url }]
-    },
+    node: withRange(
+      {
+        type: "link",
+        url,
+        children: [
+          createTextNode(
+            url,
+            offsets === undefined ? { start: start + 1, end: index } : createRange(offsets, start + 1, index)
+          )
+        ]
+      },
+      offsets === undefined ? { start, end: index + 1 } : createRange(offsets, start, index + 1)
+    ),
     end: index + 1
   };
 }
@@ -898,7 +982,8 @@ function parseAutolink(input: string, start: number): ParsedInlineNode | null {
 function parseFootnoteReference(
   input: string,
   start: number,
-  footnoteLabels: ReadonlySet<string> | undefined
+  footnoteLabels: ReadonlySet<string> | undefined,
+  offsets?: OffsetMap
 ): ParsedInlineNode | null {
   if (
     footnoteLabels === undefined ||
@@ -930,12 +1015,15 @@ function parseFootnoteReference(
   }
 
   return {
-    node: { type: "footnoteReference", label },
+    node: withRange(
+      { type: "footnoteReference", label },
+      offsets === undefined ? { start, end: labelEnd + 1 } : createRange(offsets, start, labelEnd + 1)
+    ),
     end: labelEnd + 1
   };
 }
 
-function parseLiteralAutolink(input: string, start: number): ParsedInlineNode | null {
+function parseLiteralAutolink(input: string, start: number, offsets?: OffsetMap): ParsedInlineNode | null {
   if (!isLiteralAutolinkBoundaryBefore(input, start)) {
     return null;
   }
@@ -943,13 +1031,19 @@ function parseLiteralAutolink(input: string, start: number): ParsedInlineNode | 
   const urlLiteral = parseLiteralUrlAutolink(input, start);
 
   if (urlLiteral !== null) {
-    return createLiteralAutolinkNode(urlLiteral.text, urlLiteral.url, urlLiteral.end);
+    return createLiteralAutolinkNode(urlLiteral.text, urlLiteral.url, start, urlLiteral.end, offsets);
   }
 
   const wwwLiteral = parseLiteralWwwAutolink(input, start);
 
   if (wwwLiteral !== null) {
-    return createLiteralAutolinkNode(wwwLiteral.text, `http://${wwwLiteral.text}`, wwwLiteral.end);
+    return createLiteralAutolinkNode(
+      wwwLiteral.text,
+      `http://${wwwLiteral.text}`,
+      start,
+      wwwLiteral.end,
+      offsets
+    );
   }
 
   const emailLiteral = parseLiteralEmailAutolink(input, start);
@@ -958,20 +1052,31 @@ function parseLiteralAutolink(input: string, start: number): ParsedInlineNode | 
     return createLiteralAutolinkNode(
       emailLiteral.text,
       `mailto:${emailLiteral.text}`,
-      emailLiteral.end
+      start,
+      emailLiteral.end,
+      offsets
     );
   }
 
   return null;
 }
 
-function createLiteralAutolinkNode(text: string, url: string, end: number): ParsedInlineNode {
+function createLiteralAutolinkNode(
+  text: string,
+  url: string,
+  start: number,
+  end: number,
+  offsets?: OffsetMap
+): ParsedInlineNode {
   return {
-    node: {
-      type: "link",
-      url,
-      children: [{ type: "text", value: text }]
-    },
+    node: withRange(
+      {
+        type: "link",
+        url,
+        children: [createTextNode(text, offsets === undefined ? { start, end } : createRange(offsets, start, end))]
+      },
+      offsets === undefined ? { start, end } : createRange(offsets, start, end)
+    ),
     end
   };
 }
@@ -1031,7 +1136,7 @@ function parseLiteralEmailAutolink(
   return { text, end: start + text.length };
 }
 
-function parseInlineHtmlTag(input: string, start: number): ParsedInlineNode | null {
+function parseInlineHtmlTag(input: string, start: number, offsets?: OffsetMap): ParsedInlineNode | null {
   if (input[start] !== "<") {
     return null;
   }
@@ -1068,7 +1173,10 @@ function parseInlineHtmlTag(input: string, start: number): ParsedInlineNode | nu
     }
 
     return {
-      node: { type: "html", value: input.slice(start, index + 1) },
+      node: withRange(
+        { type: "html", value: input.slice(start, index + 1) },
+        offsets === undefined ? { start, end: index + 1 } : createRange(offsets, start, index + 1)
+      ),
       end: index + 1
     };
   }
@@ -1082,7 +1190,10 @@ function parseInlineHtmlTag(input: string, start: number): ParsedInlineNode | nu
 
     if (input[index] === ">") {
       return {
-        node: { type: "html", value: input.slice(start, index + 1) },
+        node: withRange(
+          { type: "html", value: input.slice(start, index + 1) },
+          offsets === undefined ? { start, end: index + 1 } : createRange(offsets, start, index + 1)
+        ),
         end: index + 1
       };
     }
@@ -1095,7 +1206,12 @@ function parseInlineHtmlTag(input: string, start: number): ParsedInlineNode | nu
       }
 
       return {
-        node: { type: "html", value: input.slice(start, selfClosingEnd + 1) },
+        node: withRange(
+          { type: "html", value: input.slice(start, selfClosingEnd + 1) },
+          offsets === undefined
+            ? { start, end: selfClosingEnd + 1 }
+            : createRange(offsets, start, selfClosingEnd + 1)
+        ),
         end: selfClosingEnd + 1
       };
     }
@@ -1484,4 +1600,40 @@ function isHtmlAttributeNameChar(value: string): boolean {
     value === "-" ||
     value === "."
   );
+}
+
+function createRange(offsets: OffsetMap, start: number, end: number): MdRange {
+  return {
+    start: offsets[start] ?? offsets[offsets.length - 1] ?? 0,
+    end: offsets[end] ?? offsets[offsets.length - 1] ?? 0
+  };
+}
+
+function sliceOffsetMap(offsets: OffsetMap, start: number, end: number): number[] {
+  return offsets.slice(start, end + 1);
+}
+
+function createOffsetMap(input: string, absoluteStart = 0): number[] {
+  const offsets = new Array<number>(input.length + 1).fill(absoluteStart);
+  let byteOffset = absoluteStart;
+  let index = 0;
+
+  while (index < input.length) {
+    offsets[index] = byteOffset;
+    const codePoint = input.codePointAt(index) ?? 0;
+    const codeUnitLength = codePoint > 0xffff ? 2 : 1;
+    const byteLength =
+      codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
+
+    for (let offsetIndex = 1; offsetIndex < codeUnitLength; offsetIndex += 1) {
+      offsets[index + offsetIndex] = byteOffset;
+    }
+
+    byteOffset += byteLength;
+    index += codeUnitLength;
+    offsets[index] = byteOffset;
+  }
+
+  offsets[input.length] = byteOffset;
+  return offsets;
 }

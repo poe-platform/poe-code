@@ -1,15 +1,20 @@
-import type { MdNode } from "../ast.js";
+import type { MdNode, MdRange } from "../ast.js";
 import { extractFrontmatter } from "./frontmatter.js";
 import { parseInline } from "./inline.js";
+
+type OffsetMap = readonly number[];
 
 type ParserState = {
   input: string;
   position: number;
+  offsets: OffsetMap;
   preferListToThematicBreak: boolean;
 };
 
 type Line = {
+  start: number;
   text: string;
+  end: number;
   nextPosition: number;
 };
 
@@ -25,6 +30,8 @@ type Fence = {
 type ParsedHeading = {
   depth: 1 | 2 | 3 | 4 | 5 | 6;
   text: string;
+  contentStart: number;
+  contentEnd: number;
 };
 
 type ParsedListMarker = {
@@ -37,11 +44,13 @@ type ParsedListMarker = {
 
 type ParseOptions = {
   preferListToThematicBreak: boolean;
+  offsets: OffsetMap;
 };
 
 type ParsedTaskMarker = {
   checked: boolean;
   content: string;
+  contentStart: number;
 };
 
 type AlertKind = Extract<MdNode, { type: "alert" }>["kind"];
@@ -49,9 +58,22 @@ type AlertKind = Extract<MdNode, { type: "alert" }>["kind"];
 type ParsedAlertMarker = {
   kind: AlertKind;
   content: string;
+  contentStart: number;
 };
 
 type TableAlignment = Extract<MdNode, { type: "table" }>["align"][number];
+
+type TableCellSegment = {
+  value: string;
+  start: number;
+  end: number;
+};
+
+type MappedText = {
+  text: string;
+  offsets: OffsetMap;
+  lineBreakEnd?: number;
+};
 
 type ParsedFootnoteDefinition = {
   label: string;
@@ -131,6 +153,7 @@ const BLOCK_HTML_TAGS = new Set([
 ]);
 
 const VOID_BLOCK_HTML_TAGS = new Set(["base", "basefont", "col", "hr", "link", "param", "track"]);
+const SOURCE_OFFSETS = Symbol("sourceOffsets");
 
 export function parseBlocks(input: string): MdNode[] {
   return parseBlockDocument(input).children;
@@ -138,20 +161,27 @@ export function parseBlocks(input: string): MdNode[] {
 
 export function parseBlockDocument(input: string): {
   frontmatter?: Record<string, unknown>;
+  frontmatterRange?: MdRange;
   children: MdNode[];
 } {
-  const { frontmatter, body } = extractFrontmatter(input);
+  const { frontmatter, body, range } = extractFrontmatter(input);
   const children = applyInlineParsing(
-    parseBlocksWithOptions(body, { preferListToThematicBreak: false })
+    parseBlocksWithOptions(body, {
+      preferListToThematicBreak: false,
+      offsets: createOffsetMap(body, range?.end ?? 0)
+    })
   );
 
-  return frontmatter === undefined ? { children } : { frontmatter, children };
+  return frontmatter === undefined
+    ? { children }
+    : { frontmatter, frontmatterRange: range, children };
 }
 
 function parseBlocksWithOptions(input: string, options: ParseOptions): MdNode[] {
   const state: ParserState = {
-    input: stripBom(input),
+    input,
     position: 0,
+    offsets: options.offsets,
     preferListToThematicBreak: options.preferListToThematicBreak
   };
   const blocks: MdNode[] = [];
@@ -215,17 +245,14 @@ function collectFootnoteLabelsFromNode(node: MdNode, labels: Set<string>): void 
 
 function applyInlineParsingToNode(node: MdNode, footnoteLabels: ReadonlySet<string>): MdNode {
   if (node.type === "paragraph" || node.type === "heading" || node.type === "tableCell") {
-    return {
-      ...node,
-      children: applyInlineParsingToTextChildren(node.children, footnoteLabels)
-    };
+    return replaceNodeChildren(node, applyInlineParsingToTextChildren(node.children, footnoteLabels));
   }
 
   if (hasBlockChildren(node)) {
-    return {
-      ...node,
-      children: node.children.map((child) => applyInlineParsingToNode(child, footnoteLabels))
-    };
+    return replaceNodeChildren(
+      node,
+      node.children.map((child) => applyInlineParsingToNode(child, footnoteLabels))
+    );
   }
 
   return node;
@@ -236,6 +263,7 @@ function applyInlineParsingToTextChildren(
   footnoteLabels: ReadonlySet<string>
 ): MdNode[] {
   let rawText = "";
+  let offsets: number[] | undefined;
 
   for (const child of children) {
     if (child.type !== "text") {
@@ -243,9 +271,24 @@ function applyInlineParsingToTextChildren(
     }
 
     rawText += child.value;
+    const childOffsets = getTextNodeSourceOffsets(child);
+
+    if (childOffsets === undefined) {
+      return children;
+    }
+
+    if (offsets === undefined) {
+      offsets = [...childOffsets];
+      continue;
+    }
+
+    offsets.push(...childOffsets.slice(1));
   }
 
-  return parseInline(rawText, { footnoteLabels });
+  return parseInline(rawText, {
+    footnoteLabels,
+    ...(offsets === undefined ? {} : { offsets })
+  });
 }
 
 function hasBlockChildren(
@@ -289,6 +332,7 @@ function createBlockRules(preferListToThematicBreak: boolean): BlockRule[] {
 }
 
 function parseFencedCodeBlock(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const openingLine = readLine(state.input, state.position);
   const fence = parseOpeningFence(openingLine.text);
 
@@ -305,17 +349,18 @@ function parseFencedCodeBlock(state: ParserState): MdNode | null {
 
     if (isClosingFence(line.text, fence)) {
       state.position = line.nextPosition;
-      return createCodeNode(fence, contentLines);
+      return withRange(createCodeNode(fence, contentLines), createNodeRange(state, rangeStart));
     }
 
     contentLines.push(line.text);
     state.position = line.nextPosition;
   }
 
-  return createCodeNode(fence, contentLines);
+  return withRange(createCodeNode(fence, contentLines), createNodeRange(state, rangeStart));
 }
 
 function parseAtxHeading(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const line = readLine(state.input, state.position);
   const heading = parseAtxHeadingLine(line.text);
 
@@ -324,15 +369,24 @@ function parseAtxHeading(state: ParserState): MdNode | null {
   }
 
   state.position = line.nextPosition;
+  const content = createMappedTextFromLineSlice(state, line, heading.contentStart, heading.contentEnd);
 
-  return {
-    type: "heading",
-    depth: heading.depth,
-    children: createTextChildren(heading.text)
-  };
+  return withRange(
+    {
+      type: "heading",
+      depth: heading.depth,
+      children: createTextChildren(
+        heading.text,
+        { start: content.offsets[0] ?? 0, end: content.offsets[content.offsets.length - 1] ?? 0 },
+        content.offsets
+      )
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function parseThematicBreak(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const line = readLine(state.input, state.position);
 
   if (!isThematicBreakLine(line.text)) {
@@ -341,10 +395,11 @@ function parseThematicBreak(state: ParserState): MdNode | null {
 
   state.position = line.nextPosition;
 
-  return { type: "thematicBreak" };
+  return withRange({ type: "thematicBreak" }, createNodeRange(state, rangeStart));
 }
 
 function parseSetextHeading(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const contentLine = readLine(state.input, state.position);
 
   if (isBlankLine(contentLine.text)) {
@@ -364,51 +419,82 @@ function parseSetextHeading(state: ParserState): MdNode | null {
 
   state.position = underlineLine.nextPosition;
 
-  return {
-    type: "heading",
-    depth,
-    children: createTextChildren(trimAsciiWhitespace(contentLine.text))
-  };
+  const content = trimAsciiWhitespaceRange(contentLine.text);
+  const mappedContent = createMappedTextFromLineSlice(state, contentLine, content.start, content.end);
+
+  return withRange(
+    {
+      type: "heading",
+      depth,
+      children: createTextChildren(
+        content.value,
+        {
+          start: mappedContent.offsets[0] ?? 0,
+          end: mappedContent.offsets[mappedContent.offsets.length - 1] ?? 0
+        },
+        mappedContent.offsets
+      )
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function parseBlockquote(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const firstLine = readLine(state.input, state.position);
 
-  if (stripBlockquoteMarker(firstLine.text) === null) {
+  if (parseBlockquoteLine(firstLine.text) === null) {
     return null;
   }
 
-  const contentLines: string[] = [];
+  const contentParts: MappedText[] = [];
+  let previousContentLine: Line | undefined;
 
   while (state.position < state.input.length) {
     const line = readLine(state.input, state.position);
-    const content = stripBlockquoteMarker(line.text);
+    const content = parseBlockquoteLine(line.text);
 
     if (content === null) {
       break;
     }
 
-    contentLines.push(content);
+    if (previousContentLine !== undefined) {
+      const lineBreak = createMappedLineBreak(state, previousContentLine);
+
+      if (lineBreak !== null) {
+        contentParts.push(lineBreak);
+      }
+    }
+
+    contentParts.push(createMappedTextFromLineSlice(state, line, content.contentStart, line.text.length));
     state.position = line.nextPosition;
+    previousContentLine = line;
   }
 
-  return {
-    type: "blockquote",
-    children: parseBlocksWithOptions(contentLines.join("\n"), {
-      preferListToThematicBreak: state.preferListToThematicBreak
-    })
-  };
+  const content = joinMappedTexts(contentParts);
+
+  return withRange(
+    {
+      type: "blockquote",
+      children: parseBlocksWithOptions(content.text, {
+        preferListToThematicBreak: state.preferListToThematicBreak,
+        offsets: content.offsets
+      })
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function parseAlert(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const firstLine = readLine(state.input, state.position);
-  const firstLineContent = stripBlockquoteMarker(firstLine.text);
+  const firstLineContent = parseBlockquoteLine(firstLine.text);
 
   if (firstLineContent === null) {
     return null;
   }
 
-  const alertMarker = parseAlertMarker(firstLineContent);
+  const alertMarker = parseAlertMarker(firstLineContent.content);
 
   if (alertMarker === null) {
     return null;
@@ -416,30 +502,59 @@ function parseAlert(state: ParserState): MdNode | null {
 
   state.position = firstLine.nextPosition;
 
-  const contentLines = alertMarker.content.length === 0 ? [] : [alertMarker.content];
+  const contentParts: MappedText[] = [];
+  let previousContentLine: Line | undefined;
+
+  if (alertMarker.content.length > 0) {
+    contentParts.push(
+      createMappedTextFromLineSlice(
+        state,
+        firstLine,
+        firstLineContent.contentStart + alertMarker.contentStart,
+        firstLine.text.length
+      )
+    );
+    previousContentLine = firstLine;
+  }
 
   while (state.position < state.input.length) {
     const line = readLine(state.input, state.position);
-    const content = stripBlockquoteMarker(line.text);
+    const content = parseBlockquoteLine(line.text);
 
     if (content === null) {
       break;
     }
 
-    contentLines.push(content);
+    if (previousContentLine !== undefined) {
+      const previousLineBreak = createMappedLineBreak(state, previousContentLine);
+
+      if (previousLineBreak !== null) {
+        contentParts.push(previousLineBreak);
+      }
+    }
+
+    contentParts.push(createMappedTextFromLineSlice(state, line, content.contentStart, line.text.length));
     state.position = line.nextPosition;
+    previousContentLine = line;
   }
 
-  return {
-    type: "alert",
-    kind: alertMarker.kind,
-    children: parseBlocksWithOptions(contentLines.join("\n"), {
-      preferListToThematicBreak: state.preferListToThematicBreak
-    })
-  };
+  const content = joinMappedTexts(contentParts);
+
+  return withRange(
+    {
+      type: "alert",
+      kind: alertMarker.kind,
+      children: parseBlocksWithOptions(content.text, {
+        preferListToThematicBreak: state.preferListToThematicBreak,
+        offsets: content.offsets
+      })
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function parseList(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const firstLine = readLine(state.input, state.position);
   const firstMarker = parseListMarker(firstLine.text);
 
@@ -466,15 +581,19 @@ function parseList(state: ParserState): MdNode | null {
     children.push(item);
   }
 
-  return {
-    type: "list",
-    ordered,
-    ...(ordered && start !== undefined ? { start } : {}),
-    children
-  };
+  return withRange(
+    {
+      type: "list",
+      ordered,
+      ...(ordered && start !== undefined ? { start } : {}),
+      children
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function parseTable(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const table = parseTableAt(state.input, state.position, state.preferListToThematicBreak);
 
   if (table === null) {
@@ -483,17 +602,21 @@ function parseTable(state: ParserState): MdNode | null {
 
   state.position = table.nextPosition;
 
-  return {
-    type: "table",
-    align: table.align,
-    children: [
-      createTableRowNode(table.headerCells),
-      ...table.rows.map((row) => createTableRowNode(row))
-    ]
-  };
+  return withRange(
+    {
+      type: "table",
+      align: table.align,
+      children: [
+        createTableRowNode(state, table.header.line, table.header.cells),
+        ...table.rows.map((row) => createTableRowNode(state, row.line, row.cells))
+      ]
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function parseHtmlBlock(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const firstLine = readLine(state.input, state.position);
   const openingTag = parseBlockHtmlTagStart(firstLine.text);
 
@@ -523,10 +646,11 @@ function parseHtmlBlock(state: ParserState): MdNode | null {
     }
   }
 
-  return { type: "html", value: lines.join("\n") };
+  return withRange({ type: "html", value: lines.join("\n") }, createNodeRange(state, rangeStart));
 }
 
 function parseFootnoteDefinition(state: ParserState): MdNode | null {
+  const rangeStart = state.position;
   const firstLine = readLine(state.input, state.position);
   const definition = parseFootnoteDefinitionMarker(firstLine.text);
 
@@ -536,19 +660,23 @@ function parseFootnoteDefinition(state: ParserState): MdNode | null {
 
   state.position = firstLine.nextPosition;
 
-  const continuationLines: string[] = [];
-  const pendingBlankLines: string[] = [];
+  const continuationLines: MappedText[] = [];
+  const pendingBlankLines: MappedText[] = [];
 
   while (state.position < state.input.length) {
     const line = readLine(state.input, state.position);
 
     if (isBlankLine(line.text)) {
-      pendingBlankLines.push("");
+      pendingBlankLines.push({
+        text: "",
+        offsets: [state.offsets[line.end] ?? 0],
+        lineBreakEnd: state.offsets[line.nextPosition] ?? state.offsets[state.offsets.length - 1] ?? 0
+      });
       state.position = line.nextPosition;
       continue;
     }
 
-    const strippedLine = stripIndent(line.text, 4);
+    const strippedLine = stripIndentLine(state, line, 4);
 
     if (strippedLine === null) {
       break;
@@ -559,19 +687,23 @@ function parseFootnoteDefinition(state: ParserState): MdNode | null {
     pendingBlankLines.length = 0;
   }
 
-  return {
-    type: "footnoteDefinition",
-    label: definition.label,
-    children: parseListItemChildren(
-      firstLine.text.slice(definition.contentStart),
-      continuationLines,
-      state.preferListToThematicBreak
-    )
-  };
+  return withRange(
+    {
+      type: "footnoteDefinition",
+      label: definition.label,
+      children: parseListItemChildren(
+        createMappedTextFromLineSlice(state, firstLine, definition.contentStart, firstLine.text.length),
+        continuationLines,
+        state.preferListToThematicBreak
+      )
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function parseParagraph(state: ParserState): MdNode {
-  const lines: string[] = [];
+  const rangeStart = state.position;
+  const lines: Line[] = [];
 
   while (state.position < state.input.length) {
     const line = readLine(state.input, state.position);
@@ -587,14 +719,26 @@ function parseParagraph(state: ParserState): MdNode {
       break;
     }
 
-    lines.push(line.text);
+    lines.push(line);
     state.position = line.nextPosition;
   }
 
-  return {
-    type: "paragraph",
-    children: [{ type: "text", value: lines.join("\n") }]
-  };
+  const content = createMappedTextFromLines(state, lines);
+
+  return withRange(
+    {
+      type: "paragraph",
+      children: createTextChildren(
+        content.text,
+        {
+          start: content.offsets[0] ?? 0,
+          end: content.offsets[content.offsets.length - 1] ?? 0
+        },
+        content.offsets
+      )
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function createCodeNode(fence: Fence, contentLines: string[]): MdNode {
@@ -606,18 +750,206 @@ function createCodeNode(fence: Fence, contentLines: string[]): MdNode {
   };
 }
 
-function createTextChildren(value: string): MdNode[] {
-  return value.length === 0 ? [] : [{ type: "text", value }];
+function createTextChildren(value: string, range?: MdRange, offsets?: OffsetMap): MdNode[] {
+  return value.length === 0 ? [] : [createTextNode(value, range, offsets)];
 }
 
-function createTableRowNode(values: string[]): MdNode {
+function createTableRowNode(state: ParserState, line: Line, cells: TableCellSegment[]): MdNode {
+  return withRange(
+    {
+      type: "tableRow",
+      children: cells.map((cell) => {
+        const content = createMappedTextFromLineSlice(state, line, cell.start, cell.end);
+
+        return withRange(
+          {
+            type: "tableCell",
+            children: createTextChildren(
+              cell.value,
+              {
+                start: content.offsets[0] ?? 0,
+                end: content.offsets[content.offsets.length - 1] ?? 0
+              },
+              content.offsets
+            )
+          },
+          {
+            start: content.offsets[0] ?? 0,
+            end: content.offsets[content.offsets.length - 1] ?? 0
+          }
+        );
+      })
+    },
+    {
+      start: state.offsets[line.start] ?? 0,
+      end: state.offsets[line.nextPosition] ?? state.offsets[line.end] ?? 0
+    }
+  );
+}
+
+function createTextNode(
+  value: string,
+  range?: MdRange,
+  sourceOffsets?: OffsetMap
+): Extract<MdNode, { type: "text" }> {
+  const node =
+    range === undefined ? ({ type: "text", value } as Extract<MdNode, { type: "text" }>) : withRange({ type: "text", value }, range);
+
+  if (sourceOffsets !== undefined) {
+    Object.defineProperty(node, SOURCE_OFFSETS, {
+      value: [...sourceOffsets],
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+  }
+
+  return node;
+}
+
+function createNodeRange(state: ParserState, start: number, end = state.position): MdRange {
   return {
-    type: "tableRow",
-    children: values.map((value) => ({
-      type: "tableCell",
-      children: createTextChildren(value)
-    }))
+    start: state.offsets[start] ?? state.offsets[state.offsets.length - 1] ?? 0,
+    end: state.offsets[end] ?? state.offsets[state.offsets.length - 1] ?? 0
   };
+}
+
+function withRange<T extends MdNode>(node: T, range: MdRange): T {
+  Object.defineProperty(node, "range", {
+    value: range,
+    enumerable: false,
+    configurable: true,
+    writable: true
+  });
+
+  return node;
+}
+
+function replaceNodeChildren<T extends MdNode & { children: MdNode[] }>(node: T, children: MdNode[]): T {
+  const nextNode = { ...node, children } as T;
+
+  return node.range === undefined ? nextNode : withRange(nextNode, node.range);
+}
+
+function getTextNodeSourceOffsets(node: Extract<MdNode, { type: "text" }>): number[] | undefined {
+  const sourceOffsets = (node as Extract<MdNode, { type: "text" }> & {
+    [SOURCE_OFFSETS]?: number[];
+  })[SOURCE_OFFSETS];
+
+  if (sourceOffsets !== undefined) {
+    return sourceOffsets;
+  }
+
+  return node.range === undefined ? undefined : createOffsetMap(node.value, node.range.start, node.range.end);
+}
+
+function createOffsetMap(input: string, absoluteStart = 0, absoluteEnd?: number): number[] {
+  const offsets = new Array<number>(input.length + 1).fill(absoluteStart);
+  let byteOffset = absoluteStart;
+  let index = 0;
+
+  while (index < input.length) {
+    offsets[index] = byteOffset;
+    const codePoint = input.codePointAt(index) ?? 0;
+    const codeUnitLength = codePoint > 0xffff ? 2 : 1;
+    const byteLength =
+      codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
+
+    for (let offsetIndex = 1; offsetIndex < codeUnitLength; offsetIndex += 1) {
+      offsets[index + offsetIndex] = byteOffset;
+    }
+
+    byteOffset += byteLength;
+    index += codeUnitLength;
+    offsets[index] = byteOffset;
+  }
+
+  offsets[input.length] = absoluteEnd ?? byteOffset;
+  return offsets;
+}
+
+function createMappedText(value: string, offsets: OffsetMap): MappedText {
+  return { text: value, offsets };
+}
+
+function createMappedTextFromSlice(state: ParserState, start: number, end: number): MappedText {
+  return createMappedText(state.input.slice(start, end), state.offsets.slice(start, end + 1));
+}
+
+function createMappedTextFromLineSlice(
+  state: ParserState,
+  line: Line,
+  start: number,
+  end: number
+): MappedText {
+  return {
+    ...createMappedTextFromSlice(state, line.start + start, line.start + end),
+    lineBreakEnd: state.offsets[line.nextPosition] ?? state.offsets[state.offsets.length - 1] ?? 0
+  };
+}
+
+function createMappedLineBreak(state: ParserState, line: Line): MappedText | null {
+  if (line.nextPosition <= line.end) {
+    return null;
+  }
+
+  return createMappedText("\n", [state.offsets[line.end] ?? 0, state.offsets[line.nextPosition] ?? 0]);
+}
+
+function joinMappedTexts(parts: readonly MappedText[]): MappedText {
+  if (parts.length === 0) {
+    return createMappedText("", [0]);
+  }
+
+  let text = "";
+  const offsets: number[] = [];
+
+  for (const [index, part] of parts.entries()) {
+    text += part.text;
+
+    if (index === 0) {
+      offsets.push(...part.offsets);
+      continue;
+    }
+
+    offsets.push(...part.offsets.slice(1));
+  }
+
+  return createMappedText(text, offsets);
+}
+
+function createMappedTextFromLines(state: ParserState, lines: readonly Line[]): MappedText {
+  const parts: MappedText[] = [];
+
+  for (const [index, line] of lines.entries()) {
+    parts.push(createMappedTextFromLineSlice(state, line, 0, line.text.length));
+
+    if (index + 1 < lines.length) {
+      const lineBreak = createMappedLineBreak(state, line);
+
+      if (lineBreak !== null) {
+        parts.push(lineBreak);
+      }
+    }
+  }
+
+  return joinMappedTexts(parts);
+}
+
+function joinMappedLines(lines: readonly MappedText[]): MappedText {
+  const parts: MappedText[] = [];
+
+  for (const [index, line] of lines.entries()) {
+    parts.push(createMappedText(line.text, line.offsets));
+
+    if (index + 1 < lines.length) {
+      const lineBreakStart = line.offsets[line.offsets.length - 1] ?? 0;
+      const lineBreakEnd = line.lineBreakEnd ?? lineBreakStart;
+      parts.push(createMappedText("\n", [lineBreakStart, lineBreakEnd]));
+    }
+  }
+
+  return joinMappedTexts(parts);
 }
 
 function startsBlockAt(
@@ -641,11 +973,11 @@ function startsBlockAt(
 }
 
 function startsBlockInLines(
-  lines: string[],
+  lines: MappedText[],
   lineIndex: number,
   preferListToThematicBreak: boolean
 ): boolean {
-  const line = lines[lineIndex];
+  const line = lines[lineIndex]?.text ?? "";
 
   if (startsSimpleBlock(line, preferListToThematicBreak)) {
     return true;
@@ -653,7 +985,7 @@ function startsBlockInLines(
 
   return (
     lineIndex + 1 < lines.length &&
-    parseTableHeaderAndSeparator(line, lines[lineIndex + 1]) !== null
+    parseTableHeaderAndSeparator(line, lines[lineIndex + 1]?.text ?? "") !== null
   );
 }
 
@@ -667,7 +999,7 @@ function startsSimpleBlock(line: string, preferListToThematicBreak: boolean): bo
     return true;
   }
 
-  if (stripBlockquoteMarker(line) !== null) {
+  if (parseBlockquoteLine(line) !== null) {
     return true;
   }
 
@@ -744,11 +1076,20 @@ function parseAtxHeadingLine(line: string): ParsedHeading | null {
     return null;
   }
 
-  const rawContent = trimAsciiWhitespaceStart(line.slice(markerEnd));
+  let contentStart = markerEnd;
+
+  while (contentStart < line.length && (line[contentStart] === " " || line[contentStart] === "\t")) {
+    contentStart += 1;
+  }
+
+  const rawContent = line.slice(contentStart);
+  const text = stripClosingHeadingSequence(rawContent);
 
   return {
     depth: depth as ParsedHeading["depth"],
-    text: stripClosingHeadingSequence(rawContent)
+    text,
+    contentStart,
+    contentEnd: contentStart + text.length
   };
 }
 
@@ -889,15 +1230,15 @@ function parseTableAt(
   preferListToThematicBreak: boolean
 ): {
   align: TableAlignment[];
-  headerCells: string[];
-  rows: string[][];
+  header: { line: Line; cells: TableCellSegment[] };
+  rows: Array<{ line: Line; cells: TableCellSegment[] }>;
   nextPosition: number;
 } | null {
   const headerLine = readLine(input, position);
 
   if (
     parseListMarker(headerLine.text) !== null ||
-    stripBlockquoteMarker(headerLine.text) !== null
+    parseBlockquoteLine(headerLine.text) !== null
   ) {
     return null;
   }
@@ -913,7 +1254,7 @@ function parseTableAt(
     return null;
   }
 
-  const rows: string[][] = [];
+  const rows: Array<{ line: Line; cells: TableCellSegment[] }> = [];
   let nextPosition = separatorLine.nextPosition;
 
   while (nextPosition < input.length) {
@@ -927,19 +1268,22 @@ function parseTableAt(
       break;
     }
 
-    const cells = parsePipeTableCells(rowLine.text);
+    const cells = parsePipeTableCellSegments(rowLine.text);
 
     if (cells === null) {
       break;
     }
 
-    rows.push(normalizeTableCells(cells, header.headerCells.length));
+    rows.push({
+      line: rowLine,
+      cells: normalizeTableCellSegments(cells, header.headerCells.length)
+    });
     nextPosition = rowLine.nextPosition;
   }
 
   return {
     align: header.align,
-    headerCells: header.headerCells,
+    header: { line: headerLine, cells: header.headerCells },
     rows,
     nextPosition
   };
@@ -948,8 +1292,8 @@ function parseTableAt(
 function parseTableHeaderAndSeparator(
   headerLine: string,
   separatorLine: string
-): { align: TableAlignment[]; headerCells: string[] } | null {
-  const headerCells = parsePipeTableCells(headerLine);
+): { align: TableAlignment[]; headerCells: TableCellSegment[] } | null {
+  const headerCells = parsePipeTableCellSegments(headerLine);
 
   if (headerCells === null || headerCells.length === 0) {
     return null;
@@ -965,6 +1309,10 @@ function parseTableHeaderAndSeparator(
 }
 
 function parsePipeTableCells(line: string): string[] | null {
+  return parsePipeTableCellSegments(line)?.map((cell) => cell.value) ?? null;
+}
+
+function parsePipeTableCellSegments(line: string): TableCellSegment[] | null {
   const start = skipLeadingBlockIndent(line);
 
   if (start === -1 || start >= line.length) {
@@ -973,28 +1321,26 @@ function parsePipeTableCells(line: string): string[] | null {
 
   const content = trimAsciiWhitespaceEnd(line.slice(start));
   let hasPipe = false;
-  const cells: string[] = [];
-  let cell = "";
+  const cells: Array<{ start: number; end: number }> = [];
+  let cellStart = 0;
   let index = 0;
 
   while (index < content.length) {
     const char = content[index];
 
     if (char === "\\" && index + 1 < content.length && content[index + 1] === "|") {
-      cell += "|";
       index += 2;
       continue;
     }
 
     if (char === "|") {
-      cells.push(trimAsciiWhitespace(cell));
-      cell = "";
+      cells.push({ start: cellStart, end: index });
+      cellStart = index + 1;
       hasPipe = true;
       index += 1;
       continue;
     }
 
-    cell += char;
     index += 1;
   }
 
@@ -1002,7 +1348,7 @@ function parsePipeTableCells(line: string): string[] | null {
     return null;
   }
 
-  cells.push(trimAsciiWhitespace(cell));
+  cells.push({ start: cellStart, end: content.length });
 
   if (content[0] === "|") {
     cells.shift();
@@ -1012,7 +1358,28 @@ function parsePipeTableCells(line: string): string[] | null {
     cells.pop();
   }
 
-  return cells.length === 0 ? null : cells;
+  if (cells.length === 0) {
+    return null;
+  }
+
+  return cells.map((cell) => {
+    let cellStart = cell.start;
+    let cellEnd = cell.end;
+
+    while (cellStart < cellEnd && (content[cellStart] === " " || content[cellStart] === "\t")) {
+      cellStart += 1;
+    }
+
+    while (cellEnd > cellStart && (content[cellEnd - 1] === " " || content[cellEnd - 1] === "\t")) {
+      cellEnd -= 1;
+    }
+
+    return {
+      value: decodePipeTableCell(trimAsciiWhitespace(content.slice(cell.start, cell.end))),
+      start: start + cellStart,
+      end: start + cellEnd
+    };
+  });
 }
 
 function parsePipeTableSeparator(line: string): TableAlignment[] | null {
@@ -1072,7 +1439,7 @@ function parseTableAlignmentCell(value: string): TableAlignment | undefined {
   return null;
 }
 
-function normalizeTableCells(cells: string[], columnCount: number): string[] {
+function normalizeTableCellSegments(cells: TableCellSegment[], columnCount: number): TableCellSegment[] {
   if (cells.length === columnCount) {
     return cells;
   }
@@ -1081,10 +1448,35 @@ function normalizeTableCells(cells: string[], columnCount: number): string[] {
     return cells.slice(0, columnCount);
   }
 
-  return [...cells, ...Array.from({ length: columnCount - cells.length }, () => "")];
+  return [
+    ...cells,
+    ...Array.from({ length: columnCount - cells.length }, () => ({
+      value: "",
+      start: cells[cells.length - 1]?.end ?? 0,
+      end: cells[cells.length - 1]?.end ?? 0
+    }))
+  ];
 }
 
-function stripBlockquoteMarker(line: string): string | null {
+function decodePipeTableCell(value: string): string {
+  let decoded = "";
+  let index = 0;
+
+  while (index < value.length) {
+    if (value[index] === "\\" && value[index + 1] === "|") {
+      decoded += "|";
+      index += 2;
+      continue;
+    }
+
+    decoded += value[index] ?? "";
+    index += 1;
+  }
+
+  return decoded;
+}
+
+function parseBlockquoteLine(line: string): { content: string; contentStart: number } | null {
   const markerStart = skipLeadingBlockIndent(line);
 
   if (markerStart === -1 || markerStart >= line.length || line[markerStart] !== ">") {
@@ -1097,7 +1489,10 @@ function stripBlockquoteMarker(line: string): string | null {
     contentStart += 1;
   }
 
-  return line.slice(contentStart);
+  return {
+    content: line.slice(contentStart),
+    contentStart
+  };
 }
 
 function parseAlertMarker(content: string): ParsedAlertMarker | null {
@@ -1113,9 +1508,13 @@ function parseAlertMarker(content: string): ParsedAlertMarker | null {
     return null;
   }
 
+  const rawContent = content.slice(endOfKind + 1);
+  const trimmedContent = trimAsciiWhitespaceStart(rawContent);
+
   return {
     kind,
-    content: trimAsciiWhitespaceStart(content.slice(endOfKind + 1))
+    content: trimmedContent,
+    contentStart: endOfKind + 1 + (rawContent.length - trimmedContent.length)
   };
 }
 
@@ -1413,14 +1812,14 @@ function readLine(input: string, position: number): Line {
   const text = input.slice(position, index);
 
   if (index >= input.length) {
-    return { text, nextPosition: input.length };
+    return { start: position, text, end: index, nextPosition: input.length };
   }
 
   if (input[index] === "\r" && input[index + 1] === "\n") {
-    return { text, nextPosition: index + 2 };
+    return { start: position, text, end: index, nextPosition: index + 2 };
   }
 
-  return { text, nextPosition: index + 1 };
+  return { start: position, text, end: index, nextPosition: index + 1 };
 }
 
 function isBlankLine(line: string): boolean {
@@ -1436,13 +1835,14 @@ function isBlankLine(line: string): boolean {
 }
 
 function skipLeadingBlockIndent(line: string): number {
-  const leadingWhitespace = readLeadingWhitespace(line);
+  const bomOffset = line.startsWith("\uFEFF") ? 1 : 0;
+  const leadingWhitespace = readLeadingWhitespace(line.slice(bomOffset));
 
   if (leadingWhitespace.columns > 3) {
     return -1;
   }
 
-  return leadingWhitespace.offset;
+  return bomOffset + leadingWhitespace.offset;
 }
 
 function trimAsciiWhitespace(value: string): string {
@@ -1479,6 +1879,25 @@ function trimAsciiWhitespaceEnd(value: string): string {
   }
 
   return value.slice(0, end);
+}
+
+function trimAsciiWhitespaceRange(value: string): { value: string; start: number; end: number } {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && (value[start] === " " || value[start] === "\t")) {
+    start += 1;
+  }
+
+  while (end > start && (value[end - 1] === " " || value[end - 1] === "\t")) {
+    end -= 1;
+  }
+
+  return {
+    value: value.slice(start, end),
+    start,
+    end
+  };
 }
 
 function findWhitespaceIndex(value: string): number {
@@ -1541,14 +1960,11 @@ function isAlertKind(value: string): value is AlertKind {
   );
 }
 
-function stripBom(input: string): string {
-  return input[0] === "\uFEFF" ? input.slice(1) : input;
-}
-
 function parseListItem(
   state: ParserState,
   list: { ordered: boolean; indent: number; preferListToThematicBreak: boolean }
 ): MdNode | null {
+  const rangeStart = state.position;
   const firstLine = readLine(state.input, state.position);
   const marker = parseListMarker(firstLine.text);
 
@@ -1558,23 +1974,29 @@ function parseListItem(
 
   state.position = firstLine.nextPosition;
 
-  let firstLineContent = firstLine.text.slice(marker.contentStart);
+  let firstLineContentStart = marker.contentStart;
+  let firstLineContent = firstLine.text.slice(firstLineContentStart);
   let checked: boolean | undefined;
   const taskMarker = parseTaskMarker(firstLineContent);
 
   if (taskMarker !== null) {
     checked = taskMarker.checked;
     firstLineContent = taskMarker.content;
+    firstLineContentStart += taskMarker.contentStart;
   }
 
-  const continuationLines: string[] = [];
-  const pendingBlankLines: string[] = [];
+  const continuationLines: MappedText[] = [];
+  const pendingBlankLines: MappedText[] = [];
 
   while (state.position < state.input.length) {
     const line = readLine(state.input, state.position);
 
     if (isBlankLine(line.text)) {
-      pendingBlankLines.push("");
+      pendingBlankLines.push({
+        text: "",
+        offsets: [state.offsets[line.end] ?? 0],
+        lineBreakEnd: state.offsets[line.nextPosition] ?? state.offsets[state.offsets.length - 1] ?? 0
+      });
       state.position = line.nextPosition;
       continue;
     }
@@ -1589,7 +2011,7 @@ function parseListItem(
       break;
     }
 
-    const strippedLine = stripIndent(line.text, marker.contentIndent);
+    const strippedLine = stripIndentLine(state, line, marker.contentIndent);
 
     if (strippedLine === null) {
       break;
@@ -1601,31 +2023,34 @@ function parseListItem(
   }
 
   const children = parseListItemChildren(
-    firstLineContent,
+    createMappedTextFromLineSlice(state, firstLine, firstLineContentStart, firstLine.text.length),
     continuationLines,
     list.preferListToThematicBreak
   );
 
-  return {
-    type: "listItem",
-    ...(checked === undefined ? {} : { checked }),
-    children
-  };
+  return withRange(
+    {
+      type: "listItem",
+      ...(checked === undefined ? {} : { checked }),
+      children
+    },
+    createNodeRange(state, rangeStart)
+  );
 }
 
 function parseListItemChildren(
-  firstLineContent: string,
-  continuationLines: string[],
+  firstLineContent: MappedText,
+  continuationLines: MappedText[],
   preferListToThematicBreak: boolean
 ): MdNode[] {
   const blocks: MdNode[] = [];
-  let paragraphLines = firstLineContent.length === 0 ? [] : [firstLineContent];
+  let paragraphLines = firstLineContent.text.length === 0 ? [] : [firstLineContent];
   let lineIndex = 0;
 
   while (lineIndex < continuationLines.length) {
     const line = continuationLines[lineIndex];
 
-    if (isBlankLine(line)) {
+    if (isBlankLine(line.text)) {
       if (paragraphLines.length > 0) {
         blocks.push(createParagraphNode(paragraphLines));
         paragraphLines = [];
@@ -1640,9 +2065,11 @@ function parseListItemChildren(
         blocks.push(createParagraphNode(paragraphLines));
       }
 
+      const nestedContent = joinMappedLines(continuationLines.slice(lineIndex));
       blocks.push(
-        ...parseBlocksWithOptions(continuationLines.slice(lineIndex).join("\n"), {
-          preferListToThematicBreak
+        ...parseBlocksWithOptions(nestedContent.text, {
+          preferListToThematicBreak,
+          offsets: nestedContent.offsets
         })
       );
 
@@ -1660,11 +2087,26 @@ function parseListItemChildren(
   return blocks;
 }
 
-function createParagraphNode(lines: string[]): MdNode {
-  return {
-    type: "paragraph",
-    children: [{ type: "text", value: lines.join("\n") }]
-  };
+function createParagraphNode(lines: MappedText[]): MdNode {
+  const content = joinMappedLines(lines);
+
+  return withRange(
+    {
+      type: "paragraph",
+      children: createTextChildren(
+        content.text,
+        {
+          start: content.offsets[0] ?? 0,
+          end: content.offsets[content.offsets.length - 1] ?? 0
+        },
+        content.offsets
+      )
+    },
+    {
+      start: lines[0]?.offsets[0] ?? 0,
+      end: content.offsets[content.offsets.length - 1] ?? 0
+    }
+  );
 }
 
 function parseTaskMarker(content: string): ParsedTaskMarker | null {
@@ -1684,18 +2126,37 @@ function parseTaskMarker(content: string): ParsedTaskMarker | null {
 
   return {
     checked: marker === "x" || marker === "X",
-    content: trimAsciiWhitespaceStart(content.slice(3))
+    content: trimAsciiWhitespaceStart(content.slice(3)),
+    contentStart: 3 + (content.slice(3).length - trimAsciiWhitespaceStart(content.slice(3)).length)
   };
 }
 
-function stripIndent(line: string, columns: number): string | null {
-  const leadingWhitespace = readLeadingWhitespace(line);
+function stripIndentLine(state: ParserState, line: Line, columns: number): MappedText | null {
+  const leadingWhitespace = readLeadingWhitespace(line.text);
 
   if (leadingWhitespace.columns < columns) {
     return null;
   }
 
-  return leadingWhitespace.normalized.slice(columns) + line.slice(leadingWhitespace.offset);
+  const prefix = leadingWhitespace.normalized.slice(columns);
+  const prefixStart = state.offsets[line.start + leadingWhitespace.offset] ?? 0;
+  const parts: MappedText[] = [];
+
+  if (prefix.length > 0) {
+    parts.push(createMappedText(prefix, new Array<number>(prefix.length + 1).fill(prefixStart)));
+  }
+
+  parts.push({
+    ...createMappedTextFromLineSlice(state, line, leadingWhitespace.offset, line.text.length),
+    lineBreakEnd: state.offsets[line.nextPosition] ?? state.offsets[state.offsets.length - 1] ?? 0
+  });
+
+  const stripped = joinMappedTexts(parts);
+
+  return {
+    ...stripped,
+    lineBreakEnd: state.offsets[line.nextPosition] ?? state.offsets[state.offsets.length - 1] ?? 0
+  };
 }
 
 function readLeadingWhitespace(line: string): {

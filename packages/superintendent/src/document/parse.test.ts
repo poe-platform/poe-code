@@ -145,6 +145,51 @@ Body
     });
   });
 
+  it("parses optional mcp timeout values", () => {
+    const content = `---
+kind: superintendent
+version: 1
+mcp:
+  delegate:
+    command: poe-superintendent-mcp
+    timeout: 45
+builder:
+  agent: claude-code
+  mcp:
+    local-tools:
+      command: poe-code
+      timeout: 120
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.mcp).toEqual({
+      delegate: {
+        command: "poe-superintendent-mcp",
+        timeout: 45
+      }
+    });
+    expect(result.frontmatter.builder.mcp).toEqual({
+      "local-tools": {
+        command: "poe-code",
+        timeout: 120
+      }
+    });
+  });
+
   it("parses a minimal document", () => {
     const content = `---
 kind: superintendent
@@ -508,6 +553,36 @@ Body
 
     expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
       /status\.state must be one of/i
+    );
+  });
+
+  it("throws when mcp timeout is not a positive number", () => {
+    const content = `---
+kind: superintendent
+version: 1
+mcp:
+  delegate:
+    command: poe-superintendent-mcp
+    timeout: 0
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
+      /mcp\.delegate\.timeout must be a positive number/i
     );
   });
 });

@@ -30,6 +30,8 @@ superintendent:
   prompt: |
     Review builder + inspector output, update the Task Board in {{plan.path}}, and hand to owner only when every open task is checked and every inspector accepted.
 
+    Commit changes if approved
+
     Builder summary:
     {{builder.summary}}
 
@@ -56,7 +58,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 2
+  round: 18
   review_turn: 0
 ---
 
@@ -1323,29 +1325,123 @@ Each step leaves the tree compilable and the test suite green.
 ## Task Board
 
 - [x] Expose `log_path` for inspectors, superintendent, and owner in [packages/superintendent/src/runtime/templates.ts](packages/superintendent/src/runtime/templates.ts) so the `superintendent-improver` meta inspector can replay every phase — not just the builder — shipped as `{{inspector_logs.<name>}}`, `{{superintendent.log_path}}`, `{{owner.log_path}}`
-- [ ] Scaffold `@poe-code/memory` package: `package.json`, `tsconfig.json`, empty barrel, all types from §4.1 in `src/types.ts`, README stub
-- [ ] Ensure `packages/tokenfill/` exports `countTokens(text: string): number`; add + test only if missing
-- [ ] Implement `src/paths.ts` (memory root, `.cache/ingest/` constants, `assertSafeRelPath`) and `src/frontmatter.ts` (parse + serialize, including `sources:`) with tests
-- [ ] Implement read side: `src/pages.ts`, `src/search.ts`, `src/status.ts` against memfs
-- [ ] Implement `src/lock.ts` with stale-pid detection (fake-timer tests)
-- [ ] Implement `src/init.ts` and `clearMemory` (wipes `.cache/` too)
-- [ ] Implement `src/confidence.ts` — `parseClaims`, `serializeTag`, tag regex; pure, no FS
-- [ ] Implement `src/reconcile.ts` composing snapshot + diff + `denormalizeSources` (from claim tags) + `renderIndex` + `appendLogEntries`
-- [ ] Implement `src/audit.ts` — `auditClaims` against memfs fixtures
-- [ ] Implement `src/write.ts` — `writePage`, `appendToPage` (lock + reconcile)
-- [ ] Implement `src/cache.ts` — `computeIngestKey`, `readCacheEntry`, `writeCacheEntry`, `clearCache`
-- [ ] Implement `src/tokens.ts` — `computeTokenStats` via `tokenfill`
-- [ ] Extend `packages/poe-code-config/` types for `memory.*`; add `resolveAgent()`, `configuredTimeout()`, `cacheEnabled()`, `mcpWritesAllowed()`, `defaultQueryBudget()` readers
-- [ ] CLI read commands: `init`, `ls`, `show`, `search`, `status` (with `--no-tokens`), `clear`; register `memory` command group; spot-check with `npm run dev -- memory status`
-- [ ] CLI write commands: `write`, `append`, `edit`
+- [x] Scaffold `@poe-code/memory` package: `package.json`, `tsconfig.json`, empty barrel, all types from §4.1 in `src/types.ts`, README stub
+- [x] Ensure `packages/tokenfill/` exports `countTokens(text: string): number`; add + test only if missing
+- [x] Implement `src/paths.ts` (memory root, `.cache/ingest/` constants, `assertSafeRelPath`) and `src/frontmatter.ts` (parse + serialize, including `sources:`) with tests
+- [x] Implement read side: `src/pages.ts`, `src/search.ts`, `src/status.ts` against memfs
+- [x] Implement `src/lock.ts` with stale-pid detection (fake-timer tests)
+- [x] Implement `src/init.ts` and `clearMemory` (wipes `.cache/` too)
+- [x] Implement `src/confidence.ts` — `parseClaims`, `serializeTag`, tag regex; pure, no FS
+- [x] Implement `src/reconcile.ts` composing snapshot + diff + `denormalizeSources` (from claim tags) + `renderIndex` + `appendLogEntries`
+- [x] Implement `src/audit.ts` — `auditClaims` against memfs fixtures
+- [x] Implement `src/write.ts` — `writePage`, `appendToPage` (lock + reconcile)
+- [x] Implement `src/cache.ts` — `computeIngestKey`, `readCacheEntry`, `writeCacheEntry`, `clearCache`
+- [x] Implement `src/tokens.ts` — `computeTokenStats` via `tokenfill`
+
+### Round 12 review
+
+- Accepted builder change: cache primitives landed in `src/cache.ts` with tests covering deterministic SHA-256 keying, read/write round-trips, malformed/invalid cache entries returning `null` with warnings, and full/age-filtered cache clearing; package barrel exports were updated and reported test/build runs passed.
+- Updated Task Board: checked off the `src/cache.ts` task.
+- Rejected for owner handoff this round: Task Board still has many open items starting with `src/tokens.ts` and onward.
+- Rejected inspector acceptance this round:
+  - `code-quality`: still generic architecture commentary unrelated to validating this scoped memory-package change.
+  - `testing`: still failed to access the actual workspace/package, so it did not verify the claimed test/build runs.
+  - `poe-agent-improver`: flagged an unresolved systemic issue — the superintendent still makes the builder rediscover the next task from the plan instead of passing parsed task text directly.
+  - `superintendent-improver`: confirmed the same unresolved systemic issue in superintendent task templating.
+- Handoff remains blocked until every Task Board item is checked and inspector concerns are either resolved in code/process or replaced with passing inspector runs.
+- [x] Extend `packages/poe-code-config/` types for `memory.*`; add `resolveAgent()`, `configuredTimeout()`, `cacheEnabled()`, `mcpWritesAllowed()`, `defaultQueryBudget()` readers
+- [x] CLI read commands: `init`, `ls`, `show`, `search`, `status` (with `--no-tokens`), `clear`; register `memory` command group; spot-check with `npm run dev -- memory status`
+
+### Round 13 review
+
+- Accepted builder change: `packages/poe-code-config` now includes `memory.*` config types plus `resolveAgent()`, `configuredTimeout()`, `cacheEnabled()`, `mcpWritesAllowed()`, and `defaultQueryBudget()` readers, with colocated tests covering merge/default/fallback behavior; builder-reported vitest, tsconfig, and package build validations passed.
+- Updated Task Board: checked off the `packages/poe-code-config` memory readers task.
+- Rejected inspector acceptance this round:
+  - `code-quality`: still unrelated broad planning-doc commentary, not review of the shipped config-reader change.
+  - `testing`: still failed to access the actual package workspace, so it did not verify the builder's reported test/build runs.
+  - `poe-agent-improver`: flagged an unresolved systemic issue — the agent still routes simple file reads/searches/lists through shell instead of structured file tools.
+  - `superintendent-improver`: confirmed the same unresolved shell-over-file-tools systemic issue remains.
+- Rejected for owner handoff this round: multiple Task Board items remain open, and inspector acceptance is still blocked.
+- Handoff remains blocked until every Task Board item is checked and inspector concerns are either resolved in code/process or replaced with passing inspector runs.
+
+### Round 16 review
+
+- Accepted builder change: `packages/memory/src/edit.ts` landed with core `editPage` behavior, colocated tests were added in `packages/memory/src/edit.test.ts`, package exports were updated, and the builder reported `npm test --workspace @poe-code/memory` passing (15 files, 63 tests).
+- Updated Task Board: `CLI write commands: write, append, edit` remains checked.
+- Rejected inspector acceptance this round:
+  - `code-quality`: still broad repo architecture commentary; it does not validate the scoped memory-package edit/write change and remains non-blocking feedback only.
+  - `testing`: returned no verification, so it did not independently confirm the builder-reported package test run.
+  - `poe-agent-improver`: flagged an unresolved systemic issue — prompt compilation reruns dynamic plugin hooks each iteration, harming cacheability.
+  - `superintendent-improver`: accepted MCP/template plumbing for this round and reported no additional systemic issues.
+- Rejected for owner handoff this round: multiple Task Board items remain open (`ingest`, `lint`, cache CLI, MCP, query/explain, install, docs/QA, screenshots, validate), and inspector acceptance is still blocked by the unresolved poe-agent systemic issue plus the non-verifying testing inspector.
+- Handoff remains blocked until every Task Board item is checked and inspector concerns are either resolved in code/process or replaced with passing inspector runs.
+- [x] CLI write commands: `write`, `append`, `edit`
 - [ ] Implement `src/ingest.ts` (cache → prompt → spawn → reconcile → cache write) and `ingest.cli.ts` (`--agent --reason --timeout-ms --dry-run --yes --force --no-cache-write`); tests with injected `spawnFn`
 - [ ] Implement `src/lint.ts` invoking `auditClaims` and `lint.cli.ts`; surfaces combined issue list
-- [ ] Cache CLI: `cache status`, `cache clear --older-than <d> --yes`
+- [x] Cache CLI: `cache status`, `cache clear --older-than <d> --yes`
+- [ ] Implement systemic poe-agent tool-use guardrails from inspector feedback: tighten `validateRunCommandPolicy` to redirect shell-based file/search/list reads to dedicated tools, reject `cd … &&/; …` wrappers, add `environment` to default plugin stack, and cover with tests
 - [ ] Implement `src/mcp.ts` + `memory-mcp.cli.ts` on `tiny-stdio-mcp-server`; verify write-gate hides `append_to_page` from `tools/list` when disabled; manual QA via `.mcp.json`
 - [ ] Implement `src/query.ts` + `query.cli.ts` — TF-idf ranker + budget selection, no tools exposed to spawned agent
 - [ ] Implement `src/explain.ts` + `explain.cli.ts` — reuse query primitives, compute inbound/outbound
 - [ ] Write `src/templates/SKILL_memory.md` — information-dense index card per §3.14: one table row per `memory` CLI subcommand, one table row per MCP tool, each with purpose + when-to-use; ≤10 lines of standing rules; no tutorials, no restated CLAUDE.md content
-- [ ] Implement `src/install.ts` + `install.cli.ts` — compose `installSkill` (from `@poe-code/agent-skill-config`) and `configure` (from `@poe-code/agent-mcp-config`); wire `--skill-only --mcp-only --allow-writes --dry-run`; tests stub both helpers
+- [x] Implement `src/install.ts` + `install.cli.ts` — compose `installSkill` (from `@poe-code/agent-skill-config`) and `configure` (from `@poe-code/agent-mcp-config`); wire `--skill-only --mcp-only --allow-writes --dry-run`; tests stub both helpers
 - [ ] Write `packages/memory/README.md` (CLI reference, config knobs, on-disk layout, confidence-tag format, MCP snippet, `memory install` walkthrough) and `packages/memory/QA.md` (manual checklist from §4.4)
 - [ ] Screenshot pass: `memory ls`, `memory status`, `memory ingest <file> --dry-run`, `memory query "…"`, `memory cache status`, `memory-mcp --print-mcp-config`
 - [ ] Run `poe-code superintendent validate docs/plans/memory.md` and confirm clean exit
+
+### Round 18 review
+
+- Accepted builder change: `packages/memory/src/cache.cli.ts` landed with `runMemoryCacheStatus()` and `runMemoryCacheClear({ root, olderThan, yes })`, colocated tests were added in `packages/memory/src/cache.cli.test.ts`, package exports were updated, and the builder reported targeted package tests for `cache.cli.test.ts` and `index.test.ts` passing.
+- Updated Task Board: `Cache CLI: cache status, cache clear --older-than <d> --yes` is now checked.
+- Rejected inspector acceptance this round:
+  - `code-quality`: still broad repo-level architecture commentary, not scoped validation of the cache CLI change; non-blocking feedback only.
+  - `testing`: did not verify this round's change and explicitly asked for missing prior context, so it is not accepted.
+  - `poe-agent-improver`: still flags an unresolved systemic issue — shell/file-tool overlap guardrails remain open on the Task Board.
+  - `superintendent-improver`: still flags unresolved systemic observability/tooling issues and is not accepted.
+- Rejected for owner handoff this round: multiple Task Board items remain open (`ingest`, `lint`, systemic poe-agent guardrails, MCP, query/explain, skill template, docs/QA, screenshots, validate`), and inspectors are not all accepted.
+- Commit not created: owner handoff is blocked.
+
+### Round 17 review
+
+- Accepted builder change: `packages/memory/src/install.ts` landed with `installMemory(...)`, package exports were updated, colocated tests were added in `packages/memory/src/install.test.ts`, and the builder reported targeted package tests plus package build passing.
+- Updated Task Board: `Implement src/install.ts + install.cli.ts` is now checked.
+- Rejected inspector acceptance this round:
+  - `code-quality`: still broad repo-level architecture commentary, not scoped validation of the memory install change; non-blocking feedback only.
+  - `testing`: useful overall verification that the full test suite passes and new memory modules have colocated tests, but it still flags an open gap: `packages/memory/src/types.ts` lacks its own colocated `types.test.ts`.
+  - `poe-agent-improver`: flagged an unresolved systemic issue — shell/file-tool overlap still causes inefficient shell-based reads in replay and needs the planned guardrail task completed.
+  - `superintendent-improver`: flagged unresolved systemic logging/DX issues (`replay` UX, missing handover/MCP observability, misleading usage accounting); still not accepted.
+- Rejected for owner handoff this round: multiple Task Board items remain open (`ingest`, `lint`, cache CLI, systemic poe-agent guardrails, MCP, query/explain, skill template, docs/QA, screenshots, validate`), and inspectors are not all accepted.
+- Commit not created: owner handoff is blocked.
+
+### Round 11 review
+
+- Accepted builder change: `src/write.ts` now implements `writePage` and `appendToPage`, exports both from the package barrel, and the builder reports package tests/build passing; corresponding Task Board item remains checked.
+- Rejected for owner handoff this round: Task Board still has many open items starting with `src/cache.ts`.
+- Rejected inspector acceptance this round:
+  - `code-quality`: still unrelated broad architecture/spec feedback, not validation of this scoped memory package change.
+  - `testing`: still could not access or run the actual workspace/package, so it did not verify the claimed test/build runs.
+  - `poe-agent-improver`: flagged an unresolved systemic issue — builder still preferred shell `exec` over structured file tools, degrading auditability.
+  - `superintendent-improver`: concurred that the shell-vs-typed-tools issue remains a systemic problem.
+- Handoff remains blocked until every Task Board item is checked and inspector concerns are either resolved in code/process or replaced with passing inspector runs.
+
+### Round 10 review
+
+- Accepted builder change: `auditClaims` now checks stale/missing `extracted` refs, low-confidence `inferred` claims, malformed confidence tags, long untagged pages when `rejectUntagged` is enabled, and frontmatter `sources:` drift; audit task remains checked.
+- Rejected for owner handoff this round: Task Board still has many open items.
+- Rejected inspector acceptance this round:
+  - `code-quality`: still unrelated broad architecture/spec feedback, not validation of this scoped memory package change.
+  - `testing`: still could not access or run the actual workspace/package, so it did not verify the claimed test/build runs.
+  - `poe-agent-improver`: flagged an unresolved systemic issue — builder continues preferring shell over structured file tools.
+  - `superintendent-improver`: flagged unresolved systemic issues — dirty/uncommitted builder output, replay schema observability gaps, and incomplete inspector logging.
+- Handoff remains blocked until every Task Board item is checked and inspector concerns are either resolved in code/process or replaced with passing inspector runs.
+
+### Round 8 review
+
+- Accepted builder change: `src/confidence.ts` and tests landed; task remains checked.
+- Rejected for owner handoff this round: Task Board still has many open items.
+- Rejected inspector acceptance this round:
+  - `code-quality`: unrelated broad repo-doc review, not a useful signal on this scoped memory task.
+  - `testing`: could not access the actual repo/package, so it did not verify the claimed test/build runs.
+  - `poe-agent-improver`: flagged a real systemic issue — poe-agent runs are missing spawn logs, so replay inspected unrelated logs.
+  - `superintendent-improver`: flagged a real systemic issue — replay path template variables resolved to empty strings.
+- Handoff blocked until open tasks are completed and the two meta-inspector systemic issues are addressed/accepted elsewhere.

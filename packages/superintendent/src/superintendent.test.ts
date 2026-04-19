@@ -190,7 +190,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: superintendentSummary
@@ -213,7 +213,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "approve_completion" }) +
               ")",
             exitCode: 0
@@ -538,7 +538,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: round1SuperintendentSummary
@@ -562,7 +562,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "request_changes", feedback: ownerFeedback }) +
               ")",
             exitCode: 0
@@ -638,7 +638,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: round2SuperintendentSummary
@@ -662,7 +662,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "approve_completion" }) +
               ")",
             exitCode: 0
@@ -780,7 +780,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "request_changes", feedback: ownerFeedback }) +
               ")",
             exitCode: 0
@@ -1175,7 +1175,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: round1SuperintendentSummary
@@ -1195,7 +1195,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "request_changes", feedback: reviewFeedback[0] }) +
               ")",
             exitCode: 0
@@ -1214,7 +1214,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: reviewPhaseSuperintendentSummaries[0]
@@ -1234,7 +1234,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "request_changes", feedback: reviewFeedback[1] }) +
               ")",
             exitCode: 0
@@ -1253,7 +1253,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: reviewPhaseSuperintendentSummaries[1]
@@ -1273,7 +1273,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "request_changes", feedback: reviewFeedback[2] }) +
               ")",
             exitCode: 0
@@ -1292,7 +1292,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: reviewPhaseSuperintendentSummaries[2]
@@ -1312,7 +1312,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "request_changes", feedback: reviewFeedback[3] }) +
               ")",
             exitCode: 0
@@ -1331,7 +1331,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: reviewPhaseSuperintendentSummaries[3]
@@ -1351,7 +1351,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "request_changes", feedback: reviewFeedback[4] }) +
               ")",
             exitCode: 0
@@ -1411,7 +1411,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({
                 action: "request_review",
                 summary: round2SuperintendentSummary
@@ -1433,7 +1433,7 @@ describe("createSuperintendentSimulation", () => {
           },
           output: {
             stdout:
-              "workflow.transition(" +
+              "workflow_transition(" +
               JSON.stringify({ action: "approve_completion" }) +
               ")",
             exitCode: 0

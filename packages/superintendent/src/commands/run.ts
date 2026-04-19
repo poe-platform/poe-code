@@ -907,6 +907,7 @@ async function executeSpawnAgentStreaming(
     | { inputTokens: number; outputTokens: number; cachedTokens?: number }
     | undefined;
   let lastAgentMessage = "";
+  const capturedToolCalls: Array<{ title: string; input: unknown }> = [];
 
   const tapEvents = (source: AsyncIterable<AcpEvent>): AsyncIterable<AcpEvent> =>
     (async function* () {
@@ -922,6 +923,11 @@ async function executeSpawnAgentStreaming(
           };
         } else if (event.event === "agent_message") {
           lastAgentMessage = (event as { text: string }).text;
+        } else if (event.event === "tool_start") {
+          const toolEvent = event as { title?: unknown; input?: unknown };
+          if (typeof toolEvent.title === "string") {
+            capturedToolCalls.push({ title: toolEvent.title, input: toolEvent.input });
+          }
         }
         yield event;
       }
@@ -951,7 +957,8 @@ async function executeSpawnAgentStreaming(
     stderr: (result as SpawnResult).stderr,
     exitCode: (result as SpawnResult).exitCode,
     ...(lastAgentMessage ? { summary: lastAgentMessage } : {}),
-    ...(capturedUsage ? { usage: capturedUsage } : {})
+    ...(capturedUsage ? { usage: capturedUsage } : {}),
+    ...(capturedToolCalls.length > 0 ? { toolCalls: capturedToolCalls } : {})
   };
 }
 

@@ -38,7 +38,6 @@ type AutonomousOutput =
       output?: unknown;
       stdout?: unknown;
       text?: unknown;
-      transition?: unknown;
       toolCalls?: unknown;
       sessionResult?: unknown;
     };
@@ -160,35 +159,17 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
 }
 
 function extractTransition(result: AutonomousOutput): WorkflowTransition | undefined {
-  if (typeof result !== "string") {
-    const directTransition = readTransition(result.transition);
-
-    if (directTransition) {
-      return directTransition;
-    }
-
-    const toolCallTransition = readTransitionFromToolCalls(result.toolCalls);
-
-    if (toolCallTransition) {
-      return toolCallTransition;
-    }
-
-    const sessionTransition = readTransitionFromSessionResult(result.sessionResult);
-
-    if (sessionTransition) {
-      return sessionTransition;
-    }
-  }
-
-  return readTransitionFromText(extractOutputText(result));
-}
-
-function readTransition(value: unknown): WorkflowTransition | undefined {
-  if (value === undefined) {
+  if (typeof result === "string") {
     return undefined;
   }
 
-  return parseWorkflowCall(parseJsonValue(value));
+  const toolCallTransition = readTransitionFromToolCalls(result.toolCalls);
+
+  if (toolCallTransition) {
+    return toolCallTransition;
+  }
+
+  return readTransitionFromSessionResult(result.sessionResult);
 }
 
 function readTransitionFromToolCalls(value: unknown): WorkflowTransition | undefined {
@@ -221,41 +202,6 @@ function readTransitionFromSessionResult(value: unknown): WorkflowTransition | u
   }
 
   return readTransitionFromToolCalls(value.toolCalls);
-}
-
-function readTransitionFromText(text: string): WorkflowTransition | undefined {
-  for (const line of splitLines(text)) {
-    const trimmed = line.trim();
-
-    if (trimmed.length === 0) {
-      continue;
-    }
-
-    if (trimmed.startsWith("workflow.transition(") && trimmed.endsWith(")")) {
-      const payload = trimmed.slice("workflow.transition(".length, -1).trim();
-      return parseWorkflowCall(parseJsonValue(payload));
-    }
-
-    if (!trimmed.startsWith("{")) {
-      continue;
-    }
-
-    const parsed = tryParseJson(trimmed);
-
-    if (!isRecord(parsed)) {
-      continue;
-    }
-
-    if (parsed.transition !== undefined) {
-      return parseWorkflowCall(parseJsonValue(parsed.transition));
-    }
-
-    if (parsed.action !== undefined) {
-      return parseWorkflowCall(parsed);
-    }
-  }
-
-  return undefined;
 }
 
 function extractSummary(
@@ -313,8 +259,8 @@ function readToolCallArguments(toolCall: ToolCallLike): unknown {
 
 function isWorkflowToolName(name: string | undefined): boolean {
   if (!name) return false;
-  if (name === "workflow.transition") return true;
-  return name.startsWith("mcp__") && name.endsWith("__workflow.transition");
+  if (name === "workflow_transition") return true;
+  return name.startsWith("mcp__") && name.endsWith("__workflow_transition");
 }
 
 function parseJsonValue(value: unknown): unknown {

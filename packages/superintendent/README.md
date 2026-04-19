@@ -73,7 +73,7 @@ Exposed server tools:
 
 Runtime-injected workflow tool:
 
-- `workflow.transition` — injected automatically for superintendent/owner runs when the current state allows transitions
+- `workflow_transition` — injected automatically for superintendent/owner runs when the current state allows transitions
 - `builder.run` — available to superintendent turns for targeted builder follow-ups
 - `inspector.run` — available to superintendent turns for targeted inspector reruns
 

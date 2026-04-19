@@ -6,7 +6,7 @@ describe("createWorkflowTool", () => {
     const tool = createWorkflowTool("superintendent", "in_progress");
 
     expect(tool).toEqual({
-      name: "workflow.transition",
+      name: "workflow_transition",
       description: "Transition the workflow state. Valid actions: request_review.",
       inputSchema: {
         type: "object",
@@ -31,7 +31,7 @@ describe("createWorkflowTool", () => {
     const tool = createWorkflowTool("owner", "review");
 
     expect(tool).toEqual({
-      name: "workflow.transition",
+      name: "workflow_transition",
       description: "Transition the workflow state. Valid actions: approve_completion, request_changes.",
       inputSchema: {
         type: "object",
@@ -56,7 +56,7 @@ describe("createWorkflowTool", () => {
     const tool = createWorkflowTool("superintendent", "review");
 
     expect(tool).toEqual({
-      name: "workflow.transition",
+      name: "workflow_transition",
       description: "Transition the workflow state. Valid actions: request_review.",
       inputSchema: {
         type: "object",
@@ -81,22 +81,22 @@ describe("createWorkflowTool", () => {
 describe("parseWorkflowCall", () => {
   it("validates the action field", () => {
     expect(() => parseWorkflowCall({ action: "not-real" })).toThrow(
-      'workflow.transition action must be one of "request_review", "approve_completion", or "request_changes"'
+      'workflow_transition action must be one of "request_review", "approve_completion", or "request_changes"'
     );
     expect(() => parseWorkflowCall({})).toThrow(
-      'workflow.transition action must be one of "request_review", "approve_completion", or "request_changes"'
+      'workflow_transition action must be one of "request_review", "approve_completion", or "request_changes"'
     );
     expect(() => parseWorkflowCall([])).toThrow(
-      'workflow.transition action must be one of "request_review", "approve_completion", or "request_changes"'
+      'workflow_transition action must be one of "request_review", "approve_completion", or "request_changes"'
     );
   });
 
   it("requires summary for request_review", () => {
     expect(() => parseWorkflowCall({ action: "request_review" })).toThrow(
-      'workflow.transition summary must be a non-empty string for "request_review"'
+      'workflow_transition summary must be a non-empty string for "request_review"'
     );
     expect(() => parseWorkflowCall({ action: "request_review", summary: "   " })).toThrow(
-      'workflow.transition summary must be a non-empty string for "request_review"'
+      'workflow_transition summary must be a non-empty string for "request_review"'
     );
 
     expect(parseWorkflowCall({ action: "request_review", summary: "Ready for owner review" })).toEqual({
@@ -113,10 +113,10 @@ describe("parseWorkflowCall", () => {
 
   it("requires feedback for request_changes", () => {
     expect(() => parseWorkflowCall({ action: "request_changes" })).toThrow(
-      'workflow.transition feedback must be a non-empty string for "request_changes"'
+      'workflow_transition feedback must be a non-empty string for "request_changes"'
     );
     expect(() => parseWorkflowCall({ action: "request_changes", feedback: "   " })).toThrow(
-      'workflow.transition feedback must be a non-empty string for "request_changes"'
+      'workflow_transition feedback must be a non-empty string for "request_changes"'
     );
 
     expect(parseWorkflowCall({ action: "request_changes", feedback: "Add one more test" })).toEqual({

@@ -76,7 +76,7 @@ describe("runOwnerReview", () => {
       expect(prompt).toContain(
         "Review /repo/docs/plans/feature.md after Superintendent says the board is complete"
       );
-      expect(prompt).toContain("workflow.transition");
+      expect(prompt).toContain("workflow_transition");
       expect(prompt).toContain("approve_completion");
       expect(prompt).toContain("request_changes");
       expect(prompt).not.toContain("{{plan.path}}");
@@ -85,7 +85,7 @@ describe("runOwnerReview", () => {
       return {
         toolCalls: [
           {
-            name: "workflow.transition",
+            name: "workflow_transition",
             arguments: {
               action: "approve_completion"
             }
@@ -114,7 +114,7 @@ describe("runOwnerReview", () => {
       expect(cwd).toBe("/other/workspace");
       return {
         toolCalls: [
-          { name: "workflow.transition", arguments: { action: "approve_completion" } }
+          { name: "workflow_transition", arguments: { action: "approve_completion" } }
         ]
       };
     });
@@ -138,7 +138,7 @@ describe("runOwnerReview", () => {
       expect(cwd).toBe("/repo/packages/agent-kit");
       return {
         toolCalls: [
-          { name: "workflow.transition", arguments: { action: "approve_completion" } }
+          { name: "workflow_transition", arguments: { action: "approve_completion" } }
         ]
       };
     });
@@ -164,7 +164,7 @@ describe("runOwnerReview", () => {
       return {
         toolCalls: [
           {
-            name: "workflow.transition",
+            name: "workflow_transition",
             arguments: {
               action: "approve_completion"
             }
@@ -201,7 +201,7 @@ describe("runOwnerReview", () => {
       return {
         toolCalls: [
           {
-            name: "workflow.transition",
+            name: "workflow_transition",
             arguments: {
               action: "approve_completion"
             }
@@ -226,7 +226,7 @@ describe("runOwnerReview", () => {
 
       return {
         toolCalls: [
-          { name: "workflow.transition", arguments: { action: "approve_completion" } }
+          { name: "workflow_transition", arguments: { action: "approve_completion" } }
         ]
       };
     });
@@ -241,7 +241,7 @@ describe("runOwnerReview", () => {
       sessionResult: {
         toolCalls: [
           {
-            name: "workflow.transition",
+            name: "workflow_transition",
             arguments: JSON.stringify({
               action: "approve_completion"
             })
@@ -263,7 +263,7 @@ describe("runOwnerReview", () => {
     autonomousMock.mockResolvedValue({
       toolCalls: [
         {
-          name: "workflow.transition",
+          name: "workflow_transition",
           arguments: {
             action: "request_changes",
             feedback: "Task 2 is not done"
@@ -294,7 +294,7 @@ describe("runOwnerReview", () => {
     const { runOwnerReview } = await import("./run-owner-review.js");
 
     await expect(runOwnerReview(document, {})).rejects.toThrow(
-      "Owner review must end with workflow.transition"
+      "Owner review must end with workflow_transition"
     );
   });
 
@@ -303,13 +303,13 @@ describe("runOwnerReview", () => {
       expect(prompt.startsWith("# System")).toBe(true);
       expect(prompt).toContain("# Task");
       expect(prompt.indexOf("# System")).toBeLessThan(prompt.indexOf("# Task"));
-      expect(prompt).toContain("workflow.transition");
+      expect(prompt).toContain("workflow_transition");
       expect(prompt).toContain("approve_completion");
       expect(prompt).toContain("request_changes");
 
       return {
         toolCalls: [
-          { name: "workflow.transition", arguments: { action: "approve_completion" } }
+          { name: "workflow_transition", arguments: { action: "approve_completion" } }
         ]
       };
     });
@@ -323,7 +323,7 @@ describe("runOwnerReview", () => {
     autonomousMock.mockResolvedValue({
       toolCalls: [
         {
-          name: "workflow.transition",
+          name: "workflow_transition",
           arguments: {
             action: "request_review",
             summary: "Ready for owner review"

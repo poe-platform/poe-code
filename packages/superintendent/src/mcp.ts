@@ -181,7 +181,7 @@ function assertAllowedAction(
   const allowedActions = tool.inputSchema.properties.action.enum ?? [];
 
   if (!allowedActions.includes(action)) {
-    throw new Error(`workflow.transition action "${action}" is not allowed for this role/state`);
+    throw new Error(`workflow_transition action "${action}" is not allowed for this role/state`);
   }
 }
 
@@ -224,7 +224,7 @@ function isWorkflowToolDefinition(value: unknown): value is WorkflowToolDefiniti
     return false;
   }
 
-  if (value.name !== "workflow.transition" || typeof value.description !== "string") {
+  if (value.name !== "workflow_transition" || typeof value.description !== "string") {
     return false;
   }
 

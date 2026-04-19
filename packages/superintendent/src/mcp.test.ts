@@ -128,7 +128,7 @@ describe("superintendent MCP entry point", () => {
     expect(createServerMock).not.toHaveBeenCalled();
   });
 
-  it("registers workflow.transition, builder.run, and inspector.run on the superintendent-tools server", async () => {
+  it("registers workflow_transition, builder_run, and inspector_run on the superintendent-tools server", async () => {
     const { main } = await import("./mcp.js");
 
     await main([
@@ -174,7 +174,7 @@ describe("superintendent MCP entry point", () => {
     );
   });
 
-  it("workflow.transition handler records allowed actions and rejects others", async () => {
+  it("workflow_transition handler records allowed actions and rejects others", async () => {
     const { main } = await import("./mcp.js");
 
     await main([
@@ -192,11 +192,11 @@ describe("superintendent MCP entry point", () => {
       workflowHandler({ action: "request_review", summary: "Ready for owner review" })
     ).resolves.toBe("Recorded workflow transition: request_review");
     await expect(workflowHandler({ action: "approve_completion" })).rejects.toThrow(
-      'workflow.transition action "approve_completion" is not allowed for this role/state'
+      'workflow_transition action "approve_completion" is not allowed for this role/state'
     );
   });
 
-  it("builder.run handler reads the doc fresh and forwards the prompt override", async () => {
+  it("builder_run handler reads the doc fresh and forwards the prompt override", async () => {
     const freshDoc = { filePath: PAYLOAD.docPath } as unknown as SuperintendentDoc;
     readFileMock.mockResolvedValue("doc-content");
     parseSuperintendentDocMock.mockReturnValue(freshDoc);
@@ -231,7 +231,7 @@ describe("superintendent MCP entry point", () => {
     );
   });
 
-  it("inspector.run handler resolves the inspector config and forwards the optional prompt", async () => {
+  it("inspector_run handler resolves the inspector config and forwards the optional prompt", async () => {
     const inspectorConfig = { agent: "claude-code", prompt: "configured prompt" };
     const freshDoc = {
       filePath: PAYLOAD.docPath,
@@ -276,7 +276,7 @@ describe("superintendent MCP entry point", () => {
     expect(result).toBe(JSON.stringify({ name: "code-quality", summary: "Looks good" }));
   });
 
-  it("inspector.run handler rejects unknown inspector names", async () => {
+  it("inspector_run handler rejects unknown inspector names", async () => {
     const { main } = await import("./mcp.js");
 
     await main([
@@ -291,7 +291,7 @@ describe("superintendent MCP entry point", () => {
     ) => Promise<unknown>;
 
     await expect(inspectorHandler({ name: "missing-inspector" })).rejects.toThrow(
-      'inspector.run name "missing-inspector" is not configured'
+      'inspector_run name "missing-inspector" is not configured'
     );
   });
 
@@ -311,7 +311,7 @@ describe("superintendent MCP entry point", () => {
     expect(createServerMock).not.toHaveBeenCalled();
   });
 
-  it("registers the encoded workflow.transition tool when workflow-transition subcommand is used", async () => {
+  it("registers the encoded workflow_transition tool when workflow-transition subcommand is used", async () => {
     const ownerTool = createWorkflowTool("owner", "review");
     const encodedTool = Buffer.from(JSON.stringify(ownerTool), "utf8").toString("base64");
 
@@ -364,7 +364,7 @@ describe("superintendent MCP entry point", () => {
     await expect(
       handler({ action: "request_review", summary: "ready" })
     ).rejects.toThrow(
-      'workflow.transition action "request_review" is not allowed for this role/state'
+      'workflow_transition action "request_review" is not allowed for this role/state'
     );
   });
 

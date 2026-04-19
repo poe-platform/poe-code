@@ -321,7 +321,7 @@ function createSuccessfulTurn(options: {
 }
 
 function formatWorkflowTransition(transition: WorkflowTransition): string {
-  return "workflow.transition(" + JSON.stringify(transition) + ")";
+  return "workflow_transition(" + JSON.stringify(transition) + ")";
 }
 
 function readWorkflowToolCallsFromText(
@@ -336,7 +336,7 @@ function readWorkflowToolCallsFromText(
 
     return [
       {
-        name: "workflow.transition",
+        name: "workflow_transition",
         arguments: payload
       }
     ];
@@ -346,16 +346,10 @@ function readWorkflowToolCallsFromText(
 }
 
 function readWorkflowTransitionTextPayload(line: string): string | undefined {
-  for (const toolName of [
-    "workflow.transition",
-    "__superintendent_workflow_transition__.workflow.transition",
-    "__owner_workflow_transition__.workflow.transition"
-  ]) {
-    const prefix = toolName + "(";
+  const prefix = "workflow_transition(";
 
-    if (line.startsWith(prefix) && line.endsWith(")")) {
-      return line.slice(prefix.length, -1).trim();
-    }
+  if (line.startsWith(prefix) && line.endsWith(")")) {
+    return line.slice(prefix.length, -1).trim();
   }
 
   return undefined;

@@ -153,7 +153,7 @@ describe("acp/middlewares/sessionCapture", () => {
         event: "tool_start",
         id: "call-1",
         kind: "other",
-        title: "mcp__superintendent-agentic-tools__workflow.transition",
+        title: "mcp__superintendent-agentic-tools__workflow_transition",
         input: { action: "request_review", summary: "Board complete" }
       } as AcpEvent,
       { event: "tool_complete", id: "call-1", kind: "other", path: "Recorded workflow transition: request_review" }
@@ -175,7 +175,7 @@ describe("acp/middlewares/sessionCapture", () => {
       {
         id: "call-1",
         kind: "other",
-        title: "mcp__superintendent-agentic-tools__workflow.transition",
+        title: "mcp__superintendent-agentic-tools__workflow_transition",
         input: { action: "request_review", summary: "Board complete" },
         path: "Recorded workflow transition: request_review"
       }

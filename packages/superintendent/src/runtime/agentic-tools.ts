@@ -12,13 +12,13 @@ type ObjectSchema = {
 };
 
 export type BuilderToolDefinition = {
-  name: "builder.run";
+  name: "builder_run";
   description: string;
   inputSchema: ObjectSchema;
 };
 
 export type InspectorToolDefinition = {
-  name: "inspector.run";
+  name: "inspector_run";
   description: string;
   inputSchema: ObjectSchema;
 };
@@ -34,7 +34,7 @@ export type InspectorRunInput = {
 
 export function createBuilderTool(): BuilderToolDefinition {
   return {
-    name: "builder.run",
+    name: "builder_run",
     description:
       "Run the builder agent with a prompt you compose. Returns the builder's summary and the path to its session log. Use this to make targeted changes mid-round without waiting for the next auto-run.",
     inputSchema: {
@@ -56,7 +56,7 @@ export function createInspectorTool(inspectorNames: string[]): InspectorToolDefi
   const namesAvailable = inspectorNames.length > 0;
 
   return {
-    name: "inspector.run",
+    name: "inspector_run",
     description: namesAvailable
       ? `Re-run a specific inspector. Returns the inspector's summary. Available inspectors: ${inspectorNames.join(", ")}.`
       : "Re-run a specific inspector. No inspectors are configured for this document.",
@@ -82,13 +82,13 @@ export function createInspectorTool(inspectorNames: string[]): InspectorToolDefi
 
 export function parseBuilderRunInput(input: unknown): BuilderRunInput {
   if (!isRecord(input)) {
-    throw new Error("builder.run requires an object input with a `prompt` field");
+    throw new Error("builder_run requires an object input with a `prompt` field");
   }
 
   const prompt = input.prompt;
 
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
-    throw new Error("builder.run `prompt` must be a non-empty string");
+    throw new Error("builder_run `prompt` must be a non-empty string");
   }
 
   return { prompt };
@@ -99,18 +99,18 @@ export function parseInspectorRunInput(
   inspectorNames: string[]
 ): InspectorRunInput {
   if (!isRecord(input)) {
-    throw new Error("inspector.run requires an object input with a `name` field");
+    throw new Error("inspector_run requires an object input with a `name` field");
   }
 
   const name = input.name;
 
   if (typeof name !== "string" || name.trim().length === 0) {
-    throw new Error("inspector.run `name` must be a non-empty string");
+    throw new Error("inspector_run `name` must be a non-empty string");
   }
 
   if (inspectorNames.length > 0 && !inspectorNames.includes(name)) {
     throw new Error(
-      `inspector.run name "${name}" is not configured. Available inspectors: ${inspectorNames.join(", ")}`
+      `inspector_run name "${name}" is not configured. Available inspectors: ${inspectorNames.join(", ")}`
     );
   }
 
@@ -119,7 +119,7 @@ export function parseInspectorRunInput(
   }
 
   if (typeof input.prompt !== "string" || input.prompt.trim().length === 0) {
-    throw new Error("inspector.run `prompt` must be a non-empty string when provided");
+    throw new Error("inspector_run `prompt` must be a non-empty string when provided");
   }
 
   return { name, prompt: input.prompt };

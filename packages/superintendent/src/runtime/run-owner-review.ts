@@ -39,12 +39,9 @@ type ToolCallLike = {
 type AutonomousOutput =
   | string
   | {
-      transition?: unknown;
       toolCalls?: unknown;
       sessionResult?: unknown;
-      output?: unknown;
       stdout?: unknown;
-      text?: unknown;
     };
 
 type SpawnWithAutonomous = typeof spawn & {
@@ -151,7 +148,7 @@ function extractOwnerTransition(result: AutonomousOutput): OwnerTransition {
   const transition = extractTransition(result);
 
   if (transition === undefined) {
-    throw new Error("Owner review must end with workflow.transition");
+    throw new Error("Owner review must end with workflow_transition");
   }
 
   if (transition.action !== "approve_completion" && transition.action !== "request_changes") {
@@ -162,35 +159,17 @@ function extractOwnerTransition(result: AutonomousOutput): OwnerTransition {
 }
 
 function extractTransition(result: AutonomousOutput): WorkflowTransition | undefined {
-  if (typeof result !== "string") {
-    const directTransition = readTransition(result.transition);
-
-    if (directTransition) {
-      return directTransition;
-    }
-
-    const toolCallTransition = readTransitionFromToolCalls(result.toolCalls);
-
-    if (toolCallTransition) {
-      return toolCallTransition;
-    }
-
-    const sessionTransition = readTransitionFromSessionResult(result.sessionResult);
-
-    if (sessionTransition) {
-      return sessionTransition;
-    }
-  }
-
-  return readTransitionFromText(extractOutputText(result));
-}
-
-function readTransition(value: unknown): WorkflowTransition | undefined {
-  if (value === undefined) {
+  if (typeof result === "string") {
     return undefined;
   }
 
-  return parseWorkflowCall(parseJsonValue(value));
+  const toolCallTransition = readTransitionFromToolCalls(result.toolCalls);
+
+  if (toolCallTransition) {
+    return toolCallTransition;
+  }
+
+  return readTransitionFromSessionResult(result.sessionResult);
 }
 
 function readTransitionFromToolCalls(value: unknown): WorkflowTransition | undefined {
@@ -225,32 +204,6 @@ function readTransitionFromSessionResult(value: unknown): WorkflowTransition | u
   return readTransitionFromToolCalls(value.toolCalls);
 }
 
-function readTransitionFromText(text: string): WorkflowTransition | undefined {
-  for (const line of splitLines(text)) {
-    const trimmed = line.trim();
-
-    if (trimmed.length === 0) {
-      continue;
-    }
-
-    const payload = readWorkflowTransitionTextPayload(trimmed);
-
-    if (payload !== undefined) {
-      return parseWorkflowCall(parseJsonValue(payload));
-    }
-  }
-
-  return undefined;
-}
-
-function extractOutputText(result: AutonomousOutput): string {
-  if (typeof result === "string") {
-    return result;
-  }
-
-  return readString(result.output) ?? readString(result.stdout) ?? readString(result.text) ?? "";
-}
-
 function readToolCall(value: unknown): ToolCallLike | undefined {
   return isRecord(value) ? value : undefined;
 }
@@ -270,18 +223,8 @@ function readToolCallArguments(toolCall: ToolCallLike): unknown {
 
 function isWorkflowToolName(name: string | undefined): boolean {
   if (!name) return false;
-  if (name === "workflow.transition") return true;
-  return name.startsWith("mcp__") && name.endsWith("__workflow.transition");
-}
-
-function readWorkflowTransitionTextPayload(line: string): string | undefined {
-  const prefix = "workflow.transition(";
-
-  if (line.startsWith(prefix) && line.endsWith(")")) {
-    return line.slice(prefix.length, -1).trim();
-  }
-
-  return undefined;
+  if (name === "workflow_transition") return true;
+  return name.startsWith("mcp__") && name.endsWith("__workflow_transition");
 }
 
 function parseJsonValue(value: unknown): unknown {
@@ -310,10 +253,6 @@ function tryParseJson(value: string): unknown {
 
 function encodeJson(value: unknown): string {
   return Buffer.from(JSON.stringify(value), "utf8").toString("base64");
-}
-
-function splitLines(value: string): string[] {
-  return value.split("\n").map((line) => (line.endsWith("\r") ? line.slice(0, -1) : line));
 }
 
 function readString(value: unknown): string | undefined {

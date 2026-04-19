@@ -19,7 +19,7 @@ type McpToolInputSchema = {
 };
 
 export type McpToolDefinition = {
-  name: "workflow.transition";
+  name: "workflow_transition";
   description: string;
   inputSchema: McpToolInputSchema;
 };
@@ -31,7 +31,7 @@ export function createWorkflowTool(
   const actions = getAllowedActions(role, state);
 
   return {
-    name: "workflow.transition",
+    name: "workflow_transition",
     description:
       actions.length === 0
         ? "Transition the workflow state. No transitions are available in the current role/state."
@@ -61,7 +61,7 @@ export function parseWorkflowCall(input: unknown): WorkflowTransition {
       action,
       summary: getNonEmptyString(
         input.summary,
-        'workflow.transition summary must be a non-empty string for "request_review"'
+        'workflow_transition summary must be a non-empty string for "request_review"'
       )
     };
   }
@@ -71,7 +71,7 @@ export function parseWorkflowCall(input: unknown): WorkflowTransition {
       action,
       feedback: getNonEmptyString(
         input.feedback,
-        'workflow.transition feedback must be a non-empty string for "request_changes"'
+        'workflow_transition feedback must be a non-empty string for "request_changes"'
       )
     };
   }
@@ -134,7 +134,7 @@ function getNonEmptyString(value: unknown, errorMessage: string): string {
 
 function invalidActionError(): Error {
   return new Error(
-    'workflow.transition action must be one of "request_review", "approve_completion", or "request_changes"'
+    'workflow_transition action must be one of "request_review", "approve_completion", or "request_changes"'
   );
 }
 

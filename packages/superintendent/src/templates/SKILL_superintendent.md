@@ -166,7 +166,7 @@ builder:
 
 ## Auto-Run vs On-Demand Inspectors
 
-An inspector auto-runs each round only if its summary is referenced in the superintendent prompt via `{{inspectors.<name>}}` (transitively — if an auto-run inspector's own prompt references another inspector, that one also auto-runs). Inspectors configured but not referenced remain available: the superintendent can invoke them mid-round via the `inspector.run` MCP tool.
+An inspector auto-runs each round only if its summary is referenced in the superintendent prompt via `{{inspectors.<name>}}` (transitively — if an auto-run inspector's own prompt references another inspector, that one also auto-runs). Inspectors configured but not referenced remain available: the superintendent can invoke them mid-round via the `inspector_run` MCP tool.
 
 ## Rules
 

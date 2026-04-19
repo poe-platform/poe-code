@@ -71,7 +71,7 @@ describe("runSuperintendent", () => {
       expect(prompt).toContain(
         "Review /repo/docs/plans/feature.md after Builder finished task 1 and Needs one more pass"
       );
-      expect(prompt).toContain("workflow.transition");
+      expect(prompt).toContain("workflow_transition");
       expect(prompt).toContain("request_review");
       expect(prompt).not.toContain("{{plan.path}}");
       expect(prompt).not.toContain("{{builder.summary}}");
@@ -187,7 +187,7 @@ describe("runSuperintendent", () => {
       summary: "All planned work is complete",
       toolCalls: [
         {
-          name: "workflow.transition",
+          name: "workflow_transition",
           arguments: {
             action: "request_review",
             summary: "Ready for owner review"
@@ -212,7 +212,7 @@ describe("runSuperintendent", () => {
       sessionResult: {
         toolCalls: [
           {
-            title: "mcp__superintendent-tools__workflow.transition",
+            title: "mcp__superintendent-tools__workflow_transition",
             input: {
               action: "request_review",
               summary: "Ready for owner review"
@@ -248,9 +248,9 @@ describe("runSuperintendent", () => {
       expect(prompt.startsWith("# System")).toBe(true);
       expect(prompt).toContain("# Task");
       expect(prompt.indexOf("# System")).toBeLessThan(prompt.indexOf("# Task"));
-      expect(prompt).toContain("workflow.transition");
+      expect(prompt).toContain("workflow_transition");
       expect(prompt).toContain("request_review");
-      expect(prompt).toContain("builder.run");
+      expect(prompt).toContain("builder_run");
 
       return "ok";
     });
@@ -262,7 +262,7 @@ describe("runSuperintendent", () => {
 
   it("lists configured inspector names in the system prompt", async () => {
     autonomousMock.mockImplementation(async (_, { prompt }) => {
-      expect(prompt).toContain("inspector.run");
+      expect(prompt).toContain("inspector_run");
       expect(prompt).toContain("code-quality");
       expect(prompt).toContain("testing");
 
@@ -286,9 +286,9 @@ describe("runSuperintendent", () => {
     );
   });
 
-  it("omits inspector.run from the system prompt when no inspectors are configured", async () => {
+  it("omits inspector_run from the system prompt when no inspectors are configured", async () => {
     autonomousMock.mockImplementation(async (_, { prompt }) => {
-      expect(prompt).not.toContain("inspector.run");
+      expect(prompt).not.toContain("inspector_run");
 
       return "ok";
     });

@@ -10,7 +10,7 @@ describe("createBuilderTool", () => {
   it("declares prompt as the only required field", () => {
     const tool = createBuilderTool();
 
-    expect(tool.name).toBe("builder.run");
+    expect(tool.name).toBe("builder_run");
     expect(tool.inputSchema.required).toEqual(["prompt"]);
     expect(tool.inputSchema.additionalProperties).toBe(false);
     expect(tool.inputSchema.properties.prompt?.type).toBe("string");
@@ -21,7 +21,7 @@ describe("createInspectorTool", () => {
   it("includes inspector names as the enum when configured", () => {
     const tool = createInspectorTool(["code-quality", "testing"]);
 
-    expect(tool.name).toBe("inspector.run");
+    expect(tool.name).toBe("inspector_run");
     expect(tool.inputSchema.required).toEqual(["name"]);
     expect(tool.inputSchema.properties.name?.enum).toEqual(["code-quality", "testing"]);
     expect(tool.inputSchema.properties.prompt).toBeDefined();
@@ -44,16 +44,16 @@ describe("parseBuilderRunInput", () => {
 
   it("rejects non-object input", () => {
     expect(() => parseBuilderRunInput("oops")).toThrow(
-      "builder.run requires an object input"
+      "builder_run requires an object input"
     );
   });
 
   it("rejects empty prompts", () => {
     expect(() => parseBuilderRunInput({ prompt: "" })).toThrow(
-      "builder.run `prompt` must be a non-empty string"
+      "builder_run `prompt` must be a non-empty string"
     );
     expect(() => parseBuilderRunInput({ prompt: "   " })).toThrow(
-      "builder.run `prompt` must be a non-empty string"
+      "builder_run `prompt` must be a non-empty string"
     );
   });
 });
@@ -80,7 +80,7 @@ describe("parseInspectorRunInput", () => {
   it("rejects names that are not configured", () => {
     expect(() =>
       parseInspectorRunInput({ name: "missing" }, ["code-quality"])
-    ).toThrow('inspector.run name "missing" is not configured');
+    ).toThrow('inspector_run name "missing" is not configured');
   });
 
   it("allows any name when no inspectors are listed (unconfigured doc)", () => {
@@ -92,6 +92,6 @@ describe("parseInspectorRunInput", () => {
   it("rejects empty prompts when provided", () => {
     expect(() =>
       parseInspectorRunInput({ name: "code-quality", prompt: "" }, ["code-quality"])
-    ).toThrow("inspector.run `prompt` must be a non-empty string when provided");
+    ).toThrow("inspector_run `prompt` must be a non-empty string when provided");
   });
 });

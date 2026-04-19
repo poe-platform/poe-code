@@ -311,7 +311,9 @@ describe("createSuperintendentSimulation", () => {
         },
         inspectorTurn(codeQualitySummary, async (prompt, ctx) => {
           expectKnownTemplateVariablesResolved(prompt);
-          expect(prompt.trim()).toBe(`Inspect ${absoluteDocPath}`);
+          expect(prompt).toContain(`Inspect ${absoluteDocPath}`);
+          expect(prompt).toContain(`code-quality`);
+          expect(prompt).toContain(builderSummary);
 
           const doc = await ctx.readDoc();
           expect(doc.frontmatter.status).toEqual({
@@ -322,7 +324,9 @@ describe("createSuperintendentSimulation", () => {
         }),
         inspectorTurn(dxSummary, async (prompt, ctx) => {
           expectKnownTemplateVariablesResolved(prompt);
-          expect(prompt.trim()).toBe(`Review DX. Build log: ${builderLog}`);
+          expect(prompt).toContain(`Review DX. Build log: ${builderLog}`);
+          expect(prompt).toContain(`dx`);
+          expect(prompt).toContain(builderSummary);
 
           const doc = await ctx.readDoc();
           expect(doc.frontmatter.status).toEqual({

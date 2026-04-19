@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildOwnerSystemPrompt, buildSuperintendentSystemPrompt } from "./system-prompt.js";
+import {
+  buildInspectorSystemPrompt,
+  buildOwnerSystemPrompt,
+  buildSuperintendentSystemPrompt
+} from "./system-prompt.js";
 
 describe("buildSuperintendentSystemPrompt", () => {
   it("instructs the agent to call workflow_transition with request_review", () => {
@@ -58,6 +62,56 @@ describe("buildSuperintendentSystemPrompt", () => {
 
     expect(prompt).toContain("workflow_transition");
     expect(prompt).toContain("request_review");
+  });
+});
+
+describe("buildInspectorSystemPrompt", () => {
+  it("names the inspector and tells it to scope review to the builder change", () => {
+    const prompt = buildInspectorSystemPrompt({
+      inspectorName: "code-quality",
+      builder: { summary: "Added install.ts module" }
+    });
+
+    expect(prompt).toContain("`code-quality`");
+    expect(prompt).toContain("scope your review");
+    expect(prompt).toContain("Added install.ts module");
+  });
+
+  it("includes the replay log command when log_path is present", () => {
+    const prompt = buildInspectorSystemPrompt({
+      inspectorName: "testing",
+      builder: {
+        summary: "Built thing",
+        log_path: "/tmp/spawn-logs/round-7-builder.jsonl"
+      }
+    });
+
+    expect(prompt).toContain("npm run replay -- /tmp/spawn-logs/round-7-builder.jsonl");
+  });
+
+  it("omits the replay section when no log_path is provided", () => {
+    const prompt = buildInspectorSystemPrompt({
+      inspectorName: "testing",
+      builder: { summary: "Built thing" }
+    });
+
+    expect(prompt).not.toContain("npm run replay");
+  });
+
+  it("falls back to a placeholder when builder summary is empty", () => {
+    const prompt = buildInspectorSystemPrompt({
+      inspectorName: "code-quality",
+      builder: { summary: "" }
+    });
+
+    expect(prompt).toContain("(builder produced no summary)");
+  });
+
+  it("works without builder context", () => {
+    const prompt = buildInspectorSystemPrompt({ inspectorName: "code-quality" });
+
+    expect(prompt).toContain("`code-quality`");
+    expect(prompt).not.toContain("Builder summary");
   });
 });
 

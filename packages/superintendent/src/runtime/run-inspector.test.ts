@@ -63,7 +63,7 @@ describe("runInspector", () => {
       expect(agent).toBe("codex");
       expect(mode).toBe("read");
       expect(cwd).toBe("/repo/docs/plans");
-      expect(prompt).toBe("Inspect /repo/docs/plans/feature.md after Builder finished task 1");
+      expect(prompt).toContain("Inspect /repo/docs/plans/feature.md after Builder finished task 1");
       expect(prompt).not.toContain("{{plan.path}}");
       expect(prompt).not.toContain("{{builder.summary}}");
       return "No issues found";
@@ -156,7 +156,7 @@ describe("runInspector", () => {
 
   it("uses the prompt override verbatim when provided, skipping template resolution", async () => {
     autonomousMock.mockImplementation(async (_, { prompt }) => {
-      expect(prompt).toBe("Re-check after the latest fix");
+      expect(prompt).toContain("Re-check after the latest fix");
       return "Resolved";
     });
 
@@ -174,6 +174,38 @@ describe("runInspector", () => {
     );
 
     expect(autonomousMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("auto-injects builder summary and replay log into the inspector prompt", async () => {
+    autonomousMock.mockImplementation(async (_, { prompt }) => {
+      expect(prompt).toContain("`code-quality`");
+      expect(prompt).toContain("Builder summary");
+      expect(prompt).toContain("Built install.ts in packages/memory/src");
+      expect(prompt).toContain(
+        "npm run replay -- /tmp/spawn-logs/round-7-builder.jsonl"
+      );
+      expect(prompt).toContain("# Task");
+      return "ok";
+    });
+
+    const { runInspector } = await import("./run-inspector.js");
+
+    await runInspector(
+      "code-quality",
+      document.frontmatter.inspectors?.["code-quality"] ?? {
+        agent: "codex",
+        prompt: ""
+      },
+      document,
+      {
+        builder: {
+          summary: "Built install.ts in packages/memory/src",
+          log: "",
+          log_path: "/tmp/spawn-logs/round-7-builder.jsonl"
+        }
+      },
+      { defaultCwd: "/repo" }
+    );
   });
 });
 
@@ -238,11 +270,11 @@ describe("runAllInspectors", () => {
   it("resolves templates separately for each inspector", async () => {
     autonomousMock.mockImplementation(async (agent, { prompt }) => {
       if (agent === "codex") {
-        expect(prompt).toBe("Inspect /repo/docs/plans/feature.md after Builder finished task 1");
+        expect(prompt).toContain("Inspect /repo/docs/plans/feature.md after Builder finished task 1");
         return "quality-ok";
       }
 
-      expect(prompt).toBe("Validate Changed files and quality-ok");
+      expect(prompt).toContain("Validate Changed files and quality-ok");
       return "qa-ok";
     });
 

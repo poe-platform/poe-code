@@ -1,6 +1,7 @@
 import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 import type { AgentRoleConfig, SuperintendentDoc } from "../document/parse.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
+import { buildInspectorSystemPrompt, prependSystemPrompt } from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 
 export type InspectorResult = {
@@ -50,9 +51,21 @@ export async function runInspector(
   context: Partial<TemplateContext>,
   options: RunInspectorOptions
 ): Promise<InspectorResult> {
-  const prompt =
+  const userPrompt =
     options.promptOverride ??
     resolveTemplate(config.prompt, buildTemplateContext(doc, context));
+  const systemPrompt = buildInspectorSystemPrompt({
+    inspectorName: name,
+    ...(context.builder
+      ? {
+          builder: {
+            summary: context.builder.summary,
+            ...(context.builder.log_path ? { log_path: context.builder.log_path } : {})
+          }
+        }
+      : {})
+  });
+  const prompt = prependSystemPrompt(systemPrompt, userPrompt);
   const output = await runAutonomous({
     agent: config.agent,
     mode: config.mode,

@@ -44,6 +44,33 @@ export function buildSuperintendentSystemPrompt(
   return sections.join("\n");
 }
 
+type InspectorSystemPromptInput = {
+  inspectorName: string;
+  builder?: { summary: string; log_path?: string };
+};
+
+export function buildInspectorSystemPrompt(input: InspectorSystemPromptInput): string {
+  const sections: string[] = [
+    "# System",
+    "",
+    `You are the \`${input.inspectorName}\` inspector. Review the most recent builder round; scope your review to the change reported below — do not wander into unrelated areas of the repo.`
+  ];
+
+  if (input.builder) {
+    sections.push("", "## Builder summary", "", input.builder.summary || "(builder produced no summary)");
+    if (input.builder.log_path) {
+      sections.push(
+        "",
+        "## Builder replay log",
+        "",
+        `Replay the builder's tool calls with: \`npm run replay -- ${input.builder.log_path}\``
+      );
+    }
+  }
+
+  return sections.join("\n");
+}
+
 export function buildOwnerSystemPrompt(): string {
   return [
     "# System",

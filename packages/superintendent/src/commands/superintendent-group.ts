@@ -145,11 +145,14 @@ function validatePromptVariables(document: SuperintendentDoc): ValidationProblem
     "builder.log",
     "builder.log_path",
     "superintendent.summary",
-    "owner.feedback"
+    "superintendent.log_path",
+    "owner.feedback",
+    "owner.log_path"
   ]);
 
   for (const inspectorName of Object.keys(document.frontmatter.inspectors ?? {})) {
     allowedVariables.add(`inspectors.${inspectorName}`);
+    allowedVariables.add(`inspector_logs.${inspectorName}`);
   }
 
   const problems: ValidationProblem[] = [];

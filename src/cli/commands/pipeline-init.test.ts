@@ -42,8 +42,10 @@ describe("buildPipelineInitPrompt", () => {
       skillContent: "SKILL BODY"
     });
 
-    expect(prompt).toContain('If The Request Is Empty');
-    expect(prompt).toContain("one-sentence description");
+    expect(prompt).toContain(
+      "Convert the source document below into a pipeline plan. Treat the source document as the user request and do not ask the user for more input."
+    );
+    expect(prompt).not.toContain("one-sentence description");
   });
 
   it("uses a safe fence when the source document contains triple backticks", () => {

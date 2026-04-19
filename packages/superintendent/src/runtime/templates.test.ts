@@ -55,6 +55,44 @@ describe("resolveTemplate", () => {
     ).toBe("Superintendent: Ready for owner review\nOwner: Please add one more test");
   });
 
+  it("resolves {{superintendent.log_path}} to the superintendent spawn log path", () => {
+    expect(
+      resolveTemplate("Replay: npm run replay -- {{superintendent.log_path}}", {
+        superintendent: {
+          summary: "Ready for owner review",
+          log_path: "/tmp/spawn-logs/20260419-120000-000-superintendent.jsonl"
+        }
+      })
+    ).toBe("Replay: npm run replay -- /tmp/spawn-logs/20260419-120000-000-superintendent.jsonl");
+  });
+
+  it("resolves {{owner.log_path}} to the owner spawn log path", () => {
+    expect(
+      resolveTemplate("Replay: npm run replay -- {{owner.log_path}}", {
+        owner: {
+          feedback: "Please add one more test",
+          log_path: "/tmp/spawn-logs/20260419-120000-000-owner.jsonl"
+        }
+      })
+    ).toBe("Replay: npm run replay -- /tmp/spawn-logs/20260419-120000-000-owner.jsonl");
+  });
+
+  it("resolves {{inspector_logs.<name>}} to the named inspector's spawn log path", () => {
+    expect(
+      resolveTemplate(
+        "Replay code-quality: {{inspector_logs.code-quality}}\nReplay manual-qa: {{inspector_logs.manual-qa}}",
+        {
+          inspector_logs: {
+            "code-quality": "/tmp/spawn-logs/20260419-120000-000-inspector-code-quality.jsonl",
+            "manual-qa": "/tmp/spawn-logs/20260419-120001-000-inspector-manual-qa.jsonl"
+          }
+        }
+      )
+    ).toBe(
+      "Replay code-quality: /tmp/spawn-logs/20260419-120000-000-inspector-code-quality.jsonl\nReplay manual-qa: /tmp/spawn-logs/20260419-120001-000-inspector-manual-qa.jsonl"
+    );
+  });
+
   it("leaves unknown variables as-is", () => {
     expect(
       resolveTemplate("Known: {{plan.path}} Unknown: {{builder.unknown}}", {

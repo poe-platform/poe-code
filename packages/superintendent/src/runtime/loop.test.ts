@@ -690,6 +690,76 @@ describe("runLoop", () => {
     ]);
   });
 
+  it("threads log_path from each role into the downstream template context", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs } = createFs({
+      [docPath]: createDocument({
+        inspectors: [
+          { name: "code-quality", prompt: "Check {{builder.log_path}}" },
+          { name: "manual-qa", prompt: "Replay {{inspector_logs.code-quality}}" }
+        ],
+        superintendentPrompt:
+          "Review {{inspectors.code-quality}} {{inspectors.manual-qa}} {{inspector_logs.manual-qa}}"
+      })
+    });
+
+    runBuilderMock.mockResolvedValue({
+      summary: "Builder finished",
+      log: "log",
+      log_path: "/tmp/spawn-logs/builder.jsonl"
+    });
+
+    runInspectorMock
+      .mockImplementationOnce(async (_name, _config, _doc, context) => {
+        expect(context.inspector_logs).toEqual({});
+        return {
+          name: "code-quality",
+          summary: "quality ok",
+          log_path: "/tmp/spawn-logs/inspector-code-quality.jsonl"
+        };
+      })
+      .mockImplementationOnce(async (_name, _config, _doc, context) => {
+        expect(context.inspector_logs).toEqual({
+          "code-quality": "/tmp/spawn-logs/inspector-code-quality.jsonl"
+        });
+        return {
+          name: "manual-qa",
+          summary: "qa ok",
+          log_path: "/tmp/spawn-logs/inspector-manual-qa.jsonl"
+        };
+      });
+
+    runSuperintendentMock.mockImplementation(async (_doc, context) => {
+      expect(context.inspector_logs).toEqual({
+        "code-quality": "/tmp/spawn-logs/inspector-code-quality.jsonl",
+        "manual-qa": "/tmp/spawn-logs/inspector-manual-qa.jsonl"
+      });
+      return {
+        summary: "ready",
+        transition: { action: "request_review", summary: "ready" },
+        log_path: "/tmp/spawn-logs/superintendent.jsonl"
+      };
+    });
+
+    runOwnerReviewMock.mockImplementation(async (_doc, context) => {
+      expect(context.superintendent).toEqual({
+        summary: "ready",
+        log_path: "/tmp/spawn-logs/superintendent.jsonl"
+      });
+      return {
+        transition: { action: "approve_completion" },
+        log_path: "/tmp/spawn-logs/owner.jsonl"
+      };
+    });
+
+    const { runLoop } = await import("./loop.js");
+    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs });
+
+    expect(runInspectorMock).toHaveBeenCalledTimes(2);
+    expect(runSuperintendentMock).toHaveBeenCalledTimes(1);
+    expect(runOwnerReviewMock).toHaveBeenCalledTimes(1);
+  });
+
   it("skips every inspector when the superintendent prompt references none", async () => {
     const docPath = "/repo/docs/plans/feature.md";
     const { fs } = createFs({

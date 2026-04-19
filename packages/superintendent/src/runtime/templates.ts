@@ -2,8 +2,9 @@ export type TemplateContext = {
   plan: { path: string };
   builder: { summary: string; log: string; log_path: string };
   inspectors: Record<string, string>;
-  superintendent: { summary: string };
-  owner: { feedback: string };
+  inspector_logs: Record<string, string>;
+  superintendent: { summary: string; log_path?: string };
+  owner: { feedback: string; log_path?: string };
 };
 
 const templateVariablePattern = /{{\s*([A-Za-z0-9_.-]+)\s*}}/g;

@@ -21,6 +21,7 @@ import {
   isCancel,
   resolveOutputFormat,
   select,
+  shouldUseInteractiveDashboard,
   text,
   type Dashboard
 } from "@poe-code/design-system";
@@ -31,6 +32,7 @@ import {
   resolveProjectConfigPath,
   resolveScope
 } from "@poe-code/poe-code-config";
+import { superintendentConfigScope } from "../config-scope.js";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import {
   runLoop,
@@ -102,18 +104,21 @@ type RunSession = {
 
 const runParams = S.Object({
   doc: S.Optional(S.String({ description: "Path to the superintendent markdown document" })),
-  agent: S.Optional(S.String({ description: "Override the builder agent" }))
+  agent: S.Optional(S.String({ description: "Override the builder agent" })),
+  tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" }))
 });
 
 export const runCommand = defineCommand({
   name: "run",
-  description: "Run the full superintendent loop with the live dashboard UI.",
+  description: "Run the full superintendent loop.",
   positional: ["doc"],
   params: runParams,
   scope: ["cli", "sdk"],
   handler: async ({ params }) => {
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
+    const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
+    const tuiEnabled = params.tui ?? commandConfig.tui;
 
     return runSuperintendentCommand({
       cwd,
@@ -122,8 +127,9 @@ export const runCommand = defineCommand({
       builderAgent: params.agent,
       assumeYes: process.argv.includes("--yes"),
       interactive: Boolean(process.stdin.isTTY),
-      useDashboard: resolveOutputFormat() === "terminal",
-      env: process.env
+      useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
+      env: process.env,
+      ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
     });
   },
   render: {
@@ -165,6 +171,7 @@ export const runMcpCommand = defineCommand({
   handler: async ({ params }) => {
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
+    const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
 
     return runSuperintendentCommand({
       cwd,
@@ -174,26 +181,40 @@ export const runMcpCommand = defineCommand({
       assumeYes: true,
       interactive: false,
       useDashboard: false,
-      env: process.env
+      env: process.env,
+      ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
     });
   },
   render: runCommand.render
 });
 
-async function resolveSuperintendentPlanDirectory(
+async function resolveSuperintendentCommandConfig(
   cwd: string,
   homeDir: string,
   env: Record<string, string | undefined>,
   fs?: SuperintendentFileSystem
-): Promise<string> {
+): Promise<{ planDirectory?: string; tui: boolean }> {
   const configPath = resolveConfigPath(homeDir);
   const projectConfigPath = resolveProjectConfigPath(cwd);
-  const document = await readMergedDocument(
-    createConfigResolutionFs(fs),
-    configPath,
-    projectConfigPath
-  );
-  return resolveScope(planConfigScope.schema, document.plan, env).plan_directory;
+  try {
+    const document = await readMergedDocument(
+      createConfigResolutionFs(fs),
+      configPath,
+      projectConfigPath
+    );
+    const planDirectory = resolveScope(planConfigScope.schema, document.plan, env).plan_directory?.trim();
+    const superintendentResolved = resolveScope(
+      superintendentConfigScope.schema,
+      document[superintendentConfigScope.scope],
+      env
+    );
+    return {
+      ...(planDirectory ? { planDirectory } : {}),
+      tui: superintendentResolved.tui === true
+    };
+  } catch {
+    return { tui: false };
+  }
 }
 
 const configFs = {

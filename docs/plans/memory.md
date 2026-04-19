@@ -1,3 +1,65 @@
+---
+kind: superintendent
+version: 1
+
+builder:
+  agent: poe-agent:openai/gpt-5.4
+  prompt: |
+    Build the highest-priority open task from {{plan.path}}. Tests before code.
+
+inspectors:
+  code-quality:
+    agent: poe-agent:openai/gpt-5.4
+    prompt: |
+      Review convention + architecture. Flag SOLID/YAGNI/KISS violations, proxy-only functions, over-used constants, and tests that leaked complexity into production code.
+  testing:
+    agent: poe-agent:openai/gpt-5.4
+    prompt: |
+      Verify every new module has a colocated `*.test.ts` using memfs (no real FS, no LLM). Run the package test suite and report any failure — no pre-existing excuses.
+  poe-agent-improver:
+    agent: claude-code
+    prompt: |
+      Replay the builder with `npm run replay -- {{builder.log_path}}` and study how poe-agent actually executed this round. Propose one *systemic* improvement to the agent (prompting, tool wiring, plugin model, loop control) — never a one-off patch. Keep poe-agent prompting extremely lean; reject anything that bloats the system prompt.
+  superintendent-improver:
+    agent: claude-code
+    prompt: |
+      Replay every available phase with `npm run replay -- <path>`: builder=`{{builder.log_path}}`, inspectors=`{{inspector_logs.code-quality}}` / `{{inspector_logs.testing}}` / `{{inspector_logs.poe-agent-improver}}`, superintendent=`{{superintendent.log_path}}`, owner=`{{owner.log_path}}` (superintendent/owner paths are empty on round 1; use the previous round's paths from round 2 onward). Verify MCP came up clean, role handovers carried the right context, and template variables resolved. Flag systemic issues only — never one-off fixes.
+
+superintendent:
+  agent: poe-agent:openai/gpt-5.4
+  prompt: |
+    Review builder + inspector output, update the Task Board in {{plan.path}}, and hand to owner only when every open task is checked and every inspector accepted.
+
+    Builder summary:
+    {{builder.summary}}
+
+    Inspector summaries:
+
+    ## code quality
+    {{inspectors.code-quality}}
+
+    ## testing
+    {{inspectors.testing}}
+
+    ## poe-agent improver
+    {{inspectors.poe-agent-improver}}
+
+    ## superintendent improver
+    {{inspectors.superintendent-improver}}
+
+owner:
+  agent: claude-code
+  prompt: |
+    Approve or send back based on {{superintendent.summary}}. Reject if any Task Board item is open, any inspector is red, new code lacks tests, or the two meta inspectors found systemic issues that were not addressed.
+
+max_rounds: 100
+
+status:
+  state: in_progress
+  round: 2
+  review_turn: 0
+---
+
 # Memory
 
 A poe-code–maintained persistent memory directory that accumulates project knowledge across agent sessions, based on Karpathy's [LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
@@ -39,7 +101,7 @@ Karpathy's pattern reframes this: the agent *incrementally builds and maintains*
 1. **Confidence tagging** on every non-trivial claim (`extracted` / `inferred` / `ambiguous` + confidence score) — graphify's `EXTRACTED` / `INFERRED` / `AMBIGUOUS` edge labels applied to prose.
 2. **Content-hash ingest cache** so re-ingesting unchanged sources is a no-op — graphify's `cache/` SHA256 strategy.
 3. **Token-reduction benchmark** reported by `status` and `ingest` — graphify's "71.5× fewer tokens per query" made measurable per repo.
-4. **MCP server** (`poe-code memory serve --mcp`) exposing read/write tools — graphify's `python -m graphify.serve` pattern, closing the integration gap without waiting for spawn-hooks v2.
+4. **MCP server** (`poe-code memory-mcp`) exposing read/write tools — graphify's `python -m graphify.serve` pattern, closing the integration gap without waiting for spawn-hooks v2.
 5. **Query / explain surface** (`memory query "<question>"`, `memory explain <page>`) — graphify's `query` / `path` / `explain` as a consumer surface beyond `show`/`search`.
 
 Everything else graphify does (Leiden clustering, multimodal ingest, wiki export, PenPax) is out.
@@ -83,6 +145,17 @@ Pages are plain markdown with an optional frontmatter block (name, description, 
 ```bash
 # Create .poe-code/memory/ with empty INDEX.md and LOG.md. Idempotent.
 poe-code memory init
+
+# Install the `poe-code-memory` skill and register the memory-mcp server
+# with the configured agent's MCP config (~/.mcp.json or project .mcp.json).
+# Idempotent — re-running updates the existing entries in place.
+#   --agent <name>    which agent to install for (claude-code, codex, opencode)
+#   --scope <s>       `local` (project) or `global` (home). Defaults local.
+#   --skill-only      install the skill but do not touch MCP config
+#   --mcp-only        register the MCP server but do not install the skill
+#   --allow-writes    register the MCP server with `--allow-writes`
+#   --dry-run         print what would change; touch nothing
+poe-code memory install
 
 # List every page with a one-line description from frontmatter.
 poe-code memory ls
@@ -139,7 +212,7 @@ poe-code memory cache clear [--older-than <duration>] [--yes]
 # read-only; --allow-writes advertises append_to_page.
 #   --allow-writes        expose write tools
 #   --print-mcp-config    print a .mcp.json snippet and exit
-poe-code memory serve --mcp
+poe-code memory-mcp
 
 # Ask a natural-language question answered from memory only.
 # Spawns an agent with memory (INDEX.md + selected pages) as its only
@@ -226,7 +299,7 @@ sources:
 Done in 6s. Consumed 1,240 tokens.
 ```
 
-Example output — `poe-code memory serve --mcp --print-mcp-config`:
+Example output — `poe-code memory-mcp --print-mcp-config`:
 
 ```json
 {
@@ -234,7 +307,7 @@ Example output — `poe-code memory serve --mcp --print-mcp-config`:
     "poe-code-memory": {
       "type": "stdio",
       "command": "poe-code",
-      "args": ["memory", "serve", "--mcp"]
+      "args": ["memory-mcp"]
     }
   }
 }
@@ -340,7 +413,7 @@ Added to `.poe-code/config.json` under a new `memory` key. All optional.
 - `memory.confidence.minInferredConfidence` — `lint` issues an error below this threshold (default 0.3). Tag authors signalling <0.3 should almost always switch to `ambiguous`.
 - `memory.cache.enabled` — if false, `ingest` never reads or writes the cache; equivalent to always passing `--force --no-cache-write`. Defaults true.
 - `memory.cache.maxAgeMs` — entries older than this are ignored on read and pruned on `memory cache clear`. Defaults 30 days.
-- `memory.mcp.allowWrites` — default value of `--allow-writes` on `memory serve --mcp`. Defaults false.
+- `memory.mcp.allowWrites` — default value of `--allow-writes` on `memory-mcp`. Defaults false.
 - `memory.query.defaultBudgetTokens` — default `--budget` for `memory query` / `memory explain`. Defaults 4096.
 
 No env vars in v1. Config-only.
@@ -550,7 +623,7 @@ type IngestCacheEntry = {
 
 **Concurrency.** The MCP server takes the same lockfile as `writePage`/`appendToPage` for write tools. Reads don't lock. Two clients appending concurrently serialize via the lock.
 
-**Process lifecycle.** `poe-code memory serve --mcp` is a foreground process. Ctrl-C releases the lock. Expected wiring is via the user's MCP config (`~/.mcp.json` / project `.mcp.json`), not manual invocation. `--print-mcp-config` prints the JSON snippet and exits (no server started).
+**Process lifecycle.** `poe-code memory-mcp` is a foreground process. Ctrl-C releases the lock. Expected wiring is via the user's MCP config (`~/.mcp.json` / project `.mcp.json`), not manual invocation. `--print-mcp-config` prints the JSON snippet and exits (no server started).
 
 ### 3.13 Query / explain
 
@@ -569,6 +642,51 @@ Both commands are thin spawn wrappers that build a prompt with memory as the onl
 **Output format.** Human by default; `--json` returns `QueryResult` from §4.1. Confidence labels on citations come from the cited page's tags — lookup by `section` heading.
 
 **No session state.** Each invocation is a fresh spawn. No chat, no history. Follow-ups re-run.
+
+### 3.14 Install command
+
+`poe-code memory install` is a one-shot setup that wires both integration surfaces — the `poe-code-memory` skill and the `memory-mcp` server — into the configured agent. It does not run `memory init`; the skill itself explains `poe-code memory init` so the user can kick memory off at any point.
+
+**Skill.** Uses `installSkill` from `@poe-code/agent-skill-config` with `name: "poe-code-memory"` and the template shipped at `src/templates/SKILL_memory.md`. Scope follows `--scope` (default `local`).
+
+The skill is an **index card**, not a tutorial. It is written for agents, not humans: every line either names a CLI command or an MCP tool and states its purpose in one sentence. No narrative, no examples that aren't minimal, no restatement of CLAUDE.md, no conceptual primer on "what is memory". Concretely the skill body is a single dense table (or two — one per surface) along these lines:
+
+```markdown
+## CLI — `poe-code memory <subcommand>`
+| Command | Purpose (when the agent should reach for it) |
+|---|---|
+| `init` | create `.poe-code/memory/` if missing; safe to call unconditionally before first write |
+| `ls` | list pages + one-line descriptions; first thing to run before answering a recall question |
+| `show <path>` | print one page verbatim; follow `ls` when a specific page looks relevant |
+| `search <query>` | ripgrep over memory; use when the matching page is not obvious from `ls` |
+| `write <path> --reason <text>` | full-file replace a page (stdin); use to author/rewrite a page |
+| `append <path>` | tack content onto a page (stdin); intended for `LOG.md`-style pages |
+| `edit <path>` | interactive `$EDITOR` — avoid from agents; prefer `write`/`append` |
+| `ingest <source>` | spawn an ingest agent to fold a file/URL into memory; use on new docs, issues, transcripts |
+| `query "<question>"` | answer a question from memory only, with citations |
+| `explain <path>` | summarize a page + its inbound/outbound links |
+| `lint [--fix]` | find stale citations, untagged claims, contradictions |
+| `status [--no-tokens]` | page count, bytes, token-reduction ratio |
+| `cache status` / `cache clear` | ingest-cache inspection and cleanup |
+| `clear --yes` | wipe memory; destructive — never call without the user asking |
+
+## MCP — `poe-code-memory` server
+| Tool | Purpose |
+|---|---|
+| `list_pages` | enumerate pages (preferred over shelling out to `memory ls`) |
+| `read_page` | read a single page (preferred over `memory show`) |
+| `search_memory` | ripgrep over memory (preferred over `memory search`) |
+| `append_to_page` | extend a page (only advertised when installed with `--allow-writes`) |
+| `status` | counts + token ratio |
+```
+
+The skill may add at most ~10 lines of standing rules (e.g., "prefer MCP tools over shell when both are available", "confidence-tag non-trivial claims with `extracted`/`inferred`/`ambiguous`", "never call `memory clear` without explicit user request"). Anything longer gets cut — this is a card, not a manual.
+
+**MCP server.** Uses `configure` from `@poe-code/agent-mcp-config` with `name: "poe-code-memory"`, command `poe-code`, args `["memory-mcp"]` (plus `"--allow-writes"` if `--allow-writes` is set). The same path that would be printed by `memory-mcp --print-mcp-config` is written directly into the agent's MCP config file, so no copy-paste step is required.
+
+**Idempotency and partial installs.** Re-running the command overwrites the skill file and replaces the MCP entry (match semantics in `agent-mcp-config.configure`). `--skill-only` and `--mcp-only` are exclusive; either exits after its half runs. `--dry-run` delegates to the underlying helpers' dry-run mode and prints a summary without touching disk.
+
+**Uninstall.** Out of scope for v1. Users can delete the skill file and run `agent-mcp-config.unconfigure` manually; a `memory uninstall` can follow if demand shows up.
 
 ## 4. Interfaces and test plan
 
@@ -951,11 +1069,12 @@ All unit tests use `memfs` for filesystem work (per CLAUDE.md). No tests write r
 | `computeTokenStats` | unit (memfs) | matches hand-counted `tokenfill` output; missing sources listed in `missingSources`; ratio = source/max(memory,1) |
 | reconcile: `sources:` denormalization | unit (memfs) | inline `source=` refs on claims land in frontmatter `sources:`; agent-written `sources:` is overwritten, not merged |
 | `startMemoryMcpServer` | unit (stdio mock via `tiny-stdio-mcp-server` helpers) | `list_pages`/`read_page`/`search_memory`/`status` return expected shapes; `append_to_page` is not advertised without `allowWrites`; concurrent `append_to_page` serializes via the lock; writes when memory not initialized error without corrupting state |
-| `printMcpConfig` | unit | returns parseable JSON with `poe-code memory serve --mcp` command |
+| `printMcpConfig` | unit | returns parseable JSON with `poe-code memory-mcp` command |
+| `installMemory` | unit (memfs, stubbed `installSkill` + `configure`) | default install writes skill + MCP entry; `--skill-only` / `--mcp-only` runs the matching half; `--allow-writes` propagates to MCP args; re-run is idempotent; `--dry-run` never writes |
 | `query` | unit (memfs, injected `spawnFn`) | builds prompt with INDEX.md + ranked pages; respects budget (trims lowest-ranked first); no tools exposed to spawned agent; citations parsed from agent stdout |
 | `explain` | unit (memfs, injected `spawnFn`) | includes `sources:`-cited pages (outbound) and pages that cite this one (inbound); summary non-empty |
 | CLI commands | cmdkit smoke tests | each subcommand parses flags, calls the right package function with the right args (mocked package) |
-| Screenshot | `npm run screenshot-poe-code` | `memory ls`, `memory status`, `memory ingest <file> --dry-run`, `memory query "…"`, `memory cache status`, `memory serve --mcp --print-mcp-config` look right in the design system |
+| Screenshot | `npm run screenshot-poe-code` | `memory ls`, `memory status`, `memory ingest <file> --dry-run`, `memory query "…"`, `memory cache status`, `memory-mcp --print-mcp-config` look right in the design system |
 
 No LLM is called in unit tests. `ingest`/`lint` tests inject a fake `spawnFn` that emits canned events and touches specified files — this is the only integration point, and the pattern matches how `agent-spawn` is already tested elsewhere.
 
@@ -969,7 +1088,8 @@ Manual QA (markdown checklist — per CLAUDE.md, QA is a doc, not a script) live
 - `poe-code memory lint` (no `--fix`) prints issues, including at least one confidence-tag issue on a hand-edited stale `source=` ref, and leaves memory untouched.
 - `poe-code memory status` prints `memory pages`, `cited sources`, `reduction` columns.
 - `poe-code memory cache status` lists entries and byte totals; `cache clear --older-than 0d --yes` empties it.
-- `poe-code memory serve --mcp --print-mcp-config` prints valid JSON. Register it in a Claude Code `.mcp.json`, launch a session, call `list_pages` → returns the same pages as `memory ls`.
+- `poe-code memory install --agent claude-code` creates the skill file and adds a `poe-code-memory` entry to the Claude Code MCP config; re-running is a no-op diff; `--dry-run` touches nothing.
+- `poe-code memory-mcp --print-mcp-config` prints valid JSON. Register it in a Claude Code `.mcp.json`, launch a session, call `list_pages` → returns the same pages as `memory ls`.
 - With `--allow-writes`, the same session can call `append_to_page`; without it, the tool is missing from `tools/list`.
 - `poe-code memory query "<something answerable from memory>"` returns an answer with at least one citation; a question with no basis in memory returns "memory does not answer this".
 - `poe-code memory explain pages/packages/foo.md` produces a short summary and lists inbound/outbound pages.
@@ -992,7 +1112,7 @@ All under `packages/memory/` unless noted.
 
 | File | Purpose |
 |---|---|
-| `package.json` | Name `@poe-code/memory`, deps on `workspace-resolver`, `poe-code-config`, `agent-spawn`, `cmdkit`, `tokenfill`, `tiny-stdio-mcp-server`, `yaml` |
+| `package.json` | Name `@poe-code/memory`, deps on `workspace-resolver`, `poe-code-config`, `agent-spawn`, `agent-skill-config`, `agent-mcp-config`, `cmdkit`, `tokenfill`, `tiny-stdio-mcp-server`, `yaml` |
 | `tsconfig.json` | Standard package tsconfig matching other packages |
 | `README.md` | CLI reference, config knobs, on-disk layout, confidence-tag format, MCP snippet |
 | `QA.md` | Manual checklist from §4.4 |
@@ -1034,9 +1154,12 @@ All under `packages/memory/` unless noted.
 | `src/cli/clear.cli.ts` | `poe-code memory clear --yes` |
 | `src/cli/cache-status.cli.ts` | `poe-code memory cache status` |
 | `src/cli/cache-clear.cli.ts` | `poe-code memory cache clear --older-than <d> --yes` |
-| `src/cli/serve.cli.ts` | `poe-code memory serve --mcp --allow-writes --print-mcp-config` |
+| `src/cli/memory-mcp.cli.ts` | `poe-code memory-mcp --allow-writes --print-mcp-config` |
+| `src/cli/install.cli.ts` | `poe-code memory install --agent --scope --skill-only --mcp-only --allow-writes --dry-run` |
 | `src/cli/query.cli.ts` | `poe-code memory query <question>` with `--budget --agent --json` |
 | `src/cli/explain.cli.ts` | `poe-code memory explain <rel-path>` with `--budget --agent --json` |
+| `src/install.ts` | `installMemory` — orchestrates `installSkill` + `configure` based on flags; returns `{ skillPath?, mcpConfigPath? }` |
+| `src/templates/SKILL_memory.md` | Skill template read by `src/install.ts`; teaches the agent memory vocabulary and MCP tool names |
 | `src/*.test.ts` | One colocated test per module per the test table in §4.4 |
 
 ### 5.2 Files changed
@@ -1184,14 +1307,45 @@ Sequenced so the branch stays green after each step. Each step is a commit.
 16. **Ingest integration.** `src/ingest.ts` composing cache + tokens per §4.2; `ingest.cli.ts` wires `--force` / `--no-cache-write`, prints `cacheHit` and token ratio. Tests with injected `spawnFn`.
 17. **Lint integration.** `src/lint.ts` invokes `auditClaims` as part of its pass; `lint.cli.ts` surfaces the combined issue list.
 18. **Cache CLI.** `cache-status.cli.ts`, `cache-clear.cli.ts`. Tests + screenshots.
-19. **MCP server.** `src/mcp.ts` + `serve.cli.ts`. Tests using `tiny-stdio-mcp-server` helpers. Manual QA: register in `.mcp.json`, invoke tools from Claude Code.
+19. **MCP server.** `src/mcp.ts` + `memory-mcp.cli.ts`. Tests using `tiny-stdio-mcp-server` helpers. Manual QA: register in `.mcp.json`, invoke tools from Claude Code.
 20. **Query.** `src/query.ts` + `query.cli.ts`. Tests with injected `spawnFn`. Manual QA against a real memory tree.
 21. **Explain.** `src/explain.ts` + `explain.cli.ts`. Same test pattern; reuses query primitives.
-22. **README + QA.md.** Finalize docs (CLI reference, confidence-tag format, config knobs, MCP snippet, manual checklist from §4.4).
-23. **Screenshot pass.** `npm run screenshot-poe-code -- memory ls`, `memory status`, `memory query "…"`, `memory cache status`, `memory serve --print-mcp-config`. Verify design-system output.
+22. **Install.** `src/install.ts` + `install.cli.ts` + `src/templates/SKILL_memory.md`. Tests stub `installSkill` and `configure` and assert both are called with the right args. Manual QA: run `poe-code memory install --agent claude-code`, verify the skill file and the `poe-code-memory` entry in the MCP config.
+23. **README + QA.md.** Finalize docs (CLI reference, confidence-tag format, config knobs, MCP snippet, install command, manual checklist from §4.4).
+24. **Screenshot pass.** `npm run screenshot-poe-code -- memory ls`, `memory status`, `memory query "…"`, `memory cache status`, `memory-mcp --print-mcp-config`. Verify design-system output.
 
 Each step leaves the tree compilable and the test suite green.
 
 - Open question: Does `memory edit` re-enter through `writePage` on save, or trust `$EDITOR` and call `reconcile` directly? Re-entry is cleaner (one write path) but costs a read-serialize-write roundtrip.
 - Open question: Is `yaml` already in the dependency tree, or do we need to add it? A grep before step 1 resolves this.
 - Open question: should steps 19 (MCP) and 20 (query) swap order? Query is more user-visible but MCP is the foundation for future integrations. Neither blocks the other — go in the order that's most reviewable.
+
+## Task Board
+
+- [x] Expose `log_path` for inspectors, superintendent, and owner in [packages/superintendent/src/runtime/templates.ts](packages/superintendent/src/runtime/templates.ts) so the `superintendent-improver` meta inspector can replay every phase — not just the builder — shipped as `{{inspector_logs.<name>}}`, `{{superintendent.log_path}}`, `{{owner.log_path}}`
+- [ ] Scaffold `@poe-code/memory` package: `package.json`, `tsconfig.json`, empty barrel, all types from §4.1 in `src/types.ts`, README stub
+- [ ] Ensure `packages/tokenfill/` exports `countTokens(text: string): number`; add + test only if missing
+- [ ] Implement `src/paths.ts` (memory root, `.cache/ingest/` constants, `assertSafeRelPath`) and `src/frontmatter.ts` (parse + serialize, including `sources:`) with tests
+- [ ] Implement read side: `src/pages.ts`, `src/search.ts`, `src/status.ts` against memfs
+- [ ] Implement `src/lock.ts` with stale-pid detection (fake-timer tests)
+- [ ] Implement `src/init.ts` and `clearMemory` (wipes `.cache/` too)
+- [ ] Implement `src/confidence.ts` — `parseClaims`, `serializeTag`, tag regex; pure, no FS
+- [ ] Implement `src/reconcile.ts` composing snapshot + diff + `denormalizeSources` (from claim tags) + `renderIndex` + `appendLogEntries`
+- [ ] Implement `src/audit.ts` — `auditClaims` against memfs fixtures
+- [ ] Implement `src/write.ts` — `writePage`, `appendToPage` (lock + reconcile)
+- [ ] Implement `src/cache.ts` — `computeIngestKey`, `readCacheEntry`, `writeCacheEntry`, `clearCache`
+- [ ] Implement `src/tokens.ts` — `computeTokenStats` via `tokenfill`
+- [ ] Extend `packages/poe-code-config/` types for `memory.*`; add `resolveAgent()`, `configuredTimeout()`, `cacheEnabled()`, `mcpWritesAllowed()`, `defaultQueryBudget()` readers
+- [ ] CLI read commands: `init`, `ls`, `show`, `search`, `status` (with `--no-tokens`), `clear`; register `memory` command group; spot-check with `npm run dev -- memory status`
+- [ ] CLI write commands: `write`, `append`, `edit`
+- [ ] Implement `src/ingest.ts` (cache → prompt → spawn → reconcile → cache write) and `ingest.cli.ts` (`--agent --reason --timeout-ms --dry-run --yes --force --no-cache-write`); tests with injected `spawnFn`
+- [ ] Implement `src/lint.ts` invoking `auditClaims` and `lint.cli.ts`; surfaces combined issue list
+- [ ] Cache CLI: `cache status`, `cache clear --older-than <d> --yes`
+- [ ] Implement `src/mcp.ts` + `memory-mcp.cli.ts` on `tiny-stdio-mcp-server`; verify write-gate hides `append_to_page` from `tools/list` when disabled; manual QA via `.mcp.json`
+- [ ] Implement `src/query.ts` + `query.cli.ts` — TF-idf ranker + budget selection, no tools exposed to spawned agent
+- [ ] Implement `src/explain.ts` + `explain.cli.ts` — reuse query primitives, compute inbound/outbound
+- [ ] Write `src/templates/SKILL_memory.md` — information-dense index card per §3.14: one table row per `memory` CLI subcommand, one table row per MCP tool, each with purpose + when-to-use; ≤10 lines of standing rules; no tutorials, no restated CLAUDE.md content
+- [ ] Implement `src/install.ts` + `install.cli.ts` — compose `installSkill` (from `@poe-code/agent-skill-config`) and `configure` (from `@poe-code/agent-mcp-config`); wire `--skill-only --mcp-only --allow-writes --dry-run`; tests stub both helpers
+- [ ] Write `packages/memory/README.md` (CLI reference, config knobs, on-disk layout, confidence-tag format, MCP snippet, `memory install` walkthrough) and `packages/memory/QA.md` (manual checklist from §4.4)
+- [ ] Screenshot pass: `memory ls`, `memory status`, `memory ingest <file> --dry-run`, `memory query "…"`, `memory cache status`, `memory-mcp --print-mcp-config`
+- [ ] Run `poe-code superintendent validate docs/plans/memory.md` and confirm clean exit

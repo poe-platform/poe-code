@@ -150,6 +150,7 @@ Re-exported from `./testing/index.js`:
 Superintendent-specific config env var:
 
 - `POE_SUPERINTENDENT_PLAN_DIRECTORY` — override where `superintendent run` discovers plan docs
+- `POE_SUPERINTENDENT_TUI` — when `true`, enable the live dashboard by default for terminal TTY runs
 
 The package also respects these generic runtime variables:
 

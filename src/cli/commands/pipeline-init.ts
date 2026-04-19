@@ -1,12 +1,12 @@
 import path from "node:path";
 import type { CliContainer } from "../container.js";
 import {
+  planConfigScope,
   readMergedDocument,
   resolveScope
 } from "@poe-code/poe-code-config";
 import { resolveWorkflowPath } from "@poe-code/agent-kit";
 import { resolvePlanDirectory as resolvePipelinePlanDirectory } from "@poe-code/pipeline";
-import { pipelineConfigScope } from "../../services/config.js";
 import { resolvePlanDirectory as resolveSourcePlanDirectory } from "./plan.js";
 
 export interface BuildPipelineInitPromptOptions {
@@ -29,7 +29,7 @@ export function buildPipelineInitPrompt(options: BuildPipelineInitPromptOptions)
   const trimmedQuestion = options.question?.trim() ?? "";
   const userRequest = trimmedQuestion.length > 0
     ? trimmedQuestion
-    : "The user has not yet stated what they want to build. Follow the skill's \"If The Request Is Empty\" instruction and ask the user for a one-sentence description of what they want to build.";
+    : "Convert the source document below into a pipeline plan. Treat the source document as the user request and do not ask the user for more input.";
   const fence = createMarkdownFence(options.sourceDocContent);
 
   return [
@@ -93,8 +93,8 @@ async function resolveConfiguredPipelinePlanDirectory(container: CliContainer): 
     container.env.projectConfigPath
   );
   const config = resolveScope(
-    pipelineConfigScope.schema,
-    document[pipelineConfigScope.scope],
+    planConfigScope.schema,
+    document[planConfigScope.scope],
     container.env.variables
   );
   const planDirectory = config.plan_directory?.trim();
@@ -102,8 +102,7 @@ async function resolveConfiguredPipelinePlanDirectory(container: CliContainer): 
   return resolvePipelinePlanDirectory({
     cwd: container.env.cwd,
     homeDir: container.env.homeDir,
-    planDirectory,
-    fs: container.fs
+    ...(planDirectory ? { planDirectory } : {})
   });
 }
 

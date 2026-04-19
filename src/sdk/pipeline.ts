@@ -111,13 +111,10 @@ export async function runPipelineInit(
     };
   }
 
-  const planDirectory = await resolveWorkspacePlanDirectory({
+  const planDirectory = resolveWorkspacePlanDirectory({
     cwd: options.cwd,
     homeDir: options.homeDir,
-    planDirectory: options.planDirectory,
-    fs: {
-      stat: async (targetPath: string) => await fsPromises.stat(targetPath)
-    }
+    ...(options.planDirectory ? { planDirectory: options.planDirectory } : {})
   });
 
   let sourcesProcessed = 0;

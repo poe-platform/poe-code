@@ -109,8 +109,11 @@ type LoopRuntime = {
 type TemplateLoopContext = {
   builder?: BuilderResult;
   inspectors: Record<string, string>;
+  inspectorLogs: Record<string, string>;
   superintendentSummary?: string;
+  superintendentLogPath?: string;
   ownerFeedback?: string;
+  ownerLogPath?: string;
 };
 
 type AutonomousOptions = {
@@ -140,7 +143,8 @@ export async function runLoop(
     return await withInjectedAgentRunner(options, async () => {
       let state = createLoopState(await readDocument(options.fs, options.docPath));
       let context: TemplateLoopContext = {
-        inspectors: {}
+        inspectors: {},
+        inspectorLogs: {}
       };
 
       while (true) {
@@ -177,7 +181,8 @@ export async function runLoop(
           context = {
             ...context,
             builder: builderResult,
-            inspectors: {}
+            inspectors: {},
+            inspectorLogs: {}
           };
           await writeLoopState(options.fs, options.docPath, state);
 
@@ -219,6 +224,12 @@ export async function runLoop(
               inspectors: {
                 ...context.inspectors,
                 [inspectorResult.name]: inspectorResult.summary
+              },
+              inspectorLogs: {
+                ...context.inspectorLogs,
+                ...(inspectorResult.log_path
+                  ? { [inspectorResult.name]: inspectorResult.log_path }
+                  : {})
               }
             };
             await writeLoopState(options.fs, options.docPath, state);
@@ -236,7 +247,10 @@ export async function runLoop(
           const superintendentResult = await executeSuperintendent(options, context);
           context = {
             ...context,
-            superintendentSummary: superintendentResult.summary
+            superintendentSummary: superintendentResult.summary,
+            ...(superintendentResult.log_path
+              ? { superintendentLogPath: superintendentResult.log_path }
+              : {})
           };
 
           if (superintendentResult.transition?.action === "request_review") {
@@ -285,6 +299,9 @@ export async function runLoop(
           context = {
             ...context,
             superintendentSummary: superintendentResult.summary,
+            ...(superintendentResult.log_path
+              ? { superintendentLogPath: superintendentResult.log_path }
+              : {}),
             ownerFeedback: undefined
           };
           await writeLoopState(options.fs, options.docPath, state);
@@ -316,6 +333,10 @@ export async function runLoop(
         options.callbacks.onOwnerComplete?.(ownerResult);
 
         if (ownerResult.transition.action === "approve_completion") {
+          context = {
+            ...context,
+            ...(ownerResult.log_path ? { ownerLogPath: ownerResult.log_path } : {})
+          };
           state = {
             ...state,
             state: "completed"
@@ -323,7 +344,8 @@ export async function runLoop(
         } else {
           context = {
             ...context,
-            ownerFeedback: ownerResult.transition.feedback
+            ownerFeedback: ownerResult.transition.feedback,
+            ...(ownerResult.log_path ? { ownerLogPath: ownerResult.log_path } : {})
           };
           state = applyOwnerFeedback(
             state,
@@ -452,16 +474,30 @@ async function rollbackRoundStatus(
 function createTemplateContext(context: TemplateLoopContext): {
   builder?: BuilderResult;
   inspectors: Record<string, string>;
-  superintendent?: { summary: string };
-  owner?: { feedback: string };
+  inspector_logs: Record<string, string>;
+  superintendent?: { summary: string; log_path?: string };
+  owner?: { feedback: string; log_path?: string };
 } {
   return {
     ...(context.builder ? { builder: context.builder } : {}),
     inspectors: { ...context.inspectors },
+    inspector_logs: { ...context.inspectorLogs },
     ...(context.superintendentSummary
-      ? { superintendent: { summary: context.superintendentSummary } }
+      ? {
+          superintendent: {
+            summary: context.superintendentSummary,
+            ...(context.superintendentLogPath ? { log_path: context.superintendentLogPath } : {})
+          }
+        }
       : {}),
-    ...(context.ownerFeedback ? { owner: { feedback: context.ownerFeedback } } : {})
+    ...(context.ownerFeedback
+      ? {
+          owner: {
+            feedback: context.ownerFeedback,
+            ...(context.ownerLogPath ? { log_path: context.ownerLogPath } : {})
+          }
+        }
+      : {})
   };
 }
 

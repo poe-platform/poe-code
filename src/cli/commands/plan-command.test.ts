@@ -81,7 +81,7 @@ describe("plan command", () => {
     expect(JSON.parse(output)).toEqual([
       expect.objectContaining({
         kind: "pipeline",
-        typeLabel: "Pipeline",
+        type: "Pipeline",
         runner: "pipeline",
         name: "plan-a.md",
         detail: "0/1 done"
@@ -114,7 +114,7 @@ describe("plan command", () => {
     expect(output).not.toContain("Source");
   });
 
-  it("filters list output by source", async () => {
+  it("filters list output by kind", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({
       fs: createMemFs({
@@ -150,7 +150,7 @@ describe("plan command", () => {
       "cli",
       "plan",
       "list",
-      "--source",
+      "--kind",
       "pipeline",
       "--output",
       "json"
@@ -159,13 +159,14 @@ describe("plan command", () => {
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(JSON.parse(output)).toEqual([
       expect.objectContaining({
-        source: "pipeline",
+        kind: "pipeline",
+        type: "Pipeline",
         name: "plan-a.md"
       })
     ]);
   });
 
-  it("supports filtering generic plan and superintendent docs by source", async () => {
+  it("supports filtering generic plan and superintendent docs by kind", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({
       fs: createMemFs({
@@ -190,7 +191,7 @@ describe("plan command", () => {
       "cli",
       "plan",
       "list",
-      "--source",
+      "--kind",
       "superintendent",
       "--output",
       "json"
@@ -199,7 +200,8 @@ describe("plan command", () => {
     const superintendentOutput = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(JSON.parse(superintendentOutput)).toEqual([
       expect.objectContaining({
-        source: "superintendent",
+        kind: "superintendent",
+        type: "Superintendent",
         name: "pi-mono.md"
       })
     ]);
@@ -211,7 +213,7 @@ describe("plan command", () => {
       "cli",
       "plan",
       "list",
-      "--source",
+      "--kind",
       "plan",
       "--output",
       "json"
@@ -220,7 +222,8 @@ describe("plan command", () => {
     const planOutput = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(JSON.parse(planOutput)).toEqual([
       expect.objectContaining({
-        source: "plan",
+        kind: "plan",
+        type: "Plan",
         name: "feature-design.md"
       })
     ]);
@@ -261,7 +264,7 @@ describe("plan command", () => {
     expect(output).toContain("First task");
   });
 
-  it("uses the source filter for plan view selection", async () => {
+  it("uses the kind filter for plan view selection", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({
       fs: createMemFs({
@@ -298,7 +301,7 @@ describe("plan command", () => {
       "--yes",
       "plan",
       "view",
-      "--source",
+      "--kind",
       "pipeline",
       "--output",
       "json"
@@ -308,7 +311,7 @@ describe("plan command", () => {
     expect(JSON.parse(output)).toEqual(
       expect.objectContaining({
         kind: "pipeline",
-        typeLabel: "Pipeline",
+        type: "Pipeline",
         runner: "pipeline",
         path: "docs/plans/plan-a.md"
       })

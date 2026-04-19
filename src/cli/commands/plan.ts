@@ -69,7 +69,7 @@ export function buildPlanPrompt(options: BuildPlanPromptOptions): string {
 type OutputOption = "terminal" | "markdown" | "json";
 
 type PlanCommandOptions = {
-  source?: PlanKind;
+  kind?: PlanKind;
   output?: string;
 };
 
@@ -78,7 +78,7 @@ function resolvePlanCommandOptions(command: Command): PlanCommandOptions {
   const parentOptions = command.parent?.opts<PlanCommandOptions>() ?? {};
 
   return {
-    source: localOptions.source ?? parentOptions.source,
+    kind: localOptions.kind ?? parentOptions.kind,
     output: localOptions.output ?? parentOptions.output
   };
 }
@@ -104,24 +104,24 @@ function resolveOutputOption(value: string | undefined): OutputOption {
   );
 }
 
-function resolveSource(value: string | undefined): PlanKind | undefined {
+const VALID_KINDS: PlanKind[] = [
+  "plan",
+  "pipeline",
+  "experiment",
+  "ralph",
+  "superintendent",
+  "superintendent-base"
+];
+
+function resolveKind(value: string | undefined): PlanKind | undefined {
   if (!value || value.trim().length === 0) {
     return undefined;
   }
-
-  if (
-    value === "plan" ||
-    value === "pipeline" ||
-    value === "experiment" ||
-    value === "ralph" ||
-    value === "superintendent" ||
-    value === "superintendent-base"
-  ) {
-    return value;
+  if ((VALID_KINDS as string[]).includes(value)) {
+    return value as PlanKind;
   }
-
   throw new ValidationError(
-    `Invalid --source value "${value}". Expected plan, pipeline, experiment, ralph, superintendent, or superintendent-base.`
+    `Invalid --kind value "${value}". Expected ${VALID_KINDS.join(", ")}.`
   );
 }
 
@@ -214,8 +214,8 @@ function writeOutput(format: OutputOption, value: string): void {
 
 async function renderPlanList(container: CliContainer, options: PlanCommandOptions): Promise<void> {
   const format = resolveOutputOption(options.output);
-  const source = resolveSource(options.source);
-  const plans = await discoverPlans(container, source);
+  const kind = resolveKind(options.kind);
+  const plans = await discoverPlans(container, kind);
 
   if (format === "json") {
     writeOutput(
@@ -223,9 +223,8 @@ async function renderPlanList(container: CliContainer, options: PlanCommandOptio
       JSON.stringify(
         plans.map((plan) => ({
           kind: plan.kind,
-          typeLabel: plan.typeLabel,
+          type: plan.typeLabel,
           runner: plan.runner,
-          source: plan.kind,
           name: path.basename(plan.path),
           path: plan.path,
           detail: plan.detail,
@@ -266,7 +265,7 @@ async function executePlanAction(options: {
   container: CliContainer;
   action: "edit" | "archive" | "delete";
   pathArg?: string;
-  source?: string;
+  kind?: string;
   output?: string;
 }): Promise<void> {
   const flags = resolveCommandFlags(options.program);
@@ -274,7 +273,7 @@ async function executePlanAction(options: {
   if (format === "terminal") {
     intro(`plan ${options.action}`);
   }
-  const plans = await discoverPlans(options.container, resolveSource(options.source));
+  const plans = await discoverPlans(options.container, resolveKind(options.kind));
   const plan = await resolveSelectedPlan({
     container: options.container,
     plans,
@@ -358,8 +357,8 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .command("browse")
     .description("Browse, view, and manage plans across all plan systems.")
     .option(
-      "--source <source>",
-      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+      "--kind <kind>",
+      "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
     .action(async function (this: Command) {
       const opts = this.opts<PlanCommandOptions>();
@@ -371,7 +370,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         configPath: container.env.configPath,
         projectConfigPath: container.env.projectConfigPath,
         fs: container.fs as Parameters<typeof runPlanBrowser>[0]["fs"],
-        kind: resolveSource(opts.source),
+        kind: resolveKind(opts.kind),
         variables: container.env.variables,
         assumeYes: flags.assumeYes
       });
@@ -381,8 +380,8 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .command("list")
     .description("List plans across all plan systems.")
     .option(
-      "--source <source>",
-      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+      "--kind <kind>",
+      "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command) {
@@ -398,8 +397,8 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .description("Render a single plan to the terminal.")
     .argument("[path]", "Plan path")
     .option(
-      "--source <source>",
-      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+      "--kind <kind>",
+      "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {
@@ -409,7 +408,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       if (format === "terminal") {
         intro("plan view");
       }
-      const plans = await discoverPlans(container, resolveSource(options.source));
+      const plans = await discoverPlans(container, resolveKind(options.kind));
       const plan = await resolveSelectedPlan({
         container,
         plans,
@@ -425,9 +424,8 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
           JSON.stringify(
             {
               kind: plan.kind,
-              typeLabel: plan.typeLabel,
+              type: plan.typeLabel,
               runner: plan.runner,
-              source: plan.kind,
               path: plan.path,
               title: plan.title,
               detail: plan.detail,
@@ -449,8 +447,8 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .description("Open a plan in $EDITOR.")
     .argument("[path]", "Plan path")
     .option(
-      "--source <source>",
-      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+      "--kind <kind>",
+      "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {
@@ -468,8 +466,8 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .description("Move a plan into archive/.")
     .argument("[path]", "Plan path")
     .option(
-      "--source <source>",
-      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+      "--kind <kind>",
+      "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {
@@ -487,8 +485,8 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .description("Delete a plan file.")
     .argument("[path]", "Plan path")
     .option(
-      "--source <source>",
-      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+      "--kind <kind>",
+      "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {

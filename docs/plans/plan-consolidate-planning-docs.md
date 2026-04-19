@@ -82,7 +82,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-plan-list-kind
     title: Surface kind/type in poe-code plan list and filters
@@ -104,10 +104,10 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: config-shared-plan-directory
     title: Make plan.plan_directory the only planning directory setting

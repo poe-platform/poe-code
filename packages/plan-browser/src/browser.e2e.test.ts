@@ -263,9 +263,9 @@ describe("plan browser", { timeout: 20_000 }, () => {
     await session.waitFor("Select a plan");
   });
 
-  it("filters the list by source", async () => {
+  it("filters the list by kind", async () => {
     const fixture = await createFixture();
-    const session = await launchPlanBrowser(["plan", "browse", "--source", "pipeline"], fixture);
+    const session = await launchPlanBrowser(["plan", "browse", "--kind", "pipeline"], fixture);
 
     await session.waitFor("Select a plan");
     const screen = await session.screen();

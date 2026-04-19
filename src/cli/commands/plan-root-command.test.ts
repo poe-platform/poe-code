@@ -62,7 +62,7 @@ describe("plan browse command", () => {
     );
   });
 
-  it("forwards --source to the browser", async () => {
+  it("forwards --kind to the browser", async () => {
     const container = createCliContainer({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),
@@ -77,7 +77,7 @@ describe("plan browse command", () => {
       "cli",
       "plan",
       "browse",
-      "--source",
+      "--kind",
       "ralph"
     ]);
 
@@ -86,7 +86,7 @@ describe("plan browse command", () => {
     );
   });
 
-  it("forwards superintendent sources to the browser", async () => {
+  it("forwards superintendent kinds to the browser", async () => {
     const container = createCliContainer({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),
@@ -101,7 +101,7 @@ describe("plan browse command", () => {
       "cli",
       "plan",
       "browse",
-      "--source",
+      "--kind",
       "superintendent"
     ]);
 

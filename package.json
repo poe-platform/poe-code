@@ -142,6 +142,7 @@
     "@poe-code/experiment-loop": "*",
     "@poe-code/github-workflows": "*",
     "@poe-code/markdown-reader": "*",
+    "@poe-code/memory": "*",
     "@poe-code/pipeline": "*",
     "@poe-code/plan-browser": "*",
     "@poe-code/poe-acp-client": "*",

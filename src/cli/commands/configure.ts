@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
@@ -6,13 +7,12 @@ import {
   formatServiceList,
   listServiceNames,
   resolveCommandFlags,
+  resolveDefaultAgent,
   resolveServiceAdapter,
   applyIsolatedConfiguration
 } from "./shared.js";
-import { OperationCancelledError } from "../errors.js";
-
-const serviceSelectionPrompt = (action: string) => `Pick an agent to ${action}:`;
 import { saveConfiguredService } from "../../services/config.js";
+import { OperationCancelledError } from "../errors.js";
 import {
   combineMutationObservers,
   createMutationReporter
@@ -20,6 +20,9 @@ import {
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { createConfigurePayload } from "./configure-payload.js";
 import type { ProviderService } from "../service-registry.js";
+
+const serviceSelectionPrompt = (action: string) => `Pick an agent to ${action}:`;
+const DEFAULT_SERVICE_AGENT = "claude-code";
 
 export interface ConfigureCommandOptions {
   apiKey?: string;
@@ -179,12 +182,19 @@ export async function resolveServiceArgument(
   if (provided) {
     return provided;
   }
+  const fromConfig = await resolveDefaultAgent(container);
+  if (fromConfig !== null) {
+    return parseAgentSpecifier(fromConfig).agent;
+  }
   const services = container.registry.list();
   const action = selectionContext?.action ?? "configure";
   if (services.length === 0) {
     throw new Error(`No agents available to ${action}.`);
   }
   const flags = resolveCommandFlags(program);
+  if (flags.assumeYes) {
+    return DEFAULT_SERVICE_AGENT;
+  }
   const selectionLogger = container.loggerFactory.create({
     dryRun: flags.dryRun,
     verbose: flags.verbose,

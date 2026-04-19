@@ -3,7 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { parse as parseYaml } from "yaml";
 import { Command } from "commander";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
-import { executeConfigure } from "./configure.js";
+import { executeConfigure, resolveServiceArgument } from "./configure.js";
 import { registerInstallCommand } from "./install.js";
 import { registerLogoutCommand } from "./logout.js";
 import { registerUnconfigureCommand } from "./unconfigure.js";
@@ -15,7 +15,7 @@ import { createSecretStore } from "auth-store";
 import { createCommandExpectationCheck } from "../../utils/command-checks.js";
 import { createHomeFs, createTestProgram, storeTestApiKey } from "../../../tests/test-helpers.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
-import { SilentError } from "../errors.js";
+import { SilentError, ValidationError } from "../errors.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { ProviderService } from "../service-registry.js";
 import type { CommandRunner } from "../../utils/command-checks.js";
@@ -388,6 +388,101 @@ describe("configure command", () => {
       "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt",
       "Problems? https://github.com/poe-platform/poe-code/issues"
     ]);
+  });
+
+  it("uses core.defaultAgent without prompting when no agent is provided", async () => {
+    const { container, prompts } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const program = createTestProgram();
+
+    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
+      .resolves.toBe("claude-code");
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("prefers an explicit agent over core.defaultAgent", async () => {
+    const { container, prompts } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const program = createTestProgram();
+
+    await expect(resolveServiceArgument(program, container, "codex", { action: "configure" }))
+      .resolves.toBe("codex");
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("prefers core.defaultAgent over --yes", async () => {
+    const { container, prompts } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const program = createTestProgram(["node", "cli", "--yes"]);
+
+    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
+      .resolves.toBe("claude-code");
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the hardcoded default agent with --yes when core.defaultAgent is unset", async () => {
+    const { container, prompts } = createContainer();
+    const program = createTestProgram(["node", "cli", "--yes"]);
+
+    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
+      .resolves.toBe("claude-code");
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("throws a ValidationError for an invalid core.defaultAgent before prompting", async () => {
+    const { container, prompts } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ core: { defaultAgent: "foo" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+
+    const invokeSpy = vi.spyOn(container.registry, "invoke");
+    const program = createTestProgram();
+
+    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
+      .rejects.toBeInstanceOf(ValidationError);
+    expect(prompts).not.toHaveBeenCalled();
+    expect(invokeSpy).not.toHaveBeenCalled();
+  });
+
+  it("drops the model portion of core.defaultAgent for configure", async () => {
+    const { container, prompts } = createContainer();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify(
+        { core: { defaultAgent: "claude-code:anthropic/claude-sonnet-4.6" } },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+
+    const program = createTestProgram();
+
+    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
+      .resolves.toBe("claude-code");
+    expect(prompts).not.toHaveBeenCalled();
   });
 });
 
@@ -825,6 +920,34 @@ describe("install command", () => {
     await program.parseAsync(["node", "cli", "i", "test-service"]);
 
     expect(install).toHaveBeenCalledOnce();
+  });
+
+  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    const prompts = vi.fn().mockResolvedValue({});
+    const container = createCliContainer({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    const install = vi.fn(async () => {});
+    container.registry.require("codex").install = install;
+
+    const program = createBaseProgram();
+    registerInstallCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "install"]);
+
+    expect(install).toHaveBeenCalledOnce();
+    expect(prompts).not.toHaveBeenCalled();
   });
 });
 
@@ -1270,6 +1393,43 @@ describe("test command", () => {
     await program.parseAsync(["node", "cli", "test", "demo-service"]);
 
     expect(receivedModel).toBeUndefined();
+  });
+
+  it("uses core.defaultAgent for test without prompting and drops the model portion", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify(
+        { core: { defaultAgent: "claude-code:anthropic/claude-sonnet-4.6" } },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+    const prompts = vi.fn().mockResolvedValue({});
+    const container = createCliContainer({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      commandRunner: vi.fn().mockResolvedValue({
+        stdout: "STDIN_OK\n",
+        stderr: "",
+        exitCode: 0
+      }),
+      logger: () => {}
+    });
+
+    const testFn = vi.fn(async () => {});
+    container.registry.require("claude-code").test = testFn;
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "test"]);
+
+    expect(testFn).toHaveBeenCalledOnce();
+    expect(prompts).not.toHaveBeenCalled();
   });
 });
 

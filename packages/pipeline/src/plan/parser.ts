@@ -11,6 +11,154 @@ import type {
 } from "../types.js";
 import { isRecord } from "../utils.js";
 
+type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
+
+type JsonSchema = {
+  $schema?: string;
+  $id?: string;
+  title?: string;
+  description?: string;
+  type?: JsonSchemaType | readonly JsonSchemaType[];
+  const?: unknown;
+  default?: unknown;
+  enum?: readonly unknown[];
+  minimum?: number;
+  minLength?: number;
+  minItems?: number;
+  items?: JsonSchema;
+  properties?: Record<string, JsonSchema>;
+  required?: readonly string[];
+  additionalProperties?: boolean | JsonSchema;
+  anyOf?: readonly JsonSchema[];
+};
+
+export const pipelineDocumentSchemaId =
+  "https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json";
+
+const pipelineStatusSchema: JsonSchema = {
+  type: "string",
+  enum: ["open", "done", "failed"]
+};
+
+const stepDefinitionSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    mode: {
+      type: "string",
+      enum: ["yolo", "edit", "read"],
+      default: "yolo"
+    },
+    prompt: {
+      type: "string",
+      minLength: 1
+    },
+    agent: {
+      type: "string",
+      minLength: 1
+    },
+    model: {
+      type: "string",
+      minLength: 1
+    }
+  },
+  required: ["prompt"],
+  additionalProperties: false
+};
+
+const nullableStepDefinitionSchema: JsonSchema = {
+  anyOf: [
+    stepDefinitionSchema,
+    {
+      type: "null"
+    },
+    {
+      const: false
+    }
+  ]
+};
+
+const mcpServerSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    command: {
+      type: "string",
+      minLength: 1
+    },
+    args: {
+      type: "array",
+      items: {
+        type: "string"
+      }
+    },
+    env: {
+      type: "object",
+      additionalProperties: {
+        type: "string"
+      }
+    }
+  },
+  required: ["command"],
+  additionalProperties: false
+};
+
+export const pipelineDocumentSchema: JsonSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: pipelineDocumentSchemaId,
+  title: "Pipeline plan document",
+  type: "object",
+  properties: {
+    kind: {
+      type: "string",
+      const: "pipeline"
+    },
+    tasks: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            minLength: 1
+          },
+          title: {
+            type: "string",
+            minLength: 1
+          },
+          prompt: {
+            type: "string",
+            minLength: 1
+          },
+          status: {
+            anyOf: [
+              pipelineStatusSchema,
+              {
+                type: "object",
+                additionalProperties: pipelineStatusSchema
+              }
+            ]
+          }
+        },
+        required: ["id", "title", "prompt", "status"],
+        additionalProperties: false
+      }
+    },
+    vars: {
+      type: "object",
+      additionalProperties: {
+        type: "string"
+      }
+    },
+    setup: nullableStepDefinitionSchema,
+    teardown: nullableStepDefinitionSchema,
+    mcp: {
+      type: "object",
+      additionalProperties: mcpServerSchema
+    }
+  },
+  required: ["kind", "tasks"],
+  additionalProperties: false
+};
+
 function trimCarriageReturn(value: string): string {
   return value.endsWith("\r") ? value.slice(0, -1) : value;
 }
@@ -103,7 +251,7 @@ function parseStepDef(value: unknown, label: string): StepDefinition {
 
 function parseMcpConfig(value: unknown): McpSpawnConfig {
   if (!isRecord(value)) {
-    throw new Error("Invalid plan YAML: \"mcp\" must be an object.");
+    throw new Error('Invalid plan YAML: "mcp" must be an object.');
   }
   const result: McpSpawnConfig = {};
   for (const [name, entry] of Object.entries(value)) {
@@ -150,7 +298,7 @@ export function parsePlan(
 
   const tasksValue = document.tasks;
   if (!Array.isArray(tasksValue)) {
-    throw new Error("Invalid plan YAML: expected \"tasks\" to be an array.");
+    throw new Error('Invalid plan YAML: expected "tasks" to be an array.');
   }
 
   const ids = new Set<string>();
@@ -174,13 +322,17 @@ export function parsePlan(
   });
 
   const setup =
-    document.setup === false || document.setup === null ? null
-    : document.setup !== undefined ? parseStepDef(document.setup, "setup")
-    : undefined;
+    document.setup === false || document.setup === null
+      ? null
+      : document.setup !== undefined
+        ? parseStepDef(document.setup, "setup")
+        : undefined;
   const teardown =
-    document.teardown === false || document.teardown === null ? null
-    : document.teardown !== undefined ? parseStepDef(document.teardown, "teardown")
-    : undefined;
+    document.teardown === false || document.teardown === null
+      ? null
+      : document.teardown !== undefined
+        ? parseStepDef(document.teardown, "teardown")
+        : undefined;
 
   const mcpValue = document.mcp;
   const mcp = mcpValue !== undefined ? parseMcpConfig(mcpValue) : undefined;
@@ -188,7 +340,7 @@ export function parsePlan(
   let vars: Record<string, string> | undefined;
   if (document.vars !== undefined) {
     if (!isRecord(document.vars)) {
-      throw new Error("Invalid plan YAML: \"vars\" must be an object.");
+      throw new Error('Invalid plan YAML: "vars" must be an object.');
     }
     vars = {};
     for (const [key, val] of Object.entries(document.vars)) {

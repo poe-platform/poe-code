@@ -15,6 +15,7 @@ export { runRalph } from "./sdk/ralph.js";
 export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey } from "./sdk/credentials.js";
+export { planDocumentSchema, planDocumentSchemaId } from "./plan/document-schema.js";
 export { ghGroup } from "@poe-code/github-workflows";
 export {
   followLaunchLogs,

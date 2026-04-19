@@ -157,7 +157,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: schema-exports-packages
     title: Export code-first document schemas from owning packages
@@ -187,10 +187,10 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: schema-codegen-script
     title: Generate JSON Schemas into docs/schemas/plans/ at build time

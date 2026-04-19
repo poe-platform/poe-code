@@ -6,7 +6,18 @@ describe("@poe-code/superintendent package exports", () => {
   });
 
   it("re-exports the public SDK surface", async () => {
-    const [pkg, documentParse, documentWrite, documentTasks, runtimeLoop, runtimeBuilder, runtimeInspector, runtimeTemplates, stateMachine, commands] = await Promise.all([
+    const [
+      pkg,
+      documentParse,
+      documentWrite,
+      documentTasks,
+      runtimeLoop,
+      runtimeBuilder,
+      runtimeInspector,
+      runtimeTemplates,
+      stateMachine,
+      commands
+    ] = await Promise.all([
       import("./index.js"),
       import("./document/parse.js"),
       import("./document/write.js"),
@@ -20,6 +31,14 @@ describe("@poe-code/superintendent package exports", () => {
     ]);
 
     expect(pkg.parseSuperintendentDoc).toBe(documentParse.parseSuperintendentDoc);
+    expect(pkg.superintendentDocumentSchema).toBe(documentParse.superintendentDocumentSchema);
+    expect(pkg.superintendentDocumentSchemaId).toBe(documentParse.superintendentDocumentSchemaId);
+    expect(pkg.superintendentBaseDocumentSchema).toBe(
+      documentParse.superintendentBaseDocumentSchema
+    );
+    expect(pkg.superintendentBaseDocumentSchemaId).toBe(
+      documentParse.superintendentBaseDocumentSchemaId
+    );
     expect(pkg.updateStatus).toBe(documentWrite.updateStatus);
     expect(pkg.transitionState).toBe(documentWrite.transitionState);
     expect(pkg.incrementRound).toBe(documentWrite.incrementRound);
@@ -34,6 +53,31 @@ describe("@poe-code/superintendent package exports", () => {
     expect(pkg.applyTransition).toBe(stateMachine.applyTransition);
     expect(pkg.isComplete).toBe(stateMachine.isComplete);
     expect(pkg.superintendentGroup).toBe(commands.superintendentGroup);
+  });
+
+  it("exports superintendent document schemas", async () => {
+    const pkg = await import("./index.js");
+
+    expect(pkg.superintendentDocumentSchemaId).toBe(
+      "https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json"
+    );
+    expect(pkg.superintendentDocumentSchema).toMatchObject({
+      $id: pkg.superintendentDocumentSchemaId,
+      properties: {
+        kind: { const: "superintendent" }
+      },
+      required: ["kind", "version", "builder", "superintendent", "owner", "status"]
+    });
+    expect(pkg.superintendentBaseDocumentSchemaId).toBe(
+      "https://poe-platform.github.io/poe-code/schemas/plans/superintendent-base.schema.json"
+    );
+    expect(pkg.superintendentBaseDocumentSchema).toMatchObject({
+      $id: pkg.superintendentBaseDocumentSchemaId,
+      properties: {
+        kind: { const: "superintendent-base" }
+      },
+      required: ["kind"]
+    });
   });
 
   it("does not expose legacy top-level command groups", async () => {

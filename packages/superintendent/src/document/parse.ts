@@ -2,6 +2,27 @@ import path from "node:path";
 import { parseDocument } from "yaml";
 export type { TaskBoard, TaskItem } from "./tasks.js";
 
+type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
+
+type JsonSchema = {
+  $schema?: string;
+  $id?: string;
+  title?: string;
+  description?: string;
+  type?: JsonSchemaType | readonly JsonSchemaType[];
+  const?: unknown;
+  default?: unknown;
+  enum?: readonly unknown[];
+  minimum?: number;
+  exclusiveMinimum?: number;
+  minLength?: number;
+  minItems?: number;
+  items?: JsonSchema;
+  properties?: Record<string, JsonSchema>;
+  required?: readonly string[];
+  additionalProperties?: boolean | JsonSchema;
+};
+
 export type SuperintendentDoc = {
   frontmatter: SuperintendentFrontmatter;
   body: string;
@@ -38,6 +59,208 @@ export type StatusBlock = {
   state: "in_progress" | "review" | "completed";
   round: number;
   review_turn: number;
+};
+
+export const superintendentDocumentSchemaId =
+  "https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json";
+export const superintendentBaseDocumentSchemaId =
+  "https://poe-platform.github.io/poe-code/schemas/plans/superintendent-base.schema.json";
+
+const mcpConfigSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    command: {
+      type: "string",
+      minLength: 1
+    },
+    args: {
+      type: "array",
+      items: {
+        type: "string"
+      }
+    },
+    timeout: {
+      type: "number",
+      exclusiveMinimum: 0
+    }
+  },
+  required: ["command"],
+  additionalProperties: false
+};
+
+const agentRoleSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    agent: {
+      type: "string",
+      minLength: 1,
+      default: "claude-code"
+    },
+    mode: {
+      type: "string",
+      minLength: 1
+    },
+    cwd: {
+      type: "string",
+      minLength: 1
+    },
+    mcp: {
+      type: "object",
+      additionalProperties: mcpConfigSchema
+    },
+    prompt: {
+      type: "string",
+      minLength: 1
+    }
+  },
+  required: ["prompt"],
+  additionalProperties: false
+};
+
+const partialAgentRoleSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    agent: {
+      type: "string",
+      minLength: 1,
+      default: "claude-code"
+    },
+    mode: {
+      type: "string",
+      minLength: 1
+    },
+    cwd: {
+      type: "string",
+      minLength: 1
+    },
+    mcp: {
+      type: "object",
+      additionalProperties: mcpConfigSchema
+    },
+    prompt: {
+      type: "string",
+      minLength: 1
+    }
+  },
+  additionalProperties: false
+};
+
+const statusSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    state: {
+      type: "string",
+      enum: ["in_progress", "review", "completed"]
+    },
+    round: {
+      type: "integer",
+      minimum: 0
+    },
+    review_turn: {
+      type: "integer",
+      minimum: 0
+    },
+    reason: {
+      type: "string",
+      minLength: 1
+    }
+  },
+  required: ["state", "round", "review_turn"],
+  additionalProperties: false
+};
+
+const partialStatusSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    state: {
+      type: "string",
+      enum: ["in_progress", "review", "completed"]
+    },
+    round: {
+      type: "integer",
+      minimum: 0
+    },
+    review_turn: {
+      type: "integer",
+      minimum: 0
+    },
+    reason: {
+      type: "string",
+      minLength: 1
+    }
+  },
+  additionalProperties: false
+};
+
+export const superintendentDocumentSchema: JsonSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: superintendentDocumentSchemaId,
+  title: "Superintendent plan document",
+  type: "object",
+  properties: {
+    kind: {
+      type: "string",
+      const: "superintendent"
+    },
+    version: {
+      type: "integer",
+      minimum: 1
+    },
+    mcp: {
+      type: "object",
+      additionalProperties: mcpConfigSchema
+    },
+    builder: agentRoleSchema,
+    inspectors: {
+      type: "object",
+      additionalProperties: agentRoleSchema
+    },
+    superintendent: agentRoleSchema,
+    owner: agentRoleSchema,
+    max_rounds: {
+      type: "integer",
+      minimum: 1,
+      default: 100
+    },
+    status: statusSchema
+  },
+  required: ["kind", "version", "builder", "superintendent", "owner", "status"],
+  additionalProperties: false
+};
+
+export const superintendentBaseDocumentSchema: JsonSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: superintendentBaseDocumentSchemaId,
+  title: "Superintendent base document",
+  type: "object",
+  properties: {
+    kind: {
+      type: "string",
+      const: "superintendent-base"
+    },
+    version: {
+      type: "integer",
+      minimum: 1
+    },
+    mcp: {
+      type: "object",
+      additionalProperties: mcpConfigSchema
+    },
+    builder: partialAgentRoleSchema,
+    inspectors: {
+      type: "object",
+      additionalProperties: partialAgentRoleSchema
+    },
+    superintendent: partialAgentRoleSchema,
+    owner: partialAgentRoleSchema,
+    max_rounds: {
+      type: "integer",
+      minimum: 1
+    },
+    status: partialStatusSchema
+  },
+  required: ["kind"],
+  additionalProperties: false
 };
 
 const validStatusStates = new Set<StatusBlock["state"]>(["in_progress", "review", "completed"]);
@@ -182,9 +405,7 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
 
   const role = expectRecord(value, roleName, filePath);
   const mcp =
-    role.mcp === undefined
-      ? undefined
-      : parseMcpMap(role.mcp, filePath, `${roleName}.mcp`);
+    role.mcp === undefined ? undefined : parseMcpMap(role.mcp, filePath, `${roleName}.mcp`);
 
   return {
     agent:
@@ -193,8 +414,7 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
         : expectString(role.agent, `${roleName}.agent`, filePath),
     mode:
       role.mode === undefined ? undefined : expectString(role.mode, `${roleName}.mode`, filePath),
-    cwd:
-      role.cwd === undefined ? undefined : expectString(role.cwd, `${roleName}.cwd`, filePath),
+    cwd: role.cwd === undefined ? undefined : expectString(role.cwd, `${roleName}.cwd`, filePath),
     mcp,
     prompt: expectString(role.prompt, `${roleName}.prompt`, filePath)
   };

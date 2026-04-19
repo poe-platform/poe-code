@@ -2,7 +2,12 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { discoverDocs } from "./discovery/discovery.js";
-import { parseFrontmatter, writeFrontmatter } from "./frontmatter/frontmatter.js";
+import {
+  parseFrontmatter,
+  ralphDocumentSchema,
+  ralphDocumentSchemaId,
+  writeFrontmatter
+} from "./frontmatter/frontmatter.js";
 import type { RalphFrontmatter } from "./frontmatter/frontmatter.js";
 import { runRalph } from "./run/ralph.js";
 import { createRalphSimulation, failTurn, successTurn } from "./testing/simulation.js";
@@ -19,8 +24,7 @@ function createFs(files: Record<string, string>) {
   const rawFs = createFsFromVolume(volume).promises;
 
   return {
-    readdir: (filePath: string) =>
-      rawFs.readdir(filePath) as Promise<string[]>,
+    readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
     stat: async (filePath: string) => {
       const stat = await rawFs.stat(filePath);
       return {
@@ -47,8 +51,7 @@ function createRunFs(files: Record<string, string>) {
         });
         await rawFs.writeFile(filePath, content, { encoding: "utf8" });
       },
-      readdir: (filePath: string) =>
-        rawFs.readdir(filePath) as Promise<string[]>,
+      readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
       stat: async (filePath: string) => {
         const stat = await rawFs.stat(filePath);
         return {
@@ -74,6 +77,14 @@ function createRunFs(files: Record<string, string>) {
 }
 
 describe("@poe-code/ralph public exports", () => {
+  it("re-exports the Ralph document schema from the package entrypoint", async () => {
+    const pkg = await import("./index.js");
+    const frontmatter = await import("./frontmatter/frontmatter.js");
+
+    expect(pkg.ralphDocumentSchema).toBe(frontmatter.ralphDocumentSchema);
+    expect(pkg.ralphDocumentSchemaId).toBe(frontmatter.ralphDocumentSchemaId);
+  });
+
   it("exports Ralph SDK types", () => {
     const input: AgentRunInput = {
       agent: "codex",
@@ -97,6 +108,18 @@ describe("@poe-code/ralph public exports", () => {
     expect(input.agent).toBe("codex");
     expect(result.exitCode).toBe(0);
     expect(options.agent).toEqual(["codex", "claude-code"]);
+    expect(ralphDocumentSchemaId).toBe(
+      "https://poe-platform.github.io/poe-code/schemas/plans/ralph.schema.json"
+    );
+    expect(ralphDocumentSchema).toMatchObject({
+      $id: ralphDocumentSchemaId,
+      type: "object",
+      properties: {
+        kind: { const: "ralph" },
+        status: { type: "object" }
+      },
+      required: ["kind", "status"]
+    });
 
     void runResult;
   });
@@ -195,9 +218,7 @@ describe("discoverDocs", () => {
       fs
     });
 
-    expect(result).toEqual([
-      { path: "/abs/plans/doc.md", displayPath: "/abs/plans/doc.md" }
-    ]);
+    expect(result).toEqual([{ path: "/abs/plans/doc.md", displayPath: "/abs/plans/doc.md" }]);
   });
 
   it("resolves tilde planDirectory paths", async () => {
@@ -212,9 +233,7 @@ describe("discoverDocs", () => {
       fs
     });
 
-    expect(result).toEqual([
-      { path: "~/my-plans/doc.md", displayPath: "~/my-plans/doc.md" }
-    ]);
+    expect(result).toEqual([{ path: "~/my-plans/doc.md", displayPath: "~/my-plans/doc.md" }]);
   });
 
   it("returns empty when custom planDirectory does not exist", async () => {
@@ -300,13 +319,7 @@ describe("parseFrontmatter", () => {
   });
 
   it("migrates legacy flat frontmatter to the nested status shape", () => {
-    const doc = [
-      "---",
-      "status: pending",
-      "iteration: 2",
-      "---",
-      "Body"
-    ].join("\n");
+    const doc = ["---", "status: pending", "iteration: 2", "---", "Body"].join("\n");
 
     const result = parseFrontmatter(doc);
 
@@ -322,13 +335,7 @@ describe("parseFrontmatter", () => {
   });
 
   it("maps legacy cancelled state back to open", () => {
-    const doc = [
-      "---",
-      "status: cancelled",
-      "iteration: 7",
-      "---",
-      "Body"
-    ].join("\n");
+    const doc = ["---", "status: cancelled", "iteration: 7", "---", "Body"].join("\n");
 
     const result = parseFrontmatter(doc);
 
@@ -456,30 +463,15 @@ describe("writeFrontmatter", () => {
   });
 
   it("always writes the new nested format after reading a legacy document", () => {
-    const original = [
-      "---",
-      "status: pending",
-      "iteration: 0",
-      "---",
-      "# Plan",
-      "",
-      "Body"
-    ].join("\n");
+    const original = ["---", "status: pending", "iteration: 0", "---", "# Plan", "", "Body"].join(
+      "\n"
+    );
 
     const { data, body } = parseFrontmatter(original);
     const result = writeFrontmatter(data, body);
 
     expect(result).toBe(
-      [
-        "---",
-        "status:",
-        "  state: open",
-        "  iteration: 0",
-        "---",
-        "# Plan",
-        "",
-        "Body"
-      ].join("\n")
+      ["---", "status:", "  state: open", "  iteration: 0", "---", "# Plan", "", "Body"].join("\n")
     );
   });
 });
@@ -517,13 +509,7 @@ describe("createRalphSimulation", () => {
       agent: ["claude-code", "codex"],
       docContent: "Keep rotating",
       maxIterations: 5,
-      turns: [
-        successTurn(),
-        successTurn(),
-        successTurn(),
-        successTurn(),
-        successTurn()
-      ]
+      turns: [successTurn(), successTurn(), successTurn(), successTurn(), successTurn()]
     });
 
     const { runs } = await sim.run();
@@ -547,11 +533,7 @@ describe("createRalphSimulation", () => {
 
     const { runs } = await sim.run();
 
-    expect(runs.map((run) => run.agent)).toEqual([
-      "claude-code",
-      "codex",
-      "kimi"
-    ]);
+    expect(runs.map((run) => run.agent)).toEqual(["claude-code", "codex", "kimi"]);
   });
 
   it("rejects an empty agent array", async () => {
@@ -562,9 +544,7 @@ describe("createRalphSimulation", () => {
       turns: [successTurn()]
     });
 
-    await expect(sim.run()).rejects.toThrow(
-      "agent must contain at least one entry"
-    );
+    await expect(sim.run()).rejects.toThrow("agent must contain at least one entry");
   });
 
   it("uses the prompt from initial read even if body changes mid-run", async () => {
@@ -591,9 +571,7 @@ describe("createRalphSimulation", () => {
       turns: [
         {
           assertPrompt: async (_prompt, ctx) => {
-            const current = await ctx.readFile(
-              ".poe-code/ralph/plans/plan.md"
-            );
+            const current = await ctx.readFile(".poe-code/ralph/plans/plan.md");
             const { data } = parseFrontmatter(current);
             const updated = writeFrontmatter(data, "Body changed by another agent");
             await ctx.writeFile(".poe-code/ralph/plans/plan.md", updated);
@@ -602,9 +580,7 @@ describe("createRalphSimulation", () => {
         },
         {
           assertPrompt: async (_prompt, ctx) => {
-            const content = await ctx.readFile(
-              ".poe-code/ralph/plans/plan.md"
-            );
+            const content = await ctx.readFile(".poe-code/ralph/plans/plan.md");
             const { body } = parseFrontmatter(content);
             expect(body).toBe("Body changed by another agent");
           },
@@ -632,23 +608,16 @@ describe("createRalphSimulation", () => {
       turns: [
         {
           assertPrompt: async (_prompt, ctx) => {
-            const current = await ctx.readFile(
-              ".poe-code/ralph/plans/plan.md"
-            );
+            const current = await ctx.readFile(".poe-code/ralph/plans/plan.md");
             const { data, body } = parseFrontmatter(current);
-            const updated = writeFrontmatter(
-              { ...data, iterations: 10 },
-              body
-            );
+            const updated = writeFrontmatter({ ...data, iterations: 10 }, body);
             await ctx.writeFile(".poe-code/ralph/plans/plan.md", updated);
           },
           output: { stdout: "", exitCode: 0 }
         },
         {
           assertPrompt: async (_prompt, ctx) => {
-            const content = await ctx.readFile(
-              ".poe-code/ralph/plans/plan.md"
-            );
+            const content = await ctx.readFile(".poe-code/ralph/plans/plan.md");
             const { data } = parseFrontmatter(content);
             expect(data.iterations).toBe(10);
           },
@@ -668,9 +637,7 @@ describe("createRalphSimulation", () => {
       turns: [
         {
           assertPrompt: async (_prompt, ctx) => {
-            capturedContent = await ctx.readFile(
-              ".poe-code/ralph/plans/plan.md"
-            );
+            capturedContent = await ctx.readFile(".poe-code/ralph/plans/plan.md");
           },
           output: { stdout: "", exitCode: 0 }
         }
@@ -695,9 +662,7 @@ describe("createRalphSimulation", () => {
         successTurn(),
         {
           assertPrompt: async (_prompt, ctx) => {
-            const content = await ctx.readFile(
-              ".poe-code/ralph/plans/plan.md"
-            );
+            const content = await ctx.readFile(".poe-code/ralph/plans/plan.md");
             const { data } = parseFrontmatter(content);
             iterationAfterFirst = data.status.iteration;
           },
@@ -752,9 +717,7 @@ describe("createRalphSimulation", () => {
 
     const { readFile } = await sim.run();
 
-    const archived = await readFile(
-      ".poe-code/ralph/plans/archive/plan.md"
-    );
+    const archived = await readFile(".poe-code/ralph/plans/archive/plan.md");
     const { data, body } = parseFrontmatter(archived);
     expect(data.status).toEqual({
       state: "completed",
@@ -868,9 +831,7 @@ describe("createRalphSimulation", () => {
 
     const { prompts } = await sim.run();
 
-    expect(prompts[0]).toBe(
-      "Fix issues in /repo/.poe-code/ralph/plans/plan.md"
-    );
+    expect(prompts[0]).toBe("Fix issues in /repo/.poe-code/ralph/plans/plan.md");
   });
 
   it("preserves {{ current_file }} template in the file after run", async () => {
@@ -882,9 +843,7 @@ describe("createRalphSimulation", () => {
 
     const { readFile } = await sim.run();
 
-    const archived = await readFile(
-      ".poe-code/ralph/plans/archive/plan.md"
-    );
+    const archived = await readFile(".poe-code/ralph/plans/archive/plan.md");
     const { body } = parseFrontmatter(archived);
     expect(body).toBe("Fix {{ current_file }}");
   });
@@ -912,9 +871,7 @@ describe("createRalphSimulation", () => {
       runAgent
     });
 
-    await expect(
-      rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock")
-    ).rejects.toMatchObject({
+    await expect(rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock")).rejects.toMatchObject({
       code: "ENOENT"
     });
   });
@@ -949,19 +906,14 @@ describe("createRalphSimulation", () => {
       })
     ).rejects.toThrow("boom");
 
-    const content = await rawFs.readFile(
-      "/repo/.poe-code/ralph/plans/plan.md",
-      "utf8"
-    );
+    const content = await rawFs.readFile("/repo/.poe-code/ralph/plans/plan.md", "utf8");
     const { data } = parseFrontmatter(content as string);
 
     expect(data.status).toEqual({
       state: "open",
       iteration: 1
     });
-    await expect(
-      rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock")
-    ).rejects.toMatchObject({
+    await expect(rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock")).rejects.toMatchObject({
       code: "ENOENT"
     });
   });
@@ -1030,12 +982,7 @@ describe("createRalphSimulation", () => {
 describe("runRalph config resolution", () => {
   it("inherits base prompt and config when the doc sets extends true", async () => {
     const { fs } = createRunFs({
-      "/repo/.poe-code/ralph/plans/plan.md": [
-        "---",
-        "extends: true",
-        "---",
-        ""
-      ].join("\n"),
+      "/repo/.poe-code/ralph/plans/plan.md": ["---", "extends: true", "---", ""].join("\n"),
       "/repo/.poe-code/ralph/bases/plan.md": [
         "---",
         "agent: codex",
@@ -1176,19 +1123,18 @@ describe("interpolateVariables", () => {
   });
 
   it("replaces multiple occurrences of the same variable", () => {
-    const result = interpolateVariables(
-      "Open {{ current_file }} and review {{ current_file }}",
-      { current_file: "/repo/plan.md" }
-    );
+    const result = interpolateVariables("Open {{ current_file }} and review {{ current_file }}", {
+      current_file: "/repo/plan.md"
+    });
 
     expect(result).toBe("Open /repo/plan.md and review /repo/plan.md");
   });
 
   it("handles multiple different variables", () => {
-    const result = interpolateVariables(
-      "File: {{ current_file }}, Dir: {{ cwd }}",
-      { current_file: "/repo/plan.md", cwd: "/repo" }
-    );
+    const result = interpolateVariables("File: {{ current_file }}, Dir: {{ cwd }}", {
+      current_file: "/repo/plan.md",
+      cwd: "/repo"
+    });
 
     expect(result).toBe("File: /repo/plan.md, Dir: /repo");
   });

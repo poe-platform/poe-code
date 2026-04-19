@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
 import { resolvePlanDirectory, resolvePlanPath, resolvePlanPaths } from "./plan/discovery.js";
-import { parsePlan } from "./plan/parser.js";
+import { parsePlan, pipelineDocumentSchema, pipelineDocumentSchemaId } from "./plan/parser.js";
 import { readPlanFile, writeTaskStatus } from "./plan/writer.js";
 import {
   buildExecutionPrompt,
@@ -33,6 +33,14 @@ function createFs(files: Record<string, string> = {}): TestFs {
 }
 
 describe("@poe-code/pipeline public exports", () => {
+  it("re-exports the document schema from the package entrypoint", async () => {
+    const pkg = await import("./index.js");
+    const parser = await import("./plan/parser.js");
+
+    expect(pkg.pipelineDocumentSchema).toBe(parser.pipelineDocumentSchema);
+    expect(pkg.pipelineDocumentSchemaId).toBe(parser.pipelineDocumentSchemaId);
+  });
+
   it("exports SDK types", () => {
     const step: StepDefinition = {
       mode: "yolo",
@@ -87,6 +95,18 @@ describe("@poe-code/pipeline public exports", () => {
     expect(step.mode).toBe("yolo");
     expect(Object.keys(steps)).toEqual(["implement"]);
     expect(plan.tasks).toHaveLength(1);
+    expect(pipelineDocumentSchemaId).toBe(
+      "https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json"
+    );
+    expect(pipelineDocumentSchema).toMatchObject({
+      $id: pipelineDocumentSchemaId,
+      type: "object",
+      properties: {
+        kind: { const: "pipeline" },
+        tasks: { type: "array" }
+      },
+      required: ["kind", "tasks"]
+    });
 
     void input;
     void result;
@@ -646,7 +666,6 @@ describe("resolvePlanPath", () => {
       })
     ).rejects.toThrow(/no plan found/i);
   });
-
 
   it("scans only the custom planDirectory when provided", async () => {
     const select = vi.fn().mockResolvedValue("custom-plans/plan-custom.md");

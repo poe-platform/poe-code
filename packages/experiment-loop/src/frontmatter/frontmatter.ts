@@ -2,6 +2,27 @@ import matter from "gray-matter";
 import { dirname } from "node:path";
 import type { ExperimentFileSystem, MetricDef } from "../types.js";
 
+type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
+
+type JsonSchema = {
+  $schema?: string;
+  $id?: string;
+  title?: string;
+  description?: string;
+  type?: JsonSchemaType | readonly JsonSchemaType[];
+  const?: unknown;
+  default?: unknown;
+  enum?: readonly unknown[];
+  minimum?: number;
+  minLength?: number;
+  minItems?: number;
+  items?: JsonSchema;
+  properties?: Record<string, JsonSchema>;
+  required?: readonly string[];
+  additionalProperties?: boolean | JsonSchema;
+  anyOf?: readonly JsonSchema[];
+};
+
 export interface ExperimentFrontmatter {
   agent?: string | string[];
   extends?: boolean;
@@ -10,6 +31,98 @@ export interface ExperimentFrontmatter {
   maxExperiments?: number;
   metricTimeout?: number;
 }
+
+export const experimentDocumentSchemaId =
+  "https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json";
+
+const metricDefinitionSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    name: {
+      type: "string",
+      minLength: 1
+    },
+    script: {
+      type: "string",
+      minLength: 1
+    },
+    direction: {
+      type: "string",
+      enum: ["minimize", "maximize", "stable"]
+    },
+    delta: {
+      type: "number",
+      minimum: 0
+    }
+  },
+  required: ["name", "script", "direction"],
+  additionalProperties: false
+};
+
+export const experimentDocumentSchema: JsonSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: experimentDocumentSchemaId,
+  title: "Experiment plan document",
+  type: "object",
+  properties: {
+    kind: {
+      type: "string",
+      const: "experiment"
+    },
+    agent: {
+      anyOf: [
+        {
+          type: "string",
+          minLength: 1
+        },
+        {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "string",
+            minLength: 1
+          }
+        }
+      ]
+    },
+    extends: {
+      type: "boolean"
+    },
+    metric: {
+      anyOf: [
+        metricDefinitionSchema,
+        {
+          type: "array",
+          minItems: 1,
+          items: metricDefinitionSchema
+        }
+      ]
+    },
+    baseline: {
+      anyOf: [
+        {
+          type: "null"
+        },
+        {
+          type: "object",
+          additionalProperties: {
+            type: "number"
+          }
+        }
+      ]
+    },
+    maxExperiments: {
+      type: "integer",
+      minimum: 0
+    },
+    metricTimeout: {
+      type: "integer",
+      minimum: 0
+    }
+  },
+  required: ["kind", "baseline"],
+  additionalProperties: false
+};
 
 export function parseExperimentFrontmatter(content: string): {
   frontmatter: ExperimentFrontmatter;
@@ -62,7 +175,9 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
     ...(frontmatter.extends !== undefined ? { extends: frontmatter.extends } : {}),
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),
     baseline: frontmatter.baseline,
-    ...(frontmatter.maxExperiments !== undefined ? { maxExperiments: frontmatter.maxExperiments } : {}),
+    ...(frontmatter.maxExperiments !== undefined
+      ? { maxExperiments: frontmatter.maxExperiments }
+      : {}),
     ...(frontmatter.metricTimeout !== undefined ? { metricTimeout: frontmatter.metricTimeout } : {})
   };
 }

@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { loadRunConfig } from "./config/loader.js";
 import { evaluate, evaluateChain } from "./evaluator/evaluator.js";
-import { parseExperimentFrontmatter, writeExperimentFrontmatter } from "./frontmatter/frontmatter.js";
+import {
+  experimentDocumentSchema,
+  experimentDocumentSchemaId,
+  parseExperimentFrontmatter,
+  writeExperimentFrontmatter
+} from "./frontmatter/frontmatter.js";
 import { createDefaultGit } from "./git/git.js";
 import { ExperimentJournal } from "./journal/journal.js";
 import { runExperimentLoop } from "./run/loop.js";
@@ -114,9 +119,7 @@ async function appendJournalEntry(
   );
 }
 
-function createDoc(options?: {
-  baseline?: number | null;
-}): string {
+function createDoc(options?: { baseline?: number | null }): string {
   const baseline = options?.baseline === undefined ? 1 : options.baseline;
 
   return [
@@ -147,17 +150,40 @@ function createJournalEntry(overrides: Partial<JournalEntry> = {}): JournalEntry
   };
 }
 
+describe("@poe-code/experiment-loop public exports", () => {
+  it("re-exports the experiment document schema from the package entrypoint", async () => {
+    const pkg = await import("./index.js");
+    const frontmatter = await import("./frontmatter/frontmatter.js");
+
+    expect(pkg.experimentDocumentSchema).toBe(frontmatter.experimentDocumentSchema);
+    expect(pkg.experimentDocumentSchemaId).toBe(frontmatter.experimentDocumentSchemaId);
+  });
+
+  it("exports the experiment document schema", () => {
+    expect(experimentDocumentSchemaId).toBe(
+      "https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json"
+    );
+    expect(experimentDocumentSchema).toMatchObject({
+      $id: experimentDocumentSchemaId,
+      type: "object",
+      properties: {
+        kind: { const: "experiment" },
+        baseline: {}
+      },
+      required: ["kind", "baseline"]
+    });
+  });
+});
+
 describe("loadRunConfig", () => {
   it("uses bundled default when no project run.yaml exists", async () => {
     const config = await loadRunConfig({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/home/test/.poe-code/experiments/run.yaml": [
-          "prompt: |",
-          "  Global: {{body}}",
-          ""
-        ].join("\n")
+        "/home/test/.poe-code/experiments/run.yaml": ["prompt: |", "  Global: {{body}}", ""].join(
+          "\n"
+        )
       })
     });
 
@@ -754,12 +780,7 @@ describe("writeExperimentFrontmatter", () => {
     const fs = createFs();
     const docPath = "/repo/experiment.md";
 
-    await writeExperimentFrontmatter(
-      docPath,
-      { baseline: null },
-      "# Experiment\n",
-      fs
-    );
+    await writeExperimentFrontmatter(docPath, { baseline: null }, "# Experiment\n", fs);
 
     const written = await fs.readFile(docPath, "utf8");
 
@@ -1007,19 +1028,17 @@ describe("runExperimentLoop", () => {
       currentHash: vi.fn(async () => "base-1")
     });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
     const onExperimentStart = vi.fn();
     const onExperimentComplete = vi.fn();
     const onCommit = vi.fn();
@@ -1091,11 +1110,13 @@ describe("runExperimentLoop", () => {
     });
     const exec = createLoopExec([]);
     const onReset = vi.fn();
-    const runAgent = vi.fn(async (): Promise<AgentRunResult> => ({
-      stdout: "",
-      stderr: "",
-      exitCode: 0
-    }));
+    const runAgent = vi.fn(
+      async (): Promise<AgentRunResult> => ({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    );
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -1127,19 +1148,17 @@ describe("runExperimentLoop", () => {
       currentHash: vi.fn(async () => "baseline-abc")
     });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "discard-xyz",
-          status: "discard",
-          scores: { tests: 4 },
-          output: "tests: score=4, passed=false",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "discard-xyz",
+        status: "discard",
+        scores: { tests: 4 },
+        output: "tests: score=4, passed=false",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -1156,9 +1175,7 @@ describe("runExperimentLoop", () => {
     expect(result.experimentsKept).toBe(0);
     expect(git.reset).toHaveBeenCalledWith("baseline-abc", "/repo");
 
-    const [entry] = (
-      await fs.readFile(journalFilePath(docPath), "utf8")
-    )
+    const [entry] = (await fs.readFile(journalFilePath(docPath), "utf8"))
       .trim()
       .split("\n")
       .map((line) => JSON.parse(line) as JournalEntry);
@@ -1181,21 +1198,17 @@ describe("runExperimentLoop", () => {
     const git = createLoopGit({
       currentHash: vi.fn(async () => "baseline-abc")
     });
-    const exec = createLoopExec([
-      { stdout: "42\n", stderr: "", exitCode: 0 }
-    ]);
-    const runAgent = vi.fn(
-      async (): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          output: "done",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const exec = createLoopExec([{ stdout: "42\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        output: "done",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -1208,9 +1221,7 @@ describe("runExperimentLoop", () => {
       runAgent
     });
 
-    const [entry] = (
-      await fs.readFile(journalFilePath(docPath), "utf8")
-    )
+    const [entry] = (await fs.readFile(journalFilePath(docPath), "utf8"))
       .trim()
       .split("\n")
       .map((line) => JSON.parse(line) as JournalEntry);
@@ -1231,19 +1242,17 @@ describe("runExperimentLoop", () => {
       currentHash: vi.fn(async () => "baseline-abc")
     });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 99 },
-          output: "done",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 99 },
+        output: "done",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -1258,9 +1267,7 @@ describe("runExperimentLoop", () => {
 
     expect(exec).not.toHaveBeenCalled();
 
-    const [entry] = (
-      await fs.readFile(journalFilePath(docPath), "utf8")
-    )
+    const [entry] = (await fs.readFile(journalFilePath(docPath), "utf8"))
       .trim()
       .split("\n")
       .map((line) => JSON.parse(line) as JournalEntry);
@@ -1293,19 +1300,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -1345,19 +1350,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -1398,19 +1401,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -1459,19 +1460,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -1512,19 +1511,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -1575,19 +1572,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -1640,9 +1635,7 @@ describe("runExperimentLoop", () => {
     });
     expect(git.currentHash).not.toHaveBeenCalled();
     expect(runAgent).not.toHaveBeenCalled();
-    await expect(
-      fs.readFile(journalFilePath(docPath), "utf8")
-    ).resolves.toBe("");
+    await expect(fs.readFile(journalFilePath(docPath), "utf8")).resolves.toBe("");
   });
 
   it("returns cancelled immediately when the signal is already aborted", async () => {
@@ -1699,19 +1692,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { test_count: 100 },
-          output: "test_count: score=100, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { test_count: 100 },
+        output: "test_count: score=100, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -1748,19 +1739,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "base-1",
-          status: "discard",
-          scores: { test_count: 99 },
-          output: "test_count: score=99, passed=false",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "base-1",
+        status: "discard",
+        scores: { test_count: 99 },
+        output: "test_count: score=99, passed=false",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -1799,19 +1788,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { test_count: 103 },
-          output: "test_count: score=103, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { test_count: 103 },
+        output: "test_count: score=103, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -1849,19 +1836,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "base-1",
-          status: "discard",
-          scores: { test_count: 106 },
-          output: "test_count: score=106, passed=false",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "base-1",
+        status: "discard",
+        scores: { test_count: 106 },
+        output: "test_count: score=106, passed=false",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -1900,19 +1885,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 9 },
-          output: "tests: score=9, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 9 },
+        output: "tests: score=9, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -1949,19 +1932,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -2006,20 +1987,18 @@ describe("runExperimentLoop", () => {
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
     let callIndex = 0;
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        callIndex += 1;
-        await appendJournalEntry(fs, docPath, {
-          commit: `keep-${callIndex}`,
-          status: "keep",
-          scores: { tests: callIndex + 1 },
-          output: `tests: score=${callIndex + 1}, passed=true`,
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      callIndex += 1;
+      await appendJournalEntry(fs, docPath, {
+        commit: `keep-${callIndex}`,
+        status: "keep",
+        scores: { tests: callIndex + 1 },
+        output: `tests: score=${callIndex + 1}, passed=true`,
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -2067,19 +2046,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
     const onExperimentStart = vi.fn();
 
     await runExperimentLoop({
@@ -2119,19 +2096,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { duration: 5050 },
-          output: "duration: score=5050, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { duration: 5050 },
+        output: "duration: score=5050, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -2153,22 +2128,18 @@ describe("runExperimentLoop", () => {
       [docPath]: createDoc({ baseline: null })
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([
-      { stdout: "5\n", stderr: "", exitCode: 0 }
-    ]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 7 },
-          output: "tests: score=7, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const exec = createLoopExec([{ stdout: "5\n", stderr: "", exitCode: 0 }]);
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 7 },
+        output: "tests: score=7, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -2209,20 +2180,18 @@ describe("runExperimentLoop", () => {
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
     let callIndex = 0;
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        callIndex += 1;
-        await appendJournalEntry(fs, docPath, {
-          commit: `keep-${callIndex}`,
-          status: "keep",
-          scores: { tests: callIndex + 1 },
-          output: `tests: score=${callIndex + 1}, passed=true`,
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      callIndex += 1;
+      await appendJournalEntry(fs, docPath, {
+        commit: `keep-${callIndex}`,
+        status: "keep",
+        scores: { tests: callIndex + 1 },
+        output: `tests: score=${callIndex + 1}, passed=true`,
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     const result = await runExperimentLoop({
       cwd: "/repo",
@@ -2246,20 +2215,22 @@ describe("runExperimentLoop", () => {
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
     let callIndex = 0;
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        callIndex += 1;
-        await appendJournalEntry(fs, docPath, {
-          commit: `keep-${callIndex}`,
-          status: "keep",
-          scores: { tests: callIndex + 1 },
-          output: `tests: score=${callIndex + 1}, passed=true`,
-          agentOutput: "I refactored the parser module to reduce allocations",
-          durationMs: 100
-        });
-        return { stdout: "I refactored the parser module to reduce allocations", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      callIndex += 1;
+      await appendJournalEntry(fs, docPath, {
+        commit: `keep-${callIndex}`,
+        status: "keep",
+        scores: { tests: callIndex + 1 },
+        output: `tests: score=${callIndex + 1}, passed=true`,
+        agentOutput: "I refactored the parser module to reduce allocations",
+        durationMs: 100
+      });
+      return {
+        stdout: "I refactored the parser module to reduce allocations",
+        stderr: "",
+        exitCode: 0
+      };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -2289,19 +2260,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -2327,19 +2296,17 @@ describe("runExperimentLoop", () => {
     });
     const git = createLoopGit({ currentHash: vi.fn(async () => "abc1234") });
     const exec = createLoopExec([]);
-    const runAgent = vi.fn(
-      async (_input: AgentRunInput): Promise<AgentRunResult> => {
-        await appendJournalEntry(fs, docPath, {
-          commit: "keep-1",
-          status: "keep",
-          scores: { tests: 2 },
-          output: "tests: score=2, passed=true",
-          agentOutput: "done",
-          durationMs: 100
-        });
-        return { stdout: "done", stderr: "", exitCode: 0 };
-      }
-    );
+    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
 
     await runExperimentLoop({
       cwd: "/repo",
@@ -2459,7 +2426,11 @@ describe("createExperimentLoopSimulation", () => {
       docContent: createExperimentDoc({
         metric: [
           { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
-          { name: "test_duration", script: "node scripts/metric-duration.mjs", direction: "minimize" }
+          {
+            name: "test_duration",
+            script: "node scripts/metric-duration.mjs",
+            direction: "minimize"
+          }
         ],
         baseline: {
           tests: 1,
@@ -2499,7 +2470,11 @@ describe("createExperimentLoopSimulation", () => {
       docContent: createExperimentDoc({
         metric: [
           { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
-          { name: "test_duration", script: "node scripts/metric-duration.mjs", direction: "minimize" }
+          {
+            name: "test_duration",
+            script: "node scripts/metric-duration.mjs",
+            direction: "minimize"
+          }
         ],
         baseline: {
           tests: 1,
@@ -2526,7 +2501,11 @@ describe("createExperimentLoopSimulation", () => {
       docContent: createExperimentDoc({
         metric: [
           { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
-          { name: "test_duration", script: "node scripts/metric-duration.mjs", direction: "minimize" }
+          {
+            name: "test_duration",
+            script: "node scripts/metric-duration.mjs",
+            direction: "minimize"
+          }
         ],
         baseline: {
           tests: 1,
@@ -2566,7 +2545,9 @@ describe("createExperimentLoopSimulation", () => {
           },
           {
             assertPrompt: (prompt) => {
-              expect(prompt).toContain("commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput");
+              expect(prompt).toContain(
+                "commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput"
+              );
               expect(prompt).toContain("commit-1\tkeep\t{");
             }
           }
@@ -2699,7 +2680,9 @@ describe("createExperimentLoopSimulation", () => {
     const { result, readJournal } = await sim.run();
     const entries = await readJournal();
 
-    expect(entries.at(-1)).toEqual(expect.objectContaining({ status: "keep", scores: { tests: 6 } }));
+    expect(entries.at(-1)).toEqual(
+      expect.objectContaining({ status: "keep", scores: { tests: 6 } })
+    );
     expect(result.experimentsKept).toBe(1);
   });
 
@@ -2728,11 +2711,6 @@ describe("createExperimentLoopSimulation", () => {
 
     const { runs } = await sim.run();
 
-    expect(runs.map((run) => run.agent)).toEqual([
-      "claude-code",
-      "codex",
-      "claude-code",
-      "codex"
-    ]);
+    expect(runs.map((run) => run.agent)).toEqual(["claude-code", "codex", "claude-code", "codex"]);
   });
 });

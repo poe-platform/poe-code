@@ -1,5 +1,26 @@
 import { parse, stringify } from "yaml";
 
+type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
+
+type JsonSchema = {
+  $schema?: string;
+  $id?: string;
+  title?: string;
+  description?: string;
+  type?: JsonSchemaType | readonly JsonSchemaType[];
+  const?: unknown;
+  default?: unknown;
+  enum?: readonly unknown[];
+  minimum?: number;
+  minLength?: number;
+  minItems?: number;
+  items?: JsonSchema;
+  properties?: Record<string, JsonSchema>;
+  required?: readonly string[];
+  additionalProperties?: boolean | JsonSchema;
+  anyOf?: readonly JsonSchema[];
+};
+
 export type RalphPlanStatus = "open" | "in_progress" | "completed" | "failed";
 
 export interface RalphFrontmatter {
@@ -11,6 +32,62 @@ export interface RalphFrontmatter {
     iteration: number;
   };
 }
+
+export const ralphDocumentSchemaId =
+  "https://poe-platform.github.io/poe-code/schemas/plans/ralph.schema.json";
+
+export const ralphDocumentSchema: JsonSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: ralphDocumentSchemaId,
+  title: "Ralph plan document",
+  type: "object",
+  properties: {
+    kind: {
+      type: "string",
+      const: "ralph"
+    },
+    agent: {
+      anyOf: [
+        {
+          type: "string",
+          minLength: 1
+        },
+        {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "string",
+            minLength: 1
+          }
+        }
+      ]
+    },
+    extends: {
+      type: "boolean"
+    },
+    iterations: {
+      type: "integer",
+      minimum: 1
+    },
+    status: {
+      type: "object",
+      properties: {
+        state: {
+          type: "string",
+          enum: ["open", "in_progress", "completed", "failed"]
+        },
+        iteration: {
+          type: "integer",
+          minimum: 0
+        }
+      },
+      required: ["state", "iteration"],
+      additionalProperties: false
+    }
+  },
+  required: ["kind", "status"],
+  additionalProperties: false
+};
 
 const FENCE = "---";
 const DEFAULT_STATUS: RalphFrontmatter["status"] = {
@@ -47,10 +124,7 @@ export function parseFrontmatter(content: string): {
   };
 }
 
-export function writeFrontmatter(
-  data: RalphFrontmatter,
-  body: string
-): string {
+export function writeFrontmatter(data: RalphFrontmatter, body: string): string {
   const serialized: RalphFrontmatter = {
     ...(data.agent !== undefined ? { agent: data.agent } : {}),
     ...(data.extends !== undefined ? { extends: data.extends } : {}),
@@ -157,15 +231,11 @@ function parseLegacyStatus(value: unknown): RalphPlanStatus | undefined {
 }
 
 function parseNonNegativeInteger(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0
-    ? value
-    : undefined;
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
 }
 
 function parsePositiveInteger(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 1
-    ? value
-    : undefined;
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 ? value : undefined;
 }
 
 function parseBoolean(value: unknown): boolean | undefined {

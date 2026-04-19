@@ -6,6 +6,8 @@ import {
   ghGroup,
   getPoeApiKey,
   isCliInvocation,
+  planDocumentSchema,
+  planDocumentSchemaId,
   runExperiment,
   runRalph,
   waitForReady,
@@ -76,6 +78,21 @@ describe("entrypoint module", () => {
     expect(typeof createLogWriter).toBe("function");
     expect(typeof waitForReady).toBe("function");
     expect(options.spec.readyCheck).toEqual(spec.readyCheck);
+  });
+
+  it("re-exports the generic plan document schema", () => {
+    expect(planDocumentSchemaId).toBe(
+      "https://poe-platform.github.io/poe-code/schemas/plans/plan.schema.json"
+    );
+    expect(planDocumentSchema).toMatchObject({
+      $id: planDocumentSchemaId,
+      type: "object",
+      properties: {
+        kind: { const: "plan" }
+      },
+      required: ["kind"],
+      additionalProperties: true
+    });
   });
 
   it("re-exports github workflows SDK symbols", () => {

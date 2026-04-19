@@ -1,5 +1,11 @@
 // Document
-export { parseSuperintendentDoc } from "./document/parse.js";
+export {
+  parseSuperintendentDoc,
+  superintendentBaseDocumentSchema,
+  superintendentBaseDocumentSchemaId,
+  superintendentDocumentSchema,
+  superintendentDocumentSchemaId
+} from "./document/parse.js";
 export { updateStatus, transitionState, incrementRound } from "./document/write.js";
 export { parseTaskBoard, hasTaskBoard } from "./document/tasks.js";
 export type {

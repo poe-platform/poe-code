@@ -1,14 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const resolveOutputFormatMock = vi.hoisted(() => vi.fn());
-
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
-  return {
-    ...actual,
-    resolveOutputFormat: resolveOutputFormatMock
-  };
-});
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { withOutputFormat } from "@poe-code/design-system";
 
 import {
   createDashboardLineBuffer,
@@ -19,11 +10,6 @@ import {
 } from "./dashboard-loop-shared.js";
 
 describe("dashboard loop shared helpers", () => {
-  beforeEach(() => {
-    resolveOutputFormatMock.mockReset();
-    resolveOutputFormatMock.mockReturnValue("terminal");
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -61,25 +47,26 @@ describe("dashboard loop shared helpers", () => {
       stdout: { isTTY: true }
     };
 
-    expect(shouldUseInteractiveDashboard(true, io)).toBe(true);
-    expect(shouldUseInteractiveDashboard(false, io)).toBe(false);
+    withOutputFormat("terminal", () => {
+      expect(shouldUseInteractiveDashboard(true, io)).toBe(true);
+      expect(shouldUseInteractiveDashboard(false, io)).toBe(false);
+      expect(
+        shouldUseInteractiveDashboard(true, {
+          stdin: { isTTY: false },
+          stdout: { isTTY: true }
+        })
+      ).toBe(false);
+      expect(
+        shouldUseInteractiveDashboard(true, {
+          stdin: { isTTY: true },
+          stdout: { isTTY: false }
+        })
+      ).toBe(false);
+    });
 
-    resolveOutputFormatMock.mockReturnValue("json");
-    expect(shouldUseInteractiveDashboard(true, io)).toBe(false);
-
-    resolveOutputFormatMock.mockReturnValue("terminal");
-    expect(
-      shouldUseInteractiveDashboard(true, {
-        stdin: { isTTY: false },
-        stdout: { isTTY: true }
-      })
-    ).toBe(false);
-    expect(
-      shouldUseInteractiveDashboard(true, {
-        stdin: { isTTY: true },
-        stdout: { isTTY: false }
-      })
-    ).toBe(false);
+    withOutputFormat("json", () => {
+      expect(shouldUseInteractiveDashboard(true, io)).toBe(false);
+    });
   });
 
   it("routes quit commands through requestCancellation", () => {

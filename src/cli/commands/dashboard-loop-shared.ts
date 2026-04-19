@@ -1,15 +1,12 @@
-import { resolveOutputFormat, type Dashboard } from "@poe-code/design-system";
-
-type DashboardIo = {
-  stdin: { isTTY?: boolean | undefined };
-  stdout: { isTTY?: boolean | undefined };
-};
+import { shouldUseInteractiveDashboard, type Dashboard } from "@poe-code/design-system";
 
 type DashboardQuitCommandOptions = {
   abortController: AbortController;
   dashboard: Pick<Dashboard, "destroy" | "onCommand" | "stop">;
   requestCancellation: () => void;
 };
+
+export { shouldUseInteractiveDashboard };
 
 export function formatDashboardDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
@@ -54,19 +51,6 @@ export function createDashboardLineBuffer(emit: (line: string) => void): {
       pending = "";
     }
   };
-}
-
-export function shouldUseInteractiveDashboard(
-  enabled: boolean | undefined,
-  io: DashboardIo = {
-    stdin: process.stdin,
-    stdout: process.stdout
-  }
-): boolean {
-  return enabled === true
-    && resolveOutputFormat() === "terminal"
-    && Boolean(io.stdin.isTTY)
-    && Boolean(io.stdout.isTTY);
 }
 
 export function registerDashboardQuitCommands(options: DashboardQuitCommandOptions): void {

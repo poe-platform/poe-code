@@ -72,7 +72,7 @@ describe("createSuperintendentSimulation", () => {
     const result = await simulation.run();
 
     expect(result.prompts).toHaveLength(2);
-    expect(result.prompts[0]).toContain("Build /repo/.poe-code/superintendent/plan.md");
+    expect(result.prompts[0]).toContain("Build /repo/docs/plans/plan.md");
     expect(result.prompts[1]).toContain("Review Builder completed without output.");
     expect(result.runs).toHaveLength(2);
   });
@@ -94,7 +94,7 @@ describe("createSuperintendentSimulation", () => {
 
     expect(result.result.state).toBe("completed");
     expect(result.prompts).toHaveLength(3);
-    expect(result.prompts[0]).toContain("Build /repo/.poe-code/superintendent/plan.md");
+    expect(result.prompts[0]).toContain("Build /repo/docs/plans/plan.md");
     expect(result.prompts[1]).toContain("Review Builder completed without output.");
     expect(result.prompts[2]).toContain("Review Ready for owner review");
     await expect(result.readDoc()).resolves.toMatchObject({

@@ -3,6 +3,13 @@ import { readFile, stat, mkdir, writeFile, unlink, readdir, chmod } from "node:f
 import { fileURLToPath } from "node:url";
 import { S, UserError, defineCommand } from "@poe-code/cmdkit";
 import {
+  planConfigScope,
+  readMergedDocument,
+  resolveConfigPath,
+  resolveProjectConfigPath,
+  resolveScope
+} from "@poe-code/poe-code-config";
+import {
   installSkill,
   resolveAgentSupport,
   type SkillScope
@@ -22,8 +29,8 @@ export type InstallResult = {
   agent: string;
   scope: SkillScope;
   skillPath: string;
-  superintendentDir: string;
-  superintendentDirCreated: boolean;
+  planDirectory: string;
+  planDirectoryCreated: boolean;
 };
 
 const installParams = S.Object({
@@ -39,7 +46,7 @@ const installParams = S.Object({
 
 export const installCommand = defineCommand({
   name: "install",
-  description: "Install the Superintendent /superintendent skill and scaffold files.",
+  description: "Install the Superintendent /superintendent skill and scaffold the shared plan directory.",
   positional: ["agent"],
   params: installParams,
   scope: ["cli", "sdk"],
@@ -68,20 +75,21 @@ export const installCommand = defineCommand({
       }
     );
 
-    const superintendentDir = resolveSuperintendentDir(scope, cwd, homeDir);
-    let superintendentDirCreated = false;
+    const planDirectory = await resolvePlanDirectory(cwd, homeDir, process.env);
+    const absolutePlanDirectory = resolveAbsoluteDirectory(planDirectory, cwd, homeDir);
+    let planDirectoryCreated = false;
 
-    if (!(await pathExists(superintendentDir))) {
-      await mkdir(superintendentDir, { recursive: true });
-      superintendentDirCreated = true;
+    if (!(await pathExists(absolutePlanDirectory))) {
+      await mkdir(absolutePlanDirectory, { recursive: true });
+      planDirectoryCreated = true;
     }
 
     return {
       agent: support.id,
       scope,
       skillPath: skillResult.displayPath,
-      superintendentDir: displaySuperintendentDir(scope),
-      superintendentDirCreated
+      planDirectory,
+      planDirectoryCreated
     } satisfies InstallResult;
   },
   render: {
@@ -90,8 +98,8 @@ export const installCommand = defineCommand({
         `Installed Superintendent skill for ${result.agent} (${result.scope}).`
       );
       logger.message(`Skill: ${result.skillPath}`);
-      if (result.superintendentDirCreated) {
-        logger.message(`Created: ${result.superintendentDir}`);
+      if (result.planDirectoryCreated) {
+        logger.message(`Created: ${result.planDirectory}`);
       }
     },
     markdown: (result) => {
@@ -103,8 +111,8 @@ export const installCommand = defineCommand({
         `- Skill: ${result.skillPath}`
       ];
 
-      if (result.superintendentDirCreated) {
-        lines.push(`- Created: ${result.superintendentDir}`);
+      if (result.planDirectoryCreated) {
+        lines.push(`- Created: ${result.planDirectory}`);
       }
 
       return lines.join("\n");
@@ -113,20 +121,23 @@ export const installCommand = defineCommand({
   }
 });
 
-function resolveSuperintendentDir(scope: SkillScope, cwd: string, homeDir: string): string {
-  if (scope === "global") {
-    return path.join(homeDir, ".poe-code", "superintendent");
-  }
-
-  return path.join(cwd, ".poe-code", "superintendent");
+async function resolvePlanDirectory(
+  cwd: string,
+  homeDir: string,
+  env: Record<string, string | undefined>
+): Promise<string> {
+  const configPath = resolveConfigPath(homeDir);
+  const projectConfigPath = resolveProjectConfigPath(cwd);
+  const document = await readMergedDocument(fs, configPath, projectConfigPath);
+  return resolveScope(planConfigScope.schema, document.plan, env).plan_directory;
 }
 
-function displaySuperintendentDir(scope: SkillScope): string {
-  if (scope === "global") {
-    return "~/.poe-code/superintendent";
+function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): string {
+  if (dir.startsWith("~/")) {
+    return path.join(homeDir, dir.slice(2));
   }
 
-  return ".poe-code/superintendent";
+  return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
 }
 
 async function pathExists(targetPath: string): Promise<boolean> {

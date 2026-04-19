@@ -114,7 +114,6 @@ export const runCommand = defineCommand({
   handler: async ({ params }) => {
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
-    const planDirectory = await resolveSuperintendentPlanDirectory(cwd, homeDir, process.env);
 
     return runSuperintendentCommand({
       cwd,
@@ -124,8 +123,7 @@ export const runCommand = defineCommand({
       assumeYes: process.argv.includes("--yes"),
       interactive: Boolean(process.stdin.isTTY),
       useDashboard: resolveOutputFormat() === "terminal",
-      env: process.env,
-      planDirectory
+      env: process.env
     });
   },
   render: {
@@ -167,7 +165,6 @@ export const runMcpCommand = defineCommand({
   handler: async ({ params }) => {
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
-    const planDirectory = await resolveSuperintendentPlanDirectory(cwd, homeDir, process.env);
 
     return runSuperintendentCommand({
       cwd,
@@ -177,8 +174,7 @@ export const runMcpCommand = defineCommand({
       assumeYes: true,
       interactive: false,
       useDashboard: false,
-      env: process.env,
-      planDirectory
+      env: process.env
     });
   },
   render: runCommand.render
@@ -187,16 +183,17 @@ export const runMcpCommand = defineCommand({
 async function resolveSuperintendentPlanDirectory(
   cwd: string,
   homeDir: string,
-  env: Record<string, string | undefined>
+  env: Record<string, string | undefined>,
+  fs?: SuperintendentFileSystem
 ): Promise<string> {
   const configPath = resolveConfigPath(homeDir);
   const projectConfigPath = resolveProjectConfigPath(cwd);
-  try {
-    const document = await readMergedDocument(configFs, configPath, projectConfigPath);
-    return resolveScope(planConfigScope.schema, document.plan, env).plan_directory;
-  } catch {
-    return resolveScope(planConfigScope.schema, undefined, env).plan_directory;
-  }
+  const document = await readMergedDocument(
+    createConfigResolutionFs(fs),
+    configPath,
+    projectConfigPath
+  );
+  return resolveScope(planConfigScope.schema, document.plan, env).plan_directory;
 }
 
 const configFs = {
@@ -218,6 +215,27 @@ const configFs = {
   },
   readdir: (filePath: string) => fsPromises.readdir(filePath) as Promise<string[]>
 };
+
+function createConfigResolutionFs(fs?: SuperintendentFileSystem): typeof configFs {
+  if (!fs) {
+    return configFs;
+  }
+
+  return {
+    ...configFs,
+    readFile: (filePath: string, encoding: "utf8") => fs.readFile(filePath, encoding),
+    writeFile: async (
+      filePath: string,
+      content: string,
+      options?: { encoding: "utf8" }
+    ): Promise<void> => {
+      await fs.writeFile(filePath, content, options);
+    },
+    mkdir: async (filePath: string, options?: { recursive: boolean }): Promise<void> => {
+      await fs.mkdir(filePath, options);
+    }
+  };
+}
 
 export async function runSuperintendentCommand(
   options: RunCommandOptions
@@ -243,6 +261,7 @@ export async function runSuperintendentCommand(
     planDirectory: options.planDirectory,
     assumeYes,
     interactive,
+    env,
     fs,
     selectPrompt
   });
@@ -643,6 +662,7 @@ async function resolveDocPath(options: {
   planDirectory?: string;
   assumeYes: boolean;
   interactive: boolean;
+  env: Record<string, string | undefined>;
   fs: SuperintendentFileSystem;
   selectPrompt: typeof select;
 }): Promise<string> {
@@ -650,7 +670,20 @@ async function resolveDocPath(options: {
     return resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   }
 
-  const docs = await discoverSuperintendentDocs(options);
+  const planDirectory =
+    options.planDirectory ??
+    (await resolveSuperintendentPlanDirectory(
+      options.cwd,
+      options.homeDir,
+      options.env,
+      options.fs
+    ));
+  const docs = await discoverSuperintendentDocs({
+    cwd: options.cwd,
+    homeDir: options.homeDir,
+    planDirectory,
+    fs: options.fs
+  });
 
   if (docs.length === 0) {
     throw new UserError("No superintendent documents found.");
@@ -680,12 +713,12 @@ async function resolveDocPath(options: {
 async function discoverSuperintendentDocs(options: {
   cwd: string;
   homeDir: string;
-  planDirectory?: string;
+  planDirectory: string;
   fs: SuperintendentFileSystem;
 }): Promise<string[]> {
   const docs = await listPlanDirectoryDocs(
     options.fs,
-    options.planDirectory ?? "docs/plans",
+    options.planDirectory,
     options.cwd,
     options.homeDir
   );

@@ -72,7 +72,7 @@ function createSimulationFs(options: SimulationOptions): {
 } {
   const cwd = "/repo";
   const homeDir = "/home/test";
-  const docPath = options.docPath ?? ".poe-code/superintendent/plan.md";
+  const docPath = options.docPath ?? "docs/plans/plan.md";
   const absoluteDocPath = resolveWorkflowPath(docPath, cwd, homeDir);
   const docContent =
     options.maxRounds === undefined

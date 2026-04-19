@@ -132,7 +132,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: superintendent-shared-plan-dir
     title: Superintendent default discovery uses the shared plan directory
@@ -154,9 +154,9 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: schema-exports-packages

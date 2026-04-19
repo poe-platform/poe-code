@@ -163,7 +163,7 @@ describe("superintendent run command", () => {
 
   it("wires loop callbacks to the dashboard", async () => {
     const fs = createFs({
-      "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
+      "/repo/docs/plans/plan.md": createDoc("claude-code")
     });
     const dashboardMock = createDashboardMock();
     const runLoopMock = vi.fn(
@@ -250,7 +250,7 @@ describe("superintendent run command", () => {
     const result = await runSuperintendentCommand({
       cwd: "/repo",
       homeDir: "/home/test",
-      docPath: "/repo/.poe-code/superintendent/plan.md",
+      docPath: "/repo/docs/plans/plan.md",
       builderAgent: "codex",
       interactive: true,
       useDashboard: true,
@@ -295,7 +295,7 @@ describe("superintendent run command", () => {
 
   it("streams agent stdout and stderr lines into the dashboard output", async () => {
     const fs = createFs({
-      "/repo/.poe-code/superintendent/plan.md": createDoc("codex")
+      "/repo/docs/plans/plan.md": createDoc("codex")
     });
     const dashboardMock = createDashboardMock();
     const executeAgent = vi.fn(
@@ -342,7 +342,7 @@ describe("superintendent run command", () => {
     await runSuperintendentCommand({
       cwd: "/repo",
       homeDir: "/home/test",
-      docPath: "/repo/.poe-code/superintendent/plan.md",
+      docPath: "/repo/docs/plans/plan.md",
       builderAgent: "codex",
       assumeYes: true,
       interactive: true,
@@ -380,7 +380,7 @@ describe("superintendent run command", () => {
     expect(errKind).toBeDefined();
   });
 
-  it("scans the configured planDirectory instead of the default superintendent directory", async () => {
+  it("discovers superintendent docs from the shared docs/plans default", async () => {
     const fs = createFs({
       "/repo/.poe-code/superintendent/should-be-ignored.md": createDoc("codex"),
       "/repo/docs/plans/expected.md": createDoc("claude-code")
@@ -399,7 +399,6 @@ describe("superintendent run command", () => {
     const result = await runSuperintendentCommand({
       cwd: "/repo",
       homeDir: "/home/test",
-      planDirectory: "docs/plans",
       assumeYes: true,
       interactive: true,
       useDashboard: true,
@@ -425,9 +424,128 @@ describe("superintendent run command", () => {
     });
   });
 
+  it("respects POE_PLAN_DIRECTORY when discovery defaults are resolved", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/should-be-ignored.md": createDoc("codex"),
+      "/repo/custom/plans/expected.md": createDoc("claude-code")
+    });
+    const dashboardMock = createDashboardMock();
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      selectPrompt: vi.fn(),
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: { POE_PLAN_DIRECTORY: "custom/plans" }
+    });
+
+    expect(runLoopMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        docPath: "/repo/custom/plans/expected.md"
+      })
+    );
+    expect(result).toMatchObject({
+      docPath: "/repo/custom/plans/expected.md",
+      builderAgent: "claude-code"
+    });
+  });
+
+  it("uses plan.plan_directory from shared config during discovery", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/config.json": JSON.stringify(
+        {
+          plan: {
+            plan_directory: "custom/plans"
+          }
+        },
+        null,
+        2
+      ),
+      "/repo/.poe-code/superintendent/legacy.md": createDoc("codex"),
+      "/repo/custom/plans/expected.md": createDoc("claude-code")
+    });
+    const dashboardMock = createDashboardMock();
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      selectPrompt: vi.fn(),
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {}
+    });
+
+    expect(runLoopMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        docPath: "/repo/custom/plans/expected.md"
+      })
+    );
+    expect(result).toMatchObject({
+      docPath: "/repo/custom/plans/expected.md",
+      builderAgent: "claude-code"
+    });
+  });
+
+  it("does not fall back to .poe-code/superintendent when default discovery finds nothing", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/superintendent/legacy.md": createDoc("codex")
+    });
+
+    const { runSuperintendentCommand } = await import("./run.js");
+
+    await expect(
+      runSuperintendentCommand({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        assumeYes: true,
+        interactive: true,
+        useDashboard: false,
+        fs,
+        selectPrompt: vi.fn(),
+        now: () => 0,
+        env: {}
+      })
+    ).rejects.toThrow("No superintendent documents found.");
+  });
+
   it("writes the loop error to stderr after the dashboard tears down", async () => {
     const fs = createFs({
-      "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
+      "/repo/docs/plans/plan.md": createDoc("claude-code")
     });
     const dashboardMock = createDashboardMock();
     const runLoopMock = vi.fn(async () => {
@@ -454,7 +572,7 @@ describe("superintendent run command", () => {
       runSuperintendentCommand({
         cwd: "/repo",
         homeDir: "/home/test",
-        docPath: "/repo/.poe-code/superintendent/plan.md",
+        docPath: "/repo/docs/plans/plan.md",
         builderAgent: "claude-code",
         assumeYes: true,
         interactive: true,
@@ -484,7 +602,7 @@ describe("superintendent run command", () => {
 
   it("kills the process with exit code 130 on SIGINT after aborting in-flight spawns and restoring the terminal", async () => {
     const fs = createFs({
-      "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
+      "/repo/docs/plans/plan.md": createDoc("claude-code")
     });
     const dashboardMock = createDashboardMock();
 
@@ -511,7 +629,7 @@ describe("superintendent run command", () => {
     const promise = runSuperintendentCommand({
       cwd: "/repo",
       homeDir: "/home/test",
-      docPath: "/repo/.poe-code/superintendent/plan.md",
+      docPath: "/repo/docs/plans/plan.md",
       builderAgent: "claude-code",
       assumeYes: true,
       interactive: true,
@@ -541,7 +659,7 @@ describe("superintendent run command", () => {
 
   it("immediately terminates on forceQuit dashboard command by aborting the loop signal and exiting 130", async () => {
     const fs = createFs({
-      "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
+      "/repo/docs/plans/plan.md": createDoc("claude-code")
     });
 
     let commandHandler: ((command: string) => void) | undefined;
@@ -573,7 +691,7 @@ describe("superintendent run command", () => {
     const promise = runSuperintendentCommand({
       cwd: "/repo",
       homeDir: "/home/test",
-      docPath: "/repo/.poe-code/superintendent/plan.md",
+      docPath: "/repo/docs/plans/plan.md",
       builderAgent: "claude-code",
       assumeYes: true,
       interactive: true,
@@ -614,7 +732,7 @@ describe("superintendent run command", () => {
     const setupEditHarness = async (
       env: Record<string, string | undefined>
     ): Promise<EditHarness> => {
-      const docPath = "/repo/.poe-code/superintendent/plan.md";
+      const docPath = "/repo/docs/plans/plan.md";
       const fs = createFs({ [docPath]: createDoc("claude-code") });
 
       let capturedHandler: ((command: string) => void) | undefined;
@@ -690,7 +808,7 @@ describe("superintendent run command", () => {
     };
 
     it("pauses the dashboard and the loop for a TTY editor and opens it immediately", async () => {
-      const docPath = "/repo/.poe-code/superintendent/plan.md";
+      const docPath = "/repo/docs/plans/plan.md";
       const harness = await setupEditHarness({ EDITOR: "vi" });
 
       expect(harness.shouldPause()).toBe(false);
@@ -713,7 +831,7 @@ describe("superintendent run command", () => {
     });
 
     it("leaves the dashboard and loop running when EDITOR is a GUI editor", async () => {
-      const docPath = "/repo/.poe-code/superintendent/plan.md";
+      const docPath = "/repo/docs/plans/plan.md";
       const harness = await setupEditHarness({ EDITOR: "code --wait" });
       harness.dashboardMock.stop.mockClear();
 
@@ -727,7 +845,7 @@ describe("superintendent run command", () => {
     });
 
     it("defaults to code (GUI) when running inside a VSCode terminal with no EDITOR", async () => {
-      const docPath = "/repo/.poe-code/superintendent/plan.md";
+      const docPath = "/repo/docs/plans/plan.md";
       const harness = await setupEditHarness({ TERM_PROGRAM: "vscode" });
       harness.dashboardMock.stop.mockClear();
 

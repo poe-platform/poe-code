@@ -30,8 +30,8 @@ describe("superintendent install command", () => {
       agent: "claude-code",
       scope: "local",
       skillPath: ".claude/skills/poe-code-superintendent-plan/SKILL.md",
-      superintendentDir: ".poe-code/superintendent",
-      superintendentDirCreated: true
+      planDirectory: "docs/plans",
+      planDirectoryCreated: true
     };
 
     installCommand.render!.rich!(result, renderPrimitives);
@@ -42,18 +42,16 @@ describe("superintendent install command", () => {
     expect(renderPrimitives.logger.message).toHaveBeenCalledWith(
       "Skill: .claude/skills/poe-code-superintendent-plan/SKILL.md"
     );
-    expect(renderPrimitives.logger.message).toHaveBeenCalledWith(
-      "Created: .poe-code/superintendent"
-    );
+    expect(renderPrimitives.logger.message).toHaveBeenCalledWith("Created: docs/plans");
   });
 
-  it("skips superintendent dir message when it already exists", () => {
+  it("skips plan directory message when it already exists", () => {
     const result: InstallResult = {
       agent: "claude-code",
       scope: "local",
       skillPath: ".claude/skills/poe-code-superintendent-plan/SKILL.md",
-      superintendentDir: ".poe-code/superintendent",
-      superintendentDirCreated: false
+      planDirectory: "docs/plans",
+      planDirectoryCreated: false
     };
 
     renderPrimitives.logger.message.mockClear();
@@ -62,7 +60,7 @@ describe("superintendent install command", () => {
     const messageCalls = renderPrimitives.logger.message.mock.calls.map(
       (call: unknown[]) => call[0]
     );
-    expect(messageCalls).not.toContain("Created: .poe-code/superintendent");
+    expect(messageCalls).not.toContain("Created: docs/plans");
   });
 
   it("renders markdown output", () => {
@@ -70,8 +68,8 @@ describe("superintendent install command", () => {
       agent: "claude-code",
       scope: "global",
       skillPath: "~/.claude/skills/poe-code-superintendent-plan/SKILL.md",
-      superintendentDir: "~/.poe-code/superintendent",
-      superintendentDirCreated: true
+      planDirectory: "~/docs/plans",
+      planDirectoryCreated: true
     };
 
     const markdown = installCommand.render!.markdown!(result, renderPrimitives);
@@ -80,7 +78,7 @@ describe("superintendent install command", () => {
     expect(markdown).toContain("- Agent: claude-code");
     expect(markdown).toContain("- Scope: global");
     expect(markdown).toContain("- Skill: ~/.claude/skills/poe-code-superintendent-plan/SKILL.md");
-    expect(markdown).toContain("- Created: ~/.poe-code/superintendent");
+    expect(markdown).toContain("- Created: ~/docs/plans");
   });
 
   it("renders JSON output", () => {
@@ -88,8 +86,8 @@ describe("superintendent install command", () => {
       agent: "codex",
       scope: "local",
       skillPath: ".codex/skills/poe-code-superintendent-plan/SKILL.md",
-      superintendentDir: ".poe-code/superintendent",
-      superintendentDirCreated: false
+      planDirectory: "docs/plans",
+      planDirectoryCreated: false
     };
 
     const json = installCommand.render!.json!(result, renderPrimitives);

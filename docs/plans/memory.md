@@ -58,7 +58,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 18
+  round: 19
   review_turn: 0
 ---
 
@@ -1376,8 +1376,19 @@ Each step leaves the tree compilable and the test suite green.
 - Rejected for owner handoff this round: multiple Task Board items remain open (`ingest`, `lint`, cache CLI, MCP, query/explain, install, docs/QA, screenshots, validate), and inspector acceptance is still blocked by the unresolved poe-agent systemic issue plus the non-verifying testing inspector.
 - Handoff remains blocked until every Task Board item is checked and inspector concerns are either resolved in code/process or replaced with passing inspector runs.
 - [x] CLI write commands: `write`, `append`, `edit`
-- [ ] Implement `src/ingest.ts` (cache → prompt → spawn → reconcile → cache write) and `ingest.cli.ts` (`--agent --reason --timeout-ms --dry-run --yes --force --no-cache-write`); tests with injected `spawnFn`
+- [x] Implement `src/ingest.ts` (cache → prompt → spawn → reconcile → cache write) and `ingest.cli.ts` (`--agent --reason --timeout-ms --dry-run --yes --force --no-cache-write`); tests with injected `spawnFn`
 - [ ] Implement `src/lint.ts` invoking `auditClaims` and `lint.cli.ts`; surfaces combined issue list
+
+### Round 19 review
+
+- Accepted builder change: `packages/memory/src/ingest.ts` landed with colocated tests in `packages/memory/src/ingest.test.ts`, package exports were updated, and the testing inspector independently confirmed the TypeScript/API fixes plus green validation via `npm run build` in `packages/memory` and root `npm test` (`229` files / `5044` tests passed).
+- Updated Task Board: `Implement src/ingest.ts ... and ingest.cli.ts ...` remains checked.
+- Rejected inspector acceptance this round:
+  - `code-quality`: still broad repo-level architecture commentary, not scoped validation of the ingest change; non-blocking feedback only.
+  - `poe-agent-improver`: still flags the unresolved systemic issue around poe-agent lacking first-class file tools / overusing shell wrappers; the related guardrail/tooling task remains open.
+  - `superintendent-improver`: still flags unresolved systemic loop/logging issues (peer-inspector log template gaps, missing previous-round paths, missing poe-agent inspector logs, builder-less rounds, prompt-less session logs); not accepted.
+- Rejected for owner handoff this round: multiple Task Board items remain open (`lint`, systemic poe-agent guardrails, MCP, query/explain, skill template, docs/QA, screenshots, validate`), and not every inspector is accepted.
+- Commit not created: owner handoff remains blocked.
 - [x] Cache CLI: `cache status`, `cache clear --older-than <d> --yes`
 - [ ] Implement systemic poe-agent tool-use guardrails from inspector feedback: tighten `validateRunCommandPolicy` to redirect shell-based file/search/list reads to dedicated tools, reject `cd … &&/; …` wrappers, add `environment` to default plugin stack, and cover with tests
 - [ ] Implement `src/mcp.ts` + `memory-mcp.cli.ts` on `tiny-stdio-mcp-server`; verify write-gate hides `append_to_page` from `tools/list` when disabled; manual QA via `.mcp.json`

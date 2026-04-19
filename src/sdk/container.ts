@@ -66,9 +66,13 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
       }
       return fs.readFile(path);
     }) as FileSystem["readFile"],
+    symlink: (target, path) => fs.symlink(target, path),
+    readlink: (path) => fs.readlink(path, { encoding: "utf8" }),
     writeFile: (path, data, opts) => fs.writeFile(path, data, opts),
     mkdir: (path, opts) => fs.mkdir(path, opts).then(() => {}),
     stat: (path) => fs.stat(path),
+    lstat: (path) => fs.lstat(path),
+    rename: (oldPath, newPath) => fs.rename(oldPath, newPath),
     rm: (path, opts) => fs.rm(path, opts),
     unlink: (path) => fs.unlink(path),
     readdir: (path) => fs.readdir(path),

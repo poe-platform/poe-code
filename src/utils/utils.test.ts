@@ -15,7 +15,12 @@ import {
   stdoutMatchesExpected
 } from "./command-checks.js";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
-import { renderUnifiedDiff } from "./dry-run.js";
+import {
+  renderUnifiedDiff,
+  formatDryRunOperations,
+  createDryRunFileSystem,
+  DryRunRecorder
+} from "./dry-run.js";
 import {
   detectExecutionContext,
   formatCliHelpCommand,
@@ -511,6 +516,86 @@ describe("dry run diff redaction", () => {
     const tomlOutput = tomlDiff.join("\n");
     expect(tomlOutput).not.toContain("sk-test");
     expect(tomlOutput).toContain("<redacted>");
+  });
+});
+
+describe("formatDryRunOperations symlink and rename", () => {
+  it("formats symlink as ln -s", () => {
+    const lines = formatDryRunOperations([
+      { type: "symlink", target: "AGENTS.md", path: "CLAUDE.md" }
+    ]);
+    expect(lines.join("\n")).toContain("ln -s AGENTS.md CLAUDE.md");
+  });
+
+  it("formats rename as mv", () => {
+    const lines = formatDryRunOperations([
+      { type: "rename", from: "CLAUDE.md", to: "AGENTS.md" }
+    ]);
+    expect(lines.join("\n")).toContain("mv CLAUDE.md AGENTS.md");
+  });
+});
+
+describe("createDryRunFileSystem symlink and rename", () => {
+  function makeBase(): FileSystem {
+    return {
+      readFile: vi.fn().mockResolvedValue(Buffer.alloc(0)),
+      writeFile: vi.fn().mockResolvedValue(undefined),
+      symlink: vi.fn().mockResolvedValue(undefined),
+      readlink: vi.fn().mockResolvedValue("/target"),
+      mkdir: vi.fn().mockResolvedValue(undefined),
+      stat: vi.fn().mockResolvedValue({} as any),
+      lstat: vi.fn().mockResolvedValue({} as any),
+      rename: vi.fn().mockResolvedValue(undefined),
+      unlink: vi.fn().mockResolvedValue(undefined),
+      readdir: vi.fn().mockResolvedValue([])
+    } as unknown as FileSystem;
+  }
+
+  it("records symlink without calling base.symlink", async () => {
+    const base = makeBase();
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.symlink("AGENTS.md", "CLAUDE.md");
+
+    const ops = recorder.drain();
+    expect(ops).toEqual([{ type: "symlink", target: "AGENTS.md", path: "CLAUDE.md" }]);
+    expect(base.symlink).not.toHaveBeenCalled();
+  });
+
+  it("records rename without calling base.rename", async () => {
+    const base = makeBase();
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.rename("CLAUDE.md", "AGENTS.md");
+
+    const ops = recorder.drain();
+    expect(ops).toEqual([{ type: "rename", from: "CLAUDE.md", to: "AGENTS.md" }]);
+    expect(base.rename).not.toHaveBeenCalled();
+  });
+
+  it("delegates readlink to base", async () => {
+    const base = makeBase();
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    const result = await dryFs.readlink("CLAUDE.md");
+
+    expect(result).toBe("/target");
+    expect(base.readlink).toHaveBeenCalledWith("CLAUDE.md");
+    expect(recorder.drain()).toEqual([]);
+  });
+
+  it("delegates lstat to base", async () => {
+    const base = makeBase();
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.lstat("CLAUDE.md");
+
+    expect(base.lstat).toHaveBeenCalledWith("CLAUDE.md");
+    expect(recorder.drain()).toEqual([]);
   });
 });
 

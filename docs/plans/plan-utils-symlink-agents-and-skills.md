@@ -30,9 +30,9 @@ tasks:
 
       Verification: `npm run typecheck` passes with zero errors.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: ops-and-agents-planner

@@ -40,6 +40,16 @@ export type DryRunOperation =
       type: "chmod";
       path: string;
       mode: number;
+    }
+  | {
+      type: "symlink";
+      target: string;
+      path: string;
+    }
+  | {
+      type: "rename";
+      from: string;
+      to: string;
     };
 
 export class DryRunRecorder {
@@ -81,6 +91,12 @@ export function createDryRunFileSystem(
         previousContent
       });
     },
+    async symlink(target: string, path: string): Promise<void> {
+      recorder.record({ type: "symlink", target, path });
+    },
+    async readlink(path: string): Promise<string> {
+      return base.readlink(path);
+    },
     async mkdir(
       path: string,
       options?: { recursive?: boolean }
@@ -89,6 +105,12 @@ export function createDryRunFileSystem(
     },
     async stat(path: string) {
       return base.stat(path);
+    },
+    async lstat(path: string) {
+      return base.lstat(path);
+    },
+    async rename(from: string, to: string): Promise<void> {
+      recorder.record({ type: "rename", from, to });
     },
     async unlink(path: string): Promise<void> {
       recorder.record({ type: "unlink", path });
@@ -180,6 +202,18 @@ function formatOperation(operation: DryRunOperation): string | string[] {
         "# permissions"
       );
     }
+    case "symlink":
+      return renderOperationCommand(
+        `ln -s ${operation.target} ${operation.path}`,
+        chalk.cyan,
+        "# symlink"
+      );
+    case "rename":
+      return renderOperationCommand(
+        `mv ${operation.from} ${operation.to}`,
+        chalk.cyan,
+        "# rename"
+      );
     case "writeFile": {
       return renderWriteOperation(operation);
     }
@@ -441,4 +475,3 @@ function formatData(
 function bufferFromView(view: NodeJS.ArrayBufferView): Buffer {
   return Buffer.from(view.buffer, view.byteOffset, view.byteLength);
 }
-

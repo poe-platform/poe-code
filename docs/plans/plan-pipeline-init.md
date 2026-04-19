@@ -153,9 +153,9 @@ tasks:
         - `npm run screenshot-poe-code -- pipeline init --help` per the
           CLAUDE.md visual-testing rule.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 ---
 

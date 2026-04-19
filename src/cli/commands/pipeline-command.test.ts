@@ -1,3 +1,4 @@
+import path from "node:path";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
@@ -15,6 +16,10 @@ const { selectMock, cancelMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("../../sdk/pipeline.js", () => ({
+  runPipelineInit: vi.fn().mockResolvedValue({
+    stopReason: "done",
+    sourcesProcessed: 0
+  }),
   runPipeline: vi.fn().mockResolvedValue({
     stopReason: "completed",
     planPath: ".poe-code/pipeline/plans/plan.yaml",
@@ -55,16 +60,21 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 });
 
 import { runPipeline as sdkRunPipeline } from "../../sdk/pipeline.js";
+import { runPipelineInit as sdkRunPipelineInit } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { createDashboard, withOutputFormat } from "@poe-code/design-system";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
 
-function createMemFs(): FileSystem {
+function createMemFs(files: Record<string, string> = {}): FileSystem {
   const volume = new Volume();
   volume.mkdirSync(cwd, { recursive: true });
   volume.mkdirSync(homeDir, { recursive: true });
+  for (const [filePath, content] of Object.entries(files)) {
+    volume.mkdirSync(path.dirname(filePath), { recursive: true });
+    volume.writeFileSync(filePath, content);
+  }
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
@@ -95,13 +105,13 @@ function withMockedTerminal<T>(
     if (stdinDescriptor) {
       Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
     } else {
-      delete (process.stdin as NodeJS.ReadStream & { isTTY?: boolean }).isTTY;
+      Reflect.deleteProperty(process.stdin, "isTTY");
     }
 
     if (stdoutDescriptor) {
       Object.defineProperty(process.stdout, "isTTY", stdoutDescriptor);
     } else {
-      delete (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY;
+      Reflect.deleteProperty(process.stdout, "isTTY");
     }
   });
 }
@@ -1274,6 +1284,140 @@ describe("pipeline run command", () => {
           item.text.includes("[auth-hardening:implement] retry fallback output")
       )
     ).toBe(true);
+  });
+});
+
+describe("pipeline init command", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it("rejects --source together with --sources", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "pipeline",
+        "init",
+        "--source",
+        "docs/plans/alpha.md",
+        "--sources",
+        "docs/plans/beta.md"
+      ])
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("rejects --yes without any sources", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "pipeline",
+        "init"
+      ])
+    ).rejects.toEqual(
+      new ValidationError("Provide --source or --sources when using --yes.")
+    );
+  });
+
+  it("passes two sources to the pipeline init SDK and logs progress", async () => {
+    const logs: string[] = [];
+    vi.mocked(sdkRunPipelineInit).mockImplementationOnce(async (options) => {
+      options.onSourceStart?.(options.sources[0]!, 1, 2);
+      options.onSourceComplete?.(options.sources[0]!, 1, 2, {
+        stdout: "alpha",
+        stderr: "",
+        exitCode: 0
+      });
+      options.onSourceStart?.(options.sources[1]!, 2, 2);
+      options.onSourceComplete?.(options.sources[1]!, 2, 2, {
+        stdout: "beta",
+        stderr: "",
+        exitCode: 0
+      });
+      return {
+        stopReason: "done",
+        sourcesProcessed: 2
+      };
+    });
+
+    const fs = createMemFs({
+      "/repo/docs/plans/alpha.md": "# Alpha\n",
+      "/repo/docs/plans/beta.md": "# Beta\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "init",
+      "--agent",
+      "claude",
+      "--model",
+      "claude-sonnet-4.5",
+      "--sources",
+      "docs/plans/alpha.md",
+      "docs/plans/beta.md",
+      "Build the pipeline plan"
+    ]);
+
+    expect(vi.mocked(sdkRunPipelineInit)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd,
+        homeDir,
+        assumeYes: true,
+        agent: "claude-code",
+        model: "claude-sonnet-4.5",
+        question: "Build the pipeline plan",
+        sources: [
+          {
+            absolutePath: "/repo/docs/plans/alpha.md",
+            relativePath: "docs/plans/alpha.md",
+            title: "alpha"
+          },
+          {
+            absolutePath: "/repo/docs/plans/beta.md",
+            relativePath: "docs/plans/beta.md",
+            title: "beta"
+          }
+        ]
+      })
+    );
+    expect(logs.some((message) => message.includes("Source 1/2: docs/plans/alpha.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Source 2/2: docs/plans/beta.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Pipeline init finished."))).toBe(true);
   });
 });
 

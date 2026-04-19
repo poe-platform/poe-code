@@ -28,10 +28,17 @@ import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
-import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import { discoverPipelineInitSources } from "./pipeline-init.js";
 import {
+  createExecutionResources,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
+import {
+  runPipelineInit as sdkRunPipelineInit,
   runPipeline as sdkRunPipeline,
   type AgentRunUsage,
+  type PipelineInitSource,
   type PipelineRunOptions,
   type PipelineRunResult,
   type PlanSummary,
@@ -135,6 +142,23 @@ function resolveMaxRuns(value: string | undefined): number | undefined {
   }
 
   return parsed;
+}
+
+function resolvePipelineInitSourcePath(
+  container: CliContainer,
+  sourcePath: string
+): PipelineInitSource {
+  const absolutePath = sourcePath.startsWith("~/")
+    ? path.join(container.env.homeDir, sourcePath.slice(2))
+    : path.isAbsolute(sourcePath)
+      ? sourcePath
+      : path.resolve(container.env.cwd, sourcePath);
+
+  return {
+    absolutePath,
+    relativePath: sourcePath,
+    title: path.basename(sourcePath, path.extname(sourcePath))
+  };
 }
 
 function formatRunSummary(result: PipelineRunResult): string {
@@ -803,6 +827,146 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         resources.logger.success(
           planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished."
         );
+      } finally {
+        resources.context.finalize();
+      }
+    });
+
+  pipeline
+    .command("init")
+    .description("Initialize pipeline plans from source Markdown docs.")
+    .argument("[question]", "Optional user question to forward to the plan generator")
+    .option("--agent <name>", "Agent to generate the plan with")
+    .option("--model <model>", "Model override passed to the agent")
+    .option("--source <path>", "Single source Markdown doc to convert")
+    .option("--sources <paths...>", "Multiple source Markdown docs to convert")
+    .action(async function (this: Command, question: string | undefined) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(
+        container,
+        flags,
+        "pipeline:init"
+      );
+      const options = this.opts<{
+        agent?: string;
+        model?: string;
+        source?: string;
+        sources?: string[];
+      }>();
+
+      resources.logger.intro("pipeline init");
+
+      try {
+        let sourcePaths = options.sources;
+        let resolvedQuestion = question;
+        if (!resolvedQuestion && sourcePaths && sourcePaths.length > 0) {
+          const trailingArgument = sourcePaths[sourcePaths.length - 1];
+          if (trailingArgument && !trailingArgument.toLowerCase().endsWith(".md")) {
+            resolvedQuestion = trailingArgument;
+            sourcePaths = sourcePaths.slice(0, -1);
+          }
+        }
+
+        let agent: string;
+        if (options.agent) {
+          agent = resolvePipelineAgent(options.agent);
+        } else if (flags.assumeYes) {
+          agent = DEFAULT_PIPELINE_AGENT;
+        } else {
+          const selected = await select({
+            message: "Select agent to generate pipeline plans with:",
+            options: supportedAgents.map((value) => ({
+              value,
+              label: value
+            }))
+          });
+          if (isCancel(selected)) {
+            cancel("Pipeline init cancelled.");
+            return;
+          }
+          agent = resolvePipelineAgent(selected as string);
+        }
+
+        const commandConfig = await resolvePipelineCommandConfig(container);
+
+        if (options.source && sourcePaths && sourcePaths.length > 0) {
+          throw new ValidationError("Use either --source or --sources, not both.");
+        }
+
+        let sources: PipelineInitSource[];
+        if (options.source) {
+          sources = [resolvePipelineInitSourcePath(container, options.source)];
+        } else if (sourcePaths && sourcePaths.length > 0) {
+          sources = sourcePaths.map((sourcePath) =>
+            resolvePipelineInitSourcePath(container, sourcePath)
+          );
+        } else {
+          if (flags.assumeYes) {
+            throw new ValidationError("Provide --source or --sources when using --yes.");
+          }
+
+          const discoveredSources = await discoverPipelineInitSources({ container });
+          if (discoveredSources.length === 0) {
+            resources.logger.info("No source documents available to initialize.");
+            return;
+          }
+
+          const selected = await multiselect({
+            message: "Select source Markdown docs to convert:",
+            options: discoveredSources.map((source) => ({
+              value: source.relativePath,
+              label: `${source.title} (${source.relativePath})`
+            })),
+            required: true
+          });
+          if (isCancel(selected)) {
+            cancel("Pipeline init cancelled.");
+            return;
+          }
+
+          const selectedSourcePaths = Array.isArray(selected)
+            ? new Set(selected)
+            : new Set<string>();
+          sources = discoveredSources.filter((source) => selectedSourcePaths.has(source.relativePath));
+          if (sources.length === 0) {
+            return;
+          }
+        }
+
+        const result = await sdkRunPipelineInit({
+          agent,
+          cwd: container.env.cwd,
+          homeDir: container.env.homeDir,
+          ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
+          ...(options.model ? { model: options.model } : {}),
+          ...(resolvedQuestion ? { question: resolvedQuestion } : {}),
+          sources,
+          assumeYes: flags.assumeYes,
+          onSourceStart(source, index, total) {
+            resources.logger.info(`Source ${index}/${total}: ${source.relativePath}`);
+          },
+          onSourceComplete(source, index, total) {
+            resources.logger.success(`Completed ${index}/${total}: ${source.relativePath}`);
+          }
+        });
+
+        if (result.stopReason === "failed") {
+          process.exitCode = 1;
+          resources.logger.error(
+            result.failedSource
+              ? `Pipeline init failed at ${result.failedSource}.`
+              : "Pipeline init failed."
+          );
+          return;
+        }
+
+        if (result.stopReason === "cancelled") {
+          process.exitCode = 130;
+          resources.logger.warn("Pipeline init cancelled.");
+          return;
+        }
+
+        resources.logger.success("Pipeline init finished.");
       } finally {
         resources.context.finalize();
       }

@@ -160,6 +160,64 @@ describe("createPoeAcpModel", () => {
     });
   });
 
+  it("extracts usage including cached tokens when the response provides them", async () => {
+    const fetchMock = vi.fn(async () => {
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "ok" } }],
+          usage: {
+            prompt_tokens: 1200,
+            completion_tokens: 34,
+            total_tokens: 1234,
+            prompt_tokens_details: { cached_tokens: 800 },
+            cache_creation_input_tokens: 50,
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    });
+    const model = await createPoeAcpModel({
+      model: "anthropic/claude-opus-4.7",
+      apiKey: "key",
+      fetch: fetchMock,
+    });
+
+    const result = await model.complete({
+      messages: [{ role: "user", content: "hi" }],
+      tools: [],
+      signal: new AbortController().signal,
+    });
+
+    expect(result.usage).toEqual({
+      inputTokens: 1200,
+      outputTokens: 34,
+      cachedTokens: 800,
+      cacheCreationTokens: 50,
+    });
+  });
+
+  it("omits usage when the response has none", async () => {
+    const fetchMock = vi.fn(async () => {
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: "ok" } }] }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    });
+    const model = await createPoeAcpModel({
+      model: "anthropic/claude-opus-4.7",
+      apiKey: "key",
+      fetch: fetchMock,
+    });
+
+    const result = await model.complete({
+      messages: [{ role: "user", content: "hi" }],
+      tools: [],
+      signal: new AbortController().signal,
+    });
+
+    expect(result.usage).toBeUndefined();
+  });
+
   it("loads the Poe API key from auth-store when apiKey is omitted", async () => {
     storeGetMock.mockResolvedValue("stored-key");
     const fetchMock = vi.fn(async () => {

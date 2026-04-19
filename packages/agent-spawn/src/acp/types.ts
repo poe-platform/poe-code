@@ -77,7 +77,21 @@ export interface ToolCallUpdate {
 }
 
 /** ACP-compatible type - @see https://agentclientprotocol.com/ - no package dependency, structural compatibility only */
-export type SessionUpdate = AgentMessageChunk | AgentThoughtChunk | ToolCall | ToolCallUpdate;
+export interface UsageUpdate {
+  sessionUpdate: "usage_update";
+  used: number;
+  size: number;
+  cost?: { amount: number; currency: string };
+  _meta?: Record<string, unknown>;
+}
+
+/** ACP-compatible type - @see https://agentclientprotocol.com/ - no package dependency, structural compatibility only */
+export type SessionUpdate =
+  | AgentMessageChunk
+  | AgentThoughtChunk
+  | ToolCall
+  | ToolCallUpdate
+  | UsageUpdate;
 
 export interface SessionStartEvent {
   event: "session_start";

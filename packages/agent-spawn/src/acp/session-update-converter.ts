@@ -68,11 +68,22 @@ export function sessionUpdateToEvents(
   }
 
   if (update.sessionUpdate === "usage_update") {
-    const cachedTokens = Math.max(0, update.size - update.used);
+    const meta = (update._meta ?? {}) as {
+      inputTokens?: number;
+      outputTokens?: number;
+      cachedTokens?: number;
+    };
+    const inputTokens = typeof meta.inputTokens === "number" ? meta.inputTokens : update.used;
+    const outputTokens = typeof meta.outputTokens === "number" ? meta.outputTokens : 0;
+    const cachedTokens =
+      typeof meta.cachedTokens === "number"
+        ? meta.cachedTokens
+        : Math.max(0, update.size - update.used);
+
     const usage: AcpEvent = {
       event: "usage",
-      inputTokens: update.used,
-      outputTokens: 0,
+      inputTokens,
+      outputTokens,
     };
 
     if (cachedTokens > 0) {

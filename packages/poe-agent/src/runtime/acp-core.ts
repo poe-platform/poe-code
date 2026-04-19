@@ -55,11 +55,19 @@ export type AcpModelMessage = {
   }>;
 };
 
+export type AcpModelUsage = {
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens: number;
+  cacheCreationTokens: number;
+};
+
 export type AcpModelResponse = {
   message?: AcpModelMessage;
   content?: string;
   toolCalls?: AcpModelToolCall[];
   deltas?: AsyncIterable<string> | Iterable<string>;
+  usage?: AcpModelUsage;
 };
 
 export type AcpModelRequestMessage = {
@@ -402,6 +410,13 @@ async function runLoop(
       fallbackContent: normalizedResponse.content,
       emit: options.emit
     });
+
+    if (response.usage) {
+      options.emit({
+        type: "usage",
+        usage: response.usage
+      });
+    }
 
     options.runContext.messages.push(
       createAssistantMessage({

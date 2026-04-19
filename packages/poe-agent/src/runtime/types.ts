@@ -76,6 +76,13 @@ export type ForkResult = {
   messages: ChatMessage[];
 };
 
+export type UsageInfo = {
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens: number;
+  cacheCreationTokens: number;
+};
+
 export type AcpEvent =
   | { type: "message.delta"; content: string }
   | { type: "tool.intent"; intentId: string; tool: string; args: unknown }
@@ -85,6 +92,7 @@ export type AcpEvent =
   | { type: "fork.complete"; forkId: string; result: ForkResult }
   | { type: "fork.error"; forkId: string; error: string }
   | { type: "progress"; message: string }
+  | { type: "usage"; usage: UsageInfo }
   | { type: "session.complete"; result: RunResult }
   | { type: "session.error"; error: Error };
 

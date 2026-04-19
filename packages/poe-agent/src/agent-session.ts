@@ -280,6 +280,28 @@ function handleEvent(
         text: event.content,
       },
     });
+    return;
+  }
+
+  if (event.type === "usage") {
+    if (!onSessionUpdate) {
+      return;
+    }
+
+    const { inputTokens, outputTokens, cachedTokens, cacheCreationTokens } = event.usage;
+    const nonCachedInput = Math.max(0, inputTokens - cachedTokens);
+
+    onSessionUpdate({
+      sessionUpdate: "usage_update",
+      used: nonCachedInput,
+      size: inputTokens,
+      _meta: {
+        inputTokens,
+        outputTokens,
+        cachedTokens,
+        cacheCreationTokens,
+      },
+    });
   }
 }
 

@@ -246,6 +246,24 @@ function normalizeSessionUpdate(update: LegacySessionUpdate): SessionUpdate {
     };
   }
 
+  if (update.sessionUpdate === "usage_update") {
+    const normalized: SessionUpdate = {
+      sessionUpdate: "usage_update",
+      used: update.used,
+      size: update.size,
+    };
+
+    if (update.cost) {
+      normalized.cost = update.cost;
+    }
+
+    if (update._meta !== undefined) {
+      normalized._meta = update._meta;
+    }
+
+    return normalized;
+  }
+
   if (update.sessionUpdate === "tool_call") {
     const normalized: SessionUpdate = {
       sessionUpdate: "tool_call",
@@ -377,11 +395,22 @@ function toEventsFromSessionUpdate(
   }
 
   if (update.sessionUpdate === "usage_update") {
-    const cachedTokens = Math.max(0, update.size - update.used);
+    const meta = (update._meta ?? {}) as {
+      inputTokens?: number;
+      outputTokens?: number;
+      cachedTokens?: number;
+    };
+    const inputTokens = typeof meta.inputTokens === "number" ? meta.inputTokens : update.used;
+    const outputTokens = typeof meta.outputTokens === "number" ? meta.outputTokens : 0;
+    const cachedTokens =
+      typeof meta.cachedTokens === "number"
+        ? meta.cachedTokens
+        : Math.max(0, update.size - update.used);
+
     const usage: AcpEvent = {
       event: "usage",
-      inputTokens: update.used,
-      outputTokens: 0,
+      inputTokens,
+      outputTokens,
     };
 
     if (cachedTokens > 0) {

@@ -68,12 +68,24 @@ export async function createPoeAcpModel(options: CreatePoeAcpModelOptions): Prom
             tool_calls?: AcpModelRequestMessage["tool_calls"];
           };
         }>;
+        usage?: {
+          prompt_tokens?: number;
+          completion_tokens?: number;
+          total_tokens?: number;
+          prompt_tokens_details?: {
+            cached_tokens?: number;
+          };
+          cache_read_input_tokens?: number;
+          cache_creation_input_tokens?: number;
+        };
       };
       const message = json.choices?.[0]?.message;
 
       if (!message) {
         throw new Error("Poe API response did not include an assistant message.");
       }
+
+      const usage = extractUsage(json.usage);
 
       return {
         message: {
@@ -94,9 +106,66 @@ export async function createPoeAcpModel(options: CreatePoeAcpModelOptions): Prom
                 tool_calls: message.tool_calls,
               }),
         },
+        ...(usage === undefined ? {} : { usage }),
       };
     },
   };
+}
+
+function extractUsage(
+  usage:
+    | {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        total_tokens?: number;
+        prompt_tokens_details?: { cached_tokens?: number };
+        cache_read_input_tokens?: number;
+        cache_creation_input_tokens?: number;
+      }
+    | undefined,
+):
+  | {
+      inputTokens: number;
+      outputTokens: number;
+      cachedTokens: number;
+      cacheCreationTokens: number;
+    }
+  | undefined {
+  if (!usage) {
+    return undefined;
+  }
+
+  const inputTokens = toNonNegativeInteger(usage.prompt_tokens) ?? 0;
+  const outputTokens = toNonNegativeInteger(usage.completion_tokens) ?? 0;
+  const cachedTokens =
+    toNonNegativeInteger(usage.prompt_tokens_details?.cached_tokens) ??
+    toNonNegativeInteger(usage.cache_read_input_tokens) ??
+    0;
+  const cacheCreationTokens = toNonNegativeInteger(usage.cache_creation_input_tokens) ?? 0;
+
+  if (
+    inputTokens === 0
+    && outputTokens === 0
+    && cachedTokens === 0
+    && cacheCreationTokens === 0
+  ) {
+    return undefined;
+  }
+
+  return {
+    inputTokens,
+    outputTokens,
+    cachedTokens,
+    cacheCreationTokens,
+  };
+}
+
+function toNonNegativeInteger(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return undefined;
+  }
+
+  return Math.trunc(value);
 }
 
 async function resolveApiKey(explicitApiKey: string | undefined): Promise<string> {

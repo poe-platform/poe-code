@@ -128,11 +128,22 @@ function renderSessionUpdate(update: SessionUpdate): void {
   }
 
   if (update.sessionUpdate === "usage_update") {
-    const cachedTokens = Math.max(0, update.size - update.used);
+    const meta = (update._meta ?? {}) as {
+      inputTokens?: number;
+      outputTokens?: number;
+      cachedTokens?: number;
+    };
+    const input = typeof meta.inputTokens === "number" ? meta.inputTokens : update.used;
+    const output = typeof meta.outputTokens === "number" ? meta.outputTokens : 0;
+    const cached =
+      typeof meta.cachedTokens === "number"
+        ? meta.cachedTokens
+        : Math.max(0, update.size - update.used);
+
     acp.renderUsage({
-      input: update.used,
-      output: 0,
-      ...(cachedTokens > 0 ? { cached: cachedTokens } : {}),
+      input,
+      output,
+      ...(cached > 0 ? { cached } : {}),
       ...(update.cost?.currency === "USD" ? { costUsd: update.cost.amount } : {}),
     });
     return;

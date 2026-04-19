@@ -91,6 +91,14 @@ jobs:
         with:
           node-version: 20
       - run: npm install -g poe-code@latest
+      - name: Configure git identity for GitHub App
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          USER_ID=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config --global user.name "${APP_SLUG}[bot]"
+          git config --global user.email "${USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
       - run: poe-code github-workflows prepare github-pull-request-opened
         env:
           POE_CODE_STDERR_LOGS: "1"

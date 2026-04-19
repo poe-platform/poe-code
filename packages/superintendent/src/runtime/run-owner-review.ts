@@ -111,7 +111,8 @@ function createWorkflowServer(): McpSpawnConfig[string] {
 function toSpawnMcpServer(config: McpConfig): McpSpawnConfig[string] {
   return {
     command: config.command,
-    ...(config.args ? { args: [...config.args] } : {})
+    ...(config.args ? { args: [...config.args] } : {}),
+    ...(config.timeout !== undefined ? { timeout: config.timeout } : {})
   };
 }
 

@@ -49,6 +49,20 @@ const document: SuperintendentDoc = {
   }
 };
 
+const documentWithMcpTimeout: SuperintendentDoc = {
+  ...document,
+  frontmatter: {
+    ...document.frontmatter,
+    mcp: {
+      "plan-browser": {
+        command: "poe-code",
+        args: ["plan", "list"],
+        timeout: 90
+      }
+    }
+  }
+};
+
 describe("runOwnerReview", () => {
   beforeEach(() => {
     autonomousMock.mockReset();
@@ -117,6 +131,37 @@ describe("runOwnerReview", () => {
         }
       })
     ).resolves.toEqual({
+      transition: {
+        action: "approve_completion"
+      }
+    });
+  });
+
+  it("propagates mcp timeout values to spawn", async () => {
+    autonomousMock.mockImplementation(async (_, { mcpServers }) => {
+      expect(mcpServers).toMatchObject({
+        "plan-browser": {
+          command: "poe-code",
+          args: ["plan", "list"],
+          timeout: 90
+        }
+      });
+
+      return {
+        toolCalls: [
+          {
+            name: "workflow.transition",
+            arguments: {
+              action: "approve_completion"
+            }
+          }
+        ]
+      };
+    });
+
+    const { runOwnerReview } = await import("./run-owner-review.js");
+
+    await expect(runOwnerReview(documentWithMcpTimeout, {})).resolves.toEqual({
       transition: {
         action: "approve_completion"
       }

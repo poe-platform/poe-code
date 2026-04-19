@@ -239,7 +239,11 @@ function parseMcpConfig(value: unknown, fieldName: string, filePath: string): Mc
     args:
       config.args === undefined
         ? undefined
-        : expectStringArray(config.args, `${fieldName}.args`, filePath)
+        : expectStringArray(config.args, `${fieldName}.args`, filePath),
+    timeout:
+      config.timeout === undefined
+        ? undefined
+        : expectPositiveNumber(config.timeout, `${fieldName}.timeout`, filePath)
   };
 }
 
@@ -283,6 +287,14 @@ function expectString(value: unknown, fieldName: string, filePath: string): stri
 function expectNumber(value: unknown, fieldName: string, filePath: string): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error(`${filePath}: ${fieldName} must be a number`);
+  }
+
+  return value;
+}
+
+function expectPositiveNumber(value: unknown, fieldName: string, filePath: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new Error(`${filePath}: ${fieldName} must be a positive number`);
   }
 
   return value;

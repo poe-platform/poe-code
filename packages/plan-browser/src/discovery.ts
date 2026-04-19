@@ -1,9 +1,11 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { discoverDocs } from "@poe-code/ralph";
+import { parseDocument } from "yaml";
 import { readMergedDocument } from "@poe-code/poe-code-config";
 import { readPlanMetadata } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
+
+const FRONTMATTER_FENCE = "---";
 
 function createDefaultFs(): DiscoveryFs {
   return {
@@ -43,19 +45,6 @@ function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): st
   return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
 }
 
-function resolveAbsoluteDisplayPath(displayPath: string, cwd: string, homeDir: string): string {
-  if (displayPath.startsWith("~/")) {
-    return path.join(homeDir, displayPath.slice(2));
-  }
-
-  return path.isAbsolute(displayPath) ? displayPath : path.resolve(cwd, displayPath);
-}
-
-function isPipelinePlanFile(name: string): boolean {
-  const lower = name.toLowerCase();
-  return lower.startsWith("plan") && (lower.endsWith(".yaml") || lower.endsWith(".yml"));
-}
-
 function isMarkdownFile(name: string): boolean {
   return name.toLowerCase().endsWith(".md");
 }
@@ -89,15 +78,13 @@ function getPlanRunner(kind: PlanKind): PlanEntry["runner"] {
   }
 }
 
-async function resolvePlanDirectorySetting(options: {
+async function resolveSharedPlanDirectory(options: {
   fs: DiscoveryFs;
   configPath: string;
   projectConfigPath: string;
-  scope: "pipeline" | "experiment" | "ralph";
-  envName: string;
   variables?: Record<string, string | undefined>;
-}): Promise<string | undefined> {
-  const envValue = options.variables?.[options.envName]?.trim();
+}): Promise<string> {
+  const envValue = options.variables?.POE_PLAN_DIRECTORY?.trim();
   if (envValue) {
     return envValue;
   }
@@ -107,24 +94,131 @@ async function resolvePlanDirectorySetting(options: {
     options.configPath,
     options.projectConfigPath
   );
-  const configured = document[options.scope]?.plan_directory;
+  const configured = document.plan?.plan_directory;
+
   return typeof configured === "string" && configured.trim().length > 0
     ? configured.trim()
-    : undefined;
+    : "docs/plans";
 }
 
-async function scanDirectory(options: {
-  fs: DiscoveryFs;
-  absoluteDir: string;
-  displayDir: string;
-  kind: PlanKind;
-  include: (name: string) => boolean;
+function stripBom(content: string): string {
+  return content.startsWith("\uFEFF") ? content.slice(1) : content;
+}
+
+function readOpeningLineBreak(content: string): "\n" | "\r\n" | undefined {
+  if (!content.startsWith(FRONTMATTER_FENCE)) {
+    return undefined;
+  }
+
+  const nextCharacter = content[FRONTMATTER_FENCE.length];
+  if (nextCharacter === "\n") {
+    return "\n";
+  }
+
+  if (nextCharacter === "\r" && content[FRONTMATTER_FENCE.length + 1] === "\n") {
+    return "\r\n";
+  }
+
+  return nextCharacter === undefined ? "\n" : undefined;
+}
+
+function findClosingFence(content: string, searchFrom: number, filePath: string): number {
+  let currentIndex = searchFrom - 1;
+
+  while (currentIndex < content.length) {
+    const candidateIndex = content.indexOf(`\n${FRONTMATTER_FENCE}`, currentIndex);
+
+    if (candidateIndex === -1) {
+      throw new Error(`${filePath}: missing YAML frontmatter end delimiter (---)`);
+    }
+
+    const fenceEnd = candidateIndex + FRONTMATTER_FENCE.length + 1;
+    const nextCharacter = content[fenceEnd];
+
+    if (nextCharacter === "\n" || nextCharacter === undefined) {
+      return candidateIndex;
+    }
+
+    if (nextCharacter === "\r" && content[fenceEnd + 1] === "\n") {
+      return candidateIndex;
+    }
+
+    currentIndex = fenceEnd;
+  }
+
+  throw new Error(`${filePath}: missing YAML frontmatter end delimiter (---)`);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function readFrontmatter(content: string, filePath: string): Record<string, unknown> | undefined {
+  const normalizedContent = stripBom(content);
+  const openingLineBreak = readOpeningLineBreak(normalizedContent);
+
+  if (openingLineBreak === undefined) {
+    return undefined;
+  }
+
+  const frontmatterStart = FRONTMATTER_FENCE.length + openingLineBreak.length;
+  const closingFenceIndex = findClosingFence(normalizedContent, frontmatterStart, filePath);
+  const frontmatterEnd =
+    normalizedContent[closingFenceIndex - 1] === "\r" ? closingFenceIndex - 1 : closingFenceIndex;
+  const document = parseDocument(normalizedContent.slice(frontmatterStart, frontmatterEnd));
+
+  if (document.errors.length > 0) {
+    throw new Error(`${filePath}: invalid YAML frontmatter: ${document.errors[0]?.message}`);
+  }
+
+  const parsed = document.toJSON();
+  return isRecord(parsed) ? parsed : {};
+}
+
+function toPlanKind(value: unknown, filePath: string): PlanKind {
+  if (
+    value === "plan" ||
+    value === "pipeline" ||
+    value === "experiment" ||
+    value === "ralph" ||
+    value === "superintendent" ||
+    value === "superintendent-base"
+  ) {
+    return value;
+  }
+
+  throw new Error(`${filePath}: unsupported frontmatter kind ${JSON.stringify(value)}`);
+}
+
+function classifyPlanKind(content: string, filePath: string): PlanKind {
+  const frontmatter = readFrontmatter(content, filePath);
+
+  if (frontmatter === undefined) {
+    return "plan";
+  }
+
+  if (frontmatter.kind === undefined) {
+    throw new Error(`${filePath}: missing required frontmatter kind`);
+  }
+
+  return toPlanKind(frontmatter.kind, filePath);
+}
+
+async function discoverSharedPlans(options: {
   cwd: string;
   homeDir: string;
+  fs: DiscoveryFs;
+  configPath: string;
+  projectConfigPath: string;
+  kind?: PlanKind;
+  variables?: Record<string, string | undefined>;
 }): Promise<PlanEntry[]> {
+  const displayDir = await resolveSharedPlanDirectory(options);
+  const absoluteDir = resolveAbsoluteDirectory(displayDir, options.cwd, options.homeDir);
+
   let entries: string[];
   try {
-    entries = await options.fs.readdir(options.absoluteDir);
+    entries = await options.fs.readdir(absoluteDir);
   } catch (error) {
     if (isNotFound(error)) {
       return [];
@@ -134,19 +228,26 @@ async function scanDirectory(options: {
 
   const plans: PlanEntry[] = [];
   for (const name of entries) {
-    if (!options.include(name)) {
+    if (!isMarkdownFile(name)) {
       continue;
     }
 
-    const absolutePath = path.join(options.absoluteDir, name);
+    const absolutePath = path.join(absoluteDir, name);
     const stat = await options.fs.stat(absolutePath);
     if (!stat.isFile()) {
       continue;
     }
 
-    const displayPath = path.join(options.displayDir, name);
+    const displayPath = path.join(displayDir, name);
+    const content = await options.fs.readFile(absolutePath, "utf8");
+    const kind = classifyPlanKind(content, displayPath);
+
+    if (options.kind && kind !== options.kind) {
+      continue;
+    }
+
     const metadata = await readPlanMetadata({
-      kind: options.kind,
+      kind,
       absolutePath,
       path: displayPath,
       fs: options.fs
@@ -154,176 +255,16 @@ async function scanDirectory(options: {
 
     plans.push({
       path: displayPath,
-      absolutePath: resolveAbsoluteDisplayPath(displayPath, options.cwd, options.homeDir),
-      kind: options.kind,
-      typeLabel: getPlanTypeLabel(options.kind),
-      runner: getPlanRunner(options.kind),
+      absolutePath,
+      kind,
+      typeLabel: getPlanTypeLabel(kind),
+      runner: getPlanRunner(kind),
       format: metadata.format,
       title: metadata.title,
       detail: metadata.detail,
       updatedAt: stat.mtimeMs
     });
   }
-
-  return plans;
-}
-
-async function discoverPipelinePlans(options: {
-  cwd: string;
-  homeDir: string;
-  fs: DiscoveryFs;
-  configPath: string;
-  projectConfigPath: string;
-  variables?: Record<string, string | undefined>;
-}): Promise<PlanEntry[]> {
-  const configuredDir = await resolvePlanDirectorySetting({
-    fs: options.fs,
-    configPath: options.configPath,
-    projectConfigPath: options.projectConfigPath,
-    scope: "pipeline",
-    envName: "POE_PIPELINE_PLAN_DIRECTORY",
-    variables: options.variables
-  });
-
-  const targets = configuredDir
-    ? [{
-        absoluteDir: resolveAbsoluteDirectory(configuredDir, options.cwd, options.homeDir),
-        displayDir: configuredDir
-      }]
-    : [
-        {
-        absoluteDir: path.join(options.cwd, ".poe-code", "pipeline", "plans"),
-        displayDir: ".poe-code/pipeline/plans"
-        },
-        {
-          absoluteDir: path.join(options.homeDir, ".poe-code", "pipeline", "plans"),
-          displayDir: "~/.poe-code/pipeline/plans"
-        }
-      ];
-
-  const plans = await Promise.all(
-    targets.map((target) =>
-      scanDirectory({
-        ...target,
-        fs: options.fs,
-        kind: "pipeline",
-        include: isPipelinePlanFile,
-        cwd: options.cwd,
-        homeDir: options.homeDir
-      })
-    )
-  );
-
-  return plans.flat();
-}
-
-async function discoverExperimentPlans(options: {
-  cwd: string;
-  homeDir: string;
-  fs: DiscoveryFs;
-  configPath: string;
-  projectConfigPath: string;
-  variables?: Record<string, string | undefined>;
-}): Promise<PlanEntry[]> {
-  const configuredDir = await resolvePlanDirectorySetting({
-    fs: options.fs,
-    configPath: options.configPath,
-    projectConfigPath: options.projectConfigPath,
-    scope: "experiment",
-    envName: "POE_EXPERIMENT_PLAN_DIRECTORY",
-    variables: options.variables
-  });
-
-  const targets = configuredDir
-    ? [{
-        absoluteDir: resolveAbsoluteDirectory(configuredDir, options.cwd, options.homeDir),
-        displayDir: configuredDir
-      }]
-    : [
-        {
-        absoluteDir: path.join(options.cwd, ".poe-code", "experiments"),
-        displayDir: ".poe-code/experiments"
-        },
-        {
-          absoluteDir: path.join(options.homeDir, ".poe-code", "experiments"),
-          displayDir: "~/.poe-code/experiments"
-        }
-      ];
-
-  const plans = await Promise.all(
-    targets.map((target) =>
-      scanDirectory({
-        ...target,
-        fs: options.fs,
-        kind: "experiment",
-        include: isMarkdownFile,
-        cwd: options.cwd,
-        homeDir: options.homeDir
-      })
-    )
-  );
-
-  return plans.flat();
-}
-
-async function discoverRalphPlans(options: {
-  cwd: string;
-  homeDir: string;
-  fs: DiscoveryFs;
-  configPath: string;
-  projectConfigPath: string;
-  variables?: Record<string, string | undefined>;
-}): Promise<PlanEntry[]> {
-  const configuredDir = await resolvePlanDirectorySetting({
-    fs: options.fs,
-    configPath: options.configPath,
-    projectConfigPath: options.projectConfigPath,
-    scope: "ralph",
-    envName: "POE_RALPH_PLAN_DIRECTORY",
-    variables: options.variables
-  });
-
-  const docs = await discoverDocs({
-    cwd: options.cwd,
-    homeDir: options.homeDir,
-    planDirectory: configuredDir,
-    fs: {
-      readdir: options.fs.readdir,
-      stat: async (filePath) => {
-        const stat = await options.fs.stat(filePath);
-        return {
-          isFile: () => stat.isFile(),
-          isDirectory: () => stat.isDirectory?.() ?? false,
-          mtimeMs: stat.mtimeMs
-        };
-      }
-    }
-  });
-
-  const plans = await Promise.all(
-    docs.map(async (doc) => {
-      const absolutePath = resolveAbsoluteDisplayPath(doc.path, options.cwd, options.homeDir);
-      const stat = await options.fs.stat(absolutePath);
-      const metadata = await readPlanMetadata({
-        kind: "ralph",
-        absolutePath,
-        path: doc.path,
-        fs: options.fs
-      });
-
-      return {
-        path: doc.path,
-        absolutePath,
-        kind: "ralph" as const,
-        typeLabel: getPlanTypeLabel("ralph"),
-        runner: getPlanRunner("ralph"),
-        format: metadata.format,
-        title: metadata.title,
-        detail: metadata.detail,
-        updatedAt: stat.mtimeMs
-      };
-    })
-  );
 
   return plans;
 }
@@ -338,34 +279,9 @@ export async function discoverAllPlans(options: {
   variables?: Record<string, string | undefined>;
 }): Promise<PlanEntry[]> {
   const fs = options.fs ?? createDefaultFs();
-  const discoverers = {
-    pipeline: () => discoverPipelinePlans({ ...options, fs }),
-    experiment: () => discoverExperimentPlans({ ...options, fs }),
-    ralph: () => discoverRalphPlans({ ...options, fs })
-  };
-  type DiscoverablePlanKind = keyof typeof discoverers;
+  const results = await discoverSharedPlans({ ...options, fs });
 
-  const kinds = options.kind
-    ? [options.kind]
-    : (Object.keys(discoverers) as DiscoverablePlanKind[]);
-
-  const results = (
-    await Promise.all(
-      kinds.map(async (kind) => {
-        const discover = discoverers[kind as DiscoverablePlanKind];
-        return discover ? discover() : [];
-      })
-    )
-  ).flat();
-  const deduped = new Map<string, PlanEntry>();
-
-  for (const result of results) {
-    if (!deduped.has(result.absolutePath)) {
-      deduped.set(result.absolutePath, result);
-    }
-  }
-
-  return [...deduped.values()].sort((left, right) => {
+  return results.sort((left, right) => {
     if (right.updatedAt !== left.updatedAt) {
       return right.updatedAt - left.updatedAt;
     }

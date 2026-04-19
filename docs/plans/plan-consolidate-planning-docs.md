@@ -1,4 +1,5 @@
 ---
+kind: pipeline
 vars:
   plan_doc: "{{file 'docs/plans/consolidate-planning-docs.md'}}"
 
@@ -27,7 +28,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: plan-browser-discovery
     title: Discover and classify plans by kind in plan-browser
@@ -50,9 +51,9 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: plan-browser-formatters

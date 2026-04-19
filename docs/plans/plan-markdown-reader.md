@@ -1,4 +1,5 @@
 ---
+kind: pipeline
 vars:
   plan_doc: "{{file 'docs/plans/markdown-reader.md'}}"
 

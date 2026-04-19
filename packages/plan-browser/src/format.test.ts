@@ -121,6 +121,32 @@ describe("format helpers", () => {
     });
   });
 
+  it("reads pipeline metadata from markdown plan docs", async () => {
+    const metadata = await readPlanMetadata({
+      kind: "pipeline",
+      absolutePath: "/repo/docs/plans/plan-feature.md",
+      path: "docs/plans/plan-feature.md",
+      fs: {
+        readFile: async () => [
+          "---",
+          "kind: pipeline",
+          "tasks:",
+          "  - id: feature",
+          "    title: Add feature",
+          "    prompt: Ship it",
+          "    status: done",
+          "---"
+        ].join("\n")
+      }
+    });
+
+    expect(metadata).toEqual({
+      title: "plan-feature.md",
+      detail: "1/1 done",
+      format: "markdown"
+    });
+  });
+
   it("uses the kind field when loading plan previews", async () => {
     const markdown = await loadPlanPreviewMarkdown(
       {

@@ -54,13 +54,15 @@ describe("plan command", () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/pipeline/plans/plan-a.yaml": [
+        "/repo/docs/plans/plan-a.md": [
+          "---",
+          "kind: pipeline",
           "tasks:",
           "  - id: first",
           "    title: First",
           "    prompt: First prompt",
           "    status: open",
-          ""
+          "---"
         ].join("\n")
       }),
       prompts: vi.fn().mockResolvedValue({}),
@@ -76,7 +78,7 @@ describe("plan command", () => {
     expect(JSON.parse(output)).toEqual([
       expect.objectContaining({
         source: "pipeline",
-        name: "plan-a.yaml",
+        name: "plan-a.md",
         detail: "0/1 done"
       })
     ]);
@@ -86,16 +88,19 @@ describe("plan command", () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/pipeline/plans/plan-a.yaml": [
+        "/repo/docs/plans/plan-a.md": [
+          "---",
+          "kind: pipeline",
           "tasks:",
           "  - id: first",
           "    title: First",
           "    prompt: First prompt",
           "    status: open",
-          ""
+          "---"
         ].join("\n"),
-        "/repo/.poe-code/ralph/plans/plan-b.md": [
+        "/repo/docs/plans/plan-b.md": [
           "---",
+          "kind: ralph",
           "status:",
           "  state: open",
           "  iteration: 0",
@@ -125,7 +130,68 @@ describe("plan command", () => {
     expect(JSON.parse(output)).toEqual([
       expect.objectContaining({
         source: "pipeline",
-        name: "plan-a.yaml"
+        name: "plan-a.md"
+      })
+    ]);
+  });
+
+  it("supports filtering generic plan and superintendent docs by source", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/feature-design.md": "# Feature design\n",
+        "/repo/docs/plans/pi-mono.md": [
+          "---",
+          "kind: superintendent",
+          "version: 1",
+          "---",
+          "# Pi mono integration"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "list",
+      "--source",
+      "superintendent",
+      "--output",
+      "json"
+    ]);
+
+    const superintendentOutput = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(JSON.parse(superintendentOutput)).toEqual([
+      expect.objectContaining({
+        source: "superintendent",
+        name: "pi-mono.md"
+      })
+    ]);
+
+    writeSpy.mockClear();
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "list",
+      "--source",
+      "plan",
+      "--output",
+      "json"
+    ]);
+
+    const planOutput = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(JSON.parse(planOutput)).toEqual([
+      expect.objectContaining({
+        source: "plan",
+        name: "feature-design.md"
       })
     ]);
   });
@@ -134,13 +200,15 @@ describe("plan command", () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/pipeline/plans/plan-a.yaml": [
+        "/repo/docs/plans/plan-a.md": [
+          "---",
+          "kind: pipeline",
           "tasks:",
           "  - id: first",
           "    title: First task",
           "    prompt: Ship it",
           "    status: done",
-          ""
+          "---"
         ].join("\n")
       }),
       prompts: vi.fn().mockResolvedValue({}),
@@ -155,11 +223,11 @@ describe("plan command", () => {
       "cli",
       "plan",
       "view",
-      ".poe-code/pipeline/plans/plan-a.yaml"
+      "docs/plans/plan-a.md"
     ]);
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
-    expect(output).toContain("plan-a.yaml");
+    expect(output).toContain("plan-a.md");
     expect(output).toContain("First task");
   });
 
@@ -167,16 +235,19 @@ describe("plan command", () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/.poe-code/pipeline/plans/plan-a.yaml": [
+        "/repo/docs/plans/plan-a.md": [
+          "---",
+          "kind: pipeline",
           "tasks:",
           "  - id: first",
           "    title: Pipeline task",
           "    prompt: Ship it",
           "    status: open",
-          ""
+          "---"
         ].join("\n"),
-        "/repo/.poe-code/ralph/plans/plan-b.md": [
+        "/repo/docs/plans/plan-b.md": [
           "---",
+          "kind: ralph",
           "status:",
           "  state: open",
           "  iteration: 0",
@@ -207,7 +278,7 @@ describe("plan command", () => {
     expect(JSON.parse(output)).toEqual(
       expect.objectContaining({
         source: "pipeline",
-        path: ".poe-code/pipeline/plans/plan-a.yaml"
+        path: "docs/plans/plan-a.md"
       })
     );
   });
@@ -215,7 +286,7 @@ describe("plan command", () => {
   it("archives the first matching plan with --yes", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const fs = createMemFs({
-      "/repo/.poe-code/ralph/plans/plan-a.md": "# Plan"
+      "/repo/docs/plans/plan-a.md": "# Plan"
     });
     const container = createCliContainer({
       fs,
@@ -230,9 +301,7 @@ describe("plan command", () => {
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toContain("Archived");
-    await expect(
-      fs.readFile("/repo/.poe-code/ralph/plans/archive/plan-a.md", "utf8")
-    ).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).resolves.toBe("# Plan");
     expect(confirmOrCancelMock).not.toHaveBeenCalled();
   });
 
@@ -241,7 +310,7 @@ describe("plan command", () => {
 
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const fs = createMemFs({
-      "/repo/.poe-code/ralph/plans/plan-a.md": "# Plan"
+      "/repo/docs/plans/plan-a.md": "# Plan"
     });
     const container = createCliContainer({
       fs,
@@ -257,17 +326,13 @@ describe("plan command", () => {
       "cli",
       "plan",
       "archive",
-      ".poe-code/ralph/plans/plan-a.md"
+      "docs/plans/plan-a.md"
     ]);
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toBe("");
-    await expect(
-      fs.readFile("/repo/.poe-code/ralph/plans/plan-a.md", "utf8")
-    ).resolves.toBe("# Plan");
-    await expect(
-      fs.readFile("/repo/.poe-code/ralph/plans/archive/plan-a.md", "utf8")
-    ).rejects.toThrow();
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
   });
 
   it("does not delete a plan when confirmation is declined", async () => {
@@ -275,7 +340,7 @@ describe("plan command", () => {
 
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const fs = createMemFs({
-      "/repo/.poe-code/experiments/plan-a.md": "# Plan"
+      "/repo/docs/plans/plan-a.md": "# Plan"
     });
     const container = createCliContainer({
       fs,
@@ -291,13 +356,11 @@ describe("plan command", () => {
       "cli",
       "plan",
       "delete",
-      ".poe-code/experiments/plan-a.md"
+      "docs/plans/plan-a.md"
     ]);
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toBe("");
-    await expect(
-      fs.readFile("/repo/.poe-code/experiments/plan-a.md", "utf8")
-    ).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
   });
 });

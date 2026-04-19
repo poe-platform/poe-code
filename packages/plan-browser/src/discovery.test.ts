@@ -15,9 +15,12 @@ function createMemFs(files: Record<string, string>): DiscoveryFs {
 }
 
 describe("discoverAllPlans", () => {
-  it("aggregates plans from pipeline, Ralph, and experiment sources sorted by updatedAt desc", async () => {
+  it("scans the shared plan directory and classifies docs by frontmatter kind", async () => {
     const fs = createMemFs({
-      "/repo/.poe-code/pipeline/plans/plan-a.yaml": [
+      "/repo/docs/plans/architecture.md": "# Architecture\n\nFive-altitude design doc.\n",
+      "/repo/docs/plans/plan-demo.md": [
+        "---",
+        "kind: pipeline",
         "tasks:",
         "  - id: first",
         "    title: First",
@@ -27,10 +30,11 @@ describe("discoverAllPlans", () => {
         "    title: Second",
         "    prompt: Second prompt",
         "    status: open",
-        ""
+        "---"
       ].join("\n"),
-      "/repo/.poe-code/ralph/plans/spawn-hooks.md": [
+      "/repo/docs/plans/spawn-hooks.md": [
         "---",
+        "kind: ralph",
         "agent: claude-code",
         "iterations: 3",
         "status:",
@@ -39,8 +43,9 @@ describe("discoverAllPlans", () => {
         "---",
         "# Spawn hooks"
       ].join("\n"),
-      "/repo/.poe-code/experiments/speed-up-tests.md": [
+      "/repo/docs/plans/speed-up-tests.md": [
         "---",
+        "kind: experiment",
         "agent: claude-code",
         "metric:",
         "  name: test_duration",
@@ -50,13 +55,22 @@ describe("discoverAllPlans", () => {
         "---",
         "# Speed up tests"
       ].join("\n"),
-      "/repo/.poe-code/experiments/speed-up-tests.journal.jsonl": JSON.stringify({ status: "keep" })
+      "/repo/docs/plans/speed-up-tests.journal.jsonl": JSON.stringify({ status: "keep" }),
+      "/repo/docs/plans/pi-mono.md": [
+        "---",
+        "kind: superintendent",
+        "version: 1",
+        "---",
+        "# Pi mono integration"
+      ].join("\n")
     });
 
     const now = Date.UTC(2026, 3, 7, 12, 0, 0);
-    await fs.utimes?.("/repo/.poe-code/pipeline/plans/plan-a.yaml", now / 1000 - 20, now / 1000 - 20);
-    await fs.utimes?.("/repo/.poe-code/ralph/plans/spawn-hooks.md", now / 1000 - 10, now / 1000 - 10);
-    await fs.utimes?.("/repo/.poe-code/experiments/speed-up-tests.md", now / 1000, now / 1000);
+    await fs.utimes?.("/repo/docs/plans/architecture.md", now / 1000 - 40, now / 1000 - 40);
+    await fs.utimes?.("/repo/docs/plans/plan-demo.md", now / 1000 - 30, now / 1000 - 30);
+    await fs.utimes?.("/repo/docs/plans/spawn-hooks.md", now / 1000 - 20, now / 1000 - 20);
+    await fs.utimes?.("/repo/docs/plans/speed-up-tests.md", now / 1000 - 10, now / 1000 - 10);
+    await fs.utimes?.("/repo/docs/plans/pi-mono.md", now / 1000, now / 1000);
 
     const plans = await discoverAllPlans({
       cwd,
@@ -74,130 +88,185 @@ describe("discoverAllPlans", () => {
       detail: plan.detail
     }))).toEqual([
       {
-        path: ".poe-code/experiments/speed-up-tests.md",
+        path: "docs/plans/pi-mono.md",
+        kind: "superintendent",
+        typeLabel: "Superintendent",
+        runner: "superintendent",
+        detail: "design doc"
+      },
+      {
+        path: "docs/plans/speed-up-tests.md",
         kind: "experiment",
         typeLabel: "Experiment",
         runner: "experiment",
         detail: "claude-code · minimize · keep"
       },
       {
-        path: ".poe-code/ralph/plans/spawn-hooks.md",
+        path: "docs/plans/spawn-hooks.md",
         kind: "ralph",
         typeLabel: "Ralph",
         runner: "ralph",
         detail: "claude-code · ×3 · in_progress 2"
       },
       {
-        path: ".poe-code/pipeline/plans/plan-a.yaml",
+        path: "docs/plans/plan-demo.md",
         kind: "pipeline",
         typeLabel: "Pipeline",
         runner: "pipeline",
         detail: "1/2 done"
+      },
+      {
+        path: "docs/plans/architecture.md",
+        kind: "plan",
+        typeLabel: "Plan",
+        runner: undefined,
+        detail: "design doc"
       }
     ]);
   });
 
-  it("deduplicates by absolute path and supports kind filters", async () => {
+  it("supports kind filters while scanning the shared plan directory once", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/architecture.md": "# Architecture\n",
+      "/repo/docs/plans/spawn-hooks.md": [
+        "---",
+        "kind: ralph",
+        "---",
+        "# Spawn hooks"
+      ].join("\n")
+    });
+
+    const plans = await discoverAllPlans({
+      cwd,
+      homeDir,
+      fs,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      kind: "plan"
+    });
+
+    expect(plans).toEqual([
+      expect.objectContaining({
+        path: "docs/plans/architecture.md",
+        kind: "plan"
+      })
+    ]);
+  });
+
+  it("uses plan.plan_directory config and POE_PLAN_DIRECTORY overrides", async () => {
     const fs = createMemFs({
       "/repo/.poe-code/config.json": JSON.stringify({
-        pipeline: {
-          plan_directory: ".poe-code/shared-plans"
-        },
-        ralph: {
-          plan_directory: ".poe-code/shared-plans"
+        plan: {
+          plan_directory: "custom/plans"
         }
       }),
-      "/repo/.poe-code/shared-plans/plan-shared.md": "# Shared Ralph",
-      "/repo/.poe-code/shared-plans/plan-shared.yaml": [
+      "/repo/custom/plans/configured.md": "# Configured plan\n",
+      "/repo/override/plans/override.md": "# Override plan\n"
+    });
+
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({
+        path: "custom/plans/configured.md",
+        kind: "plan"
+      })
+    ]);
+
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd),
+        variables: {
+          POE_PLAN_DIRECTORY: "override/plans"
+        }
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({
+        path: "override/plans/override.md",
+        kind: "plan"
+      })
+    ]);
+  });
+
+  it("does not fall back to legacy per-harness directories", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/pipeline/plans/legacy-pipeline.md": [
+        "---",
+        "kind: pipeline",
         "tasks:",
         "  - id: first",
         "    title: First",
         "    prompt: First prompt",
         "    status: open",
-        ""
-      ].join("\n")
-    });
-
-    const plans = await discoverAllPlans({
-      cwd,
-      homeDir,
-      fs,
-      configPath: resolveConfigPath(homeDir),
-      projectConfigPath: resolveProjectConfigPath(cwd),
-      kind: "pipeline"
-    });
-
-    expect(plans).toHaveLength(1);
-    expect(plans[0]?.kind).toBe("pipeline");
-    expect(plans[0]?.path).toBe(".poe-code/shared-plans/plan-shared.yaml");
-  });
-
-  it("discovers experiment docs from the global home directory by default", async () => {
-    const fs = createMemFs({
-      "/home/test/.poe-code/experiments/global-exp.md": [
+        "---"
+      ].join("\n"),
+      "/repo/.poe-code/experiments/legacy-experiment.md": [
         "---",
+        "kind: experiment",
         "agent: claude-code",
         "metric:",
-        "  name: size",
-        "  script: npm run metric:test_count",
+        "  name: test_duration",
+        "  script: npm run metric:test_duration",
         "  direction: minimize",
         "baseline: null",
         "---",
-        "# Global experiment"
+        "# Legacy experiment"
+      ].join("\n"),
+      "/repo/.poe-code/ralph/plans/legacy-ralph.md": [
+        "---",
+        "kind: ralph",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# Legacy Ralph"
       ].join("\n")
     });
 
-    const plans = await discoverAllPlans({
-      cwd,
-      homeDir,
-      fs,
-      configPath: resolveConfigPath(homeDir),
-      projectConfigPath: resolveProjectConfigPath(cwd),
-      kind: "experiment"
-    });
-
-    expect(plans).toEqual([
-      expect.objectContaining({
-        path: "~/.poe-code/experiments/global-exp.md",
-        kind: "experiment",
-        detail: "claude-code · minimize · open"
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
       })
-    ]);
+    ).resolves.toEqual([]);
   });
 
-  it("respects environment variable directory overrides", async () => {
+  it("errors loudly when a frontmatter document omits kind", async () => {
     const fs = createMemFs({
-      "/repo/custom-experiments/exp.md": [
+      "/repo/docs/plans/plan-markdown-reader.md": [
         "---",
-        "agent: codex",
-        "metric:",
-        "  name: size",
-        "  script: npm run metric:test_count",
-        "  direction: stable",
-        "baseline: null",
-        "---",
-        "# Custom"
+        "vars:",
+        "  plan_doc: \"{{file 'docs/plans/markdown-reader.md'}}\"",
+        "tasks:",
+        "  - id: task-1",
+        "    title: Task 1",
+        "    prompt: Ship it",
+        "    status: open",
+        "---"
       ].join("\n")
     });
 
-    const plans = await discoverAllPlans({
-      cwd,
-      homeDir,
-      fs,
-      configPath: resolveConfigPath(homeDir),
-      projectConfigPath: resolveProjectConfigPath(cwd),
-      kind: "experiment",
-      variables: {
-        POE_EXPERIMENT_PLAN_DIRECTORY: "custom-experiments"
-      }
-    });
-
-    expect(plans).toEqual([
-      expect.objectContaining({
-        path: "custom-experiments/exp.md",
-        kind: "experiment",
-        detail: "codex · stable · open"
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
       })
-    ]);
+    ).rejects.toThrow("docs/plans/plan-markdown-reader.md: missing required frontmatter kind");
   });
 });

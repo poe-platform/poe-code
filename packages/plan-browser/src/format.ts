@@ -194,7 +194,7 @@ export async function readPlanMetadata(options: {
     return {
       title: fallbackName,
       detail: formatPipelineProgress(content),
-      format: "yaml"
+      format: resolveFormatFromPath(options.path)
     };
   }
 

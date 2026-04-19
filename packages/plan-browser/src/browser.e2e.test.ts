@@ -45,26 +45,27 @@ async function createFixture(): Promise<{ projectDir: string; homeDir: string }>
   const projectDir = path.join(rootDir, "project");
   const homeDir = path.join(rootDir, "home");
 
-  await mkdir(path.join(projectDir, ".poe-code", "pipeline", "plans"), { recursive: true });
-  await mkdir(path.join(projectDir, ".poe-code", "ralph", "plans"), { recursive: true });
-  await mkdir(path.join(projectDir, ".poe-code", "experiments"), { recursive: true });
+  await mkdir(path.join(projectDir, "docs", "plans"), { recursive: true });
   await mkdir(homeDir, { recursive: true });
 
   await writeFile(
-    path.join(projectDir, ".poe-code", "pipeline", "plans", "plan-feature.yaml"),
+    path.join(projectDir, "docs", "plans", "plan-feature.md"),
     [
+      "---",
+      "kind: pipeline",
       "tasks:",
       "  - id: feature",
       "    title: Add feature",
       "    prompt: Ship the feature",
       "    status: open",
-      ""
+      "---"
     ].join("\n")
   );
   await writeFile(
-    path.join(projectDir, ".poe-code", "ralph", "plans", "spawn-hooks.md"),
+    path.join(projectDir, "docs", "plans", "spawn-hooks.md"),
     [
       "---",
+      "kind: ralph",
       "agent: claude-code",
       "iterations: 3",
       "status:",
@@ -77,9 +78,10 @@ async function createFixture(): Promise<{ projectDir: string; homeDir: string }>
     ].join("\n")
   );
   await writeFile(
-    path.join(projectDir, ".poe-code", "experiments", "speed-up-tests.md"),
+    path.join(projectDir, "docs", "plans", "speed-up-tests.md"),
     [
       "---",
+      "kind: experiment",
       "agent: claude-code",
       "metric:",
       "  name: test_duration",
@@ -92,20 +94,24 @@ async function createFixture(): Promise<{ projectDir: string; homeDir: string }>
       "Reduce total test runtime."
     ].join("\n")
   );
+  await writeFile(
+    path.join(projectDir, "docs", "plans", "speed-up-tests.journal.jsonl"),
+    JSON.stringify({ status: "keep" })
+  );
 
   const baseTime = Date.UTC(2026, 3, 7, 12, 0, 0) / 1000;
   await utimes(
-    path.join(projectDir, ".poe-code", "pipeline", "plans", "plan-feature.yaml"),
+    path.join(projectDir, "docs", "plans", "plan-feature.md"),
     baseTime - 20,
     baseTime - 20
   );
   await utimes(
-    path.join(projectDir, ".poe-code", "ralph", "plans", "spawn-hooks.md"),
+    path.join(projectDir, "docs", "plans", "spawn-hooks.md"),
     baseTime - 10,
     baseTime - 10
   );
   await utimes(
-    path.join(projectDir, ".poe-code", "experiments", "speed-up-tests.md"),
+    path.join(projectDir, "docs", "plans", "speed-up-tests.md"),
     baseTime,
     baseTime
   );
@@ -178,7 +184,7 @@ afterEach(async () => {
 describe("plan browser", { timeout: 20_000 }, () => {
   it("browses to preview and returns to the list", async () => {
     const fixture = await createFixture();
-    const session = await launchPlanBrowser(["plan"], fixture);
+    const session = await launchPlanBrowser(["plan", "browse"], fixture);
 
     await session.waitFor("Select a plan");
     await session.press("Enter");
@@ -189,7 +195,7 @@ describe("plan browser", { timeout: 20_000 }, () => {
 
   it("exits from the list with escape", async () => {
     const fixture = await createFixture();
-    const session = await launchPlanBrowser(["plan"], fixture);
+    const session = await launchPlanBrowser(["plan", "browse"], fixture);
 
     await session.waitFor("Select a plan");
     await session.press("Escape");
@@ -198,7 +204,7 @@ describe("plan browser", { timeout: 20_000 }, () => {
 
   it("archives a selected plan and refreshes the list", async () => {
     const fixture = await createFixture();
-    const session = await launchPlanBrowser(["plan"], fixture);
+    const session = await launchPlanBrowser(["plan", "browse"], fixture);
 
     await session.waitFor("Select a plan");
     await session.press("ArrowDown");
@@ -212,8 +218,7 @@ describe("plan browser", { timeout: 20_000 }, () => {
 
     const archivedPath = path.join(
       fixture.projectDir,
-      ".poe-code",
-      "ralph",
+      "docs",
       "plans",
       "archive",
       "spawn-hooks.md"
@@ -224,7 +229,7 @@ describe("plan browser", { timeout: 20_000 }, () => {
 
   it("deletes a selected plan and refreshes the list", async () => {
     const fixture = await createFixture();
-    const session = await launchPlanBrowser(["plan"], fixture);
+    const session = await launchPlanBrowser(["plan", "browse"], fixture);
 
     await session.waitFor("Select a plan");
     await session.press("Enter");
@@ -238,8 +243,8 @@ describe("plan browser", { timeout: 20_000 }, () => {
 
     const deletedPath = path.join(
       fixture.projectDir,
-      ".poe-code",
-      "experiments",
+      "docs",
+      "plans",
       "speed-up-tests.md"
     );
     await waitForCondition(async () => !(await pathExists(deletedPath)));
@@ -248,7 +253,7 @@ describe("plan browser", { timeout: 20_000 }, () => {
 
   it("opens the editor and returns to the list", async () => {
     const fixture = await createFixture();
-    const session = await launchPlanBrowser(["plan"], fixture);
+    const session = await launchPlanBrowser(["plan", "browse"], fixture);
 
     await session.waitFor("Select a plan");
     await session.press("Enter");
@@ -260,18 +265,18 @@ describe("plan browser", { timeout: 20_000 }, () => {
 
   it("filters the list by source", async () => {
     const fixture = await createFixture();
-    const session = await launchPlanBrowser(["plan", "--source", "pipeline"], fixture);
+    const session = await launchPlanBrowser(["plan", "browse", "--source", "pipeline"], fixture);
 
     await session.waitFor("Select a plan");
     const screen = await session.screen();
-    expect(screen.text).toContain("plan-feature.yaml");
+    expect(screen.text).toContain("plan-feature.md");
     expect(screen.text).not.toContain("spawn-hooks.md");
     expect(screen.text).not.toContain("speed-up-tests.md");
   });
 
   it("with --yes previews the first plan and exits without prompting", async () => {
     const fixture = await createFixture();
-    const session = await launchPlanBrowser(["--yes", "plan"], fixture);
+    const session = await launchPlanBrowser(["--yes", "plan", "browse"], fixture);
 
     await session.waitFor("Speed up tests");
     const screen = await session.screen();

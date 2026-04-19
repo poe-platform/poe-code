@@ -85,4 +85,28 @@ describe("plan browse command", () => {
       expect.objectContaining({ kind: "ralph" })
     );
   });
+
+  it("forwards superintendent sources to the browser", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "browse",
+      "--source",
+      "superintendent"
+    ]);
+
+    expect(runPlanBrowserMock).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "superintendent" })
+    );
+  });
 });

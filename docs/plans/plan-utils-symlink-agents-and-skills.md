@@ -1,4 +1,5 @@
 ---
+kind: pipeline
 vars:
   plan_doc: "{{file \"docs/plans/utils-symlink-agents-and-skills.md\"}}"
 

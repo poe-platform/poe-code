@@ -109,12 +109,19 @@ function resolveSource(value: string | undefined): PlanKind | undefined {
     return undefined;
   }
 
-  if (value === "pipeline" || value === "experiment" || value === "ralph") {
+  if (
+    value === "plan" ||
+    value === "pipeline" ||
+    value === "experiment" ||
+    value === "ralph" ||
+    value === "superintendent" ||
+    value === "superintendent-base"
+  ) {
     return value;
   }
 
   throw new ValidationError(
-    `Invalid --source value "${value}". Expected pipeline, experiment, or ralph.`
+    `Invalid --source value "${value}". Expected plan, pipeline, experiment, ralph, superintendent, or superintendent-base.`
   );
 }
 
@@ -342,8 +349,11 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
 
   plan
     .command("browse")
-    .description("Browse, view, and manage plans across pipeline, experiment, and Ralph.")
-    .option("--source <source>", "Filter by plan source: pipeline, experiment, or ralph")
+    .description("Browse, view, and manage plans across all plan systems.")
+    .option(
+      "--source <source>",
+      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+    )
     .action(async function (this: Command) {
       const opts = this.opts<PlanCommandOptions>();
       const flags = resolveCommandFlags(program);
@@ -363,7 +373,10 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
   plan
     .command("list")
     .description("List plans across all plan systems.")
-    .option("--source <source>", "Filter by plan source: pipeline, experiment, or ralph")
+    .option(
+      "--source <source>",
+      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+    )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command) {
       intro("plan list");
@@ -374,7 +387,10 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .command("view")
     .description("Render a single plan to the terminal.")
     .argument("[path]", "Plan path")
-    .option("--source <source>", "Filter by plan source: pipeline, experiment, or ralph")
+    .option(
+      "--source <source>",
+      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+    )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {
       intro("plan view");
@@ -417,7 +433,10 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .command("edit")
     .description("Open a plan in $EDITOR.")
     .argument("[path]", "Plan path")
-    .option("--source <source>", "Filter by plan source: pipeline, experiment, or ralph")
+    .option(
+      "--source <source>",
+      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+    )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {
       await executePlanAction({
@@ -433,7 +452,10 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .command("archive")
     .description("Move a plan into archive/.")
     .argument("[path]", "Plan path")
-    .option("--source <source>", "Filter by plan source: pipeline, experiment, or ralph")
+    .option(
+      "--source <source>",
+      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+    )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {
       await executePlanAction({
@@ -449,7 +471,10 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .command("delete")
     .description("Delete a plan file.")
     .argument("[path]", "Plan path")
-    .option("--source <source>", "Filter by plan source: pipeline, experiment, or ralph")
+    .option(
+      "--source <source>",
+      "Filter by plan source: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+    )
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, pathArg?: string) {
       await executePlanAction({

@@ -33,7 +33,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: ops-and-agents-planner
     title: Implement shared symlink ops and planAgentsSymlink
@@ -59,9 +59,9 @@ tasks:
 
       Verification: `npm run test -- utils-symlink` passes; `npm run typecheck` clean.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: skills-planner

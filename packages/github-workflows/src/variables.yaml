@@ -23,4 +23,49 @@ pull_request_guidelines: |
 code_review_guidelines: |
   - Review every changed file, not just the diff summary.
   - Verify the change follows existing patterns in the codebase. New abstractions need justification.
-  - Don't rubber-stamp. Request changes when there are real issues.
+  - Leave small inline comments on the specific lines that need attention. When you can show the fix directly, use GitHub's `suggestion` code block so the author can apply it with one click.
+  - Keep the summary comment extremely short: either "LGTM" or "Requested changes: <one-line reason>". Details belong in the inline comments.
+  - Err on the side of approving. Only request changes when there is a security issue, a clear correctness bug, or a regression. Style preferences, naming bikesheds, and speculative concerns belong as non-blocking inline comments.
+  - Post the review in a single API call so the inline comments and the summary land together. Use `gh api` with `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` and pass the comments in the body.
+  - Example — approve with a single inline note:
+    ```sh
+    gh api --method POST -H "Accept: application/vnd.github+json" \
+      repos/OWNER/REPO/pulls/PR_NUMBER/reviews \
+      --input - <<'JSON'
+    {
+      "event": "APPROVE",
+      "body": "LGTM",
+      "comments": [
+        { "path": "src/foo.ts", "line": 42, "body": "Nit: consider renaming to `parseX`." }
+      ]
+    }
+    JSON
+    ```
+  - Example — a one-click suggestion on a specific line:
+    ```sh
+    gh api --method POST -H "Accept: application/vnd.github+json" \
+      repos/OWNER/REPO/pulls/PR_NUMBER/reviews \
+      --input - <<'JSON'
+    {
+      "event": "APPROVE",
+      "body": "LGTM",
+      "comments": [
+        { "path": "src/foo.ts", "line": 42, "body": "```suggestion\nreturn parseX(value);\n```" }
+      ]
+    }
+    JSON
+    ```
+  - Example — request changes for a security issue only:
+    ```sh
+    gh api --method POST -H "Accept: application/vnd.github+json" \
+      repos/OWNER/REPO/pulls/PR_NUMBER/reviews \
+      --input - <<'JSON'
+    {
+      "event": "REQUEST_CHANGES",
+      "body": "Requested changes: unsanitized input flows into shell.",
+      "comments": [
+        { "path": "src/run.ts", "line": 17, "body": "Shell injection: pass args as an array to `spawn` instead of concatenating into a string." }
+      ]
+    }
+    JSON
+    ```

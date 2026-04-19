@@ -30,6 +30,9 @@ type ArrayMetadata = {
   minItems?: number;
   nullable?: boolean;
 };
+type ObjectMetadata = {
+  additionalProperties?: boolean;
+};
 type OptionalKeys<TShape extends ObjectShape> = {
   [TKey in keyof TShape]: TShape[TKey] extends OptionalSchema<any> ? TKey : never;
 }[keyof TShape];
@@ -66,6 +69,7 @@ interface SchemaBase<TKind extends SchemaKind, TStatic> {
 }
 
 export interface JsonSchema {
+  additionalProperties?: boolean;
   type?: JsonSchemaType;
   description?: string;
   default?: unknown;
@@ -108,7 +112,7 @@ export interface ArraySchema<TItem extends AnySchema>
 }
 
 export interface ObjectSchema<TShape extends ObjectShape>
-  extends SchemaBase<"object", InferObject<TShape>> {
+  extends SchemaBase<"object", InferObject<TShape>>, ObjectMetadata {
   readonly shape: TShape;
 }
 
@@ -188,6 +192,14 @@ function withArrayMetadata(schema: ArraySchema<any>, jsonSchema: JsonSchema): Js
 
   if (schema.maxItems !== undefined) {
     jsonSchema.maxItems = schema.maxItems;
+  }
+
+  return withMetadata(schema, jsonSchema);
+}
+
+function withObjectMetadata(schema: ObjectSchema<any>, jsonSchema: JsonSchema): JsonSchema {
+  if (schema.additionalProperties !== undefined) {
+    jsonSchema.additionalProperties = schema.additionalProperties;
   }
 
   return withMetadata(schema, jsonSchema);
@@ -292,10 +304,14 @@ export const S = {
     };
   },
 
-  Object<const TShape extends ObjectShape>(shape: TShape): ObjectSchema<TShape> {
+  Object<const TShape extends ObjectShape>(
+    shape: TShape,
+    options: SchemaOptions<InferObject<TShape>> & ObjectMetadata = {}
+  ): ObjectSchema<TShape> {
     return {
       kind: "object",
       shape,
+      ...options,
     };
   },
 
@@ -354,11 +370,11 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
         }
       }
 
-      return {
+      return withObjectMetadata(unwrappedSchema, {
         type: "object",
         properties,
         required,
-      };
+      });
     }
   }
 }

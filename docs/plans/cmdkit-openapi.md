@@ -32,6 +32,8 @@ superintendent:
     Builder summary:
     {{builder.summary}}
 
+    You can spawn multiple builders at once and assign them task, make sure they are not going to run into conflicts.
+
     Inspector summaries:
 
     ## Code quality
@@ -549,12 +551,13 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 - **Famous-spec smokes.** Petstore / GitHub / Stripe / Slack / DigitalOcean under `packages/cmdkit-openapi/fixtures/famous/<name>/` with `openapi.lock` + `NOTES.md` (counts, grouped skip reasons, spot checks).
 - **Zero-command index emits valid empty module.** `generated/index.ts` now emits `export {};` when the spec yields no commands (no dangling `defineGroup` import); Slack + Stripe fixtures refreshed; covered in `generate.test.ts` + `generate-cli.test.ts`.
 - **Structural-IR dispatch-table sweep + SRP file-split.** Writer and runtime now share tables keyed on IR kind: `FIELD_ASSEMBLERS[location][schemaKind]`, `DEFINITION_RENDERERS` / `RUNTIME_DEFINITION_BUILDERS`, `VALUE_EXPRESSION_OPERATIONS` / `VALUE_REFERENCE_OPERATIONS`, `PREFLIGHT_BLOCK_OPERATIONS` (symmetric render + execute), `REQUEST_SECTION_OPERATIONS`. Shared `groupByNoun(...)` helper; runtime-only execution moved out of `generate.ts` into `runtime.ts` / `interpreter.ts` / `request-shape.ts`. Parity test drives one fixture through codegen + runtime and asserts identical behavior (`runtime.test.ts`). `isIdentifierName` consolidated into `naming.ts`; redundant path-shape pre-check and dead `renderParamAccess` removed. Build-green fixes: `bearer-token-auth.ts` whoami passes `auth`; `spec-source.ts` URL/path narrowing type-checks.
+- **Wildcard + `default` success status codes.** `isSuccessStatusCode` now accepts `2xx` / `2XX` / `default` in addition to exact `2\d\d`; non-success wildcards (`4XX`, `5XX`, …) stay ignored so JSON-media guards only fire on success responses. Covered by `generate.test.ts` (non-JSON `2XX` throws, non-JSON `default` throws, non-JSON `4XX` alongside JSON `200` allowed).
+- **`S.Object` metadata consistency.** Added `withObjectMetadata` in `cmdkit-schema` mirroring the existing `withString/Number/Array` helpers; `S.Object` now accepts `additionalProperties` the same way other schema kinds carry metadata, removing the ad-hoc conditional spread in `toJsonSchema`.
 
 ### Open
 
 **Generate-time spec-sanity checks (remaining).**
 
-- Accept `2XX` / `1XX`–`5XX` / `default` success status codes in the JSON-media walker, or reject at generate time.
 - Cross-check `security` scheme names against `components.securitySchemes`.
 - Walk success-response schemas for unsupported composition (`oneOf`/`anyOf`/`allOf`, `additionalProperties`); prerequisite for MCP `outputSchema` emission.
 - Reject path params with non-default `style` / `explode: true`.
@@ -598,9 +601,15 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 - **External `$ref` in operation `parameters` / `requestBody` silently dropped.** `resolveLocalReference` (`generate.ts`) throws `UserError` on any ref not starting with `#/`, but callers for parameter- and body-scoped refs swallow the error path, so DigitalOcean operations whose params are `$ref: "./resources/droplets/parameters.yml#/..."` emit with only transport flags (sampled: `fixtures/famous/digitalocean/generated/droplets/list.ts` has zero spec-declared query params vs. 5 in the spec; `droplets/delete.ts` is missing the required `tag_name` query param and will 400). The current committed DO output under `fixtures/famous/digitalocean/generated/` is the reduced-spec version that demonstrates this regression. Fix: either resolve `$ref` to sibling files during parsing (load + merge, bounded to the spec's directory) or propagate the hard failure to the generator top-level so the op is reported with a targeted `UserError` instead of silently producing a broken command.
 - **Required body field demoted to `S.Optional` + runtime guard.** `fixtures/famous/github/generated/actions/add-custom-labels-to-self-hosted-runner-for-org.ts:15` emits `labels: S.Optional(S.Array(...))` with a runtime `UserError` fallback, even though the spec marks `labels` required at the schema level. Root cause is the interaction between the `labelsJson` dual-entry CLI convenience flag and the required-check. Fix: when a body field is `required: true` and there is no sibling `*Json` escape hatch, keep it non-optional; when there is, mark the group required (the preflight already handles "exactly-one") and drop the per-field runtime guard.
 
-**Spec-fidelity test gap.**
+**Test-coverage gaps (bundle into one snapshot round).**
 
-- Body-field `format: date-time` preservation is only covered inside array items (`generate.test.ts`), not as a top-level scalar body field. Add a single positive snapshot to pin that `format: "date-time"` survives on a scalar body field (`body: { scheduled_at: { type: "string", format: "date-time" } }`).
+- Body-field `format: date-time` on a top-level scalar body field (currently only covered inside array items in `generate.test.ts`). Add a positive snapshot: `body: { scheduled_at: { type: "string", format: "date-time" } }`.
+- Boolean body `--no-official` literal `toContain` assertion.
+- DELETE-with-body re-asserts `confirm: true` alongside body flags.
+
+**Build hygiene.**
+
+- `@poe-code/cmdkit-schema` `tsc` currently fails with `TS2320` on `StringSchema` / `NumberSchema` / `ArraySchema` because `SchemaBase` declares `readonly nullable?` while `StringMetadata` / `NumberMetadata` / `ArrayMetadata` redeclare `nullable?` (mutable). Vitest hides it (transform-only), but `npm run build` at repo root blocks on it. Fix: drop the duplicate `nullable` from the three `*Metadata` aliases (SchemaBase already owns it) — pure type cleanup, no runtime change.
 
 **Code-quality nits (bundle into next edit on listed files; no dedicated rounds).**
 
@@ -617,7 +626,6 @@ Live-API e2e (owned by first consumer package), OAuth, pagination, retries, stre
 
 - Tighten task 727(a) wording: MCP `inputSchema` keys are normalized per `casing`; wire keys stay verbatim.
 - Update Testing-section naming bullets so missing/empty `tags` reads "falls back to first static non-`api`/non-version path segment; throws only when no fallback available."
-- Testing literal-coverage: boolean body `--no-official` `toContain`, DELETE-with-body `confirm: true` re-assert.
 
 **Wire-level fidelity (low-priority).**
 

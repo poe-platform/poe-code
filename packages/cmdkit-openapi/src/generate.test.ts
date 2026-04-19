@@ -2488,6 +2488,124 @@ describe("generate", () => {
     );
   });
 
+  it("throws when an operation declares a non-JSON wildcard success response", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}/export": {
+            get: {
+              tags: ["bots"],
+              operationId: "exportBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "2XX": {
+                  description: "Exported.",
+                  content: {
+                    "text/plain": {
+                      schema: { type: "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "exportBot" declares unsupported success response content type(s) for status "2XX": "text/plain". Only application/json responses (or empty success responses) are supported in v1.'
+      )
+    );
+  });
+
+  it("throws when an operation declares a non-JSON default response", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}/export": {
+            get: {
+              tags: ["bots"],
+              operationId: "exportBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                default: {
+                  description: "Exported.",
+                  content: {
+                    "text/plain": {
+                      schema: { type: "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "exportBot" declares unsupported success response content type(s) for status "default": "text/plain". Only application/json responses (or empty success responses) are supported in v1.'
+      )
+    );
+  });
+
+  it("allows wildcard error response ranges when success responses stay JSON", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed.",
+                  content: {
+                    "application/json": {
+                      schema: { type: "object" }
+                    }
+                  }
+                },
+                "4XX": {
+                  description: "Bad request.",
+                  content: {
+                    "text/plain": {
+                      schema: { type: "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).not.toThrow();
+  });
+
   it("throws when a request body omits application/json content", () => {
     expect(() =>
       generate(

@@ -1143,11 +1143,20 @@ function collectPathPlaceholders(path: string): string[] {
 }
 
 function isSuccessStatusCode(statusCode: string): boolean {
-  if (statusCode.length !== 3) {
-    return false;
+  if (statusCode === "default" || statusCode === "2XX") {
+    return true;
   }
 
-  return statusCode[0] === "2";
+  return (
+    statusCode.length === 3 &&
+    statusCode[0] === "2" &&
+    isAsciiDigit(statusCode[1]) &&
+    isAsciiDigit(statusCode[2])
+  );
+}
+
+function isAsciiDigit(character: string): boolean {
+  return character >= "0" && character <= "9";
 }
 
 function isJsonMediaType(mediaType: string): boolean {

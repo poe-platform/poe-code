@@ -31,7 +31,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo run build && npm run codegen:python-types && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
+    "build": "turbo run build && npm run codegen:plan-schemas && npm run codegen:python-types && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
     "build:deps": "node scripts/list-workspace-deps.mjs",
     "codegen:python-types": "tsx scripts/generate-agent-spawn-py-types.ts",
     "codegen:check:python-types": "tsx scripts/generate-agent-spawn-py-types.ts --check",
@@ -82,7 +82,8 @@
     "metric:test_count": "node scripts/metric-test-count.mjs",
     "metric:test_duration": "node scripts/metric-test-duration.mjs",
     "demo:dashboard": "tsx packages/design-system/src/dashboard/demo.ts",
-    "replay": "tsx packages/agent-spawn/src/acp/replay-cli.ts"
+    "replay": "tsx packages/agent-spawn/src/acp/replay-cli.ts",
+    "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts"
   },
   "bin": {
     "poe": "dist/bin.cjs",

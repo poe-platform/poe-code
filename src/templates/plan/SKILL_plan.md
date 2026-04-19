@@ -13,21 +13,14 @@ Write `docs/plans/<name>.md` — five levels, each deeper than the last. `<name>
 
 ## Chat vs document
 
-Collaborate through chat, not the document. Document = artifact. Chat = conversation.
-
-- **In the document**: plan content only — level headings, signatures, file lists, inline `- Open question:` notes.
-- **In the chat, never the document**: per-level summary, numbered decision prompts, confirmation asks.
-
-If it's something you're saying to the user, it goes in chat. If it's something a future reader of the plan needs, it goes in the doc.
+Document = artifact. Chat = conversation. Per-level summaries, numbered decisions, and confirmation asks go in chat. Document holds plan content only: level headings, signatures, file lists, inline `- Open question:` notes.
 
 ## Ground rules
 
-At every level:
-
 1. **Research first.** Check code, git log, docs, related plans before asking.
 2. **Be concrete.** Real files, real functions, real types — no hand-waving.
-3. **Summarize after each level — in chat.** Decisions made, what's still open, what changed earlier. Never in the document.
-4. **Numbered decisions when you need user input — in chat.** One per line, options + your recommendation.
+3. **Summarize after each level — in chat.** Decisions made, what's open, what changed earlier.
+4. **Numbered decisions when you need input — in chat.** One per line, options + your recommendation.
 
 ## The Five Levels
 

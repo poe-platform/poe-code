@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/plans/plan.schema.json",
+  "title": "Generic plan document",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "const": "plan"
+    }
+  },
+  "required": [
+    "kind"
+  ],
+  "additionalProperties": true
+}

@@ -19,6 +19,15 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run codegen:plan-schemas
+      - name: Check generated plan schemas are fresh
+        run: |
+          if [ -n "$(git status --porcelain -- docs/schemas/plans)" ]; then
+            echo "Generated plan schemas are out of date. Run npm run codegen:plan-schemas."
+            git status --short -- docs/schemas/plans
+            git diff -- docs/schemas/plans
+            exit 1
+          fi
       - run: npm run build
       - run: npm run codegen:check:python-types
       - run: npm run lint

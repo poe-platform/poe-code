@@ -215,10 +215,10 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: schema-github-pages
     title: Publish docs/schemas/** via GitHub Pages

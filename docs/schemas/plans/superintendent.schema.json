@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json",
+  "title": "Superintendent plan document",
+  "type": "object",
+  "properties": {
+    "builder": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "default": "claude-code",
+          "minLength": 1
+        },
+        "cwd": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mcp": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "type": "string",
+                "minLength": 1
+              },
+              "timeout": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "command"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "prompt"
+      ],
+      "additionalProperties": false
+    },
+    "inspectors": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "agent": {
+            "type": "string",
+            "default": "claude-code",
+            "minLength": 1
+          },
+          "cwd": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mcp": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "args": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "command": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "timeout": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "command"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "mode": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "kind": {
+      "type": "string",
+      "const": "superintendent"
+    },
+    "max_rounds": {
+      "type": "integer",
+      "default": 100,
+      "minimum": 1
+    },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timeout": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "owner": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "default": "claude-code",
+          "minLength": 1
+        },
+        "cwd": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mcp": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "type": "string",
+                "minLength": 1
+              },
+              "timeout": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "command"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "prompt"
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "review_turn": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "round": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "in_progress",
+            "review",
+            "completed"
+          ]
+        }
+      },
+      "required": [
+        "state",
+        "round",
+        "review_turn"
+      ],
+      "additionalProperties": false
+    },
+    "superintendent": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "default": "claude-code",
+          "minLength": 1
+        },
+        "cwd": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mcp": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "type": "string",
+                "minLength": 1
+              },
+              "timeout": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "command"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "prompt"
+      ],
+      "additionalProperties": false
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": [
+    "kind",
+    "version",
+    "builder",
+    "superintendent",
+    "owner",
+    "status"
+  ],
+  "additionalProperties": false
+}

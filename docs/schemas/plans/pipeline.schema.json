@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json",
+  "title": "Pipeline plan document",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "const": "pipeline"
+    },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "setup": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mode": {
+              "type": "string",
+              "default": "yolo",
+              "enum": [
+                "yolo",
+                "edit",
+                "read"
+              ]
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "prompt": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "prompt"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        },
+        {
+          "const": false
+        }
+      ]
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "done",
+                  "failed"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "done",
+                    "failed"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "prompt",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "teardown": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mode": {
+              "type": "string",
+              "default": "yolo",
+              "enum": [
+                "yolo",
+                "edit",
+                "read"
+              ]
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "prompt": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "prompt"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        },
+        {
+          "const": false
+        }
+      ]
+    },
+    "vars": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "tasks"
+  ],
+  "additionalProperties": false
+}

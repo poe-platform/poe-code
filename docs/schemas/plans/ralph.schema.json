@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/plans/ralph.schema.json",
+  "title": "Ralph plan document",
+  "type": "object",
+  "properties": {
+    "agent": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ]
+    },
+    "extends": {
+      "type": "boolean"
+    },
+    "iterations": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "ralph"
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "iteration": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "open",
+            "in_progress",
+            "completed",
+            "failed"
+          ]
+        }
+      },
+      "required": [
+        "state",
+        "iteration"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "kind",
+    "status"
+  ],
+  "additionalProperties": false
+}

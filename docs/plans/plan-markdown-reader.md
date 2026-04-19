@@ -258,7 +258,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: sdk-barrel
     title: Wire SDK barrel exports
@@ -285,10 +285,10 @@ tasks:
       Full design context:
       {{plan_doc}}
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: cli-wiring
     title: Wire plan markdown-read / markdown-read-section / markdown-reader-mcp

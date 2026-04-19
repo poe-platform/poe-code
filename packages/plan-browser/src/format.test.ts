@@ -4,7 +4,9 @@ import {
   formatExperimentDetail,
   formatPipelinePlanMarkdown,
   formatRalphDetail,
-  getLastExperimentState
+  getLastExperimentState,
+  loadPlanPreviewMarkdown,
+  readPlanMetadata
 } from "./format.js";
 import { parseExperimentFrontmatter } from "@poe-code/experiment-loop";
 import { parseFrontmatter } from "@poe-code/ralph";
@@ -93,5 +95,53 @@ describe("format helpers", () => {
   it("derives a markdown title from the first heading when present", () => {
     expect(deriveMarkdownTitle("# My Plan\n\nBody", "fallback.md")).toBe("My Plan");
     expect(deriveMarkdownTitle("Body only", "fallback.md")).toBe("fallback.md");
+  });
+
+  it("reads generic kind metadata with detail and format fields", async () => {
+    const metadata = await readPlanMetadata({
+      kind: "plan",
+      absolutePath: "/repo/docs/plans/feature-plan.md",
+      path: "docs/plans/feature-plan.md",
+      fs: {
+        readFile: async () => [
+          "---",
+          "kind: plan",
+          "---",
+          "# Feature plan",
+          "",
+          "Body"
+        ].join("\n")
+      }
+    });
+
+    expect(metadata).toEqual({
+      title: "Feature plan",
+      detail: "design doc",
+      format: "markdown"
+    });
+  });
+
+  it("uses the kind field when loading plan previews", async () => {
+    const markdown = await loadPlanPreviewMarkdown(
+      {
+        absolutePath: "/repo/.poe-code/pipeline/plans/plan-feature.yaml",
+        format: "yaml",
+        kind: "pipeline",
+        title: "plan-feature.yaml"
+      },
+      {
+        readFile: async () => [
+          "tasks:",
+          "  - id: feature",
+          "    title: Add feature",
+          "    prompt: Ship it",
+          "    status: done",
+          ""
+        ].join("\n")
+      }
+    );
+
+    expect(markdown).toContain("# plan-feature.yaml");
+    expect(markdown).toContain("- [x] Add feature (`feature`)");
   });
 });

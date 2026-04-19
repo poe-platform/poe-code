@@ -21,7 +21,7 @@ import {
   loadPlanPreviewMarkdown,
   runPlanBrowser,
   type PlanEntry,
-  type PlanSource
+  type PlanKind
 } from "@poe-code/plan-browser";
 import {
   installSkill,
@@ -69,7 +69,7 @@ export function buildPlanPrompt(options: BuildPlanPromptOptions): string {
 type OutputOption = "terminal" | "markdown" | "json";
 
 type PlanCommandOptions = {
-  source?: PlanSource;
+  source?: PlanKind;
   output?: string;
 };
 
@@ -104,7 +104,7 @@ function resolveOutputOption(value: string | undefined): OutputOption {
   );
 }
 
-function resolveSource(value: string | undefined): PlanSource | undefined {
+function resolveSource(value: string | undefined): PlanKind | undefined {
   if (!value || value.trim().length === 0) {
     return undefined;
   }
@@ -124,7 +124,7 @@ function formatDate(timestamp: number): string {
 
 async function discoverPlans(
   container: CliContainer,
-  source: PlanSource | undefined
+  kind: PlanKind | undefined
 ): Promise<PlanEntry[]> {
   return discoverAllPlans({
     cwd: container.env.cwd,
@@ -132,7 +132,7 @@ async function discoverPlans(
     configPath: container.env.configPath,
     projectConfigPath: container.env.projectConfigPath,
     fs: container.fs as Parameters<typeof discoverAllPlans>[0]["fs"],
-    source,
+    kind,
     variables: container.env.variables
   });
 }
@@ -175,8 +175,8 @@ async function resolveSelectedPlan(options: {
   const selected = await select({
     message: options.promptMessage,
     options: options.plans.map((plan) => ({
-      label: text.selectLabel(path.basename(plan.path), plan.status),
-      hint: plan.source,
+      label: text.selectLabel(path.basename(plan.path), plan.detail),
+      hint: plan.typeLabel,
       value: plan.absolutePath
     }))
   });
@@ -215,10 +215,10 @@ async function renderPlanList(container: CliContainer, options: PlanCommandOptio
       format,
       JSON.stringify(
         plans.map((plan) => ({
-          source: plan.source,
+          source: plan.kind,
           name: path.basename(plan.path),
           path: plan.path,
-          detail: plan.status,
+          detail: plan.detail,
           updated: formatDate(plan.updatedAt)
         })),
         null,
@@ -238,9 +238,9 @@ async function renderPlanList(container: CliContainer, options: PlanCommandOptio
         { name: "updated", title: "Updated", alignment: "left", maxLen: 12 }
       ],
       rows: plans.map((plan) => ({
-        source: plan.source,
+        source: plan.kind,
         name: path.basename(plan.path),
-        detail: plan.status,
+        detail: plan.detail,
         updated: formatDate(plan.updatedAt)
       }))
     })
@@ -354,7 +354,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         configPath: container.env.configPath,
         projectConfigPath: container.env.projectConfigPath,
         fs: container.fs as Parameters<typeof runPlanBrowser>[0]["fs"],
-        source: resolveSource(opts.source),
+        kind: resolveSource(opts.source),
         variables: container.env.variables,
         assumeYes: flags.assumeYes
       });
@@ -396,10 +396,10 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
           format,
           JSON.stringify(
             {
-              source: plan.source,
+              source: plan.kind,
               path: plan.path,
               title: plan.title,
-              detail: plan.status,
+              detail: plan.detail,
               content: markdown
             },
             null,

@@ -82,7 +82,7 @@ describe("plan browse command", () => {
     ]);
 
     expect(runPlanBrowserMock).toHaveBeenCalledWith(
-      expect.objectContaining({ source: "ralph" })
+      expect.objectContaining({ kind: "ralph" })
     );
   });
 });

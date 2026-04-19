@@ -188,8 +188,12 @@ const wrapper = [
 await writeFile(wrapperPath, wrapper, { encoding: "utf8" });
 
 const pipelineTemplateDir = path.join(rootDir, "dist", "templates", "pipeline");
+const skillTemplateDir = path.join(rootDir, "dist", "templates", "skill");
 const distDir = path.join(rootDir, "dist");
-await mkdir(pipelineTemplateDir, { recursive: true });
+await Promise.all([
+  mkdir(pipelineTemplateDir, { recursive: true }),
+  mkdir(skillTemplateDir, { recursive: true })
+]);
 await Promise.all([
   copyFile(
     path.join(rootDir, "src", "templates", "pipeline", "SKILL_plan.md"),
@@ -202,6 +206,14 @@ await Promise.all([
   copyFile(
     path.join(rootDir, "packages", "poe-agent", "src", "SYSTEM_PROMPT.md"),
     path.join(distDir, "SYSTEM_PROMPT.md")
+  ),
+  copyFile(
+    path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "poe-generate.md"),
+    path.join(skillTemplateDir, "poe-generate.md")
+  ),
+  copyFile(
+    path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "terminal-pilot.md"),
+    path.join(skillTemplateDir, "terminal-pilot.md")
   )
 ]);
 

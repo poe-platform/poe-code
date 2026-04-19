@@ -1,15 +1,24 @@
-export type PlanSource = "pipeline" | "experiment" | "ralph";
+export type PlanKind =
+  | "plan"
+  | "pipeline"
+  | "experiment"
+  | "ralph"
+  | "superintendent"
+  | "superintendent-base";
 
-export type PlanFormat = "yaml" | "markdown";
+export type PlanFormat = "markdown" | "yaml";
 
 export interface PlanEntry {
   path: string;
   absolutePath: string;
-  source: PlanSource;
+  kind: PlanKind;
+  typeLabel: string;
+  runner?: "pipeline" | "experiment" | "ralph" | "superintendent";
+  detail: string;
   format: PlanFormat;
   title: string;
-  status: string;
   updatedAt: number;
+  schemaUrl?: string;
 }
 
 export interface DiscoveryFs {

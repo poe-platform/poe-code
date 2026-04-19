@@ -68,28 +68,36 @@ describe("discoverAllPlans", () => {
 
     expect(plans.map((plan) => ({
       path: plan.path,
-      source: plan.source,
-      status: plan.status
+      kind: plan.kind,
+      typeLabel: plan.typeLabel,
+      runner: plan.runner,
+      detail: plan.detail
     }))).toEqual([
       {
         path: ".poe-code/experiments/speed-up-tests.md",
-        source: "experiment",
-        status: "claude-code · minimize · keep"
+        kind: "experiment",
+        typeLabel: "Experiment",
+        runner: "experiment",
+        detail: "claude-code · minimize · keep"
       },
       {
         path: ".poe-code/ralph/plans/spawn-hooks.md",
-        source: "ralph",
-        status: "claude-code · ×3 · in_progress 2"
+        kind: "ralph",
+        typeLabel: "Ralph",
+        runner: "ralph",
+        detail: "claude-code · ×3 · in_progress 2"
       },
       {
         path: ".poe-code/pipeline/plans/plan-a.yaml",
-        source: "pipeline",
-        status: "1/2 done"
+        kind: "pipeline",
+        typeLabel: "Pipeline",
+        runner: "pipeline",
+        detail: "1/2 done"
       }
     ]);
   });
 
-  it("deduplicates by absolute path and supports source filters", async () => {
+  it("deduplicates by absolute path and supports kind filters", async () => {
     const fs = createMemFs({
       "/repo/.poe-code/config.json": JSON.stringify({
         pipeline: {
@@ -116,11 +124,11 @@ describe("discoverAllPlans", () => {
       fs,
       configPath: resolveConfigPath(homeDir),
       projectConfigPath: resolveProjectConfigPath(cwd),
-      source: "pipeline"
+      kind: "pipeline"
     });
 
     expect(plans).toHaveLength(1);
-    expect(plans[0]?.source).toBe("pipeline");
+    expect(plans[0]?.kind).toBe("pipeline");
     expect(plans[0]?.path).toBe(".poe-code/shared-plans/plan-shared.yaml");
   });
 
@@ -145,14 +153,14 @@ describe("discoverAllPlans", () => {
       fs,
       configPath: resolveConfigPath(homeDir),
       projectConfigPath: resolveProjectConfigPath(cwd),
-      source: "experiment"
+      kind: "experiment"
     });
 
     expect(plans).toEqual([
       expect.objectContaining({
         path: "~/.poe-code/experiments/global-exp.md",
-        source: "experiment",
-        status: "claude-code · minimize · open"
+        kind: "experiment",
+        detail: "claude-code · minimize · open"
       })
     ]);
   });
@@ -178,7 +186,7 @@ describe("discoverAllPlans", () => {
       fs,
       configPath: resolveConfigPath(homeDir),
       projectConfigPath: resolveProjectConfigPath(cwd),
-      source: "experiment",
+      kind: "experiment",
       variables: {
         POE_EXPERIMENT_PLAN_DIRECTORY: "custom-experiments"
       }
@@ -187,8 +195,8 @@ describe("discoverAllPlans", () => {
     expect(plans).toEqual([
       expect.objectContaining({
         path: "custom-experiments/exp.md",
-        source: "experiment",
-        status: "codex · stable · open"
+        kind: "experiment",
+        detail: "codex · stable · open"
       })
     ]);
   });

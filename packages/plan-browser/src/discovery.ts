@@ -3,7 +3,7 @@ import * as fsPromises from "node:fs/promises";
 import { discoverDocs } from "@poe-code/ralph";
 import { readMergedDocument } from "@poe-code/poe-code-config";
 import { readPlanMetadata } from "./format.js";
-import type { DiscoveryFs, PlanEntry, PlanSource } from "./types.js";
+import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
 
 function createDefaultFs(): DiscoveryFs {
   return {
@@ -60,6 +60,35 @@ function isMarkdownFile(name: string): boolean {
   return name.toLowerCase().endsWith(".md");
 }
 
+function getPlanTypeLabel(kind: PlanKind): string {
+  switch (kind) {
+    case "plan":
+      return "Plan";
+    case "pipeline":
+      return "Pipeline";
+    case "experiment":
+      return "Experiment";
+    case "ralph":
+      return "Ralph";
+    case "superintendent":
+      return "Superintendent";
+    case "superintendent-base":
+      return "Superintendent Base";
+  }
+}
+
+function getPlanRunner(kind: PlanKind): PlanEntry["runner"] {
+  switch (kind) {
+    case "pipeline":
+    case "experiment":
+    case "ralph":
+    case "superintendent":
+      return kind;
+    default:
+      return undefined;
+  }
+}
+
 async function resolvePlanDirectorySetting(options: {
   fs: DiscoveryFs;
   configPath: string;
@@ -88,7 +117,7 @@ async function scanDirectory(options: {
   fs: DiscoveryFs;
   absoluteDir: string;
   displayDir: string;
-  source: PlanSource;
+  kind: PlanKind;
   include: (name: string) => boolean;
   cwd: string;
   homeDir: string;
@@ -117,7 +146,7 @@ async function scanDirectory(options: {
 
     const displayPath = path.join(options.displayDir, name);
     const metadata = await readPlanMetadata({
-      source: options.source,
+      kind: options.kind,
       absolutePath,
       path: displayPath,
       fs: options.fs
@@ -126,10 +155,12 @@ async function scanDirectory(options: {
     plans.push({
       path: displayPath,
       absolutePath: resolveAbsoluteDisplayPath(displayPath, options.cwd, options.homeDir),
-      source: options.source,
+      kind: options.kind,
+      typeLabel: getPlanTypeLabel(options.kind),
+      runner: getPlanRunner(options.kind),
       format: metadata.format,
       title: metadata.title,
-      status: metadata.status,
+      detail: metadata.detail,
       updatedAt: stat.mtimeMs
     });
   }
@@ -161,8 +192,8 @@ async function discoverPipelinePlans(options: {
       }]
     : [
         {
-          absoluteDir: path.join(options.cwd, ".poe-code", "pipeline", "plans"),
-          displayDir: ".poe-code/pipeline/plans"
+        absoluteDir: path.join(options.cwd, ".poe-code", "pipeline", "plans"),
+        displayDir: ".poe-code/pipeline/plans"
         },
         {
           absoluteDir: path.join(options.homeDir, ".poe-code", "pipeline", "plans"),
@@ -175,7 +206,7 @@ async function discoverPipelinePlans(options: {
       scanDirectory({
         ...target,
         fs: options.fs,
-        source: "pipeline",
+        kind: "pipeline",
         include: isPipelinePlanFile,
         cwd: options.cwd,
         homeDir: options.homeDir
@@ -210,8 +241,8 @@ async function discoverExperimentPlans(options: {
       }]
     : [
         {
-          absoluteDir: path.join(options.cwd, ".poe-code", "experiments"),
-          displayDir: ".poe-code/experiments"
+        absoluteDir: path.join(options.cwd, ".poe-code", "experiments"),
+        displayDir: ".poe-code/experiments"
         },
         {
           absoluteDir: path.join(options.homeDir, ".poe-code", "experiments"),
@@ -224,7 +255,7 @@ async function discoverExperimentPlans(options: {
       scanDirectory({
         ...target,
         fs: options.fs,
-        source: "experiment",
+        kind: "experiment",
         include: isMarkdownFile,
         cwd: options.cwd,
         homeDir: options.homeDir
@@ -274,7 +305,7 @@ async function discoverRalphPlans(options: {
       const absolutePath = resolveAbsoluteDisplayPath(doc.path, options.cwd, options.homeDir);
       const stat = await options.fs.stat(absolutePath);
       const metadata = await readPlanMetadata({
-        source: "ralph",
+        kind: "ralph",
         absolutePath,
         path: doc.path,
         fs: options.fs
@@ -283,10 +314,12 @@ async function discoverRalphPlans(options: {
       return {
         path: doc.path,
         absolutePath,
-        source: "ralph" as const,
+        kind: "ralph" as const,
+        typeLabel: getPlanTypeLabel("ralph"),
+        runner: getPlanRunner("ralph"),
         format: metadata.format,
         title: metadata.title,
-        status: metadata.status,
+        detail: metadata.detail,
         updatedAt: stat.mtimeMs
       };
     })
@@ -301,21 +334,29 @@ export async function discoverAllPlans(options: {
   fs?: DiscoveryFs;
   configPath: string;
   projectConfigPath: string;
-  source?: PlanSource;
+  kind?: PlanKind;
   variables?: Record<string, string | undefined>;
 }): Promise<PlanEntry[]> {
   const fs = options.fs ?? createDefaultFs();
-  const discoverers: Record<PlanSource, () => Promise<PlanEntry[]>> = {
+  const discoverers = {
     pipeline: () => discoverPipelinePlans({ ...options, fs }),
     experiment: () => discoverExperimentPlans({ ...options, fs }),
     ralph: () => discoverRalphPlans({ ...options, fs })
   };
+  type DiscoverablePlanKind = keyof typeof discoverers;
 
-  const sources = options.source
-    ? [options.source]
-    : (Object.keys(discoverers) as PlanSource[]);
+  const kinds = options.kind
+    ? [options.kind]
+    : (Object.keys(discoverers) as DiscoverablePlanKind[]);
 
-  const results = (await Promise.all(sources.map((source) => discoverers[source]()))).flat();
+  const results = (
+    await Promise.all(
+      kinds.map(async (kind) => {
+        const discover = discoverers[kind as DiscoverablePlanKind];
+        return discover ? discover() : [];
+      })
+    )
+  ).flat();
   const deduped = new Map<string, PlanEntry>();
 
   for (const result of results) {

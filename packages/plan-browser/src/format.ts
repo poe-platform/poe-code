@@ -157,12 +157,12 @@ export async function readExperimentState(
 }
 
 export async function loadPlanPreviewMarkdown(
-  entry: Pick<PlanEntry, "absolutePath" | "format" | "source" | "title">,
+  entry: Pick<PlanEntry, "absolutePath" | "format" | "kind" | "title">,
   fs: Pick<DiscoveryFs, "readFile">
 ): Promise<string> {
   const content = await fs.readFile(entry.absolutePath, "utf8");
 
-  if (entry.source === "pipeline") {
+  if (entry.kind === "pipeline") {
     return formatPipelinePlanMarkdown({
       title: entry.title,
       content
@@ -172,37 +172,54 @@ export async function loadPlanPreviewMarkdown(
   return content;
 }
 
+function resolveFormatFromPath(filePath: string): PlanEntry["format"] {
+  const lower = filePath.toLowerCase();
+  if (lower.endsWith(".yaml") || lower.endsWith(".yml")) {
+    return "yaml";
+  }
+
+  return "markdown";
+}
+
 export async function readPlanMetadata(options: {
-  source: PlanEntry["source"];
+  kind: PlanEntry["kind"];
   absolutePath: string;
   path: string;
   fs: Pick<DiscoveryFs, "readFile">;
-}): Promise<Pick<PlanEntry, "title" | "status" | "format">> {
+}): Promise<Pick<PlanEntry, "title" | "detail" | "format">> {
   const content = await options.fs.readFile(options.absolutePath, "utf8");
   const fallbackName = path.basename(options.path);
 
-  if (options.source === "pipeline") {
+  if (options.kind === "pipeline") {
     return {
       title: fallbackName,
-      status: formatPipelineProgress(content),
+      detail: formatPipelineProgress(content),
       format: "yaml"
     };
   }
 
-  if (options.source === "ralph") {
+  if (options.kind === "ralph") {
     const parsed = parseFrontmatter(content);
     return {
       title: deriveMarkdownTitle(parsed.body, fallbackName),
-      status: formatRalphDetail(parsed.data),
+      detail: formatRalphDetail(parsed.data),
       format: "markdown"
     };
   }
 
-  const parsed = parseExperimentFrontmatter(content);
-  const state = await readExperimentState(options.fs, options.absolutePath);
+  if (options.kind === "experiment") {
+    const parsed = parseExperimentFrontmatter(content);
+    const state = await readExperimentState(options.fs, options.absolutePath);
+    return {
+      title: deriveMarkdownTitle(parsed.body, fallbackName),
+      detail: formatExperimentDetail(parsed.frontmatter, state),
+      format: "markdown"
+    };
+  }
+
   return {
-    title: deriveMarkdownTitle(parsed.body, fallbackName),
-    status: formatExperimentDetail(parsed.frontmatter, state),
-    format: "markdown"
+    title: deriveMarkdownTitle(content, fallbackName),
+    detail: "design doc",
+    format: resolveFormatFromPath(options.path)
   };
 }

@@ -11,4 +11,4 @@ export {
   readExperimentState
 } from "./format.js";
 export { runPlanBrowser } from "./browser.js";
-export type { ActionFs, DiscoveryFs, PlanEntry, PlanFormat, PlanSource } from "./types.js";
+export type { ActionFs, DiscoveryFs, PlanEntry, PlanFormat, PlanKind } from "./types.js";

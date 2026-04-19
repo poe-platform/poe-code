@@ -11,7 +11,7 @@ import { PromptCancelledError } from "@poe-code/design-system";
 import { archivePlan, deletePlan, editPlan } from "./actions.js";
 import { discoverAllPlans } from "./discovery.js";
 import { loadPlanPreviewMarkdown } from "./format.js";
-import type { ActionFs, DiscoveryFs, PlanEntry, PlanSource } from "./types.js";
+import type { ActionFs, DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
 
 type BrowserAction = "back" | "edit" | "archive" | "delete";
 
@@ -21,12 +21,12 @@ export async function runPlanBrowser(options: {
   configPath: string;
   projectConfigPath: string;
   fs: DiscoveryFs & Partial<ActionFs>;
-  source?: PlanSource;
+  kind?: PlanKind;
   variables?: Record<string, string | undefined>;
   assumeYes?: boolean;
 }): Promise<void> {
   const renderPlanPreview = async (
-    entry: Pick<PlanEntry, "absolutePath" | "format" | "source" | "title">
+    entry: Pick<PlanEntry, "absolutePath" | "format" | "kind" | "title">
   ) => {
     const markdown = await loadPlanPreviewMarkdown(entry, options.fs);
     process.stdout.write(`${renderMarkdown(markdown).trimEnd()}\n`);
@@ -39,7 +39,7 @@ export async function runPlanBrowser(options: {
       configPath: options.configPath,
       projectConfigPath: options.projectConfigPath,
       fs: options.fs,
-      source: options.source,
+      kind: options.kind,
       variables: options.variables
     });
 
@@ -57,8 +57,8 @@ export async function runPlanBrowser(options: {
     const selectedPath = await select({
       message: "Select a plan",
       options: plans.map((plan) => ({
-        label: text.selectLabel(path.basename(plan.path), plan.status),
-        hint: plan.source,
+        label: text.selectLabel(path.basename(plan.path), plan.detail),
+        hint: plan.typeLabel,
         value: plan.absolutePath
       }))
     });

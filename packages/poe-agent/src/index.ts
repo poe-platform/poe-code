@@ -58,6 +58,7 @@ export { default as maxIterationsPlugin } from "./plugins/poe-agent-plugin-max-i
 export { default as mcpPlugin } from "./plugins/poe-agent-plugin-mcp.js";
 export { default as memoryPlugin } from "./plugins/poe-agent-plugin-memory.js";
 export { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
+export { openaiResponsesPlugin } from "./plugins/poe-agent-plugin-openai-responses.js";
 export { default as policyPlugin } from "./plugins/poe-agent-plugin-policy.js";
 export { default as scratchpadPlugin } from "./plugins/poe-agent-plugin-scratchpad.js";
 export { default as shellPlugin } from "./plugins/poe-agent-plugin-shell.js";

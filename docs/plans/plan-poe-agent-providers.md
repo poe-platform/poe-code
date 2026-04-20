@@ -437,7 +437,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: openai-responses-plugin
     title: Create openai-responses plugin and register
@@ -529,8 +529,8 @@ tasks:
       - `npm run test --workspace=@poe-code/superintendent` — green.
       - `npx tsc --noEmit` — clean.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: verify-model-cli-flow

@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import maxIterationsPlugin from "./plugins/poe-agent-plugin-max-iterations.js";
 import { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
+import { openaiResponsesPlugin } from "./plugins/poe-agent-plugin-openai-responses.js";
 import type { AcpModel, AcpModelResponse } from "./runtime/acp-core.js";
 import { ProviderResolutionError } from "./runtime/resolve-provider.js";
 import { toAcpModelResponse, type LegacyAcpModelResponse } from "./testing/model-response.js";
@@ -182,6 +183,156 @@ describe("agent builder", () => {
 
     expect(result.output).toBe("done");
     expect(createModelMock).toHaveBeenCalledOnce();
+  });
+
+  it("routes gpt-* model ids to the openai responses provider before the catch-all provider", async () => {
+    const responsesPlugin = openaiResponsesPlugin();
+    const chatPlugin = openaiChatCompletionsPlugin();
+    const responsesProvider = responsesPlugin.providers?.[0];
+    const chatProvider = chatPlugin.providers?.[0];
+    const createResponsesModelMock = vi.fn(async () =>
+      createModel(
+        [
+          {
+            message: {
+              content: "responses",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      )
+    );
+    const createChatModelMock = vi.fn(async () =>
+      createModel(
+        [
+          {
+            message: {
+              content: "chat",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      )
+    );
+
+    if (!responsesProvider || !chatProvider) {
+      throw new Error("Expected both OpenAI providers.");
+    }
+
+    responsesProvider.createModel = createResponsesModelMock;
+    chatProvider.createModel = createChatModelMock;
+
+    const result = await agent().model("gpt-5.4").use(responsesPlugin).use(chatPlugin).run("hello");
+
+    expect(result.output).toBe("responses");
+    expect(createResponsesModelMock).toHaveBeenCalledOnce();
+    expect(createChatModelMock).not.toHaveBeenCalled();
+  });
+
+  it("routes o-series model ids to the openai responses provider before the catch-all provider", async () => {
+    const responsesPlugin = openaiResponsesPlugin();
+    const chatPlugin = openaiChatCompletionsPlugin();
+    const responsesProvider = responsesPlugin.providers?.[0];
+    const chatProvider = chatPlugin.providers?.[0];
+    const createResponsesModelMock = vi.fn(async () =>
+      createModel(
+        [
+          {
+            message: {
+              content: "responses",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      )
+    );
+    const createChatModelMock = vi.fn(async () =>
+      createModel(
+        [
+          {
+            message: {
+              content: "chat",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      )
+    );
+
+    if (!responsesProvider || !chatProvider) {
+      throw new Error("Expected both OpenAI providers.");
+    }
+
+    responsesProvider.createModel = createResponsesModelMock;
+    chatProvider.createModel = createChatModelMock;
+
+    const result = await agent().model("o4-mini").use(responsesPlugin).use(chatPlugin).run("hello");
+
+    expect(result.output).toBe("responses");
+    expect(createResponsesModelMock).toHaveBeenCalledOnce();
+    expect(createChatModelMock).not.toHaveBeenCalled();
+  });
+
+  it("routes non-matching model ids to the openai chat completions catch-all provider", async () => {
+    const responsesPlugin = openaiResponsesPlugin();
+    const chatPlugin = openaiChatCompletionsPlugin();
+    const responsesProvider = responsesPlugin.providers?.[0];
+    const chatProvider = chatPlugin.providers?.[0];
+    const createResponsesModelMock = vi.fn(async () =>
+      createModel(
+        [
+          {
+            message: {
+              content: "responses",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      )
+    );
+    const createChatModelMock = vi.fn(async () =>
+      createModel(
+        [
+          {
+            message: {
+              content: "chat",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      )
+    );
+
+    if (!responsesProvider || !chatProvider) {
+      throw new Error("Expected both OpenAI providers.");
+    }
+
+    responsesProvider.createModel = createResponsesModelMock;
+    chatProvider.createModel = createChatModelMock;
+
+    const result = await agent()
+      .model("Claude-Sonnet-4.6")
+      .use(responsesPlugin)
+      .use(chatPlugin)
+      .run("hello");
+
+    expect(result.output).toBe("chat");
+    expect(createResponsesModelMock).not.toHaveBeenCalled();
+    expect(createChatModelMock).toHaveBeenCalledOnce();
+  });
+
+  it("lists the registered openai responses provider when no provider matches the model", async () => {
+    await expect(
+      agent().model("Claude-Sonnet-4.6").use(openaiResponsesPlugin()).run("hello")
+    ).rejects.toThrowError(
+      'No provider matched model "Claude-Sonnet-4.6". Registered providers: openai-responses.'
+    );
   });
 
   it("throws ProviderResolutionError when no provider plugin is registered", async () => {
@@ -1414,9 +1565,9 @@ describe("agent builder", () => {
             "Read the test file",
             "Now fix the assertion"
           ]);
-          expect(
-            assistantMessages.map((message: { content: unknown }) => message.content)
-          ).toEqual(["first output"]);
+          expect(assistantMessages.map((message: { content: unknown }) => message.content)).toEqual(
+            ["first output"]
+          );
           return toAcpModelResponse({
             message: {
               content: "second output",

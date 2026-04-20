@@ -12,6 +12,7 @@ import {
 } from "./agent.js";
 import filesPlugin from "./plugins/poe-agent-plugin-files.js";
 import { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
+import { openaiResponsesPlugin } from "./plugins/poe-agent-plugin-openai-responses.js";
 import policyPlugin from "./plugins/poe-agent-plugin-policy.js";
 import shellPlugin from "./plugins/poe-agent-plugin-shell.js";
 import systemPromptPlugin from "./plugins/poe-agent-plugin-system-prompt.js";
@@ -85,6 +86,7 @@ export async function createAgentSession(
     (options.pluginsConfig !== undefined
       ? resolvePluginsFromConfig(options.pluginsConfig)
       : undefined) ?? [
+      openaiResponsesPlugin(),
       openaiChatCompletionsPlugin(),
       systemPromptPlugin(),
       filesPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),

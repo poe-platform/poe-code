@@ -3,6 +3,9 @@ import type { SessionUpdate } from "@poe-code/agent-spawn";
 import type { AcpSession } from "./agent.js";
 import type { AcpEvent, RunResult } from "./runtime/types.js";
 
+const openaiResponsesPluginMock = vi.hoisted(() =>
+  vi.fn(() => ({ name: "openai-responses-plugin" }))
+);
 const openaiChatCompletionsPluginMock = vi.hoisted(() =>
   vi.fn(() => ({ name: "openai-chat-completions-plugin" }))
 );
@@ -37,6 +40,12 @@ vi.mock("./plugins/poe-agent-plugin-system-prompt.js", () => ({
 vi.mock("./plugins/poe-agent-plugin-files.js", () => ({
   default: filesPluginMock,
   spec: { name: "files" }
+}));
+
+vi.mock("./plugins/poe-agent-plugin-openai-responses.js", () => ({
+  openaiResponsesPlugin: openaiResponsesPluginMock,
+  default: openaiResponsesPluginMock,
+  spec: { name: "openai-responses" }
 }));
 
 vi.mock("./plugins/poe-agent-plugin-openai-chat-completions.js", () => ({
@@ -84,6 +93,7 @@ async function createAcpSession(events: AcpEvent[]): Promise<AcpSession> {
 
 describe("createAgentSession", () => {
   beforeEach(() => {
+    openaiResponsesPluginMock.mockClear();
     openaiChatCompletionsPluginMock.mockClear();
     systemPromptPluginMock.mockClear();
     filesPluginMock.mockClear();
@@ -144,6 +154,7 @@ describe("createAgentSession", () => {
 
     expect(agentMock).toHaveBeenCalledTimes(1);
     expect(modelMock).toHaveBeenCalledWith("Claude-Sonnet-4.5");
+    expect(openaiResponsesPluginMock).toHaveBeenCalledTimes(1);
     expect(openaiChatCompletionsPluginMock).toHaveBeenCalledTimes(1);
     expect(systemPromptPluginMock).toHaveBeenCalledTimes(1);
     expect(filesPluginMock).toHaveBeenCalledWith({
@@ -155,8 +166,9 @@ describe("createAgentSession", () => {
       allowedPaths: ["/workspace/project"]
     });
     expect(webPluginMock).toHaveBeenCalledTimes(1);
-    expect(useMock).toHaveBeenCalledTimes(5);
+    expect(useMock).toHaveBeenCalledTimes(6);
     expect(useMock.mock.calls.map((call) => (call[0] as { name: string }).name)).toEqual([
+      "openai-responses-plugin",
       "openai-chat-completions-plugin",
       "system-prompt",
       "file-tools",
@@ -179,6 +191,7 @@ describe("createAgentSession", () => {
 
     expect(policyPluginMock).toHaveBeenCalledWith({ mode: "read" });
     expect(useMock.mock.calls.map((call) => (call[0] as { name: string }).name)).toEqual([
+      "openai-responses-plugin",
       "openai-chat-completions-plugin",
       "system-prompt",
       "file-tools",
@@ -202,6 +215,7 @@ describe("createAgentSession", () => {
 
     expect(systemPromptPluginMock).not.toHaveBeenCalled();
     expect(filesPluginMock).not.toHaveBeenCalled();
+    expect(openaiResponsesPluginMock).not.toHaveBeenCalled();
     expect(openaiChatCompletionsPluginMock).not.toHaveBeenCalled();
     expect(shellPluginMock).not.toHaveBeenCalled();
     expect(webPluginMock).not.toHaveBeenCalled();
@@ -227,6 +241,7 @@ describe("createAgentSession", () => {
     expect(resolvePluginsFromConfigMock).toHaveBeenCalledWith([{ name: "web" }]);
     expect(systemPromptPluginMock).not.toHaveBeenCalled();
     expect(filesPluginMock).not.toHaveBeenCalled();
+    expect(openaiResponsesPluginMock).not.toHaveBeenCalled();
     expect(openaiChatCompletionsPluginMock).not.toHaveBeenCalled();
     expect(shellPluginMock).not.toHaveBeenCalled();
     expect(webPluginMock).not.toHaveBeenCalled();

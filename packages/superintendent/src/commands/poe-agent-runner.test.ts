@@ -213,6 +213,7 @@ describe("executePoeAgent", () => {
     );
 
     expect(capture.pluginNames).toEqual([
+      "openai-responses-plugin",
       "openai-chat-completions-plugin",
       "poe-agent-plugin-system-prompt",
       "environment",

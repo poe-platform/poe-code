@@ -58,6 +58,8 @@ Returns a fluent builder:
 
 Compatibility wrapper that builds a session with:
 
+- `openaiResponsesPlugin()`
+- `openaiChatCompletionsPlugin()`
 - `systemPromptPlugin()`
 - `filesPlugin()`
 - `shellPlugin()`
@@ -98,6 +100,7 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 
 `pluginsConfig` resolves plugin names from the built-in registry. Supported names are:
 
+- `openai-responses`
 - `openai-chat-completions`
 - `system-prompt`
 - `files`
@@ -121,7 +124,7 @@ await createAgentSession({
 });
 ```
 
-If `pluginsConfig` is omitted, `createAgentSession()` keeps the default bundle (`openai-chat-completions`, `system-prompt`, `files`, `shell`, `web`).
+If `pluginsConfig` is omitted, `createAgentSession()` keeps the default bundle (`openai-responses`, `openai-chat-completions`, `system-prompt`, `files`, `shell`, `web`).
 
 `mcpServers` stays separate from `pluginsConfig`; MCP servers still use the dedicated `mcpServers` option.
 

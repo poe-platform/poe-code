@@ -6,6 +6,7 @@ import {
   environmentPlugin,
   filesPlugin,
   openaiChatCompletionsPlugin,
+  openaiResponsesPlugin,
   policyPlugin,
   shellPlugin,
   skillsPlugin,
@@ -50,6 +51,7 @@ export async function executePoeAgent(
   const mcpConfigs = toPoeMcpConfigs(input.mcpServers);
   let builder = createAgent()
     .model(model)
+    .use(openaiResponsesPlugin())
     .use(openaiChatCompletionsPlugin())
     .use(systemPromptPlugin())
     .use(environmentPlugin(input.cwd))

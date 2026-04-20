@@ -1,4 +1,4 @@
-import { createSecretStore } from "auth-store";
+import { resolveOpenaiApiKey } from "../plugins/openai-auth.js";
 import type { AcpModel, AcpModelRequestMessage } from "../runtime/acp-core.js";
 import type { ProviderStreamEvent } from "../runtime/plugin-types.js";
 import { toolResultPartToText } from "../runtime/tool-results.js";
@@ -14,7 +14,7 @@ export type CreatePoeAcpModelOptions = {
 };
 
 export async function createPoeAcpModel(options: CreatePoeAcpModelOptions): Promise<AcpModel> {
-  const apiKey = await resolveApiKey(options.apiKey);
+  const apiKey = await resolveOpenaiApiKey(options.apiKey);
   const fetchFn = options.fetch ?? globalThis.fetch;
   const endpoint = toChatCompletionsUrl(options.baseUrl ?? "https://api.poe.com");
 
@@ -215,28 +215,6 @@ function toNonNegativeInteger(value: unknown): number | undefined {
   }
 
   return Math.trunc(value);
-}
-
-async function resolveApiKey(explicitApiKey: string | undefined): Promise<string> {
-  const normalizedExplicitApiKey = toNonEmptyString(explicitApiKey);
-  if (normalizedExplicitApiKey) {
-    return normalizedExplicitApiKey;
-  }
-
-  const { store } = createSecretStore({
-    backendEnvVar: "POE_AUTH_BACKEND",
-    fileStore: {
-      salt: "poe-code:encrypted-file-auth-store:v1",
-      defaultDirectory: ".poe-code",
-      defaultFileName: "credentials.enc"
-    }
-  });
-  const storedApiKey = toNonEmptyString(await store.get());
-  if (storedApiKey) {
-    return storedApiKey;
-  }
-
-  throw new Error("Missing Poe API key. Provide apiKey or run 'poe-code login'.");
 }
 
 function toChatCompletionsUrl(baseUrl: string): string {

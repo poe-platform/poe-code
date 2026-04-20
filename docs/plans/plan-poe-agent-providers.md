@@ -283,8 +283,8 @@ tasks:
       - `npx vitest run packages/poe-agent` — all green.
       - `npx tsc -p packages/poe-agent/tsconfig.json --noEmit` — clean.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: openai-chat-completions-plugin

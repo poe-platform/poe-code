@@ -19,6 +19,7 @@
     "@poe-code/poe-acp-client": "*",
     "auth-store": "*",
     "fast-glob": "^3.3.3",
+    "openai": "^6.34.0",
     "shell-quote": "^1.8.3",
     "tiny-mcp-client": "*",
     "turndown": "^7.2.4"

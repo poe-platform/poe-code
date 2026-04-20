@@ -363,6 +363,11 @@ function validateRunCommandPolicy(args: unknown, mode: SpawnMode): string | void
     }
 
     if (mode === "read") {
+      const directReadToolReason = getDedicatedReadToolReason(commandName, commandArgs);
+      if (directReadToolReason) {
+        return directReadToolReason;
+      }
+
       const nestedCommand = getNestedReadOnlyCommand(commandName, commandArgs);
       if (nestedCommand) {
         if (!isReadOnlyCommand(nestedCommand.commandName, nestedCommand.args)) {
@@ -426,6 +431,29 @@ function extractWrappedCommand(args: string[]): string | undefined {
 function isDedicatedToolReadCommand(command: string): boolean {
   return /(^|\b)(cat|ls|find|grep|rg)\b/.test(command) ||
     /open\s*\(|read_text\s*\(|read_bytes\s*\(|Path\([^)]*\)\.read_text\s*\(/.test(command);
+}
+
+function getDedicatedReadToolReason(commandName: string, args: string[]): string | undefined {
+  if (commandName === "cat") {
+    return 'Use the dedicated file/search/list tools instead of "cat" for file reads.';
+  }
+
+  if (commandName === "ls" || commandName === "find") {
+    return `Use the dedicated file/search/list tools instead of "${commandName}" for directory listings.`;
+  }
+
+  if (commandName === "grep" || commandName === "rg") {
+    return `Use the dedicated file/search/list tools instead of "${commandName}" for searches.`;
+  }
+
+  if (
+    (commandName === "python" || commandName === "python3") &&
+    isDedicatedToolReadCommand([commandName, ...args].join(" "))
+  ) {
+    return "Use the dedicated file/search/list tools instead of shell wrappers for file reads, searches, or directory listings.";
+  }
+
+  return undefined;
 }
 
 function isCdWrapper(commandName: string, args: string[]): boolean {

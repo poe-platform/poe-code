@@ -193,12 +193,28 @@ describe("poe-agent-plugin-shell", () => {
     await expect(pending).rejects.toThrow("Command aborted");
   });
 
-  it("rejects shell-wrapped file/list/search reads in read mode", () => {
+  it("rejects dedicated file/search/list shell commands in read mode", () => {
     const validate = getRunCommandValidate();
 
-    expect(validate({ command: "cat package.json" }, "read")).toBeUndefined();
-    expect(validate({ command: "ls src" }, "read")).toBeUndefined();
-    expect(validate({ command: "grep foo README.md" }, "read")).toBeUndefined();
+    expect(validate({ command: "cat package.json" }, "read")).toContain(
+      "Use the dedicated file/search/list tools instead",
+    );
+    expect(validate({ command: "ls src" }, "read")).toContain(
+      "Use the dedicated file/search/list tools instead",
+    );
+    expect(validate({ command: "grep foo README.md" }, "read")).toContain(
+      "Use the dedicated file/search/list tools instead",
+    );
+    expect(validate({ command: "find src -maxdepth 1 -type f" }, "read")).toContain(
+      "Use the dedicated file/search/list tools instead",
+    );
+    expect(validate({ command: "rg foo src" }, "read")).toContain(
+      "Use the dedicated file/search/list tools instead",
+    );
+  });
+
+  it("rejects shell-wrapped dedicated file/list/search reads in read mode", () => {
+    const validate = getRunCommandValidate();
 
     expect(validate({ command: "bash -lc 'cat package.json'" }, "read")).toContain(
       "Use the dedicated file/search/list tools instead of shell wrappers",

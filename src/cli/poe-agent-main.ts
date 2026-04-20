@@ -1,7 +1,12 @@
+import os from "node:os";
 import path from "node:path";
+import fsPromises from "node:fs/promises";
 import { Command } from "commander";
 import { renderAcpStream, type McpSpawnConfig } from "@poe-code/agent-spawn";
 import { log } from "@poe-code/design-system";
+import { createConfigStore, resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import type { FileSystem } from "../utils/file-system.js";
+import { agentConfigScope } from "../services/config.js";
 import { DEFAULT_FRONTIER_MODEL, FEEDBACK_URL } from "./constants.js";
 import { ValidationError } from "./errors.js";
 
@@ -92,13 +97,25 @@ function resolveWorkingDirectory(
   return path.resolve(baseDir, candidate);
 }
 
-export function createPoeAgentProgram(): Command {
+type PoeAgentConfigFs = Pick<FileSystem, "mkdir" | "readFile" | "writeFile">;
+
+interface PoeAgentProgramOptions {
+  cwd?: string;
+  homeDir?: string;
+  fs?: PoeAgentConfigFs;
+}
+
+export function createPoeAgentProgram(options: PoeAgentProgramOptions = {}): Command {
   const program = new Command();
+  const baseDir = options.cwd ?? process.cwd();
+  const homeDir = options.homeDir ?? os.homedir();
+  const fs = options.fs ?? (fsPromises as unknown as PoeAgentConfigFs);
 
   program
     .name("poe-agent")
     .description("Run a single prompt through the Poe agent runtime.")
     .version("0.0.0")
+    .option("-y, --yes", "Accept configured defaults without prompting")
     .option("--model <model>", "Model identifier override")
     .option("-C, --cwd <path>", "Working directory for the agent")
     .option("--stdin", "Read the prompt from stdin")
@@ -115,6 +132,7 @@ export function createPoeAgentProgram(): Command {
       _args: string[] = []
     ) {
       const commandOptions = this.opts<{
+        yes?: boolean;
         model?: string;
         cwd?: string;
         stdin?: boolean;
@@ -124,9 +142,23 @@ export function createPoeAgentProgram(): Command {
 
       const mcpServers = parseMcpSpawnConfig(commandOptions.mcpServers ?? commandOptions.mcpConfig);
       const cwdOverride = resolveWorkingDirectory(
-        process.cwd(),
+        baseDir,
         commandOptions.cwd
       );
+      const cwd = cwdOverride ?? baseDir;
+      const configStore = createConfigStore({
+        fs: fs as unknown as Parameters<typeof createConfigStore>[0]["fs"],
+        filePath: resolveConfigPath(homeDir),
+        projectFilePath: resolveProjectConfigPath(cwd)
+      });
+      const configuredModel = (await configStore.scope(agentConfigScope).get("model")).trim();
+      const model = commandOptions.model ?? configuredModel;
+
+      if (commandOptions.yes && model.length === 0) {
+        throw new ValidationError(
+          "Error: --model is required in non-interactive mode (--yes) and no agent.model is configured."
+        );
+      }
 
       const wantsStdinFlag = commandOptions.stdin === true;
       const shouldReadFromStdin =
@@ -156,9 +188,13 @@ export function createPoeAgentProgram(): Command {
 
       const { events, done } = spawnPoeAgentWithAcp({
         prompt: promptText,
-        model: commandOptions.model ?? DEFAULT_FRONTIER_MODEL,
-        cwd: cwdOverride ?? process.cwd(),
+        model: model || DEFAULT_FRONTIER_MODEL,
+        cwd,
         mcpServers,
+        homeDir,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd),
+        fs,
       });
 
       await renderAcpStream(events);

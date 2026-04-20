@@ -708,6 +708,7 @@ async function runPoeAgentAcpLifecycle(
   });
 
   const client = new AcpClient({ transport });
+  let turn: ReturnType<AcpClient["prompt"]> | undefined;
 
   try {
     await client.initialize();
@@ -719,7 +720,7 @@ async function runPoeAgentAcpLifecycle(
       threadId: sessionId,
     });
 
-    const turn = client.prompt(sessionId, [{ type: "text", text: options.prompt }]);
+    turn = client.prompt(sessionId, [{ type: "text", text: options.prompt }]);
     for await (const notification of turn) {
       sessionUpdates.push(notification);
 
@@ -753,6 +754,7 @@ async function runPoeAgentAcpLifecycle(
     });
     throw error;
   } finally {
+    await turn?.response.catch(() => undefined);
     await client.dispose();
   }
 }

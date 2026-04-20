@@ -531,7 +531,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: verify-model-cli-flow
     title: Verify --model CLI flag flows through to provider resolution
@@ -563,8 +563,8 @@ tasks:
       - `npm run lint` — clean.
       - `npm run screenshot-poe-code -- run --help` — CLI help shows `--model`. Save screenshot for review.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: manual-qa-doc

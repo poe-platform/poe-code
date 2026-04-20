@@ -66,7 +66,7 @@ export async function runBuilder(
   return {
     summary: extractSummary(result, log),
     log,
-    log_path: extractLogPath(result)
+    log_path: extractLogPath(result, options)
   };
 }
 
@@ -143,12 +143,20 @@ function extractLog(result: AutonomousOutput): string {
   return readString(result.log) ?? readString(result.output) ?? readString(result.stdout) ?? readString(result.text) ?? "";
 }
 
-function extractLogPath(result: AutonomousOutput): string {
-  if (typeof result === "string") {
-    return "";
+function extractLogPath(result: AutonomousOutput, options: RunBuilderOptions): string {
+  if (typeof result !== "string") {
+    const logFile = readString(result.logFile);
+
+    if (logFile) {
+      return logFile;
+    }
   }
 
-  return readString(result.logFile) ?? "";
+  if (options.logDir && options.logFileName) {
+    return `${options.logDir}/${options.logFileName}`;
+  }
+
+  return "";
 }
 
 function extractSummary(result: AutonomousOutput, log: string): string {

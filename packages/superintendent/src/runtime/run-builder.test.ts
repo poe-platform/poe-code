@@ -98,6 +98,27 @@ describe("runBuilder", () => {
     });
   });
 
+  it("falls back to the caller-supplied log path when autonomous output omits logFile", async () => {
+    autonomousMock.mockResolvedValue({
+      summary: "Builder finished cleanly",
+      log: "Applied the requested changes"
+    });
+
+    const { runBuilder } = await import("./run-builder.js");
+
+    await expect(
+      runBuilder(document, {}, {
+        defaultCwd: "/repo",
+        logDir: "/tmp/spawn-logs",
+        logFileName: "20260415-120000-000-builder.jsonl"
+      })
+    ).resolves.toEqual({
+      summary: "Builder finished cleanly",
+      log: "Applied the requested changes",
+      log_path: "/tmp/spawn-logs/20260415-120000-000-builder.jsonl"
+    });
+  });
+
   it("propagates spawn failures", async () => {
     autonomousMock.mockRejectedValue(new Error("builder failed"));
 

@@ -19,6 +19,7 @@ import {
 import type { AgentPlugin, McpServerConfig } from "./runtime/plugin-types.js";
 import { runPluginSetup } from "./runtime/plugin-setup.js";
 import { createRunContext, type RunContext } from "./runtime/run-context.js";
+import { assertValidToolName } from "./runtime/tool-names.js";
 import type {
   AcpEvent,
   AcpHost,
@@ -27,6 +28,7 @@ import type {
   ForkResult,
   RunOutput,
   RunResult,
+  Tool,
   ToolAckResult,
   ToolIntent
 } from "./runtime/types.js";
@@ -60,6 +62,7 @@ export type AcpSession = {
 export type AgentBuilder = {
   model(model: string): AgentBuilder;
   use(plugin: AgentPlugin): AgentBuilder;
+  tools(...tools: Tool[]): AgentBuilder;
   mcp(...configs: McpServerConfig[]): AgentBuilder;
   acp(prompt: string, options?: AgentRunOptions): Promise<AcpSession>;
   run(prompt: string, options?: AgentRunOptions): Promise<RunResult>;
@@ -89,6 +92,17 @@ class ImmutableAgentBuilder implements AgentBuilder {
         plugins: [...this.#config.plugins, cloneAgentPlugin(plugin)]
       })
     );
+  }
+
+  tools(...tools: Tool[]): AgentBuilder {
+    for (const tool of tools) {
+      assertValidToolName(tool.name);
+    }
+
+    return this.use({
+      name: `inline-tools-${this.#config.plugins.length + 1}`,
+      tools,
+    });
   }
 
   mcp(...configs: McpServerConfig[]): AgentBuilder {

@@ -6,6 +6,7 @@ import maxIterationsPlugin from "./plugins/poe-agent-plugin-max-iterations.js";
 import type { AcpModel, AcpModelResponse } from "./runtime/acp-core.js";
 import { agent } from "./agent.js";
 import type { AcpEvent } from "./runtime/types.js";
+import { InvalidToolNameError } from "./runtime/tool-names.js";
 import { loadSystemPrompt, loadSystemPromptSync } from "./system-prompt.js";
 
 const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
@@ -397,6 +398,41 @@ describe("agent builder", () => {
     });
   });
 
+  it("adds inline tools through .tools", async () => {
+    const tools: string[] = [];
+
+    await agent()
+      .model("gpt-5")
+      .tools({
+        name: "inline_tool",
+        call: () => "ok",
+      })
+      .run("hello", {
+        acpModel: createModel(
+          [
+            {
+              message: {
+                content: "done",
+                toolCalls: [],
+              },
+            },
+          ],
+          tools,
+        ),
+      });
+
+    expect(tools).toEqual(["inline_tool"]);
+  });
+
+  it("rejects invalid tool names added through .tools", () => {
+    expect(() =>
+      agent().tools({
+        name: "invalid.tool",
+        call: () => "ok",
+      }),
+    ).toThrowError(InvalidToolNameError);
+  });
+
   it("runs plugin setup in dependency-topological order", async () => {
     const setupOrder: string[] = [];
 
@@ -467,7 +503,7 @@ describe("agent builder", () => {
     mcpClientCallToolMock.mockReset();
     mcpClientCloseMock.mockReset();
 
-    const repoSearchToolName = ["repo", "search"].join(".");
+    const repoSearchToolName = ["repo", "search"].join("_");
 
     mcpClientConnectMock.mockResolvedValue(undefined);
     mcpClientCloseMock.mockResolvedValue(undefined);
@@ -520,7 +556,7 @@ describe("agent builder", () => {
   });
 
   it("aborts in-flight MCP tool calls and rejects run with AbortError", async () => {
-    const repoSearchToolName = ["repo", "search"].join(".");
+    const repoSearchToolName = ["repo", "search"].join("_");
 
     stdioTransportConstructorMock.mockReset();
     mcpClientConnectMock.mockReset();

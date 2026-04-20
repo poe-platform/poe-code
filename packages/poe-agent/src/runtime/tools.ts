@@ -1,5 +1,6 @@
 import { DuplicateToolError } from "./errors.js";
 import type { NormalizedTool, Tool, ToolEvent, ToolResult } from "./types.js";
+import { assertValidToolName } from "./tool-names.js";
 
 function normalizeName(name: string): string {
   return name.trim();
@@ -85,11 +86,8 @@ function isToolVisibleToModel(tool: NormalizedTool, activeSkills: string[]): boo
 }
 
 export function normalizeTool(tool: Tool): NormalizedTool {
+  assertValidToolName(tool.name);
   const normalizedName = normalizeName(tool.name);
-  if (normalizedName.length === 0) {
-    throw new Error("Tool name must be a non-empty string.");
-  }
-
   const call = tool.call.bind(tool);
 
   return {

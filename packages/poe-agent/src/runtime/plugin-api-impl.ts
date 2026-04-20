@@ -10,6 +10,7 @@ import { AbortError } from "./hooks.js";
 import { cloneMcpServerConfig } from "./config.js";
 import type { McpServerConfig, PluginApi } from "./plugin-types.js";
 import { toolResultPartToText } from "./tool-results.js";
+import { assertValidToolName } from "./tool-names.js";
 import type { Tool, ToolResult, ToolResultPart } from "./types.js";
 import type { RunContext } from "./run-context.js";
 
@@ -20,13 +21,16 @@ const DEFAULT_MCP_CLIENT_INFO = {
 
 export class PluginApiImpl implements PluginApi {
   readonly #runContext: RunContext;
+  readonly #pluginName?: string;
   #setupQueue: Promise<void> = Promise.resolve();
 
-  constructor(runContext: RunContext) {
+  constructor(runContext: RunContext, pluginName?: string) {
     this.#runContext = runContext;
+    this.#pluginName = pluginName;
   }
 
   addTool(tool: Tool): void {
+    assertValidToolName(tool.name, this.#pluginName);
     this.#runContext.tools.register(tool);
   }
 
@@ -87,7 +91,7 @@ export class PluginApiImpl implements PluginApi {
 
   #toRuntimeTool(config: McpServerConfig, mcpTool: McpTool, client: McpClient): Tool {
     return {
-      name: `${config.name}.${mcpTool.name}`,
+      name: `${config.name}_${mcpTool.name}`,
       description: mcpTool.description,
       inputSchema: mcpTool.inputSchema,
       visibility: config.visibility ?? "model",

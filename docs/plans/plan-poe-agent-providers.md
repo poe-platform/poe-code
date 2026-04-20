@@ -56,7 +56,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: tool-names-validator
     title: Add tool-name validator, wire into registration, remove silent sanitiser
@@ -100,9 +100,9 @@ tasks:
       - `grep -R "sanitizeToolName\|INVALID_TOOL_NAME_CHAR\|originalByApiName" packages/` — zero matches.
       - `npx tsc -p packages/poe-agent/tsconfig.json --noEmit` — clean.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: reshape-acp-core-events
     title: Reshape AcpModel to event stream and refactor runLoop

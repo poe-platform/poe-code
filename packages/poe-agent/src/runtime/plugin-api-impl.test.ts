@@ -5,6 +5,7 @@ import { PluginSetupError } from "./errors.js";
 import { createPreToolUseHookContext } from "./hooks.js";
 import { runPluginSetup } from "./plugin-setup.js";
 import { createRunContext } from "./run-context.js";
+import { InvalidToolNameError } from "./tool-names.js";
 
 const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
 const mcpClientConstructorMock = vi.hoisted(() => vi.fn());
@@ -108,6 +109,24 @@ describe("PluginApiImpl", () => {
     expect(context.tools.get("custom_tool")?.name).toBe("custom_tool");
   });
 
+  it("rejects invalid tool names with contributor context", () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context, "plugin: files-plugin");
+
+    expect(() =>
+      api.addTool({
+        name: "custom.tool",
+        call: () => "ok",
+      }),
+    ).toThrowError(InvalidToolNameError);
+    expect(() =>
+      api.addTool({
+        name: "custom.tool",
+        call: () => "ok",
+      }),
+    ).toThrow("plugin: files-plugin");
+  });
+
   it("creates stdio MCP transport, discovers tools during setup, and namespaces them", async () => {
     const context = createRunContext();
     const api = new PluginApiImpl(context);
@@ -178,8 +197,8 @@ describe("PluginApiImpl", () => {
     expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(1, undefined);
     expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(2, { cursor: "page-2" });
 
-    const repoSearchToolName = ["repo", "search"].join(".");
-    const repoStatusToolName = ["repo", "status"].join(".");
+    const repoSearchToolName = ["repo", "search"].join("_");
+    const repoStatusToolName = ["repo", "status"].join("_");
 
     expect(context.tools.get(repoSearchToolName)?.visibility).toBe("skill");
     expect(context.tools.get(repoSearchToolName)?.policy).toEqual({
@@ -261,7 +280,7 @@ describe("PluginApiImpl", () => {
     });
     await api.flushSetup();
 
-    const repoSearchToolName = ["repo", "search"].join(".");
+    const repoSearchToolName = ["repo", "search"].join("_");
 
     const invocation = context.tools.get(repoSearchToolName)?.invoke(
       { query: "errors" },
@@ -323,7 +342,7 @@ describe("PluginApiImpl", () => {
     });
     await api.flushSetup();
 
-    const repoInspectToolName = ["repo", "inspect"].join(".");
+    const repoInspectToolName = ["repo", "inspect"].join("_");
 
     const tool = context.tools.get(repoInspectToolName);
     const successInvocation = tool?.invoke({ query: "diagram" }, createToolContext());

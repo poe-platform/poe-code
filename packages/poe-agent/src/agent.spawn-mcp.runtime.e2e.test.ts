@@ -166,8 +166,6 @@ describe("runtime spawn + MCP plugin e2e", () => {
     const childSessionOptions: Array<Record<string, unknown>> = [];
     const disposeChildSession = vi.fn(async () => undefined);
 
-    const repoSearchToolName = ["repo", "search"].join(".");
-
     const result = await agent()
       .model("test-model")
       .use(spawnPlugin())
@@ -331,6 +329,7 @@ describe("runtime spawn + MCP plugin e2e", () => {
   it("discovers MCP tools in setup, uses namespaced names, and disposes MCP client", async () => {
     const discoveredTools: string[][] = [];
     let transportClosed = false;
+    const repoSearchToolName = ["repo", "search"].join("_");
 
     const searchSchema = defineSchema({
       query: { type: "string", description: "Search query" },

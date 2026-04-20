@@ -2,14 +2,17 @@ import { PluginSetupError, PromptTransformError } from "./errors.js";
 import type { AgentPlugin } from "./plugin-types.js";
 import { PluginApiImpl } from "./plugin-api-impl.js";
 import type { RunContext } from "./run-context.js";
+import { assertValidToolName } from "./tool-names.js";
 
 export async function runPluginSetup(plugins: AgentPlugin[], runContext: RunContext): Promise<void> {
   for (const plugin of plugins) {
-    const api = new PluginApiImpl(runContext);
+    const contributor = `plugin: ${plugin.name}`;
+    const api = new PluginApiImpl(runContext, contributor);
     let setupError: unknown;
 
     try {
       for (const tool of plugin.tools ?? []) {
+        assertValidToolName(tool.name, contributor);
         runContext.tools.register(tool);
       }
 

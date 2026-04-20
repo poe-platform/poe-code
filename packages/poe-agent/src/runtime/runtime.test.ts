@@ -21,6 +21,7 @@ import {
 } from "./hooks.js";
 import { PromptRegistry } from "./prompts.js";
 import { createRunContext } from "./run-context.js";
+import { InvalidToolNameError } from "./tool-names.js";
 import { normalizeTool, ToolRegistry } from "./tools.js";
 import type { AcpEvent, AcpHost, ChatMessage, Tool, ToolContext, ToolEvent } from "./types.js";
 
@@ -490,7 +491,7 @@ describe("normalizeTool", () => {
         name: "   ",
         call: () => "ok"
       })
-    ).toThrow("Tool name must be a non-empty string.");
+    ).toThrowError(InvalidToolNameError);
   });
 
   it("wraps sync call() as an async generator", async () => {
@@ -569,11 +570,11 @@ describe("normalizeTool", () => {
 });
 
 describe("ToolRegistry", () => {
-  it("registers and resolves tools by normalized name", () => {
+  it("registers and resolves tools by exact name", () => {
     const registry = new ToolRegistry();
 
     registry.register({
-      name: "  search_web  ",
+      name: "search_web",
       call: () => "ok"
     });
 
@@ -591,7 +592,7 @@ describe("ToolRegistry", () => {
 
     expect(() => {
       registry.register({
-        name: " search_web ",
+        name: "search_web",
         call: () => "second"
       });
     }).toThrowError(DuplicateToolError);

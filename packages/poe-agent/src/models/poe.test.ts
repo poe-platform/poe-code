@@ -263,7 +263,7 @@ describe("createPoeAcpModel", () => {
     );
   });
 
-  it("sanitizes tool names with dots for the API and reverse-maps tool_calls in the response", async () => {
+  it("passes valid tool names through to the API and preserves response tool_calls", async () => {
     const fetchMock = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) => {
       return new Response(
         JSON.stringify({

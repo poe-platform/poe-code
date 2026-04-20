@@ -288,7 +288,7 @@ describe("poe-agent-plugin-policy", () => {
   });
 
   it("allows discovered MCP tools in edit mode even when policy is registered first", async () => {
-    const repoSearchToolName = ["repo", "search"].join(".");
+    const repoSearchToolName = ["repo", "search"].join("_");
 
     mcpClientConnectMock.mockReset();
     mcpClientListToolsMock.mockReset();

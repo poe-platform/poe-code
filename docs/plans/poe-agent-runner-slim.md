@@ -12,16 +12,16 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: enrich-run
     title: Enrich agent run
     prompt: |
       Update packages/poe-agent/src/agent.ts and any related runtime types so AgentRunOptions accepts onStdout?: (chunk: string) => void and logPath?: string. Make builder.run() aggregate the same data the superintendent runner currently collects from builder.stream(), including output, messages, toolCalls, usage, logFile, exitCode, and stderr. When logPath is provided, write ACP-formatted JSONL to that file and create parent directories as needed. In run() only, rescue session.error into exitCode: 1 and stderr instead of throwing; keep stream() and acp() error semantics unchanged. Preserve compatibility for existing callers such as agent.run('hello').
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: policy-undefined-mode

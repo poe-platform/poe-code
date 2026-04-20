@@ -68,6 +68,10 @@ export type RunOutput = {
 
 export type RunResult = RunOutput & {
   toolCalls: ToolCallRecord[];
+  usage?: UsageInfo;
+  logFile?: string;
+  exitCode?: number;
+  stderr?: string;
 };
 
 export type ToolIntent = {

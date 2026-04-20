@@ -1,3 +1,5 @@
+import * as fsPromises from "node:fs/promises";
+import path from "node:path";
 import type { CreateAgentSessionOptions } from "./agent-session.js";
 import mcpPlugin from "./plugins/poe-agent-plugin-mcp.js";
 import { POLICY_MODE_SESSION_KEY } from "./plugins/poe-agent-plugin-policy.js";
@@ -20,6 +22,7 @@ import type { AgentPlugin, McpServerConfig } from "./runtime/plugin-types.js";
 import { runPluginSetup } from "./runtime/plugin-setup.js";
 import { collectProviders, resolveProvider } from "./runtime/resolve-provider.js";
 import { createRunContext, type RunContext } from "./runtime/run-context.js";
+import { createTranscriptWriter, type TranscriptFsApi, type TranscriptWriter } from "./runtime/transcript.js";
 import { assertValidToolName } from "./runtime/tool-names.js";
 import type {
   AcpEvent,
@@ -31,7 +34,9 @@ import type {
   RunResult,
   Tool,
   ToolAckResult,
-  ToolIntent
+  ToolCallRecord,
+  ToolIntent,
+  UsageInfo
 } from "./runtime/types.js";
 
 export type AgentRunOptions = {
@@ -48,6 +53,8 @@ export type AgentRunOptions = {
   cwd?: string;
   baseSystemPrompt?: string;
   createSpawnSession?: AgentHostOptions["createSpawnSession"];
+  onStdout?: (chunk: string) => void;
+  logPath?: string;
 };
 
 type InternalAgentRunOptions = AgentRunOptions & {
@@ -154,39 +161,153 @@ class ImmutableAgentBuilder implements AgentBuilder {
   }
 
   async run(prompt: string, options: AgentRunOptions = {}): Promise<RunResult> {
-    const events = await this.#startRun(prompt, options).catch((error) => {
+    const startedRun = await this.#startRun(prompt, options).catch((error) => {
       throw toError(error);
     });
+    const { events, runContext } = startedRun;
 
     let completed: RunResult | undefined;
-    let failed: Error | undefined = undefined;
-
-    for await (const event of events) {
-      if (event.type === "session.complete") {
-        completed = event.result;
-        continue;
+    let failed: Error | undefined;
+    let usage: UsageInfo | undefined;
+    let streamedOutput = "";
+    const streamedToolCalls = new Map<
+      string,
+      {
+        intentId: string;
+        tool: string;
+        args: unknown;
+        status?: ToolCallRecord["status"];
+        result?: unknown;
+        error?: string;
       }
+    >();
+    const transcript: TranscriptWriter | undefined = options.logPath
+      ? createTranscriptWriter({
+          logDir: path.dirname(options.logPath),
+          logFileName: path.basename(options.logPath),
+          fs: defaultTranscriptFs
+        })
+      : undefined;
 
-      if (event.type === "session.error") {
-        failed = event.error;
+    try {
+      for await (const event of events) {
+        await transcript?.write(event);
+
+        if (event.type === "message.delta") {
+          options.onStdout?.(event.content);
+          streamedOutput += event.content;
+          continue;
+        }
+
+        if (event.type === "usage") {
+          usage = event.usage;
+          continue;
+        }
+
+        if (event.type === "tool.intent") {
+          streamedToolCalls.set(event.intentId, {
+            intentId: event.intentId,
+            tool: event.tool,
+            args: event.args
+          });
+          continue;
+        }
+
+        if (event.type === "tool.result") {
+          const toolCall = streamedToolCalls.get(event.intentId);
+          if (toolCall) {
+            toolCall.status = "success";
+            toolCall.result = event.result;
+            toolCall.error = undefined;
+          }
+          continue;
+        }
+
+        if (event.type === "tool.error") {
+          const toolCall = streamedToolCalls.get(event.intentId);
+          if (toolCall) {
+            toolCall.status = "error";
+            toolCall.error = event.error;
+            toolCall.result = undefined;
+          }
+          continue;
+        }
+
+        if (event.type === "session.complete") {
+          completed = event.result;
+          continue;
+        }
+
+        if (event.type === "session.error") {
+          failed = event.error;
+        }
       }
+    } finally {
+      await transcript?.close();
     }
 
+    const logFile = transcript?.filePath ?? completed?.logFile;
+    const resultUsage = usage ?? completed?.usage;
+    const resultMessages =
+      completed?.messages ??
+      (runContext.messages.length === 1 && runContext.messages[0]?.role === "user"
+        ? []
+        : [...runContext.messages]);
+    const resultToolCalls =
+      completed?.toolCalls ??
+      Array.from(streamedToolCalls.values()).map((toolCall) => {
+        if (toolCall.status === "success") {
+          return {
+            intentId: toolCall.intentId,
+            tool: toolCall.tool,
+            args: toolCall.args,
+            status: "success" as const,
+            result: toolCall.result
+          };
+        }
+
+        return {
+          intentId: toolCall.intentId,
+          tool: toolCall.tool,
+          args: toolCall.args,
+          status: "error" as const,
+          error: toolCall.error ?? failed?.message ?? "Run ended before the tool completed."
+        };
+      });
+
     if (failed) {
-      throw failed;
+      const fallback = completed ?? {
+        output: streamedOutput,
+        messages: resultMessages,
+        toolCalls: resultToolCalls
+      };
+
+      return {
+        ...fallback,
+        ...(resultUsage === undefined ? {} : { usage: resultUsage }),
+        ...(logFile === undefined ? {} : { logFile }),
+        exitCode: 1,
+        stderr: failed.message
+      };
     }
 
     if (!completed) {
       throw new Error("Run ended without a terminal event.");
     }
 
-    return completed;
+    return {
+      ...completed,
+      ...(resultUsage === undefined ? {} : { usage: resultUsage }),
+      ...(logFile === undefined ? {} : { logFile }),
+      exitCode: completed.exitCode ?? 0,
+      stderr: completed.stderr ?? ""
+    };
   }
 
   async *stream(prompt: string, options: AgentRunOptions = {}): AsyncIterable<AcpEvent> {
     try {
-      const events = await this.#startRun(prompt, options);
-      for await (const event of events) {
+      const startedRun = await this.#startRun(prompt, options);
+      for await (const event of startedRun.events) {
         yield event;
       }
     } catch (error) {
@@ -197,7 +318,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
     }
   }
 
-  async #startRun(prompt: string, options: AgentRunOptions): Promise<AsyncIterable<AcpEvent>> {
+  async #startRun(prompt: string, options: AgentRunOptions): Promise<StartedRun> {
     const prepared = await this.#prepareRun(options);
     const host = new AgentHost({
       runContext: prepared.runContext,
@@ -207,14 +328,17 @@ class ImmutableAgentBuilder implements AgentBuilder {
       createSpawnSession: prepared.createSpawnSession
     });
 
-    return runAcpCore({
-      prompt,
-      runContext: prepared.runContext,
-      host,
-      model: prepared.model,
-      baseSystemPrompt: prepared.baseSystemPrompt,
-      maxIterations: prepared.maxIterations
-    });
+    return {
+      ...prepared,
+      events: runAcpCore({
+        prompt,
+        runContext: prepared.runContext,
+        host,
+        model: prepared.model,
+        baseSystemPrompt: prepared.baseSystemPrompt,
+        maxIterations: prepared.maxIterations
+      })
+    };
   }
 
   async #prepareRun(options: AgentRunOptions): Promise<PreparedRun> {
@@ -291,6 +415,11 @@ class ImmutableAgentBuilder implements AgentBuilder {
   }
 }
 
+const defaultTranscriptFs: TranscriptFsApi = {
+  mkdir: (dir, options) => fsPromises.mkdir(dir, options).then(() => undefined),
+  appendFile: (filePath, contents) => fsPromises.appendFile(filePath, contents, "utf8")
+};
+
 export function agent(): AgentBuilder {
   return new ImmutableAgentBuilder();
 }
@@ -301,6 +430,10 @@ type PreparedRun = {
   baseSystemPrompt?: string;
   maxIterations: number;
   createSpawnSession: AgentHostOptions["createSpawnSession"];
+};
+
+type StartedRun = PreparedRun & {
+  events: AsyncIterable<AcpEvent>;
 };
 
 class CallerAcpHost implements AcpHost {

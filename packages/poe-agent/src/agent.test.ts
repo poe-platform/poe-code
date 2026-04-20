@@ -14,6 +14,10 @@ import { InvalidToolNameError } from "./runtime/tool-names.js";
 import { loadSystemPrompt, loadSystemPromptSync } from "./system-prompt.js";
 
 const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
+const fsPromisesMock = vi.hoisted(() => ({
+  mkdir: vi.fn(async () => undefined),
+  appendFile: vi.fn(async () => undefined)
+}));
 const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown) => Promise<void>>());
 const mcpClientListToolsMock = vi.hoisted(() =>
   vi.fn<
@@ -63,6 +67,15 @@ vi.mock("tiny-mcp-client", () => ({
     }
   }
 }));
+
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs/promises")>();
+  return {
+    ...actual,
+    mkdir: fsPromisesMock.mkdir,
+    appendFile: fsPromisesMock.appendFile
+  };
+});
 
 function createModel(
   responses: Array<LegacyAcpModelResponse | AcpModelResponse | Error>,
@@ -814,7 +827,7 @@ describe("agent builder", () => {
     expect(mcpClientCloseMock).toHaveBeenCalledTimes(1);
   });
 
-  it("aborts in-flight MCP tool calls and rejects run with AbortError", async () => {
+  it("aborts in-flight MCP tool calls and returns failure details", async () => {
     const repoSearchToolName = ["repo", "search"].join("_");
 
     stdioTransportConstructorMock.mockReset();
@@ -900,8 +913,35 @@ describe("agent builder", () => {
 
     controller.abort(new Error("stop"));
 
-    await expect(runPromise).rejects.toMatchObject({
-      name: "AbortError"
+    await expect(runPromise).resolves.toMatchObject({
+      output: "",
+      messages: [
+        { role: "user", content: "hello" },
+        expect.objectContaining({
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "tool-1",
+              type: "function",
+              function: {
+                name: "repo_search",
+                arguments: JSON.stringify({ query: "tests" })
+              }
+            }
+          ]
+        })
+      ],
+      toolCalls: [
+        {
+          intentId: "tool-1",
+          tool: "repo_search",
+          args: { query: "tests" },
+          status: "error",
+          error: "Run aborted."
+        }
+      ],
+      exitCode: 1,
+      stderr: "Run aborted."
     });
     expect(mcpClientCallToolMock.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
     expect(mcpClientCallToolMock.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
@@ -1302,9 +1342,35 @@ describe("agent builder", () => {
     await started.promise;
     controller.abort(new Error("stop"));
 
-    await expect(runPromise).rejects.toMatchObject({
-      name: "AbortError",
-      message: expect.stringMatching(/abort/i)
+    await expect(runPromise).resolves.toMatchObject({
+      output: "",
+      messages: [
+        { role: "user", content: "Long task" },
+        expect.objectContaining({
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "tool-1",
+              type: "function",
+              function: {
+                name: "long_task",
+                arguments: JSON.stringify({})
+              }
+            }
+          ]
+        })
+      ],
+      toolCalls: [
+        {
+          intentId: "tool-1",
+          tool: "long_task",
+          args: {},
+          status: "error",
+          error: "Run aborted."
+        }
+      ],
+      exitCode: 1,
+      stderr: "Run aborted."
     });
 
     expect((model.complete as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
@@ -1389,9 +1455,35 @@ describe("agent builder", () => {
     await childStarted.promise;
     controller.abort(new Error("stop"));
 
-    await expect(runPromise).rejects.toMatchObject({
-      name: "AbortError",
-      message: expect.stringMatching(/abort/i)
+    await expect(runPromise).resolves.toMatchObject({
+      output: "",
+      messages: [
+        { role: "user", content: "Long task" },
+        expect.objectContaining({
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "tool-fork-1",
+              type: "function",
+              function: {
+                name: "run_fork",
+                arguments: JSON.stringify({})
+              }
+            }
+          ]
+        })
+      ],
+      toolCalls: [
+        {
+          intentId: "tool-fork-1",
+          tool: "run_fork",
+          args: {},
+          status: "error",
+          error: "Run aborted."
+        }
+      ],
+      exitCode: 1,
+      stderr: "Run aborted."
     });
     await childAborted.promise;
 
@@ -1657,22 +1749,201 @@ describe("agent builder", () => {
     await configured.run("hello", { acpModel: withSkillModel, skills: ["repo_search"] });
   });
 
-  it("disposes plugin resources when run fails", async () => {
+  it("aggregates run output, usage, tool calls, and transcript logs", async () => {
+    fsPromisesMock.mkdir.mockClear();
+    fsPromisesMock.appendFile.mockClear();
+    const stdoutChunks: string[] = [];
+
+    const result = await agent()
+      .model("gpt-5")
+      .tools({
+        name: "echo",
+        call(args) {
+          return `echo:${String((args as { value: string }).value)}`;
+        }
+      })
+      .run("hello", {
+        onStdout: (chunk) => stdoutChunks.push(chunk),
+        logPath: "/logs/round-3/builder.jsonl",
+        acpModel: createModel(
+          [
+            {
+              message: {
+                content: "",
+                toolCalls: [{ id: "intent-1", tool: "echo", args: { value: "x" } }]
+              },
+              usage: {
+                inputTokens: 2,
+                outputTokens: 1,
+                cachedTokens: 0,
+                cacheCreationTokens: 0
+              }
+            },
+            {
+              deltas: ["done"],
+              usage: {
+                inputTokens: 5,
+                outputTokens: 3,
+                cachedTokens: 1,
+                cacheCreationTokens: 0
+              }
+            }
+          ],
+          []
+        )
+      });
+
+    expect(stdoutChunks).toEqual(["done"]);
+    expect(result.output).toBe("done");
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.logFile).toBe("/logs/round-3/builder.jsonl");
+    expect(result.usage).toEqual({
+      inputTokens: 5,
+      outputTokens: 3,
+      cachedTokens: 1,
+      cacheCreationTokens: 0
+    });
+    expect(result.toolCalls).toEqual([
+      {
+        intentId: "intent-1",
+        tool: "echo",
+        args: { value: "x" },
+        status: "success",
+        result: "echo:x"
+      }
+    ]);
+    expect(result.messages.at(-1)).toMatchObject({
+      role: "assistant",
+      content: "done"
+    });
+
+    expect(fsPromisesMock.mkdir).toHaveBeenCalledWith("/logs/round-3", { recursive: true });
+    expect(fsPromisesMock.appendFile.mock.calls.map(([filePath]) => filePath)).toEqual([
+      "/logs/round-3/builder.jsonl",
+      "/logs/round-3/builder.jsonl",
+      "/logs/round-3/builder.jsonl",
+      "/logs/round-3/builder.jsonl",
+      "/logs/round-3/builder.jsonl"
+    ]);
+
+    const updates = fsPromisesMock.appendFile.mock.calls
+      .flatMap(([, contents]) => String(contents).trim().split("\n"))
+      .map((line) => JSON.parse(line) as { sessionUpdate: string; content?: { text: string } });
+
+    expect(updates.map((update) => update.sessionUpdate)).toEqual([
+      "usage_update",
+      "tool_call",
+      "tool_call_update",
+      "tool_call_update",
+      "agent_message_chunk",
+      "usage_update"
+    ]);
+    expect(
+      updates.find((update) => update.sessionUpdate === "agent_message_chunk")?.content?.text
+    ).toBe("done");
+  });
+
+  it("disposes plugin resources and returns failure details when session errors", async () => {
     const dispose = vi.fn(async () => undefined);
 
-    await expect(
-      agent()
-        .model("gpt-5")
-        .use({
-          name: "resourceful",
-          dispose
-        })
-        .run("hello", {
-          acpModel: createModel([new Error("model boom")], [])
-        })
-    ).rejects.toThrow("model boom");
+    const result = await agent()
+      .model("gpt-5")
+      .use({
+        name: "resourceful",
+        dispose
+      })
+      .run("hello", {
+        acpModel: createModel([new Error("model boom")], [])
+      });
 
+    expect(result).toMatchObject({
+      output: "",
+      messages: [],
+      toolCalls: [],
+      exitCode: 1,
+      stderr: "model boom"
+    });
     expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves streamed output, messages, tool calls, usage, and logFile when a run ends with session.error", async () => {
+    fsPromisesMock.mkdir.mockClear();
+    fsPromisesMock.appendFile.mockClear();
+    const stdoutChunks: string[] = [];
+
+    const result = await agent()
+      .model("gpt-5")
+      .tools({
+        name: "echo",
+        call(args) {
+          return `echo:${String((args as { value: string }).value)}`;
+        }
+      })
+      .run("hello", {
+        onStdout: (chunk) => stdoutChunks.push(chunk),
+        logPath: "/logs/round-4/builder.jsonl",
+        acpModel: createModel(
+          [
+            {
+              deltas: ["working "],
+              toolCalls: [{ id: "intent-1", tool: "echo", args: { value: "x" } }],
+              usage: {
+                inputTokens: 2,
+                outputTokens: 1,
+                cachedTokens: 0,
+                cacheCreationTokens: 0
+              }
+            },
+            new Error("model boom")
+          ],
+          []
+        )
+      });
+
+    expect(stdoutChunks).toEqual(["working "]);
+    expect(result).toMatchObject({
+      output: "working ",
+      exitCode: 1,
+      stderr: "model boom",
+      logFile: "/logs/round-4/builder.jsonl",
+      usage: {
+        inputTokens: 2,
+        outputTokens: 1,
+        cachedTokens: 0,
+        cacheCreationTokens: 0
+      },
+      toolCalls: [
+        {
+          intentId: "intent-1",
+          tool: "echo",
+          args: { value: "x" },
+          status: "success",
+          result: "echo:x"
+        }
+      ]
+    });
+    expect(result.messages).toEqual([
+      { role: "user", content: "hello" },
+      expect.objectContaining({
+        role: "assistant",
+        content: "working "
+      }),
+      {
+        role: "tool",
+        name: "echo",
+        toolCallId: "intent-1",
+        content: "echo:x"
+      }
+    ]);
+
+    expect(fsPromisesMock.mkdir).toHaveBeenCalledWith("/logs/round-4", { recursive: true });
+    expect(fsPromisesMock.appendFile.mock.calls.map(([filePath]) => filePath)).toEqual([
+      "/logs/round-4/builder.jsonl",
+      "/logs/round-4/builder.jsonl",
+      "/logs/round-4/builder.jsonl",
+      "/logs/round-4/builder.jsonl"
+    ]);
   });
 
   it("emits session.error when stream preparation fails", async () => {

@@ -67,6 +67,8 @@ import { createDashboard, withOutputFormat } from "@poe-code/design-system";
 const cwd = "/repo";
 const homeDir = "/home/test";
 
+const PIPELINE_MD_EMPTY = ["---", "kind: pipeline", "tasks: []", "---", ""].join("\n");
+
 function createMemFs(files: Record<string, string> = {}): FileSystem {
   const volume = new Volume();
   volume.mkdirSync(cwd, { recursive: true });
@@ -340,12 +342,11 @@ describe("pipeline run command", () => {
       options.onTaskComplete?.({
         taskId: "task-1",
         taskTitle: "Task 1",
-        stepName: "commit",
+        stepName: "implement",
         taskIndex: 1,
         totalTasks: 1,
         durationMs: 2_500,
         success: true,
-        taskCompleted: true,
         usage: {
           inputTokens: 1_234,
           outputTokens: 567
@@ -362,14 +363,14 @@ describe("pipeline run command", () => {
           totalCachedTokens: 1_000,
           tasksCompleted: 1,
           tasksFailed: 0,
-          stepsCompleted: 3
+          stepsCompleted: 1
         }
       };
     });
 
     const fs = createMemFs();
     await fs.mkdir("/repo/docs/plans", { recursive: true });
-    await fs.writeFile("/repo/docs/plans/plan.md", "tasks: []\n", {
+    await fs.writeFile("/repo/docs/plans/plan.md", PIPELINE_MD_EMPTY, {
       encoding: "utf8"
     });
     const container = createCliContainer({
@@ -389,8 +390,11 @@ describe("pipeline run command", () => {
     expect(
       logs.some((message) => message.includes("Total tokens: 5000 input, 2000 output, 1000 cached"))
     ).toBe(true);
-    expect(logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))).toBe(true);
-    expect(logs.some((message) => message.includes("Steps: 3 completed"))).toBe(true);
+    expect(
+      logs.some((message) =>
+        message.includes("tasksCompleted: 1, tasksFailed: 0, stepsCompleted: 1")
+      )
+    ).toBe(true);
   });
 
   it("reports pipeline failures without blocked retry messaging", async () => {
@@ -414,7 +418,7 @@ describe("pipeline run command", () => {
 
     const fs = createMemFs();
     await fs.mkdir("/repo/docs/plans", { recursive: true });
-    await fs.writeFile("/repo/docs/plans/plan.md", "tasks: []\n", {
+    await fs.writeFile("/repo/docs/plans/plan.md", PIPELINE_MD_EMPTY, {
       encoding: "utf8"
     });
 
@@ -542,7 +546,6 @@ describe("pipeline run command", () => {
         totalSteps: 2,
         durationMs: 2_000,
         success: true,
-        taskCompleted: false,
         usage: {
           inputTokens: 120,
           outputTokens: 45
@@ -550,7 +553,7 @@ describe("pipeline run command", () => {
       });
 
       return {
-        stopReason: "max_runs",
+        stopReason: "completed",
         planPath: "custom-plan.yaml",
         runsCompleted: 1,
         totalDurationMs: 2_000,
@@ -558,7 +561,7 @@ describe("pipeline run command", () => {
           totalInputTokens: 120,
           totalOutputTokens: 45,
           totalCachedTokens: 0,
-          tasksCompleted: 0,
+          tasksCompleted: 1,
           tasksFailed: 0,
           stepsCompleted: 1
         }
@@ -624,15 +627,14 @@ describe("pipeline run command", () => {
       },
       {
         kind: "success",
-        text: `${expectedTimestamp} Task auth-hardening (implement) step done in 2s (tokens: 120 in / 45 out)`,
+        text: `${expectedTimestamp} Task auth-hardening done in 2s (tokens: 120 in / 45 out)`,
         ts: 0
       }
     ]);
     expect(dashboardMock.updateStats).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "done",
-        iterations: 0,
-        iterationsLabel: "Tasks",
+        iterations: 1,
         tokensIn: 120,
         tokensOut: 45,
         currentAction: "Task 2/3 · auth-hardening · implement · step 1/2"
@@ -645,87 +647,6 @@ describe("pipeline run command", () => {
     );
     expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
-  });
-
-  it("shows lock wait feedback in dashboard mode", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(0));
-
-    const dashboardMock = createDashboardMock();
-    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
-
-    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
-      options.onLockStatusChange?.({
-        state: "waiting",
-        message: "Another pipeline run is holding the lock for custom-plan.yaml. Waiting..."
-      });
-      options.onLockStatusChange?.({
-        state: "acquired",
-        message: "Lock acquired for custom-plan.yaml. Continuing."
-      });
-
-      return {
-        stopReason: "completed",
-        planPath: "custom-plan.yaml",
-        runsCompleted: 0,
-        totalDurationMs: 1_000,
-        metrics: {
-          totalInputTokens: 0,
-          totalOutputTokens: 0,
-          totalCachedTokens: 0,
-          tasksCompleted: 0,
-          tasksFailed: 0,
-          stepsCompleted: 0
-        }
-      };
-    });
-
-    const fs = createMemFs();
-    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await withMockedTerminal(() =>
-      program.parseAsync([
-        "node",
-        "cli",
-        "--yes",
-        "pipeline",
-        "run",
-        "--tui",
-        "--agent",
-        "codex",
-        "--plan",
-        "custom-plan.yaml"
-      ])
-    );
-
-    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
-      kind: "status",
-      text: `${expectedTimestamp} Another pipeline run is holding the lock for custom-plan.yaml. Waiting...`,
-      ts: 0
-    });
-    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
-      kind: "status",
-      text: `${expectedTimestamp} Lock acquired for custom-plan.yaml. Continuing.`,
-      ts: 0
-    });
-    expect(dashboardMock.updateStats).toHaveBeenCalledWith(
-      expect.objectContaining({
-        currentAction: "Another pipeline run is holding the lock for custom-plan.yaml. Waiting..."
-      })
-    );
-    expect(
-      dashboardMock.updateStats.mock.calls.some(
-        ([stats]) => !Object.prototype.hasOwnProperty.call(stats, "currentAction")
-      )
-    ).toBe(true);
   });
 
   it("uses the pipeline.tui config value when set", async () => {
@@ -1082,70 +1003,6 @@ describe("pipeline run command", () => {
     }
   });
 
-  it("logs lock wait feedback in non-dashboard mode", async () => {
-    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
-      options.onLockStatusChange?.({
-        state: "waiting",
-        message: "Another pipeline run is holding the lock for custom-plan.yaml. Waiting..."
-      });
-      options.onLockStatusChange?.({
-        state: "acquired",
-        message: "Lock acquired for custom-plan.yaml. Continuing."
-      });
-
-      return {
-        stopReason: "nothing_to_run",
-        planPath: "custom-plan.yaml",
-        runsCompleted: 0,
-        totalDurationMs: 1_000,
-        metrics: {
-          totalInputTokens: 0,
-          totalOutputTokens: 0,
-          totalCachedTokens: 0,
-          tasksCompleted: 0,
-          tasksFailed: 0,
-          stepsCompleted: 0
-        }
-      };
-    });
-
-    const logs: string[] = [];
-    const fs = createMemFs();
-    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: (message) => logs.push(message)
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "pipeline",
-      "run",
-      "--agent",
-      "codex",
-      "--plan",
-      "custom-plan.yaml",
-      "--no-tui"
-    ]);
-
-    expect(
-      logs.some((message) =>
-        message.includes(
-          "Another pipeline run is holding the lock for custom-plan.yaml. Waiting..."
-        )
-      )
-    ).toBe(true);
-    expect(
-      logs.some((message) => message.includes("Lock acquired for custom-plan.yaml. Continuing."))
-    ).toBe(true);
-  });
-
   it("streams child-agent stdout and stderr into the dashboard via tee", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
@@ -1202,7 +1059,6 @@ describe("pipeline run command", () => {
         totalSteps: 2,
         durationMs: 2_000,
         success: true,
-        taskCompleted: true,
         usage: {
           inputTokens: 120,
           outputTokens: 45
@@ -1301,7 +1157,7 @@ describe("pipeline run command", () => {
     ).toBe(true);
   });
 
-  it("does not retry timed out pipeline agent runs in the CLI dashboard wrapper", async () => {
+  it("retries timed out pipeline agent runs without losing fallback stdout from the successful attempt", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1311,14 +1167,27 @@ describe("pipeline run command", () => {
     const timeoutError = new Error("Timed out waiting for agent activity for 600000ms.");
     timeoutError.name = "ActivityTimeoutError";
 
-    vi.mocked(sdkSpawn).mockImplementationOnce((_agent, input) => {
-      input.tee?.stdout?.write("first attempt output\n");
+    vi.mocked(sdkSpawn)
+      .mockImplementationOnce((_agent, input) => {
+        input.tee?.stdout?.write("first attempt output\n");
 
-      return {
+        return {
+          events: (async function* () {})(),
+          result: Promise.reject(timeoutError)
+        };
+      })
+      .mockImplementationOnce(() => ({
         events: (async function* () {})(),
-        result: Promise.reject(timeoutError)
-      };
-    });
+        result: Promise.resolve({
+          stdout: "retry fallback output",
+          stderr: "",
+          exitCode: 0,
+          usage: {
+            inputTokens: 120,
+            outputTokens: 45
+          }
+        })
+      }));
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
       options.onTaskStart?.({
@@ -1339,7 +1208,37 @@ describe("pipeline run command", () => {
         model: "gpt-5.2",
         signal: options.signal
       });
-      throw new Error("Unreachable");
+
+      options.onTaskComplete?.({
+        taskId: "auth-hardening",
+        taskTitle: "Auth hardening",
+        taskIndex: 2,
+        totalTasks: 3,
+        stepName: "implement",
+        stepIndex: 1,
+        totalSteps: 2,
+        durationMs: 2_000,
+        success: true,
+        usage: {
+          inputTokens: 120,
+          outputTokens: 45
+        }
+      });
+
+      return {
+        stopReason: "completed",
+        planPath: "custom-plan.yaml",
+        runsCompleted: 1,
+        totalDurationMs: 2_000,
+        metrics: {
+          totalInputTokens: 120,
+          totalOutputTokens: 45,
+          totalCachedTokens: 0,
+          tasksCompleted: 1,
+          tasksFailed: 0,
+          stepsCompleted: 1
+        }
+      };
     });
 
     const fs = createMemFs();
@@ -1353,26 +1252,24 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await expect(
-      withMockedTerminal(() =>
-        program.parseAsync([
-          "node",
-          "cli",
-          "--yes",
-          "pipeline",
-          "run",
-          "--tui",
-          "--agent",
-          "codex",
-          "--model",
-          "gpt-5.2",
-          "--plan",
-          "custom-plan.yaml"
-        ])
-      )
-    ).rejects.toBe(timeoutError);
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "pipeline",
+        "run",
+        "--tui",
+        "--agent",
+        "codex",
+        "--model",
+        "gpt-5.2",
+        "--plan",
+        "custom-plan.yaml"
+      ])
+    );
 
-    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledTimes(2);
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
@@ -1380,6 +1277,13 @@ describe("pipeline run command", () => {
         (item) =>
           item.kind === "tool" &&
           item.text.includes("[auth-hardening:implement] first attempt output")
+      )
+    ).toBe(true);
+    expect(
+      outputs.some(
+        (item) =>
+          item.kind === "tool" &&
+          item.text.includes("[auth-hardening:implement] retry fallback output")
       )
     ).toBe(true);
   });
@@ -1426,7 +1330,15 @@ describe("pipeline init command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await expect(program.parseAsync(["node", "cli", "--yes", "pipeline", "init"])).rejects.toEqual(
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "pipeline",
+        "init"
+      ])
+    ).rejects.toEqual(
       new ValidationError("Provide --source or --sources when using --yes.")
     );
   });
@@ -1504,13 +1416,9 @@ describe("pipeline init command", () => {
       })
     );
     expect(logs.some((message) => message.includes("Source 1/2: docs/plans/alpha.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(
-      true
-    );
+    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(true);
     expect(logs.some((message) => message.includes("Source 2/2: docs/plans/beta.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(
-      true
-    );
+    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(true);
     expect(logs.some((message) => message.includes("Pipeline init finished."))).toBe(true);
   });
 });
@@ -1577,12 +1485,11 @@ describe("pipeline validate command", () => {
     ).resolves.not.toThrow();
   });
 
-  it("validates step references against the resolved named step config", async () => {
+  it("validates step references against steps.yaml", async () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
-    await fs.mkdir("/repo/.poe-code/pipeline/steps", { recursive: true });
     await fs.writeFile(
-      "/repo/.poe-code/pipeline/steps/default.yaml",
+      "/repo/.poe-code/pipeline/steps.yaml",
       ["steps:", "  implement:", "    prompt: Implement {{id}}", ""].join("\n"),
       { encoding: "utf8" }
     );
@@ -1618,49 +1525,6 @@ describe("pipeline validate command", () => {
         ".poe-code/pipeline/plans/plan-bad.yaml"
       ])
     ).rejects.toThrow(/unknown step/i);
-  });
-
-  it("fails validate when a step prompt references a missing var", async () => {
-    const fs = createMemFs();
-    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
-    await fs.mkdir("/repo/.poe-code/pipeline/steps", { recursive: true });
-    await fs.writeFile(
-      "/repo/.poe-code/pipeline/steps/default.yaml",
-      ["steps:", "  implement:", "    prompt: Deploy to {{env}}.", ""].join("\n"),
-      { encoding: "utf8" }
-    );
-    await fs.writeFile(
-      "/repo/.poe-code/pipeline/plans/plan-bad.yaml",
-      [
-        "tasks:",
-        "  - id: deploy",
-        "    title: Deploy",
-        "    prompt: Ship it",
-        "    status:",
-        "      implement: open",
-        ""
-      ].join("\n"),
-      { encoding: "utf8" }
-    );
-
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "pipeline",
-        "validate",
-        ".poe-code/pipeline/plans/plan-bad.yaml"
-      ])
-    ).rejects.toThrow('Missing pipeline variable "env" in task "deploy" step "implement".');
   });
 
   it("--preview renders expanded prompt for a stepless task", async () => {
@@ -1794,9 +1658,8 @@ describe("pipeline validate command", () => {
   it("--preview renders each step for a stepped task", async () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
-    await fs.mkdir("/repo/.poe-code/pipeline/steps", { recursive: true });
     await fs.writeFile(
-      "/repo/.poe-code/pipeline/steps/default.yaml",
+      "/repo/.poe-code/pipeline/steps.yaml",
       [
         "steps:",
         "  implement:",
@@ -1883,13 +1746,13 @@ describe("pipeline install command", () => {
 
   it("ships markdown frontmatter instructions in the pipeline skill template", () => {
     expect(pipelineSkillPlan).toContain("Generate a Pipeline plan markdown file");
-    expect(pipelineSkillPlan).toContain("Write a markdown pipeline plan with YAML frontmatter.");
-    expect(pipelineSkillPlan).toContain(".poe-code/pipeline/steps/");
+    expect(pipelineSkillPlan).toContain(
+      "If the user points you at an existing source Markdown doc, add the frontmatter to that file in place"
+    );
+    expect(pipelineSkillPlan).toContain("Otherwise write a new file at `docs/plans/plan-<name>.md`");
     expect(pipelineSkillPlan).toContain("`docs/plans/plan-<name>.md`");
     expect(pipelineSkillPlan).toContain("kind: pipeline");
     expect(pipelineSkillPlan).toContain("version: 1");
-    expect(pipelineSkillPlan).toContain("extends: default");
-    expect(pipelineSkillPlan).toContain("# steps:");
     expect(pipelineSkillPlan).toContain("```markdown");
     expect(pipelineSkillPlan).toContain("# Context");
   });
@@ -1918,7 +1781,7 @@ describe("pipeline install command", () => {
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).resolves.toBe(pipelineSkillPlan);
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
     await expect(fs.stat("/repo/.poe-code/pipeline/plans")).resolves.toBeDefined();
@@ -1940,40 +1803,9 @@ describe("pipeline install command", () => {
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).resolves.toBe(pipelineSkillPlan);
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
-  });
-
-  it("migrates a legacy steps.yaml file to steps/default.yaml", async () => {
-    const fs = createMemFs({
-      "/repo/.poe-code/pipeline/steps.yaml": "LEGACY_STEPS"
-    });
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await program.parseAsync([
-      "node",
-      "cli",
-      "pipeline",
-      "install",
-      "--agent",
-      "claude-code",
-      "--local"
-    ]);
-
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
-      "LEGACY_STEPS"
-    );
-    await expect(fs.stat("/repo/.poe-code/pipeline/steps.yaml")).rejects.toMatchObject({
-      code: "ENOENT"
-    });
   });
 
   it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
@@ -2002,10 +1834,10 @@ describe("pipeline install command", () => {
     ).resolves.toBe(pipelineSkillPlan);
   });
 
-  it("does not overwrite default.yaml without --force", async () => {
+  it("does not overwrite steps.yaml without --force", async () => {
     const fs = createMemFs();
-    await fs.mkdir("/repo/.poe-code/pipeline/steps", { recursive: true });
-    await fs.writeFile("/repo/.poe-code/pipeline/steps/default.yaml", "EXISTING_STEPS", {
+    await fs.mkdir("/repo/.poe-code/pipeline", { recursive: true });
+    await fs.writeFile("/repo/.poe-code/pipeline/steps.yaml", "EXISTING_STEPS", {
       encoding: "utf8"
     });
 
@@ -2028,7 +1860,7 @@ describe("pipeline install command", () => {
       "--local"
     ]);
 
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
       "EXISTING_STEPS"
     );
 
@@ -2043,7 +1875,7 @@ describe("pipeline install command", () => {
       "--force"
     ]);
 
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
   });

@@ -1,12 +1,7 @@
 import path from "node:path";
+import { parse as parseYaml } from "yaml";
 import type { CliContainer } from "../container.js";
-import {
-  readMergedDocument,
-  resolveScope
-} from "@poe-code/poe-code-config";
 import { resolveWorkflowPath } from "@poe-code/agent-kit";
-import { resolvePlanDirectory as resolvePipelinePlanDirectory } from "@poe-code/pipeline";
-import { pipelineConfigScope } from "../../services/config.js";
 import { resolvePlanDirectory as resolveSourcePlanDirectory } from "./plan.js";
 
 export interface BuildPipelineInitPromptOptions {
@@ -27,22 +22,18 @@ type DiscoveryFs = Pick<CliContainer["fs"], "readFile" | "readdir" | "stat">;
 export function buildPipelineInitPrompt(options: BuildPipelineInitPromptOptions): string {
   const trimmedQuestion = options.question?.trim() ?? "";
   const sourceTitle = extractTitle(options.sourceDocPath, options.sourceDocContent);
-  const userRequest =
-    trimmedQuestion.length > 0
-      ? trimmedQuestion
-      : `Create a pipeline plan for "${sourceTitle}" based on the source document below. Treat the source document as the user request and do not ask the user for more input.`;
+  const userRequest = trimmedQuestion.length > 0
+    ? trimmedQuestion
+    : `Add pipeline frontmatter to "${sourceTitle}" in place, based on the document below. Do not create a separate plan file and do not ask for more input.`;
   const fence = createMarkdownFence(options.sourceDocContent);
 
   return [
-    "Follow the skill below to initialize a pipeline plan from an existing source document.",
+    "Follow the skill below to add pipeline frontmatter to an existing source document in place.",
+    `Edit ${options.sourceDocPath} directly — do not write a new plan file.`,
     "",
     options.skillContent,
     "",
     "---",
-    "",
-    "Edit the source document in place by prepending valid YAML frontmatter.",
-    "Do not create a new file.",
-    `The final result must remain at: ${options.sourceDocPath}`,
     "",
     "User request:",
     userRequest,
@@ -64,21 +55,15 @@ export async function discoverPipelineInitSources(options: {
     options.container.env.cwd,
     options.container.env.homeDir
   );
-  const pipelineAbsoluteDirectory = await resolveConfiguredPipelinePlanDirectory(options.container);
-  const existingPlanNames = await discoverExistingPipelinePlanNames(
-    options.container.fs,
-    pipelineAbsoluteDirectory
-  );
   const sourceFiles = await discoverMarkdownFiles(options.container.fs, sourceAbsoluteDirectory);
   const sources: PipelineInitSource[] = [];
 
   for (const file of sourceFiles) {
-    const sourceName = path.basename(file.relativePath, path.extname(file.relativePath));
-    if (existingPlanNames.has(`plan-${sourceName}`)) {
+    const content = await options.container.fs.readFile(file.absolutePath, "utf8");
+    if (hasPipelineFrontmatter(content)) {
       continue;
     }
 
-    const content = await options.container.fs.readFile(file.absolutePath, "utf8");
     sources.push({
       absolutePath: file.absolutePath,
       relativePath: file.relativePath,
@@ -89,61 +74,41 @@ export async function discoverPipelineInitSources(options: {
   return sources.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 
-async function resolveConfiguredPipelinePlanDirectory(container: CliContainer): Promise<string> {
-  const document = await readMergedDocument(
-    container.fs,
-    container.env.configPath,
-    container.env.projectConfigPath
-  );
-  const config = resolveScope(
-    pipelineConfigScope.schema,
-    document[pipelineConfigScope.scope],
-    container.env.variables
-  );
-  const planDirectory = config.plan_directory?.trim();
+function hasPipelineFrontmatter(content: string): boolean {
+  const normalized = content.startsWith("\ufeff") ? content.slice(1) : content;
+  if (!normalized.startsWith("---")) {
+    return false;
+  }
 
-  return resolvePipelinePlanDirectory({
-    cwd: container.env.cwd,
-    homeDir: container.env.homeDir,
-    ...(planDirectory ? { planDirectory } : {})
-  });
-}
+  const lines = normalized.split("\n");
+  if (lines[0]?.trim() !== "---") {
+    return false;
+  }
 
-async function discoverExistingPipelinePlanNames(
-  fs: DiscoveryFs,
-  absoluteDirectory: string
-): Promise<Set<string>> {
-  let entries: string[];
+  let closingIndex = -1;
+  for (let i = 1; i < lines.length; i += 1) {
+    if (lines[i]?.trim() === "---") {
+      closingIndex = i;
+      break;
+    }
+  }
+  if (closingIndex === -1) {
+    return false;
+  }
+
+  const yaml = lines.slice(1, closingIndex).join("\n");
+  let parsed: unknown;
   try {
-    entries = await fs.readdir(absoluteDirectory);
-  } catch (error) {
-    if (isMissingDirectory(error)) {
-      return new Set();
-    }
-    throw error;
+    parsed = parseYaml(yaml);
+  } catch {
+    return false;
   }
 
-  const planNames = new Set<string>();
-
-  for (const entry of [...entries].sort((left, right) => left.localeCompare(right))) {
-    const lower = entry.toLowerCase();
-    if (!lower.startsWith("plan-")) {
-      continue;
-    }
-    if (!lower.endsWith(".md") && !lower.endsWith(".yaml")) {
-      continue;
-    }
-
-    const absolutePath = path.join(absoluteDirectory, entry);
-    const stat = await fs.stat(absolutePath);
-    if (!stat.isFile()) {
-      continue;
-    }
-
-    planNames.add(path.basename(entry, path.extname(entry)));
-  }
-
-  return planNames;
+  return (
+    typeof parsed === "object"
+    && parsed !== null
+    && (parsed as { kind?: unknown }).kind === "pipeline"
+  );
 }
 
 async function discoverMarkdownFiles(

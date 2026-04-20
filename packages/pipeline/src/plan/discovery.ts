@@ -1,8 +1,9 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { parsePlan } from "./parser.js";
+import { parse as parseYaml } from "yaml";
+import { getYamlContent, parsePlan } from "./parser.js";
 import type { PipelineFileStat, PipelineFileSystem } from "../types.js";
-import { isNotFound } from "../utils.js";
+import { isNotFound, isRecord } from "../utils.js";
 
 type DiscoveryFs = Pick<PipelineFileSystem, "readFile" | "readdir" | "stat">;
 
@@ -27,9 +28,19 @@ function createDefaultFs(): DiscoveryFs {
   };
 }
 
-function isPlanCandidateFile(name: string): boolean {
-  const lower = name.toLowerCase();
-  return lower.startsWith("plan") && lower.endsWith(".md");
+function isMarkdownFile(name: string): boolean {
+  return name.toLowerCase().endsWith(".md");
+}
+
+function isPipelinePlan(content: string): boolean {
+  let parsed: unknown;
+  try {
+    parsed = parseYaml(getYamlContent(content));
+  } catch {
+    return false;
+  }
+
+  return isRecord(parsed) && parsed.kind === "pipeline";
 }
 
 function countCompletedTasks(planPath: string, content: string): PlanCandidate {
@@ -82,7 +93,7 @@ async function scanPlansDir(
 
   const candidates: PlanCandidate[] = [];
   for (const entry of entries) {
-    if (!isPlanCandidateFile(entry)) {
+    if (!isMarkdownFile(entry)) {
       continue;
     }
 
@@ -94,6 +105,9 @@ async function scanPlansDir(
 
     const displayPath = path.join(displayPrefix, entry);
     const content = await fs.readFile(absolutePath, "utf8");
+    if (!isPipelinePlan(content)) {
+      continue;
+    }
     candidates.push(countCompletedTasks(displayPath, content));
   }
 

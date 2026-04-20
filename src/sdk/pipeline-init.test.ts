@@ -88,9 +88,9 @@ describe("SDK pipeline init", () => {
       })
     );
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain(
-      "Edit the source document in place by prepending valid YAML frontmatter."
+      "Edit alpha.md directly"
     );
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Do not create a new file.");
+    expect(runAgent.mock.calls[0]?.[0].prompt).not.toContain("Plan directory:");
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Path: alpha.md");
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Alpha\nFirst source.");
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Initialize the pipeline plans");

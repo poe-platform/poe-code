@@ -34,6 +34,14 @@ function createFs(files: Record<string, string> = {}): TestFs {
   return createFsFromVolume(volume).promises;
 }
 
+const PIPELINE_MD_EMPTY = [
+  "---",
+  "kind: pipeline",
+  "tasks: []",
+  "---",
+  ""
+].join("\n");
+
 describe("@poe-code/pipeline public exports", () => {
   it("re-exports the document schema from the package entrypoint", async () => {
     const pkg = await import("./index.js");
@@ -649,7 +657,7 @@ describe("resolvePlanPath", () => {
       fs: createFs({
         "/repo/.poe-code/pipeline/config.yaml": "planPath: local-plan.yaml\n",
         "/repo/local-plan.yaml": "tasks: []\n",
-        "/repo/docs/plans/plan-demo.md": "tasks: []\n"
+        "/repo/docs/plans/plan-demo.md": PIPELINE_MD_EMPTY
       })
     });
 
@@ -663,7 +671,7 @@ describe("resolvePlanPath", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/docs/plans/plan-demo.md": "tasks: []\n"
+        "/repo/docs/plans/plan-demo.md": PIPELINE_MD_EMPTY
       }),
       selectPlan: select
     });
@@ -686,7 +694,7 @@ describe("resolvePlanPath", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/docs/plans/plan-demo.md": "tasks: []\n"
+        "/repo/docs/plans/plan-demo.md": PIPELINE_MD_EMPTY
       })
     });
 
@@ -699,7 +707,7 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       assumeYes: true,
       fs: createFs({
-        "/repo/docs/plans/plan-demo.md": "tasks: []\n"
+        "/repo/docs/plans/plan-demo.md": PIPELINE_MD_EMPTY
       })
     });
 
@@ -712,8 +720,8 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       assumeYes: true,
       fs: createFs({
-        "/repo/docs/plans/plan-beta.md": "tasks: []\n",
-        "/repo/docs/plans/plan-alpha.md": "tasks: []\n"
+        "/repo/docs/plans/plan-beta.md": PIPELINE_MD_EMPTY,
+        "/repo/docs/plans/plan-alpha.md": PIPELINE_MD_EMPTY
       })
     });
 
@@ -728,14 +736,19 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       fs: createFs({
         "/repo/docs/plans/plan-beta.md": [
+          "---",
+          "kind: pipeline",
           "tasks:",
           "  - id: one",
           "    title: One",
           "    prompt: One",
           "    status: open",
+          "---",
           ""
         ].join("\n"),
         "/repo/docs/plans/plan-alpha.md": [
+          "---",
+          "kind: pipeline",
           "tasks:",
           "  - id: one",
           "    title: One",
@@ -745,6 +758,7 @@ describe("resolvePlanPath", () => {
           "    title: Two",
           "    prompt: Two",
           "    status: open",
+          "---",
           ""
         ].join("\n")
       }),
@@ -801,8 +815,8 @@ describe("resolvePlanPath", () => {
       homeDir: "/home/test",
       planDirectory: "custom-plans",
       fs: createFs({
-        "/repo/custom-plans/plan-custom.md": "tasks: []\n",
-        "/repo/.poe-code/pipeline/plans/plan-default.md": "tasks: []\n"
+        "/repo/custom-plans/plan-custom.md": PIPELINE_MD_EMPTY,
+        "/repo/.poe-code/pipeline/plans/plan-default.md": PIPELINE_MD_EMPTY
       }),
       selectPlan: select
     });
@@ -824,7 +838,7 @@ describe("resolvePlanPath", () => {
       planDirectory: "/abs/plans",
       assumeYes: true,
       fs: createFs({
-        "/abs/plans/plan-one.md": "tasks: []\n"
+        "/abs/plans/plan-one.md": PIPELINE_MD_EMPTY
       })
     });
 
@@ -838,7 +852,7 @@ describe("resolvePlanPath", () => {
       planDirectory: "~/my-plans",
       assumeYes: true,
       fs: createFs({
-        "/home/test/my-plans/plan-tilde.md": "tasks: []\n"
+        "/home/test/my-plans/plan-tilde.md": PIPELINE_MD_EMPTY
       })
     });
 
@@ -852,7 +866,7 @@ describe("resolvePlanPath", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/docs/plans/plan-current.md": "tasks: []\n",
+        "/repo/docs/plans/plan-current.md": PIPELINE_MD_EMPTY,
         "/repo/docs/plans/plan-legacy.yaml": "tasks: []\n",
         "/repo/docs/plans/plan-older.yml": "tasks: []\n"
       }),
@@ -897,8 +911,8 @@ describe("resolvePlanPaths", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/docs/plans/plan-beta.md": "tasks: []\n",
-        "/repo/docs/plans/plan-alpha.md": "tasks: []\n"
+        "/repo/docs/plans/plan-beta.md": PIPELINE_MD_EMPTY,
+        "/repo/docs/plans/plan-alpha.md": PIPELINE_MD_EMPTY
       }),
       selectPlans
     });

@@ -209,7 +209,7 @@ function stripBom(value: string): string {
   return value.startsWith("\uFEFF") ? value.slice(1) : value;
 }
 
-function getYamlContent(planContent: string): string {
+export function getYamlContent(planContent: string): string {
   const content = stripBom(planContent);
   const lines = content.split("\n");
 

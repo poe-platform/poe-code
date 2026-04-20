@@ -15,7 +15,7 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
 }
 
 describe("buildPipelineInitPrompt", () => {
-  it("embeds the skill content, user request, and source document", () => {
+  it("instructs in-place edit and embeds skill, user request, and source document", () => {
     const prompt = buildPipelineInitPrompt({
       question: "Turn this into a pipeline plan",
       sourceDocPath: "docs/plans/feature.md",
@@ -24,9 +24,8 @@ describe("buildPipelineInitPrompt", () => {
     });
 
     expect(prompt).toContain("SKILL BODY");
+    expect(prompt).toContain("Edit docs/plans/feature.md directly");
     expect(prompt).not.toContain("Plan directory:");
-    expect(prompt).toContain("Edit the source document in place by prepending valid YAML frontmatter.");
-    expect(prompt).toContain("Do not create a new file.");
     expect(prompt).toContain("User request:");
     expect(prompt).toContain("Turn this into a pipeline plan");
     expect(prompt).toContain("Source document:");
@@ -34,7 +33,7 @@ describe("buildPipelineInitPrompt", () => {
     expect(prompt).toContain("# Feature\nShip it.");
   });
 
-  it("uses the skill fallback instruction when the question is empty", () => {
+  it("uses an in-place fallback request when the question is empty", () => {
     const prompt = buildPipelineInitPrompt({
       question: "   ",
       sourceDocPath: "docs/plans/feature.md",
@@ -43,7 +42,7 @@ describe("buildPipelineInitPrompt", () => {
     });
 
     expect(prompt).toContain(
-      'Create a pipeline plan for "Feature" based on the source document below. Treat the source document as the user request and do not ask the user for more input.'
+      'Add pipeline frontmatter to "Feature" in place, based on the document below. Do not create a separate plan file and do not ask for more input.'
     );
     expect(prompt).not.toContain("one-sentence description");
   });
@@ -93,12 +92,20 @@ describe("discoverPipelineInitSources", () => {
     ]);
   });
 
-  it("excludes files that already have a matching pipeline plan", async () => {
+  it("excludes files that already carry kind: pipeline frontmatter", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/feature.md": "# Feature\n",
-        "/repo/docs/plans/another.md": "# Another\n",
-        "/repo/.poe-code/pipeline/plans/plan-feature.yaml": "tasks: []\n"
+        "/repo/docs/plans/feature.md": [
+          "---",
+          "kind: pipeline",
+          "version: 1",
+          "tasks: []",
+          "---",
+          "",
+          "# Feature",
+          ""
+        ].join("\n"),
+        "/repo/docs/plans/another.md": "# Another\n"
       }),
       prompts: async () => ({}),
       env: { cwd, homeDir },
@@ -116,16 +123,41 @@ describe("discoverPipelineInitSources", () => {
     ]);
   });
 
-  it("uses configured source and pipeline plan directories when filtering matches", async () => {
+  it("keeps files whose frontmatter is not a pipeline plan", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/feature.md": [
+          "---",
+          "title: Feature",
+          "---",
+          "",
+          "# Feature",
+          ""
+        ].join("\n")
+      }),
+      prompts: async () => ({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    const sources = await discoverPipelineInitSources({ container });
+
+    expect(sources).toEqual([
+      {
+        absolutePath: "/repo/docs/plans/feature.md",
+        relativePath: "feature.md",
+        title: "Feature"
+      }
+    ]);
+  });
+
+  it("uses the configured source plan directory", async () => {
     const container = createCliContainer({
       fs: createMemFs({
         "/repo/.poe-code/config.json": JSON.stringify({
-          plan: { plan_directory: "design-docs" },
-          pipeline: { plan_directory: ".generated/pipeline-plans" }
+          plan: { plan_directory: "design-docs" }
         }),
-        "/repo/design-docs/feature.md": "# Feature\n",
-        "/repo/design-docs/keep-me.md": "# Keep me\n",
-        "/repo/.generated/pipeline-plans/plan-feature.md": "---\ntasks: []\n"
+        "/repo/design-docs/keep-me.md": "# Keep me\n"
       }),
       prompts: async () => ({}),
       env: { cwd, homeDir },

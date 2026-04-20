@@ -1,5 +1,6 @@
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { SpawnResult } from "@poe-code/agent-spawn";
 import { Volume, createFsFromVolume } from "memfs";
 import type { RunLoopOptions, SuperintendentFileSystem } from "../runtime/loop.js";
 import type { Dashboard } from "@poe-code/design-system";
@@ -109,6 +110,22 @@ const expectedTimestamp = (() => {
   return `[${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}]`;
 })();
 
+function createStreamingResult(events: unknown[], result: SpawnResult): {
+  events: AsyncIterable<unknown>;
+  done: Promise<SpawnResult>;
+} {
+  return {
+    events: {
+      async *[Symbol.asyncIterator]() {
+        for (const event of events) {
+          yield event;
+        }
+      }
+    },
+    done: Promise.resolve(result)
+  };
+}
+
 describe("superintendent run command", () => {
   beforeEach(() => {
     vi.useRealTimers();
@@ -164,6 +181,134 @@ describe("superintendent run command", () => {
     },
     15_000
   );
+
+  it("captures ACP session logs and usage through shared middleware for CLI streaming agents", async () => {
+    const applyMiddlewaresMock = vi.fn(async (middlewares, ctx) => {
+      let index = -1;
+      const dispatch = async (position: number): Promise<void> => {
+        if (position <= index) throw new Error("next called multiple times");
+        index = position;
+        if (position === middlewares.length) return;
+        await middlewares[position](ctx, () => dispatch(position + 1));
+      };
+      await dispatch(0);
+    });
+    const renderAcpStreamMock = vi.fn(async (events: AsyncIterable<unknown>) => {
+      for await (const _event of events) {
+        // exhaust stream
+      }
+    });
+    const spawnStreamingMock = vi.fn(() =>
+      createStreamingResult(
+        [
+          { event: "session_start", threadId: "thread-123" },
+          { event: "agent_message", text: "builder summary" },
+          {
+            event: "tool_start",
+            id: "tool-1",
+            kind: "execute",
+            title: "read_file",
+            input: { path: "plan.md" }
+          },
+          {
+            event: "tool_complete",
+            id: "tool-1",
+            kind: "execute",
+            path: "plan.md"
+          },
+          {
+            event: "usage",
+            inputTokens: 21,
+            outputTokens: 8,
+            cachedTokens: 5
+          }
+        ],
+        {
+          stdout: "builder stdout\n",
+          stderr: "",
+          exitCode: 0,
+          logFile: "/logs/builder.jsonl"
+        }
+      )
+    );
+
+    vi.resetModules();
+    vi.doMock("@poe-code/agent-spawn", async () => {
+      const actual = await vi.importActual<typeof import("@poe-code/agent-spawn")>(
+        "@poe-code/agent-spawn"
+      );
+      return {
+        ...actual,
+        spawnStreaming: spawnStreamingMock,
+        applyMiddlewares: applyMiddlewaresMock,
+        renderAcpStream: renderAcpStreamMock
+      };
+    });
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const runLoopMock = vi.fn(async (options) => {
+      const result = await options.runAgent!({
+        agent: "claude-code",
+        prompt: "Build the plan",
+        cwd: "/repo",
+        mode: "yolo",
+        logDir: "/logs",
+        logFileName: "builder.jsonl"
+      });
+      expect(result).toMatchObject({
+        exitCode: 0,
+        stdout: "builder stdout\n",
+        summary: "builder summary",
+        logFile: "/logs/builder.jsonl",
+        usage: {
+          inputTokens: 21,
+          outputTokens: 8,
+          cachedTokens: 5
+        },
+        toolCalls: [{ title: "read_file", input: { path: "plan.md" } }]
+      });
+      return {
+        state: "completed" as const,
+        round: 1,
+        reviewTurn: 0,
+        maxRounds: 100,
+        maxReviewTurns: 5,
+        stopReason: "completed" as const
+      };
+    });
+
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/.poe-code/superintendent/plan.md",
+      interactive: false,
+      useDashboard: false,
+      fs: createFs({
+        "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
+      }),
+      runLoop: runLoopMock,
+      now: () => 0,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: {}
+    });
+
+    expect(spawnStreamingMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "claude-code",
+        prompt: "Build the plan",
+        cwd: "/repo",
+        useStdin: true,
+        mode: "yolo"
+      })
+    );
+    expect(applyMiddlewaresMock).toHaveBeenCalledTimes(1);
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({
+      docPath: "/repo/.poe-code/superintendent/plan.md",
+      builderAgent: "claude-code",
+      stopReason: "completed"
+    });
+  });
 
   it("wires loop callbacks to the dashboard", async () => {
     const fs = createFs({

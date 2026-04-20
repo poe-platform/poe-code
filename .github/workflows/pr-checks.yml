@@ -32,5 +32,5 @@ jobs:
       - run: npm run codegen:check:python-types
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test -- --force
+      - run: npx turbo run test:unit --concurrency=4 --force
       - run: npm run smoke

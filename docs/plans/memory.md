@@ -58,7 +58,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 34
+  round: 37
   review_turn: 0
 ---
 
@@ -68,7 +68,9 @@ status:
 - [x] Testing inspector satisfied on package test suite and colocated coverage.
 - [x] poe-agent plugin bundle drift patched by adding the missing environment plugin.
 - [x] Remove the provider-specific `poe-agent` branch in `packages/superintendent/src/commands/run.ts` by making `poe-agent` a first-class ACP provider through the shared middleware path.
-- [ ] Delete duplicated poe-agent observability plumbing (`poe-agent-runner.ts` / `poe-agent-transcript.ts`) once replay/logging/usage/session capture flow through shared ACP middleware.
+- [x] Delete duplicated poe-agent observability plumbing (`poe-agent-runner.ts` / `poe-agent-transcript.ts`) once replay/logging/usage/session capture flow through shared ACP middleware.
+- [x] Address inspector-raised systemic follow-up: enforce dedicated file/search/list tools in poe-agent shell plugin across modes for pure read wrappers.
+- [x] Address inspector-raised systemic follow-up: ensure `packages/superintendent/src/runtime/run-builder.ts` always returns a real builder `log_path` for poe-agent runs so replay-based inspectors receive resolved transcript paths.
 
 # Memory
 

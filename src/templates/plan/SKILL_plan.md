@@ -13,6 +13,7 @@ Write `docs/plans/<name>.md` as a generic plan doc — five levels, each deeper 
 
 ```yaml
 ---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/plan.schema.json
 kind: plan
 version: 1
 ---
@@ -81,6 +82,7 @@ Contracts + validation, aimed at autonomous execution.
 
 ```markdown
 ---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/plan.schema.json
 kind: plan
 version: 1
 ---
@@ -113,7 +115,7 @@ One-line summary.
 ## Rules
 
 - Plans go in the configured plan directory. Nowhere else.
-- Generic plan docs must start with `kind: plan` and `version: 1`.
+- Generic plan docs must start with `$schema`, `kind: plan`, and `version: 1`.
 - Use the level headings verbatim.
 - Signatures and file lists only — no full implementations.
 - One-liner request → stop after level 1 and confirm, unless told to wing it.

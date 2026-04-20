@@ -35,12 +35,13 @@ Write a markdown pipeline plan with YAML frontmatter. Before writing, determine 
 - Each var name becomes a double-curly-brace placeholder usable in any task, step, setup, or teardown prompt.
 - The markdown body is for context, notes, acceptance criteria, or the design doc. Keep executable pipeline config in the YAML frontmatter.
 - Do not rely on the body alone for runtime context. Each task prompt must still include everything it needs directly or via `vars` placeholders.
-- Start the frontmatter with canonical metadata: `kind: pipeline` and `version: 1`.
+- Start the frontmatter with canonical metadata: `$schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json`, `kind: pipeline`, and `version: 1`.
 
 ## Output Format
 
 ```markdown
 ---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
 

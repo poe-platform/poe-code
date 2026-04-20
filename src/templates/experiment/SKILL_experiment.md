@@ -20,6 +20,7 @@ Create an experiment doc in the shared plan directory and metric script(s) for t
 
 ```yaml
 ---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json
 kind: experiment
 version: 1
 agent: claude-code

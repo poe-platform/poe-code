@@ -285,7 +285,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: openai-chat-completions-plugin
     title: Create openai-chat-completions plugin and register
@@ -357,8 +357,8 @@ tasks:
       - `npx vitest run packages/poe-agent` — all green.
       - `npx tsc -p packages/poe-agent/tsconfig.json --noEmit` — clean.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: wire-resolve-provider-delete-models

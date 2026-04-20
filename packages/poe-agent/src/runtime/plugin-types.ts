@@ -13,6 +13,23 @@ export type McpServerConfig = McpSpawnServer & {
   visibility?: "model" | "skill";
 };
 
+export type ProviderStreamEvent =
+  | { type: "text"; text: string }
+  | { type: "thinking"; text: string; signature?: string }
+  | { type: "redacted_thinking"; data: string }
+  | { type: "reasoning_details"; payload: unknown }
+  | { type: "tool_use_delta"; id: string; name?: string; argsDelta?: string }
+  | { type: "tool_use_complete"; id: string; name: string; args: unknown }
+  | { type: "tool_use_json_parse_error"; id: string; raw: string; error: string }
+  | {
+      type: "usage";
+      inputTokens: number;
+      outputTokens: number;
+      cachedTokens: number;
+      cacheCreationTokens: number;
+    }
+  | { type: "stop"; reason: "end_turn" | "tool_use" | "max_tokens" | "error" };
+
 export type PluginApi = {
   addTool(tool: Tool): void;
   addMcp(config: McpServerConfig): void;

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AcpModel, AcpModelResponse } from "./runtime/acp-core.js";
+import { toAcpModelResponse, type LegacyAcpModelResponse } from "./testing/model-response.js";
 
 const createInMemorySpawnSessionMock = vi.hoisted(() => vi.fn());
 const mcpClientConnectMock = vi.hoisted(() => vi.fn(async () => undefined));
@@ -7,11 +8,12 @@ const mcpClientListToolsMock = vi.hoisted(() => vi.fn(async () => ({ tools: [] }
 const mcpClientCloseMock = vi.hoisted(() => vi.fn(async () => undefined));
 
 vi.mock("./runtime/agent-host.js", async () => {
-  const actual = await vi.importActual<typeof import("./runtime/agent-host.js")>("./runtime/agent-host.js");
+  const actual =
+    await vi.importActual<typeof import("./runtime/agent-host.js")>("./runtime/agent-host.js");
 
   return {
     ...actual,
-    createInMemorySpawnSession: (...args: unknown[]) => createInMemorySpawnSessionMock(...args),
+    createInMemorySpawnSession: (...args: unknown[]) => createInMemorySpawnSessionMock(...args)
   };
 });
 
@@ -33,14 +35,16 @@ vi.mock("tiny-mcp-client", () => ({
     async close(): Promise<void> {
       await mcpClientCloseMock();
     }
-  },
+  }
 }));
 
 import { agent } from "./agent.js";
 import policyPlugin from "./plugins/poe-agent-plugin-policy.js";
 import spawnPlugin from "./plugins/poe-agent-plugin-spawn.js";
 
-function createModel(responses: Array<AcpModelResponse | Error>): AcpModel {
+function createModel(
+  responses: Array<LegacyAcpModelResponse | AcpModelResponse | Error>
+): AcpModel {
   const queue = [...responses];
 
   return {
@@ -54,8 +58,8 @@ function createModel(responses: Array<AcpModelResponse | Error>): AcpModel {
         throw next;
       }
 
-      return next;
-    }),
+      return toAcpModelResponse(next);
+    })
   };
 }
 
@@ -65,7 +69,7 @@ describe("agent builder MCP spawn handoff", () => {
     mcpClientConnectMock.mockClear();
     mcpClientListToolsMock.mockClear();
     mcpClientCloseMock.mockClear();
-    createInMemorySpawnSessionMock.mockImplementation(options => ({
+    createInMemorySpawnSessionMock.mockImplementation((options) => ({
       cwd: options.cwd,
       mcpServers: [],
       client: {
@@ -80,15 +84,15 @@ describe("agent builder MCP spawn handoff", () => {
                   sessionUpdate: "agent_message_chunk",
                   content: {
                     type: "text",
-                    text: "child-output",
-                  },
-                },
-              },
+                    text: "child-output"
+                  }
+                }
+              }
             };
-          },
+          }
         })),
-        dispose: vi.fn(async () => undefined),
-      },
+        dispose: vi.fn(async () => undefined)
+      }
     }));
   });
 
@@ -99,7 +103,7 @@ describe("agent builder MCP spawn handoff", () => {
         name: "repo",
         command: "repo-mcp",
         args: ["--stdio"],
-        env: { TOKEN: "secret" },
+        env: { TOKEN: "secret" }
       })
       .use(spawnPlugin())
       .run("Spawn a child", {
@@ -112,18 +116,18 @@ describe("agent builder MCP spawn handoff", () => {
                 {
                   id: "spawn-1",
                   tool: "spawn",
-                  args: { task: "Inspect MCP child config" },
-                },
-              ],
-            },
+                  args: { task: "Inspect MCP child config" }
+                }
+              ]
+            }
           },
           {
             message: {
               content: "done",
-              toolCalls: [],
-            },
-          },
-        ]),
+              toolCalls: []
+            }
+          }
+        ])
       });
 
     expect(createInMemorySpawnSessionMock).toHaveBeenCalledWith({
@@ -134,9 +138,9 @@ describe("agent builder MCP spawn handoff", () => {
           transport: "stdio",
           command: "repo-mcp",
           args: ["--stdio"],
-          env: { TOKEN: "secret" },
-        },
-      },
+          env: { TOKEN: "secret" }
+        }
+      }
     });
   });
 
@@ -155,24 +159,24 @@ describe("agent builder MCP spawn handoff", () => {
                 {
                   id: "spawn-1",
                   tool: "spawn",
-                  args: { task: "Inspect child policy mode" },
-                },
-              ],
-            },
+                  args: { task: "Inspect child policy mode" }
+                }
+              ]
+            }
           },
           {
             message: {
               content: "done",
-              toolCalls: [],
-            },
-          },
-        ]),
+              toolCalls: []
+            }
+          }
+        ])
       });
 
     expect(createInMemorySpawnSessionMock).toHaveBeenCalledWith({
       model: "test-model",
       cwd: "/workspace",
-      mode: "edit",
+      mode: "edit"
     });
   });
 });

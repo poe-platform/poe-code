@@ -27,8 +27,24 @@ export type ChatMessage = {
   content: string | ToolResultPart[];
   reasoning_content?: string;
   reasoning?: string;
+  thinking?: Array<{
+    text: string;
+    signature?: string;
+  }>;
+  redacted_thinking?: Array<{
+    data: string;
+  }>;
+  reasoning_details?: unknown[];
   name?: string;
   toolCallId?: string;
+  tool_calls?: Array<{
+    id: string;
+    type: "function";
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>;
 };
 
 export type ToolCallRecord = {

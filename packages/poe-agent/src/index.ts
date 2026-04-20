@@ -13,17 +13,14 @@ export {
   type McpServerDefinition,
   type McpStdioServerDefinition
 } from "./agent-session.js";
-export {
-  builtinPluginRegistry,
-  type PluginSpec,
-} from "./plugins/registry.js";
+export { builtinPluginRegistry, type PluginSpec } from "./plugins/registry.js";
 export {
   PluginConfigError,
   parseNullablePluginConfigEntries,
   parsePluginConfigEntries,
   parsePluginConfigEntry,
   resolvePluginsFromConfig,
-  type PluginConfigEntry,
+  type PluginConfigEntry
 } from "./plugins/resolve-plugins.js";
 export type {
   AgentPlugin,
@@ -31,6 +28,7 @@ export type {
   IterationCompactionOptions,
   IterationCompactionResult,
   PluginApi,
+  ProviderStreamEvent,
   PromptContext
 } from "./runtime/plugin-types.js";
 export type {

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRunContext } from "../runtime/run-context.js";
 import { runAcpCore, type AcpModel, type AcpModelResponse } from "../runtime/acp-core.js";
+import { toAcpModelResponse, type LegacyAcpModelResponse } from "../testing/model-response.js";
 import type { AcpEvent, AcpHost, ChatMessage } from "../runtime/types.js";
 import compactionPlugin, { spec as compactionPluginSpec } from "./poe-agent-plugin-compaction.js";
 
@@ -21,7 +22,9 @@ function createHost(): AcpHost {
   };
 }
 
-function createQueuedModel(responses: Array<AcpModelResponse | Error>): AcpModel {
+function createQueuedModel(
+  responses: Array<LegacyAcpModelResponse | AcpModelResponse | Error>
+): AcpModel {
   const queue = [...responses];
 
   return {
@@ -35,7 +38,7 @@ function createQueuedModel(responses: Array<AcpModelResponse | Error>): AcpModel
         throw next;
       }
 
-      return next;
+      return toAcpModelResponse(next);
     })
   };
 }
@@ -55,12 +58,12 @@ describe("poe-agent-plugin-compaction", () => {
       compactionPluginSpec.parseOptions({
         threshold: 20,
         contextWindow: 100,
-        keepLastTurns: 2,
-      }),
+        keepLastTurns: 2
+      })
     ).toEqual({
       threshold: 20,
       contextWindow: 100,
-      keepLastTurns: 2,
+      keepLastTurns: 2
     });
     expect(() => compactionPluginSpec.parseOptions({ threshold: "20" })).toThrow();
   });

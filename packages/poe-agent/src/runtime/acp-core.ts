@@ -10,7 +10,7 @@ import {
   dispatchHook,
   AbortError
 } from "./hooks.js";
-import type { HookContextByEvent, HookEvent } from "./plugin-types.js";
+import type { HookContextByEvent, HookEvent, ProviderStreamEvent } from "./plugin-types.js";
 import type { RunContext } from "./run-context.js";
 import { estimateMessageContentSize, toToolMessageContent } from "./tool-results.js";
 import type {
@@ -22,7 +22,8 @@ import type {
   ToolResultPart,
   ToolAckResult,
   ToolCallRecord,
-  ToolIntent
+  ToolIntent,
+  UsageInfo
 } from "./types.js";
 
 export type AcpModelToolDefinition = {
@@ -31,43 +32,8 @@ export type AcpModelToolDefinition = {
   inputSchema?: unknown;
 };
 
-export type AcpModelToolCall = {
-  id?: string;
-  intentId?: string;
-  tool?: string;
-  name?: string;
-  args?: unknown;
-  arguments?: unknown;
-};
-
-export type AcpModelMessage = {
-  content?: string | null;
-  reasoning_content?: string;
-  reasoning?: string;
-  toolCalls?: AcpModelToolCall[];
-  tool_calls?: Array<{
-    id: string;
-    type?: "function";
-    function?: {
-      name?: string;
-      arguments?: string;
-    };
-  }>;
-};
-
-export type AcpModelUsage = {
-  inputTokens: number;
-  outputTokens: number;
-  cachedTokens: number;
-  cacheCreationTokens: number;
-};
-
 export type AcpModelResponse = {
-  message?: AcpModelMessage;
-  content?: string;
-  toolCalls?: AcpModelToolCall[];
-  deltas?: AsyncIterable<string> | Iterable<string>;
-  usage?: AcpModelUsage;
+  events: AsyncIterable<ProviderStreamEvent>;
 };
 
 export type AcpModelRequestMessage = {
@@ -75,6 +41,14 @@ export type AcpModelRequestMessage = {
   content: string | ToolResultPart[];
   reasoning_content?: string;
   reasoning?: string;
+  thinking?: Array<{
+    text: string;
+    signature?: string;
+  }>;
+  redacted_thinking?: Array<{
+    data: string;
+  }>;
+  reasoning_details?: unknown[];
   name?: string;
   tool_call_id?: string;
   tool_calls?: Array<{
@@ -114,6 +88,50 @@ type MutableToolOutcome = {
   args: unknown;
   result?: unknown;
   error?: string;
+};
+
+type NormalizedModelToolCall = {
+  intentId: string;
+  tool: string;
+  args: unknown;
+  rawArguments?: string;
+  intentEmitted: boolean;
+};
+
+type ModelToolError = {
+  intentId: string;
+  tool: string;
+  args: unknown;
+  error: string;
+};
+
+type StreamToolOutcome =
+  | {
+      type: "complete";
+      toolCall: NormalizedModelToolCall;
+    }
+  | {
+      type: "error";
+      error: ModelToolError;
+    };
+
+type CollectedModelResponse = {
+  content: string;
+  reasoningContent?: string;
+  reasoning?: string;
+  thinking?: ChatMessage["thinking"];
+  redactedThinking?: ChatMessage["redacted_thinking"];
+  reasoningDetails?: unknown[];
+  toolOutcomes: StreamToolOutcome[];
+  usage?: UsageInfo;
+  stopReason?: Extract<ProviderStreamEvent, { type: "stop" }>["reason"];
+};
+
+type PendingToolUse = {
+  intentId: string;
+  tool?: string;
+  argsDelta: string;
+  intentEmitted: boolean;
 };
 
 class AsyncEventQueue<T> implements AsyncIterableIterator<T> {
@@ -404,32 +422,35 @@ async function runLoop(
       signal: options.signal
     });
 
-    const normalizedResponse = normalizeModelResponse(response, iterationNumber);
-    const resolvedContent = await emitMessageDeltas({
+    const collectedResponse = await collectModelResponseEvents({
       response,
-      fallbackContent: normalizedResponse.content,
       emit: options.emit
     });
 
-    if (response.usage) {
+    if (collectedResponse.usage) {
       options.emit({
         type: "usage",
-        usage: response.usage
+        usage: collectedResponse.usage
       });
     }
 
-    options.runContext.messages.push(
-      createAssistantMessage({
-        ...normalizedResponse,
-        content: resolvedContent
-      })
-    );
+    options.runContext.messages.push(createAssistantMessage(collectedResponse));
 
-    for (const toolCall of normalizedResponse.toolCalls) {
+    for (const toolOutcome of collectedResponse.toolOutcomes) {
       assertNotAborted(options.signal);
 
+      if (toolOutcome.type === "error") {
+        await emitToolExecutionError({
+          ...toolOutcome.error,
+          runContext: options.runContext,
+          emit: options.emit,
+          toolCalls: options.toolCalls
+        });
+        continue;
+      }
+
       await runSingleToolCall({
-        toolCall,
+        toolCall: toolOutcome.toolCall,
         runContext: options.runContext,
         host: options.host,
         emit: options.emit,
@@ -450,9 +471,9 @@ async function runLoop(
       disposeRun: options.disposeRun
     });
 
-    if (normalizedResponse.toolCalls.length === 0) {
+    if (collectedResponse.toolOutcomes.length === 0) {
       return {
-        output: resolvedContent,
+        output: collectedResponse.content,
         messages: [...options.runContext.messages],
         toolCalls: [...options.toolCalls]
       };
@@ -493,12 +514,14 @@ async function runSingleToolCall(options: {
   } else if (preToolDispatch.type === "tool_error") {
     mutableOutcome.error = preToolDispatch.error;
   } else {
-    options.emit({
-      type: "tool.intent",
-      intentId: mutableOutcome.intentId,
-      tool: mutableOutcome.tool,
-      args: mutableOutcome.args
-    });
+    if (!options.toolCall.intentEmitted) {
+      options.emit({
+        type: "tool.intent",
+        intentId: mutableOutcome.intentId,
+        tool: mutableOutcome.tool,
+        args: mutableOutcome.args
+      });
+    }
 
     const intent: ToolIntent = {
       intentId: mutableOutcome.intentId,
@@ -566,25 +589,14 @@ async function runSingleToolCall(options: {
     return;
   }
 
-  options.emit({
-    type: "tool.error",
-    intentId: mutableOutcome.intentId,
-    error: mutableOutcome.error
-  });
-
-  options.runContext.messages.push({
-    role: "tool",
-    name: mutableOutcome.tool,
-    toolCallId: mutableOutcome.intentId,
-    content: `Error: ${mutableOutcome.error}`
-  });
-
-  options.toolCalls.push({
+  await emitToolExecutionError({
     intentId: mutableOutcome.intentId,
     tool: mutableOutcome.tool,
     args: mutableOutcome.args,
-    status: "error",
-    error: mutableOutcome.error
+    error: mutableOutcome.error,
+    runContext: options.runContext,
+    emit: options.emit,
+    toolCalls: options.toolCalls
   });
 }
 
@@ -687,7 +699,7 @@ function createIterationCompleteRunner(options: { model: AcpModel; signal: Abort
       signal: options.signal
     });
 
-    return normalizeModelResponse(response, 0).content;
+    return (await collectModelResponseEvents({ response })).content;
   };
 }
 
@@ -717,149 +729,194 @@ function syncSubmittedUserPrompt(
   return prompt;
 }
 
-type NormalizedModelResponse = {
-  content: string;
-  reasoningContent?: string;
-  reasoning?: string;
-  toolCalls: NormalizedModelToolCall[];
-};
+async function collectModelResponseEvents(options: {
+  response: AcpModelResponse;
+  emit?(event: AcpEvent): void;
+}): Promise<CollectedModelResponse> {
+  const contentChunks: string[] = [];
+  const thinking: NonNullable<ChatMessage["thinking"]> = [];
+  const redactedThinking: NonNullable<ChatMessage["redacted_thinking"]> = [];
+  const reasoningDetails: unknown[] = [];
+  const toolOutcomes: StreamToolOutcome[] = [];
+  const pendingToolUses = new Map<string, PendingToolUse>();
+  let usage: UsageInfo | undefined;
+  let stopReason: CollectedModelResponse["stopReason"];
 
-type NormalizedModelToolCall = {
-  intentId: string;
-  tool: string;
-  args: unknown;
-  rawArguments?: string;
-};
+  for await (const event of options.response.events) {
+    switch (event.type) {
+      case "text":
+        if (event.text.length === 0) {
+          continue;
+        }
+        contentChunks.push(event.text);
+        options.emit?.({
+          type: "message.delta",
+          content: event.text
+        });
+        break;
+      case "thinking":
+        if (event.text.length === 0) {
+          continue;
+        }
+        appendThinkingChunk(thinking, event);
+        break;
+      case "redacted_thinking":
+        redactedThinking.push({ data: event.data });
+        break;
+      case "reasoning_details":
+        reasoningDetails.push(event.payload);
+        break;
+      case "tool_use_delta": {
+        const pendingToolUse = getPendingToolUse(pendingToolUses, event.id);
+        if (event.name !== undefined) {
+          pendingToolUse.tool = normalizeToolName(event.name) ?? pendingToolUse.tool;
+        }
+        if (event.argsDelta !== undefined && event.argsDelta.length > 0) {
+          pendingToolUse.argsDelta += event.argsDelta;
+        }
+        maybeEmitPendingToolIntent(pendingToolUse, options.emit);
+        break;
+      }
+      case "tool_use_complete": {
+        const pendingToolUse = getPendingToolUse(pendingToolUses, event.id);
+        const tool = normalizeToolName(event.name);
+        if (tool === undefined) {
+          pendingToolUses.delete(event.id);
+          break;
+        }
 
-function normalizeModelResponse(
-  response: AcpModelResponse,
-  iterationNumber: number
-): NormalizedModelResponse {
-  const message = response.message;
-  const messageContent = message?.content;
+        toolOutcomes.push({
+          type: "complete",
+          toolCall: {
+            intentId: event.id,
+            tool,
+            args: event.args,
+            rawArguments:
+              pendingToolUse.argsDelta.length > 0
+                ? pendingToolUse.argsDelta
+                : typeof event.args === "string"
+                  ? event.args
+                  : undefined,
+            intentEmitted: pendingToolUse.intentEmitted
+          }
+        });
+        pendingToolUses.delete(event.id);
+        break;
+      }
+      case "tool_use_json_parse_error": {
+        const pendingToolUse = getPendingToolUse(pendingToolUses, event.id);
+        toolOutcomes.push({
+          type: "error",
+          error: {
+            intentId: event.id,
+            tool: pendingToolUse.tool ?? "unknown",
+            args: event.raw,
+            error: event.error
+          }
+        });
+        pendingToolUses.delete(event.id);
+        break;
+      }
+      case "usage":
+        usage = {
+          inputTokens: event.inputTokens,
+          outputTokens: event.outputTokens,
+          cachedTokens: event.cachedTokens,
+          cacheCreationTokens: event.cacheCreationTokens
+        };
+        break;
+      case "stop":
+        stopReason = event.reason;
+        break;
+    }
+  }
+
   const reasoningContent =
-    typeof message?.reasoning_content === "string" ? message.reasoning_content : undefined;
-  const reasoning = typeof message?.reasoning === "string" ? message.reasoning : undefined;
-
-  const contentFromMessage = typeof messageContent === "string" ? messageContent : undefined;
-  const content = contentFromMessage ?? response.content ?? "";
-
-  const rawToolCalls =
-    message?.toolCalls ?? response.toolCalls ?? fromOpenAiToolCalls(message?.tool_calls);
+    thinking.length === 0 ? undefined : thinking.map((entry) => entry.text).join("");
 
   return {
-    content,
-    ...(reasoningContent === undefined ? {} : { reasoningContent }),
-    ...(reasoning === undefined ? {} : { reasoning }),
-    toolCalls: normalizeModelToolCalls(rawToolCalls, iterationNumber)
+    content: contentChunks.join(""),
+    ...(reasoningContent === undefined ? {} : { reasoningContent, reasoning: reasoningContent }),
+    ...(thinking.length === 0 ? {} : { thinking }),
+    ...(redactedThinking.length === 0 ? {} : { redactedThinking }),
+    ...(reasoningDetails.length === 0 ? {} : { reasoningDetails }),
+    toolOutcomes,
+    ...(usage === undefined ? {} : { usage }),
+    ...(stopReason === undefined ? {} : { stopReason })
   };
 }
 
-function normalizeModelToolCalls(
-  rawToolCalls: AcpModelToolCall[] | undefined,
-  iterationNumber: number
-): NormalizedModelToolCall[] {
-  if (!rawToolCalls || rawToolCalls.length === 0) {
-    return [];
+function appendThinkingChunk(
+  thinking: NonNullable<ChatMessage["thinking"]>,
+  event: Extract<ProviderStreamEvent, { type: "thinking" }>
+): void {
+  const lastChunk = thinking.at(-1);
+  if (lastChunk && lastChunk.signature === event.signature) {
+    lastChunk.text += event.text;
+    return;
   }
 
-  const normalized: NormalizedModelToolCall[] = [];
-
-  for (let index = 0; index < rawToolCalls.length; index += 1) {
-    const raw = rawToolCalls[index];
-    if (!raw) {
-      continue;
-    }
-
-    const tool = normalizeToolName(raw);
-    if (tool === undefined) {
-      continue;
-    }
-
-    const normalizedArgs = normalizeToolArguments(raw);
-    normalized.push({
-      intentId: normalizeIntentId(raw, iterationNumber, index),
-      tool,
-      args: normalizedArgs.args,
-      ...(normalizedArgs.rawArguments === undefined
-        ? {}
-        : {
-            rawArguments: normalizedArgs.rawArguments
-          })
-    });
-  }
-
-  return normalized;
+  thinking.push({
+    text: event.text,
+    ...(event.signature === undefined ? {} : { signature: event.signature })
+  });
 }
 
-function normalizeToolName(raw: AcpModelToolCall): string | undefined {
-  const candidate = raw.tool ?? raw.name;
+function getPendingToolUse(
+  pendingToolUses: Map<string, PendingToolUse>,
+  intentId: string
+): PendingToolUse {
+  const existing = pendingToolUses.get(intentId);
+  if (existing) {
+    return existing;
+  }
 
-  if (typeof candidate !== "string") {
+  const pendingToolUse: PendingToolUse = {
+    intentId,
+    argsDelta: "",
+    intentEmitted: false
+  };
+  pendingToolUses.set(intentId, pendingToolUse);
+  return pendingToolUse;
+}
+
+function maybeEmitPendingToolIntent(
+  pendingToolUse: PendingToolUse,
+  emit: ((event: AcpEvent) => void) | undefined
+): void {
+  if (
+    !emit ||
+    pendingToolUse.intentEmitted ||
+    pendingToolUse.tool === undefined ||
+    pendingToolUse.argsDelta.length === 0
+  ) {
+    return;
+  }
+
+  const parsedArgs = tryParseJson(pendingToolUse.argsDelta);
+  if (!parsedArgs.ok) {
+    return;
+  }
+
+  emit({
+    type: "tool.intent",
+    intentId: pendingToolUse.intentId,
+    tool: pendingToolUse.tool,
+    args: parsedArgs.value
+  });
+  pendingToolUse.intentEmitted = true;
+}
+
+function normalizeToolName(value: unknown): string | undefined {
+  if (typeof value !== "string") {
     return undefined;
   }
 
-  const tool = candidate.trim();
-  return tool.length > 0 ? tool : undefined;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
 }
 
-function normalizeIntentId(
-  raw: AcpModelToolCall,
-  iterationNumber: number,
-  toolIndex: number
-): string {
-  const directId = raw.intentId ?? raw.id;
-  if (typeof directId === "string") {
-    const normalized = directId.trim();
-    if (normalized.length > 0) {
-      return normalized;
-    }
-  }
-
-  return `intent-${iterationNumber}-${toolIndex + 1}`;
-}
-
-function normalizeToolArguments(raw: AcpModelToolCall): { args: unknown; rawArguments?: string } {
-  const args = raw.args ?? raw.arguments;
-
-  if (typeof args !== "string") {
-    return { args };
-  }
-
-  try {
-    return {
-      args: JSON.parse(args) as unknown,
-      rawArguments: args
-    };
-  } catch {
-    return { args };
-  }
-}
-
-function fromOpenAiToolCalls(
-  toolCalls:
-    | Array<{
-        id: string;
-        type?: "function";
-        function?: {
-          name?: string;
-          arguments?: string;
-        };
-      }>
-    | undefined
-): AcpModelToolCall[] {
-  if (!toolCalls || toolCalls.length === 0) {
-    return [];
-  }
-
-  return toolCalls.map((toolCall) => ({
-    id: toolCall.id,
-    name: toolCall.function?.name,
-    arguments: toolCall.function?.arguments
-  }));
-}
-
-function createAssistantMessage(response: NormalizedModelResponse): ChatMessage {
+function createAssistantMessage(response: CollectedModelResponse): ChatMessage {
   const message: ChatMessage = {
     role: "assistant",
     content: response.content,
@@ -872,26 +929,47 @@ function createAssistantMessage(response: NormalizedModelResponse): ChatMessage 
       ? {}
       : {
           reasoning: response.reasoning
+        }),
+    ...(response.thinking === undefined
+      ? {}
+      : {
+          thinking: response.thinking.map((entry) => ({ ...entry }))
+        }),
+    ...(response.redactedThinking === undefined
+      ? {}
+      : {
+          redacted_thinking: response.redactedThinking.map((entry) => ({ ...entry }))
+        }),
+    ...(response.reasoningDetails === undefined
+      ? {}
+      : {
+          reasoning_details: [...response.reasoningDetails]
         })
   };
 
-  if (response.toolCalls.length === 0) {
+  const toolCalls = response.toolOutcomes
+    .filter(
+      (toolOutcome): toolOutcome is Extract<StreamToolOutcome, { type: "complete" }> =>
+        toolOutcome.type === "complete"
+    )
+    .map((toolOutcome) => ({
+      id: toolOutcome.toolCall.intentId,
+      type: "function" as const,
+      function: {
+        name: toolOutcome.toolCall.tool,
+        arguments:
+          toolOutcome.toolCall.rawArguments ?? serializeToolArguments(toolOutcome.toolCall.args)
+      }
+    }));
+
+  if (toolCalls.length === 0) {
     return message;
   }
 
-  const toolCalls = response.toolCalls.map((toolCall) => ({
-    id: toolCall.intentId,
-    type: "function" as const,
-    function: {
-      name: toolCall.tool,
-      arguments: toolCall.rawArguments ?? serializeToolArguments(toolCall.args)
-    }
-  }));
-
   return {
     ...message,
-    ...(toolCalls.length === 0 ? {} : { tool_calls: toolCalls })
-  } as ChatMessage;
+    tool_calls: toolCalls
+  };
 }
 
 function toModelRequestMessages(
@@ -933,6 +1011,21 @@ function toModelRequestMessages(
           ? {}
           : {
               reasoning: message.reasoning
+            }),
+        ...(message.thinking === undefined
+          ? {}
+          : {
+              thinking: message.thinking.map((entry) => ({ ...entry }))
+            }),
+        ...(message.redacted_thinking === undefined
+          ? {}
+          : {
+              redacted_thinking: message.redacted_thinking.map((entry) => ({ ...entry }))
+            }),
+        ...(message.reasoning_details === undefined
+          ? {}
+          : {
+              reasoning_details: [...message.reasoning_details]
             })
       };
 
@@ -941,9 +1034,7 @@ function toModelRequestMessages(
       }
     }
 
-    const maybeToolCalls = (
-      message as ChatMessage & { tool_calls?: AcpModelRequestMessage["tool_calls"] }
-    ).tool_calls;
+    const maybeToolCalls = message.tool_calls;
     if (maybeToolCalls && maybeToolCalls.length > 0) {
       modelMessage.tool_calls = maybeToolCalls;
     }
@@ -962,38 +1053,6 @@ function hasSystemMessage(messages: ChatMessage[]): boolean {
   }
 
   return false;
-}
-
-async function emitMessageDeltas(options: {
-  response: AcpModelResponse;
-  fallbackContent: string;
-  emit(event: AcpEvent): void;
-}): Promise<string> {
-  const chunks: string[] = [];
-
-  if (options.response.deltas) {
-    for await (const chunk of options.response.deltas) {
-      if (typeof chunk !== "string" || chunk.length === 0) {
-        continue;
-      }
-
-      chunks.push(chunk);
-      options.emit({
-        type: "message.delta",
-        content: chunk
-      });
-    }
-  }
-
-  if (chunks.length === 0 && options.fallbackContent.length > 0) {
-    chunks.push(options.fallbackContent);
-    options.emit({
-      type: "message.delta",
-      content: options.fallbackContent
-    });
-  }
-
-  return chunks.join("");
 }
 
 function estimateTokenCount(messages: ChatMessage[]): number {
@@ -1016,6 +1075,55 @@ function serializeToolArguments(value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+function tryParseJson(value: string): { ok: true; value: unknown } | { ok: false } {
+  if (value.length === 0) {
+    return {
+      ok: true,
+      value: {}
+    };
+  }
+
+  try {
+    return {
+      ok: true,
+      value: JSON.parse(value) as unknown
+    };
+  } catch {
+    return { ok: false };
+  }
+}
+
+async function emitToolExecutionError(options: {
+  intentId: string;
+  tool: string;
+  args: unknown;
+  error: string;
+  runContext: RunContext;
+  emit(event: AcpEvent): void;
+  toolCalls: ToolCallRecord[];
+}): Promise<void> {
+  options.emit({
+    type: "tool.error",
+    intentId: options.intentId,
+    error: options.error
+  });
+
+  options.runContext.messages.push({
+    role: "tool",
+    name: options.tool,
+    toolCallId: options.intentId,
+    content: `Error: ${options.error}`
+  });
+
+  options.toolCalls.push({
+    intentId: options.intentId,
+    tool: options.tool,
+    args: options.args,
+    status: "error",
+    error: options.error
+  });
 }
 
 function toToolErrorText(value: unknown): string {

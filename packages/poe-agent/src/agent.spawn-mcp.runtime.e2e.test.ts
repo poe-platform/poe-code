@@ -7,11 +7,8 @@ import filesPlugin from "./plugins/poe-agent-plugin-files.js";
 import spawnPlugin from "./plugins/poe-agent-plugin-spawn.js";
 import { createInMemorySpawnSession } from "./runtime/agent-host.js";
 import type { AgentPlugin } from "./runtime/plugin-types.js";
-import type {
-  AcpModel,
-  AcpModelRequestMessage,
-  AcpModelResponse,
-} from "./runtime/acp-core.js";
+import type { AcpModel, AcpModelRequestMessage, AcpModelResponse } from "./runtime/acp-core.js";
+import { toAcpModelResponse, type LegacyAcpModelResponse } from "./testing/model-response.js";
 
 type RuntimeFileSystem = {
   mkdir: (path: string, options?: { recursive?: boolean }) => Promise<void>;
@@ -31,8 +28,8 @@ type StdioTransportOptions = {
   env?: Record<string, string>;
 };
 
-const transportFactoryMock = vi.hoisted(
-  () => vi.fn<(options: StdioTransportOptions) => McpTransport>(),
+const transportFactoryMock = vi.hoisted(() =>
+  vi.fn<(options: StdioTransportOptions) => McpTransport>()
 );
 
 vi.mock("tiny-mcp-client", async () => {
@@ -53,26 +50,26 @@ vi.mock("tiny-mcp-client", async () => {
         this.closed = transport.closed;
         this.dispose = transport.dispose.bind(transport);
       }
-    },
+    }
   };
 });
 
 function createMockModel(
-  responses: Array<AcpModelResponse | Error>,
-  onCall?: (call: ModelCall, callNumber: number) => void,
+  responses: Array<LegacyAcpModelResponse | AcpModelResponse | Error>,
+  onCall?: (call: ModelCall, callNumber: number) => void
 ): AcpModel {
   const queue = [...responses];
   let callNumber = 0;
 
   return {
-    complete: vi.fn(async request => {
+    complete: vi.fn(async (request) => {
       callNumber += 1;
       onCall?.(
         {
           messages: request.messages,
-          tools: request.tools.map(tool => tool.name),
+          tools: request.tools.map((tool) => tool.name)
         },
-        callNumber,
+        callNumber
       );
 
       const next = queue.shift();
@@ -84,8 +81,8 @@ function createMockModel(
         throw next;
       }
 
-      return next;
-    }),
+      return toAcpModelResponse(next);
+    })
   };
 }
 
@@ -102,11 +99,11 @@ function createRuntimeFs(files: Record<string, string>): RuntimeFileSystem {
       return typeof content === "string" ? content : String(content);
     },
     async readdir(targetPath) {
-      return await memfs.readdir(targetPath) as string[];
+      return (await memfs.readdir(targetPath)) as string[];
     },
     async writeFile(targetPath, data, encoding) {
       await memfs.writeFile(targetPath, data, encoding);
-    },
+    }
   };
 }
 
@@ -121,9 +118,9 @@ function testMcpServer(options: {
       api.addMcp({
         name: options.serverName,
         command: options.command,
-        visibility: options.visibility,
+        visibility: options.visibility
       });
-    },
+    }
   };
 }
 
@@ -173,8 +170,8 @@ describe("runtime spawn + MCP plugin e2e", () => {
         filesPlugin({
           cwd: "/workspace",
           allowedPaths: ["/workspace"],
-          fs: runtimeFs,
-        }),
+          fs: runtimeFs
+        })
       )
       .run("Investigate the regression", {
         acpModel: createMockModel(
@@ -186,40 +183,40 @@ describe("runtime spawn + MCP plugin e2e", () => {
                   {
                     id: "spawn-1",
                     tool: "spawn",
-                    args: { task: "Inspect suspected flaky test" },
-                  },
-                ],
-              },
+                    args: { task: "Inspect suspected flaky test" }
+                  }
+                ]
+              }
             },
             {
               message: {
                 content: "Parent finished after child report",
-                toolCalls: [],
-              },
-            },
+                toolCalls: []
+              }
+            }
           ],
-          call => {
+          (call) => {
             modelCalls.push(call);
-          },
+          }
         ),
         createSpawnSession: () =>
           createInMemorySpawnSession({
             model: "test-model",
             cwd: "/workspace",
-            createSession: async options => {
+            createSession: async (options) => {
               childSessionOptions.push(options as Record<string, unknown>);
               return {
                 async sendMessage(prompt: string) {
                   childPrompts.push(prompt);
                   return {
                     role: "assistant",
-                    content: `child-result:${prompt}`,
+                    content: `child-result:${prompt}`
                   };
                 },
-                dispose: disposeChildSession,
+                dispose: disposeChildSession
               };
-            },
-          }),
+            }
+          })
       });
 
     expect(modelCalls).toHaveLength(2);
@@ -227,13 +224,14 @@ describe("runtime spawn + MCP plugin e2e", () => {
     expect(childSessionOptions).toEqual([
       {
         model: "test-model",
-        cwd: "/workspace",
-      },
+        cwd: "/workspace"
+      }
     ]);
 
     const secondCallMessages = modelCalls[1]?.messages ?? [];
-    const spawnToolMessage = secondCallMessages.find(message =>
-      message.role === "tool" && message.name === "spawn" && message.tool_call_id === "spawn-1",
+    const spawnToolMessage = secondCallMessages.find(
+      (message) =>
+        message.role === "tool" && message.name === "spawn" && message.tool_call_id === "spawn-1"
     );
     expect(spawnToolMessage).toBeDefined();
     expect(spawnToolMessage?.content).toBe("child-result:Inspect suspected flaky test");
@@ -245,8 +243,8 @@ describe("runtime spawn + MCP plugin e2e", () => {
         tool: "spawn",
         args: { task: "Inspect suspected flaky test" },
         status: "success",
-        result: "child-result:Inspect suspected flaky test",
-      },
+        result: "child-result:Inspect suspected flaky test"
+      }
     ]);
     expect(disposeChildSession).toHaveBeenCalledTimes(1);
   });
@@ -256,7 +254,7 @@ describe("runtime spawn + MCP plugin e2e", () => {
     const controller = new AbortController();
     let releaseChild: (() => void) | undefined;
     let resolveChildCompleted: (() => void) | undefined;
-    const childCompleted = new Promise<void>(resolve => {
+    const childCompleted = new Promise<void>((resolve) => {
       resolveChildCompleted = resolve;
     });
     const disposeChildSession = vi.fn(async () => undefined);
@@ -268,8 +266,8 @@ describe("runtime spawn + MCP plugin e2e", () => {
         filesPlugin({
           cwd: "/workspace",
           allowedPaths: ["/workspace"],
-          fs: runtimeFs,
-        }),
+          fs: runtimeFs
+        })
       )
       .run("Investigate the regression", {
         signal: controller.signal,
@@ -281,11 +279,11 @@ describe("runtime spawn + MCP plugin e2e", () => {
                 {
                   id: "spawn-1",
                   tool: "spawn",
-                  args: { task: "Long child task" },
-                },
-              ],
-            },
-          },
+                  args: { task: "Long child task" }
+                }
+              ]
+            }
+          }
         ]),
         createSpawnSession: () =>
           createInMemorySpawnSession({
@@ -293,18 +291,18 @@ describe("runtime spawn + MCP plugin e2e", () => {
             cwd: "/workspace",
             createSession: async () => ({
               async sendMessage() {
-                await new Promise<void>(resolve => {
+                await new Promise<void>((resolve) => {
                   releaseChild = resolve;
                 });
                 resolveChildCompleted?.();
                 return {
                   role: "assistant",
-                  content: "child-finished",
+                  content: "child-finished"
                 };
               },
-              dispose: disposeChildSession,
-            }),
-          }),
+              dispose: disposeChildSession
+            })
+          })
       });
 
     await vi.waitFor(() => {
@@ -314,7 +312,7 @@ describe("runtime spawn + MCP plugin e2e", () => {
     controller.abort(new Error("stop parent"));
 
     await expect(runPromise).rejects.toMatchObject({
-      name: "AbortError",
+      name: "AbortError"
     });
 
     expect(disposeChildSession).not.toHaveBeenCalled();
@@ -332,24 +330,26 @@ describe("runtime spawn + MCP plugin e2e", () => {
     const repoSearchToolName = ["repo", "search"].join("_");
 
     const searchSchema = defineSchema({
-      query: { type: "string", description: "Search query" },
+      query: { type: "string", description: "Search query" }
     });
 
     const server = createServer({ name: "repo-tools", version: "1.0.0" }).tool(
       "search",
       "Search repository",
       searchSchema,
-      async (args) => `mcp-found:${args.query}`,
+      async (args) => `mcp-found:${args.query}`
     );
 
     commandToServer.set("repo-mcp", server);
 
     const result = await agent()
       .model("test-model")
-      .use(testMcpServer({
-        command: "repo-mcp",
-        serverName: "repo",
-      }))
+      .use(
+        testMcpServer({
+          command: "repo-mcp",
+          serverName: "repo"
+        })
+      )
       .run("Use the tools", {
         acpModel: createMockModel(
           [
@@ -360,17 +360,17 @@ describe("runtime spawn + MCP plugin e2e", () => {
                   {
                     id: "mcp-1",
                     tool: repoSearchToolName,
-                    args: { query: "regression" },
-                  },
-                ],
-              },
+                    args: { query: "regression" }
+                  }
+                ]
+              }
             },
             {
               message: {
                 content: "Done with MCP",
-                toolCalls: [],
-              },
-            },
+                toolCalls: []
+              }
+            }
           ],
           (call, callNumber) => {
             if (callNumber === 1) {
@@ -384,8 +384,8 @@ describe("runtime spawn + MCP plugin e2e", () => {
               expect(transportClosed).toBe(false);
             }
             discoveredTools.push(call.tools);
-          },
-        ),
+          }
+        )
       });
 
     expect(discoveredTools).toHaveLength(2);
@@ -398,21 +398,23 @@ describe("runtime spawn + MCP plugin e2e", () => {
         tool: repoSearchToolName,
         args: { query: "regression" },
         status: "success",
-        result: "mcp-found:regression",
-      },
+        result: "mcp-found:regression"
+      }
     ]);
     expect(result.output).toBe("Done with MCP");
 
     expect(transportFactoryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        command: "repo-mcp",
-      }),
+        command: "repo-mcp"
+      })
     );
 
     expect(clientTransports).toHaveLength(1);
-    await Promise.all(clientTransports.map(async transport => {
-      await transport.closed;
-    }));
+    await Promise.all(
+      clientTransports.map(async (transport) => {
+        await transport.closed;
+      })
+    );
     expect(transportClosed).toBe(true);
   });
 });

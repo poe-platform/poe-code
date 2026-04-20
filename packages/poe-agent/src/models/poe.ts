@@ -1,12 +1,10 @@
 import { createSecretStore } from "auth-store";
 import type { AcpModel, AcpModelRequestMessage } from "../runtime/acp-core.js";
+import type { ProviderStreamEvent } from "../runtime/plugin-types.js";
 import { toolResultPartToText } from "../runtime/tool-results.js";
 import type { ToolResultPart } from "../runtime/types.js";
 
-export type PoeFetchFn = (
-  input: string | URL | Request,
-  init?: RequestInit,
-) => Promise<Response>;
+export type PoeFetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
 export type CreatePoeAcpModelOptions = {
   model: string;
@@ -24,52 +22,54 @@ export async function createPoeAcpModel(options: CreatePoeAcpModelOptions): Prom
     async complete(request) {
       const payload = {
         model: options.model,
-        messages: request.messages.map(message => ({
-          ...message,
+        messages: request.messages.map((message) => ({
+          role: message.role,
           ...(message.role === "tool" && typeof message.name === "string"
             ? { name: message.name }
             : {}),
+          ...(message.tool_call_id === undefined ? {} : { tool_call_id: message.tool_call_id }),
+          ...serializeReasoningRequestFields(message),
           ...(message.tool_calls
             ? {
-                tool_calls: message.tool_calls.map(call => ({
+                tool_calls: message.tool_calls.map((call) => ({
                   ...call,
                   function: {
                     ...call.function,
-                    name: call.function.name,
-                  },
-                })),
+                    name: call.function.name
+                  }
+                }))
               }
             : {}),
-          content: serializeProviderMessageContent(message.content),
+          content: serializeProviderMessageContent(message.content)
         })),
         ...(request.tools.length === 0
           ? {}
           : {
-              tools: request.tools.map(tool => ({
+              tools: request.tools.map((tool) => ({
                 type: "function",
                 function: {
                   name: tool.name,
                   description: tool.description ?? "",
-                  parameters: normalizeToolInputSchema(tool.inputSchema),
-                },
-              })),
-            }),
+                  parameters: normalizeToolInputSchema(tool.inputSchema)
+                }
+              }))
+            })
       };
 
       const response = await fetchFn(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`
         },
         body: JSON.stringify(payload),
-        signal: request.signal,
+        signal: request.signal
       });
 
       if (!response.ok) {
         const details = await response.text().catch(() => "");
         throw new Error(
-          `Poe API request failed (${response.status}): ${details || response.statusText}`,
+          `Poe API request failed (${response.status}): ${details || response.statusText}`
         );
       }
 
@@ -102,27 +102,67 @@ export async function createPoeAcpModel(options: CreatePoeAcpModelOptions): Prom
       const usage = extractUsage(json.usage);
 
       return {
-        message: {
-          content: message.content,
-          ...(message.reasoning_content === undefined
-            ? {}
-            : {
-                reasoning_content: message.reasoning_content,
-              }),
-          ...(message.reasoning === undefined
-            ? {}
-            : {
-                reasoning: message.reasoning,
-              }),
-          ...(message.tool_calls === undefined
-            ? {}
-            : {
-                tool_calls: message.tool_calls,
-              }),
-        },
-        ...(usage === undefined ? {} : { usage }),
+        events: {
+          async *[Symbol.asyncIterator](): AsyncIterableIterator<ProviderStreamEvent> {
+            const thinking = toNonEmptyString(message.reasoning_content ?? message.reasoning);
+            if (thinking) {
+              yield {
+                type: "thinking",
+                text: thinking
+              };
+            }
+
+            if (typeof message.content === "string" && message.content.length > 0) {
+              yield {
+                type: "text",
+                text: message.content
+              };
+            }
+
+            for (const toolCall of message.tool_calls ?? []) {
+              const toolName = toNonEmptyString(toolCall.function?.name);
+              if (!toolName) {
+                continue;
+              }
+
+              const rawArguments = toolCall.function?.arguments ?? "";
+              const parsedArguments = parseToolArguments(rawArguments);
+              if (parsedArguments.ok) {
+                yield {
+                  type: "tool_use_complete",
+                  id: toolCall.id,
+                  name: toolName,
+                  args: parsedArguments.value
+                };
+                continue;
+              }
+
+              yield {
+                type: "tool_use_json_parse_error",
+                id: toolCall.id,
+                raw: rawArguments,
+                error: parsedArguments.error
+              };
+            }
+
+            if (usage !== undefined) {
+              yield {
+                type: "usage",
+                inputTokens: usage.inputTokens,
+                outputTokens: usage.outputTokens,
+                cachedTokens: usage.cachedTokens,
+                cacheCreationTokens: usage.cacheCreationTokens
+              };
+            }
+
+            yield {
+              type: "stop",
+              reason: message.tool_calls && message.tool_calls.length > 0 ? "tool_use" : "end_turn"
+            };
+          }
+        }
       };
-    },
+    }
   };
 }
 
@@ -136,7 +176,7 @@ function extractUsage(
         cache_read_input_tokens?: number;
         cache_creation_input_tokens?: number;
       }
-    | undefined,
+    | undefined
 ):
   | {
       inputTokens: number;
@@ -157,12 +197,7 @@ function extractUsage(
     0;
   const cacheCreationTokens = toNonNegativeInteger(usage.cache_creation_input_tokens) ?? 0;
 
-  if (
-    inputTokens === 0
-    && outputTokens === 0
-    && cachedTokens === 0
-    && cacheCreationTokens === 0
-  ) {
+  if (inputTokens === 0 && outputTokens === 0 && cachedTokens === 0 && cacheCreationTokens === 0) {
     return undefined;
   }
 
@@ -170,7 +205,7 @@ function extractUsage(
     inputTokens,
     outputTokens,
     cachedTokens,
-    cacheCreationTokens,
+    cacheCreationTokens
   };
 }
 
@@ -193,8 +228,8 @@ async function resolveApiKey(explicitApiKey: string | undefined): Promise<string
     fileStore: {
       salt: "poe-code:encrypted-file-auth-store:v1",
       defaultDirectory: ".poe-code",
-      defaultFileName: "credentials.enc",
-    },
+      defaultFileName: "credentials.enc"
+    }
   });
   const storedApiKey = toNonEmptyString(await store.get());
   if (storedApiKey) {
@@ -214,9 +249,20 @@ function toChatCompletionsUrl(baseUrl: string): string {
   return `${trimmedBaseUrl}/v1/chat/completions`;
 }
 
-function serializeProviderMessageContent(
-  content: AcpModelRequestMessage["content"],
-):
+function serializeReasoningRequestFields(
+  message: AcpModelRequestMessage
+): Pick<AcpModelRequestMessage, "reasoning" | "reasoning_content"> {
+  const thinkingText = message.thinking?.map((entry) => entry.text).join("");
+  const reasoningContent = toNonEmptyString(message.reasoning_content) ?? thinkingText;
+  const reasoning = toNonEmptyString(message.reasoning) ?? reasoningContent;
+
+  return {
+    ...(reasoningContent === undefined ? {} : { reasoning_content: reasoningContent }),
+    ...(reasoning === undefined ? {} : { reasoning })
+  };
+}
+
+function serializeProviderMessageContent(content: AcpModelRequestMessage["content"]):
   | string
   | Array<
       | {
@@ -234,7 +280,7 @@ function serializeProviderMessageContent(
     return content;
   }
 
-  return content.map(part => serializeProviderContentPart(part));
+  return content.map((part) => serializeProviderContentPart(part));
 }
 
 function serializeProviderContentPart(part: ToolResultPart):
@@ -252,14 +298,14 @@ function serializeProviderContentPart(part: ToolResultPart):
     return {
       type: "image_url",
       image_url: {
-        url: `data:${part.mimeType};base64,${part.data}`,
-      },
+        url: `data:${part.mimeType};base64,${part.data}`
+      }
     };
   }
 
   return {
     type: "text",
-    text: toolResultPartToText(part),
+    text: toolResultPartToText(part)
   };
 }
 
@@ -278,14 +324,37 @@ function normalizeToolInputSchema(schema: unknown): {
     return {
       type: "object",
       properties: objectSchema.properties ?? {},
-      ...(objectSchema.required === undefined ? {} : { required: [...objectSchema.required] }),
+      ...(objectSchema.required === undefined ? {} : { required: [...objectSchema.required] })
     };
   }
 
   return {
     type: "object",
-    properties: {},
+    properties: {}
   };
+}
+
+function parseToolArguments(
+  value: string
+): { ok: true; value: unknown } | { ok: false; error: string } {
+  if (value.length === 0) {
+    return {
+      ok: true,
+      value: {}
+    };
+  }
+
+  try {
+    return {
+      ok: true,
+      value: JSON.parse(value) as unknown
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
 }
 
 function toNonEmptyString(value: string | null | undefined): string | undefined {

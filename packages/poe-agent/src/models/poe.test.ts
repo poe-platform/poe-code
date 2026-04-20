@@ -1,16 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { collectProviderEvents } from "../testing/model-response.js";
 
 const storeGetMock = vi.hoisted(() => vi.fn<() => Promise<string | undefined>>());
 const createSecretStoreMock = vi.hoisted(() =>
   vi.fn(() => ({
     store: {
-      get: storeGetMock,
-    },
-  })),
+      get: storeGetMock
+    }
+  }))
 );
 
 vi.mock("auth-store", () => ({
-  createSecretStore: createSecretStoreMock,
+  createSecretStore: createSecretStoreMock
 }));
 
 import { createPoeAcpModel } from "./poe.js";
@@ -37,25 +38,25 @@ describe("createPoeAcpModel", () => {
                     type: "function",
                     function: {
                       name: "read_file",
-                      arguments: "{\"path\":\"diagram.png\"}",
-                    },
-                  },
-                ],
-              },
-            },
-          ],
+                      arguments: '{"path":"diagram.png"}'
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }),
         {
           status: 200,
-          headers: { "content-type": "application/json" },
-        },
+          headers: { "content-type": "application/json" }
+        }
       );
     });
     const model = await createPoeAcpModel({
       model: "anthropic/claude-sonnet-4.6",
       apiKey: "test-key",
       baseUrl: "http://localhost:3456/",
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
     const result = await model.complete({
@@ -71,10 +72,10 @@ describe("createPoeAcpModel", () => {
               type: "error",
               code: "parse_error",
               message: "Retry with valid JSON",
-              retriable: true,
-            },
-          ],
-        },
+              retriable: true
+            }
+          ]
+        }
       ],
       tools: [
         {
@@ -83,13 +84,13 @@ describe("createPoeAcpModel", () => {
           inputSchema: {
             type: "object",
             properties: {
-              path: { type: "string" },
+              path: { type: "string" }
             },
-            required: ["path"],
-          },
-        },
+            required: ["path"]
+          }
+        }
       ],
-      signal: new AbortController().signal,
+      signal: new AbortController().signal
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -98,9 +99,9 @@ describe("createPoeAcpModel", () => {
         method: "POST",
         headers: expect.objectContaining({
           "Content-Type": "application/json",
-          Authorization: "Bearer test-key",
-        }),
-      }),
+          Authorization: "Bearer test-key"
+        })
+      })
     );
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
       model: "anthropic/claude-sonnet-4.6",
@@ -114,15 +115,15 @@ describe("createPoeAcpModel", () => {
             {
               type: "image_url",
               image_url: {
-                url: "data:image/png;base64,YmFzZTY0LWltYWdl",
-              },
+                url: "data:image/png;base64,YmFzZTY0LWltYWdl"
+              }
             },
             {
               type: "text",
-              text: "{\"type\":\"error\",\"code\":\"parse_error\",\"message\":\"Retry with valid JSON\",\"retriable\":true}",
-            },
-          ],
-        },
+              text: '{"type":"error","code":"parse_error","message":"Retry with valid JSON","retriable":true}'
+            }
+          ]
+        }
       ],
       tools: [
         {
@@ -133,31 +134,34 @@ describe("createPoeAcpModel", () => {
             parameters: {
               type: "object",
               properties: {
-                path: { type: "string" },
+                path: { type: "string" }
               },
-              required: ["path"],
-            },
-          },
-        },
-      ],
+              required: ["path"]
+            }
+          }
+        }
+      ]
     });
-    expect(result).toEqual({
-      message: {
-        content: "done",
-        reasoning_content: "Need more context",
-        reasoning: "Need more context",
-        tool_calls: [
-          {
-            id: "call-1",
-            type: "function",
-            function: {
-              name: "read_file",
-              arguments: "{\"path\":\"diagram.png\"}",
-            },
-          },
-        ],
+    expect(await collectProviderEvents(result)).toEqual([
+      {
+        type: "thinking",
+        text: "Need more context"
       },
-    });
+      {
+        type: "text",
+        text: "done"
+      },
+      {
+        type: "tool_use_complete",
+        id: "call-1",
+        name: "read_file",
+        args: { path: "diagram.png" }
+      },
+      {
+        type: "stop",
+        reason: "tool_use"
+      }
+    ]);
   });
 
   it("extracts usage including cached tokens when the response provides them", async () => {
@@ -170,52 +174,72 @@ describe("createPoeAcpModel", () => {
             completion_tokens: 34,
             total_tokens: 1234,
             prompt_tokens_details: { cached_tokens: 800 },
-            cache_creation_input_tokens: 50,
-          },
+            cache_creation_input_tokens: 50
+          }
         }),
-        { status: 200, headers: { "content-type": "application/json" } },
+        { status: 200, headers: { "content-type": "application/json" } }
       );
     });
     const model = await createPoeAcpModel({
       model: "anthropic/claude-opus-4.7",
       apiKey: "key",
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
     const result = await model.complete({
       messages: [{ role: "user", content: "hi" }],
       tools: [],
-      signal: new AbortController().signal,
+      signal: new AbortController().signal
     });
 
-    expect(result.usage).toEqual({
-      inputTokens: 1200,
-      outputTokens: 34,
-      cachedTokens: 800,
-      cacheCreationTokens: 50,
-    });
+    expect(await collectProviderEvents(result)).toEqual([
+      {
+        type: "text",
+        text: "ok"
+      },
+      {
+        type: "usage",
+        inputTokens: 1200,
+        outputTokens: 34,
+        cachedTokens: 800,
+        cacheCreationTokens: 50
+      },
+      {
+        type: "stop",
+        reason: "end_turn"
+      }
+    ]);
   });
 
   it("omits usage when the response has none", async () => {
     const fetchMock = vi.fn(async () => {
-      return new Response(
-        JSON.stringify({ choices: [{ message: { content: "ok" } }] }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
     });
     const model = await createPoeAcpModel({
       model: "anthropic/claude-opus-4.7",
       apiKey: "key",
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
     const result = await model.complete({
       messages: [{ role: "user", content: "hi" }],
       tools: [],
-      signal: new AbortController().signal,
+      signal: new AbortController().signal
     });
 
-    expect(result.usage).toBeUndefined();
+    expect(await collectProviderEvents(result)).toEqual([
+      {
+        type: "text",
+        text: "ok"
+      },
+      {
+        type: "stop",
+        reason: "end_turn"
+      }
+    ]);
   });
 
   it("loads the Poe API key from auth-store when apiKey is omitted", async () => {
@@ -226,26 +250,26 @@ describe("createPoeAcpModel", () => {
           choices: [
             {
               message: {
-                content: "done",
-              },
-            },
-          ],
+                content: "done"
+              }
+            }
+          ]
         }),
         {
           status: 200,
-          headers: { "content-type": "application/json" },
-        },
+          headers: { "content-type": "application/json" }
+        }
       );
     });
     const model = await createPoeAcpModel({
       model: "gpt-5",
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
     await model.complete({
       messages: [{ role: "user", content: "hello" }],
       tools: [],
-      signal: new AbortController().signal,
+      signal: new AbortController().signal
     });
 
     expect(createSecretStoreMock).toHaveBeenCalledWith({
@@ -253,13 +277,13 @@ describe("createPoeAcpModel", () => {
       fileStore: {
         salt: "poe-code:encrypted-file-auth-store:v1",
         defaultDirectory: ".poe-code",
-        defaultFileName: "credentials.enc",
-      },
+        defaultFileName: "credentials.enc"
+      }
     });
     expect(fetchMock.mock.calls[0]?.[1]?.headers).toEqual(
       expect.objectContaining({
-        Authorization: "Bearer stored-key",
-      }),
+        Authorization: "Bearer stored-key"
+      })
     );
   });
 
@@ -277,22 +301,22 @@ describe("createPoeAcpModel", () => {
                     type: "function",
                     function: {
                       name: "superintendent-tools_workflow_transition",
-                      arguments: "{}",
-                    },
-                  },
-                ],
-              },
-            },
-          ],
+                      arguments: "{}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }),
-        { status: 200, headers: { "content-type": "application/json" } },
+        { status: 200, headers: { "content-type": "application/json" } }
       );
     });
     const model = await createPoeAcpModel({
       model: "openai/gpt-5.4",
       apiKey: "k",
       baseUrl: "http://localhost:3456/",
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
     const result = await model.complete({
@@ -306,41 +330,50 @@ describe("createPoeAcpModel", () => {
               type: "function",
               function: {
                 name: "superintendent-tools_workflow_transition",
-                arguments: "{}",
-              },
-            },
-          ],
+                arguments: "{}"
+              }
+            }
+          ]
         },
         {
           role: "tool",
           tool_call_id: "call-0",
           name: "superintendent-tools_workflow_transition",
-          content: "done",
-        },
+          content: "done"
+        }
       ],
       tools: [
         {
           name: "superintendent-tools_workflow_transition",
           description: "d",
-          inputSchema: { type: "object" },
-        },
+          inputSchema: { type: "object" }
+        }
       ],
-      signal: new AbortController().signal,
+      signal: new AbortController().signal
     });
 
     const sentBody = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
-    expect(sentBody.tools[0].function.name).toBe(
-      "superintendent-tools_workflow_transition",
-    );
+    expect(sentBody.tools[0].function.name).toBe("superintendent-tools_workflow_transition");
     expect(sentBody.messages[0].tool_calls[0].function.name).toBe(
-      "superintendent-tools_workflow_transition",
+      "superintendent-tools_workflow_transition"
     );
-    expect(sentBody.messages[1].name).toBe(
-      "superintendent-tools_workflow_transition",
-    );
+    expect(sentBody.messages[1].name).toBe("superintendent-tools_workflow_transition");
 
-    expect(result.message?.tool_calls?.[0]?.function?.name).toBe(
-      "superintendent-tools_workflow_transition",
-    );
+    expect(await collectProviderEvents(result)).toEqual([
+      {
+        type: "text",
+        text: "ok"
+      },
+      {
+        type: "tool_use_complete",
+        id: "call-1",
+        name: "superintendent-tools_workflow_transition",
+        args: {}
+      },
+      {
+        type: "stop",
+        reason: "tool_use"
+      }
+    ]);
   });
 });

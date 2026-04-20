@@ -21,13 +21,16 @@ import {
 } from "./hooks.js";
 import { PromptRegistry } from "./prompts.js";
 import { createRunContext } from "./run-context.js";
+import { toAcpModelResponse, type LegacyAcpModelResponse } from "../testing/model-response.js";
 import { InvalidToolNameError } from "./tool-names.js";
 import { normalizeTool, ToolRegistry } from "./tools.js";
 import type { AcpEvent, AcpHost, ChatMessage, Tool, ToolContext, ToolEvent } from "./types.js";
 
 // --- shared helpers (acp-core + agent-host) ---
 
-function createModel(responses: Array<AcpModelResponse | Error>): AcpModel {
+function createModel(
+  responses: Array<LegacyAcpModelResponse | AcpModelResponse | Error>
+): AcpModel {
   const queue = [...responses];
 
   return {
@@ -41,7 +44,7 @@ function createModel(responses: Array<AcpModelResponse | Error>): AcpModel {
         throw next;
       }
 
-      return next;
+      return toAcpModelResponse(next);
     })
   };
 }
@@ -2487,7 +2490,7 @@ describe("runAcpCore", () => {
         callNumber += 1;
 
         if (callNumber === 1) {
-          return {
+          return toAcpModelResponse({
             message: {
               content: "",
               toolCalls: [
@@ -2498,7 +2501,7 @@ describe("runAcpCore", () => {
                 }
               ]
             }
-          };
+          });
         }
 
         if (callNumber === 2) {
@@ -2509,7 +2512,7 @@ describe("runAcpCore", () => {
             tool_call_id: "blocked-command"
           });
 
-          return {
+          return toAcpModelResponse({
             message: {
               content: "",
               toolCalls: [
@@ -2520,7 +2523,7 @@ describe("runAcpCore", () => {
                 }
               ]
             }
-          };
+          });
         }
 
         if (callNumber === 3) {
@@ -2531,12 +2534,12 @@ describe("runAcpCore", () => {
             tool_call_id: "safe-command"
           });
 
-          return {
+          return toAcpModelResponse({
             message: {
               content: "Recovered",
               toolCalls: []
             }
-          };
+          });
         }
 
         throw new Error("Unexpected model call");
@@ -2624,7 +2627,7 @@ describe("runAcpCore", () => {
         callNumber += 1;
 
         if (callNumber === 1) {
-          return {
+          return toAcpModelResponse({
             message: {
               content: "",
               toolCalls: [
@@ -2640,7 +2643,7 @@ describe("runAcpCore", () => {
                 }
               ]
             }
-          };
+          });
         }
 
         if (callNumber === 2) {
@@ -2660,12 +2663,12 @@ describe("runAcpCore", () => {
             }
           ]);
 
-          return {
+          return toAcpModelResponse({
             message: {
               content: "done",
               toolCalls: []
             }
-          };
+          });
         }
 
         throw new Error("Unexpected model call");

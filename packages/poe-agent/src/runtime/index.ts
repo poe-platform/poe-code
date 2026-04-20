@@ -8,5 +8,6 @@ export * from "./run-context.js";
 export * from "./config.js";
 export * from "./plugin-api-impl.js";
 export * from "./plugin-setup.js";
+export * from "./resolve-provider.js";
 export * from "./acp-core.js";
 export * from "./agent-host.js";

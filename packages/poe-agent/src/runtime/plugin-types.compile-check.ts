@@ -2,11 +2,14 @@ import type {
   AgentPlugin,
   HookDecision,
   IterationContext,
+  Logger,
   McpServerConfig,
   NotificationContext,
   PostCompactionContext,
   PreCompactionContext,
   PluginApi,
+  Provider,
+  ProviderContext,
   PromptContext,
   SessionStartContext,
   StopContext,
@@ -14,6 +17,7 @@ import type {
   UserPromptSubmitContext
 } from "./plugin-types.js";
 import type { McpSpawnServer } from "@poe-code/agent-spawn";
+import type { AcpModel } from "./acp-core.js";
 import type { Tool } from "./types.js";
 
 declare const tool: Tool;
@@ -26,6 +30,8 @@ declare const postCompactionContext: PostCompactionContext;
 declare const notificationContext: NotificationContext;
 declare const stopContext: StopContext;
 declare const pluginApi: PluginApi;
+declare const providerContext: ProviderContext;
+declare const logger: Logger;
 
 type Assert<T extends true> = T;
 type AssertExact<Actual, Expected> =
@@ -56,6 +62,24 @@ const mcpConfig: McpServerConfig = {
   visibility: "skill"
 };
 
+const provider: Provider = {
+  name: "example-provider",
+  supports(modelId) {
+    return modelId.length > 0;
+  },
+  createModel(_modelId, ctx) {
+    void ctx.fetch;
+    void ctx.signal;
+    void ctx.logger;
+    void ctx.options;
+    return {
+      complete: async () => ({
+        events: (async function* () {})()
+      })
+    } satisfies AcpModel;
+  }
+};
+
 type AssertAssignable<To, ignoredFrom extends To> = true;
 type ignoredMcpServerConfigExtendsSpawnServer = AssertAssignable<McpSpawnServer, McpServerConfig>;
 type ignoredMcpServerConfigCanBeBuiltFromSpawnServer = AssertAssignable<
@@ -66,6 +90,7 @@ type ignoredMcpServerConfigCanBeBuiltFromSpawnServer = AssertAssignable<
 const plugin: AgentPlugin = {
   name: "example-plugin",
   tools: [tool],
+  providers: [provider],
   prompt: async (ctx) => ({ ...ctx, metadata: { ...ctx.metadata, touched: true } }),
   hooks: {
     sessionStart(ctx) {
@@ -135,3 +160,5 @@ void postCompactionContext;
 void notificationContext;
 void stopContext;
 void pluginApi;
+void providerContext;
+void logger;

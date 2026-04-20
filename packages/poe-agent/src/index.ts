@@ -27,10 +27,19 @@ export type {
   HookDecision,
   IterationCompactionOptions,
   IterationCompactionResult,
+  Logger,
   PluginApi,
+  Provider,
+  ProviderContext,
   ProviderStreamEvent,
   PromptContext
 } from "./runtime/plugin-types.js";
+export {
+  collectProviders,
+  DuplicateProviderNameError,
+  ProviderResolutionError,
+  resolveProvider
+} from "./runtime/resolve-provider.js";
 export type {
   AcpEvent,
   AcpHost,

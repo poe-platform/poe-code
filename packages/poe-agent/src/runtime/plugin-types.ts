@@ -1,5 +1,7 @@
 import type { ChatMessage, ForkResult, NormalizedTool, Tool, ToolCallRecord } from "./types.js";
 import type { McpSpawnServer } from "@poe-code/agent-spawn";
+import type { AcpModel } from "./acp-core.js";
+import type { RunContextLogger } from "./run-context.js";
 
 export type PromptContext = {
   baseSystemPrompt?: string;
@@ -11,6 +13,21 @@ export type PromptContext = {
 export type McpServerConfig = McpSpawnServer & {
   name: string;
   visibility?: "model" | "skill";
+};
+
+export type Logger = RunContextLogger;
+
+export type ProviderContext = {
+  fetch: typeof fetch;
+  signal?: AbortSignal;
+  logger?: Logger;
+  options: unknown;
+};
+
+export type Provider = {
+  name: string;
+  supports(modelId: string): boolean;
+  createModel(modelId: string, ctx: ProviderContext): AcpModel | Promise<AcpModel>;
 };
 
 export type ProviderStreamEvent =
@@ -157,6 +174,7 @@ export type HookDecision = "skip" | "abort" | { reject: string } | void;
 export type AgentPlugin = {
   name: string;
   tools?: Tool[];
+  providers?: Provider[];
   prompt?(ctx: PromptContext): PromptContext | Promise<PromptContext>;
   hooks?: {
     sessionStart?(ctx: SessionStartContext): HookDecision | void | Promise<HookDecision | void>;

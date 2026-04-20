@@ -2,11 +2,14 @@ import type {
   AgentPlugin,
   HookDecision,
   IterationContext,
+  Logger,
   McpServerConfig,
   NotificationContext,
   PostCompactionContext,
   PreCompactionContext,
   PluginApi,
+  Provider,
+  ProviderContext,
   PromptContext,
   SessionStartContext,
   StopContext,
@@ -17,11 +20,14 @@ import type {
   AgentPlugin as InternalAgentPlugin,
   HookDecision as InternalHookDecision,
   IterationContext as InternalIterationContext,
+  Logger as InternalLogger,
   McpServerConfig as InternalMcpServerConfig,
   NotificationContext as InternalNotificationContext,
   PostCompactionContext as InternalPostCompactionContext,
   PreCompactionContext as InternalPreCompactionContext,
   PluginApi as InternalPluginApi,
+  Provider as InternalProvider,
+  ProviderContext as InternalProviderContext,
   PromptContext as InternalPromptContext,
   SessionStartContext as InternalSessionStartContext,
   StopContext as InternalStopContext,
@@ -36,6 +42,12 @@ type ignoredPublicAgentPluginMatchesInternal = AssertAssignable<
   AgentPlugin
 >;
 type ignoredPublicPluginApiMatchesInternal = AssertAssignable<InternalPluginApi, PluginApi>;
+type ignoredPublicProviderMatchesInternal = AssertAssignable<InternalProvider, Provider>;
+type ignoredPublicProviderContextMatchesInternal = AssertAssignable<
+  InternalProviderContext,
+  ProviderContext
+>;
+type ignoredPublicLoggerMatchesInternal = AssertAssignable<InternalLogger, Logger>;
 type ignoredPublicMcpServerConfigMatchesInternal = AssertAssignable<
   InternalMcpServerConfig,
   McpServerConfig

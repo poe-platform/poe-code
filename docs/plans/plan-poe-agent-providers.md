@@ -176,7 +176,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: provider-types-resolver
     title: Add Provider/ProviderContext types and resolve-provider
@@ -234,9 +234,9 @@ tasks:
       - `npx vitest run packages/poe-agent` — all green.
       - `npx tsc -p packages/poe-agent/tsconfig.json --noEmit` — clean.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: openai-dep-auth-helper
     title: Add openai dependency and shared auth helper

@@ -1,0 +1,169 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { vol } from "memfs";
+
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return fs.promises;
+});
+
+const resolveAgent = vi.fn();
+
+vi.mock("@poe-code/poe-code-config", () => ({
+  resolveAgent
+}));
+
+const { queryMemory, selectQueryContext, rankPagesForQuery } = await import("./query.js");
+
+describe("rankPagesForQuery", () => {
+  it("ranks exact name/description matches above unrelated pages", () => {
+    const ranked = rankPagesForQuery(
+      [
+        {
+          relPath: "pages/packages/superintendent.md",
+          frontmatter: { name: "superintendent", description: "Retry rules and checkpoints" },
+          body: "# Superintendent\n\nRetry on ENOENT.",
+          bytes: 0,
+          mtimeMs: 0
+        },
+        {
+          relPath: "pages/architecture.md",
+          frontmatter: { description: "Package wiring overview" },
+          body: "# Architecture\n\nGeneral overview.",
+          bytes: 0,
+          mtimeMs: 0
+        }
+      ],
+      "why does superintendent retry on ENOENT"
+    );
+
+    expect(ranked.map((page) => page.relPath)).toEqual([
+      "pages/packages/superintendent.md",
+      "pages/architecture.md"
+    ]);
+  });
+});
+
+describe("selectQueryContext", () => {
+  beforeEach(() => {
+    vol.reset();
+  });
+
+  it("returns all pages when they fit within budget", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/a.md": "---\ndescription: Alpha\n---\n# Alpha\n\nhello\n",
+      "/repo/.poe-code/memory/pages/b.md": "---\ndescription: Beta\n---\n# Beta\n\nworld\n"
+    });
+
+    const context = await selectQueryContext(
+      "/repo/.poe-code/memory",
+      "alpha",
+      10_000
+    );
+
+    expect(context.selectedPages.map((page) => page.relPath)).toEqual([
+      "pages/a.md",
+      "pages/b.md"
+    ]);
+    expect(context.truncated).toBe(false);
+    expect(context.tokensUsed).toBeGreaterThan(0);
+  });
+
+  it("throws when the budget cannot fit INDEX.md", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n- [alpha](pages/a.md)\n"
+    });
+
+    await expect(selectQueryContext("/repo/.poe-code/memory", "alpha", 1)).rejects.toThrow(
+      /budget too small/i
+    );
+  });
+});
+
+describe("queryMemory", () => {
+  beforeEach(() => {
+    vol.reset();
+    resolveAgent.mockReset();
+    resolveAgent.mockResolvedValue("claude-code");
+  });
+
+  it("returns an empty answer without spawning when memory has no pages", async () => {
+    const spawnFn = vi.fn();
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n"
+    });
+
+    const result = await queryMemory("/repo/.poe-code/memory", {
+      question: "what is this repo?",
+      budget: 4096,
+      spawnFn
+    });
+
+    expect(spawnFn).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      answer: "",
+      citations: [],
+      tokensUsed: 0,
+      budget: 4096,
+      exitCode: 0
+    });
+  });
+
+  it("spawns the configured agent with memory-only context and parses citations", async () => {
+    const spawnFn = vi.fn().mockResolvedValue({
+      answer: "Retries happen during cleanup races.",
+      citations: [
+        {
+          relPath: "pages/packages/superintendent.md",
+          section: "checkpoints",
+          confidence: "extracted"
+        }
+      ],
+      tokensUsed: 321,
+      exitCode: 0
+    });
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n- [superintendent](pages/packages/superintendent.md)\n",
+      "/repo/.poe-code/memory/pages/packages/superintendent.md": [
+        "---",
+        "description: Loop harness",
+        "---",
+        "# Superintendent",
+        "",
+        "## checkpoints",
+        "",
+        "<!-- memory:extracted source=src/phases.ts#L1-L4 -->",
+        "Retries happen during cleanup races.",
+        ""
+      ].join("\n")
+    });
+
+    const result = await queryMemory("/repo/.poe-code/memory", {
+      question: "why retry?",
+      budget: 4096,
+      spawnFn
+    });
+
+    expect(spawnFn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.stringContaining("Answer using only the provided memory pages")
+    );
+    expect(spawnFn.mock.calls[0]?.[1]).toContain("# Memory index");
+    expect(spawnFn.mock.calls[0]?.[1]).toContain("pages/packages/superintendent.md");
+    expect(result).toEqual({
+      answer: "Retries happen during cleanup races.",
+      citations: [
+        {
+          relPath: "pages/packages/superintendent.md",
+          section: "checkpoints",
+          confidence: "extracted"
+        }
+      ],
+      tokensUsed: 321,
+      budget: 4096,
+      exitCode: 0
+    });
+  });
+});

@@ -1,0 +1,213 @@
+import { createHash } from "node:crypto";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { vol } from "memfs";
+
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return fs.promises;
+});
+
+const { reconcile, snapshot } = await import("./reconcile.js");
+
+describe("snapshot", () => {
+  beforeEach(() => {
+    vol.reset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("hashes only markdown pages under pages/", async () => {
+    const root = "/repo/.poe-code/memory";
+    const architecture = "# Architecture\n";
+    const superintendent = ["---", "description: Loop harness", "---", "# Superintendent"].join(
+      "\n"
+    );
+
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: "",
+      [`${root}/pages/architecture.md`]: architecture,
+      [`${root}/pages/packages/superintendent.md`]: superintendent,
+      [`${root}/notes.md`]: "# ignored\n"
+    });
+
+    await expect(snapshot(root)).resolves.toEqual({
+      pages: {
+        "pages/architecture.md": hash(architecture),
+        "pages/packages/superintendent.md": hash(superintendent)
+      }
+    });
+  });
+});
+
+describe("reconcile", () => {
+  beforeEach(() => {
+    vol.reset();
+    vi.setSystemTime(new Date("2026-04-19T15:04:05.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("stamps changed pages, denormalizes sources, rewrites the index, and appends one log line per diff", async () => {
+    const root = "/repo/.poe-code/memory";
+    const unchanged = ["---", "description: Already there", "---", "# Stable page", ""].join("\n");
+
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# stale\n",
+      [`${root}/LOG.md`]: "- 2026-04-18T10:00:00.000Z  **update** `pages/old.md` — old reason\n",
+      [`${root}/pages/architecture.md`]: [
+        "---",
+        "description: Old overview",
+        "sources:",
+        "  - docs/old-source.md",
+        "---",
+        "# Architecture",
+        "",
+        "Old body"
+      ].join("\n"),
+      [`${root}/pages/deleted.md`]: "# Delete me\n",
+      [`${root}/pages/unchanged.md`]: unchanged
+    });
+
+    const before = await snapshot(root);
+
+    await vol.promises.writeFile(
+      `${root}/pages/architecture.md`,
+      [
+        "---",
+        "description: System overview",
+        "sources:",
+        "  - docs/old-source.md",
+        "---",
+        "# Architecture",
+        "",
+        "<!-- memory:extracted source=packages/core/src/router.ts#L10-L12 -->",
+        "Routes requests through the central router.",
+        "",
+        "<!-- memory:inferred confidence=0.7 source=packages/core/src/router.ts#L20 -->",
+        "The router keeps handlers isolated.",
+        ""
+      ].join("\n")
+    );
+    await vol.promises.mkdir(`${root}/pages/packages`, { recursive: true });
+    await vol.promises.writeFile(
+      `${root}/pages/packages/superintendent.md`,
+      [
+        "---",
+        "description: Loop harness",
+        "sources:",
+        "  - docs/old-source.md",
+        "---",
+        "# Superintendent",
+        "",
+        "A short summary.",
+        ""
+      ].join("\n")
+    );
+    await vol.promises.unlink(`${root}/pages/deleted.md`);
+    await vol.promises.writeFile(`${root}/INDEX.md`, "# broken by agent\n");
+
+    await expect(reconcile(root, before, "ingest", "captured checkpoint rules")).resolves.toEqual({
+      created: ["pages/packages/superintendent.md"],
+      deleted: ["pages/deleted.md"],
+      updated: ["pages/architecture.md"]
+    });
+
+    await expect(vol.promises.readFile(`${root}/pages/architecture.md`, "utf8")).resolves.toBe(
+      [
+        "---",
+        "description: System overview",
+        "last_touched_at: 2026-04-19T15:04:05.000Z",
+        "sources:",
+        "  - packages/core/src/router.ts#L10-L12",
+        "  - packages/core/src/router.ts#L20",
+        "---",
+        "# Architecture",
+        "",
+        "<!-- memory:extracted source=packages/core/src/router.ts#L10-L12 -->",
+        "Routes requests through the central router.",
+        "",
+        "<!-- memory:inferred confidence=0.7 source=packages/core/src/router.ts#L20 -->",
+        "The router keeps handlers isolated.",
+        ""
+      ].join("\n")
+    );
+
+    await expect(
+      vol.promises.readFile(`${root}/pages/packages/superintendent.md`, "utf8")
+    ).resolves.toBe(
+      [
+        "---",
+        "description: Loop harness",
+        "last_touched_at: 2026-04-19T15:04:05.000Z",
+        "---",
+        "# Superintendent",
+        "",
+        "A short summary.",
+        ""
+      ].join("\n")
+    );
+
+    await expect(vol.promises.readFile(`${root}/pages/unchanged.md`, "utf8")).resolves.toBe(
+      unchanged
+    );
+
+    await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe(
+      [
+        "# Memory index",
+        "",
+        "- [architecture](pages/architecture.md) — System overview",
+        "- [packages/superintendent](pages/packages/superintendent.md) — Loop harness",
+        "- [unchanged](pages/unchanged.md) — Already there",
+        ""
+      ].join("\n")
+    );
+
+    await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe(
+      [
+        "- 2026-04-18T10:00:00.000Z  **update** `pages/old.md` — old reason",
+        "- 2026-04-19T15:04:05.000Z  **update** `pages/architecture.md` — captured checkpoint rules",
+        "- 2026-04-19T15:04:05.000Z  **delete** `pages/deleted.md` — captured checkpoint rules",
+        "- 2026-04-19T15:04:05.000Z  **create** `pages/packages/superintendent.md` — captured checkpoint rules",
+        ""
+      ].join("\n")
+    );
+  });
+
+  it("heals missing INDEX.md and LOG.md without fabricating a diff", async () => {
+    const root = "/repo/.poe-code/memory";
+
+    vol.fromJSON({
+      [`${root}/pages/architecture.md`]: [
+        "---",
+        "description: System overview",
+        "---",
+        "# A",
+        ""
+      ].join("\n")
+    });
+
+    const before = await snapshot(root);
+
+    await expect(reconcile(root, before, "lint", "no issues")).resolves.toEqual({
+      created: [],
+      deleted: [],
+      updated: []
+    });
+
+    await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe(
+      ["# Memory index", "", "- [architecture](pages/architecture.md) — System overview", ""].join(
+        "\n"
+      )
+    );
+    await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("");
+  });
+});
+
+function hash(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}

@@ -1,4 +1,5 @@
 import type { AgentPlugin, Provider } from "./plugin-types.js";
+import { getResolvedPluginOptions, setResolvedProviderOptions } from "./provider-metadata.js";
 
 function formatProviderNames(providerNames: string[]): string {
   return providerNames.length === 0 ? "(none)" : providerNames.join(", ");
@@ -70,7 +71,7 @@ export function collectProviders(plugins: AgentPlugin[]): Provider[] {
       }
 
       providerEntriesByName.set(provider.name, [pluginEntry]);
-      providers.push(provider);
+      providers.push(setResolvedProviderOptions(provider, getResolvedPluginOptions(plugin)));
     }
   }
 
@@ -78,7 +79,7 @@ export function collectProviders(plugins: AgentPlugin[]): Provider[] {
 }
 
 export function resolveProvider(providers: Provider[], modelId: string): Provider {
-  const providerNames = providers.map(provider => provider.name);
+  const providerNames = providers.map((provider) => provider.name);
 
   for (const provider of providers) {
     let supported: boolean;
@@ -90,7 +91,7 @@ export function resolveProvider(providers: Provider[], modelId: string): Provide
         modelId,
         providerNames,
         providerName: provider.name,
-        cause: error,
+        cause: error
       });
     }
 

@@ -54,6 +54,10 @@ export class RunContext {
     this.#logger = options.logger ?? console;
   }
 
+  get logger(): RunContextLogger {
+    return this.#logger;
+  }
+
   registerDisposeHook(hook: DisposeHook): void {
     this.#disposeHooks.push(hook);
   }
@@ -66,7 +70,7 @@ export class RunContext {
       },
       () => {
         this.childRuns.delete(childRun);
-      },
+      }
     );
 
     return childRun;

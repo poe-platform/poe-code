@@ -359,7 +359,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: wire-resolve-provider-delete-models
     title: Swap agent.ts to resolveProvider, update runners, delete models dir
@@ -435,8 +435,8 @@ tasks:
       - `grep -R "createPoeAcpModel\|PoeFetchFn" packages/` — zero matches.
       - `test -d packages/poe-agent/src/models` — directory absent.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: openai-responses-plugin

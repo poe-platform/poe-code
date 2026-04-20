@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { AcpModel, AcpModelRequestMessage } from "../runtime/acp-core.js";
+import { setResolvedPluginOptions } from "../runtime/provider-metadata.js";
 import type { AgentPlugin, ProviderContext, ProviderStreamEvent } from "../runtime/plugin-types.js";
 import { toolResultPartToText } from "../runtime/tool-results.js";
 import type { ToolResultPart } from "../runtime/types.js";
@@ -96,21 +97,26 @@ export const spec: PluginSpec<OpenaiChatCompletionsPluginOptions> = {
 export function openaiChatCompletionsPlugin(
   opts: OpenaiChatCompletionsPluginOptions = {}
 ): AgentPlugin {
-  return {
-    name: "openai-chat-completions-plugin",
-    providers: [
-      {
-        name: "openai-chat-completions",
-        supports: () => true,
-        createModel(modelId, ctx) {
-          return createOpenaiChatCompletionsModel(modelId, {
-            ...ctx,
-            options: mergePluginOptions(opts, ctx.options)
-          });
+  const options = spec.parseOptions(opts);
+
+  return setResolvedPluginOptions(
+    {
+      name: "openai-chat-completions-plugin",
+      providers: [
+        {
+          name: "openai-chat-completions",
+          supports: () => true,
+          createModel(modelId, ctx) {
+            return createOpenaiChatCompletionsModel(modelId, {
+              ...ctx,
+              options: mergePluginOptions(options, ctx.options)
+            });
+          }
         }
-      }
-    ]
-  };
+      ]
+    },
+    options
+  );
 }
 
 async function createOpenaiChatCompletionsModel(
@@ -174,7 +180,7 @@ async function* streamChatCompletionChunks(
   const toolCallsById = new Map<string, ToolCallBuffer>();
   const toolCallIdsByIndex = new Map<number, string>();
   let usage: Extract<ProviderStreamEvent, { type: "usage" }> | undefined;
-  let stopReason: Extract<ProviderStreamEvent, { type: "stop" }>['reason'] | undefined;
+  let stopReason: Extract<ProviderStreamEvent, { type: "stop" }>["reason"] | undefined;
 
   for await (const chunk of stream) {
     const nextUsage = extractUsage(chunk.usage);
@@ -326,9 +332,7 @@ function serializeReasoningRequestFields(
   };
 }
 
-function serializeProviderMessageContent(
-  content: AcpModelRequestMessage["content"]
-):
+function serializeProviderMessageContent(content: AcpModelRequestMessage["content"]):
   | string
   | Array<
       | {
@@ -349,9 +353,7 @@ function serializeProviderMessageContent(
   return content.map((part) => serializeProviderContentPart(part));
 }
 
-function serializeProviderContentPart(
-  part: ToolResultPart
-):
+function serializeProviderContentPart(part: ToolResultPart):
   | {
       type: "text";
       text: string;
@@ -504,7 +506,7 @@ function extractUsage(
 
 function mapFinishReason(
   reason: "stop" | "length" | "tool_calls" | "content_filter" | "function_call" | null | undefined
-): Extract<ProviderStreamEvent, { type: "stop" }>['reason'] | undefined {
+): Extract<ProviderStreamEvent, { type: "stop" }>["reason"] | undefined {
   if (reason === undefined || reason === null) {
     return undefined;
   }
@@ -524,7 +526,9 @@ function mapFinishReason(
   return "error";
 }
 
-async function resolveClientApiKey(explicitApiKey: string | undefined): Promise<string | undefined> {
+async function resolveClientApiKey(
+  explicitApiKey: string | undefined
+): Promise<string | undefined> {
   const explicit = toNonEmptyString(explicitApiKey);
   if (explicit !== undefined) {
     return await resolveOpenaiApiKey(explicit);
@@ -577,7 +581,9 @@ function readOptionalStringRecord(
   return record;
 }
 
-function cloneStringRecord(value: Record<string, string> | undefined): Record<string, string> | undefined {
+function cloneStringRecord(
+  value: Record<string, string> | undefined
+): Record<string, string> | undefined {
   if (value === undefined) {
     return undefined;
   }

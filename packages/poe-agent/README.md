@@ -98,6 +98,7 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 
 `pluginsConfig` resolves plugin names from the built-in registry. Supported names are:
 
+- `openai-chat-completions`
 - `system-prompt`
 - `files`
 - `shell`
@@ -120,7 +121,7 @@ await createAgentSession({
 });
 ```
 
-If `pluginsConfig` is omitted, `createAgentSession()` keeps the default bundle (`system-prompt`, `files`, `shell`, `web`).
+If `pluginsConfig` is omitted, `createAgentSession()` keeps the default bundle (`openai-chat-completions`, `system-prompt`, `files`, `shell`, `web`).
 
 `mcpServers` stays separate from `pluginsConfig`; MCP servers still use the dedicated `mcpServers` option.
 

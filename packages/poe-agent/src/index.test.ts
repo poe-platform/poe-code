@@ -6,11 +6,15 @@ import {
   environmentPlugin,
   filesPlugin,
   gitContextPlugin,
+  InvalidToolNameError,
   maxIterationsPlugin,
   mcpPlugin,
   memoryPlugin,
+  openaiChatCompletionsPlugin,
   parsePluginConfigEntries,
   parsePluginConfigEntry,
+  DuplicateProviderNameError,
+  ProviderResolutionError,
   policyPlugin,
   resolvePluginsFromConfig,
   scratchpadPlugin,
@@ -28,12 +32,18 @@ import gitContext from "./plugins/poe-agent-plugin-git-context.js";
 import maxIterations from "./plugins/poe-agent-plugin-max-iterations.js";
 import mcp from "./plugins/poe-agent-plugin-mcp.js";
 import memory from "./plugins/poe-agent-plugin-memory.js";
+import { openaiChatCompletionsPlugin as openaiChatCompletions } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
 import policy from "./plugins/poe-agent-plugin-policy.js";
+import {
+  DuplicateProviderNameError as duplicateProviderName,
+  ProviderResolutionError as providerResolution
+} from "./runtime/resolve-provider.js";
 import scratchpad from "./plugins/poe-agent-plugin-scratchpad.js";
 import shell from "./plugins/poe-agent-plugin-shell.js";
 import skills from "./plugins/poe-agent-plugin-skills.js";
 import spawn from "./plugins/poe-agent-plugin-spawn.js";
 import systemPrompt from "./plugins/poe-agent-plugin-system-prompt.js";
+import { InvalidToolNameError as invalidToolName } from "./runtime/tool-names.js";
 import web from "./plugins/poe-agent-plugin-web.js";
 
 describe("package root exports", () => {
@@ -46,6 +56,7 @@ describe("package root exports", () => {
     expect(maxIterationsPlugin).toBe(maxIterations);
     expect(mcpPlugin).toBe(mcp);
     expect(memoryPlugin).toBe(memory);
+    expect(openaiChatCompletionsPlugin).toBe(openaiChatCompletions);
     expect(policyPlugin).toBe(policy);
     expect(scratchpadPlugin).toBe(scratchpad);
     expect(shellPlugin).toBe(shell);
@@ -60,5 +71,11 @@ describe("package root exports", () => {
     expect(parsePluginConfigEntry({ name: "web" })).toEqual({ name: "web" });
     expect(parsePluginConfigEntries([{ name: "web" }])).toEqual([{ name: "web" }]);
     expect(typeof resolvePluginsFromConfig).toBe("function");
+  });
+
+  it("re-exports provider/tool errors without deep imports", () => {
+    expect(DuplicateProviderNameError).toBe(duplicateProviderName);
+    expect(InvalidToolNameError).toBe(invalidToolName);
+    expect(ProviderResolutionError).toBe(providerResolution);
   });
 });

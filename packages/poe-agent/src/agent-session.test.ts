@@ -1,17 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionUpdate } from "@poe-code/agent-spawn";
-import type { AcpEvent, AcpSession, RunResult } from "./runtime/types.js";
+import type { AcpSession } from "./agent.js";
+import type { AcpEvent, RunResult } from "./runtime/types.js";
 
+const openaiChatCompletionsPluginMock = vi.hoisted(() =>
+  vi.fn(() => ({ name: "openai-chat-completions-plugin" }))
+);
 const systemPromptPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "system-prompt" })));
 const filesPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "file-tools" })));
-const environmentPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "environment" })));
 const shellPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "shell-tools" })));
 const webPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "web-tools" })));
 const policyPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "policy" })));
 const resolvePluginsFromConfigMock = vi.hoisted(() => vi.fn());
 
-const acpMock = vi.hoisted(
-  () => vi.fn<(prompt: string, options?: Record<string, unknown>) => Promise<AcpSession>>(),
+const acpMock = vi.hoisted(() =>
+  vi.fn<(prompt: string, options?: Record<string, unknown>) => Promise<AcpSession>>()
 );
 const useMock = vi.hoisted(() => vi.fn());
 const modelMock = vi.hoisted(() => vi.fn());
@@ -23,41 +26,42 @@ vi.mock("./agent.js", () => ({
     if (typeof value !== "string") return undefined;
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : undefined;
-  },
+  }
 }));
 
 vi.mock("./plugins/poe-agent-plugin-system-prompt.js", () => ({
   default: systemPromptPluginMock,
-  spec: { name: "system-prompt" },
+  spec: { name: "system-prompt" }
 }));
 
 vi.mock("./plugins/poe-agent-plugin-files.js", () => ({
   default: filesPluginMock,
-  spec: { name: "files" },
+  spec: { name: "files" }
 }));
 
-vi.mock("./plugins/poe-agent-plugin-environment.js", () => ({
-  default: environmentPluginMock,
-  spec: { name: "environment" },
+vi.mock("./plugins/poe-agent-plugin-openai-chat-completions.js", () => ({
+  openaiChatCompletionsPlugin: openaiChatCompletionsPluginMock,
+  default: openaiChatCompletionsPluginMock,
+  spec: { name: "openai-chat-completions" }
 }));
 
 vi.mock("./plugins/poe-agent-plugin-shell.js", () => ({
   default: shellPluginMock,
-  spec: { name: "shell" },
+  spec: { name: "shell" }
 }));
 
 vi.mock("./plugins/poe-agent-plugin-web.js", () => ({
   default: webPluginMock,
-  spec: { name: "web" },
+  spec: { name: "web" }
 }));
 
 vi.mock("./plugins/poe-agent-plugin-policy.js", () => ({
   default: policyPluginMock,
-  spec: { name: "policy" },
+  spec: { name: "policy" }
 }));
 
 vi.mock("./plugins/resolve-plugins.js", () => ({
-  resolvePluginsFromConfig: resolvePluginsFromConfigMock,
+  resolvePluginsFromConfig: resolvePluginsFromConfigMock
 }));
 
 function asAsyncIterable(events: AcpEvent[]): AsyncIterable<AcpEvent> {
@@ -66,7 +70,7 @@ function asAsyncIterable(events: AcpEvent[]): AsyncIterable<AcpEvent> {
       for (const event of events) {
         yield event;
       }
-    },
+    }
   };
 }
 
@@ -74,15 +78,15 @@ async function createAcpSession(events: AcpEvent[]): Promise<AcpSession> {
   return {
     events: asAsyncIterable(events),
     acknowledge: vi.fn(),
-    dispose: vi.fn(),
+    dispose: vi.fn()
   };
 }
 
 describe("createAgentSession", () => {
   beforeEach(() => {
+    openaiChatCompletionsPluginMock.mockClear();
     systemPromptPluginMock.mockClear();
     filesPluginMock.mockClear();
-    environmentPluginMock.mockClear();
     shellPluginMock.mockClear();
     webPluginMock.mockClear();
     policyPluginMock.mockClear();
@@ -95,7 +99,7 @@ describe("createAgentSession", () => {
     const builder = {
       model: modelMock,
       use: useMock,
-      acp: acpMock,
+      acp: acpMock
     };
 
     modelMock.mockReturnValue(builder);
@@ -106,17 +110,17 @@ describe("createAgentSession", () => {
       createAcpSession([
         {
           type: "message.delta",
-          content: "done",
+          content: "done"
         },
         {
           type: "session.complete",
           result: {
             output: "done",
             messages: [{ role: "assistant", content: "done" }],
-            toolCalls: [],
-          },
-        },
-      ]),
+            toolCalls: []
+          }
+        }
+      ])
     );
   });
 
@@ -133,31 +137,31 @@ describe("createAgentSession", () => {
       apiKey: "explicit-key",
       model: "Claude-Sonnet-4.5",
       cwd: "/workspace/project",
-      allowedPaths: ["/workspace/project"],
+      allowedPaths: ["/workspace/project"]
     });
 
     await session.sendMessage("hello");
 
     expect(agentMock).toHaveBeenCalledTimes(1);
     expect(modelMock).toHaveBeenCalledWith("Claude-Sonnet-4.5");
+    expect(openaiChatCompletionsPluginMock).toHaveBeenCalledTimes(1);
     expect(systemPromptPluginMock).toHaveBeenCalledTimes(1);
-    expect(environmentPluginMock).toHaveBeenCalledWith("/workspace/project");
     expect(filesPluginMock).toHaveBeenCalledWith({
       cwd: "/workspace/project",
-      allowedPaths: ["/workspace/project"],
+      allowedPaths: ["/workspace/project"]
     });
     expect(shellPluginMock).toHaveBeenCalledWith({
       cwd: "/workspace/project",
-      allowedPaths: ["/workspace/project"],
+      allowedPaths: ["/workspace/project"]
     });
     expect(webPluginMock).toHaveBeenCalledTimes(1);
     expect(useMock).toHaveBeenCalledTimes(5);
-    expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
+    expect(useMock.mock.calls.map((call) => (call[0] as { name: string }).name)).toEqual([
+      "openai-chat-completions-plugin",
       "system-prompt",
-      "environment",
       "file-tools",
       "shell-tools",
-      "web-tools",
+      "web-tools"
     ]);
 
     expect(Object.keys(session).sort()).toEqual(["dispose", "sendMessage"]);
@@ -168,19 +172,19 @@ describe("createAgentSession", () => {
 
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
-      mode: "read",
+      mode: "read"
     });
 
     await session.sendMessage("hello");
 
     expect(policyPluginMock).toHaveBeenCalledWith({ mode: "read" });
-    expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
+    expect(useMock.mock.calls.map((call) => (call[0] as { name: string }).name)).toEqual([
+      "openai-chat-completions-plugin",
       "system-prompt",
-      "environment",
       "file-tools",
       "shell-tools",
       "web-tools",
-      "policy",
+      "policy"
     ]);
   });
 
@@ -191,20 +195,20 @@ describe("createAgentSession", () => {
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       mode: "edit",
-      plugins: customPlugins,
+      plugins: customPlugins
     });
 
     await session.sendMessage("hello");
 
     expect(systemPromptPluginMock).not.toHaveBeenCalled();
     expect(filesPluginMock).not.toHaveBeenCalled();
-    expect(environmentPluginMock).not.toHaveBeenCalled();
+    expect(openaiChatCompletionsPluginMock).not.toHaveBeenCalled();
     expect(shellPluginMock).not.toHaveBeenCalled();
     expect(webPluginMock).not.toHaveBeenCalled();
-    expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
+    expect(useMock.mock.calls.map((call) => (call[0] as { name: string }).name)).toEqual([
       "custom-a",
       "custom-b",
-      "policy",
+      "policy"
     ]);
   });
 
@@ -215,7 +219,7 @@ describe("createAgentSession", () => {
 
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
-      pluginsConfig: [{ name: "web" }],
+      pluginsConfig: [{ name: "web" }]
     });
 
     await session.sendMessage("hello");
@@ -223,12 +227,12 @@ describe("createAgentSession", () => {
     expect(resolvePluginsFromConfigMock).toHaveBeenCalledWith([{ name: "web" }]);
     expect(systemPromptPluginMock).not.toHaveBeenCalled();
     expect(filesPluginMock).not.toHaveBeenCalled();
-    expect(environmentPluginMock).not.toHaveBeenCalled();
+    expect(openaiChatCompletionsPluginMock).not.toHaveBeenCalled();
     expect(shellPluginMock).not.toHaveBeenCalled();
     expect(webPluginMock).not.toHaveBeenCalled();
-    expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
+    expect(useMock.mock.calls.map((call) => (call[0] as { name: string }).name)).toEqual([
       "config-a",
-      "config-b",
+      "config-b"
     ]);
   });
 
@@ -239,8 +243,8 @@ describe("createAgentSession", () => {
       createAgentSession({
         model: "Claude-Sonnet-4.5",
         plugins: [{ name: "custom" }],
-        pluginsConfig: [{ name: "web" }],
-      }),
+        pluginsConfig: [{ name: "web" }]
+      })
     ).rejects.toThrow("plugins and pluginsConfig");
   });
 
@@ -251,16 +255,16 @@ describe("createAgentSession", () => {
           type: "tool.intent",
           intentId: "call-1",
           tool: "read_file",
-          args: { path: "README.md" },
+          args: { path: "README.md" }
         },
         {
           type: "tool.result",
           intentId: "call-1",
-          result: "README content",
+          result: "README content"
         },
         {
           type: "message.delta",
-          content: "Done",
+          content: "Done"
         },
         {
           type: "session.complete",
@@ -273,30 +277,30 @@ describe("createAgentSession", () => {
                 tool: "read_file",
                 args: { path: "README.md" },
                 status: "success",
-                result: "README content",
-              },
-            ],
-          },
-        },
-      ]),
+                result: "README content"
+              }
+            ]
+          }
+        }
+      ])
     );
 
     const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
-      apiKey: "test-key",
+      apiKey: "test-key"
     });
 
     const updates: SessionUpdate[] = [];
     const response = await session.sendMessage("Read README", {
       onSessionUpdate(update) {
         updates.push(update);
-      },
+      }
     });
 
     expect(response).toEqual({
       role: "assistant",
-      content: "Done",
+      content: "Done"
     });
     expect(updates).toEqual([
       {
@@ -305,35 +309,35 @@ describe("createAgentSession", () => {
         title: "read_file",
         kind: "execute",
         status: "pending",
-        rawInput: { path: "README.md" },
+        rawInput: { path: "README.md" }
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "call-1",
         kind: "execute",
-        status: "in_progress",
+        status: "in_progress"
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "call-1",
         kind: "execute",
         status: "completed",
-        rawOutput: "README content",
+        rawOutput: "README content"
       },
       {
         sessionUpdate: "agent_message_chunk",
         content: {
           type: "text",
-          text: "Done",
-        },
-      },
+          text: "Done"
+        }
+      }
     ]);
   });
 
   it("maps multimodal tool results into legacy tool_call_update content", async () => {
     const multimodalResult = [
       { type: "text", text: "Screenshot captured" },
-      { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+      { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" }
     ] as const;
 
     acpMock.mockImplementationOnce(() =>
@@ -342,12 +346,12 @@ describe("createAgentSession", () => {
           type: "tool.intent",
           intentId: "call-1",
           tool: "read_file",
-          args: { path: "diagram.png" },
+          args: { path: "diagram.png" }
         },
         {
           type: "tool.result",
           intentId: "call-1",
-          result: multimodalResult,
+          result: multimodalResult
         },
         {
           type: "session.complete",
@@ -360,25 +364,25 @@ describe("createAgentSession", () => {
                 tool: "read_file",
                 args: { path: "diagram.png" },
                 status: "success",
-                result: multimodalResult,
-              },
-            ],
-          },
-        },
-      ]),
+                result: multimodalResult
+              }
+            ]
+          }
+        }
+      ])
     );
 
     const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
-      apiKey: "test-key",
+      apiKey: "test-key"
     });
 
     const updates: SessionUpdate[] = [];
     await session.sendMessage("Read diagram", {
       onSessionUpdate(update) {
         updates.push(update);
-      },
+      }
     });
 
     expect(updates).toContainEqual({
@@ -389,8 +393,8 @@ describe("createAgentSession", () => {
       rawOutput: multimodalResult,
       content: [
         { type: "text", text: "Screenshot captured" },
-        { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
-      ],
+        { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" }
+      ]
     });
   });
 
@@ -402,23 +406,23 @@ describe("createAgentSession", () => {
           result: {
             output: "Final answer",
             messages: [{ role: "assistant", content: "Final answer" }],
-            toolCalls: [],
-          },
-        },
-      ]),
+            toolCalls: []
+          }
+        }
+      ])
     );
 
     const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
-      apiKey: "test-key",
+      apiKey: "test-key"
     });
 
     const updates: SessionUpdate[] = [];
     await session.sendMessage("hello", {
       onSessionUpdate(update) {
         updates.push(update);
-      },
+      }
     });
 
     expect(updates).toEqual([
@@ -426,9 +430,9 @@ describe("createAgentSession", () => {
         sessionUpdate: "agent_message_chunk",
         content: {
           type: "text",
-          text: "Final answer",
-        },
-      },
+          text: "Final answer"
+        }
+      }
     ]);
   });
 
@@ -442,21 +446,21 @@ describe("createAgentSession", () => {
         const firstResult: RunResult = {
           output: "first",
           messages: [{ role: "assistant", content: "first" }],
-          toolCalls: [],
+          toolCalls: []
         };
 
         return await createAcpSession([
           {
             type: "session.complete",
-            result: firstResult,
-          },
+            result: firstResult
+          }
         ]);
       }
 
       expect(options?.resume).toEqual({
         output: "first",
         messages: [{ role: "assistant", content: "first" }],
-        toolCalls: [],
+        toolCalls: []
       });
 
       return await createAcpSession([
@@ -465,16 +469,16 @@ describe("createAgentSession", () => {
           result: {
             output: "second",
             messages: [{ role: "assistant", content: "second" }],
-            toolCalls: [],
-          },
-        },
+            toolCalls: []
+          }
+        }
       ]);
     });
 
     const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
-      apiKey: "test-key",
+      apiKey: "test-key"
     });
 
     await session.sendMessage("first");
@@ -494,7 +498,7 @@ describe("createAgentSession", () => {
       cwd: "/workspace",
       baseUrl: "http://proxy.example.com",
       fetch: fetchMock,
-      maxToolCallIterations: 7,
+      maxToolCallIterations: 7
     });
 
     await session.sendMessage("hello", { signal });
@@ -508,15 +512,15 @@ describe("createAgentSession", () => {
         baseUrl: "http://proxy.example.com",
         fetch: fetchMock,
         maxIterations: 7,
-        __legacyAutoHandleTools: true,
-      }),
+        __legacyAutoHandleTools: true
+      })
     );
   });
 
   it("forwards undefined apiKey to ACP when not provided", async () => {
     const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
-      model: "Claude-Sonnet-4.5",
+      model: "Claude-Sonnet-4.5"
     });
 
     await session.sendMessage("hello");
@@ -524,8 +528,8 @@ describe("createAgentSession", () => {
     expect(acpMock).toHaveBeenCalledWith(
       "hello",
       expect.objectContaining({
-        apiKey: undefined,
-      }),
+        apiKey: undefined
+      })
     );
   });
 
@@ -541,21 +545,21 @@ describe("createAgentSession", () => {
     await expect(
       createAgentSession({
         apiKey: "provided-api-key",
-        model: "   ",
-      }),
+        model: "   "
+      })
     ).rejects.toThrow("Missing model. Provide a non-empty model to createAgentSession.");
   });
 
   it("surfaces ACP API-key resolution errors during sendMessage", async () => {
     acpMock.mockRejectedValueOnce(
-      new Error("Missing Poe API key. Provide apiKey or run 'poe-code login'."),
+      new Error("Missing Poe API key. Provide apiKey or run 'poe-code login'.")
     );
 
     const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
 
     await expect(session.sendMessage("hello")).rejects.toThrow(
-      "Missing Poe API key. Provide apiKey or run 'poe-code login'.",
+      "Missing Poe API key. Provide apiKey or run 'poe-code login'."
     );
   });
 
@@ -563,14 +567,14 @@ describe("createAgentSession", () => {
     const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       apiKey: "provided-api-key",
-      model: "Claude-Sonnet-4.5",
+      model: "Claude-Sonnet-4.5"
     });
 
     await session.dispose();
     await session.dispose();
 
     await expect(session.sendMessage("after dispose")).rejects.toThrow(
-      "Agent session is already disposed.",
+      "Agent session is already disposed."
     );
   });
 
@@ -581,24 +585,24 @@ describe("createAgentSession", () => {
           type: "tool.intent",
           intentId: "call-2",
           tool: "run_command",
-          args: { command: "ls" },
+          args: { command: "ls" }
         },
         {
           type: "tool.error",
           intentId: "call-2",
-          error: "command failed",
+          error: "command failed"
         },
         {
           type: "session.error",
-          error: new Error("Maximum tool call iterations reached"),
-        },
-      ]),
+          error: new Error("Maximum tool call iterations reached")
+        }
+      ])
     );
 
     const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
-      apiKey: "test-key",
+      apiKey: "test-key"
     });
     const updates: SessionUpdate[] = [];
 
@@ -606,8 +610,8 @@ describe("createAgentSession", () => {
       session.sendMessage("Run ls", {
         onSessionUpdate(update) {
           updates.push(update);
-        },
-      }),
+        }
+      })
     ).rejects.toThrow("Maximum tool call iterations reached");
 
     expect(updates).toEqual([
@@ -617,21 +621,21 @@ describe("createAgentSession", () => {
         title: "run_command",
         kind: "execute",
         status: "pending",
-        rawInput: { command: "ls" },
+        rawInput: { command: "ls" }
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "call-2",
         kind: "execute",
-        status: "in_progress",
+        status: "in_progress"
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "call-2",
         kind: "execute",
         status: "failed",
-        rawOutput: "command failed",
-      },
+        rawOutput: "command failed"
+      }
     ]);
   });
 });

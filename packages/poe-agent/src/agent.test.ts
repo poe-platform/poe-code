@@ -3,7 +3,9 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import maxIterationsPlugin from "./plugins/poe-agent-plugin-max-iterations.js";
+import { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
 import type { AcpModel, AcpModelResponse } from "./runtime/acp-core.js";
+import { ProviderResolutionError } from "./runtime/resolve-provider.js";
 import { toAcpModelResponse, type LegacyAcpModelResponse } from "./testing/model-response.js";
 import { agent } from "./agent.js";
 import type { AcpEvent } from "./runtime/types.js";
@@ -69,7 +71,7 @@ function createModel(
 
   return {
     complete: vi.fn(async (request) => {
-      capturedTools.push(...request.tools.map((tool) => tool.name));
+      capturedTools.push(...request.tools.map((tool: { name: string }) => tool.name));
 
       const next = queue.shift();
       if (!next) {
@@ -108,54 +110,159 @@ function createDeferred(): { promise: Promise<void>; resolve(): void } {
 }
 
 describe("agent builder", () => {
-  it("preserves reasoning fields between model iterations when using Poe fetch transport", async () => {
-    const requests: Array<{ messages: Array<Record<string, unknown>> }> = [];
-    const responses = [
-      {
-        choices: [
+  it("routes arbitrary model ids to the openai chat completions provider", async () => {
+    const plugin = openaiChatCompletionsPlugin();
+    const provider = plugin.providers?.[0];
+    const createModelMock = vi.fn(async (modelId: string, ctx: Record<string, unknown>) => {
+      expect(modelId).toBe("custom/provider-model");
+      expect(ctx.fetch).toBe(globalThis.fetch);
+      expect(ctx.signal).toBeInstanceOf(AbortSignal);
+      expect(ctx.logger).toMatchObject({ error: expect.any(Function) });
+      expect(ctx.options).toEqual({});
+
+      return createModel(
+        [
           {
             message: {
-              role: "assistant",
-              content: "",
-              reasoning_content: "Need to create the file first.",
-              reasoning: "Need to create the file first.",
-              tool_calls: [
-                {
-                  id: "call-1",
-                  type: "function",
-                  function: {
-                    name: "edit_file",
-                    arguments: '{"command": "create", "path": "/workspace/test-document.txt"}'
-                  }
-                }
-              ]
+              content: "done",
+              toolCalls: []
             }
           }
-        ]
+        ],
+        []
+      );
+    });
+
+    if (!provider) {
+      throw new Error("Expected openai chat completions provider.");
+    }
+
+    provider.createModel = createModelMock;
+
+    const result = await agent().model("custom/provider-model").use(plugin).run("hello");
+
+    expect(result.output).toBe("done");
+    expect(createModelMock).toHaveBeenCalledOnce();
+  });
+
+  it("passes resolved provider plugin options into provider context", async () => {
+    const plugin = openaiChatCompletionsPlugin({
+      apiKey: "plugin-key",
+      baseUrl: "https://proxy.example.com/v1",
+      timeout: 5
+    });
+    const provider = plugin.providers?.[0];
+    const createModelMock = vi.fn(async (_modelId: string, ctx: Record<string, unknown>) => {
+      expect(ctx.options).toEqual({
+        apiKey: "plugin-key",
+        baseUrl: "https://proxy.example.com/v1",
+        timeout: 5
+      });
+
+      return createModel(
+        [
+          {
+            message: {
+              content: "done",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      );
+    });
+
+    if (!provider) {
+      throw new Error("Expected openai chat completions provider.");
+    }
+
+    provider.createModel = createModelMock;
+
+    const result = await agent().model("custom/provider-model").use(plugin).run("hello");
+
+    expect(result.output).toBe("done");
+    expect(createModelMock).toHaveBeenCalledOnce();
+  });
+
+  it("throws ProviderResolutionError when no provider plugin is registered", async () => {
+    await expect(agent().model("custom/provider-model").run("hello")).rejects.toThrowError(
+      ProviderResolutionError
+    );
+  });
+
+  it("bypasses provider resolution when acpModel is injected", async () => {
+    const result = await agent().run("hello", {
+      acpModel: createModel(
+        [
+          {
+            message: {
+              content: "done",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      )
+    });
+
+    expect(result.output).toBe("done");
+  });
+
+  it("preserves reasoning fields between model iterations through provider requests", async () => {
+    const requests: Array<{ messages: Array<Record<string, unknown>> }> = [];
+    const responses: LegacyAcpModelResponse[] = [
+      {
+        message: {
+          content: "",
+          reasoning_content: "Need to create the file first.",
+          reasoning: "Need to create the file first.",
+          tool_calls: [
+            {
+              id: "call-1",
+              type: "function",
+              function: {
+                name: "edit_file",
+                arguments: '{"command": "create", "path": "/workspace/test-document.txt"}'
+              }
+            }
+          ]
+        }
       },
       {
-        choices: [
-          {
-            message: {
-              role: "assistant",
-              content: "done"
-            }
-          }
-        ]
+        message: {
+          content: "done",
+          toolCalls: []
+        }
       }
     ];
 
-    const fetchMock = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
-      requests.push(JSON.parse(String(init?.body)) as { messages: Array<Record<string, unknown>> });
-      const payload = responses.shift();
-      return new Response(JSON.stringify(payload), {
-        status: 200,
-        headers: { "content-type": "application/json" }
-      });
-    });
+    const providerPlugin = {
+      name: "catch-all-provider",
+      providers: [
+        {
+          name: "catch-all",
+          supports: () => true,
+          createModel: async () => ({
+            complete: vi.fn(async (request) => {
+              requests.push({
+                messages: request.messages as Array<Record<string, unknown>>
+              });
+
+              const response = responses.shift();
+              if (!response) {
+                throw new Error("Unexpected provider request");
+              }
+
+              return toAcpModelResponse(response);
+            })
+          })
+        }
+      ]
+    };
 
     await agent()
       .model("anthropic/claude-sonnet-4.6")
+      .use(providerPlugin)
       .use({
         name: "edit-plugin",
         tools: [
@@ -169,13 +276,8 @@ describe("agent builder", () => {
           }
         ]
       })
-      .run("Create a file", {
-        apiKey: "test-key",
-        baseUrl: "http://localhost:3456",
-        fetch: fetchMock
-      });
+      .run("Create a file");
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
     const secondAssistantMessage = requests[1]?.messages?.find(
       (message) => message.role === "assistant"
     );
@@ -187,52 +289,59 @@ describe("agent builder", () => {
     );
   });
 
-  it("serializes multimodal tool results for Poe chat completions requests", async () => {
+  it("serializes multimodal tool results in provider requests", async () => {
     const requests: Array<{ messages: Array<Record<string, unknown>> }> = [];
-    const responses = [
+    const responses: LegacyAcpModelResponse[] = [
       {
-        choices: [
-          {
-            message: {
-              role: "assistant",
-              content: "",
-              tool_calls: [
-                {
-                  id: "call-1",
-                  type: "function",
-                  function: {
-                    name: "read_file",
-                    arguments: '{"path":"diagram.png"}'
-                  }
-                }
-              ]
+        message: {
+          content: "",
+          tool_calls: [
+            {
+              id: "call-1",
+              type: "function",
+              function: {
+                name: "read_file",
+                arguments: '{"path":"diagram.png"}'
+              }
             }
-          }
-        ]
+          ]
+        }
       },
       {
-        choices: [
-          {
-            message: {
-              role: "assistant",
-              content: "done"
-            }
-          }
-        ]
+        message: {
+          content: "done",
+          toolCalls: []
+        }
       }
     ];
 
-    const fetchMock = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
-      requests.push(JSON.parse(String(init?.body)) as { messages: Array<Record<string, unknown>> });
-      const payload = responses.shift();
-      return new Response(JSON.stringify(payload), {
-        status: 200,
-        headers: { "content-type": "application/json" }
-      });
-    });
+    const providerPlugin = {
+      name: "catch-all-provider",
+      providers: [
+        {
+          name: "catch-all",
+          supports: () => true,
+          createModel: async () => ({
+            complete: vi.fn(async (request) => {
+              requests.push({
+                messages: request.messages as Array<Record<string, unknown>>
+              });
+
+              const response = responses.shift();
+              if (!response) {
+                throw new Error("Unexpected provider request");
+              }
+
+              return toAcpModelResponse(response);
+            })
+          })
+        }
+      ]
+    };
 
     await agent()
       .model("anthropic/claude-sonnet-4.6")
+      .use(providerPlugin)
       .use({
         name: "files",
         tools: [
@@ -255,11 +364,7 @@ describe("agent builder", () => {
           }
         ]
       })
-      .run("Read the diagram", {
-        apiKey: "test-key",
-        baseUrl: "http://localhost:3456",
-        fetch: fetchMock
-      });
+      .run("Read the diagram");
 
     const toolMessage = requests[1]?.messages?.find((message) => message.role === "tool");
     expect(toolMessage).toEqual({
@@ -268,15 +373,12 @@ describe("agent builder", () => {
       name: "read_file",
       content: [
         { type: "text", text: "Screenshot captured" },
+        { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
         {
-          type: "image_url",
-          image_url: {
-            url: "data:image/png;base64,YmFzZTY0LWltYWdl"
-          }
-        },
-        {
-          type: "text",
-          text: '{"type":"error","code":"parse_error","message":"Retry with valid JSON","retriable":true}'
+          type: "error",
+          code: "parse_error",
+          message: "Retry with valid JSON",
+          retriable: true
         }
       ]
     });
@@ -485,7 +587,7 @@ describe("agent builder", () => {
         .use({
           name: "needs-alpha",
           dependencies: ["alpha"]
-        })
+        } as { name: string; dependencies: string[] })
         .run("hello", {
           acpModel: createModel(
             [
@@ -599,7 +701,7 @@ describe("agent builder", () => {
           throw new Error("tool aborted");
         }
 
-        await new Promise<never>((_, reject) => {
+        return await new Promise<{ content: Array<Record<string, unknown>> }>((_, reject) => {
           signal.addEventListener(
             "abort",
             () => {
@@ -857,8 +959,13 @@ describe("agent builder", () => {
   it("injects resume messages before starting ACP sessions", async () => {
     const model = {
       complete: vi.fn(async (request) => {
-        const userMessages = request.messages.filter((message) => message.role === "user");
-        expect(userMessages.map((message) => message.content)).toEqual(["previous", "next"]);
+        const userMessages = request.messages.filter(
+          (message: { role: string }) => message.role === "user"
+        );
+        expect(userMessages.map((message: { content: unknown }) => message.content)).toEqual([
+          "previous",
+          "next"
+        ]);
 
         return toAcpModelResponse({
           message: {
@@ -952,8 +1059,13 @@ describe("agent builder", () => {
   it("injects resume messages before running", async () => {
     const model = {
       complete: vi.fn(async (request) => {
-        const userMessages = request.messages.filter((message) => message.role === "user");
-        expect(userMessages.map((message) => message.content)).toEqual(["previous", "next"]);
+        const userMessages = request.messages.filter(
+          (message: { role: string }) => message.role === "user"
+        );
+        expect(userMessages.map((message: { content: unknown }) => message.content)).toEqual([
+          "previous",
+          "next"
+        ]);
 
         return toAcpModelResponse({
           message: {
@@ -1012,7 +1124,7 @@ describe("agent builder", () => {
               capturedSignal = ctx.signal;
               started.resolve();
 
-              await new Promise<never>((_, reject) => {
+              return await new Promise<string>((_, reject) => {
                 if (ctx.signal.aborted) {
                   reject(new Error("tool aborted"));
                   return;
@@ -1277,13 +1389,17 @@ describe("agent builder", () => {
     const model: AcpModel = {
       complete: vi.fn(async (request) => {
         callCount += 1;
-        const userMessages = request.messages.filter((message) => message.role === "user");
+        const userMessages = request.messages.filter(
+          (message: { role: string }) => message.role === "user"
+        );
         const assistantMessages = request.messages.filter(
-          (message) => message.role === "assistant"
+          (message: { role: string }) => message.role === "assistant"
         );
 
         if (callCount === 1) {
-          expect(userMessages.map((message) => message.content)).toEqual(["Read the test file"]);
+          expect(userMessages.map((message: { content: unknown }) => message.content)).toEqual([
+            "Read the test file"
+          ]);
           expect(assistantMessages).toHaveLength(0);
           return toAcpModelResponse({
             message: {
@@ -1294,11 +1410,13 @@ describe("agent builder", () => {
         }
 
         if (callCount === 2) {
-          expect(userMessages.map((message) => message.content)).toEqual([
+          expect(userMessages.map((message: { content: unknown }) => message.content)).toEqual([
             "Read the test file",
             "Now fix the assertion"
           ]);
-          expect(assistantMessages.map((message) => message.content)).toEqual(["first output"]);
+          expect(
+            assistantMessages.map((message: { content: unknown }) => message.content)
+          ).toEqual(["first output"]);
           return toAcpModelResponse({
             message: {
               content: "second output",
@@ -1308,7 +1426,9 @@ describe("agent builder", () => {
         }
 
         if (callCount === 3) {
-          expect(userMessages.map((message) => message.content)).toEqual(["fresh run"]);
+          expect(userMessages.map((message: { content: unknown }) => message.content)).toEqual([
+            "fresh run"
+          ]);
           expect(assistantMessages).toHaveLength(0);
           return toAcpModelResponse({
             message: {
@@ -1345,7 +1465,10 @@ describe("agent builder", () => {
   it("activates skill tools from RunOptions.skills", async () => {
     const withSkillModel = {
       complete: vi.fn(async (request) => {
-        expect(request.tools.map((tool) => tool.name)).toEqual(["always-visible", "repo_search"]);
+        expect(request.tools.map((tool: { name: string }) => tool.name)).toEqual([
+          "always-visible",
+          "repo_search"
+        ]);
         return toAcpModelResponse({
           message: {
             content: "done",
@@ -1357,7 +1480,9 @@ describe("agent builder", () => {
 
     const withoutSkillModel = {
       complete: vi.fn(async (request) => {
-        expect(request.tools.map((tool) => tool.name)).toEqual(["always-visible"]);
+        expect(request.tools.map((tool: { name: string }) => tool.name)).toEqual([
+          "always-visible"
+        ]);
         return toAcpModelResponse({
           message: {
             content: "done",
@@ -1406,7 +1531,7 @@ describe("agent builder", () => {
         .use({
           name: "needs-alpha",
           dependencies: ["alpha"]
-        })
+        } as { name: string; dependencies: string[] })
         .stream("hello", {
           acpModel: createModel(
             [

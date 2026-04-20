@@ -57,6 +57,7 @@ export { default as gitContextPlugin } from "./plugins/poe-agent-plugin-git-cont
 export { default as maxIterationsPlugin } from "./plugins/poe-agent-plugin-max-iterations.js";
 export { default as mcpPlugin } from "./plugins/poe-agent-plugin-mcp.js";
 export { default as memoryPlugin } from "./plugins/poe-agent-plugin-memory.js";
+export { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
 export { default as policyPlugin } from "./plugins/poe-agent-plugin-policy.js";
 export { default as scratchpadPlugin } from "./plugins/poe-agent-plugin-scratchpad.js";
 export { default as shellPlugin } from "./plugins/poe-agent-plugin-shell.js";
@@ -64,3 +65,4 @@ export { default as skillsPlugin } from "./plugins/poe-agent-plugin-skills.js";
 export { default as spawnPlugin } from "./plugins/poe-agent-plugin-spawn.js";
 export { default as systemPromptPlugin } from "./plugins/poe-agent-plugin-system-prompt.js";
 export { default as webPlugin } from "./plugins/poe-agent-plugin-web.js";
+export { InvalidToolNameError } from "./runtime/tool-names.js";

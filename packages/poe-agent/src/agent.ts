@@ -1,5 +1,4 @@
 import type { CreateAgentSessionOptions } from "./agent-session.js";
-import { createPoeAcpModel, type PoeFetchFn } from "./models/poe.js";
 import mcpPlugin from "./plugins/poe-agent-plugin-mcp.js";
 import { POLICY_MODE_SESSION_KEY } from "./plugins/poe-agent-plugin-policy.js";
 import { runAcpCore, type AcpModel } from "./runtime/acp-core.js";
@@ -16,8 +15,10 @@ import {
   toRuntimePlugins,
   type ResolvedAgentConfig
 } from "./runtime/config.js";
+import { getResolvedProviderOptions } from "./runtime/provider-metadata.js";
 import type { AgentPlugin, McpServerConfig } from "./runtime/plugin-types.js";
 import { runPluginSetup } from "./runtime/plugin-setup.js";
+import { collectProviders, resolveProvider } from "./runtime/resolve-provider.js";
 import { createRunContext, type RunContext } from "./runtime/run-context.js";
 import { assertValidToolName } from "./runtime/tool-names.js";
 import type {
@@ -43,7 +44,7 @@ export type AgentRunOptions = {
   acpModel?: AcpModel;
   apiKey?: string;
   baseUrl?: string;
-  fetch?: PoeFetchFn;
+  fetch?: typeof fetch;
   cwd?: string;
   baseSystemPrompt?: string;
   createSpawnSession?: AgentHostOptions["createSpawnSession"];
@@ -101,7 +102,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
 
     return this.use({
       name: `inline-tools-${this.#config.plugins.length + 1}`,
-      tools,
+      tools
     });
   }
 
@@ -109,7 +110,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
     return new ImmutableAgentBuilder(
       createResolvedAgentConfig({
         ...this.#config,
-        plugins: [...this.#config.plugins, ...configs.map(config => mcpPlugin(config))]
+        plugins: [...this.#config.plugins, ...configs.map((config) => mcpPlugin(config))]
       })
     );
   }
@@ -240,12 +241,18 @@ class ImmutableAgentBuilder implements AgentBuilder {
       const baseSystemPrompt = options.baseSystemPrompt;
       const model =
         options.acpModel ??
-        (await createPoeAcpModel({
-          model: modelName,
-          apiKey: options.apiKey,
-          baseUrl: options.baseUrl,
-          fetch: options.fetch
-        }));
+        (await (async () => {
+          const providers = collectProviders(plugins);
+          const provider = resolveProvider(providers, modelName);
+          const providerContext = {
+            fetch: options.fetch ?? globalThis.fetch,
+            signal: runContext.abortController.signal,
+            logger: runContext.logger,
+            options: getResolvedProviderOptions(provider)
+          };
+
+          return provider.createModel(modelName, providerContext);
+        })());
       assertNotAborted(runContext.abortController.signal);
 
       return {

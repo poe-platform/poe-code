@@ -1,4 +1,5 @@
 import type { AgentPlugin } from "../runtime/plugin-types.js";
+import { setResolvedPluginOptions } from "../runtime/provider-metadata.js";
 import { builtinPluginRegistry } from "./registry.js";
 
 export type PluginConfigEntry = {
@@ -84,7 +85,7 @@ export function resolvePluginsFromConfig(entries: PluginConfigEntry[]): AgentPlu
       throw new PluginConfigError(`agent.plugins[${index}].options.${message}`);
     }
 
-    plugins.push(spec.factory(parsedOptions));
+    plugins.push(setResolvedPluginOptions(spec.factory(parsedOptions), parsedOptions));
     seenNames.add(entry.name);
   }
 
@@ -102,13 +103,13 @@ function createUnknownPluginError(index: number, name: string): PluginConfigErro
 
 function getPluginSuggestions(name: string): string[] {
   return [...builtinPluginRegistry.keys()]
-    .map(candidate => ({
+    .map((candidate) => ({
       name: candidate,
-      distance: getLevenshteinDistance(name, candidate),
+      distance: getLevenshteinDistance(name, candidate)
     }))
     .sort((left, right) => left.distance - right.distance || left.name.localeCompare(right.name))
     .slice(0, 3)
-    .map(candidate => candidate.name);
+    .map((candidate) => candidate.name);
 }
 
 function formatSuggestions(suggestions: string[]): string {
@@ -120,7 +121,10 @@ function formatSuggestions(suggestions: string[]): string {
     return `"${suggestions[0]}" or "${suggestions[1]}"`;
   }
 
-  const leading = suggestions.slice(0, -1).map(suggestion => `"${suggestion}"`).join(", ");
+  const leading = suggestions
+    .slice(0, -1)
+    .map((suggestion) => `"${suggestion}"`)
+    .join(", ");
   return `${leading}, or "${suggestions[suggestions.length - 1]}"`;
 }
 

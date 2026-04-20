@@ -2,19 +2,21 @@ import type {
   SessionUpdate,
   SpawnMode,
   ToolCall as AcpToolCall,
-  ToolCallUpdate as AcpToolCallUpdate,
+  ToolCallUpdate as AcpToolCallUpdate
 } from "@poe-code/agent-spawn";
-import { agent, normalizeNonEmptyString, type AgentBuilder, type AgentRunOptions } from "./agent.js";
+import {
+  agent,
+  normalizeNonEmptyString,
+  type AgentBuilder,
+  type AgentRunOptions
+} from "./agent.js";
 import filesPlugin from "./plugins/poe-agent-plugin-files.js";
-import environmentPlugin from "./plugins/poe-agent-plugin-environment.js";
+import { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
 import policyPlugin from "./plugins/poe-agent-plugin-policy.js";
 import shellPlugin from "./plugins/poe-agent-plugin-shell.js";
 import systemPromptPlugin from "./plugins/poe-agent-plugin-system-prompt.js";
 import webPlugin from "./plugins/poe-agent-plugin-web.js";
-import {
-  resolvePluginsFromConfig,
-  type PluginConfigEntry,
-} from "./plugins/resolve-plugins.js";
+import { resolvePluginsFromConfig, type PluginConfigEntry } from "./plugins/resolve-plugins.js";
 import type { AgentPlugin } from "./runtime/plugin-types.js";
 import { getStructuredToolResultParts } from "./runtime/tool-results.js";
 import type { AcpEvent, RunResult } from "./runtime/types.js";
@@ -67,7 +69,7 @@ type LegacyAcpRunOptions = AgentRunOptions & {
 };
 
 export async function createAgentSession(
-  options: CreateAgentSessionOptions = {},
+  options: CreateAgentSessionOptions = {}
 ): Promise<AgentSession> {
   const model = normalizeNonEmptyString(options.model);
   if (!model) {
@@ -79,16 +81,15 @@ export async function createAgentSession(
   }
 
   let builder = agent().model(model);
-  const plugins = options.plugins
-    ?? (options.pluginsConfig !== undefined
+  const plugins = options.plugins ??
+    (options.pluginsConfig !== undefined
       ? resolvePluginsFromConfig(options.pluginsConfig)
-      : undefined)
-    ?? [
+      : undefined) ?? [
+      openaiChatCompletionsPlugin(),
       systemPromptPlugin(),
-      environmentPlugin(options.cwd ?? process.cwd()),
       filesPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
       shellPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
-      webPlugin(),
+      webPlugin()
     ];
 
   for (const plugin of plugins) {
@@ -98,7 +99,7 @@ export async function createAgentSession(
   for (const [name, definition] of Object.entries(options.mcpServers ?? {})) {
     if (definition.transport !== "stdio") {
       throw new Error(
-        `Unsupported MCP transport "${definition.transport}" for server "${name}". Only "stdio" is supported.`,
+        `Unsupported MCP transport "${definition.transport}" for server "${name}". Only "stdio" is supported.`
       );
     }
 
@@ -106,7 +107,7 @@ export async function createAgentSession(
       name,
       command: definition.command,
       args: definition.args,
-      env: definition.env,
+      env: definition.env
     });
   }
 
@@ -119,13 +120,16 @@ export async function createAgentSession(
 
 function adaptAcpToLegacySession(
   builder: AgentBuilder,
-  options: CreateAgentSessionOptions,
+  options: CreateAgentSessionOptions
 ): AgentSession {
   let disposed = false;
   let previousRun: RunResult | undefined;
 
   return {
-    async sendMessage(prompt: string, sendOptions: AgentSessionSendMessageOptions = {}): Promise<ChatMessage> {
+    async sendMessage(
+      prompt: string,
+      sendOptions: AgentSessionSendMessageOptions = {}
+    ): Promise<ChatMessage> {
       if (disposed) {
         throw new Error("Agent session is already disposed.");
       }
@@ -144,14 +148,14 @@ function adaptAcpToLegacySession(
         fetch: options.fetch,
         cwd: options.cwd,
         maxIterations: options.maxToolCallIterations,
-        __legacyAutoHandleTools: true,
+        __legacyAutoHandleTools: true
       };
 
       const acpSession = await builder.acp(prompt, runOptions);
 
       try {
         for await (const event of acpSession.events) {
-          handleEvent(event, onSessionUpdate, chunk => {
+          handleEvent(event, onSessionUpdate, (chunk) => {
             if (chunk.length > 0) {
               emittedAssistantChunk = true;
               assistantContent += chunk;
@@ -187,28 +191,28 @@ function adaptAcpToLegacySession(
           sessionUpdate: "agent_message_chunk",
           content: {
             type: "text",
-            text: assistantContent,
-          },
+            text: assistantContent
+          }
         });
       }
 
       return {
         role: "assistant",
-        content: assistantContent,
+        content: assistantContent
       };
     },
 
     async dispose(): Promise<void> {
       disposed = true;
       previousRun = undefined;
-    },
+    }
   };
 }
 
 function handleEvent(
   event: AcpEvent,
   onSessionUpdate: SessionUpdateCallback | undefined,
-  onMessageDelta: (chunk: string) => void,
+  onMessageDelta: (chunk: string) => void
 ): void {
   if (event.type === "tool.intent") {
     if (!onSessionUpdate) {
@@ -221,14 +225,14 @@ function handleEvent(
       title: event.tool,
       kind: "execute",
       status: "pending",
-      rawInput: event.args,
+      rawInput: event.args
     };
 
     const inProgressUpdate: AcpToolCallUpdate = {
       sessionUpdate: "tool_call_update",
       toolCallId: event.intentId,
       kind: "execute",
-      status: "in_progress",
+      status: "in_progress"
     };
 
     onSessionUpdate(toolCall);
@@ -248,7 +252,7 @@ function handleEvent(
       kind: "execute",
       status: "completed",
       rawOutput: event.result,
-      ...(content === undefined ? {} : { content }),
+      ...(content === undefined ? {} : { content })
     });
     return;
   }
@@ -263,7 +267,7 @@ function handleEvent(
       toolCallId: event.intentId,
       kind: "execute",
       status: "failed",
-      rawOutput: event.error,
+      rawOutput: event.error
     });
     return;
   }
@@ -279,8 +283,8 @@ function handleEvent(
       sessionUpdate: "agent_message_chunk",
       content: {
         type: "text",
-        text: event.content,
-      },
+        text: event.content
+      }
     });
     return;
   }
@@ -301,25 +305,23 @@ function handleEvent(
         inputTokens,
         outputTokens,
         cachedTokens,
-        cacheCreationTokens,
-      },
+        cacheCreationTokens
+      }
     });
   }
 }
 
-function toLegacyToolCallContent(
-  result: unknown,
-): AcpToolCallUpdate["content"] | undefined {
+function toLegacyToolCallContent(result: unknown): AcpToolCallUpdate["content"] | undefined {
   const parts = getStructuredToolResultParts(result);
   if (!parts) {
     return undefined;
   }
 
-  return parts.map(part => {
+  return parts.map((part) => {
     if (part.type === "text") {
       return {
         type: "text" as const,
-        text: part.text,
+        text: part.text
       };
     }
 
@@ -327,13 +329,13 @@ function toLegacyToolCallContent(
       return {
         type: "image" as const,
         mimeType: part.mimeType,
-        data: part.data,
+        data: part.data
       };
     }
 
     return {
       type: "text" as const,
-      text: JSON.stringify(part),
+      text: JSON.stringify(part)
     };
   });
 }

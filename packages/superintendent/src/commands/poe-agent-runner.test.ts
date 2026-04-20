@@ -33,6 +33,9 @@ function createFakeFactory(events: AcpEvent[]): { factory: AgentFactory; capture
       capture.pluginNames.push(plugin.name);
       return builder;
     },
+    tools() {
+      return builder;
+    },
     mcp(...configs: PoeMcpServerConfig[]) {
       capture.mcpCalls.push(configs);
       return builder;
@@ -200,7 +203,7 @@ describe("executePoeAgent", () => {
     ).rejects.toThrow(/model/);
   });
 
-  it("wires the default agent plugin bundle (system prompt, environment, files, shell, web)", async () => {
+  it("wires the default agent plugin bundle with the provider first", async () => {
     const { factory, capture } = createFakeFactory([completeEvent("ok")]);
 
     await executePoeAgent(
@@ -209,17 +212,16 @@ describe("executePoeAgent", () => {
       factory
     );
 
-    expect(capture.pluginNames).toEqual(
-      expect.arrayContaining([
-        "poe-agent-plugin-system-prompt",
-        "environment",
-        "poe-agent-plugin-files",
-        "poe-agent-plugin-shell",
-        "poe-agent-plugin-web",
-        "poe-agent-plugin-compaction",
-        "skills"
-      ])
-    );
+    expect(capture.pluginNames).toEqual([
+      "openai-chat-completions-plugin",
+      "poe-agent-plugin-system-prompt",
+      "environment",
+      "poe-agent-plugin-files",
+      "poe-agent-plugin-shell",
+      "poe-agent-plugin-web",
+      "poe-agent-plugin-compaction",
+      "skills"
+    ]);
   });
 
   it("adds policy plugin only when input.mode is set", async () => {

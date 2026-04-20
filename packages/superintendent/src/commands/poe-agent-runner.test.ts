@@ -212,7 +212,7 @@ describe("executePoeAgent", () => {
     expect(capture.pluginNames).toEqual(
       expect.arrayContaining([
         "poe-agent-plugin-system-prompt",
-        "poe-agent-plugin-environment",
+        "environment",
         "poe-agent-plugin-files",
         "poe-agent-plugin-shell",
         "poe-agent-plugin-web",

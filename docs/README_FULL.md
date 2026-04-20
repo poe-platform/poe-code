@@ -28,6 +28,8 @@
   - [models](#models)
   - [mcp](#mcp)
   - [skill](#skill)
+  - [pipeline](#pipeline)
+  - [memory](#memory)
 - [SDK Reference](#sdk-reference)
   - [spawn()](#spawn-sdk)
   - [spawn.pretty()](#spawnpretty)
@@ -153,7 +155,7 @@ poe-code configure [agent]
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `agent` | No | Agent to configure: `claude`, `claude-code`, `codex`, `opencode`, `kimi`. Prompts if omitted. |
+| `agent` | No | Agent to configure: `claude`, `claude-code`, `codex`, `opencode`, `kimi`. Prompts if omitted, unless `core.defaultAgent` / `POE_DEFAULT_AGENT` is set. |
 
 **Options:**
 
@@ -165,7 +167,7 @@ poe-code configure [agent]
 
 **Behavior:**
 
-1. Resolves the agent (prompts if not specified and `--yes` not set)
+1. Resolves the agent (explicit arg > `core.defaultAgent` / `POE_DEFAULT_AGENT` > `--yes` fallback > prompt)
 2. Resolves the API key from flag, env, stored credentials, or prompts
 3. Collects agent-specific options (model, reasoning effort) via prompts or flags
 4. Applies file mutations to the agent's config files (merge, not overwrite)
@@ -285,7 +287,7 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 | Argument | Required | Description |
 |----------|----------|-------------|
 | `agent` | Yes | Agent to spawn: `claude-code`, `codex`, `opencode`, `kimi` |
-| `prompt` | No | Prompt text. Use `-` to read from stdin. |
+| `prompt` | No | Prompt text. Use `-` to read from stdin, or `@path/to/file` to load prompt text from a file. |
 | `agentArgs` | No | Additional arguments forwarded directly to the agent CLI. |
 
 **Options:**
@@ -326,6 +328,9 @@ cat prompt.txt | poe-code spawn codex --stdin
 
 # Use '-' as stdin shorthand
 echo "Hello" | poe-code spawn claude-code -
+
+# Load prompt from a file
+poe-code spawn codex @./prompt.txt
 
 # Interactive TUI mode
 poe-code spawn claude-code -i
@@ -736,7 +741,7 @@ poe-code mcp configure [agent]
 
 | Option | Description |
 |--------|-------------|
-| `-y, --yes` | Skip prompt, default to claude-code. |
+| `-y, --yes` | Skip prompt. Uses `core.defaultAgent` / `POE_DEFAULT_AGENT` when set; otherwise defaults to claude-code. |
 
 **Supported agents and their MCP config locations:**
 
@@ -820,6 +825,105 @@ poe-code skill configure claude-code --local
 poe-code skill unconfigure claude-code --global
 poe-code skill unconfigure claude-code --local --force
 ```
+
+---
+
+### pipeline
+
+Run and manage fixed-step pipeline plans.
+
+#### `pipeline run`
+
+Run one or more pipeline plans until completion, failure, cancellation, or max runs.
+
+```bash
+poe-code pipeline run [--plan <path> | --plans <paths...>]
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--agent <name>` | Agent for pipeline steps. Resolution order: explicit flag → `core.defaultAgent` / `POE_DEFAULT_AGENT` → `--yes` fallback (`claude-code`) → prompt. |
+| `--model <model>` | Model override passed to the selected agent. |
+| `--tui` / `--no-tui` | Enable or disable the live pipeline dashboard for this run. |
+| `--task <id>` | Run only a single task ID from the plan. |
+| `--plan <path>` | Run one pipeline plan file. |
+| `--plans <paths...>` | Run multiple plan files sequentially. |
+| `--max-runs <n>` | Stop after `n` agent executions. |
+
+#### `pipeline init`
+
+Generate pipeline plans from source markdown documents.
+
+```bash
+poe-code pipeline init [question] [--source <path> | --sources <paths...>]
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--agent <name>` | Agent used to generate plans. |
+| `--model <model>` | Model override passed to that agent. |
+| `--source <path>` | Convert one source markdown file. |
+| `--sources <paths...>` | Convert multiple source markdown files. |
+
+**Behavior notes:**
+
+- If `question` is omitted, the source document is treated as the user request.
+- Without `--source` / `--sources`, interactive mode discovers markdown sources and prompts for selection.
+- Existing matching `plan-*` files are skipped during discovery.
+
+#### `pipeline validate`
+
+Validate plan markdown without executing it.
+
+```bash
+poe-code pipeline validate <file> [--preview]
+```
+
+#### `pipeline plan-path`
+
+Print the resolved directory where pipeline plans should be placed.
+
+```bash
+poe-code pipeline plan-path
+```
+
+#### `pipeline install`
+
+Install the `/plan` pipeline skill and scaffold pipeline files.
+
+```bash
+poe-code pipeline install [--agent <name>] [--local | --global] [--force]
+```
+
+---
+
+### memory
+
+Manage repo-scoped persistent memory under `.poe-code/memory/`.
+
+```bash
+poe-code memory <subcommand>
+```
+
+**Subcommands:**
+
+| Subcommand | Description |
+|------------|-------------|
+| `init` | Create `.poe-code/memory/` with `INDEX.md`, `LOG.md`, and `pages/`. |
+| `ls` | List memory pages with one-line descriptions. |
+| `show <path>` | Print a memory page (path relative to `pages/`). |
+| `search <query>` | Search memory files for a substring. |
+| `status [--no-tokens]` | Show counts/size and optional token stats. |
+| `clear` | Delete all memory content and reinitialize `INDEX.md`/`LOG.md`. |
+
+**Behavior notes:**
+
+- Most subcommands require `memory init` first.
+- `memory clear` prompts for confirmation unless `--yes` is set.
 
 ---
 
@@ -2164,6 +2268,7 @@ stripModelNamespace("openai/gpt-5.2")              // → "gpt-5.2"
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `POE_API_KEY` | — | Poe API key. Highest priority credential source. |
+| `POE_DEFAULT_AGENT` | — | Default agent (or `agent:model`) used when commands omit agent selection. |
 | `POE_BASE_URL` | `https://api.poe.com/v1` | Poe API base URL. Used for provider configuration. |
 | `POE_API_BASE_URL` | `https://api.poe.com/v1` | Poe API base URL. Used by SDK generate functions. |
 | `POE_TEXT_MODEL` | `anthropic/claude-sonnet-4.6` | Override default text generation model. |
@@ -2395,6 +2500,8 @@ poe-setup-scripts/
 | `models` | — | List available models |
 | `mcp` | `serve`, `configure`, `unconfigure` | MCP server management |
 | `skill` | `configure`, `unconfigure` | Agent skill management |
+| `pipeline` | `run`, `init`, `validate`, `plan-path`, `install` | Pipeline plan generation, validation, and execution |
+| `memory` | `init`, `ls`, `show`, `search`, `status`, `clear` | Repo-scoped persistent memory operations |
 
 
 ### SDK Exports Summary

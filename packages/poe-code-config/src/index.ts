@@ -30,6 +30,7 @@ export {
 } from "./models.js";
 export {
   cacheEnabled,
+  configuredMemoryRoot,
   configuredTimeout,
   defaultQueryBudget,
   mcpWritesAllowed,

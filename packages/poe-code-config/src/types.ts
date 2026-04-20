@@ -62,6 +62,7 @@ export interface MemoryQueryConfig extends Record<string, unknown> {
 }
 
 export interface MemoryConfig extends Record<string, unknown> {
+  root?: string;
   ingestAgent?: string;
   ingestTimeoutMs?: number;
   maxPageBytes?: number;

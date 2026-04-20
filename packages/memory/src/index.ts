@@ -30,6 +30,11 @@ export type {
   TokenStats
 } from "./types.js";
 export { resolveMemoryRoot } from "./paths.js";
+export {
+  MEMORY_ROOT_ENV_VAR,
+  resolveConfiguredMemoryRoot,
+  type ResolveConfiguredMemoryRootOptions
+} from "./resolve-root.js";
 export { initMemory } from "./init.js";
 export { listPages, readPage } from "./pages.js";
 export { searchMemory } from "./search.js";

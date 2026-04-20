@@ -7,7 +7,7 @@ import {
   computeTokenStats,
   initMemory,
   listPages,
-  resolveMemoryRoot,
+  resolveConfiguredMemoryRoot,
   searchMemory,
   statusOf
 } from "@poe-code/memory";
@@ -15,6 +15,16 @@ import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+
+async function resolveRoot(container: CliContainer): Promise<string> {
+  return resolveConfiguredMemoryRoot({
+    cwd: container.env.cwd,
+    env: container.env.variables,
+    fs: container.fs,
+    configPath: container.env.configPath,
+    projectConfigPath: container.env.projectConfigPath
+  });
+}
 
 function resolvePageRelPath(input: string): string {
   const trimmed = input.trim();
@@ -64,7 +74,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .action(async () => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:init");
-      const root = resolveMemoryRoot(container.env.cwd);
+      const root = await resolveRoot(container);
 
       resources.logger.intro("memory init");
 
@@ -87,7 +97,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .action(async () => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:ls");
-      const root = resolveMemoryRoot(container.env.cwd);
+      const root = await resolveRoot(container);
 
       resources.logger.intro("memory ls");
       await assertInitialized(root);
@@ -113,7 +123,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .action(async (pagePath: string) => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:show");
-      const root = resolveMemoryRoot(container.env.cwd);
+      const root = await resolveRoot(container);
 
       resources.logger.intro("memory show");
       await assertInitialized(root);
@@ -144,7 +154,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .action(async (query: string) => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:search");
-      const root = resolveMemoryRoot(container.env.cwd);
+      const root = await resolveRoot(container);
 
       resources.logger.intro("memory search");
       await assertInitialized(root);
@@ -168,7 +178,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:status");
-      const root = resolveMemoryRoot(container.env.cwd);
+      const root = await resolveRoot(container);
       const options = this.opts<{ tokens: boolean }>();
 
       resources.logger.intro("memory status");
@@ -202,7 +212,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .action(async () => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:clear");
-      const root = resolveMemoryRoot(container.env.cwd);
+      const root = await resolveRoot(container);
 
       resources.logger.intro("memory clear");
       await assertInitialized(root);

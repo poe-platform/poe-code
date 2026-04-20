@@ -2,6 +2,7 @@ import { createMockFs } from "@poe-code/config-mutations/testing";
 import { describe, expect, it } from "vitest";
 import {
   cacheEnabled,
+  configuredMemoryRoot,
   configuredTimeout,
   defaultQueryBudget,
   mcpWritesAllowed,
@@ -61,6 +62,51 @@ describe("memory config readers", () => {
     await expect(cacheEnabled(options)).resolves.toBe(false);
     await expect(mcpWritesAllowed(options)).resolves.toBe(true);
     await expect(defaultQueryBudget(options)).resolves.toBe(2_048);
+  });
+
+  it("reads memory.root from merged config", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            memory: {
+              root: "/srv/poe-mem"
+            }
+          },
+          null,
+          2
+        )}\n`,
+        "~/workspace/.poe-code/config.json": `${JSON.stringify(
+          {
+            memory: {
+              root: "custom/memory"
+            }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    const options = {
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    };
+
+    await expect(configuredMemoryRoot(options)).resolves.toBe("custom/memory");
+  });
+
+  it("returns undefined memory.root when unset", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const options = {
+      fs,
+      filePath: configPath,
+      projectFilePath: projectConfigPath
+    };
+
+    await expect(configuredMemoryRoot(options)).resolves.toBeUndefined();
   });
 
   it("falls back to defaults when memory settings are missing", async () => {

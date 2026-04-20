@@ -5,7 +5,7 @@ Repo-scoped persistent memory for poe-code projects. Memory lives at `<repo>/.po
 ## On-disk layout
 
 ```text
-.poe-code/memory/
+<memory root>/
 ├── INDEX.md
 ├── LOG.md
 ├── .cache/
@@ -15,6 +15,11 @@ Repo-scoped persistent memory for poe-code projects. Memory lives at `<repo>/.po
     └── packages/
         └── superintendent.md
 ```
+
+Default memory root: `<repo>/.poe-code/memory/`. Override it with:
+
+- `POE_CODE_MEMORY_ROOT` environment variable (absolute, or relative to the current working directory)
+- `memory.root` in `.poe-code/config.json` (project config wins over global; env wins over both)
 
 - `INDEX.md`: regenerated from `pages/**/*.md`
 - `LOG.md`: append-only change log written by reconcile
@@ -45,6 +50,7 @@ Repo-scoped persistent memory for poe-code projects. Memory lives at `<repo>/.po
 
 Configure under `.poe-code/config.json`:
 
+- `memory.root`: absolute or cwd-relative path for the memory directory (overridden by `POE_CODE_MEMORY_ROOT`)
 - `memory.ingestAgent`: override the spawned agent for `ingest`, `lint`, `query`, and `explain`
 - `memory.ingestTimeoutMs`: timeout for ingest/lint agent runs
 - `memory.maxPageBytes`: soft warning threshold for oversized pages
@@ -103,6 +109,106 @@ Config snippet:
   }
 }
 ```
+
+## SDK
+
+Memory is re-exposed from the published `poe-code` package under the subpath `poe-code/memory`, so downstream projects do not depend on the private `@poe-code/memory` workspace.
+
+```ts
+import {
+  resolveMemoryRoot,
+  resolveConfiguredMemoryRoot,
+  MEMORY_ROOT_ENV_VAR,
+  initMemory,
+  listPages,
+  readPage,
+  searchMemory,
+  writePage,
+  appendToPage,
+  queryMemory,
+  explainPage,
+  ingest,
+  auditClaims,
+  reconcile,
+  statusOf,
+  startMemoryMcpServer,
+  installMemory
+} from "poe-code/memory";
+import type {
+  MemoryRoot,
+  MemoryPage,
+  SearchHit,
+  QueryResult,
+  IngestOptions,
+  IngestResult,
+  SpawnFn,
+  ResolveConfiguredMemoryRootOptions
+} from "poe-code/memory";
+```
+
+### Resolving the memory root
+
+`resolveMemoryRoot(cwd)` returns the default layout `<cwd>/.poe-code/memory`. Use `resolveConfiguredMemoryRoot` to honour the `POE_CODE_MEMORY_ROOT` env var and `memory.root` config knob:
+
+```ts
+import { promises as nodeFs } from "node:fs";
+
+const root = await resolveConfiguredMemoryRoot({
+  cwd: process.cwd(),
+  env: process.env,
+  fs: nodeFs,
+  configPath: `${process.env.HOME}/.poe-code/config.json`,
+  projectConfigPath: `${process.cwd()}/.poe-code/config.json`
+});
+```
+
+### Reading
+
+```ts
+const root: MemoryRoot = resolveMemoryRoot(process.cwd());
+await initMemory(root);
+
+const pages = await listPages(root);
+const page = await readPage(root, "pages/architecture.md");
+const hits: SearchHit[] = await searchMemory(root, "superintendent phases");
+const stats = await statusOf(root);
+```
+
+### Writing
+
+```ts
+await writePage(root, "pages/packages/memory.md", body, { reason: "initial draft" });
+await appendToPage(root, "pages/LOG.md", "- noted flake\n");
+```
+
+### Agent-backed operations
+
+`ingest`, `queryMemory`, `explainPage`, and `auditClaims (fix)` spawn an agent. Pass your own `spawnFn: (agent, prompt) => Promise<unknown>` or omit it to use the configured default.
+
+```ts
+const answer: QueryResult = await queryMemory({
+  root,
+  question: "how does reconcile detect stale pages?",
+  budget: 4000,
+  spawnFn: async (agent, prompt) => runMyAgent(agent, prompt)
+});
+
+const explanation = await explainPage(root, "pages/architecture.md", { budget: 2000 });
+```
+
+### Embedding the MCP server
+
+```ts
+const { server, stop } = await startMemoryMcpServer({ root, allowWrites: false });
+// ...
+await stop();
+```
+
+### Notes
+
+- All write helpers are opt-in: the caller supplies `reason` text that flows into `LOG.md`.
+- `ingest` returns a cache hit when the source hash matches a previous run; pass `force: true` to bypass.
+- `startMemoryMcpServer` returns the same stdio server that `poe-code memory-mcp` boots, so the tool surface is identical.
 
 ## Install walkthrough
 

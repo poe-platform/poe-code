@@ -176,6 +176,70 @@ for (const f of dtsFiles) {
   }
 }
 
+// Bundle memory into a single esm file so consumers of poe-code/memory
+// don't need @poe-code/* workspace deps at runtime.
+await esbuild.build({
+  entryPoints: [path.join(rootDir, "packages/memory/src/index.ts")],
+  bundle: true,
+  platform: "node",
+  target: "node18",
+  format: "esm",
+  outfile: path.join(rootDir, "packages/memory/dist/index.js"),
+  external: externalDeps,
+  alias: workspaceAliases,
+  sourcemap: true,
+  plugins: [stripShebangPlugin],
+});
+
+// Rewrite workspace specifiers in shipped .d.ts files so the published
+// tarball can resolve types without @poe-code/* in node_modules. The
+// rewrites target memory itself plus the two sibling dists whose public
+// types transitively reference @poe-code/config-mutations.
+async function rewriteDts(dir, rewriteMap) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  await Promise.all(
+    entries.map(async (entry) => {
+      const abs = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await rewriteDts(abs, rewriteMap);
+        return;
+      }
+      if (!entry.name.endsWith(".d.ts")) return;
+      let content = await readFile(abs, "utf8");
+      let changed = false;
+      for (const [from, to] of Object.entries(rewriteMap)) {
+        if (content.includes(from)) {
+          content = content.replaceAll(from, to);
+          changed = true;
+        }
+      }
+      if (changed) {
+        await writeFile(abs, content);
+      }
+    })
+  );
+}
+
+await rewriteDts(path.join(rootDir, "packages/memory/dist"), {
+  '"@poe-code/agent-mcp-config"': '"../../agent-mcp-config/dist/index.js"',
+  '"@poe-code/agent-skill-config"': '"../../agent-skill-config/dist/index.js"',
+  '"@poe-code/config-mutations"': '"../../config-mutations/dist/index.js"',
+  '"tiny-stdio-mcp-server"': '"../../tiny-stdio-mcp-server/dist/index.js"',
+});
+for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
+  await rewriteDts(path.join(rootDir, "packages", pkg, "dist"), {
+    '"@poe-code/config-mutations"': '"../../config-mutations/dist/index.js"',
+  });
+}
+
+// tokenfill is inlined into memory's bundle and resolves its corpus via
+// import.meta.url, so the corpus must sit next to packages/memory/dist/index.js.
+await cp(
+  path.join(rootDir, "packages", "tokenfill", "src", "corpus"),
+  path.join(rootDir, "packages", "memory", "dist", "corpus"),
+  { recursive: true }
+);
+
 // Generate a CJS entry point with a Node.js version gate.
 // Written in ES5 syntax so even ancient Node versions parse it and
 // print a friendly error instead of crashing on modern syntax.

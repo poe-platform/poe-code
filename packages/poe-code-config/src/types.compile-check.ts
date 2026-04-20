@@ -55,6 +55,7 @@ type ignoredGetPlugins = AssertAssignable<
 type ignoredMemoryConfigShape = AssertAssignable<
   MemoryConfig,
   {
+    root?: string;
     ingestAgent?: string;
     ingestTimeoutMs?: number;
     maxPageBytes?: number;

@@ -8,11 +8,18 @@ export interface MemoryConfigOptions {
 }
 
 interface ResolvedMemoryConfig {
+  root?: string;
   ingestAgent?: string;
   ingestTimeoutMs: number;
   cacheEnabled: boolean;
   mcpWritesAllowed: boolean;
   defaultQueryBudget: number;
+}
+
+export async function configuredMemoryRoot(
+  options: MemoryConfigOptions
+): Promise<string | undefined> {
+  return (await resolveMemoryConfig(options)).root;
 }
 
 export async function resolveAgent(
@@ -49,6 +56,7 @@ async function resolveMemoryConfig(
   const query = asRecord(memory?.query);
 
   return {
+    root: readString(memory?.root),
     ingestAgent: readString(memory?.ingestAgent),
     ingestTimeoutMs: readNumber(memory?.ingestTimeoutMs) ?? 300_000,
     cacheEnabled: readBoolean(cache?.enabled) ?? true,

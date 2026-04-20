@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type {
   AcpEvent,
   AgentBuilder,
@@ -200,7 +200,7 @@ describe("executePoeAgent", () => {
     ).rejects.toThrow(/model/);
   });
 
-  it("wires the default agent plugin bundle (system prompt, files, shell, web)", async () => {
+  it("wires the default agent plugin bundle (system prompt, environment, files, shell, web)", async () => {
     const { factory, capture } = createFakeFactory([completeEvent("ok")]);
 
     await executePoeAgent(
@@ -212,6 +212,7 @@ describe("executePoeAgent", () => {
     expect(capture.pluginNames).toEqual(
       expect.arrayContaining([
         "poe-agent-plugin-system-prompt",
+        "poe-agent-plugin-environment",
         "poe-agent-plugin-files",
         "poe-agent-plugin-shell",
         "poe-agent-plugin-web",
@@ -237,5 +238,78 @@ describe("executePoeAgent", () => {
       withoutMode.factory
     );
     expect(withoutMode.capture.pluginNames).not.toContain("poe-agent-plugin-policy");
+  });
+
+  it("writes a JSONL transcript when logDir + logFileName are provided and returns logFile", async () => {
+    const { factory } = createFakeFactory([
+      { type: "message.delta", content: "thinking..." },
+      {
+        type: "tool.intent",
+        intentId: "t1",
+        tool: "read_file",
+        args: { path: "/repo/a" }
+      },
+      { type: "tool.result", intentId: "t1", result: "file contents" },
+      completeEvent("done")
+    ]);
+    const appendCalls: Array<{ path: string; contents: string }> = [];
+    const mkdirCalls: string[] = [];
+    const fakeFs = {
+      async mkdir(dir: string) {
+        mkdirCalls.push(dir);
+      },
+      async appendFile(filePath: string, contents: string) {
+        appendCalls.push({ path: filePath, contents });
+      }
+    };
+
+    const result = await executePoeAgent(
+      "poe-agent:openai/gpt-5.4",
+      {
+        agent: "poe-agent:openai/gpt-5.4",
+        prompt: "hi",
+        cwd: "/repo",
+        logDir: "/logs/round-3",
+        logFileName: "builder.jsonl"
+      },
+      factory,
+      fakeFs
+    );
+
+    expect(mkdirCalls).toEqual(["/logs/round-3"]);
+    expect(appendCalls.map((c) => c.path)).toEqual([
+      "/logs/round-3/builder.jsonl",
+      "/logs/round-3/builder.jsonl",
+      "/logs/round-3/builder.jsonl"
+    ]);
+    const sessionUpdates = appendCalls
+      .flatMap((c) => c.contents.trim().split("\n"))
+      .map((line) => JSON.parse(line));
+    expect(sessionUpdates.map((u: { sessionUpdate: string }) => u.sessionUpdate)).toEqual([
+      "agent_message_chunk",
+      "tool_call",
+      "tool_call_update",
+      "tool_call_update"
+    ]);
+    expect(result.logFile).toBe("/logs/round-3/builder.jsonl");
+  });
+
+  it("does not open a transcript writer when logDir/logFileName are omitted", async () => {
+    const { factory } = createFakeFactory([completeEvent("ok")]);
+    const fakeFs = {
+      mkdir: vi.fn(async () => undefined),
+      appendFile: vi.fn(async () => undefined)
+    };
+
+    const result = await executePoeAgent(
+      "poe-agent:openai/gpt-5.4",
+      { agent: "poe-agent:openai/gpt-5.4", prompt: "hi", cwd: "/tmp" },
+      factory,
+      fakeFs
+    );
+
+    expect(fakeFs.mkdir).not.toHaveBeenCalled();
+    expect(fakeFs.appendFile).not.toHaveBeenCalled();
+    expect(result.logFile).toBeUndefined();
   });
 });

@@ -20,7 +20,7 @@ export class ProviderResolutionError extends Error {
   constructor(options: ProviderResolutionErrorOptions) {
     const message =
       options.providerName === undefined
-        ? `No provider matched model "${options.modelId}". Registered providers: ${formatProviderNames(options.providerNames)}.`
+        ? `No provider supports model "${options.modelId}". Registered providers: ${formatProviderNames(options.providerNames)}.`
         : `Provider "${options.providerName}" failed while resolving model "${options.modelId}". Registered providers: ${formatProviderNames(options.providerNames)}.`;
 
     super(message, { cause: options.cause });

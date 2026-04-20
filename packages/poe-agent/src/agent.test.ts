@@ -331,7 +331,7 @@ describe("agent builder", () => {
     await expect(
       agent().model("Claude-Sonnet-4.6").use(openaiResponsesPlugin()).run("hello")
     ).rejects.toThrowError(
-      'No provider matched model "Claude-Sonnet-4.6". Registered providers: openai-responses.'
+      'No provider supports model "Claude-Sonnet-4.6". Registered providers: openai-responses.'
     );
   });
 

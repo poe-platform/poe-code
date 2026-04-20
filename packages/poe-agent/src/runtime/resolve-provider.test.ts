@@ -123,8 +123,9 @@ describe("resolveProvider", () => {
         modelId: "missing-model",
         providerNames: ["alpha", "beta", "gamma"],
       });
-      expect((error as Error).message).toContain("missing-model");
-      expect((error as Error).message).toContain("alpha, beta, gamma");
+      expect((error as Error).message).toBe(
+        'No provider supports model "missing-model". Registered providers: alpha, beta, gamma.'
+      );
     }
   });
 
@@ -140,8 +141,9 @@ describe("resolveProvider", () => {
         modelId: "missing-model",
         providerNames: [],
       });
-      expect((error as Error).message).toContain("missing-model");
-      expect((error as Error).message).toContain("(none)");
+      expect((error as Error).message).toBe(
+        'No provider supports model "missing-model". Registered providers: (none).'
+      );
     }
   });
 

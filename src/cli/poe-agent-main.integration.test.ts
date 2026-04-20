@@ -2,7 +2,7 @@ import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
-import { createPoeAgentProgram } from "./poe-agent-main.js";
+import { createPoeAgentProgram, normalizePoeAgentArgv } from "./poe-agent-main.js";
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
@@ -47,7 +47,9 @@ async function runProgram(
   volume.mkdirSync(path.dirname(projectConfigPath), { recursive: true });
 
   if (config) {
-    volume.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+    volume.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, {
+      encoding: "utf8"
+    });
   }
 
   const fs = createFsFromVolume(volume).promises;
@@ -58,7 +60,7 @@ async function runProgram(
   });
 
   program.exitOverride();
-  await program.parseAsync(["node", "poe-agent", ...args]);
+  await program.parseAsync(normalizePoeAgentArgv(["node", "poe-agent", ...args]));
 }
 
 describe("poe-agent CLI integration", () => {
@@ -70,7 +72,7 @@ describe("poe-agent CLI integration", () => {
         }
       })
     ).rejects.toThrow(
-      'No provider matched model "nonexistent-model". Registered providers: openai-responses.'
+      'No provider supports model "nonexistent-model". Registered providers: openai-responses.'
     );
   });
 
@@ -83,7 +85,19 @@ describe("poe-agent CLI integration", () => {
         }
       })
     ).rejects.toThrow(
-      'No provider matched model "nonexistent-model". Registered providers: openai-responses.'
+      'No provider supports model "nonexistent-model". Registered providers: openai-responses.'
+    );
+  });
+
+  it("supports the run subcommand with --prompt for unknown --model errors", async () => {
+    await expect(
+      runProgram(["run", "--model", "nonexistent-model", "--prompt", "Test prompt"], {
+        agent: {
+          plugins: [{ name: "openai-responses" }]
+        }
+      })
+    ).rejects.toThrow(
+      'No provider supports model "nonexistent-model". Registered providers: openai-responses.'
     );
   });
 

@@ -50,8 +50,7 @@ const poeAgentPath = path.join(binDir, "poe-agent.js");
 const poeAgentContent = [
   "#!/usr/bin/env node",
   versionGateSnippet("poe-agent"),
-  'import("../index.js").then(function (m) { m.poeAgentMain(); }).catch(function (err) { console.error(err); process.exit(1); })',
+  'import("../cli/poe-agent-main.js").then(function (m) { m.poeAgentMain(); }).catch(function (err) { console.error(err); process.exit(1); })',
   ""
 ].join("\n");
 await writeFile(poeAgentPath, poeAgentContent, { encoding: "utf8" });
-

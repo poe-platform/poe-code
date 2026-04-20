@@ -105,18 +105,21 @@ interface PoeAgentProgramOptions {
   fs?: PoeAgentConfigFs;
 }
 
-export function createPoeAgentProgram(options: PoeAgentProgramOptions = {}): Command {
-  const program = new Command();
-  const baseDir = options.cwd ?? process.cwd();
-  const homeDir = options.homeDir ?? os.homedir();
-  const fs = options.fs ?? (fsPromises as unknown as PoeAgentConfigFs);
+type PoeAgentRunCommandOptions = {
+  yes?: boolean;
+  model?: string;
+  prompt?: string;
+  cwd?: string;
+  stdin?: boolean;
+  mcpServers?: string;
+  mcpConfig?: string;
+};
 
-  program
-    .name("poe-agent")
-    .description("Run a single prompt through the Poe agent runtime.")
-    .version("0.0.0")
+function configurePoeAgentRunOptions(command: Command): Command {
+  return command
     .option("-y, --yes", "Accept configured defaults without prompting")
     .option("--model <model>", "Model identifier override")
+    .option("--prompt <text>", "Prompt text to send")
     .option("-C, --cwd <path>", "Working directory for the agent")
     .option("--stdin", "Read the prompt from stdin")
     .option(
@@ -125,104 +128,139 @@ export function createPoeAgentProgram(options: PoeAgentProgramOptions = {}): Com
     )
     .option("--mcp-config <json>", "[deprecated: use --mcp-servers]")
     .argument("[prompt]", "Prompt text to send (or '-' / stdin)")
-    .argument("[args...]", "Additional arguments forwarded to the agent")
-    .action(async function (
-      this: Command,
-      promptText: string | undefined,
-      _args: string[] = []
-    ) {
-      const commandOptions = this.opts<{
-        yes?: boolean;
-        model?: string;
-        cwd?: string;
-        stdin?: boolean;
-        mcpServers?: string;
-        mcpConfig?: string;
-      }>();
+    .argument("[args...]", "Additional arguments forwarded to the agent");
+}
 
-      const mcpServers = parseMcpSpawnConfig(commandOptions.mcpServers ?? commandOptions.mcpConfig);
-      const cwdOverride = resolveWorkingDirectory(
-        baseDir,
-        commandOptions.cwd
-      );
-      const cwd = cwdOverride ?? baseDir;
-      const configStore = createConfigStore({
-        fs: fs as unknown as Parameters<typeof createConfigStore>[0]["fs"],
-        filePath: resolveConfigPath(homeDir),
-        projectFilePath: resolveProjectConfigPath(cwd)
-      });
-      const configuredModel = (await configStore.scope(agentConfigScope).get("model")).trim();
-      const model = commandOptions.model ?? configuredModel;
+async function runPoeAgentCommand(
+  options: {
+    baseDir: string;
+    homeDir: string;
+    fs: PoeAgentConfigFs;
+    promptText?: string;
+    commandOptions: PoeAgentRunCommandOptions;
+  }
+): Promise<void> {
+  const mcpServers = parseMcpSpawnConfig(
+    options.commandOptions.mcpServers ?? options.commandOptions.mcpConfig
+  );
+  const cwdOverride = resolveWorkingDirectory(
+    options.baseDir,
+    options.commandOptions.cwd
+  );
+  const cwd = cwdOverride ?? options.baseDir;
+  const configStore = createConfigStore({
+    fs: options.fs as unknown as Parameters<typeof createConfigStore>[0]["fs"],
+    filePath: resolveConfigPath(options.homeDir),
+    projectFilePath: resolveProjectConfigPath(cwd)
+  });
+  const configuredModel = (await configStore.scope(agentConfigScope).get("model")).trim();
+  const model = options.commandOptions.model ?? configuredModel;
 
-      if (commandOptions.yes && model.length === 0) {
-        throw new ValidationError(
-          "Error: --model is required in non-interactive mode (--yes) and no agent.model is configured."
-        );
-      }
+  if (options.commandOptions.yes && model.length === 0) {
+    throw new ValidationError(
+      "Error: --model is required in non-interactive mode (--yes) and no agent.model is configured."
+    );
+  }
 
-      const wantsStdinFlag = commandOptions.stdin === true;
-      const shouldReadFromStdin =
-        wantsStdinFlag ||
-        promptText === "-" ||
-        (!promptText && !process.stdin.isTTY);
+  let promptText = options.commandOptions.prompt ?? options.promptText;
+  const wantsStdinFlag = options.commandOptions.stdin === true;
+  const shouldReadFromStdin =
+    wantsStdinFlag ||
+    promptText === "-" ||
+    (!promptText && !process.stdin.isTTY);
 
-      if (wantsStdinFlag || promptText === "-") {
-        promptText = undefined;
-      }
+  if (wantsStdinFlag || promptText === "-") {
+    promptText = undefined;
+  }
 
-      if (!promptText && shouldReadFromStdin) {
-        const chunks: Buffer[] = [];
-        for await (const chunk of process.stdin) {
-          chunks.push(chunk);
-        }
-        promptText = Buffer.concat(chunks).toString("utf8").trim();
-      }
+  if (!promptText && shouldReadFromStdin) {
+    const chunks: Buffer[] = [];
+    for await (const chunk of process.stdin) {
+      chunks.push(chunk);
+    }
+    promptText = Buffer.concat(chunks).toString("utf8").trim();
+  }
 
-      if (!promptText) {
-        throw new ValidationError("No prompt provided via argument or stdin");
-      }
+  if (!promptText) {
+    throw new ValidationError("No prompt provided via argument or stdin");
+  }
 
-      const { spawnPoeAgentWithAcp } = await import(
-        "../providers/poe-agent.js"
-      );
+  const { spawnPoeAgentWithAcp } = await import(
+    "../providers/poe-agent.js"
+  );
 
-      const { events, done } = spawnPoeAgentWithAcp({
-        prompt: promptText,
-        model: model || DEFAULT_FRONTIER_MODEL,
-        cwd,
-        mcpServers,
-        homeDir,
-        configPath: resolveConfigPath(homeDir),
-        projectConfigPath: resolveProjectConfigPath(cwd),
-        fs,
-      });
+  const { events, done } = spawnPoeAgentWithAcp({
+    prompt: promptText,
+    model: model || DEFAULT_FRONTIER_MODEL,
+    cwd,
+    mcpServers,
+    homeDir: options.homeDir,
+    configPath: resolveConfigPath(options.homeDir),
+    projectConfigPath: resolveProjectConfigPath(cwd),
+    fs: options.fs,
+  });
 
-      await renderAcpStream(events);
+  await renderAcpStream(events);
 
-      const result = await done;
+  const result = await done;
 
-      if (result.exitCode !== 0) {
-        const detail = result.stderr.trim() || result.stdout.trim();
-        const suffix = detail ? `: ${detail}` : "";
-        throw new Error(`poe-agent failed with exit code ${result.exitCode}${suffix}`);
-      }
+  if (result.exitCode !== 0) {
+    const detail = result.stderr.trim() || result.stdout.trim();
+    const suffix = detail ? `: ${detail}` : "";
+    throw new Error(`poe-agent failed with exit code ${result.exitCode}${suffix}`);
+  }
 
-      const trimmedStdout = result.stdout.trim();
-      if (trimmedStdout) {
-        log.info(trimmedStdout);
-      }
+  const trimmedStdout = result.stdout.trim();
+  if (trimmedStdout) {
+    log.info(trimmedStdout);
+  }
 
-      process.exitCode = result.exitCode;
+  process.exitCode = result.exitCode;
+}
+
+export function createPoeAgentProgram(options: PoeAgentProgramOptions = {}): Command {
+  const program = new Command();
+  const baseDir = options.cwd ?? process.cwd();
+  const homeDir = options.homeDir ?? os.homedir();
+  const fs = options.fs ?? (fsPromises as unknown as PoeAgentConfigFs);
+
+  const runAction = async function (
+    promptText: string | undefined,
+    _args: string[] = [],
+    commandOptions: PoeAgentRunCommandOptions
+  ) {
+    await runPoeAgentCommand({
+      baseDir,
+      homeDir,
+      fs,
+      promptText,
+      commandOptions
     });
+  };
+
+  configurePoeAgentRunOptions(
+    program
+    .name("poe-agent")
+    .description("Run a single prompt through the Poe agent runtime.")
+    .version("0.0.0")
+  ).action(runAction);
 
   return program;
+}
+
+export function normalizePoeAgentArgv(argv: string[]): string[] {
+  if (argv[2] !== "run") {
+    return argv;
+  }
+
+  return [argv[0] ?? "node", argv[1] ?? "poe-agent", ...argv.slice(3)];
 }
 
 export async function poeAgentMain(): Promise<void> {
   const program = createPoeAgentProgram();
 
   try {
-    await program.parseAsync(process.argv);
+    await program.parseAsync(normalizePoeAgentArgv(process.argv));
   } catch (error) {
     if (error instanceof Error) {
       if (error instanceof ValidationError) {

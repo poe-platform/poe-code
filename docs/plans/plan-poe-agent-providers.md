@@ -565,7 +565,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: manual-qa-doc
     title: Write manual QA doc and visual verification
@@ -597,7 +597,7 @@ tasks:
       - `grep -R "sanitizeToolName\|INVALID_TOOL_NAME_CHAR\|originalByApiName\|createPoeAcpModel" packages/` — zero matches.
       - `test -d packages/poe-agent/src/models` — directory absent.
     status:
-      implement: open
+      implement: done
       test: open
       commit: open
 ---

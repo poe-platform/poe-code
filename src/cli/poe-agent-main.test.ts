@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createPoeAgentProgram } from "./poe-agent-main.js";
+import { createPoeAgentProgram, normalizePoeAgentArgv } from "./poe-agent-main.js";
 
 const spawnPoeAgentWithAcpMock = vi.hoisted(() =>
   vi.fn(() => ({
@@ -41,7 +41,7 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 async function runProgram(args: string[]): Promise<void> {
   const program = createPoeAgentProgram();
   program.exitOverride();
-  await program.parseAsync(["node", "poe-agent", ...args]);
+  await program.parseAsync(normalizePoeAgentArgv(["node", "poe-agent", ...args]));
 }
 
 describe("poe-agent CLI", () => {
@@ -72,6 +72,30 @@ describe("poe-agent CLI", () => {
     expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
       expect.objectContaining({ model: "anthropic/claude-opus-4.7" })
     );
+  });
+
+  it("supports the run subcommand with --prompt", async () => {
+    await runProgram(["run", "--model", "anthropic/claude-opus-4.7", "--prompt", "Test prompt"]);
+
+    expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "anthropic/claude-opus-4.7",
+        prompt: "Test prompt"
+      })
+    );
+  });
+
+  it("normalizes the optional run prefix", () => {
+    expect(normalizePoeAgentArgv(["node", "poe-agent", "run", "--help"])).toEqual([
+      "node",
+      "poe-agent",
+      "--help"
+    ]);
+    expect(normalizePoeAgentArgv(["node", "poe-agent", "--help"])).toEqual([
+      "node",
+      "poe-agent",
+      "--help"
+    ]);
   });
 
   it("passes --cwd option resolved to absolute path", async () => {
@@ -115,8 +139,15 @@ describe("poe-agent CLI", () => {
   it("uses default model when --model is not specified", async () => {
     await runProgram(["Test prompt"]);
 
-    const call = spawnPoeAgentWithAcpMock.mock.calls[0]?.[0];
-    expect(call?.model).toBe("anthropic/claude-opus-4.7");
+    expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledOnce();
+
+    const [call] = spawnPoeAgentWithAcpMock.mock.calls;
+
+    if (!call) {
+      throw new Error("Expected spawnPoeAgentWithAcp to be called.");
+    }
+
+    expect(call[0]).toMatchObject({ model: "anthropic/claude-opus-4.7" });
   });
 
   it("propagates non-zero exit code as error", async () => {

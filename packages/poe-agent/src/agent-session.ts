@@ -6,6 +6,7 @@ import type {
 } from "@poe-code/agent-spawn";
 import { agent, normalizeNonEmptyString, type AgentBuilder, type AgentRunOptions } from "./agent.js";
 import filesPlugin from "./plugins/poe-agent-plugin-files.js";
+import environmentPlugin from "./plugins/poe-agent-plugin-environment.js";
 import policyPlugin from "./plugins/poe-agent-plugin-policy.js";
 import shellPlugin from "./plugins/poe-agent-plugin-shell.js";
 import systemPromptPlugin from "./plugins/poe-agent-plugin-system-prompt.js";
@@ -84,6 +85,7 @@ export async function createAgentSession(
       : undefined)
     ?? [
       systemPromptPlugin(),
+      environmentPlugin(options.cwd ?? process.cwd()),
       filesPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
       shellPlugin({ cwd: options.cwd, allowedPaths: options.allowedPaths }),
       webPlugin(),

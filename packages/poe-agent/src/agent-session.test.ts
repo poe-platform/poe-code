@@ -4,6 +4,7 @@ import type { AcpEvent, AcpSession, RunResult } from "./runtime/types.js";
 
 const systemPromptPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "system-prompt" })));
 const filesPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "file-tools" })));
+const environmentPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "environment" })));
 const shellPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "shell-tools" })));
 const webPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "web-tools" })));
 const policyPluginMock = vi.hoisted(() => vi.fn(() => ({ name: "policy" })));
@@ -33,6 +34,11 @@ vi.mock("./plugins/poe-agent-plugin-system-prompt.js", () => ({
 vi.mock("./plugins/poe-agent-plugin-files.js", () => ({
   default: filesPluginMock,
   spec: { name: "files" },
+}));
+
+vi.mock("./plugins/poe-agent-plugin-environment.js", () => ({
+  default: environmentPluginMock,
+  spec: { name: "environment" },
 }));
 
 vi.mock("./plugins/poe-agent-plugin-shell.js", () => ({
@@ -76,6 +82,7 @@ describe("createAgentSession", () => {
   beforeEach(() => {
     systemPromptPluginMock.mockClear();
     filesPluginMock.mockClear();
+    environmentPluginMock.mockClear();
     shellPluginMock.mockClear();
     webPluginMock.mockClear();
     policyPluginMock.mockClear();
@@ -134,6 +141,7 @@ describe("createAgentSession", () => {
     expect(agentMock).toHaveBeenCalledTimes(1);
     expect(modelMock).toHaveBeenCalledWith("Claude-Sonnet-4.5");
     expect(systemPromptPluginMock).toHaveBeenCalledTimes(1);
+    expect(environmentPluginMock).toHaveBeenCalledWith("/workspace/project");
     expect(filesPluginMock).toHaveBeenCalledWith({
       cwd: "/workspace/project",
       allowedPaths: ["/workspace/project"],
@@ -143,9 +151,10 @@ describe("createAgentSession", () => {
       allowedPaths: ["/workspace/project"],
     });
     expect(webPluginMock).toHaveBeenCalledTimes(1);
-    expect(useMock).toHaveBeenCalledTimes(4);
+    expect(useMock).toHaveBeenCalledTimes(5);
     expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
       "system-prompt",
+      "environment",
       "file-tools",
       "shell-tools",
       "web-tools",
@@ -167,6 +176,7 @@ describe("createAgentSession", () => {
     expect(policyPluginMock).toHaveBeenCalledWith({ mode: "read" });
     expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
       "system-prompt",
+      "environment",
       "file-tools",
       "shell-tools",
       "web-tools",
@@ -188,6 +198,7 @@ describe("createAgentSession", () => {
 
     expect(systemPromptPluginMock).not.toHaveBeenCalled();
     expect(filesPluginMock).not.toHaveBeenCalled();
+    expect(environmentPluginMock).not.toHaveBeenCalled();
     expect(shellPluginMock).not.toHaveBeenCalled();
     expect(webPluginMock).not.toHaveBeenCalled();
     expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([
@@ -212,6 +223,7 @@ describe("createAgentSession", () => {
     expect(resolvePluginsFromConfigMock).toHaveBeenCalledWith([{ name: "web" }]);
     expect(systemPromptPluginMock).not.toHaveBeenCalled();
     expect(filesPluginMock).not.toHaveBeenCalled();
+    expect(environmentPluginMock).not.toHaveBeenCalled();
     expect(shellPluginMock).not.toHaveBeenCalled();
     expect(webPluginMock).not.toHaveBeenCalled();
     expect(useMock.mock.calls.map(call => (call[0] as { name: string }).name)).toEqual([

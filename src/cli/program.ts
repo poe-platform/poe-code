@@ -29,6 +29,7 @@ import { registerPlanCommand } from "./commands/plan.js";
 import { registerRalphCommand } from "./commands/ralph.js";
 import { registerExperimentCommand } from "./commands/experiment.js";
 import { registerLaunchCommand } from "./commands/launch.js";
+import { registerMemoryCommand } from "./commands/memory.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -84,6 +85,9 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["plan", "markdown-read"], args: "<file>" },
   { path: ["plan", "markdown-read-section"], args: "<file> <section>" },
   { path: ["plan", "markdown-reader-mcp"] },
+  { path: ["memory", "init"] },
+  { path: ["memory", "ls"] },
+  { path: ["memory", "status"] },
   { path: ["experiment", "install"] },
   { path: ["experiment", "run"] },
   { path: ["experiment", "journal"] },
@@ -418,6 +422,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerRalphCommand(program, container);
   registerExperimentCommand(program, container);
   registerLaunchCommand(program, container);
+  registerMemoryCommand(program, container);
   program
     .command(ghGroup.name)
     .description(ghGroup.description ?? "")

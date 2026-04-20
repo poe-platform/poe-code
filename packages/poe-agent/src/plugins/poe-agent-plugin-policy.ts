@@ -4,7 +4,7 @@ import { readRequiredEnum, rejectUnknownKeys, toOptionsObject } from "./parse-op
 import type { PluginSpec } from "./registry.js";
 
 export type PolicyPluginOptions = {
-  mode: SpawnMode | (() => SpawnMode);
+  mode: SpawnMode | undefined | (() => SpawnMode | undefined);
 };
 
 export const POLICY_MODE_SESSION_KEY = "poe-agent-plugin-policy.mode";
@@ -24,13 +24,7 @@ const policyPlugin = (options: PolicyPluginOptions): AgentPlugin => {
       },
       async preToolUse(ctx) {
         const mode = ctx.session.get(POLICY_MODE_SESSION_KEY) as SpawnMode | undefined;
-        if (mode === undefined) {
-          return {
-            reject: "Policy mode is unavailable for this session."
-          };
-        }
-
-        if (mode === "yolo") {
+        if (mode === undefined || mode === "yolo") {
           return;
         }
 
@@ -60,7 +54,7 @@ const policyPlugin = (options: PolicyPluginOptions): AgentPlugin => {
   };
 };
 
-function resolveMode(mode: PolicyPluginOptions["mode"]): SpawnMode {
+function resolveMode(mode: PolicyPluginOptions["mode"]): SpawnMode | undefined {
   return typeof mode === "function" ? mode() : mode;
 }
 

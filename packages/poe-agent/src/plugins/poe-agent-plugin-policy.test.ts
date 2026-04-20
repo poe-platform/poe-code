@@ -173,6 +173,34 @@ describe("poe-agent-plugin-policy", () => {
     }
   });
 
+  it.each([
+    {
+      description: "literal undefined",
+      mode: undefined
+    },
+    {
+      description: "function returning undefined",
+      mode: () => undefined
+    }
+  ])("skips policy enforcement when mode resolves to $description", async ({ mode }) => {
+    const { runContext, signal } = await setupRunContext([
+      filesPlugin({ cwd: "/workspace/project" }),
+      policyPlugin({ mode })
+    ]);
+
+    try {
+      await expect(
+        runPreToolUse(runContext, signal, "edit_file", {
+          command: "create",
+          path: "README.md",
+          file_text: "hello"
+        })
+      ).resolves.toEqual({ type: "continue" });
+    } finally {
+      await runContext.dispose();
+    }
+  });
+
   it.each(["read", "edit"] as const)(
     "allows spawn in %s mode so child sessions can inherit the same policy mode",
     async (mode) => {
@@ -252,7 +280,7 @@ describe("poe-agent-plugin-policy", () => {
     }
   });
 
-  it("blocks tools without policy metadata outside yolo even when registered after the policy plugin", async () => {
+  it("blocks tools without policy metadata outside permissive modes even when registered after the policy plugin", async () => {
     const customPlugin: AgentPlugin = {
       name: "custom-tools",
       tools: [
@@ -274,16 +302,18 @@ describe("poe-agent-plugin-policy", () => {
       await readRun.runContext.dispose();
     }
 
-    const yoloRun = await setupRunContext([policyPlugin({ mode: "yolo" }), customPlugin]);
+    for (const mode of ["yolo", undefined] as const) {
+      const permissiveRun = await setupRunContext([policyPlugin({ mode }), customPlugin]);
 
-    try {
-      await expect(
-        runPreToolUse(yoloRun.runContext, yoloRun.signal, "custom_tool", {})
-      ).resolves.toEqual({
-        type: "continue"
-      });
-    } finally {
-      await yoloRun.runContext.dispose();
+      try {
+        await expect(
+          runPreToolUse(permissiveRun.runContext, permissiveRun.signal, "custom_tool", {})
+        ).resolves.toEqual({
+          type: "continue"
+        });
+      } finally {
+        await permissiveRun.runContext.dispose();
+      }
     }
   });
 

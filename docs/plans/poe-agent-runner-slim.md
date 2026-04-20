@@ -22,16 +22,16 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: policy-undefined-mode
     title: Relax policy mode
     prompt: |
       Update packages/poe-agent/src/plugins/poe-agent-plugin-policy.ts so PolicyPluginOptions.mode accepts SpawnMode | undefined instead of requiring SpawnMode. When mode is undefined, have preToolUse return early with the same permissive behavior as the existing yolo path so callers can always wire policyPlugin({ mode: input.mode }) without branching or casting. Add or update tests to cover the undefined-mode behavior alongside the existing yolo-style expectations.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: add-mcp-map-overload

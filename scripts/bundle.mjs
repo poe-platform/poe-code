@@ -97,7 +97,7 @@ async function getProviderEntryPoints(root) {
   return files;
 }
 
-await esbuild.build({
+const mainBuild = await esbuild.build({
   entryPoints: [path.join(rootDir, "src/index.ts")],
   bundle: true,
   platform: "node",
@@ -110,6 +110,7 @@ await esbuild.build({
   sourcemap: true,
   plugins: [stripShebangPlugin],
   loader: { ".md": "text", ".mustache": "text", ".log": "text" },
+  metafile: true,
 });
 
 const providerEntryPoints = await getProviderEntryPoints(rootDir);
@@ -226,5 +227,39 @@ await Promise.all(
     );
   })
 );
+
+// Verify every external import in dist/index.js is declared in root
+// dependencies (or is a Node built-in). Missing deps would only surface
+// as ERR_MODULE_NOT_FOUND when the published package is installed.
+const externalImports = new Set();
+for (const meta of Object.values(mainBuild.metafile.outputs)) {
+  for (const imp of meta.imports ?? []) {
+    if (imp.external && imp.kind !== "dynamic-import") {
+      externalImports.add(imp.path);
+    } else if (imp.external) {
+      externalImports.add(imp.path);
+    }
+  }
+}
+const rootDepNames = new Set(Object.keys(packageJson.dependencies || {}));
+const nodeBuiltins = new Set([
+  "assert", "buffer", "child_process", "crypto", "events", "fs", "http",
+  "https", "net", "os", "path", "process", "readline", "stream", "string_decoder",
+  "timers", "tls", "tty", "url", "util", "vm", "zlib"
+]);
+function toPackageName(specifier) {
+  if (specifier.startsWith("node:")) return null;
+  const parts = specifier.split("/");
+  return specifier.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
+}
+const undeclared = [...externalImports]
+  .map(toPackageName)
+  .filter((dep) => dep && !rootDepNames.has(dep) && !nodeBuiltins.has(dep));
+if (undeclared.length > 0) {
+  console.error(
+    `\nBundle imports packages not declared in root dependencies:\n  ${undeclared.join("\n  ")}\n\nAdd them to package.json "dependencies" so end users get them on install.`
+  );
+  process.exit(1);
+}
 
 console.log("Bundle complete: dist/index.js + dist/bin.cjs");

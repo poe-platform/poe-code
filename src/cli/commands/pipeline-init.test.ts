@@ -43,7 +43,7 @@ describe("buildPipelineInitPrompt", () => {
     });
 
     expect(prompt).toContain(
-      "Convert the source document below into a pipeline plan. Treat the source document as the user request and do not ask the user for more input."
+      'Create a pipeline plan for "Feature" based on the source document below. Treat the source document as the user request and do not ask the user for more input.'
     );
     expect(prompt).not.toContain("one-sentence description");
   });

@@ -27,9 +27,10 @@ type DiscoveryFs = Pick<CliContainer["fs"], "readFile" | "readdir" | "stat">;
 
 export function buildPipelineInitPrompt(options: BuildPipelineInitPromptOptions): string {
   const trimmedQuestion = options.question?.trim() ?? "";
+  const sourceTitle = extractTitle(options.sourceDocPath, options.sourceDocContent);
   const userRequest = trimmedQuestion.length > 0
     ? trimmedQuestion
-    : "Convert the source document below into a pipeline plan. Treat the source document as the user request and do not ask the user for more input.";
+    : `Create a pipeline plan for "${sourceTitle}" based on the source document below. Treat the source document as the user request and do not ask the user for more input.`;
   const fence = createMarkdownFence(options.sourceDocContent);
 
   return [

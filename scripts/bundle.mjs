@@ -1,7 +1,7 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 
@@ -215,6 +215,13 @@ await Promise.all([
   copyFile(
     path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "terminal-pilot.md"),
     path.join(skillTemplateDir, "terminal-pilot.md")
+  ),
+  // tokenfill resolves its built-in corpus via import.meta.url, so after
+  // bundling the directory must sit next to dist/index.js.
+  cp(
+    path.join(rootDir, "packages", "tokenfill", "src", "corpus"),
+    path.join(distDir, "corpus"),
+    { recursive: true }
   )
 ]);
 

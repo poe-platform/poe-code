@@ -1,10 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 describe("@poe-code/superintendent package exports", () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
   it("re-exports the public SDK surface", async () => {
     const [
       pkg,

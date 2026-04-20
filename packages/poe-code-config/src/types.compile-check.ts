@@ -1,4 +1,4 @@
-import type { InferConfig, ScopedConfig } from "./types.js";
+import type { ConfigDocument, InferConfig, MemoryConfig, ScopedConfig } from "./types.js";
 import { defineScope } from "./schema.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
@@ -50,4 +50,35 @@ type ignoredGetEnabled = AssertAssignable<Promise<boolean>, typeof ignoredEnable
 type ignoredGetPlugins = AssertAssignable<
   Promise<Array<{ name: string; options?: unknown }> | null>,
   typeof ignoredPluginsPromise
+>;
+
+type ignoredMemoryConfigShape = AssertAssignable<
+  MemoryConfig,
+  {
+    ingestAgent?: string;
+    ingestTimeoutMs?: number;
+    maxPageBytes?: number;
+    confidence?: {
+      rejectUntagged?: boolean;
+      minInferredConfidence?: number;
+    };
+    cache?: {
+      enabled?: boolean;
+      maxAgeMs?: number;
+    };
+    mcp?: {
+      allowWrites?: boolean;
+    };
+    query?: {
+      defaultBudgetTokens?: number;
+    };
+  }
+>;
+
+type ignoredConfigDocumentMemoryEntry = AssertAssignable<
+  ConfigDocument,
+  {
+    memory?: MemoryConfig;
+    models?: Record<string, unknown>;
+  }
 >;

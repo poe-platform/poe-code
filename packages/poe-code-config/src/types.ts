@@ -43,6 +43,34 @@ export interface ScopeDefinition<S extends ScopeSchema> {
   schema: S;
 }
 
+export interface MemoryConfidenceConfig extends Record<string, unknown> {
+  rejectUntagged?: boolean;
+  minInferredConfidence?: number;
+}
+
+export interface MemoryCacheConfig extends Record<string, unknown> {
+  enabled?: boolean;
+  maxAgeMs?: number;
+}
+
+export interface MemoryMcpConfig extends Record<string, unknown> {
+  allowWrites?: boolean;
+}
+
+export interface MemoryQueryConfig extends Record<string, unknown> {
+  defaultBudgetTokens?: number;
+}
+
+export interface MemoryConfig extends Record<string, unknown> {
+  ingestAgent?: string;
+  ingestTimeoutMs?: number;
+  maxPageBytes?: number;
+  confidence?: MemoryConfidenceConfig;
+  cache?: MemoryCacheConfig;
+  mcp?: MemoryMcpConfig;
+  query?: MemoryQueryConfig;
+}
+
 export interface ScopedConfig<S extends ScopeSchema> {
   get<K extends keyof S & string>(key: K): Promise<InferConfig<S>[K]>;
   getAll(): Promise<InferConfig<S>>;
@@ -60,4 +88,6 @@ export interface ConfigStoreOptions {
   env?: Record<string, string | undefined>;
 }
 
-export type ConfigDocument = Record<string, Record<string, unknown>>;
+export type ConfigDocument = Record<string, Record<string, unknown>> & {
+  memory?: MemoryConfig;
+};

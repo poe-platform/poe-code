@@ -4,6 +4,11 @@ export type {
   ConfigStore,
   ConfigStoreOptions,
   InferConfig,
+  MemoryCacheConfig,
+  MemoryConfidenceConfig,
+  MemoryConfig,
+  MemoryMcpConfig,
+  MemoryQueryConfig,
   SchemaField,
   ScopeDefinition,
   ScopedConfig,
@@ -23,6 +28,14 @@ export {
   saveDefaultModel,
   type ModelsConfigOptions
 } from "./models.js";
+export {
+  cacheEnabled,
+  configuredTimeout,
+  defaultQueryBudget,
+  mcpWritesAllowed,
+  resolveAgent,
+  type MemoryConfigOptions
+} from "./memory.js";
 export { resolveScope } from "./resolve.js";
 export {
   collectEnvOverrides,

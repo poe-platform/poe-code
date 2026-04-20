@@ -3,10 +3,12 @@ import {
   auditLogPlugin,
   builtinPluginRegistry,
   compactionPlugin,
+  createTranscriptWriter,
   environmentPlugin,
   filesPlugin,
   gitContextPlugin,
   InvalidToolNameError,
+  mapAcpEventToSessionUpdates,
   maxIterationsPlugin,
   mcpPlugin,
   memoryPlugin,
@@ -43,6 +45,10 @@ import shell from "./plugins/poe-agent-plugin-shell.js";
 import skills from "./plugins/poe-agent-plugin-skills.js";
 import spawn from "./plugins/poe-agent-plugin-spawn.js";
 import systemPrompt from "./plugins/poe-agent-plugin-system-prompt.js";
+import {
+  createTranscriptWriter as createTranscriptWriterFromRuntime,
+  mapAcpEventToSessionUpdates as mapAcpEventToSessionUpdatesFromRuntime
+} from "./runtime/transcript.js";
 import { InvalidToolNameError as invalidToolName } from "./runtime/tool-names.js";
 import web from "./plugins/poe-agent-plugin-web.js";
 
@@ -77,5 +83,10 @@ describe("package root exports", () => {
     expect(DuplicateProviderNameError).toBe(duplicateProviderName);
     expect(InvalidToolNameError).toBe(invalidToolName);
     expect(ProviderResolutionError).toBe(providerResolution);
+  });
+
+  it("re-exports transcript helpers without deep imports", () => {
+    expect(createTranscriptWriter).toBe(createTranscriptWriterFromRuntime);
+    expect(mapAcpEventToSessionUpdates).toBe(mapAcpEventToSessionUpdatesFromRuntime);
   });
 });

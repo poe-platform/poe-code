@@ -40,6 +40,13 @@ export {
   ProviderResolutionError,
   resolveProvider
 } from "./runtime/resolve-provider.js";
+export {
+  createTranscriptWriter,
+  mapAcpEventToSessionUpdates,
+  type CreateTranscriptWriterOptions,
+  type TranscriptFsApi,
+  type TranscriptWriter
+} from "./runtime/transcript.js";
 export type {
   AcpEvent,
   AcpHost,

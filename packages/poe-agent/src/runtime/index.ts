@@ -11,3 +11,4 @@ export * from "./plugin-setup.js";
 export * from "./resolve-provider.js";
 export * from "./acp-core.js";
 export * from "./agent-host.js";
+export * from "./transcript.js";

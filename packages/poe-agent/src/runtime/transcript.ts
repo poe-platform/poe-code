@@ -1,30 +1,6 @@
 import path from "node:path";
-import type { AcpEvent } from "@poe-code/poe-agent";
-
-/**
- * SessionUpdate shape is ACP-compatible — the superintendent's replay tool
- * (`packages/agent-spawn/src/acp/replay.ts`) already reads this format, so
- * writing poe-agent events as SessionUpdates gives us the same `npm run
- * replay -- <path>` experience CLI agents already have.
- */
-type SessionUpdate =
-  | { sessionUpdate: "agent_message_chunk"; content: { type: "text"; text: string } }
-  | {
-      sessionUpdate: "tool_call";
-      toolCallId: string;
-      title: string;
-      kind: "execute";
-      status: "pending";
-      rawInput?: unknown;
-    }
-  | {
-      sessionUpdate: "tool_call_update";
-      toolCallId: string;
-      kind: "execute";
-      status: "in_progress" | "completed" | "failed";
-      rawOutput?: unknown;
-    }
-  | { sessionUpdate: "usage_update"; used: number; size: number; _meta: Record<string, unknown> };
+import type { SessionUpdate } from "@poe-code/poe-acp-client";
+import type { AcpEvent } from "./types.js";
 
 export function mapAcpEventToSessionUpdates(event: AcpEvent): SessionUpdate[] {
   if (event.type === "message.delta") {
@@ -40,14 +16,14 @@ export function mapAcpEventToSessionUpdates(event: AcpEvent): SessionUpdate[] {
         title: event.tool,
         kind: "execute",
         status: "pending",
-        rawInput: event.args
+        rawInput: event.args,
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: event.intentId,
         kind: "execute",
-        status: "in_progress"
-      }
+        status: "in_progress",
+      },
     ];
   }
 
@@ -58,8 +34,8 @@ export function mapAcpEventToSessionUpdates(event: AcpEvent): SessionUpdate[] {
         toolCallId: event.intentId,
         kind: "execute",
         status: "completed",
-        rawOutput: event.result
-      }
+        rawOutput: event.result,
+      },
     ];
   }
 
@@ -70,8 +46,8 @@ export function mapAcpEventToSessionUpdates(event: AcpEvent): SessionUpdate[] {
         toolCallId: event.intentId,
         kind: "execute",
         status: "failed",
-        rawOutput: event.error
-      }
+        rawOutput: event.error,
+      },
     ];
   }
 
@@ -83,8 +59,8 @@ export function mapAcpEventToSessionUpdates(event: AcpEvent): SessionUpdate[] {
         sessionUpdate: "usage_update",
         used: nonCachedInput,
         size: inputTokens,
-        _meta: { inputTokens, outputTokens, cachedTokens, cacheCreationTokens }
-      }
+        _meta: { inputTokens, outputTokens, cachedTokens, cacheCreationTokens },
+      },
     ];
   }
 
@@ -110,7 +86,7 @@ export interface CreateTranscriptWriterOptions {
 }
 
 export function createTranscriptWriter(
-  options: CreateTranscriptWriterOptions
+  options: CreateTranscriptWriterOptions,
 ): TranscriptWriter {
   const join = options.pathJoin ?? path.join;
   const filePath = join(options.logDir, options.logFileName);
@@ -128,11 +104,13 @@ export function createTranscriptWriter(
     filePath,
     async write(event: AcpEvent): Promise<void> {
       if (disabled) return;
+
       const updates = mapAcpEventToSessionUpdates(event);
       if (updates.length === 0) return;
+
       try {
         await ensureDir();
-        const payload = updates.map((u) => `${JSON.stringify(u)}\n`).join("");
+        const payload = updates.map(update => `${JSON.stringify(update)}\n`).join("");
         await options.fs.appendFile(filePath, payload);
       } catch {
         disabled = true;
@@ -140,7 +118,6 @@ export function createTranscriptWriter(
     },
     async close(): Promise<void> {
       // No persistent handle: appendFile opens/closes each write. Nothing to do.
-    }
+    },
   };
 }
-

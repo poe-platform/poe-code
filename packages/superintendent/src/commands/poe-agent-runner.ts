@@ -3,6 +3,7 @@ import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import {
   agent as defaultAgent,
   compactionPlugin,
+  createTranscriptWriter,
   environmentPlugin,
   filesPlugin,
   openaiChatCompletionsPlugin,
@@ -11,16 +12,13 @@ import {
   shellPlugin,
   skillsPlugin,
   systemPromptPlugin,
+  type TranscriptFsApi,
+  type TranscriptWriter,
   webPlugin
 } from "@poe-code/poe-agent";
 import type { AgentBuilder } from "@poe-code/poe-agent";
 import type { McpSpawnConfig, McpSpawnServer, SpawnMode } from "@poe-code/agent-spawn";
 import type { AgentRunInput, AgentRunResult } from "../runtime/loop.js";
-import {
-  createTranscriptWriter,
-  type TranscriptFsApi,
-  type TranscriptWriter
-} from "./poe-agent-transcript.js";
 
 export type AgentFactory = () => AgentBuilder;
 

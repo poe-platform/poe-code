@@ -988,7 +988,7 @@ describe("poe-agent built-in plugins", () => {
     let runtimeSkills = ["repo"];
     const getActiveTools = vi.fn((activeSkills?: string[]) => {
       if (activeSkills?.includes("repo")) {
-        return [{ name: "repo.search" }];
+        return [{ name: "repo_search" }];
       }
 
       return [];
@@ -997,7 +997,7 @@ describe("poe-agent built-in plugins", () => {
     const plugin = skillsPlugin({
       definitions: {
         repo: {
-          tools: ["repo.search", "repo.open"],
+          tools: ["repo_search", "repo_open"],
           tags: ["code", "git"],
         },
       },
@@ -1012,14 +1012,14 @@ describe("poe-agent built-in plugins", () => {
       system: "Base system",
     });
     expect(first?.system).toContain("Active skills: repo");
-    expect(first?.system).toContain("repo.search");
+    expect(first?.system).toContain("repo_search");
     expect(first?.system).toContain("code");
-    expect(first?.system).toContain("repo.search");
+    expect(first?.system).toContain("repo_search");
     expect(first?.metadata).toEqual(
       expect.objectContaining({
         skills: {
           active: ["repo"],
-          tools: ["repo.search"],
+          tools: ["repo_search"],
         },
       }),
     );

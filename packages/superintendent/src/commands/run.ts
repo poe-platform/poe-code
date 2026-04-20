@@ -222,6 +222,22 @@ async function resolveSuperintendentCommandConfig(
   }
 }
 
+async function resolveSuperintendentPlanDirectory(
+  cwd: string,
+  homeDir: string,
+  env: Record<string, string | undefined>,
+  fs?: SuperintendentFileSystem
+): Promise<string> {
+  const configPath = resolveConfigPath(homeDir);
+  const projectConfigPath = resolveProjectConfigPath(cwd);
+  const document = await readMergedDocument(
+    createConfigResolutionFs(fs),
+    configPath,
+    projectConfigPath
+  );
+  return resolveScope(planConfigScope.schema, document.plan, env).plan_directory;
+}
+
 const configFs = {
   readFile: (filePath: string, encoding: "utf8") => fsPromises.readFile(filePath, encoding),
   writeFile: async (

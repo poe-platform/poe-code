@@ -305,7 +305,7 @@ describe("createPoeAcpModel", () => {
               id: "call-0",
               type: "function",
               function: {
-                name: "superintendent-tools.workflow_transition",
+                name: "superintendent-tools_workflow_transition",
                 arguments: "{}",
               },
             },
@@ -314,13 +314,13 @@ describe("createPoeAcpModel", () => {
         {
           role: "tool",
           tool_call_id: "call-0",
-          name: "superintendent-tools.workflow_transition",
+          name: "superintendent-tools_workflow_transition",
           content: "done",
         },
       ],
       tools: [
         {
-          name: "superintendent-tools.workflow_transition",
+          name: "superintendent-tools_workflow_transition",
           description: "d",
           inputSchema: { type: "object" },
         },
@@ -340,7 +340,7 @@ describe("createPoeAcpModel", () => {
     );
 
     expect(result.message?.tool_calls?.[0]?.function?.name).toBe(
-      "superintendent-tools.workflow_transition",
+      "superintendent-tools_workflow_transition",
     );
   });
 });

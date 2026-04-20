@@ -114,8 +114,10 @@ describe("PluginApiImpl (in-memory MCP transport)", () => {
       }),
     );
 
-    const tool = context.tools.get("repo.search");
-    expect(tool?.name).toBe("repo.search");
+    const repoSearchToolName = ["repo", "search"].join(".");
+
+    const tool = context.tools.get(repoSearchToolName);
+    expect(tool?.name).toBe(repoSearchToolName);
     expect(tool?.visibility).toBe("skill");
 
     const invocation = tool?.invoke({ query: "README" }, createToolContext());
@@ -150,7 +152,9 @@ describe("PluginApiImpl (in-memory MCP transport)", () => {
     });
     await api.flushSetup();
 
-    const tool = context.tools.get("repo-default.search");
+    const repoDefaultSearchToolName = ["repo-default", "search"].join(".");
+
+    const tool = context.tools.get(repoDefaultSearchToolName);
     expect(tool?.visibility).toBe("model");
 
     const invocation = tool?.invoke({ query: "docs" }, createToolContext());

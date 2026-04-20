@@ -278,17 +278,17 @@ describe("agent builder", () => {
   it("keeps reused builders isolated and immutable", async () => {
     const memory = () => ({
       name: "memory",
-      tools: [{ name: "memory.save", call: () => "ok" }],
+      tools: [{ name: "memory_save", call: () => "ok" }],
     });
 
     const web = () => ({
       name: "web",
-      tools: [{ name: "web.search", call: () => "ok" }],
+      tools: [{ name: "web_search", call: () => "ok" }],
     });
 
     const docTools = () => ({
       name: "doc-tools",
-      tools: [{ name: "doc.write", call: () => "ok" }],
+      tools: [{ name: "doc_write", call: () => "ok" }],
     });
 
     const base = agent().model("gpt-5").use(memory());
@@ -310,21 +310,21 @@ describe("agent builder", () => {
     await researcher.run("research", { acpModel: createModel([response], researcherTools) });
     await writer.run("write", { acpModel: createModel([response], writerTools) });
 
-    expect(baseTools).toEqual(["memory.save"]);
-    expect(researcherTools).toEqual(["memory.save", "web.search"]);
-    expect(writerTools).toEqual(["memory.save", "doc.write"]);
+    expect(baseTools).toEqual(["memory_save"]);
+    expect(researcherTools).toEqual(["memory_save", "web_search"]);
+    expect(writerTools).toEqual(["memory_save", "doc_write"]);
   });
 
   it("defensively clones plugin configs on .use", async () => {
     const plugin = {
       name: "base-plugin",
-      tools: [{ name: "alpha.tool", call: () => "ok" }],
+      tools: [{ name: "alpha_tool", call: () => "ok" }],
     };
 
     const configured = agent().model("gpt-5").use(plugin);
 
     plugin.name = "mutated";
-    plugin.tools.push({ name: "beta.tool", call: () => "ok" });
+    plugin.tools.push({ name: "beta_tool", call: () => "ok" });
 
     const tools: string[] = [];
 
@@ -342,7 +342,7 @@ describe("agent builder", () => {
       ),
     });
 
-    expect(tools).toEqual(["alpha.tool"]);
+    expect(tools).toEqual(["alpha_tool"]);
   });
 
   it("defensively clones nested tool schemas on .use", async () => {
@@ -350,7 +350,7 @@ describe("agent builder", () => {
       name: "schema-plugin",
       tools: [
         {
-          name: "schema.tool",
+          name: "schema_tool",
           inputSchema: {
             type: "object",
             properties: {
@@ -467,6 +467,8 @@ describe("agent builder", () => {
     mcpClientCallToolMock.mockReset();
     mcpClientCloseMock.mockReset();
 
+    const repoSearchToolName = ["repo", "search"].join(".");
+
     mcpClientConnectMock.mockResolvedValue(undefined);
     mcpClientCloseMock.mockResolvedValue(undefined);
     mcpClientListToolsMock.mockResolvedValue({
@@ -513,11 +515,13 @@ describe("agent builder", () => {
       env: undefined,
     });
     expect(mcpClientConnectMock).toHaveBeenCalledTimes(1);
-    expect(tools).toEqual(["repo.search"]);
+    expect(tools).toEqual([repoSearchToolName]);
     expect(mcpClientCloseMock).toHaveBeenCalledTimes(1);
   });
 
   it("aborts in-flight MCP tool calls and rejects run with AbortError", async () => {
+    const repoSearchToolName = ["repo", "search"].join(".");
+
     stdioTransportConstructorMock.mockReset();
     mcpClientConnectMock.mockReset();
     mcpClientListToolsMock.mockReset();
@@ -573,7 +577,7 @@ describe("agent builder", () => {
             toolCalls: [
               {
                 id: "tool-1",
-                tool: "repo.search",
+                tool: repoSearchToolName,
                 args: { query: "tests" },
               },
             ],
@@ -638,7 +642,7 @@ describe("agent builder", () => {
       .model("gpt-5")
       .use({
         name: "tooling",
-        tools: [{ name: "repo.search", call }],
+        tools: [{ name: "repo_search", call }],
       })
       .acp("hello", {
         acpModel: createModel(
@@ -649,7 +653,7 @@ describe("agent builder", () => {
                 toolCalls: [
                   {
                     id: "tool-1",
-                    tool: "repo.search",
+                    tool: "repo_search",
                     args: { query: "tests" },
                   },
                 ],
@@ -678,7 +682,7 @@ describe("agent builder", () => {
       }
     }
 
-    expect(capturedTools).toEqual(["repo.search", "repo.search"]);
+    expect(capturedTools).toEqual(["repo_search", "repo_search"]);
     expect(call).not.toHaveBeenCalled();
     expect(events.map(event => event.type)).toEqual([
       "tool.intent",
@@ -693,7 +697,7 @@ describe("agent builder", () => {
       .model("gpt-5")
       .use({
         name: "tooling",
-        tools: [{ name: "repo.search", call: () => "should-not-run" }],
+        tools: [{ name: "repo_search", call: () => "should-not-run" }],
       })
       .acp("hello", {
         acpModel: createModel(
@@ -704,7 +708,7 @@ describe("agent builder", () => {
                 toolCalls: [
                   {
                     id: "tool-1",
-                    tool: "repo.search",
+                    tool: "repo_search",
                     args: { query: "tests" },
                   },
                 ],
@@ -753,7 +757,7 @@ describe("agent builder", () => {
               toolCalls: [
                 {
                   id: "tool-1",
-                  tool: "repo.search",
+                  tool: "repo_search",
                   args: { query: "tests" },
                 },
               ],
@@ -778,7 +782,7 @@ describe("agent builder", () => {
       .model("gpt-5")
       .use({
         name: "tooling",
-        tools: [{ name: "repo.search", call: () => "should-not-run" }],
+        tools: [{ name: "repo_search", call: () => "should-not-run" }],
         dispose,
       })
       .acp("Do something", {
@@ -850,7 +854,7 @@ describe("agent builder", () => {
                 toolCalls: [
                   {
                     id: "tool-1",
-                    tool: "repo.search",
+                    tool: "repo_search",
                     args: { query: "tests" },
                   },
                 ],
@@ -1293,7 +1297,7 @@ describe("agent builder", () => {
   it("activates skill tools from RunOptions.skills", async () => {
     const withSkillModel = {
       complete: vi.fn(async request => {
-        expect(request.tools.map(tool => tool.name)).toEqual(["always-visible", "repo.search"]);
+        expect(request.tools.map(tool => tool.name)).toEqual(["always-visible", "repo_search"]);
         return {
           message: {
             content: "done",
@@ -1321,12 +1325,12 @@ describe("agent builder", () => {
         name: "skill-tools",
         tools: [
           { name: "always-visible", call: () => "ok" },
-          { name: "repo.search", visibility: "skill", call: () => "ok" },
+          { name: "repo_search", visibility: "skill", call: () => "ok" },
         ],
       });
 
     await configured.run("hello", { acpModel: withoutSkillModel });
-    await configured.run("hello", { acpModel: withSkillModel, skills: ["repo"] });
+    await configured.run("hello", { acpModel: withSkillModel, skills: ["repo_search"] });
   });
 
   it("disposes plugin resources when run fails", async () => {

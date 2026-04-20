@@ -1,0 +1,54 @@
+import path from "node:path";
+import { resolveFileIncludes } from "../run/runner.js";
+
+function looksLikeDocPath(value: string): boolean {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return false;
+  if (trimmed.includes("\n")) return false;
+  // Treat templated content as literal content, not a path.
+  if (trimmed.includes("{{")) return false;
+  if (trimmed.startsWith("/") || trimmed.startsWith("./") || trimmed.startsWith("../")) {
+    return true;
+  }
+  if (trimmed.includes("/")) return true;
+  if (trimmed.endsWith(".md") || trimmed.endsWith(".markdown") || trimmed.endsWith(".txt")) {
+    return true;
+  }
+  return false;
+}
+
+async function resolveDocVarFromPath(options: {
+  key: string;
+  value: string;
+  cwd: string;
+  readFile: (filePath: string, encoding: BufferEncoding) => Promise<string>;
+}): Promise<string> {
+  const trimmed = options.value.trim();
+  const absolutePath = path.isAbsolute(trimmed) ? trimmed : path.join(options.cwd, trimmed);
+  try {
+    return await options.readFile(absolutePath, "utf8");
+  } catch (error) {
+    throw new Error(
+      `Failed to read doc var "${options.key}" from "${trimmed}" (resolved to ${absolutePath}).`,
+      { cause: error }
+    );
+  }
+}
+
+export async function resolvePipelineVars(
+  vars: Record<string, string>,
+  cwd: string,
+  readFile: (filePath: string, encoding: BufferEncoding) => Promise<string>
+): Promise<Record<string, string>> {
+  const resolved: Record<string, string> = {};
+  for (const [key, value] of Object.entries(vars)) {
+    if (key.endsWith("_doc") && looksLikeDocPath(value)) {
+      const docContent = await resolveDocVarFromPath({ key, value, cwd, readFile });
+      resolved[key] = await resolveFileIncludes(docContent, cwd, readFile);
+      continue;
+    }
+    resolved[key] = await resolveFileIncludes(value, cwd, readFile);
+  }
+  return resolved;
+}
+

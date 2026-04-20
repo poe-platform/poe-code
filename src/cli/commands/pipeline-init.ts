@@ -1,12 +1,12 @@
 import path from "node:path";
 import type { CliContainer } from "../container.js";
 import {
-  planConfigScope,
   readMergedDocument,
   resolveScope
 } from "@poe-code/poe-code-config";
 import { resolveWorkflowPath } from "@poe-code/agent-kit";
 import { resolvePlanDirectory as resolvePipelinePlanDirectory } from "@poe-code/pipeline";
+import { pipelineConfigScope } from "../../services/config.js";
 import { resolvePlanDirectory as resolveSourcePlanDirectory } from "./plan.js";
 
 export interface BuildPipelineInitPromptOptions {
@@ -93,8 +93,8 @@ async function resolveConfiguredPipelinePlanDirectory(container: CliContainer): 
     container.env.projectConfigPath
   );
   const config = resolveScope(
-    planConfigScope.schema,
-    document[planConfigScope.scope],
+    pipelineConfigScope.schema,
+    document[pipelineConfigScope.scope],
     container.env.variables
   );
   const planDirectory = config.plan_directory?.trim();

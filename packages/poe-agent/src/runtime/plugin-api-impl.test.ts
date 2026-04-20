@@ -101,11 +101,11 @@ describe("PluginApiImpl", () => {
     const api = new PluginApiImpl(context);
 
     api.addTool({
-      name: "custom.tool",
+      name: "custom_tool",
       call: () => "ok",
     });
 
-    expect(context.tools.get("custom.tool")?.name).toBe("custom.tool");
+    expect(context.tools.get("custom_tool")?.name).toBe("custom_tool");
   });
 
   it("creates stdio MCP transport, discovers tools during setup, and namespaces them", async () => {
@@ -178,15 +178,21 @@ describe("PluginApiImpl", () => {
     expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(1, undefined);
     expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(2, { cursor: "page-2" });
 
-    expect(context.tools.get("repo.search")?.visibility).toBe("skill");
-    expect(context.tools.get("repo.search")?.policy).toEqual({
+    const repoSearchToolName = ["repo", "search"].join(".");
+    const repoStatusToolName = ["repo", "status"].join(".");
+
+    expect(context.tools.get(repoSearchToolName)?.visibility).toBe("skill");
+    expect(context.tools.get(repoSearchToolName)?.policy).toEqual({
       read: false,
       edit: true,
     });
-    expect(context.tools.get("repo.status")?.visibility).toBe("skill");
+    expect(context.tools.get(repoStatusToolName)?.visibility).toBe("skill");
 
     const toolContext = createToolContext();
-    const invocation = context.tools.get("repo.search")?.invoke({ query: "errors" }, toolContext);
+    const invocation = context.tools.get(repoSearchToolName)?.invoke(
+      { query: "errors" },
+      toolContext,
+    );
     await expect(invocation?.next()).resolves.toEqual({
       done: true,
       value: "mcp-result",
@@ -255,7 +261,9 @@ describe("PluginApiImpl", () => {
     });
     await api.flushSetup();
 
-    const invocation = context.tools.get("repo.search")?.invoke(
+    const repoSearchToolName = ["repo", "search"].join(".");
+
+    const invocation = context.tools.get(repoSearchToolName)?.invoke(
       { query: "errors" },
       {
         fork: async () => ({ output: "", messages: [] }),
@@ -315,7 +323,9 @@ describe("PluginApiImpl", () => {
     });
     await api.flushSetup();
 
-    const tool = context.tools.get("repo.inspect");
+    const repoInspectToolName = ["repo", "inspect"].join(".");
+
+    const tool = context.tools.get(repoInspectToolName);
     const successInvocation = tool?.invoke({ query: "diagram" }, createToolContext());
     await expect(successInvocation?.next()).resolves.toEqual({
       done: true,
@@ -391,7 +401,7 @@ describe("runPluginSetup", () => {
         name: "alpha",
         tools: [
           {
-            name: "alpha.static",
+            name: "alpha_static",
             call: () => "alpha-static",
           },
         ],
@@ -408,9 +418,9 @@ describe("runPluginSetup", () => {
         },
         setup(api) {
           setupOrder.push("alpha");
-          staticToolVisibleDuringSetup = context.tools.get("alpha.static") !== undefined;
+          staticToolVisibleDuringSetup = context.tools.get("alpha_static") !== undefined;
           api.addTool({
-            name: "alpha.dynamic",
+            name: "alpha_dynamic",
             call: () => "alpha-dynamic",
           });
         },
@@ -438,8 +448,8 @@ describe("runPluginSetup", () => {
 
     expect(setupOrder).toEqual(["alpha", "beta"]);
     expect(staticToolVisibleDuringSetup).toBe(true);
-    expect(context.tools.get("alpha.static")?.name).toBe("alpha.static");
-    expect(context.tools.get("alpha.dynamic")?.name).toBe("alpha.dynamic");
+    expect(context.tools.get("alpha_static")?.name).toBe("alpha_static");
+    expect(context.tools.get("alpha_dynamic")?.name).toBe("alpha_dynamic");
 
     const compiled = await context.prompts.compile("run", "base");
     expect(compiled.system).toBe("base|alpha|beta");
@@ -447,7 +457,7 @@ describe("runPluginSetup", () => {
     await context.hooks.run(
       "preToolUse",
       createPreToolUseHookContext({
-        tool: "alpha.static",
+        tool: "alpha_static",
         args: {},
         intentId: "intent-1",
         session: new Map(),

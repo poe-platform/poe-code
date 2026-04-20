@@ -70,6 +70,12 @@ export const ralphConfigScope = defineScope("ralph", {
 });
 
 export const pipelineConfigScope = defineScope("pipeline", {
+  plan_directory: {
+    type: "string",
+    default: ".poe-code/pipeline/plans",
+    env: "POE_PIPELINE_PLAN_DIRECTORY",
+    doc: "Directory where pipeline plans are stored"
+  },
   tui: {
     type: "boolean",
     default: false,

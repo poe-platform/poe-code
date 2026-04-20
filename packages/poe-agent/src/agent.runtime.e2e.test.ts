@@ -420,7 +420,7 @@ describe("runtime core e2e", () => {
       name: "mutable-tools",
       tools: [
         {
-          name: "tools.initial",
+          name: "tools_initial",
           call: async () => "initial",
         },
       ],
@@ -429,7 +429,7 @@ describe("runtime core e2e", () => {
 
     mutablePlugin.name = "mutated-name";
     mutablePlugin.tools?.push({
-      name: "tools.leaked",
+      name: "tools_leaked",
       call: async () => "leaked",
     });
 
@@ -453,8 +453,8 @@ describe("runtime core e2e", () => {
     });
 
     expect(calls).toHaveLength(1);
-    expect(calls[0]).toEqual(["tools.initial"]);
-    expect(calls[0]).not.toContain("tools.leaked");
+    expect(calls[0]).toEqual(["tools_initial"]);
+    expect(calls[0]).not.toContain("tools_leaked");
   });
 
   it("streams events in order with matched tool intent/result and terminal completion", async () => {
@@ -465,8 +465,8 @@ describe("runtime core e2e", () => {
         message: {
           content: "",
           toolCalls: [
-            { id: "intent-a", tool: "tools.alpha", args: { value: 1 } },
-            { id: "intent-b", tool: "tools.beta", args: { value: 2 } },
+            { id: "intent-a", tool: "tools_alpha", args: { value: 1 } },
+            { id: "intent-b", tool: "tools_beta", args: { value: 2 } },
           ],
         },
       },
@@ -484,8 +484,8 @@ describe("runtime core e2e", () => {
       .use({
         name: "tools",
         tools: [
-          { name: "tools.alpha", call: async () => "alpha-result" },
-          { name: "tools.beta", call: async () => "beta-result" },
+          { name: "tools_alpha", call: async () => "alpha-result" },
+          { name: "tools_beta", call: async () => "beta-result" },
         ],
       })
       .stream("Do something", { acpModel: model })) {
@@ -534,7 +534,7 @@ describe("runtime core e2e", () => {
       {
         message: {
           content: "",
-          toolCalls: [{ id: "intent-fail", tool: "tools.fail", args: { input: "x" } }],
+          toolCalls: [{ id: "intent-fail", tool: "tools_fail", args: { input: "x" } }],
         },
       },
       {
@@ -552,7 +552,7 @@ describe("runtime core e2e", () => {
         name: "tools",
         tools: [
           {
-            name: "tools.fail",
+            name: "tools_fail",
             call: async () => {
               throw new Error("tool failed");
             },
@@ -585,7 +585,7 @@ describe("runtime core e2e", () => {
       expect(completion.result.toolCalls).toEqual([
         {
           intentId: "intent-fail",
-          tool: "tools.fail",
+          tool: "tools_fail",
           args: { input: "x" },
           status: "error",
           error: "tool failed",

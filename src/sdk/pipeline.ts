@@ -114,7 +114,7 @@ export async function runPipelineInit(
   const planDirectory = resolveWorkspacePlanDirectory({
     cwd: options.cwd,
     homeDir: options.homeDir,
-    ...(options.planDirectory ? { planDirectory: options.planDirectory } : {})
+    planDirectory: options.planDirectory ?? ".poe-code/pipeline/plans"
   });
 
   let sourcesProcessed = 0;

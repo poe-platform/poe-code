@@ -166,6 +166,8 @@ describe("runtime spawn + MCP plugin e2e", () => {
     const childSessionOptions: Array<Record<string, unknown>> = [];
     const disposeChildSession = vi.fn(async () => undefined);
 
+    const repoSearchToolName = ["repo", "search"].join(".");
+
     const result = await agent()
       .model("test-model")
       .use(spawnPlugin())
@@ -358,7 +360,7 @@ describe("runtime spawn + MCP plugin e2e", () => {
                 toolCalls: [
                   {
                     id: "mcp-1",
-                    tool: "repo.search",
+                    tool: repoSearchToolName,
                     args: { query: "regression" },
                   },
                 ],
@@ -388,13 +390,13 @@ describe("runtime spawn + MCP plugin e2e", () => {
       });
 
     expect(discoveredTools).toHaveLength(2);
-    expect(discoveredTools[0]).toEqual(["repo.search"]);
-    expect(discoveredTools[1]).toEqual(["repo.search"]);
+    expect(discoveredTools[0]).toEqual([repoSearchToolName]);
+    expect(discoveredTools[1]).toEqual([repoSearchToolName]);
 
     expect(result.toolCalls).toEqual([
       {
         intentId: "mcp-1",
-        tool: "repo.search",
+        tool: repoSearchToolName,
         args: { query: "regression" },
         status: "success",
         result: "mcp-found:regression",

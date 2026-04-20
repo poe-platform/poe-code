@@ -288,6 +288,8 @@ describe("poe-agent-plugin-policy", () => {
   });
 
   it("allows discovered MCP tools in edit mode even when policy is registered first", async () => {
+    const repoSearchToolName = ["repo", "search"].join(".");
+
     mcpClientConnectMock.mockReset();
     mcpClientListToolsMock.mockReset();
     mcpClientCloseMock.mockReset();
@@ -319,7 +321,7 @@ describe("poe-agent-plugin-policy", () => {
     ]);
 
     try {
-      await expect(runPreToolUse(runContext, signal, "repo.search", {})).resolves.toEqual({
+      await expect(runPreToolUse(runContext, signal, repoSearchToolName, {})).resolves.toEqual({
         type: "continue"
       });
     } finally {

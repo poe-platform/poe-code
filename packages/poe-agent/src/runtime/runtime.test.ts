@@ -120,7 +120,7 @@ describe("runtime/config", () => {
       plugins: [
         {
           name: "plugin-a",
-          tools: [{ name: "tool.a", call: () => "ok" }]
+          tools: [{ name: "tool_a", call: () => "ok" }]
         }
       ]
     };
@@ -573,31 +573,31 @@ describe("ToolRegistry", () => {
     const registry = new ToolRegistry();
 
     registry.register({
-      name: "  search.web  ",
+      name: "  search_web  ",
       call: () => "ok"
     });
 
-    expect(registry.get("search.web")?.name).toBe("search.web");
-    expect(registry.getAll().map((tool) => tool.name)).toEqual(["search.web"]);
+    expect(registry.get("search_web")?.name).toBe("search_web");
+    expect(registry.getAll().map((tool) => tool.name)).toEqual(["search_web"]);
   });
 
   it("throws DuplicateToolError on name collision", () => {
     const registry = new ToolRegistry();
 
     registry.register({
-      name: "search.web",
+      name: "search_web",
       call: () => "first"
     });
 
     expect(() => {
       registry.register({
-        name: " search.web ",
+        name: " search_web ",
         call: () => "second"
       });
     }).toThrowError(DuplicateToolError);
   });
 
-  it("computes model-visible tools from visibility and active skills", () => {
+  it("computes model-visible tools from visibility and active tool selectors", () => {
     const registry = new ToolRegistry();
 
     registry.register({
@@ -605,58 +605,60 @@ describe("ToolRegistry", () => {
       call: () => "model"
     });
     registry.register({
-      name: "repo.search",
+      name: "repo_search",
       visibility: "skill",
       call: () => "skill"
     });
     registry.register({
-      name: "internal.audit",
+      name: "internal_audit",
       visibility: "internal",
       call: () => "internal"
     });
 
     expect(registry.getActiveTools().map((tool) => tool.name)).toEqual(["always-visible"]);
-    expect(registry.getActiveTools(["repo"]).map((tool) => tool.name)).toEqual([
+    expect(registry.getActiveTools(["repo_search"]).map((tool) => tool.name)).toEqual([
       "always-visible",
-      "repo.search"
+      "repo_search"
     ]);
-    expect(registry.getActiveTools(["repo.search"]).map((tool) => tool.name)).toEqual([
+    expect(registry.getActiveTools(["repo_search"]).map((tool) => tool.name)).toEqual([
       "always-visible",
-      "repo.search"
+      "repo_search"
     ]);
 
-    expect(registry.get("internal.audit")?.visibility).toBe("internal");
-    expect(registry.getActiveTools(["internal"]).map((tool) => tool.name)).toEqual([
+    expect(registry.get("internal_audit")?.visibility).toBe("internal");
+    expect(registry.getActiveTools(["internal_audit"]).map((tool) => tool.name)).toEqual([
       "always-visible"
     ]);
   });
 
-  it("matches namespace wildcard selectors", () => {
+  it("matches exact tool selectors", () => {
     const registry = new ToolRegistry();
 
     registry.register({
-      name: "git.status",
+      name: "git_status",
       visibility: "skill",
       call: () => "ok"
     });
 
-    expect(registry.getActiveTools(["git.*"]).map((tool) => tool.name)).toEqual(["git.status"]);
+    expect(registry.getActiveTools(["git_status"]).map((tool) => tool.name)).toEqual([
+      "git_status"
+    ]);
   });
 
-  it("normalizes active skill names before matching", () => {
+  it("normalizes active tool selectors before matching", () => {
     const registry = new ToolRegistry();
 
     registry.register({
-      name: "repo.search",
+      name: "repo_search",
       visibility: "skill",
       call: () => "ok"
     });
 
-    expect(registry.getActiveTools(["  repo  ", "repo", ""])).toEqual([
-      registry.get("repo.search")
+    expect(registry.getActiveTools(["  repo_search  ", "repo_search", ""])).toEqual([
+      registry.get("repo_search")
     ]);
-    expect(registry.getActiveTools(["  repo.*  ", "repo.*"])).toEqual([
-      registry.get("repo.search")
+    expect(registry.getActiveTools(["  repo_search  ", "repo_search"])).toEqual([
+      registry.get("repo_search")
     ]);
   });
 
@@ -668,12 +670,12 @@ describe("ToolRegistry", () => {
       call: () => "local"
     });
     registry.register({
-      name: "mcp-server.status",
+      name: "mcp-server_status",
       call: () => "remote"
     });
 
-    expect(registry.getAll().map((tool) => tool.name)).toEqual(["status", "mcp-server.status"]);
-    expect(registry.get("mcp-server.status")).toBeDefined();
+    expect(registry.getAll().map((tool) => tool.name)).toEqual(["status", "mcp-server_status"]);
+    expect(registry.get("mcp-server_status")).toBeDefined();
   });
 });
 
@@ -1292,13 +1294,13 @@ describe("AgentHost.handle", () => {
 
     const result = await host.handle({
       intentId: "intent-1",
-      tool: "missing.tool",
+      tool: "missing_tool",
       args: {}
     });
 
     expect(result).toEqual({
       status: "error",
-      result: "Unknown tool: missing.tool"
+      result: "Unknown tool: missing_tool"
     });
   });
 

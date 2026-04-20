@@ -51,3 +51,10 @@ export function createTokenizer(options: TokenizerOptions = {}): Tokenizer {
     free: () => tokenizer.free()
   };
 }
+
+let defaultTokenizer: Tokenizer | undefined;
+
+export function countTokens(text: string): number {
+  defaultTokenizer ??= createTokenizer();
+  return defaultTokenizer.count(text);
+}

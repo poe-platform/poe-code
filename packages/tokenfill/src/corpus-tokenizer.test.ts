@@ -25,9 +25,13 @@ vi.mock("./tokenfill.js", () => ({
   }))
 }));
 
-import { createTokenizer, DEFAULT_ENCODING } from "./tokenizer.js";
+import { countTokens, createTokenizer, DEFAULT_ENCODING } from "./index.js";
 
 describe("tokenizer wrapper", () => {
+  it("exports countTokens from the package barrel", () => {
+    expect(countTokens("hello world")).toBe(11);
+  });
+
   it("uses cl100k_base as default encoding", () => {
     const tokenizer = createTokenizer();
 

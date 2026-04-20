@@ -329,6 +329,10 @@ function validateRunCommandPolicy(args: unknown, mode: SpawnMode): string | void
       }
 
       if (mode === "read") {
+        if (isDedicatedToolReadCommand(command)) {
+          return "Use the dedicated file/search/list tools instead of shell wrappers for file reads, searches, or directory listings.";
+        }
+
         return `Shell redirection is not allowed in ${mode} mode.`;
       }
 
@@ -349,8 +353,25 @@ function validateRunCommandPolicy(args: unknown, mode: SpawnMode): string | void
     }
 
     const commandArgs = commandParts.slice(1);
+    const shellWrapperReason = getShellWrapperReason(commandName, commandArgs);
+    if (shellWrapperReason) {
+      return shellWrapperReason;
+    }
+
+    if (isCdWrapper(commandName, commandArgs)) {
+      return 'Use the "cwd" argument instead of prefixing commands with "cd".';
+    }
 
     if (mode === "read") {
+      const nestedCommand = getNestedReadOnlyCommand(commandName, commandArgs);
+      if (nestedCommand) {
+        if (!isReadOnlyCommand(nestedCommand.commandName, nestedCommand.args)) {
+          return `Command "${commandName}" is not allowed in ${mode} mode.`;
+        }
+
+        continue;
+      }
+
       if (!isReadOnlyCommand(commandName, commandArgs)) {
         return `Command "${commandName}" is not allowed in ${mode} mode.`;
       }
@@ -362,6 +383,80 @@ function validateRunCommandPolicy(args: unknown, mode: SpawnMode): string | void
     if (blockedReason) {
       return blockedReason;
     }
+  }
+}
+
+function getShellWrapperReason(commandName: string, args: string[]): string | undefined {
+  if (!isShellWrapperCommand(commandName) || args.length === 0) {
+    return undefined;
+  }
+
+  const wrappedCommand = extractWrappedCommand(args);
+  if (!wrappedCommand) {
+    return undefined;
+  }
+
+  if (isDedicatedToolReadCommand(wrappedCommand)) {
+    return "Use the dedicated file/search/list tools instead of shell wrappers for file reads, searches, or directory listings.";
+  }
+
+  return undefined;
+}
+
+function isShellWrapperCommand(commandName: string): boolean {
+  return commandName === "bash" || commandName === "sh" || commandName === "zsh" || commandName === "python" || commandName === "python3";
+}
+
+function extractWrappedCommand(args: string[]): string | undefined {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "-c" || arg === "-lc") {
+      return args[index + 1];
+    }
+  }
+
+  const hereDocIndex = args.findIndex((arg) => arg === "-" || arg.startsWith("-"));
+  if (hereDocIndex === -1) {
+    return undefined;
+  }
+
+  return args.slice(hereDocIndex + 1).join(" ");
+}
+
+function isDedicatedToolReadCommand(command: string): boolean {
+  return /(^|\b)(cat|ls|find|grep|rg)\b/.test(command) ||
+    /open\s*\(|read_text\s*\(|read_bytes\s*\(|Path\([^)]*\)\.read_text\s*\(/.test(command);
+}
+
+function isCdWrapper(commandName: string, args: string[]): boolean {
+  return commandName === "cd" || (args.length > 0 && args[0] === "cd");
+}
+
+function getNestedReadOnlyCommand(
+  commandName: string,
+  args: string[]
+): { commandName: string; args: string[] } | undefined {
+  if (!isShellWrapperCommand(commandName)) {
+    return undefined;
+  }
+
+  const wrappedCommand = extractWrappedCommand(args);
+  if (!wrappedCommand) {
+    return undefined;
+  }
+
+  try {
+    const nestedEntries = parseShellCommand(wrappedCommand);
+    const nestedSegment = nestedEntries.filter((entry): entry is string => typeof entry === "string");
+    const nestedParts = stripLeadingAssignments(nestedSegment);
+    const nestedCommandName = nestedParts[0];
+    if (!nestedCommandName) {
+      return undefined;
+    }
+
+    return { commandName: nestedCommandName, args: nestedParts.slice(1) };
+  } catch {
+    return undefined;
   }
 }
 

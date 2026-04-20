@@ -6,10 +6,11 @@ import {
   applyMiddlewares,
   getSpawnConfig,
   renderAcpStream,
+  sessionCapture,
   spawn,
   spawnLog,
   spawnStreaming,
-  type AcpEvent,
+  usageCapture,
   type AcpSpawnContext
 } from "@poe-code/agent-spawn";
 import { parseAgentSpecifier, resolveAgentId } from "@poe-code/agent-defs";
@@ -945,40 +946,6 @@ async function executeSpawnAgentStreaming(
     input.onStdout?.(`${line}\n`);
   };
 
-  let capturedUsage:
-    | { inputTokens: number; outputTokens: number; cachedTokens?: number }
-    | undefined;
-  let lastAgentMessage = "";
-  const capturedToolCalls: Array<{ title: string; input: unknown }> = [];
-
-  const tapEvents = (source: AsyncIterable<AcpEvent>): AsyncIterable<AcpEvent> =>
-    (async function* () {
-      for await (const event of source) {
-        if (event.event === "usage") {
-          const usageEvent = event as {
-            inputTokens: number;
-            outputTokens: number;
-            cachedTokens?: number;
-          };
-          capturedUsage = {
-            inputTokens: usageEvent.inputTokens,
-            outputTokens: usageEvent.outputTokens,
-            ...(typeof usageEvent.cachedTokens === "number"
-              ? { cachedTokens: usageEvent.cachedTokens }
-              : {})
-          };
-        } else if (event.event === "agent_message") {
-          lastAgentMessage = (event as { text: string }).text;
-        } else if (event.event === "tool_start") {
-          const toolEvent = event as { title?: unknown; input?: unknown };
-          if (typeof toolEvent.title === "string") {
-            capturedToolCalls.push({ title: toolEvent.title, input: toolEvent.input });
-          }
-        }
-        yield event;
-      }
-    })();
-
   const { events: rawEvents, done } = spawnStreaming({
     agentId: agent,
     prompt: input.prompt,
@@ -1004,22 +971,39 @@ async function executeSpawnAgentStreaming(
     ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {})
   };
 
-  await applyMiddlewares([spawnLog], middlewareContext);
+  await applyMiddlewares([spawnLog, usageCapture, sessionCapture], middlewareContext);
 
-  const tapped = tapEvents(middlewareContext.eventStream ?? rawEvents);
-
-  await acp.withAcpWriter(writer, () => renderAcpStream(tapped));
+  await acp.withAcpWriter(writer, () => renderAcpStream(middlewareContext.eventStream ?? rawEvents));
   const final = await done;
 
   const logFile = middlewareContext.logFile ?? final.logFile;
+  const sessionResult = middlewareContext.sessionResult;
   return {
     stdout: final.stdout,
     stderr: final.stderr,
     exitCode: final.exitCode,
     ...(logFile ? { logFile } : {}),
-    ...(lastAgentMessage ? { summary: lastAgentMessage } : {}),
-    ...(capturedUsage ? { usage: capturedUsage } : {}),
-    ...(capturedToolCalls.length > 0 ? { toolCalls: capturedToolCalls } : {})
+    ...(sessionResult?.output ? { summary: sessionResult.output } : {}),
+    ...(middlewareContext.usage.inputTokens > 0 || middlewareContext.usage.outputTokens > 0 || middlewareContext.usage.cachedTokens !== undefined
+      ? {
+          usage: {
+            inputTokens: middlewareContext.usage.inputTokens,
+            outputTokens: middlewareContext.usage.outputTokens,
+            ...(typeof middlewareContext.usage.cachedTokens === "number"
+              ? { cachedTokens: middlewareContext.usage.cachedTokens }
+              : {})
+          }
+        }
+      : {}),
+    ...(sessionResult?.toolCalls.length
+      ? {
+          toolCalls: sessionResult.toolCalls.flatMap((toolCall) =>
+            typeof toolCall.title === "string"
+              ? [{ title: toolCall.title, ...(toolCall.input !== undefined ? { input: toolCall.input } : {}) }]
+              : []
+          )
+        }
+      : {})
   };
 }
 

@@ -1,11 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Tool } from "../runtime/plugin-types.js";
 import type { ToolContext } from "../runtime/types.js";
 import shellPlugin, { spec as shellPluginSpec } from "./poe-agent-plugin-shell.js";
 
-type TestTool = {
-  name: string;
-  call: (args: unknown, ctx: ToolContext) => unknown | Promise<unknown>;
-};
+type TestTool = Pick<Tool, "name" | "call">;
 
 function createToolContext(signal: AbortSignal, overrides: Partial<ToolContext> = {}): ToolContext {
   return {
@@ -59,6 +57,13 @@ async function waitForBackgroundOutput(
 }
 
 describe("poe-agent-plugin-shell", () => {
+  function getRunCommandValidate() {
+    const plugin = shellPlugin();
+    const tool = plugin.tools?.find((candidate) => candidate.name === "run_command");
+    expect(tool?.policy?.validate).toBeTypeOf("function");
+    return tool?.policy?.validate as (args: unknown, mode: "read" | "edit") => string | void;
+  }
+
   it("validates config options with its plugin spec", () => {
     expect(
       shellPluginSpec.parseOptions({
@@ -186,6 +191,41 @@ describe("poe-agent-plugin-shell", () => {
     controller.abort(new Error("stop"));
 
     await expect(pending).rejects.toThrow("Command aborted");
+  });
+
+  it("rejects shell-wrapped file/list/search reads in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "cat package.json" }, "read")).toBeUndefined();
+    expect(validate({ command: "ls src" }, "read")).toBeUndefined();
+    expect(validate({ command: "grep foo README.md" }, "read")).toBeUndefined();
+
+    expect(validate({ command: "bash -lc 'cat package.json'" }, "read")).toContain(
+      "Use the dedicated file/search/list tools instead of shell wrappers",
+    );
+    expect(validate({ command: "sh -lc 'ls src'" }, "read")).toContain(
+      "Use the dedicated file/search/list tools instead of shell wrappers",
+    );
+    expect(validate({ command: "python - <<'PY'\nprint(open(\"package.json\").read())\nPY" }, "read")).toContain(
+      "Use the dedicated file/search/list tools instead of shell wrappers",
+    );
+  });
+
+  it("rejects cd wrappers in favor of the cwd argument", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "cd src && ls" }, "read")).toBe(
+      'Use the "cwd" argument instead of prefixing commands with "cd".',
+    );
+    expect(validate({ command: "cd src; pwd" }, "edit")).toBe(
+      'Use the "cwd" argument instead of prefixing commands with "cd".',
+    );
+  });
+
+  it("allows shell wrappers for non-file workflows in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "bash -lc 'git status --short'" }, "read")).toBeUndefined();
   });
 
   it("emits notification events for shell output", async () => {

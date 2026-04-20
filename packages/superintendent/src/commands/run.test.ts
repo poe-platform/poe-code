@@ -1,7 +1,7 @@
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import type { SuperintendentFileSystem } from "../runtime/loop.js";
+import type { RunLoopOptions, SuperintendentFileSystem } from "../runtime/loop.js";
 import type { Dashboard } from "@poe-code/design-system";
 
 function createDoc(builderAgent: string): string {
@@ -380,6 +380,107 @@ describe("superintendent run command", () => {
         item.kind === "error" && item.text.includes("warning: low disk")
     );
     expect(errKind).toBeDefined();
+  });
+
+  it("routes poe-agent through shared ACP middleware and captures logs, usage, and tool calls", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDoc("poe-agent:openai/gpt-5.4")
+    });
+    const dashboardMock = createDashboardMock();
+
+    const runLoopMock = vi.fn(async (options: RunLoopOptions) => {
+      options.callbacks?.onBuilderStart?.();
+      const result = await options.runAgent?.({
+        agent: "claude-code",
+        prompt: "Build",
+        cwd: "/repo",
+        logDir: "/logs",
+        logFileName: "builder.jsonl"
+      });
+      options.callbacks?.onBuilderComplete?.({
+        summary: "done",
+        log: "",
+        log_path: result?.logFile ?? ""
+      });
+      return {
+        state: "completed" as const,
+        round: 1,
+        reviewTurn: 0,
+        maxRounds: 100,
+        maxReviewTurns: 5,
+        stopReason: "completed" as const
+      };
+    });
+
+    const executeAgentMock = vi.fn(async (agent: string, input: {
+      prompt: string;
+      cwd: string;
+      onStdout?: (chunk: string) => void;
+      onStderr?: (chunk: string) => void;
+      logDir?: string;
+      logFileName?: string;
+    }) => {
+      expect(agent).toBe("poe-agent:openai/gpt-5.4");
+      expect(input.prompt).toBe("Build");
+      expect(input.cwd).toBe("/repo");
+      input.onStdout?.("thinking...\n");
+      return {
+        stdout: "thinking...",
+        stderr: "",
+        exitCode: 0,
+        logFile: "/logs/builder.jsonl",
+        usage: {
+          inputTokens: 12,
+          outputTokens: 4,
+          cachedTokens: 2
+        },
+        toolCalls: [{ title: "read_file", input: { preserved: true } }]
+      };
+    });
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      executeAgent: executeAgentMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {}
+    });
+
+    expect(executeAgentMock).toHaveBeenCalledWith(
+      "poe-agent:openai/gpt-5.4",
+      expect.objectContaining({
+        prompt: "Build",
+        cwd: "/repo"
+      })
+    );
+    expect(runLoopMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        callbacks: expect.any(Object),
+        runAgent: expect.any(Function)
+      })
+    );
+    const builderComplete = runLoopMock.mock.calls[0]?.[0]?.callbacks?.onBuilderComplete;
+    expect(builderComplete).toBeTypeOf("function");
+
+    const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
+    expect(outputs.some((item: { text: string }) => item.text.includes("[builder] thinking..."))).toBe(true);
+    expect(dashboardMock.updateStats).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokensIn: 12,
+        tokensOut: 4
+      })
+    );
   });
 
   it("discovers superintendent docs from the shared docs/plans default", async () => {

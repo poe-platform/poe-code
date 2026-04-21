@@ -18,6 +18,7 @@ export interface SessionResult {
 export interface SpawnContext {
   sessionId: string;
   agent: string;
+  logPath?: string;
   logDir?: string;
   logFileName?: string;
   events: AcpEvent[];

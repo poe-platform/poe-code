@@ -65,11 +65,11 @@ export async function executePoeAgent(
     ...(input.signal ? { signal: input.signal } : {})
   };
 
+  const logPath = input.logPath;
   const transcript: TranscriptWriter | undefined =
-    input.logDir && input.logFileName
+    logPath
       ? createTranscriptWriter({
-          logDir: input.logDir,
-          logFileName: input.logFileName,
+          logPath,
           fs: transcriptFs
         })
       : undefined;

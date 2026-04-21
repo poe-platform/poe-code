@@ -279,6 +279,9 @@ export async function spawn(
 }
 
 function resolveSpawnLogPath(options: SpawnOptions): string | undefined {
+  if (options.logPath) {
+    return options.logPath;
+  }
   if (!options.logDir || !options.logFileName) {
     return undefined;
   }

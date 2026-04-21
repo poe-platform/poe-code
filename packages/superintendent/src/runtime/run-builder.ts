@@ -15,8 +15,7 @@ type AutonomousInput = {
   prompt: string;
   cwd?: string;
   mcpServers?: McpSpawnConfig;
-  logDir?: string;
-  logFileName?: string;
+  logPath?: string;
 };
 
 type AutonomousOutput =
@@ -40,8 +39,7 @@ type SpawnWithAutonomous = typeof spawn & {
 export type RunBuilderOptions = {
   promptOverride?: string;
   defaultCwd: string;
-  logDir?: string;
-  logFileName?: string;
+  logPath?: string;
 };
 
 export async function runBuilder(
@@ -58,8 +56,7 @@ export async function runBuilder(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.builder, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logDir ? { logDir: options.logDir } : {}),
-    ...(options.logFileName ? { logFileName: options.logFileName } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {})
   });
   const log = extractLog(result);
 
@@ -115,8 +112,7 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
       prompt: input.prompt,
       mode: input.mode,
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.logDir ? { logDir: input.logDir } : {}),
-      ...(input.logFileName ? { logFileName: input.logFileName } : {})
+      ...(input.logPath ? { logPath: input.logPath } : {})
     });
   }
 
@@ -125,8 +121,7 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
     prompt: input.prompt,
     mode: input.mode as SpawnMode | undefined,
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-    ...(input.logDir ? { logDir: input.logDir } : {}),
-    ...(input.logFileName ? { logFileName: input.logFileName } : {})
+    ...(input.logPath ? { logPath: input.logPath } : {})
   });
 
   return {
@@ -152,11 +147,7 @@ function extractLogPath(result: AutonomousOutput, options: RunBuilderOptions): s
     }
   }
 
-  if (options.logDir && options.logFileName) {
-    return `${options.logDir}/${options.logFileName}`;
-  }
-
-  return "";
+  return options.logPath ?? "";
 }
 
 function extractSummary(result: AutonomousOutput, log: string): string {

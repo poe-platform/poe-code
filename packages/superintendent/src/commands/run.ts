@@ -931,8 +931,7 @@ async function executeSpawnAgent(
     ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
-    ...(input.logDir ? { logDir: input.logDir } : {}),
-    ...(input.logFileName ? { logFileName: input.logFileName } : {}),
+    ...(input.logPath ? { logPath: input.logPath } : {}),
     ...(tee ? { tee } : {})
   });
 
@@ -982,8 +981,7 @@ async function executeSpawnAgentStreaming(
     prompt: input.prompt,
     cwd: input.cwd,
     startedAt: new Date(),
-    ...(input.logDir ? { logDir: input.logDir } : {}),
-    ...(input.logFileName ? { logFileName: input.logFileName } : {}),
+    ...(input.logPath ? { logPath: input.logPath } : {}),
     ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {})
   };
 

@@ -1,3 +1,4 @@
+import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { lockWorkflow, makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-kit";
 import { spawn, type McpSpawnConfig } from "@poe-code/agent-spawn";
@@ -49,8 +50,7 @@ export interface AgentRunInput {
   mode?: string;
   mcpServers?: McpSpawnConfig;
   signal?: AbortSignal;
-  logDir?: string;
-  logFileName?: string;
+  logPath?: string;
   onStdout?: (chunk: string) => void;
   onStderr?: (chunk: string) => void;
 }
@@ -124,8 +124,7 @@ type AutonomousOptions = {
   prompt: string;
   mode?: string;
   mcpServers?: McpSpawnConfig;
-  logDir?: string;
-  logFileName?: string;
+  logPath?: string;
 };
 
 type SpawnWithAutonomous = typeof spawn & {
@@ -557,15 +556,11 @@ async function executeSuperintendent(
 function buildRoleOptions(
   options: LoopRuntime,
   role: string
-): { defaultCwd: string; logDir?: string; logFileName?: string } {
-  const base: { defaultCwd: string; logDir?: string; logFileName?: string } = {
-    defaultCwd: options.cwd
+): { defaultCwd: string; logPath?: string } {
+  return {
+    defaultCwd: options.cwd,
+    ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {})
   };
-  if (options.logDir) {
-    base.logDir = options.logDir;
-    base.logFileName = makeRunLogFileName(role);
-  }
-  return base;
 }
 
 function shouldContinueReview(doc: SuperintendentDoc): boolean {
@@ -675,8 +670,7 @@ async function withInjectedAgentRunner<T>(
       cwd: input.cwd ?? process.cwd(),
       ...(input.mode ? { mode: input.mode } : {}),
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.logDir ? { logDir: input.logDir } : {}),
-      ...(input.logFileName ? { logFileName: input.logFileName } : {}),
+      ...(input.logPath ? { logPath: input.logPath } : {}),
       ...(options.signal ? { signal: options.signal } : {})
     });
 

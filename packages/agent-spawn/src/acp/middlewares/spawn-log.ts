@@ -42,6 +42,9 @@ function resolveStartedAt(value: Date | undefined): Date {
 }
 
 function resolveLogFilePath(ctx: SpawnContext): string {
+  if (ctx.logPath) {
+    return ctx.logPath;
+  }
   const baseDir = ctx.logDir ?? path.join(homedir(), ".poe-code", "spawn-logs");
   if (ctx.logFileName) {
     return path.join(baseDir, ctx.logFileName);

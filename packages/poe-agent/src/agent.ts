@@ -1,5 +1,4 @@
 import * as fsPromises from "node:fs/promises";
-import path from "node:path";
 import type { McpSpawnConfig } from "@poe-code/agent-spawn";
 import type { CreateAgentSessionOptions } from "./agent-session.js";
 import mcpPlugin from "./plugins/poe-agent-plugin-mcp.js";
@@ -189,8 +188,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
     >();
     const transcript: TranscriptWriter | undefined = options.logPath
       ? createTranscriptWriter({
-          logDir: path.dirname(options.logPath),
-          logFileName: path.basename(options.logPath),
+          logPath: options.logPath,
           fs: defaultTranscriptFs
         })
       : undefined;

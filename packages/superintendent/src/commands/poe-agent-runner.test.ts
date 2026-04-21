@@ -239,7 +239,7 @@ describe("executePoeAgent", () => {
     expect(withoutMode.capture.pluginNames).not.toContain("poe-agent-plugin-policy");
   });
 
-  it("writes a JSONL transcript when logDir + logFileName are provided and returns logFile", async () => {
+  it("writes a JSONL transcript when logPath is provided and returns logFile", async () => {
     const { factory } = createFakeFactory([
       { type: "message.delta", content: "thinking..." },
       {
@@ -268,8 +268,7 @@ describe("executePoeAgent", () => {
         agent: "poe-agent:openai/gpt-5.4",
         prompt: "hi",
         cwd: "/repo",
-        logDir: "/logs/round-3",
-        logFileName: "builder.jsonl"
+        logPath: "/logs/round-3/builder.jsonl"
       },
       factory,
       fakeFs
@@ -293,7 +292,7 @@ describe("executePoeAgent", () => {
     expect(result.logFile).toBe("/logs/round-3/builder.jsonl");
   });
 
-  it("does not open a transcript writer when logDir/logFileName are omitted", async () => {
+  it("does not open a transcript writer when logPath is omitted", async () => {
     const { factory } = createFakeFactory([completeEvent("ok")]);
     const fakeFs = {
       mkdir: vi.fn(async () => undefined),

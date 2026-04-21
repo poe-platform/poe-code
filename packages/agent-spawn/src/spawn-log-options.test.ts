@@ -52,6 +52,28 @@ describe("spawn() with logDir + logFileName", () => {
     vi.mocked(spawnChildProcess).mockReset();
   });
 
+  it("appends stdout and stderr to logPath and returns logFile", async () => {
+    vi.mocked(spawnChildProcess).mockReturnValue(
+      createMockChildProcess({ stdout: "hello\n", stderr: "warn\n", exitCode: 0 })
+    );
+
+    const result = await spawn("claude-code", {
+      prompt: "test",
+      logDir: "/tmp/ignored",
+      logFileName: "ignored.jsonl",
+      logPath: "/tmp/run-logs/20260418-200000-000-builder.jsonl"
+    });
+
+    expect(result.logFile).toBe("/tmp/run-logs/20260418-200000-000-builder.jsonl");
+    expect(result.exitCode).toBe(0);
+
+    const contents = hoisted.memFs.readFileSync(
+      "/tmp/run-logs/20260418-200000-000-builder.jsonl",
+      "utf8"
+    );
+    expect(contents).toBe("hello\nwarn\n");
+  });
+
   it("appends stdout and stderr to <logDir>/<logFileName> and returns logFile", async () => {
     vi.mocked(spawnChildProcess).mockReturnValue(
       createMockChildProcess({ stdout: "hello\n", stderr: "warn\n", exitCode: 0 })

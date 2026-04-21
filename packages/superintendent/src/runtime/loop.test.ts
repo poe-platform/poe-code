@@ -161,6 +161,79 @@ describe("runLoop", () => {
     vi.resetModules();
   });
 
+  it("passes logPath through spawn.autonomous into AgentRunInput", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });
+    const runAgent = vi.fn(async () => ({
+      stdout: "Builder completed",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    runBuilderMock.mockImplementation(async () => {
+      const { spawn } = await import("@poe-code/agent-spawn");
+      const spawnApi = spawn as typeof spawn & {
+        autonomous?: (
+          agent: string,
+          options: {
+            cwd?: string;
+            prompt: string;
+            mode?: string;
+            logPath?: string;
+          }
+        ) => Promise<unknown>;
+      };
+
+      await spawnApi.autonomous?.("claude-code", {
+        prompt: "Build",
+        cwd: "/repo",
+        logPath: "/logs/builder.jsonl"
+      });
+
+      return {
+        summary: "Builder completed",
+        log: "Builder completed"
+      };
+    });
+    runSuperintendentMock.mockResolvedValue({
+      summary: "Ready",
+      transition: {
+        action: "request_review",
+        summary: "Ready"
+      }
+    });
+    runOwnerReviewMock.mockResolvedValue({
+      transition: {
+        action: "approve_completion"
+      }
+    });
+
+    const { runLoop } = await import("./loop.js");
+
+    await expect(
+      runLoop({
+        docPath,
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs,
+        logDir: "/tmp/superintendent-logs",
+        runAgent
+      })
+    ).resolves.toMatchObject({
+      state: "completed",
+      stopReason: "completed"
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        prompt: "Build",
+        cwd: "/repo",
+        logPath: "/logs/builder.jsonl"
+      })
+    );
+  });
+
   it(
     "runs the full lifecycle, writes status updates, and preserves agent body edits",
     async () => {

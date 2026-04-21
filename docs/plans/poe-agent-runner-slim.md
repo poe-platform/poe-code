@@ -49,9 +49,9 @@ tasks:
     prompt: |
       Update packages/superintendent/src/runtime/loop.ts so AgentRunInput replaces the correlated optional fields logDir and logFileName with a single logPath?: string. Join the path once where those values are originally produced, then update every runner that consumes the input—claude, codex, opencode, and poe-agent—to read logPath directly instead of rebuilding it. Keep the rest of the superintendent loop contracts unchanged.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: slim-execute-poe-agent

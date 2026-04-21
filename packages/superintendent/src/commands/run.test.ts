@@ -252,8 +252,7 @@ describe("superintendent run command", () => {
         prompt: "Build the plan",
         cwd: "/repo",
         mode: "yolo",
-        logDir: "/logs",
-        logFileName: "builder.jsonl"
+        logPath: "/logs/builder.jsonl"
       });
       expect(result).toMatchObject({
         exitCode: 0,
@@ -302,6 +301,12 @@ describe("superintendent run command", () => {
       })
     );
     expect(applyMiddlewaresMock).toHaveBeenCalledTimes(1);
+    expect(applyMiddlewaresMock).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({
+        logPath: "/logs/builder.jsonl"
+      })
+    );
     expect(renderAcpStreamMock).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({
       docPath: "/repo/.poe-code/superintendent/plan.md",
@@ -539,8 +544,7 @@ describe("superintendent run command", () => {
         agent: "claude-code",
         prompt: "Build",
         cwd: "/repo",
-        logDir: "/logs",
-        logFileName: "builder.jsonl"
+        logPath: "/logs/builder.jsonl"
       });
       options.callbacks?.onBuilderComplete?.({
         summary: "done",
@@ -562,12 +566,12 @@ describe("superintendent run command", () => {
       cwd: string;
       onStdout?: (chunk: string) => void;
       onStderr?: (chunk: string) => void;
-      logDir?: string;
-      logFileName?: string;
+      logPath?: string;
     }) => {
       expect(agent).toBe("poe-agent:openai/gpt-5.4");
       expect(input.prompt).toBe("Build");
       expect(input.cwd).toBe("/repo");
+      expect(input.logPath).toBe("/logs/builder.jsonl");
       input.onStdout?.("thinking...\n");
       return {
         stdout: "thinking...",

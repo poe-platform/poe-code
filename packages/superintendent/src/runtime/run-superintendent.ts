@@ -20,8 +20,7 @@ type AutonomousInput = {
   prompt: string;
   cwd?: string;
   mcpServers?: McpSpawnConfig;
-  logDir?: string;
-  logFileName?: string;
+  logPath?: string;
 };
 
 type ToolCallLike = {
@@ -60,8 +59,7 @@ const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
 
 export type RunSuperintendentOptions = {
   defaultCwd: string;
-  logDir?: string;
-  logFileName?: string;
+  logPath?: string;
 };
 
 export async function runSuperintendent(
@@ -84,8 +82,7 @@ export async function runSuperintendent(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.superintendent, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logDir ? { logDir: options.logDir } : {}),
-    ...(options.logFileName ? { logFileName: options.logFileName } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {})
   });
   const transition = extractTransition(result);
   const logPath = extractLogPath(result);
@@ -158,8 +155,7 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
       prompt: input.prompt,
       mode: input.mode,
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.logDir ? { logDir: input.logDir } : {}),
-      ...(input.logFileName ? { logFileName: input.logFileName } : {})
+      ...(input.logPath ? { logPath: input.logPath } : {})
     });
   }
 
@@ -168,8 +164,7 @@ async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> 
     prompt: input.prompt,
     mode: input.mode as SpawnMode | undefined,
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-    ...(input.logDir ? { logDir: input.logDir } : {}),
-    ...(input.logFileName ? { logFileName: input.logFileName } : {})
+    ...(input.logPath ? { logPath: input.logPath } : {})
   });
 
   return {

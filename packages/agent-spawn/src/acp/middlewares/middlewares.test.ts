@@ -249,7 +249,7 @@ describe("acp/middlewares/spawnLog", () => {
     expect(lines.map((line) => JSON.parse(line))).toEqual(sourceEvents);
   });
 
-  it("honors ctx.logFileName over the auto-generated filename", async () => {
+  it("honors ctx.logPath over the auto-generated filename", async () => {
     const sourceEvents: AcpEvent[] = [
       { event: "agent_message", text: "custom filename" }
     ];
@@ -264,8 +264,9 @@ describe("acp/middlewares/spawnLog", () => {
 
     const ctx = createContext({
       agent: "codex",
-      logDir: "/tmp/spawn-logs",
-      logFileName: "20260320-123456-789-builder.jsonl",
+      logDir: "/tmp/ignored",
+      logFileName: "ignored.jsonl",
+      logPath: "/tmp/spawn-logs/20260320-123456-789-builder.jsonl",
       startedAt: new Date("2026-03-20T12:34:56.789Z")
     });
 

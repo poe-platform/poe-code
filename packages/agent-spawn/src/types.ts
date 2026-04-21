@@ -47,6 +47,12 @@ export interface SpawnOptions {
    */
   activityTimeoutMs?: number;
   /**
+   * Full path for the spawn log file. When set, stdout (and stderr for CLI spawns)
+   * are appended to this file, and the absolute path is returned in `SpawnResult.logFile`.
+   * Takes precedence over `logDir` + `logFileName`.
+   */
+  logPath?: string;
+  /**
    * Directory for the spawn log file. When set together with `logFileName`, stdout
    * (and stderr for CLI spawns) are appended to `<logDir>/<logFileName>`, and the
    * absolute path is returned in `SpawnResult.logFile`.

@@ -109,8 +109,7 @@ describe("runBuilder", () => {
     await expect(
       runBuilder(document, {}, {
         defaultCwd: "/repo",
-        logDir: "/tmp/spawn-logs",
-        logFileName: "20260415-120000-000-builder.jsonl"
+        logPath: "/tmp/spawn-logs/20260415-120000-000-builder.jsonl"
       })
     ).resolves.toEqual({
       summary: "Builder finished cleanly",

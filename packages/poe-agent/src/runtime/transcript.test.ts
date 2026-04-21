@@ -145,6 +145,21 @@ describe("mapAcpEventToSessionUpdates", () => {
 });
 
 describe("createTranscriptWriter", () => {
+  it("accepts logPath directly", async () => {
+    const { memfs, transcriptFs } = createMemfs();
+    const writer = createTranscriptWriter({
+      logPath: "/logs/round.jsonl",
+      fs: transcriptFs,
+    });
+
+    await writer.write({ type: "message.delta", content: "hi" });
+
+    expect(writer.filePath).toBe("/logs/round.jsonl");
+    await expect(memfs.readFile("/logs/round.jsonl", "utf8")).resolves.toBe(
+      `${JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })}\n`,
+    );
+  });
+
   it("writes a JSON line per mapped SessionUpdate", async () => {
     const { memfs, transcriptFs } = createMemfs();
     const mkdirSpy = vi.spyOn(transcriptFs, "mkdir");

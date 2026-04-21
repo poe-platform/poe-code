@@ -79,8 +79,9 @@ export interface TranscriptFsApi {
 }
 
 export interface CreateTranscriptWriterOptions {
-  logDir: string;
-  logFileName: string;
+  logPath?: string;
+  logDir?: string;
+  logFileName?: string;
   fs: TranscriptFsApi;
   pathJoin?: (...parts: string[]) => string;
 }
@@ -89,13 +90,14 @@ export function createTranscriptWriter(
   options: CreateTranscriptWriterOptions,
 ): TranscriptWriter {
   const join = options.pathJoin ?? path.join;
-  const filePath = join(options.logDir, options.logFileName);
+  const filePath = resolveTranscriptFilePath(options, join);
   let dirEnsured: Promise<void> | undefined;
   let disabled = false;
+  const logDir = path.dirname(filePath);
 
   const ensureDir = (): Promise<void> => {
     if (!dirEnsured) {
-      dirEnsured = options.fs.mkdir(options.logDir, { recursive: true });
+      dirEnsured = options.fs.mkdir(logDir, { recursive: true });
     }
     return dirEnsured;
   };
@@ -120,4 +122,19 @@ export function createTranscriptWriter(
       // No persistent handle: appendFile opens/closes each write. Nothing to do.
     },
   };
+}
+
+function resolveTranscriptFilePath(
+  options: CreateTranscriptWriterOptions,
+  join: (...parts: string[]) => string,
+): string {
+  if (options.logPath) {
+    return options.logPath;
+  }
+
+  if (options.logDir && options.logFileName) {
+    return join(options.logDir, options.logFileName);
+  }
+
+  throw new Error("createTranscriptWriter requires logPath or logDir + logFileName.");
 }

@@ -32,17 +32,17 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-mcp-map-overload
     title: Add MCP map overload
     prompt: |
       Extend packages/poe-agent/src/agent.ts so .mcp() supports both the existing array-based McpServerConfig inputs and a map-based McpSpawnConfig input shaped like Record<name, server>. Perform the Record-to-array conversion inside poe-agent so superintendent callers can pass .mcp(input.mcpServers ?? {}) directly with no toPoeMcpConfigs helper. Keep the existing array overload working for current callers.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: collapse-log-path
     title: Collapse log path input

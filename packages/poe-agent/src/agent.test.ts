@@ -827,6 +827,69 @@ describe("agent builder", () => {
     expect(mcpClientCloseMock).toHaveBeenCalledTimes(1);
   });
 
+  it("adds MCP configs via map-based .mcp() as plugin setup entries", async () => {
+    stdioTransportConstructorMock.mockReset();
+    mcpClientConnectMock.mockReset();
+    mcpClientListToolsMock.mockReset();
+    mcpClientCallToolMock.mockReset();
+    mcpClientCloseMock.mockReset();
+
+    const repoSearchToolName = ["repo", "search"].join("_");
+
+    mcpClientConnectMock.mockResolvedValue(undefined);
+    mcpClientCloseMock.mockResolvedValue(undefined);
+    mcpClientListToolsMock.mockResolvedValue({
+      tools: [
+        {
+          name: "search",
+          description: "Search docs",
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: { type: "string" }
+            }
+          }
+        }
+      ]
+    });
+
+    const tools: string[] = [];
+
+    await agent()
+      .model("gpt-5")
+      .mcp({
+        repo: {
+          command: "node",
+          args: ["server.js"],
+          env: { TOKEN: "secret" }
+        }
+      })
+      .run("hello", {
+        acpModel: createModel(
+          [
+            {
+              message: {
+                content: "done",
+                toolCalls: []
+              }
+            }
+          ],
+          tools
+        )
+      });
+
+    expect(stdioTransportConstructorMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "node",
+        args: ["server.js"],
+        env: expect.objectContaining({ TOKEN: "secret" })
+      })
+    );
+    expect(mcpClientConnectMock).toHaveBeenCalledTimes(1);
+    expect(tools).toEqual([repoSearchToolName]);
+    expect(mcpClientCloseMock).toHaveBeenCalledTimes(1);
+  });
+
   it("aborts in-flight MCP tool calls and returns failure details", async () => {
     const repoSearchToolName = ["repo", "search"].join("_");
 

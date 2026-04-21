@@ -144,6 +144,90 @@ describe("agent builder MCP spawn handoff", () => {
     });
   });
 
+  it("accepts map-based MCP config and passes it into the default spawn session factory", async () => {
+    await agent()
+      .model("test-model")
+      .mcp({
+        repo: {
+          command: "repo-mcp",
+          args: ["--stdio"],
+          env: { TOKEN: "secret" }
+        }
+      })
+      .use(spawnPlugin())
+      .run("Spawn a child", {
+        cwd: "/workspace",
+        acpModel: createModel([
+          {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "spawn-1",
+                  tool: "spawn",
+                  args: { task: "Inspect MCP child config" }
+                }
+              ]
+            }
+          },
+          {
+            message: {
+              content: "done",
+              toolCalls: []
+            }
+          }
+        ])
+      });
+
+    expect(createInMemorySpawnSessionMock).toHaveBeenCalledWith({
+      model: "test-model",
+      cwd: "/workspace",
+      mcpServers: {
+        repo: {
+          transport: "stdio",
+          command: "repo-mcp",
+          args: ["--stdio"],
+          env: { TOKEN: "secret" }
+        }
+      }
+    });
+  });
+
+  it("treats an empty map-based MCP config as no MCP servers during spawn handoff", async () => {
+    await agent()
+      .model("test-model")
+      .mcp({})
+      .use(spawnPlugin())
+      .run("Spawn a child", {
+        cwd: "/workspace",
+        acpModel: createModel([
+          {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "spawn-1",
+                  tool: "spawn",
+                  args: { task: "Inspect MCP child config" }
+                }
+              ]
+            }
+          },
+          {
+            message: {
+              content: "done",
+              toolCalls: []
+            }
+          }
+        ])
+      });
+
+    expect(createInMemorySpawnSessionMock).toHaveBeenCalledWith({
+      model: "test-model",
+      cwd: "/workspace"
+    });
+  });
+
   it("passes the active policy mode into the default spawn session factory", async () => {
     await agent()
       .model("test-model")

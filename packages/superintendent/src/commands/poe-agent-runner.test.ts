@@ -7,11 +7,11 @@ import type {
   RunResult
 } from "@poe-code/poe-agent";
 import type { McpSpawnConfig } from "@poe-code/agent-spawn";
-import { executePoeAgent, type AgentFactory, type PoeMcpServerConfig } from "./poe-agent-runner.js";
+import { executePoeAgent, type AgentFactory } from "./poe-agent-runner.js";
 
 type Capture = {
   modelCalls: string[];
-  mcpCalls: PoeMcpServerConfig[][];
+  mcpCalls: unknown[][];
   pluginNames: string[];
   streamCalls: Array<{ prompt: string; options?: AgentRunOptions }>;
 };
@@ -36,7 +36,7 @@ function createFakeFactory(events: AcpEvent[]): { factory: AgentFactory; capture
     tools() {
       return builder;
     },
-    mcp(...configs: PoeMcpServerConfig[]) {
+    mcp(...configs: unknown[]) {
       capture.mcpCalls.push(configs);
       return builder;
     },
@@ -75,7 +75,7 @@ describe("executePoeAgent", () => {
     expect(capture.modelCalls).toEqual(["openai/gpt-5.4"]);
   });
 
-  it("converts McpSpawnConfig dict into McpServerConfig array with names", async () => {
+  it("forwards McpSpawnConfig dict directly to .mcp()", async () => {
     const { factory, capture } = createFakeFactory([completeEvent("ok")]);
     const mcpServers: McpSpawnConfig = {
       alpha: { command: "node", args: ["a.js"] },
@@ -89,11 +89,7 @@ describe("executePoeAgent", () => {
     );
 
     expect(capture.mcpCalls).toHaveLength(1);
-    const [configs] = capture.mcpCalls;
-    expect(configs).toEqual([
-      { name: "alpha", command: "node", args: ["a.js"] },
-      { name: "beta", command: "python", env: { X: "1" } }
-    ]);
+    expect(capture.mcpCalls[0]).toEqual([mcpServers]);
   });
 
   it("forwards cwd and signal to stream options", async () => {

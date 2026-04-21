@@ -17,12 +17,10 @@ import {
   webPlugin
 } from "@poe-code/poe-agent";
 import type { AgentBuilder } from "@poe-code/poe-agent";
-import type { McpSpawnConfig, McpSpawnServer, SpawnMode } from "@poe-code/agent-spawn";
+import type { SpawnMode } from "@poe-code/agent-spawn";
 import type { AgentRunInput, AgentRunResult } from "../runtime/loop.js";
 
 export type AgentFactory = () => AgentBuilder;
-
-export type PoeMcpServerConfig = McpSpawnServer & { name: string };
 
 export type ExecutePoeAgentResult = AgentRunResult & {
   usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
@@ -46,7 +44,6 @@ export async function executePoeAgent(
     );
   }
 
-  const mcpConfigs = toPoeMcpConfigs(input.mcpServers);
   let builder = createAgent()
     .model(model)
     .use(openaiResponsesPlugin())
@@ -61,7 +58,7 @@ export async function executePoeAgent(
   if (input.mode) {
     builder = builder.use(policyPlugin({ mode: input.mode as SpawnMode }));
   }
-  builder = builder.mcp(...mcpConfigs);
+  builder = builder.mcp(input.mcpServers ?? {});
 
   const streamOptions = {
     cwd: input.cwd,
@@ -129,11 +126,4 @@ export async function executePoeAgent(
     ...(toolCalls.length > 0 ? { toolCalls } : {}),
     ...(usage ? { usage } : {})
   };
-}
-
-function toPoeMcpConfigs(servers: McpSpawnConfig | undefined): PoeMcpServerConfig[] {
-  if (!servers) {
-    return [];
-  }
-  return Object.entries(servers).map(([name, server]) => ({ name, ...server }));
 }

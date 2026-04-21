@@ -1,5 +1,6 @@
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
+import type { McpSpawnConfig } from "@poe-code/agent-spawn";
 import type { CreateAgentSessionOptions } from "./agent-session.js";
 import mcpPlugin from "./plugins/poe-agent-plugin-mcp.js";
 import { POLICY_MODE_SESSION_KEY } from "./plugins/poe-agent-plugin-policy.js";
@@ -71,6 +72,7 @@ export type AgentBuilder = {
   model(model: string): AgentBuilder;
   use(plugin: AgentPlugin): AgentBuilder;
   tools(...tools: Tool[]): AgentBuilder;
+  mcp(configs: McpSpawnConfig): AgentBuilder;
   mcp(...configs: McpServerConfig[]): AgentBuilder;
   acp(prompt: string, options?: AgentRunOptions): Promise<AcpSession>;
   run(prompt: string, options?: AgentRunOptions): Promise<RunResult>;
@@ -113,7 +115,11 @@ class ImmutableAgentBuilder implements AgentBuilder {
     });
   }
 
-  mcp(...configs: McpServerConfig[]): AgentBuilder {
+  mcp(configs: McpSpawnConfig): AgentBuilder;
+  mcp(...configs: McpServerConfig[]): AgentBuilder;
+  mcp(...configsOrMap: [McpSpawnConfig] | McpServerConfig[]): AgentBuilder {
+    const configs = normalizeMcpConfigs(configsOrMap);
+
     return new ImmutableAgentBuilder(
       createResolvedAgentConfig({
         ...this.#config,
@@ -545,6 +551,28 @@ function toSpawnMcpServers(
   }
 
   return byName;
+}
+
+function normalizeMcpConfigs(configsOrMap: [McpSpawnConfig] | McpServerConfig[]): McpServerConfig[] {
+  const [first, ...rest] = configsOrMap;
+  if (first === undefined) {
+    return [];
+  }
+
+  if (rest.length > 0 || isNamedMcpServerConfig(first)) {
+    return [first, ...rest] as McpServerConfig[];
+  }
+
+  return Object.entries(first).map(([name, server]) => ({ name, ...server }));
+}
+
+function isNamedMcpServerConfig(value: McpSpawnConfig | McpServerConfig): value is McpServerConfig {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof value.name === "string" &&
+    typeof value.command === "string"
+  );
 }
 
 function resolveActiveSkills(options: AgentRunOptions): string[] | undefined {

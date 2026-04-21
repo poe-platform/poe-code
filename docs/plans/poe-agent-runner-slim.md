@@ -52,17 +52,17 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: slim-execute-poe-agent
     title: Slim executePoeAgent
     prompt: |
       Rewrite packages/superintendent/src/commands/poe-agent-runner.ts so executePoeAgent parses the model from parseAgentSpecifier(agentSpec), throws when the model is missing, builds the plugin chain, calls .mcp(input.mcpServers ?? {}), and finishes with a single .run(input.prompt, ...) call. Remove the manual event loop, result mapping, conditional policy wiring, and any toPoeMcpConfigs-style helper. Make ExecutePoeAgentResult a direct alias of the enriched poe-agent RunResult, update the runner tests to assert the same observable behavior through the new run path, and delete packages/superintendent/src/commands/poe-agent-transcript.ts once the transcript writer has moved.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 ---
 
 # Slim poe-agent runner

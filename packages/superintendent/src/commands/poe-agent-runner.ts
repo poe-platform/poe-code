@@ -1,9 +1,7 @@
-import { mkdir, appendFile } from "node:fs/promises";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import {
   agent as defaultAgent,
   compactionPlugin,
-  createTranscriptWriter,
   environmentPlugin,
   filesPlugin,
   openaiChatCompletionsPlugin,
@@ -12,30 +10,21 @@ import {
   shellPlugin,
   skillsPlugin,
   systemPromptPlugin,
-  type TranscriptFsApi,
-  type TranscriptWriter,
-  webPlugin
+  webPlugin,
+  type AgentBuilder,
+  type RunResult
 } from "@poe-code/poe-agent";
-import type { AgentBuilder } from "@poe-code/poe-agent";
 import type { SpawnMode } from "@poe-code/agent-spawn";
-import type { AgentRunInput, AgentRunResult } from "../runtime/loop.js";
+import type { AgentRunInput } from "../runtime/loop.js";
 
 export type AgentFactory = () => AgentBuilder;
 
-export type ExecutePoeAgentResult = AgentRunResult & {
-  usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
-};
-
-const defaultTranscriptFs: TranscriptFsApi = {
-  mkdir: (dir, options) => mkdir(dir, options).then(() => undefined),
-  appendFile: (filePath, contents) => appendFile(filePath, contents, "utf8")
-};
+export type ExecutePoeAgentResult = RunResult;
 
 export async function executePoeAgent(
   agentSpec: string,
   input: AgentRunInput,
-  createAgent: AgentFactory = defaultAgent,
-  transcriptFs: TranscriptFsApi = defaultTranscriptFs
+  createAgent: AgentFactory = defaultAgent
 ): Promise<ExecutePoeAgentResult> {
   const { model } = parseAgentSpecifier(agentSpec);
   if (!model) {
@@ -44,7 +33,7 @@ export async function executePoeAgent(
     );
   }
 
-  let builder = createAgent()
+  return createAgent()
     .model(model)
     .use(openaiResponsesPlugin())
     .use(openaiChatCompletionsPlugin())
@@ -54,76 +43,13 @@ export async function executePoeAgent(
     .use(shellPlugin({ cwd: input.cwd }))
     .use(webPlugin())
     .use(compactionPlugin())
-    .use(skillsPlugin({ definitions: {} }));
-  if (input.mode) {
-    builder = builder.use(policyPlugin({ mode: input.mode as SpawnMode }));
-  }
-  builder = builder.mcp(input.mcpServers ?? {});
-
-  const streamOptions = {
-    cwd: input.cwd,
-    ...(input.signal ? { signal: input.signal } : {})
-  };
-
-  const logPath = input.logPath;
-  const transcript: TranscriptWriter | undefined =
-    logPath
-      ? createTranscriptWriter({
-          logPath,
-          fs: transcriptFs
-        })
-      : undefined;
-
-  let completed = "";
-  let streamed = "";
-  let failure: Error | undefined;
-  let usage: ExecutePoeAgentResult["usage"] | undefined;
-  const toolCalls: Array<{ title: string; input: unknown }> = [];
-
-  try {
-    for await (const event of builder.stream(input.prompt, streamOptions)) {
-      if (transcript) {
-        await transcript.write(event);
-      }
-      if (event.type === "message.delta") {
-        input.onStdout?.(event.content);
-        streamed += event.content;
-      } else if (event.type === "tool.intent") {
-        toolCalls.push({ title: event.tool, input: event.args });
-      } else if (event.type === "usage") {
-        usage = {
-          inputTokens: event.usage.inputTokens,
-          outputTokens: event.usage.outputTokens,
-          cachedTokens: event.usage.cachedTokens
-        };
-      } else if (event.type === "session.complete") {
-        completed = event.result.output;
-      } else if (event.type === "session.error") {
-        failure = event.error;
-      }
-    }
-  } finally {
-    await transcript?.close();
-  }
-
-  if (failure) {
-    return {
-      stdout: streamed,
-      stderr: failure.message,
-      exitCode: 1,
-      ...(transcript ? { logFile: transcript.filePath } : {}),
-      ...(usage ? { usage } : {})
-    };
-  }
-
-  const output = completed || streamed;
-  return {
-    stdout: output,
-    stderr: "",
-    exitCode: 0,
-    summary: output,
-    ...(transcript ? { logFile: transcript.filePath } : {}),
-    ...(toolCalls.length > 0 ? { toolCalls } : {}),
-    ...(usage ? { usage } : {})
-  };
+    .use(skillsPlugin({ definitions: {} }))
+    .use(policyPlugin({ mode: input.mode as SpawnMode | undefined }))
+    .mcp(input.mcpServers ?? {})
+    .run(input.prompt, {
+      cwd: input.cwd,
+      signal: input.signal,
+      onStdout: input.onStdout,
+      logPath: input.logPath
+    });
 }

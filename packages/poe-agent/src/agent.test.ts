@@ -1858,6 +1858,8 @@ describe("agent builder", () => {
 
     expect(stdoutChunks).toEqual(["done"]);
     expect(result.output).toBe("done");
+    expect(result.stdout).toBe("done");
+    expect(result.summary).toBe("done");
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe("");
     expect(result.logFile).toBe("/logs/round-3/builder.jsonl");
@@ -1922,6 +1924,7 @@ describe("agent builder", () => {
 
     expect(result).toMatchObject({
       output: "",
+      stdout: "",
       messages: [],
       toolCalls: [],
       exitCode: 1,
@@ -1967,6 +1970,7 @@ describe("agent builder", () => {
     expect(stdoutChunks).toEqual(["working "]);
     expect(result).toMatchObject({
       output: "working ",
+      stdout: "working ",
       exitCode: 1,
       stderr: "model boom",
       logFile: "/logs/round-4/builder.jsonl",

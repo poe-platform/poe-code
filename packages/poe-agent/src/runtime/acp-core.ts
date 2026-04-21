@@ -474,8 +474,12 @@ async function runLoop(
     if (collectedResponse.toolOutcomes.length === 0) {
       return {
         output: collectedResponse.content,
+        stdout: collectedResponse.content,
+        summary: collectedResponse.content,
         messages: [...options.runContext.messages],
-        toolCalls: [...options.toolCalls]
+        toolCalls: [...options.toolCalls],
+        exitCode: 0,
+        stderr: ""
       };
     }
   }

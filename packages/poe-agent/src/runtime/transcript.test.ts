@@ -27,17 +27,13 @@ function createMemfs(): {
 
 describe("mapAcpEventToSessionUpdates", () => {
   it("maps message.delta to agent_message_chunk", () => {
-    expect(
-      mapAcpEventToSessionUpdates({ type: "message.delta", content: "hello" }),
-    ).toEqual([
-      { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } },
+    expect(mapAcpEventToSessionUpdates({ type: "message.delta", content: "hello" })).toEqual([
+      { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } }
     ]);
   });
 
   it("skips empty message.delta chunks", () => {
-    expect(
-      mapAcpEventToSessionUpdates({ type: "message.delta", content: "" }),
-    ).toEqual([]);
+    expect(mapAcpEventToSessionUpdates({ type: "message.delta", content: "" })).toEqual([]);
   });
 
   it("maps tool.intent to a tool_call + in_progress tool_call_update pair", () => {
@@ -46,8 +42,8 @@ describe("mapAcpEventToSessionUpdates", () => {
         type: "tool.intent",
         intentId: "abc",
         tool: "read_file",
-        args: { path: "/tmp/x" },
-      }),
+        args: { path: "/tmp/x" }
+      })
     ).toEqual([
       {
         sessionUpdate: "tool_call",
@@ -55,14 +51,14 @@ describe("mapAcpEventToSessionUpdates", () => {
         title: "read_file",
         kind: "execute",
         status: "pending",
-        rawInput: { path: "/tmp/x" },
+        rawInput: { path: "/tmp/x" }
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "abc",
         kind: "execute",
-        status: "in_progress",
-      },
+        status: "in_progress"
+      }
     ]);
   });
 
@@ -71,16 +67,16 @@ describe("mapAcpEventToSessionUpdates", () => {
       mapAcpEventToSessionUpdates({
         type: "tool.result",
         intentId: "abc",
-        result: "ok",
-      }),
+        result: "ok"
+      })
     ).toEqual([
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "abc",
         kind: "execute",
         status: "completed",
-        rawOutput: "ok",
-      },
+        rawOutput: "ok"
+      }
     ]);
   });
 
@@ -89,16 +85,16 @@ describe("mapAcpEventToSessionUpdates", () => {
       mapAcpEventToSessionUpdates({
         type: "tool.error",
         intentId: "abc",
-        error: "boom",
-      }),
+        error: "boom"
+      })
     ).toEqual([
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "abc",
         kind: "execute",
         status: "failed",
-        rawOutput: "boom",
-      },
+        rawOutput: "boom"
+      }
     ]);
   });
 
@@ -110,9 +106,9 @@ describe("mapAcpEventToSessionUpdates", () => {
           inputTokens: 100,
           outputTokens: 50,
           cachedTokens: 20,
-          cacheCreationTokens: 0,
-        },
-      }),
+          cacheCreationTokens: 0
+        }
+      })
     ).toEqual([
       {
         sessionUpdate: "usage_update",
@@ -122,20 +118,31 @@ describe("mapAcpEventToSessionUpdates", () => {
           inputTokens: 100,
           outputTokens: 50,
           cachedTokens: 20,
-          cacheCreationTokens: 0,
-        },
-      },
+          cacheCreationTokens: 0
+        }
+      }
     ]);
   });
 
   it("ignores events with no replay representation", () => {
     const unmapped: AcpEvent[] = [
-      { type: "session.complete", result: { output: "x", messages: [], toolCalls: [] } },
+      {
+        type: "session.complete",
+        result: {
+          output: "x",
+          stdout: "x",
+          summary: "x",
+          messages: [],
+          toolCalls: [],
+          exitCode: 0,
+          stderr: ""
+        }
+      },
       { type: "session.error", error: new Error("boom") },
       { type: "progress", message: "thinking" },
       { type: "fork.start", forkId: "f1", prompt: "branch" },
       { type: "fork.complete", forkId: "f1", result: { output: "done", messages: [] } },
-      { type: "fork.error", forkId: "f1", error: "failed" },
+      { type: "fork.error", forkId: "f1", error: "failed" }
     ];
 
     for (const event of unmapped) {
@@ -149,14 +156,14 @@ describe("createTranscriptWriter", () => {
     const { memfs, transcriptFs } = createMemfs();
     const writer = createTranscriptWriter({
       logPath: "/logs/round.jsonl",
-      fs: transcriptFs,
+      fs: transcriptFs
     });
 
     await writer.write({ type: "message.delta", content: "hi" });
 
     expect(writer.filePath).toBe("/logs/round.jsonl");
     await expect(memfs.readFile("/logs/round.jsonl", "utf8")).resolves.toBe(
-      `${JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })}\n`,
+      `${JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })}\n`
     );
   });
 
@@ -167,7 +174,7 @@ describe("createTranscriptWriter", () => {
     const writer = createTranscriptWriter({
       logDir: "/logs",
       logFileName: "round.jsonl",
-      fs: transcriptFs,
+      fs: transcriptFs
     });
 
     await writer.write({ type: "message.delta", content: "hi" });
@@ -177,7 +184,7 @@ describe("createTranscriptWriter", () => {
     expect(appendFileSpy).toHaveBeenCalledTimes(1);
     expect(writer.filePath).toBe("/logs/round.jsonl");
     await expect(memfs.readFile("/logs/round.jsonl", "utf8")).resolves.toBe(
-      `${JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })}\n`,
+      `${JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })}\n`
     );
   });
 
@@ -186,14 +193,14 @@ describe("createTranscriptWriter", () => {
     const writer = createTranscriptWriter({
       logDir: "/logs",
       logFileName: "round.jsonl",
-      fs: transcriptFs,
+      fs: transcriptFs
     });
 
     await writer.write({
       type: "tool.intent",
       intentId: "1",
       tool: "shell",
-      args: { cmd: "ls" },
+      args: { cmd: "ls" }
     });
 
     const lines = (await memfs.readFile("/logs/round.jsonl", "utf8")).trim().split("\n");
@@ -208,7 +215,7 @@ describe("createTranscriptWriter", () => {
     const writer = createTranscriptWriter({
       logDir: "/logs",
       logFileName: "round.jsonl",
-      fs: transcriptFs,
+      fs: transcriptFs
     });
 
     await writer.write({ type: "message.delta", content: "a" });
@@ -225,12 +232,20 @@ describe("createTranscriptWriter", () => {
     const writer = createTranscriptWriter({
       logDir: "/logs",
       logFileName: "round.jsonl",
-      fs: transcriptFs,
+      fs: transcriptFs
     });
 
     await writer.write({
       type: "session.complete",
-      result: { output: "done", messages: [], toolCalls: [] },
+      result: {
+        output: "done",
+        stdout: "done",
+        summary: "done",
+        messages: [],
+        toolCalls: [],
+        exitCode: 0,
+        stderr: ""
+      }
     });
 
     expect(mkdirSpy).not.toHaveBeenCalled();
@@ -244,7 +259,7 @@ describe("createTranscriptWriter", () => {
       logDir: "/logs",
       logFileName: "round.jsonl",
       fs: transcriptFs,
-      pathJoin: (...parts) => parts.join("::"),
+      pathJoin: (...parts) => parts.join("::")
     });
 
     await writer.write({ type: "message.delta", content: "hi" });
@@ -252,7 +267,7 @@ describe("createTranscriptWriter", () => {
     expect(writer.filePath).toBe("/logs::round.jsonl");
     expect(appendFileSpy).toHaveBeenCalledWith(
       "/logs::round.jsonl",
-      `${JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })}\n`,
+      `${JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })}\n`
     );
   });
 
@@ -264,7 +279,7 @@ describe("createTranscriptWriter", () => {
     const writer = createTranscriptWriter({
       logDir: "/logs",
       logFileName: "round.jsonl",
-      fs: transcriptFs,
+      fs: transcriptFs
     });
 
     await expect(writer.write({ type: "message.delta", content: "hi" })).resolves.toBeUndefined();
@@ -279,7 +294,7 @@ describe("createTranscriptWriter", () => {
     const writer = createTranscriptWriter({
       logDir: "/logs",
       logFileName: "round.jsonl",
-      fs: transcriptFs,
+      fs: transcriptFs
     });
     const circular: { self?: unknown } = {};
     circular.self = circular;
@@ -289,10 +304,12 @@ describe("createTranscriptWriter", () => {
         type: "tool.intent",
         intentId: "1",
         tool: "shell",
-        args: circular,
-      }),
+        args: circular
+      })
     ).resolves.toBeUndefined();
-    await expect(writer.write({ type: "message.delta", content: "after" })).resolves.toBeUndefined();
+    await expect(
+      writer.write({ type: "message.delta", content: "after" })
+    ).resolves.toBeUndefined();
 
     expect(appendFileSpy).not.toHaveBeenCalled();
   });

@@ -22,7 +22,11 @@ import type { AgentPlugin, McpServerConfig } from "./runtime/plugin-types.js";
 import { runPluginSetup } from "./runtime/plugin-setup.js";
 import { collectProviders, resolveProvider } from "./runtime/resolve-provider.js";
 import { createRunContext, type RunContext } from "./runtime/run-context.js";
-import { createTranscriptWriter, type TranscriptFsApi, type TranscriptWriter } from "./runtime/transcript.js";
+import {
+  createTranscriptWriter,
+  type TranscriptFsApi,
+  type TranscriptWriter
+} from "./runtime/transcript.js";
 import { assertValidToolName } from "./runtime/tool-names.js";
 import type {
   AcpEvent,
@@ -282,14 +286,18 @@ class ImmutableAgentBuilder implements AgentBuilder {
     if (failed) {
       const fallback = completed ?? {
         output: streamedOutput,
+        stdout: streamedOutput,
         messages: resultMessages,
-        toolCalls: resultToolCalls
+        toolCalls: resultToolCalls,
+        exitCode: 1,
+        stderr: failed.message
       };
 
       return {
         ...fallback,
         ...(resultUsage === undefined ? {} : { usage: resultUsage }),
         ...(logFile === undefined ? {} : { logFile }),
+        stdout: fallback.stdout ?? fallback.output,
         exitCode: 1,
         stderr: failed.message
       };
@@ -303,6 +311,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
       ...completed,
       ...(resultUsage === undefined ? {} : { usage: resultUsage }),
       ...(logFile === undefined ? {} : { logFile }),
+      stdout: completed.stdout ?? completed.output,
+      summary: completed.summary ?? completed.output,
       exitCode: completed.exitCode ?? 0,
       stderr: completed.stderr ?? ""
     };
@@ -551,7 +561,9 @@ function toSpawnMcpServers(
   return byName;
 }
 
-function normalizeMcpConfigs(configsOrMap: [McpSpawnConfig] | McpServerConfig[]): McpServerConfig[] {
+function normalizeMcpConfigs(
+  configsOrMap: [McpSpawnConfig] | McpServerConfig[]
+): McpServerConfig[] {
   const [first, ...rest] = configsOrMap;
   if (first === undefined) {
     return [];

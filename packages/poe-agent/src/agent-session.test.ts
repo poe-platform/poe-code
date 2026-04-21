@@ -126,8 +126,12 @@ describe("createAgentSession", () => {
           type: "session.complete",
           result: {
             output: "done",
+            stdout: "done",
+            summary: "done",
             messages: [{ role: "assistant", content: "done" }],
-            toolCalls: []
+            toolCalls: [],
+            exitCode: 0,
+            stderr: ""
           }
         }
       ])
@@ -285,6 +289,8 @@ describe("createAgentSession", () => {
           type: "session.complete",
           result: {
             output: "Done",
+            stdout: "Done",
+            summary: "Done",
             messages: [{ role: "assistant", content: "Done" }],
             toolCalls: [
               {
@@ -294,7 +300,9 @@ describe("createAgentSession", () => {
                 status: "success",
                 result: "README content"
               }
-            ]
+            ],
+            exitCode: 0,
+            stderr: ""
           }
         }
       ])
@@ -372,6 +380,8 @@ describe("createAgentSession", () => {
           type: "session.complete",
           result: {
             output: "Done",
+            stdout: "Done",
+            summary: "Done",
             messages: [{ role: "assistant", content: "Done" }],
             toolCalls: [
               {
@@ -381,7 +391,9 @@ describe("createAgentSession", () => {
                 status: "success",
                 result: multimodalResult
               }
-            ]
+            ],
+            exitCode: 0,
+            stderr: ""
           }
         }
       ])
@@ -420,8 +432,12 @@ describe("createAgentSession", () => {
           type: "session.complete",
           result: {
             output: "Final answer",
+            stdout: "Final answer",
+            summary: "Final answer",
             messages: [{ role: "assistant", content: "Final answer" }],
-            toolCalls: []
+            toolCalls: [],
+            exitCode: 0,
+            stderr: ""
           }
         }
       ])
@@ -460,8 +476,12 @@ describe("createAgentSession", () => {
         expect(options?.resume).toBeUndefined();
         const firstResult: RunResult = {
           output: "first",
+          stdout: "first",
+          summary: "first",
           messages: [{ role: "assistant", content: "first" }],
-          toolCalls: []
+          toolCalls: [],
+          exitCode: 0,
+          stderr: ""
         };
 
         return await createAcpSession([
@@ -474,8 +494,12 @@ describe("createAgentSession", () => {
 
       expect(options?.resume).toEqual({
         output: "first",
+        stdout: "first",
+        summary: "first",
         messages: [{ role: "assistant", content: "first" }],
-        toolCalls: []
+        toolCalls: [],
+        exitCode: 0,
+        stderr: ""
       });
 
       return await createAcpSession([
@@ -483,8 +507,12 @@ describe("createAgentSession", () => {
           type: "session.complete",
           result: {
             output: "second",
+            stdout: "second",
+            summary: "second",
             messages: [{ role: "assistant", content: "second" }],
-            toolCalls: []
+            toolCalls: [],
+            exitCode: 0,
+            stderr: ""
           }
         }
       ]);

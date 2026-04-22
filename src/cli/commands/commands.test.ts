@@ -314,7 +314,7 @@ describe("configure command", () => {
     );
   });
 
-  it("fails to configure goose when /v1/models does not provide required context lengths", async () => {
+  it("uses fallback context limits when /v1/models does not provide all models", async () => {
     const httpClient = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -327,10 +327,18 @@ describe("configure command", () => {
     vi.spyOn(container.options, "resolveModel").mockResolvedValue("openai/gpt-5.4");
 
     const program = createTestProgram();
+    await executeConfigure(program, container, "goose", {});
 
-    await expect(executeConfigure(program, container, "goose", {})).rejects.toThrow(
-      /Missing Goose model context limit/
-    );
+    const provider = JSON.parse(
+      await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8")
+    ) as Record<string, unknown>;
+    expect(provider.models).toEqual([
+      { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
+      { name: "anthropic/claude-sonnet-4.6", context_limit: 200_000 },
+      { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
+      { name: "openai/gpt-5.4", context_limit: 1_050_000 },
+      { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
+    ]);
   });
 
   it("accepts --model option to set a model without prompting", async () => {

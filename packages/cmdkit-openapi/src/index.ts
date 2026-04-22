@@ -1,3 +1,4 @@
+export { defineApiCommand } from "./api-command.js";
 export { defineClient } from "./define-client.js";
 export { generate } from "./generate.js";
 export type { GenerateOptions, GeneratedFile, OpenApiDocument } from "./generate.js";

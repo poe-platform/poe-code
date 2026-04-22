@@ -8,10 +8,10 @@ exports[`generate > generates a path-param command with a scalar JSON body 1`] =
  * spec-sha: spec-sha-123
  * operation-id: setOfficial
  */
-import { defineCommand, S } from "@poe-code/cmdkit";
-import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";
+import { S } from "@poe-code/cmdkit";
+import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";
 
-export const botsSetOfficialCommand = defineCommand<OpenApiClientServices>({
+export const botsSetOfficialCommand = defineApiCommand({
   name: "set-official",
   description: "Mark a bot as official.",
   scope: ["cli", "mcp", "sdk"] as const,
@@ -65,10 +65,10 @@ exports[`generate > generates a scalar query command 1`] = `
  * spec-sha: spec-sha-123
  * operation-id: listBots
  */
-import { defineCommand, S } from "@poe-code/cmdkit";
-import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";
+import { S } from "@poe-code/cmdkit";
+import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";
 
-export const botsListCommand = defineCommand<OpenApiClientServices>({
+export const botsListCommand = defineApiCommand({
   name: "list",
   description: "List bots.",
   scope: ["cli", "mcp", "sdk"] as const,
@@ -120,10 +120,10 @@ exports[`generate > generates an enum JSON body command 1`] = `
  * spec-sha: spec-sha-123
  * operation-id: setImageComprehension
  */
-import { defineCommand, S } from "@poe-code/cmdkit";
-import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";
+import { S } from "@poe-code/cmdkit";
+import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";
 
-export const botsSetImageComprehensionCommand = defineCommand<OpenApiClientServices>({
+export const botsSetImageComprehensionCommand = defineApiCommand({
   name: "set-image-comprehension",
   description: "Set image comprehension mode.",
   scope: ["cli", "mcp", "sdk"] as const,
@@ -177,10 +177,10 @@ exports[`generate > generates array body params with a repeatable CLI flag, a JS
  * spec-sha: spec-sha-123
  * operation-id: setConversationStarters
  */
-import { defineCommand, S, UserError } from "@poe-code/cmdkit";
-import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";
+import { S, UserError } from "@poe-code/cmdkit";
+import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";
 
-export const botsSetConversationStartersCommand = defineCommand<OpenApiClientServices>({
+export const botsSetConversationStartersCommand = defineApiCommand({
   name: "set-conversation-starters",
   description: "Set conversation starters.",
   scope: ["cli", "mcp", "sdk"] as const,
@@ -254,10 +254,10 @@ exports[`generate > omits readOnly request-body fields from generated command pa
  * spec-sha: spec-sha-123
  * operation-id: setProfile
  */
-import { defineCommand, S } from "@poe-code/cmdkit";
-import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";
+import { S } from "@poe-code/cmdkit";
+import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";
 
-export const botsSetProfileCommand = defineCommand<OpenApiClientServices>({
+export const botsSetProfileCommand = defineApiCommand({
   name: "set-profile",
   scope: ["cli", "mcp", "sdk"] as const,
   params: S.Object({
@@ -310,10 +310,10 @@ exports[`generate > preserves integer enums in the emitted MCP schema 1`] = `
  * spec-sha: spec-sha-123
  * operation-id: setStatusCode
  */
-import { defineCommand, S } from "@poe-code/cmdkit";
-import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";
+import { S } from "@poe-code/cmdkit";
+import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";
 
-export const botsSetStatusCodeCommand = defineCommand<OpenApiClientServices>({
+export const botsSetStatusCodeCommand = defineApiCommand({
   name: "set-status-code",
   description: "Set a status code.",
   scope: ["cli", "mcp", "sdk"] as const,
@@ -367,10 +367,10 @@ exports[`generate > treats required body fields as optional when the request bod
  * spec-sha: spec-sha-123
  * operation-id: setDescription
  */
-import { defineCommand, S } from "@poe-code/cmdkit";
-import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";
+import { S } from "@poe-code/cmdkit";
+import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";
 
-export const botsSetDescriptionCommand = defineCommand<OpenApiClientServices>({
+export const botsSetDescriptionCommand = defineApiCommand({
   name: "set-description",
   scope: ["cli", "mcp", "sdk"] as const,
   params: S.Object({
@@ -427,10 +427,10 @@ exports[`generate > uses delete as the verb for delete-by-id operations 1`] = `
  * spec-sha: spec-sha-123
  * operation-id: deleteBot
  */
-import { defineCommand, S } from "@poe-code/cmdkit";
-import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";
+import { S } from "@poe-code/cmdkit";
+import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";
 
-export const botsDeleteCommand = defineCommand<OpenApiClientServices>({
+export const botsDeleteCommand = defineApiCommand({
   name: "delete",
   description: "Delete a bot.",
   scope: ["cli", "mcp", "sdk"] as const,

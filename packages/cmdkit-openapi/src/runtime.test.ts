@@ -4,7 +4,7 @@ import { defineCommand, defineGroup, S, UserError, type AuthProvider, type Comma
 import { runCLI } from "../../cmdkit/src/cli.js";
 import { createMCPServer } from "@poe-code/cmdkit/mcp";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
-import { commandsFromSpec, defineClient, requestJson, type OpenApiDocument } from "./index.js";
+import { commandsFromSpec, defineApiCommand, defineClient, requestJson, type OpenApiDocument } from "./index.js";
 import { collectGeneratedCommands, generate } from "./generate.js";
 
 function createAuthProvider(commands: CommandNode<any>[]): AuthProvider {
@@ -350,31 +350,33 @@ function createParityDocument(): OpenApiDocument {
 function evaluateGeneratedCommand(fileContents: string, exportName: string) {
   const transformedContents = fileContents
     .replace(/^import .*$/gmu, "")
-    .replaceAll("defineCommand<OpenApiClientServices>", "defineCommand")
     .replaceAll(" as const", "")
     .replaceAll(": unknown;", ";")
-    .replace(`export const ${exportName} = defineCommand(`, `exports.${exportName} = defineCommand(`);
+    .replace(
+      `export const ${exportName} = defineApiCommand(`,
+      `exports.${exportName} = defineApiCommand(`
+    );
   const execute = new Function(
     "deps",
     "exports",
     `
-const { defineCommand, S, UserError } = deps.cmdkit;
-const { requestJson } = deps.openapi;
+const { S, UserError } = deps.cmdkit;
+const { requestJson, defineApiCommand } = deps.openapi;
 ${transformedContents}
 return exports;
 `
   ) as (
     deps: {
       cmdkit: typeof import("@poe-code/cmdkit");
-      openapi: { requestJson: typeof requestJson };
+      openapi: { requestJson: typeof requestJson; defineApiCommand: typeof defineApiCommand };
     },
     exports: Record<string, unknown>
   ) => Record<string, unknown>;
 
   return execute(
     {
-      cmdkit: { defineCommand, S, UserError },
-      openapi: { requestJson }
+      cmdkit: { S, UserError },
+      openapi: { requestJson, defineApiCommand }
     },
     {}
   )[exportName] as CommandNode<any>;

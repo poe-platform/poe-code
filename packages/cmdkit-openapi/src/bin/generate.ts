@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
+import { realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { UserError } from "@poe-code/cmdkit";
@@ -319,7 +320,13 @@ function isDirectExecution(moduleUrl: string, argv: string[]): boolean {
     return false;
   }
 
-  return path.resolve(fileURLToPath(moduleUrl)) === path.resolve(entryPoint);
+  try {
+    return (
+      path.resolve(fileURLToPath(moduleUrl)) === realpathSync(path.resolve(entryPoint))
+    );
+  } catch {
+    return false;
+  }
 }
 
 if (isDirectExecution(import.meta.url, process.argv)) {

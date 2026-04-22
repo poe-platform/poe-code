@@ -114,7 +114,7 @@ describe("generate", () => {
 
     const commandFile = files.find((file) => file.path === "bots/set-official.ts");
 
-    expect(commandFile?.contents).toContain('import { defineCommand, S } from "@poe-code/cmdkit";');
+    expect(commandFile?.contents).toContain('import { S } from "@poe-code/cmdkit";');
     expect(commandFile?.contents).toContain("params: S.Object({");
   });
 
@@ -293,7 +293,7 @@ describe("generate", () => {
     );
 
     expect(files.find((file) => file.path === "bots/set-limit.ts")?.contents).toContain(
-      'import { defineCommand, S, UserError } from "@poe-code/cmdkit";'
+      'import { S, UserError } from "@poe-code/cmdkit";'
     );
   });
 
@@ -345,10 +345,10 @@ describe("generate", () => {
     );
 
     expect(files.find((file) => file.path === "bots/set-official.ts")?.contents).toContain(
-      'import { defineCommand, S } from "@poe-code/cmdkit";'
+      'import { S } from "@poe-code/cmdkit";'
     );
     expect(files.find((file) => file.path === "bots/set-official.ts")?.contents).not.toContain(
-      'import { defineCommand, S, UserError } from "@poe-code/cmdkit";'
+      'import { S, UserError } from "@poe-code/cmdkit";'
     );
   });
 

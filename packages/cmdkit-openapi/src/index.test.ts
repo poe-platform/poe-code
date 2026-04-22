@@ -23,6 +23,7 @@ describe("@poe-code/cmdkit-openapi", () => {
       "HttpError",
       "bearerTokenAuth",
       "commandsFromSpec",
+      "defineApiCommand",
       "defineClient",
       "generate",
       "requestJson",

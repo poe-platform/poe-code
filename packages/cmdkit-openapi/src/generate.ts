@@ -1603,11 +1603,11 @@ function createCommandFile(options: {
     ` * operation-id: ${options.operationId}`,
     " */",
     requiresUserError
-      ? 'import { defineCommand, S, UserError } from "@poe-code/cmdkit";'
-      : 'import { defineCommand, S } from "@poe-code/cmdkit";',
-    'import { requestJson, type OpenApiClientServices } from "@poe-code/cmdkit-openapi";',
+      ? 'import { S, UserError } from "@poe-code/cmdkit";'
+      : 'import { S } from "@poe-code/cmdkit";',
+    'import { requestJson, defineApiCommand } from "@poe-code/cmdkit-openapi";',
     "",
-    `export const ${options.exportName} = defineCommand<OpenApiClientServices>({`,
+    `export const ${options.exportName} = defineApiCommand({`,
     `  name: ${JSON.stringify(options.verb)},`
   ];
 

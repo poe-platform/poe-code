@@ -119,6 +119,20 @@ function applyStepOverrides(
   };
 }
 
+async function fileExists(
+  fs: Pick<PipelineFileSystem, "stat">,
+  targetPath: string
+): Promise<boolean> {
+  try {
+    return (await fs.stat(targetPath)).isFile();
+  } catch (error) {
+    if (isNotFound(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
 async function directoryExists(
   fs: Pick<PipelineFileSystem, "stat">,
   targetPath: string
@@ -131,6 +145,24 @@ async function directoryExists(
     }
     throw error;
   }
+}
+
+async function resolveStepsFile(options: {
+  cwd: string;
+  homeDir: string;
+  fs: Pick<PipelineFileSystem, "stat">;
+}): Promise<string | null> {
+  const projectFile = path.join(options.cwd, ".poe-code", "pipeline", "steps.yaml");
+  if (await fileExists(options.fs, projectFile)) {
+    return projectFile;
+  }
+
+  const globalFile = path.join(options.homeDir, ".poe-code", "pipeline", "steps.yaml");
+  if (await fileExists(options.fs, globalFile)) {
+    return globalFile;
+  }
+
+  return null;
 }
 
 async function resolveStepsDirectory(options: {
@@ -165,6 +197,10 @@ function parseConfigData(filePath: string, document: unknown): PipelineConfig {
 
   const config = { ...document } as PipelineConfig;
   delete config.extends;
+
+  if (config.plan_directory !== undefined && typeof config.plan_directory !== "string") {
+    throw new Error(`Invalid pipeline config in "${filePath}": "plan_directory" must be a string.`);
+  }
 
   return config;
 }
@@ -208,6 +244,18 @@ export async function loadResolvedSteps(options: {
   stepOverrides?: StepDefinitionOverrides;
 }): Promise<ResolvedStepsConfig> {
   const name = options.name?.trim() || "default";
+
+  const stepsFile = await resolveStepsFile(options);
+  if (stepsFile) {
+    const content = await readOptionalFile(options.fs, stepsFile);
+    if (content != null) {
+      return applyStepOverrides(
+        parseStepConfigData(stepsFile, parseYamlDocument(stepsFile, content)),
+        options.stepOverrides
+      );
+    }
+  }
+
   const stepsDir = await resolveStepsDirectory(options);
 
   if (!stepsDir) {

@@ -50,6 +50,7 @@ export interface PipelinePlan {
 }
 
 export interface PipelineConfig {
+  plan_directory?: string;
   [key: string]: unknown;
 }
 

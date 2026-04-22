@@ -153,7 +153,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 ---
 
 # Pipeline improvements

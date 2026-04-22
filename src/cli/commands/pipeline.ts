@@ -29,11 +29,7 @@ import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
 import { discoverPipelineInitSources } from "./pipeline-init.js";
-import {
-  createExecutionResources,
-  resolveCommandFlags,
-  resolveDefaultAgent
-} from "./shared.js";
+import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
 import {
   runPipelineInit as sdkRunPipelineInit,
   runPipeline as sdkRunPipeline,
@@ -47,13 +43,15 @@ import {
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import {
   buildExecutionPrompt,
-  interpolate,
+  interpolatePipelineVars,
   loadResolvedSteps,
   parsePlan,
   resolveAbsolutePlanPath,
   resolveFileIncludes,
+  resolvePipelineVars,
   resolvePlanDirectory,
-  resolvePlanPaths
+  resolvePlanPaths,
+  validateResolvedPromptVars
 } from "@poe-code/pipeline";
 import {
   createDashboardLineBuffer,
@@ -866,11 +864,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .option("--sources <paths...>", "Multiple source Markdown docs to convert")
     .action(async function (this: Command, question: string | undefined) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(
-        container,
-        flags,
-        "pipeline:init"
-      );
+      const resources = createExecutionResources(container, flags, "pipeline:init");
       const options = this.opts<{
         agent?: string;
         model?: string;
@@ -949,7 +943,9 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           const selectedSourcePaths = Array.isArray(selected)
             ? new Set(selected)
             : new Set<string>();
-          sources = discoveredSources.filter((source) => selectedSourcePaths.has(source.relativePath));
+          sources = discoveredSources.filter((source) =>
+            selectedSourcePaths.has(source.relativePath)
+          );
           if (sources.length === 0) {
             return;
           }
@@ -1027,6 +1023,24 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           if (typeof t.status === "string") return t.status === "done";
           return Object.values(t.status).every((s) => s === "done");
         }).length;
+        const readFile = container.fs.readFile.bind(container.fs);
+        const resolvedVars = await resolvePipelineVars(
+          plan.vars ?? {},
+          container.env.cwd,
+          readFile
+        );
+        const resolvedSetup = plan.setup === null ? undefined : (plan.setup ?? steps.setup);
+        const resolvedTeardown =
+          plan.teardown === null ? undefined : (plan.teardown ?? steps.teardown);
+
+        validateResolvedPromptVars({
+          plan,
+          steps: steps.steps,
+          planPath: file,
+          vars: resolvedVars,
+          setup: resolvedSetup,
+          teardown: resolvedTeardown
+        });
 
         resources.logger.resolved("Plan", file);
         resources.logger.resolved("Tasks", `${total} tasks (${done} done)`);
@@ -1037,21 +1051,8 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         const opts = this.opts<{ preview?: boolean }>();
         if (opts.preview) {
-          const readFile = container.fs.readFile.bind(container.fs);
-          const resolvedVars: Record<string, string> = {};
-          for (const [key, value] of Object.entries(plan.vars ?? {})) {
-            resolvedVars[key] = await resolveFileIncludes(value, container.env.cwd, readFile);
-          }
-
-          const resolvedSetup = plan.setup === null ? undefined : (plan.setup ?? steps.setup);
-          const resolvedTeardown =
-            plan.teardown === null ? undefined : (plan.teardown ?? steps.teardown);
-
           if (resolvedSetup) {
-            const raw =
-              Object.keys(resolvedVars).length > 0
-                ? interpolate(resolvedSetup.prompt, resolvedVars)
-                : resolvedSetup.prompt;
+            const raw = interpolatePipelineVars(resolvedSetup.prompt, resolvedVars, "setup");
             const expanded = await resolveFileIncludes(raw, container.env.cwd, readFile);
             resources.logger.resolved("setup", expanded);
           }
@@ -1087,10 +1088,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           }
 
           if (resolvedTeardown) {
-            const raw =
-              Object.keys(resolvedVars).length > 0
-                ? interpolate(resolvedTeardown.prompt, resolvedVars)
-                : resolvedTeardown.prompt;
+            const raw = interpolatePipelineVars(resolvedTeardown.prompt, resolvedVars, "teardown");
             const expanded = await resolveFileIncludes(raw, container.env.cwd, readFile);
             resources.logger.resolved("teardown", expanded);
           }

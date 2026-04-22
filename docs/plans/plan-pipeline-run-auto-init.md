@@ -91,7 +91,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: vars-throw-on-missing
     title: Throw on unresolved vars instead of silently treating as empty
@@ -103,9 +103,9 @@ tasks:
       Also throw at `pipeline validate` time so the problem is caught before any agent is spawned.
       Add unit tests for the throw path.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: per-plan-steps-with-named-extends

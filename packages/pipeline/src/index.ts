@@ -31,10 +31,8 @@ export {
 } from "./plan/discovery.js";
 export { parsePlan, pipelineDocumentSchema, pipelineDocumentSchemaId } from "./plan/parser.js";
 export { readPlanFile, writeTaskStatus } from "./plan/writer.js";
-export {
-  buildExecutionPrompt,
-  interpolate,
-  resolveFileIncludes,
-  selectNextExecution
-} from "./run/runner.js";
+export { buildExecutionPrompt, resolveFileIncludes, selectNextExecution } from "./run/runner.js";
 export { runPipeline } from "./run/pipeline.js";
+export { interpolatePipelineVars } from "./vars/interpolate.js";
+export { resolvePipelineVars } from "./vars/resolve.js";
+export { validateResolvedPromptVars } from "./vars/validate.js";

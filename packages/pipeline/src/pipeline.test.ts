@@ -7,11 +7,11 @@ import { parsePlan, pipelineDocumentSchema, pipelineDocumentSchemaId } from "./p
 import { readPlanFile, writeTaskStatus } from "./plan/writer.js";
 import {
   buildExecutionPrompt,
-  interpolate,
   resolveFileIncludes,
   selectNextExecution,
   type ExecutionSelection
 } from "./run/runner.js";
+import { interpolatePipelineVars } from "./vars/interpolate.js";
 import { runPipeline } from "./run/pipeline.js";
 import { createPipelineSimulation, failTurn, successTurn } from "./testing/simulation.js";
 import type {
@@ -1527,15 +1527,90 @@ describe("buildExecutionPrompt", () => {
 
     expect(prompt).toBe("# Context\nauth-hardening: Harden auth flow\nImprove auth validation");
   });
-});
 
-describe("interpolate", () => {
-  it("replaces all occurrences of a placeholder", () => {
-    expect(interpolate("{{x}} and {{x}}", { x: "hello" })).toBe("hello and hello");
+  it("interpolates vars inside {{prompt}} before injecting it into a step prompt", () => {
+    const prompt = buildExecutionPrompt({
+      selection: {
+        kind: "run",
+        task: {
+          id: "deploy",
+          title: "Deploy",
+          prompt: "Deploy to {{env}}.",
+          status: { implement: "open" }
+        },
+        stepName: "implement"
+      },
+      steps: {
+        implement: {
+          mode: "edit",
+          prompt: "Instructions:\n{{prompt}}"
+        }
+      },
+      planPath: "plan.yaml",
+      vars: { env: "production" }
+    });
+
+    expect(prompt).toBe("Instructions:\nDeploy to production.");
   });
 
-  it("leaves unknown placeholders untouched", () => {
-    expect(interpolate("{{known}} {{unknown}}", { known: "yes" })).toBe("yes {{unknown}}");
+  it("throws when {{prompt}} includes a missing var", () => {
+    expect(() =>
+      buildExecutionPrompt({
+        selection: {
+          kind: "run",
+          task: {
+            id: "deploy",
+            title: "Deploy",
+            prompt: "Deploy to {{env}}.",
+            status: { implement: "open" }
+          },
+          stepName: "implement"
+        },
+        steps: {
+          implement: {
+            mode: "edit",
+            prompt: "Instructions:\n{{prompt}}"
+          }
+        },
+        planPath: "plan.yaml"
+      })
+    ).toThrow('Missing pipeline variable "env" in task "deploy" step "implement".');
+  });
+
+  it("throws when a step prompt references a missing var", () => {
+    expect(() =>
+      buildExecutionPrompt({
+        selection: {
+          kind: "run",
+          task: {
+            id: "auth-hardening",
+            title: "Harden auth flow",
+            prompt: "Improve auth validation",
+            status: { implement: "open" }
+          },
+          stepName: "implement"
+        },
+        steps: {
+          implement: {
+            mode: "edit",
+            prompt: "Deploy to {{env}}."
+          }
+        },
+        planPath: "plan.yaml"
+      })
+    ).toThrow('Missing pipeline variable "env" in task "auth-hardening" step "implement".');
+  });
+});
+
+describe("interpolatePipelineVars", () => {
+  it("replaces all occurrences of a placeholder", () => {
+    expect(interpolatePipelineVars("{{x}} and {{x}}", { x: "hello" })).toBe("hello and hello");
+  });
+
+  it("throws when a placeholder value is missing", () => {
+    expect(() =>
+      interpolatePipelineVars("{{known}} {{unknown}}", { known: "yes" }, 'task "deploy"')
+    ).toThrow('Missing pipeline variable "unknown" in task "deploy".');
   });
 });
 
@@ -1627,7 +1702,8 @@ describe("createPipelineSimulation", () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(onLockStatusChange).toHaveBeenNthCalledWith(1, {
       state: "waiting",
-      message: "Another pipeline run is holding the lock for .poe-code/pipeline/plans/plan.yaml. Waiting..."
+      message:
+        "Another pipeline run is holding the lock for .poe-code/pipeline/plans/plan.yaml. Waiting..."
     });
 
     await initialUnlock();
@@ -2123,8 +2199,12 @@ describe("createPipelineSimulation", () => {
         ]
       },
       turns: [
-        successTurn(), successTurn(), successTurn(),
-        successTurn(), successTurn(), successTurn()
+        successTurn(),
+        successTurn(),
+        successTurn(),
+        successTurn(),
+        successTurn(),
+        successTurn()
       ]
     });
 
@@ -2137,8 +2217,12 @@ describe("createPipelineSimulation", () => {
       stepsCompleted: 6
     });
     expect(taskCompletions.map((c) => c.taskCompleted)).toEqual([
-      false, false, true,
-      false, false, true
+      false,
+      false,
+      true,
+      false,
+      false,
+      true
     ]);
   });
 
@@ -2173,10 +2257,7 @@ describe("createPipelineSimulation", () => {
       tasksFailed: 0,
       stepsCompleted: 2
     });
-    expect(taskCompletions.map((completion) => completion.taskCompleted)).toEqual([
-      false,
-      false
-    ]);
+    expect(taskCompletions.map((completion) => completion.taskCompleted)).toEqual([false, false]);
     expect((await readPlan()).tasks[0]?.status).toEqual({
       implement: "done",
       test: "done",
@@ -2716,6 +2797,85 @@ describe("createPipelineSimulation", () => {
 
     expect(result.stopReason).toBe("completed");
     expect(prompts).toEqual(["Deploy to production."]);
+  });
+
+  it("throws before spawning an agent when a prompt references a missing var", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/pipeline/steps.yaml": [
+        "steps:",
+        "  implement:",
+        "    prompt: Deploy to {{env}}.",
+        ""
+      ].join("\n"),
+      "/repo/.poe-code/pipeline/plans/plan.yaml": [
+        `$schema: ${pipelineDocumentSchemaId}`,
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: deploy",
+        "    title: Deploy",
+        "    prompt: Ship it",
+        "    status:",
+        "      implement: open",
+        ""
+      ].join("\n")
+    });
+    const runAgent = vi.fn();
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd: "/repo",
+        homeDir: "/home/test",
+        plan: ".poe-code/pipeline/plans/plan.yaml",
+        fs,
+        runAgent
+      })
+    ).rejects.toThrow('Missing pipeline variable "env" in task "deploy" step "implement".');
+
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("throws before spawning any agent when a later task references a missing var", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/pipeline/steps.yaml": [
+        "steps:",
+        "  implement:",
+        "    prompt: '{{prompt}}'",
+        ""
+      ].join("\n"),
+      "/repo/.poe-code/pipeline/plans/plan.yaml": [
+        `$schema: ${pipelineDocumentSchemaId}`,
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: first",
+        "    title: First",
+        "    prompt: Safe prompt",
+        "    status:",
+        "      implement: open",
+        "  - id: second",
+        "    title: Second",
+        "    prompt: Deploy to {{env}}.",
+        "    status:",
+        "      implement: open",
+        ""
+      ].join("\n")
+    });
+    const runAgent = vi.fn();
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd: "/repo",
+        homeDir: "/home/test",
+        plan: ".poe-code/pipeline/plans/plan.yaml",
+        fs,
+        runAgent
+      })
+    ).rejects.toThrow('Missing pipeline variable "env" in task "second" step "implement".');
+
+    expect(runAgent).not.toHaveBeenCalled();
   });
 
   it("resolves a file-backed var and interpolates it into task prompt", async () => {

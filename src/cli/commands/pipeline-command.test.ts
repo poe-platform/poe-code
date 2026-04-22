@@ -389,12 +389,8 @@ describe("pipeline run command", () => {
     expect(
       logs.some((message) => message.includes("Total tokens: 5000 input, 2000 output, 1000 cached"))
     ).toBe(true);
-    expect(
-      logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))
-    ).toBe(true);
-    expect(
-      logs.some((message) => message.includes("Steps: 3 completed"))
-    ).toBe(true);
+    expect(logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))).toBe(true);
+    expect(logs.some((message) => message.includes("Steps: 3 completed"))).toBe(true);
   });
 
   it("reports pipeline failures without blocked retry messaging", async () => {
@@ -1140,13 +1136,13 @@ describe("pipeline run command", () => {
 
     expect(
       logs.some((message) =>
-        message.includes("Another pipeline run is holding the lock for custom-plan.yaml. Waiting...")
+        message.includes(
+          "Another pipeline run is holding the lock for custom-plan.yaml. Waiting..."
+        )
       )
     ).toBe(true);
     expect(
-      logs.some((message) =>
-        message.includes("Lock acquired for custom-plan.yaml. Continuing.")
-      )
+      logs.some((message) => message.includes("Lock acquired for custom-plan.yaml. Continuing."))
     ).toBe(true);
   });
 
@@ -1315,15 +1311,14 @@ describe("pipeline run command", () => {
     const timeoutError = new Error("Timed out waiting for agent activity for 600000ms.");
     timeoutError.name = "ActivityTimeoutError";
 
-    vi.mocked(sdkSpawn)
-      .mockImplementationOnce((_agent, input) => {
-        input.tee?.stdout?.write("first attempt output\n");
+    vi.mocked(sdkSpawn).mockImplementationOnce((_agent, input) => {
+      input.tee?.stdout?.write("first attempt output\n");
 
-        return {
-          events: (async function* () {})(),
-          result: Promise.reject(timeoutError)
-        };
-      });
+      return {
+        events: (async function* () {})(),
+        result: Promise.reject(timeoutError)
+      };
+    });
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
       options.onTaskStart?.({
@@ -1431,15 +1426,7 @@ describe("pipeline init command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "--yes",
-        "pipeline",
-        "init"
-      ])
-    ).rejects.toEqual(
+    await expect(program.parseAsync(["node", "cli", "--yes", "pipeline", "init"])).rejects.toEqual(
       new ValidationError("Provide --source or --sources when using --yes.")
     );
   });
@@ -1517,9 +1504,13 @@ describe("pipeline init command", () => {
       })
     );
     expect(logs.some((message) => message.includes("Source 1/2: docs/plans/alpha.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(
+      true
+    );
     expect(logs.some((message) => message.includes("Source 2/2: docs/plans/beta.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(
+      true
+    );
     expect(logs.some((message) => message.includes("Pipeline init finished."))).toBe(true);
   });
 });
@@ -1626,6 +1617,48 @@ describe("pipeline validate command", () => {
         ".poe-code/pipeline/plans/plan-bad.yaml"
       ])
     ).rejects.toThrow(/unknown step/i);
+  });
+
+  it("fails validate when a step prompt references a missing var", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/steps.yaml",
+      ["steps:", "  implement:", "    prompt: Deploy to {{env}}.", ""].join("\n"),
+      { encoding: "utf8" }
+    );
+    await fs.writeFile(
+      "/repo/.poe-code/pipeline/plans/plan-bad.yaml",
+      [
+        "tasks:",
+        "  - id: deploy",
+        "    title: Deploy",
+        "    prompt: Ship it",
+        "    status:",
+        "      implement: open",
+        ""
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "validate",
+        ".poe-code/pipeline/plans/plan-bad.yaml"
+      ])
+    ).rejects.toThrow('Missing pipeline variable "env" in task "deploy" step "implement".');
   });
 
   it("--preview renders expanded prompt for a stepless task", async () => {

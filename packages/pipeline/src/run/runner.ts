@@ -5,6 +5,7 @@ import type {
   PipelineTask,
   ResolvedStepDefinitions
 } from "../types.js";
+import { interpolatePipelineVars } from "../vars/interpolate.js";
 
 function selectFromTask(task: PipelineTask): ExecutionSelection {
   if (typeof task.status === "string") {
@@ -15,13 +16,8 @@ function selectFromTask(task: PipelineTask): ExecutionSelection {
   return stepName ? { kind: "run", task, stepName } : { kind: "completed" };
 }
 
-export function selectNextExecution(
-  plan: PipelinePlan,
-  taskId?: string
-): ExecutionSelection {
-  const tasks = taskId
-    ? plan.tasks.filter((task) => task.id === taskId)
-    : plan.tasks;
+export function selectNextExecution(plan: PipelinePlan, taskId?: string): ExecutionSelection {
+  const tasks = taskId ? plan.tasks.filter((task) => task.id === taskId) : plan.tasks;
 
   if (taskId && tasks.length === 0) {
     throw new Error(`Task "${taskId}" was not found in the plan.`);
@@ -37,12 +33,10 @@ export function selectNextExecution(
   return { kind: "completed" };
 }
 
-export function interpolate(template: string, values: Record<string, string>): string {
-  let output = template;
-  for (const [key, value] of Object.entries(values)) {
-    output = output.split(`{{${key}}}`).join(value);
-  }
-  return output;
+function describeExecutionContext(selection: Extract<ExecutionSelection, { kind: "run" }>): string {
+  return selection.stepName
+    ? `task "${selection.task.id}" step "${selection.stepName}"`
+    : `task "${selection.task.id}"`;
 }
 
 const FILE_INCLUDE_PATTERN = /\{\{file\s+['"]([^'"]+)['"]\s*\}\}/g;
@@ -71,10 +65,15 @@ export function buildExecutionPrompt(input: {
   planPath: string;
   vars?: Record<string, string>;
 }): string {
+  const context = describeExecutionContext(input.selection);
+  const resolvedTaskPrompt = interpolatePipelineVars(
+    input.selection.task.prompt,
+    input.vars ?? {},
+    context
+  );
+
   if (!input.selection.stepName) {
-    return input.vars && Object.keys(input.vars).length > 0
-      ? interpolate(input.selection.task.prompt, input.vars)
-      : input.selection.task.prompt;
+    return resolvedTaskPrompt;
   }
 
   const step = input.steps[input.selection.stepName];
@@ -82,11 +81,15 @@ export function buildExecutionPrompt(input: {
     throw new Error(`Missing step definition for "${input.selection.stepName}".`);
   }
 
-  return interpolate(step.prompt, {
-    ...(input.vars ?? {}),
-    id: input.selection.task.id,
-    title: input.selection.task.title,
-    prompt: input.selection.task.prompt,
-    plan_path: input.planPath
-  });
+  return interpolatePipelineVars(
+    step.prompt,
+    {
+      ...(input.vars ?? {}),
+      id: input.selection.task.id,
+      title: input.selection.task.title,
+      prompt: resolvedTaskPrompt,
+      plan_path: input.planPath
+    },
+    context
+  );
 }

@@ -32,7 +32,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: update-tests
     title: Unit tests for auto-init branch

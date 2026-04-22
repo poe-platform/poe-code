@@ -15,17 +15,18 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
 }
 
 describe("buildPipelineInitPrompt", () => {
-  it("embeds the skill content, plan directory, user request, and source document", () => {
+  it("embeds the skill content, user request, and source document", () => {
     const prompt = buildPipelineInitPrompt({
       question: "Turn this into a pipeline plan",
-      planDirectory: ".poe-code/pipeline/plans",
       sourceDocPath: "docs/plans/feature.md",
       sourceDocContent: "# Feature\nShip it.",
       skillContent: "SKILL BODY"
     });
 
     expect(prompt).toContain("SKILL BODY");
-    expect(prompt).toContain("Plan directory: .poe-code/pipeline/plans");
+    expect(prompt).not.toContain("Plan directory:");
+    expect(prompt).toContain("Edit the source document in place by prepending valid YAML frontmatter.");
+    expect(prompt).toContain("Do not create a new file.");
     expect(prompt).toContain("User request:");
     expect(prompt).toContain("Turn this into a pipeline plan");
     expect(prompt).toContain("Source document:");
@@ -36,7 +37,6 @@ describe("buildPipelineInitPrompt", () => {
   it("uses the skill fallback instruction when the question is empty", () => {
     const prompt = buildPipelineInitPrompt({
       question: "   ",
-      planDirectory: ".poe-code/pipeline/plans",
       sourceDocPath: "docs/plans/feature.md",
       sourceDocContent: "# Feature\nShip it.",
       skillContent: "SKILL BODY"
@@ -59,7 +59,6 @@ describe("buildPipelineInitPrompt", () => {
 
     const prompt = buildPipelineInitPrompt({
       question: "Turn this into a pipeline plan",
-      planDirectory: ".poe-code/pipeline/plans",
       sourceDocPath: "docs/plans/feature.md",
       sourceDocContent,
       skillContent: "SKILL BODY"

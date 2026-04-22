@@ -887,8 +887,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           agent = resolvePipelineAgent(selected as string);
         }
 
-        const commandConfig = await resolvePipelineCommandConfig(container);
-
         if (options.source && sourcePaths && sourcePaths.length > 0) {
           throw new ValidationError("Use either --source or --sources, not both.");
         }
@@ -937,7 +935,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           agent,
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
-          ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
           ...(options.model ? { model: options.model } : {}),
           ...(resolvedQuestion ? { question: resolvedQuestion } : {}),
           sources,

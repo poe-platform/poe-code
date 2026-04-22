@@ -88,8 +88,9 @@ describe("SDK pipeline init", () => {
       })
     );
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain(
-      "Plan directory: /repo/.poe-code/pipeline/plans"
+      "Edit the source document in place by prepending valid YAML frontmatter."
     );
+    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Do not create a new file.");
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Path: alpha.md");
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Alpha\nFirst source.");
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Initialize the pipeline plans");
@@ -155,7 +156,6 @@ describe("SDK pipeline init", () => {
       agent: "codex",
       cwd,
       homeDir,
-      planDirectory: ".poe-code/pipeline/plans",
       sources: [
         {
           absolutePath: "/repo/docs/plans/alpha.md",

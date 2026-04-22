@@ -1,7 +1,12 @@
 import * as fsPromises from "node:fs/promises";
+import path from "node:path";
 import {
-  resolvePlanDirectory as resolveWorkspacePlanDirectory,
+  parsePlan,
+  resolveAbsolutePlanPath,
+  resolvePlanPath,
   runPipeline as runWorkspacePipeline,
+  type PipelineMetrics,
+  type PipelineFileSystem,
   type PipelineRunOptions,
   type PipelineRunResult
 } from "@poe-code/pipeline";
@@ -43,7 +48,7 @@ export interface PipelineInitRunOptions {
   model?: string;
   cwd: string;
   homeDir: string;
-  planDirectory?: string;
+  fs?: PipelineFileSystem;
   sources: PipelineInitSource[];
   question?: string;
   assumeYes: boolean;
@@ -68,9 +73,57 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
+function createDefaultFs(): PipelineFileSystem {
+  return {
+    readFile: fsPromises.readFile as PipelineFileSystem["readFile"],
+    writeFile: fsPromises.writeFile as PipelineFileSystem["writeFile"],
+    readdir: fsPromises.readdir,
+    stat: async (filePath: string) => {
+      const stat = await fsPromises.stat(filePath);
+      return {
+        isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
+        mtimeMs: stat.mtimeMs
+      };
+    },
+    mkdir: async (filePath, options) => {
+      await fsPromises.mkdir(filePath, options);
+    },
+    rmdir: fsPromises.rmdir,
+    rename: fsPromises.rename
+  };
+}
+
+function createEmptyMetrics(): PipelineMetrics {
+  return {
+    totalInputTokens: 0,
+    totalOutputTokens: 0,
+    totalCachedTokens: 0,
+    tasksCompleted: 0,
+    tasksFailed: 0,
+    stepsCompleted: 0
+  };
+}
+
+function needsPipelineInit(planContent: string): boolean {
+  try {
+    return parsePlan(planContent).tasks.length === 0;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (
+      message === "Invalid plan YAML: expected a top-level object." ||
+      message === 'Invalid plan YAML: expected "tasks" to be an array.'
+    ) {
+      return true;
+    }
+    throw error;
+  }
+}
+
 export async function runPipeline(
   options: PipelineRunOptions
 ): Promise<PipelineRunResult> {
+  const fs = options.fs ?? createDefaultFs();
   const runAgent = options.runAgent ?? (async (
     input: Parameters<NonNullable<PipelineRunOptions["runAgent"]>>[0]
   ) => {
@@ -85,8 +138,73 @@ export async function runPipeline(
     });
   });
 
+  const planPath = await resolvePlanPath({
+    cwd: options.cwd,
+    homeDir: options.homeDir,
+    plan: options.plan,
+    planDirectory: options.planDirectory,
+    assumeYes: options.assumeYes,
+    fs,
+    selectPlan: options.selectPlan,
+    promptForPath: options.promptForPath
+  });
+
+  if (!planPath) {
+    return {
+      stopReason: "cancelled",
+      planPath: "",
+      runsCompleted: 0,
+      totalDurationMs: 0,
+      metrics: createEmptyMetrics()
+    };
+  }
+
+  const absolutePlanPath = resolveAbsolutePlanPath(planPath, options.cwd, options.homeDir);
+  const planContent = await fs.readFile(absolutePlanPath, "utf8");
+
+  if (needsPipelineInit(planContent)) {
+    const initResult = await runPipelineInit({
+      agent: options.agent,
+      ...(options.model ? { model: options.model } : {}),
+      cwd: options.cwd,
+      homeDir: options.homeDir,
+      fs,
+      sources: [
+        {
+          absolutePath: absolutePlanPath,
+          relativePath: planPath,
+          title: path.basename(planPath, path.extname(planPath))
+        }
+      ],
+      assumeYes: options.assumeYes ?? false,
+      runAgent,
+      ...(options.signal ? { signal: options.signal } : {})
+    });
+
+    if (initResult.stopReason === "cancelled") {
+      return {
+        stopReason: "cancelled",
+        planPath,
+        runsCompleted: 0,
+        totalDurationMs: 0,
+        metrics: createEmptyMetrics()
+      };
+    }
+
+    if (initResult.stopReason === "failed") {
+      throw new Error(`Pipeline init failed for "${planPath}".`);
+    }
+
+    const initializedPlanContent = await fs.readFile(absolutePlanPath, "utf8");
+    if (needsPipelineInit(initializedPlanContent)) {
+      throw new Error(`Pipeline init did not produce runnable tasks for "${planPath}".`);
+    }
+  }
+
   return runWorkspacePipeline({
     ...options,
+    fs,
+    plan: planPath,
     runAgent
   });
 }
@@ -94,6 +212,7 @@ export async function runPipeline(
 export async function runPipelineInit(
   options: PipelineInitRunOptions
 ): Promise<PipelineInitRunResult> {
+  const fs = options.fs ?? createDefaultFs();
   const runAgent = options.runAgent ?? (async (input: PipelineAgentRunnerInput) => {
     return await sdkSpawn.autonomous(input.agent, {
       prompt: input.prompt,
@@ -111,12 +230,6 @@ export async function runPipelineInit(
     };
   }
 
-  const planDirectory = resolveWorkspacePlanDirectory({
-    cwd: options.cwd,
-    homeDir: options.homeDir,
-    planDirectory: options.planDirectory ?? ".poe-code/pipeline/plans"
-  });
-
   let sourcesProcessed = 0;
   const totalSources = options.sources.length;
 
@@ -133,7 +246,7 @@ export async function runPipelineInit(
     try {
       options.onSourceStart?.(source, displayIndex, totalSources);
 
-      const sourceDocContent = await fsPromises.readFile(source.absolutePath, "utf8");
+      const sourceDocContent = await fs.readFile(source.absolutePath, "utf8");
       if (options.signal?.aborted) {
         return {
           stopReason: "cancelled",
@@ -143,7 +256,6 @@ export async function runPipelineInit(
 
       const prompt = buildPipelineInitPrompt({
         question: options.question,
-        planDirectory,
         sourceDocPath: source.relativePath,
         sourceDocContent,
         skillContent: pipelineSkillPlan

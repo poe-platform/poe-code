@@ -11,7 +11,6 @@ import { resolvePlanDirectory as resolveSourcePlanDirectory } from "./plan.js";
 
 export interface BuildPipelineInitPromptOptions {
   question?: string;
-  planDirectory: string;
   sourceDocPath: string;
   sourceDocContent: string;
   skillContent: string;
@@ -28,9 +27,10 @@ type DiscoveryFs = Pick<CliContainer["fs"], "readFile" | "readdir" | "stat">;
 export function buildPipelineInitPrompt(options: BuildPipelineInitPromptOptions): string {
   const trimmedQuestion = options.question?.trim() ?? "";
   const sourceTitle = extractTitle(options.sourceDocPath, options.sourceDocContent);
-  const userRequest = trimmedQuestion.length > 0
-    ? trimmedQuestion
-    : `Create a pipeline plan for "${sourceTitle}" based on the source document below. Treat the source document as the user request and do not ask the user for more input.`;
+  const userRequest =
+    trimmedQuestion.length > 0
+      ? trimmedQuestion
+      : `Create a pipeline plan for "${sourceTitle}" based on the source document below. Treat the source document as the user request and do not ask the user for more input.`;
   const fence = createMarkdownFence(options.sourceDocContent);
 
   return [
@@ -40,7 +40,9 @@ export function buildPipelineInitPrompt(options: BuildPipelineInitPromptOptions)
     "",
     "---",
     "",
-    `Plan directory: ${options.planDirectory}`,
+    "Edit the source document in place by prepending valid YAML frontmatter.",
+    "Do not create a new file.",
+    `The final result must remain at: ${options.sourceDocPath}`,
     "",
     "User request:",
     userRequest,

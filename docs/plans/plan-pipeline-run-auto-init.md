@@ -106,7 +106,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: per-plan-steps-with-named-extends
     title: Per-plan steps with named extends
@@ -150,9 +150,9 @@ tasks:
         instead of inferring steps from a single file.
       - The output format example should show `extends:` and an optional inline `steps:` override.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 ---
 

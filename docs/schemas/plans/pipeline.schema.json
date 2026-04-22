@@ -8,6 +8,11 @@
       "type": "string",
       "const": "https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json"
     },
+    "extends": {
+      "type": "string",
+      "default": "default",
+      "minLength": 1
+    },
     "kind": {
       "type": "string",
       "const": "pipeline"
@@ -79,6 +84,35 @@
           "const": false
         }
       ]
+    },
+    "steps": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "agent": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "yolo",
+              "edit",
+              "read"
+            ]
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
     },
     "tasks": {
       "type": "array",

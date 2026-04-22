@@ -1,6 +1,7 @@
 import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
 import { stringify } from "yaml";
+import { loadResolvedSteps } from "../config/loader.js";
 import { parsePlan, pipelineDocumentSchemaId } from "../plan/parser.js";
 import { runPipeline } from "../run/pipeline.js";
 import type {
@@ -89,14 +90,14 @@ function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; pla
   };
 
   if (options.globalSteps || options.globalStepsSetup || options.globalStepsTeardown) {
-    files["/home/test/.poe-code/pipeline/steps.yaml"] = stringify({
+    files["/home/test/.poe-code/pipeline/steps/default.yaml"] = stringify({
       ...(options.globalStepsSetup ? { setup: options.globalStepsSetup } : {}),
       ...(options.globalStepsTeardown ? { teardown: options.globalStepsTeardown } : {}),
       ...(options.globalSteps ? { steps: options.globalSteps } : {})
     });
   }
   if (options.projectSteps || options.projectStepsSetup || options.projectStepsTeardown) {
-    files["/repo/.poe-code/pipeline/steps.yaml"] = stringify({
+    files["/repo/.poe-code/pipeline/steps/default.yaml"] = stringify({
       ...(options.projectStepsSetup ? { setup: options.projectStepsSetup } : {}),
       ...(options.projectStepsTeardown ? { teardown: options.projectStepsTeardown } : {}),
       ...(options.projectSteps ? { steps: options.projectSteps } : {})
@@ -180,19 +181,29 @@ export function createPipelineSimulation(options: SimulationOptions): {
       const taskCompletions: SimulationTaskCompletion[] = [];
 
       const readPlan = async (): Promise<PipelinePlan> => {
-        const availableSteps = {
-          ...(options.globalSteps ?? {}),
-          ...(options.projectSteps ?? {})
-        };
-        const parseOpts = Object.keys(availableSteps).length > 0 ? { availableSteps } : {};
-
         try {
           const content = await fs.readFile(planPath, "utf8");
-          return parsePlan(content, parseOpts);
+          const draftPlan = parsePlan(content);
+          const stepsConfig = await loadResolvedSteps({
+            cwd: "/repo",
+            homeDir: "/home/test",
+            fs,
+            name: draftPlan.extends,
+            stepOverrides: draftPlan.stepOverrides
+          });
+          return parsePlan(content, { availableSteps: stepsConfig.steps });
         } catch {
           const archivePath = path.join(path.dirname(planPath), "archive", path.basename(planPath));
           const content = await fs.readFile(archivePath, "utf8");
-          return parsePlan(content, parseOpts);
+          const draftPlan = parsePlan(content);
+          const stepsConfig = await loadResolvedSteps({
+            cwd: "/repo",
+            homeDir: "/home/test",
+            fs,
+            name: draftPlan.extends,
+            stepOverrides: draftPlan.stepOverrides
+          });
+          return parsePlan(content, { availableSteps: stepsConfig.steps });
         }
       };
 

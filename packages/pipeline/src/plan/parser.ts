@@ -7,6 +7,8 @@ import type {
   PipelineTask,
   ResolvedStepDefinitions,
   StepDefinition,
+  StepDefinitionOverride,
+  StepDefinitionOverrides,
   StepMode
 } from "../types.js";
 import { isRecord } from "../utils.js";
@@ -65,6 +67,29 @@ const stepDefinitionSchema: JsonSchema = {
   additionalProperties: false
 };
 
+const stepDefinitionOverrideSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    mode: {
+      type: "string",
+      enum: ["yolo", "edit", "read"]
+    },
+    prompt: {
+      type: "string",
+      minLength: 1
+    },
+    agent: {
+      type: "string",
+      minLength: 1
+    },
+    model: {
+      type: "string",
+      minLength: 1
+    }
+  },
+  additionalProperties: false
+};
+
 const nullableStepDefinitionSchema: JsonSchema = {
   anyOf: [
     stepDefinitionSchema,
@@ -118,6 +143,15 @@ export const pipelineDocumentSchema: JsonSchema = {
     version: {
       type: "integer",
       const: 1
+    },
+    extends: {
+      type: "string",
+      minLength: 1,
+      default: "default"
+    },
+    steps: {
+      type: "object",
+      additionalProperties: stepDefinitionOverrideSchema
     },
     tasks: {
       type: "array",
@@ -236,24 +270,74 @@ function parseTaskStatus(
   return statusMap;
 }
 
-function asStepMode(value: unknown): StepMode {
-  if (value === "edit" || value === "read") return value;
-  return "yolo";
+function parseStepMode(value: unknown, label: string): StepMode | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (value === "yolo" || value === "edit" || value === "read") {
+    return value;
+  }
+  throw new Error(`Invalid plan YAML: "${label}.mode" must be "yolo", "edit", or "read".`);
 }
 
-function parseStepDef(value: unknown, label: string): StepDefinition {
+function parseOptionalAgentFields(
+  value: Record<string, unknown>,
+  label: string
+): Pick<StepDefinitionOverride, "agent" | "model"> {
+  const result: Pick<StepDefinitionOverride, "agent" | "model"> = {};
+
+  if (value.agent !== undefined) {
+    if (typeof value.agent !== "string" || value.agent.length === 0) {
+      throw new Error(`Invalid plan YAML: "${label}.agent" must be a non-empty string.`);
+    }
+    result.agent = value.agent;
+  }
+
+  if (value.model !== undefined) {
+    if (typeof value.model !== "string" || value.model.length === 0) {
+      throw new Error(`Invalid plan YAML: "${label}.model" must be a non-empty string.`);
+    }
+    result.model = value.model;
+  }
+
+  return result;
+}
+
+function parseStepOverride(value: unknown, label: string): StepDefinitionOverride {
   if (!isRecord(value)) {
     throw new Error(`Invalid plan YAML: "${label}" must be an object.`);
   }
-  const prompt = value.prompt;
-  if (typeof prompt !== "string" || prompt.length === 0) {
+
+  const result: StepDefinitionOverride = {
+    ...parseOptionalAgentFields(value, label)
+  };
+
+  const mode = parseStepMode(value.mode, label);
+  if (mode !== undefined) {
+    result.mode = mode;
+  }
+
+  if (value.prompt !== undefined) {
+    if (typeof value.prompt !== "string" || value.prompt.length === 0) {
+      throw new Error(`Invalid plan YAML: "${label}.prompt" must be a non-empty string.`);
+    }
+    result.prompt = value.prompt;
+  }
+
+  return result;
+}
+
+function parseStepDef(value: unknown, label: string): StepDefinition {
+  const override = parseStepOverride(value, label);
+  if (override.prompt === undefined) {
     throw new Error(`Invalid plan YAML: "${label}" is missing a prompt.`);
   }
+
   return {
-    mode: asStepMode(value.mode),
-    prompt,
-    ...(typeof value.agent === "string" && value.agent.length > 0 ? { agent: value.agent } : {}),
-    ...(typeof value.model === "string" && value.model.length > 0 ? { model: value.model } : {})
+    mode: override.mode ?? "yolo",
+    prompt: override.prompt,
+    ...(override.agent ? { agent: override.agent } : {}),
+    ...(override.model ? { model: override.model } : {})
   };
 }
 
@@ -302,6 +386,26 @@ export function parsePlan(
 
   if (!isRecord(document)) {
     throw new Error("Invalid plan YAML: expected a top-level object.");
+  }
+
+  let extendsName = "default";
+  if (document.extends !== undefined) {
+    if (typeof document.extends !== "string" || document.extends.trim().length === 0) {
+      throw new Error('Invalid plan YAML: "extends" must be a non-empty string.');
+    }
+    extendsName = document.extends.trim();
+  }
+
+  let stepOverrides: StepDefinitionOverrides | undefined;
+  if (document.steps !== undefined) {
+    if (!isRecord(document.steps)) {
+      throw new Error('Invalid plan YAML: "steps" must be an object.');
+    }
+
+    stepOverrides = {};
+    for (const [stepName, value] of Object.entries(document.steps)) {
+      stepOverrides[stepName] = parseStepOverride(value, `steps.${stepName}`);
+    }
   }
 
   const tasksValue = document.tasks;
@@ -360,6 +464,8 @@ export function parsePlan(
   }
 
   return {
+    extends: extendsName,
+    ...(stepOverrides !== undefined ? { stepOverrides } : {}),
     tasks,
     ...(vars !== undefined ? { vars } : {}),
     ...(setup !== undefined ? { setup } : {}),

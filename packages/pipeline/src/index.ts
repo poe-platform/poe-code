@@ -17,6 +17,8 @@ export type {
   ResolvedStepDefinitions,
   ResolvedStepsConfig,
   StepDefinition,
+  StepDefinitionOverride,
+  StepDefinitionOverrides,
   StepMode,
   TaskCompletion,
   TaskProgress,

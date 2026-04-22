@@ -562,21 +562,30 @@ function resolvePipelinePaths(
   homeDir: string
 ): {
   plansPath: string;
-  stepsPath: string;
+  stepsDirectoryPath: string;
+  defaultStepsPath: string;
+  legacyStepsPath: string;
   displayPlansPath: string;
-  displayStepsPath: string;
+  displayStepsDirectoryPath: string;
+  displayDefaultStepsPath: string;
+  displayLegacyStepsPath: string;
 } {
   const rootPath =
     scope === "global"
       ? path.join(homeDir, ".poe-code", "pipeline")
       : path.join(cwd, ".poe-code", "pipeline");
   const displayRoot = scope === "global" ? "~/.poe-code/pipeline" : ".poe-code/pipeline";
+  const stepsDirectoryPath = path.join(rootPath, "steps");
 
   return {
     plansPath: path.join(rootPath, "plans"),
-    stepsPath: path.join(rootPath, "steps.yaml"),
+    stepsDirectoryPath,
+    defaultStepsPath: path.join(stepsDirectoryPath, "default.yaml"),
+    legacyStepsPath: path.join(rootPath, "steps.yaml"),
     displayPlansPath: `${displayRoot}/plans`,
-    displayStepsPath: `${displayRoot}/steps.yaml`
+    displayStepsDirectoryPath: `${displayRoot}/steps`,
+    displayDefaultStepsPath: `${displayRoot}/steps/default.yaml`,
+    displayLegacyStepsPath: `${displayRoot}/steps.yaml`
   };
 }
 
@@ -1009,14 +1018,15 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         const content = await container.fs.readFile(absolutePath, "utf8");
 
+        const draftPlan = parsePlan(content);
         const steps = await loadResolvedSteps({
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
-          fs: container.fs
+          fs: container.fs,
+          name: draftPlan.extends,
+          stepOverrides: draftPlan.stepOverrides
         });
-
-        const hasSteps = Object.keys(steps.steps).length > 0;
-        const plan = parsePlan(content, hasSteps ? { availableSteps: steps.steps } : {});
+        const plan = parsePlan(content, { availableSteps: steps.steps });
 
         const total = plan.tasks.length;
         const done = plan.tasks.filter((t) => {
@@ -1044,7 +1054,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         resources.logger.resolved("Plan", file);
         resources.logger.resolved("Tasks", `${total} tasks (${done} done)`);
-        if (hasSteps) {
+        if (Object.keys(steps.steps).length > 0) {
           resources.logger.resolved("Steps", Object.keys(steps.steps).join(", "));
         }
         resources.logger.success("Plan is valid.");
@@ -1119,7 +1129,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .option("--agent <name>", "Agent to install the Pipeline skill for")
     .option("--local", "Install project-local skill and pipeline files")
     .option("--global", "Install user-global skill and pipeline files")
-    .option("--force", "Overwrite an existing steps.yaml scaffold")
+    .option("--force", "Overwrite an existing default step config scaffold")
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "pipeline:install");
@@ -1215,22 +1225,41 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           }
         }
 
-        const stepsExists = await pathExists(container.fs, pipelinePaths.stepsPath);
+        const legacyStepsExists = await pathExists(container.fs, pipelinePaths.legacyStepsPath);
+        let stepsExists = await pathExists(container.fs, pipelinePaths.defaultStepsPath);
+
+        if (legacyStepsExists && !stepsExists) {
+          if (flags.dryRun) {
+            resources.logger.dryRun(
+              `Would rename: ${pipelinePaths.displayLegacyStepsPath} -> ${pipelinePaths.displayDefaultStepsPath}`
+            );
+          } else {
+            await container.fs.mkdir(pipelinePaths.stepsDirectoryPath, {
+              recursive: true
+            });
+            await container.fs.rename(pipelinePaths.legacyStepsPath, pipelinePaths.defaultStepsPath);
+            resources.logger.info(
+              `Rename: ${pipelinePaths.displayLegacyStepsPath} -> ${pipelinePaths.displayDefaultStepsPath}`
+            );
+          }
+          stepsExists = true;
+        }
+
         if (stepsExists && !options.force) {
-          resources.logger.info(`Skip: ${pipelinePaths.displayStepsPath} (already exists)`);
+          resources.logger.info(`Skip: ${pipelinePaths.displayDefaultStepsPath} (already exists)`);
         } else if (flags.dryRun) {
           resources.logger.dryRun(
-            `Would ${stepsExists ? "overwrite" : "create"}: ${pipelinePaths.displayStepsPath}`
+            `Would ${stepsExists ? "overwrite" : "create"}: ${pipelinePaths.displayDefaultStepsPath}`
           );
         } else {
-          await container.fs.mkdir(path.dirname(pipelinePaths.stepsPath), {
+          await container.fs.mkdir(path.dirname(pipelinePaths.defaultStepsPath), {
             recursive: true
           });
-          await container.fs.writeFile(pipelinePaths.stepsPath, templates.steps, {
+          await container.fs.writeFile(pipelinePaths.defaultStepsPath, templates.steps, {
             encoding: "utf8"
           });
           resources.logger.info(
-            `${stepsExists ? "Overwrite" : "Create"}: ${pipelinePaths.displayStepsPath}`
+            `${stepsExists ? "Overwrite" : "Create"}: ${pipelinePaths.displayDefaultStepsPath}`
           );
         }
 

@@ -204,6 +204,24 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   let lastGoodStepsConfig: ResolvedStepsConfig | undefined;
   const pipelineStartTime = Date.now();
 
+  async function readResolvedPlanFromContent(
+    content: string
+  ): Promise<{ plan: PipelinePlan; stepsConfig: ResolvedStepsConfig }> {
+    const draftPlan = parsePlan(content);
+    const stepsConfig = await loadResolvedSteps({
+      cwd: options.cwd,
+      homeDir: options.homeDir,
+      fs,
+      name: draftPlan.extends,
+      stepOverrides: draftPlan.stepOverrides
+    });
+
+    return {
+      plan: parsePlan(content, { availableSteps: stepsConfig.steps }),
+      stepsConfig
+    };
+  }
+
   async function runPhase(
     phaseDef: StepDefinition,
     phase: "setup" | "teardown",
@@ -259,16 +277,14 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     return { success, cancelled: false };
   }
 
-  const initialStepsConfig = await loadResolvedSteps({
-    cwd: options.cwd,
-    homeDir: options.homeDir,
-    fs
-  });
   const initialContent = await fs.readFile(absolutePlanPath, "utf8");
-  const initialPlan = parsePlan(initialContent, { availableSteps: initialStepsConfig.steps });
+  const {
+    plan: initialPlan,
+    stepsConfig: initialStepsConfig
+  } = await readResolvedPlanFromContent(initialContent);
   const resolvedSetup =
     initialPlan.setup === null ? undefined : (initialPlan.setup ?? initialStepsConfig.setup);
-  const resolvedTeardown =
+  const initialResolvedTeardown =
     initialPlan.teardown === null
       ? undefined
       : (initialPlan.teardown ?? initialStepsConfig.teardown);
@@ -283,8 +299,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     steps: initialStepsConfig.steps,
     planPath,
     vars: initialVars,
-    setup: resolvedSetup,
-    teardown: resolvedTeardown
+    ...(resolvedSetup ? { setup: resolvedSetup } : {}),
+    ...(initialResolvedTeardown ? { teardown: initialResolvedTeardown } : {})
   });
 
   if (resolvedSetup) {
@@ -320,13 +336,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       let plan: PipelinePlan;
 
       try {
-        stepsConfig = await loadResolvedSteps({
-          cwd: options.cwd,
-          homeDir: options.homeDir,
-          fs
-        });
         const content = await fs.readFile(absolutePlanPath, "utf8");
-        plan = parsePlan(content, { availableSteps: stepsConfig.steps });
+        ({ plan, stepsConfig } = await readResolvedPlanFromContent(content));
         lastGoodPlan = plan;
         lastGoodStepsConfig = stepsConfig;
       } catch (reloadError) {
@@ -346,12 +357,14 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         options.cwd,
         fs.readFile.bind(fs)
       );
+      const resolvedTeardown =
+        plan.teardown === null ? undefined : (plan.teardown ?? stepsConfig.teardown);
       validateResolvedPromptVars({
         plan,
         steps: stepsConfig.steps,
         planPath,
         vars: planVars,
-        teardown: resolvedTeardown
+        ...(resolvedTeardown ? { teardown: resolvedTeardown } : {})
       });
       const selection = selectNextExecution(plan, options.task);
 

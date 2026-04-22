@@ -1577,11 +1577,12 @@ describe("pipeline validate command", () => {
     ).resolves.not.toThrow();
   });
 
-  it("validates step references against steps.yaml", async () => {
+  it("validates step references against the resolved named step config", async () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.mkdir("/repo/.poe-code/pipeline/steps", { recursive: true });
     await fs.writeFile(
-      "/repo/.poe-code/pipeline/steps.yaml",
+      "/repo/.poe-code/pipeline/steps/default.yaml",
       ["steps:", "  implement:", "    prompt: Implement {{id}}", ""].join("\n"),
       { encoding: "utf8" }
     );
@@ -1622,8 +1623,9 @@ describe("pipeline validate command", () => {
   it("fails validate when a step prompt references a missing var", async () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.mkdir("/repo/.poe-code/pipeline/steps", { recursive: true });
     await fs.writeFile(
-      "/repo/.poe-code/pipeline/steps.yaml",
+      "/repo/.poe-code/pipeline/steps/default.yaml",
       ["steps:", "  implement:", "    prompt: Deploy to {{env}}.", ""].join("\n"),
       { encoding: "utf8" }
     );
@@ -1792,8 +1794,9 @@ describe("pipeline validate command", () => {
   it("--preview renders each step for a stepped task", async () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+    await fs.mkdir("/repo/.poe-code/pipeline/steps", { recursive: true });
     await fs.writeFile(
-      "/repo/.poe-code/pipeline/steps.yaml",
+      "/repo/.poe-code/pipeline/steps/default.yaml",
       [
         "steps:",
         "  implement:",
@@ -1881,9 +1884,12 @@ describe("pipeline install command", () => {
   it("ships markdown frontmatter instructions in the pipeline skill template", () => {
     expect(pipelineSkillPlan).toContain("Generate a Pipeline plan markdown file");
     expect(pipelineSkillPlan).toContain("Write a markdown pipeline plan with YAML frontmatter.");
+    expect(pipelineSkillPlan).toContain(".poe-code/pipeline/steps/");
     expect(pipelineSkillPlan).toContain("`docs/plans/plan-<name>.md`");
     expect(pipelineSkillPlan).toContain("kind: pipeline");
     expect(pipelineSkillPlan).toContain("version: 1");
+    expect(pipelineSkillPlan).toContain("extends: default");
+    expect(pipelineSkillPlan).toContain("# steps:");
     expect(pipelineSkillPlan).toContain("```markdown");
     expect(pipelineSkillPlan).toContain("# Context");
   });
@@ -1912,7 +1918,7 @@ describe("pipeline install command", () => {
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).resolves.toBe(pipelineSkillPlan);
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
     await expect(fs.stat("/repo/.poe-code/pipeline/plans")).resolves.toBeDefined();
@@ -1934,9 +1940,40 @@ describe("pipeline install command", () => {
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).resolves.toBe(pipelineSkillPlan);
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
+  });
+
+  it("migrates a legacy steps.yaml file to steps/default.yaml", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/pipeline/steps.yaml": "LEGACY_STEPS"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local"
+    ]);
+
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
+      "LEGACY_STEPS"
+    );
+    await expect(fs.stat("/repo/.poe-code/pipeline/steps.yaml")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
@@ -1965,10 +2002,10 @@ describe("pipeline install command", () => {
     ).resolves.toBe(pipelineSkillPlan);
   });
 
-  it("does not overwrite steps.yaml without --force", async () => {
+  it("does not overwrite default.yaml without --force", async () => {
     const fs = createMemFs();
-    await fs.mkdir("/repo/.poe-code/pipeline", { recursive: true });
-    await fs.writeFile("/repo/.poe-code/pipeline/steps.yaml", "EXISTING_STEPS", {
+    await fs.mkdir("/repo/.poe-code/pipeline/steps", { recursive: true });
+    await fs.writeFile("/repo/.poe-code/pipeline/steps/default.yaml", "EXISTING_STEPS", {
       encoding: "utf8"
     });
 
@@ -1991,7 +2028,7 @@ describe("pipeline install command", () => {
       "--local"
     ]);
 
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
       "EXISTING_STEPS"
     );
 
@@ -2006,7 +2043,7 @@ describe("pipeline install command", () => {
       "--force"
     ]);
 
-    await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
+    await expect(fs.readFile("/repo/.poe-code/pipeline/steps/default.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
   });

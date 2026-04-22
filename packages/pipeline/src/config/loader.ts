@@ -1,15 +1,17 @@
 import path from "node:path";
 import { resolve } from "@poe-code/config-extends";
-import { parse, stringify } from "yaml";
+import { parse } from "yaml";
 import type {
   PipelineConfig,
   PipelineFileSystem,
   ResolvedStepDefinitions,
   ResolvedStepsConfig,
   StepDefinition,
+  StepDefinitionOverride,
+  StepDefinitionOverrides,
   StepMode
 } from "../types.js";
-import { isRecord, readOptionalFile } from "../utils.js";
+import { isNotFound, isRecord, readOptionalFile } from "../utils.js";
 
 function asStepMode(value: unknown): StepMode {
   if (value === undefined || value === null) {
@@ -28,18 +30,6 @@ function parseYamlDocument(filePath: string, content: string): unknown {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Invalid pipeline step config YAML in "${filePath}": ${message}`);
   }
-}
-
-function parseStepConfigSource(
-  filePath: string,
-  content: string
-): { config: ResolvedStepsConfig; extendsBase: boolean } {
-  const document = parseYamlDocument(filePath, content);
-
-  return {
-    config: parseStepConfigData(filePath, document),
-    extendsBase: isRecord(document) && document.extends === true
-  };
 }
 
 function parseStepConfigData(filePath: string, document: unknown): ResolvedStepsConfig {
@@ -88,82 +78,77 @@ function parseStepConfigData(filePath: string, document: unknown): ResolvedSteps
   return result;
 }
 
-function encodeShallowStepsConfig(config: ResolvedStepsConfig): Record<string, unknown> {
-  const data: Record<string, unknown> = {};
-
-  if (Object.keys(config.steps).length > 0) {
-    data.steps = Object.fromEntries(
-      Object.entries(config.steps).map(([stepName, definition]) => [
-        stepName,
-        JSON.stringify(definition)
-      ])
-    );
-  }
-
-  if (config.setup !== undefined) {
-    data.setup = JSON.stringify(config.setup);
-  }
-
-  if (config.teardown !== undefined) {
-    data.teardown = JSON.stringify(config.teardown);
-  }
-
-  return data;
-}
-
-function decodeShallowStepsConfig(
-  filePath: string,
-  document: Record<string, unknown>
-): Record<string, unknown> {
-  const decoded: Record<string, unknown> = {};
-
-  if (document.steps !== undefined) {
-    if (!isRecord(document.steps)) {
-      throw new Error(`Invalid pipeline step config in "${filePath}": "steps" must be an object.`);
-    }
-
-    decoded.steps = Object.fromEntries(
-      Object.entries(document.steps).map(([stepName, definition]) => [
-        stepName,
-        decodeEncodedDefinition(filePath, definition, `step "${stepName}"`)
-      ])
-    );
-  }
-
-  if (document.setup !== undefined) {
-    decoded.setup = decodeEncodedDefinition(filePath, document.setup, "setup");
-  }
-
-  if (document.teardown !== undefined) {
-    decoded.teardown = decodeEncodedDefinition(filePath, document.teardown, "teardown");
-  }
-
-  return decoded;
-}
-
-function decodeEncodedDefinition(
-  filePath: string,
-  value: unknown,
+function mergeStepDefinition(
+  base: StepDefinition | undefined,
+  override: StepDefinitionOverride,
   context: string
-): Record<string, unknown> {
-  if (typeof value !== "string") {
-    throw new Error(`Invalid ${context} in "${filePath}": expected an object.`);
+): StepDefinition {
+  const prompt = override.prompt ?? base?.prompt;
+  if (typeof prompt !== "string" || prompt.length === 0) {
+    throw new Error(`Missing prompt for ${context}.`);
   }
 
-  let decoded: unknown;
+  const agent = override.agent ?? base?.agent;
+  const model = override.model ?? base?.model;
 
+  return {
+    mode: override.mode ?? base?.mode ?? "yolo",
+    prompt,
+    ...(agent ? { agent } : {}),
+    ...(model ? { model } : {})
+  };
+}
+
+function applyStepOverrides(
+  config: ResolvedStepsConfig,
+  stepOverrides: StepDefinitionOverrides | undefined
+): ResolvedStepsConfig {
+  if (!stepOverrides || Object.keys(stepOverrides).length === 0) {
+    return config;
+  }
+
+  const steps: ResolvedStepDefinitions = { ...config.steps };
+
+  for (const [stepName, override] of Object.entries(stepOverrides)) {
+    steps[stepName] = mergeStepDefinition(steps[stepName], override, `plan step "${stepName}"`);
+  }
+
+  return {
+    ...config,
+    steps
+  };
+}
+
+async function directoryExists(
+  fs: Pick<PipelineFileSystem, "stat">,
+  targetPath: string
+): Promise<boolean> {
   try {
-    decoded = JSON.parse(value);
+    return (await fs.stat(targetPath)).isDirectory();
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Invalid ${context} in "${filePath}": ${message}`);
+    if (isNotFound(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+async function resolveStepsDirectory(options: {
+  cwd: string;
+  homeDir: string;
+  fs: Pick<PipelineFileSystem, "stat">;
+}): Promise<string | null> {
+  const projectDir = path.join(options.cwd, ".poe-code", "pipeline", "steps");
+  if (await directoryExists(options.fs, projectDir)) {
+    return projectDir;
   }
 
-  if (!isRecord(decoded)) {
-    throw new Error(`Invalid ${context} in "${filePath}": expected an object.`);
+  const globalDir = path.join(options.homeDir, ".poe-code", "pipeline", "steps");
+  if (await directoryExists(options.fs, globalDir)) {
+    return globalDir;
   }
 
-  return decoded;
+  return null;
 }
 
 function parseConfigDocument(filePath: string, content: string): PipelineConfig {
@@ -218,54 +203,29 @@ export async function loadPipelineConfig(options: {
 export async function loadResolvedSteps(options: {
   cwd: string;
   homeDir: string;
-  fs: Pick<PipelineFileSystem, "readFile">;
+  fs: Pick<PipelineFileSystem, "readFile" | "stat">;
+  name?: string;
+  stepOverrides?: StepDefinitionOverrides;
 }): Promise<ResolvedStepsConfig> {
-  const globalDir = path.join(options.homeDir, ".poe-code", "pipeline");
-  const globalPath = path.join(globalDir, "steps.yaml");
-  const projectPath = path.join(options.cwd, ".poe-code", "pipeline", "steps.yaml");
-  const [globalContent, projectContent] = await Promise.all([
-    readOptionalFile(options.fs, globalPath),
-    readOptionalFile(options.fs, projectPath)
-  ]);
-  const globalSource =
-    globalContent == null ? undefined : parseStepConfigSource(globalPath, globalContent);
+  const name = options.name?.trim() || "default";
+  const stepsDir = await resolveStepsDirectory(options);
 
-  if (projectContent == null) {
-    return globalSource?.config ?? { steps: {} };
+  if (!stepsDir) {
+    if (name !== "default") {
+      throw new Error(`Unknown pipeline step config "${name}": no pipeline steps directory found.`);
+    }
+    return applyStepOverrides({ steps: {} }, options.stepOverrides);
   }
 
-  const projectSource = parseStepConfigSource(projectPath, projectContent);
+  const filePath = path.join(stepsDir, `${name}.yaml`);
+  const content = await readOptionalFile(options.fs, filePath);
 
-  if (projectSource.extendsBase) {
-    const resolved = await resolve(
-      [
-        { source: "document", filePath: projectPath, content: projectContent },
-        { source: "base", path: globalDir }
-      ],
-      { fs: options.fs }
-    );
-
-    return parseStepConfigData(projectPath, resolved.data);
+  if (content == null) {
+    throw new Error(`Unknown pipeline step config "${name}" in "${stepsDir}".`);
   }
 
-  if (globalSource == null) {
-    return projectSource.config;
-  }
-
-  const resolved = await resolve(
-    [
-      {
-        source: "document",
-        filePath: projectPath,
-        content: stringify(encodeShallowStepsConfig(projectSource.config))
-      },
-      {
-        source: "global",
-        data: encodeShallowStepsConfig(globalSource.config)
-      }
-    ],
-    { fs: options.fs }
+  return applyStepOverrides(
+    parseStepConfigData(filePath, parseYamlDocument(filePath, content)),
+    options.stepOverrides
   );
-
-  return parseStepConfigData(projectPath, decodeShallowStepsConfig(projectPath, resolved.data));
 }

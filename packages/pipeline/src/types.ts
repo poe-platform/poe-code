@@ -16,7 +16,15 @@ export interface StepDefinition {
   model?: string;
 }
 
+export interface StepDefinitionOverride {
+  mode?: StepMode;
+  prompt?: string;
+  agent?: string;
+  model?: string;
+}
+
 export type ResolvedStepDefinitions = Record<string, StepDefinition>;
+export type StepDefinitionOverrides = Record<string, StepDefinitionOverride>;
 
 export interface ResolvedStepsConfig {
   steps: ResolvedStepDefinitions;
@@ -32,6 +40,8 @@ export interface PipelineTask {
 }
 
 export interface PipelinePlan {
+  extends?: string;
+  stepOverrides?: StepDefinitionOverrides;
   tasks: PipelineTask[];
   vars?: Record<string, string>;
   setup?: StepDefinition | null;

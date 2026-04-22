@@ -121,6 +121,133 @@ describe("@poe-code/pipeline public exports", () => {
 });
 
 describe("loadResolvedSteps", () => {
+  it("uses the default named config when a plan omits extends", async () => {
+    const plan = parsePlan("tasks: []\n") as PipelinePlan & {
+      extends?: string;
+      stepOverrides?: Record<string, unknown>;
+    };
+
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  implement:",
+          "    prompt: Implement {{id}}",
+          ""
+        ].join("\n")
+      }),
+      name: plan.extends,
+      stepOverrides: plan.stepOverrides
+    } as Parameters<typeof loadResolvedSteps>[0]);
+
+    expect(plan.extends).toBe("default");
+    expect(config.steps).toEqual({
+      implement: {
+        mode: "yolo",
+        prompt: "Implement {{id}}"
+      }
+    });
+  });
+
+  it("loads a named step config selected by plan extends", async () => {
+    const plan = parsePlan(["extends: fast", "tasks: []", ""].join("\n")) as PipelinePlan & {
+      extends?: string;
+      stepOverrides?: Record<string, unknown>;
+    };
+
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  implement:",
+          "    prompt: Default implement",
+          ""
+        ].join("\n"),
+        "/repo/.poe-code/pipeline/steps/fast.yaml": [
+          "steps:",
+          "  implement:",
+          "    mode: read",
+          "    prompt: Fast implement",
+          ""
+        ].join("\n")
+      }),
+      name: plan.extends,
+      stepOverrides: plan.stepOverrides
+    } as Parameters<typeof loadResolvedSteps>[0]);
+
+    expect(config.steps).toEqual({
+      implement: {
+        mode: "read",
+        prompt: "Fast implement"
+      }
+    });
+  });
+
+  it("deep merges inline plan step overrides with the named base config", async () => {
+    const plan = parsePlan(
+      [
+        "extends: default",
+        "steps:",
+        "  implement:",
+        "    prompt: Project implement",
+        "tasks: []",
+        ""
+      ].join("\n")
+    ) as PipelinePlan & {
+      extends?: string;
+      stepOverrides?: Record<string, unknown>;
+    };
+
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  implement:",
+          "    mode: read",
+          "    prompt: Base implement",
+          "    agent: codex",
+          "    model: o3",
+          ""
+        ].join("\n")
+      }),
+      name: plan.extends,
+      stepOverrides: plan.stepOverrides
+    } as Parameters<typeof loadResolvedSteps>[0]);
+
+    expect(config.steps).toEqual({
+      implement: {
+        mode: "read",
+        prompt: "Project implement",
+        agent: "codex",
+        model: "o3"
+      }
+    });
+  });
+
+  it("throws a clear error when plan extends an unknown named config", async () => {
+    await expect(
+      loadResolvedSteps({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/pipeline/steps/default.yaml": [
+            "steps:",
+            "  implement:",
+            "    prompt: Default implement",
+            ""
+          ].join("\n")
+        }),
+        name: "fast"
+      } as Parameters<typeof loadResolvedSteps>[0])
+    ).rejects.toThrow(/unknown.*step config.*fast/i);
+  });
+
   it("returns empty config when no step config files exist", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
@@ -131,12 +258,12 @@ describe("loadResolvedSteps", () => {
     expect(config).toEqual({ steps: {} });
   });
 
-  it("returns empty steps for a comment-only steps.yaml", async () => {
+  it("returns empty steps for a comment-only default step config", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/steps.yaml": [
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
           "# This is all comments",
           "# No actual steps defined",
           ""
@@ -152,7 +279,7 @@ describe("loadResolvedSteps", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/home/test/.poe-code/pipeline/steps.yaml": [
+        "/home/test/.poe-code/pipeline/steps/default.yaml": [
           "steps:",
           "  implement:",
           "    prompt: |",
@@ -170,12 +297,12 @@ describe("loadResolvedSteps", () => {
     });
   });
 
-  it("replaces a global step entirely when the project defines the same step", async () => {
+  it("prefers the project steps directory over the global directory", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/home/test/.poe-code/pipeline/steps.yaml": [
+        "/home/test/.poe-code/pipeline/steps/default.yaml": [
           "steps:",
           "  implement:",
           "    mode: read",
@@ -186,7 +313,7 @@ describe("loadResolvedSteps", () => {
           "    prompt: Run tests",
           ""
         ].join("\n"),
-        "/repo/.poe-code/pipeline/steps.yaml": [
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
           "steps:",
           "  implement:",
           "    prompt: Project instruction",
@@ -202,10 +329,6 @@ describe("loadResolvedSteps", () => {
         mode: "yolo",
         prompt: "Project instruction"
       },
-      test: {
-        mode: "yolo",
-        prompt: "Run tests"
-      },
       commit: {
         mode: "yolo",
         prompt: "Commit changes"
@@ -213,67 +336,23 @@ describe("loadResolvedSteps", () => {
     });
   });
 
-  it("keeps global steps and adds project-only steps", async () => {
+  it("loads a named config from the global directory when no project directory exists", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
       homeDir: "/home/test",
+      name: "fast",
       fs: createFs({
-        "/home/test/.poe-code/pipeline/steps.yaml": [
+        "/home/test/.poe-code/pipeline/steps/default.yaml": [
           "steps:",
           "  implement:",
           "    prompt: Global instruction",
-          "  test:",
-          "    prompt: Run tests",
           ""
         ].join("\n"),
-        "/repo/.poe-code/pipeline/steps.yaml": [
-          "steps:",
-          "  commit:",
-          "    prompt: Commit changes",
-          ""
-        ].join("\n")
-      })
-    });
-
-    expect(config.steps).toEqual({
-      implement: {
-        mode: "yolo",
-        prompt: "Global instruction"
-      },
-      test: {
-        mode: "yolo",
-        prompt: "Run tests"
-      },
-      commit: {
-        mode: "yolo",
-        prompt: "Commit changes"
-      }
-    });
-  });
-
-  it("deep merges steps with the global config when the project opts into extends", async () => {
-    const config = await loadResolvedSteps({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/home/test/.poe-code/pipeline/steps.yaml": [
+        "/home/test/.poe-code/pipeline/steps/fast.yaml": [
           "steps:",
           "  implement:",
           "    mode: read",
-          "    prompt: Global instruction",
-          "    agent: codex",
-          "    model: o3",
-          "  test:",
-          "    prompt: Run tests",
-          ""
-        ].join("\n"),
-        "/repo/.poe-code/pipeline/steps.yaml": [
-          "extends: true",
-          "steps:",
-          "  implement:",
-          "    prompt: Project instruction",
-          "  commit:",
-          "    prompt: Commit changes",
+          "    prompt: Fast instruction",
           ""
         ].join("\n")
       })
@@ -282,17 +361,61 @@ describe("loadResolvedSteps", () => {
     expect(config.steps).toEqual({
       implement: {
         mode: "read",
-        prompt: "Project instruction",
-        agent: "codex",
-        model: "o3"
-      },
-      test: {
-        mode: "yolo",
-        prompt: "Run tests"
-      },
-      commit: {
-        mode: "yolo",
-        prompt: "Commit changes"
+        prompt: "Fast instruction"
+      }
+    });
+  });
+
+  it("throws when the selected named config does not exist in the project directory", async () => {
+    await expect(
+      loadResolvedSteps({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        name: "fast",
+        fs: createFs({
+          "/home/test/.poe-code/pipeline/steps/fast.yaml": [
+            "steps:",
+            "  implement:",
+            "    prompt: Global fast",
+            ""
+          ].join("\n"),
+          "/repo/.poe-code/pipeline/steps/default.yaml": [
+            "steps:",
+            "  implement:",
+            "    prompt: Project default",
+            ""
+          ].join("\n")
+        })
+      })
+    ).rejects.toThrow(/unknown.*step config.*fast/i);
+  });
+
+  it("loads a specific named config from the project directory", async () => {
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      name: "fast",
+      fs: createFs({
+        "/home/test/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  implement:",
+          "    prompt: Global default",
+          ""
+        ].join("\n"),
+        "/repo/.poe-code/pipeline/steps/fast.yaml": [
+          "steps:",
+          "  implement:",
+          "    mode: read",
+          "    prompt: Project fast",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(config.steps).toEqual({
+      implement: {
+        mode: "read",
+        prompt: "Project fast"
       }
     });
   });
@@ -303,7 +426,7 @@ describe("loadResolvedSteps", () => {
         cwd: "/repo",
         homeDir: "/home/test",
         fs: createFs({
-          "/repo/.poe-code/pipeline/steps.yaml": "steps: ["
+          "/repo/.poe-code/pipeline/steps/default.yaml": "steps: ["
         })
       })
     ).rejects.toThrow(/invalid pipeline step config yaml/i);
@@ -314,7 +437,7 @@ describe("loadResolvedSteps", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/steps.yaml": [
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
           "steps:",
           "  implement:",
           "    prompt: Implement",
@@ -342,7 +465,7 @@ describe("loadResolvedSteps", () => {
         cwd: "/repo",
         homeDir: "/home/test",
         fs: createFs({
-          "/repo/.poe-code/pipeline/steps.yaml": [
+          "/repo/.poe-code/pipeline/steps/default.yaml": [
             "steps:",
             "  implement:",
             "    mode: read",
@@ -360,7 +483,7 @@ describe("loadResolvedSteps", () => {
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/steps.yaml": [
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
           "steps:",
           "  implement:",
           "    prompt: Implement",
@@ -395,12 +518,12 @@ describe("loadResolvedSteps", () => {
     });
   });
 
-  it("parses setup and teardown from steps.yaml", async () => {
+  it("parses setup and teardown from the default step config", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/repo/.poe-code/pipeline/steps.yaml": [
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
           "setup:",
           "  prompt: Prepare the workspace",
           "teardown:",
@@ -419,12 +542,12 @@ describe("loadResolvedSteps", () => {
     expect(config.steps).toEqual({ commit: { mode: "yolo", prompt: "Commit changes" } });
   });
 
-  it("project setup overrides global setup entirely while keeping inherited teardown", async () => {
+  it("uses only project setup and teardown when the project steps directory exists", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
-        "/home/test/.poe-code/pipeline/steps.yaml": [
+        "/home/test/.poe-code/pipeline/steps/default.yaml": [
           "setup:",
           "  mode: read",
           "  prompt: Global setup",
@@ -434,12 +557,12 @@ describe("loadResolvedSteps", () => {
           "  prompt: Global teardown",
           ""
         ].join("\n"),
-        "/repo/.poe-code/pipeline/steps.yaml": ["setup:", "  prompt: Project setup", ""].join("\n")
+        "/repo/.poe-code/pipeline/steps/default.yaml": ["setup:", "  prompt: Project setup", ""].join("\n")
       })
     });
 
     expect(config.setup).toEqual({ mode: "yolo", prompt: "Project setup" });
-    expect(config.teardown).toEqual({ mode: "yolo", prompt: "Global teardown" });
+    expect(config.teardown).toBeUndefined();
   });
 
   it("requires instruction for setup and teardown", async () => {
@@ -448,7 +571,7 @@ describe("loadResolvedSteps", () => {
         cwd: "/repo",
         homeDir: "/home/test",
         fs: createFs({
-          "/repo/.poe-code/pipeline/steps.yaml": "setup:\n  mode: read\n"
+          "/repo/.poe-code/pipeline/steps/default.yaml": "setup:\n  mode: read\n"
         })
       })
     ).rejects.toThrow(/missing prompt for setup/i);
@@ -861,6 +984,7 @@ describe("parsePlan", () => {
     );
 
     expect(plan).toEqual({
+      extends: "default",
       vars: {
         plan_doc: "docs/plans/my-feature.md"
       },
@@ -907,6 +1031,7 @@ describe("parsePlan", () => {
     );
 
     expect(plan).toEqual({
+      extends: "default",
       tasks: [
         {
           id: "task-1",
@@ -2657,7 +2782,7 @@ describe("createPipelineSimulation", () => {
         {
           output: { stdout: "", exitCode: 0 },
           fileChanges: {
-            ".poe-code/pipeline/steps.yaml": "this is: [invalid yaml"
+            ".poe-code/pipeline/steps/default.yaml": "this is: [invalid yaml"
           }
         },
         successTurn()
@@ -2801,7 +2926,7 @@ describe("createPipelineSimulation", () => {
 
   it("throws before spawning an agent when a prompt references a missing var", async () => {
     const fs = createFs({
-      "/repo/.poe-code/pipeline/steps.yaml": [
+      "/repo/.poe-code/pipeline/steps/default.yaml": [
         "steps:",
         "  implement:",
         "    prompt: Deploy to {{env}}.",
@@ -2838,7 +2963,7 @@ describe("createPipelineSimulation", () => {
 
   it("throws before spawning any agent when a later task references a missing var", async () => {
     const fs = createFs({
-      "/repo/.poe-code/pipeline/steps.yaml": [
+      "/repo/.poe-code/pipeline/steps/default.yaml": [
         "steps:",
         "  implement:",
         "    prompt: '{{prompt}}'",

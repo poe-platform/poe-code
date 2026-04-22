@@ -3,8 +3,6 @@ import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import {
   runPipeline as runWorkspacePipeline,
-  type PipelineMetrics,
-  type PipelineFileSystem,
   type PipelineRunOptions,
   type PipelineRunResult
 } from "@poe-code/pipeline";

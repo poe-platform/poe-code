@@ -377,6 +377,69 @@ describe("runCLI", () => {
     });
   });
 
+  it("accepts --flag true and --flag false as explicit boolean values", async () => {
+    const handler = vi.fn(async (ctx: { params: { enabled: boolean; disabled: boolean } }) => ctx.params);
+
+    const toggle = defineCommand({
+      name: "toggle",
+      params: S.Object({
+        enabled: S.Boolean(),
+        disabled: S.Boolean(),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({ name: "cmdkit", children: [toggle] });
+
+    process.argv = ["node", "cmdkit", "toggle", "--enabled", "true", "--disabled", "false", "--yes"];
+    await runCLI(root);
+
+    expect(handler.mock.calls[0]?.[0].params).toEqual({ enabled: true, disabled: false });
+  });
+
+  it("accepts --flag (no value) as true and --no-flag as false for boolean params", async () => {
+    const handler = vi.fn(async (ctx: { params: { enabled: boolean; disabled: boolean } }) => ctx.params);
+
+    const toggle = defineCommand({
+      name: "toggle",
+      params: S.Object({
+        enabled: S.Boolean(),
+        disabled: S.Boolean(),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({ name: "cmdkit", children: [toggle] });
+
+    process.argv = ["node", "cmdkit", "toggle", "--enabled", "--no-disabled", "--yes"];
+    await runCLI(root);
+
+    expect(handler.mock.calls[0]?.[0].params).toEqual({ enabled: true, disabled: false });
+  });
+
+  it("rejects invalid boolean values for --flag <value>", async () => {
+    const handler = vi.fn(async (ctx: { params: { enabled: boolean } }) => ctx.params);
+
+    const toggle = defineCommand({
+      name: "toggle",
+      params: S.Object({ enabled: S.Boolean() }),
+      handler,
+    });
+
+    const root = defineGroup({ name: "cmdkit", children: [toggle] });
+
+    process.argv = ["node", "cmdkit", "toggle", "--enabled", "yes"];
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain(
+      'Invalid value for "enabled". Expected true or false.'
+    );
+    expect(process.exitCode).toBe(1);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it("rejects fractional values for integer-flavored number params", async () => {
     const handler = vi.fn(async (ctx: { params: { count: number } }) => ctx.params);
 

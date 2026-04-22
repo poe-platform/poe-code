@@ -445,8 +445,15 @@ function createOption(field: FieldDefinition): Option[] {
       return [createCommanderOption(flags, field.description, field)];
     }
 
+    const mainOption = createCommanderOption(`${flags} [value]`, field.description, field);
+    mainOption.preset(true);
+    // Commander v14 calls argParser with the preset value too, so guard with typeof check
+    mainOption.argParser((value: string | boolean) =>
+      typeof value === "boolean" ? value : parseBooleanText(value, field.displayPath)
+    );
+
     return [
-      createCommanderOption(flags, field.description, field),
+      mainOption,
       createCommanderOption(`--no-${field.optionFlag.slice(2)}`, field.description, field),
     ];
   }
@@ -616,7 +623,7 @@ function formatHelpFieldFlags(field: FieldDefinition): string {
   }
 
   if (field.schema.kind === "boolean") {
-    return formatOptionFlags(field);
+    return `${formatOptionFlags(field)} [value]`;
   }
 
   return `${formatOptionFlags(field)} <${describeSchemaType(field.schema)}>`;

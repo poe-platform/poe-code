@@ -191,6 +191,11 @@ async function fetchGooseModelContextLimits(input: {
   const modelContextLimits = extractGooseModelContextLimits(
     (await response.json()) as GooseModelsResponse
   );
+  for (const model of GOOSE_MODELS) {
+    if (modelContextLimits[model] == null && GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model] != null) {
+      modelContextLimits[model] = GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model]!;
+    }
+  }
   const missing = GOOSE_MODELS.filter((model) => modelContextLimits[model] == null);
   if (missing.length > 0) {
     throw new Error(

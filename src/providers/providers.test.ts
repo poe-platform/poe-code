@@ -1651,10 +1651,20 @@ describe("goose service", () => {
     expect(provider.base_url).toBe("https://proxy.example.test/gateway/v1/chat/completions");
   });
 
-  it("requires explicit Goose model context limits when building the provider config", async () => {
-    await expect(configureGoose({ modelContextLimits: {} })).rejects.toThrow(
-      /Missing Goose model context limit/
-    );
+  it("uses static fallback context limits when modelContextLimits is empty", async () => {
+    await configureGoose({ modelContextLimits: {} });
+
+    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(provider.models).toEqual([
+      { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
+      { name: "anthropic/claude-sonnet-4.6", context_limit: 200_000 },
+      { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
+      { name: "openai/gpt-5.4", context_limit: 128_000 },
+      { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
+    ]);
   });
 
   it("fetches Goose model context limits from the Poe model catalog", async () => {
@@ -1702,31 +1712,39 @@ describe("goose service", () => {
     });
   });
 
-  it("fails when the Poe model catalog response is incomplete", async () => {
-    await expect(
-      gooseService.gooseService.extendConfigurePayload?.({
-        fs: mockFsObj,
-        env,
-        httpClient: vi.fn(async () => ({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            data: [
-              {
-                id: "claude-opus-4.7",
-                context_window: { context_length: 983040 }
-              }
-            ]
-          })
-        })),
-        logger: createLoggerFactory(() => {}).create({
-          dryRun: false,
-          verbose: true,
-          scope: "test:goose"
-        }),
-        payload: buildConfigureOptions()
-      })
-    ).rejects.toThrow(/Missing Goose model context limit/);
+  it("falls back to static context limits when the API response is missing models", async () => {
+    const result = await gooseService.gooseService.extendConfigurePayload?.({
+      fs: mockFsObj,
+      env,
+      httpClient: vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [
+            {
+              id: "claude-opus-4.7",
+              context_window: { context_length: 983040 }
+            }
+          ]
+        })
+      })),
+      logger: createLoggerFactory(() => {}).create({
+        dryRun: false,
+        verbose: true,
+        scope: "test:goose"
+      }),
+      payload: buildConfigureOptions()
+    });
+
+    expect(result).toEqual({
+      modelContextLimits: {
+        "anthropic/claude-opus-4.7": 983040,
+        "anthropic/claude-sonnet-4.6": 200_000,
+        "openai/gpt-5.3-codex": 128_000,
+        "openai/gpt-5.4": 128_000,
+        "google/gemini-3.1-pro": 1_000_000
+      }
+    });
   });
 
   it("removes managed Goose provider artifacts during unconfigure", async () => {

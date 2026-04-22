@@ -159,6 +159,7 @@
     "@poe-code/poe-agent": "*",
     "@poe-code/poe-code-config": "*",
     "@poe-code/process-launcher": "*",
+    "@poe-code/providers": "*",
     "@poe-code/process-runner": "*",
     "@poe-code/ralph": "*",
     "@poe-code/superintendent": "*",

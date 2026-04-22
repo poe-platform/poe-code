@@ -80,8 +80,7 @@ export async function executeTest(
       ? await resolveIsolatedEnvDetails(
           container.env,
           adapter.isolatedEnv,
-          adapter.name,
-          container.readApiKey
+          adapter.name
         )
       : null;
 

@@ -30,6 +30,7 @@ import { registerRalphCommand } from "./commands/ralph.js";
 import { registerExperimentCommand } from "./commands/experiment.js";
 import { registerLaunchCommand } from "./commands/launch.js";
 import { registerMemoryCommand } from "./commands/memory.js";
+import { registerProviderCommand } from "./commands/provider.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -88,6 +89,9 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["memory", "init"] },
   { path: ["memory", "ls"] },
   { path: ["memory", "status"] },
+  { path: ["provider", "list"] },
+  { path: ["provider", "login"], args: "<id>" },
+  { path: ["provider", "logout"], args: "<id>" },
   { path: ["experiment", "install"] },
   { path: ["experiment", "run"] },
   { path: ["experiment", "journal"] },
@@ -423,6 +427,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerExperimentCommand(program, container);
   registerLaunchCommand(program, container);
   registerMemoryCommand(program, container);
+  registerProviderCommand(program, container);
   program
     .command(ghGroup.name)
     .description(ghGroup.description ?? "")

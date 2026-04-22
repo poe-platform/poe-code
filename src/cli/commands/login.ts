@@ -2,12 +2,14 @@ import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
+  buildActiveProvider,
   createExecutionResources,
   resolveCommandFlags,
   applyIsolatedConfiguration
 } from "./shared.js";
+import { POE_PROVIDER_ID } from "@poe-code/providers";
 import { AuthenticationError } from "../errors.js";
-import { loadConfiguredServices } from "../../services/config.js";
+import { loadConfiguredServices, type ConfiguredServiceMetadata } from "../../services/config.js";
 import {
   combineMutationObservers,
   createMutationReporter
@@ -41,10 +43,14 @@ export async function executeLogin(
     const apiKey = await container.options.resolveApiKey({
       value: options.apiKey,
       envValue: container.env.getVariable("POE_API_KEY"),
-      dryRun: flags.dryRun,
+      dryRun: true,
       assumeYes: flags.assumeYes,
       allowStored: false
     });
+
+    if (!flags.dryRun) {
+      await container.providerRegistry.login(POE_PROVIDER_ID, { apiKey });
+    }
 
     const configuredServices = await loadConfiguredServices({
       fs: container.fs,
@@ -77,12 +83,14 @@ interface ReconfigureServicesInput {
   program: Command;
   container: CliContainer;
   apiKey: string;
-  configuredServices: Record<string, { files: string[] }>;
+  configuredServices: Record<string, ConfiguredServiceMetadata>;
 }
 
 async function reconfigureServices(input: ReconfigureServicesInput): Promise<void> {
   const { program, container, apiKey, configuredServices } = input;
-  const serviceNames = Object.keys(configuredServices);
+  const serviceNames = Object.keys(configuredServices).filter(
+    (name) => configuredServices[name]!.provider === POE_PROVIDER_ID
+  );
 
   for (const serviceName of serviceNames) {
     const adapter = container.registry.get(serviceName);
@@ -100,7 +108,7 @@ async function reconfigureServices(input: ReconfigureServicesInput): Promise<voi
 
     const payload = {
       env: container.env,
-      apiKey
+      provider: buildActiveProvider(POE_PROVIDER_ID, container.providerRegistry.get(POE_PROVIDER_ID)!.baseUrl, apiKey)
     };
 
     const mutationLogger = createMutationReporter(resources.logger);

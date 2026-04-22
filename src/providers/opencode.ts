@@ -16,6 +16,7 @@ import { createProvider } from "./create-provider.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
 import { openCodeAgent } from "@poe-code/agent-defs";
 import { serializeOpenCodeMcpEnv } from "@poe-code/agent-spawn";
+import type { ActiveProvider } from "../cli/commands/shared.js";
 
 function providerModel(model?: string): string {
   const value = model ?? DEFAULT_FRONTIER_MODEL;
@@ -89,11 +90,11 @@ export const openCodeService = createProvider({
       configMutation.merge({
         target: "~/.local/share/opencode/auth.json",
         value: (ctx) => {
-          const { apiKey } = (ctx ?? {}) as { apiKey?: string };
+          const { provider } = (ctx ?? {}) as { provider?: ActiveProvider };
           return {
             [PROVIDER_NAME]: {
               type: "api",
-              key: apiKey ?? ""
+              key: provider?.credential ?? ""
             }
           };
         }

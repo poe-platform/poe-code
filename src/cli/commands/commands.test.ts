@@ -82,6 +82,7 @@ describe("configure command", () => {
       commandRunner,
       httpClient: overrides.httpClient
     });
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
     return { container, prompts, commandRunner };
   }
 
@@ -120,7 +121,8 @@ describe("configure command", () => {
       files: [
         homeDir + "/.config/opencode/config.json",
         homeDir + "/.local/share/opencode/auth.json"
-      ]
+      ],
+      provider: "poe"
     });
   });
 
@@ -277,7 +279,7 @@ describe("configure command", () => {
       await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8")
     ) as Record<string, unknown>;
     expect(provider.name).toBe("custom_poe");
-    expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
+    expect(provider.api_key_env).toBe("CUSTOM_PROVIDER_API_KEY");
     expect(provider.models).toEqual([
       { name: "anthropic/claude-opus-4.7", context_limit: 983040 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 983040 },
@@ -290,7 +292,7 @@ describe("configure command", () => {
       await fs.readFile(`${homeDir}/.config/goose/secrets.yaml`, "utf8")
     ) as Record<string, unknown>;
     expect(secrets).toEqual({
-      CUSTOM_POE_API_KEY: "sk-goose"
+      CUSTOM_PROVIDER_API_KEY: "sk-goose"
     });
 
     const content = JSON.parse(await fs.readFile(configPath, "utf8"));
@@ -299,7 +301,8 @@ describe("configure command", () => {
         `${homeDir}/.config/goose/config.yaml`,
         `${homeDir}/.config/goose/custom_providers/custom_poe.json`,
         `${homeDir}/.config/goose/secrets.yaml`
-      ]
+      ],
+      provider: "poe"
     });
     expect(httpClient).toHaveBeenCalledWith(
       "https://api.poe.com/v1/models",

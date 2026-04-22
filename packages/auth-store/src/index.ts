@@ -1,6 +1,7 @@
 export { createSecretStore } from "./create-secret-store.js";
 export { EncryptedFileStore } from "./encrypted-file-store.js";
 export { KeychainStore } from "./keychain-store.js";
+export { key, MigratingSecretStore } from "./provider-store.js";
 export type {
   SecretStore,
   StoreBackend,

@@ -155,7 +155,7 @@ describe("claude-code service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    apiKey: "sk-test",
+    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
     model: CLAUDE_MODEL_SONNET,
     ...overrides
   });
@@ -269,14 +269,10 @@ describe("claude-code service", () => {
     });
   });
 
-  it("uses POE_BASE_URL override for ANTHROPIC_BASE_URL", async () => {
-    env = createCliEnvironment({
-      cwd: home,
-      homeDir: home,
-      variables: { POE_BASE_URL: "https://proxy.example.com/v1" }
+  it("uses provider.baseUrl override for ANTHROPIC_BASE_URL", async () => {
+    await configureClaude({
+      provider: { id: "poe", baseUrl: "https://proxy.example.com", credential: "sk-test", extraEnv: {} }
     });
-
-    await configureClaude();
 
     const content = await mockFsObj.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
@@ -458,7 +454,7 @@ describe("codex service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    apiKey: "sk-test",
+    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
     model: DEFAULT_CODEX_MODEL,
     reasoningEffort: "medium",
     ...overrides
@@ -546,14 +542,10 @@ describe("codex service", () => {
     expect(profiles[defaultProfileName]).toBeUndefined();
   });
 
-  it("uses POE_BASE_URL when writing base_url", async () => {
-    env = createCliEnvironment({
-      cwd: home,
-      homeDir: home,
-      variables: { POE_BASE_URL: "https://proxy.example.com/v1" }
+  it("uses provider.baseUrl when writing base_url", async () => {
+    await configureCodex({
+      provider: { id: "poe", baseUrl: "https://proxy.example.com", credential: "sk-test", extraEnv: {} }
     });
-
-    await configureCodex();
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     const providers = doc["model_providers"] as Record<string, unknown>;
@@ -616,8 +608,8 @@ describe("codex service", () => {
         'name="poe"',
         'base_url="https://api.poe.com/v1"',
         'wire_api="chat"',
-        'env_key="POE_API_KEY"',
-        'experimental_bearer_token="POE_API_KEY"',
+        'env_key="OPENAI_API_KEY"',
+        'experimental_bearer_token="OPENAI_API_KEY"',
         "",
         "[features]",
         "foo = true",
@@ -891,7 +883,7 @@ describe("kimi service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    apiKey: "sk-test",
+    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
     model: DEFAULT_KIMI_MODEL,
     ...overrides
   });
@@ -1228,7 +1220,7 @@ describe("opencode service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    apiKey: "sk-test",
+    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
     model: DEFAULT_FRONTIER_MODEL,
     ...overrides
   });
@@ -1581,7 +1573,7 @@ describe("goose service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    apiKey: "sk-goose",
+    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-goose", extraEnv: {} },
     model: DEFAULT_GOOSE_MODEL,
     modelContextLimits: buildGooseModelContextLimitsFixture(),
     ...overrides
@@ -1613,7 +1605,7 @@ describe("goose service", () => {
     >;
     expect(provider.name).toBe("custom_poe");
     expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
-    expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
+    expect(provider.api_key_env).toBe("CUSTOM_PROVIDER_API_KEY");
     expect(provider.headers).toBeUndefined();
     expect(provider.models).toEqual(buildCustomProviderModelsFixture());
 
@@ -1622,7 +1614,7 @@ describe("goose service", () => {
       unknown
     >;
     expect(secrets).toEqual({
-      CUSTOM_POE_API_KEY: "sk-goose"
+      CUSTOM_PROVIDER_API_KEY: "sk-goose"
     });
   });
 
@@ -1647,16 +1639,10 @@ describe("goose service", () => {
     ).toBe(true);
   });
 
-  it("writes the custom provider against the configured Poe API base URL", async () => {
-    env = createCliEnvironment({
-      cwd: home,
-      homeDir: home,
-      variables: {
-        POE_BASE_URL: "https://proxy.example.test/gateway"
-      }
+  it("uses provider.baseUrl when building the custom provider config", async () => {
+    await configureGoose({
+      provider: { id: "poe", baseUrl: "https://proxy.example.test/gateway", credential: "sk-goose", extraEnv: {} }
     });
-
-    await configureGoose();
 
     const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
       string,
@@ -1774,7 +1760,7 @@ describe("goose service", () => {
     );
     await mockFsObj.writeFile(
       secretsPath,
-      ["CUSTOM_POE_API_KEY: sk-goose", "OPENAI_API_KEY: openai-key"].join("\n"),
+      ["CUSTOM_PROVIDER_API_KEY: sk-goose", "OPENAI_API_KEY: openai-key"].join("\n"),
       { encoding: "utf8" }
     );
 
@@ -1991,7 +1977,7 @@ function buildCustomProviderFixture(): Record<string, unknown> {
     engine: "openai",
     display_name: "Poe",
     description: "Poe OpenAI-compatible API",
-    api_key_env: "CUSTOM_POE_API_KEY",
+    api_key_env: "CUSTOM_PROVIDER_API_KEY",
     base_url: "https://api.poe.com/v1/chat/completions",
     models: buildCustomProviderModelsFixture(),
     supports_streaming: true,

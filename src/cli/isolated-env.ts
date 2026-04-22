@@ -5,12 +5,13 @@ import type { FileSystem } from "../utils/file-system.js";
 import type {
   IsolatedCliSettings,
   IsolatedEnvPath,
-  IsolatedEnvPoeApiKey,
-  IsolatedEnvPoeBaseUrl,
+  IsolatedEnvProviderCredential,
+  IsolatedEnvProviderBaseUrl,
   IsolatedEnvVariable,
   IsolatedEnvValue,
   ProviderIsolatedEnv
 } from "./service-registry.js";
+import type { ActiveProvider } from "./commands/shared.js";
 import type { CliSettings } from "../utils/cli-settings-merge.js";
 
 export interface IsolatedEnvDetails {
@@ -23,7 +24,7 @@ export async function resolveIsolatedEnvDetails(
   env: CliEnvironment,
   isolated: ProviderIsolatedEnv,
   providerName?: string,
-  readApiKey?: () => Promise<string | null>
+  activeProvider?: ActiveProvider
 ): Promise<IsolatedEnvDetails> {
   if (!providerName) {
     throw new Error("resolveIsolatedEnvDetails requires providerName.");
@@ -37,7 +38,7 @@ export async function resolveIsolatedEnvDetails(
   }
   return {
     agentBinary: isolated.agentBinary,
-    env: await resolveIsolatedEnvVars(env, baseDir, isolated.env, readApiKey),
+    env: await resolveIsolatedEnvVars(env, baseDir, isolated.env, activeProvider),
     configProbePath: isolated.configProbe
       ? resolveIsolatedEnvPath(env, baseDir, isolated.configProbe)
       : undefined
@@ -83,11 +84,11 @@ async function resolveIsolatedEnvVars(
   env: CliEnvironment,
   baseDir: string,
   vars: Record<string, IsolatedEnvValue>,
-  readApiKey?: () => Promise<string | null>
+  activeProvider?: ActiveProvider
 ): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(vars)) {
-    out[key] = await resolveIsolatedEnvValue(env, baseDir, value, readApiKey);
+    out[key] = await resolveIsolatedEnvValue(env, baseDir, value, activeProvider);
   }
   return out;
 }
@@ -96,7 +97,7 @@ async function resolveIsolatedEnvValue(
   env: CliEnvironment,
   baseDir: string,
   value: IsolatedEnvValue,
-  readApiKey?: () => Promise<string | null>
+  activeProvider?: ActiveProvider
 ): Promise<string> {
   if (typeof value === "string") {
     return expandHomeShortcut(env, value);
@@ -110,20 +111,17 @@ async function resolveIsolatedEnvValue(
     }
     return resolved;
   }
-  if (isPoeApiKeyReference(value)) {
-    const resolved = env.getVariable("POE_API_KEY");
-    if (typeof resolved === "string" && resolved.trim().length > 0) {
-      return resolved;
+  if (isProviderCredentialReference(value)) {
+    if (!activeProvider) {
+      throw new Error('Cannot resolve "providerCredential": no active provider on context.');
     }
-    if (!readApiKey) {
-      throw new Error(
-        'Missing Poe API key for isolated wrapper. Set "POE_API_KEY" or run "poe-code login".'
-      );
-    }
-    return await resolvePoeApiKeyFromAuthStore(readApiKey);
+    return activeProvider.credential;
   }
-  if (isPoeBaseUrlReference(value)) {
-    return env.poeBaseUrl;
+  if (isProviderBaseUrlReference(value)) {
+    if (!activeProvider) {
+      throw new Error('Cannot resolve "providerBaseUrl": no active provider on context.');
+    }
+    return activeProvider.baseUrl;
   }
   if (value.kind === "isolatedDir" || value.kind === "isolatedFile") {
     return resolveIsolatedEnvPath(env, baseDir, value);
@@ -150,26 +148,16 @@ function isEnvVarReference(value: IsolatedEnvValue): value is IsolatedEnvVariabl
   return typeof value === "object" && value.kind === "envVar";
 }
 
-function isPoeApiKeyReference(value: IsolatedEnvValue): value is IsolatedEnvPoeApiKey {
-  return typeof value === "object" && value.kind === "poeApiKey";
-}
-
-function isPoeBaseUrlReference(
+function isProviderCredentialReference(
   value: IsolatedEnvValue
-): value is IsolatedEnvPoeBaseUrl {
-  return typeof value === "object" && value.kind === "poeBaseUrl";
+): value is IsolatedEnvProviderCredential {
+  return typeof value === "object" && value.kind === "providerCredential";
 }
 
-async function resolvePoeApiKeyFromAuthStore(
-  readApiKey: () => Promise<string | null>
-): Promise<string> {
-  const stored = await readApiKey();
-  if (typeof stored !== "string" || stored.trim().length === 0) {
-    throw new Error(
-      'Missing Poe API key for isolated wrapper. Set "POE_API_KEY" or run "poe-code login".'
-    );
-  }
-  return stored;
+function isProviderBaseUrlReference(
+  value: IsolatedEnvValue
+): value is IsolatedEnvProviderBaseUrl {
+  return typeof value === "object" && value.kind === "providerBaseUrl";
 }
 
 export async function isolatedConfigExists(
@@ -222,14 +210,14 @@ export async function applyIsolatedEnvRepairs(input: {
 export async function resolveCliSettings(
   cliSettings: IsolatedCliSettings,
   env: CliEnvironment,
-  readApiKey?: () => Promise<string | null>
+  activeProvider?: ActiveProvider
 ): Promise<CliSettings> {
   const result: CliSettings = { ...cliSettings.values };
 
   // Resolve top-level settings
   if (cliSettings.resolved) {
     for (const [key, value] of Object.entries(cliSettings.resolved)) {
-      result[key] = await resolveCliSettingValue(value, env, readApiKey);
+      result[key] = await resolveCliSettingValue(value, env, activeProvider);
     }
   }
 
@@ -240,7 +228,7 @@ export async function resolveCliSettings(
       if (typeof value === "string") {
         resolvedEnv[key] = value;
       } else {
-        resolvedEnv[key] = await resolveCliSettingValue(value, env, readApiKey);
+        resolvedEnv[key] = await resolveCliSettingValue(value, env, activeProvider);
       }
     }
     result.env = resolvedEnv;
@@ -250,24 +238,21 @@ export async function resolveCliSettings(
 }
 
 async function resolveCliSettingValue(
-  value: IsolatedEnvPoeApiKey | IsolatedEnvPoeBaseUrl,
+  value: IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl,
   env: CliEnvironment,
-  readApiKey?: () => Promise<string | null>
+  activeProvider?: ActiveProvider
 ): Promise<string> {
-  if (isPoeApiKeyReference(value)) {
-    const resolved = env.getVariable("POE_API_KEY");
-    if (typeof resolved === "string" && resolved.trim().length > 0) {
-      return resolved;
+  if (isProviderCredentialReference(value)) {
+    if (!activeProvider) {
+      throw new Error('Cannot resolve "providerCredential": no active provider on context.');
     }
-    if (readApiKey) {
-      return await resolvePoeApiKeyFromAuthStore(readApiKey);
-    }
-    throw new Error(
-      'Missing Poe API key for CLI settings. Set "POE_API_KEY" or run "poe-code login".'
-    );
+    return activeProvider.credential;
   }
-  if (isPoeBaseUrlReference(value)) {
-    return env.poeBaseUrl;
+  if (isProviderBaseUrlReference(value)) {
+    if (!activeProvider) {
+      throw new Error('Cannot resolve "providerBaseUrl": no active provider on context.');
+    }
+    return activeProvider.baseUrl;
   }
   throw new Error("Unsupported CLI setting value type.");
 }

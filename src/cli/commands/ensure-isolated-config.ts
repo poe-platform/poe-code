@@ -12,9 +12,8 @@ import {
 } from "../isolated-env.js";
 import { createConfigurePayload } from "./configure-payload.js";
 import type { ConfigureCommandOptions } from "./configure.js";
-import {
-  createMutationReporter
-} from "../../services/mutation-events.js";
+import { createMutationReporter } from "../../services/mutation-events.js";
+import { loadConfiguredServices } from "../../services/config.js";
 
 export async function ensureIsolatedConfigForService(input: {
   container: CliContainer;
@@ -45,8 +44,7 @@ export async function ensureIsolatedConfigForService(input: {
   const details = await resolveIsolatedEnvDetails(
     container.env,
     isolated,
-    adapter.name,
-    container.readApiKey
+    adapter.name
   );
   const hasConfig = await isolatedConfigExists(
     container.fs,
@@ -56,13 +54,19 @@ export async function ensureIsolatedConfigForService(input: {
     return;
   }
 
+  const providerId = await resolveIsolatedServiceProvider(container, canonicalService);
+  if (!providerId) {
+    return;
+  }
+
   const payload = await createConfigurePayload({
     container,
     flags: { ...flags, assumeYes: true },
     options: input.options ?? {},
     context: providerContext,
     adapter,
-    logger: resources.logger
+    logger: resources.logger,
+    providerId
   });
 
   await container.registry.invoke(canonicalService, "configure", async (entry) => {
@@ -91,4 +95,24 @@ export async function ensureIsolatedConfigForService(input: {
       );
     }
   }
+}
+
+async function resolveIsolatedServiceProvider(
+  container: CliContainer,
+  serviceName: string
+): Promise<string | undefined> {
+  const configuredServices = await loadConfiguredServices({
+    fs: container.fs,
+    filePath: container.env.configPath,
+    projectFilePath: container.env.projectConfigPath
+  });
+  const metadata = configuredServices[serviceName];
+  if (metadata?.provider) {
+    return metadata.provider;
+  }
+  const providers = container.providerRegistry.list();
+  if (providers.length === 1) {
+    return providers[0]!.id;
+  }
+  return undefined;
 }

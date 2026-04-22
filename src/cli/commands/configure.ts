@@ -9,7 +9,8 @@ import {
   resolveCommandFlags,
   resolveDefaultAgent,
   resolveServiceAdapter,
-  applyIsolatedConfiguration
+  applyIsolatedConfiguration,
+  type CommandFlags
 } from "./shared.js";
 import { saveConfiguredService } from "../../services/config.js";
 import { OperationCancelledError } from "../errors.js";
@@ -19,7 +20,6 @@ import {
 } from "../../services/mutation-events.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { createConfigurePayload } from "./configure-payload.js";
-import type { ProviderService } from "../service-registry.js";
 
 const serviceSelectionPrompt = (action: string) => `Pick an agent to ${action}:`;
 const DEFAULT_SERVICE_AGENT = "claude-code";
@@ -28,6 +28,7 @@ export interface ConfigureCommandOptions {
   apiKey?: string;
   model?: string;
   reasoningEffort?: string;
+  provider?: string;
 }
 
 export function registerConfigureCommand(program: Command, container: CliContainer): Command {
@@ -42,6 +43,7 @@ export function registerConfigureCommand(program: Command, container: CliContain
     .option("--api-key <key>", "Poe API key")
     .option("--model <model>", "Model identifier")
     .option("--reasoning-effort <level>", "Reasoning effort level")
+    .option("--provider <id>", "Provider to use for this agent")
     .action(async (service: string | undefined, options: ConfigureCommandOptions) => {
       const resolved = await resolveServiceArgument(program, container, service, {
         action: "configure"
@@ -65,6 +67,8 @@ export async function executeConfigure(
 
   resources.logger.intro(`configure ${canonicalService}`);
 
+  const providerId = await resolveProvider(canonicalService, options, container, flags);
+
   const providerContext = buildProviderContext(container, adapter, resources);
 
   const payload = await createConfigurePayload({
@@ -73,7 +77,8 @@ export async function executeConfigure(
     options,
     context: providerContext,
     adapter,
-    logger: resources.logger
+    logger: resources.logger,
+    providerId
   });
 
   await container.registry.invoke(canonicalService, "configure", async (entry) => {
@@ -105,7 +110,8 @@ export async function executeConfigure(
         projectFilePath: providerContext.env.projectConfigPath,
         service: canonicalService,
         metadata: {
-          files: tracker.files()
+          files: tracker.files(),
+          provider: providerId
         }
       });
     }
@@ -126,22 +132,68 @@ export async function executeConfigure(
     }
   });
 
-  const dryMessage =
-    canonicalService === "claude-code"
-      ? `${adapter.label} (dry run)`
-      : `Dry run: would configure ${adapter.label}.`;
-
   resources.context.complete({
     success: `Configured ${adapter.label}.`,
-    dry: dryMessage
+    dry: `Dry run: would configure ${adapter.label}.`
   });
 
   if (!flags.dryRun) {
-    const postMessages = resolvePostConfigureMessages(adapter);
-    resources.logger.nextSteps(postMessages);
+    resources.logger.nextSteps(adapter.postConfigureMessages ?? []);
   }
 
   resources.context.finalize();
+}
+
+async function resolveProvider(
+  agentId: string,
+  options: Pick<ConfigureCommandOptions, "provider">,
+  container: CliContainer,
+  flags: CommandFlags
+): Promise<string> {
+  if (options.provider) {
+    return options.provider;
+  }
+
+  const envProvider = container.env.getVariable("POE_CODE_PROVIDER");
+  if (envProvider) {
+    return envProvider;
+  }
+
+  const candidates = container.providerRegistry.forAgent(agentId);
+  const loggedIn: typeof candidates[number][] = [];
+  for (const candidate of candidates) {
+    if (await container.providerRegistry.isLoggedIn(candidate.id)) {
+      loggedIn.push(candidate);
+    }
+  }
+
+  if (loggedIn.length === 0) {
+    throw new Error(
+      `No logged-in providers support agent "${agentId}". Run \`poe-code provider login\` to authenticate.`
+    );
+  }
+
+  if (loggedIn.length === 1) {
+    return loggedIn[0]!.id;
+  }
+
+  if (flags.assumeYes) {
+    throw new Error(
+      `Multiple providers support "${agentId}". Use --provider <id> to select one.`
+    );
+  }
+
+  const choices = loggedIn.map((p) => ({ title: p.label, value: p.id }));
+  const descriptor = container.promptLibrary.serviceSelection({
+    message: `Which provider powers ${agentId}?`,
+    choices
+  });
+  const response = await container.prompts(descriptor);
+  const selected = response[descriptor.name];
+  if (typeof selected !== "string") {
+    throw new OperationCancelledError();
+  }
+  return selected;
 }
 
 function createMutationTracker(): {
@@ -167,10 +219,6 @@ function createMutationTracker(): {
       return Array.from(targets).sort();
     }
   };
-}
-
-function resolvePostConfigureMessages(provider: ProviderService): string[] {
-  return provider.postConfigureMessages ?? [];
 }
 
 export async function resolveServiceArgument(

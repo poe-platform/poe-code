@@ -23,6 +23,7 @@ export interface SaveConfigOptions extends ConfigStoreOptions {
 
 export interface ConfiguredServiceMetadata {
   files: string[];
+  provider: string;
 }
 
 interface LegacyConfigDocument {
@@ -162,6 +163,7 @@ export async function loadConfiguredServices(
 ): Promise<Record<string, ConfiguredServiceMetadata>> {
   const { fs, filePath, projectFilePath } = options;
   await migrateLegacyCredentialsIfNeeded(fs, filePath);
+  await migrateServicesProviderIfNeeded(fs, filePath);
 
   const document = await readMergedDocument(fs, filePath, projectFilePath);
   return normalizeConfiguredServices(document[configuredServicesScope]);
@@ -210,7 +212,32 @@ function normalizeConfiguredServiceMetadata(
     }
   }
 
-  return { files };
+  return { files, provider: metadata.provider };
+}
+
+async function migrateServicesProviderIfNeeded(fs: FileSystem, filePath: string): Promise<void> {
+  const document = await readDocument(fs, filePath);
+  const rawServices = document[configuredServicesScope];
+  if (!isRecord(rawServices)) {
+    return;
+  }
+
+  let needsMigration = false;
+  const migrated: Record<string, unknown> = {};
+
+  for (const [k, entry] of Object.entries(rawServices)) {
+    if (!isRecord(entry)) continue;
+    if (typeof entry.provider !== "string") {
+      needsMigration = true;
+      migrated[k] = { ...entry, provider: "poe" };
+    } else {
+      migrated[k] = entry;
+    }
+  }
+
+  if (needsMigration) {
+    await writeScope(fs, filePath, configuredServicesScope, migrated);
+  }
 }
 
 async function migrateLegacyConfigIfNeeded(fs: FileSystem, filePath: string): Promise<void> {
@@ -317,7 +344,8 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
     }
 
     entries[key] = normalizeConfiguredServiceMetadata({
-      files: Array.isArray(entry.files) ? entry.files : []
+      files: Array.isArray(entry.files) ? entry.files : [],
+      provider: typeof entry.provider === "string" ? entry.provider : "poe"
     });
   }
 

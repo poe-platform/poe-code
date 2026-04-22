@@ -17,8 +17,7 @@ export async function isolatedEnvRunner(input: {
   const details = await resolveIsolatedEnvDetails(
     input.env,
     input.isolated,
-    input.providerName,
-    input.readApiKey
+    input.providerName
   );
   let args = input.argv.slice(2);
 
@@ -35,8 +34,7 @@ export async function isolatedEnvRunner(input: {
   if (input.isolated.cliSettings) {
     const resolvedSettings = await resolveCliSettings(
       input.isolated.cliSettings,
-      input.env,
-      input.readApiKey
+      input.env
     );
     args = buildArgsWithMergedSettings(args, resolvedSettings);
   }

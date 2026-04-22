@@ -21,6 +21,7 @@ import {
 import type { HttpClient } from "./http.js";
 import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";
+import { ProviderRegistry, poeProvider } from "@poe-code/providers";
 import { createPoeCodeCommandRunner } from "./poe-code-command-runner.js";
 import { OperationCancelledError } from "./errors.js";
 import { resolveApiKeyViaOAuth } from "./oauth-login.js";
@@ -51,6 +52,7 @@ export interface CliContainer {
   readonly options: OptionResolvers;
   readonly contextFactory: CommandContextFactory;
   readonly registry: ReturnType<typeof createServiceRegistry>;
+  readonly providerRegistry: ProviderRegistry;
   readonly httpClient: HttpClient;
   readonly commandRunner: CommandRunner;
   readonly providers: ProviderService[];
@@ -162,6 +164,8 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
 
   const registry = createServiceRegistry();
 
+  const providerRegistry = new ProviderRegistry([poeProvider], (_id) => authStore);
+
   const providers = getDefaultProviders().filter((adapter) => !adapter.disabled);
   for (const adapter of providers) {
     registry.register(adapter);
@@ -183,6 +187,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
     options,
     contextFactory,
     registry,
+    providerRegistry,
     httpClient,
     commandRunner: wrappedRunner,
     providers,

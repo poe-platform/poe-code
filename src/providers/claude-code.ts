@@ -16,10 +16,11 @@ import { createProvider } from "./create-provider.js";
 import type { CliEnvironment } from "../cli/environment.js";
 import type { ModelConfigureOptions } from "./spawn-options.js";
 import { claudeCodeAgent } from "@poe-code/agent-defs";
+import type { ActiveProvider } from "../cli/commands/shared.js";
 
 type ClaudeCodeConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
-  apiKey: string;
+  provider: ActiveProvider;
 };
 
 type ClaudeCodeUnconfigureContext = {
@@ -73,15 +74,15 @@ export const claudeCodeService = createProvider<
   isolatedEnv: {
     agentBinary: claudeCodeAgent.binaryName!,
     env: {
-      POE_API_KEY: { kind: "poeApiKey" }
+      POE_CODE_API_KEY: { kind: "providerCredential" }
     },
     requiresConfig: false,
     cliSettings: {
       values: {
-        apiKeyHelper: "echo $POE_API_KEY"
+        apiKeyHelper: "echo $POE_CODE_API_KEY"
       },
       env: {
-        ANTHROPIC_BASE_URL: { kind: "poeBaseUrl" }
+        ANTHROPIC_BASE_URL: { kind: "providerBaseUrl" }
       }
     }
   },
@@ -101,9 +102,9 @@ export const claudeCodeService = createProvider<
         value: (ctx) => {
           const options = ctx as unknown as ClaudeCodeConfigureContext;
           return {
-            apiKeyHelper: `echo ${options.apiKey}`,
+            apiKeyHelper: `echo ${options.provider?.credential}`,
             env: {
-              ANTHROPIC_BASE_URL: options.env.poeBaseUrl
+              ANTHROPIC_BASE_URL: options.provider?.baseUrl
             },
             model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL).replaceAll(".", "-")
           };

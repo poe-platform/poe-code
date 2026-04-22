@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import type { ProviderContext } from "../service-registry.js";
-import { unconfigureService } from "../../services/config.js";
+import { unconfigureService, loadConfiguredServices } from "../../services/config.js";
 import { createMutationReporter } from "../../services/mutation-events.js";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
 import {
@@ -125,8 +125,17 @@ interface UnconfigurePayloadInit {
 }
 
 async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<unknown> {
-  const { context } = init;
-  return { env: context.env };
+  const { context, container, service } = init;
+  const configuredServices = await loadConfiguredServices({
+    fs: container.fs,
+    filePath: context.env.configPath,
+    projectFilePath: context.env.projectConfigPath
+  });
+  const metadata = configuredServices[service];
+  return {
+    env: context.env,
+    ...(metadata ? { provider: { id: metadata.provider } } : {})
+  };
 }
 
 function formatUnconfigureMessages(

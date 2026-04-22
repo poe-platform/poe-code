@@ -19,10 +19,11 @@ import {
   stripModelNamespace
 } from "../cli/constants.js";
 import { codexAgent } from "@poe-code/agent-defs";
+import type { ActiveProvider } from "../cli/commands/shared.js";
 
 type CodexConfigureContext = {
   env: CliEnvironment;
-  apiKey: string;
+  provider: ActiveProvider;
   model: string;
   reasoningEffort: string;
   timestamp?: () => string;
@@ -30,9 +31,8 @@ type CodexConfigureContext = {
 
 type CodexUnconfigureContext = {
   env: CliEnvironment;
+  provider?: { id: string };
 };
-
-const CODEX_PROVIDER_ID = "poe";
 
 const PROFILE_KEYWORDS = ["opus", "sonnet", "haiku", "codex", "pro"] as const;
 
@@ -63,17 +63,46 @@ export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
   successMessage: "Installed Codex CLI via npm."
 };
 
+function deriveProviderIdFromDocument(document: ConfigObject): string | undefined {
+  if (typeof document["model_provider"] === "string") {
+    return document["model_provider"] as string;
+  }
+  const profiles = document["profiles"];
+  if (isConfigObject(profiles)) {
+    for (const name of Object.keys(profiles)) {
+      const profile = profiles[name];
+      if (isConfigObject(profile) && typeof profile["model_provider"] === "string") {
+        return profile["model_provider"] as string;
+      }
+    }
+  }
+  const providers = document["model_providers"];
+  if (isConfigObject(providers)) {
+    const keys = Object.keys(providers);
+    if (keys.length > 0) {
+      return keys[0]!;
+    }
+  }
+  return undefined;
+}
+
 function stripCodexConfiguration(
-  document: ConfigObject
+  document: ConfigObject,
+  providerId?: string
 ): { changed: boolean; empty: boolean } {
   if (!isConfigObject(document)) {
     return { changed: false, empty: false };
   }
 
+  const id = providerId ?? deriveProviderIdFromDocument(document);
+  if (!id) {
+    return { changed: false, empty: false };
+  }
+
   let changed = false;
 
-  // Handle flat (legacy) config: top-level model_provider = "poe"
-  if (document["model_provider"] === CODEX_PROVIDER_ID) {
+  // Handle flat (legacy) config: top-level model_provider matches provider
+  if (document["model_provider"] === id) {
     delete document["model_provider"];
     delete document["model"];
     delete document["model_reasoning_effort"];
@@ -86,7 +115,7 @@ function stripCodexConfiguration(
   if (isConfigObject(profiles)) {
     for (const name of Object.keys(profiles)) {
       const profile = profiles[name];
-      if (isConfigObject(profile) && profile["model_provider"] === CODEX_PROVIDER_ID) {
+      if (isConfigObject(profile) && profile["model_provider"] === id) {
         delete profiles[name];
         changed = true;
       }
@@ -96,10 +125,10 @@ function stripCodexConfiguration(
     }
   }
 
-  // Clean up model_providers.poe
+  // Clean up model_providers entry for this provider
   const providers = document["model_providers"];
-  if (isConfigObject(providers) && CODEX_PROVIDER_ID in providers) {
-    delete providers[CODEX_PROVIDER_ID];
+  if (isConfigObject(providers) && id in providers) {
+    delete providers[id];
     if (isTableEmpty(providers)) {
       delete document["model_providers"];
     }
@@ -158,8 +187,9 @@ export const codexService = createProvider<
       fileMutation.backup({ target: "~/.codex/config.toml" }),
       configMutation.transform({
         target: "~/.codex/config.toml",
-        transform: (document) => {
-          const result = stripCodexConfiguration(document as ConfigObject);
+        transform: (document, ctx) => {
+          const options = ctx as unknown as CodexConfigureContext;
+          const result = stripCodexConfiguration(document as ConfigObject, options.provider?.id);
           return { changed: result.changed, content: result.empty ? null : document };
         }
       }),
@@ -170,8 +200,8 @@ export const codexService = createProvider<
           const options = ctx as unknown as CodexConfigureContext;
           const model = options.model ?? DEFAULT_CODEX_MODEL;
           return {
-            apiKey: options.apiKey,
-            baseUrl: options.env.poeApiBaseUrl,
+            apiKey: options.provider?.credential,
+            baseUrl: (options.provider?.baseUrl ?? "") + "/v1",
             model: stripModelNamespace(model),
             reasoningEffort: options.reasoningEffort,
             profileName: deriveCodexProfileName(model)
@@ -182,8 +212,9 @@ export const codexService = createProvider<
     unconfigure: [
       configMutation.transform({
         target: "~/.codex/config.toml",
-        transform: (document) => {
-          const result = stripCodexConfiguration(document as ConfigObject);
+        transform: (document, ctx) => {
+          const options = ctx as unknown as CodexUnconfigureContext;
+          const result = stripCodexConfiguration(document as ConfigObject, options.provider?.id);
           if (!result.changed) {
             return { changed: false, content: document };
           }

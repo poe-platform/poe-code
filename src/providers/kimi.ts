@@ -16,6 +16,7 @@ import type {
   EmptyProviderOptions
 } from "./spawn-options.js";
 import { kimiAgent } from "@poe-code/agent-defs";
+import type { ActiveProvider } from "../cli/commands/shared.js";
 
 export const KIMI_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "kimi",
@@ -94,10 +95,9 @@ export const kimiService = createProvider<
         target: "~/.kimi/config.toml",
         pruneByPrefix: { models: `${PROVIDER_NAME}/` },
         value: (ctx) => {
-          const { model, apiKey, env } = (ctx ?? {}) as {
+          const { model, provider } = (ctx ?? {}) as {
             model?: string;
-            apiKey?: string;
-            env: { poeApiBaseUrl: string };
+            provider?: ActiveProvider;
           };
           const selectedModel = model ?? DEFAULT_KIMI_MODEL;
 
@@ -117,8 +117,8 @@ export const kimiService = createProvider<
             providers: {
               [PROVIDER_NAME]: {
                 type: "openai_legacy",
-                base_url: env.poeApiBaseUrl,
-                api_key: apiKey ?? ""
+                base_url: (provider?.baseUrl ?? "") + "/v1",
+                api_key: provider?.credential ?? ""
               }
             }
           };

@@ -133,7 +133,8 @@ describe("config store", () => {
         files: [
           "/home/user/.config/opencode/config.json",
           "/home/user/.local/share/opencode/auth.json"
-        ]
+        ],
+        provider: "poe"
       }
     });
 
@@ -147,7 +148,8 @@ describe("config store", () => {
         files: [
           "/home/user/.config/opencode/config.json",
           "/home/user/.local/share/opencode/auth.json"
-        ]
+        ],
+        provider: "poe"
       }
     });
   });
@@ -158,7 +160,8 @@ describe("config store", () => {
       filePath: configPath,
       service: "claude-code",
       metadata: {
-        files: ["/home/user/.claude/settings.json"]
+        files: ["/home/user/.claude/settings.json"],
+        provider: "poe"
       }
     });
 
@@ -191,7 +194,9 @@ describe("config store", () => {
       filePath: configPath
     });
 
-    expect(services).toEqual(data.configured_services);
+    expect(services).toEqual({
+      codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" }
+    });
 
     await expect(fs.readFile(configPath, "utf8")).resolves.toBeDefined();
     await expect(fs.readFile(legacyPath, "utf8")).rejects.toThrow();
@@ -242,6 +247,45 @@ describe("config store", () => {
     ).resolves.toBe("project-key");
   });
 
+  it("tags service entries missing provider with 'poe' on load and rewrites the file", async () => {
+    const initial = {
+      configured_services: {
+        "claude-code": { files: ["/home/user/.claude/settings.json"] },
+        codex: { files: ["/home/user/.codex/config.toml"] }
+      }
+    };
+    await fs.writeFile(configPath, JSON.stringify(initial, null, 2), { encoding: "utf8" });
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+
+    expect(services).toEqual({
+      "claude-code": { files: ["/home/user/.claude/settings.json"], provider: "poe" },
+      codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" }
+    });
+    const saved = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(saved.configured_services["claude-code"].provider).toBe("poe");
+    expect(saved.configured_services.codex.provider).toBe("poe");
+  });
+
+  it("leaves provider fields unchanged when already set", async () => {
+    const initial = {
+      configured_services: {
+        "claude-code": { files: ["/home/user/.claude/settings.json"], provider: "anthropic" },
+        codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" }
+      }
+    };
+    await fs.writeFile(configPath, JSON.stringify(initial, null, 2), { encoding: "utf8" });
+    const contentBefore = await fs.readFile(configPath, "utf8");
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+
+    expect(services).toEqual({
+      "claude-code": { files: ["/home/user/.claude/settings.json"], provider: "anthropic" },
+      codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" }
+    });
+    expect(await fs.readFile(configPath, "utf8")).toBe(contentBefore);
+  });
+
   it("merges configured services from global and project config", async () => {
     await fs.writeFile(
       configPath,
@@ -278,8 +322,8 @@ describe("config store", () => {
         projectFilePath: projectConfigPath
       })
     ).resolves.toEqual({
-      codex: { files: ["/home/user/.codex/config.toml"] },
-      claude: { files: ["/home/user/.claude/settings.json"] }
+      codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" },
+      claude: { files: ["/home/user/.claude/settings.json"], provider: "poe" }
     });
   });
 
@@ -305,14 +349,16 @@ describe("config store", () => {
       projectFilePath: projectConfigPath,
       service: "claude-code",
       metadata: {
-        files: ["/home/user/.claude/settings.json"]
+        files: ["/home/user/.claude/settings.json"],
+        provider: "poe"
       }
     });
 
     expect(JSON.parse(await fs.readFile(configPath, "utf8"))).toEqual({
       configured_services: {
         "claude-code": {
-          files: ["/home/user/.claude/settings.json"]
+          files: ["/home/user/.claude/settings.json"],
+          provider: "poe"
         }
       }
     });

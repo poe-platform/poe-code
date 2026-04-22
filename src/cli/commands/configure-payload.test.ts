@@ -1,0 +1,92 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createConfigurePayload } from "./configure-payload.js";
+import { createCliContainer } from "../container.js";
+import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
+import { createExecutionResources, buildProviderContext, type CommandFlags } from "./shared.js";
+import type { FileSystem } from "../../utils/file-system.js";
+
+const cwd = "/repo";
+const homeDir = "/home/test";
+
+const defaultFlags: CommandFlags = { dryRun: false, assumeYes: true, verbose: false };
+
+function createContainer(fs: FileSystem) {
+  return createCliContainer({
+    fs,
+    prompts: vi.fn().mockResolvedValue({}),
+    env: { cwd, homeDir },
+    logger: () => {}
+  });
+}
+
+describe("createConfigurePayload — ActiveProvider fields", () => {
+  let fs: FileSystem;
+
+  beforeEach(() => {
+    fs = createHomeFs(homeDir);
+    createTestProgram();
+  });
+
+  it("sets provider.id to the given providerId", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: {},
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "test-provider"
+    }) as Record<string, unknown>;
+
+    expect((payload.provider as Record<string, unknown>).id).toBe("test-provider");
+  });
+
+  it("sets provider.credential to the resolved API key", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-resolved-key");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: {},
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    }) as Record<string, unknown>;
+
+    expect((payload.provider as Record<string, unknown>).credential).toBe("sk-resolved-key");
+  });
+
+  it("sets provider.baseUrl from the provider registry", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: {},
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    }) as Record<string, unknown>;
+
+    expect((payload.provider as Record<string, unknown>).baseUrl).toBe(container.providerRegistry.get("poe")!.baseUrl);
+  });
+});

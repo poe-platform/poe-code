@@ -2,7 +2,7 @@ import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
 import type { ProviderContext, ProviderService } from "../service-registry.js";
-import type { CommandFlags } from "./shared.js";
+import { buildActiveProvider, type ActiveProvider, type CommandFlags } from "./shared.js";
 import type { ConfigureCommandOptions } from "./configure.js";
 
 interface ConfigurePayloadInit {
@@ -12,12 +12,13 @@ interface ConfigurePayloadInit {
   context: ProviderContext;
   adapter: ProviderService;
   logger: ScopedLogger;
+  providerId: string;
 }
 
 export async function createConfigurePayload(
   init: ConfigurePayloadInit
 ): Promise<unknown> {
-  const { container, flags, options, context, adapter, logger } = init;
+  const { container, flags, options, context, adapter, logger, providerId } = init;
 
   const apiKey = await container.options.resolveApiKey({
     value: options.apiKey,
@@ -25,7 +26,10 @@ export async function createConfigurePayload(
     dryRun: flags.dryRun,
     assumeYes: flags.assumeYes
   });
-  const payload: Record<string, unknown> = { env: context.env, apiKey };
+
+  const activeProvider: ActiveProvider = buildActiveProvider(providerId, container.providerRegistry.get(providerId)?.baseUrl ?? "", apiKey);
+
+  const payload: Record<string, unknown> = { env: context.env, provider: activeProvider };
 
   const modelPrompt = adapter.configurePrompts?.model;
   if (modelPrompt) {

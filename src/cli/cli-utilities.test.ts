@@ -338,7 +338,7 @@ describe("poe-code command runner", () => {
       expect.arrayContaining(["-p", "Say hi", "--settings"]),
       expect.objectContaining({
         env: expect.objectContaining({
-          POE_API_KEY: "sk-test"
+          POE_CODE_API_KEY: "sk-test"
         })
       })
     );
@@ -348,7 +348,7 @@ describe("poe-code command runner", () => {
     expect(settingsIdx).toBeGreaterThan(-1);
     const settingsJson = JSON.parse(callArgs[settingsIdx + 1]);
     expect(settingsJson).toEqual({
-      apiKeyHelper: "echo $POE_API_KEY",
+      apiKeyHelper: "echo $POE_CODE_API_KEY",
       env: { ANTHROPIC_BASE_URL: "https://api.poe.com" }
     });
 
@@ -402,7 +402,7 @@ describe("poe-code command runner", () => {
         })
       })
     );
-    expect((baseRunner.mock.calls[0]?.[2] as { env: Record<string, string> }).env.POE_API_KEY).toBe(
+    expect((baseRunner.mock.calls[0]?.[2] as { env: Record<string, string> }).env.POE_CODE_API_KEY).toBe(
       undefined
     );
 
@@ -410,7 +410,7 @@ describe("poe-code command runner", () => {
       await fs.readFile("/home/test/.poe-code/goose/.config/goose/secrets.yaml", "utf8")
     ) as Record<string, unknown>;
     expect(secrets).toEqual({
-      CUSTOM_POE_API_KEY: "sk-test"
+      CUSTOM_PROVIDER_API_KEY: "sk-test"
     });
 
     expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });

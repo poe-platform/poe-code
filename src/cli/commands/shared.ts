@@ -36,6 +36,21 @@ export interface CommandFlags {
   verbose: boolean;
 }
 
+export interface ActiveProvider {
+  id: string;
+  baseUrl: string;
+  credential: string;
+  extraEnv: Record<string, string>;
+}
+
+export function buildActiveProvider(
+  id: string,
+  baseUrl: string,
+  credential: string
+): ActiveProvider {
+  return { id, baseUrl, credential, extraEnv: {} };
+}
+
 export interface ExecutionResources {
   logger: ScopedLogger;
   context: CommandContext;

@@ -107,9 +107,15 @@ export interface IsolatedCliSettings {
   /** Static settings values */
   values: Record<string, unknown>;
   /** Top-level settings that need runtime resolution */
-  resolved?: Record<string, IsolatedEnvPoeApiKey | IsolatedEnvPoeBaseUrl>;
+  resolved?: Record<
+    string,
+    IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl
+  >;
   /** Environment variables to inject into settings.env (resolved at runtime) */
-  env?: Record<string, string | IsolatedEnvPoeApiKey | IsolatedEnvPoeBaseUrl>;
+  env?: Record<
+    string,
+    string | IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl
+  >;
 }
 
 export type IsolatedEnvRepair =
@@ -133,20 +139,20 @@ export type IsolatedEnvValue =
   | string
   | IsolatedEnvPath
   | IsolatedEnvVariable
-  | IsolatedEnvPoeApiKey
-  | IsolatedEnvPoeBaseUrl;
+  | IsolatedEnvProviderCredential
+  | IsolatedEnvProviderBaseUrl;
 
 export type IsolatedEnvVariable = {
   kind: "envVar";
   name: string;
 };
 
-export type IsolatedEnvPoeApiKey = {
-  kind: "poeApiKey";
+export type IsolatedEnvProviderCredential = {
+  kind: "providerCredential";
 };
 
-export type IsolatedEnvPoeBaseUrl = {
-  kind: "poeBaseUrl";
+export type IsolatedEnvProviderBaseUrl = {
+  kind: "providerBaseUrl";
 };
 
 export type ProviderOperation =

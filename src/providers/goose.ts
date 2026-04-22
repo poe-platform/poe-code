@@ -19,10 +19,11 @@ import {
 import type { ProviderSpawnOptions } from "./spawn-options.js";
 import { gooseAgent } from "@poe-code/agent-defs";
 import { serializeGooseMcpArgs } from "@poe-code/agent-spawn";
+import type { ActiveProvider } from "../cli/commands/shared.js";
 
 type GooseConfigureContext = {
   env: CliEnvironment;
-  apiKey: string;
+  provider: ActiveProvider;
   model?: string;
   modelContextLimits?: Record<string, number>;
 };
@@ -35,7 +36,7 @@ const CUSTOM_PROVIDER_ID = "custom_poe";
 const CUSTOM_PROVIDER_FILE = "~/.config/goose/custom_providers/custom_poe.json";
 const GOOSE_CONFIG_FILE = "~/.config/goose/config.yaml";
 const GOOSE_SECRETS_FILE = "~/.config/goose/secrets.yaml";
-const CUSTOM_PROVIDER_API_KEY_ENV = "CUSTOM_POE_API_KEY";
+const CUSTOM_PROVIDER_API_KEY_ENV = "CUSTOM_PROVIDER_API_KEY";
 const HEALTH_CHECK_PROMPT = "Reply with exactly: GOOSE_OK";
 type GooseModelsResponse = {
   data?: unknown;
@@ -107,6 +108,14 @@ function buildCustomProvider(
   };
 }
 
+const GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS: Record<string, number> = {
+  "anthropic/claude-opus-4.7": 200_000,
+  "anthropic/claude-sonnet-4.6": 200_000,
+  "openai/gpt-5.3-codex": 128_000,
+  "openai/gpt-5.4": 128_000,
+  "google/gemini-3.1-pro": 1_000_000
+};
+
 function resolveGooseModelContextLimit(
   model: string,
   modelContextLimits: Record<string, number>
@@ -115,6 +124,10 @@ function resolveGooseModelContextLimit(
   const dynamicValue = modelContextLimits[model] ?? modelContextLimits[stripped];
   if (typeof dynamicValue === "number" && Number.isFinite(dynamicValue) && dynamicValue > 0) {
     return dynamicValue;
+  }
+  const fallback = GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model];
+  if (typeof fallback === "number") {
+    return fallback;
   }
   throw new Error(`Missing Goose model context limit for ${model}.`);
 }
@@ -250,10 +263,10 @@ export const gooseService = createProvider<
     }
   },
   async extendConfigurePayload(context) {
-    const { apiKey } = context.payload as GooseConfigureContext;
+    const { provider } = context.payload as GooseConfigureContext;
     const modelContextLimits = await fetchGooseModelContextLimits({
-      apiBaseUrl: context.env.poeApiBaseUrl,
-      apiKey,
+      apiBaseUrl: (provider?.baseUrl ?? "") + "/v1",
+      apiKey: provider?.credential ?? "",
       httpClient: context.httpClient
     });
     return {
@@ -274,8 +287,8 @@ export const gooseService = createProvider<
       configMutation.merge({
         target: CUSTOM_PROVIDER_FILE,
         value: (ctx) => {
-          const { env, modelContextLimits } = (ctx ?? {}) as unknown as GooseConfigureContext;
-          return buildCustomProvider(env.poeApiBaseUrl, modelContextLimits);
+          const { provider, modelContextLimits } = (ctx ?? {}) as unknown as GooseConfigureContext;
+          return buildCustomProvider((provider?.baseUrl ?? "") + "/v1", modelContextLimits);
         }
       }),
       configMutation.merge({
@@ -294,9 +307,9 @@ export const gooseService = createProvider<
         target: GOOSE_SECRETS_FILE,
         format: "yaml",
         value: (ctx) => {
-          const { apiKey } = (ctx ?? {}) as unknown as GooseConfigureContext;
+          const { provider } = (ctx ?? {}) as unknown as GooseConfigureContext;
           return {
-            [CUSTOM_PROVIDER_API_KEY_ENV]: apiKey
+            [CUSTOM_PROVIDER_API_KEY_ENV]: provider?.credential
           };
         }
       })

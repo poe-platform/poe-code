@@ -902,6 +902,24 @@ describe("stats pane", () => {
     ]);
   });
 
+  it("statsToLines supports a custom iterations label", () => {
+    const stats: DashboardStats = {
+      status: "running",
+      iterations: 14,
+      iterationsLabel: "Tasks",
+      tokensIn: 12_430,
+      tokensOut: 5_982,
+      elapsedMs: 92_000
+    };
+
+    expect(statsToLines(stats, 25)[1]).toEqual({
+      prefix: "Tasks                  ",
+      prefixStyle: {},
+      style: {},
+      text: "14"
+    });
+  });
+
   it("statsToLines applies the expected status colors", () => {
     expect(
       statsToLines(
@@ -1358,6 +1376,32 @@ describe("createDashboard", () => {
       expect(screen[6]).toContain("45");
       expect(screen[9]).toContain("Current:");
       expect(screen[10]).toContain("Generating patch");
+
+      dashboard.stop();
+      dashboard.destroy();
+    });
+  });
+
+  it("re-renders the right pane with a custom iterations label", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout();
+      const dashboard = createDashboard({ stdin, stdout });
+
+      dashboard.start();
+      dashboard.updateStats({
+        status: "running",
+        iterations: 3,
+        iterationsLabel: "Tasks",
+        tokensIn: 120,
+        tokensOut: 45,
+        elapsedMs: 2_000
+      });
+
+      const screen = renderTerminalOutput(stdout.output, stdout.columns ?? 80, stdout.rows ?? 24);
+
+      expect(screen[2]).toContain("Tasks");
+      expect(screen[2]).toContain("3");
 
       dashboard.stop();
       dashboard.destroy();

@@ -17,6 +17,7 @@ export type {
   ResolvedStepsConfig,
   StepDefinition,
   StepMode,
+  TaskCompletion,
   TaskProgress,
   PlanSummary
 } from "./types.js";

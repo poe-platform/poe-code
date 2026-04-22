@@ -340,11 +340,12 @@ describe("pipeline run command", () => {
       options.onTaskComplete?.({
         taskId: "task-1",
         taskTitle: "Task 1",
-        stepName: "implement",
+        stepName: "commit",
         taskIndex: 1,
         totalTasks: 1,
         durationMs: 2_500,
         success: true,
+        taskCompleted: true,
         usage: {
           inputTokens: 1_234,
           outputTokens: 567
@@ -361,7 +362,7 @@ describe("pipeline run command", () => {
           totalCachedTokens: 1_000,
           tasksCompleted: 1,
           tasksFailed: 0,
-          stepsCompleted: 1
+          stepsCompleted: 3
         }
       };
     });
@@ -389,9 +390,10 @@ describe("pipeline run command", () => {
       logs.some((message) => message.includes("Total tokens: 5000 input, 2000 output, 1000 cached"))
     ).toBe(true);
     expect(
-      logs.some((message) =>
-        message.includes("tasksCompleted: 1, tasksFailed: 0, stepsCompleted: 1")
-      )
+      logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))
+    ).toBe(true);
+    expect(
+      logs.some((message) => message.includes("Steps: 3 completed"))
     ).toBe(true);
   });
 
@@ -544,6 +546,7 @@ describe("pipeline run command", () => {
         totalSteps: 2,
         durationMs: 2_000,
         success: true,
+        taskCompleted: false,
         usage: {
           inputTokens: 120,
           outputTokens: 45
@@ -551,7 +554,7 @@ describe("pipeline run command", () => {
       });
 
       return {
-        stopReason: "completed",
+        stopReason: "max_runs",
         planPath: "custom-plan.yaml",
         runsCompleted: 1,
         totalDurationMs: 2_000,
@@ -559,7 +562,7 @@ describe("pipeline run command", () => {
           totalInputTokens: 120,
           totalOutputTokens: 45,
           totalCachedTokens: 0,
-          tasksCompleted: 1,
+          tasksCompleted: 0,
           tasksFailed: 0,
           stepsCompleted: 1
         }
@@ -625,14 +628,15 @@ describe("pipeline run command", () => {
       },
       {
         kind: "success",
-        text: `${expectedTimestamp} Task auth-hardening done in 2s (tokens: 120 in / 45 out)`,
+        text: `${expectedTimestamp} Task auth-hardening (implement) step done in 2s (tokens: 120 in / 45 out)`,
         ts: 0
       }
     ]);
     expect(dashboardMock.updateStats).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "done",
-        iterations: 1,
+        iterations: 0,
+        iterationsLabel: "Tasks",
         tokensIn: 120,
         tokensOut: 45,
         currentAction: "Task 2/3 · auth-hardening · implement · step 1/2"
@@ -1057,6 +1061,7 @@ describe("pipeline run command", () => {
         totalSteps: 2,
         durationMs: 2_000,
         success: true,
+        taskCompleted: true,
         usage: {
           inputTokens: 120,
           outputTokens: 45
@@ -1217,6 +1222,7 @@ describe("pipeline run command", () => {
         totalSteps: 2,
         durationMs: 2_000,
         success: true,
+        taskCompleted: true,
         usage: {
           inputTokens: 120,
           outputTokens: 45

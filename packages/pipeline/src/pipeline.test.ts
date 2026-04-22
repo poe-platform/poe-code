@@ -1903,7 +1903,7 @@ describe("createPipelineSimulation", () => {
       turns: [successTurn(), successTurn(), successTurn()]
     });
 
-    const { result, readPlan, prompts, runs } = await sim.run();
+    const { result, readPlan, prompts, runs, taskCompletions } = await sim.run();
     const task = (await readPlan()).tasks[0];
 
     expect(result.stopReason).toBe("completed");
@@ -1911,10 +1911,15 @@ describe("createPipelineSimulation", () => {
       totalInputTokens: 0,
       totalOutputTokens: 0,
       totalCachedTokens: 0,
-      tasksCompleted: 3,
+      tasksCompleted: 1,
       tasksFailed: 0,
       stepsCompleted: 3
     });
+    expect(taskCompletions.map((completion) => completion.taskCompleted)).toEqual([
+      false,
+      false,
+      true
+    ]);
     expect(prompts).toEqual([
       "Implement auth-hardening",
       "Test auth-hardening",
@@ -1925,6 +1930,91 @@ describe("createPipelineSimulation", () => {
       implement: "done",
       test: "done",
       commit: "done"
+    });
+  });
+
+  it("counts each multi-step task once even when shared with another task", async () => {
+    const sim = createPipelineSimulation({
+      projectSteps: {
+        implement: { mode: "yolo", prompt: "Implement {{id}}" },
+        test: { mode: "read", prompt: "Test {{id}}" },
+        commit: { mode: "yolo", prompt: "Commit {{id}}" }
+      },
+      plan: {
+        tasks: [
+          {
+            id: "task-a",
+            title: "Task A",
+            prompt: "Do A",
+            status: { implement: "open", test: "open", commit: "open" }
+          },
+          {
+            id: "task-b",
+            title: "Task B",
+            prompt: "Do B",
+            status: { implement: "open", test: "open", commit: "open" }
+          }
+        ]
+      },
+      turns: [
+        successTurn(), successTurn(), successTurn(),
+        successTurn(), successTurn(), successTurn()
+      ]
+    });
+
+    const { result, taskCompletions } = await sim.run();
+
+    expect(result.stopReason).toBe("completed");
+    expect(result.metrics).toMatchObject({
+      tasksCompleted: 2,
+      tasksFailed: 0,
+      stepsCompleted: 6
+    });
+    expect(taskCompletions.map((c) => c.taskCompleted)).toEqual([
+      false, false, true,
+      false, false, true
+    ]);
+  });
+
+  it("does not count an in-progress multi-step task as completed when maxRuns stops before the final step", async () => {
+    const sim = createPipelineSimulation({
+      projectSteps: {
+        implement: { mode: "yolo", prompt: "Implement {{id}}" },
+        test: { mode: "read", prompt: "Test {{id}}" },
+        commit: { mode: "yolo", prompt: "Commit {{id}}" }
+      },
+      plan: {
+        tasks: [
+          {
+            id: "task-a",
+            title: "Task A",
+            prompt: "Do A",
+            status: { implement: "open", test: "open", commit: "open" }
+          }
+        ]
+      },
+      config: {
+        maxRuns: 2
+      },
+      turns: [successTurn(), successTurn()]
+    });
+
+    const { result, readPlan, taskCompletions } = await sim.run();
+
+    expect(result.stopReason).toBe("max_runs");
+    expect(result.metrics).toMatchObject({
+      tasksCompleted: 0,
+      tasksFailed: 0,
+      stepsCompleted: 2
+    });
+    expect(taskCompletions.map((completion) => completion.taskCompleted)).toEqual([
+      false,
+      false
+    ]);
+    expect((await readPlan()).tasks[0]?.status).toEqual({
+      implement: "done",
+      test: "done",
+      commit: "open"
     });
   });
 
@@ -1995,7 +2085,7 @@ describe("createPipelineSimulation", () => {
       totalInputTokens: 65,
       totalOutputTokens: 25,
       totalCachedTokens: 7,
-      tasksCompleted: 3,
+      tasksCompleted: 1,
       tasksFailed: 0,
       stepsCompleted: 3
     });
@@ -2042,7 +2132,7 @@ describe("createPipelineSimulation", () => {
       totalInputTokens: 0,
       totalOutputTokens: 0,
       totalCachedTokens: 0,
-      tasksCompleted: 1,
+      tasksCompleted: 0,
       tasksFailed: 1,
       stepsCompleted: 2
     });

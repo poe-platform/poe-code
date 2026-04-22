@@ -19,6 +19,7 @@ import type {
   PipelinePlan,
   PipelineRunOptions,
   PipelineRunResult,
+  PipelineTask,
   ResolvedStepsConfig,
   StepDefinition,
   StepMode
@@ -44,6 +45,24 @@ function createDefaultFs(): PipelineFileSystem {
     rmdir: fsPromises.rmdir,
     rename: fsPromises.rename
   };
+}
+
+function isTaskDone(status: PipelineTask["status"]): boolean {
+  if (typeof status === "string") {
+    return status === "done";
+  }
+
+  return Object.values(status).every((stepStatus) => stepStatus === "done");
+}
+
+function completesTaskOnSuccess(task: PipelineTask, stepName?: string): boolean {
+  if (!stepName || typeof task.status === "string") {
+    return true;
+  }
+
+  return Object.entries(task.status).every(
+    ([currentStepName, currentStatus]) => currentStepName === stepName || currentStatus === "done"
+  );
 }
 
 function isAbortError(error: unknown): boolean {
@@ -137,10 +156,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     const content = await fs.readFile(absolutePlanPath, "utf8");
     const plan = parsePlan(content);
     const total = plan.tasks.length;
-    const done = plan.tasks.filter((t) => {
-      if (typeof t.status === "string") return t.status === "done";
-      return Object.values(t.status).every((s) => s === "done");
-    }).length;
+    const done = plan.tasks.filter((t) => isTaskDone(t.status)).length;
     const failed = plan.tasks.filter((t) => {
       if (typeof t.status === "string") return t.status === "failed";
       return Object.values(t.status).some((s) => s === "failed");
@@ -376,8 +392,11 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
       }
       metrics.stepsCompleted += 1;
+      const taskCompleted = success && completesTaskOnSuccess(selection.task, selection.stepName);
       if (success) {
-        metrics.tasksCompleted += 1;
+        if (taskCompleted) {
+          metrics.tasksCompleted += 1;
+        }
       } else {
         metrics.tasksFailed += 1;
       }
@@ -408,6 +427,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         ...taskProgress,
         durationMs: taskDurationMs,
         success,
+        taskCompleted,
         ...(result.usage ? { usage: result.usage } : {})
       });
 

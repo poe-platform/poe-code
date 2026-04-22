@@ -103,6 +103,7 @@ type TaskCompletion = TaskProgress & {
   durationMs: number;
   success: boolean;
   usage?: AgentRunUsage;
+  taskCompleted?: boolean;
 };
 
 type PipelineDashboardRunOptions = {
@@ -166,7 +167,8 @@ function formatRunSummary(result: PipelineRunResult): string {
 
   return [
     `Runs: ${result.runsCompleted}`,
-    `tasksCompleted: ${metrics.tasksCompleted}, tasksFailed: ${metrics.tasksFailed}, stepsCompleted: ${metrics.stepsCompleted}`,
+    `Tasks: ${metrics.tasksCompleted} completed, ${metrics.tasksFailed} failed`,
+    `Steps: ${metrics.stepsCompleted} completed`,
     `Total tokens: ${metrics.totalInputTokens} input, ${metrics.totalOutputTokens} output, ${metrics.totalCachedTokens} cached`,
     `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
   ].join("\n   ");
@@ -224,6 +226,16 @@ function formatTaskCompleteMessage(progress: TaskCompletion): string {
 
   if (progress.phase) {
     return `${progress.taskTitle} ${status} in ${duration}${usage}`;
+  }
+
+  if (progress.stepName) {
+    if (progress.success && !progress.taskCompleted) {
+      return `Task ${progress.taskId} (${progress.stepName}) step done in ${duration}${usage}`;
+    }
+
+    if (!progress.success) {
+      return `Task ${progress.taskId} (${progress.stepName}) failed in ${duration}${usage}`;
+    }
   }
 
   return `Task ${progress.taskId} ${status} in ${duration}${usage}`;
@@ -430,14 +442,16 @@ async function runPipelineWithDashboard(
   let status: "running" | "done" | "error" = "running";
 
   const syncStats = (): void => {
-    dashboard.updateStats({
+    const stats = {
       status,
       iterations,
+      iterationsLabel: "Tasks",
       tokensIn,
       tokensOut,
       elapsedMs: Math.max(0, Date.now() - startedAt),
       ...(currentAction ? { currentAction } : {})
-    });
+    };
+    dashboard.updateStats(stats);
   };
 
   const appendOutput = (
@@ -510,7 +524,9 @@ async function runPipelineWithDashboard(
         syncStats();
       },
       onTaskComplete(progress: TaskCompletion) {
-        iterations += 1;
+        if (progress.taskCompleted) {
+          iterations += 1;
+        }
         if (progress.usage) {
           tokensIn += progress.usage.inputTokens;
           tokensOut += progress.usage.outputTokens;

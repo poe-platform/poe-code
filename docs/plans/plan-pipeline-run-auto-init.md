@@ -48,7 +48,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: fix-tasks-completed-metric
     title: Fix tasksCompleted counting steps instead of tasks
@@ -59,10 +59,10 @@ tasks:
       Update the dashboard display and any downstream consumers of this metric to match.
       Add unit tests covering multi-step task completion count.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: cli-sdk-timeout-parity
     title: Unify activity timeout retry between CLI and SDK

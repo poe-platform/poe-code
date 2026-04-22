@@ -115,6 +115,13 @@ export interface TaskProgress {
   phase?: "setup" | "teardown";
 }
 
+export interface TaskCompletion extends TaskProgress {
+  durationMs: number;
+  success: boolean;
+  usage?: AgentRunUsage;
+  taskCompleted?: boolean;
+}
+
 export interface PlanSummary {
   planPath: string;
   done: number;
@@ -143,13 +150,7 @@ export interface PipelineRunOptions {
   promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
   onPlanResolved?: (summary: PlanSummary) => void;
   onTaskStart?: (progress: TaskProgress) => void;
-  onTaskComplete?: (
-    progress: TaskProgress & {
-      durationMs: number;
-      success: boolean;
-      usage?: AgentRunUsage;
-    }
-  ) => void;
+  onTaskComplete?: (progress: TaskCompletion) => void;
   onPlanReloadError?: (error: Error) => void;
   signal?: AbortSignal;
 }

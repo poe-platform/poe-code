@@ -60,9 +60,10 @@ export function statsToLines(stats: DashboardStats, width: number): VisualLine[]
 
   const mutedStyle = getToneStyle("muted");
   const totalTokens = stats.tokensIn + stats.tokensOut;
+  const iterationsLabel = stats.iterationsLabel ?? "Iteration";
   const lines: VisualLine[] = [
     createKeyValueLine("Status", formatStatus(stats.status), width, getStatusStyle(stats.status)),
-    createKeyValueLine("Iteration", formatNumber(stats.iterations), width),
+    createKeyValueLine(iterationsLabel, formatNumber(stats.iterations), width),
     createKeyValueLine("Elapsed", formatElapsed(stats.elapsedMs), width),
     createBlankLine(),
     createKeyValueLine("Tokens In", formatNumber(stats.tokensIn), width),

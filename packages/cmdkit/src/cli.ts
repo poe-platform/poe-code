@@ -447,7 +447,7 @@ function createOption(field: FieldDefinition): Option[] {
 
     const mainOption = createCommanderOption(`${flags} [value]`, field.description, field);
     mainOption.preset(true);
-    // Commander v14 calls argParser with the preset value too, so guard with typeof check
+    // Commander v14 passes the preset value through argParser too, so guard with typeof check
     mainOption.argParser((value: string | boolean) =>
       typeof value === "boolean" ? value : parseBooleanText(value, field.displayPath)
     );

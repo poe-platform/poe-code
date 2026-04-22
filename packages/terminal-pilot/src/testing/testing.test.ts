@@ -70,7 +70,7 @@ describe("terminal-pilot CLI REPL runner", () => {
     });
 
     await expect(
-      repl.runJson(["wait-for", "-s", "S1", "-l", "What is your name?"])
+      repl.runJson(["wait-for", "What is your name?", "-s", "S1", "-l"])
     ).resolves.toMatchObject({
       exitCode: 0,
       stdout: {
@@ -88,7 +88,7 @@ describe("terminal-pilot CLI REPL runner", () => {
     });
 
     await expect(
-      repl.runJson(["wait-for", "-s", "S1", "-l", "Hello, Ada!"])
+      repl.runJson(["wait-for", "Hello, Ada!", "-s", "S1", "-l"])
     ).resolves.toMatchObject({
       exitCode: 0,
       stdout: {

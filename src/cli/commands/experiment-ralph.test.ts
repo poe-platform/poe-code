@@ -10,6 +10,7 @@ import { ValidationError } from "../errors.js";
 import type { Dashboard } from "@poe-code/design-system";
 import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
 import experimentRunYaml from "../../templates/experiment/run.yaml.mustache";
+import { skillPlanConfigSection } from "@poe-code/agent-kit";
 import { parseFrontmatter } from "../../../packages/ralph/src/frontmatter/frontmatter.js";
 
 const { selectMock, promptTextMock, isCancelMock, cancelMock } = vi.hoisted(() => ({
@@ -1229,6 +1230,29 @@ describe("experiment validate command", () => {
   });
 });
 
+describe("experiment plan-path command", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("prints the resolved plans path", async () => {
+    const fs = createMemFs();
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "experiment", "plan-path"]);
+
+    expect(writeSpy).toHaveBeenCalledWith("/repo/docs/plans\n");
+  });
+});
+
 describe("experiment install command", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -1236,7 +1260,7 @@ describe("experiment install command", () => {
   });
 
   it("ships shared docs/plans instructions with canonical experiment frontmatter", () => {
-    expect(experimentSkillPlan).toContain("docs/plans/<name>.md");
+    expect(experimentSkillPlan).toContain("<plan-directory>/<name>.md");
     expect(experimentSkillPlan).toContain("kind: experiment");
     expect(experimentSkillPlan).toContain("version: 1");
     expect(experimentSkillPlan).toContain("max_experiments");
@@ -1266,7 +1290,7 @@ describe("experiment install command", () => {
 
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
-    ).resolves.toBe(experimentSkillPlan);
+    ).resolves.toBe(experimentSkillPlan + "\n\n" + skillPlanConfigSection("experiment"));
     await expect(fs.stat("/repo/.poe-code/experiments")).resolves.toBeDefined();
     await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
       experimentRunYaml
@@ -1288,7 +1312,7 @@ describe("experiment install command", () => {
 
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
-    ).resolves.toBe(experimentSkillPlan);
+    ).resolves.toBe(experimentSkillPlan + "\n\n" + skillPlanConfigSection("experiment"));
     await expect(fs.stat("/repo/.poe-code/experiments")).resolves.toBeDefined();
     await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
       experimentRunYaml
@@ -1318,7 +1342,7 @@ describe("experiment install command", () => {
     expect(selectMock).not.toHaveBeenCalled();
     await expect(
       fs.readFile("/repo/.codex/skills/poe-code-experiment-plan/SKILL.md", "utf8")
-    ).resolves.toBe(experimentSkillPlan);
+    ).resolves.toBe(experimentSkillPlan + "\n\n" + skillPlanConfigSection("experiment"));
   });
 
   it("rejects --local and --global together", async () => {
@@ -1360,7 +1384,7 @@ describe("experiment install command", () => {
 
     await expect(
       fs.readFile("/home/test/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
-    ).resolves.toBe(experimentSkillPlan);
+    ).resolves.toBe(experimentSkillPlan + "\n\n" + skillPlanConfigSection("experiment"));
     await expect(fs.stat("/home/test/.poe-code/experiments")).resolves.toBeDefined();
     await expect(fs.readFile("/home/test/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
       experimentRunYaml
@@ -1401,7 +1425,7 @@ describe("experiment install command", () => {
     );
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
-    ).resolves.toBe(experimentSkillPlan);
+    ).resolves.toBe(experimentSkillPlan + "\n\n" + skillPlanConfigSection("experiment"));
     const lines = loggerOutput.split("\n");
     expect(
       lines.some((l) => l.includes("Create: .poe-code/experiments") && !l.includes("run.yaml"))

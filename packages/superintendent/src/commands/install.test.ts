@@ -23,7 +23,7 @@ describe("superintendent install command", () => {
   it("ships canonical superintendent frontmatter instructions in the skill template", async () => {
     const template = await readFile(new URL("../templates/SKILL_superintendent.md", import.meta.url), "utf8");
 
-    expect(template).toContain("docs/plans/<name>.md");
+    expect(template).toContain("<plan-directory>/<name>.md");
     expect(template).toContain("$schema:");
     expect(template).toContain("kind: superintendent");
     expect(template).toContain("version: 1");

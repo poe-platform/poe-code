@@ -8,6 +8,7 @@ import { registerPipelineCommand } from "./pipeline.js";
 import { ValidationError } from "../errors.js";
 import pipelineSkillPlan from "../../templates/pipeline/SKILL_plan.md";
 import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache";
+import { skillPlanConfigSection } from "@poe-code/agent-kit";
 import type { Dashboard } from "@poe-code/design-system";
 
 const { selectMock, cancelMock } = vi.hoisted(() => ({
@@ -391,9 +392,10 @@ describe("pipeline run command", () => {
       logs.some((message) => message.includes("Total tokens: 5000 input, 2000 output, 1000 cached"))
     ).toBe(true);
     expect(
-      logs.some((message) =>
-        message.includes("tasksCompleted: 1, tasksFailed: 0, stepsCompleted: 1")
-      )
+      logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))
+    ).toBe(true);
+    expect(
+      logs.some((message) => message.includes("Steps: 1 completed"))
     ).toBe(true);
   });
 
@@ -546,6 +548,7 @@ describe("pipeline run command", () => {
         totalSteps: 2,
         durationMs: 2_000,
         success: true,
+        taskCompleted: true,
         usage: {
           inputTokens: 120,
           outputTokens: 45
@@ -1749,8 +1752,7 @@ describe("pipeline install command", () => {
     expect(pipelineSkillPlan).toContain(
       "If the user points you at an existing source Markdown doc, add the frontmatter to that file in place"
     );
-    expect(pipelineSkillPlan).toContain("Otherwise write a new file at `docs/plans/plan-<name>.md`");
-    expect(pipelineSkillPlan).toContain("`docs/plans/plan-<name>.md`");
+    expect(pipelineSkillPlan).toContain("Otherwise write a new file at `<plan-directory>/plan-<name>.md`");
     expect(pipelineSkillPlan).toContain("kind: pipeline");
     expect(pipelineSkillPlan).toContain("version: 1");
     expect(pipelineSkillPlan).toContain("```markdown");
@@ -1780,7 +1782,7 @@ describe("pipeline install command", () => {
 
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
-    ).resolves.toBe(pipelineSkillPlan);
+    ).resolves.toBe(pipelineSkillPlan + "\n\n" + skillPlanConfigSection("pipeline"));
     await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
@@ -1802,7 +1804,7 @@ describe("pipeline install command", () => {
 
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
-    ).resolves.toBe(pipelineSkillPlan);
+    ).resolves.toBe(pipelineSkillPlan + "\n\n" + skillPlanConfigSection("pipeline"));
     await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
@@ -1831,7 +1833,7 @@ describe("pipeline install command", () => {
     expect(selectMock).not.toHaveBeenCalled();
     await expect(
       fs.readFile("/repo/.codex/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
-    ).resolves.toBe(pipelineSkillPlan);
+    ).resolves.toBe(pipelineSkillPlan + "\n\n" + skillPlanConfigSection("pipeline"));
   });
 
   it("does not overwrite steps.yaml without --force", async () => {

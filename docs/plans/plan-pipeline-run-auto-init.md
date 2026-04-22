@@ -74,9 +74,9 @@ tasks:
       Keep the retry count (3) as a constant. Do not expose it as a config option.
       Update tests to cover retry exhaustion throwing the error.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: lock-acquisition-feedback

@@ -1160,7 +1160,7 @@ describe("pipeline run command", () => {
     ).toBe(true);
   });
 
-  it("retries timed out pipeline agent runs without losing fallback stdout from the successful attempt", async () => {
+  it("does not retry timed out pipeline agent runs in the CLI dashboard wrapper", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1178,19 +1178,7 @@ describe("pipeline run command", () => {
           events: (async function* () {})(),
           result: Promise.reject(timeoutError)
         };
-      })
-      .mockImplementationOnce(() => ({
-        events: (async function* () {})(),
-        result: Promise.resolve({
-          stdout: "retry fallback output",
-          stderr: "",
-          exitCode: 0,
-          usage: {
-            inputTokens: 120,
-            outputTokens: 45
-          }
-        })
-      }));
+      });
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
       options.onTaskStart?.({
@@ -1211,38 +1199,7 @@ describe("pipeline run command", () => {
         model: "gpt-5.2",
         signal: options.signal
       });
-
-      options.onTaskComplete?.({
-        taskId: "auth-hardening",
-        taskTitle: "Auth hardening",
-        taskIndex: 2,
-        totalTasks: 3,
-        stepName: "implement",
-        stepIndex: 1,
-        totalSteps: 2,
-        durationMs: 2_000,
-        success: true,
-        taskCompleted: true,
-        usage: {
-          inputTokens: 120,
-          outputTokens: 45
-        }
-      });
-
-      return {
-        stopReason: "completed",
-        planPath: "custom-plan.yaml",
-        runsCompleted: 1,
-        totalDurationMs: 2_000,
-        metrics: {
-          totalInputTokens: 120,
-          totalOutputTokens: 45,
-          totalCachedTokens: 0,
-          tasksCompleted: 1,
-          tasksFailed: 0,
-          stepsCompleted: 1
-        }
-      };
+      throw new Error("Unreachable");
     });
 
     const fs = createMemFs();
@@ -1256,24 +1213,26 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await withMockedTerminal(() =>
-      program.parseAsync([
-        "node",
-        "cli",
-        "--yes",
-        "pipeline",
-        "run",
-        "--tui",
-        "--agent",
-        "codex",
-        "--model",
-        "gpt-5.2",
-        "--plan",
-        "custom-plan.yaml"
-      ])
-    );
+    await expect(
+      withMockedTerminal(() =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          "pipeline",
+          "run",
+          "--tui",
+          "--agent",
+          "codex",
+          "--model",
+          "gpt-5.2",
+          "--plan",
+          "custom-plan.yaml"
+        ])
+      )
+    ).rejects.toBe(timeoutError);
 
-    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledTimes(1);
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
@@ -1281,13 +1240,6 @@ describe("pipeline run command", () => {
         (item) =>
           item.kind === "tool" &&
           item.text.includes("[auth-hardening:implement] first attempt output")
-      )
-    ).toBe(true);
-    expect(
-      outputs.some(
-        (item) =>
-          item.kind === "tool" &&
-          item.text.includes("[auth-hardening:implement] retry fallback output")
       )
     ).toBe(true);
   });

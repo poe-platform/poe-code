@@ -17,7 +17,7 @@ import {
   formatAgentSpecifier,
   allAgents
 } from "@poe-code/agent-defs";
-import { isActivityTimeoutError, renderAcpEvent, type AcpEvent } from "@poe-code/agent-spawn";
+import { renderAcpEvent, type AcpEvent } from "@poe-code/agent-spawn";
 import {
   installSkill,
   resolveAgentSupport,
@@ -342,76 +342,69 @@ function createPipelineDashboardRunAgent(options: {
   activeStage: () => string;
 }): NonNullable<PipelineRunOptions["runAgent"]> {
   return async (input) => {
-    for (let attempt = 1; attempt <= 3; attempt += 1) {
-      const toolBuffer = createDashboardLineBuffer((line) => {
-        options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
-      });
-      const errorBuffer = createDashboardLineBuffer((line) => {
-        options.appendOutput("error", `[${options.activeStage()}] ${line}`);
-      });
-      let sawStdout = false;
-      let sawStderr = false;
+    const toolBuffer = createDashboardLineBuffer((line) => {
+      options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
+    });
+    const errorBuffer = createDashboardLineBuffer((line) => {
+      options.appendOutput("error", `[${options.activeStage()}] ${line}`);
+    });
+    let sawStdout = false;
+    let sawStderr = false;
 
-      try {
-        const { events, result } = sdkSpawn(input.agent, {
-          prompt: input.prompt,
-          cwd: input.cwd,
-          logDir: input.logDir,
-          model: input.model,
-          mode: input.mode,
-          ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-          ...(input.signal ? { signal: input.signal } : {}),
-          tee: {
-            stdout: {
-              write(chunk: string) {
-                sawStdout = true;
-                toolBuffer.push(chunk);
-              }
-            },
-            stderr: {
-              write(chunk: string) {
-                sawStderr = true;
-                errorBuffer.push(chunk);
-              }
+    try {
+      const { events, result } = sdkSpawn(input.agent, {
+        prompt: input.prompt,
+        cwd: input.cwd,
+        logDir: input.logDir,
+        model: input.model,
+        mode: input.mode,
+        ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+        ...(input.signal ? { signal: input.signal } : {}),
+        tee: {
+          stdout: {
+            write(chunk: string) {
+              sawStdout = true;
+              toolBuffer.push(chunk);
             }
           },
-          activityTimeoutMs: 10 * 60 * 1000
-        });
-
-        const eventStream = streamAcpEventsToDashboard({
-          events,
-          onToolOutput(chunk) {
-            toolBuffer.push(chunk);
-          },
-          onErrorOutput(chunk) {
-            errorBuffer.push(chunk);
+          stderr: {
+            write(chunk: string) {
+              sawStderr = true;
+              errorBuffer.push(chunk);
+            }
           }
-        });
+        },
+        activityTimeoutMs: 10 * 60 * 1000
+      });
 
-        const [spawnResult, sawEvents] = await Promise.all([result, eventStream]);
-
-        if (!sawEvents && !sawStdout && spawnResult.stdout.length > 0) {
-          toolBuffer.push(spawnResult.stdout);
+      const eventStream = streamAcpEventsToDashboard({
+        events,
+        onToolOutput(chunk) {
+          toolBuffer.push(chunk);
+        },
+        onErrorOutput(chunk) {
+          errorBuffer.push(chunk);
         }
+      });
 
-        if (!sawStderr && spawnResult.stderr.length > 0) {
-          errorBuffer.push(spawnResult.stderr);
-        }
+      const [spawnResult, sawEvents] = await Promise.all([result, eventStream]);
 
-        toolBuffer.flush();
-        errorBuffer.flush();
-        return spawnResult;
-      } catch (error) {
-        toolBuffer.flush();
-        errorBuffer.flush();
-
-        if (!isActivityTimeoutError(error) || attempt === 3) {
-          throw error;
-        }
+      if (!sawEvents && !sawStdout && spawnResult.stdout.length > 0) {
+        toolBuffer.push(spawnResult.stdout);
       }
-    }
 
-    throw new Error("Unreachable");
+      if (!sawStderr && spawnResult.stderr.length > 0) {
+        errorBuffer.push(spawnResult.stderr);
+      }
+
+      toolBuffer.flush();
+      errorBuffer.flush();
+      return spawnResult;
+    } catch (error) {
+      toolBuffer.flush();
+      errorBuffer.flush();
+      throw error;
+    }
   };
 }
 

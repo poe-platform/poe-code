@@ -1,5 +1,6 @@
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
+import { isActivityTimeoutError } from "@poe-code/agent-spawn";
 import {
   parsePlan,
   resolveAbsolutePlanPath,
@@ -42,6 +43,8 @@ export interface PipelineInitSource {
 type PipelineAgentRunner = NonNullable<PipelineRunOptions["runAgent"]>;
 type PipelineAgentRunnerInput = Parameters<PipelineAgentRunner>[0];
 type PipelineAgentRunnerResult = Awaited<ReturnType<PipelineAgentRunner>>;
+
+const PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT = 3;
 
 export interface PipelineInitRunOptions {
   agent: string;
@@ -120,11 +123,30 @@ function needsPipelineInit(planContent: string): boolean {
   }
 }
 
+function withPipelineTimeoutRetries(runAgent: PipelineAgentRunner): PipelineAgentRunner {
+  return async (input: PipelineAgentRunnerInput): Promise<PipelineAgentRunnerResult> => {
+    for (let attempt = 1; attempt <= PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT; attempt += 1) {
+      try {
+        return await runAgent(input);
+      } catch (error) {
+        if (
+          !isActivityTimeoutError(error) ||
+          attempt === PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT
+        ) {
+          throw error;
+        }
+      }
+    }
+
+    throw new Error("Unreachable");
+  };
+}
+
 export async function runPipeline(
   options: PipelineRunOptions
 ): Promise<PipelineRunResult> {
   const fs = options.fs ?? createDefaultFs();
-  const runAgent = options.runAgent ?? (async (
+  const runAgent = withPipelineTimeoutRetries(options.runAgent ?? (async (
     input: Parameters<NonNullable<PipelineRunOptions["runAgent"]>>[0]
   ) => {
     return await sdkSpawn.autonomous(input.agent, {
@@ -133,10 +155,11 @@ export async function runPipeline(
       logDir: input.logDir,
       model: input.model,
       mode: input.mode,
+      maxTimeoutRetries: 1,
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
       ...(input.signal ? { signal: input.signal } : {})
     });
-  });
+  }));
 
   const planPath = await resolvePlanPath({
     cwd: options.cwd,

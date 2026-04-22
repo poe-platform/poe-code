@@ -65,6 +65,12 @@ function initializedPlan(body = "# Feature\nShip it.\n"): string {
   ].join("\n");
 }
 
+function createActivityTimeoutError(): Error {
+  const error = new Error("Timed out waiting for agent activity for 600000ms.");
+  error.name = "ActivityTimeoutError";
+  return error;
+}
+
 describe("SDK pipeline", () => {
   beforeEach(() => {
     workspaceRunPipelineMock.mockReset();
@@ -99,7 +105,7 @@ describe("SDK pipeline", () => {
         cwd,
         homeDir,
         plan: "feature.md",
-        runAgent
+        runAgent: expect.any(Function)
       })
     );
   });
@@ -172,5 +178,135 @@ describe("SDK pipeline", () => {
     expect(result).toEqual(workspaceResult);
     expect(runAgent).toHaveBeenCalledTimes(1);
     expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries timed out init runs before executing the workspace pipeline", async () => {
+    seedFs({
+      "/repo/feature.md": "# Feature\nShip it.\n"
+    });
+
+    const timeoutError = createActivityTimeoutError();
+    const runAgent = vi
+      .fn()
+      .mockRejectedValueOnce(timeoutError)
+      .mockImplementationOnce(async () => {
+        await fs.promises.writeFile("/repo/feature.md", initializedPlan());
+        return {
+          stdout: "initialized",
+          stderr: "",
+          exitCode: 0
+        };
+      });
+    workspaceRunPipelineMock.mockImplementationOnce(async () => {
+      const content = await fs.promises.readFile("/repo/feature.md", "utf8");
+      expect(content).toContain("tasks:");
+      return workspaceResult;
+    });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd,
+      homeDir,
+      plan: "feature.md",
+      runAgent
+    });
+
+    expect(result).toEqual(workspaceResult);
+    expect(runAgent).toHaveBeenCalledTimes(2);
+    expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries timed out agent runs before succeeding", async () => {
+    seedFs({
+      "/repo/feature.md": initializedPlan()
+    });
+
+    const timeoutError = createActivityTimeoutError();
+    const runAgent = vi
+      .fn()
+      .mockRejectedValueOnce(timeoutError)
+      .mockResolvedValueOnce({
+        stdout: "done",
+        stderr: "",
+        exitCode: 0
+      });
+    workspaceRunPipelineMock.mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Ship it.",
+        cwd
+      });
+
+      return workspaceResult;
+    });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd,
+      homeDir,
+      plan: "feature.md",
+      runAgent
+    });
+
+    expect(result).toEqual(workspaceResult);
+    expect(runAgent).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry non-timeout errors", async () => {
+    seedFs({
+      "/repo/feature.md": initializedPlan()
+    });
+
+    const failure = new Error("boom");
+    const runAgent = vi.fn().mockRejectedValue(failure);
+    workspaceRunPipelineMock.mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Ship it.",
+        cwd
+      });
+
+      return workspaceResult;
+    });
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd,
+        homeDir,
+        plan: "feature.md",
+        runAgent
+      })
+    ).rejects.toBe(failure);
+    expect(runAgent).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws after exhausting activity-timeout retries", async () => {
+    seedFs({
+      "/repo/feature.md": initializedPlan()
+    });
+
+    const timeoutError = createActivityTimeoutError();
+    const runAgent = vi.fn().mockRejectedValue(timeoutError);
+    workspaceRunPipelineMock.mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Ship it.",
+        cwd
+      });
+
+      return workspaceResult;
+    });
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd,
+        homeDir,
+        plan: "feature.md",
+        runAgent
+      })
+    ).rejects.toBe(timeoutError);
+    expect(runAgent).toHaveBeenCalledTimes(3);
   });
 });

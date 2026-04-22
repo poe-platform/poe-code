@@ -1,6 +1,10 @@
 import * as fsPromises from "node:fs/promises";
+import path from "node:path";
+import { parse as parseYaml } from "yaml";
 import {
   runPipeline as runWorkspacePipeline,
+  type PipelineMetrics,
+  type PipelineFileSystem,
   type PipelineRunOptions,
   type PipelineRunResult
 } from "@poe-code/pipeline";
@@ -15,6 +19,7 @@ export type {
   PipelineConfig,
   PipelineMetrics,
   PipelinePlan,
+  PipelineLockStatus,
   PipelineStatus,
   PipelineTask,
   ResolvedStepDefinitions,
@@ -36,6 +41,8 @@ export interface PipelineInitSource {
 type PipelineAgentRunner = NonNullable<PipelineRunOptions["runAgent"]>;
 type PipelineAgentRunnerInput = Parameters<PipelineAgentRunner>[0];
 type PipelineAgentRunnerResult = Awaited<ReturnType<PipelineAgentRunner>>;
+
+const PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT = 3;
 
 export interface PipelineInitRunOptions {
   agent: string;
@@ -62,16 +69,48 @@ export interface PipelineInitRunResult {
   failedSource?: string;
 }
 
+function isActivityTimeoutError(error: unknown): boolean {
+  return error instanceof Error && error.name === "ActivityTimeoutError";
+}
+
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
+}
+
+async function planNeedsInit(absolutePath: string): Promise<boolean> {
+  const content = await fsPromises.readFile(absolutePath, "utf8");
+  if (!content.startsWith("---\n") && !content.startsWith("---\r\n")) {
+    return true;
+  }
+  const end = content.indexOf("\n---", 4);
+  if (end === -1) return true;
+  const frontmatter = content.slice(4, end);
+  const parsed = parseYaml(frontmatter) as Record<string, unknown> | null;
+  if (!parsed || typeof parsed !== "object") return true;
+  const tasks = parsed.tasks;
+  return !Array.isArray(tasks) || tasks.length === 0;
+}
+
+async function runWithRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts: number
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (!isActivityTimeoutError(error)) throw error;
+      lastError = error;
+    }
+  }
+  throw lastError;
 }
 
 export async function runPipeline(
   options: PipelineRunOptions
 ): Promise<PipelineRunResult> {
-  const runAgent = options.runAgent ?? (async (
-    input: Parameters<NonNullable<PipelineRunOptions["runAgent"]>>[0]
-  ) => {
+  const userRunAgent = options.runAgent ?? (async (input: PipelineAgentRunnerInput) => {
     return await sdkSpawn.autonomous(input.agent, {
       prompt: input.prompt,
       cwd: input.cwd,
@@ -83,9 +122,35 @@ export async function runPipeline(
     });
   });
 
+  if (options.plan) {
+    const planAbsolutePath = path.resolve(options.cwd, options.plan);
+    if (await planNeedsInit(planAbsolutePath)) {
+      const sourceDocContent = await fsPromises.readFile(planAbsolutePath, "utf8");
+      const prompt = buildPipelineInitPrompt({
+        sourceDocPath: options.plan,
+        sourceDocContent,
+        skillContent: pipelineSkillPlan
+      });
+      await runWithRetry(
+        () => userRunAgent({
+          agent: options.agent,
+          prompt,
+          mode: "yolo",
+          cwd: options.cwd,
+          ...(options.model ? { model: options.model } : {}),
+          ...(options.signal ? { signal: options.signal } : {})
+        }),
+        PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT
+      );
+    }
+  }
+
+  const retryRunAgent: PipelineAgentRunner = (input) =>
+    runWithRetry(() => userRunAgent(input), PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT);
+
   return runWorkspacePipeline({
     ...options,
-    runAgent
+    runAgent: retryRunAgent
   });
 }
 

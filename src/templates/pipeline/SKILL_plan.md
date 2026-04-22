@@ -12,7 +12,7 @@ Ask the user for a one-sentence description of what they want to build.
 Write a markdown pipeline plan with YAML frontmatter. Before writing, decide where it goes:
 
 1. If the user points you at an existing source Markdown doc, add the frontmatter to that file in place. Leave the existing body as the context section below the frontmatter. Do not create a second plan file.
-2. Otherwise write a new file at `docs/plans/plan-<name>.md`.
+2. Otherwise write a new file at `<plan-directory>/plan-<name>.md` (see Plan Directory section below).
 3. Find the `steps.yaml` file. Check these locations in order and use the first one found:
    a. `<project-root>/.poe-code/pipeline/steps.yaml` (project-level)
    b. `~/.poe-code/pipeline/steps.yaml` (user-global)

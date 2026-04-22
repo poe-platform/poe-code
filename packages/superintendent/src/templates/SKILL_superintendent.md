@@ -9,17 +9,17 @@ Ask the user for a one-sentence description of what they want to build autonomou
 
 ## Goal
 
-There is exactly **one plan document per feature**, at `docs/plans/<name>.md`. The superintendent frontmatter and Task Board live in that same file alongside the feature plan body.
+There is exactly **one plan document per feature**, at `<plan-directory>/<name>.md` (see Plan Directory section below). The superintendent frontmatter and Task Board live in that same file alongside the feature plan body.
 
 Use canonical frontmatter metadata at the top of the document:
 
-If `docs/plans/<name>.md` already exists (e.g. drafted by `/poe-code-plan`), augment it in place by adding the YAML frontmatter at the top and a `## Task Board` section at the bottom. Do not create a second file.
+If a plan file already exists (e.g. drafted by `/poe-code-plan`), augment it in place by adding the YAML frontmatter at the top and a `## Task Board` section at the bottom. Do not create a second file.
 
 ## Before Writing: Study Existing Plans
 
 Before drafting a new plan, find existing superintendent plans in this repo and use them as a reference for inspector choices, prompt phrasing, Task Board granularity, and MCP wiring.
 
-1. Run `grep -l "^kind: superintendent" docs/plans/*.md` to list existing plans.
+1. Run `grep -rl "^kind: superintendent" <plan-directory>/` to list existing plans (use the resolved plan directory).
 2. Read the most recent 1–2 (prefer ones whose scope resembles the current task).
 3. Reuse inspector names, role phrasing, and structural conventions from those plans unless the new task clearly warrants deviation. Do not copy body content — only patterns.
 
@@ -173,7 +173,7 @@ An inspector auto-runs each round only if its summary is referenced in the super
 
 ## Rules
 
-- One plan document per feature: `docs/plans/<name>.md`. Do not create a second file in `.poe-code/superintendent/`.
+- One plan document per feature: `<plan-directory>/<name>.md`. Do not create a second file in `.poe-code/superintendent/`.
 - Superintendent docs must start with `$schema`, `kind: superintendent`, and `version: 1`.
 - Role prompts are one line where possible. Do not restate CLAUDE.md.
 - Do not link the plan path inside every prompt — `{{plan.path}}` is in the template context.
@@ -189,8 +189,8 @@ Run `poe-code superintendent validate <path>` to check the document is valid.
 
 ```text
 Created (or augmented):
-  docs/plans/<name>.md
+  <plan-directory>/<name>.md
 
 Run with:
-  poe-code superintendent run docs/plans/<name>.md
+  poe-code superintendent run <plan-directory>/<name>.md
 ```

@@ -13,7 +13,7 @@ Create an experiment doc in the shared plan directory and metric script(s) for t
 
 ## Steps
 
-1. Create an experiment doc at `docs/plans/<name>.md` with YAML frontmatter.
+1. Create an experiment doc at `<plan-directory>/<name>.md` with YAML frontmatter (see Plan Directory section below).
 2. Create metric script(s) that output a single number to stdout and add them as `metric:*` npm scripts in `package.json`.
 
 ## Frontmatter Format
@@ -125,7 +125,7 @@ console.log(stdout.trim());
 ## Rules
 
 - Each metric script must be idempotent and self-contained.
-- Experiment docs live in `docs/plans/<name>.md` by default.
+- Experiment docs live in the plan directory (see Plan Directory section). Default: `docs/plans`.
 - Frontmatter fields are snake_case only.
 - Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better, `direction: stable` when the value must not change.
 - Use `delta` to allow variance. Without delta, comparisons are strict (must improve or stay equal). With `delta: 5`, a regression up to 5 is tolerated for minimize/maximize, and stable accepts ±5 drift.
@@ -150,12 +150,12 @@ console.log(stdout.trim());
 
 ```text
 Created:
-  docs/plans/<name>.md
+  <plan-directory>/<name>.md
   scripts/metric-<name>.mjs  (if needed)
 
 Verification (3 runs):
   metric:<name>  →  42, 43, 42  (variance: 0.3)  ✓ stable
 
 Run with:
-  poe-code experiment run docs/plans/<name>.md
+  poe-code experiment run <plan-directory>/<name>.md
 ```

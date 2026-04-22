@@ -77,7 +77,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: lock-acquisition-feedback
     title: Show feedback while waiting for plan lock
@@ -88,9 +88,9 @@ tasks:
       they are waiting. The message should resolve (disappear or update) once the lock is acquired.
       Do not add a hard timeout — just feedback.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: vars-throw-on-missing

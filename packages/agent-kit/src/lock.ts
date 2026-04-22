@@ -18,10 +18,44 @@ export interface LockOptions {
   maxTimeout?: number;
   staleMs?: number;
   fs?: LockFileSystem;
+  signal?: AbortSignal;
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function createAbortError(): Error {
+  const error = new Error("The operation was aborted.");
+  error.name = "AbortError";
+  return error;
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+}
+
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (!signal) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  if (signal.aborted) {
+    return Promise.reject(createAbortError());
+  }
+
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+
+    const onAbort = () => {
+      clearTimeout(timeoutId);
+      signal.removeEventListener("abort", onAbort);
+      reject(createAbortError());
+    };
+
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
 function backoff(attempt: number, minTimeout: number, maxTimeout: number): number {
@@ -77,6 +111,8 @@ export async function lockWorkflow(
   const lockPath = `${docPath}.lock`;
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
+    throwIfAborted(options.signal);
+
     try {
       await fs.mkdir(lockPath);
       let released = false;
@@ -111,7 +147,7 @@ export async function lockWorkflow(
       }
 
       if (attempt < retries) {
-        await sleep(backoff(attempt, minTimeout, maxTimeout));
+        await sleep(backoff(attempt, minTimeout, maxTimeout), options.signal);
       }
     }
   }

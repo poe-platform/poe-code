@@ -433,6 +433,7 @@ async function runPipelineWithDashboard(
   let currentAction: string | undefined;
   let currentStage = "pipeline";
   let status: "running" | "done" | "error" = "running";
+  let waitingForLock = false;
 
   const syncStats = (): void => {
     const stats = {
@@ -495,6 +496,17 @@ async function runPipelineWithDashboard(
       signal: abortController.signal,
       onPlanReloadError(error: Error) {
         appendOutput("error", `Plan reload failed, using last good state: ${error.message}`);
+      },
+      onLockStatusChange(lockStatus) {
+        appendOutput("status", lockStatus.message);
+        if (lockStatus.state === "waiting") {
+          waitingForLock = true;
+          currentAction = lockStatus.message;
+        } else if (waitingForLock) {
+          waitingForLock = false;
+          currentAction = undefined;
+        }
+        syncStats();
       },
       onPlanResolved(summary: PlanSummary) {
         appendOutput(
@@ -778,6 +790,9 @@ export function registerPipelineCommand(program: Command, container: CliContaine
                   resources.logger.warn(
                     `Plan reload failed, using last good state: ${error.message}`
                   );
+                },
+                onLockStatusChange(lockStatus) {
+                  resources.logger.info(lockStatus.message);
                 },
                 onPlanResolved(summary: PlanSummary) {
                   resources.logger.resolved(

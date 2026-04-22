@@ -22,6 +22,7 @@ export type {
   PipelineConfig,
   PipelineMetrics,
   PipelinePlan,
+  PipelineLockStatus,
   PipelineStatus,
   PipelineTask,
   ResolvedStepDefinitions,

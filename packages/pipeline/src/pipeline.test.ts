@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { lockWorkflow } from "@poe-code/agent-kit";
 import { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
 import { resolvePlanDirectory, resolvePlanPath, resolvePlanPaths } from "./plan/discovery.js";
 import { parsePlan, pipelineDocumentSchema, pipelineDocumentSchemaId } from "./plan/parser.js";
@@ -11,6 +12,7 @@ import {
   selectNextExecution,
   type ExecutionSelection
 } from "./run/runner.js";
+import { runPipeline } from "./run/pipeline.js";
 import { createPipelineSimulation, failTurn, successTurn } from "./testing/simulation.js";
 import type {
   AgentRunUsage,
@@ -1580,6 +1582,170 @@ describe("resolveFileIncludes", () => {
 });
 
 describe("createPipelineSimulation", () => {
+  it("emits lock wait feedback after 2 seconds and resolves it once the lock is acquired", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const fs = createFs({
+      "/repo/.poe-code/pipeline/plans/plan.yaml": [
+        `$schema: ${pipelineDocumentSchemaId}`,
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: quick-fix",
+        "    title: Quick fix",
+        "    prompt: Fix the timeout regression",
+        "    status: open",
+        ""
+      ].join("\n")
+    });
+    const onLockStatusChange = vi.fn();
+    const initialUnlock = await lockWorkflow("/repo/.poe-code/pipeline/plans/plan.yaml", {
+      fs,
+      minTimeout: 10,
+      maxTimeout: 10,
+      retries: Number.POSITIVE_INFINITY
+    });
+
+    const runPromise = runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: ".poe-code/pipeline/plans/plan.yaml",
+      fs,
+      onLockStatusChange,
+      runAgent: async () => ({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    });
+
+    await vi.advanceTimersByTimeAsync(1_999);
+    expect(onLockStatusChange).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(onLockStatusChange).toHaveBeenNthCalledWith(1, {
+      state: "waiting",
+      message: "Another pipeline run is holding the lock for .poe-code/pipeline/plans/plan.yaml. Waiting..."
+    });
+
+    await initialUnlock();
+    await vi.advanceTimersByTimeAsync(250);
+
+    const result = await runPromise;
+
+    expect(onLockStatusChange).toHaveBeenNthCalledWith(2, {
+      state: "acquired",
+      message: "Lock acquired for .poe-code/pipeline/plans/plan.yaml. Continuing."
+    });
+    expect(result.stopReason).toBe("completed");
+  });
+
+  it("stays silent when the lock is acquired before the 2 second threshold", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const fs = createFs({
+      "/repo/.poe-code/pipeline/plans/plan.yaml": [
+        `$schema: ${pipelineDocumentSchemaId}`,
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: quick-fix",
+        "    title: Quick fix",
+        "    prompt: Fix the timeout regression",
+        "    status: open",
+        ""
+      ].join("\n")
+    });
+    const onLockStatusChange = vi.fn();
+    const initialUnlock = await lockWorkflow("/repo/.poe-code/pipeline/plans/plan.yaml", {
+      fs,
+      minTimeout: 10,
+      maxTimeout: 10,
+      retries: Number.POSITIVE_INFINITY
+    });
+
+    const runPromise = runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: ".poe-code/pipeline/plans/plan.yaml",
+      fs,
+      onLockStatusChange,
+      runAgent: async () => ({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    });
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    await initialUnlock();
+    await vi.advanceTimersByTimeAsync(500);
+
+    const result = await runPromise;
+
+    expect(onLockStatusChange).not.toHaveBeenCalled();
+    expect(result.stopReason).toBe("completed");
+  });
+
+  it("does not emit delayed lock feedback after cancellation before 2 seconds", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const fs = createFs({
+      "/repo/.poe-code/pipeline/plans/plan.yaml": [
+        `$schema: ${pipelineDocumentSchemaId}`,
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: quick-fix",
+        "    title: Quick fix",
+        "    prompt: Fix the timeout regression",
+        "    status: open",
+        ""
+      ].join("\n")
+    });
+    const onLockStatusChange = vi.fn();
+    const abortController = new AbortController();
+    const initialUnlock = await lockWorkflow("/repo/.poe-code/pipeline/plans/plan.yaml", {
+      fs,
+      minTimeout: 10,
+      maxTimeout: 10,
+      retries: Number.POSITIVE_INFINITY
+    });
+
+    const runPromise = runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: ".poe-code/pipeline/plans/plan.yaml",
+      fs,
+      signal: abortController.signal,
+      onLockStatusChange,
+      runAgent: async () => ({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    });
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    abortController.abort();
+
+    await expect(runPromise).rejects.toMatchObject({
+      name: "AbortError"
+    });
+
+    await vi.advanceTimersByTimeAsync(1_500);
+
+    expect(onLockStatusChange).not.toHaveBeenCalled();
+
+    await initialUnlock();
+  });
+
   it("completes a stepless task in one run", async () => {
     const sim = createPipelineSimulation({
       plan: {

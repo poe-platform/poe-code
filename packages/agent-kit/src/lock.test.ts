@@ -65,6 +65,37 @@ describe("lockWorkflow", () => {
     await secondUnlock();
   });
 
+  it("aborts while waiting for an existing lock", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+    const abortController = new AbortController();
+
+    const firstUnlock = await lockWorkflow("/repo/workflow.md", {
+      fs,
+      minTimeout: 10,
+      maxTimeout: 10,
+      retries: Number.POSITIVE_INFINITY
+    });
+
+    const secondLockPromise = lockWorkflow("/repo/workflow.md", {
+      fs,
+      minTimeout: 10,
+      maxTimeout: 10,
+      retries: Number.POSITIVE_INFINITY,
+      signal: abortController.signal
+    });
+
+    await Promise.resolve();
+    abortController.abort();
+
+    await expect(secondLockPromise).rejects.toMatchObject({
+      name: "AbortError"
+    });
+
+    await firstUnlock();
+  });
+
   it("cleans up a stale lock before acquiring a new one", async () => {
     vi.setSystemTime(new Date("2026-04-13T12:00:00.000Z"));
     const { fs, volume } = createFs({ "/repo/workflow.md": "# workflow" });

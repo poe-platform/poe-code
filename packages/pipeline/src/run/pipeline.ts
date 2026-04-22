@@ -15,6 +15,7 @@ import type {
   AgentRunResult,
   PipelineFileStat,
   PipelineFileSystem,
+  PipelineLockStatus,
   PipelineMetrics,
   PipelinePlan,
   PipelineRunOptions,
@@ -67,6 +68,50 @@ function completesTaskOnSuccess(task: PipelineTask, stepName?: string): boolean 
 
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
+}
+
+function formatLockWaitMessage(planPath: string): string {
+  return `Another pipeline run is holding the lock for ${planPath}. Waiting...`;
+}
+
+function formatLockAcquiredMessage(planPath: string): string {
+  return `Lock acquired for ${planPath}. Continuing.`;
+}
+
+async function acquirePipelineLock(options: {
+  absolutePlanPath: string;
+  planPath: string;
+  fs: PipelineFileSystem;
+  signal?: AbortSignal;
+  onLockStatusChange?: (status: PipelineLockStatus) => void;
+}): Promise<() => Promise<void>> {
+  let waitingReported = false;
+  const timerId = global.setTimeout(() => {
+    waitingReported = true;
+    options.onLockStatusChange?.({
+      state: "waiting",
+      message: formatLockWaitMessage(options.planPath)
+    });
+  }, 2_000);
+
+  try {
+    const release = await lockWorkflow(options.absolutePlanPath, {
+      fs: options.fs,
+      retries: Number.POSITIVE_INFINITY,
+      ...(options.signal ? { signal: options.signal } : {})
+    });
+
+    if (waitingReported) {
+      options.onLockStatusChange?.({
+        state: "acquired",
+        message: formatLockAcquiredMessage(options.planPath)
+      });
+    }
+
+    return release;
+  } finally {
+    global.clearTimeout(timerId);
+  }
 }
 
 async function resolveVars(
@@ -260,7 +305,13 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
   while (runsCompleted < maxRuns) {
     assertNotAborted(options.signal);
-    const release = await lockWorkflow(absolutePlanPath, { fs });
+    const release = await acquirePipelineLock({
+      absolutePlanPath,
+      planPath,
+      fs,
+      ...(options.signal ? { signal: options.signal } : {}),
+      onLockStatusChange: options.onLockStatusChange
+    });
     try {
       let stepsConfig: ResolvedStepsConfig;
       let plan: PipelinePlan;

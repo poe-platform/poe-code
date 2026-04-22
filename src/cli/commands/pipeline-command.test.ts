@@ -651,6 +651,87 @@ describe("pipeline run command", () => {
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
   });
 
+  it("shows lock wait feedback in dashboard mode", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+
+    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      options.onLockStatusChange?.({
+        state: "waiting",
+        message: "Another pipeline run is holding the lock for custom-plan.yaml. Waiting..."
+      });
+      options.onLockStatusChange?.({
+        state: "acquired",
+        message: "Lock acquired for custom-plan.yaml. Continuing."
+      });
+
+      return {
+        stopReason: "completed",
+        planPath: "custom-plan.yaml",
+        runsCompleted: 0,
+        totalDurationMs: 1_000,
+        metrics: {
+          totalInputTokens: 0,
+          totalOutputTokens: 0,
+          totalCachedTokens: 0,
+          tasksCompleted: 0,
+          tasksFailed: 0,
+          stepsCompleted: 0
+        }
+      };
+    });
+
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withMockedTerminal(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "pipeline",
+        "run",
+        "--tui",
+        "--agent",
+        "codex",
+        "--plan",
+        "custom-plan.yaml"
+      ])
+    );
+
+    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+      kind: "status",
+      text: `${expectedTimestamp} Another pipeline run is holding the lock for custom-plan.yaml. Waiting...`,
+      ts: 0
+    });
+    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+      kind: "status",
+      text: `${expectedTimestamp} Lock acquired for custom-plan.yaml. Continuing.`,
+      ts: 0
+    });
+    expect(dashboardMock.updateStats).toHaveBeenCalledWith(
+      expect.objectContaining({
+        currentAction: "Another pipeline run is holding the lock for custom-plan.yaml. Waiting..."
+      })
+    );
+    expect(
+      dashboardMock.updateStats.mock.calls.some(
+        ([stats]) => !Object.prototype.hasOwnProperty.call(stats, "currentAction")
+      )
+    ).toBe(true);
+  });
+
   it("uses the pipeline.tui config value when set", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
@@ -1003,6 +1084,70 @@ describe("pipeline run command", () => {
     } finally {
       exitSpy.mockRestore();
     }
+  });
+
+  it("logs lock wait feedback in non-dashboard mode", async () => {
+    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      options.onLockStatusChange?.({
+        state: "waiting",
+        message: "Another pipeline run is holding the lock for custom-plan.yaml. Waiting..."
+      });
+      options.onLockStatusChange?.({
+        state: "acquired",
+        message: "Lock acquired for custom-plan.yaml. Continuing."
+      });
+
+      return {
+        stopReason: "nothing_to_run",
+        planPath: "custom-plan.yaml",
+        runsCompleted: 0,
+        totalDurationMs: 1_000,
+        metrics: {
+          totalInputTokens: 0,
+          totalOutputTokens: 0,
+          totalCachedTokens: 0,
+          tasksCompleted: 0,
+          tasksFailed: 0,
+          stepsCompleted: 0
+        }
+      };
+    });
+
+    const logs: string[] = [];
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--agent",
+      "codex",
+      "--plan",
+      "custom-plan.yaml",
+      "--no-tui"
+    ]);
+
+    expect(
+      logs.some((message) =>
+        message.includes("Another pipeline run is holding the lock for custom-plan.yaml. Waiting...")
+      )
+    ).toBe(true);
+    expect(
+      logs.some((message) =>
+        message.includes("Lock acquired for custom-plan.yaml. Continuing.")
+      )
+    ).toBe(true);
   });
 
   it("streams child-agent stdout and stderr into the dashboard via tee", async () => {

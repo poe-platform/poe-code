@@ -5,6 +5,7 @@ import type {
   BearerTokenAuthOptions,
   CommandsFromSpecOptions,
   CommandContributor,
+  DefineClientFromSpecOptions,
   DefineClientOptions,
   DefinedClient,
   GenerateOptions,
@@ -25,6 +26,7 @@ describe("@poe-code/cmdkit-openapi", () => {
       "commandsFromSpec",
       "defineApiCommand",
       "defineClient",
+      "defineClientFromSpec",
       "generate",
       "requestJson",
     ]);
@@ -91,6 +93,26 @@ describe("@poe-code/cmdkit-openapi", () => {
   it("exports defineClient with the public options and result types", () => {
     expectTypeOf<typeof entrypoint.defineClient>().toMatchTypeOf<
       (options: DefineClientOptions) => DefinedClient
+    >();
+  });
+
+  it("exports defineClientFromSpec options with spec loading fields", () => {
+    expectTypeOf<DefineClientFromSpecOptions>().toMatchTypeOf<{
+      name: string;
+      baseUrl: string;
+      auth: AuthProvider;
+      handwrittenCommands?: CommandNode<any>[];
+      cwd?: string;
+      fetch?: typeof globalThis.fetch;
+    }>();
+  });
+
+  it("exports defineClientFromSpec with the public signature", () => {
+    expectTypeOf<typeof entrypoint.defineClientFromSpec>().toMatchTypeOf<
+      (
+        spec: OpenApiDocument | string | URL,
+        options: DefineClientFromSpecOptions
+      ) => Promise<DefinedClient>
     >();
   });
 

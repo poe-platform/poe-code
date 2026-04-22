@@ -4,7 +4,7 @@ import { defineCommand, defineGroup, S, UserError, type AuthProvider, type Comma
 import { runCLI } from "../../cmdkit/src/cli.js";
 import { createMCPServer } from "@poe-code/cmdkit/mcp";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
-import { commandsFromSpec, defineApiCommand, defineClient, requestJson, type OpenApiDocument } from "./index.js";
+import { commandsFromSpec, defineApiCommand, defineClient, defineClientFromSpec, requestJson, type OpenApiDocument } from "./index.js";
 import { collectGeneratedCommands, generate } from "./generate.js";
 
 function createAuthProvider(commands: CommandNode<any>[]): AuthProvider {
@@ -858,6 +858,92 @@ describe("commandsFromSpec", () => {
           limit: null
         })
       })
+    );
+  });
+});
+
+describe("defineClientFromSpec", () => {
+  it("builds a client from a pre-parsed OpenAPI document", async () => {
+    const client = await defineClientFromSpec(createSetOfficialDocument(), {
+      name: "internal-agent",
+      baseUrl: "https://example.com/api",
+      auth: createAuthProvider([])
+    });
+
+    expect(client.root.children).toMatchObject([
+      expect.objectContaining({ kind: "group", name: "bots" })
+    ]);
+  });
+
+  it("builds a client from a URL", async () => {
+    const specText = JSON.stringify(createSetOfficialDocument());
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      new Response(specText, { status: 200, headers: { "content-type": "application/json" } })
+    );
+
+    const client = await defineClientFromSpec("https://example.com/openapi.json", {
+      name: "internal-agent",
+      baseUrl: "https://example.com/api",
+      auth: createAuthProvider([]),
+      fetch
+    });
+
+    expect(client.root.children).toMatchObject([
+      expect.objectContaining({ kind: "group", name: "bots" })
+    ]);
+    expect(fetch).toHaveBeenCalledWith("https://example.com/openapi.json");
+  });
+
+  it("builds a client from a file path", async () => {
+    const specText = JSON.stringify(createSetOfficialDocument());
+    const volume = Volume.fromJSON({ "/repo/openapi.json": specText });
+    const memFs = createFsFromVolume(volume).promises;
+
+    const client = await defineClientFromSpec("openapi.json", {
+      name: "internal-agent",
+      baseUrl: "https://example.com/api",
+      auth: createAuthProvider([]),
+      cwd: "/repo",
+      fs: memFs as { readFile(filePath: string, encoding: BufferEncoding): Promise<string> }
+    });
+
+    expect(client.root.children).toMatchObject([
+      expect.objectContaining({ kind: "group", name: "bots" })
+    ]);
+  });
+
+  it("surfaces spec-fetch failures as user errors", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockRejectedValue(new Error("network down"));
+
+    await expect(
+      defineClientFromSpec("https://example.com/openapi.json", {
+        name: "internal-agent",
+        baseUrl: "https://example.com/api",
+        auth: createAuthProvider([]),
+        fetch
+      })
+    ).rejects.toThrow(
+      new UserError('Failed to read OpenAPI document "https://example.com/openapi.json": network down')
+    );
+  });
+
+  it("includes handwritten commands alongside spec-generated commands", async () => {
+    const handwrittenCommand = defineCommand({
+      name: "ping",
+      description: "Health check.",
+      params: S.Object({}),
+      handler: async () => ({ ok: true })
+    });
+
+    const client = await defineClientFromSpec(createSetOfficialDocument(), {
+      name: "internal-agent",
+      baseUrl: "https://example.com/api",
+      auth: createAuthProvider([]),
+      handwrittenCommands: [handwrittenCommand]
+    });
+
+    expect(client.root.children.map((n) => n.name)).toEqual(
+      expect.arrayContaining(["bots", "ping"])
     );
   });
 });

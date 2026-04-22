@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import { defineCommand, defineGroup, S, type AnySchema, type CommandNode } from "@poe-code/cmdkit";
-import type { OpenApiClientServices } from "./define-client.js";
+import { defineClient, type DefineClientOptions, type DefinedClient, type OpenApiClientServices } from "./define-client.js";
 import {
   collectSchemaOptionEntries,
   collectGeneratedCommands,
@@ -22,6 +22,9 @@ export interface CommandsFromSpecOptions {
   fs?: OpenApiSourceFileSystem;
 }
 
+export type DefineClientFromSpecOptions<TServices extends object = Record<string, never>> =
+  Omit<DefineClientOptions<TServices>, "commands"> & CommandsFromSpecOptions;
+
 type GeneratedCommandHandler = (ctx: {
   params: any;
   baseUrl: string;
@@ -36,6 +39,19 @@ export async function commandsFromSpec(
 ): Promise<CommandNode<OpenApiClientServices>[]> {
   const document = await resolveDocument(source, options);
   return createRuntimeGroups(collectGeneratedCommands(document));
+}
+
+export async function defineClientFromSpec<TServices extends object = Record<string, never>>(
+  spec: OpenApiDocumentSource,
+  options: DefineClientFromSpecOptions<TServices>
+): Promise<DefinedClient<TServices>> {
+  const { cwd, fetch, fs: specFs, ...clientOptions } = options;
+  const commands = (await commandsFromSpec(spec, {
+    cwd,
+    fetch,
+    fs: specFs
+  })) as CommandNode<OpenApiClientServices & TServices>[];
+  return defineClient({ ...clientOptions, commands });
 }
 
 async function resolveDocument(

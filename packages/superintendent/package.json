@@ -32,6 +32,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-defs": "*",
+    "@poe-code/agent-kit": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",
     "@poe-code/cmdkit": "*",

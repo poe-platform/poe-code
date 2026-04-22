@@ -17,8 +17,9 @@ import {
   formatAgentSpecifier,
   allAgents
 } from "@poe-code/agent-defs";
+import { resolvePlanDirectory } from "@poe-code/pipeline";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
-import { resolveWorkflowPath } from "@poe-code/agent-kit";
+import { resolveWorkflowPath, skillPlanConfigSection } from "@poe-code/agent-kit";
 import {
   installSkill,
   resolveAgentSupport,
@@ -917,6 +918,21 @@ export function registerExperimentCommand(program: Command, container: CliContai
     });
 
   experiment
+    .command("plan-path")
+    .description("Print the directory where experiment plan files should be placed.")
+    .action(async function () {
+      const commandConfig = await resolveExperimentCommandConfig(container);
+
+      const resolvedPath = resolvePlanDirectory({
+        cwd: container.env.cwd,
+        homeDir: container.env.homeDir,
+        planDirectory: commandConfig.planDirectory
+      });
+
+      process.stdout.write(`${resolvedPath}\n`);
+    });
+
+  experiment
     .command("install")
     .description("Install the Experiment /experiment skill and scaffold experiment files.")
     .option("--agent <name>", "Agent to install the Experiment skill for")
@@ -990,7 +1006,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           support.id,
           {
             name: "poe-code-experiment-plan",
-            content: templates.skillPlan
+            content: templates.skillPlan + "\n\n" + skillPlanConfigSection("experiment")
           },
           {
             fs: container.fs,

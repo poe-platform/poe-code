@@ -14,6 +14,7 @@ import {
   resolveAgentSupport,
   type SkillScope
 } from "@poe-code/agent-skill-config";
+import { skillPlanConfigSection } from "@poe-code/agent-kit";
 
 const fs = {
   readFile: (p: string, encoding: "utf8") => readFile(p, encoding),
@@ -65,7 +66,7 @@ export const installCommand = defineCommand({
       support.id,
       {
         name: "poe-code-superintendent-plan",
-        content: skillContent
+        content: skillContent + "\n\n" + skillPlanConfigSection("superintendent")
       },
       {
         fs,

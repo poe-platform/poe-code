@@ -39,3 +39,4 @@ export {
   slugifyPlanPath,
   type ResolveRunLogDirOptions
 } from "./run-logs.js";
+export { skillPlanConfigSection } from "./skill-config.js";

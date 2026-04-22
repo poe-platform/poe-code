@@ -6,6 +6,7 @@ import { builderGroup } from "./builder-group.js";
 import { completeCommand } from "./complete.js";
 import { installCommand } from "./install.js";
 import { inspectorGroup } from "./inspector-group.js";
+import { planPathCommand } from "./plan-path.js";
 import { runCommand, runMcpCommand } from "./run.js";
 
 export type ValidationProblem = {
@@ -68,7 +69,7 @@ export const superintendentGroup = defineGroup({
   name: "superintendent",
   description: "Superintendent workflow commands.",
   scope: ["cli", "mcp", "sdk"],
-  children: [runCommand, validateCommand, completeCommand, installCommand, builderGroup, inspectorGroup]
+  children: [runCommand, validateCommand, completeCommand, installCommand, planPathCommand, builderGroup, inspectorGroup]
 });
 
 export const superintendentMcpGroup = defineGroup({

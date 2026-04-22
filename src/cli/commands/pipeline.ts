@@ -18,6 +18,7 @@ import {
   allAgents
 } from "@poe-code/agent-defs";
 import { renderAcpEvent, type AcpEvent } from "@poe-code/agent-spawn";
+import { skillPlanConfigSection } from "@poe-code/agent-kit";
 import {
   installSkill,
   resolveAgentSupport,
@@ -44,6 +45,7 @@ import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import {
   buildExecutionPrompt,
   interpolatePipelineVars,
+  loadPipelineConfig,
   loadResolvedSteps,
   parsePlan,
   resolveAbsolutePlanPath,
@@ -65,11 +67,18 @@ async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
   planDirectory: string;
   tui: boolean;
 }> {
-  const configDoc = await readMergedDocument(
-    container.fs,
-    container.env.configPath,
-    container.env.projectConfigPath
-  );
+  const [configDoc, pipelineYamlConfig] = await Promise.all([
+    readMergedDocument(
+      container.fs,
+      container.env.configPath,
+      container.env.projectConfigPath
+    ),
+    loadPipelineConfig({
+      cwd: container.env.cwd,
+      homeDir: container.env.homeDir,
+      fs: container.fs
+    })
+  ]);
   const pipelineConfig = resolveScope(
     pipelineConfigScope.schema,
     configDoc[pipelineConfigScope.scope],
@@ -80,8 +89,12 @@ async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
     configDoc[planConfigScope.scope],
     container.env.variables
   );
+  const globalPlanDirectory = String(planConfig.plan_directory);
+  const yamlPlanDirectory = pipelineYamlConfig.plan_directory;
+  const planDirectory: string =
+    typeof yamlPlanDirectory === "string" ? yamlPlanDirectory : globalPlanDirectory;
   return {
-    planDirectory: planConfig.plan_directory,
+    planDirectory,
     tui: pipelineConfig.tui === true
   };
 }
@@ -160,6 +173,12 @@ function resolvePipelineInitSourcePath(
   };
 }
 
+const PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT = 3;
+
+function isActivityTimeoutError(error: unknown): boolean {
+  return error instanceof Error && error.name === "ActivityTimeoutError";
+}
+
 function formatRunSummary(result: PipelineRunResult): string {
   const metrics = result.metrics;
 
@@ -226,14 +245,8 @@ function formatTaskCompleteMessage(progress: TaskCompletion): string {
     return `${progress.taskTitle} ${status} in ${duration}${usage}`;
   }
 
-  if (progress.stepName) {
-    if (progress.success && !progress.taskCompleted) {
-      return `Task ${progress.taskId} (${progress.stepName}) step done in ${duration}${usage}`;
-    }
-
-    if (!progress.success) {
-      return `Task ${progress.taskId} (${progress.stepName}) failed in ${duration}${usage}`;
-    }
+  if (progress.stepName && !progress.success) {
+    return `Task ${progress.taskId} (${progress.stepName}) failed in ${duration}${usage}`;
   }
 
   return `Task ${progress.taskId} ${status} in ${duration}${usage}`;
@@ -346,63 +359,73 @@ function createPipelineDashboardRunAgent(options: {
     const errorBuffer = createDashboardLineBuffer((line) => {
       options.appendOutput("error", `[${options.activeStage()}] ${line}`);
     });
-    let sawStdout = false;
-    let sawStderr = false;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT; attempt++) {
+      let sawStdout = false;
+      let sawStderr = false;
 
-    try {
-      const { events, result } = sdkSpawn(input.agent, {
-        prompt: input.prompt,
-        cwd: input.cwd,
-        logDir: input.logDir,
-        model: input.model,
-        mode: input.mode,
-        ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-        ...(input.signal ? { signal: input.signal } : {}),
-        tee: {
-          stdout: {
-            write(chunk: string) {
-              sawStdout = true;
-              toolBuffer.push(chunk);
+      try {
+        const { events, result } = sdkSpawn(input.agent, {
+          prompt: input.prompt,
+          cwd: input.cwd,
+          logDir: input.logDir,
+          model: input.model,
+          mode: input.mode,
+          ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+          ...(input.signal ? { signal: input.signal } : {}),
+          tee: {
+            stdout: {
+              write(chunk: string) {
+                sawStdout = true;
+                toolBuffer.push(chunk);
+              }
+            },
+            stderr: {
+              write(chunk: string) {
+                sawStderr = true;
+                errorBuffer.push(chunk);
+              }
             }
           },
-          stderr: {
-            write(chunk: string) {
-              sawStderr = true;
-              errorBuffer.push(chunk);
-            }
+          activityTimeoutMs: 10 * 60 * 1000
+        });
+
+        const eventStream = streamAcpEventsToDashboard({
+          events,
+          onToolOutput(chunk) {
+            toolBuffer.push(chunk);
+          },
+          onErrorOutput(chunk) {
+            errorBuffer.push(chunk);
           }
-        },
-        activityTimeoutMs: 10 * 60 * 1000
-      });
+        });
 
-      const eventStream = streamAcpEventsToDashboard({
-        events,
-        onToolOutput(chunk) {
-          toolBuffer.push(chunk);
-        },
-        onErrorOutput(chunk) {
-          errorBuffer.push(chunk);
+        const [spawnResult, sawEvents] = await Promise.all([result, eventStream]);
+
+        if (!sawEvents && !sawStdout && spawnResult.stdout.length > 0) {
+          toolBuffer.push(spawnResult.stdout);
         }
-      });
 
-      const [spawnResult, sawEvents] = await Promise.all([result, eventStream]);
+        if (!sawStderr && spawnResult.stderr.length > 0) {
+          errorBuffer.push(spawnResult.stderr);
+        }
 
-      if (!sawEvents && !sawStdout && spawnResult.stdout.length > 0) {
-        toolBuffer.push(spawnResult.stdout);
+        toolBuffer.flush();
+        errorBuffer.flush();
+        return spawnResult;
+      } catch (error) {
+        if (!isActivityTimeoutError(error)) {
+          toolBuffer.flush();
+          errorBuffer.flush();
+          throw error;
+        }
+        lastError = error;
       }
-
-      if (!sawStderr && spawnResult.stderr.length > 0) {
-        errorBuffer.push(spawnResult.stderr);
-      }
-
-      toolBuffer.flush();
-      errorBuffer.flush();
-      return spawnResult;
-    } catch (error) {
-      toolBuffer.flush();
-      errorBuffer.flush();
-      throw error;
     }
+
+    toolBuffer.flush();
+    errorBuffer.flush();
+    throw lastError;
   };
 }
 
@@ -562,30 +585,23 @@ function resolvePipelinePaths(
   homeDir: string
 ): {
   plansPath: string;
-  stepsDirectoryPath: string;
-  defaultStepsPath: string;
-  legacyStepsPath: string;
+  stepsPath: string;
+  legacyDefaultStepsPath: string;
   displayPlansPath: string;
-  displayStepsDirectoryPath: string;
-  displayDefaultStepsPath: string;
-  displayLegacyStepsPath: string;
+  displayStepsPath: string;
 } {
   const rootPath =
     scope === "global"
       ? path.join(homeDir, ".poe-code", "pipeline")
       : path.join(cwd, ".poe-code", "pipeline");
   const displayRoot = scope === "global" ? "~/.poe-code/pipeline" : ".poe-code/pipeline";
-  const stepsDirectoryPath = path.join(rootPath, "steps");
 
   return {
     plansPath: path.join(rootPath, "plans"),
-    stepsDirectoryPath,
-    defaultStepsPath: path.join(stepsDirectoryPath, "default.yaml"),
-    legacyStepsPath: path.join(rootPath, "steps.yaml"),
+    stepsPath: path.join(rootPath, "steps.yaml"),
+    legacyDefaultStepsPath: path.join(rootPath, "steps", "default.yaml"),
     displayPlansPath: `${displayRoot}/plans`,
-    displayStepsDirectoryPath: `${displayRoot}/steps`,
-    displayDefaultStepsPath: `${displayRoot}/steps/default.yaml`,
-    displayLegacyStepsPath: `${displayRoot}/steps.yaml`
+    displayStepsPath: `${displayRoot}/steps.yaml`
   };
 }
 
@@ -1197,7 +1213,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           support.id,
           {
             name: "poe-code-pipeline-plan",
-            content: templates.skillPlan
+            content: templates.skillPlan + "\n\n" + skillPlanConfigSection("pipeline")
           },
           {
             fs: container.fs,
@@ -1225,41 +1241,38 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           }
         }
 
-        const legacyStepsExists = await pathExists(container.fs, pipelinePaths.legacyStepsPath);
-        let stepsExists = await pathExists(container.fs, pipelinePaths.defaultStepsPath);
+        const legacyDefaultStepsExists = await pathExists(container.fs, pipelinePaths.legacyDefaultStepsPath);
+        let stepsExists = await pathExists(container.fs, pipelinePaths.stepsPath);
 
-        if (legacyStepsExists && !stepsExists) {
+        if (legacyDefaultStepsExists && !stepsExists) {
           if (flags.dryRun) {
             resources.logger.dryRun(
-              `Would rename: ${pipelinePaths.displayLegacyStepsPath} -> ${pipelinePaths.displayDefaultStepsPath}`
+              `Would rename: ${pipelinePaths.displayStepsPath} (migrate from steps/default.yaml)`
             );
           } else {
-            await container.fs.mkdir(pipelinePaths.stepsDirectoryPath, {
-              recursive: true
-            });
-            await container.fs.rename(pipelinePaths.legacyStepsPath, pipelinePaths.defaultStepsPath);
+            await container.fs.rename(pipelinePaths.legacyDefaultStepsPath, pipelinePaths.stepsPath);
             resources.logger.info(
-              `Rename: ${pipelinePaths.displayLegacyStepsPath} -> ${pipelinePaths.displayDefaultStepsPath}`
+              `Rename: steps/default.yaml -> ${pipelinePaths.displayStepsPath}`
             );
           }
           stepsExists = true;
         }
 
         if (stepsExists && !options.force) {
-          resources.logger.info(`Skip: ${pipelinePaths.displayDefaultStepsPath} (already exists)`);
+          resources.logger.info(`Skip: ${pipelinePaths.displayStepsPath} (already exists)`);
         } else if (flags.dryRun) {
           resources.logger.dryRun(
-            `Would ${stepsExists ? "overwrite" : "create"}: ${pipelinePaths.displayDefaultStepsPath}`
+            `Would ${stepsExists ? "overwrite" : "create"}: ${pipelinePaths.displayStepsPath}`
           );
         } else {
-          await container.fs.mkdir(path.dirname(pipelinePaths.defaultStepsPath), {
+          await container.fs.mkdir(path.dirname(pipelinePaths.stepsPath), {
             recursive: true
           });
-          await container.fs.writeFile(pipelinePaths.defaultStepsPath, templates.steps, {
+          await container.fs.writeFile(pipelinePaths.stepsPath, templates.steps, {
             encoding: "utf8"
           });
           resources.logger.info(
-            `${stepsExists ? "Overwrite" : "Create"}: ${pipelinePaths.displayDefaultStepsPath}`
+            `${stepsExists ? "Overwrite" : "Create"}: ${pipelinePaths.displayStepsPath}`
           );
         }
 

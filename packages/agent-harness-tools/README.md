@@ -1,4 +1,4 @@
-# @poe-code/agent-kit
+# @poe-code/agent-harness-tools
 
 Reusable runtime components for autonomous single-document workflows.
 

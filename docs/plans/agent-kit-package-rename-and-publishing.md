@@ -36,7 +36,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: rename-workflow-agent-kit
     title: Rename existing agent-kit package
@@ -63,7 +63,7 @@ tasks:
     status:
       implement: done
       refactor: done
-      test: open
+      test: done
       commit: open
 
   - id: rename-cmdkit-family

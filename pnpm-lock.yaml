@@ -23,6 +23,9 @@ importers:
       diff:
         specifier: '>=8.0.3'
         version: 9.0.0
+      fast-glob:
+        specifier: ^3.3.3
+        version: 3.3.3
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -32,15 +35,27 @@ importers:
       mustache:
         specifier: ^4.2.0
         version: 4.2.0
+      openai:
+        specifier: ^6.34.0
+        version: 6.34.0(zod@4.1.8)
       parse-duration:
         specifier: ^2.1.5
         version: 2.1.6
       semver:
         specifier: ^7.7.4
         version: 7.7.4
+      shell-quote:
+        specifier: ^1.8.3
+        version: 1.8.3
       smol-toml:
         specifier: ^1.6.0
         version: 1.6.1
+      tiktoken:
+        specifier: ^1.0.22
+        version: 1.0.22
+      turndown:
+        specifier: ^7.2.4
+        version: 7.2.4
       yaml:
         specifier: ^2.8.2
         version: 2.8.3
@@ -54,6 +69,9 @@ importers:
       '@poe-code/agent-defs':
         specifier: '*'
         version: link:packages/agent-defs
+      '@poe-code/agent-harness-tools':
+        specifier: '*'
+        version: link:packages/agent-harness-tools
       '@poe-code/agent-mcp-config':
         specifier: '*'
         version: link:packages/agent-mcp-config
@@ -66,12 +84,6 @@ importers:
       '@poe-code/cached-resource':
         specifier: '*'
         version: link:packages/cached-resource
-      '@poe-code/cmdkit':
-        specifier: '*'
-        version: link:packages/cmdkit
-      '@poe-code/cmdkit-schema':
-        specifier: '*'
-        version: link:packages/cmdkit-schema
       '@poe-code/config-extends':
         specifier: '*'
         version: link:packages/config-extends
@@ -90,6 +102,12 @@ importers:
       '@poe-code/github-workflows':
         specifier: '*'
         version: link:packages/github-workflows
+      '@poe-code/markdown-reader':
+        specifier: '*'
+        version: link:packages/markdown-reader
+      '@poe-code/memory':
+        specifier: '*'
+        version: link:packages/memory
       '@poe-code/pipeline':
         specifier: '*'
         version: link:packages/pipeline
@@ -111,9 +129,15 @@ importers:
       '@poe-code/process-runner':
         specifier: '*'
         version: link:packages/process-runner
+      '@poe-code/providers':
+        specifier: '*'
+        version: link:packages/providers
       '@poe-code/ralph':
         specifier: '*'
         version: link:packages/ralph
+      '@poe-code/superintendent':
+        specifier: '*'
+        version: link:packages/superintendent
       '@poe-code/workspace-resolver':
         specifier: '*'
         version: link:packages/workspace-resolver
@@ -129,6 +153,18 @@ importers:
       '@types/semver':
         specifier: ^7.7.1
         version: 7.7.1
+      '@vitest/coverage-v8':
+        specifier: ^4.1.4
+        version: 4.1.5(vitest@4.1.4)
+      agent-kit:
+        specifier: '*'
+        version: link:packages/agent-kit
+      agent-kit-openapi:
+        specifier: '*'
+        version: link:packages/agent-kit-openapi
+      agent-kit-schema:
+        specifier: '*'
+        version: link:packages/agent-kit-schema
       auth-store:
         specifier: '*'
         version: link:packages/auth-store
@@ -167,7 +203,7 @@ importers:
         version: 0.0.9
       terminal-png:
         specifier: '*'
-        version: link:packages/terminal-png
+        version: 0.1.1
       tiny-http-mcp-server:
         specifier: '*'
         version: link:packages/tiny-http-mcp-server
@@ -176,7 +212,7 @@ importers:
         version: link:packages/tiny-mcp-client
       tiny-stdio-mcp-server:
         specifier: '*'
-        version: link:packages/tiny-stdio-mcp-server
+        version: 0.1.1
       tiny-stdio-mcp-test-server:
         specifier: '*'
         version: link:packages/tiny-stdio-mcp-test-server
@@ -200,11 +236,47 @@ importers:
         version: 8.58.2(eslint@9.39.4)(typescript@5.9.3)
       vitest:
         specifier: ^4.0.18
-        version: 4.1.4(@types/node@25.6.0)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.4(@types/node@25.6.0)(@vitest/coverage-v8@4.1.5)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/agent-defs: {}
 
-  packages/agent-kit: {}
+  packages/agent-harness-tools:
+    dependencies:
+      '@poe-code/agent-defs':
+        specifier: '*'
+        version: link:../agent-defs
+
+  packages/agent-kit:
+    dependencies:
+      '@poe-code/design-system':
+        specifier: '*'
+        version: link:../design-system
+      agent-kit-schema:
+        specifier: '*'
+        version: link:../agent-kit-schema
+      commander:
+        specifier: ^14.0.3
+        version: 14.0.3
+      tiny-stdio-mcp-server:
+        specifier: '*'
+        version: 0.1.1
+
+  packages/agent-kit-openapi:
+    dependencies:
+      '@poe-code/design-system':
+        specifier: '*'
+        version: link:../design-system
+      agent-kit:
+        specifier: '*'
+        version: link:../agent-kit
+      auth-store:
+        specifier: '*'
+        version: link:../auth-store
+      yaml:
+        specifier: ^2.8.2
+        version: 2.8.3
+
+  packages/agent-kit-schema: {}
 
   packages/agent-mcp-config:
     dependencies:
@@ -214,6 +286,9 @@ importers:
       '@poe-code/config-mutations':
         specifier: '*'
         version: link:../config-mutations
+      yaml:
+        specifier: ^2.8.3
+        version: 2.8.3
 
   packages/agent-skill-config:
     dependencies:
@@ -244,23 +319,6 @@ importers:
         specifier: ^11.2.5
         version: 11.3.5
 
-  packages/cmdkit:
-    dependencies:
-      '@poe-code/cmdkit-schema':
-        specifier: '*'
-        version: link:../cmdkit-schema
-      '@poe-code/design-system':
-        specifier: '*'
-        version: link:../design-system
-      commander:
-        specifier: ^14.0.3
-        version: 14.0.3
-      tiny-stdio-mcp-server:
-        specifier: '*'
-        version: link:../tiny-stdio-mcp-server
-
-  packages/cmdkit-schema: {}
-
   packages/config-extends:
     dependencies:
       gray-matter:
@@ -281,6 +339,9 @@ importers:
       smol-toml:
         specifier: ^1.3.0
         version: 1.6.1
+      yaml:
+        specifier: ^2.8.1
+        version: 2.8.3
     devDependencies:
       '@types/mustache':
         specifier: ^4.2.6
@@ -319,9 +380,9 @@ importers:
       '@poe-code/agent-defs':
         specifier: '*'
         version: link:../agent-defs
-      '@poe-code/agent-kit':
+      '@poe-code/agent-harness-tools':
         specifier: '*'
-        version: link:../agent-kit
+        version: link:../agent-harness-tools
       '@poe-code/config-extends':
         specifier: '*'
         version: link:../config-extends
@@ -334,24 +395,57 @@ importers:
       '@poe-code/agent-spawn':
         specifier: '*'
         version: link:../agent-spawn
-      '@poe-code/cmdkit':
-        specifier: '*'
-        version: link:../cmdkit
-      '@poe-code/cmdkit-schema':
-        specifier: '*'
-        version: link:../cmdkit-schema
       '@poe-code/config-extends':
         specifier: '*'
         version: link:../config-extends
       '@poe-code/design-system':
         specifier: '*'
         version: link:../design-system
+      agent-kit:
+        specifier: '*'
+        version: link:../agent-kit
+      agent-kit-schema:
+        specifier: '*'
+        version: link:../agent-kit-schema
       mustache:
         specifier: ^4.2.0
         version: 4.2.0
       yaml:
         specifier: ^2.8.2
         version: 2.8.3
+
+  packages/markdown-reader:
+    dependencies:
+      '@poe-code/design-system':
+        specifier: '*'
+        version: link:../design-system
+      agent-kit:
+        specifier: '*'
+        version: link:../agent-kit
+      agent-kit-schema:
+        specifier: '*'
+        version: link:../agent-kit-schema
+
+  packages/memory:
+    dependencies:
+      '@poe-code/agent-mcp-config':
+        specifier: '*'
+        version: link:../agent-mcp-config
+      '@poe-code/agent-skill-config':
+        specifier: '*'
+        version: link:../agent-skill-config
+      '@poe-code/config-mutations':
+        specifier: '*'
+        version: link:../config-mutations
+      '@poe-code/poe-code-config':
+        specifier: '*'
+        version: link:../poe-code-config
+      tiny-stdio-mcp-server:
+        specifier: '*'
+        version: 0.1.1
+      tokenfill:
+        specifier: '*'
+        version: 0.0.6
 
   packages/opencode-poe-auth:
     dependencies:
@@ -368,6 +462,9 @@ importers:
 
   packages/pipeline:
     dependencies:
+      '@poe-code/agent-harness-tools':
+        specifier: '*'
+        version: link:../agent-harness-tools
       '@poe-code/config-extends':
         specifier: '*'
         version: link:../config-extends
@@ -409,10 +506,28 @@ importers:
       auth-store:
         specifier: '*'
         version: link:../auth-store
+      fast-glob:
+        specifier: ^3.3.3
+        version: 3.3.3
+      openai:
+        specifier: ^6.34.0
+        version: 6.34.0(zod@4.1.8)
+      shell-quote:
+        specifier: ^1.8.3
+        version: 1.8.3
       tiny-mcp-client:
         specifier: '*'
         version: link:../tiny-mcp-client
+      turndown:
+        specifier: ^7.2.4
+        version: 7.2.4
     devDependencies:
+      '@types/shell-quote':
+        specifier: ^1.7.5
+        version: 1.7.5
+      '@types/turndown':
+        specifier: ^5.0.6
+        version: 5.0.6
       tiny-stdio-mcp-test-server:
         specifier: '*'
         version: link:../tiny-stdio-mcp-test-server
@@ -439,6 +554,15 @@ importers:
 
   packages/process-runner: {}
 
+  packages/providers:
+    dependencies:
+      '@poe-code/agent-defs':
+        specifier: '*'
+        version: link:../agent-defs
+      auth-store:
+        specifier: '*'
+        version: link:../auth-store
+
   packages/py-poe-spawn: {}
 
   packages/ralph:
@@ -446,9 +570,9 @@ importers:
       '@poe-code/agent-defs':
         specifier: '*'
         version: link:../agent-defs
-      '@poe-code/agent-kit':
+      '@poe-code/agent-harness-tools':
         specifier: '*'
-        version: link:../agent-kit
+        version: link:../agent-harness-tools
       '@poe-code/config-extends':
         specifier: '*'
         version: link:../config-extends
@@ -458,6 +582,33 @@ importers:
       yaml:
         specifier: ^2.8.3
         version: 2.8.3
+
+  packages/superintendent:
+    dependencies:
+      '@poe-code/agent-defs':
+        specifier: '*'
+        version: link:../agent-defs
+      '@poe-code/agent-harness-tools':
+        specifier: '*'
+        version: link:../agent-harness-tools
+      '@poe-code/agent-skill-config':
+        specifier: '*'
+        version: link:../agent-skill-config
+      '@poe-code/agent-spawn':
+        specifier: '*'
+        version: link:../agent-spawn
+      '@poe-code/design-system':
+        specifier: '*'
+        version: link:../design-system
+      '@poe-code/poe-agent':
+        specifier: '*'
+        version: link:../poe-agent
+      '@poe-code/poe-code-config':
+        specifier: '*'
+        version: link:../poe-code-config
+      agent-kit:
+        specifier: '*'
+        version: link:../agent-kit
 
   packages/terminal-pilot:
     dependencies:
@@ -495,15 +646,15 @@ importers:
       '@poe-code/agent-skill-config':
         specifier: '*'
         version: link:../agent-skill-config
-      '@poe-code/cmdkit':
+      agent-kit:
         specifier: '*'
-        version: link:../cmdkit
-      '@poe-code/cmdkit-schema':
+        version: link:../agent-kit
+      agent-kit-schema:
         specifier: '*'
-        version: link:../cmdkit-schema
+        version: link:../agent-kit-schema
       terminal-png:
         specifier: '*'
-        version: link:../terminal-png
+        version: 0.1.1
 
   packages/terminal-pilot-mcp:
     dependencies:
@@ -513,6 +664,9 @@ importers:
       '@resvg/resvg-js':
         specifier: ^2.6.2
         version: 2.6.2
+      agent-kit:
+        specifier: '*'
+        version: link:../agent-kit
       chalk:
         specifier: ^5.6.2
         version: 5.6.2
@@ -537,10 +691,6 @@ importers:
       smol-toml:
         specifier: ^1.6.0
         version: 1.6.1
-    devDependencies:
-      '@poe-code/cmdkit':
-        specifier: '*'
-        version: link:../cmdkit
       terminal-pilot:
         specifier: '*'
         version: 0.0.9
@@ -561,16 +711,16 @@ importers:
     dependencies:
       terminal-png:
         specifier: '*'
-        version: link:../terminal-png
+        version: 0.1.1
       tiny-stdio-mcp-server:
         specifier: '*'
-        version: link:../tiny-stdio-mcp-server
+        version: 0.1.1
 
   packages/tiny-http-mcp-server:
     dependencies:
       tiny-stdio-mcp-server:
         specifier: '*'
-        version: link:../tiny-stdio-mcp-server
+        version: 0.1.1
     devDependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.26.0
@@ -592,7 +742,7 @@ importers:
         version: 1.29.0(zod@4.1.8)
       tiny-stdio-mcp-server:
         specifier: '*'
-        version: link:../tiny-stdio-mcp-server
+        version: 0.1.1
 
   packages/tiny-stdio-mcp-server:
     devDependencies:
@@ -607,7 +757,7 @@ importers:
         version: 14.0.3
       tiny-stdio-mcp-server:
         specifier: '*'
-        version: link:../tiny-stdio-mcp-server
+        version: 0.1.1
     devDependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.25.3
@@ -631,6 +781,27 @@ importers:
         version: 2.8.3
 
 packages:
+
+  '@babel/helper-string-parser@7.27.1':
+    resolution: {integrity: sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/helper-validator-identifier@7.28.5':
+    resolution: {integrity: sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/parser@7.29.2':
+    resolution: {integrity: sha512-4GgRzy/+fsBa72/RZVJmGKPmZu9Byn8o4MoLpmNe1m8ZfYnz5emHLQz3U4gLud6Zwl0RZIcgiLD7Uq7ySFuDLA==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+
+  '@babel/types@7.29.0':
+    resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
+    engines: {node: '>=6.9.0'}
+
+  '@bcoe/v8-coverage@1.0.2':
+    resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
+    engines: {node: '>=18'}
 
   '@clack/core@1.2.0':
     resolution: {integrity: sha512-qfxof/3T3t9DPU/Rj3OmcFyZInceqj/NVtO9rwIuJqCUgh32gwPjpFQQp/ben07qKlhpwq7GzfWpST4qdJ5Drg==}
@@ -863,8 +1034,15 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
+  '@jridgewell/resolve-uri@3.1.2':
+    resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
+    engines: {node: '>=6.0.0'}
+
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
+
+  '@jridgewell/trace-mapping@0.3.31':
+    resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
   '@jsonjoy.com/base64@1.1.2':
     resolution: {integrity: sha512-q6XAnWQDIMA3+FTiOYajoYqySkO+JSat0ytXGSuRdq9uXE7o92gzuQwQM14xaCRlBLGq3v5miDGC4vkVTn54xA==}
@@ -986,6 +1164,9 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@mixmark-io/domino@2.2.0':
+    resolution: {integrity: sha512-Y28PR25bHXUg88kCV7nivXrP2Nj2RueZ3/l/jdx6J9f8J4nsEGcgX0Qe6lt7Pa+J79+kPiJU3LguR6O/6zrLOw==}
+
   '@modelcontextprotocol/sdk@1.29.0':
     resolution: {integrity: sha512-zo37mZA9hJWpULgkRpowewez1y6ML5GsXJPY8FI0tBBCd77HEvza4jDqRKOXgHNn867PVGCyTdzqpz0izu5ZjQ==}
     engines: {node: '>=18'}
@@ -1001,6 +1182,18 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1
       '@emnapi/runtime': ^1.7.1
+
+  '@nodelib/fs.scandir@2.1.5':
+    resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
+    engines: {node: '>= 8'}
+
+  '@nodelib/fs.stat@2.0.5':
+    resolution: {integrity: sha512-RkhPPp2zrqDAQA/2jNhnztcPAlv64XdhIp7a7454A5ovI7Bukxgt7MX7udwAu3zg1DcpPU0rz3VV1SeaqvY4+A==}
+    engines: {node: '>= 8'}
+
+  '@nodelib/fs.walk@1.2.8':
+    resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
+    engines: {node: '>= 8'}
 
   '@opencode-ai/plugin@1.4.3':
     resolution: {integrity: sha512-Ob/3tVSIeuMRJBr2O23RtrnC5djRe01Lglx+TwGEmjrH9yDBJ2tftegYLnNEjRoMuzITgq9LD8168p4pzv+U/A==}
@@ -1287,6 +1480,12 @@ packages:
   '@types/serve-static@2.2.0':
     resolution: {integrity: sha512-8mam4H1NHLtu7nmtalF7eyBH14QyOASmcxHhSfEoRyr0nP/YdoesEtU+uSRvMe96TW/HPTtkoKqQLl53N7UXMQ==}
 
+  '@types/shell-quote@1.7.5':
+    resolution: {integrity: sha512-+UE8GAGRPbJVQDdxi16dgadcBfQ+KG2vgZhV1+3A1XmHbmwcdwhCUwIdy+d3pAGrbvgRoVSjeI9vOWyq376Yzw==}
+
+  '@types/turndown@5.0.6':
+    resolution: {integrity: sha512-ru00MoyeeouE5BX4gRL+6m/BsDfbRayOskWqUvh7CLGW+UXxHQItqALa38kKnOiZPqJrtzJUgAC2+F0rL1S4Pg==}
+
   '@typescript-eslint/eslint-plugin@8.58.2':
     resolution: {integrity: sha512-aC2qc5thQahutKjP+cl8cgN9DWe3ZUqVko30CMSZHnFEHyhOYoZSzkGtAI2mcwZ38xeImDucI4dnqsHiOYuuCw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -1346,6 +1545,15 @@ packages:
     resolution: {integrity: sha512-f1WO2Lx8a9t8DARmcWAUPJbu0G20bJlj8L4z72K00TMeJAoyLr/tHhI/pzYBLrR4dXWkcxO1cWYZEOX8DKHTqA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
+  '@vitest/coverage-v8@4.1.5':
+    resolution: {integrity: sha512-38C0/Ddb7HcRG0Z4/DUem8x57d2p9jYgp18mkaYswEOQBGsI1CG4f/hjm0ZCeaJfWhSZ4k7jgs29V1Zom7Ki9A==}
+    peerDependencies:
+      '@vitest/browser': 4.1.5
+      vitest: 4.1.5
+    peerDependenciesMeta:
+      '@vitest/browser':
+        optional: true
+
   '@vitest/expect@4.1.4':
     resolution: {integrity: sha512-iPBpra+VDuXmBFI3FMKHSFXp3Gx5HfmSCE8X67Dn+bwephCnQCaB7qWK2ldHa+8ncN8hJU8VTMcxjPpyMkUjww==}
 
@@ -1363,6 +1571,9 @@ packages:
   '@vitest/pretty-format@4.1.4':
     resolution: {integrity: sha512-ddmDHU0gjEUyEVLxtZa7xamrpIefdEETu3nZjWtHeZX4QxqJ7tRxSteHVXJOcr8jhiLoGAhkK4WJ3WqBpjx42A==}
 
+  '@vitest/pretty-format@4.1.5':
+    resolution: {integrity: sha512-7I3q6l5qr03dVfMX2wCo9FxwSJbPdwKjy2uu/YPpU3wfHvIL4QHwVRp57OfGrDFeUJ8/8QdfBKIV12FTtLn00g==}
+
   '@vitest/runner@4.1.4':
     resolution: {integrity: sha512-xTp7VZ5aXP5ZJrn15UtJUWlx6qXLnGtF6jNxHepdPHpMfz/aVPx+htHtgcAL2mDXJgKhpoo2e9/hVJsIeFbytQ==}
 
@@ -1374,6 +1585,9 @@ packages:
 
   '@vitest/utils@4.1.4':
     resolution: {integrity: sha512-13QMT+eysM5uVGa1rG4kegGYNp6cnQcsTc67ELFbhNLQO+vgsygtYJx2khvdt4gVQqSSpC/KT5FZZxUpP3Oatw==}
+
+  '@vitest/utils@4.1.5':
+    resolution: {integrity: sha512-76wdkrmfXfqGjueGgnb45ITPyUi1ycZ4IHgC2bhPDUfWHklY/q3MdLOAB+TF1e6xfl8NxNY0ZYaPCFNWSsw3Ug==}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -1417,6 +1631,9 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
+  ast-v8-to-istanbul@1.0.0:
+    resolution: {integrity: sha512-1fSfIwuDICFA4LKkCzRPO7F0hzFf0B7+Xqrl27ynQaa+Rh0e1Es0v6kWHPott3lU10AyAr7oKHa65OppjLn3Rg==}
+
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
@@ -1438,6 +1655,10 @@ packages:
   brace-expansion@5.0.5:
     resolution: {integrity: sha512-VZznLgtwhn+Mact9tfiwx64fA9erHH/MCXEUfB/0bX/6Fz6ny5EGTXYltMocqg4xFAQZtnO3DHWWXi8RiuN7cQ==}
     engines: {node: 18 || 20 || >=22}
+
+  braces@3.0.3:
+    resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
+    engines: {node: '>=8'}
 
   bundle-name@4.1.0:
     resolution: {integrity: sha512-tjwM5exMg6BGRI+kNmTntNsvdZS1X8BFYS6tnJ2hdH0kVxM6/eVZ2xy+FqStSWvYmtfFMDLIxurorHwDKfDz5Q==}
@@ -1685,6 +1906,10 @@ packages:
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
 
+  fast-glob@3.3.3:
+    resolution: {integrity: sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==}
+    engines: {node: '>=8.6.0'}
+
   fast-json-stable-stringify@2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
 
@@ -1703,6 +1928,9 @@ packages:
   fast-wrap-ansi@0.1.6:
     resolution: {integrity: sha512-HlUwET7a5gqjURj70D5jl7aC3Zmy4weA1SHUfM0JFI0Ptq987NH2TwbBFLoERhfwk+E+eaq4EK3jXoT+R3yp3w==}
 
+  fastq@1.20.1:
+    resolution: {integrity: sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw==}
+
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
     engines: {node: '>=12.0.0'}
@@ -1715,6 +1943,10 @@ packages:
   file-entry-cache@8.0.0:
     resolution: {integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==}
     engines: {node: '>=16.0.0'}
+
+  fill-range@7.1.1:
+    resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
+    engines: {node: '>=8'}
 
   finalhandler@2.1.1:
     resolution: {integrity: sha512-S8KoZgRZN+a5rNwqTxlZZePjT/4cnm0ROV70LedRHZ0p8u9fRID0hJUZQpkKLzro8LfmC8sx23bY6tVNxv8pQA==}
@@ -1758,6 +1990,10 @@ packages:
   get-tsconfig@4.13.7:
     resolution: {integrity: sha512-7tN6rFgBlMgpBML5j8typ92BKFi2sFQvIdpAqLA2beia5avZDrMs0FLZiM5etShWq5irVyGcGMEA1jcDaK7A/Q==}
 
+  glob-parent@5.1.2:
+    resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
+    engines: {node: '>= 6'}
+
   glob-parent@6.0.2:
     resolution: {integrity: sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A==}
     engines: {node: '>=10.13.0'}
@@ -1799,6 +2035,9 @@ packages:
   hono@4.12.12:
     resolution: {integrity: sha512-p1JfQMKaceuCbpJKAPKVqyqviZdS0eUxH9v82oWo1kb9xjQ5wA6iP3FNVAPDFlz5/p7d45lO+BpSk1tuSZMF4Q==}
     engines: {node: '>=16.9.0'}
+
+  html-escaper@2.0.2:
+    resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
 
   http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
@@ -1866,6 +2105,10 @@ packages:
     engines: {node: '>=14.16'}
     hasBin: true
 
+  is-number@7.0.0:
+    resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
+    engines: {node: '>=0.12.0'}
+
   is-promise@4.0.0:
     resolution: {integrity: sha512-hvpoI6korhJMnej285dSg6nu1+e6uxs7zG3BYAm5byqDsgJNWwxzM6z6iZiAgQR4TJ30JmBTOwqZUw3WlyH3AQ==}
 
@@ -1876,11 +2119,26 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
+  istanbul-lib-coverage@3.2.2:
+    resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}
+    engines: {node: '>=8'}
+
+  istanbul-lib-report@3.0.1:
+    resolution: {integrity: sha512-GCfE1mtsHGOELCU8e/Z7YWzpmybrx/+dSTfLrvY8qRmaY6zXTKWn6WQIjaAFw069icm6GVMNkgu0NzI4iPZUNw==}
+    engines: {node: '>=10'}
+
+  istanbul-reports@3.2.0:
+    resolution: {integrity: sha512-HGYWWS/ehqTV3xN10i23tkPkpH46MLCIMFNCaaKNavAXTF1RkqxawEPtnjnGZ6XKSInBKkiOA5BKS+aZiY3AvA==}
+    engines: {node: '>=8'}
+
   jetbrains-mono@1.0.6:
     resolution: {integrity: sha512-nVHwukZwQHKEQ3ZP1qlXFyFoUyBnonwrqLQf/ZlsoDPgTHm7T0EL0m1KJQ9U4ghu4emYuSR21uqmZalzNvvoUA==}
 
   jose@6.2.2:
     resolution: {integrity: sha512-d7kPDd34KO/YnzaDOlikGpOurfF0ByC2sEV4cANCtdqLlTfBlw2p14O/5d/zv40gJPbIQxfES3nSx1/oYNyuZQ==}
+
+  js-tokens@10.0.0:
+    resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
 
   js-yaml@3.14.2:
     resolution: {integrity: sha512-PMSmkqxr106Xa156c2M265Z+FTrPl+oxd/rgOQy2tijQeK5TxQ43psO1ZCwhVOSdnn+RzkzlRz/eY4BgJBYVpg==}
@@ -2007,6 +2265,13 @@ packages:
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
+  magicast@0.5.2:
+    resolution: {integrity: sha512-E3ZJh4J3S9KfwdjZhe2afj6R9lGIN5Pher1pF39UGrXRqq/VDaGVIGN13BjHd2u8B61hArAGOnso7nBOouW3TQ==}
+
+  make-dir@4.0.0:
+    resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
+    engines: {node: '>=10'}
+
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -2023,6 +2288,14 @@ packages:
   merge-descriptors@2.0.0:
     resolution: {integrity: sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g==}
     engines: {node: '>=18'}
+
+  merge2@1.4.1:
+    resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
+    engines: {node: '>= 8'}
+
+  micromatch@4.0.8:
+    resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
+    engines: {node: '>=8.6'}
 
   mime-db@1.54.0:
     resolution: {integrity: sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==}
@@ -2086,6 +2359,18 @@ packages:
     resolution: {integrity: sha512-YgBpdJHPyQ2UE5x+hlSXcnejzAvD0b22U2OuAP+8OnlJT+PjWPxtgmGqKKc+RgTM63U9gN0YzrYc71R2WT/hTA==}
     engines: {node: '>=18'}
 
+  openai@6.34.0:
+    resolution: {integrity: sha512-yEr2jdGf4tVFYG6ohmr3pF6VJuveP0EA/sS8TBx+4Eq5NT10alu5zg2dmxMXMgqpihRDQlFGpRt2XwsGj+Fyxw==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
   opencode-poe-auth@0.0.3:
     resolution: {integrity: sha512-1UyMtv7d+Ufn/5XvhMtqOjAL4URZ+Ek29xnQ4iq1Yp2wuLzy9r8wsSDa1VHZGz3ZdB56zpyhu1qEPKOKnm6ZzQ==}
     peerDependencies:
@@ -2134,6 +2419,10 @@ packages:
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
+  picomatch@2.3.2:
+    resolution: {integrity: sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA==}
+    engines: {node: '>=8.6'}
+
   picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
@@ -2170,6 +2459,9 @@ packages:
     resolution: {integrity: sha512-6YHEFRL9mfgcAvql/XhwTvf5jKcOiiupt2FiJxHkiX1z4j7WL8J/jRHYLluORvc1XxB5rV20KoeK00gVJamspg==}
     engines: {node: '>=0.6'}
 
+  queue-microtask@1.2.3:
+    resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
@@ -2189,6 +2481,10 @@ packages:
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
 
+  reusify@1.1.0:
+    resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
+    engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
+
   rolldown@1.0.0-rc.15:
     resolution: {integrity: sha512-Ff31guA5zT6WjnGp0SXw76X6hzGRk/OQq2hE+1lcDe+lJdHSgnSX6nK3erbONHyCbpSj9a9E+uX/OvytZoWp2g==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2201,6 +2497,9 @@ packages:
   run-applescript@7.1.0:
     resolution: {integrity: sha512-DPe5pVFaAsinSaV6QjQ6gdiedWDcRCbUuiQfQa2wmWV7+xC9bGulGI8+TdRmoFkAPaBXk8CrAbnlY2ISniJ47Q==}
     engines: {node: '>=18'}
+
+  run-parallel@1.2.0:
+    resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
@@ -2232,6 +2531,10 @@ packages:
   shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
+
+  shell-quote@1.8.3:
+    resolution: {integrity: sha512-ObmnIF4hXNg1BqhnHmgbDETF8dLPCggZWBjkQfhZpbszZnYur5DUljTcCHii5LC3J5E0yeO/1LIMyH+UvHQgyw==}
+    engines: {node: '>= 0.4'}
 
   side-channel-list@1.0.1:
     resolution: {integrity: sha512-mjn/0bi/oUURjc5Xl7IaWi/OJJJumuoJFQJfDDyO46+hBWsfaVM65TBHq2eoZBhzl9EchxOijpkbRC8SVBQU0w==}
@@ -2301,6 +2604,10 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  terminal-png@0.1.1:
+    resolution: {integrity: sha512-FV4RK2f2uCTnDOxKc1o5Te/AlO1pKtdJN/u2Th+5OTcq0yT12R1APwYNEMW/sPWqmfFoS1XB+qwP6SLtwrFLeQ==}
+    hasBin: true
+
   thingies@2.6.0:
     resolution: {integrity: sha512-rMHRjmlFLM1R96UYPvpmnc3LYtdFrT33JIB7L9hetGue1qAPfn1N2LJeEjxUSidu1Iku+haLZXDuEXUHNGO/lg==}
     engines: {node: '>=10.18'}
@@ -2309,6 +2616,10 @@ packages:
 
   tiktoken@1.0.22:
     resolution: {integrity: sha512-PKvy1rVF1RibfF3JlXBSP0Jrcw2uq3yXdgcEXtKTYn3QJ/cBRBHDnrJ5jHky+MENZ6DIPwNUGWpkVx+7joCpNA==}
+
+  tiny-stdio-mcp-server@0.1.1:
+    resolution: {integrity: sha512-PWW856wujQoYUR7qIg9OEE+pf+lPH2AOTIH2S299uY7RWLPNrQ07bVJh5Bw8sVhyMZgQdWAjR7u7OuPWW9hA5g==}
+    engines: {node: '>=20'}
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
@@ -2324,6 +2635,10 @@ packages:
   tinyrainbow@3.1.0:
     resolution: {integrity: sha512-Bf+ILmBgretUrdJxzXM0SgXLZ3XfiaUuOj/IKQHuTXip+05Xn+uyEYdVg0kYDipTBcLrCVyUzAPz7QmArb0mmw==}
     engines: {node: '>=14.0.0'}
+
+  to-regex-range@5.0.1:
+    resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
+    engines: {node: '>=8.0'}
 
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
@@ -2359,6 +2674,10 @@ packages:
   turbo@2.9.6:
     resolution: {integrity: sha512-+v2QJey7ZUeUiuigkU+uFfklvNUyPI2VO2vBpMYJA+a1hKFLFiKtUYlRHdb3P9CrAvMzi0upbjI4WT+zKtqkBg==}
     hasBin: true
+
+  turndown@7.2.4:
+    resolution: {integrity: sha512-I8yFsfRzmzK0WV1pNNOA4A7y4RDfFxPRxb3t+e3ui14qSGOxGtiSP6GjeX+Y6CHb7HYaFj7ECUD7VE5kQMZWGQ==}
+    engines: {node: '>=18', npm: '>=9'}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -2520,6 +2839,21 @@ packages:
     resolution: {integrity: sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ==}
 
 snapshots:
+
+  '@babel/helper-string-parser@7.27.1': {}
+
+  '@babel/helper-validator-identifier@7.28.5': {}
+
+  '@babel/parser@7.29.2':
+    dependencies:
+      '@babel/types': 7.29.0
+
+  '@babel/types@7.29.0':
+    dependencies:
+      '@babel/helper-string-parser': 7.27.1
+      '@babel/helper-validator-identifier': 7.28.5
+
+  '@bcoe/v8-coverage@1.0.2': {}
 
   '@clack/core@1.2.0':
     dependencies:
@@ -2688,7 +3022,14 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
+  '@jridgewell/resolve-uri@3.1.2': {}
+
   '@jridgewell/sourcemap-codec@1.5.5': {}
+
+  '@jridgewell/trace-mapping@0.3.31':
+    dependencies:
+      '@jridgewell/resolve-uri': 3.1.2
+      '@jridgewell/sourcemap-codec': 1.5.5
 
   '@jsonjoy.com/base64@1.1.2(tslib@2.8.1)':
     dependencies:
@@ -2817,6 +3158,8 @@ snapshots:
       '@jsonjoy.com/codegen': 17.67.0(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@mixmark-io/domino@2.2.0': {}
+
   '@modelcontextprotocol/sdk@1.29.0(zod@4.1.8)':
     dependencies:
       '@hono/node-server': 1.19.14(hono@4.12.12)
@@ -2845,6 +3188,18 @@ snapshots:
       '@emnapi/runtime': 1.9.2
       '@tybys/wasm-util': 0.10.1
     optional: true
+
+  '@nodelib/fs.scandir@2.1.5':
+    dependencies:
+      '@nodelib/fs.stat': 2.0.5
+      run-parallel: 1.2.0
+
+  '@nodelib/fs.stat@2.0.5': {}
+
+  '@nodelib/fs.walk@1.2.8':
+    dependencies:
+      '@nodelib/fs.scandir': 2.1.5
+      fastq: 1.20.1
 
   '@opencode-ai/plugin@1.4.3':
     dependencies:
@@ -3050,6 +3405,10 @@ snapshots:
       '@types/http-errors': 2.0.5
       '@types/node': 25.6.0
 
+  '@types/shell-quote@1.7.5': {}
+
+  '@types/turndown@5.0.6': {}
+
   '@typescript-eslint/eslint-plugin@8.58.2(@typescript-eslint/parser@8.58.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
@@ -3141,6 +3500,20 @@ snapshots:
       '@typescript-eslint/types': 8.58.2
       eslint-visitor-keys: 5.0.1
 
+  '@vitest/coverage-v8@4.1.5(vitest@4.1.4)':
+    dependencies:
+      '@bcoe/v8-coverage': 1.0.2
+      '@vitest/utils': 4.1.5
+      ast-v8-to-istanbul: 1.0.0
+      istanbul-lib-coverage: 3.2.2
+      istanbul-lib-report: 3.0.1
+      istanbul-reports: 3.2.0
+      magicast: 0.5.2
+      obug: 2.1.1
+      std-env: 4.0.0
+      tinyrainbow: 3.1.0
+      vitest: 4.1.4(@types/node@25.6.0)(@vitest/coverage-v8@4.1.5)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)(yaml@2.8.3))
+
   '@vitest/expect@4.1.4':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -3162,6 +3535,10 @@ snapshots:
     dependencies:
       tinyrainbow: 3.1.0
 
+  '@vitest/pretty-format@4.1.5':
+    dependencies:
+      tinyrainbow: 3.1.0
+
   '@vitest/runner@4.1.4':
     dependencies:
       '@vitest/utils': 4.1.4
@@ -3179,6 +3556,12 @@ snapshots:
   '@vitest/utils@4.1.4':
     dependencies:
       '@vitest/pretty-format': 4.1.4
+      convert-source-map: 2.0.0
+      tinyrainbow: 3.1.0
+
+  '@vitest/utils@4.1.5':
+    dependencies:
+      '@vitest/pretty-format': 4.1.5
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
@@ -3223,6 +3606,12 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
+  ast-v8-to-istanbul@1.0.0:
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      estree-walker: 3.0.3
+      js-tokens: 10.0.0
+
   balanced-match@1.0.2: {}
 
   balanced-match@4.0.4: {}
@@ -3251,6 +3640,10 @@ snapshots:
   brace-expansion@5.0.5:
     dependencies:
       balanced-match: 4.0.4
+
+  braces@3.0.3:
+    dependencies:
+      fill-range: 7.1.1
 
   bundle-name@4.1.0:
     dependencies:
@@ -3522,6 +3915,14 @@ snapshots:
 
   fast-deep-equal@3.1.3: {}
 
+  fast-glob@3.3.3:
+    dependencies:
+      '@nodelib/fs.stat': 2.0.5
+      '@nodelib/fs.walk': 1.2.8
+      glob-parent: 5.1.2
+      merge2: 1.4.1
+      micromatch: 4.0.8
+
   fast-json-stable-stringify@2.1.0: {}
 
   fast-levenshtein@2.0.6: {}
@@ -3538,6 +3939,10 @@ snapshots:
     dependencies:
       fast-string-width: 1.1.0
 
+  fastq@1.20.1:
+    dependencies:
+      reusify: 1.1.0
+
   fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
       picomatch: 4.0.4
@@ -3545,6 +3950,10 @@ snapshots:
   file-entry-cache@8.0.0:
     dependencies:
       flat-cache: 4.0.1
+
+  fill-range@7.1.1:
+    dependencies:
+      to-regex-range: 5.0.1
 
   finalhandler@2.1.1:
     dependencies:
@@ -3600,6 +4009,10 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
+  glob-parent@5.1.2:
+    dependencies:
+      is-glob: 4.0.3
+
   glob-parent@6.0.2:
     dependencies:
       is-glob: 4.0.3
@@ -3630,6 +4043,8 @@ snapshots:
       function-bind: 1.1.2
 
   hono@4.12.12: {}
+
+  html-escaper@2.0.2: {}
 
   http-errors@2.0.1:
     dependencies:
@@ -3678,6 +4093,8 @@ snapshots:
     dependencies:
       is-docker: 3.0.0
 
+  is-number@7.0.0: {}
+
   is-promise@4.0.0: {}
 
   is-wsl@3.1.1:
@@ -3686,9 +4103,24 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  istanbul-lib-coverage@3.2.2: {}
+
+  istanbul-lib-report@3.0.1:
+    dependencies:
+      istanbul-lib-coverage: 3.2.2
+      make-dir: 4.0.0
+      supports-color: 7.2.0
+
+  istanbul-reports@3.2.0:
+    dependencies:
+      html-escaper: 2.0.2
+      istanbul-lib-report: 3.0.1
+
   jetbrains-mono@1.0.6: {}
 
   jose@6.2.2: {}
+
+  js-tokens@10.0.0: {}
 
   js-yaml@3.14.2:
     dependencies:
@@ -3783,6 +4215,16 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  magicast@0.5.2:
+    dependencies:
+      '@babel/parser': 7.29.2
+      '@babel/types': 7.29.0
+      source-map-js: 1.2.1
+
+  make-dir@4.0.0:
+    dependencies:
+      semver: 7.7.4
+
   math-intrinsics@1.1.0: {}
 
   media-typer@1.1.0: {}
@@ -3805,6 +4247,13 @@ snapshots:
       tslib: 2.8.1
 
   merge-descriptors@2.0.0: {}
+
+  merge2@1.4.1: {}
+
+  micromatch@4.0.8:
+    dependencies:
+      braces: 3.0.3
+      picomatch: 2.3.2
 
   mime-db@1.54.0: {}
 
@@ -3857,6 +4306,10 @@ snapshots:
       is-inside-container: 1.0.0
       wsl-utils: 0.1.0
 
+  openai@6.34.0(zod@4.1.8):
+    optionalDependencies:
+      zod: 4.1.8
+
   opencode-poe-auth@0.0.3(@opencode-ai/plugin@1.4.3):
     dependencies:
       '@opencode-ai/plugin': 1.4.3
@@ -3900,6 +4353,8 @@ snapshots:
 
   picocolors@1.1.1: {}
 
+  picomatch@2.3.2: {}
+
   picomatch@4.0.4: {}
 
   pkce-challenge@5.0.1: {}
@@ -3927,6 +4382,8 @@ snapshots:
     dependencies:
       side-channel: 1.1.0
 
+  queue-microtask@1.2.3: {}
+
   range-parser@1.2.1: {}
 
   raw-body@3.0.2:
@@ -3941,6 +4398,8 @@ snapshots:
   resolve-from@4.0.0: {}
 
   resolve-pkg-maps@1.0.0: {}
+
+  reusify@1.1.0: {}
 
   rolldown@1.0.0-rc.15:
     dependencies:
@@ -3974,6 +4433,10 @@ snapshots:
       - supports-color
 
   run-applescript@7.1.0: {}
+
+  run-parallel@1.2.0:
+    dependencies:
+      queue-microtask: 1.2.3
 
   safer-buffer@2.1.2: {}
 
@@ -4016,6 +4479,8 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
+
+  shell-quote@1.8.3: {}
 
   side-channel-list@1.0.1:
     dependencies:
@@ -4097,11 +4562,19 @@ snapshots:
       node-pty: 1.1.0
       smol-toml: 1.6.1
 
+  terminal-png@0.1.1:
+    dependencies:
+      '@resvg/resvg-js': 2.6.2
+      commander: 14.0.3
+      jetbrains-mono: 1.0.6
+
   thingies@2.6.0(tslib@2.8.1):
     dependencies:
       tslib: 2.8.1
 
   tiktoken@1.0.22: {}
+
+  tiny-stdio-mcp-server@0.1.1: {}
 
   tinybench@2.9.0: {}
 
@@ -4113,6 +4586,10 @@ snapshots:
       picomatch: 4.0.4
 
   tinyrainbow@3.1.0: {}
+
+  to-regex-range@5.0.1:
+    dependencies:
+      is-number: 7.0.0
 
   toidentifier@1.0.1: {}
 
@@ -4151,6 +4628,10 @@ snapshots:
       '@turbo/linux-arm64': 2.9.6
       '@turbo/windows-64': 2.9.6
       '@turbo/windows-arm64': 2.9.6
+
+  turndown@7.2.4:
+    dependencies:
+      '@mixmark-io/domino': 2.2.0
 
   type-check@0.4.0:
     dependencies:
@@ -4201,7 +4682,7 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.8.3
 
-  vitest@4.1.4(@types/node@25.6.0)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)(yaml@2.8.3)):
+  vitest@4.1.4(@types/node@25.6.0)(@vitest/coverage-v8@4.1.5)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@vitest/expect': 4.1.4
       '@vitest/mocker': 4.1.4(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)(yaml@2.8.3))
@@ -4225,6 +4706,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.6.0
+      '@vitest/coverage-v8': 4.1.5(vitest@4.1.4)
     transitivePeerDependencies:
       - msw
 

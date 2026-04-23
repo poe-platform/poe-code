@@ -26,10 +26,10 @@ function getUnbundledWorkspaceDeps(pkg: PackageJson): string[] {
 }
 
 describe("standalone package publish metadata", () => {
-  it("bundles unpublished workspace dependencies for standalone agent-kit packages", () => {
+  it("bundles unpublished workspace dependencies for standalone toolcraft packages", () => {
     const packagesToCheck = [
-      "packages/agent-kit/package.json",
-      "packages/agent-kit-openapi/package.json",
+      "packages/toolcraft/package.json",
+      "packages/toolcraft-openapi/package.json",
     ];
 
     expect(
@@ -40,15 +40,15 @@ describe("standalone package publish metadata", () => {
     ).toEqual([]);
   });
 
-  it("records repository.directory for standalone agent-kit packages", () => {
-    expect(readPackageJson("packages/agent-kit/package.json").repository?.directory).toBe(
-      "packages/agent-kit"
+  it("records repository.directory for standalone toolcraft packages", () => {
+    expect(readPackageJson("packages/toolcraft/package.json").repository?.directory).toBe(
+      "packages/toolcraft"
     );
-    expect(readPackageJson("packages/agent-kit-schema/package.json").repository?.directory).toBe(
-      "packages/agent-kit-schema"
+    expect(readPackageJson("packages/toolcraft-schema/package.json").repository?.directory).toBe(
+      "packages/toolcraft-schema"
     );
-    expect(readPackageJson("packages/agent-kit-openapi/package.json").repository?.directory).toBe(
-      "packages/agent-kit-openapi"
+    expect(readPackageJson("packages/toolcraft-openapi/package.json").repository?.directory).toBe(
+      "packages/toolcraft-openapi"
     );
   });
 

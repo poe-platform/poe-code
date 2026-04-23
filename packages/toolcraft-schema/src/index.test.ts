@@ -12,7 +12,7 @@ import type {
   StringSchema,
 } from "toolcraft-schema";
 
-describe("agent-kit-schema", () => {
+describe("toolcraft-schema", () => {
   it("exports typed builders from the package root", () => {
     const stringSchema = S.String({ description: "Name", default: "guest" });
     const numberSchema = S.Number({ description: "Count", default: 3 });

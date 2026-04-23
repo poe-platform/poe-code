@@ -342,7 +342,7 @@ The commander subcommands in `plan.ts` do **not** go through toolcraft; they cal
 
 ### Test plan
 
-All tests are vitest, colocated, run under the package's `npm test` script that uses the repo-root vitest (mirrors [packages/agent-kit-openapi/package.json](packages/agent-kit-openapi/package.json)). File I/O in tests uses `memfs` per CLAUDE.md.
+All tests are vitest, colocated, run under the package's `npm test` script that uses the repo-root vitest (mirrors [packages/toolcraft-openapi/package.json](packages/toolcraft-openapi/package.json)). File I/O in tests uses `memfs` per CLAUDE.md.
 
 - `@poe-code/design-system` — new tests in `packages/design-system/src/terminal-markdown/terminal-markdown.test.ts` (or a new `parser-range.test.ts` if the existing file is large): assert `range.start` / `range.end` on heading, paragraph, code block, list, and frontmatter nodes across representative fixtures. These lock the new position invariant so future parser changes do not silently break consumers.
 - `scan.test.ts` (covers the walker + numbering only — fence / CRLF / BOM / ATX-vs-Setext are the shared parser's responsibility):
@@ -364,7 +364,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
   - `--no-include-children` stops at next heading of any depth.
   - Body slice preserves fenced code blocks and trailing blank lines exactly.
 - `commands/read.test.ts`, `commands/read-section.test.ts`:
-  - Invoke via toolcraft's test harness (see `packages/agent-kit-openapi/src/*.test.ts` for the pattern). Assert JSON renderer output for deterministic assertions; a separate snapshot asserts the rich render.
+  - Invoke via toolcraft's test harness (see `packages/toolcraft-openapi/src/*.test.ts` for the pattern). Assert JSON renderer output for deterministic assertions; a separate snapshot asserts the rich render.
 - Snapshots live at `packages/markdown-reader/src/__snapshots__/`. Fixtures are checked-in markdown files in `src/testing/fixtures/` so they do not drift when `docs/plans/` changes.
 
 ### Rollout / migration
@@ -400,7 +400,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 
 ### New files
 
-- `packages/markdown-reader/package.json` — name `@poe-code/markdown-reader`, `private: true`, type `module`, deps `toolcraft`, `toolcraft-schema`, `@poe-code/design-system`. Scripts mirror [packages/agent-kit-openapi/package.json](packages/agent-kit-openapi/package.json) (`build`, `test`, `test:unit`).
+- `packages/markdown-reader/package.json` — name `@poe-code/markdown-reader`, `private: true`, type `module`, deps `toolcraft`, `toolcraft-schema`, `@poe-code/design-system`. Scripts mirror [packages/toolcraft-openapi/package.json](packages/toolcraft-openapi/package.json) (`build`, `test`, `test:unit`).
 - `packages/markdown-reader/tsconfig.json` — extends workspace base, `outDir: dist`.
 - `packages/markdown-reader/README.md` — per CLAUDE.md package rule ("Package must have own readme"). Sections: overview, SDK usage, MCP tool names, standalone server invocation (`poe-code plan markdown-reader-mcp`), example agent config. No env vars, no config.
 - `packages/markdown-reader/src/index.ts` — exports `readMarkdown`, `readSection`, `markdownGroup`, `runMarkdownReaderMcp`.

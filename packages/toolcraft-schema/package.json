@@ -12,9 +12,9 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "cd ../.. && vitest run packages/agent-kit-schema/src/index.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/agent-kit-schema/src/index.test.ts",
-    "lint": "cd ../.. && eslint packages/agent-kit-schema/src --ext ts && tsc -p packages/agent-kit-schema/tsconfig.json --noEmit"
+    "test": "cd ../.. && vitest run packages/toolcraft-schema/src/index.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/toolcraft-schema/src/index.test.ts",
+    "lint": "cd ../.. && eslint packages/toolcraft-schema/src --ext ts && tsc -p packages/toolcraft-schema/tsconfig.json --noEmit"
   },
   "files": [
     "dist"
@@ -25,6 +25,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/agent-kit-schema"
+    "directory": "packages/toolcraft-schema"
   }
 }

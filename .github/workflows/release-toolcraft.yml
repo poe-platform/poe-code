@@ -5,11 +5,11 @@ on:
     branches:
       - main
     paths:
-      - 'packages/agent-kit/**'
-      - 'packages/agent-kit-schema/**'
-      - 'packages/agent-kit-openapi/**'
+      - 'packages/toolcraft/**'
+      - 'packages/toolcraft-schema/**'
+      - 'packages/toolcraft-openapi/**'
 concurrency:
-  group: release-agent-kit
+  group: release-toolcraft
   cancel-in-progress: false
 permissions:
   contents: read
@@ -33,29 +33,29 @@ jobs:
           V2=$(npm view toolcraft version 2>/dev/null || echo "0.0.0")
           V3=$(npm view toolcraft-openapi version 2>/dev/null || echo "0.0.0")
           REMOTE=$(printf "%s\n%s\n%s" "$V1" "$V2" "$V3" | sort -V | tail -n1)
-          cd packages/agent-kit-schema
+          cd packages/toolcraft-schema
           npm version --no-git-tag-version --allow-same-version "${REMOTE}"
           npm version --no-git-tag-version patch
           NEXT=$(node -e "console.log(require('./package.json').version)")
           echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
-      - name: Set versions on agent-kit and agent-kit-openapi
+      - name: Set versions on toolcraft and toolcraft-openapi
         run: |
           NEXT="${{ steps.version.outputs.next }}"
-          cd packages/agent-kit && npm version --no-git-tag-version --allow-same-version "$NEXT"
-          cd ../agent-kit-openapi && npm version --no-git-tag-version --allow-same-version "$NEXT"
+          cd packages/toolcraft && npm version --no-git-tag-version --allow-same-version "$NEXT"
+          cd ../toolcraft-openapi && npm version --no-git-tag-version --allow-same-version "$NEXT"
       - name: Update cross-package dependency versions
         run: |
           NEXT="${{ steps.version.outputs.next }}"
-          cd packages/agent-kit && npm pkg set "dependencies.toolcraft-schema=^${NEXT}"
-          cd ../agent-kit-openapi && npm pkg set "dependencies.toolcraft=^${NEXT}"
-      - name: Build agent-kit packages and dependencies
-        run: npx turbo build --filter=agent-kit-openapi...
+          cd packages/toolcraft && npm pkg set "dependencies.toolcraft-schema=^${NEXT}"
+          cd ../toolcraft-openapi && npm pkg set "dependencies.toolcraft=^${NEXT}"
+      - name: Build toolcraft packages and dependencies
+        run: npx turbo build --filter=toolcraft-openapi...
       - name: Publish toolcraft-schema
-        working-directory: packages/agent-kit-schema
+        working-directory: packages/toolcraft-schema
         run: npm publish --provenance --access public
       - name: Publish toolcraft
-        working-directory: packages/agent-kit
+        working-directory: packages/toolcraft
         run: npm publish --provenance --access public
       - name: Publish toolcraft-openapi
-        working-directory: packages/agent-kit-openapi
+        working-directory: packages/toolcraft-openapi
         run: npm publish --provenance --access public

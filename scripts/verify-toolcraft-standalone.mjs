@@ -96,7 +96,7 @@ function runConsumerSmoke(projectDir, tarballs) {
     projectDir,
     "node_modules",
     ".bin",
-    process.platform === "win32" ? "agent-kit-openapi-generate.cmd" : "agent-kit-openapi-generate"
+    process.platform === "win32" ? "toolcraft-openapi-generate.cmd" : "toolcraft-openapi-generate"
   );
 
   execFileSync(
@@ -125,9 +125,9 @@ const consumerDir = mkdtempSync(path.join(os.tmpdir(), "toolcraft-consumer-"));
 
 try {
   const tarballs = {
-    agentKit: packPackage("packages/agent-kit", packDir),
-    agentKitSchema: packPackage("packages/agent-kit-schema", packDir),
-    agentKitOpenApi: packPackage("packages/agent-kit-openapi", packDir)
+    agentKit: packPackage("packages/toolcraft", packDir),
+    agentKitSchema: packPackage("packages/toolcraft-schema", packDir),
+    agentKitOpenApi: packPackage("packages/toolcraft-openapi", packDir)
   };
 
   const packAssertions = [

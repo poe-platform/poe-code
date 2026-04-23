@@ -21,7 +21,7 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   workspacePackageNames.add(pkg.name);
   workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src");
 
-  // Resolve sub-path exports (e.g. "agent-kit/mcp" → "packages/agent-kit/src/mcp.ts")
+  // Resolve sub-path exports (e.g. "toolcraft/mcp" → "packages/toolcraft/src/mcp.ts")
   if (pkg.exports && typeof pkg.exports === "object") {
     for (const [subpath, value] of Object.entries(pkg.exports)) {
       if (subpath === ".") continue;

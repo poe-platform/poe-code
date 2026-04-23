@@ -5,6 +5,7 @@ import {
   assertCommandRequirements,
   defineCommand,
   defineGroup,
+  getCommandSourcePath,
   resolveCommandSecrets,
 } from "./index.js";
 import { ERROR_INTERNAL, ERROR_INVALID_PARAMS, McpClient, McpError, createSdkTestPair } from "tiny-mcp-client";
@@ -91,6 +92,31 @@ describe("toolcraft", () => {
     expect(Object.getOwnPropertySymbols(group).map((symbol) => symbol.description)).toContain(
       "toolcraft.group.config"
     );
+  });
+
+  it("ignores installed toolcraft stack frames when inferring a command source path", () => {
+    const OriginalError = globalThis.Error;
+
+    class MockError extends OriginalError {
+      override stack =
+        "Error\n" +
+        "    at defineCommand (file:///repo/node_modules/toolcraft/dist/index.js:10:5)\n" +
+        "    at createCommand (file:///repo/src/commands/deploy.ts:20:3)\n";
+    }
+
+    globalThis.Error = MockError as ErrorConstructor;
+
+    try {
+      const command = defineCommand({
+        name: "deploy",
+        params: S.Object({}),
+        handler: async () => null,
+      });
+
+      expect(getCommandSourcePath(command)).toBe("/repo/src/commands/deploy.ts");
+    } finally {
+      globalThis.Error = OriginalError;
+    }
   });
 
   it("inherits secrets through nested groups", () => {

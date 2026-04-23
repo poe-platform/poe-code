@@ -24,9 +24,9 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "cd ../.. && vitest run packages/agent-kit/src/*.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/agent-kit/src/*.test.ts",
-    "lint": "cd ../.. && eslint packages/agent-kit/src --ext ts && tsc -p packages/agent-kit/tsconfig.json --noEmit",
+    "test": "cd ../.. && vitest run packages/toolcraft/src/*.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/toolcraft/src/*.test.ts",
+    "lint": "cd ../.. && eslint packages/toolcraft/src --ext ts && tsc -p packages/toolcraft/tsconfig.json --noEmit",
     "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system",
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system"
   },
@@ -49,7 +49,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/agent-kit"
+    "directory": "packages/toolcraft"
   },
   "bundleDependencies": [
     "@poe-code/design-system"

@@ -12,8 +12,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts",
+    "test": "cd ../.. && vitest run packages/toolcraft-openapi/src/*.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/toolcraft-openapi/src/*.test.ts",
     "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system auth-store",
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system auth-store"
   },
@@ -21,7 +21,7 @@
     "dist"
   ],
   "bin": {
-    "agent-kit-openapi-generate": "dist/bin/generate.js"
+    "toolcraft-openapi-generate": "dist/bin/generate.js"
   },
   "dependencies": {
     "@clack/core": "^1.0.0",
@@ -39,7 +39,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/agent-kit-openapi"
+    "directory": "packages/toolcraft-openapi"
   },
   "bundleDependencies": [
     "@poe-code/design-system",

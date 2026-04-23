@@ -7,8 +7,8 @@ Typed command and group definitions built on top of `toolcraft-schema`.
 ## Usage
 
 ```ts
-import { defineCommand, defineGroup } from "agent-kit";
-import { S } from "agent-kit-schema";
+import { defineCommand, defineGroup } from "toolcraft";
+import { S } from "toolcraft-schema";
 
 const deploy = defineCommand({
   name: "deploy",

@@ -155,7 +155,7 @@ describe("bearerTokenAuth", () => {
     expect(getAuthGroup(provider).scope).toEqual(["cli"]);
   });
 
-  it("declares auth command params with agent-kit-schema objects", () => {
+  it("declares auth command params with toolcraft schema objects", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
       envVar: "INTERNAL_AGENT_TOKEN",

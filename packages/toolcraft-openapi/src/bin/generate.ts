@@ -51,7 +51,7 @@ const DEFAULT_OPTIONS: GenerateCliOptions = {
   outputDir: "src/generated"
 };
 
-const HELP_TEXT = `Usage: agent-kit-openapi-generate [options]
+const HELP_TEXT = `Usage: toolcraft-openapi-generate [options]
 
 Options:
   --input <path-or-url>  OpenAPI document to read (default: openapi.json)

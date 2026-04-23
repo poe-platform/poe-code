@@ -161,13 +161,13 @@ importers:
         version: 4.1.5(vitest@4.1.4)
       agent-kit:
         specifier: '*'
-        version: link:packages/agent-kit
+        version: link:packages/toolcraft
       agent-kit-openapi:
         specifier: '*'
-        version: link:packages/agent-kit-openapi
+        version: link:packages/toolcraft-openapi
       agent-kit-schema:
         specifier: '*'
-        version: link:packages/agent-kit-schema
+        version: link:packages/toolcraft-schema
       auth-store:
         specifier: '*'
         version: link:packages/auth-store
@@ -249,7 +249,7 @@ importers:
         specifier: '*'
         version: link:../agent-defs
 
-  packages/agent-kit:
+  packages/toolcraft:
     dependencies:
       '@clack/core':
         specifier: ^1.0.0
@@ -262,7 +262,7 @@ importers:
         version: link:../design-system
       agent-kit-schema:
         specifier: ^0.0.1
-        version: link:../agent-kit-schema
+        version: link:../toolcraft-schema
       chalk:
         specifier: ^5.6.2
         version: 5.6.2
@@ -276,7 +276,7 @@ importers:
         specifier: ^0.1.0
         version: 0.1.1
 
-  packages/agent-kit-openapi:
+  packages/toolcraft-openapi:
     dependencies:
       '@clack/core':
         specifier: ^1.0.0
@@ -289,7 +289,7 @@ importers:
         version: link:../design-system
       agent-kit:
         specifier: ^0.0.1
-        version: link:../agent-kit
+        version: link:../toolcraft
       auth-store:
         specifier: ^0.0.1
         version: link:../auth-store
@@ -303,7 +303,7 @@ importers:
         specifier: ^2.8.2
         version: 2.8.3
 
-  packages/agent-kit-schema: {}
+  packages/toolcraft-schema: {}
 
   packages/agent-mcp-config:
     dependencies:
@@ -430,10 +430,10 @@ importers:
         version: link:../design-system
       agent-kit:
         specifier: '*'
-        version: link:../agent-kit
+        version: link:../toolcraft
       agent-kit-schema:
         specifier: '*'
-        version: link:../agent-kit-schema
+        version: link:../toolcraft-schema
       mustache:
         specifier: ^4.2.0
         version: 4.2.0
@@ -448,10 +448,10 @@ importers:
         version: link:../design-system
       agent-kit:
         specifier: '*'
-        version: link:../agent-kit
+        version: link:../toolcraft
       agent-kit-schema:
         specifier: '*'
-        version: link:../agent-kit-schema
+        version: link:../toolcraft-schema
 
   packages/memory:
     dependencies:
@@ -635,7 +635,7 @@ importers:
         version: link:../poe-code-config
       agent-kit:
         specifier: '*'
-        version: link:../agent-kit
+        version: link:../toolcraft
 
   packages/terminal-pilot:
     dependencies:
@@ -675,10 +675,10 @@ importers:
         version: link:../agent-skill-config
       agent-kit:
         specifier: '*'
-        version: link:../agent-kit
+        version: link:../toolcraft
       agent-kit-schema:
         specifier: '*'
-        version: link:../agent-kit-schema
+        version: link:../toolcraft-schema
       terminal-png:
         specifier: '*'
         version: 0.1.1
@@ -693,7 +693,7 @@ importers:
         version: 2.6.2
       agent-kit:
         specifier: '*'
-        version: link:../agent-kit
+        version: link:../toolcraft
       chalk:
         specifier: ^5.6.2
         version: 5.6.2

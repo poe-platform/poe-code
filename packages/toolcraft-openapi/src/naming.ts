@@ -87,7 +87,7 @@ export function deriveVerb(
   }
 
   throw new UserError(
-    `Operation ${JSON.stringify(operationId)} is missing an operationId, so agent-kit-openapi cannot derive a stable command verb.`
+    `Operation ${JSON.stringify(operationId)} is missing an operationId, so toolcraft-openapi cannot derive a stable command verb.`
   );
 }
 

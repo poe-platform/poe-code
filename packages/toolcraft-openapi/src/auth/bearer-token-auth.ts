@@ -54,14 +54,14 @@ const loginParams = S.Object({
 type LoginParams = Static<typeof loginParams>;
 const emptyParams = S.Object({});
 const KEYCHAIN_ACCOUNT = "token";
-const DEFAULT_STORE_DIRECTORY = ".agent-kit-openapi";
+const DEFAULT_STORE_DIRECTORY = ".toolcraft-openapi";
 const DEFAULT_STORE_VERSION = "v1";
 
 export function bearerTokenAuth(options: BearerTokenAuthOptions): AuthProvider {
   const commandPrefix = options.commandPrefix ?? DEFAULT_COMMAND_PREFIX;
   const { store, backend } = createSecretStore({
     fileStore: {
-      salt: `${options.serviceName}:agent-kit-openapi:${DEFAULT_STORE_VERSION}`,
+      salt: `${options.serviceName}:toolcraft-openapi:${DEFAULT_STORE_VERSION}`,
       defaultDirectory: DEFAULT_STORE_DIRECTORY,
       defaultFileName: `${options.serviceName}.enc`,
     },

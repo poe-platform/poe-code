@@ -18,7 +18,7 @@ import type {
 import * as entrypoint from "./index.js";
 import { HttpError } from "./index.js";
 
-describe("agent-kit-openapi", () => {
+describe("toolcraft-openapi", () => {
   it("loads the package entrypoint", () => {
     expect(Object.keys(entrypoint).sort()).toEqual([
       "HttpError",
@@ -39,7 +39,7 @@ describe("agent-kit-openapi", () => {
     }>();
   });
 
-  it("defines command contributors as agent-kit command collections", () => {
+  it("defines command contributors as toolcraft command collections", () => {
     expectTypeOf<CommandContributor>().toMatchTypeOf<{
       commands: CommandNode<any>[];
     }>();

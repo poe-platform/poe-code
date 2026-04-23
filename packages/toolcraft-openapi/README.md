@@ -7,7 +7,7 @@ Scaffold for OpenAPI-driven toolcraft clients.
 ## Usage
 
 ```ts
-import { bearerTokenAuth, requestJson } from "agent-kit-openapi";
+import { bearerTokenAuth, requestJson } from "toolcraft-openapi";
 
 const auth = bearerTokenAuth({
   serviceName: "internal-agent",
@@ -18,7 +18,7 @@ const auth = bearerTokenAuth({
 
 ## Generator CLI
 
-`agent-kit-openapi-generate` reads an OpenAPI document from disk or a URL, writes generated
+`toolcraft-openapi-generate` reads an OpenAPI document from disk or a URL, writes generated
 command files, and stores the current spec hash in `openapi.lock`.
 
 - `--input <path-or-url>` — OpenAPI document to read. Defaults to `openapi.json`.
@@ -29,7 +29,7 @@ command files, and stores the current spec hash in `openapi.lock`.
 ### CI drift check
 
 ```sh
-agent-kit-openapi-generate --check
+toolcraft-openapi-generate --check
 ```
 
 ## Exports

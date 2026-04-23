@@ -22,7 +22,7 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   workspacePackageNames.add(pkg.name);
   // Resolve workspace packages to source (Just-in-Time compilation)
   workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src/index.ts");
-  // Resolve sub-path exports (e.g. "agent-kit/cli" → "packages/agent-kit/src/cli.ts")
+  // Resolve sub-path exports (e.g. "toolcraft/cli" → "packages/toolcraft/src/cli.ts")
   if (pkg.exports && typeof pkg.exports === "object") {
     for (const subpath of Object.keys(pkg.exports)) {
       if (subpath === ".") continue;

@@ -14,8 +14,8 @@ Zero-dependency schema builder for typed command inputs and JSON Schema generati
 ## Usage
 
 ```ts
-import { S, toJsonSchema } from "agent-kit-schema";
-import type { Static } from "agent-kit-schema";
+import { S, toJsonSchema } from "toolcraft-schema";
+import type { Static } from "toolcraft-schema";
 
 const schema = S.Object({
   name: S.String({ description: "User name" }),

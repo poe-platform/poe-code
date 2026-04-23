@@ -344,9 +344,9 @@ function inferCommandSourcePath(): string | undefined {
     }
 
     if (
-      candidate.includes("/packages/agent-kit/src/index.ts") ||
-      candidate.includes("/packages/agent-kit/dist/index.js") ||
-      candidate.includes("/node_modules/agent-kit/dist/index.js")
+      candidate.includes("/packages/toolcraft/src/index.ts") ||
+      candidate.includes("/packages/toolcraft/dist/index.js") ||
+      candidate.includes("/node_modules/toolcraft/dist/index.js")
     ) {
       continue;
     }

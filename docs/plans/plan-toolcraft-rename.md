@@ -73,7 +73,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: rename-directories
     title: Rename package directories to match toolcraft names
@@ -98,9 +98,9 @@ tasks:
 
       Run `npm install` to sync the lockfile, then `npx turbo run build` and `npx turbo run test:unit`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: update-docs

@@ -1,4 +1,4 @@
-import { defineGroup } from "@poe-code/cmdkit";
+import { defineGroup } from "agent-kit";
 import { readTool, readSectionTool } from "./tools.js";
 
 export const markdownGroup = defineGroup({

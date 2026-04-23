@@ -1,4 +1,4 @@
-import { defineCommand, S } from "@poe-code/cmdkit";
+import { defineCommand, S } from "agent-kit";
 import { renderTerminalPng } from "terminal-png";
 import { getTerminalPilotRuntime, type TerminalPilotCommandServices } from "./runtime.js";
 

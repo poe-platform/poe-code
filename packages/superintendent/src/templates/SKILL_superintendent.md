@@ -162,7 +162,7 @@ Any role may set `cwd` to override the default (the directory containing the pla
 ```yaml
 builder:
   agent: claude-code
-  cwd: ../../packages/agent-kit
+  cwd: ../../packages/agent-harness-tools
   prompt: |
     Build the next task.
 ```

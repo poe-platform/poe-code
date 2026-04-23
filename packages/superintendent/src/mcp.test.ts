@@ -56,7 +56,7 @@ vi.mock("./direct-execution.js", () => ({
   isDirectExecution: isDirectExecutionMock
 }));
 
-vi.mock("@poe-code/cmdkit/mcp", () => ({
+vi.mock("agent-kit/mcp", () => ({
   createMCPServer: createMCPServerMock
 }));
 

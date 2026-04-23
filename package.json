@@ -10,29 +10,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./cmdkit": {
-      "types": "./packages/cmdkit/dist/index.d.ts",
-      "import": "./packages/cmdkit/dist/index.js"
-    },
-    "./cmdkit/cli": {
-      "types": "./packages/cmdkit/dist/cli.d.ts",
-      "import": "./packages/cmdkit/dist/cli.js"
-    },
-    "./cmdkit/mcp": {
-      "types": "./packages/cmdkit/dist/mcp.d.ts",
-      "import": "./packages/cmdkit/dist/mcp.js"
-    },
-    "./cmdkit/sdk": {
-      "types": "./packages/cmdkit/dist/sdk.d.ts",
-      "import": "./packages/cmdkit/dist/sdk.js"
-    },
     "./memory": {
       "types": "./packages/memory/dist/index.d.ts",
       "import": "./packages/memory/dist/index.js"
-    },
-    "./cmdkit-openapi": {
-      "types": "./packages/cmdkit-openapi/dist/index.d.ts",
-      "import": "./packages/cmdkit-openapi/dist/index.js"
     }
   },
   "workspaces": [
@@ -107,9 +87,6 @@
     "dist",
     "packages/agent-mcp-config/dist",
     "packages/agent-skill-config/dist",
-    "packages/cmdkit/dist",
-    "packages/cmdkit-openapi/dist",
-    "packages/cmdkit-schema/dist",
     "packages/config-mutations/dist",
     "packages/design-system/dist",
     "packages/memory/dist",
@@ -142,14 +119,14 @@
     "@eslint/js": "^9.0.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@poe-code/agent-defs": "*",
-    "@poe-code/agent-kit": "*",
+    "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-mcp-config": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",
     "@poe-code/cached-resource": "*",
-    "@poe-code/cmdkit": "*",
-    "@poe-code/cmdkit-openapi": "*",
-    "@poe-code/cmdkit-schema": "*",
+    "agent-kit": "*",
+    "agent-kit-openapi": "*",
+    "agent-kit-schema": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/config-mutations": "*",
     "@poe-code/design-system": "*",

@@ -1,4 +1,4 @@
-import { S, UserError, defineCommand } from "@poe-code/cmdkit";
+import { S, UserError, defineCommand } from "agent-kit";
 import { setStatusReason, transitionState } from "../document/write.js";
 
 const completeParams = S.Object({

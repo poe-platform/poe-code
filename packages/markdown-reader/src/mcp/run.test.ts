@@ -5,7 +5,7 @@ const { runMCPMock, markdownGroupMock } = vi.hoisted(() => ({
   markdownGroupMock: { name: "markdown-reader" }
 }));
 
-vi.mock("@poe-code/cmdkit/mcp", () => ({
+vi.mock("agent-kit/mcp", () => ({
   runMCP: runMCPMock
 }));
 

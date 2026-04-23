@@ -41,7 +41,7 @@
     "headless"
   ],
   "dependencies": {
-    "@poe-code/cmdkit": "*",
+    "agent-kit": "*",
     "@clack/prompts": "^1.0.0",
     "@resvg/resvg-js": "^2.6.2",
     "chalk": "^5.6.2",

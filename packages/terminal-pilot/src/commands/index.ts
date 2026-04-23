@@ -1,4 +1,4 @@
-import { defineGroup } from "@poe-code/cmdkit";
+import { defineGroup } from "agent-kit";
 import type { TerminalPilotCommandServices } from "./runtime.js";
 import { closeSession } from "./close-session.js";
 import { createSession } from "./create-session.js";

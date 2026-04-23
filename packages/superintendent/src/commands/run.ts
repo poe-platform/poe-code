@@ -1,7 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
-import { resolveRunLogDir, resolveWorkflowPath } from "@poe-code/agent-kit";
+import { resolveRunLogDir, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import {
   applyMiddlewares,
   getSpawnConfig,
@@ -15,7 +15,7 @@ import {
 } from "@poe-code/agent-spawn";
 import { parseAgentSpecifier, resolveAgentId } from "@poe-code/agent-defs";
 import { executePoeAgent } from "./poe-agent-runner.js";
-import { S, UserError, defineCommand } from "@poe-code/cmdkit";
+import { S, UserError, defineCommand } from "agent-kit";
 import {
   acp,
   cancel,

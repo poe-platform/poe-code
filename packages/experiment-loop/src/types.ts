@@ -1,4 +1,4 @@
-import type { WorkflowFileStat, WorkflowFileSystem } from "@poe-code/agent-kit";
+import type { WorkflowFileStat, WorkflowFileSystem } from "@poe-code/agent-harness-tools";
 
 export interface ExperimentFileStat extends WorkflowFileStat {
   isFile(): boolean;

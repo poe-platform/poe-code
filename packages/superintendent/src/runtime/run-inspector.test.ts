@@ -135,7 +135,7 @@ describe("runInspector", () => {
 
   it("resolves a relative cwd against the document directory", async () => {
     autonomousMock.mockImplementation(async (_, { cwd }) => {
-      expect(cwd).toBe("/repo/packages/agent-kit");
+      expect(cwd).toBe("/repo/packages/agent-harness-tools");
       return "ok";
     });
 
@@ -145,7 +145,7 @@ describe("runInspector", () => {
       "code-quality",
       {
         agent: "codex",
-        cwd: "../../packages/agent-kit",
+        cwd: "../../packages/agent-harness-tools",
         prompt: "noop"
       },
       document,

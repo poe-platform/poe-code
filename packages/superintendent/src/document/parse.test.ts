@@ -100,7 +100,7 @@ kind: superintendent
 version: 1
 builder:
   agent: claude-code
-  cwd: ../../packages/agent-kit
+  cwd: ../../packages/agent-harness-tools
   prompt: build
 inspectors:
   testing:
@@ -123,7 +123,7 @@ Body
 
     const result = parseSuperintendentDoc("plan.md", content);
 
-    expect(result.frontmatter.builder.cwd).toBe("../../packages/agent-kit");
+    expect(result.frontmatter.builder.cwd).toBe("../../packages/agent-harness-tools");
     expect(result.frontmatter.inspectors?.testing.cwd).toBe("/absolute/workspace");
     expect(result.frontmatter.superintendent.cwd).toBeUndefined();
     expect(result.frontmatter.owner.cwd).toBeUndefined();

@@ -1,4 +1,4 @@
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 import type { Section } from "./scan.js";
 
 export function resolveSection(sections: Section[], id: string): Section {

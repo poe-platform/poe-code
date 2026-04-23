@@ -1,0 +1,30 @@
+{
+  "name": "agent-kit-openapi",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "agent-kit": "*",
+    "@poe-code/design-system": "*",
+    "auth-store": "*",
+    "yaml": "^2.8.2"
+  },
+  "bin": {
+    "agent-kit-openapi-generate": "dist/bin/generate.js"
+  }
+}

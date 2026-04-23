@@ -22,7 +22,7 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   workspacePackageNames.add(pkg.name);
   // Resolve workspace packages to source (Just-in-Time compilation)
   workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src/index.ts");
-  // Resolve sub-path exports (e.g. "@poe-code/cmdkit/cli" → "packages/cmdkit/src/cli.ts")
+  // Resolve sub-path exports (e.g. "agent-kit/cli" → "packages/agent-kit/src/cli.ts")
   if (pkg.exports && typeof pkg.exports === "object") {
     for (const subpath of Object.keys(pkg.exports)) {
       if (subpath === ".") continue;
@@ -130,50 +130,6 @@ if (providerEntryPoints.length > 0) {
     plugins: [stripShebangPlugin],
     loader: { ".md": "text", ".mustache": "text", ".log": "text" },
   });
-}
-
-// Bundle cmdkit entry points — inlines workspace packages so consumers
-// don't need @poe-code/* workspace deps at runtime.
-const cmdkitEntries = ["index", "cli", "mcp", "sdk", "renderer"].map((name) =>
-  path.join(rootDir, "packages/cmdkit/src", `${name}.ts`)
-);
-
-await esbuild.build({
-  entryPoints: cmdkitEntries,
-  bundle: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outdir: path.join(rootDir, "packages/cmdkit/dist"),
-  entryNames: "[name]",
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  plugins: [stripShebangPlugin],
-});
-
-// Rewrite @poe-code/* bare-specifier imports in cmdkit .d.ts files
-// to relative paths so types resolve from the shipped tarball.
-const cmdkitDtsDir = path.join(rootDir, "packages/cmdkit/dist");
-const dtsFiles = (await readdir(cmdkitDtsDir)).filter((f) => f.endsWith(".d.ts"));
-const dtsRewriteMap = {
-  '"@poe-code/cmdkit-schema"': '"../../cmdkit-schema/dist/index.js"',
-  '"@poe-code/design-system"': '"../../design-system/dist/index.js"',
-  '"tiny-stdio-mcp-server"': '"../../tiny-stdio-mcp-server/dist/index.js"',
-};
-for (const f of dtsFiles) {
-  const fp = path.join(cmdkitDtsDir, f);
-  let content = await readFile(fp, "utf8");
-  let changed = false;
-  for (const [from, to] of Object.entries(dtsRewriteMap)) {
-    if (content.includes(from)) {
-      content = content.replaceAll(from, to);
-      changed = true;
-    }
-  }
-  if (changed) {
-    await writeFile(fp, content);
-  }
 }
 
 // Bundle memory into a single esm file so consumers of poe-code/memory

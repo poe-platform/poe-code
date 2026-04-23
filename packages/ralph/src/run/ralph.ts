@@ -5,7 +5,7 @@ import {
   resolveRunLogDir,
   resolveWorkflowPath,
   runDocumentWorkflow
-} from "@poe-code/agent-kit";
+} from "@poe-code/agent-harness-tools";
 import {
   formatAgentSpecifier,
   parseAgentSpecifier,

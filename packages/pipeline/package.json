@@ -22,7 +22,7 @@
     "dist"
   ],
   "dependencies": {
-    "@poe-code/agent-kit": "*",
+    "@poe-code/agent-harness-tools": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/design-system": "*",
     "yaml": "^2.8.2"

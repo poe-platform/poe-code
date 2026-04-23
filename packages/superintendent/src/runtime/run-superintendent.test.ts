@@ -165,7 +165,7 @@ describe("runSuperintendent", () => {
 
   it("resolves a relative superintendent cwd against the document directory", async () => {
     autonomousMock.mockImplementation(async (_, { cwd }) => {
-      expect(cwd).toBe("/repo/packages/agent-kit");
+      expect(cwd).toBe("/repo/packages/agent-harness-tools");
       return "ok";
     });
 
@@ -178,7 +178,7 @@ describe("runSuperintendent", () => {
           ...document.frontmatter,
           superintendent: {
             ...document.frontmatter.superintendent,
-            cwd: "../../packages/agent-kit"
+            cwd: "../../packages/agent-harness-tools"
           }
         }
       },

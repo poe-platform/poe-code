@@ -63,8 +63,8 @@
   },
   "devDependencies": {
     "@poe-code/agent-skill-config": "*",
-    "@poe-code/cmdkit": "*",
-    "@poe-code/cmdkit-schema": "*",
+    "agent-kit": "*",
+    "agent-kit-schema": "*",
     "terminal-png": "*"
   }
 }

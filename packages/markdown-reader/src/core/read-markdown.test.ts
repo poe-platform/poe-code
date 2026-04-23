@@ -1,4 +1,4 @@
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
 import simpleFixture from "../testing/fixtures/simple.md";

@@ -19,7 +19,7 @@ import {
 } from "@poe-code/agent-defs";
 import { resolvePlanDirectory } from "@poe-code/pipeline";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
-import { resolveWorkflowPath, skillPlanConfigSection } from "@poe-code/agent-kit";
+import { resolveWorkflowPath, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import {
   installSkill,
   resolveAgentSupport,

@@ -44,8 +44,8 @@ const runCliState = vi.hoisted(() => ({
   argvSnapshots: [] as string[][]
 }));
 
-vi.mock("@poe-code/cmdkit/cli", async () => {
-  const actual = await vi.importActual<typeof import("@poe-code/cmdkit/cli")>("@poe-code/cmdkit/cli");
+vi.mock("agent-kit/cli", async () => {
+  const actual = await vi.importActual<typeof import("agent-kit/cli")>("agent-kit/cli");
   return {
     ...actual,
     runCLI: vi.fn(async () => {

@@ -5,7 +5,7 @@ import {
   resolveWorkflowAgent
 } from "./setup-agent.js";
 import type { AutomationDefinition } from "./types.js";
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
 

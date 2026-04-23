@@ -1,6 +1,6 @@
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
-import { resolveWorkflowPath } from "@poe-code/agent-kit";
+import { resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import {
   ExperimentJournal,
   runExperimentLoop as runWorkspaceExperimentLoop,

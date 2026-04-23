@@ -1,6 +1,6 @@
 import nodeFs from "node:fs/promises";
 import path from "node:path";
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 import { parse } from "@poe-code/design-system";
 import { parseDocument } from "yaml";
 import { scanMarkdown, type Section } from "./scan.js";

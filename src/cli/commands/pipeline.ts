@@ -18,7 +18,7 @@ import {
   allAgents
 } from "@poe-code/agent-defs";
 import { renderAcpEvent, type AcpEvent } from "@poe-code/agent-spawn";
-import { skillPlanConfigSection } from "@poe-code/agent-kit";
+import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import {
   installSkill,
   resolveAgentSupport,

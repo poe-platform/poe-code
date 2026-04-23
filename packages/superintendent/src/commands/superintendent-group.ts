@@ -1,4 +1,4 @@
-import { S, UserError, defineCommand, defineGroup } from "@poe-code/cmdkit";
+import { S, UserError, defineCommand, defineGroup } from "agent-kit";
 import { text } from "@poe-code/design-system";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { hasTaskBoard, parseTaskBoard } from "../document/tasks.js";

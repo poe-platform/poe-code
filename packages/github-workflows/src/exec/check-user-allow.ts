@@ -1,4 +1,4 @@
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 import type { AutomationDefinition } from "../types.js";
 
 export function checkUserAllow(

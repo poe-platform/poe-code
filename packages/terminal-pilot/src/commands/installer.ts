@@ -2,7 +2,7 @@ import os from "node:os";
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
 import { readFile } from "node:fs/promises";
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 import {
   getAgentConfig,
   resolveAgentSupport as resolveSkillAgentSupport,

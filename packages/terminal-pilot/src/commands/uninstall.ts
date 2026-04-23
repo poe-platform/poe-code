@@ -1,4 +1,4 @@
-import { defineCommand, S } from "@poe-code/cmdkit";
+import { defineCommand, S } from "agent-kit";
 import type { TerminalPilotCommandServices } from "./runtime.js";
 import {
   DEFAULT_INSTALL_AGENT,

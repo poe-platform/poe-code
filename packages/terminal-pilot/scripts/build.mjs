@@ -21,7 +21,7 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   workspacePackageNames.add(pkg.name);
   workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src");
 
-  // Resolve sub-path exports (e.g. "@poe-code/cmdkit/cli" → "packages/cmdkit/src/cli.ts")
+  // Resolve sub-path exports (e.g. "agent-kit/cli" → "packages/agent-kit/src/cli.ts")
   if (pkg.exports && typeof pkg.exports === "object") {
     for (const [subpath, value] of Object.entries(pkg.exports)) {
       if (subpath === ".") continue;

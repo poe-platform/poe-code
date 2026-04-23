@@ -1,4 +1,4 @@
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 import { describe, expect, it } from "vitest";
 import type { Section } from "./scan.js";
 import { resolveSection } from "./resolve.js";

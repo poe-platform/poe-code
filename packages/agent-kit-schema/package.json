@@ -1,0 +1,22 @@
+{
+  "name": "agent-kit-schema",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/agent-kit-schema/src/index.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/agent-kit-schema/src/index.test.ts",
+    "lint": "cd ../.. && eslint packages/agent-kit-schema/src --ext ts && tsc -p packages/agent-kit-schema/tsconfig.json --noEmit"
+  },
+  "files": [
+    "dist"
+  ]
+}

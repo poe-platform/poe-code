@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { lockWorkflow } from "@poe-code/agent-kit";
+import { lockWorkflow } from "@poe-code/agent-harness-tools";
 import { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
 import { resolvePlanDirectory, resolvePlanPath, resolvePlanPaths } from "./plan/discovery.js";
 import { parsePlan, pipelineDocumentSchema, pipelineDocumentSchemaId } from "./plan/parser.js";

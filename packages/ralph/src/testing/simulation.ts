@@ -1,6 +1,6 @@
 import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
-import { resolveWorkflowPath } from "@poe-code/agent-kit";
+import { resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { runRalph } from "../run/ralph.js";
 import type {
   AgentRunInput,

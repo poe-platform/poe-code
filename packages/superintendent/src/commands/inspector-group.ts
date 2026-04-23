@@ -1,4 +1,4 @@
-import { S, UserError, defineCommand, defineGroup } from "@poe-code/cmdkit";
+import { S, UserError, defineCommand, defineGroup } from "agent-kit";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import {
   runAllInspectors,

@@ -5,7 +5,7 @@ const { runMCPMock, terminalPilotGroupMock } = vi.hoisted(() => ({
   terminalPilotGroupMock: { name: "terminal-pilot" }
 }));
 
-vi.mock("@poe-code/cmdkit/mcp", () => ({
+vi.mock("agent-kit/mcp", () => ({
   runMCP: runMCPMock
 }));
 

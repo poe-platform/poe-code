@@ -1,4 +1,4 @@
-import { createMCPServer } from "@poe-code/cmdkit/mcp";
+import { createMCPServer } from "agent-kit/mcp";
 import { describe, expect, it } from "vitest";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import { markdownGroup } from "./group.js";

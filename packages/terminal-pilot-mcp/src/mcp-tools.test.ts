@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
-import { createMCPServer } from "@poe-code/cmdkit/mcp";
+import { createMCPServer } from "agent-kit/mcp";
 import { terminalPilotGroup } from "terminal-pilot/commands";
 import type { TerminalPilotRuntime } from "terminal-pilot/commands";
 

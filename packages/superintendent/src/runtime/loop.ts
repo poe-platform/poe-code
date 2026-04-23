@@ -1,6 +1,6 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { lockWorkflow, makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-kit";
+import { lockWorkflow, makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { spawn, type McpSpawnConfig } from "@poe-code/agent-spawn";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";

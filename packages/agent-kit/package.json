@@ -1,7 +1,6 @@
 {
-  "name": "@poe-code/agent-kit",
+  "name": "agent-kit",
   "version": "0.0.1",
-  "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,17 +8,33 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp.d.ts",
+      "import": "./dist/mcp.js"
+    },
+    "./sdk": {
+      "types": "./dist/sdk.d.ts",
+      "import": "./dist/sdk.js"
     }
   },
   "scripts": {
     "build": "tsc",
-    "test": "cd ../.. && vitest run packages/agent-kit/src",
-    "test:unit": "cd ../.. && vitest run packages/agent-kit/src"
+    "test": "cd ../.. && vitest run packages/agent-kit/src/index.test.ts packages/agent-kit/src/renderer.test.ts packages/agent-kit/src/cli.test.ts packages/agent-kit/src/mcp.test.ts packages/agent-kit/src/sdk.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/agent-kit/src/index.test.ts packages/agent-kit/src/renderer.test.ts packages/agent-kit/src/cli.test.ts packages/agent-kit/src/mcp.test.ts packages/agent-kit/src/sdk.test.ts",
+    "lint": "cd ../.. && eslint packages/agent-kit/src --ext ts && tsc -p packages/agent-kit/tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "agent-kit-schema": "*",
+    "@poe-code/design-system": "*",
+    "commander": "^14.0.3",
+    "tiny-stdio-mcp-server": "*"
   },
   "files": [
     "dist"
-  ],
-  "dependencies": {
-    "@poe-code/agent-defs": "*"
-  }
+  ]
 }

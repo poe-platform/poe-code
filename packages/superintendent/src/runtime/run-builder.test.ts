@@ -149,7 +149,7 @@ describe("runBuilder", () => {
 
   it("resolves a relative builder cwd against the document directory", async () => {
     autonomousMock.mockImplementation(async (_, { cwd }) => {
-      expect(cwd).toBe("/repo/packages/agent-kit");
+      expect(cwd).toBe("/repo/packages/agent-harness-tools");
       return "ok";
     });
 
@@ -160,7 +160,7 @@ describe("runBuilder", () => {
         ...document,
         frontmatter: {
           ...document.frontmatter,
-          builder: { ...document.frontmatter.builder, cwd: "../../packages/agent-kit" }
+          builder: { ...document.frontmatter.builder, cwd: "../../packages/agent-harness-tools" }
         }
       },
       {},

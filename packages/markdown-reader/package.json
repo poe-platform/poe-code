@@ -20,8 +20,8 @@
     "dist"
   ],
   "dependencies": {
-    "@poe-code/cmdkit": "*",
-    "@poe-code/cmdkit-schema": "*",
+    "agent-kit": "*",
+    "agent-kit-schema": "*",
     "@poe-code/design-system": "*"
   }
 }

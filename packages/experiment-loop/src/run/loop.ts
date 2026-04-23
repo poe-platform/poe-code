@@ -6,7 +6,7 @@ import {
   makeRunLogFileName,
   resolveRunLogDir,
   resolveWorkflowPath
-} from "@poe-code/agent-kit";
+} from "@poe-code/agent-harness-tools";
 import { resolve } from "@poe-code/config-extends";
 import {
   parseExperimentFrontmatterData,

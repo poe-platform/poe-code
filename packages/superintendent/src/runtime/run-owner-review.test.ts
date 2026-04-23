@@ -140,7 +140,7 @@ describe("runOwnerReview", () => {
 
   it("resolves a relative owner cwd against the document directory", async () => {
     autonomousMock.mockImplementation(async (_, { cwd }) => {
-      expect(cwd).toBe("/repo/packages/agent-kit");
+      expect(cwd).toBe("/repo/packages/agent-harness-tools");
       return {
         toolCalls: [
           { name: "workflow_transition", arguments: { action: "approve_completion" } }
@@ -155,7 +155,7 @@ describe("runOwnerReview", () => {
         ...document,
         frontmatter: {
           ...document.frontmatter,
-          owner: { ...document.frontmatter.owner, cwd: "../../packages/agent-kit" }
+          owner: { ...document.frontmatter.owner, cwd: "../../packages/agent-harness-tools" }
         }
       },
       {},

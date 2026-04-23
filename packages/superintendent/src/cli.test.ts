@@ -12,7 +12,7 @@ vi.mock("./direct-execution.js", () => ({
   isDirectExecution: isDirectExecutionMock
 }));
 
-vi.mock("@poe-code/cmdkit/cli", () => ({
+vi.mock("agent-kit/cli", () => ({
   runCLI: runCLIMock
 }));
 

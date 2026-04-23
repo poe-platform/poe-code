@@ -8,7 +8,7 @@ import { registerPipelineCommand } from "./pipeline.js";
 import { ValidationError } from "../errors.js";
 import pipelineSkillPlan from "../../templates/pipeline/SKILL_plan.md";
 import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache";
-import { skillPlanConfigSection } from "@poe-code/agent-kit";
+import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import type { Dashboard } from "@poe-code/design-system";
 
 const { selectMock, cancelMock } = vi.hoisted(() => ({

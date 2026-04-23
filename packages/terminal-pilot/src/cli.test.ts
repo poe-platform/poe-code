@@ -14,7 +14,7 @@ vi.mock("node:fs/promises", () => ({
   realpath: realpathMock
 }));
 
-vi.mock("@poe-code/cmdkit/cli", () => ({
+vi.mock("agent-kit/cli", () => ({
   runCLI: runCLIMock
 }));
 

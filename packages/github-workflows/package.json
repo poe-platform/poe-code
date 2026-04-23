@@ -27,8 +27,8 @@
   "dependencies": {
     "@poe-code/agent-spawn": "*",
     "@poe-code/config-extends": "*",
-    "@poe-code/cmdkit": "*",
-    "@poe-code/cmdkit-schema": "*",
+    "agent-kit": "*",
+    "agent-kit-schema": "*",
     "@poe-code/design-system": "*",
     "mustache": "^4.2.0",
     "yaml": "^2.8.2"

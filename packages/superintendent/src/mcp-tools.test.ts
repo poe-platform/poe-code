@@ -126,7 +126,7 @@ describe("superintendent MCP tool surface", () => {
   });
 
   it("starts the MCP server without errors", async () => {
-    const { createMCPServer } = await import("@poe-code/cmdkit/mcp");
+    const { createMCPServer } = await import("agent-kit/mcp");
     const { superintendentMcpGroup } = await import("./commands/index.js");
     const server = createMCPServer([superintendentMcpGroup], {
       name: "superintendent",
@@ -152,7 +152,7 @@ describe("superintendent MCP tool surface", () => {
   }, 15_000);
 
   it("lists the expected superintendent MCP tool names", async () => {
-    const { createMCPServer } = await import("@poe-code/cmdkit/mcp");
+    const { createMCPServer } = await import("agent-kit/mcp");
     const { superintendentMcpGroup } = await import("./commands/index.js");
     const server = createMCPServer([superintendentMcpGroup], {
       name: "superintendent",
@@ -178,7 +178,7 @@ describe("superintendent MCP tool surface", () => {
   });
 
   it("exposes all superintendent commands through MCP", async () => {
-    const { createMCPServer } = await import("@poe-code/cmdkit/mcp");
+    const { createMCPServer } = await import("agent-kit/mcp");
     const { superintendentMcpGroup } = await import("./commands/index.js");
     const server = createMCPServer([superintendentMcpGroup], {
       name: "superintendent",

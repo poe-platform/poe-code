@@ -10,7 +10,7 @@ import { ValidationError } from "../errors.js";
 import type { Dashboard } from "@poe-code/design-system";
 import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
 import experimentRunYaml from "../../templates/experiment/run.yaml.mustache";
-import { skillPlanConfigSection } from "@poe-code/agent-kit";
+import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import { parseFrontmatter } from "../../../packages/ralph/src/frontmatter/frontmatter.js";
 
 const { selectMock, promptTextMock, isCancelMock, cancelMock } = vi.hoisted(() => ({

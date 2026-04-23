@@ -1,7 +1,7 @@
 import { basename } from "node:path";
 import { Command, Help } from "commander";
-import type { Group } from "@poe-code/cmdkit";
-import { runCLI } from "@poe-code/cmdkit/cli";
+import type { Group } from "agent-kit";
+import { runCLI } from "agent-kit/cli";
 import { ghGroup } from "@poe-code/github-workflows";
 import { superintendentGroup } from "@poe-code/superintendent";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";

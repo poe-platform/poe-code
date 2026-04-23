@@ -1,7 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
-import { lockWorkflow, makeRunLogFileName, resolveRunLogDir } from "@poe-code/agent-kit";
+import { lockWorkflow, makeRunLogFileName, resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";

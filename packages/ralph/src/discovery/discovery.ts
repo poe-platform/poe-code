@@ -3,7 +3,7 @@ import * as fsPromises from "node:fs/promises";
 import {
   discoverWorkflowDocs,
   resolveWorkflowPath
-} from "@poe-code/agent-kit";
+} from "@poe-code/agent-harness-tools";
 import type { RalphFileStat } from "../types.js";
 
 type DiscoveryFs = {

@@ -1,4 +1,4 @@
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 
 export interface PreflightContext {
   env: { get(key: string): string | undefined };

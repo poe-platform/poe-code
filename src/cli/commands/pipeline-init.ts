@@ -1,7 +1,7 @@
 import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import type { CliContainer } from "../container.js";
-import { resolveWorkflowPath } from "@poe-code/agent-kit";
+import { resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { resolvePlanDirectory as resolveSourcePlanDirectory } from "./plan.js";
 
 export interface BuildPipelineInitPromptOptions {

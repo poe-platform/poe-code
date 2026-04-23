@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-defs": "*",
-    "@poe-code/agent-kit": "*",
+    "@poe-code/agent-harness-tools": "*",
     "@poe-code/config-extends": "*",
     "gray-matter": "^4.0.3"
   }

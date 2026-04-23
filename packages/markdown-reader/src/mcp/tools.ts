@@ -1,5 +1,5 @@
-import { defineCommand } from "@poe-code/cmdkit";
-import { S } from "@poe-code/cmdkit-schema";
+import { defineCommand } from "agent-kit";
+import { S } from "agent-kit-schema";
 import { readMarkdown } from "../core/read-markdown.js";
 import { readSection } from "../core/read-section.js";
 

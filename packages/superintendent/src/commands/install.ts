@@ -1,7 +1,7 @@
 import path from "node:path";
 import { readFile, stat, mkdir, writeFile, unlink, readdir, chmod } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { S, UserError, defineCommand } from "@poe-code/cmdkit";
+import { S, UserError, defineCommand } from "agent-kit";
 import {
   planConfigScope,
   readMergedDocument,
@@ -14,7 +14,7 @@ import {
   resolveAgentSupport,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import { skillPlanConfigSection } from "@poe-code/agent-kit";
+import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 
 const fs = {
   readFile: (p: string, encoding: "utf8") => readFile(p, encoding),

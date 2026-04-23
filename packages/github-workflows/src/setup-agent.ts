@@ -1,6 +1,6 @@
 import type { CommandRunner, CommandRunnerResult } from "@poe-code/agent-spawn";
 import { runCommand } from "@poe-code/agent-spawn";
-import { UserError } from "@poe-code/cmdkit";
+import { UserError } from "agent-kit";
 import type { AutomationDefinition } from "./types.js";
 
 function formatCommand(command: string, args: string[]): string {

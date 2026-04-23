@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { runCLI } from "@poe-code/cmdkit/cli";
+import { runCLI } from "agent-kit/cli";
 import { isDirectExecution } from "./direct-execution.js";
 import { superintendentGroup } from "./commands/index.js";
 

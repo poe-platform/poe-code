@@ -1,5 +1,5 @@
 import chalk from "chalk";
-export { isCancel } from "@clack/core";
+export { isCancel } from "@clack/prompts";
 import { resolveOutputFormat } from "../../internal/output-format.js";
 
 export function cancel(msg = ""): void {

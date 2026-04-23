@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import {
   createLogWriter,
@@ -17,6 +18,21 @@ import {
 } from "./index.js";
 
 describe("entrypoint module", () => {
+  it("publishes cmdkit-openapi from the root package subpath exports", () => {
+    const packageJson = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8")
+    ) as {
+      exports: Record<string, { import?: string; types?: string }>;
+      files: string[];
+    };
+
+    expect(packageJson.exports["./cmdkit-openapi"]).toEqual({
+      types: "./packages/cmdkit-openapi/dist/index.d.ts",
+      import: "./packages/cmdkit-openapi/dist/index.js"
+    });
+    expect(packageJson.files).toContain("packages/cmdkit-openapi/dist");
+  });
+
   it("re-exports getPoeApiKey", async () => {
     const previous = process.env.POE_API_KEY;
     process.env.POE_API_KEY = "sdk-test-key";

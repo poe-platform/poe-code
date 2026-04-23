@@ -29,6 +29,10 @@
     "./memory": {
       "types": "./packages/memory/dist/index.d.ts",
       "import": "./packages/memory/dist/index.js"
+    },
+    "./cmdkit-openapi": {
+      "types": "./packages/cmdkit-openapi/dist/index.d.ts",
+      "import": "./packages/cmdkit-openapi/dist/index.js"
     }
   },
   "workspaces": [
@@ -104,6 +108,7 @@
     "packages/agent-mcp-config/dist",
     "packages/agent-skill-config/dist",
     "packages/cmdkit/dist",
+    "packages/cmdkit-openapi/dist",
     "packages/cmdkit-schema/dist",
     "packages/config-mutations/dist",
     "packages/design-system/dist",

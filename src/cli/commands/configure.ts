@@ -160,6 +160,14 @@ async function resolveProvider(
   }
 
   const candidates = container.providerRegistry.forAgent(agentId);
+
+  if (flags.dryRun) {
+    if (candidates.length === 0) {
+      throw new Error(`No providers support agent "${agentId}".`);
+    }
+    return candidates[0]!.id;
+  }
+
   const loggedIn: typeof candidates[number][] = [];
   for (const candidate of candidates) {
     if (await container.providerRegistry.isLoggedIn(candidate.id)) {

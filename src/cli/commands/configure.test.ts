@@ -105,6 +105,22 @@ describe("configure provider resolution", () => {
     ).rejects.toThrow(/No logged-in providers/);
   });
 
+  it("dry-run succeeds without any logged-in provider", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+    stubInvoke(container);
+
+    await expect(
+      executeConfigure(
+        createTestProgram(["node", "cli", "--dry-run", "--yes"]),
+        container,
+        "claude-code",
+        {}
+      )
+    ).resolves.not.toThrow();
+  });
+
   it("honors the --provider flag", async () => {
     const container = createContainer(fs);
     mockOptions(container);

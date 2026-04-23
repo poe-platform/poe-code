@@ -383,7 +383,7 @@ A single new package: [packages/memory/](packages/memory/).
   - [packages/workspace-resolver/](packages/workspace-resolver/) to find the repo root and compute `<repo>/.poe-code/memory/`.
   - [packages/poe-code-config/](packages/poe-code-config/) to read the configured agent for `ingest`/`lint`.
   - [packages/agent-spawn/](packages/agent-spawn/) to spawn the agent for `ingest`/`lint`.
-  - [packages/cmdkit/](packages/cmdkit/) for CLI plumbing. Every `memory` subcommand — including `ingest` and `lint` — is a cmdkit-defined command; flags, help text, and arg parsing come from the cmdkit definition. Validators are plain TS functions that throw on bad input (no zod, no cmdkit-schema).
+  - [packages/toolcraft/](packages/toolcraft/) for CLI plumbing. Every `memory` subcommand — including `ingest` and `lint` — is a toolcraft-defined command; flags, help text, and arg parsing come from the toolcraft definition. Validators are plain TS functions that throw on bad input (no zod, no toolcraft-schema).
   - A YAML parser already in the repo for frontmatter (whichever package-extends uses).
 - Nothing depends on `memory` in v1 except the top-level CLI wiring that registers `poe-code memory …` subcommands.
 
@@ -1043,9 +1043,9 @@ export async function ingest(
 
 ### 4.3 CLI layer
 
-One cmdkit command group, `memory`, registered once in the top-level CLI. Every subcommand is a cmdkit `Command` that:
+One toolcraft command group, `memory`, registered once in the top-level CLI. Every subcommand is a toolcraft `Command` that:
 
-1. Parses flags via cmdkit's definition.
+1. Parses flags via toolcraft's definition.
 2. Validates args through plain TS guards (e.g. `assertSafeRelPath(input)` throws `MemoryPathError`).
 3. Calls exactly one public function from `packages/memory/src/index.ts`.
 4. Formats the result for stdout (human or `--json`).
@@ -1085,7 +1085,7 @@ All unit tests use `memfs` for filesystem work (per CLAUDE.md). No tests write r
 | `installMemory` | unit (memfs, stubbed `installSkill` + `configure`) | default install writes skill + MCP entry; `--skill-only` / `--mcp-only` runs the matching half; `--allow-writes` propagates to MCP args; re-run is idempotent; `--dry-run` never writes |
 | `query` | unit (memfs, injected `spawnFn`) | builds prompt with INDEX.md + ranked pages; respects budget (trims lowest-ranked first); no tools exposed to spawned agent; citations parsed from agent stdout |
 | `explain` | unit (memfs, injected `spawnFn`) | includes `sources:`-cited pages (outbound) and pages that cite this one (inbound); summary non-empty |
-| CLI commands | cmdkit smoke tests | each subcommand parses flags, calls the right package function with the right args (mocked package) |
+| CLI commands | toolcraft smoke tests | each subcommand parses flags, calls the right package function with the right args (mocked package) |
 | Screenshot | `npm run screenshot-poe-code` | `memory ls`, `memory status`, `memory ingest <file> --dry-run`, `memory query "…"`, `memory cache status`, `memory-mcp --print-mcp-config` look right in the design system |
 
 No LLM is called in unit tests. `ingest`/`lint` tests inject a fake `spawnFn` that emits canned events and touches specified files — this is the only integration point, and the pattern matches how `agent-spawn` is already tested elsewhere.
@@ -1124,7 +1124,7 @@ All under `packages/memory/` unless noted.
 
 | File | Purpose |
 |---|---|
-| `package.json` | Name `@poe-code/memory`, deps on `workspace-resolver`, `poe-code-config`, `agent-spawn`, `agent-skill-config`, `agent-mcp-config`, `cmdkit`, `tokenfill`, `tiny-stdio-mcp-server`, `yaml` |
+| `package.json` | Name `@poe-code/memory`, deps on `workspace-resolver`, `poe-code-config`, `agent-spawn`, `agent-skill-config`, `agent-mcp-config`, `toolcraft`, `tokenfill`, `tiny-stdio-mcp-server`, `yaml` |
 | `tsconfig.json` | Standard package tsconfig matching other packages |
 | `README.md` | CLI reference, config knobs, on-disk layout, confidence-tag format, MCP snippet |
 | `QA.md` | Manual checklist from §4.4 |
@@ -1152,7 +1152,7 @@ All under `packages/memory/` unless noted.
 | `src/mcp.ts` | `startMemoryMcpServer`, `printMcpConfig`, tool definitions, write-gate logic |
 | `src/query.ts` | `query` + TF-idf page ranker + `selectPagesForBudget` |
 | `src/explain.ts` | `explain` — reuses query primitives, computes inbound/outbound |
-| `src/cli/index.ts` | cmdkit `memory` command group; imports and registers all subcommands |
+| `src/cli/index.ts` | toolcraft `memory` command group; imports and registers all subcommands |
 | `src/cli/init.cli.ts` | `poe-code memory init` |
 | `src/cli/ls.cli.ts` | `poe-code memory ls` |
 | `src/cli/show.cli.ts` | `poe-code memory show <path>` |

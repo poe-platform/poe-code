@@ -171,7 +171,7 @@ docs/schemas/plans/
   superintendent-base.schema.json
 ```
 
-This matches the earlier direction already captured in `docs/plans/archive/agent-kit-single-doc-workflows.md` and `docs/plans/poe-code-config-schema-generation.md`.
+This matches the earlier direction already captured in the archived single-doc workflow planning and `docs/plans/poe-code-config-schema-generation.md`.
 
 ### C. Canonical casing should be snake_case in stored docs
 

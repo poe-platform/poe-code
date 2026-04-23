@@ -821,6 +821,58 @@ describe("spawn command", () => {
     });
   });
 
+  it("unwraps the mcpServers key when --mcp-servers points at a standard .mcp.json", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = path.join(cwd, ".mcp.json");
+    await fs.mkdir(cwd, { recursive: true });
+    await fs.writeFile(
+      filePath,
+      JSON.stringify({
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server",
+            args: ["serve", "word-of-the-day"],
+            env: { MCP_LOG_LEVEL: "debug" }
+          }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-servers",
+      "@.mcp.json",
+      "codex",
+      "Use word_of_the_day"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Use word_of_the_day",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000,
+      mcpServers: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"],
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
+    });
+  });
+
   it("reads deprecated --mcp-config from an @file path", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

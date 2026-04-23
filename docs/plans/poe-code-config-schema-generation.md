@@ -23,8 +23,8 @@ The desired model is:
 4. the compiler collects exported scopes reached through that graph
 5. the compiler merges those scope fragments into the final root schema
 6. runtime config reading/resolution still happens through `@poe-code/poe-code-config`
-7. schema composition should reuse `@poe-code/cmdkit-schema`
-8. `@poe-code/cmdkit-schema` should own generation of the final output schema document
+7. schema composition should reuse `toolcraft-schema`
+8. `toolcraft-schema` should own generation of the final output schema document
 
 ## Non-goals
 
@@ -159,18 +159,18 @@ When a reachable module exports a `defineScope(...)` call, the compiler collects
 
 This keeps discovery automatic, but still deterministic.
 
-## `cmdkit-schema` Requirement
+## `toolcraft-schema` Requirement
 
 Do not add a bespoke schema-emission stack in `poe-code-config`.
 
-Use `@poe-code/cmdkit-schema` as the schema engine for:
+Use `toolcraft-schema` as the schema engine for:
 
 - normalized schema representation where possible
 - JSON Schema generation
 - final schema document generation
 - future richer config types such as enums, arrays, objects, and optional fields
 
-`poe-code-config` should remain responsible for config-specific concerns that `cmdkit-schema` does not model today, such as:
+`poe-code-config` should remain responsible for config-specific concerns that `toolcraft-schema` does not model today, such as:
 
 - scope names
 - environment variable bindings
@@ -180,12 +180,12 @@ Use `@poe-code/cmdkit-schema` as the schema engine for:
 
 In short:
 
-- `cmdkit-schema` = schema primitives + output schema generation
+- `toolcraft-schema` = schema primitives + output schema generation
 - `poe-code-config` = config semantics / scope semantics / runtime resolution
 
-## Required `cmdkit-schema` Refactor
+## Required `toolcraft-schema` Refactor
 
-`cmdkit-schema` should not stop at `toJsonSchema(schema)`.
+`toolcraft-schema` should not stop at `toJsonSchema(schema)`.
 
 It should also expose a higher-level API for generating the final output schema document.
 
@@ -205,7 +205,7 @@ const output = toJsonSchemaDocument(rootSchema, {
 });
 ```
 
-Expected responsibilities in `cmdkit-schema`:
+Expected responsibilities in `toolcraft-schema`:
 
 - wrap `toJsonSchema()` output in a top-level JSON Schema document shape
 - support document metadata like `$id`, `title`, and `description`
@@ -225,8 +225,8 @@ A `ts-morph`-based compiler can:
 - find exported variables initialized via `defineScope(...)`
 - extract the scope name and schema object
 - merge fragments by scope name
-- convert the merged result into `cmdkit-schema`
-- ask `cmdkit-schema` to generate the final output schema document
+- convert the merged result into `toolcraft-schema`
+- ask `toolcraft-schema` to generate the final output schema document
 
 This is a good use of `ts-morph` because we are extracting a narrow, static pattern.
 
@@ -354,16 +354,16 @@ The current `SchemaField` only supports:
 - `number`
 - `boolean`
 
-That is enough for the first compiler pass, but it is smaller than `cmdkit-schema`.
+That is enough for the first compiler pass, but it is smaller than `toolcraft-schema`.
 
-`cmdkit-schema` already supports richer constructs like:
+`toolcraft-schema` already supports richer constructs like:
 
 - `enum`
 - `array`
 - `object`
 - `optional`
 
-So the direction should be to converge toward `cmdkit-schema`, not to expand a second unrelated field system forever.
+So the direction should be to converge toward `toolcraft-schema`, not to expand a second unrelated field system forever.
 
 ## Recommended Refactor Paths
 
@@ -371,7 +371,7 @@ So the direction should be to converge toward `cmdkit-schema`, not to expand a s
 
 Keep the current `defineScope(...)` authoring API.
 
-Add an adapter in `poe-code-config` that converts the current flat scope schema into `cmdkit-schema` object schemas.
+Add an adapter in `poe-code-config` that converts the current flat scope schema into `toolcraft-schema` object schemas.
 
 Example internal flow:
 
@@ -379,7 +379,7 @@ Example internal flow:
 - merge them by scope name
 - convert each merged scope to `S.Object({...})`
 - build a root `S.Object({...})`
-- ask `cmdkit-schema` to generate the final output schema document
+- ask `toolcraft-schema` to generate the final output schema document
 
 Pros:
 
@@ -392,9 +392,9 @@ Cons:
 - keeps two schema models around for a while
 - richer config still blocked by the old field model unless extended
 
-### Option B: redefine scope schema around `cmdkit-schema`
+### Option B: redefine scope schema around `toolcraft-schema`
 
-Refactor `defineScope(...)` so the schema payload is based on `cmdkit-schema` directly.
+Refactor `defineScope(...)` so the schema payload is based on `toolcraft-schema` directly.
 
 Illustrative direction:
 
@@ -421,12 +421,12 @@ Pros:
 Cons:
 
 - bigger refactor
-- env metadata needs a companion structure because `cmdkit-schema` does not model `env`
+- env metadata needs a companion structure because `toolcraft-schema` does not model `env`
 - `resolveScope(...)` likely needs a deeper rewrite
 
 ### Option C: hybrid transition
 
-Keep current scopes working, but add a second accepted path where `defineScope(...)` can accept a `cmdkit-schema` object schema plus config metadata.
+Keep current scopes working, but add a second accepted path where `defineScope(...)` can accept a `toolcraft-schema` object schema plus config metadata.
 
 Then migrate scopes incrementally.
 
@@ -448,20 +448,20 @@ Use **Option A first**, then evaluate **Option C**, with **Option B** as the eve
 That means:
 
 1. keep `defineScope(...)` working as-is
-2. make schema compilation output go through `cmdkit-schema`
-3. add an internal adapter from current scope fields to `cmdkit-schema`
-4. let `cmdkit-schema` own final output schema generation
-5. only after that, decide whether authoring should move to native `cmdkit-schema`
+2. make schema compilation output go through `toolcraft-schema`
+3. add an internal adapter from current scope fields to `toolcraft-schema`
+4. let `toolcraft-schema` own final output schema generation
+5. only after that, decide whether authoring should move to native `toolcraft-schema`
 
 This keeps the initial change small while still standardizing on the existing schema package.
 
 ## Potential Runtime Refactors
 
-If the project eventually converges on `cmdkit-schema`, likely refactors include:
+If the project eventually converges on `toolcraft-schema`, likely refactors include:
 
 1. **`types.ts` simplification**
    - replace or shrink custom `SchemaField` types
-   - delegate more structure typing to `cmdkit-schema`
+   - delegate more structure typing to `toolcraft-schema`
 
 2. **`resolveScope(...)` rewrite**
    - today it is flat-field-specific
@@ -471,7 +471,7 @@ If the project eventually converges on `cmdkit-schema`, likely refactors include
    - likely move from inline field metadata to a companion env map or config wrapper
 
 4. **scope inspection helpers**
-   - `config show` / env override inspection may need to walk `cmdkit-schema` object graphs instead of flat records
+   - `config show` / env override inspection may need to walk `toolcraft-schema` object graphs instead of flat records
 
 5. **migration helpers**
    - if stored config grows beyond flat shapes, migration utilities and merge semantics will need to become more explicit
@@ -492,11 +492,11 @@ src/
     extract-scopes.ts      # ts-morph export extraction
     validate.ts            # collisions / unsupported patterns
     merge.ts               # merge scope fragments by scope name
-    to-cmdkit-schema.ts    # adapt merged scopes to cmdkit-schema
+    to-toolcraft-schema.ts    # adapt merged scopes to toolcraft-schema
   index.ts
 ```
 
-And in `packages/cmdkit-schema`:
+And in `packages/toolcraft-schema`:
 
 ```text
 src/
@@ -531,15 +531,15 @@ Add a compiler that:
 - builds an in-memory list of scope fragments
 - validates duplicate field names inside the same scope
 
-### Phase 3: add final-output helper to `cmdkit-schema`
+### Phase 3: add final-output helper to `toolcraft-schema`
 
-Add a public API in `cmdkit-schema` for generating the final schema document from a root schema.
+Add a public API in `toolcraft-schema` for generating the final schema document from a root schema.
 
-### Phase 4: adapt merged scopes to `cmdkit-schema`
+### Phase 4: adapt merged scopes to `toolcraft-schema`
 
-Add an internal adapter that turns merged scope definitions into `cmdkit-schema` object schemas.
+Add an internal adapter that turns merged scope definitions into `toolcraft-schema` object schemas.
 
-### Phase 5: emit root schema through `cmdkit-schema`
+### Phase 5: emit root schema through `toolcraft-schema`
 
 Generate:
 
@@ -576,7 +576,7 @@ Keep this split:
 - `defineScope(...)` = authoring/source of truth
 - compiler = schema artifact generation
 - `createConfigStore(...)`, `resolveScope(...)`, `readMergedDocument(...)` = runtime config behavior
-- `cmdkit-schema` = schema representation + output schema generation
+- `toolcraft-schema` = schema representation + output schema generation
 
 That means we are extending the current system, not throwing it away.
 
@@ -589,7 +589,7 @@ Benefits:
 - packages own their own config
 - overlapping scopes are supported safely
 - existing `poe-code-config` primitives stay relevant
-- reuses `cmdkit-schema` instead of inventing another schema stack
+- reuses `toolcraft-schema` instead of inventing another schema stack
 - keeps final schema-output logic in one package
 - no giant manual registry
 - schema generation is deterministic
@@ -605,9 +605,9 @@ Then:
 2. let packages export their own scope fragments
 3. add an import-graph-based `ts-morph` compiler in `@poe-code/poe-code-config`
 4. merge fragments by scope name
-5. adapt merged scopes to `cmdkit-schema`
-6. let `cmdkit-schema` generate the final output schema document
+5. adapt merged scopes to `toolcraft-schema`
+6. let `toolcraft-schema` generate the final output schema document
 
 In short:
 
-**build on the current thing, move ownership to packages, allow overlapping scope fragments, and compile schema from exported `defineScope(...)` calls reached through the production import graph, with `cmdkit-schema` as the schema engine and final schema-output generator.**
+**build on the current thing, move ownership to packages, allow overlapping scope fragments, and compile schema from exported `defineScope(...)` calls reached through the production import graph, with `toolcraft-schema` as the schema engine and final schema-output generator.**

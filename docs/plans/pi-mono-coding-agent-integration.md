@@ -100,7 +100,7 @@ Add `pi-mono` as a first-class agent in poe-code: declare it in `@poe-code/agent
 ### Untouched (guard-rail)
 
 - `packages/poe-agent/**` — out of scope. That package's alignment with pi-mono is the discovery-side concern, not this integration.
-- `packages/cmdkit*/**`, `packages/design-system/**` — consumed, not modified.
+- `packages/toolcraft*/**`, `packages/design-system/**` — consumed, not modified.
 
 ## 5. Test plan (TDD, per CLAUDE.md)
 

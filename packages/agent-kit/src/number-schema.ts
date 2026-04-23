@@ -1,4 +1,4 @@
-import type { NumberSchema } from "agent-kit-schema";
+import type { NumberSchema } from "toolcraft-schema";
 
 export function isValidNumberSchemaValue(
   value: unknown,

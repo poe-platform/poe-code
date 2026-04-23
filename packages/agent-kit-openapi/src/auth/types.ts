@@ -1,4 +1,4 @@
-import type { CommandNode } from "agent-kit";
+import type { CommandNode } from "toolcraft";
 
 export interface TokenSource {
   getToken(): Promise<string>;

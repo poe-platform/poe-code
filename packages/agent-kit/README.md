@@ -1,7 +1,8 @@
-# agent-kit
+# toolcraft
 
-Typed command and group definitions built on top of `agent-kit-schema`.
+tools for agents and humans
 
+Typed command and group definitions built on top of `toolcraft-schema`.
 
 ## Usage
 

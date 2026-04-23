@@ -1,4 +1,4 @@
-import { runMCP } from "agent-kit/mcp";
+import { runMCP } from "toolcraft/mcp";
 import { terminalPilotGroup } from "terminal-pilot/commands";
 
 export async function main(): Promise<void> {

@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { S, toJsonSchema } from "agent-kit-schema";
+import { S, toJsonSchema } from "toolcraft-schema";
 import type {
   ArraySchema,
   BooleanSchema,
@@ -10,7 +10,7 @@ import type {
   OptionalSchema,
   Static,
   StringSchema,
-} from "agent-kit-schema";
+} from "toolcraft-schema";
 
 describe("agent-kit-schema", () => {
   it("exports typed builders from the package root", () => {

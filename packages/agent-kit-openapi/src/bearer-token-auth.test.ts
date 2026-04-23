@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { RenderPrimitives } from "agent-kit";
-import { UserError } from "agent-kit";
+import type { RenderPrimitives } from "toolcraft";
+import { UserError } from "toolcraft";
 import type { AuthProvider } from "./index.js";
 import { HttpError, bearerTokenAuth } from "./index.js";
 

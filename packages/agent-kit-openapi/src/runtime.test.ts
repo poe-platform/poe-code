@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { defineCommand, defineGroup, S, UserError, type AuthProvider, type CommandNode } from "agent-kit";
-import { runCLI } from "agent-kit/cli";
-import { createMCPServer } from "agent-kit/mcp";
+import { defineCommand, defineGroup, S, UserError, type AuthProvider, type CommandNode } from "toolcraft";
+import { runCLI } from "toolcraft/cli";
+import { createMCPServer } from "toolcraft/mcp";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import { commandsFromSpec, defineApiCommand, defineClient, defineClientFromSpec, requestJson, type OpenApiDocument } from "./index.js";
 import { collectGeneratedCommands, generate } from "./generate.js";
@@ -367,7 +367,7 @@ return exports;
 `
   ) as (
     deps: {
-      agentKit: typeof import("agent-kit");
+      agentKit: typeof import("toolcraft");
       openapi: { requestJson: typeof requestJson; defineApiCommand: typeof defineApiCommand };
     },
     exports: Record<string, unknown>

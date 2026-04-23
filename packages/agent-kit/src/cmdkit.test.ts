@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { S } from "agent-kit-schema";
+import { S } from "toolcraft-schema";
 import {
   UserError,
   assertCommandRequirements,
   defineCommand,
   defineGroup,
   resolveCommandSecrets,
-} from "agent-kit";
+} from "toolcraft";
 import { ERROR_INTERNAL, ERROR_INVALID_PARAMS, McpClient, McpError, createSdkTestPair } from "tiny-mcp-client";
 import { createMCPServer } from "./mcp.js";
 import { renderResult } from "./renderer.js";

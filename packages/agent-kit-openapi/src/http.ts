@@ -1,4 +1,4 @@
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 
 type QueryScalar = string | number | boolean | null | undefined;

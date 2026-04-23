@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import type { CommandNode } from "agent-kit";
+import type { CommandNode } from "toolcraft";
 import type {
   AuthProvider,
   BearerTokenAuthOptions,

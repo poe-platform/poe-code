@@ -1,4 +1,4 @@
-import { S } from "agent-kit-schema";
+import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
 import { createSDK } from "./sdk.js";
 import type { CreateSDKOptions } from "./sdk.js";

@@ -1,4 +1,4 @@
-import { defineCommand, defineGroup, S, UserError, type Static } from "agent-kit";
+import { defineCommand, defineGroup, S, UserError, type Static } from "toolcraft";
 import { isCancel, password } from "@poe-code/design-system";
 import { createSecretStore, type StoreBackend } from "auth-store";
 import { requestJson } from "../http.js";

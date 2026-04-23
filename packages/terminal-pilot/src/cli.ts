@@ -2,7 +2,7 @@
 import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { runCLI } from "agent-kit/cli";
+import { runCLI } from "toolcraft/cli";
 import { terminalPilotGroup } from "./commands/index.js";
 
 function normalizeArgv(argv: string[]): string[] {

@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import type { OpenApiDocument } from "./generate.js";
 
 export interface OpenApiSourceFileSystem {

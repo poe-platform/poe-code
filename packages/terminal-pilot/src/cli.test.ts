@@ -14,7 +14,7 @@ vi.mock("node:fs/promises", () => ({
   realpath: realpathMock
 }));
 
-vi.mock("agent-kit/cli", () => ({
+vi.mock("toolcraft/cli", () => ({
   runCLI: runCLIMock
 }));
 

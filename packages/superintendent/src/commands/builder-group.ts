@@ -1,4 +1,4 @@
-import { S, UserError, defineCommand, defineGroup } from "agent-kit";
+import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { text } from "@poe-code/design-system";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import { runBuilder, type BuilderResult } from "../runtime/run-builder.js";

@@ -1,4 +1,4 @@
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import { describe, expect, it, vi } from "vitest";
 import { HttpError, requestJson } from "./http.js";
 

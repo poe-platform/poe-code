@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "@poe-code/config-mutations";
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import {
   closeSession,
   createSession,

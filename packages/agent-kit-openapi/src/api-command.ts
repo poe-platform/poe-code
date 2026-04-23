@@ -1,6 +1,6 @@
-import type { Command } from "agent-kit";
-import { defineCommand } from "agent-kit";
-import type { ObjectSchema } from "agent-kit-schema";
+import type { Command } from "toolcraft";
+import { defineCommand } from "toolcraft";
+import type { ObjectSchema } from "toolcraft-schema";
 import type { OpenApiClientServices } from "./define-client.js";
 
 type ApiScope = readonly ["cli", "mcp", "sdk"];

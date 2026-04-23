@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import {
   deriveNoun,
   deriveVerb,

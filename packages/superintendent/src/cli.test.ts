@@ -12,7 +12,7 @@ vi.mock("./direct-execution.js", () => ({
   isDirectExecution: isDirectExecutionMock
 }));
 
-vi.mock("agent-kit/cli", () => ({
+vi.mock("toolcraft/cli", () => ({
   runCLI: runCLIMock
 }));
 

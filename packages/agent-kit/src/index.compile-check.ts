@@ -1,4 +1,4 @@
-import { S } from "agent-kit-schema";
+import { S } from "toolcraft-schema";
 import { UserError, defineCommand, defineGroup } from "./index.js";
 import type {
   Command,

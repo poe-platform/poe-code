@@ -1,4 +1,4 @@
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import type { AutomationDefinition } from "../types.js";
 
 export function requireCommentPrefix(

@@ -66,7 +66,7 @@ function writeConsumerFixture(projectDir) {
 
   writeFileSync(
     path.join(projectDir, "package.json"),
-    JSON.stringify({ name: "agent-kit-consumer-smoke", private: true, type: "module" }, null, 2) + "\n"
+    JSON.stringify({ name: "toolcraft-consumer-smoke", private: true, type: "module" }, null, 2) + "\n"
   );
   writeFileSync(path.join(projectDir, "openapi.json"), JSON.stringify(openApiDocument, null, 2) + "\n");
   writeFileSync(
@@ -109,10 +109,10 @@ function runConsumerSmoke(projectDir, tarballs) {
   assert(existsSync(path.join(projectDir, "openapi.lock")), "Expected openapi.lock.");
 
   const generatedIndex = readFileSync(path.join(projectDir, "src", "generated", "index.ts"), "utf8");
-  assert(generatedIndex.includes('from "agent-kit"'), 'Expected generated code to import "agent-kit".');
+  assert(generatedIndex.includes('from "toolcraft"'), 'Expected generated code to import "toolcraft".');
 
   const generatedCommand = readFileSync(path.join(projectDir, "src", "generated", "pets", "list.ts"), "utf8");
-  assert(generatedCommand.includes('from "agent-kit-openapi"'), 'Expected generated code to import "agent-kit-openapi".');
+  assert(generatedCommand.includes('from "toolcraft-openapi"'), 'Expected generated code to import "toolcraft-openapi".');
 
   execFileSync(process.execPath, [rootTscPath, "-p", "tsconfig.json"], {
     cwd: projectDir,
@@ -120,8 +120,8 @@ function runConsumerSmoke(projectDir, tarballs) {
   });
 }
 
-const packDir = mkdtempSync(path.join(os.tmpdir(), "agent-kit-pack-"));
-const consumerDir = mkdtempSync(path.join(os.tmpdir(), "agent-kit-consumer-"));
+const packDir = mkdtempSync(path.join(os.tmpdir(), "toolcraft-pack-"));
+const consumerDir = mkdtempSync(path.join(os.tmpdir(), "toolcraft-consumer-"));
 
 try {
   const tarballs = {
@@ -164,7 +164,7 @@ try {
   writeConsumerFixture(consumerDir);
   runConsumerSmoke(consumerDir, Object.values(tarballs));
 
-  console.log("agent-kit standalone publish smoke passed.");
+  console.log("toolcraft standalone publish smoke passed.");
 } finally {
   rmSync(packDir, { recursive: true, force: true });
   rmSync(consumerDir, { recursive: true, force: true });

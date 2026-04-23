@@ -1,7 +1,7 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Command as CommanderCommand, CommanderError, InvalidArgumentError, Option } from "commander";
-import type { AnySchema, ArraySchema, ObjectSchema } from "agent-kit-schema";
+import type { AnySchema, ArraySchema, ObjectSchema } from "toolcraft-schema";
 import {
   cancel,
   confirm,

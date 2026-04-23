@@ -44,8 +44,8 @@ const runCliState = vi.hoisted(() => ({
   argvSnapshots: [] as string[][]
 }));
 
-vi.mock("agent-kit/cli", async () => {
-  const actual = await vi.importActual<typeof import("agent-kit/cli")>("agent-kit/cli");
+vi.mock("toolcraft/cli", async () => {
+  const actual = await vi.importActual<typeof import("toolcraft/cli")>("toolcraft/cli");
   return {
     ...actual,
     runCLI: vi.fn(async () => {

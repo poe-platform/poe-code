@@ -15,7 +15,7 @@ import {
 } from "@poe-code/agent-spawn";
 import { parseAgentSpecifier, resolveAgentId } from "@poe-code/agent-defs";
 import { executePoeAgent } from "./poe-agent-runner.js";
-import { S, UserError, defineCommand } from "agent-kit";
+import { S, UserError, defineCommand } from "toolcraft";
 import {
   acp,
   cancel,

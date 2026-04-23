@@ -56,7 +56,7 @@ vi.mock("./direct-execution.js", () => ({
   isDirectExecution: isDirectExecutionMock
 }));
 
-vi.mock("agent-kit/mcp", () => ({
+vi.mock("toolcraft/mcp", () => ({
   createMCPServer: createMCPServerMock
 }));
 

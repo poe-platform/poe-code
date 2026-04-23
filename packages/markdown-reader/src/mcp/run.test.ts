@@ -5,7 +5,7 @@ const { runMCPMock, markdownGroupMock } = vi.hoisted(() => ({
   markdownGroupMock: { name: "markdown-reader" }
 }));
 
-vi.mock("agent-kit/mcp", () => ({
+vi.mock("toolcraft/mcp", () => ({
   runMCP: runMCPMock
 }));
 

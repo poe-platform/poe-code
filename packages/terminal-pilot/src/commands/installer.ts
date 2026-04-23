@@ -2,7 +2,7 @@ import os from "node:os";
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
 import { readFile } from "node:fs/promises";
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import {
   getAgentConfig,
   resolveAgentSupport as resolveSkillAgentSupport,

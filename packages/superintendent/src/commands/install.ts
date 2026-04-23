@@ -1,7 +1,7 @@
 import path from "node:path";
 import { readFile, stat, mkdir, writeFile, unlink, readdir, chmod } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { S, UserError, defineCommand } from "agent-kit";
+import { S, UserError, defineCommand } from "toolcraft";
 import {
   planConfigScope,
   readMergedDocument,

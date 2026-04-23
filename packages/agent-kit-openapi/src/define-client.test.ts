@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { defineCommand, defineGroup, S, UserError, type AuthProvider, type CommandNode } from "agent-kit";
-import { createMCPServer } from "agent-kit/mcp";
+import { defineCommand, defineGroup, S, UserError, type AuthProvider, type CommandNode } from "toolcraft";
+import { createMCPServer } from "toolcraft/mcp";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import { defineClient } from "./index.js";
 

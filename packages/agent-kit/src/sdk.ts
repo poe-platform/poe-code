@@ -1,5 +1,5 @@
 import { access, readFile, writeFile } from "node:fs/promises";
-import type { AnySchema, ObjectSchema, Static } from "agent-kit-schema";
+import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";

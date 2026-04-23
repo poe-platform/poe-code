@@ -1,4 +1,4 @@
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import { isIdentifierName, toCliFlag } from "./naming.js";
 import { REQUEST_PARAM_SECTIONS, type RequestParamSection, type RequestSectionKey } from "./request-shape.js";
 import type {

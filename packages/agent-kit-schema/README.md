@@ -1,4 +1,6 @@
-# agent-kit-schema
+# toolcraft-schema
+
+tools for agents and humans
 
 Zero-dependency schema builder for typed command inputs and JSON Schema generation.
 

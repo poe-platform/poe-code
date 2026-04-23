@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import type { ObjectSchema, Static } from "agent-kit-schema";
+import type { ObjectSchema, Static } from "toolcraft-schema";
 import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/design-system";
 
 const commandConfigSymbol = Symbol("agent-kit.command.config");
@@ -767,5 +767,5 @@ export function getCommandSourcePath(command: Command<any, any, any, any>): stri
   ];
 }
 
-export { S, toJsonSchema } from "agent-kit-schema";
-export type { AnySchema, ArraySchema, BooleanSchema, EnumSchema, JsonSchema, NumberSchema, ObjectSchema, OptionalSchema, Static, StringSchema } from "agent-kit-schema";
+export { S, toJsonSchema } from "toolcraft-schema";
+export type { AnySchema, ArraySchema, BooleanSchema, EnumSchema, JsonSchema, NumberSchema, ObjectSchema, OptionalSchema, Static, StringSchema } from "toolcraft-schema";

@@ -7,7 +7,7 @@ import {
   type Server as TinyServer,
   type TypedSchema,
 } from "tiny-stdio-mcp-server";
-import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "agent-kit-schema";
+import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";

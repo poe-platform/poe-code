@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as fsPromises from "node:fs/promises";
-import { createMCPServer } from "agent-kit/mcp";
+import { createMCPServer } from "toolcraft/mcp";
 import { createServer, type Server } from "tiny-stdio-mcp-server";
 import { isDirectExecution } from "./direct-execution.js";
 import { superintendentMcpGroup } from "./commands/index.js";

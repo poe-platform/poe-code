@@ -63,8 +63,8 @@
   },
   "devDependencies": {
     "@poe-code/agent-skill-config": "*",
-    "agent-kit": "*",
-    "agent-kit-schema": "*",
+    "toolcraft": "*",
+    "toolcraft-schema": "*",
     "terminal-png": "*"
   }
 }

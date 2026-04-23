@@ -1,5 +1,5 @@
-import { defineCommand } from "agent-kit";
-import { S } from "agent-kit-schema";
+import { defineCommand } from "toolcraft";
+import { S } from "toolcraft-schema";
 import { readMarkdown } from "../core/read-markdown.js";
 import { readSection } from "../core/read-section.js";
 

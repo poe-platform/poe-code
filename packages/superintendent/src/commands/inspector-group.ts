@@ -1,4 +1,4 @@
-import { S, UserError, defineCommand, defineGroup } from "agent-kit";
+import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import {
   runAllInspectors,

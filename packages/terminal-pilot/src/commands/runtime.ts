@@ -1,5 +1,5 @@
-import { UserError } from "agent-kit";
-import type { HandlerEnv } from "agent-kit";
+import { UserError } from "toolcraft";
+import type { HandlerEnv } from "toolcraft";
 import type { TerminalPilotInstallerServices } from "./installer.js";
 import { TerminalPilot, type NewSessionOptions } from "../terminal-pilot.js";
 import type { TerminalSession } from "../terminal-session.js";

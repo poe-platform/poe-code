@@ -1,5 +1,5 @@
-import type { Command, CommandNode, Group, Scope } from "agent-kit";
-import { defineCommand, defineGroup, UserError } from "agent-kit";
+import type { Command, CommandNode, Group, Scope } from "toolcraft";
+import { defineCommand, defineGroup, UserError } from "toolcraft";
 import type { AuthProvider, TokenSource } from "./auth/types.js";
 import { toMcpPrefix } from "./naming.js";
 

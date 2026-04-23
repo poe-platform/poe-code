@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { S, UserError, defineCommand, defineGroup } from "agent-kit";
-import { runCLI } from "agent-kit/cli";
+import { S, UserError, defineCommand, defineGroup } from "toolcraft";
+import { runCLI } from "toolcraft/cli";
 
 describe("generated array CLI shape", () => {
   const originalArgv = [...process.argv];

@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import { realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import { generate, type GeneratedFile } from "../generate.js";
 import { readOpenApiLock, writeOpenApiLock } from "../lock.js";
 import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";

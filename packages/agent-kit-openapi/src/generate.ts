@@ -1,4 +1,4 @@
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import {
   METHOD_DEFAULTS,
   deriveNoun,
@@ -1690,9 +1690,9 @@ function createCommandFile(options: {
   ]);
   lines.push(
     requiresUserError
-      ? 'import { S, UserError } from "agent-kit";'
-      : 'import { S } from "agent-kit";',
-    'import { requestJson, defineApiCommand } from "agent-kit-openapi";',
+      ? 'import { S, UserError } from "toolcraft";'
+      : 'import { S } from "toolcraft";',
+    'import { requestJson, defineApiCommand } from "toolcraft-openapi";',
     "",
     `export const ${options.exportName} = defineApiCommand({`,
     `  name: ${JSON.stringify(options.verb)},`
@@ -2038,7 +2038,7 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
   }
 
   const lines = createGeneratedTypeScriptFileLines();
-  lines.push('import { defineGroup } from "agent-kit";');
+  lines.push('import { defineGroup } from "toolcraft";');
 
   for (const { commands: nounCommands } of groups) {
     for (const command of nounCommands) {

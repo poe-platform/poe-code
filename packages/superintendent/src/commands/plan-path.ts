@@ -1,6 +1,6 @@
 import path from "node:path";
 import { readFile, writeFile, mkdir, unlink, stat, readdir } from "node:fs/promises";
-import { S, defineCommand } from "agent-kit";
+import { S, defineCommand } from "toolcraft";
 import {
   planConfigScope,
   readMergedDocument,

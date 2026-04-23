@@ -72,7 +72,8 @@
     "demo:dashboard": "tsx packages/design-system/src/dashboard/demo.ts",
     "replay": "tsx packages/agent-spawn/src/acp/replay-cli.ts",
     "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts",
-    "smoke:agent-kit-standalone": "node scripts/verify-agent-kit-standalone.mjs"
+    "smoke:toolcraft-standalone": "node scripts/verify-toolcraft-standalone.mjs",
+    "sync-skills": "tsx scripts/sync-skills.ts"
   },
   "bin": {
     "poe": "dist/bin.cjs",
@@ -150,9 +151,9 @@
     "@types/node": "^25.2.2",
     "@types/semver": "^7.7.1",
     "@vitest/coverage-v8": "^4.1.4",
-    "agent-kit": "*",
-    "agent-kit-openapi": "*",
-    "agent-kit-schema": "*",
+    "toolcraft": "*",
+    "toolcraft-openapi": "*",
+    "toolcraft-schema": "*",
     "auth-store": "*",
     "bats": "^1.13.0",
     "eslint": "^9.0.0",

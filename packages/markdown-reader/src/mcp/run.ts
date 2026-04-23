@@ -1,4 +1,4 @@
-import { runMCP } from "agent-kit/mcp";
+import { runMCP } from "toolcraft/mcp";
 import packageJson from "../../package.json" with { type: "json" };
 import { markdownGroup } from "./group.js";
 

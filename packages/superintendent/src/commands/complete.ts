@@ -1,4 +1,4 @@
-import { S, UserError, defineCommand } from "agent-kit";
+import { S, UserError, defineCommand } from "toolcraft";
 import { setStatusReason, transitionState } from "../document/write.js";
 
 const completeParams = S.Object({

@@ -1,4 +1,4 @@
-import { UserError } from "agent-kit";
+import { UserError } from "toolcraft";
 import { describe, expect, it } from "vitest";
 import type { Section } from "./scan.js";
 import { resolveSection } from "./resolve.js";

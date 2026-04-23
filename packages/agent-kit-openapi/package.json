@@ -1,5 +1,5 @@
 {
-  "name": "agent-kit-openapi",
+  "name": "toolcraft-openapi",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -27,7 +27,7 @@
     "@clack/core": "^1.0.0",
     "@clack/prompts": "^1.0.0",
     "@poe-code/design-system": "^0.0.1",
-    "agent-kit": "^0.0.1",
+    "toolcraft": "^0.0.1",
     "auth-store": "^0.0.1",
     "chalk": "^5.6.2",
     "console-table-printer": "^2.15.0",

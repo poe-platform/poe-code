@@ -35,7 +35,7 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",
-    "agent-kit": "*",
+    "toolcraft": "*",
     "@poe-code/design-system": "*",
     "@poe-code/poe-agent": "*",
     "@poe-code/poe-code-config": "*"

@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { defineCommand, defineGroup, S, type AnySchema, type CommandNode } from "agent-kit";
+import { defineCommand, defineGroup, S, type AnySchema, type CommandNode } from "toolcraft";
 import { defineClient, type DefineClientOptions, type DefinedClient, type OpenApiClientServices } from "./define-client.js";
 import {
   collectSchemaOptionEntries,

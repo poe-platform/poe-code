@@ -1,5 +1,5 @@
 import { installSkill } from "@poe-code/agent-skill-config";
-import { defineCommand, S } from "agent-kit";
+import { defineCommand, S } from "toolcraft";
 import type { TerminalPilotCommandServices } from "./runtime.js";
 import {
   DEFAULT_INSTALL_AGENT,

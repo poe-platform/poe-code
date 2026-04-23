@@ -1,4 +1,4 @@
-import { defineGroup } from "agent-kit";
+import { defineGroup } from "toolcraft";
 import type { TerminalPilotCommandServices } from "./runtime.js";
 import { closeSession } from "./close-session.js";
 import { createSession } from "./create-session.js";

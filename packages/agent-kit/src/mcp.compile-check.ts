@@ -1,4 +1,4 @@
-import { S } from "agent-kit-schema";
+import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
 import { createMCPServer, runMCP } from "./mcp.js";
 import type { RunMCPOptions } from "./mcp.js";

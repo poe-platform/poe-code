@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
-import { S } from "agent-kit-schema";
+import { S } from "toolcraft-schema";
 import { UserError, defineCommand, defineGroup } from "./index.js";
 
 const loggerState = {

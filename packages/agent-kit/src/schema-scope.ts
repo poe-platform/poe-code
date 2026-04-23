@@ -1,4 +1,4 @@
-import type { AnySchema } from "agent-kit-schema";
+import type { AnySchema } from "toolcraft-schema";
 
 type SchemaScope = "cli" | "mcp" | "sdk";
 

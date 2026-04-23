@@ -1,0 +1,61 @@
+name: Release toolcraft packages
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/agent-kit/**'
+      - 'packages/agent-kit-schema/**'
+      - 'packages/agent-kit-openapi/**'
+concurrency:
+  group: release-agent-kit
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+      - name: Upgrade npm for trusted publishing
+        run: npm install --global npm@^11.5.1
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Compute next version
+        id: version
+        run: |
+          V1=$(npm view toolcraft-schema version 2>/dev/null || echo "0.0.0")
+          V2=$(npm view toolcraft version 2>/dev/null || echo "0.0.0")
+          V3=$(npm view toolcraft-openapi version 2>/dev/null || echo "0.0.0")
+          REMOTE=$(printf "%s\n%s\n%s" "$V1" "$V2" "$V3" | sort -V | tail -n1)
+          cd packages/agent-kit-schema
+          npm version --no-git-tag-version --allow-same-version "${REMOTE}"
+          npm version --no-git-tag-version patch
+          NEXT=$(node -e "console.log(require('./package.json').version)")
+          echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
+      - name: Set versions on agent-kit and agent-kit-openapi
+        run: |
+          NEXT="${{ steps.version.outputs.next }}"
+          cd packages/agent-kit && npm version --no-git-tag-version --allow-same-version "$NEXT"
+          cd ../agent-kit-openapi && npm version --no-git-tag-version --allow-same-version "$NEXT"
+      - name: Update cross-package dependency versions
+        run: |
+          NEXT="${{ steps.version.outputs.next }}"
+          cd packages/agent-kit && npm pkg set "dependencies.toolcraft-schema=^${NEXT}"
+          cd ../agent-kit-openapi && npm pkg set "dependencies.toolcraft=^${NEXT}"
+      - name: Build agent-kit packages and dependencies
+        run: npx turbo build --filter=agent-kit-openapi...
+      - name: Publish toolcraft-schema
+        working-directory: packages/agent-kit-schema
+        run: npm publish --provenance --access public
+      - name: Publish toolcraft
+        working-directory: packages/agent-kit
+        run: npm publish --provenance --access public
+      - name: Publish toolcraft-openapi
+        working-directory: packages/agent-kit-openapi
+        run: npm publish --provenance --access public

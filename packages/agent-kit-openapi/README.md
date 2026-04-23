@@ -1,6 +1,8 @@
-# agent-kit-openapi
+# toolcraft-openapi
 
-Scaffold for OpenAPI-driven agent-kit clients.
+tools for agents and humans
+
+Scaffold for OpenAPI-driven toolcraft clients.
 
 ## Usage
 

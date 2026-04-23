@@ -20,8 +20,8 @@
     "dist"
   ],
   "dependencies": {
-    "agent-kit": "*",
-    "agent-kit-schema": "*",
+    "toolcraft": "*",
+    "toolcraft-schema": "*",
     "@poe-code/design-system": "*"
   }
 }

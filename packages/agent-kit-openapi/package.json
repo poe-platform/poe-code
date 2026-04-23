@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts",
     "test:unit": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts"
   },

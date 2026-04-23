@@ -1,4 +1,4 @@
-# @poe-code/cmdkit-schema
+# agent-kit-schema
 
 Zero-dependency schema builder for typed command inputs and JSON Schema generation.
 
@@ -12,8 +12,8 @@ Zero-dependency schema builder for typed command inputs and JSON Schema generati
 ## Usage
 
 ```ts
-import { S, toJsonSchema } from "@poe-code/cmdkit-schema";
-import type { Static } from "@poe-code/cmdkit-schema";
+import { S, toJsonSchema } from "agent-kit-schema";
+import type { Static } from "agent-kit-schema";
 
 const schema = S.Object({
   name: S.String({ description: "User name" }),

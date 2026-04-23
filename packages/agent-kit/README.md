@@ -1,14 +1,14 @@
-# @poe-code/cmdkit
+# agent-kit
 
-Typed command and group definitions built on top of `@poe-code/cmdkit-schema`.
+Typed command and group definitions built on top of `agent-kit-schema`.
 
-Also available as `poe-code/cmdkit` for consumers of the published `poe-code` package.
+Also available as `poe-code/agent-kit`, with `poe-code/cmdkit` kept as a compatibility subpath in the published `poe-code` package.
 
 ## Usage
 
 ```ts
-import { defineCommand, defineGroup } from "poe-code/cmdkit";
-import { S } from "@poe-code/cmdkit-schema";
+import { defineCommand, defineGroup } from "agent-kit";
+import { S } from "agent-kit-schema";
 
 const deploy = defineCommand({
   name: "deploy",

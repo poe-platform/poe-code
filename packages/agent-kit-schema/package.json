@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/agent-kit-schema/src/index.test.ts",
     "test:unit": "cd ../.. && vitest run packages/agent-kit-schema/src/index.test.ts",
     "lint": "cd ../.. && eslint packages/agent-kit-schema/src --ext ts && tsc -p packages/agent-kit-schema/tsconfig.json --noEmit"

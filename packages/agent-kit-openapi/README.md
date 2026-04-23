@@ -1,11 +1,11 @@
-# @poe-code/cmdkit-openapi
+# agent-kit-openapi
 
-Scaffold for OpenAPI-driven cmdkit clients.
+Scaffold for OpenAPI-driven agent-kit clients.
 
 ## Usage
 
 ```ts
-import { bearerTokenAuth, requestJson } from "@poe-code/cmdkit-openapi";
+import { bearerTokenAuth, requestJson } from "agent-kit-openapi";
 
 const auth = bearerTokenAuth({
   serviceName: "internal-agent",
@@ -16,7 +16,7 @@ const auth = bearerTokenAuth({
 
 ## Generator CLI
 
-`cmdkit-openapi-generate` reads an OpenAPI document from disk or a URL, writes generated
+`agent-kit-openapi-generate` reads an OpenAPI document from disk or a URL, writes generated
 command files, and stores the current spec hash in `openapi.lock`.
 
 - `--input <path-or-url>` — OpenAPI document to read. Defaults to `openapi.json`.
@@ -27,7 +27,7 @@ command files, and stores the current spec hash in `openapi.lock`.
 ### CI drift check
 
 ```sh
-cmdkit-openapi-generate --check
+agent-kit-openapi-generate --check
 ```
 
 ## Exports

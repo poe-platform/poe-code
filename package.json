@@ -10,6 +10,50 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./agent-kit": {
+      "types": "./packages/agent-kit/dist/index.d.ts",
+      "import": "./dist/published/agent-kit/index.js"
+    },
+    "./agent-kit/cli": {
+      "types": "./packages/agent-kit/dist/cli.d.ts",
+      "import": "./dist/published/agent-kit/cli.js"
+    },
+    "./agent-kit/mcp": {
+      "types": "./packages/agent-kit/dist/mcp.d.ts",
+      "import": "./dist/published/agent-kit/mcp.js"
+    },
+    "./agent-kit/sdk": {
+      "types": "./packages/agent-kit/dist/sdk.d.ts",
+      "import": "./dist/published/agent-kit/sdk.js"
+    },
+    "./agent-kit-openapi": {
+      "types": "./packages/agent-kit-openapi/dist/index.d.ts",
+      "import": "./dist/published/agent-kit-openapi/index.js"
+    },
+    "./agent-kit-schema": {
+      "types": "./packages/agent-kit-schema/dist/index.d.ts",
+      "import": "./dist/published/agent-kit-schema/index.js"
+    },
+    "./cmdkit": {
+      "types": "./packages/agent-kit/dist/index.d.ts",
+      "import": "./dist/published/agent-kit/index.js"
+    },
+    "./cmdkit/cli": {
+      "types": "./packages/agent-kit/dist/cli.d.ts",
+      "import": "./dist/published/agent-kit/cli.js"
+    },
+    "./cmdkit/mcp": {
+      "types": "./packages/agent-kit/dist/mcp.d.ts",
+      "import": "./dist/published/agent-kit/mcp.js"
+    },
+    "./cmdkit/sdk": {
+      "types": "./packages/agent-kit/dist/sdk.d.ts",
+      "import": "./dist/published/agent-kit/sdk.js"
+    },
+    "./cmdkit-openapi": {
+      "types": "./packages/agent-kit-openapi/dist/index.d.ts",
+      "import": "./dist/published/agent-kit-openapi/index.js"
+    },
     "./memory": {
       "types": "./packages/memory/dist/index.d.ts",
       "import": "./packages/memory/dist/index.js"
@@ -81,10 +125,15 @@
     "poe-codex": "dist/bin/poe-codex.js",
     "poe-opencode": "dist/bin/poe-opencode.js",
     "poe-agent": "dist/bin/poe-agent.js",
+    "agent-kit-openapi-generate": "dist/bin/agent-kit-openapi-generate.js",
+    "cmdkit-openapi-generate": "dist/bin/cmdkit-openapi-generate.js",
     "tiny-stdio-mcp-test-server": "packages/tiny-stdio-mcp-test-server/dist/cli.js"
   },
   "files": [
     "dist",
+    "packages/agent-kit/dist",
+    "packages/agent-kit-openapi/dist",
+    "packages/agent-kit-schema/dist",
     "packages/agent-mcp-config/dist",
     "packages/agent-skill-config/dist",
     "packages/config-mutations/dist",

@@ -64,7 +64,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: rename-cmdkit-family
     title: Rename cmdkit packages to agent-kit family
@@ -93,7 +93,7 @@ tasks:
     status:
       implement: done
       refactor: done
-      test: open
+      test: done
       commit: open
 
   - id: standalone-publish-prep

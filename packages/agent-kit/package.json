@@ -23,9 +23,9 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "test": "cd ../.. && vitest run packages/agent-kit/src/index.test.ts packages/agent-kit/src/renderer.test.ts packages/agent-kit/src/cli.test.ts packages/agent-kit/src/mcp.test.ts packages/agent-kit/src/sdk.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/agent-kit/src/index.test.ts packages/agent-kit/src/renderer.test.ts packages/agent-kit/src/cli.test.ts packages/agent-kit/src/mcp.test.ts packages/agent-kit/src/sdk.test.ts",
+    "build": "rm -rf dist && tsc",
+    "test": "cd ../.. && vitest run packages/agent-kit/src/*.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/agent-kit/src/*.test.ts",
     "lint": "cd ../.. && eslint packages/agent-kit/src --ext ts && tsc -p packages/agent-kit/tsconfig.json --noEmit"
   },
   "dependencies": {

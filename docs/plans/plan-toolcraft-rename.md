@@ -26,7 +26,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: source-imports
     title: Update TypeScript import paths from agent-kit* to toolcraft*
@@ -50,9 +50,9 @@ tasks:
       Use grep to find all occurrences first, then update. Run `npx turbo run build` and
       `npx turbo run test:unit` after to confirm nothing is broken.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: cmdkit-strings

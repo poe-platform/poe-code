@@ -5,7 +5,7 @@ import { realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { UserError } from "@poe-code/cmdkit";
-import { generate, type OpenApiDocument, type GeneratedFile } from "../generate.js";
+import { generate, type GeneratedFile } from "../generate.js";
 import { readOpenApiLock, writeOpenApiLock } from "../lock.js";
 import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";
 
@@ -124,9 +124,12 @@ export async function syncGeneratedClient(
   const lockPath = path.resolve(services.cwd, options.lockPath);
   const currentLock = await readOpenApiLock(services.fs, lockPath);
   const currentFiles = await readGeneratedFiles(services.fs, outputDir);
-  const desiredFiles = new Map(
-    generatedFiles.map((file) => [path.resolve(outputDir, file.path), file.contents] as const)
-  );
+  const desiredFiles = new Map([
+    ...generatedFiles.map((file) => [path.resolve(outputDir, file.path), file.contents] as const),
+    ...createDownloadedSpecFiles(options.input, sourceText).map(
+      (file) => [path.resolve(outputDir, file.path), file.contents] as const
+    )
+  ]);
   const updatedFiles = collectUpdatedFiles(currentFiles, desiredFiles);
   const deletedFiles = collectDeletedFiles(currentFiles, desiredFiles);
   const drifted =
@@ -218,6 +221,38 @@ function assignOptionValue(
 
 function createSpecSha(sourceText: string): string {
   return `sha256:${createHash("sha256").update(sourceText).digest("hex")}`;
+}
+
+function createDownloadedSpecFiles(input: string | URL, sourceText: string): GeneratedFile[] {
+  const inputUrl = tryParseUrl(input);
+
+  if (inputUrl === null || (inputUrl.protocol !== "http:" && inputUrl.protocol !== "https:")) {
+    return [];
+  }
+
+  return [
+    {
+      path: getDownloadedSpecFileName(inputUrl),
+      contents: sourceText
+    }
+  ];
+}
+
+function getDownloadedSpecFileName(inputUrl: URL): string {
+  const basename = path.posix.basename(inputUrl.pathname);
+  return basename.length > 0 ? basename : "openapi.json";
+}
+
+function tryParseUrl(input: string | URL): URL | null {
+  if (input instanceof URL) {
+    return input;
+  }
+
+  try {
+    return new URL(input);
+  } catch {
+    return null;
+  }
 }
 
 async function readGeneratedFiles(
@@ -321,9 +356,7 @@ function isDirectExecution(moduleUrl: string, argv: string[]): boolean {
   }
 
   try {
-    return (
-      path.resolve(fileURLToPath(moduleUrl)) === realpathSync(path.resolve(entryPoint))
-    );
+    return path.resolve(fileURLToPath(moduleUrl)) === realpathSync(path.resolve(entryPoint));
   } catch {
     return false;
   }

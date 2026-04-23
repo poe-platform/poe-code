@@ -273,7 +273,7 @@ describe("defineClient", () => {
     expect(client.root.children.map((child) => child.name)).toEqual(["login"]);
   });
 
-  it("returns a root group that preserves merged children when nested under another cmdkit group", () => {
+  it("returns a root group that preserves merged children when nested under another agent-kit group", () => {
     const client = defineClient({
       name: "internal-agent",
       baseUrl: "https://example.com/api",

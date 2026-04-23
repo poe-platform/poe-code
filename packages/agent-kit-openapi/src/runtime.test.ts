@@ -360,14 +360,14 @@ function evaluateGeneratedCommand(fileContents: string, exportName: string) {
     "deps",
     "exports",
     `
-const { S, UserError } = deps.cmdkit;
+const { S, UserError } = deps.agentKit;
 const { requestJson, defineApiCommand } = deps.openapi;
 ${transformedContents}
 return exports;
 `
   ) as (
     deps: {
-      cmdkit: typeof import("agent-kit");
+      agentKit: typeof import("agent-kit");
       openapi: { requestJson: typeof requestJson; defineApiCommand: typeof defineApiCommand };
     },
     exports: Record<string, unknown>
@@ -375,7 +375,7 @@ return exports;
 
   return execute(
     {
-      cmdkit: { S, UserError },
+      agentKit: { S, UserError },
       openapi: { requestJson, defineApiCommand }
     },
     {}

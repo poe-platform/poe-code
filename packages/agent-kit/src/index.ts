@@ -2,9 +2,9 @@ import { fileURLToPath } from "node:url";
 import type { ObjectSchema, Static } from "agent-kit-schema";
 import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/design-system";
 
-const commandConfigSymbol = Symbol("cmdkit.command.config");
-const groupConfigSymbol = Symbol("cmdkit.group.config");
-const commandSourcePathSymbol = Symbol("cmdkit.command.sourcePath");
+const commandConfigSymbol = Symbol("agent-kit.command.config");
+const groupConfigSymbol = Symbol("agent-kit.group.config");
+const commandSourcePathSymbol = Symbol("agent-kit.command.sourcePath");
 
 type ScopeValue = "cli" | "mcp" | "sdk";
 type AnyObjectSchema = ObjectSchema<Record<string, never>>;
@@ -201,7 +201,7 @@ type TypedCommandMetadata<
   TResult,
   TOwnScope extends ScopeInput,
 > = {
-  readonly __cmdkitCommandTypeInfo: CommandTypeInfo<TName, TParamsSchema, TResult, TOwnScope>;
+  readonly __agentKitCommandTypeInfo: CommandTypeInfo<TName, TParamsSchema, TResult, TOwnScope>;
 };
 
 type TypedGroupMetadata<
@@ -210,7 +210,7 @@ type TypedGroupMetadata<
   TChildren extends readonly unknown[],
   TOwnScope extends ScopeInput,
 > = {
-  readonly __cmdkitGroupTypeInfo: GroupTypeInfo<TServices, TName, TChildren, TOwnScope>;
+  readonly __agentKitGroupTypeInfo: GroupTypeInfo<TServices, TName, TChildren, TOwnScope>;
 };
 
 interface InternalCommandConfig {
@@ -344,10 +344,9 @@ function inferCommandSourcePath(): string | undefined {
     }
 
     if (
-      candidate.includes("/packages/cmdkit/src/index.ts") ||
-      candidate.includes("/packages/cmdkit/dist/index.js") ||
       candidate.includes("/packages/agent-kit/src/index.ts") ||
-      candidate.includes("/packages/agent-kit/dist/index.js")
+      candidate.includes("/packages/agent-kit/dist/index.js") ||
+      candidate.includes("/node_modules/agent-kit/dist/index.js")
     ) {
       continue;
     }

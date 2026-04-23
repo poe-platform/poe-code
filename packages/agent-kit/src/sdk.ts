@@ -123,7 +123,7 @@ type RawChildrenValue<TChildren> = TChildren extends readonly unknown[] ? TChild
 type SDKNodeShape<TNode, TInheritedScope extends ScopeInput> =
   TNode extends {
     kind: "command";
-    readonly __cmdkitCommandTypeInfo: {
+    readonly __agentKitCommandTypeInfo: {
       name: infer TName extends string;
       params: infer TParamsSchema extends ObjectSchema<any>;
       result: infer TResult;
@@ -135,7 +135,7 @@ type SDKNodeShape<TNode, TInheritedScope extends ScopeInput> =
       : EmptyRecord
     : TNode extends {
           kind: "group";
-          readonly __cmdkitGroupTypeInfo: {
+          readonly __agentKitGroupTypeInfo: {
             name: infer TName extends string;
             children: infer TChildren extends readonly unknown[];
             ownScope: infer TOwnScope extends ScopeInput;
@@ -378,7 +378,7 @@ export function createSDK<
   TServices extends object = Record<string, unknown>,
 >(
   root: Group<any> & {
-    readonly __cmdkitGroupTypeInfo: TRootInfo;
+    readonly __agentKitGroupTypeInfo: TRootInfo;
   },
   options?: CreateSDKOptions<TServices>
 ): TRootInfo extends { children: infer TChildren extends readonly unknown[] }

@@ -13,7 +13,9 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts"
+    "test:unit": "cd ../.. && vitest run packages/agent-kit-openapi/src/*.test.ts",
+    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system auth-store",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system auth-store"
   },
   "files": [
     "dist"
@@ -22,9 +24,13 @@
     "agent-kit-openapi-generate": "dist/bin/generate.js"
   },
   "dependencies": {
+    "@clack/core": "^1.0.0",
+    "@clack/prompts": "^1.0.0",
     "@poe-code/design-system": "^0.0.1",
     "agent-kit": "^0.0.1",
     "auth-store": "^0.0.1",
+    "chalk": "^5.6.2",
+    "console-table-printer": "^2.15.0",
     "yaml": "^2.8.2"
   },
   "engines": {
@@ -32,6 +38,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/poe-platform/poe-code.git"
-  }
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/agent-kit-openapi"
+  },
+  "bundleDependencies": [
+    "@poe-code/design-system",
+    "auth-store"
+  ]
 }

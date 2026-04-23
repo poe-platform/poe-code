@@ -65,7 +65,7 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
-  it("emits cmdkit-schema params in generated commands", () => {
+  it("emits agent-kit-schema params in generated commands", () => {
     const files = generate(
       createDocument({
         "/bots/{botHandle}/actions/set-official": {

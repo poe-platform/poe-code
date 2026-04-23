@@ -71,7 +71,8 @@
     "metric:test_duration": "node scripts/metric-test-duration.mjs",
     "demo:dashboard": "tsx packages/design-system/src/dashboard/demo.ts",
     "replay": "tsx packages/agent-spawn/src/acp/replay-cli.ts",
-    "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts"
+    "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts",
+    "smoke:agent-kit-standalone": "node scripts/verify-agent-kit-standalone.mjs"
   },
   "bin": {
     "poe": "dist/bin.cjs",

@@ -121,7 +121,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: publish-smoke-and-cleanup
     title: Validate publish flow and clean compatibility edges
@@ -142,9 +142,9 @@ tasks:
       - repo state ready for standalone package publishing
       - concise release notes listing renamed packages, migration path from old names, and any consumer breaking changes
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 ---
 

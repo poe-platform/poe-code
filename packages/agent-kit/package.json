@@ -26,12 +26,18 @@
     "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/agent-kit/src/*.test.ts",
     "test:unit": "cd ../.. && vitest run packages/agent-kit/src/*.test.ts",
-    "lint": "cd ../.. && eslint packages/agent-kit/src --ext ts && tsc -p packages/agent-kit/tsconfig.json --noEmit"
+    "lint": "cd ../.. && eslint packages/agent-kit/src --ext ts && tsc -p packages/agent-kit/tsconfig.json --noEmit",
+    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system"
   },
   "dependencies": {
+    "@clack/core": "^1.0.0",
+    "@clack/prompts": "^1.0.0",
     "@poe-code/design-system": "^0.0.1",
     "agent-kit-schema": "^0.0.1",
+    "chalk": "^5.6.2",
     "commander": "^14.0.3",
+    "console-table-printer": "^2.15.0",
     "tiny-stdio-mcp-server": "^0.1.0"
   },
   "files": [
@@ -42,6 +48,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/poe-platform/poe-code.git"
-  }
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/agent-kit"
+  },
+  "bundleDependencies": [
+    "@poe-code/design-system"
+  ]
 }

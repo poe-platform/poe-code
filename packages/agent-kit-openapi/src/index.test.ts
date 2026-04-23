@@ -39,7 +39,7 @@ describe("agent-kit-openapi", () => {
     }>();
   });
 
-  it("defines command contributors as cmdkit command collections", () => {
+  it("defines command contributors as agent-kit command collections", () => {
     expectTypeOf<CommandContributor>().toMatchTypeOf<{
       commands: CommandNode<any>[];
     }>();

@@ -2,7 +2,6 @@
 
 Typed command and group definitions built on top of `agent-kit-schema`.
 
-Also available as `poe-code/agent-kit`, with `poe-code/cmdkit` kept as a compatibility subpath in the published `poe-code` package.
 
 ## Usage
 

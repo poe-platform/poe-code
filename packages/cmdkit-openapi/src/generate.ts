@@ -781,7 +781,12 @@ function assertSupportedSuccessResponseSchema(
   operationId: string,
   context: string
 ): void {
-  const resolvedSchema = expectSchema(document, schema, operationId, context);
+  const resolvedSchema = expectSupportedSuccessResponseSchema(
+    document,
+    schema,
+    operationId,
+    context
+  );
 
   if (
     resolvedSchema.additionalProperties !== undefined &&
@@ -809,6 +814,33 @@ function assertSupportedSuccessResponseSchema(
       `${context} items`
     );
   }
+}
+
+function expectSupportedSuccessResponseSchema(
+  document: OpenApiDocument,
+  schema: OpenApiSchemaObject | OpenApiReferenceObject | undefined,
+  operationId: string,
+  context: string
+): OpenApiSchemaObject {
+  const resolvedSchema = resolveSchema(document, schema, operationId, context);
+  const compositionKeyword = getCompositionKeyword(resolvedSchema);
+
+  if (compositionKeyword === undefined) {
+    return resolvedSchema;
+  }
+
+  const nullableAnyOfSchema =
+    compositionKeyword === "anyOf"
+      ? resolveNullableAnyOfSchema(document, resolvedSchema, operationId, context)
+      : undefined;
+
+  if (nullableAnyOfSchema !== undefined) {
+    return nullableAnyOfSchema;
+  }
+
+  throw new UserError(
+    `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. JSON Schema composition keyword ${JSON.stringify(compositionKeyword)} is not supported in v1.`
+  );
 }
 
 function createGeneratedParameter(
@@ -1491,6 +1523,25 @@ function expectSchema(
   context: string,
   refChain: readonly string[] = []
 ): OpenApiSchemaObject {
+  const resolvedSchema = resolveSchema(document, schema, operationId, context, refChain);
+  const compositionKeyword = getCompositionKeyword(resolvedSchema);
+
+  if (compositionKeyword !== undefined) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. JSON Schema composition keyword ${JSON.stringify(compositionKeyword)} is not supported in v1.`
+    );
+  }
+
+  return resolvedSchema;
+}
+
+function resolveSchema(
+  document: OpenApiDocument,
+  schema: OpenApiSchemaObject | OpenApiReferenceObject | undefined,
+  operationId: string,
+  context: string,
+  refChain: readonly string[] = []
+): OpenApiSchemaObject {
   if (schema === undefined) {
     throw new UserError(
       `Operation ${JSON.stringify(operationId)} is missing a schema for ${context}.`
@@ -1499,7 +1550,7 @@ function expectSchema(
 
   if (isReferenceObject(schema)) {
     assertAcyclicRef(schema.$ref, refChain, operationId, context);
-    return expectSchema(
+    return resolveSchema(
       document,
       resolveLocalReference(document, schema.$ref, operationId, context) as
         | OpenApiSchemaObject
@@ -1507,14 +1558,6 @@ function expectSchema(
       operationId,
       context,
       [...refChain, schema.$ref]
-    );
-  }
-
-  const compositionKeyword = getCompositionKeyword(schema);
-
-  if (compositionKeyword !== undefined) {
-    throw new UserError(
-      `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. JSON Schema composition keyword ${JSON.stringify(compositionKeyword)} is not supported in v1.`
     );
   }
 
@@ -1531,6 +1574,43 @@ function getCompositionKeyword(
   }
 
   return undefined;
+}
+
+function resolveNullableAnyOfSchema(
+  document: OpenApiDocument,
+  schema: OpenApiSchemaObject,
+  operationId: string,
+  context: string
+): OpenApiSchemaObject | undefined {
+  const variants = schema.anyOf;
+
+  if (variants === undefined || variants.length !== 2) {
+    return undefined;
+  }
+
+  const resolvedVariants = variants.map((variant, index) =>
+    resolveSchema(document, variant, operationId, `${context} anyOf variant ${index}`)
+  );
+  const nullVariantIndex = resolvedVariants.findIndex(isExplicitNullSchema);
+
+  if (nullVariantIndex === -1) {
+    return undefined;
+  }
+
+  const nonNullVariant = resolvedVariants[Number(!nullVariantIndex)];
+
+  if (nonNullVariant === undefined || getCompositionKeyword(nonNullVariant) !== undefined) {
+    return undefined;
+  }
+
+  return {
+    ...nonNullVariant,
+    nullable: true
+  };
+}
+
+function isExplicitNullSchema(schema: OpenApiSchemaObject): boolean {
+  return (schema as { type?: unknown }).type === "null";
 }
 
 function assertAcyclicRef(

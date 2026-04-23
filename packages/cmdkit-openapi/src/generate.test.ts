@@ -2834,6 +2834,47 @@ describe("generate", () => {
     );
   });
 
+  it("accepts success response schemas that use anyOf for nullable unknown values", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed.",
+                  content: {
+                    "application/json": {
+                      schema: {
+                        type: "object",
+                        properties: {
+                          before: {
+                            anyOf: [{}, { type: "null" }]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).not.toThrow();
+  });
+
   it("throws when a success response schema relies on nested additionalProperties", () => {
     expect(() =>
       generate(

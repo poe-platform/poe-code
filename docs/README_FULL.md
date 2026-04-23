@@ -141,11 +141,13 @@ Every command supports these flags:
 | `-h, --help` | Display help for the command. |
 | `-V, --version` | Show current version and check for updates. |
 
+Boolean flags also accept explicit values (`--flag true` / `--flag false`) in addition to `--flag` / `--no-flag`.
+
 ---
 
 ### configure
 
-Configure a coding agent to route API calls through the Poe API.
+Configure a coding agent to route API calls through the selected provider.
 
 ```bash
 poe-code configure [agent]
@@ -155,25 +157,27 @@ poe-code configure [agent]
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `agent` | No | Agent to configure: `claude`, `claude-code`, `codex`, `opencode`, `kimi`. Prompts if omitted, unless `core.defaultAgent` / `POE_DEFAULT_AGENT` is set. |
+| `agent` | No | Agent to configure: `claude`, `claude-code`, `codex`, `opencode`, `kimi`, `goose`. Prompts if omitted, unless `core.defaultAgent` / `POE_DEFAULT_AGENT` is set. |
 
 **Options:**
 
 | Option | Description |
 |--------|-------------|
-| `--api-key <key>` | Poe API key. Also reads from `POE_API_KEY` env var. Prompts if not provided. |
+| `--api-key <key>` | API key for the selected provider. Also reads `POE_API_KEY` for Poe provider flows. |
 | `--model <model>` | Model identifier (e.g., `sonnet`, `opus`, `openai/gpt-5.2`). Prompts from agent-specific choices if omitted. |
 | `--reasoning-effort <level>` | Reasoning effort level for agents that support it (Codex). Values: `low`, `medium`, `high`. Default: `medium`. |
+| `--provider <id>` | Provider ID to use for this agent (e.g., `poe`, `anthropic`). Overrides `POE_CODE_PROVIDER`. |
 
 **Behavior:**
 
 1. Resolves the agent (explicit arg > `core.defaultAgent` / `POE_DEFAULT_AGENT` > `--yes` fallback > prompt)
-2. Resolves the API key from flag, env, stored credentials, or prompts
-3. Collects agent-specific options (model, reasoning effort) via prompts or flags
-4. Applies file mutations to the agent's config files (merge, not overwrite)
-5. Sets up isolated environment if the agent supports it
-6. Saves service metadata to `~/.poe-code/credentials.json`
-7. Displays post-configure messages (e.g., VSCode settings for Claude Code)
+2. Resolves the provider (`--provider` → `POE_CODE_PROVIDER` → logged-in provider selection/prompt)
+3. Resolves provider credentials from flag, env var, stored provider auth, or prompt
+4. Collects agent-specific options (model, reasoning effort) via prompts or flags
+5. Applies file mutations to the agent's config files (merge, not overwrite)
+6. Sets up isolated environment if the agent supports it
+7. Saves service metadata to `~/.poe-code/credentials.json`
+8. Displays post-configure messages (e.g., VSCode settings for Claude Code)
 
 **Examples:**
 
@@ -274,6 +278,33 @@ poe-code logout
 
 ---
 
+### provider
+
+Manage auth providers for coding agents.
+
+```bash
+poe-code provider <subcommand>
+```
+
+**Subcommands:**
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | Show available providers, login status, and supported agents. |
+| `login <id>` | Store provider credentials (prompts if needed). |
+| `logout <id>` | Remove stored credentials for that provider. |
+
+**Examples:**
+
+```bash
+poe-code provider list
+poe-code provider login poe
+poe-code provider login anthropic --api-key sk-ant-xxx
+poe-code provider logout anthropic
+```
+
+---
+
 ### spawn
 
 Launch a single agent session with a prompt. Returns structured output.
@@ -286,7 +317,7 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `agent` | Yes | Agent to spawn: `claude-code`, `codex`, `opencode`, `kimi` |
+| `agent` | Yes | Agent to spawn: `claude-code`, `codex`, `opencode`, `kimi`, `goose` |
 | `prompt` | No | Prompt text. Use `-` to read from stdin, or `@path/to/file` to load prompt text from a file. |
 | `agentArgs` | No | Additional arguments forwarded directly to the agent CLI. |
 
@@ -854,7 +885,7 @@ poe-code pipeline run [--plan <path> | --plans <paths...>]
 
 #### `pipeline init`
 
-Generate pipeline plans from source markdown documents.
+Add or update pipeline frontmatter in source markdown documents.
 
 ```bash
 poe-code pipeline init [question] [--source <path> | --sources <paths...>]
@@ -871,9 +902,10 @@ poe-code pipeline init [question] [--source <path> | --sources <paths...>]
 
 **Behavior notes:**
 
-- If `question` is omitted, the source document is treated as the user request.
+- `pipeline init` edits the selected source markdown file in place (it does not create a separate plan file).
+- If `question` is omitted, the source document content is treated as the user request.
 - Without `--source` / `--sources`, interactive mode discovers markdown sources and prompts for selection.
-- Existing matching `plan-*` files are skipped during discovery.
+- Sources that already contain `kind: pipeline` frontmatter are skipped during discovery.
 
 #### `pipeline validate`
 
@@ -898,6 +930,12 @@ Install the `/plan` pipeline skill and scaffold pipeline files.
 ```bash
 poe-code pipeline install [--agent <name>] [--local | --global] [--force]
 ```
+
+**Additional behavior notes (`pipeline run`):**
+
+- Plan directory resolution is `plan.plan_directory` by default, and `.poe-code/pipeline/config.yaml` `plan_directory` overrides it when set.
+- Lock wait/acquire status is reported while waiting for the per-plan lock.
+- Unresolved prompt variables fail the run before step execution.
 
 ---
 
@@ -2486,7 +2524,7 @@ poe-setup-scripts/
 
 | Command | Subcommands | Description |
 |---------|-------------|-------------|
-| `configure [agent]` | — | Configure agent for Poe API |
+| `configure [agent]` | — | Configure agent for the selected provider API |
 | `unconfigure <agent>` | — | Remove Poe configuration |
 | `login` | — | Store API key |
 | `logout` | — | Remove all config + credentials |
@@ -2502,6 +2540,7 @@ poe-setup-scripts/
 | `skill` | `configure`, `unconfigure` | Agent skill management |
 | `pipeline` | `run`, `init`, `validate`, `plan-path`, `install` | Pipeline plan generation, validation, and execution |
 | `memory` | `init`, `ls`, `show`, `search`, `status`, `clear` | Repo-scoped persistent memory operations |
+| `provider` | `list`, `login`, `logout` | Provider authentication management |
 
 
 ### SDK Exports Summary

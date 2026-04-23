@@ -97,7 +97,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: update-docs
     title: Update docs — use toolcraft naming everywhere
@@ -115,9 +115,9 @@ tasks:
       Archive docs under `docs/plans/archive/` can be left as historical record.
     status:
       implement: done
-      refactor: open
-      test: open
-      commit: open
+      refactor: done
+      test: done
+      commit: done
 ---
 
 # Toolcraft rename

@@ -16,14 +16,14 @@ The release keeps the command, schema, and OpenAPI tooling split into separate p
 
 ## Migration to standalone imports
 
-| Previous usage | New import |
+| Old package | New standalone package |
 | --- | --- |
-| Root command package | `toolcraft` |
-| CLI subpath | `toolcraft/cli` |
-| MCP subpath | `toolcraft/mcp` |
-| SDK subpath | `toolcraft/sdk` |
-| Schema package | `toolcraft-schema` |
-| OpenAPI package | `toolcraft-openapi` |
+| `agent-kit` | `toolcraft` |
+| `agent-kit/cli` | `toolcraft/cli` |
+| `agent-kit/mcp` | `toolcraft/mcp` |
+| `agent-kit/sdk` | `toolcraft/sdk` |
+| `agent-kit-schema` | `toolcraft-schema` |
+| `agent-kit-openapi` | `toolcraft-openapi` |
 
 ## Breaking changes for internal consumers
 

@@ -20,7 +20,7 @@ describe("runMarkdownReaderMcp", () => {
     vi.resetModules();
   });
 
-  it("runs cmdkit MCP with the markdown-reader group", async () => {
+  it("runs toolcraft MCP with the markdown-reader group", async () => {
     const { runMarkdownReaderMcp } = await import("./run.js");
 
     await runMarkdownReaderMcp();

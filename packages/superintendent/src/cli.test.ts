@@ -30,7 +30,7 @@ describe("superintendent CLI entry point", () => {
     vi.resetModules();
   });
 
-  it("runs cmdkit with the superintendent command group", async () => {
+  it("runs toolcraft with the superintendent command group", async () => {
     const { main } = await import("./cli.js");
 
     await main(["node", "superintendent", "run"]);
@@ -39,7 +39,7 @@ describe("superintendent CLI entry point", () => {
     expect(runCLIMock).toHaveBeenCalledWith(superintendentGroupMock);
   });
 
-  it("normalizes --output markdown for cmdkit CLI parsing", async () => {
+  it("normalizes --output markdown for toolcraft CLI parsing", async () => {
     runCLIMock.mockImplementation(async () => {
       expect(process.argv).toEqual([
         "node",

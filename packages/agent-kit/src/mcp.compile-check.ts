@@ -20,7 +20,7 @@ const ignoredRoot = defineGroup({
 });
 
 const ignoredOptions = {
-  name: "cmdkit-test",
+  name: "toolcraft-test",
   version: "1.0.0",
   tools: ["usage"],
   casing: "snake",

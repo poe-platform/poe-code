@@ -6,7 +6,7 @@ import {
   defineCommand,
   defineGroup,
   resolveCommandSecrets,
-} from "toolcraft";
+} from "./index.js";
 import { ERROR_INTERNAL, ERROR_INVALID_PARAMS, McpClient, McpError, createSdkTestPair } from "tiny-mcp-client";
 import { createMCPServer } from "./mcp.js";
 import { renderResult } from "./renderer.js";
@@ -58,7 +58,7 @@ function runRender(command: ReturnType<typeof defineCommand>, result: unknown, o
   return rendered;
 }
 
-describe("agent-kit", () => {
+describe("toolcraft", () => {
   function createPreflightContext() {
     return {
       fetch: globalThis.fetch,
@@ -73,6 +73,25 @@ describe("agent-kit", () => {
       progress: () => undefined,
     };
   }
+
+  it("uses toolcraft symbol descriptions for internal metadata", () => {
+    const command = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => null,
+    });
+    const group = defineGroup({
+      name: "root",
+      children: [command],
+    });
+
+    expect(Object.getOwnPropertySymbols(command).map((symbol) => symbol.description)).toContain(
+      "toolcraft.command.config"
+    );
+    expect(Object.getOwnPropertySymbols(group).map((symbol) => symbol.description)).toContain(
+      "toolcraft.group.config"
+    );
+  });
 
   it("inherits secrets through nested groups", () => {
     const leaf = defineCommand({
@@ -721,7 +740,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
       tools: ["root__usage", "root__bot"],
     });
@@ -793,7 +812,7 @@ describe("createMCPServer", () => {
       ],
     });
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -836,7 +855,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -880,7 +899,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -930,7 +949,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -973,7 +992,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -1036,7 +1055,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
       tools: ["root__bot_admin__bot"],
       casing: "camel",
@@ -1112,7 +1131,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer([firstRoot, secondRoot], {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -1179,7 +1198,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -1222,7 +1241,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -1257,7 +1276,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -1288,7 +1307,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);
@@ -1342,7 +1361,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
       services: {
         region: "us",
@@ -1394,7 +1413,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
-      name: "cmdkit-test",
+      name: "toolcraft-test",
       version: "1.0.0",
     });
     const { client, cleanup } = await createClient(server);

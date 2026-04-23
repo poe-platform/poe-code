@@ -1,6 +1,6 @@
 # Markdown Reader
 
-A cmdkit-powered package that reads markdown files section-by-section instead of all at once, exposed as CLI, MCP, and SDK.
+A toolcraft-powered package that reads markdown files section-by-section instead of all at once, exposed as CLI, MCP, and SDK.
 
 ## 1. Problem
 
@@ -14,7 +14,7 @@ Evidence it is worth solving now:
 
 - The `docs/plans/` directory already has 15+ plan files, several with front matter and lock files; reading them whole is the norm today.
 - The superintendent loop and the `plan-browser` package both need to navigate plan docs by section; they currently re-parse markdown ad hoc.
-- cmdkit is the house pattern for new command-surface packages — this is a natural fit and gives us CLI + MCP + SDK for free.
+- toolcraft is the house pattern for new command-surface packages — this is a natural fit and gives us CLI + MCP + SDK for free.
 
 Explicitly out of scope:
 
@@ -128,7 +128,7 @@ JSON output shape:
 
 ### Command: `plan markdown-reader-mcp`
 
-Starts a stdio MCP server exposing the two tools above. Follows the [packages/terminal-pilot-mcp](packages/terminal-pilot-mcp) pattern: `runMCP(group, { name, version })` from `@poe-code/cmdkit/mcp`.
+Starts a stdio MCP server exposing the two tools above. Follows the [packages/terminal-pilot-mcp](packages/terminal-pilot-mcp) pattern: `runMCP(group, { name, version })` from `toolcraft/mcp`.
 
 CLI:
 
@@ -152,7 +152,7 @@ Agent-side configuration example (Claude Code `~/.claude.json` or `.mcp.json`):
 }
 ```
 
-MCP tool names exposed by this server (derived by cmdkit from `group.name + command.name`):
+MCP tool names exposed by this server (derived by toolcraft from `group.name + command.name`):
 
 - `markdown_reader__read` — params `{ file, depth? }`.
 - `markdown_reader__read_section` — params `{ file, section, includeChildren? }`.
@@ -184,7 +184,7 @@ const { markdown, section } = await readSection({ file, section: "2.1" });
   - `src/core/read-markdown.ts`, `src/core/read-section.ts` — orchestrators used by both the SDK and MCP tool handlers. File I/O goes through an injectable `fs` so tests use `memfs`.
   - `src/mcp/tools.ts` — two `defineCommand` entries (`scope: ["mcp"]`) that wrap the orchestrators as MCP tools.
   - `src/mcp/group.ts` — `markdownGroup = defineGroup({ name: "markdown-reader", scope: ["mcp"], children: [readTool, readSectionTool] })`.
-  - `src/mcp/run.ts` — `runMarkdownReaderMcp()` → `runMCP(markdownGroup, { name: "markdown-reader", version })` from `@poe-code/cmdkit/mcp`. Mirrors [packages/terminal-pilot-mcp/src/index.ts](packages/terminal-pilot-mcp/src/index.ts).
+  - `src/mcp/run.ts` — `runMarkdownReaderMcp()` → `runMCP(markdownGroup, { name: "markdown-reader", version })` from `toolcraft/mcp`. Mirrors [packages/terminal-pilot-mcp/src/index.ts](packages/terminal-pilot-mcp/src/index.ts).
   - `src/testing/fixtures/*.md` — static sample docs used by unit tests.
 - CLI wiring lives in [src/cli/commands/plan.ts](src/cli/commands/plan.ts). Three new commander subcommands under the existing `plan` group:
   - `plan markdown-read` — imports `readMarkdown` from `@poe-code/markdown-reader`, prints via the existing `writeOutput` + `resolveOutputOption` helpers in that file (`terminal` / `md` / `json`).
@@ -240,7 +240,7 @@ No fuzzy matching, no slugs. If nothing hits, throw `UserError("no section match
 ### Flags, env vars, config
 
 - Flags listed in section 2 are the complete surface. No env vars. No config knobs.
-- Formats: `rich` (default for `read`), `markdown` (default for `read-section`), `json` — all standard cmdkit renderers.
+- Formats: `rich` (default for `read`), `markdown` (default for `read-section`), `json` — all standard toolcraft renderers.
 - No caching. Re-read on every call; files are small and callers already decide when to invoke.
 
 ### Edge cases
@@ -309,7 +309,7 @@ export { markdownGroup } from "./group.js";
 
 ### MCP tool and group shape
 
-cmdkit `defineCommand` with `scope: ["mcp"]` only — the CLI surface is delivered through commander subcommands in `plan.ts`, not through cmdkit's CLI renderer. Pattern follows [packages/superintendent/src/commands/superintendent-group.ts:25-65](packages/superintendent/src/commands/superintendent-group.ts#L25-L65) for the `defineCommand` block and [packages/terminal-pilot-mcp/src/index.ts](packages/terminal-pilot-mcp/src/index.ts) for the `runMCP` entry:
+toolcraft `defineCommand` with `scope: ["mcp"]` only — the CLI surface is delivered through commander subcommands in `plan.ts`, not through toolcraft's CLI renderer. Pattern follows [packages/superintendent/src/commands/superintendent-group.ts:25-65](packages/superintendent/src/commands/superintendent-group.ts#L25-L65) for the `defineCommand` block and [packages/terminal-pilot-mcp/src/index.ts](packages/terminal-pilot-mcp/src/index.ts) for the `runMCP` entry:
 
 ```ts
 // src/mcp/tools.ts
@@ -338,11 +338,11 @@ export async function runMarkdownReaderMcp(): Promise<void> {
 }
 ```
 
-The commander subcommands in `plan.ts` do **not** go through cmdkit; they call `readMarkdown` / `readSection` directly and print with the existing `writeOutput` helper in that file. This matches how `plan view` currently works.
+The commander subcommands in `plan.ts` do **not** go through toolcraft; they call `readMarkdown` / `readSection` directly and print with the existing `writeOutput` helper in that file. This matches how `plan view` currently works.
 
 ### Test plan
 
-All tests are vitest, colocated, run under the package's `npm test` script that uses the repo-root vitest (mirrors [packages/cmdkit-openapi/package.json](packages/cmdkit-openapi/package.json)). File I/O in tests uses `memfs` per CLAUDE.md.
+All tests are vitest, colocated, run under the package's `npm test` script that uses the repo-root vitest (mirrors [packages/agent-kit-openapi/package.json](packages/agent-kit-openapi/package.json)). File I/O in tests uses `memfs` per CLAUDE.md.
 
 - `@poe-code/design-system` — new tests in `packages/design-system/src/terminal-markdown/terminal-markdown.test.ts` (or a new `parser-range.test.ts` if the existing file is large): assert `range.start` / `range.end` on heading, paragraph, code block, list, and frontmatter nodes across representative fixtures. These lock the new position invariant so future parser changes do not silently break consumers.
 - `scan.test.ts` (covers the walker + numbering only — fence / CRLF / BOM / ATX-vs-Setext are the shared parser's responsibility):
@@ -364,7 +364,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
   - `--no-include-children` stops at next heading of any depth.
   - Body slice preserves fenced code blocks and trailing blank lines exactly.
 - `commands/read.test.ts`, `commands/read-section.test.ts`:
-  - Invoke via cmdkit's test harness (see `packages/cmdkit-openapi/src/*.test.ts` for the pattern). Assert JSON renderer output for deterministic assertions; a separate snapshot asserts the rich render.
+  - Invoke via toolcraft's test harness (see `packages/agent-kit-openapi/src/*.test.ts` for the pattern). Assert JSON renderer output for deterministic assertions; a separate snapshot asserts the rich render.
 - Snapshots live at `packages/markdown-reader/src/__snapshots__/`. Fixtures are checked-in markdown files in `src/testing/fixtures/` so they do not drift when `docs/plans/` changes.
 
 ### Rollout / migration
@@ -400,7 +400,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 
 ### New files
 
-- `packages/markdown-reader/package.json` — name `@poe-code/markdown-reader`, `private: true`, type `module`, deps `@poe-code/cmdkit`, `@poe-code/cmdkit-schema`, `@poe-code/design-system`. Scripts mirror [packages/cmdkit-openapi/package.json](packages/cmdkit-openapi/package.json) (`build`, `test`, `test:unit`).
+- `packages/markdown-reader/package.json` — name `@poe-code/markdown-reader`, `private: true`, type `module`, deps `toolcraft`, `toolcraft-schema`, `@poe-code/design-system`. Scripts mirror [packages/agent-kit-openapi/package.json](packages/agent-kit-openapi/package.json) (`build`, `test`, `test:unit`).
 - `packages/markdown-reader/tsconfig.json` — extends workspace base, `outDir: dist`.
 - `packages/markdown-reader/README.md` — per CLAUDE.md package rule ("Package must have own readme"). Sections: overview, SDK usage, MCP tool names, standalone server invocation (`poe-code plan markdown-reader-mcp`), example agent config. No env vars, no config.
 - `packages/markdown-reader/src/index.ts` — exports `readMarkdown`, `readSection`, `markdownGroup`, `runMarkdownReaderMcp`.
@@ -408,7 +408,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 - `packages/markdown-reader/src/core/resolve.ts` — `resolveSection(sections, id)`.
 - `packages/markdown-reader/src/core/read-markdown.ts` — `readMarkdown(params)` orchestrator.
 - `packages/markdown-reader/src/core/read-section.ts` — `readSection(params)` orchestrator.
-- `packages/markdown-reader/src/mcp/tools.ts` — `readTool`, `readSectionTool` (cmdkit `defineCommand` with `scope: ["mcp"]`).
+- `packages/markdown-reader/src/mcp/tools.ts` — `readTool`, `readSectionTool` (toolcraft `defineCommand` with `scope: ["mcp"]`).
 - `packages/markdown-reader/src/mcp/group.ts` — `markdownGroup` (`defineGroup`, scope `["mcp"]`, name `"markdown-reader"`).
 - `packages/markdown-reader/src/mcp/run.ts` — `runMarkdownReaderMcp()` wrapping `runMCP(markdownGroup, ...)`.
 - `packages/markdown-reader/src/core/*.test.ts`, `src/mcp/*.test.ts` — colocated vitest.

@@ -96,7 +96,7 @@ const runtime: TerminalPilotRuntime = {
 };
 
 describe("terminal-pilot-mcp tool surface", () => {
-  it("exposes the shared terminal-pilot commands through cmdkit MCP", async () => {
+  it("exposes the shared terminal-pilot commands through toolcraft MCP", async () => {
     const server = createMCPServer(terminalPilotGroup, {
       name: "terminal-pilot",
       version: "0.0.1",

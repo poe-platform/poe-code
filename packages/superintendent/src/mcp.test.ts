@@ -114,7 +114,7 @@ describe("superintendent MCP entry point", () => {
     vi.resetModules();
   });
 
-  it("starts cmdkit MCP with the superintendent MCP command group", async () => {
+  it("starts toolcraft MCP with the superintendent MCP command group", async () => {
     const { main } = await import("./mcp.js");
 
     await main();

@@ -337,9 +337,9 @@ function resolveRootHelpHeading(argv: string[]): string {
   return "Poe - poe-code";
 }
 
-const FORWARDABLE_CMDKIT_FLAGS = new Set(["-y", "--yes", "--verbose"]);
+const FORWARDABLE_TOOLCRAFT_FLAGS = new Set(["-y", "--yes", "--verbose"]);
 
-function buildCmdkitArgv(argv: string[], group: Group): string[] {
+function buildToolcraftArgv(argv: string[], group: Group): string[] {
   const entry = argv[0] ?? "node";
   const script = argv[1] ?? "cli";
   const commandNames = new Set([group.name, ...group.aliases]);
@@ -349,7 +349,7 @@ function buildCmdkitArgv(argv: string[], group: Group): string[] {
     return [entry, script];
   }
 
-  const forwardedFlags = argv.slice(2, commandIndex).filter((value) => FORWARDABLE_CMDKIT_FLAGS.has(value));
+  const forwardedFlags = argv.slice(2, commandIndex).filter((value) => FORWARDABLE_TOOLCRAFT_FLAGS.has(value));
   const commandArgs = argv.slice(commandIndex + 1);
 
   if (commandArgs.length === 0) {
@@ -438,7 +438,7 @@ function bootstrapProgram(container: CliContainer): Command {
     .helpOption(false)
     .action(async () => {
       const originalArgv = [...process.argv];
-      process.argv = buildCmdkitArgv(originalArgv, ghGroup);
+      process.argv = buildToolcraftArgv(originalArgv, ghGroup);
       try {
         await runCLI(ghGroup, { rootDisplayName: `Poe - ${ghGroup.name}`, rootUsageName: `${usageCommand} ${ghGroup.name}` });
       } finally {
@@ -455,7 +455,7 @@ function bootstrapProgram(container: CliContainer): Command {
     .helpOption(false)
     .action(async () => {
       const originalArgv = [...process.argv];
-      process.argv = buildCmdkitArgv(originalArgv, superintendentGroup);
+      process.argv = buildToolcraftArgv(originalArgv, superintendentGroup);
       try {
         await runCLI(superintendentGroup, {
           rootDisplayName: `Poe - ${superintendentGroup.name}`,

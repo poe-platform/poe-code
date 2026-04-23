@@ -130,11 +130,11 @@ function inferProgramName(argv: string[]): string {
   const entrypoint = argv[1];
 
   if (typeof entrypoint !== "string" || entrypoint.length === 0) {
-    return "agent-kit";
+    return "toolcraft";
   }
 
   const parsed = path.parse(entrypoint);
-  return parsed.name.length > 0 ? parsed.name : "agent-kit";
+  return parsed.name.length > 0 ? parsed.name : "toolcraft";
 }
 
 function normalizeRoots<TServices extends object>(
@@ -1601,7 +1601,7 @@ async function resolveFixtureRuntime<TServices extends object>(
   services: TServices,
   requirementOptions: CommandRequirementOptions
 ): Promise<ResolvedFixtureRuntime<TServices>> {
-  const selector = process.env.AGENT_KIT_FIXTURE;
+  const selector = process.env.TOOLCRAFT_FIXTURE;
 
   if (selector === undefined || selector.length === 0) {
     return {

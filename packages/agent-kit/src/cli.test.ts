@@ -166,7 +166,7 @@ const fixtureCommand = defineCommand<{ store: FixtureStoreService }>({
 });
 
 const fixtureRoot = defineGroup({
-  name: "cmdkit",
+  name: "toolcraft",
   children: [fixtureCommand],
 });
 
@@ -184,7 +184,7 @@ const originalArgv = [...process.argv];
 const stdoutTTY = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
 const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 const originalOutputFormat = process.env.OUTPUT_FORMAT;
-const originalFixtureSelector = process.env.AGENT_KIT_FIXTURE;
+const originalFixtureSelector = process.env.TOOLCRAFT_FIXTURE;
 
 function setTTY(stream: NodeJS.WriteStream | NodeJS.ReadStream, value: boolean): void {
   Object.defineProperty(stream, "isTTY", {
@@ -217,7 +217,7 @@ describe("runCLI", () => {
     process.argv = [...originalArgv];
     process.exitCode = undefined;
     restoreOutputFormat();
-    delete process.env.AGENT_KIT_FIXTURE;
+    delete process.env.TOOLCRAFT_FIXTURE;
     setTTY(process.stdout, true);
     setTTY(process.stdin, true);
   });
@@ -226,7 +226,7 @@ describe("runCLI", () => {
     process.argv = [...originalArgv];
     process.exitCode = undefined;
     restoreOutputFormat();
-    process.env.AGENT_KIT_FIXTURE = originalFixtureSelector;
+    process.env.TOOLCRAFT_FIXTURE = originalFixtureSelector;
 
     if (stdoutTTY) {
       Object.defineProperty(process.stdout, "isTTY", stdoutTTY);
@@ -274,13 +274,13 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     process.argv = [
       "node",
-      "cmdkit",
+      "toolcraft",
       "deploy",
       "demo-app",
       "--dry-run",
@@ -352,13 +352,13 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     process.argv = [
       "node",
-      "cmdkit",
+      "toolcraft",
       "deploy",
       "--dry_run",
       "--retry_count",
@@ -389,9 +389,9 @@ describe("runCLI", () => {
       handler,
     });
 
-    const root = defineGroup({ name: "cmdkit", children: [toggle] });
+    const root = defineGroup({ name: "toolcraft", children: [toggle] });
 
-    process.argv = ["node", "cmdkit", "toggle", "--enabled", "true", "--disabled", "false", "--yes"];
+    process.argv = ["node", "toolcraft", "toggle", "--enabled", "true", "--disabled", "false", "--yes"];
     await runCLI(root);
 
     expect(handler.mock.calls[0]?.[0].params).toEqual({ enabled: true, disabled: false });
@@ -409,9 +409,9 @@ describe("runCLI", () => {
       handler,
     });
 
-    const root = defineGroup({ name: "cmdkit", children: [toggle] });
+    const root = defineGroup({ name: "toolcraft", children: [toggle] });
 
-    process.argv = ["node", "cmdkit", "toggle", "--enabled", "--no-disabled", "--yes"];
+    process.argv = ["node", "toolcraft", "toggle", "--enabled", "--no-disabled", "--yes"];
     await runCLI(root);
 
     expect(handler.mock.calls[0]?.[0].params).toEqual({ enabled: true, disabled: false });
@@ -426,9 +426,9 @@ describe("runCLI", () => {
       handler,
     });
 
-    const root = defineGroup({ name: "cmdkit", children: [toggle] });
+    const root = defineGroup({ name: "toolcraft", children: [toggle] });
 
-    process.argv = ["node", "cmdkit", "toggle", "--enabled", "yes"];
+    process.argv = ["node", "toolcraft", "toggle", "--enabled", "yes"];
     const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
     await runCLI(root);
@@ -454,11 +454,11 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
-    process.argv = ["node", "cmdkit", "deploy", "--count", "1.5"];
+    process.argv = ["node", "toolcraft", "deploy", "--count", "1.5"];
     const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
     await runCLI(root);
@@ -486,7 +486,7 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
@@ -494,7 +494,7 @@ describe("runCLI", () => {
     promptState.select.mockResolvedValueOnce("fast");
     promptState.confirm.mockResolvedValueOnce(true);
 
-    process.argv = ["node", "cmdkit", "deploy"];
+    process.argv = ["node", "toolcraft", "deploy"];
 
     await runCLI(root);
 
@@ -540,11 +540,11 @@ describe("runCLI", () => {
       handler,
     });
 
-    const root = defineGroup({ name: "cmdkit", children: [deploy] });
+    const root = defineGroup({ name: "toolcraft", children: [deploy] });
 
     promptState.select.mockResolvedValueOnce("safe");
 
-    process.argv = ["node", "cmdkit", "deploy"];
+    process.argv = ["node", "toolcraft", "deploy"];
 
     await runCLI(root);
 
@@ -573,11 +573,11 @@ describe("runCLI", () => {
       handler,
     });
 
-    const root = defineGroup({ name: "cmdkit", children: [deploy] });
+    const root = defineGroup({ name: "toolcraft", children: [deploy] });
 
     promptState.select.mockResolvedValueOnce("fast");
 
-    process.argv = ["node", "cmdkit", "deploy"];
+    process.argv = ["node", "toolcraft", "deploy"];
 
     await runCLI(root);
 
@@ -613,7 +613,7 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
@@ -628,7 +628,7 @@ describe("runCLI", () => {
     promptState.select.mockResolvedValueOnce("fast");
     process.argv = [
       "node",
-      "cmdkit",
+      "toolcraft",
       "deploy",
       "--preset",
       "/presets/staging.json",
@@ -668,7 +668,7 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
@@ -681,7 +681,7 @@ describe("runCLI", () => {
 
     process.argv = [
       "node",
-      "cmdkit",
+      "toolcraft",
       "deploy",
       "--preset",
       "/presets/invalid.json",
@@ -709,13 +709,13 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     process.argv = [
       "node",
-      "cmdkit",
+      "toolcraft",
       "deploy",
       "--preset",
       "/presets/missing.json",
@@ -743,7 +743,7 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
@@ -753,7 +753,7 @@ describe("runCLI", () => {
 
     process.argv = [
       "node",
-      "cmdkit",
+      "toolcraft",
       "deploy",
       "--preset",
       "/presets/invalid-json.json",
@@ -781,7 +781,7 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
@@ -791,7 +791,7 @@ describe("runCLI", () => {
 
     process.argv = [
       "node",
-      "cmdkit",
+      "toolcraft",
       "deploy",
       "--preset",
       "/presets/directory",
@@ -820,12 +820,12 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     promptState.text.mockResolvedValueOnce("");
-    process.argv = ["node", "cmdkit", "deploy"];
+    process.argv = ["node", "toolcraft", "deploy"];
 
     await runCLI(root);
 
@@ -850,12 +850,12 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     setTTY(process.stdin, false);
-    process.argv = ["node", "cmdkit", "deploy", "--yes"];
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
 
     await runCLI(root);
 
@@ -880,11 +880,11 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
-    process.argv = ["node", "cmdkit", "deploy", "--output", "markdown", "--yes"];
+    process.argv = ["node", "toolcraft", "deploy", "--output", "markdown", "--yes"];
 
     await runCLI(root);
 
@@ -893,17 +893,17 @@ describe("runCLI", () => {
 
   it.each([
     {
-      argv: ["node", "cmdkit", "deploy", "--yes"],
+      argv: ["node", "toolcraft", "deploy", "--yes"],
       expected: "terminal",
       label: "rich",
     },
     {
-      argv: ["node", "cmdkit", "deploy", "--output", "md", "--yes"],
+      argv: ["node", "toolcraft", "deploy", "--output", "md", "--yes"],
       expected: "markdown",
       label: "md",
     },
     {
-      argv: ["node", "cmdkit", "deploy", "--output", "json", "--yes"],
+      argv: ["node", "toolcraft", "deploy", "--output", "json", "--yes"],
       expected: "json",
       label: "json",
     },
@@ -920,7 +920,7 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
@@ -951,12 +951,12 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     setTTY(process.stdout, false);
-    process.argv = ["node", "cmdkit", "deploy", "--yes"];
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
 
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
@@ -995,11 +995,11 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
-    process.argv = ["node", "cmdkit", "deploy", "--output", "md", "--json", "--yes"];
+    process.argv = ["node", "toolcraft", "deploy", "--output", "md", "--json", "--yes"];
 
     await runCLI(root);
 
@@ -1020,12 +1020,12 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     setTTY(process.stdin, false);
-    process.argv = ["node", "cmdkit", "deploy"];
+    process.argv = ["node", "toolcraft", "deploy"];
 
     await runCLI(root);
 
@@ -1044,11 +1044,11 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
-    process.argv = ["node", "cmdkit", "deploy", "--yes"];
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
 
     await runCLI(root);
 
@@ -1072,12 +1072,12 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     delete process.env.API_KEY;
-    process.argv = ["node", "cmdkit", "deploy", "--yes"];
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
 
     await runCLI(root);
 
@@ -1104,12 +1104,12 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     delete process.env.POE_API_KEY;
-    process.argv = ["node", "cmdkit", "deploy"];
+    process.argv = ["node", "toolcraft", "deploy"];
 
     await runCLI(root);
 
@@ -1131,13 +1131,13 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
     const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
-    process.argv = ["node", "cmdkit", "deploy", "--yes"];
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
     await runCLI(root);
 
     expect(loggerState.error).toEqual(["Boom. Use --verbose for a stack trace."]);
@@ -1147,7 +1147,7 @@ describe("runCLI", () => {
     resetLoggerState();
     stderrWrite.mockClear();
     process.exitCode = undefined;
-    process.argv = ["node", "cmdkit", "deploy", "--yes", "--verbose"];
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
 
     await runCLI(root);
 
@@ -1164,7 +1164,7 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [deploy],
     });
 
@@ -1188,8 +1188,8 @@ describe("runCLI", () => {
       }),
     };
 
-    process.env.AGENT_KIT_FIXTURE = "2";
-    process.argv = ["node", "cmdkit", "fixture-demo", "--output", "json", "--yes"];
+    process.env.TOOLCRAFT_FIXTURE = "2";
+    process.argv = ["node", "toolcraft", "fixture-demo", "--output", "json", "--yes"];
 
     await runCLI(fixtureRoot, {
       services: {
@@ -1217,8 +1217,8 @@ describe("runCLI", () => {
   it("selects fixture scenarios by name and matches fetch by method plus url", async () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
-    process.env.AGENT_KIT_FIXTURE = "named scenario";
-    process.argv = ["node", "cmdkit", "fixture-demo", "--output", "json", "--yes"];
+    process.env.TOOLCRAFT_FIXTURE = "named scenario";
+    process.argv = ["node", "toolcraft", "fixture-demo", "--output", "json", "--yes"];
 
     await runCLI(fixtureRoot, {
       services: {
@@ -1245,8 +1245,8 @@ describe("runCLI", () => {
       writeValue: vi.fn(async () => undefined),
     };
 
-    process.env.AGENT_KIT_FIXTURE = "no-op fallback";
-    process.argv = ["node", "cmdkit", "fixture-demo", "--output", "json", "--yes"];
+    process.env.TOOLCRAFT_FIXTURE = "no-op fallback";
+    process.argv = ["node", "toolcraft", "fixture-demo", "--output", "json", "--yes"];
 
     await runCLI(fixtureRoot, {
       services: {
@@ -1319,11 +1319,11 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [waitFor],
     });
 
-    process.argv = ["node", "cmdkit", "wait-for", "-s", "tests", "-l", "--yes"];
+    process.argv = ["node", "toolcraft", "wait-for", "-s", "tests", "-l", "--yes"];
 
     await runCLI(root);
 
@@ -1351,11 +1351,11 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [screenshot],
     });
 
-    process.argv = ["node", "cmdkit", "screenshot", "-o", "screen.png", "--yes"];
+    process.argv = ["node", "toolcraft", "screenshot", "-o", "screen.png", "--yes"];
 
     await runCLI(root);
 
@@ -1382,11 +1382,11 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [createSession],
     });
 
-    process.argv = ["node", "cmdkit", "create-session", "npm", "test", "--", "--runInBand"];
+    process.argv = ["node", "toolcraft", "create-session", "npm", "test", "--", "--runInBand"];
 
     await runCLI(root);
 
@@ -1415,11 +1415,11 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [install],
     });
 
-    process.argv = ["node", "cmdkit", "install", "--yes"];
+    process.argv = ["node", "toolcraft", "install", "--yes"];
 
     await runCLI(root);
 
@@ -1449,12 +1449,12 @@ describe("runCLI", () => {
     });
 
     const root = defineGroup({
-      name: "cmdkit",
+      name: "toolcraft",
       children: [install],
     });
 
     promptState.select.mockResolvedValueOnce("codex");
-    process.argv = ["node", "cmdkit", "install"];
+    process.argv = ["node", "toolcraft", "install"];
 
     await runCLI(root);
 
@@ -1739,5 +1739,24 @@ describe("runCLI", () => {
     const output = readStdout(stdoutWrite);
     expect(output).toContain("poe-code builder");
     expect(output).toContain("Builder commands.");
+  });
+
+  it("falls back to toolcraft as the program name when mounting multiple roots without an entrypoint", async () => {
+    const first = defineGroup({
+      name: "first",
+      children: [],
+    });
+    const second = defineGroup({
+      name: "second",
+      children: [],
+    });
+
+    process.argv = ["node", "", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI([first, second]);
+
+    expect(readStdout(stdoutWrite)).toContain("toolcraft\n");
   });
 });

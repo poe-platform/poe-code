@@ -9,6 +9,5 @@ describe("agent-kit docs", () => {
     const readme = fs.readFileSync(README_PATH, "utf8");
 
     expect(readme).not.toContain("poe-code/agent-kit");
-    expect(readme).not.toContain("poe-code/cmdkit");
   });
 });

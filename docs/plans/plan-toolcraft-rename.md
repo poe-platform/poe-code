@@ -53,7 +53,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: cmdkit-strings
     title: Remove all cmdkit string references from source code
@@ -70,9 +70,9 @@ tasks:
       After replacing, update any snapshots with `npx vitest run --update-snapshots` if needed.
       Run tests to confirm.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: rename-directories

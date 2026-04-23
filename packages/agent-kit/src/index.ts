@@ -2,9 +2,9 @@ import { fileURLToPath } from "node:url";
 import type { ObjectSchema, Static } from "toolcraft-schema";
 import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/design-system";
 
-const commandConfigSymbol = Symbol("agent-kit.command.config");
-const groupConfigSymbol = Symbol("agent-kit.group.config");
-const commandSourcePathSymbol = Symbol("agent-kit.command.sourcePath");
+const commandConfigSymbol = Symbol("toolcraft.command.config");
+const groupConfigSymbol = Symbol("toolcraft.group.config");
+const commandSourcePathSymbol = Symbol("toolcraft.command.sourcePath");
 
 type ScopeValue = "cli" | "mcp" | "sdk";
 type AnyObjectSchema = ObjectSchema<Record<string, never>>;

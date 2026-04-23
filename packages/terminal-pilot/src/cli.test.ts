@@ -32,7 +32,7 @@ describe("terminal-pilot CLI entry point", () => {
     vi.resetModules();
   });
 
-  it("runs cmdkit with the terminal-pilot command group", async () => {
+  it("runs toolcraft with the terminal-pilot command group", async () => {
     const { main } = await import("./cli.js");
 
     await main(["node", "terminal-pilot", "list-sessions"]);
@@ -41,7 +41,7 @@ describe("terminal-pilot CLI entry point", () => {
     expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock);
   });
 
-  it("maps --json to cmdkit's output flag", async () => {
+  it("maps --json to toolcraft's output flag", async () => {
     let argvDuringRun: string[] = [];
     runCLIMock.mockImplementation(async () => {
       argvDuringRun = [...process.argv];

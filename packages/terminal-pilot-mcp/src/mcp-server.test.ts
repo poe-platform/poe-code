@@ -20,7 +20,7 @@ describe("terminal-pilot-mcp entry point", () => {
     vi.resetModules();
   });
 
-  it("runs cmdkit MCP with the shared terminal-pilot command group", async () => {
+  it("runs toolcraft MCP with the shared terminal-pilot command group", async () => {
     const { main } = await import("./index.js");
 
     await main();

@@ -94,7 +94,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: standalone-publish-prep
     title: Prepare standalone package publishing
@@ -119,8 +119,8 @@ tasks:
       - a fresh throwaway consumer can install the tarballs and run the generator without depending on `poe-code`
     status:
       implement: done
-      refactor: open
-      test: open
+      refactor: done
+      test: done
       commit: open
 
   - id: publish-smoke-and-cleanup

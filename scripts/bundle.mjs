@@ -113,44 +113,6 @@ const mainBuild = await esbuild.build({
   metafile: true,
 });
 
-// Bundle root-package compatibility subpaths so published poe-code users can
-// keep importing the command stack without separately installing standalone
-// packages.
-await esbuild.build({
-  entryPoints: {
-    "published/agent-kit/index": path.join(rootDir, "packages", "agent-kit", "src", "index.ts"),
-    "published/agent-kit/cli": path.join(rootDir, "packages", "agent-kit", "src", "cli.ts"),
-    "published/agent-kit/mcp": path.join(rootDir, "packages", "agent-kit", "src", "mcp.ts"),
-    "published/agent-kit/sdk": path.join(rootDir, "packages", "agent-kit", "src", "sdk.ts"),
-    "published/agent-kit-schema/index": path.join(rootDir, "packages", "agent-kit-schema", "src", "index.ts"),
-    "published/agent-kit-openapi/index": path.join(
-      rootDir,
-      "packages",
-      "agent-kit-openapi",
-      "src",
-      "index.ts"
-    ),
-    "published/agent-kit-openapi/generate-cli": path.join(
-      rootDir,
-      "packages",
-      "agent-kit-openapi",
-      "src",
-      "bin",
-      "generate.ts"
-    ),
-  },
-  bundle: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outdir: path.join(rootDir, "dist"),
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  plugins: [stripShebangPlugin],
-  loader: { ".md": "text", ".mustache": "text", ".log": "text" },
-});
-
 const providerEntryPoints = await getProviderEntryPoints(rootDir);
 if (providerEntryPoints.length > 0) {
   await esbuild.build({
@@ -220,15 +182,6 @@ await rewriteDts(path.join(rootDir, "packages/memory/dist"), {
   '"@poe-code/config-mutations"': '"../../config-mutations/dist/index.js"',
   '"tiny-stdio-mcp-server"': '"../../tiny-stdio-mcp-server/dist/index.js"',
 });
-await rewriteDts(path.join(rootDir, "packages/agent-kit/dist"), {
-  '"agent-kit-schema"': '"../../agent-kit-schema/dist/index.js"',
-  '"@poe-code/design-system"': '"../../design-system/dist/index.js"',
-  '"tiny-stdio-mcp-server"': '"../../tiny-stdio-mcp-server/dist/index.js"',
-});
-await rewriteDts(path.join(rootDir, "packages/agent-kit-openapi/dist"), {
-  '"agent-kit"': '"../../agent-kit/dist/index.js"',
-  '"agent-kit-schema"': '"../../agent-kit-schema/dist/index.js"',
-});
 for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
   await rewriteDts(path.join(rootDir, "packages", pkg, "dist"), {
     '"@poe-code/config-mutations"': '"../../config-mutations/dist/index.js"',
@@ -264,18 +217,6 @@ await Promise.all([
   mkdir(pipelineTemplateDir, { recursive: true }),
   mkdir(skillTemplateDir, { recursive: true })
 ]);
-await Promise.all(
-  ["agent-kit-openapi-generate", "cmdkit-openapi-generate"].map(async (binName) => {
-    const filePath = path.join(binDir, `${binName}.js`);
-    const content = [
-      "#!/usr/bin/env node",
-      versionGateSnippet(binName),
-      'import("../published/agent-kit-openapi/generate-cli.js").then(function (m) { return m.runGenerateCli(); }).then(function (exitCode) { if (exitCode !== 0) { process.exit(exitCode); } }).catch(function (err) { console.error(err); process.exit(1); })',
-      "",
-    ].join("\n");
-    await writeFile(filePath, content, { encoding: "utf8" });
-  })
-);
 await Promise.all([
   copyFile(
     path.join(rootDir, "src", "templates", "pipeline", "SKILL_plan.md"),

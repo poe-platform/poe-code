@@ -18,13 +18,20 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "agent-kit": "*",
-    "@poe-code/design-system": "*",
-    "auth-store": "*",
-    "yaml": "^2.8.2"
-  },
   "bin": {
     "agent-kit-openapi-generate": "dist/bin/generate.js"
+  },
+  "dependencies": {
+    "@poe-code/design-system": "^0.0.1",
+    "agent-kit": "^0.0.1",
+    "auth-store": "^0.0.1",
+    "yaml": "^2.8.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git"
   }
 }

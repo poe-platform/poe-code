@@ -133,7 +133,9 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
 
   const registry = createServiceRegistry();
 
-  const providerRegistry = new ProviderRegistry([poeProvider], (_id) => authStore);
+  const providerRegistry = new ProviderRegistry([poeProvider], (_id) => authStore, {
+    envVars: variables
+  });
 
   const providers = getDefaultProviders().filter((adapter) => !adapter.disabled);
   for (const adapter of providers) {

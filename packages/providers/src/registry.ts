@@ -11,12 +11,21 @@ export interface LoginContext {
 
 export type ProviderStoreFactory = (providerId: string) => SecretStore;
 
+export interface ProviderRegistryOptions {
+  envVars?: Record<string, string | undefined>;
+}
+
 export class ProviderRegistry {
   private readonly providers: readonly AuthProvider[];
   private readonly byId: ReadonlyMap<string, AuthProvider>;
   private readonly storeFactory?: ProviderStoreFactory;
+  private readonly envVars: Record<string, string | undefined>;
 
-  constructor(providers: readonly AuthProvider[], storeFactory?: ProviderStoreFactory) {
+  constructor(
+    providers: readonly AuthProvider[],
+    storeFactory?: ProviderStoreFactory,
+    options?: ProviderRegistryOptions
+  ) {
     const byId = new Map<string, AuthProvider>();
     for (const provider of providers) {
       if (byId.has(provider.id)) {
@@ -27,6 +36,7 @@ export class ProviderRegistry {
     this.providers = providers;
     this.byId = byId;
     this.storeFactory = storeFactory;
+    this.envVars = options?.envVars ?? {};
   }
 
   list(): readonly AuthProvider[] {
@@ -44,7 +54,13 @@ export class ProviderRegistry {
   }
 
   async isLoggedIn(id: string): Promise<boolean> {
-    this.requireProvider(id);
+    const provider = this.requireProvider(id);
+    if (provider.auth.kind === "api-key") {
+      const envValue = this.envVars[provider.auth.envVar];
+      if (typeof envValue === "string" && envValue.trim().length > 0) {
+        return true;
+      }
+    }
     const store = this.requireStore(id);
     const credential = await store.get();
     return credential !== null;

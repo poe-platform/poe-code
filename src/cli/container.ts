@@ -164,7 +164,9 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
 
   const registry = createServiceRegistry();
 
-  const providerRegistry = new ProviderRegistry([poeProvider], (_id) => authStore);
+  const providerRegistry = new ProviderRegistry([poeProvider], (_id) => authStore, {
+    envVars: environment.variables
+  });
 
   const providers = getDefaultProviders().filter((adapter) => !adapter.disabled);
   for (const adapter of providers) {

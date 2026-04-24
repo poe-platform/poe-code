@@ -79,4 +79,38 @@ describe("ProviderRegistry", () => {
     const registry = new ProviderRegistry([poe]);
     await expect(registry.logout("nope")).rejects.toThrow(/unknown provider/i);
   });
+
+  it("isLoggedIn returns true when api-key env var is set even if store is empty", async () => {
+    const emptyStore = {
+      get: async () => null,
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([poe], () => emptyStore, {
+      envVars: { POE_API_KEY: "env-key" }
+    });
+    await expect(registry.isLoggedIn("poe")).resolves.toBe(true);
+  });
+
+  it("isLoggedIn ignores whitespace-only env var values", async () => {
+    const emptyStore = {
+      get: async () => null,
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([poe], () => emptyStore, {
+      envVars: { POE_API_KEY: "   " }
+    });
+    await expect(registry.isLoggedIn("poe")).resolves.toBe(false);
+  });
+
+  it("isLoggedIn returns true when store has credential and env var is unset", async () => {
+    const store = {
+      get: async () => "stored-key",
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([poe], () => store);
+    await expect(registry.isLoggedIn("poe")).resolves.toBe(true);
+  });
 });

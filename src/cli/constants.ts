@@ -2,7 +2,7 @@ export const FRONTIER_MODELS = [
   "anthropic/claude-opus-4.7",
   "anthropic/claude-sonnet-4.6",
   "openai/gpt-5.3-codex",
-  "openai/gpt-5.4",
+  "openai/gpt-5.5",
   "google/gemini-3.1-pro"
 ] as const;
 
@@ -32,6 +32,7 @@ export function stripModelNamespace(model: string): string {
 }
 
 export const CODEX_MODELS = [
+  "openai/gpt-5.5",
   "openai/gpt-5.4",
   "openai/gpt-5.3-codex",
   "openai/gpt-5.3-codex-spark",

@@ -4,6 +4,7 @@ allow:
   - OWNER
   - MEMBER
   - COLLABORATOR
+  - CONTRIBUTOR
 ---
 Read {{url}} and leave a visible GitHub response.
 

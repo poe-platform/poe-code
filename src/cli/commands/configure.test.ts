@@ -94,15 +94,102 @@ describe("configure provider resolution", () => {
     );
   });
 
-  it("errors when 0 eligible providers are logged in", async () => {
+  it("triggers login when the only candidate is not logged in", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+    const loginSpy = vi
+      .spyOn(container.providerRegistry, "login")
+      .mockResolvedValue();
+    stubInvoke(container);
+
+    await executeConfigure(createTestProgram(), container, "claude-code", {
+      apiKey: "sk-fresh"
+    });
+
+    expect(loginSpy).toHaveBeenCalledWith(
+      "poe",
+      { apiKey: "sk-fresh" },
+      expect.any(Object)
+    );
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["claude-code"]?.provider).toBe("poe");
+  });
+
+  it("prompts to pick a provider then triggers login when none logged in", async () => {
+    const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
+    const promptsMock = vi.fn().mockResolvedValue({ serviceSelection: "anthropic" });
+    const container = createCliContainer({
+      fs,
+      prompts: promptsMock,
+      env: { cwd, homeDir, variables: {} },
+      logger: () => {}
+    });
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
+      ...container.providerRegistry.forAgent("claude-code"),
+      fakeAnthropicProvider
+    ]);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+    const loginSpy = vi
+      .spyOn(container.providerRegistry, "login")
+      .mockResolvedValue();
+    stubInvoke(container);
+
+    await executeConfigure(createTestProgram(), container, "claude-code", {});
+
+    expect(promptsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "serviceSelection" })
+    );
+    expect(loginSpy).toHaveBeenCalledWith(
+      "anthropic",
+      { apiKey: undefined },
+      expect.any(Object)
+    );
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["claude-code"]?.provider).toBe("anthropic");
+  });
+
+  it("errors with --yes when no provider is logged in", async () => {
     const container = createContainer(fs);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
     stubInvoke(container);
 
     await expect(
-      executeConfigure(createTestProgram(), container, "claude-code", {})
+      executeConfigure(
+        createTestProgram(["node", "cli", "--yes"]),
+        container,
+        "claude-code",
+        {}
+      )
     ).rejects.toThrow(/No logged-in providers/);
+  });
+
+  it("triggers login for --provider when it is not logged in", async () => {
+    const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
+      ...container.providerRegistry.forAgent("claude-code"),
+      fakeAnthropicProvider
+    ]);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+    const loginSpy = vi
+      .spyOn(container.providerRegistry, "login")
+      .mockResolvedValue();
+    stubInvoke(container);
+
+    await executeConfigure(createTestProgram(), container, "claude-code", {
+      provider: "anthropic",
+      apiKey: "sk-fresh"
+    });
+
+    expect(loginSpy).toHaveBeenCalledWith(
+      "anthropic",
+      { apiKey: "sk-fresh" },
+      expect.any(Object)
+    );
   });
 
   it("dry-run succeeds without any logged-in provider", async () => {

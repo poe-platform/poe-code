@@ -1,9 +1,11 @@
 import type { Command } from "commander";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
+import type { AuthProvider } from "@poe-code/providers";
 import {
   buildProviderContext,
   createExecutionResources,
+  createSecretPrompter,
   formatServiceList,
   listServiceNames,
   resolveCommandFlags,
@@ -146,52 +148,70 @@ export async function executeConfigure(
 
 async function resolveProvider(
   agentId: string,
-  options: Pick<ConfigureCommandOptions, "provider">,
+  options: Pick<ConfigureCommandOptions, "provider" | "apiKey">,
   container: CliContainer,
   flags: CommandFlags
 ): Promise<string> {
-  if (options.provider) {
-    return options.provider;
-  }
-
-  const envProvider = container.env.getVariable("POE_CODE_PROVIDER");
-  if (envProvider) {
-    return envProvider;
-  }
+  const explicit =
+    options.provider ?? container.env.getVariable("POE_CODE_PROVIDER") ?? undefined;
 
   const candidates = container.providerRegistry.forAgent(agentId);
-
-  if (flags.dryRun) {
-    if (candidates.length === 0) {
-      throw new Error(`No providers support agent "${agentId}".`);
-    }
-    return candidates[0]!.id;
+  if (candidates.length === 0) {
+    throw new Error(`No providers support agent "${agentId}".`);
   }
 
-  const loggedIn: typeof candidates[number][] = [];
+  if (flags.dryRun) {
+    return explicit ?? candidates[0]!.id;
+  }
+
+  if (explicit) {
+    if (!(await container.providerRegistry.isLoggedIn(explicit))) {
+      await triggerProviderLogin(container, explicit, options.apiKey);
+    }
+    return explicit;
+  }
+
+  const loggedIn: AuthProvider[] = [];
   for (const candidate of candidates) {
     if (await container.providerRegistry.isLoggedIn(candidate.id)) {
       loggedIn.push(candidate);
     }
   }
 
-  if (loggedIn.length === 0) {
-    throw new Error(
-      `No logged-in providers support agent "${agentId}". Run \`poe-code provider login\` to authenticate.`
-    );
-  }
-
   if (loggedIn.length === 1) {
     return loggedIn[0]!.id;
   }
 
+  if (loggedIn.length > 1) {
+    if (flags.assumeYes) {
+      throw new Error(
+        `Multiple providers support "${agentId}". Use --provider <id> to select one.`
+      );
+    }
+    return await promptForProviderChoice(agentId, loggedIn, container);
+  }
+
   if (flags.assumeYes) {
     throw new Error(
-      `Multiple providers support "${agentId}". Use --provider <id> to select one.`
+      `No logged-in providers support agent "${agentId}". Use --provider and --api-key to authenticate non-interactively.`
     );
   }
 
-  const choices = loggedIn.map((p) => ({ title: p.label, value: p.id }));
+  const chosen =
+    candidates.length === 1
+      ? candidates[0]!.id
+      : await promptForProviderChoice(agentId, candidates, container);
+
+  await triggerProviderLogin(container, chosen, options.apiKey);
+  return chosen;
+}
+
+async function promptForProviderChoice(
+  agentId: string,
+  providers: readonly AuthProvider[],
+  container: CliContainer
+): Promise<string> {
+  const choices = providers.map((p) => ({ title: p.label, value: p.id }));
   const descriptor = container.promptLibrary.serviceSelection({
     message: `Which provider powers ${agentId}?`,
     choices
@@ -202,6 +222,21 @@ async function resolveProvider(
     throw new OperationCancelledError();
   }
   return selected;
+}
+
+async function triggerProviderLogin(
+  container: CliContainer,
+  providerId: string,
+  apiKey: string | undefined
+): Promise<void> {
+  await container.providerRegistry.login(
+    providerId,
+    { apiKey },
+    {
+      envVars: container.env.variables,
+      promptForSecret: createSecretPrompter(container)
+    }
+  );
 }
 
 function createMutationTracker(): {

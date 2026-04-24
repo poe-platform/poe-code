@@ -1,8 +1,11 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
-import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import {
+  createExecutionResources,
+  createSecretPrompter,
+  resolveCommandFlags
+} from "./shared.js";
 import { getTheme, renderTable } from "@poe-code/design-system";
-import { OperationCancelledError } from "../errors.js";
 
 export interface ProviderLoginOptions {
   apiKey?: string;
@@ -86,19 +89,7 @@ async function executeProviderLogin(
   if (!flags.dryRun) {
     await container.providerRegistry.login(id, { apiKey: options.apiKey }, {
       envVars: container.env.variables,
-      promptForSecret: async (prompt) => {
-        const descriptor = {
-          name: "apiKey" as const,
-          message: prompt.title,
-          type: "password"
-        };
-        const response = await container.prompts(descriptor);
-        const value = response["apiKey"];
-        if (typeof value !== "string" || !value.trim()) {
-          throw new OperationCancelledError();
-        }
-        return value.trim();
-      }
+      promptForSecret: createSecretPrompter(container)
     });
   }
 

@@ -19,6 +19,7 @@ import {
 import type { ScopedLogger } from "../logger.js";
 import type { CommandCheck } from "../../utils/command-checks.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
+import type { PromptForSecret } from "@poe-code/providers";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
 import { getSpawnConfig } from "@poe-code/agent-spawn";
 import {
@@ -28,7 +29,7 @@ import {
   resolveAgentId
 } from "@poe-code/agent-defs";
 import { knownConfigScopes } from "../../services/config.js";
-import { ValidationError } from "../errors.js";
+import { OperationCancelledError, ValidationError } from "../errors.js";
 
 export interface CommandFlags {
   dryRun: boolean;
@@ -156,6 +157,22 @@ export function resolveServiceAdapter(
     throw new Error(`Unknown agent "${service}".`);
   }
   return adapter;
+}
+
+export function createSecretPrompter(container: CliContainer): PromptForSecret {
+  return async (prompt) => {
+    const descriptor = {
+      name: "apiKey" as const,
+      message: prompt.title,
+      type: "password" as const
+    };
+    const response = await container.prompts(descriptor);
+    const value = response["apiKey"];
+    if (typeof value !== "string" || !value.trim()) {
+      throw new OperationCancelledError();
+    }
+    return value.trim();
+  };
 }
 
 export function formatServiceList(names: string[]): string {

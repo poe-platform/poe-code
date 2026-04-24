@@ -37,13 +37,17 @@ local_scripts/watch-diff.ts
 .accessed-keys.json
 
 # agents
-.claude/
 .codex/
 .cursor/
 .opencode/
 !.agents/
 !.agents/**
 openspec
+
+# claude code: ship skills + committed settings, ignore local state
+!.claude/
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # E2E test logs
 .e2e-logs/

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath' | grep -q 'SKILL_[^/]*\\.md$' && npm run sync-skills --silent 2>/dev/null || true",
+            "statusMessage": "Syncing skills..."
+          }
+        ]
+      }
+    ]
+  }
+}

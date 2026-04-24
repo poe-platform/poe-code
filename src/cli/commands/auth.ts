@@ -35,6 +35,13 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
     });
 
   auth
+    .command("whoami")
+    .description("Print Poe account identity as JSON (uses POE_API_KEY if set).")
+    .action(async () => {
+      await executeWhoami(program, container);
+    });
+
+  auth
     .command("login")
     .description("Store a Poe API key for reuse across commands.")
     .option("--api-key <key>", "Poe API key")
@@ -119,4 +126,40 @@ async function executeApiKey(_program: Command, container: CliContainer): Promis
   }
 
   process.stdout.write(apiKey);
+}
+
+async function resolveAuthCredential(container: CliContainer): Promise<string | null> {
+  const envKey = container.env.getVariable("POE_API_KEY");
+  if (typeof envKey === "string" && envKey.trim().length > 0) {
+    return envKey.trim();
+  }
+  return container.readApiKey();
+}
+
+async function executeWhoami(_program: Command, container: CliContainer): Promise<void> {
+  const apiKey = await resolveAuthCredential(container);
+  if (!apiKey) {
+    process.exitCode = 1;
+    return;
+  }
+
+  const response = await container.httpClient(
+    `${container.env.poeApiBaseUrl}/whoami`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new ApiError(`Failed to fetch identity (HTTP ${response.status})`, {
+      httpStatus: response.status,
+      endpoint: "/v1/whoami"
+    });
+  }
+
+  const identity = await response.json();
+  process.stdout.write(JSON.stringify(identity));
 }

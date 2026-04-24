@@ -273,4 +273,155 @@ describe("auth command", () => {
     expect(process.exitCode).toBe(1);
     process.exitCode = 0;
   });
+
+  it("prints whoami identity as JSON using stored API key", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () =>
+        createWhoamiResponse({
+          user_id: 42,
+          handle: "kamil",
+          name: "Kamil Jopek",
+          profile_picture: "https://example.com/k.jpg"
+        })
+    });
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "whoami"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/whoami"),
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer stored-key" })
+      })
+    );
+
+    const written = stdoutSpy.mock.calls.map((c) => c[0]).join("");
+    const parsed = JSON.parse(written);
+    expect(parsed).toEqual({
+      user_id: 42,
+      handle: "kamil",
+      name: "Kamil Jopek",
+      profile_picture: "https://example.com/k.jpg"
+    });
+    stdoutSpy.mockRestore();
+  });
+
+  it("prefers POE_API_KEY env var over stored key for whoami", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ name: "Env User", handle: "env" })
+    });
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: {
+        cwd,
+        homeDir,
+        variables: { POE_API_KEY: "env-key" }
+      },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "whoami"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/whoami"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer env-key" })
+      })
+    );
+    stdoutSpy.mockRestore();
+  });
+
+  it("uses POE_API_KEY env var when no stored key exists", async () => {
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ name: "Env Only", handle: "envonly" })
+    });
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: {
+        cwd,
+        homeDir,
+        variables: { POE_API_KEY: "env-only-key" }
+      },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "whoami"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/whoami"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer env-only-key" })
+      })
+    );
+    stdoutSpy.mockRestore();
+  });
+
+  it("sets exit code 1 when no API key is available for whoami", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    process.exitCode = 0;
+    await program.parseAsync(["node", "cli", "auth", "whoami"]);
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+  });
+
+  it("throws ApiError when whoami request fails", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({})
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "auth", "whoami"])
+    ).rejects.toBeInstanceOf(ApiError);
+  });
 });

@@ -574,26 +574,26 @@ describe("MixedStrategy", () => {
     strategy = new MixedStrategy();
   });
 
-  it(`alternates between gpt-5.4 and ${CLAUDE_MODEL_SONNET}`, () => {
+  it(`alternates between gpt-5.5 and ${CLAUDE_MODEL_SONNET}`, () => {
     const model1 = strategy.getNextModel();
     const model2 = strategy.getNextModel();
     const model3 = strategy.getNextModel();
     const model4 = strategy.getNextModel();
 
-    expect(model1).toBe("gpt-5.4");
+    expect(model1).toBe("gpt-5.5");
     expect(model2).toBe(CLAUDE_MODEL_SONNET);
-    expect(model3).toBe("gpt-5.4");
+    expect(model3).toBe("gpt-5.5");
     expect(model4).toBe(CLAUDE_MODEL_SONNET);
   });
 
   it("resets to first model when reset() is called", () => {
-    strategy.getNextModel(); // gpt-5.4
+    strategy.getNextModel(); // gpt-5.5
     strategy.getNextModel(); // Default Claude model
 
     strategy.reset();
 
     const model = strategy.getNextModel();
-    expect(model).toBe("gpt-5.4");
+    expect(model).toBe("gpt-5.5");
   });
 
   it("returns correct name and description", () => {
@@ -609,14 +609,14 @@ describe("SmartStrategy", () => {
     strategy = new SmartStrategy();
   });
 
-  it("selects gpt-5.4 for complex code tasks", () => {
+  it("selects gpt-5.5 for complex code tasks", () => {
     const context: ModelContext = {
       messageType: "code",
       complexity: "complex",
     };
 
     const model = strategy.getNextModel(context);
-    expect(model).toBe("gpt-5.4");
+    expect(model).toBe("gpt-5.5");
   });
 
   it("selects Claude for medium complexity code tasks", () => {
@@ -629,14 +629,14 @@ describe("SmartStrategy", () => {
     expect(model).toBe(CLAUDE_MODEL_SONNET);
   });
 
-  it("selects gpt-5.4 for complex reasoning tasks", () => {
+  it("selects gpt-5.5 for complex reasoning tasks", () => {
     const context: ModelContext = {
       messageType: "reasoning",
       complexity: "complex",
     };
 
     const model = strategy.getNextModel(context);
-    expect(model).toBe("gpt-5.4");
+    expect(model).toBe("gpt-5.5");
   });
 
   it("selects gpt-4o for chat tasks", () => {
@@ -712,16 +712,18 @@ describe("RoundRobinStrategy", () => {
     const model5 = strategy.getNextModel();
     const model6 = strategy.getNextModel();
     const model7 = strategy.getNextModel();
-    const model8 = strategy.getNextModel(); // Should wrap around
+    const model8 = strategy.getNextModel();
+    const model9 = strategy.getNextModel(); // Should wrap around
 
     expect(model1).toBe(CLAUDE_MODEL_SONNET);
-    expect(model2).toBe("gpt-5.4");
-    expect(model3).toBe("gpt-5.4-chat");
-    expect(model4).toBe("gpt-5.4-pro");
-    expect(model5).toBe("gpt-4o");
-    expect(model6).toBe("Claude-3.5-Sonnet");
-    expect(model7).toBe(DEFAULT_CODEX_MODEL);
-    expect(model8).toBe(CLAUDE_MODEL_SONNET); // Wrapped around
+    expect(model2).toBe("gpt-5.5");
+    expect(model3).toBe("gpt-5.4");
+    expect(model4).toBe("gpt-5.4-chat");
+    expect(model5).toBe("gpt-5.4-pro");
+    expect(model6).toBe("gpt-4o");
+    expect(model7).toBe("Claude-3.5-Sonnet");
+    expect(model8).toBe(DEFAULT_CODEX_MODEL);
+    expect(model9).toBe(CLAUDE_MODEL_SONNET); // Wrapped around
   });
 
   it("cycles through custom model order", () => {

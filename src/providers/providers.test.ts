@@ -1673,7 +1673,7 @@ describe("goose service", () => {
       { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 200_000 },
       { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
-      { name: "openai/gpt-5.4", context_limit: 128_000 },
+      { name: "openai/gpt-5.5", context_limit: 128_000 },
       { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
     ]);
   });
@@ -1700,7 +1700,7 @@ describe("goose service", () => {
               context_window: { context_length: 400000 }
             },
             {
-              id: "gpt-5.4",
+              id: "gpt-5.5",
               context_window: { context_length: 1050000 }
             },
             {
@@ -1752,7 +1752,7 @@ describe("goose service", () => {
         "anthropic/claude-opus-4.7": 983040,
         "anthropic/claude-sonnet-4.6": 200_000,
         "openai/gpt-5.3-codex": 128_000,
-        "openai/gpt-5.4": 128_000,
+        "openai/gpt-5.5": 128_000,
         "google/gemini-3.1-pro": 1_000_000
       }
     });
@@ -2026,7 +2026,7 @@ function buildGooseModelContextLimitsFixture(): Record<string, number> {
     "anthropic/claude-opus-4.7": 983040,
     "anthropic/claude-sonnet-4.6": 983040,
     "openai/gpt-5.3-codex": 400000,
-    "openai/gpt-5.4": 1050000,
+    "openai/gpt-5.5": 1050000,
     "google/gemini-3.1-pro": 1048576
   };
 }

@@ -3,14 +3,12 @@ import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
   createExecutionResources,
-  resolveActiveProviderForService,
   resolveCommandFlags,
   resolveServiceAdapter,
   formatServiceList,
   listServiceNames
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
-import { resolveIsolatedEnvDetails } from "../isolated-env.js";
 import {
   type CommandCheck
 } from "../../utils/command-checks.js";
@@ -76,21 +74,9 @@ export async function executeTest(
     { model: options.model }
   );
 
-  const activeProvider = options.isolated
-    ? await resolveActiveProviderForService(container, canonicalService)
-    : undefined;
+  const useIsolated = Boolean(options.isolated && adapter.isolatedEnv);
 
-  const isolatedDetails =
-    options.isolated && adapter.isolatedEnv
-      ? await resolveIsolatedEnvDetails(
-          container.env,
-          adapter.isolatedEnv,
-          adapter.name,
-          activeProvider
-        )
-      : null;
-
-  if (options.isolated && adapter.isolatedEnv) {
+  if (useIsolated) {
     const { ensureIsolatedConfigForService } = await import(
       "./ensure-isolated-config.js"
     );
@@ -110,7 +96,7 @@ export async function executeTest(
           throw new Error(`Agent "${canonicalService}" does not support test.`);
         }
         const activeContext =
-          isolatedDetails
+          useIsolated
             ? {
                 ...providerContext,
                 runCheck: async (check: CommandCheck) => {

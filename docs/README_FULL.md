@@ -1631,13 +1631,13 @@ Uses `FRONTIER_MODELS` with default `anthropic/claude-sonnet-4.6`.
 1. Ensure `~/.config/goose/custom_providers/` exists
 2. Write custom provider JSON to `~/.config/goose/custom_providers/custom_poe.json`
 3. Merge `GOOSE_PROVIDER`, `GOOSE_MODEL`, and `GOOSE_DISABLE_KEYRING` into `~/.config/goose/config.yaml`
-4. Store `CUSTOM_POE_API_KEY` in `~/.config/goose/secrets.yaml`
+4. Store `CUSTOM_PROVIDER_API_KEY` in `~/.config/goose/secrets.yaml`
 
 **Unconfigure mutations:**
 
 - Remove `custom_poe.json`
 - Prune Goose-specific keys from `config.yaml`
-- Remove `CUSTOM_POE_API_KEY` from `secrets.yaml`
+- Remove `CUSTOM_PROVIDER_API_KEY` from `secrets.yaml`
 
 **Isolated environment:**
 

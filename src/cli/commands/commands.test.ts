@@ -1234,7 +1234,7 @@ describe("test command (isolated)", () => {
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       logger: () => {},
       commandRunner
     });

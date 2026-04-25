@@ -52,10 +52,20 @@ await apiKeyAuthStrategy.login(
 const apiKey = await apiKeyAuthStrategy.resolveCredential(anthropic, { secretStore });
 ```
 
+`ProviderRegistry.login()` resolves API keys in this order:
+
+1. Explicit `options.apiKey`
+2. The provider's declared `auth.envVar` from `context.envVars`
+3. `promptForSecret`
+
+`ProviderRegistry.isLoggedIn()` also treats a non-empty declared env var as logged in,
+matching what `login()` would use in CI.
+
 ## Environment variables
 
-This package does not read any environment variables directly. Consumers pass them in
-via provider declarations (e.g. `auth.envVar`) and login options.
+This package does not read `process.env` directly. Consumers pass environment variables in
+via provider declarations (e.g. `auth.envVar`), `ProviderRegistryOptions.envVars`,
+and `LoginContext.envVars`.
 
 ## Configuration options
 

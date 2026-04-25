@@ -18,6 +18,8 @@
   - [unconfigure](#unconfigure)
   - [login](#login)
   - [logout](#logout)
+  - [auth](#auth)
+  - [provider](#provider)
   - [spawn](#spawn)
   - [research](#research)
   - [wrap](#wrap)
@@ -172,7 +174,7 @@ poe-code configure [agent]
 
 1. Resolves the agent (explicit arg > `core.defaultAgent` / `POE_DEFAULT_AGENT` > `--yes` fallback > prompt)
 2. Resolves the provider (`--provider` → `POE_CODE_PROVIDER` → logged-in provider selection/prompt)
-3. Resolves provider credentials from flag, env var, stored provider auth, or prompt
+3. Ensures the selected provider is logged in; if not, runs that provider's login flow using `--api-key`, the provider env var, or an interactive secret prompt
 4. Collects agent-specific options (model, reasoning effort) via prompts or flags
 5. Applies file mutations to the agent's config files (merge, not overwrite)
 6. Sets up isolated environment if the agent supports it
@@ -278,6 +280,37 @@ poe-code logout
 
 ---
 
+### auth
+
+Inspect and manage Poe account authentication.
+
+```bash
+poe-code auth [subcommand]
+```
+
+Running `poe-code auth` with no subcommand is the same as `poe-code auth status`.
+
+**Subcommands:**
+
+| Subcommand | Description |
+|------------|-------------|
+| `status` | Show whether a stored Poe credential is valid and print the account name/handle. Honors `--dry-run` by skipping the `/whoami` request. |
+| `api-key` | Print the stored Poe API key only. Exits with code `1` when no key is stored. |
+| `whoami` | Call Poe `/whoami` and print the raw identity JSON to stdout. Resolves `POE_API_KEY` first, then the stored credential. Exits with code `1` when no key is available. |
+| `login` | Store a Poe API key for reuse across commands. Same behavior as top-level `poe-code login`. |
+| `logout` | Remove all configuration and credentials. Same behavior as top-level `poe-code logout`. |
+
+**Examples:**
+
+```bash
+poe-code auth status
+poe-code auth whoami | jq .handle
+POE_API_KEY=pb-xxx poe-code auth whoami
+poe-code auth api-key
+```
+
+---
+
 ### provider
 
 Manage auth providers for coding agents.
@@ -290,15 +323,16 @@ poe-code provider <subcommand>
 
 | Subcommand | Description |
 |------------|-------------|
-| `list` | Show available providers, login status, and supported agents. |
-| `login <id>` | Store provider credentials (prompts if needed). |
-| `logout <id>` | Remove stored credentials for that provider. |
+| `list` | Show available providers, login status, and supported agents. A non-empty provider env var, such as `POE_API_KEY` for the Poe provider, counts as logged in. |
+| `login <id>` | Store provider credentials. Uses `--api-key`, then that provider's env var, then an interactive secret prompt. |
+| `logout <id>` | Remove stored credentials for that provider. An exported provider env var can still make the provider appear logged in. |
 
 **Examples:**
 
 ```bash
 poe-code provider list
 poe-code provider login poe
+POE_API_KEY=pb-xxx poe-code provider login poe --yes
 poe-code provider login anthropic --api-key sk-ant-xxx
 poe-code provider logout anthropic
 ```
@@ -2437,6 +2471,7 @@ The CLI forwards the agent's exit code. A non-zero exit code from a spawned agen
 
 ```
 poe-setup-scripts/
+├── .claude/                         # Committed Claude Code project skills + sync hook
 ├── src/
 │   ├── index.ts                    # Entry point: SDK exports + CLI bootstrap
 │   ├── cli/
@@ -2464,6 +2499,7 @@ poe-setup-scripts/
 │   │       ├── generate.ts
 │   │       ├── login.ts
 │   │       ├── logout.ts
+│   │       ├── auth.ts
 │   │       ├── mcp.ts
 │   │       ├── skill.ts
 │   │       ├── usage.ts
@@ -2503,6 +2539,8 @@ poe-setup-scripts/
 │   ├── agent-skill-config/         # Skill configuration
 │   ├── config-mutations/           # Declarative file mutation DSL
 │   ├── design-system/              # CLI UI components and themes
+│   ├── github-workflows/           # GitHub automation prompt/workflow helpers
+│   ├── providers/                  # Auth-provider registry and strategies
 │   ├── worktree/                   # Git worktree utilities
 │   ├── tiny-stdio-mcp-server/      # MCP server framework
 │   ├── tiny-stdio-mcp-test-server/ # MCP test server
@@ -2528,6 +2566,7 @@ poe-setup-scripts/
 | `unconfigure <agent>` | — | Remove Poe configuration |
 | `login` | — | Store API key |
 | `logout` | — | Remove all config + credentials |
+| `auth` | `status`, `api-key`, `whoami`, `login`, `logout` | Poe account authentication commands |
 | `spawn <agent> [prompt]` | — | Run agent with prompt |
 | `research [prompt]` | — | Research codebase (read mode) |
 | `wrap <agent>` | — | One-off isolated session |

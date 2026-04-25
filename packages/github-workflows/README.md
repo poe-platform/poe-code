@@ -57,6 +57,10 @@ The workflow triggers automatically on the configured event.
 | `update-dependencies` | Manual / scheduled | Updates all dependencies to latest compatible versions |
 | `update-documentation` | Manual / scheduled | Reviews code changes and updates documentation |
 
+The built-in GitHub issue, issue-comment, pull-request, pull-request-comment, and
+pull-request-synchronized automations allow `OWNER`, `MEMBER`, `COLLABORATOR`,
+and `CONTRIBUTOR` author associations by default.
+
 ### List available automations
 
 ```bash
@@ -191,6 +195,7 @@ allow:                                # GitHub author associations allowed to tr
   - OWNER
   - MEMBER
   - COLLABORATOR
+  - CONTRIBUTOR
 
 prefix:                               # Required comment prefix or aliases (comment workflows only)
   - "poe-code"

@@ -148,6 +148,7 @@
     "@poe-code/py-poe-spawn": "*",
     "@poe-code/ralph": "*",
     "@poe-code/superintendent": "*",
+    "@poe-code/task-list": "*",
     "@poe-code/workspace-resolver": "*",
     "@poe-code/worktree": "*",
     "@types/mustache": "^4.2.6",

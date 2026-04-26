@@ -350,10 +350,10 @@ tasks:
 
       - No code comments unless WHY is non-obvious.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: markdown-dir-backend
     title: Implement markdown-dir backend
     prompt: >

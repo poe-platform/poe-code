@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/task-list/task.schema.json",
+  "title": "Task",
+  "description": "Persisted task payload used by task-list backends.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://poe-platform.github.io/poe-code/schemas/task-list/task.schema.json"
+    },
+    "kind": {
+      "type": "string",
+      "const": "task"
+    },
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "type": "string",
+      "enum": ["draft", "planned", "in-progress", "done", "archived"]
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": ["name", "state"],
+  "additionalProperties": true
+}

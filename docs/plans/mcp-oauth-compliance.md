@@ -776,7 +776,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: audit-token-validation-and-storage
     title: Spec audit — token validation, storage, refresh, rotation
@@ -826,10 +826,10 @@ tasks:
           a clock-skew window test, and a refresh-rotation reuse rejection
           driven through the test AS.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: audit-dcr-and-error-responses
     title: Spec audit — Dynamic Client Registration and error mapping

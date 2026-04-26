@@ -633,6 +633,56 @@ describe("tiny-oauth-test-server", () => {
     expect(refreshPayload.refresh_token).not.toBe(firstPayload.refresh_token);
   });
 
+  it("rejects refresh-token reuse after rotation invalidates the old token", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43135/callback";
+    const resource = "https://resource.example.com/mcp";
+    const codeVerifier = createValidVerifier("refresh-reuse-verifier");
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+    const firstTokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource,
+    });
+    const firstPayload = (await firstTokenResponse.json()) as {
+      refresh_token: string;
+    };
+
+    const rotatedResponse = await refreshAccessToken({
+      baseUrl: server.issuer,
+      clientId,
+      refreshToken: firstPayload.refresh_token,
+      resource,
+    });
+    expect(rotatedResponse.status).toBe(200);
+
+    const reuseResponse = await refreshAccessToken({
+      baseUrl: server.issuer,
+      clientId,
+      refreshToken: firstPayload.refresh_token,
+      resource,
+    });
+
+    expect(reuseResponse.status).toBe(400);
+    await expect(reuseResponse.json()).resolves.toMatchObject({
+      error: "invalid_grant",
+      error_description: "refresh token is invalid",
+    });
+  });
+
   it("redacts PKCE verifiers from the request log", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43134/callback";

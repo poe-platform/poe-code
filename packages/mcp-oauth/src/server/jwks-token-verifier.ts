@@ -1,9 +1,10 @@
 import {
-  createLocalJWKSet,
   decodeProtectedHeader,
   errors,
+  importJWK,
   jwtVerify,
   type JSONWebKeySet,
+  type JWK,
   type JWTPayload,
 } from "jose";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
@@ -81,7 +82,7 @@ function isStringArray(value: unknown): value is string[] {
 
 function toUrl(value: string | URL, label: string): URL {
   try {
-    return value instanceof URL ? new URL(value.toString()) : new URL(value);
+    return new URL(String(value));
   } catch {
     throw new Error(`${label} must be an absolute URL`);
   }
@@ -120,15 +121,15 @@ function normalizeVerifiedAudience(
 }
 
 function parseScopes(payload: JWTPayload): string[] {
-  if (typeof payload.scope === "string") {
-    return payload.scope
-      .split(" ")
-      .map((scope) => scope.trim())
-      .filter((scope) => scope.length > 0);
-  }
+  const raw =
+    typeof payload.scope === "string"
+      ? payload.scope
+      : typeof payload.scopes === "string"
+        ? payload.scopes
+        : null;
 
-  if (typeof payload.scopes === "string") {
-    return payload.scopes
+  if (raw !== null) {
+    return raw
       .split(" ")
       .map((scope) => scope.trim())
       .filter((scope) => scope.length > 0);
@@ -260,13 +261,89 @@ function resolveAlgorithm(
   token: string,
   allowedAlgorithms: readonly string[]
 ): string {
-  const alg = decodeProtectedHeader(token).alg;
+  const header = decodeProtectedHeader(token);
+  const alg = header.alg;
 
-  if (typeof alg !== "string" || !allowedAlgorithms.includes(alg)) {
+  if (hasCriticalHeaderClaims(header)) {
+    throw createInvalidTokenError("unsupported critical token claims");
+  }
+
+  if (
+    typeof alg !== "string"
+    || alg === "none"
+    || alg.startsWith("HS")
+    || !allowedAlgorithms.includes(alg)
+  ) {
     throw createInvalidTokenError("unsupported token algorithm");
   }
 
   return alg;
+}
+
+function hasCriticalHeaderClaims(header: ReturnType<typeof decodeProtectedHeader>): boolean {
+  return Array.isArray(header.crit) && header.crit.length > 0;
+}
+
+function isVerificationCandidate(key: JWK, alg: string, kid: string | undefined): boolean {
+  if (kid !== undefined && key.kid !== kid) {
+    return false;
+  }
+
+  if (typeof key.alg === "string" && key.alg !== alg) {
+    return false;
+  }
+
+  if (typeof key.use === "string" && key.use !== "sig") {
+    return false;
+  }
+
+  if (Array.isArray(key.key_ops) && !key.key_ops.includes("verify")) {
+    return false;
+  }
+
+  return true;
+}
+
+function shouldContinueWithNextKey(error: unknown): boolean {
+  return error instanceof errors.JWSSignatureVerificationFailed;
+}
+
+async function verifyJwtAgainstJwks(input: {
+  token: string;
+  jwks: JSONWebKeySet;
+  alg: string;
+  authorizationServers: readonly string[];
+  clockSkewSeconds: number;
+}) {
+  const protectedHeader = decodeProtectedHeader(input.token);
+  const kid = typeof protectedHeader.kid === "string" ? protectedHeader.kid : undefined;
+  const candidateKeys = input.jwks.keys.filter((key) => isVerificationCandidate(key, input.alg, kid));
+
+  if (candidateKeys.length === 0) {
+    throw createInvalidTokenError("token signature invalid");
+  }
+
+  let lastSignatureError: unknown;
+
+  for (const candidate of candidateKeys) {
+    try {
+      const key = await importJWK(candidate, input.alg);
+      return await jwtVerify(input.token, key as never, {
+        algorithms: [input.alg],
+        issuer: [...input.authorizationServers],
+        clockTolerance: input.clockSkewSeconds,
+      });
+    } catch (error) {
+      if (shouldContinueWithNextKey(error)) {
+        lastSignatureError = error;
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw lastSignatureError ?? createInvalidTokenError("token signature invalid");
 }
 
 export function createJwksTokenVerifier(
@@ -284,13 +361,16 @@ export function createJwksTokenVerifier(
   return {
     async verify(input): Promise<JwksVerifiedAccessToken> {
       const expectedResource = canonicalizeResourceIndicator(input.resource);
-      resolveAlgorithm(input.token, allowedAlgorithms);
+      const algorithm = resolveAlgorithm(input.token, allowedAlgorithms);
 
       try {
         const jwks = await loadJwks(jwksUrl, fetchImplementation);
-        const verified = await jwtVerify(input.token, createLocalJWKSet(jwks), {
-          issuer: [...input.authorizationServers],
-          clockTolerance: clockSkewSeconds,
+        const verified = await verifyJwtAgainstJwks({
+          token: input.token,
+          jwks,
+          alg: algorithm,
+          authorizationServers: input.authorizationServers,
+          clockSkewSeconds,
         });
         const audience = normalizeVerifiedAudience(verified.payload.aud, expectedResource);
         const accessToken = toVerifiedAccessToken(input.token, verified.payload, audience);

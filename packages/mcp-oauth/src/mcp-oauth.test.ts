@@ -439,6 +439,81 @@ describe("createAuthStoreSessionStore", () => {
     expect(await sessionStore.load(RESOURCE_URL)).toBeNull();
   });
 
+  it("stores session files under a canonical hashed key without plaintext tokens or resource URIs", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as {
+      readFile(path: string, encoding: BufferEncoding): Promise<string>;
+      readdir(path: string): Promise<string[]>;
+      writeFile(
+        path: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { encoding?: BufferEncoding }
+      ): Promise<void>;
+      mkdir(
+        path: string,
+        options?: { recursive?: boolean }
+      ): Promise<void | string | undefined>;
+      unlink(path: string): Promise<void>;
+      chmod(path: string, mode: number): Promise<void>;
+    };
+
+    const sessionStore = createAuthStoreSessionStore({
+      backend: "file",
+      fileStore: {
+        fs,
+        salt: "poe-code:test:mcp-oauth:v1",
+        defaultDirectory: ".test-mcp-oauth",
+        getHomeDirectory: () => "/home/test",
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
+      },
+    });
+
+    const session: StoredOAuthSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: {
+        clientId: "client-1",
+      },
+      tokens: {
+        accessToken: "access-sensitive-token",
+        refreshToken: "refresh-sensitive-token",
+        tokenType: "Bearer",
+        expiresAt: 123_456,
+      },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: {
+          resource: RESOURCE_URL,
+          authorization_servers: [AUTHORIZATION_SERVER],
+        },
+        authorizationServerMetadata: {
+          issuer: AUTHORIZATION_SERVER,
+          authorization_endpoint: AUTHORIZATION_ENDPOINT,
+          token_endpoint: TOKEN_ENDPOINT,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+        },
+      },
+    };
+
+    await sessionStore.save(NON_CANONICAL_RESOURCE_URL, session);
+
+    const directoryEntries = await fs.readdir("/home/test/.test-mcp-oauth");
+    expect(directoryEntries).toHaveLength(1);
+    expect(directoryEntries[0]).toMatch(/^[a-f0-9]{64}\.enc$/);
+    expect(directoryEntries[0]).not.toContain("resource.example.com");
+    expect(directoryEntries[0]).not.toContain("access-sensitive-token");
+    expect(directoryEntries[0]).not.toContain("refresh-sensitive-token");
+
+    const storedPayload = await fs.readFile(
+      `/home/test/.test-mcp-oauth/${directoryEntries[0]}`,
+      "utf8"
+    );
+    expect(storedPayload).not.toContain(RESOURCE_URL);
+    expect(storedPayload).not.toContain("access-sensitive-token");
+    expect(storedPayload).not.toContain("refresh-sensitive-token");
+    expect(await sessionStore.load(RESOURCE_URL)).toEqual(session);
+  });
+
   it("keys sessions by the canonical resource URI", async () => {
     const fs = createFsFromVolume(new Volume()).promises as {
       readFile(path: string, encoding: BufferEncoding): Promise<string>;
@@ -740,6 +815,92 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(
       pair.tokenBodies.filter((body) => body.get("grant_type") === "refresh_token")
     ).toHaveLength(1);
+  });
+
+  it("clears invalid refresh tokens, avoids echoing them, and falls back to one fresh authorization flow", async () => {
+    const pair = createOAuthPair();
+    const sessionStore = createMemorySessionStore();
+    let currentTime = 10_000;
+    let refreshFailures = 0;
+    const refreshBodies: URLSearchParams[] = [];
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      const url = input.toString();
+      if (url === TOKEN_ENDPOINT) {
+        const body = new URLSearchParams(String(init?.body ?? ""));
+        if (body.get("grant_type") === "refresh_token" && refreshFailures === 0) {
+          refreshFailures += 1;
+          refreshBodies.push(body);
+          return new Response(
+            JSON.stringify({
+              error: "invalid_grant",
+              error_description: `refresh token ${body.get("refresh_token")} is invalid`,
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      }
+
+      return pair.fetchMock(input, init);
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+        },
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore,
+      now: () => currentTime,
+    });
+
+    await authorizeProvider(provider, fetchMock as typeof fetch);
+    currentTime = 3_700_000;
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+        headers: {
+          "WWW-Authenticate":
+            `Bearer realm="mcp", error="invalid_token", ` +
+            `resource_metadata="${RESOURCE_METADATA_URL}"`,
+        },
+      }),
+      challenge: {
+        scheme: "Bearer",
+        raw: "",
+        params: {
+          error: "invalid_token",
+          resource_metadata: RESOURCE_METADATA_URL,
+        },
+      },
+      discovery: createDiscoveryResult(),
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(result).toEqual({ action: "retry" });
+    expect(refreshFailures).toBe(1);
+    expect(pair.openBrowser).toHaveBeenCalledTimes(2);
+    expect(refreshBodies).toHaveLength(1);
+    expect(refreshBodies[0]?.get("refresh_token")).toBe("refresh-1");
+    expect(
+      pair.tokenBodies.filter((body) => body.get("grant_type") === "authorization_code")
+    ).toHaveLength(2);
+    expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
+      tokens: {
+        accessToken: "access-2",
+        refreshToken: "refresh-2",
+      },
+    });
+
+    const authorizationHeader = await createAuthorizedHeaders(provider, fetchMock as typeof fetch);
+    expect(authorizationHeader).toBe("Bearer access-2");
   });
 
   it("persists a dynamically registered client after a failed token exchange and reuses it on the next attempt", async () => {

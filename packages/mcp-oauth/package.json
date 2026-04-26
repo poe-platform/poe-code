@@ -1,5 +1,5 @@
 {
-  "name": "poe-oauth",
+  "name": "mcp-oauth",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -14,7 +14,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "mcp-oauth": "*"
+    "auth-store": "*"
   },
   "files": [
     "dist"
@@ -22,6 +22,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/poe-oauth"
+    "directory": "packages/mcp-oauth"
   }
 }

@@ -1,56 +1,24 @@
-export type OAuthMetadataFetch = (
-  input: string | URL,
-  init?: RequestInit
-) => Promise<Response>;
+import type {
+  OAuthAuthorizationServerMetadata,
+  OAuthDiscoveryResult,
+  OAuthMetadataFetch,
+  OAuthProtectedResourceMetadata,
+  OAuthUnauthorizedChallenge,
+} from "mcp-oauth";
 
-export interface OAuthProtectedResourceMetadata extends Record<string, unknown> {
-  resource: string;
-  authorization_servers: string[];
-}
-
-export interface OAuthAuthorizationServerMetadata extends Record<string, unknown> {
-  issuer: string;
-  authorization_endpoint: string;
-  token_endpoint: string;
-  code_challenge_methods_supported: string[];
-}
-
-export interface OAuthDiscoveryResult {
-  resource: string;
-  resourceMetadataUrl: string;
-  resourceMetadata: OAuthProtectedResourceMetadata;
-  authorizationServer: string;
-  authorizationServerMetadataUrl: string;
-  authorizationServerMetadata: OAuthAuthorizationServerMetadata;
-}
+export type {
+  OAuthAuthorizationServerMetadata,
+  OAuthDiscoveryResult,
+  OAuthMetadataFetch,
+  OAuthProtectedResourceMetadata,
+  OAuthUnauthorizedChallenge,
+};
 
 export interface OAuthDiscoveryCache {
   get(
     resourceUrl: string
   ): OAuthDiscoveryResult | null | undefined | Promise<OAuthDiscoveryResult | null | undefined>;
   set(resourceUrl: string, value: OAuthDiscoveryResult): void | Promise<void>;
-}
-
-export interface OAuthUnauthorizedChallenge {
-  scheme: "Bearer";
-  params: Record<string, string>;
-  raw: string;
-}
-
-export interface OAuthClientProvider {
-  authorizeRequest?(input: {
-    requestUrl: URL;
-    headers: Headers;
-    fetch: OAuthMetadataFetch;
-  }): Promise<void> | void;
-
-  handleUnauthorized(input: {
-    requestUrl: URL;
-    response: Response;
-    challenge: OAuthUnauthorizedChallenge | null;
-    discovery: OAuthDiscoveryResult;
-    fetch: OAuthMetadataFetch;
-  }): Promise<void> | void;
 }
 
 export interface OAuthMetadataDiscoveryOptions {

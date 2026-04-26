@@ -59,9 +59,11 @@ export type {
   ModelPreferences,
   OAuthAuthorizationServerMetadata,
   OAuthClientProvider,
+  OAuthClientProviderOptions,
   OAuthDiscoveryCache,
   OAuthDiscoveryResult,
   OAuthMetadataFetch,
+  OAuthSessionStore,
   OAuthProtectedResourceMetadata,
   OAuthUnauthorizedChallenge,
   PaginatedParams,
@@ -88,4 +90,5 @@ export type {
   TextResourceContents,
   Tool,
   ToolAnnotations,
+  StoredOAuthSession,
 } from "./internal.js";

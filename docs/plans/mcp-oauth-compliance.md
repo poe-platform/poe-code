@@ -321,9 +321,9 @@ tasks:
         - Token persistence round-trips through the storage hook.
         - Resource indicator is sent on both /authorize and /token requests.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: cli-and-config-surface

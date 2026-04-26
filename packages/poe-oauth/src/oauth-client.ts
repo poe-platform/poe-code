@@ -1,13 +1,13 @@
-import http from "node:http";
-import crypto from "node:crypto";
+import type http from "node:http";
+import {
+  createLoopbackAuthorizationSession,
+  generateCodeChallenge as generatePkceCodeChallenge,
+  generateCodeVerifier as generatePkceCodeVerifier,
+  type OAuthLandingPage,
+} from "mcp-oauth";
 
 const DEFAULT_AUTHORIZATION_ENDPOINT = "https://poe.com/oauth/authorize";
 const DEFAULT_TOKEN_ENDPOINT = "https://api.poe.com/token";
-
-export interface OAuthLandingPage {
-  title: string;
-  body: string;
-}
 
 export interface OAuthClientConfig {
   clientId: string;
@@ -43,11 +43,7 @@ export function createOAuthClient(config: OAuthClientConfig): OAuthClient {
 }
 
 function generateCodeVerifier(): string {
-  return crypto.randomBytes(32).toString("base64url");
-}
-
-function generateCodeChallenge(verifier: string): string {
-  return crypto.createHash("sha256").update(verifier).digest("base64url");
+  return generatePkceCodeVerifier();
 }
 
 async function startAuthorization(
@@ -58,14 +54,18 @@ async function startAuthorization(
   const tokenEndpoint = config.tokenEndpoint ?? DEFAULT_TOKEN_ENDPOINT;
 
   const codeVerifier = generateCodeVerifier();
-  const codeChallenge = generateCodeChallenge(codeVerifier);
+  const codeChallenge = generatePkceCodeChallenge(codeVerifier);
 
-  const server = config.createServer
-    ? config.createServer()
-    : http.createServer();
-
-  const port = await startServer(server);
-  const redirectUri = `http://127.0.0.1:${port}/callback`;
+  const loopbackSession = await createLoopbackAuthorizationSession({
+    openBrowser: config.openBrowser,
+    readLine: config.readLine,
+    createServer: config.createServer,
+    landingPage: config.landingPage ?? {
+      title: "Connected to Poe",
+      body: "You can close this tab and return to your terminal.",
+    },
+  });
+  const redirectUri = loopbackSession.redirectUri;
 
   const authorizationUrl = buildAuthorizationUrl({
     endpoint: authorizationEndpoint,
@@ -76,7 +76,7 @@ async function startAuthorization(
 
   const waitForResult = async (): Promise<OAuthResult> => {
     try {
-      const code = await waitForAuthorizationCode(server, config, authorizationUrl);
+      const code = await loopbackSession.waitForCode(authorizationUrl);
 
       return await exchangeCodeForApiKey({
         tokenEndpoint,
@@ -87,21 +87,11 @@ async function startAuthorization(
         fetchFn
       });
     } finally {
-      server.closeAllConnections?.();
-      server.close();
+      loopbackSession.close();
     }
   };
 
   return { authorizationUrl, waitForResult };
-}
-
-function startServer(server: http.Server): Promise<number> {
-  return new Promise<number>((resolve) => {
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address() as { port: number };
-      resolve(address.port);
-    });
-  });
 }
 
 function buildAuthorizationUrl(params: {
@@ -120,84 +110,6 @@ function buildAuthorizationUrl(params: {
   return url.toString();
 }
 
-function waitForAuthorizationCode(
-  server: http.Server,
-  config: OAuthClientConfig,
-  authorizationUrl: string
-): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    let settled = false;
-    const settle = (fn: () => void) => {
-      if (!settled) {
-        settled = true;
-        fn();
-      }
-    };
-
-    // Source 1: localhost callback server
-    server.on("request", (req: http.IncomingMessage, res: http.ServerResponse) => {
-      const url = new URL(req.url!, `http://127.0.0.1`);
-      if (url.pathname !== "/callback") {
-        res.writeHead(404);
-        res.end("Not found");
-        return;
-      }
-
-      const error = url.searchParams.get("error");
-      if (error) {
-        const description = url.searchParams.get("error_description") ?? error;
-        res.writeHead(400);
-        res.end(`Authorization failed: ${description}`);
-        settle(() => reject(new Error(`OAuth authorization failed: ${error} — ${description}`)));
-        return;
-      }
-
-      const code = url.searchParams.get("code");
-      if (!code) {
-        res.writeHead(400);
-        res.end("Missing authorization code");
-        settle(() => reject(new Error("OAuth callback missing authorization code")));
-        return;
-      }
-
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(buildSuccessPage(config.landingPage));
-      settle(() => resolve(code));
-    });
-
-    // Source 2: user pastes the redirect URL in the terminal
-    if (config.readLine) {
-      config.readLine().then((input) => {
-        const code = extractCodeFromInput(input);
-        if (code) {
-          settle(() => resolve(code));
-        }
-      }).catch(() => {
-        // readLine closed/cancelled — ignore, callback server may still resolve
-      });
-    }
-
-    // Open browser after registering both handlers
-    if (config.openBrowser) {
-      config.openBrowser(authorizationUrl).catch((err) =>
-        settle(() => reject(err))
-      );
-    }
-  });
-}
-
-function extractCodeFromInput(input: string): string | null {
-  const trimmed = input.replace(/[\r\n]/g, "").trim();
-  if (trimmed.length === 0) {
-    return null;
-  }
-  try {
-    const url = new URL(trimmed);
-    return url.searchParams.get("code");
-  } catch {
-    return trimmed;
-  }
-}
 
 async function exchangeCodeForApiKey(params: {
   tokenEndpoint: string;
@@ -255,27 +167,4 @@ function parseErrorDescription(text: string): string | null {
     // not JSON
   }
   return null;
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function buildSuccessPage(landingPage?: OAuthLandingPage): string {
-  const title = landingPage?.title ?? "Connected to Poe";
-  const body = landingPage?.body ?? "You can close this tab and return to your terminal.";
-
-  return [
-    "<!DOCTYPE html>",
-    `<html><head><meta charset=utf-8><title>${escapeHtml(title)}</title></head>`,
-    "<body style=\"font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0\">",
-    "<div style=\"text-align:center\">",
-    `<h1>${escapeHtml(title)}</h1>`,
-    `<p style="color:#666">${escapeHtml(body)}</p>`,
-    "</div></body></html>"
-  ].join("");
 }

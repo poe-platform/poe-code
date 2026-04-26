@@ -4,6 +4,7 @@ import {
   HttpTransport,
   type HttpTransportFetch,
   type OAuthClientProvider,
+  type OAuthClientProviderOptions,
   type OAuthDiscoveryCache,
   type OAuthDiscoveryResult,
 } from "./index.js";
@@ -29,7 +30,10 @@ const closed: Promise<McpTransportClosedEvent> = transport.closed;
 const customFetch: HttpTransportFetch = async () => new Response(null, { status: 202 });
 const oauthProvider: OAuthClientProvider = {
   authorizeRequest: async () => {},
-  handleUnauthorized: async () => {},
+  handleUnauthorized: async () => ({ action: "retry" }),
+};
+const oauthOptions: OAuthClientProviderOptions = {
+  provider: oauthProvider,
 };
 const oauthDiscoveryResult: OAuthDiscoveryResult = {
   resource: "https://example.com/mcp",
@@ -58,7 +62,7 @@ const httpTransport: McpTransport = new HttpTransport({
     Authorization: "Bearer test",
   },
   fetch: customFetch,
-  oauth: oauthProvider,
+  oauth: oauthOptions,
   oauthDiscoveryCache,
 });
 

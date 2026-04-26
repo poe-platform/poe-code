@@ -12,6 +12,9 @@
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/tiny-mcp-client"
   },
+  "dependencies": {
+    "mcp-oauth": "*"
+  },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
     "tiny-stdio-mcp-server": "*"

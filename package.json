@@ -162,6 +162,7 @@
     "globals": "^17.3.0",
     "husky": "^9.1.7",
     "memfs": "^4.56.10",
+    "mcp-oauth": "*",
     "opencode-poe-auth": "*",
     "poe-oauth": "*",
     "prettier": "^3.8.1",

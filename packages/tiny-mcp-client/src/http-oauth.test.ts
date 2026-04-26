@@ -1,7 +1,8 @@
+import http from "node:http";
 import { describe, expect, it, vi } from "vitest";
+import type { OAuthSessionStore, StoredOAuthSession } from "mcp-oauth";
 import {
   HttpTransport,
-  type OAuthClientProvider,
   type OAuthDiscoveryCache,
   type OAuthDiscoveryResult,
 } from "./internal.js";
@@ -192,253 +193,384 @@ describe("discoverOAuthMetadata", () => {
   });
 });
 
-describe("HttpTransport OAuth discovery", () => {
-  it("parses quoted bearer challenge parameters and hands discovered metadata to the provider", async () => {
+describe("HttpTransport OAuth authorization", () => {
+  it("discovers, registers, authorizes, retries once, and reuses the cached token on the next request", async () => {
     const requestUrl = "https://resource.example.com/tenant/mcp";
     const resourceMetadataUrl =
       "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp";
+    const authorizationServer = "https://auth.example.com/issuer-a";
     const authorizationServerMetadataUrl =
       "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a";
+    const authorizationEndpoint = "https://auth.example.com/issuer-a/authorize";
+    const tokenEndpoint = "https://auth.example.com/issuer-a/token";
+    const registrationEndpoint = "https://auth.example.com/issuer-a/register";
 
-    const handleUnauthorized = vi.fn(async (input) => {
-      expect(input.challenge).toMatchObject({
-        scheme: "Bearer",
-        params: {
-          realm: "Example, Inc",
-          error: "invalid_token",
-          resource_metadata: resourceMetadataUrl,
-        },
-      });
-      expect(input.discovery).toMatchObject({
-        resource: requestUrl,
-        resourceMetadataUrl,
-        authorizationServerMetadataUrl,
-      });
+    const resourceAuthorizations: Array<string | null> = [];
+    const authorizationRequests: URL[] = [];
+    const registrationBodies: Array<Record<string, unknown>> = [];
+    const tokenBodies: URLSearchParams[] = [];
+    const registeredClientIds = new Set<string>();
+    const storedSessions = new Map<string, StoredOAuthSession>();
+    const authorizationCodes = new Map<
+      string,
+      { clientId: string; redirectUri: string; codeChallenge: string }
+    >();
+    const issuedAccessTokens = new Set<string>();
+    let nextClientId = 0;
+    let nextAuthorizationCode = 0;
+    let nextAccessToken = 0;
 
-      throw new Error("oauth discovery triggered");
-    });
-
-    const oauth: OAuthClientProvider = {
-      authorizeRequest: vi.fn(async () => {}),
-      handleUnauthorized,
+    const issueAccessToken = (): string => {
+      nextAccessToken += 1;
+      const accessToken = `access-${nextAccessToken}`;
+      issuedAccessTokens.add(accessToken);
+      return accessToken;
     };
 
     const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
       const method = init?.method ?? "GET";
       const url = input.toString();
-
-      if (method === "POST") {
-        return new Response(null, {
-          status: 401,
-          statusText: "Unauthorized",
-          headers: {
-            "WWW-Authenticate":
-              `Bearer realm="Example, Inc", error="invalid_token", ` +
-              `resource_metadata="${resourceMetadataUrl}"`,
-          },
-        });
-      }
 
       if (url === resourceMetadataUrl) {
         return jsonResponse({
           resource: requestUrl,
-          authorization_servers: ["https://auth.example.com/issuer-a"],
+          authorization_servers: [authorizationServer],
         });
       }
 
       if (url === authorizationServerMetadataUrl) {
         return jsonResponse({
-          issuer: "https://auth.example.com/issuer-a",
-          authorization_endpoint: "https://auth.example.com/issuer-a/authorize",
-          token_endpoint: "https://auth.example.com/issuer-a/token",
+          issuer: authorizationServer,
+          authorization_endpoint: authorizationEndpoint,
+          token_endpoint: tokenEndpoint,
+          registration_endpoint: registrationEndpoint,
           code_challenge_methods_supported: ["S256"],
         });
       }
 
-      throw new Error(`Unexpected fetch URL: ${method} ${url}`);
-    });
+      if (url === registrationEndpoint) {
+        nextClientId += 1;
+        const clientId = `client-${nextClientId}`;
+        registeredClientIds.add(clientId);
+        registrationBodies.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
 
-    const transport = new HttpTransport({
-      url: requestUrl,
-      fetch: fetchMock,
-      oauth,
-    });
+        return jsonResponse(
+          {
+            client_id: clientId,
+            token_endpoint_auth_method: "none",
+          },
+          { status: 201 }
+        );
+      }
 
-    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+      if (url === tokenEndpoint) {
+        const body = new URLSearchParams(String(init?.body ?? ""));
+        tokenBodies.push(body);
 
-    const closedEvent = await transport.closed;
+        const code = body.get("code");
+        if (code === null) {
+          throw new Error("Missing authorization code");
+        }
 
-    expect(handleUnauthorized).toHaveBeenCalledTimes(1);
-    expect(closedEvent.reason.message).toBe("oauth discovery triggered");
-  });
+        const authorizationCode = authorizationCodes.get(code);
+        if (authorizationCode === undefined) {
+          throw new Error(`Unknown authorization code: ${code}`);
+        }
 
-  it("falls back to the path-based protected resource metadata URL when the challenge omits a hint", async () => {
-    const requestUrl = "https://resource.example.com/tenant/mcp?view=full";
-    const fallbackResourceMetadataUrl =
-      "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp?view=full";
-    const authorizationServerMetadataUrl =
-      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a";
+        authorizationCodes.delete(code);
+        expect(body.get("grant_type")).toBe("authorization_code");
+        expect(body.get("client_id")).toBe(authorizationCode.clientId);
+        expect(body.get("redirect_uri")).toBe(authorizationCode.redirectUri);
+        expect(body.get("resource")).toBe(requestUrl);
 
-    const handleUnauthorized = vi.fn(async (input) => {
-      expect(input.challenge).toMatchObject({
-        scheme: "Bearer",
-        params: {
-          realm: "Example Realm",
-          error: "invalid_token",
-        },
-      });
-      expect(input.discovery.resourceMetadataUrl).toBe(fallbackResourceMetadataUrl);
+        return jsonResponse({
+          access_token: issueAccessToken(),
+          token_type: "Bearer",
+          expires_in: 3600,
+          refresh_token: "refresh-1",
+        });
+      }
 
-      throw new Error("oauth fallback triggered");
-    });
+      if (url === requestUrl && method === "POST") {
+        const authorization = new Headers(init?.headers).get("Authorization");
+        resourceAuthorizations.push(authorization);
 
-    const oauth: OAuthClientProvider = {
-      authorizeRequest: vi.fn(async () => {}),
-      handleUnauthorized,
-    };
+        if (authorization === null) {
+          return new Response(null, {
+            status: 401,
+            headers: {
+              "WWW-Authenticate":
+                `Bearer realm="Example, Inc", error="invalid_token", ` +
+                `resource_metadata="${resourceMetadataUrl}"`,
+            },
+          });
+        }
 
-    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
-      const method = init?.method ?? "GET";
-      const url = input.toString();
+        const accessToken = authorization.startsWith("Bearer ")
+          ? authorization.slice("Bearer ".length)
+          : authorization;
+        if (!issuedAccessTokens.has(accessToken)) {
+          throw new Error(`Unexpected bearer token: ${authorization}`);
+        }
 
-      if (method === "POST") {
-        return new Response(null, {
-          status: 401,
-          statusText: "Unauthorized",
-          headers: {
-            "WWW-Authenticate": 'Bearer realm="Example Realm", error="invalid_token"',
+        return jsonResponse({
+          jsonrpc: "2.0",
+          id: resourceAuthorizations.length,
+          result: {
+            ok: true,
           },
         });
       }
 
-      if (url === fallbackResourceMetadataUrl) {
-        return jsonResponse({
-          resource: requestUrl,
-          authorization_servers: ["https://auth.example.com/issuer-a"],
-        });
-      }
-
-      if (url === authorizationServerMetadataUrl) {
-        return jsonResponse({
-          issuer: "https://auth.example.com/issuer-a",
-          authorization_endpoint: "https://auth.example.com/issuer-a/authorize",
-          token_endpoint: "https://auth.example.com/issuer-a/token",
-          code_challenge_methods_supported: ["S256"],
-        });
-      }
-
       throw new Error(`Unexpected fetch URL: ${method} ${url}`);
     });
+
+    const openBrowser = vi.fn(async (authorizationUrl: string) => {
+      const url = new URL(authorizationUrl);
+      authorizationRequests.push(url);
+
+      const clientId = url.searchParams.get("client_id");
+      if (clientId === null || !registeredClientIds.has(clientId)) {
+        throw new Error(`Unknown client ID: ${clientId}`);
+      }
+
+      nextAuthorizationCode += 1;
+      const code = `code-${nextAuthorizationCode}`;
+      authorizationCodes.set(code, {
+        clientId,
+        redirectUri: url.searchParams.get("redirect_uri") ?? "",
+        codeChallenge: url.searchParams.get("code_challenge") ?? "",
+      });
+
+      expect(url.searchParams.get("resource")).toBe(requestUrl);
+
+      await requestLoopbackCallback(`${url.searchParams.get("redirect_uri")}?code=${code}`);
+    });
+
+    const sessionStore: OAuthSessionStore = {
+      async load(resource: string): Promise<StoredOAuthSession | null> {
+        return storedSessions.get(resource) ?? null;
+      },
+      async save(resource: string, session: StoredOAuthSession): Promise<void> {
+        storedSessions.set(resource, session);
+      },
+      async clear(resource: string): Promise<void> {
+        storedSessions.delete(resource);
+      },
+    };
 
     const transport = new HttpTransport({
       url: requestUrl,
       fetch: fetchMock,
-      oauth,
+      oauth: {
+        client: {
+          mode: "dynamic",
+          metadata: {
+            clientName: "tiny-mcp-client test",
+          },
+        },
+        browser: {
+          openBrowser,
+        },
+        sessionStore,
+      },
     });
 
     transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+    expect(JSON.parse(await readTransportLine(transport))).toEqual({
+      jsonrpc: "2.0",
+      id: 2,
+      result: {
+        ok: true,
+      },
+    });
 
-    const closedEvent = await transport.closed;
+    transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"ping"}\n');
+    expect(JSON.parse(await readTransportLine(transport))).toEqual({
+      jsonrpc: "2.0",
+      id: 3,
+      result: {
+        ok: true,
+      },
+    });
 
-    expect(handleUnauthorized).toHaveBeenCalledTimes(1);
-    expect(closedEvent.reason.message).toBe("oauth fallback triggered");
-    expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
-      requestUrl,
-      fallbackResourceMetadataUrl,
-      authorizationServerMetadataUrl,
-    ]);
+    expect(registrationBodies).toHaveLength(1);
+    expect(tokenBodies).toHaveLength(1);
+    expect(resourceAuthorizations).toEqual([null, "Bearer access-1", "Bearer access-1"]);
+    expect(authorizationRequests).toHaveLength(1);
+    expect(
+      fetchMock.mock.calls
+        .map(([input]) => input.toString())
+        .filter((url) => url === resourceMetadataUrl)
+    ).toHaveLength(1);
+    expect(
+      fetchMock.mock.calls
+        .map(([input]) => input.toString())
+        .filter((url) => url === authorizationServerMetadataUrl)
+    ).toHaveLength(1);
   });
 
-  it("triggers discovery from the SSE GET path after a 401 challenge", async () => {
+  it("falls back to the derived protected-resource metadata URL when the 401 challenge omits resource_metadata", async () => {
     const requestUrl = "https://resource.example.com/tenant/mcp";
     const resourceMetadataUrl =
       "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp";
+    const authorizationServer = "https://auth.example.com/issuer-a";
     const authorizationServerMetadataUrl =
       "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a";
-
-    const handleUnauthorized = vi.fn(async (input) => {
-      expect(input.challenge).toMatchObject({
-        scheme: "Bearer",
-        params: {
-          error: "invalid_token",
-          resource_metadata: resourceMetadataUrl,
-        },
-      });
-      expect(input.discovery).toMatchObject({
-        resource: requestUrl,
-        resourceMetadataUrl,
-        authorizationServerMetadataUrl,
-      });
-
-      throw new Error("oauth get discovery triggered");
-    });
-
-    const oauth: OAuthClientProvider = {
-      authorizeRequest: vi.fn(async () => {}),
-      handleUnauthorized,
-    };
+    const authorizationEndpoint = "https://auth.example.com/issuer-a/authorize";
+    const tokenEndpoint = "https://auth.example.com/issuer-a/token";
+    const registrationEndpoint = "https://auth.example.com/issuer-a/register";
+    const resourceAuthorizations: Array<string | null> = [];
+    const authorizationCodes = new Map<
+      string,
+      { clientId: string; redirectUri: string; codeChallenge: string }
+    >();
+    let nextAuthorizationCode = 0;
 
     const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
       const method = init?.method ?? "GET";
       const url = input.toString();
-
-      if (method === "POST") {
-        return new Response(null, {
-          status: 202,
-          headers: {
-            "Mcp-Session-Id": "session-1",
-          },
-        });
-      }
-
-      if (method === "GET" && url === requestUrl) {
-        return new Response(null, {
-          status: 401,
-          statusText: "Unauthorized",
-          headers: {
-            "WWW-Authenticate":
-              `Bearer error="invalid_token", resource_metadata="${resourceMetadataUrl}"`,
-          },
-        });
-      }
 
       if (url === resourceMetadataUrl) {
         return jsonResponse({
           resource: requestUrl,
-          authorization_servers: ["https://auth.example.com/issuer-a"],
+          authorization_servers: [authorizationServer],
         });
       }
 
       if (url === authorizationServerMetadataUrl) {
         return jsonResponse({
-          issuer: "https://auth.example.com/issuer-a",
-          authorization_endpoint: "https://auth.example.com/issuer-a/authorize",
-          token_endpoint: "https://auth.example.com/issuer-a/token",
+          issuer: authorizationServer,
+          authorization_endpoint: authorizationEndpoint,
+          token_endpoint: tokenEndpoint,
+          registration_endpoint: registrationEndpoint,
           code_challenge_methods_supported: ["S256"],
+        });
+      }
+
+      if (url === registrationEndpoint) {
+        return jsonResponse(
+          {
+            client_id: "client-1",
+            token_endpoint_auth_method: "none",
+          },
+          { status: 201 }
+        );
+      }
+
+      if (url === tokenEndpoint) {
+        const body = new URLSearchParams(String(init?.body ?? ""));
+        const code = body.get("code");
+        if (code === null) {
+          throw new Error("Missing authorization code");
+        }
+
+        const authorizationCode = authorizationCodes.get(code);
+        if (authorizationCode === undefined) {
+          throw new Error(`Unknown authorization code: ${code}`);
+        }
+
+        expect(body.get("client_id")).toBe(authorizationCode.clientId);
+        expect(body.get("redirect_uri")).toBe(authorizationCode.redirectUri);
+        expect(body.get("resource")).toBe(requestUrl);
+
+        return jsonResponse({
+          access_token: "access-1",
+          token_type: "Bearer",
+          expires_in: 3600,
+          refresh_token: "refresh-1",
+        });
+      }
+
+      if (url === requestUrl && method === "POST") {
+        const authorization = new Headers(init?.headers).get("Authorization");
+        resourceAuthorizations.push(authorization);
+
+        if (authorization === null) {
+          return new Response(null, {
+            status: 401,
+            headers: {
+              "WWW-Authenticate": 'Bearer realm="Example, Inc", error="invalid_token"',
+            },
+          });
+        }
+
+        return jsonResponse({
+          jsonrpc: "2.0",
+          id: 1,
+          result: {
+            ok: true,
+          },
         });
       }
 
       throw new Error(`Unexpected fetch URL: ${method} ${url}`);
     });
+    const openBrowser = vi.fn(async (authorizationUrl: string) => {
+      const url = new URL(authorizationUrl);
+      nextAuthorizationCode += 1;
+
+      const code = `code-${nextAuthorizationCode}`;
+      authorizationCodes.set(code, {
+        clientId: url.searchParams.get("client_id") ?? "",
+        redirectUri: url.searchParams.get("redirect_uri") ?? "",
+        codeChallenge: url.searchParams.get("code_challenge") ?? "",
+      });
+
+      await requestLoopbackCallback(`${url.searchParams.get("redirect_uri")}?code=${code}`);
+    });
 
     const transport = new HttpTransport({
       url: requestUrl,
       fetch: fetchMock,
-      oauth,
+      oauth: {
+        client: {
+          mode: "dynamic",
+          metadata: {
+            clientName: "tiny-mcp-client test",
+          },
+        },
+        browser: {
+          openBrowser,
+        },
+      },
     });
 
     transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+    expect(JSON.parse(await readTransportLine(transport))).toEqual({
+      jsonrpc: "2.0",
+      id: 1,
+      result: {
+        ok: true,
+      },
+    });
 
-    const closedEvent = await transport.closed;
-
-    expect(handleUnauthorized).toHaveBeenCalledTimes(1);
-    expect(closedEvent.reason.message).toBe("oauth get discovery triggered");
-    expect(fetchMock.mock.calls.map(([input, init]) => `${init?.method ?? "GET"} ${input.toString()}`))
-      .toEqual([
-        `POST ${requestUrl}`,
-        `GET ${requestUrl}`,
-        `GET ${resourceMetadataUrl}`,
-        `GET ${authorizationServerMetadataUrl}`,
-      ]);
+    expect(resourceAuthorizations).toEqual([null, "Bearer access-1"]);
+    expect(
+      fetchMock.mock.calls
+        .map(([input]) => input.toString())
+        .filter((url) => url === resourceMetadataUrl)
+    ).toHaveLength(1);
   });
 });
+
+function readTransportLine(transport: HttpTransport): Promise<string> {
+  return new Promise((resolve, reject) => {
+    transport.readable.once("data", (chunk: Buffer | string) => {
+      resolve(chunk.toString("utf8").trim());
+    });
+    transport.closed.then((event) => {
+      reject(event.reason);
+    }).catch(reject);
+  });
+}
+
+async function requestLoopbackCallback(url: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const request = http.get(url, (response) => {
+      response.resume();
+      response.once("end", resolve);
+    });
+    request.once("error", reject);
+  });
+}

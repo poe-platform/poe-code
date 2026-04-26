@@ -3,13 +3,17 @@ import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_pr
 import { PassThrough } from "node:stream";
 import type { Readable, Writable } from "node:stream";
 import type { JSONRPCMessage as SdkJsonRpcMessage } from "@modelcontextprotocol/sdk/types.js";
+import {
+  createOAuthClientProvider,
+  type OAuthClientProvider,
+  type OAuthClientProviderOptions,
+} from "mcp-oauth";
 import type { Server as TinyStdioMcpServer } from "tiny-stdio-mcp-server";
 import {
   OAuthMetadataDiscovery,
   parseBearerWwwAuthenticateHeader,
 } from "./oauth-discovery.js";
 import type {
-  OAuthClientProvider,
   OAuthDiscoveryCache,
 } from "./oauth-discovery.js";
 
@@ -20,15 +24,21 @@ export {
   resolveAuthorizationServerMetadataUrl,
   resolveProtectedResourceMetadataUrl,
 } from "./oauth-discovery.js";
+export {
+  createAuthStoreSessionStore,
+  createDefaultOAuthClientProvider,
+} from "mcp-oauth";
 export type {
-  OAuthAuthorizationServerMetadata,
-  OAuthClientProvider,
   OAuthDiscoveryCache,
-  OAuthDiscoveryResult,
-  OAuthMetadataFetch,
-  OAuthProtectedResourceMetadata,
-  OAuthUnauthorizedChallenge,
 } from "./oauth-discovery.js";
+export type { OAuthAuthorizationServerMetadata, OAuthDiscoveryResult, OAuthMetadataFetch, OAuthProtectedResourceMetadata, OAuthUnauthorizedChallenge } from "./oauth-discovery.js";
+export type {
+  DefaultOAuthClientProviderOptions,
+  OAuthClientProvider,
+  OAuthClientProviderOptions,
+  OAuthSessionStore,
+  StoredOAuthSession,
+} from "mcp-oauth";
 
 export type RequestId = number | string;
 
@@ -2209,7 +2219,7 @@ export interface HttpTransportOptions {
   url: string;
   headers?: HeadersInit;
   fetch?: HttpTransportFetch;
-  oauth?: OAuthClientProvider;
+  oauth?: OAuthClientProviderOptions;
   oauthDiscoveryCache?: OAuthDiscoveryCache;
 }
 
@@ -2356,7 +2366,9 @@ export class HttpTransport implements McpTransport {
     this.url = url;
     this.headers = headers;
     this.fetchImpl = fetchImpl;
-    this.oauthProvider = oauth;
+    this.oauthProvider = oauth === undefined
+      ? undefined
+      : createOAuthClientProvider(oauth);
     this.oauthMetadataDiscovery = oauth === undefined
       ? undefined
       : new OAuthMetadataDiscovery({
@@ -2441,9 +2453,9 @@ export class HttpTransport implements McpTransport {
       }
 
       const hasSessionId = this.sessionId !== undefined;
-      const response = await this.fetchWithAbort(this.url, {
+      const response = await this.fetchWithOAuthRetry({
         method: "POST",
-        headers: await this.createPostHeaders(),
+        createHeaders: () => this.createPostHeaders(),
         body: line,
       });
 
@@ -2544,12 +2556,10 @@ export class HttpTransport implements McpTransport {
   }
 
   private async consumeGetSseStream(): Promise<void> {
-    const response = await this.fetchWithAbort(this.url, {
+    const response = await this.fetchWithOAuthRetry({
       method: "GET",
-      headers: await this.createGetHeaders(),
+      createHeaders: () => this.createGetHeaders(),
     });
-
-    await this.maybeHandleUnauthorizedResponse(response);
 
     if (response.status === 405) {
       throw new HttpTransportGetSseNotSupportedError();
@@ -2570,8 +2580,6 @@ export class HttpTransport implements McpTransport {
   }
 
   private async throwForPostHttpError(response: Response): Promise<void> {
-    await this.maybeHandleUnauthorizedResponse(response);
-
     if (response.status < 400) {
       return;
     }
@@ -2584,14 +2592,14 @@ export class HttpTransport implements McpTransport {
     throw new Error(message);
   }
 
-  private async maybeHandleUnauthorizedResponse(response: Response): Promise<void> {
+  private async maybeHandleUnauthorizedResponse(response: Response): Promise<boolean> {
     if (response.status !== 401 || this.oauthProvider === undefined) {
-      return;
+      return false;
     }
 
     const discoveryClient = this.oauthMetadataDiscovery;
     if (discoveryClient === undefined) {
-      return;
+      return false;
     }
 
     const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
@@ -2599,14 +2607,23 @@ export class HttpTransport implements McpTransport {
     const discovery = await discoveryClient.discover(this.url, {
       resourceMetadataUrl,
     });
-
-    await this.oauthProvider.handleUnauthorized({
+    const result = await this.oauthProvider.handleUnauthorized({
       requestUrl: new URL(this.url),
       response: response.clone(),
       challenge,
       discovery,
       fetch: this.fetchImpl,
     });
+
+    if (result.action === "retry") {
+      return true;
+    }
+
+    if (result.error !== undefined) {
+      throw result.error;
+    }
+
+    return false;
   }
 
   private async forwardResponseMessages(response: Response): Promise<void> {
@@ -2692,6 +2709,26 @@ export class HttpTransport implements McpTransport {
     }
 
     this.readStream.write(`${line}\n`);
+  }
+
+  private async fetchWithOAuthRetry(input: {
+    method: "GET" | "POST";
+    createHeaders: () => Promise<Headers>;
+    body?: BodyInit;
+  }): Promise<Response> {
+    const request = async (): Promise<Response> =>
+      this.fetchWithAbort(this.url, {
+        method: input.method,
+        headers: await input.createHeaders(),
+        body: input.body,
+      });
+
+    let response = await request();
+    if (await this.maybeHandleUnauthorizedResponse(response)) {
+      response = await request();
+    }
+
+    return response;
   }
 }
 

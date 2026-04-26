@@ -17,7 +17,6 @@ import {
 import { planPathCommand } from "./plan-path.js";
 import {
   runCommand,
-  runMcpCommand,
   createRunMcpCommand,
   type RunMcpCommandRunners
 } from "./run.js";

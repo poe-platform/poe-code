@@ -281,4 +281,150 @@ describe("configure provider resolution", () => {
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]).toMatchObject({ provider: "poe" });
   });
+
+  it("scaffolds a tiny-http-mcp-server OAuth config with --yes defaults", async () => {
+    const container = createContainer(fs);
+    const resolveApiKeySpy = vi.spyOn(container.options, "resolveApiKey");
+    const providerLoginSpy = vi.spyOn(container.providerRegistry, "login");
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes"]),
+      container,
+      "tiny-http-mcp-server",
+      {}
+    );
+
+    expect(resolveApiKeySpy).not.toHaveBeenCalled();
+    expect(providerLoginSpy).not.toHaveBeenCalled();
+
+    const scaffoldDir = "/home/test/.poe-code/tiny-http-mcp-server";
+    const config = JSON.parse(
+      await fs.readFile(`${scaffoldDir}/config.json`, "utf8")
+    ) as Record<string, unknown>;
+
+    expect(config).toEqual({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      listen: {
+        hostname: "127.0.0.1",
+        path: "/mcp",
+        port: 3000,
+      },
+      oauth: {
+        authorizationServers: ["https://auth.example.com"],
+        bearerMethodsSupported: ["header"],
+        requiredScopes: ["mcp.read"],
+        resource: "https://example.com/mcp",
+        scopesSupported: ["mcp.read", "mcp.write"],
+        verifierExport: "default",
+        verifierModule: "./verify-token.mjs",
+      },
+    });
+    await expect(fs.readFile(`${scaffoldDir}/server.mjs`, "utf8")).resolves.toContain(
+      "createHttpServer"
+    );
+    await expect(
+      fs.readFile(`${scaffoldDir}/verify-token.mjs`, "utf8")
+    ).resolves.toContain("export default");
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["tiny-http-mcp-server"]).toMatchObject({ provider: "none" });
+  });
+
+  it("uses explicit OAuth CLI flags without prompting", async () => {
+    const promptsMock = vi.fn();
+    const container = createCliContainer({
+      fs,
+      prompts: promptsMock,
+      env: { cwd, homeDir, variables: {} },
+      logger: () => {},
+    });
+
+    await executeConfigure(
+      createTestProgram(),
+      container,
+      "tiny-http-mcp-server",
+      {
+        oauthResource: "https://custom.example.com/mcp",
+        oauthAuthorizationServer: ["https://custom-auth.example.com"],
+        oauthSupportedScope: ["custom.read", "custom.write"],
+        oauthRequiredScope: ["custom.read"],
+        oauthBearerMethod: ["header"],
+        oauthVerifierModule: "./custom-verifier.mjs",
+        oauthVerifierExport: "customVerify",
+      }
+    );
+
+    expect(promptsMock).not.toHaveBeenCalled();
+
+    const config = JSON.parse(
+      await fs.readFile("/home/test/.poe-code/tiny-http-mcp-server/config.json", "utf8")
+    ) as { oauth: Record<string, unknown> };
+
+    expect(config.oauth).toEqual({
+      resource: "https://custom.example.com/mcp",
+      authorizationServers: ["https://custom-auth.example.com"],
+      scopesSupported: ["custom.read", "custom.write"],
+      requiredScopes: ["custom.read"],
+      bearerMethodsSupported: ["header"],
+      verifierModule: "./custom-verifier.mjs",
+      verifierExport: "customVerify",
+    });
+  });
+
+  it("prompts for missing tiny-http-mcp-server OAuth values and writes them with memfs", async () => {
+    const promptsMock = vi
+      .fn()
+      .mockResolvedValueOnce({ oauthResource: "https://public.example.com/mcp" })
+      .mockResolvedValueOnce({
+        oauthAuthorizationServers: "https://issuer-a.example.com, https://issuer-b.example.com",
+      })
+      .mockResolvedValueOnce({ oauthSupportedScopes: "mcp.read,mcp.write,mcp.admin" })
+      .mockResolvedValueOnce({ oauthRequiredScopes: "mcp.read,mcp.admin" })
+      .mockResolvedValueOnce({ oauthBearerMethods: "header" })
+      .mockResolvedValueOnce({ oauthVerifierModule: "@acme/mcp/verifier" })
+      .mockResolvedValueOnce({ oauthVerifierExport: "namedVerifier" });
+    const container = createCliContainer({
+      fs,
+      prompts: promptsMock,
+      env: { cwd, homeDir, variables: {} },
+      logger: () => {},
+    });
+
+    await executeConfigure(
+      createTestProgram(),
+      container,
+      "tiny-http-mcp-server",
+      {}
+    );
+
+    expect(promptsMock).toHaveBeenCalledTimes(7);
+
+    const config = JSON.parse(
+      await fs.readFile("/home/test/.poe-code/tiny-http-mcp-server/config.json", "utf8")
+    ) as {
+      oauth: {
+        resource: string;
+        authorizationServers: string[];
+        scopesSupported: string[];
+        requiredScopes: string[];
+        bearerMethodsSupported: string[];
+        verifierModule: string;
+        verifierExport: string;
+      };
+    };
+
+    expect(config.oauth).toEqual({
+      resource: "https://public.example.com/mcp",
+      authorizationServers: [
+        "https://issuer-a.example.com",
+        "https://issuer-b.example.com",
+      ],
+      scopesSupported: ["mcp.read", "mcp.write", "mcp.admin"],
+      requiredScopes: ["mcp.read", "mcp.admin"],
+      bearerMethodsSupported: ["header"],
+      verifierModule: "@acme/mcp/verifier",
+      verifierExport: "namedVerifier",
+    });
+  });
 });

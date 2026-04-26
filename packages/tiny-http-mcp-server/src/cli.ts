@@ -5,6 +5,8 @@ import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import { createHttpServer } from "./http-server.js";
 import type { HttpServer } from "./http-server.js";
+import { loadOAuthVerifier } from "./load-oauth-verifier.js";
+import type { TokenVerifier } from "./auth.js";
 
 interface PackageInfo {
   name: string;
@@ -18,6 +20,15 @@ interface ParsedCliArgs {
   path: string;
   stateless: boolean;
   jsonResponse: boolean;
+  oauth?: {
+    resource: string;
+    authorizationServers: string[];
+    requiredScopes?: string[];
+    scopesSupported?: string[];
+    bearerMethodsSupported?: string[];
+    verifierModule: string;
+    verifierExport: string;
+  };
 }
 
 type CliServerFactory = (
@@ -26,6 +37,10 @@ type CliServerFactory = (
 
 interface RunCliDependencies {
   createServer?: CliServerFactory;
+  loadOAuthVerifier?: (input: {
+    modulePath: string;
+    exportName: string;
+  }) => Promise<TokenVerifier>;
   stdout?: Pick<NodeJS.WriteStream, "write">;
   stderr?: Pick<NodeJS.WriteStream, "write">;
   waitForShutdown?: (shutdown: () => Promise<void>) => Promise<void>;
@@ -67,6 +82,19 @@ const HELP_TEXT = [
   "  --path <path>          HTTP path to serve MCP on (default: /mcp)",
   "  --stateless            Disable session support",
   "  --json-response        Return application/json for POST responses",
+  "  --oauth-resource <uri> Enable OAuth mode with this canonical resource URI",
+  "  --oauth-authorization-server <issuer>",
+  "                        Authorization server issuer URL (repeatable)",
+  "  --oauth-supported-scope <scope>",
+  "                        Scope published in OAuth metadata (repeatable)",
+  "  --oauth-required-scope <scope>",
+  "                        Scope required on MCP requests (repeatable)",
+  "  --oauth-bearer-method <method>",
+  "                        Bearer transport published in metadata (repeatable)",
+  "  --oauth-verifier-module <path-or-file-url>",
+  "                        Module that exports the TokenVerifier implementation",
+  "  --oauth-verifier-export <name>",
+  "                        Export name to load from the verifier module (default: default)",
   "  -h, --help             Show this help message",
 ].join("\n");
 
@@ -83,6 +111,83 @@ function parsePort(value: string | undefined): number {
   return port;
 }
 
+function parseAbsoluteUrl(
+  value: string,
+  flagName: string
+): string {
+  try {
+    return new URL(value).toString();
+  } catch {
+    throw new Error(`${flagName} must be an absolute URL.`);
+  }
+}
+
+function hasConfiguredOAuthFlag(values: Record<string, unknown>): boolean {
+  return [
+    values["oauth-resource"],
+    values["oauth-authorization-server"],
+    values["oauth-supported-scope"],
+    values["oauth-required-scope"],
+    values["oauth-bearer-method"],
+    values["oauth-verifier-module"],
+    values["oauth-verifier-export"],
+  ].some((value) => value !== undefined);
+}
+
+function parseCliOAuthOptions(
+  values: Record<string, unknown>
+): ParsedCliArgs["oauth"] {
+  const resource = values["oauth-resource"];
+  const authorizationServers = values["oauth-authorization-server"];
+  const verifierModule = values["oauth-verifier-module"];
+  const verifierExport = values["oauth-verifier-export"];
+  const hasOAuthFlags = hasConfiguredOAuthFlag(values);
+
+  if (typeof resource !== "string") {
+    if (hasOAuthFlags) {
+      throw new Error("--oauth-resource is required when configuring OAuth.");
+    }
+    return undefined;
+  }
+
+  if (!Array.isArray(authorizationServers) || authorizationServers.length === 0) {
+    throw new Error(
+      "--oauth-authorization-server must be provided at least once when --oauth-resource is set."
+    );
+  }
+
+  if (typeof verifierModule !== "string" || verifierModule.length === 0) {
+    throw new Error(
+      "--oauth-verifier-module is required when --oauth-resource is set."
+    );
+  }
+
+  const supportedScopes = values["oauth-supported-scope"];
+  const requiredScopes = values["oauth-required-scope"];
+  const bearerMethods = values["oauth-bearer-method"];
+
+  return {
+    resource: parseAbsoluteUrl(resource, "--oauth-resource"),
+    authorizationServers: authorizationServers.map((value) =>
+      parseAbsoluteUrl(value, "--oauth-authorization-server")
+    ),
+    ...(Array.isArray(requiredScopes) && requiredScopes.length > 0
+      ? { requiredScopes: [...requiredScopes] }
+      : {}),
+    ...(Array.isArray(supportedScopes) && supportedScopes.length > 0
+      ? { scopesSupported: [...supportedScopes] }
+      : {}),
+    ...(Array.isArray(bearerMethods) && bearerMethods.length > 0
+      ? { bearerMethodsSupported: [...bearerMethods] }
+      : {}),
+    verifierModule,
+    verifierExport:
+      typeof verifierExport === "string" && verifierExport.length > 0
+        ? verifierExport
+        : "default",
+  };
+}
+
 function parseCliOptions(args: string[]): ParsedCliArgs {
   const { values } = parseArgs({
     args,
@@ -94,6 +199,13 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       path: { type: "string" },
       stateless: { type: "boolean" },
       "json-response": { type: "boolean" },
+      "oauth-resource": { type: "string" },
+      "oauth-authorization-server": { type: "string", multiple: true },
+      "oauth-supported-scope": { type: "string", multiple: true },
+      "oauth-required-scope": { type: "string", multiple: true },
+      "oauth-bearer-method": { type: "string", multiple: true },
+      "oauth-verifier-module": { type: "string" },
+      "oauth-verifier-export": { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -105,6 +217,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     path: values.path ?? "/mcp",
     stateless: values.stateless ?? false,
     jsonResponse: values["json-response"] ?? false,
+    oauth: parseCliOAuthOptions(values),
   };
 }
 
@@ -146,6 +259,7 @@ export async function runCli(
   dependencies: RunCliDependencies = {}
 ): Promise<number> {
   const createServer = dependencies.createServer ?? createHttpServer;
+  const loadVerifier = dependencies.loadOAuthVerifier ?? loadOAuthVerifier;
   const stdout = dependencies.stdout ?? process.stdout;
   const stderr = dependencies.stderr ?? process.stderr;
   const customWaitForShutdown = dependencies.waitForShutdown;
@@ -159,11 +273,33 @@ export async function runCli(
       return 0;
     }
 
+    const oauth =
+      options.oauth === undefined
+        ? undefined
+        : {
+            resource: options.oauth.resource,
+            authorizationServers: options.oauth.authorizationServers,
+            ...(options.oauth.requiredScopes !== undefined
+              ? { requiredScopes: options.oauth.requiredScopes }
+              : {}),
+            ...(options.oauth.scopesSupported !== undefined
+              ? { scopesSupported: options.oauth.scopesSupported }
+              : {}),
+            ...(options.oauth.bearerMethodsSupported !== undefined
+              ? { bearerMethodsSupported: options.oauth.bearerMethodsSupported }
+              : {}),
+            verifier: await loadVerifier({
+              modulePath: options.oauth.verifierModule,
+              exportName: options.oauth.verifierExport,
+            }),
+          };
+
     const server = createServer({
       name: packageInfo.name,
       version: packageInfo.version,
       ...(options.stateless ? { sessionIdGenerator: undefined } : {}),
       ...(options.jsonResponse ? { enableJsonResponse: true } : {}),
+      ...(oauth === undefined ? {} : { oauth }),
     });
 
     handle = await server.listenHttp({

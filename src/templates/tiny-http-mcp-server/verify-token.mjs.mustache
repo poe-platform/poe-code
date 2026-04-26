@@ -1,0 +1,10 @@
+import { TokenVerificationError } from "tiny-http-mcp-server";
+
+export default {
+  async verify(_input) {
+    throw new TokenVerificationError({
+      error: "invalid_token",
+      errorDescription: "Replace ~/.poe-code/tiny-http-mcp-server/verify-token.mjs with your token verifier.",
+    });
+  },
+};

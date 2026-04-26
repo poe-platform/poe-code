@@ -324,7 +324,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-and-config-surface
     title: Expose OAuth options in CLI and configuration
@@ -360,9 +360,9 @@ tasks:
         - Snapshot or text test that `--help` includes the new flags.
         - Configure command unit tests using memfs for any file writes.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: tiny-oauth-test-server-package
@@ -1054,8 +1054,7 @@ discovery + authorization-code + PKCE flow with no bespoke per-server code.
 
 ## Why investigation comes first
 
-The MCP spec layers seven different RFCs (6749, 7591, 8252, 8414, 8707, 9700,
-9728) and the official typescript-sdk has settled on a specific division of
+The MCP spec layers seven different RFCs (6749, 7591, 8252, 8414, 8707, 9700, 9728) and the official typescript-sdk has settled on a specific division of
 labor between transport, OAuth provider, and metadata router. The first three
 tasks are deliberately research-only so the implementation tasks can cite the
 exact MUSTs and reuse the SDK's vocabulary instead of re-deriving it.
@@ -1069,7 +1068,7 @@ must route through `tiny-mcp-client`, `tiny-stdio-mcp-server`, or
 `tiny-http-mcp-server`. Every task that touches a `package.json`,
 authors a new package, or writes test code must respect this rule. When a
 runtime code path appears to need the SDK, treat that as a design bug and
-fix the routing through the tiny-* packages instead.
+fix the routing through the tiny-\* packages instead.
 
 Today the SDK is correctly scoped to devDependencies in
 `packages/tiny-http-mcp-server`, `packages/tiny-mcp-client`,

@@ -5,11 +5,13 @@ import type { FileSystem } from "../utils/file-system.js";
 import type { CommandCheck } from "../utils/command-checks.js";
 import type { HttpClient } from "./http.js";
 import type {
+  PromptLibrary,
   ModelPromptInput,
   ReasoningPromptInput
 } from "./prompts.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
+import type { PromptFn } from "./types.js";
 
 export interface ServiceManifestPathMapper {
   mapTargetDirectory: (input: {
@@ -58,6 +60,10 @@ export interface ProviderConfigurePayloadContext {
   httpClient: HttpClient;
   logger: ScopedLogger;
   payload: Record<string, unknown>;
+  prompts: PromptFn;
+  promptLibrary: PromptLibrary;
+  assumeYes: boolean;
+  commandOptions: Record<string, unknown>;
 }
 
 export interface ProviderService<
@@ -82,6 +88,7 @@ export interface ProviderService<
   disabled?: boolean;
   supportsStdinPrompt?: boolean;
   supportsMcpSpawn?: boolean;
+  requiresProvider?: boolean;
   configurePrompts?: ProviderConfigurePrompts;
   postConfigureMessages?: string[];
   extendConfigurePayload?(

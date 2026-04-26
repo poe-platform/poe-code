@@ -23,7 +23,7 @@ import {
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { createConfigurePayload } from "./configure-payload.js";
 
-const serviceSelectionPrompt = (action: string) => `Pick an agent to ${action}:`;
+const serviceSelectionPrompt = (action: string) => `Pick a tool to ${action}:`;
 const DEFAULT_SERVICE_AGENT = "claude-code";
 
 export interface ConfigureCommandOptions {
@@ -31,11 +31,18 @@ export interface ConfigureCommandOptions {
   model?: string;
   reasoningEffort?: string;
   provider?: string;
+  oauthResource?: string;
+  oauthAuthorizationServer?: string[];
+  oauthRequiredScope?: string[];
+  oauthSupportedScope?: string[];
+  oauthBearerMethod?: string[];
+  oauthVerifierModule?: string;
+  oauthVerifierExport?: string;
 }
 
 export function registerConfigureCommand(program: Command, container: CliContainer): Command {
   const serviceNames = listServiceNames(container.registry.list());
-  const serviceDescription = `Agent to configure${formatServiceList(serviceNames)}`;
+  const serviceDescription = `Tool to configure${formatServiceList(serviceNames)}`;
   const configureCommand = program
     .command("configure")
     .alias("c")
@@ -46,6 +53,33 @@ export function registerConfigureCommand(program: Command, container: CliContain
     .option("--model <model>", "Model identifier")
     .option("--reasoning-effort <level>", "Reasoning effort level")
     .option("--provider <id>", "Provider to use for this agent")
+    .option("--oauth-resource <uri>", "OAuth protected resource URI")
+    .option(
+      "--oauth-authorization-server <issuer>",
+      "OAuth authorization server issuer URL",
+      collectValues,
+      []
+    )
+    .option(
+      "--oauth-supported-scope <scope>",
+      "OAuth supported scope published in metadata",
+      collectValues,
+      []
+    )
+    .option(
+      "--oauth-required-scope <scope>",
+      "OAuth scope required on MCP requests",
+      collectValues,
+      []
+    )
+    .option(
+      "--oauth-bearer-method <method>",
+      "OAuth bearer transport published in metadata",
+      collectValues,
+      []
+    )
+    .option("--oauth-verifier-module <path>", "OAuth verifier module path or specifier")
+    .option("--oauth-verifier-export <name>", "OAuth verifier export name")
     .action(async (service: string | undefined, options: ConfigureCommandOptions) => {
       const resolved = await resolveServiceArgument(program, container, service, {
         action: "configure"
@@ -69,7 +103,10 @@ export async function executeConfigure(
 
   resources.logger.intro(`configure ${canonicalService}`);
 
-  const providerId = await resolveProvider(canonicalService, options, container, flags);
+  const providerId =
+    adapter.requiresProvider === false
+      ? undefined
+      : await resolveProvider(canonicalService, options, container, flags);
 
   const providerContext = buildProviderContext(container, adapter, resources);
 
@@ -113,7 +150,7 @@ export async function executeConfigure(
         service: canonicalService,
         metadata: {
           files: tracker.files(),
-          provider: providerId
+          provider: providerId ?? "none"
         }
       });
     }
@@ -310,4 +347,8 @@ export async function resolveServiceArgument(
     throw new Error("Invalid agent selection.");
   }
   return resolved.name;
+}
+
+function collectValues(value: string, previous: string[]): string[] {
+  return [...previous, value];
 }

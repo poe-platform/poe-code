@@ -32,18 +32,15 @@ npm install -D @modelcontextprotocol/sdk
 ### Programmatic
 
 ```ts
-import {
-  createHttpServer,
-  defineSchema,
-} from "tiny-http-mcp-server";
+import { createHttpServer, defineSchema } from "tiny-http-mcp-server";
 
 const schema = defineSchema({
-  text: { type: "string", description: "Text to reverse" },
+  text: { type: "string", description: "Text to reverse" }
 });
 
 const server = createHttpServer({
   name: "my-http-server",
-  version: "1.0.0",
+  version: "1.0.0"
 }).tool("reverse", "Reverse a string", schema, ({ text }) => {
   return text.split("").reverse().join("");
 });
@@ -51,7 +48,7 @@ const server = createHttpServer({
 const handle = await server.listenHttp({
   port: 3000,
   hostname: "127.0.0.1",
-  path: "/mcp",
+  path: "/mcp"
 });
 
 console.log(handle.url);
@@ -91,23 +88,14 @@ The CLI starts a minimal HTTP MCP server with the package name/version and no cu
 
 ```ts
 import express from "express";
-import {
-  createExpressMiddleware,
-  createHttpServer,
-  defineSchema,
-} from "tiny-http-mcp-server";
+import { createExpressMiddleware, createHttpServer, defineSchema } from "tiny-http-mcp-server";
 
 const app = express();
 
 const server = createHttpServer({
   name: "express-mcp-server",
-  version: "1.0.0",
-}).tool(
-  "echo",
-  "Echo text",
-  defineSchema({ text: { type: "string" } }),
-  ({ text }) => text
-);
+  version: "1.0.0"
+}).tool("echo", "Echo text", defineSchema({ text: { type: "string" } }), ({ text }) => text);
 
 app.use(express.json());
 app.use("/mcp", createExpressMiddleware(server));
@@ -131,6 +119,7 @@ To publish RFC 9728 protected-resource metadata and require a Bearer header on M
 import {
   createHttpServer,
   createExpressOAuthHandlers,
+  TokenVerificationError
 } from "tiny-http-mcp-server";
 
 const oauth = {
@@ -138,18 +127,27 @@ const oauth = {
   authorizationServers: ["https://auth.example.com"],
   bearerMethodsSupported: ["header"],
   scopesSupported: ["mcp.read", "mcp.write"],
+  requiredScopes: ["mcp.read"],
+  verifier: {
+    async verify(input) {
+      throw new TokenVerificationError({
+        error: "invalid_token",
+        errorDescription: `Implement token verification for ${input.resource}.`
+      });
+    }
+  }
 };
 
 const server = createHttpServer({
   name: "oauth-server",
   version: "1.0.0",
-  oauth,
+  oauth
 });
 
 const { metadataMiddleware, mcpMiddleware } = createExpressOAuthHandlers({
   path: "/mcp",
   server,
-  oauth,
+  oauth
 });
 ```
 
@@ -157,9 +155,10 @@ const { metadataMiddleware, mcpMiddleware } = createExpressOAuthHandlers({
 
 - `resource`: canonical protected resource URI published in the metadata document
 - `authorizationServers`: authorization server issuer URLs published as `authorization_servers`
+- `requiredScopes`: optional scopes enforced on MCP requests
 - `bearerMethodsSupported`: optional values published as `bearer_methods_supported`
 - `scopesSupported`: optional values published as `scopes_supported`
-- `verifyToken`: reserved hook for a later task; it is declared in the public types but not used yet
+- `verifier`: `TokenVerifier` implementation used to validate bearer tokens
 
 When OAuth is enabled, the server exposes `GET /.well-known/oauth-protected-resource` with `application/json`:
 
@@ -180,25 +179,21 @@ WWW-Authenticate: Bearer realm="mcp", resource_metadata="http://127.0.0.1:3000/.
 
 Standalone `listenHttp()` serves both the MCP endpoint and the protected-resource metadata route. For Express, mount `metadataMiddleware` at the app root and mount `mcpMiddleware` on your MCP path.
 
+The package does not define any OAuth-specific environment variables. Configure OAuth with the `oauth` object in code or the CLI flags below.
+
 ## BYO HTTP Server: Raw Node.js
 
 If you already own the HTTP server, call `handleRequest()` yourself.
 
 ```ts
 import http from "node:http";
-import {
-  createHttpServer,
-  defineSchema,
-} from "tiny-http-mcp-server";
+import { createHttpServer, defineSchema } from "tiny-http-mcp-server";
 
 const server = createHttpServer({
   name: "raw-http-server",
-  version: "1.0.0",
-}).tool(
-  "uppercase",
-  "Uppercase text",
-  defineSchema({ text: { type: "string" } }),
-  ({ text }) => text.toUpperCase()
+  version: "1.0.0"
+}).tool("uppercase", "Uppercase text", defineSchema({ text: { type: "string" } }), ({ text }) =>
+  text.toUpperCase()
 );
 
 const nodeServer = http.createServer(async (req, res) => {
@@ -228,7 +223,7 @@ To disable sessions entirely, set `sessionIdGenerator` to `undefined`:
 const server = createHttpServer({
   name: "stateless-server",
   version: "1.0.0",
-  sessionIdGenerator: undefined,
+  sessionIdGenerator: undefined
 });
 ```
 
@@ -258,7 +253,7 @@ import { createHttpServer } from "tiny-http-mcp-server";
 
 const server = createHttpServer({
   name: "my-server",
-  version: "1.0.0",
+  version: "1.0.0"
 });
 ```
 
@@ -272,12 +267,13 @@ Returned `HttpServer` instances support:
 
 `createHttpServer()` accepts the base `ServerOptions` from `tiny-stdio-mcp-server` plus HTTP transport options:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | none | MCP server name exposed during initialization. |
-| `version` | `string` | none | MCP server version exposed during initialization. |
-| `sessionIdGenerator` | `(() => string) \| undefined` | built-in visible ASCII generator | Generates new session ids. Pass `undefined` to disable sessions entirely. |
-| `enableJsonResponse` | `boolean` | `false` | Return `application/json` bodies for `POST` responses instead of `text/event-stream`. |
+| Option               | Type                                         | Default                          | Description                                                                                   |
+| -------------------- | -------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
+| `name`               | `string`                                     | none                             | MCP server name exposed during initialization.                                                |
+| `version`            | `string`                                     | none                             | MCP server version exposed during initialization.                                             |
+| `sessionIdGenerator` | `(() => string) \| undefined`                | built-in visible ASCII generator | Generates new session ids. Pass `undefined` to disable sessions entirely.                     |
+| `enableJsonResponse` | `boolean`                                    | `false`                          | Return `application/json` bodies for `POST` responses instead of `text/event-stream`.         |
+| `oauth`              | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`                      | Enables OAuth protected-resource metadata and bearer-token verification for the MCP endpoint. |
 
 ### `createExpressMiddleware(server)`
 
@@ -302,8 +298,9 @@ import type {
   HttpListenOptions,
   HttpServer,
   HttpServerHandle,
+  TinyHttpMcpServerOAuthOptions,
   HttpTransportOptions,
-  StreamableHttpTransportOptions,
+  StreamableHttpTransportOptions
 } from "tiny-http-mcp-server";
 ```
 
@@ -311,31 +308,32 @@ import type {
 
 Options for `server.listenHttp()`:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `port` | `number` | `0` | TCP port to bind to. Use `0` for an ephemeral port. |
-| `hostname` | `string` | `"127.0.0.1"` | Interface/host to bind to. IPv4, hostnames, and IPv6 literals are supported. |
-| `path` | `string` | `"/mcp"` | URL pathname to serve the MCP endpoint on. `mcp` and `/mcp` are normalized to the same value. |
-| `signal` | `AbortSignal` | none | Aborts the listener and closes the server when triggered. |
+| Option     | Type          | Default       | Description                                                                                   |
+| ---------- | ------------- | ------------- | --------------------------------------------------------------------------------------------- |
+| `port`     | `number`      | `0`           | TCP port to bind to. Use `0` for an ephemeral port.                                           |
+| `hostname` | `string`      | `"127.0.0.1"` | Interface/host to bind to. IPv4, hostnames, and IPv6 literals are supported.                  |
+| `path`     | `string`      | `"/mcp"`      | URL pathname to serve the MCP endpoint on. `mcp` and `/mcp` are normalized to the same value. |
+| `signal`   | `AbortSignal` | none          | Aborts the listener and closes the server when triggered.                                     |
 
 #### `HttpServerHandle`
 
 Returned by `listenHttp()`:
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `url` | `string` | Full MCP endpoint URL. |
-| `port` | `number` | Resolved TCP port. |
-| `close` | `() => Promise<void>` | Gracefully shuts down the listener and transport. |
+| Property | Type                  | Description                                       |
+| -------- | --------------------- | ------------------------------------------------- |
+| `url`    | `string`              | Full MCP endpoint URL.                            |
+| `port`   | `number`              | Resolved TCP port.                                |
+| `close`  | `() => Promise<void>` | Gracefully shuts down the listener and transport. |
 
 #### `HttpTransportOptions` / `StreamableHttpTransportOptions`
 
 These are the same shape:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `sessionIdGenerator` | `(() => string) \| undefined` | built-in generator | Controls session support and session id creation. |
-| `enableJsonResponse` | `boolean` | `false` | Switches `POST` responses from SSE framing to plain JSON responses. |
+| Option               | Type                                         | Default            | Description                                                                               |
+| -------------------- | -------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------- |
+| `sessionIdGenerator` | `(() => string) \| undefined`                | built-in generator | Controls session support and session id creation.                                         |
+| `enableJsonResponse` | `boolean`                                    | `false`            | Switches `POST` responses from SSE framing to plain JSON responses.                       |
+| `oauth`              | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`        | Publishes RFC 9728 metadata and protects the MCP endpoint with bearer-token verification. |
 
 #### `HttpServer`
 
@@ -362,20 +360,33 @@ tiny-http-mcp-server [options]
 
 ### Flags
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--port <port>` | `3000` | Port to listen on. Use `0` for an ephemeral port. |
-| `--hostname <hostname>` | `127.0.0.1` | Hostname/interface to bind to. IPv4, hostnames, and IPv6 literals such as `::1` are supported. |
-| `--path <path>` | `/mcp` | MCP endpoint path. `api/mcp` and `/api/mcp` are equivalent. |
-| `--stateless` | off | Disable session support. |
-| `--json-response` | off | Return `application/json` for `POST` responses. |
-| `-h`, `--help` | off | Print help and exit. |
+| Flag                                         | Default     | Description                                                                                                                          |
+| -------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `--port <port>`                              | `3000`      | Port to listen on. Use `0` for an ephemeral port.                                                                                    |
+| `--hostname <hostname>`                      | `127.0.0.1` | Hostname/interface to bind to. IPv4, hostnames, and IPv6 literals such as `::1` are supported.                                       |
+| `--path <path>`                              | `/mcp`      | MCP endpoint path. `api/mcp` and `/api/mcp` are equivalent.                                                                          |
+| `--stateless`                                | off         | Disable session support.                                                                                                             |
+| `--json-response`                            | off         | Return `application/json` for `POST` responses.                                                                                      |
+| `--oauth-resource <uri>`                     | none        | Enable OAuth mode with this canonical protected resource URI. Requires `--oauth-authorization-server` and `--oauth-verifier-module`. |
+| `--oauth-authorization-server <issuer>`      | none        | Authorization server issuer URL to publish in metadata. Repeat the flag for multiple issuers.                                        |
+| `--oauth-supported-scope <scope>`            | none        | Scope to publish in `scopes_supported`. Repeat the flag for multiple scopes.                                                         |
+| `--oauth-required-scope <scope>`             | none        | Scope required on incoming MCP requests. Repeat the flag for multiple scopes.                                                        |
+| `--oauth-bearer-method <method>`             | none        | Bearer transport to publish in `bearer_methods_supported`. Repeat the flag for multiple methods.                                     |
+| `--oauth-verifier-module <path-or-file-url>` | none        | Module path, `file:` URL, or package specifier that exports the `TokenVerifier` used in CLI mode.                                    |
+| `--oauth-verifier-export <name>`             | `default`   | Named export to load from `--oauth-verifier-module`.                                                                                 |
+| `-h`, `--help`                               | off         | Print help and exit.                                                                                                                 |
 
 Examples:
 
 ```sh
 tiny-http-mcp-server --port 8080 --path /api/mcp
 tiny-http-mcp-server --port 0 --stateless --json-response
+tiny-http-mcp-server \
+  --oauth-resource https://example.com/mcp \
+  --oauth-authorization-server https://auth.example.com \
+  --oauth-supported-scope mcp.read \
+  --oauth-required-scope mcp.read \
+  --oauth-verifier-module ./verify-token.mjs
 ```
 
 ## Testing Helpers
@@ -386,7 +397,7 @@ Testing helpers are exported from the package subpath:
 import {
   createHttpTestPair,
   createHttpTestPairWithTinyClient,
-  createTestMcpServer,
+  createTestMcpServer
 } from "tiny-http-mcp-server/testing";
 ```
 
@@ -404,10 +415,7 @@ Example:
 
 ```ts
 import { expect, test } from "vitest";
-import {
-  createHttpTestPair,
-  createTestMcpServer,
-} from "tiny-http-mcp-server/testing";
+import { createHttpTestPair, createTestMcpServer } from "tiny-http-mcp-server/testing";
 
 test("calls a tool over HTTP", async () => {
   const pair = await createHttpTestPair(createTestMcpServer());
@@ -415,7 +423,7 @@ test("calls a tool over HTTP", async () => {
   try {
     const result = await pair.client.callTool({
       name: "echo",
-      arguments: { text: "hello" },
+      arguments: { text: "hello" }
     });
 
     expect(result.content).toEqual([{ type: "text", text: "hello" }]);
@@ -437,11 +445,11 @@ Creates a ready-made `HttpServer` for integration and conformance tests. It incl
 
 Supported options:
 
-| Option | Type | Default |
-| --- | --- | --- |
-| `name` | `string` | `"conformance-test-server"` |
-| `version` | `string` | `"1.0.0"` |
-| `enableJsonResponse` | `boolean` | inherited default (`false`) |
+| Option               | Type                          | Default                                |
+| -------------------- | ----------------------------- | -------------------------------------- |
+| `name`               | `string`                      | `"conformance-test-server"`            |
+| `version`            | `string`                      | `"1.0.0"`                              |
+| `enableJsonResponse` | `boolean`                     | inherited default (`false`)            |
 | `sessionIdGenerator` | `(() => string) \| undefined` | inherited default (built-in generator) |
 
 Example:
@@ -449,7 +457,7 @@ Example:
 ```ts
 const server = createTestMcpServer({
   enableJsonResponse: true,
-  sessionIdGenerator: undefined,
+  sessionIdGenerator: undefined
 });
 ```
 
@@ -463,7 +471,7 @@ The returned `TinyHttpTestPair` includes a `requests` array that logs every HTTP
 import { expect, test } from "vitest";
 import {
   createHttpTestPairWithTinyClient,
-  createTestMcpServer,
+  createTestMcpServer
 } from "tiny-http-mcp-server/testing";
 
 test("tiny-mcp-client sends DELETE on close", async () => {

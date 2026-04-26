@@ -3157,7 +3157,158 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(exitCode).toBe(0);
   });
 
-  it("C7 -h/--help shows help and exits with code 0", async () => {
+  it("C7 enables OAuth mode when --oauth-resource is configured", async () => {
+    const verifier = {
+      verify: vi.fn(async () => {
+        throw new Error("not used in this test");
+      }),
+    };
+    const createServer = vi.fn(() => ({
+      listenHttp: vi.fn().mockResolvedValue({
+        url: "http://127.0.0.1:3000/mcp",
+        port: 3000,
+        close: vi.fn().mockResolvedValue(undefined),
+      }),
+    }));
+    const loadOAuthVerifier = vi.fn(async () => verifier);
+
+    const exitCode = await runCli(
+      [
+        "--oauth-resource",
+        "https://resource.example.com/mcp",
+        "--oauth-authorization-server",
+        "https://auth.example.com",
+        "--oauth-verifier-module",
+        "./verify-token.mjs",
+      ],
+      {
+        createServer,
+        loadOAuthVerifier,
+        waitForShutdown: async (shutdown) => {
+          await shutdown();
+        },
+      }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(loadOAuthVerifier).toHaveBeenCalledWith({
+      modulePath: "./verify-token.mjs",
+      exportName: "default",
+    });
+    expect(createServer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        oauth: {
+          resource: "https://resource.example.com/mcp",
+          authorizationServers: ["https://auth.example.com/"],
+          verifier,
+        },
+      })
+    );
+  });
+
+  it("C8 parses repeatable OAuth scope and bearer flags", async () => {
+    const createServer = vi.fn(() => ({
+      listenHttp: vi.fn().mockResolvedValue({
+        url: "http://127.0.0.1:3000/mcp",
+        port: 3000,
+        close: vi.fn().mockResolvedValue(undefined),
+      }),
+    }));
+
+    const exitCode = await runCli(
+      [
+        "--oauth-resource",
+        "https://resource.example.com/mcp",
+        "--oauth-authorization-server",
+        "https://auth-a.example.com",
+        "--oauth-authorization-server",
+        "https://auth-b.example.com",
+        "--oauth-supported-scope",
+        "mcp.read",
+        "--oauth-supported-scope",
+        "mcp.write",
+        "--oauth-required-scope",
+        "mcp.read",
+        "--oauth-required-scope",
+        "mcp.admin",
+        "--oauth-bearer-method",
+        "header",
+        "--oauth-bearer-method",
+        "body",
+        "--oauth-verifier-module",
+        "./verify-token.mjs",
+      ],
+      {
+        createServer,
+        loadOAuthVerifier: async () => ({
+          verify: vi.fn(async () => {
+            throw new Error("not used in this test");
+          }),
+        }),
+        waitForShutdown: async (shutdown) => {
+          await shutdown();
+        },
+      }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(createServer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        oauth: expect.objectContaining({
+          authorizationServers: [
+            "https://auth-a.example.com/",
+            "https://auth-b.example.com/",
+          ],
+          scopesSupported: ["mcp.read", "mcp.write"],
+          requiredScopes: ["mcp.read", "mcp.admin"],
+          bearerMethodsSupported: ["header", "body"],
+        }),
+      })
+    );
+  });
+
+  it("C9 passes --oauth-verifier-export to the verifier loader", async () => {
+    const createServer = vi.fn(() => ({
+      listenHttp: vi.fn().mockResolvedValue({
+        url: "http://127.0.0.1:3000/mcp",
+        port: 3000,
+        close: vi.fn().mockResolvedValue(undefined),
+      }),
+    }));
+    const loadOAuthVerifier = vi.fn(async () => ({
+      verify: vi.fn(async () => {
+        throw new Error("not used in this test");
+      }),
+    }));
+
+    const exitCode = await runCli(
+      [
+        "--oauth-resource",
+        "https://resource.example.com/mcp",
+        "--oauth-authorization-server",
+        "https://auth.example.com",
+        "--oauth-verifier-module",
+        "./verify-token.mjs",
+        "--oauth-verifier-export",
+        "customVerifier",
+      ],
+      {
+        createServer,
+        loadOAuthVerifier,
+        waitForShutdown: async (shutdown) => {
+          await shutdown();
+        },
+      }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(loadOAuthVerifier).toHaveBeenCalledWith({
+      modulePath: "./verify-token.mjs",
+      exportName: "customVerifier",
+    });
+  });
+
+  it("C10 -h/--help shows help and exits with code 0", async () => {
     const createServer = vi.fn();
     const shortOutput = createCapturedOutput();
     const longOutput = createCapturedOutput();
@@ -3178,10 +3329,17 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(createServer).not.toHaveBeenCalled();
     expect(shortOutput.stdout).toContain("Usage: tiny-http-mcp-server [options]");
     expect(shortOutput.stdout).toContain("--json-response");
+    expect(shortOutput.stdout).toContain("--oauth-resource");
+    expect(shortOutput.stdout).toContain("--oauth-authorization-server");
+    expect(shortOutput.stdout).toContain("--oauth-supported-scope");
+    expect(shortOutput.stdout).toContain("--oauth-required-scope");
+    expect(shortOutput.stdout).toContain("--oauth-bearer-method");
+    expect(shortOutput.stdout).toContain("--oauth-verifier-module");
+    expect(shortOutput.stdout).toContain("--oauth-verifier-export");
     expect(longOutput.stdout).toContain("-h, --help");
   });
 
-  it("C8 SIGINT triggers graceful shutdown", async () => {
+  it("C11 SIGINT triggers graceful shutdown", async () => {
     const env = { ...process.env };
     delete env.FORCE_COLOR;
     delete env.NO_COLOR;
@@ -3209,6 +3367,80 @@ describe("tiny-http-mcp-server CLI", () => {
       })
     ).rejects.toThrow();
     expect(stderr()).toBe("");
+  });
+
+  it("C12 exits with code 1 when --oauth-resource is set without --oauth-authorization-server", async () => {
+    const output = createCapturedOutput();
+    const exitCode = await runCli(
+      [
+        "--oauth-resource",
+        "https://resource.example.com/mcp",
+        "--oauth-verifier-module",
+        "./verify-token.mjs",
+      ],
+      { stdout: output.io.stdout, stderr: output.io.stderr }
+    );
+    expect(exitCode).toBe(1);
+    expect(output.stderr).toContain("--oauth-authorization-server");
+  });
+
+  it("C13 exits with code 1 when --oauth-resource is set without --oauth-verifier-module", async () => {
+    const output = createCapturedOutput();
+    const exitCode = await runCli(
+      [
+        "--oauth-resource",
+        "https://resource.example.com/mcp",
+        "--oauth-authorization-server",
+        "https://auth.example.com",
+      ],
+      { stdout: output.io.stdout, stderr: output.io.stderr }
+    );
+    expect(exitCode).toBe(1);
+    expect(output.stderr).toContain("--oauth-verifier-module");
+  });
+
+  it("C14 exits with code 1 when an OAuth flag is set without --oauth-resource", async () => {
+    const output = createCapturedOutput();
+    const exitCode = await runCli(
+      ["--oauth-authorization-server", "https://auth.example.com"],
+      { stdout: output.io.stdout, stderr: output.io.stderr }
+    );
+    expect(exitCode).toBe(1);
+    expect(output.stderr).toContain("--oauth-resource");
+  });
+
+  it("C15 exits with code 1 when --oauth-resource is not an absolute URL", async () => {
+    const output = createCapturedOutput();
+    const exitCode = await runCli(
+      [
+        "--oauth-resource",
+        "not-a-url",
+        "--oauth-authorization-server",
+        "https://auth.example.com",
+        "--oauth-verifier-module",
+        "./verify-token.mjs",
+      ],
+      { stdout: output.io.stdout, stderr: output.io.stderr }
+    );
+    expect(exitCode).toBe(1);
+    expect(output.stderr).toContain("--oauth-resource");
+  });
+
+  it("C16 exits with code 1 when --oauth-authorization-server is not an absolute URL", async () => {
+    const output = createCapturedOutput();
+    const exitCode = await runCli(
+      [
+        "--oauth-resource",
+        "https://resource.example.com/mcp",
+        "--oauth-authorization-server",
+        "not-a-url",
+        "--oauth-verifier-module",
+        "./verify-token.mjs",
+      ],
+      { stdout: output.io.stdout, stderr: output.io.stderr }
+    );
+    expect(exitCode).toBe(1);
+    expect(output.stderr).toContain("--oauth-authorization-server");
   });
 });
 

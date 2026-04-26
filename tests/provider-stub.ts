@@ -32,6 +32,7 @@ export function createProviderStub<
     ...overrides,
     id,
     summary,
+    requiresProvider: overrides.requiresProvider ?? true,
     configure: overrides.configure ?? defaultConfigure,
     unconfigure: overrides.unconfigure ?? defaultUnconfigure
   };

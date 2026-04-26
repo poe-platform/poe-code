@@ -1,0 +1,76 @@
+import path from "node:path";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { createHttpServer } from "tiny-http-mcp-server";
+
+function isWindowsAbsolutePath(value) {
+  if (value.length < 3) {
+    return false;
+  }
+
+  const drive = value.charCodeAt(0);
+  const separator = value[2];
+  const isLetter =
+    (drive >= 65 && drive <= 90) || (drive >= 97 && drive <= 122);
+
+  return isLetter && value[1] === ":" && (separator === "\\" || separator === "/");
+}
+
+function resolveModuleSpecifier(baseDir, value) {
+  if (value.startsWith("file:")) {
+    return value;
+  }
+
+  if (value.startsWith(".") || value.startsWith("/") || isWindowsAbsolutePath(value)) {
+    const resolvedPath = path.isAbsolute(value)
+      ? value
+      : path.resolve(baseDir, value);
+    return pathToFileURL(resolvedPath).href;
+  }
+
+  return value;
+}
+
+const directory = path.dirname(fileURLToPath(import.meta.url));
+const config = JSON.parse(
+  await readFile(new URL("./config.json", import.meta.url), "utf8")
+);
+
+const verifierModule = await import(
+  resolveModuleSpecifier(directory, config.oauth.verifierModule)
+);
+const verifier = verifierModule[config.oauth.verifierExport ?? "default"];
+
+if (!verifier || typeof verifier.verify !== "function") {
+  throw new Error("Verifier module must export an object with a verify() method.");
+}
+
+const server = createHttpServer({
+  name: config.name,
+  version: config.version,
+  oauth: {
+    resource: config.oauth.resource,
+    authorizationServers: config.oauth.authorizationServers,
+    requiredScopes: config.oauth.requiredScopes,
+    scopesSupported: config.oauth.scopesSupported,
+    bearerMethodsSupported: config.oauth.bearerMethodsSupported,
+    verifier,
+  },
+});
+
+const handle = await server.listenHttp(config.listen);
+
+console.log(handle.url);
+
+const shutdown = async () => {
+  await handle.close();
+  process.exit(0);
+};
+
+process.once("SIGINT", () => {
+  void shutdown();
+});
+
+process.once("SIGTERM", () => {
+  void shutdown();
+});

@@ -89,4 +89,27 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
 
     expect((payload.provider as Record<string, unknown>).baseUrl).toBe(container.providerRegistry.get("poe")!.baseUrl);
   });
+
+  it("omits provider auth resolution for providerless services", async () => {
+    const container = createContainer(fs);
+    const resolveApiKeySpy = vi.spyOn(container.options, "resolveApiKey");
+
+    const adapter = container.registry.require("tiny-http-mcp-server");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: {},
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: undefined
+    }) as Record<string, unknown>;
+
+    expect(resolveApiKeySpy).not.toHaveBeenCalled();
+    expect(payload.provider).toBeUndefined();
+    expect(payload.env).toBeDefined();
+  });
 });

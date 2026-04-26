@@ -12,24 +12,30 @@ interface ConfigurePayloadInit {
   context: ProviderContext;
   adapter: ProviderService;
   logger: ScopedLogger;
-  providerId: string;
+  providerId?: string;
 }
 
 export async function createConfigurePayload(
   init: ConfigurePayloadInit
 ): Promise<unknown> {
   const { container, flags, options, context, adapter, logger, providerId } = init;
+  const payload: Record<string, unknown> = { env: context.env };
 
-  const apiKey = await container.options.resolveApiKey({
-    value: options.apiKey,
-    envValue: container.env.getVariable("POE_API_KEY"),
-    dryRun: flags.dryRun,
-    assumeYes: flags.assumeYes
-  });
+  if (providerId) {
+    const apiKey = await container.options.resolveApiKey({
+      value: options.apiKey,
+      envValue: container.env.getVariable("POE_API_KEY"),
+      dryRun: flags.dryRun,
+      assumeYes: flags.assumeYes
+    });
 
-  const activeProvider: ActiveProvider = buildActiveProvider(providerId, container.providerRegistry.get(providerId)?.baseUrl ?? "", apiKey);
-
-  const payload: Record<string, unknown> = { env: context.env, provider: activeProvider };
+    const activeProvider: ActiveProvider = buildActiveProvider(
+      providerId,
+      container.providerRegistry.get(providerId)?.baseUrl ?? "",
+      apiKey
+    );
+    payload.provider = activeProvider;
+  }
 
   const modelPrompt = adapter.configurePrompts?.model;
   if (modelPrompt) {
@@ -66,7 +72,11 @@ export async function createConfigurePayload(
     env: context.env,
     httpClient: container.httpClient,
     logger,
-    payload
+    payload,
+    prompts: container.prompts,
+    promptLibrary: container.promptLibrary,
+    assumeYes: flags.assumeYes,
+    commandOptions: options as Record<string, unknown>
   });
   if (extension) {
     Object.assign(payload, extension);

@@ -180,8 +180,8 @@ tasks:
 
       No code changes outside the README.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 ---
 
 # Context

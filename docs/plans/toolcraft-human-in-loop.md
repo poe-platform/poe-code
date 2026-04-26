@@ -157,7 +157,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: task-list-readme
     title: task-list — README update for configurable state machine
@@ -172,7 +172,7 @@ tasks:
       Keep diffs minimal — only document what changed. No new env vars to
       list. Per project rule, do not add anything outside what changed.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: toolcraft-humaninloop-config

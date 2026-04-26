@@ -1,9 +1,11 @@
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { createJwksTokenVerifier } from "mcp-oauth";
+import { TokenVerificationError } from "tiny-http-mcp-server";
 import { createTestMcpServer, nodeFetch } from "tiny-http-mcp-server/testing";
 import {
   createOAuthTestServer,
+  type OAuthTestStaticClient,
   type OAuthTestServer,
 } from "tiny-oauth-test-server";
 
@@ -14,6 +16,7 @@ export interface McpOAuthTestServerOptions {
   ttlSeconds?: number;
   autoApprove?: boolean;
   scopes?: string[];
+  staticClients?: OAuthTestStaticClient[];
 }
 
 export interface McpOAuthTestServerListenOptions {
@@ -92,6 +95,14 @@ function buildUrl(hostname: string, port: number, path: string): string {
   url.search = "";
   url.hash = "";
   return url.toString();
+}
+
+function isRevokedToken(oauth: OAuthTestServer, token: string): boolean {
+  const candidate = oauth as OAuthTestServer & {
+    isTokenRevoked?: (input: string) => boolean;
+  };
+
+  return candidate.isTokenRevoked?.(token) ?? false;
 }
 
 function normalizeScopes(scopes: string[] | undefined): string[] {
@@ -186,6 +197,7 @@ export function createMcpOAuthTestServer(
       const oauth = createOAuthTestServer({
         issuer,
         defaultTokenTtlSeconds: options.ttlSeconds ?? 60,
+        staticClients: options.staticClients,
         defaultAuthorization: {
           autoApprove: options.autoApprove ?? false,
           scopes,
@@ -201,11 +213,23 @@ export function createMcpOAuthTestServer(
 
       try {
         const resource = options.resource ?? buildUrl(hostname, fixedPort, mcpPath);
-        const verifier = createJwksTokenVerifier({
+        const jwksVerifier = createJwksTokenVerifier({
           jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
           fetch: (input, init) =>
             nodeFetch(input instanceof Request ? input.url : input, init),
         });
+        const verifier = {
+          async verify(input: Parameters<typeof jwksVerifier.verify>[0]) {
+            if (isRevokedToken(oauth, input.token)) {
+              throw new TokenVerificationError({
+                error: "invalid_token",
+                errorDescription: "token revoked",
+              });
+            }
+
+            return jwksVerifier.verify(input);
+          },
+        };
 
         mcpHandle = await createTestMcpServer({
           enableJsonResponse: true,

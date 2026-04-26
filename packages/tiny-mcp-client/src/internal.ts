@@ -5,6 +5,7 @@ import type { Readable, Writable } from "node:stream";
 import type { JSONRPCMessage as SdkJsonRpcMessage } from "@modelcontextprotocol/sdk/types.js";
 import {
   createOAuthClientProvider,
+  OAuthError,
   type OAuthClientProvider,
   type OAuthClientProviderOptions,
 } from "mcp-oauth";
@@ -2728,7 +2729,35 @@ export class HttpTransport implements McpTransport {
       response = await request();
     }
 
+    const oauthError = this.oauthProvider === undefined
+      ? null
+      : this.readOAuthChallengeError(response);
+    if (oauthError !== null) {
+      throw oauthError;
+    }
+
     return response;
+  }
+
+  private readOAuthChallengeError(response: Response): OAuthError | null {
+    if (response.status !== 401) {
+      return null;
+    }
+
+    const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
+    const error = challenge?.params.error;
+    if (error === undefined || error.length === 0) {
+      return null;
+    }
+
+    return new OAuthError(
+      {
+        error,
+        error_description: challenge?.params.error_description,
+        error_uri: challenge?.params.error_uri,
+      },
+      response.status
+    );
   }
 }
 

@@ -525,7 +525,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: e2e-tiny-mcp-client
     title: E2E conformance — tiny-mcp-client
@@ -563,10 +563,10 @@ tasks:
       Use the existing `vitest` setup. No real browsers, no sleeps; the
       auto-approve path on the AS handles the consent step.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: e2e-typescript-sdk-client
     title: E2E conformance — @modelcontextprotocol/sdk client

@@ -58,11 +58,15 @@ export function createDefaultOAuthClientProvider(
       requestResourceMap.set(input.requestUrl.toString(), input.discovery.resource);
 
       try {
+        const forceRefresh =
+          hasCachedAccessToken(await loadSession(input.discovery.resource))
+          && input.challenge?.params.error === "invalid_token";
         const session = await ensureAuthorizedSession(
           input.discovery.resource,
           input.discovery,
           input.fetch,
-          true
+          true,
+          forceRefresh
         );
 
         if (session?.tokens?.accessToken === undefined) {
@@ -83,16 +87,21 @@ export function createDefaultOAuthClientProvider(
     resource: string,
     discovery: OAuthDiscoveryResult | undefined,
     fetch: OAuthMetadataFetch,
-    allowInteractive: boolean
+    allowInteractive: boolean,
+    forceRefresh = false
   ): Promise<StoredOAuthSession | null> {
     let session = await loadSession(resource);
     const sessionDiscovery = resolveDiscovery(discovery, session);
 
-    if (session?.tokens !== undefined && !isExpired(session.tokens, now)) {
+    if (session?.tokens !== undefined && !forceRefresh && !isExpired(session.tokens, now)) {
       return session;
     }
 
-    if (session?.tokens?.refreshToken !== undefined && sessionDiscovery !== undefined) {
+    if (
+      session?.tokens?.refreshToken !== undefined
+      && sessionDiscovery !== undefined
+      && (forceRefresh || isExpired(session.tokens, now))
+    ) {
       session = await refreshSession(resource, session, sessionDiscovery, fetch);
       if (session?.tokens !== undefined && !isExpired(session.tokens, now)) {
         return session;
@@ -100,6 +109,10 @@ export function createDefaultOAuthClientProvider(
     }
 
     if (!allowInteractive || sessionDiscovery === undefined) {
+      return session;
+    }
+
+    if (forceRefresh && session?.tokens !== undefined) {
       return session;
     }
 
@@ -346,6 +359,12 @@ function clearSessionTokens(session: StoredOAuthSession): StoredOAuthSession {
   const nextSession = { ...session };
   delete nextSession.tokens;
   return nextSession;
+}
+
+function hasCachedAccessToken(
+  session: StoredOAuthSession | null
+): session is StoredOAuthSession & { tokens: StoredOAuthTokens } {
+  return session?.tokens?.accessToken !== undefined;
 }
 
 function getClientMetadata(

@@ -46,6 +46,13 @@ export interface OAuthTestServerListeningHandle {
   close(): Promise<void>;
 }
 
+export interface OAuthTestServerRequest {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: string;
+}
+
 export interface DirectTokenIssueOptions {
   clientId: string;
   resource: string;
@@ -60,9 +67,11 @@ export interface NextAuthorizationOptions {
 
 export interface OAuthTestServer {
   readonly issuer: string;
+  readonly requestLog: readonly OAuthTestServerRequest[];
   listen(options?: OAuthTestServerListenOptions): Promise<OAuthTestServerListeningHandle>;
   issueTokenFor(options: DirectTokenIssueOptions): Promise<string>;
   setNextAuthorization(options: NextAuthorizationOptions): void;
+  isTokenRevoked(token: string): boolean;
   revoke(token: string): void;
 }
 
@@ -436,6 +445,31 @@ function sendOAuthError(
   });
 }
 
+function cloneRequestLog(
+  requestLog: readonly OAuthTestServerRequest[]
+): OAuthTestServerRequest[] {
+  return requestLog.map((request) => ({
+    ...request,
+    headers: { ...request.headers },
+  }));
+}
+
+function readRequestHeaders(request: IncomingMessage): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(request.headers).flatMap(([name, value]) => {
+      if (typeof value === "string") {
+        return [[name, value]];
+      }
+
+      if (Array.isArray(value)) {
+        return [[name, value.join(", ")]];
+      }
+
+      return [];
+    })
+  );
+}
+
 async function readBody(request: IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
 
@@ -446,8 +480,7 @@ async function readBody(request: IncomingMessage): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-async function readJsonObjectBody(request: IncomingMessage): Promise<ObjectRecord> {
-  const body = await readBody(request);
+function parseJsonObjectBody(body: string): ObjectRecord {
   if (body.length === 0) {
     throw new OAuthRequestError(400, "invalid_request", "request body must be a JSON object");
   }
@@ -462,10 +495,6 @@ async function readJsonObjectBody(request: IncomingMessage): Promise<ObjectRecor
   } catch {
     throw new OAuthRequestError(400, "invalid_request", "request body must be a JSON object");
   }
-}
-
-async function readFormBody(request: IncomingMessage): Promise<URLSearchParams> {
-  return new URLSearchParams(await readBody(request));
 }
 
 function readSingleParam(params: URLSearchParams, name: string): string | null {
@@ -551,6 +580,7 @@ export function createOAuthTestServer(
   const refreshTokens = new Map<string, RefreshTokenRecord>();
   const accessTokens = new Map<string, AccessTokenRecord>();
   const revokedTokens = new Set<string>();
+  const requestLog: OAuthTestServerRequest[] = [];
 
   let nextClientId = 1;
   let server: http.Server | null = null;
@@ -570,6 +600,10 @@ export function createOAuthTestServer(
       }
 
       return runtimeIssuer;
+    },
+
+    get requestLog(): readonly OAuthTestServerRequest[] {
+      return cloneRequestLog(requestLog);
     },
 
     async listen(listenOptions: OAuthTestServerListenOptions = {}) {
@@ -668,6 +702,10 @@ export function createOAuthTestServer(
       };
     },
 
+    isTokenRevoked(token: string): boolean {
+      return revokedTokens.has(token);
+    },
+
     revoke(token: string): void {
       revokedTokens.add(token);
       const refresh = refreshTokens.get(token);
@@ -707,22 +745,37 @@ export function createOAuthTestServer(
   ): Promise<void> {
     try {
       const issuer = getIssuer();
-      const url = new URL(request.url ?? "/", "http://127.0.0.1");
+      const serverUrl = currentHandle?.url ?? "http://127.0.0.1";
+      const url = new URL(request.url ?? "/", serverUrl);
       const method = request.method ?? "GET";
       const paths = getEndpointPaths(issuer);
+      const requestHeaders = readRequestHeaders(request);
+
+      const appendRequestLog = (body?: string): void => {
+        requestLog.push({
+          method,
+          url: url.toString(),
+          headers: requestHeaders,
+          ...(body === undefined ? {} : { body }),
+        });
+      };
 
       if (method === "GET" && paths.metadataPaths.includes(url.pathname)) {
+        appendRequestLog();
         sendJson(response, 200, createMetadataDocument(issuer));
         return;
       }
 
       if (method === "GET" && paths.jwksPaths.includes(url.pathname)) {
+        appendRequestLog();
         sendJson(response, 200, { keys: [signing.publicJwk] });
         return;
       }
 
       if (method === "POST" && paths.registerPaths.includes(url.pathname)) {
-        const payload = await readJsonObjectBody(request);
+        const body = await readBody(request);
+        appendRequestLog(body);
+        const payload = parseJsonObjectBody(body);
         sendJson(response, 201, handleRegister(payload), {
           Location: paths.registerUrl,
         });
@@ -730,22 +783,27 @@ export function createOAuthTestServer(
       }
 
       if (method === "GET" && paths.authorizePaths.includes(url.pathname)) {
+        appendRequestLog();
         await handleAuthorize(url, response);
         return;
       }
 
       if (method === "POST" && paths.tokenPaths.includes(url.pathname)) {
-        const body = await readFormBody(request);
-        await handleToken(body, response);
+        const body = await readBody(request);
+        appendRequestLog(body);
+        await handleToken(new URLSearchParams(body), response);
         return;
       }
 
       if (method === "POST" && paths.issueTokenPaths.includes(url.pathname)) {
-        const payload = await readJsonObjectBody(request);
+        const body = await readBody(request);
+        appendRequestLog(body);
+        const payload = parseJsonObjectBody(body);
         sendJson(response, 200, await handleIssueToken(payload));
         return;
       }
 
+      appendRequestLog();
       sendJson(response, 404, {
         error: "not_found",
         error_description: "endpoint not found",

@@ -3,13 +3,10 @@ import * as fs from "node:fs/promises";
 import type { Command } from "commander";
 import { confirmOrCancel } from "@poe-code/design-system";
 import {
-  clearMemory,
-  computeTokenStats,
   initMemory,
-  listPages,
+  openMemory,
   resolveConfiguredMemoryRoot,
-  searchMemory,
-  statusOf
+  type MemoryHandle
 } from "@poe-code/memory";
 import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
@@ -41,8 +38,8 @@ function displayPageRelPath(relPath: string): string {
   return relPath.startsWith("pages/") ? relPath.slice("pages/".length) : relPath;
 }
 
-async function assertInitialized(root: string): Promise<void> {
-  const status = await statusOf(root);
+async function assertInitialized(mem: Pick<MemoryHandle, "statusOf">): Promise<void> {
+  const status = await mem.statusOf();
   if (!status.initialized) {
     throw new ValidationError(
       `Memory is not initialized. Run "poe-code memory init" in this project.`
@@ -98,11 +95,12 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:ls");
       const root = await resolveRoot(container);
+      const mem = openMemory({ root });
 
       resources.logger.intro("memory ls");
-      await assertInitialized(root);
+      await assertInitialized(mem);
 
-      const pages = await listPages(root);
+      const pages = await mem.listPages();
       if (pages.length === 0) {
         process.stdout.write("No memory pages yet.\n");
         return;
@@ -124,12 +122,13 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:show");
       const root = await resolveRoot(container);
+      const mem = openMemory({ root });
 
       resources.logger.intro("memory show");
-      await assertInitialized(root);
+      await assertInitialized(mem);
 
       const relPath = resolvePageRelPath(pagePath);
-      const absPath = path.join(root, relPath);
+      const absPath = path.join(mem.root, relPath);
 
       try {
         const content = await fs.readFile(absPath, "utf8");
@@ -155,11 +154,12 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:search");
       const root = await resolveRoot(container);
+      const mem = openMemory({ root });
 
       resources.logger.intro("memory search");
-      await assertInitialized(root);
+      await assertInitialized(mem);
 
-      const hits = await searchMemory(root, query);
+      const hits = await mem.searchMemory(query);
       if (hits.length === 0) {
         process.stdout.write("No matches.\n");
         return;
@@ -179,12 +179,13 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:status");
       const root = await resolveRoot(container);
+      const mem = openMemory({ root });
       const options = this.opts<{ tokens: boolean }>();
 
       resources.logger.intro("memory status");
-      await assertInitialized(root);
+      await assertInitialized(mem);
 
-      const status = await statusOf(root);
+      const status = await mem.statusOf();
 
       process.stdout.write(`Pages: ${status.pageCount}\n`);
       process.stdout.write(`Bytes: ${status.totalBytes}\n`);
@@ -193,7 +194,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       }
 
       if (options.tokens) {
-        const tokens = await computeTokenStats(root);
+        const tokens = await mem.computeTokenStats();
         const ratio = Number.isFinite(tokens.reductionRatio)
           ? `${tokens.reductionRatio.toFixed(2)}×`
           : "0×";
@@ -213,9 +214,10 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "memory:clear");
       const root = await resolveRoot(container);
+      const mem = openMemory({ root });
 
       resources.logger.intro("memory clear");
-      await assertInitialized(root);
+      await assertInitialized(mem);
 
       if (!flags.assumeYes) {
         await confirmOrCancel({
@@ -224,11 +226,11 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       }
 
       if (flags.dryRun) {
-        resources.logger.dryRun(`Would clear memory at ${root}`);
+        resources.logger.dryRun(`Would clear memory at ${mem.root}`);
         return;
       }
 
-      await clearMemory(root);
+      await mem.clearMemory();
       resources.context.complete({
         success: "Cleared memory.",
         dry: "Would clear memory."
@@ -236,4 +238,3 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       resources.context.finalize();
     });
 }
-

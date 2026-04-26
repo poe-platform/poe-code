@@ -112,11 +112,6 @@ export type TokenStats = {
   missingSources: string[];
 };
 
-export type McpServerOptions = {
-  root: MemoryRoot;
-  allowWrites: boolean;
-};
-
 export type MemoryInstallResult = {
   skillInstalled: boolean;
   mcpConfigured: boolean;

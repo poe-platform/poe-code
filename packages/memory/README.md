@@ -119,6 +119,7 @@ import {
   resolveMemoryRoot,
   resolveConfiguredMemoryRoot,
   MEMORY_ROOT_ENV_VAR,
+  openMemory,
   initMemory,
   listPages,
   readPage,
@@ -135,6 +136,7 @@ import {
   installMemory
 } from "poe-code/memory";
 import type {
+  MemoryHandle,
   MemoryRoot,
   MemoryPage,
   SearchHit,
@@ -145,7 +147,39 @@ import type {
 } from "poe-code/memory";
 ```
 
-### Resolving the memory root
+### Handle-first API
+
+`openMemory` is the main integration surface. Resolve the root once, open a handle, and reuse it across page, status, query, ingest, and MCP operations.
+
+```ts
+import { promises as nodeFs } from "node:fs";
+
+const root = await resolveConfiguredMemoryRoot({
+  cwd: process.cwd(),
+  env: process.env,
+  fs: nodeFs,
+  configPath: `${process.env.HOME}/.poe-code/config.json`,
+  projectConfigPath: `${process.cwd()}/.poe-code/config.json`
+});
+
+const memory: MemoryHandle = openMemory({ root });
+const pages = await memory.listPages();
+const stats = await memory.statusOf();
+const answer = await memory.query({
+  question: "how does reconcile detect stale pages?",
+  budget: 4000
+});
+
+const { server, stop } = await startMemoryMcpServer(memory, { allowWrites: false });
+// ...
+await stop();
+```
+
+### Low-level API
+
+Use the free functions when you need one-off access to a specific root or are building your own abstraction around the package.
+
+#### Resolving the memory root
 
 `resolveMemoryRoot(cwd)` returns the default layout `<cwd>/.poe-code/memory`. Use `resolveConfiguredMemoryRoot` to honour the `POE_CODE_MEMORY_ROOT` env var and `memory.root` config knob:
 
@@ -161,7 +195,7 @@ const root = await resolveConfiguredMemoryRoot({
 });
 ```
 
-### Reading
+#### Reading
 
 ```ts
 const root: MemoryRoot = resolveMemoryRoot(process.cwd());
@@ -173,14 +207,14 @@ const hits: SearchHit[] = await searchMemory(root, "superintendent phases");
 const stats = await statusOf(root);
 ```
 
-### Writing
+#### Writing
 
 ```ts
 await writePage(root, "pages/packages/memory.md", body, { reason: "initial draft" });
 await appendToPage(root, "pages/LOG.md", "- noted flake\n");
 ```
 
-### Agent-backed operations
+#### Agent-backed operations
 
 `ingest`, `queryMemory`, and `explainPage` resolve an agent from config and spawn it directly.
 
@@ -196,15 +230,16 @@ const explanation = await explainPage(root, {
 });
 ```
 
-### Embedding the MCP server
+#### Embedding the MCP server
 
 ```ts
-const { server, stop } = await startMemoryMcpServer({ root, allowWrites: false });
+const memory = openMemory({ root });
+const { server, stop } = await startMemoryMcpServer(memory, { allowWrites: false });
 // ...
 await stop();
 ```
 
-### Notes
+#### Notes
 
 - All write helpers are opt-in: the caller supplies `reason` text that flows into `LOG.md`.
 - `ingest` returns a cache hit when the source hash matches a previous run; pass `force: true` to bypass.

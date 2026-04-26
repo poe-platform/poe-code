@@ -11,7 +11,6 @@ import type {
   IngestSource,
   LogEntry,
   LogVerb,
-  McpServerOptions,
   MemoryDiff,
   MemoryInstallResult,
   MemoryPage,
@@ -142,11 +141,6 @@ describe("memory types", () => {
       sourceTokens: number;
       promptTemplateVersion: string;
       agentId: string;
-    }>();
-
-    expectTypeOf<McpServerOptions>().toEqualTypeOf<{
-      root: MemoryRoot;
-      allowWrites: boolean;
     }>();
 
     expectTypeOf<MemoryInstallResult>().toEqualTypeOf<{

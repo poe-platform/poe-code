@@ -412,7 +412,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
   - id: phase-4-cli-mcp-migration
     title: Phase 4 — migrate CLI subcommands and MCP server to handle
     prompt: >
@@ -508,10 +508,10 @@ tasks:
       removal
         having landed so the CLI's call sites are clean).
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 ---
 
 # Context

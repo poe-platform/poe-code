@@ -4,9 +4,31 @@ import { Command } from "commander";
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 
+const memoryModuleMocks = vi.hoisted(() => ({
+  memoryRoot: "/repo/.memfs/memory",
+  resolveConfiguredMemoryRootMock: vi.fn(),
+  openMemoryMock: vi.fn(),
+  actualOpenMemory: undefined as
+    | undefined
+    | ((options: { root: string; agent?: string }) => unknown)
+}));
+
 vi.mock("../../providers/index.js", () => ({
   getDefaultProviders: () => []
 }));
+
+vi.mock("@poe-code/memory", async () => {
+  const actual = await vi.importActual<typeof import("@poe-code/memory")>("@poe-code/memory");
+  memoryModuleMocks.actualOpenMemory = actual.openMemory;
+  memoryModuleMocks.resolveConfiguredMemoryRootMock.mockResolvedValue(memoryModuleMocks.memoryRoot);
+  memoryModuleMocks.openMemoryMock.mockImplementation((options) => actual.openMemory(options));
+
+  return {
+    ...actual,
+    resolveConfiguredMemoryRoot: memoryModuleMocks.resolveConfiguredMemoryRootMock,
+    openMemory: memoryModuleMocks.openMemoryMock
+  };
+});
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -21,6 +43,7 @@ const { registerMemoryCommand } = await import("./memory.js");
 
 const cwd = "/repo";
 const homeDir = "/home/test";
+const memoryRoot = memoryModuleMocks.memoryRoot;
 
 function createBaseProgram(): Command {
   const program = new Command();
@@ -44,6 +67,16 @@ describe("memory command", () => {
     vol.reset();
     vol.mkdirSync(cwd, { recursive: true });
     vol.mkdirSync(homeDir, { recursive: true });
+    memoryModuleMocks.resolveConfiguredMemoryRootMock.mockReset();
+    memoryModuleMocks.resolveConfiguredMemoryRootMock.mockResolvedValue(memoryRoot);
+    memoryModuleMocks.openMemoryMock.mockClear();
+    memoryModuleMocks.openMemoryMock.mockImplementation((options) => {
+      const openMemory = memoryModuleMocks.actualOpenMemory;
+      if (openMemory === undefined) {
+        throw new Error("Expected actual openMemory implementation to be available.");
+      }
+      return openMemory(options);
+    });
   });
 
   it("initializes the memory directory", async () => {
@@ -54,11 +87,11 @@ describe("memory command", () => {
     await program.parseAsync(["node", "cli", "--yes", "memory", "init"]);
 
     await expect(
-      memfs.promises.readFile("/repo/.poe-code/memory/INDEX.md", "utf8")
+      memfs.promises.readFile(`${memoryRoot}/INDEX.md`, "utf8")
     ).resolves.toContain("Memory index");
-    await expect(
-      memfs.promises.readFile("/repo/.poe-code/memory/LOG.md", "utf8")
-    ).resolves.toBe("");
+    await expect(memfs.promises.readFile(`${memoryRoot}/LOG.md`, "utf8")).resolves.toBe("");
+    expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
+    expect(memoryModuleMocks.openMemoryMock).not.toHaveBeenCalled();
   });
 
   it("refuses to list pages when memory is not initialized", async () => {
@@ -69,6 +102,8 @@ describe("memory command", () => {
     await expect(
       program.parseAsync(["node", "cli", "--yes", "memory", "ls"])
     ).rejects.toThrow(/memory init/i);
+    expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
+    expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
   });
 
   it("clears memory", async () => {
@@ -77,16 +112,16 @@ describe("memory command", () => {
     registerMemoryCommand(program, container);
 
     vol.fromJSON({
-      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
-      "/repo/.poe-code/memory/LOG.md": "",
-      "/repo/.poe-code/memory/pages/one.md": "# One\n"
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/one.md`]: "# One\n"
     });
 
     await program.parseAsync(["node", "cli", "--yes", "memory", "clear"]);
 
-    await expect(
-      memfs.promises.readdir("/repo/.poe-code/memory/pages")
-    ).resolves.toEqual([]);
+    await expect(memfs.promises.readdir(`${memoryRoot}/pages`)).resolves.toEqual([]);
+    expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
+    expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
   });
 
   it("lists pages with descriptions", async () => {
@@ -95,10 +130,10 @@ describe("memory command", () => {
     registerMemoryCommand(program, container);
 
     vol.fromJSON({
-      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
-      "/repo/.poe-code/memory/LOG.md": "",
-      "/repo/.poe-code/memory/pages/one.md": "---\ndescription: First page\n---\n# One\n",
-      "/repo/.poe-code/memory/pages/two.md": "# Two\n"
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/one.md`]: "---\ndescription: First page\n---\n# One\n",
+      [`${memoryRoot}/pages/two.md`]: "# Two\n"
     });
 
     const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -107,6 +142,8 @@ describe("memory command", () => {
 
     expect(writeSpy).toHaveBeenCalledWith("one.md — First page\n");
     expect(writeSpy).toHaveBeenCalledWith("two.md\n");
+    expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
+    expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
     writeSpy.mockRestore();
   });
 
@@ -116,9 +153,9 @@ describe("memory command", () => {
     registerMemoryCommand(program, container);
 
     vol.fromJSON({
-      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
-      "/repo/.poe-code/memory/LOG.md": "",
-      "/repo/.poe-code/memory/pages/nested/example.md": "Hello world"
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/nested/example.md`]: "Hello world"
     });
 
     const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -126,6 +163,8 @@ describe("memory command", () => {
     await program.parseAsync(["node", "cli", "--yes", "memory", "show", "nested/example"]);
 
     expect(writeSpy).toHaveBeenCalledWith("Hello world\n");
+    expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
+    expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
     writeSpy.mockRestore();
   });
 
@@ -135,10 +174,10 @@ describe("memory command", () => {
     registerMemoryCommand(program, container);
 
     vol.fromJSON({
-      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
-      "/repo/.poe-code/memory/LOG.md": "",
-      "/repo/.poe-code/memory/pages/one.md": "alpha\nbeta match\n",
-      "/repo/.poe-code/memory/pages/two.md": "match again\n"
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/one.md`]: "alpha\nbeta match\n",
+      [`${memoryRoot}/pages/two.md`]: "match again\n"
     });
 
     const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -147,6 +186,8 @@ describe("memory command", () => {
 
     expect(writeSpy).toHaveBeenCalledWith("one.md:2: beta match\n");
     expect(writeSpy).toHaveBeenCalledWith("two.md:1: match again\n");
+    expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
+    expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
     writeSpy.mockRestore();
   });
 
@@ -156,9 +197,10 @@ describe("memory command", () => {
     registerMemoryCommand(program, container);
 
     vol.fromJSON({
-      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
-      "/repo/.poe-code/memory/LOG.md": "",
-      "/repo/.poe-code/memory/pages/one.md": "---\nsources:\n  - path: src/example.ts\n---\nHello\n",
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/one.md`]:
+        "---\nsources:\n  - path: src/example.ts\n---\nHello\n",
       "/repo/src/example.ts": "const x = 1;\n"
     });
 
@@ -166,10 +208,14 @@ describe("memory command", () => {
 
     await program.parseAsync(["node", "cli", "--yes", "memory", "status"]);
     expect(writeSpy).toHaveBeenCalledWith(expect.stringMatching(/tokens/i));
+    expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledTimes(1);
+    expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
 
     writeSpy.mockClear();
     await program.parseAsync(["node", "cli", "--yes", "memory", "status", "--no-tokens"]);
     expect(writeSpy).not.toHaveBeenCalledWith(expect.stringMatching(/tokens/i));
+    expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledTimes(2);
+    expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledTimes(2);
 
     writeSpy.mockRestore();
   });

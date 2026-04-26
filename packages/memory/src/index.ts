@@ -10,7 +10,6 @@ export type {
   IngestSource,
   LogEntry,
   LogVerb,
-  McpServerOptions,
   MemoryDiff,
   MemoryInstallResult,
   MemoryPage,

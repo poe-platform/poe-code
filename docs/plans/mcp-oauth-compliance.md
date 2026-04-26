@@ -48,7 +48,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: research-sdk-and-clients
     title: Investigate official SDK and other MCP clients
@@ -86,9 +86,9 @@ tasks:
 
       Do not modify any source files in this task. Output is the survey file.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: design-mcp-oauth-package

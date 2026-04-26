@@ -1,55 +1,275 @@
 # toolcraft
 
-tools for agents and humans
+Create tools for both agents and humans.
 
-Typed command and group definitions built on top of `toolcraft-schema`.
+Define a command once. Get a typed CLI, an MCP server, and a typed SDK from the same source. Built on `toolcraft-schema`.
 
-## Usage
+## Why
+
+You have a folder of one-off scripts and a couple of MCP servers. Each one re-derives its own argument parsing, env handling, and help text. Running them from a chatbot needs another adapter. Calling them from another script means subprocessing.
+
+`toolcraft` is the consolidation step. You write each operation as one `defineCommand`, group them, and pick which surfaces to expose:
+
+- `runCLI` — argv parsing, `--help`, kebab/snake flags, exit codes.
+- `createMCPServer` / `runMCP` — JSON-RPC over stdio with auto-generated tool schemas.
+- `createSDK` — typed in-process function calls.
+
+Same handler runs everywhere. Schema, secrets, preconditions, and human-in-loop gating are declared once.
+
+Building from an OpenAPI spec? Use [`toolcraft-openapi`](../toolcraft-openapi/) to generate toolcraft commands from the API contract.
+
+## What the owner decides
+
+Before writing toolcraft code, make a small tool map. For each script or MCP tool, write down:
+
+- **Name** — the generic command path, like `issues.list` or `messages.send`.
+- **Inputs** — params, defaults, and which ones should be positional CLI args.
+- **Output** — the structured value the handler returns.
+- **Secrets** — env vars or credentials the command needs.
+- **Side effects** — files, APIs, databases, money, or user-visible changes.
+- **Surfaces** — where it should appear: CLI, MCP, SDK, or all three.
+- **Safety** — whether it needs approval, auth, or another precondition.
+
+Keep the first migration boring:
+
+1. Wrap existing scripts as thin `defineCommand` handlers.
+2. Proxy existing MCP servers with `defineGroup({ mcp })` when you do not want to rewrite them yet.
+3. Group commands by domain and put shared secrets or approvals on the group.
+4. Add MCP scope only to tools that are safe and useful for agents.
+5. Document exposed env vars and config options in the package README.
+
+Once the tool map exists, the rest is mechanical: add commands to `root`, expose the same tree through CLI, MCP, and SDK, and remove old entrypoints when they are no longer needed.
+
+## Install
+
+```sh
+npm install toolcraft toolcraft-schema
+```
+
+Requires Node 20+.
+
+## Hello world
 
 ```ts
-import { defineCommand, defineGroup } from "toolcraft";
-import { S } from "toolcraft-schema";
+// src/commands/greet.ts
+import { defineCommand, S } from "toolcraft";
 
-const deploy = defineCommand({
-  name: "deploy",
+export const greet = defineCommand({
+  name: "greet",
+  description: "Say hello",
   params: S.Object({
-    service: S.String(),
+    name: S.String({ description: "Who to greet" }),
+    loud: S.Optional(S.Boolean({ default: false })),
   }),
-  secrets: {
-    apiKey: {
-      env: "API_KEY",
-    },
+  handler: async ({ params }) => {
+    const message = `Hello, ${params.name}`;
+    return { message: params.loud ? message.toUpperCase() : message };
   },
-  handler: async ({ params, secrets }) => ({
-    service: params.service,
-    authenticated: Boolean(secrets.apiKey),
-  }),
-});
-
-export const root = defineGroup({
-  name: "root",
-  children: [deploy],
 });
 ```
 
-## API
+```ts
+// src/root.ts
+import { defineGroup } from "toolcraft";
+import { greet } from "./commands/greet.js";
 
-- `defineCommand(config)` creates a typed command definition with inferred `params` and `secrets`.
-- `defineGroup(config)` creates a command group and inherits `secrets`, `requires`, `scope`, and `humanInLoop` through descendants.
-- `UserError` marks expected user-facing failures.
-- `runCLI(root, options)` runs the CLI for the given command tree.
-- `createSDK(root, options)` builds the typed SDK surface for `sdk`-scoped commands.
-- `createMCPServer(root, options)` exposes `mcp`-scoped commands as MCP tools.
-- `runMCP(root, options)` starts the stdio MCP server for the given command tree.
-
-## MCP proxy
-
-`defineGroup` can proxy tools from an upstream MCP server into the toolcraft tree by setting `mcp` to the standard `@poe-code/agent-mcp-config` `McpServerConfig` shape.
+export const root = defineGroup({
+  name: "mytool",
+  children: [greet],
+});
+```
 
 ```ts
-import { defineGroup } from "toolcraft";
+// src/bin.ts
+#!/usr/bin/env node
+import { runCLI } from "toolcraft/cli";
+import { root } from "./root.js";
 
-export const github = defineGroup({
+await runCLI(root, { version: "0.1.0" });
+```
+
+```sh
+mytool greet --name world
+mytool greet --name world --loud
+mytool greet --help
+```
+
+## Project layout
+
+A typical toolcraft project:
+
+```
+package.json
+src/
+  bin.ts                 # one entrypoint, dispatches by argv (see below)
+  root.ts                # defineGroup({ children: [...] })
+  commands/
+    greet.ts             # one defineCommand per file
+    deploy.ts
+    ...
+  groups/
+    issues/
+      index.ts           # defineGroup, exports a sub-tree
+      list.ts
+      create.ts
+```
+
+`package.json`:
+
+```json
+{
+  "name": "mytool",
+  "type": "module",
+  "bin": { "mytool": "./dist/bin.js" },
+  "scripts": { "build": "tsc" },
+  "dependencies": {
+    "toolcraft": "^0.0.1",
+    "toolcraft-schema": "^0.0.1"
+  }
+}
+```
+
+`tsconfig.json` needs `"module": "NodeNext"` (or `"ESNext"`) and `"moduleResolution": "NodeNext"`.
+
+## One binary, three runtimes
+
+Most consumers ship one bin and dispatch on the first argv:
+
+```ts
+// src/bin.ts
+#!/usr/bin/env node
+import { runCLI } from "toolcraft/cli";
+import { runMCP } from "toolcraft/mcp";
+import { root } from "./root.js";
+
+const mode = process.argv[2];
+
+if (mode === "mcp") {
+  await runMCP(root, { name: "mytool", version: "0.1.0" });
+} else {
+  await runCLI(root, { version: "0.1.0" });
+}
+```
+
+```sh
+mytool greet --name world      # CLI
+mytool mcp                     # MCP stdio server (Claude Desktop, etc.)
+```
+
+The SDK is a separate import for in-process callers — your library code, tests, other packages:
+
+```ts
+import { createSDK } from "toolcraft/sdk";
+import { root } from "mytool/root";
+
+const sdk = createSDK(root);
+const { message } = await sdk.greet({ name: "world", loud: true });
+```
+
+The same `root` flows into all three. No duplication.
+
+## Mental model
+
+**Command**: one operation. Has a name, a `params` schema, optional `secrets`, a `handler`. The handler receives `{ params, secrets, fetch, fs, env, progress, ...services }` and returns a value.
+
+**Group**: a folder. Has a name and `children`. Inheritable fields (`secrets`, `requires`, `scope`, `humanInLoop`) cascade to descendants. A group can also proxy an upstream MCP server (see below).
+
+**Scope**: which runtimes a node is exposed on. Per-command default is `["cli", "sdk"]`. Set `scope: ["cli", "mcp", "sdk"]` to also surface as an MCP tool. Inherited from parent group when not set on the child.
+
+**Tree**: the `root` group is a `defineGroup` whose children are commands and sub-groups. Any depth. CLI flags, MCP tool names, and SDK methods are derived from the path.
+
+## Secrets
+
+Declare env-backed secrets on a command or group. Toolcraft reads `process.env` at command-run time and passes the values to the handler:
+
+```ts
+const deploy = defineCommand({
+  name: "deploy",
+  params: S.Object({ service: S.String() }),
+  secrets: {
+    apiKey: { env: "DEPLOY_API_KEY", description: "Required for /deploy endpoint" },
+    debugToken: { env: "DEPLOY_DEBUG", optional: true },
+  },
+  handler: async ({ params, secrets }) => {
+    // secrets.apiKey: string
+    // secrets.debugToken: string | undefined
+  },
+});
+```
+
+Required secrets that aren't set produce a `UserError` with the env var name and description before the handler runs. Declaring `secrets` on a group cascades them down — a group-level `apiKey` is visible inside every descendant handler with full type inference.
+
+## Preconditions (`requires`)
+
+```ts
+defineCommand({
+  // ...
+  requires: {
+    auth: true,                    // fails if POE_API_KEY (or runner-specified env) is missing
+    apiVersion: ">=1.2.0",         // fails if runner reports older apiVersion
+    check: async (ctx) => ({       // arbitrary async gate
+      ok: ctx.fs.exists(".lock") === false,
+      message: ".lock present, refusing to run",
+    }),
+  },
+});
+```
+
+Runners pass `{ apiVersion }` to `runCLI` / `runMCP` / `createSDK` to populate the `apiVersion` check. Group-level `requires.check` runs before the child's; both must pass.
+
+## Services (dependency injection)
+
+Inject shared services (DB clients, loggers, fetch wrappers) once at the runtime boundary, get them in every handler:
+
+```ts
+type Services = { db: DbClient; logger: Logger };
+
+const root = defineGroup<Services>({ ... });
+
+await runCLI(root, {
+  services: { db, logger },
+});
+```
+
+Inside a handler:
+
+```ts
+defineCommand<Services>({
+  // ...
+  handler: async ({ params, db, logger }) => {
+    logger.info("running");
+    return db.query(params.id);
+  },
+});
+```
+
+Services are merged into the handler context alongside the built-ins (`fetch`, `fs`, `env`, `progress`).
+
+## Output rendering
+
+Handlers return raw values. Add per-format renderers when you want richer CLI output:
+
+```ts
+defineCommand({
+  // ...
+  handler: async () => ({ rows: [{ id: 1 }, { id: 2 }] }),
+  render: {
+    rich: (result, { renderTable }) =>
+      console.log(renderTable({ rows: result.rows, columns: ["id"] })),
+    markdown: (result) => `Found ${result.rows.length} rows`,
+    json: (result) => result,
+  },
+});
+```
+
+CLI picks `rich` by default, `--json` switches to `json`. SDK and MCP always return the raw handler value.
+
+## MCP proxy: adopt an existing MCP server
+
+If you already run an upstream MCP (e.g. `github-mcp-server`) and you want a subset under your tree:
+
+```ts
+defineGroup({
   name: "github",
   mcp: {
     transport: "stdio",
@@ -63,82 +283,18 @@ export const github = defineGroup({
 });
 ```
 
-- `tools?: string[]` filters the discovered upstream tools by exact upstream tool name.
-- `rename?: Record<string, string>` remaps upstream tool names into dotted toolcraft paths. Keys are upstream tool names, values are target toolcraft paths like `"issues.create"`. Missing intermediate groups are created automatically.
-- Discovery metadata is cached at `<projectRoot>/.toolcraft/mcp/<group-name>.json`.
-- `projectRoot` is resolved from the current working directory by walking up to the nearest ancestor containing `package.json`.
-- `TOOLCRAFT_MCP_REFRESH` controls cache invalidation:
-  - unset: use the cache when present
-  - `1` or `true`: refresh every MCP proxy cache
-  - comma-separated names like `github,linear`: refresh only those proxy groups
-- Discovery progress is written to `stderr`, not `stdout`. On normal runs it appears only when the cache is missing on first run; forced refreshes also emit it.
-- If an upstream input schema contains recursive local `$ref` values, toolcraft falls back to a single JSON argument and the CLI exposes one flag in the form `--<name> '<json>'`.
+- `tools` filters by upstream tool name.
+- `rename` remaps to dotted toolcraft paths; missing intermediate groups are created.
+- Discovery is cached at `<projectRoot>/.toolcraft/mcp/<group>.json` (project root = nearest ancestor with `package.json`).
+- `TOOLCRAFT_MCP_REFRESH=1` refreshes all proxies; `TOOLCRAFT_MCP_REFRESH=github,linear` refreshes specific ones.
+- Discovery output goes to stderr only.
 
-## Environment variables
+## Human-in-loop approvals
 
-- `TOOLCRAFT_MCP_REFRESH`: controls MCP proxy cache refresh behavior. Leave it unset to use cached discovery, set it to `1` or `true` to refresh every proxy, or pass comma-separated group names to refresh specific proxies.
-- Commands can declare required or optional secret environment variable names via `secrets`.
-
-## Configuration
-
-### `defineCommand(config)`
-
-- `name: string`: command name.
-- `description?: string`: help text for the command.
-- `aliases?: string[]`: alternate command names.
-- `positional?: string[]`: positional parameter names mapped from CLI argv order.
-- `params: S.Object(...)`: command parameter schema.
-- `secrets?: Record<string, { env: string; description?: string; optional?: boolean }>`: environment-backed secrets available in the handler context.
-- `scope?: Array<"cli" | "mcp" | "sdk">`: runner visibility. Defaults to `["cli", "sdk"]`.
-- `confirm?: boolean`: deprecated CLI-only TTY confirmation. Use `humanInLoop` instead. Defaults to `false`. `confirm: true` cannot be combined with `humanInLoop`.
-- `humanInLoop?: { mode: "sync" | "async"; message: ({ params, commandPath }) => string; declineInputPrompt?: string } | null`: gate the command on human approval.
-- `requires?: { auth?: boolean; apiVersion?: string; check?: (ctx) => Promise<{ ok: boolean; message?: string }> }`: command preconditions.
-- `handler: (ctx) => Promise<unknown>`: async command implementation.
-- `render?: { rich?: (result, primitives) => void; markdown?: (result) => string; json?: (result) => unknown }`: optional output renderers.
-
-### `defineGroup(config)`
-
-- `name: string`: group name.
-- `description?: string`: help text for the group.
-- `aliases?: string[]`: alternate group names.
-- `mcp?: McpServerConfig`: optional upstream MCP server config used to discover and proxy tools into this group.
-- `scope?: Array<"cli" | "mcp" | "sdk">`: inherited by descendants that do not override it.
-- `humanInLoop?: { mode: "sync" | "async"; message: ({ params, commandPath }) => string; declineInputPrompt?: string } | null`: inherited by descendants that do not override it. Set `humanInLoop: null` on a child command or group to opt out.
-- `secrets?: Record<string, { env: string; description?: string; optional?: boolean }>`: inherited secret declarations.
-- `tools?: string[]`: optional allowlist of upstream MCP tool names to expose from this proxy group.
-- `rename?: Record<string, string>`: optional map from upstream tool names to dotted toolcraft command paths.
-- `requires?: { auth?: boolean; apiVersion?: string; check?: (ctx) => Promise<{ ok: boolean; message?: string }> }`: inherited preconditions.
-- `children: Array<Command | Group>`: nested commands and groups.
-- `default?: Command`: default child command used by runners when no child token matches.
-
-### `runCLI(root, options)`
-
-- `casing?: "kebab" | "snake"`: changes generated CLI flag names.
-- `services?: TServices`: extra services merged into the handler context.
-- `version?: string`: CLI version shown by `--version`.
-- `humanInLoop?: HumanInLoopRuntimeOptions`: human-in-loop runtime wiring shared with the SDK and MCP entry-points.
-
-### `createSDK(root, options)`
-
-- `casing?: "camel"`: changes generated SDK member names.
-- `services?: TServices`: extra services merged into the handler context.
-- `humanInLoop?: HumanInLoopRuntimeOptions`: human-in-loop runtime wiring shared with the CLI and MCP entry-points.
-
-### `createMCPServer(root, options)` / `runMCP(root, options)`
-
-- `name: string`: MCP server name.
-- `version: string`: MCP server version.
-- `services?: TServices`: extra services merged into the handler context.
-- `humanInLoop?: HumanInLoopRuntimeOptions`: human-in-loop runtime wiring shared with the CLI and SDK entry-points.
-- `tools?: string[]`: optional allowlist of MCP tool names or group prefixes. Tool names use `__`-joined snake_case path segments like `root__bot__create`; passing `root__bot` includes every descendant tool in that subtree.
-- `casing?: "snake" | "camel"`: changes MCP input-schema property names and accepted argument keys only. It does **not** change MCP tool names, which always stay `__`-joined snake_case.
-
-## Human In Loop
-
-`humanInLoop` can be declared on commands and groups. Group values inherit through descendants; a child can override with its own config or opt out explicitly with `humanInLoop: null`.
+Gate destructive commands on a human approval. Configure on the command (or inherit from a group):
 
 ```ts
-const deploy = defineGroup({
+defineGroup({
   name: "deploy",
   humanInLoop: {
     mode: "async",
@@ -153,55 +309,46 @@ const deploy = defineGroup({
     defineCommand({
       name: "preview",
       params: S.Object({ target: S.String() }),
-      humanInLoop: null,
+      humanInLoop: null,                    // opt out
       handler: async ({ params }) => ({ target: params.target }),
     }),
   ],
 });
 ```
 
-All three runtime entry-points accept the same `HumanInLoopRuntimeOptions` shape via `options.humanInLoop`:
+Modes:
+
+- `sync` — handler waits for approval before running.
+- `async` — toolcraft enqueues the command, returns a pending marker, and runs it in a fresh process when an operator approves via the reserved `approvals` group.
+
+Wire the same `humanInLoop` options into every entrypoint:
 
 ```ts
-type HumanInLoopRuntimeOptions = {
-  provider?: HumanInLoopProvider;
-  taskList?:
-    | TaskList
-    | {
-        dir: string;
-        format: "markdown-dir" | "yaml-file";
-      };
-  listName?: string;
-  binPath?: {
-    execPath: string;
-    entryArgs: readonly string[];
-  };
+const humanInLoop = {
+  provider: slackApprovalProvider({ channel: "#deploys", client }),
+  taskList: { dir: ".toolcraft/approvals.yaml", format: "yaml-file" as const },
 };
+
+await runCLI(root, { humanInLoop });
+createMCPServer(root, { name: "mytool", version: "0.1.0", humanInLoop });
+const sdk = createSDK(root, { humanInLoop });
 ```
 
-- `provider`: the approval UI implementation.
-- `taskList`: required for async commands. Pass either an already-open `TaskList` or a `{ dir, format }` config and toolcraft will open it with `approvalStateMachine`.
-- `listName`: task-list name used for approvals. Defaults to `"approvals"`.
-- `binPath`: override the process used for async re-exec. Use this when the host entrypoint is not simply `process.execPath` plus `process.argv[1]`.
+If `provider` is omitted, toolcraft picks a default lazily on first use: `osascriptProvider` on macOS; otherwise a stub that throws `UserError("no human-in-loop provider configured for this platform")`.
 
-If `provider` is omitted, toolcraft resolves a default lazily on first human-in-loop use:
+A built-in `approvals` group is auto-merged into every root:
 
-- `process.platform === "darwin"`: `osascriptProvider({ title: "Approval needed" })`
-- other platforms: a built-in provider that throws `UserError("no human-in-loop provider configured for this platform — pass humanInLoop.provider to the runtime")`
+- `approvals list` — list pending tasks (CLI, MCP, SDK).
+- `approvals show --approval-id <id>` — show one task.
+- `approvals run --approval-id <id>` — execute one queued task. CLI-only; used by the detached runner.
 
-Async human-in-loop commands enqueue work and return a pending marker immediately. Toolcraft also installs a built-in reserved `approvals` group:
+The name `approvals` is reserved. Defining your own `approvals` group fails at startup.
 
-- `approvals list`: list approval tasks. Available in CLI, MCP, and SDK.
-- `approvals show --approval-id <id>`: show one approval task. Available in CLI, MCP, and SDK.
-- `approvals run --approval-id <id>`: execute one queued approval. CLI-only; used by the detached runner.
+The async runner re-execs your binary (`process.execPath` + `process.argv[1]` by default; override via `humanInLoop.binPath`). Re-exec calls the same toolcraft entrypoint with the same `humanInLoop` options — do not branch on `argv` before calling `runCLI`/`runMCP`/`createSDK`.
 
-`approvals` is reserved for these built-ins. A user-defined `approvals` group causes startup to fail with `Error: 'approvals' is reserved for human-in-loop built-ins`.
+Async results must be JSON-serializable; non-serializable returns mark the approval as failed instead of being persisted.
 
-The host binary must call `runCLI`, `createMCPServer`, or `createSDK` with the same `humanInLoop` options whether it is invoked normally or re-entered as `approvals run <id>`. Do not branch on `argv` before calling the toolcraft entry-point; the detached runner depends on the same provider, task-list, and `binPath` wiring on re-exec.
-
-In async mode the queued command runs in a fresh process. That runner re-resolves `secrets` from the command definition against that process's `process.env`, and the stored result must be JSON-serializable because it is written into approval metadata. Non-serializable async results mark the approval as failed instead of storing the value.
-
-Provider implementations use `HumanInLoopProvider` from `@poe-code/agent-human-in-loop` directly. A minimal Slack-style provider looks like this:
+A minimal Slack-style provider:
 
 ```ts
 import type { ApprovalRequest, ApprovalResult, HumanInLoopProvider } from "@poe-code/agent-human-in-loop";
@@ -235,25 +382,110 @@ export function slackApprovalProvider(opts: {
 }
 ```
 
-Wire that provider the same way on every entry-point:
+## Errors
+
+Throw `UserError` for expected, user-facing failures. The CLI prints the message without a stack trace and sets exit code 1; MCP and SDK surface the message as the error body. Any other thrown error is treated as unexpected and shows a stack with `--verbose`.
+
+## Migrating from a folder of scripts
+
+Pattern for adopting toolcraft incrementally:
+
+1. Pick one script. Wrap its logic in `defineCommand`. Keep the existing imports, `fetch` calls, file I/O — they all work inside a handler.
+2. Move env-var reads to `secrets`. Replace `process.env.X` access in the script body with `secrets.x` from the handler context.
+3. Add the command to a `defineGroup`. Repeat. The tree grows file by file.
+4. When you're ready, point your `bin` at `runCLI` and delete the per-script entry points. The script files become handler implementations imported by `defineCommand`s.
+5. To expose to an MCP client, set `scope: ["cli", "mcp", "sdk"]` on the command and add the `runMCP` branch to the bin. No code changes needed inside handlers.
+6. To expose to other JS code, `import { createSDK }` from your package and call methods directly.
+
+If you have an existing MCP server you want to keep running, use the MCP proxy: a `defineGroup` with an `mcp` field pulls its tools into your tree without rewriting them.
+
+## Environment variables
+
+- `TOOLCRAFT_MCP_REFRESH` — MCP proxy cache refresh (`unset` = use cache, `1`/`true` = refresh all, comma-separated names = refresh those).
+- Per-command `secrets` declarations name additional env vars. They are read at command run time and passed to the handler.
+
+## API reference
+
+### `defineCommand(config)`
+
+- `name: string`
+- `description?: string`
+- `aliases?: string[]`
+- `positional?: string[]` — parameter names mapped from CLI argv order.
+- `params: S.Object(...)` — input schema from `toolcraft-schema`.
+- `secrets?: Record<string, { env: string; description?: string; optional?: boolean }>`
+- `scope?: Array<"cli" | "mcp" | "sdk">` — defaults to `["cli", "sdk"]`.
+- `confirm?: boolean` — deprecated CLI-only TTY confirmation; use `humanInLoop` instead. Cannot be combined with `humanInLoop`.
+- `humanInLoop?: { mode: "sync" | "async"; message: ({ params, commandPath }) => string; declineInputPrompt?: string } | null`
+- `requires?: { auth?: boolean; apiVersion?: string; check?: (ctx) => Promise<{ ok: boolean; message?: string }> }`
+- `handler: (ctx) => Promise<unknown>`
+- `render?: { rich?, markdown?, json? }` — per-format output renderers.
+
+### `defineGroup(config)`
+
+- `name: string`
+- `description?: string`
+- `aliases?: string[]`
+- `mcp?: McpServerConfig` — proxy an upstream MCP server; uses the standard `@poe-code/agent-mcp-config` shape.
+- `tools?: string[]` — proxy allowlist by upstream tool name.
+- `rename?: Record<string, string>` — proxy upstream → dotted toolcraft path.
+- `scope?` / `humanInLoop?` / `secrets?` / `requires?` — inherited by descendants that don't override. Set `humanInLoop: null` on a child to opt out.
+- `children: Array<Command | Group>`
+- `default?: Command` — invoked when no child token matches.
+
+### `runCLI(root, options)`
+
+- `casing?: "kebab" | "snake"` — generated CLI flag style.
+- `services?: TServices` — merged into every handler context.
+- `version?: string` — surfaced via `--version`.
+- `apiVersion?: string` — for `requires.apiVersion`.
+- `humanInLoop?: HumanInLoopRuntimeOptions`
+
+### `createSDK(root, options)`
+
+- `casing?: "camel"` — generated SDK member style.
+- `services?` / `humanInLoop?` / `apiVersion?`
+
+### `createMCPServer(root, options)` / `runMCP(root, options)`
+
+- `name: string`
+- `version: string`
+- `services?` / `humanInLoop?` / `apiVersion?`
+- `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments (`root__bot__create`); a prefix like `root__bot` includes every descendant tool.
+- `casing?: "snake" | "camel"` — affects MCP **input-schema property names** only. Tool names always stay `__`-joined snake_case.
+
+### `HumanInLoopRuntimeOptions`
 
 ```ts
-const humanInLoop = {
-  provider: slackApprovalProvider({ channel: "#deploys", client }),
-  taskList: { dir: ".toolcraft/approvals.yaml", format: "yaml-file" as const },
+type HumanInLoopRuntimeOptions = {
+  provider?: HumanInLoopProvider;
+  taskList?: TaskList | { dir: string; format: "markdown-dir" | "yaml-file" };
+  listName?: string;       // defaults to "approvals"
+  binPath?: { execPath: string; entryArgs: readonly string[] };
 };
-
-await runCLI(root, { humanInLoop });
-createMCPServer(root, { name: "my-server", version: "1.0.0", humanInLoop });
-const sdk = createSDK(root, { humanInLoop });
 ```
 
 ### Handler context
 
-- `params`: inferred from the command `params` schema.
-- `secrets`: inferred from the command `secrets` declaration.
-- `fetch`: `typeof globalThis.fetch`.
-- `fs`: `{ readFile, writeFile, exists }`.
-- `env`: `{ get(key: string): string | undefined }`.
-- `progress(message: string): void`.
-- Custom runner services are merged into the same context object.
+- `params` — inferred from the command `params` schema.
+- `secrets` — inferred from the command `secrets` declaration.
+- `fetch: typeof globalThis.fetch`
+- `fs: { readFile, writeFile, exists }`
+- `env: { get(key: string): string | undefined }`
+- `progress(message: string): void`
+- All `services` keys merged in.
+
+### Exports
+
+- `defineCommand`, `defineGroup`
+- `S`, `toJsonSchema`, type helpers — re-exported from `toolcraft-schema`
+- `UserError`, `ApprovalDeclinedError`
+- Type exports: `Command`, `Group`, `Scope`, `HandlerContext`, `HumanInLoopConfig`, `HumanInLoopPending`, `HumanInLoopRuntimeOptions`, schema types from `toolcraft-schema`.
+
+Subpath imports:
+
+- `toolcraft/cli` — `runCLI`
+- `toolcraft/sdk` — `createSDK`
+- `toolcraft/mcp` — `runMCP`, `createMCPServer`
+- `toolcraft/human-in-loop` — provider helpers
+- `toolcraft/mcp-proxy` — proxy internals

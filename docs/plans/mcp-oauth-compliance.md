@@ -45,9 +45,9 @@ tasks:
       only. End the file with a "Conformance checklist" section listing every
       MUST/SHOULD as a bullet that later tasks can reference by heading text.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: research-sdk-and-clients

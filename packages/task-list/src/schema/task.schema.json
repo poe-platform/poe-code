@@ -22,8 +22,7 @@
       "minLength": 1
     },
     "state": {
-      "type": "string",
-      "enum": ["draft", "planned", "in-progress", "done", "archived"]
+      "type": "string"
     },
     "description": {
       "type": "string"

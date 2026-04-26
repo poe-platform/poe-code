@@ -101,7 +101,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: task-list-open-options
     title: task-list — plumb stateMachine through openTaskList
@@ -128,8 +128,8 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 / §4.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: task-list-drop-transition

@@ -6,6 +6,9 @@ describe("task-list schemas", () => {
     expect(taskSchema.required).toEqual(["name", "state"]);
     expect(taskSchema.properties).not.toHaveProperty("metadata");
     expect(taskSchema.additionalProperties).toBe(true);
+    expect(taskSchema.properties.state).toEqual({
+      type: "string"
+    });
   });
 
   it("requires the yaml store envelope fields", () => {

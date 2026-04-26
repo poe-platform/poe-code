@@ -7,7 +7,7 @@ export interface Task {
   id: string;
   qualifiedId: string;
   name: string;
-  state: TaskState;
+  state: string;
   description: string;
   metadata: Record<string, unknown>;
 }
@@ -15,7 +15,7 @@ export interface Task {
 export interface TaskCreate {
   id: string;
   name: string;
-  state?: TaskState;
+  state?: string;
   description?: string;
   metadata?: Record<string, unknown>;
 }
@@ -31,12 +31,13 @@ export interface TaskFireOptions {
 }
 
 export interface ListFilter {
-  state?: TaskState;
+  state?: string;
   includeArchived?: boolean;
 }
 
 export interface Tasks {
   readonly name: string;
+  readonly stateMachine: StateMachineDef;
   all(filter?: ListFilter): Promise<Task[]>;
   get(id: string): Promise<Task>;
   create(input: TaskCreate): Promise<Task>;
@@ -44,7 +45,7 @@ export interface Tasks {
   fire(id: string, event: string, opts?: TaskFireOptions): Promise<Task>;
   canFire(id: string, event: string): Promise<boolean>;
   events(id: string): Promise<readonly string[]>;
-  transition(id: string, to: TaskState): Promise<Task>;
+  transition(id: string, to: string): Promise<Task>;
   delete(id: string): Promise<void>;
 }
 
@@ -56,7 +57,7 @@ export interface TaskList {
 }
 
 export interface TaskDefaults {
-  state?: TaskState;
+  state?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -93,7 +94,7 @@ export interface OpenTaskListOptions {
   lockStaleMs?: number;
   lockRetries?: number;
   fs?: TaskListFs;
-  stateMachine?: StateMachineDef<TaskState, string>;
+  stateMachine?: StateMachineDef;
 }
 
 export interface BackendDeps {
@@ -103,7 +104,7 @@ export interface BackendDeps {
   lockRetries: number;
   create: boolean;
   fs: TaskListFs;
-  stateMachine?: StateMachineDef<TaskState, string>;
+  stateMachine?: StateMachineDef;
 }
 
 export type BackendFactory = (deps: BackendDeps) => Promise<TaskList>;

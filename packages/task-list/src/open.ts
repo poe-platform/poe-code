@@ -1,6 +1,7 @@
 import * as fsPromises from "node:fs/promises";
 import { markdownDirBackend } from "./backends/markdown-dir.js";
 import { yamlFileBackend } from "./backends/yaml-file.js";
+import { validateMachine } from "./state-machine.js";
 import { resolveStateMachine } from "./state.js";
 import type {
   BackendFactory,
@@ -29,6 +30,9 @@ export async function openTaskList(options: OpenTaskListOptions): Promise<TaskLi
     throw new Error(`Unknown task list backend type "${options.type}".`);
   }
 
+  const stateMachine = resolveStateMachine(options.stateMachine);
+  validateMachine(stateMachine);
+
   const deps: BackendDeps = {
     path: options.path,
     defaults: {
@@ -39,7 +43,7 @@ export async function openTaskList(options: OpenTaskListOptions): Promise<TaskLi
     lockRetries: options.lockRetries ?? DEFAULT_LOCK_RETRIES,
     create: options.create ?? false,
     fs: options.fs ?? createDefaultFs(),
-    stateMachine: resolveStateMachine(options.stateMachine)
+    stateMachine
   };
 
   return factory(deps);

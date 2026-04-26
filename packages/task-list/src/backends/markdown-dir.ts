@@ -16,7 +16,6 @@ import {
   type TaskFireOptions,
   type TaskList,
   type TaskListFs,
-  type TaskState,
   type Tasks,
   type TaskUpdate
 } from "../types.js";
@@ -230,7 +229,7 @@ function createTask(list: string, id: string, frontmatter: TaskRecord, body: str
     id,
     qualifiedId: `${list}/${id}`,
     name: frontmatter.name as string,
-    state: frontmatter.state as TaskState,
+    state: frontmatter.state as string,
     description: body,
     metadata: metadataFromFrontmatter(frontmatter)
   };
@@ -373,7 +372,7 @@ function updatedFrontmatter(
   return nextFrontmatter;
 }
 
-function transitionedFrontmatter(existingFrontmatter: TaskRecord, task: Task, to: TaskState): TaskRecord {
+function transitionedFrontmatter(existingFrontmatter: TaskRecord, task: Task, to: string): TaskRecord {
   return {
     ...existingFrontmatter,
     $schema: existingFrontmatter.$schema ?? TASK_SCHEMA_ID,
@@ -387,7 +386,7 @@ function transitionedFrontmatter(existingFrontmatter: TaskRecord, task: Task, to
 function firedFrontmatter(
   existingFrontmatter: TaskRecord,
   task: Task,
-  to: TaskState,
+  to: string,
   metadataPatch?: Record<string, unknown>
 ): TaskRecord {
   const nextFrontmatter = transitionedFrontmatter(existingFrontmatter, task, to);
@@ -405,6 +404,12 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
   const listDirectoryPath = listPath(deps.path, list);
   const stateMachine = resolveStateMachine(deps.stateMachine);
   const validStates = new Set(stateMachine.states);
+
+  function assertValidTaskState(state: string): void {
+    if (!validStates.has(state)) {
+      throw new Error(`Invalid task state "${state}".`);
+    }
+  }
 
   async function listFiles(directoryPath: string): Promise<Task[]> {
     const entries = await readDirectoryNames(deps.fs, directoryPath);
@@ -465,6 +470,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
   return {
     name: list,
+    stateMachine,
     async all(filter?: ListFilter): Promise<Task[]> {
       const activeTasks = await listFiles(listDirectoryPath);
       const archivedTasks = filter?.includeArchived
@@ -483,6 +489,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     },
     async create(input: TaskCreate): Promise<Task> {
       validateTaskId(input.id);
+      assertValidTaskState(input.state ?? deps.defaults.state);
       await deps.fs.mkdir(listDirectoryPath, { recursive: true });
 
       return withTaskLock(input.id, async () => {
@@ -572,11 +579,13 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       const task = (await getTaskFile(id)).task;
       return eventsFromState(stateMachine, task.state);
     },
-    async transition(id: string, to: TaskState): Promise<Task> {
+    async transition(id: string, to: string): Promise<Task> {
+      assertValidTaskState(to);
+
       return withTaskLock(id, async () => {
         const existing = await getTaskFile(id);
 
-        assertTransition(existing.task.state, to);
+        assertTransition(stateMachine, existing.task.state, to);
 
         const nextFrontmatter = transitionedFrontmatter(existing.frontmatter, existing.task, to);
         const serializedTask = serializeTaskDocument(nextFrontmatter, existing.task.description);

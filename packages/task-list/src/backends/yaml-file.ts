@@ -16,7 +16,6 @@ import {
   type TaskFireOptions,
   type TaskList,
   type TaskListFs,
-  type TaskState,
   type Tasks,
   type TaskUpdate
 } from "../types.js";
@@ -104,7 +103,7 @@ function createTask(list: string, id: string, taskRecord: TaskRecord): Task {
     id,
     qualifiedId: `${list}/${id}`,
     name: taskRecord.name as string,
-    state: taskRecord.state as TaskState,
+    state: taskRecord.state as string,
     description: descriptionFromTaskRecord(taskRecord),
     metadata: metadataFromTaskRecord(taskRecord)
   };
@@ -161,7 +160,7 @@ function buildUpdatedTaskRecord(existing: TaskRecord, patch: TaskUpdate): TaskRe
   return nextTaskRecord;
 }
 
-function buildTransitionedTaskRecord(existing: TaskRecord, to: TaskState): TaskRecord {
+function buildTransitionedTaskRecord(existing: TaskRecord, to: string): TaskRecord {
   return {
     ...existing,
     state: to,
@@ -171,7 +170,7 @@ function buildTransitionedTaskRecord(existing: TaskRecord, to: TaskState): TaskR
 
 function buildFiredTaskRecord(
   existing: TaskRecord,
-  to: TaskState,
+  to: string,
   metadataPatch?: Record<string, unknown>
 ): TaskRecord {
   const nextTaskRecord = buildTransitionedTaskRecord(existing, to);
@@ -396,6 +395,12 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
   const stateMachine = resolveStateMachine(deps.stateMachine);
   const validStates = new Set(stateMachine.states);
 
+  function assertValidTaskState(state: string): void {
+    if (!validStates.has(state)) {
+      throw new Error(`Invalid task state "${state}".`);
+    }
+  }
+
   async function readTasks(filter?: ListFilter): Promise<Task[]> {
     const { store } = await readStore(deps.fs, deps.path, validStates);
     const listRecord = getListRecord(store, list);
@@ -426,6 +431,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
   return {
     name: list,
+    stateMachine,
     async all(filter?: ListFilter): Promise<Task[]> {
       return readTasks(filter);
     },
@@ -436,6 +442,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     },
     async create(input: TaskCreate): Promise<Task> {
       validateTaskId(input.id);
+      assertValidTaskState(input.state ?? deps.defaults.state);
 
       return withStoreLock(deps, async () => {
         const { document, store } = await readStore(deps.fs, deps.path, validStates);
@@ -534,14 +541,15 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
       return eventsFromState(stateMachine, task.state);
     },
-    async transition(id: string, to: TaskState): Promise<Task> {
+    async transition(id: string, to: string): Promise<Task> {
       validateTaskId(id);
+      assertValidTaskState(to);
 
       return withStoreLock(deps, async () => {
         const { document, store } = await readStore(deps.fs, deps.path, validStates);
         const existing = getTaskOrThrow(store, list, id);
 
-        assertTransition(existing.state as TaskState, to);
+        assertTransition(stateMachine, existing.state as string, to);
 
         document.setIn(["lists", list, id, "state"], to);
         await writeAtomically(deps.fs, deps.path, serializeDocument(document));

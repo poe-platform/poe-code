@@ -1,6 +1,5 @@
 import {
   findEvent,
-  validateMachine,
   type EventDef,
   type StateMachineDef
 } from "./state-machine.js";
@@ -49,12 +48,9 @@ function deriveLegacyTransitions(
 const defaultTransitions = deriveLegacyTransitions(defaultStateMachine);
 
 export function resolveStateMachine(
-  stateMachine?: StateMachineDef<TaskState, string>
-): StateMachineDef<TaskState, string> {
-  const resolvedStateMachine = stateMachine ?? defaultStateMachine;
-  validateMachine(resolvedStateMachine);
-
-  return resolvedStateMachine;
+  stateMachine?: StateMachineDef
+): StateMachineDef {
+  return stateMachine ?? defaultStateMachine;
 }
 
 export function assertEvent<TState extends string, TEvent extends string>(
@@ -73,8 +69,45 @@ export function assertEvent<TState extends string, TEvent extends string>(
   return event;
 }
 
-export function assertTransition(from: TaskState, to: TaskState): void {
-  if (!defaultTransitions[from].has(to)) {
-    throw new InvalidTransitionError(`Cannot transition task from "${from}" to "${to}".`);
+function canTransition(
+  machine: StateMachineDef,
+  fromState: string,
+  toState: string
+): boolean {
+  if (Object.is(machine, defaultStateMachine)) {
+    return defaultTransitions[fromState as TaskState]?.has(toState as TaskState) ?? false;
+  }
+
+  for (const eventName of Object.keys(machine.events)) {
+    if (findEvent(machine, fromState, eventName)?.to === toState) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function assertTransition(from: TaskState, to: TaskState): void;
+export function assertTransition<TState extends string, TEvent extends string>(
+  machine: StateMachineDef<TState, TEvent>,
+  from: TState,
+  to: TState
+): void;
+export function assertTransition<TState extends string, TEvent extends string>(
+  machineOrFrom: StateMachineDef<TState, TEvent> | TaskState,
+  fromOrTo: TState | TaskState,
+  maybeTo?: TState
+): void {
+  const machine =
+    maybeTo === undefined
+      ? defaultStateMachine
+      : (machineOrFrom as StateMachineDef<TState, TEvent>);
+  const fromState = maybeTo === undefined ? (machineOrFrom as TaskState) : (fromOrTo as TState);
+  const toState = maybeTo === undefined ? (fromOrTo as TaskState) : maybeTo;
+
+  if (!canTransition(machine, fromState, toState)) {
+    throw new InvalidTransitionError(
+      `Cannot transition task from "${fromState}" to "${toState}".`
+    );
   }
 }

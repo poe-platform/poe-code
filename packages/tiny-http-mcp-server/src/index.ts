@@ -39,13 +39,22 @@ export type {
   InitializeResult,
 } from "tiny-stdio-mcp-server";
 
-export { createExpressMiddleware } from "./express-middleware.js";
+export {
+  createExpressMiddleware,
+  createExpressOAuthHandlers,
+  createProtectedResourceMetadataRouter,
+} from "./express-middleware.js";
+export type { CreateExpressOAuthHandlersOptions } from "./express-middleware.js";
 export { createHttpServer } from "./http-server.js";
 export type {
   HttpListenOptions,
   HttpServer,
   HttpServerHandle,
   HttpTransportOptions,
+  ProtectedResourceMetadataOptions,
+  TinyHttpMcpServerOAuthOptions,
+  VerifyTokenHook,
+  VerifyTokenInput,
 } from "./http-server.js";
 export { StreamableHttpTransport } from "./http-transport.js";
 export type { StreamableHttpTransportOptions } from "./http-transport.js";

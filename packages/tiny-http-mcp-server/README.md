@@ -123,6 +123,63 @@ Use this when you want to:
 - Put auth middleware in front of the MCP endpoint
 - Mount MCP on a custom subpath like `/api/v1/mcp`
 
+## OAuth Protected Resource
+
+To publish RFC 9728 protected-resource metadata and require a Bearer header on MCP requests, pass `oauth` to `createHttpServer()`:
+
+```ts
+import {
+  createHttpServer,
+  createExpressOAuthHandlers,
+} from "tiny-http-mcp-server";
+
+const oauth = {
+  resource: "https://example.com/mcp",
+  authorizationServers: ["https://auth.example.com"],
+  bearerMethodsSupported: ["header"],
+  scopesSupported: ["mcp.read", "mcp.write"],
+};
+
+const server = createHttpServer({
+  name: "oauth-server",
+  version: "1.0.0",
+  oauth,
+});
+
+const { metadataMiddleware, mcpMiddleware } = createExpressOAuthHandlers({
+  path: "/mcp",
+  server,
+  oauth,
+});
+```
+
+`oauth` currently supports:
+
+- `resource`: canonical protected resource URI published in the metadata document
+- `authorizationServers`: authorization server issuer URLs published as `authorization_servers`
+- `bearerMethodsSupported`: optional values published as `bearer_methods_supported`
+- `scopesSupported`: optional values published as `scopes_supported`
+- `verifyToken`: reserved hook for a later task; it is declared in the public types but not used yet
+
+When OAuth is enabled, the server exposes `GET /.well-known/oauth-protected-resource` with `application/json`:
+
+```json
+{
+  "resource": "https://example.com/mcp",
+  "authorization_servers": ["https://auth.example.com"],
+  "bearer_methods_supported": ["header"],
+  "scopes_supported": ["mcp.read", "mcp.write"]
+}
+```
+
+Unauthenticated requests to the MCP endpoint return `401` with:
+
+```text
+WWW-Authenticate: Bearer realm="mcp", resource_metadata="http://127.0.0.1:3000/.well-known/oauth-protected-resource"
+```
+
+Standalone `listenHttp()` serves both the MCP endpoint and the protected-resource metadata route. For Express, mount `metadataMiddleware` at the app root and mount `mcpMiddleware` on your MCP path.
+
 ## BYO HTTP Server: Raw Node.js
 
 If you already own the HTTP server, call `handleRequest()` yourself.

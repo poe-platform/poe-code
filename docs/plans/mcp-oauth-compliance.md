@@ -147,7 +147,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: prm-discovery-server
     title: Serve protected-resource metadata
@@ -187,9 +187,9 @@ tasks:
       header pointing at the absolute PRM URL; existing non-OAuth tests still
       pass unchanged.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: token-verification-server

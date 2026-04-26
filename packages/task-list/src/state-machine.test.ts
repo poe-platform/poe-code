@@ -1,0 +1,121 @@
+import { describe, expect, expectTypeOf, it } from "vitest";
+import {
+  eventsFromState,
+  findEvent,
+  type EventDef,
+  type StateMachineDef,
+  validateMachine
+} from "./state-machine.js";
+import type { Task } from "./types.js";
+
+type TaskState = "draft" | "planned" | "in-progress" | "done" | "archived";
+type TaskEvent = "plan" | "start" | "complete" | "archive";
+
+const defaultShapedMachine = {
+  initial: "draft",
+  states: ["draft", "planned", "in-progress", "done", "archived"],
+  events: {
+    plan: { from: ["draft"], to: "planned" },
+    start: { from: ["planned"], to: "in-progress" },
+    complete: { from: ["in-progress"], to: "done" },
+    archive: { from: ["done"], to: "archived" }
+  }
+} as const satisfies StateMachineDef<TaskState, TaskEvent>;
+
+describe("validateMachine", () => {
+  it("accepts a default-shaped machine", () => {
+    expect(() => validateMachine(defaultShapedMachine)).not.toThrow();
+  });
+
+  it("rejects when initial is not declared in states", () => {
+    const machine = {
+      ...defaultShapedMachine,
+      initial: "unknown"
+    } as const satisfies StateMachineDef<TaskState | "unknown", TaskEvent>;
+
+    expect(() => validateMachine(machine)).toThrow('Initial state "unknown" is not declared.');
+  });
+
+  it("rejects when an event source state is not declared", () => {
+    const machine = {
+      ...defaultShapedMachine,
+      events: {
+        ...defaultShapedMachine.events,
+        plan: {
+          ...defaultShapedMachine.events.plan,
+          from: ["unknown"]
+        }
+      }
+    } as const satisfies StateMachineDef<TaskState | "unknown", TaskEvent>;
+
+    expect(() => validateMachine(machine)).toThrow(
+      'Event "plan" references unknown source state "unknown".'
+    );
+  });
+
+  it("rejects when an event target state is not declared", () => {
+    const machine = {
+      ...defaultShapedMachine,
+      events: {
+        ...defaultShapedMachine.events,
+        plan: {
+          ...defaultShapedMachine.events.plan,
+          to: "unknown"
+        }
+      }
+    } as const satisfies StateMachineDef<TaskState | "unknown", TaskEvent>;
+
+    expect(() => validateMachine(machine)).toThrow(
+      'Event "plan" references unknown target state "unknown".'
+    );
+  });
+
+  it('rejects wildcard events that would allow a no-op self-loop', () => {
+    const machine = {
+      ...defaultShapedMachine,
+      events: {
+        ...defaultShapedMachine.events,
+        archive: {
+          ...defaultShapedMachine.events.archive,
+          from: "*"
+        }
+      }
+    } as const satisfies StateMachineDef<TaskState, TaskEvent>;
+
+    expect(() => validateMachine(machine)).toThrow(
+      'Event "archive" cannot use "*" because it would allow the no-op transition "archived" -> "archived".'
+    );
+  });
+});
+
+describe("EventDef", () => {
+  it("types guards and callbacks against Task", () => {
+    expectTypeOf<EventDef<TaskState>["guard"]>().toEqualTypeOf<
+      ((task: Task) => true | string) | undefined
+    >();
+    expectTypeOf<EventDef<TaskState>["onEnter"]>().toEqualTypeOf<
+      ((task: Task) => void | Promise<void>) | undefined
+    >();
+    expectTypeOf<EventDef<TaskState>["onExit"]>().toEqualTypeOf<
+      ((task: Task) => void | Promise<void>) | undefined
+    >();
+  });
+});
+
+describe("state machine helpers", () => {
+  it("lists only the events legal from the given state", () => {
+    expect(eventsFromState(defaultShapedMachine, "draft")).toEqual(["plan"]);
+    expect(eventsFromState(defaultShapedMachine, "planned")).toEqual(["start"]);
+    expect(eventsFromState(defaultShapedMachine, "archived")).toEqual([]);
+  });
+
+  it("finds only events that are legal from the given state", () => {
+    expect(findEvent(defaultShapedMachine, "draft", "plan")).toEqual(
+      defaultShapedMachine.events.plan
+    );
+    expect(findEvent(defaultShapedMachine, "planned", "plan")).toBeUndefined();
+    expect(findEvent(defaultShapedMachine, "done", "archive")).toEqual(
+      defaultShapedMachine.events.archive
+    );
+  });
+});

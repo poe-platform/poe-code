@@ -32,8 +32,8 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 "Task-list state machine extension".
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: task-list-default-machine

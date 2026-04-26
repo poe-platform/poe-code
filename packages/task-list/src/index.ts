@@ -1,6 +1,13 @@
 export { openTaskList } from "./open.js";
 export { LEGAL_TRANSITIONS, assertTransition } from "./state.js";
 export {
+  eventsFromState,
+  findEvent,
+  validateMachine,
+  type EventDef,
+  type StateMachineDef
+} from "./state-machine.js";
+export {
   InvalidTransitionError,
   MalformedTaskError,
   TaskAlreadyExistsError,

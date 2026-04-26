@@ -34,8 +34,7 @@ describe("runMemoryExplain", () => {
     expect(explainPage).toHaveBeenCalledWith("/repo/.poe-code/memory", {
       relPath: "pages/packages/superintendent.md",
       budget: 2048,
-      agent: "claude-code",
-      spawnFn: undefined
+      agent: "claude-code"
     });
     expect(result.answer).toBe("summary");
   });

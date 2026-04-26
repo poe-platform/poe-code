@@ -141,7 +141,6 @@ import type {
   QueryResult,
   IngestOptions,
   IngestResult,
-  SpawnFn,
   ResolveConfiguredMemoryRootOptions
 } from "poe-code/memory";
 ```
@@ -183,17 +182,18 @@ await appendToPage(root, "pages/LOG.md", "- noted flake\n");
 
 ### Agent-backed operations
 
-`ingest`, `queryMemory`, `explainPage`, and `auditClaims (fix)` spawn an agent. Pass your own `spawnFn: (agent, prompt) => Promise<unknown>` or omit it to use the configured default.
+`ingest`, `queryMemory`, and `explainPage` resolve an agent from config and spawn it directly.
 
 ```ts
-const answer: QueryResult = await queryMemory({
-  root,
+const answer: QueryResult = await queryMemory(root, {
   question: "how does reconcile detect stale pages?",
-  budget: 4000,
-  spawnFn: async (agent, prompt) => runMyAgent(agent, prompt)
+  budget: 4000
 });
 
-const explanation = await explainPage(root, "pages/architecture.md", { budget: 2000 });
+const explanation = await explainPage(root, {
+  relPath: "pages/architecture.md",
+  budget: 2000
+});
 ```
 
 ### Embedding the MCP server

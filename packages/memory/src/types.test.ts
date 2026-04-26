@@ -9,8 +9,6 @@ import type {
   IngestOptions,
   IngestResult,
   IngestSource,
-  LintOptions,
-  LintResult,
   LogEntry,
   LogVerb,
   McpServerOptions,
@@ -26,7 +24,6 @@ import type {
   QueryResult,
   SearchHit,
   SourceRef,
-  SpawnFn,
   TaggedClaim,
   TokenStats
 } from "./types.js";
@@ -109,8 +106,6 @@ describe("memory types", () => {
       { kind: "file"; absPath: string } | { kind: "url"; url: string }
     >();
 
-    expectTypeOf<SpawnFn>().toEqualTypeOf<(agent: string, prompt: string) => Promise<unknown>>();
-
     expectTypeOf<IngestOptions>().toEqualTypeOf<{
       source: IngestSource;
       agent?: string;
@@ -119,15 +114,6 @@ describe("memory types", () => {
       dryRun?: boolean;
       force?: boolean;
       noCacheWrite?: boolean;
-      spawnFn?: SpawnFn;
-    }>();
-
-    expectTypeOf<LintOptions>().toEqualTypeOf<{
-      fix?: boolean;
-      agent?: string;
-      timeoutMs?: number;
-      dryRun?: boolean;
-      spawnFn?: SpawnFn;
     }>();
 
     expectTypeOf<TokenStats>().toEqualTypeOf<{
@@ -142,14 +128,6 @@ describe("memory types", () => {
       exitCode: number;
       durationMs: number;
       cacheHit: boolean;
-      tokens: TokenStats;
-    }>();
-
-    expectTypeOf<LintResult>().toEqualTypeOf<{
-      diff: MemoryDiff;
-      issues: string[];
-      exitCode: number;
-      durationMs: number;
       tokens: TokenStats;
     }>();
 
@@ -182,7 +160,6 @@ describe("memory types", () => {
       question: string;
       budget: number;
       agent?: string;
-      spawnFn?: SpawnFn;
     }>();
 
     expectTypeOf<QueryCitation>().toEqualTypeOf<{

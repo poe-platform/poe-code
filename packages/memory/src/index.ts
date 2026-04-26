@@ -8,8 +8,6 @@ export type {
   IngestOptions,
   IngestResult,
   IngestSource,
-  LintOptions,
-  LintResult,
   LogEntry,
   LogVerb,
   McpServerOptions,
@@ -25,7 +23,6 @@ export type {
   QueryResult,
   SearchHit,
   SourceRef,
-  SpawnFn,
   TaggedClaim,
   TokenStats
 } from "./types.js";

@@ -1,11 +1,12 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { countTokens } from "tokenfill";
+import { spawn } from "@poe-code/agent-spawn";
 import { resolveAgent } from "@poe-code/poe-code-config";
 import { listPages } from "./pages.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
-import type { MemoryPage, MemoryRoot, QueryOptions, QueryResult, SpawnFn } from "./types.js";
 import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
+import type { MemoryPage, MemoryRoot, QueryOptions, QueryResult } from "./types.js";
 
 export type QueryContext = {
   prompt: string;
@@ -33,15 +34,7 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
   const agentId =
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
   const context = await selectQueryContext(root, options.question, options.budget);
-  const spawnFn = options.spawnFn as SpawnFn<QueryResult> | undefined;
-  const result =
-    (await spawnFn?.(agentId, context.prompt)) ?? {
-      answer: "",
-      citations: [],
-      tokensUsed: context.tokensUsed,
-      budget: options.budget,
-      exitCode: 0
-    };
+  const result = (await spawn(agentId, { prompt: context.prompt })) as unknown as QueryResult;
 
   return {
     answer: result.answer,

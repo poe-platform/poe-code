@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
+import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 import type { computeIngestKey, readCacheEntry, writeCacheEntry } from "./cache.js";
 import type { snapshot, reconcile } from "./reconcile.js";
 import type { computeTokenStats } from "./tokens.js";
@@ -9,6 +10,16 @@ import { ingest, INGEST_PROMPT_VERSION, type IngestRunners } from "./ingest.js";
 vi.mock("node:fs/promises", async () => {
   const memfs = await import("memfs");
   return memfs.fs.promises;
+});
+
+const mockedAgentSpawn = vi.hoisted(() => ({
+  spawnMock: undefined as ReturnType<typeof createSpawnMock> | undefined
+}));
+
+vi.mock("@poe-code/agent-spawn", () => {
+  const spawnMock = createSpawnMock();
+  mockedAgentSpawn.spawnMock = spawnMock;
+  return spawnMock.factory();
 });
 
 const { resolveAgent, configuredTimeout, cacheEnabled } = vi.hoisted(() => ({
@@ -52,6 +63,7 @@ describe("ingest", () => {
     computeTokenStatsMock.mockReset();
     snapshotMock.mockReset();
     reconcileMock.mockReset();
+    mockedAgentSpawn.spawnMock!.spawn.mockReset();
 
     vol.fromJSON({
       "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
@@ -77,59 +89,59 @@ describe("ingest", () => {
 
   it("returns early on cache hit without spawning", async () => {
     readCacheEntryMock.mockResolvedValue({ key: "cache-key" } as IngestCacheEntry);
-    const spawnFn = vi.fn();
 
     const result = await ingest(
       "/repo/.poe-code/memory",
-      {
-        source: { kind: "file", absPath: "/repo/docs/source.md" },
-        spawnFn
-      },
+      { source: { kind: "file", absPath: "/repo/docs/source.md" } },
       runners
     );
 
-    expect(spawnFn).not.toHaveBeenCalled();
+    expect(mockedAgentSpawn.spawnMock!.spawn).not.toHaveBeenCalled();
     expect(snapshotMock).not.toHaveBeenCalled();
     expect(reconcileMock).not.toHaveBeenCalled();
     expect(result).toMatchObject({ cacheHit: true, exitCode: 0, durationMs: 0 });
   });
 
   it("prints the prompt and skips spawning in dry-run mode", async () => {
-    const spawnFn = vi.fn();
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
     const result = await ingest(
       "/repo/.poe-code/memory",
       {
         source: { kind: "file", absPath: "/repo/docs/source.md" },
-        dryRun: true,
-        spawnFn
+        dryRun: true
       },
       runners
     );
 
-    expect(spawnFn).not.toHaveBeenCalled();
+    expect(mockedAgentSpawn.spawnMock!.spawn).not.toHaveBeenCalled();
     expect(snapshotMock).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Source: /repo/docs/source.md"));
     expect(result).toMatchObject({ cacheHit: false, exitCode: 0, durationMs: 0 });
   });
 
   it("spawns, reconciles, and writes cache entries on success", async () => {
-    const spawnFn = vi.fn().mockResolvedValue({ exitCode: 0, durationMs: 123 });
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      exitCode: 0,
+      durationMs: 123,
+      stdout: "",
+      stderr: ""
+    });
 
     const result = await ingest(
       "/repo/.poe-code/memory",
       {
         source: { kind: "file", absPath: "/repo/docs/source.md" },
-        reason: "capture docs",
-        spawnFn
+        reason: "capture docs"
       },
       runners
     );
 
-    expect(spawnFn).toHaveBeenCalledWith(
+    expect(mockedAgentSpawn.spawnMock!.spawn).toHaveBeenCalledWith(
       "claude-code",
-      expect.stringContaining(`Prompt version: ${INGEST_PROMPT_VERSION}`)
+      expect.objectContaining({
+        prompt: expect.stringContaining(`Prompt version: ${INGEST_PROMPT_VERSION}`)
+      })
     );
     expect(snapshotMock).toHaveBeenCalledWith("/repo/.poe-code/memory");
     expect(reconcileMock).toHaveBeenCalledWith(
@@ -161,14 +173,16 @@ describe("ingest", () => {
   });
 
   it("reconciles after spawn failure and skips cache writes", async () => {
-    const spawnFn = vi.fn().mockResolvedValue({ exitCode: 9, durationMs: 45 });
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      exitCode: 9,
+      durationMs: 45,
+      stdout: "",
+      stderr: ""
+    });
 
     const result = await ingest(
       "/repo/.poe-code/memory",
-      {
-        source: { kind: "file", absPath: "/repo/docs/source.md" },
-        spawnFn
-      },
+      { source: { kind: "file", absPath: "/repo/docs/source.md" } },
       runners
     );
 
@@ -179,36 +193,37 @@ describe("ingest", () => {
 
   it("honors force and no-cache-write", async () => {
     readCacheEntryMock.mockResolvedValue({ key: "cache-key" } as IngestCacheEntry);
-    const spawnFn = vi.fn().mockResolvedValue({ exitCode: 0, durationMs: 1 });
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      exitCode: 0,
+      durationMs: 1,
+      stdout: "",
+      stderr: ""
+    });
 
     await ingest(
       "/repo/.poe-code/memory",
       {
         source: { kind: "file", absPath: "/repo/docs/source.md" },
         force: true,
-        noCacheWrite: true,
-        spawnFn
+        noCacheWrite: true
       },
       runners
     );
 
-    expect(spawnFn).toHaveBeenCalled();
+    expect(mockedAgentSpawn.spawnMock!.spawn).toHaveBeenCalled();
     expect(writeCacheEntryMock).not.toHaveBeenCalled();
   });
 
   it("fails on timeout after reconciling", async () => {
     configuredTimeout.mockReturnValue(10);
-    const spawnFn = vi.fn(
+    mockedAgentSpawn.spawnMock!.spawn.mockImplementationOnce(
       () => new Promise((resolve) => setTimeout(() => resolve({ exitCode: 0, durationMs: 50 }), 50))
     );
 
     await expect(
       ingest(
         "/repo/.poe-code/memory",
-        {
-          source: { kind: "file", absPath: "/repo/docs/source.md" },
-          spawnFn
-        },
+        { source: { kind: "file", absPath: "/repo/docs/source.md" } },
         runners
       )
     ).rejects.toThrow("ingest timed out after 10ms");

@@ -37,6 +37,9 @@ describe("memory index exports", () => {
     expect(entrypoint.explainPage).toBeTypeOf("function");
     expect(entrypoint.runMemoryExplain).toBeTypeOf("function");
     expect(entrypoint.openMemory).toBeTypeOf("function");
+    expect(entrypoint).not.toHaveProperty("SpawnFn");
+    expect(entrypoint).not.toHaveProperty("LintOptions");
+    expect(entrypoint).not.toHaveProperty("LintResult");
   });
 
   it("exposes the memory handle types", () => {

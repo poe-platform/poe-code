@@ -72,8 +72,6 @@ export type IngestSource =
   | { kind: "file"; absPath: string }
   | { kind: "url"; url: string };
 
-export type SpawnFn<TResult = unknown> = (agent: string, prompt: string) => Promise<TResult>;
-
 export type IngestOptions = {
   source: IngestSource;
   agent?: string;
@@ -82,15 +80,6 @@ export type IngestOptions = {
   dryRun?: boolean;
   force?: boolean;
   noCacheWrite?: boolean;
-  spawnFn?: SpawnFn;
-};
-
-export type LintOptions = {
-  fix?: boolean;
-  agent?: string;
-  timeoutMs?: number;
-  dryRun?: boolean;
-  spawnFn?: SpawnFn;
 };
 
 export type IngestResult = {
@@ -98,14 +87,6 @@ export type IngestResult = {
   exitCode: number;
   durationMs: number;
   cacheHit: boolean;
-  tokens: TokenStats;
-};
-
-export type LintResult = {
-  diff: MemoryDiff;
-  issues: string[];
-  exitCode: number;
-  durationMs: number;
   tokens: TokenStats;
 };
 
@@ -147,7 +128,6 @@ export type QueryOptions = {
   question: string;
   budget: number;
   agent?: string;
-  spawnFn?: SpawnFn;
 };
 
 export type QueryCitation = {

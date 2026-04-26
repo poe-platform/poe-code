@@ -1,9 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
+import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return fs.promises;
+});
+
+const mockedAgentSpawn = vi.hoisted(() => ({
+  spawnMock: undefined as ReturnType<typeof createSpawnMock> | undefined
+}));
+
+vi.mock("@poe-code/agent-spawn", () => {
+  const spawnMock = createSpawnMock();
+  mockedAgentSpawn.spawnMock = spawnMock;
+  return spawnMock.factory();
 });
 
 const resolveAgent = vi.fn();
@@ -19,6 +30,7 @@ describe("explainPage", () => {
     vol.reset();
     resolveAgent.mockReset();
     resolveAgent.mockResolvedValue("claude-code");
+    mockedAgentSpawn.spawnMock!.spawn.mockReset();
   });
 
   it("returns an empty answer without spawning when the target page is missing", async () => {
@@ -26,14 +38,12 @@ describe("explainPage", () => {
       "/repo/.poe-code/memory/INDEX.md": "# Memory index\n"
     });
 
-    const spawnFn = vi.fn();
     const result = await explainPage("/repo/.poe-code/memory", {
       relPath: "pages/packages/superintendent.md",
-      budget: 4096,
-      spawnFn
+      budget: 4096
     });
 
-    expect(spawnFn).not.toHaveBeenCalled();
+    expect(mockedAgentSpawn.spawnMock!.spawn).not.toHaveBeenCalled();
     expect(result).toEqual({
       answer: "",
       citations: [],
@@ -86,7 +96,7 @@ describe("explainPage", () => {
       ].join("\n")
     });
 
-    const spawnFn = vi.fn().mockResolvedValue({
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
       answer: "Superintendent retries during cleanup races.",
       citations: [
         {
@@ -101,15 +111,18 @@ describe("explainPage", () => {
 
     const result = await explainPage("/repo/.poe-code/memory", {
       relPath: "pages/packages/superintendent.md",
-      budget: 4096,
-      spawnFn
+      budget: 4096
     });
 
-    expect(spawnFn).toHaveBeenCalledWith(
+    expect(mockedAgentSpawn.spawnMock!.spawn).toHaveBeenCalledWith(
       "claude-code",
-      expect.stringContaining("Summarize the target page using only the provided memory pages")
+      expect.objectContaining({
+        prompt: expect.stringContaining(
+          "Summarize the target page using only the provided memory pages"
+        )
+      })
     );
-    const prompt = spawnFn.mock.calls[0]?.[1] ?? "";
+    const prompt = mockedAgentSpawn.spawnMock!.spawn.mock.calls[0]?.[1]?.prompt ?? "";
     expect(prompt).toContain("Target page: pages/packages/superintendent.md");
     expect(prompt).toContain("FILE: pages/packages/superintendent.md");
     expect(prompt).toContain("FILE: pages/architecture.md");
@@ -144,8 +157,7 @@ describe("explainPage", () => {
     await expect(
       explainPage("/repo/.poe-code/memory", {
         relPath: "pages/packages/superintendent.md",
-        budget: 1,
-        spawnFn: vi.fn()
+        budget: 1
       })
     ).rejects.toThrow(/budget too small/i);
   });

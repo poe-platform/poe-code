@@ -305,7 +305,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
   - id: phase-3-drop-spawnfn
     title: >-
       Phase 3 — drop spawnFn? injection, depend on @poe-code/agent-spawn directly
@@ -409,9 +409,9 @@ tasks:
       - Phase 1 + 2 must be merged before this runs (this depends on
         `createSpawnMock` and `openMemory`).
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
   - id: phase-4-cli-mcp-migration
     title: Phase 4 — migrate CLI subcommands and MCP server to handle

@@ -1,9 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
+import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return fs.promises;
+});
+
+const mockedAgentSpawn = vi.hoisted(() => ({
+  spawnMock: undefined as ReturnType<typeof createSpawnMock> | undefined
+}));
+
+vi.mock("@poe-code/agent-spawn", () => {
+  const spawnMock = createSpawnMock();
+  mockedAgentSpawn.spawnMock = spawnMock;
+  return spawnMock.factory();
 });
 
 const resolveAgent = vi.fn();
@@ -85,22 +96,20 @@ describe("queryMemory", () => {
     vol.reset();
     resolveAgent.mockReset();
     resolveAgent.mockResolvedValue("claude-code");
+    mockedAgentSpawn.spawnMock!.spawn.mockReset();
   });
 
   it("returns an empty answer without spawning when memory has no pages", async () => {
-    const spawnFn = vi.fn();
-
     vol.fromJSON({
       "/repo/.poe-code/memory/INDEX.md": "# Memory index\n"
     });
 
     const result = await queryMemory("/repo/.poe-code/memory", {
       question: "what is this repo?",
-      budget: 4096,
-      spawnFn
+      budget: 4096
     });
 
-    expect(spawnFn).not.toHaveBeenCalled();
+    expect(mockedAgentSpawn.spawnMock!.spawn).not.toHaveBeenCalled();
     expect(result).toEqual({
       answer: "",
       citations: [],
@@ -111,7 +120,7 @@ describe("queryMemory", () => {
   });
 
   it("spawns the configured agent with memory-only context and parses citations", async () => {
-    const spawnFn = vi.fn().mockResolvedValue({
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
       answer: "Retries happen during cleanup races.",
       citations: [
         {
@@ -142,16 +151,19 @@ describe("queryMemory", () => {
 
     const result = await queryMemory("/repo/.poe-code/memory", {
       question: "why retry?",
-      budget: 4096,
-      spawnFn
+      budget: 4096
     });
 
-    expect(spawnFn).toHaveBeenCalledWith(
+    expect(mockedAgentSpawn.spawnMock!.spawn).toHaveBeenCalledWith(
       "claude-code",
-      expect.stringContaining("Answer using only the provided memory pages")
+      expect.objectContaining({
+        prompt: expect.stringContaining("Answer using only the provided memory pages")
+      })
     );
-    expect(spawnFn.mock.calls[0]?.[1]).toContain("# Memory index");
-    expect(spawnFn.mock.calls[0]?.[1]).toContain("pages/packages/superintendent.md");
+    expect(mockedAgentSpawn.spawnMock!.spawn.mock.calls[0]?.[1]?.prompt).toContain("# Memory index");
+    expect(mockedAgentSpawn.spawnMock!.spawn.mock.calls[0]?.[1]?.prompt).toContain(
+      "pages/packages/superintendent.md"
+    );
     expect(result).toEqual({
       answer: "Retries happen during cleanup races.",
       citations: [

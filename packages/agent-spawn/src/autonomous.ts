@@ -34,7 +34,7 @@ export async function spawnAutonomous<
   TOptions extends { activityTimeoutMs?: number },
   TResult
 >(
-  spawnFn: StreamingSpawnFn<TOptions, TResult>,
+  streamSpawn: StreamingSpawnFn<TOptions, TResult>,
   options: AutonomousOptions<TOptions>
 ): Promise<TResult> {
   const {
@@ -49,7 +49,7 @@ export async function spawnAutonomous<
   for (let attempt = 1; attempt <= maxTimeoutRetries; attempt += 1) {
     let result: Promise<TResult> | undefined;
     try {
-      const stream = spawnFn(service, spawnOptions);
+      const stream = streamSpawn(service, spawnOptions);
       result = stream.result;
       // Attach to the final result immediately so a failed attempt can retry
       // without hanging behind ACP rendering that is still flushing.

@@ -1,16 +1,15 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { spawn } from "@poe-code/agent-spawn";
 import { cacheEnabled, configuredTimeout, resolveAgent } from "@poe-code/poe-code-config";
 import { computeIngestKey, readCacheEntry, writeCacheEntry } from "./cache.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
 import { reconcile, snapshot } from "./reconcile.js";
 import { computeTokenStats } from "./tokens.js";
-import type { IngestOptions, IngestResult, MemoryRoot, SpawnFn } from "./types.js";
 import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
+import type { IngestOptions, IngestResult, MemoryRoot } from "./types.js";
 
 export const INGEST_PROMPT_VERSION = "v1";
-
-type SpawnResult = { exitCode: number; durationMs: number };
 
 export type IngestRunners = {
   computeIngestKey?: typeof computeIngestKey;
@@ -94,13 +93,12 @@ export async function ingest(
   let timeoutError: Error | undefined;
 
   try {
-    const spawnFn = opts.spawnFn as SpawnFn<SpawnResult> | undefined;
     const result = await runWithTimeout(
-      spawnFn?.(agentId, prompt) ?? Promise.resolve({ exitCode: 0, durationMs: 0 }),
+      spawn(agentId, { prompt }),
       opts.timeoutMs ?? (await configuredTimeout(configOptions))
     );
     exitCode = result.exitCode;
-    durationMs = result.durationMs;
+    durationMs = result.durationMs ?? 0;
   } catch (error) {
     timeoutError = error instanceof Error ? error : new Error(String(error));
   }
@@ -163,7 +161,7 @@ function inferRepoRoot(root: string): string {
   return path.resolve(root, "..", "..");
 }
 
-async function runWithTimeout<T extends { exitCode: number; durationMs: number }>(
+async function runWithTimeout<T extends { exitCode: number; durationMs?: number }>(
   promise: Promise<T>,
   timeoutMs: number
 ): Promise<T> {

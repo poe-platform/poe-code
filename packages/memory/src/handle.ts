@@ -46,7 +46,7 @@ export interface MemoryHandle {
   searchMemory(query: string): Promise<SearchHit[]>;
   statusOf(): Promise<StatusInfo>;
   computeTokenStats(): Promise<TokenStats>;
-  explainPage(opts: Omit<ExplainOptions, "spawnFn">): Promise<ExplainResult>;
+  explainPage(opts: ExplainOptions): Promise<ExplainResult>;
 
   writePage(
     relPath: string,
@@ -60,8 +60,8 @@ export interface MemoryHandle {
   ): Promise<MemoryDiff>;
   clearMemory(): Promise<void>;
 
-  query(opts: Omit<QueryOptions, "spawnFn">): Promise<QueryResult>;
-  ingest(opts: Omit<IngestOptions, "spawnFn">): Promise<IngestResult>;
+  query(opts: QueryOptions): Promise<QueryResult>;
+  ingest(opts: IngestOptions): Promise<IngestResult>;
   auditClaims(opts: AuditCallOptions): Promise<PageAudit[]>;
 }
 

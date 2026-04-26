@@ -20,6 +20,7 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/agent-spawn": "*",
     "@poe-code/agent-mcp-config": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/config-mutations": "*",

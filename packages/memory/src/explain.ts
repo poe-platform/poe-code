@@ -1,13 +1,17 @@
+import * as fs from "node:fs/promises";
+import path from "node:path";
 import { countTokens } from "tokenfill";
+import { spawn } from "@poe-code/agent-spawn";
+import { resolveAgent } from "@poe-code/poe-code-config";
 import { readPage } from "./pages.js";
-import { queryMemory, selectQueryContext } from "./query.js";
-import type { ExplainResult, MemoryPage, MemoryRoot, QueryResult, SourceRef, SpawnFn } from "./types.js";
+import { selectQueryContext } from "./query.js";
+import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
+import type { ExplainResult, MemoryPage, MemoryRoot, QueryResult, SourceRef } from "./types.js";
 
 export type ExplainOptions = {
   relPath: string;
   budget: number;
   agent?: string;
-  spawnFn?: SpawnFn;
 };
 
 export async function explainPage(
@@ -35,19 +39,20 @@ export async function explainPage(
     throw new Error(`budget too small; needs at least ${tokensUsed} tokens`);
   }
 
-  const spawnFn = options.spawnFn as SpawnFn<QueryResult> | undefined;
-  const response = await queryMemory(root, {
-    question: `explain ${options.relPath}`,
-    budget: options.budget,
-    agent: options.agent,
-    spawnFn: spawnFn === undefined ? undefined : async (...args) => {
-      const [agent] = args;
-      return spawnFn(agent, prompt);
-    }
-  });
+  const configOptions = {
+    fs: fs as MemoryConfigOptions["fs"],
+    filePath: path.join(inferRepoRoot(root), "poe-code.json")
+  } satisfies MemoryConfigOptions;
+  const agentId =
+    (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
+  const response = (await spawn(agentId, { prompt })) as unknown as QueryResult;
 
   return {
-    ...response,
+    answer: response.answer,
+    citations: response.citations,
+    tokensUsed: response.tokensUsed,
+    budget: options.budget,
+    exitCode: response.exitCode,
     inboundPages: relatedPages
       .filter((page) => page.relPath !== targetPage.relPath)
       .filter((page) => (page.frontmatter.sources ?? []).some((source) => source.path === targetPage.relPath))
@@ -98,4 +103,8 @@ async function readPageIfPresent(root: MemoryRoot, relPath: string): Promise<Mem
 
     throw error;
   }
+}
+
+function inferRepoRoot(root: string): string {
+  return path.resolve(root, "..", "..");
 }

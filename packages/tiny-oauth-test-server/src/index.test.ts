@@ -124,7 +124,7 @@ async function authorize(input: {
   codeChallengeMethod?: string;
   scope?: string;
   state?: string;
-}): Promise<{ code: string; state: string | null }> {
+}): Promise<{ code: string; state: string | null; iss: string | null }> {
   const url = new URL(`${input.baseUrl}/authorize`);
   url.searchParams.set("client_id", input.clientId);
   url.searchParams.set("redirect_uri", input.redirectUri);
@@ -157,6 +157,7 @@ async function authorize(input: {
   return {
     code: code ?? "",
     state: callbackUrl.searchParams.get("state"),
+    iss: callbackUrl.searchParams.get("iss"),
   };
 }
 
@@ -285,6 +286,7 @@ describe("tiny-oauth-test-server", () => {
       grant_types_supported: ["authorization_code", "refresh_token"],
       token_endpoint_auth_methods_supported: ["none"],
       code_challenge_methods_supported: ["S256"],
+      authorization_response_iss_parameter_supported: true,
     });
   });
 
@@ -331,6 +333,7 @@ describe("tiny-oauth-test-server", () => {
     });
 
     expect(authorization.state).toBe("state-123");
+    expect(authorization.iss).toBe(server.issuer);
 
     const tokenResponse = await exchangeAuthorizationCode({
       baseUrl: server.issuer,

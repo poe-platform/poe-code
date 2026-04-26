@@ -18,6 +18,7 @@ export interface OAuthAuthorizationServerMetadata extends Record<string, unknown
   registration_endpoint?: string;
   response_types_supported: string[];
   code_challenge_methods_supported: string[];
+  authorization_response_iss_parameter_supported?: boolean;
 }
 
 export interface OAuthDiscoveryResult {

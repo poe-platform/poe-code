@@ -1,3 +1,4 @@
+import { URL } from "node:url";
 import type {
   DefaultOAuthClientProviderOptions,
   OAuthAuthorizationServerMetadata,
@@ -15,6 +16,7 @@ import {
   type OAuthClientStore,
 } from "./auth-store-session-store.js";
 import { createLoopbackAuthorizationSession } from "./loopback-authorization.js";
+import { createAuthorizationState } from "./authorization-state.js";
 import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
 import {
   exchangeAuthorizationCode,
@@ -43,33 +45,30 @@ export function createDefaultOAuthClientProvider(
   const now = options.now ?? Date.now;
   const sessions = new Map<string, StoredOAuthSession | null>();
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
-  const requestResourceMap = new Map<string, string>();
   const refreshPromises = new Map<string, Promise<StoredOAuthSession | null>>();
   const authorizationPromises = new Map<string, Promise<StoredOAuthSession>>();
 
   return {
     async authorizeRequest(input): Promise<void> {
+      assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
       const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
-      const resource = requestResourceMap.get(requestUrl);
-      if (resource === undefined) {
+      const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false);
+      const accessToken = session?.tokens?.accessToken;
+      if (session === null || accessToken === undefined) {
         return;
       }
 
-      const session = await ensureAuthorizedSession(resource, undefined, input.fetch, false);
-      const accessToken = session?.tokens?.accessToken;
-      if (accessToken === undefined) {
-        return;
-      }
+      assertRequestMatchesResource(requestUrl, session.resource);
 
       input.headers.set("Authorization", `Bearer ${accessToken}`);
     },
 
     async handleUnauthorized(input) {
-      const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
-      const resource = canonicalizeResourceIndicator(input.discovery.resource);
-      requestResourceMap.set(requestUrl, resource);
-
       try {
+        assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
+        const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
+        const resource = canonicalizeResourceIndicator(input.discovery.resource);
+        assertRequestMatchesResource(requestUrl, resource);
         const forceRefresh =
           hasCachedAccessToken(await loadSession(resource))
           && input.challenge?.params.error === "invalid_token";
@@ -141,6 +140,8 @@ export function createDefaultOAuthClientProvider(
     discovery: OAuthDiscoveryResult,
     fetch: OAuthMetadataFetch
   ): Promise<StoredOAuthSession | null> {
+    assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
+
     const inFlight = refreshPromises.get(resource);
     if (inFlight !== undefined) {
       return inFlight;
@@ -224,6 +225,7 @@ export function createDefaultOAuthClientProvider(
 
     const promise = (async () => {
       assertS256PkceSupport(discovery.authorizationServerMetadata);
+      assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
       let currentSession = existingSession;
       let transientRetryAttempted = false;
       let reRegistrationAttempted = false;
@@ -539,12 +541,17 @@ function buildAuthorizationUrl(input: {
 }): string {
   const url = new URL(input.metadata.authorization_endpoint);
   const resource = canonicalizeResourceIndicator(input.resource);
+  const state = createAuthorizationState({
+    issuer: input.metadata.issuer,
+    requireIssuer: input.metadata.authorization_response_iss_parameter_supported === true,
+  });
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", input.clientId);
   url.searchParams.set("redirect_uri", input.redirectUri);
   url.searchParams.set("code_challenge", input.codeChallenge);
   url.searchParams.set("code_challenge_method", "S256");
   url.searchParams.set("resource", resource);
+  url.searchParams.set("state", state);
 
   if (input.clientMetadata?.scope !== undefined && input.clientMetadata.scope.length > 0) {
     url.searchParams.set("scope", input.clientMetadata.scope);
@@ -557,6 +564,57 @@ function assertS256PkceSupport(metadata: OAuthAuthorizationServerMetadata): void
   if (!metadata.code_challenge_methods_supported.includes("S256")) {
     throw new Error(
       "Authorization server metadata must advertise code_challenge_methods_supported including S256"
+    );
+  }
+}
+
+function normalizeHostname(hostname: string): string {
+  return hostname.endsWith(".") ? hostname.slice(0, -1).toLowerCase() : hostname.toLowerCase();
+}
+
+function isLoopbackHostname(hostname: string): boolean {
+  const normalizedHostname = normalizeHostname(hostname);
+  return normalizedHostname === "localhost"
+    || normalizedHostname === "::1"
+    || normalizedHostname.startsWith("127.");
+}
+
+function assertSecureUrl(value: string, label: string): void {
+  const url = new URL(value);
+  if (url.protocol === "https:") {
+    return;
+  }
+
+  if (url.protocol === "http:" && isLoopbackHostname(url.hostname)) {
+    return;
+  }
+
+  throw new Error(`${label} must use https unless it targets a loopback host`);
+}
+
+function assertSecureOAuthFlowEndpoints(metadata: OAuthAuthorizationServerMetadata): void {
+  assertNoAccessTokenInUrl(metadata.authorization_endpoint, "Authorization endpoint");
+  assertNoAccessTokenInUrl(metadata.token_endpoint, "Token endpoint");
+  assertSecureUrl(metadata.authorization_endpoint, "Authorization endpoint");
+  assertSecureUrl(metadata.token_endpoint, "Token endpoint");
+
+  if (metadata.registration_endpoint !== undefined) {
+    assertNoAccessTokenInUrl(metadata.registration_endpoint, "Registration endpoint");
+    assertSecureUrl(metadata.registration_endpoint, "Registration endpoint");
+  }
+}
+
+function assertNoAccessTokenInUrl(value: string | URL, label: string): void {
+  const url = value instanceof URL ? new URL(value.toString()) : new URL(value);
+  if (url.searchParams.has("access_token")) {
+    throw new Error(`${label} must not include access_token in the URI`);
+  }
+}
+
+function assertRequestMatchesResource(requestUrl: string, resource: string): void {
+  if (requestUrl !== resource) {
+    throw new Error(
+      `OAuth request URL ${requestUrl} does not match discovered resource ${resource}`
     );
   }
 }

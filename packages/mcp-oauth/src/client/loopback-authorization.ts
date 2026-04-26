@@ -1,4 +1,5 @@
 import http from "node:http";
+import { parseAuthorizationState } from "./authorization-state.js";
 
 export interface OAuthLandingPage {
   title: string;
@@ -54,6 +55,8 @@ function waitForAuthorizationCode(
   options: LoopbackAuthorizationOptions,
   callbackPath: string
 ): Promise<string> {
+  const expectedAuthorization = readExpectedAuthorizationCallback(authorizationUrl);
+
   return new Promise<string>((resolve, reject) => {
     let settled = false;
     const settle = (fn: () => void) => {
@@ -81,24 +84,39 @@ function waitForAuthorizationCode(
         return;
       }
 
-      const code = url.searchParams.get("code");
-      if (code === null || code.length === 0) {
-        res.writeHead(400);
-        res.end("Missing authorization code");
-        settle(() => reject(new Error("OAuth callback missing authorization code")));
-        return;
-      }
+      try {
+        const code = validateAuthorizationCallbackParameters({
+          code: url.searchParams.get("code"),
+          state: url.searchParams.get("state"),
+          iss: url.searchParams.get("iss"),
+        }, expectedAuthorization);
 
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(buildSuccessPage(options.landingPage));
-      settle(() => resolve(code));
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(buildSuccessPage(options.landingPage));
+        settle(() => resolve(code));
+      } catch (error) {
+        res.writeHead(400);
+        res.end(error instanceof Error ? error.message : "Invalid OAuth callback");
+        settle(() => reject(error instanceof Error ? error : new Error(String(error))));
+      }
     });
 
     if (options.readLine !== undefined) {
       options.readLine().then((input) => {
-        const code = extractCodeFromInput(input);
-        if (code !== null) {
+        const callbackParameters = extractCallbackParametersFromInput(input);
+        if (callbackParameters === null) {
+          settle(() => reject(new Error("OAuth callback missing authorization code")));
+          return;
+        }
+
+        try {
+          const code = validateAuthorizationCallbackParameters(
+            callbackParameters,
+            expectedAuthorization
+          );
           settle(() => resolve(code));
+        } catch (error) {
+          settle(() => reject(error instanceof Error ? error : new Error(String(error))));
         }
       }).catch(() => undefined);
     }
@@ -112,6 +130,12 @@ function waitForAuthorizationCode(
 }
 
 export function extractCodeFromInput(input: string): string | null {
+  return extractCallbackParametersFromInput(input)?.code ?? null;
+}
+
+function extractCallbackParametersFromInput(input: string):
+  | { code: string | null; state: string | null; iss: string | null }
+  | null {
   const trimmed = input.replaceAll("\r", "").replaceAll("\n", "").trim();
   if (trimmed.length === 0) {
     return null;
@@ -119,10 +143,78 @@ export function extractCodeFromInput(input: string): string | null {
 
   try {
     const url = new URL(trimmed);
-    return url.searchParams.get("code");
+    return {
+      code: url.searchParams.get("code"),
+      state: url.searchParams.get("state"),
+      iss: url.searchParams.get("iss"),
+    };
   } catch {
-    return trimmed;
+    return {
+      code: trimmed,
+      state: null,
+      iss: null,
+    };
   }
+}
+
+function readExpectedAuthorizationCallback(authorizationUrl: string): {
+  state: string | null;
+  issuer: string | null;
+  requireIssuer: boolean;
+} {
+  const url = new URL(authorizationUrl);
+  const state = url.searchParams.get("state");
+  const parsedState = parseAuthorizationState(state);
+
+  return {
+    state,
+    issuer: parsedState?.issuer ?? null,
+    requireIssuer: parsedState?.requireIssuer ?? false,
+  };
+}
+
+function validateAuthorizationCallbackParameters(
+  callback: {
+    code: string | null;
+    state: string | null;
+    iss: string | null;
+  },
+  expected: {
+    state: string | null;
+    issuer: string | null;
+    requireIssuer: boolean;
+  }
+): string {
+  if (callback.code === null || callback.code.length === 0) {
+    throw new Error("OAuth callback missing authorization code");
+  }
+
+  if (expected.state !== null) {
+    if (callback.state === null || callback.state.length === 0) {
+      throw new Error("OAuth callback missing state");
+    }
+
+    if (callback.state !== expected.state) {
+      throw new Error("OAuth callback state mismatch");
+    }
+  }
+
+  if (expected.requireIssuer) {
+    if (callback.iss === null || callback.iss.length === 0) {
+      throw new Error("OAuth callback missing issuer");
+    }
+  }
+
+  if (
+    callback.iss !== null
+    && callback.iss.length > 0
+    && expected.issuer !== null
+    && callback.iss !== expected.issuer
+  ) {
+    throw new Error("OAuth callback issuer mismatch");
+  }
+
+  return callback.code;
 }
 
 function escapeHtml(text: string): string {

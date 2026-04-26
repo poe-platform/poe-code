@@ -939,7 +939,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: audit-rfc9700-bcp-and-passthrough
     title: Spec audit — RFC 9700 BCP, token passthrough, confused deputy
@@ -996,9 +996,9 @@ tasks:
           rejection, cross-resource token reuse rejection, duplicate code
           exchange rejection.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: qa-real-clients

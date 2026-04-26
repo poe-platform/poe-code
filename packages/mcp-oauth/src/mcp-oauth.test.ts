@@ -102,8 +102,19 @@ function createCallbackResponse(code: string): Response {
   });
 }
 
-function createOAuthPair(options: { includeRegistrationEndpoint?: boolean } = {}) {
+function createOAuthPair(options: {
+  includeRegistrationEndpoint?: boolean;
+  authorizationResponseIssParameterSupported?: boolean;
+  callbackStateMode?: "match" | "mismatch" | "missing";
+  callbackIssMode?: "match" | "mismatch" | "missing";
+  repeatCallbacks?: number;
+} = {}) {
   const includeRegistrationEndpoint = options.includeRegistrationEndpoint ?? true;
+  const authorizationResponseIssParameterSupported =
+    options.authorizationResponseIssParameterSupported ?? false;
+  const callbackStateMode = options.callbackStateMode ?? "match";
+  const callbackIssMode = options.callbackIssMode ?? "match";
+  const repeatCallbacks = options.repeatCallbacks ?? 1;
   const registeredClientIds = new Set<string>();
   const registeredRedirectUris = new Map<string, string[]>();
   const authorizationRequests: URL[] = [];
@@ -167,6 +178,8 @@ function createOAuthPair(options: { includeRegistrationEndpoint?: boolean } = {}
           registration_endpoint: includeRegistrationEndpoint ? REGISTRATION_ENDPOINT : undefined,
           response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"],
+          authorization_response_iss_parameter_supported:
+            authorizationResponseIssParameterSupported,
         }),
         {
           status: 200,
@@ -338,7 +351,27 @@ function createOAuthPair(options: { includeRegistrationEndpoint?: boolean } = {}
       codeChallenge: url.searchParams.get("code_challenge") ?? "",
     });
 
-    await requestLoopbackCallback(`${redirectUri}?code=${encodeURIComponent(code)}`);
+    const callbackUrl = new URL(redirectUri);
+    callbackUrl.searchParams.set("code", code);
+
+    const state = url.searchParams.get("state");
+    if (callbackStateMode === "match" && state !== null) {
+      callbackUrl.searchParams.set("state", state);
+    } else if (callbackStateMode === "mismatch") {
+      callbackUrl.searchParams.set("state", "mismatched-state");
+    }
+
+    if (authorizationResponseIssParameterSupported) {
+      if (callbackIssMode === "match") {
+        callbackUrl.searchParams.set("iss", AUTHORIZATION_SERVER);
+      } else if (callbackIssMode === "mismatch") {
+        callbackUrl.searchParams.set("iss", "https://issuer.example.com/other");
+      }
+    }
+
+    for (let index = 0; index < repeatCallbacks; index += 1) {
+      await requestLoopbackCallback(callbackUrl.toString());
+    }
   });
 
   return {
@@ -686,6 +719,127 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(runtimeRedirectUri.pathname).toBe("/callback");
   });
 
+  it("rejects callback state mismatches without exchanging the authorization code", async () => {
+    const pair = createOAuthPair({
+      callbackStateMode: "mismatch",
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+      }),
+      challenge: null,
+      discovery: createDiscoveryResult(),
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toContain("state mismatch");
+    }
+    expect(pair.tokenBodies).toHaveLength(0);
+  });
+
+  it("rejects callback issuer mismatches before token exchange when the AS supports iss", async () => {
+    const pair = createOAuthPair({
+      authorizationResponseIssParameterSupported: true,
+      callbackIssMode: "mismatch",
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+      }),
+      challenge: null,
+      discovery: createDiscoveryResult({
+        authorizationServerMetadata: {
+          issuer: AUTHORIZATION_SERVER,
+          authorization_endpoint: AUTHORIZATION_ENDPOINT,
+          token_endpoint: TOKEN_ENDPOINT,
+          registration_endpoint: REGISTRATION_ENDPOINT,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+          authorization_response_iss_parameter_supported: true,
+        },
+      }),
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toContain("issuer mismatch");
+    }
+    expect(pair.tokenBodies).toHaveLength(0);
+  });
+
+  it("refuses non-loopback http authorization server endpoints", async () => {
+    const pair = createOAuthPair();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+      }),
+      challenge: null,
+      discovery: createDiscoveryResult({
+        authorizationServer: "http://auth.example.com",
+        authorizationServerMetadataUrl: "http://auth.example.com/.well-known/oauth-authorization-server",
+        authorizationServerMetadata: {
+          issuer: "http://auth.example.com",
+          authorization_endpoint: "http://auth.example.com/authorize",
+          token_endpoint: "http://auth.example.com/token",
+          registration_endpoint: "http://auth.example.com/register",
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+        },
+      }),
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error?.message).toContain("must use https unless it targets a loopback host");
+    }
+    expect(pair.openBrowser).not.toHaveBeenCalled();
+  });
+
   it("skips DCR for static clients and sends the resource indicator on authorize and token requests", async () => {
     const pair = createOAuthPair({
       includeRegistrationEndpoint: true,
@@ -720,6 +874,30 @@ describe("createDefaultOAuthClientProvider", () => {
         refreshToken: "refresh-1",
       },
     });
+  });
+
+  it("keeps PKCE enabled even when a client secret is configured", async () => {
+    const pair = createOAuthPair();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+        clientSecret: "top-secret",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider, pair.fetchMock as typeof fetch);
+
+    expect(pair.authorizationRequests).toHaveLength(1);
+    expect(pair.authorizationRequests[0]?.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(pair.tokenBodies).toHaveLength(1);
+    expect(pair.tokenBodies[0]?.get("code_verifier")).toBeTruthy();
+    expect(pair.tokenBodies[0]?.get("client_secret")).toBe("top-secret");
   });
 
   it("canonicalizes the resource indicator across request mapping, authorize, code exchange, and refresh", async () => {
@@ -760,7 +938,7 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(pair.tokenBodies[0]?.get("resource")).toBe(RESOURCE_URL);
 
     const headers = new Headers();
-    await provider.authorizeRequest({
+    await provider.authorizeRequest!({
       requestUrl: new URL(RESOURCE_URL),
       headers,
       fetch: pair.fetchMock as typeof fetch,
@@ -799,7 +977,7 @@ describe("createDefaultOAuthClientProvider", () => {
     ).toBe(RESOURCE_URL);
 
     const refreshedHeaders = new Headers();
-    await provider.authorizeRequest({
+    await provider.authorizeRequest!({
       requestUrl: new URL(NON_CANONICAL_RESOURCE_URL),
       headers: refreshedHeaders,
       fetch: pair.fetchMock as typeof fetch,
@@ -812,6 +990,86 @@ describe("createDefaultOAuthClientProvider", () => {
         accessToken: "access-2",
       },
     });
+  });
+
+  it("rejects resource requests that try to carry an access token in the URI", async () => {
+    const pair = createOAuthPair();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider, pair.fetchMock as typeof fetch);
+
+    await expect(
+      provider.authorizeRequest!({
+        requestUrl: new URL(`${RESOURCE_URL}?access_token=stolen-token`),
+        headers: new Headers(),
+        fetch: pair.fetchMock as typeof fetch,
+      })
+    ).rejects.toThrow("access_token");
+  });
+
+  it("rejects mismatched request and discovery resources instead of reusing a token across resources", async () => {
+    const pair = createOAuthPair();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL("https://other.example.com/mcp"),
+      response: new Response(null, {
+        status: 401,
+      }),
+      challenge: null,
+      discovery: createDiscoveryResult(),
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error?.message).toContain("does not match discovered resource");
+    }
+    expect(pair.authorizationRequests).toHaveLength(0);
+    expect(pair.tokenBodies).toHaveLength(0);
+  });
+
+  it("exchanges an authorization code only once when the loopback callback fires twice", async () => {
+    const pair = createOAuthPair({
+      repeatCallbacks: 2,
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider, pair.fetchMock as typeof fetch);
+
+    expect(
+      pair.tokenBodies.filter((body) => body.get("grant_type") === "authorization_code")
+    ).toHaveLength(1);
   });
 
   it("reloads persisted tokens and refreshes them only once for concurrent callers", async () => {
@@ -1022,7 +1280,10 @@ describe("createDefaultOAuthClientProvider", () => {
         codeChallenge: url.searchParams.get("code_challenge") ?? "",
       });
 
-      await requestLoopbackCallback(`${url.searchParams.get("redirect_uri")}?code=${code}`);
+      const callbackUrl = new URL(url.searchParams.get("redirect_uri") ?? "");
+      callbackUrl.searchParams.set("code", code);
+      callbackUrl.searchParams.set("state", url.searchParams.get("state") ?? "");
+      await requestLoopbackCallback(callbackUrl.toString());
     });
     const provider = createDefaultOAuthClientProvider({
       client: {
@@ -1640,7 +1901,7 @@ async function createAuthorizedHeaders(
   fetchMock: typeof fetch
 ): Promise<string | null> {
   const headers = new Headers();
-  await provider.authorizeRequest({
+  await provider.authorizeRequest?.({
     requestUrl: new URL(RESOURCE_URL),
     headers,
     fetch: fetchMock,

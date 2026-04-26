@@ -629,7 +629,10 @@ describe("HttpTransport OAuth authorization", () => {
 
       expect(url.searchParams.get("resource")).toBe(requestUrl);
 
-      await requestLoopbackCallback(`${url.searchParams.get("redirect_uri")}?code=${code}`);
+      const callbackUrl = new URL(url.searchParams.get("redirect_uri") ?? "");
+      callbackUrl.searchParams.set("code", code);
+      callbackUrl.searchParams.set("state", url.searchParams.get("state") ?? "");
+      await requestLoopbackCallback(callbackUrl.toString());
     });
 
     const sessionStore: OAuthSessionStore = {
@@ -804,7 +807,10 @@ describe("HttpTransport OAuth authorization", () => {
         codeChallenge: url.searchParams.get("code_challenge") ?? "",
       });
 
-      await requestLoopbackCallback(`${url.searchParams.get("redirect_uri")}?code=${code}`);
+      const callbackUrl = new URL(url.searchParams.get("redirect_uri") ?? "");
+      callbackUrl.searchParams.set("code", code);
+      callbackUrl.searchParams.set("state", url.searchParams.get("state") ?? "");
+      await requestLoopbackCallback(callbackUrl.toString());
     });
 
     const sessionStore: OAuthSessionStore = {

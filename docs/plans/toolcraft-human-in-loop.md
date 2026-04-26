@@ -592,7 +592,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-readme-and-qa
     title: toolcraft — README and QA-human-in-loop.md
@@ -623,7 +623,7 @@ tasks:
 
       Per project rule: NEVER add anything beyond what changed.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: full-sweep

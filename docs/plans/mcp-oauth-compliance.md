@@ -999,7 +999,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: qa-real-clients
     title: Manual QA — real MCP clients
@@ -1037,10 +1037,10 @@ tasks:
       file only, plus a one-line entry pointing to it from the existing QA
       index if one exists in `docs/plans/qa/`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 ---
 
 ## Goal

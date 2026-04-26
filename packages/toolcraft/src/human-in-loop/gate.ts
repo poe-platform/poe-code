@@ -1,5 +1,7 @@
 import type { Command, HandlerContext } from "../index.js";
+import { enqueueApproval, ensureApprovalList } from "./approval-tasks.js";
 import { defaultProviderForPlatform } from "./default-provider.js";
+import { spawnApprovalRunner } from "./spawn.js";
 import { ApprovalDeclinedError } from "./types.js";
 import type { HumanInLoopPending, HumanInLoopProvider, HumanInLoopRuntimeOptions } from "./types.js";
 
@@ -36,14 +38,28 @@ export async function invokeWithHumanInLoop<T>(
     return node.handler(ctx);
   }
 
-  if (node.humanInLoop.mode === "async") {
-    throw new Error("human-in-loop async mode not yet implemented");
-  }
-
   const message = node.humanInLoop.message({
     params: ctx.params,
     commandPath,
   });
+
+  if (node.humanInLoop.mode === "async") {
+    const { tasks } = await ensureApprovalList(runtimeOptions);
+    const { approvalId, pending } = await enqueueApproval({
+      tasks,
+      payload: {
+        commandPath,
+        params: ctx.params,
+        message,
+        declineInputPrompt: node.humanInLoop.declineInputPrompt,
+      },
+    });
+
+    spawnApprovalRunner(approvalId, runtimeOptions as HumanInLoopRuntimeOptions);
+
+    return pending;
+  }
+
   const provider = resolveProvider(runtimeOptions);
   const result = await provider.requestApproval({
     message,

@@ -368,7 +368,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-async-enqueue
     title: toolcraft — async path + approval-tasks adapter
@@ -421,8 +421,8 @@ tasks:
       Reference: docs/plans/toolcraft-human-in-loop.md §3 "The gate — async path"
       and "Integration walkthrough".
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-spawn-runner

@@ -1,25 +1,7 @@
 import type { HumanInLoopProvider } from "@poe-code/agent-human-in-loop";
+import type { TaskList } from "@poe-code/task-list";
 import type { ObjectSchema, Static } from "toolcraft-schema";
 import { UserError } from "../user-error.js";
-
-type HumanInLoopTaskList = {
-  list(name: string): {
-    all(filter?: { state?: string; includeArchived?: boolean }): Promise<unknown[]>;
-    get(id: string): Promise<unknown>;
-    create(input: {
-      id: string;
-      name: string;
-      description?: string;
-      metadata?: Record<string, unknown>;
-    }): Promise<unknown>;
-    fire(id: string, event: string, opts?: { metadataPatch?: Record<string, unknown> }): Promise<unknown>;
-    canFire(id: string, event: string): Promise<boolean>;
-    events(id: string): Promise<readonly string[]>;
-  };
-  lists(): Promise<string[]>;
-  allTasks(filter?: { state?: string; includeArchived?: boolean }): Promise<unknown[]>;
-  get(qualifiedId: string): Promise<unknown>;
-};
 
 export interface HumanInLoopConfig<TParamsSchema extends ObjectSchema<any>> {
   mode: "sync" | "async";
@@ -30,7 +12,7 @@ export interface HumanInLoopConfig<TParamsSchema extends ObjectSchema<any>> {
 export interface HumanInLoopRuntimeOptions {
   provider?: HumanInLoopProvider;
   taskList?:
-    | HumanInLoopTaskList
+    | TaskList
     | {
         dir: string;
         format: "markdown-dir" | "yaml-file";

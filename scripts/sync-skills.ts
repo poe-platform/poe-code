@@ -28,7 +28,8 @@ async function main() {
     skills.push({ name: data.name as string, content });
   }
 
-  const updated: string[] = [];
+  const changed: string[] = [];
+  let unchanged = 0;
 
   for (const agent of supportedAgents) {
     const config = getAgentConfig(agent);
@@ -41,17 +42,25 @@ async function main() {
         const skillFilePath = join(skillDir, skill.name, "SKILL.md");
         if (!existsSync(skillFilePath)) continue;
 
+        const current = readFileSync(skillFilePath, "utf8");
+        if (current === skill.content) {
+          unchanged++;
+          continue;
+        }
+
         writeFileSync(skillFilePath, skill.content);
-        updated.push(skillFilePath);
+        changed.push(skillFilePath);
       }
     }
   }
 
-  if (updated.length === 0) {
+  if (changed.length === 0 && unchanged === 0) {
     console.log("No installed skills found to update.");
+  } else if (changed.length === 0) {
+    console.log(`All ${unchanged} installed skill(s) already up to date.`);
   } else {
-    console.log(`Updated ${updated.length} skill(s):`);
-    for (const file of updated) {
+    console.log(`Updated ${changed.length} skill(s) (${unchanged} already up to date):`);
+    for (const file of changed) {
       console.log(`  ${file}`);
     }
   }

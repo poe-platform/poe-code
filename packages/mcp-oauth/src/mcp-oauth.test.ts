@@ -74,6 +74,7 @@ function createCallbackResponse(code: string): Response {
 function createOAuthPair(options: { includeRegistrationEndpoint?: boolean } = {}) {
   const includeRegistrationEndpoint = options.includeRegistrationEndpoint ?? true;
   const registeredClientIds = new Set<string>();
+  const registeredRedirectUris = new Map<string, string[]>();
   const authorizationRequests: URL[] = [];
   const registrationBodies: Array<Record<string, unknown>> = [];
   const tokenBodies: URLSearchParams[] = [];
@@ -150,6 +151,12 @@ function createOAuthPair(options: { includeRegistrationEndpoint?: boolean } = {}
       clientCounter += 1;
       const clientId = `client-${clientCounter}`;
       registeredClientIds.add(clientId);
+      registeredRedirectUris.set(
+        clientId,
+        Array.isArray(parsedBody.redirect_uris)
+          ? parsedBody.redirect_uris.filter((value): value is string => typeof value === "string")
+          : []
+      );
 
       return new Response(
         JSON.stringify({
@@ -279,19 +286,26 @@ function createOAuthPair(options: { includeRegistrationEndpoint?: boolean } = {}
       throw new Error(`Unknown client ID: ${clientId}`);
     }
 
-    authorizationCounter += 1;
-    const code = `code-${authorizationCounter}`;
-    authorizationCodes.set(code, {
-      clientId,
-      redirectUri: url.searchParams.get("redirect_uri") ?? "",
-      resource: url.searchParams.get("resource") ?? "",
-      codeChallenge: url.searchParams.get("code_challenge") ?? "",
-    });
-
     const redirectUri = url.searchParams.get("redirect_uri");
     if (redirectUri === null) {
       throw new Error("Missing redirect_uri");
     }
+
+    if (clientId !== "static-client") {
+      const clientRedirectUris = registeredRedirectUris.get(clientId) ?? [];
+      if (!clientRedirectUris.some((candidate) => matchesRegisteredLoopbackRedirect(candidate, redirectUri))) {
+        throw new Error(`redirect_uri ${redirectUri} does not match the registered loopback path`);
+      }
+    }
+
+    authorizationCounter += 1;
+    const code = `code-${authorizationCounter}`;
+    authorizationCodes.set(code, {
+      clientId,
+      redirectUri,
+      resource: url.searchParams.get("resource") ?? "",
+      codeChallenge: url.searchParams.get("code_challenge") ?? "",
+    });
 
     await requestLoopbackCallback(`${redirectUri}?code=${encodeURIComponent(code)}`);
   });
@@ -318,6 +332,15 @@ async function requestLoopbackCallback(url: string): Promise<void> {
 
 function createS256CodeChallenge(verifier: string): string {
   return crypto.createHash("sha256").update(verifier).digest("base64url");
+}
+
+function matchesRegisteredLoopbackRedirect(registered: string, requested: string): boolean {
+  const registeredUrl = new URL(registered);
+  const requestedUrl = new URL(requested);
+
+  registeredUrl.port = "";
+  requestedUrl.port = "";
+  return registeredUrl.toString() === requestedUrl.toString();
 }
 
 async function authorizeProvider(
@@ -416,6 +439,91 @@ describe("createAuthStoreSessionStore", () => {
 });
 
 describe("createDefaultOAuthClientProvider", () => {
+  it("fails before authorization when the server metadata does not advertise S256", async () => {
+    const pair = createOAuthPair();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+      }),
+      challenge: null,
+      discovery: createDiscoveryResult({
+        authorizationServerMetadata: {
+          issuer: AUTHORIZATION_SERVER,
+          authorization_endpoint: AUTHORIZATION_ENDPOINT,
+          token_endpoint: TOKEN_ENDPOINT,
+          registration_endpoint: REGISTRATION_ENDPOINT,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["plain"],
+        },
+      }),
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error?.message).toContain("S256");
+    }
+    expect(pair.openBrowser).not.toHaveBeenCalled();
+    expect(pair.tokenBodies).toHaveLength(0);
+  });
+
+  it("still picks S256 and a fixed 127.0.0.1 /callback redirect when plain is also advertised", async () => {
+    const pair = createOAuthPair();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(
+      provider,
+      pair.fetchMock as typeof fetch,
+      createDiscoveryResult({
+        authorizationServerMetadata: {
+          issuer: AUTHORIZATION_SERVER,
+          authorization_endpoint: AUTHORIZATION_ENDPOINT,
+          token_endpoint: TOKEN_ENDPOINT,
+          registration_endpoint: REGISTRATION_ENDPOINT,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["plain", "S256"],
+        },
+      })
+    );
+
+    expect(pair.registrationBodies).toHaveLength(1);
+    const registeredRedirectUris = pair.registrationBodies[0]?.redirect_uris;
+    expect(Array.isArray(registeredRedirectUris)).toBe(true);
+    const registeredRedirectUri = new URL(String((registeredRedirectUris as string[])[0]));
+    expect(registeredRedirectUri.protocol).toBe("http:");
+    expect(registeredRedirectUri.hostname).toBe("127.0.0.1");
+    expect(registeredRedirectUri.pathname).toBe("/callback");
+
+    expect(pair.authorizationRequests).toHaveLength(1);
+    const authorizationRequest = pair.authorizationRequests[0];
+    expect(authorizationRequest?.searchParams.get("code_challenge_method")).toBe("S256");
+    const runtimeRedirectUri = new URL(authorizationRequest?.searchParams.get("redirect_uri") ?? "");
+    expect(runtimeRedirectUri.protocol).toBe("http:");
+    expect(runtimeRedirectUri.hostname).toBe("127.0.0.1");
+    expect(runtimeRedirectUri.pathname).toBe("/callback");
+  });
+
   it("skips DCR for static clients and sends the resource indicator on authorize and token requests", async () => {
     const pair = createOAuthPair({
       includeRegistrationEndpoint: true,
@@ -437,6 +545,7 @@ describe("createDefaultOAuthClientProvider", () => {
 
     expect(pair.registrationBodies).toHaveLength(0);
     expect(pair.authorizationRequests).toHaveLength(1);
+    expect(pair.authorizationRequests[0]?.searchParams.get("redirect_uri")).toContain("http://127.0.0.1:");
     expect(pair.authorizationRequests[0]?.searchParams.get("resource")).toBe(RESOURCE_URL);
     expect(pair.tokenBodies).toHaveLength(1);
     expect(pair.tokenBodies[0]?.get("resource")).toBe(RESOURCE_URL);
@@ -612,6 +721,11 @@ describe("createDefaultOAuthClientProvider", () => {
 
     expect(registrationBodies).toHaveLength(1);
     expect(authorizationRequests).toHaveLength(2);
+    expect(
+      new Set(
+        authorizationRequests.map((request) => new URL(request.searchParams.get("redirect_uri") ?? "").port)
+      ).size
+    ).toBe(2);
     expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
       client: {
         clientId: "client-1",

@@ -178,7 +178,7 @@ function isLoopbackRedirectUri(value: string): boolean {
     return false;
   }
 
-  if (hostname === "localhost" || hostname === "::1") {
+  if (hostname === "::1") {
     return true;
   }
 
@@ -189,6 +189,36 @@ function isLoopbackRedirectUri(value: string): boolean {
 
   const firstOctet = Number(octets[0]);
   return Number.isInteger(firstOctet) && firstOctet === 127;
+}
+
+function stripUrlPort(value: string): string {
+  const url = new URL(value);
+  url.port = "";
+  return url.toString();
+}
+
+function matchesRegisteredRedirectUri(registeredRedirectUri: string, requestedRedirectUri: string): boolean {
+  return stripUrlPort(registeredRedirectUri) === stripUrlPort(requestedRedirectUri);
+}
+
+function isPkceVerifierCharacter(value: string): boolean {
+  return (
+    (value >= "A" && value <= "Z")
+    || (value >= "a" && value <= "z")
+    || (value >= "0" && value <= "9")
+    || value === "-"
+    || value === "."
+    || value === "_"
+    || value === "~"
+  );
+}
+
+function isValidPkceVerifier(value: string): boolean {
+  return (
+    value.length >= 43
+    && value.length <= 128
+    && [...value].every(isPkceVerifierCharacter)
+  );
 }
 
 function parseScope(value: string | null): string[] {
@@ -470,6 +500,24 @@ function readRequestHeaders(request: IncomingMessage): Record<string, string> {
   );
 }
 
+function sanitizeLoggedBody(
+  body: string,
+  headers: Record<string, string>
+): string {
+  const contentType = headers["content-type"]?.split(";")[0]?.trim().toLowerCase();
+  if (contentType !== "application/x-www-form-urlencoded") {
+    return body;
+  }
+
+  const params = new URLSearchParams(body);
+  if (!params.has("code_verifier")) {
+    return body;
+  }
+
+  params.set("code_verifier", "[redacted]");
+  return params.toString();
+}
+
 async function readBody(request: IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
 
@@ -579,6 +627,7 @@ export function createOAuthTestServer(
   const authorizationCodes = new Map<string, AuthorizationCodeRecord>();
   const refreshTokens = new Map<string, RefreshTokenRecord>();
   const accessTokens = new Map<string, AccessTokenRecord>();
+  const usedCodeVerifiers = new Set<string>();
   const revokedTokens = new Set<string>();
   const requestLog: OAuthTestServerRequest[] = [];
 
@@ -756,7 +805,7 @@ export function createOAuthTestServer(
           method,
           url: url.toString(),
           headers: requestHeaders,
-          ...(body === undefined ? {} : { body }),
+          ...(body === undefined ? {} : { body: sanitizeLoggedBody(body, requestHeaders) }),
         });
       };
 
@@ -968,7 +1017,7 @@ export function createOAuthTestServer(
   ): StoredClient {
     const client = staticClients.get(clientId) ?? registeredClients.get(clientId);
     if (client !== undefined) {
-      if (!client.redirectUris.includes(redirectUri)) {
+      if (!client.redirectUris.some((candidate) => matchesRegisteredRedirectUri(candidate, redirectUri))) {
         throw new OAuthRequestError(
           400,
           "invalid_request",
@@ -1102,6 +1151,18 @@ export function createOAuthTestServer(
       throw new OAuthRequestError(400, "invalid_grant", "resource does not match the code");
     }
 
+    if (!isValidPkceVerifier(codeVerifier)) {
+      throw new OAuthRequestError(
+        400,
+        "invalid_grant",
+        "PKCE verifier must be 43-128 unreserved characters"
+      );
+    }
+
+    if (usedCodeVerifiers.has(codeVerifier)) {
+      throw new OAuthRequestError(400, "invalid_grant", "PKCE verifier has already been used");
+    }
+
     const actualChallenge = createHash("sha256")
       .update(codeVerifier)
       .digest("base64url");
@@ -1111,6 +1172,7 @@ export function createOAuthTestServer(
 
     record.used = true;
     authorizationCodes.delete(code);
+    usedCodeVerifiers.add(codeVerifier);
 
     return createTokenResponse({
       clientId,

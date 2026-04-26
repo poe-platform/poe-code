@@ -182,6 +182,7 @@ export function createDefaultOAuthClientProvider(
     }
 
     const promise = (async () => {
+      assertS256PkceSupport(discovery.authorizationServerMetadata);
       const loopback = await createLoopbackAuthorizationSession({
         openBrowser: options.browser.openBrowser,
         readLine: options.browser.readLine,
@@ -340,7 +341,8 @@ function resolveDiscovery(
     typeof metadata.issuer !== "string" ||
     typeof metadata.authorization_endpoint !== "string" ||
     typeof metadata.token_endpoint !== "string" ||
-    !Array.isArray(metadata.code_challenge_methods_supported)
+    !Array.isArray(metadata.code_challenge_methods_supported) ||
+    !metadata.code_challenge_methods_supported.includes("S256")
   ) {
     return undefined;
   }
@@ -394,6 +396,14 @@ function buildAuthorizationUrl(input: {
   }
 
   return url.toString();
+}
+
+function assertS256PkceSupport(metadata: OAuthAuthorizationServerMetadata): void {
+  if (!metadata.code_challenge_methods_supported.includes("S256")) {
+    throw new Error(
+      "Authorization server metadata must advertise code_challenge_methods_supported including S256"
+    );
+  }
 }
 
 function buildClientRegistrationBody(

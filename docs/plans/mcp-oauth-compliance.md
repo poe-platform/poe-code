@@ -687,7 +687,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: audit-pkce-and-redirect-uri
     title: Spec audit — PKCE and loopback redirect URIs
@@ -731,9 +731,9 @@ tasks:
           re-used verifier, mismatched redirect URI, `localhost` redirect
           URI, path mismatch, port-only mismatch.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: audit-resource-indicator

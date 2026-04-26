@@ -10,6 +10,10 @@ function createPkceChallenge(verifier: string): string {
   return createHash("sha256").update(verifier).digest("base64url");
 }
 
+function createValidVerifier(label: string): string {
+  return `${label}-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdef`;
+}
+
 function normalizeRequestHostname(hostname: string): string {
   if (hostname.startsWith("[") && hostname.endsWith("]")) {
     return hostname.slice(1, -1);
@@ -117,6 +121,7 @@ async function authorize(input: {
   redirectUri: string;
   resource: string;
   codeChallenge: string;
+  codeChallengeMethod?: string;
   scope?: string;
   state?: string;
 }): Promise<{ code: string; state: string | null }> {
@@ -125,7 +130,7 @@ async function authorize(input: {
   url.searchParams.set("redirect_uri", input.redirectUri);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("code_challenge", input.codeChallenge);
-  url.searchParams.set("code_challenge_method", "S256");
+  url.searchParams.set("code_challenge_method", input.codeChallengeMethod ?? "S256");
   url.searchParams.set("resource", input.resource);
   url.searchParams.set("auto_approve", "1");
 
@@ -308,7 +313,7 @@ describe("tiny-oauth-test-server", () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43123/callback";
     const resource = "https://resource.example.com/mcp";
-    const codeVerifier = "correct-horse-battery-staple";
+    const codeVerifier = createValidVerifier("correct-horse-battery-staple");
     const clientId = await registerClient({
       baseUrl: server.issuer,
       redirectUris: [redirectUri],
@@ -360,6 +365,36 @@ describe("tiny-oauth-test-server", () => {
     expect(verified.payload.exp).toBe(verified.payload.iat! + 60);
   });
 
+  it("accepts a valid PKCE verifier that uses the full RFC 7636 unreserved alphabet", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43130/callback";
+    const resource = "https://resource.example.com/unreserved";
+    const codeVerifier =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource,
+    });
+
+    expect(tokenResponse.status).toBe(200);
+  });
+
   it("rejects a PKCE verifier mismatch", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43124/callback";
@@ -373,14 +408,14 @@ describe("tiny-oauth-test-server", () => {
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge("expected-verifier"),
+      codeChallenge: createPkceChallenge(createValidVerifier("expected-verifier")),
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
       baseUrl: server.issuer,
       clientId,
       code: authorization.code,
-      codeVerifier: "wrong-verifier",
+      codeVerifier: createValidVerifier("wrong-verifier"),
       redirectUri,
       resource,
     });
@@ -389,6 +424,76 @@ describe("tiny-oauth-test-server", () => {
     await expect(tokenResponse.json()).resolves.toMatchObject({
       error: "invalid_grant",
     });
+  });
+
+  it("rejects a too-short PKCE verifier even when the challenge matches", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43131/callback";
+    const resource = "https://resource.example.com/short-verifier";
+    const codeVerifier = "short";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource,
+    });
+    const payload = (await tokenResponse.json()) as {
+      error: string;
+      error_description?: string;
+    };
+
+    expect(tokenResponse.status).toBe(400);
+    expect(payload.error).toBe("invalid_grant");
+    expect(payload.error_description).not.toContain(codeVerifier);
+  });
+
+  it("rejects a PKCE verifier whose alphabet is outside RFC 7636 unreserved characters", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43132/callback";
+    const resource = "https://resource.example.com/bad-alphabet";
+    const codeVerifier = `${"A".repeat(42)}!`;
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource,
+    });
+    const payload = (await tokenResponse.json()) as {
+      error: string;
+      error_description?: string;
+    };
+
+    expect(tokenResponse.status).toBe(400);
+    expect(payload.error).toBe("invalid_grant");
+    expect(payload.error_description).not.toContain(codeVerifier);
   });
 
   it("rejects a resource mismatch between authorize and token", async () => {
@@ -403,14 +508,14 @@ describe("tiny-oauth-test-server", () => {
       clientId,
       redirectUri,
       resource: "https://resource.example.com/a",
-      codeChallenge: createPkceChallenge("matching-verifier"),
+      codeChallenge: createPkceChallenge(createValidVerifier("matching-verifier")),
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
       baseUrl: server.issuer,
       clientId,
       code: authorization.code,
-      codeVerifier: "matching-verifier",
+      codeVerifier: createValidVerifier("matching-verifier"),
       redirectUri,
       resource: "https://resource.example.com/b",
     });
@@ -421,11 +526,41 @@ describe("tiny-oauth-test-server", () => {
     });
   });
 
+  it("rejects code_challenge_method=plain", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43133/callback";
+    const resource = "https://resource.example.com/plain";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const response = await nodeFetch(
+      new URL(
+        `/authorize?client_id=${encodeURIComponent(clientId)}`
+        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
+        + "&response_type=code"
+        + "&code_challenge=plain-verifier"
+        + "&code_challenge_method=plain"
+        + `&resource=${encodeURIComponent(resource)}`
+        + "&auto_approve=1",
+        server.issuer
+      ),
+      {
+        redirect: "manual",
+      }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "invalid_request",
+    });
+  });
+
   it("rotates refresh tokens and issues a new access token", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43126/callback";
     const resource = "https://resource.example.com/mcp";
-    const codeVerifier = "refresh-flow-verifier";
+    const codeVerifier = createValidVerifier("refresh-flow-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
       redirectUris: [redirectUri],
@@ -467,11 +602,48 @@ describe("tiny-oauth-test-server", () => {
     expect(refreshPayload.refresh_token).not.toBe(firstPayload.refresh_token);
   });
 
+  it("redacts PKCE verifiers from the request log", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43134/callback";
+    const resource = "https://resource.example.com/redaction";
+    const codeVerifier = "redaction-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+
+    await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource,
+    });
+
+    const tokenRequest = server.requestLog.find(
+      (request) =>
+        request.method === "POST"
+        && request.url.endsWith("/token")
+        && (request.body?.includes("grant_type=authorization_code") ?? false)
+    );
+    expect(tokenRequest?.body).toBeTruthy();
+    expect(tokenRequest?.body).not.toContain(codeVerifier);
+    expect(tokenRequest?.body).toContain("code_verifier=");
+  });
+
   it("records authorization server traffic for programmatic assertions", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43129/callback";
     const resource = "https://resource.example.com/request-log";
-    const codeVerifier = "request-log-verifier";
+    const codeVerifier = createValidVerifier("request-log-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
       redirectUris: [redirectUri],
@@ -534,7 +706,7 @@ describe("tiny-oauth-test-server", () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43127/callback";
     const resource = "https://resource.example.com/mcp";
-    const codeVerifier = "single-use-code-verifier";
+    const codeVerifier = createValidVerifier("single-use-code-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
       redirectUris: [redirectUri],
@@ -573,6 +745,231 @@ describe("tiny-oauth-test-server", () => {
     });
   });
 
+  it("rejects re-used PKCE verifiers across two token requests", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43135/callback";
+    const resource = "https://resource.example.com/reused-verifier";
+    const codeVerifier = "reused-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+
+    const firstAuthorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+    const firstTokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: firstAuthorization.code,
+      codeVerifier,
+      redirectUri,
+      resource,
+    });
+    expect(firstTokenResponse.status).toBe(200);
+
+    const secondAuthorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+    const secondTokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: secondAuthorization.code,
+      codeVerifier,
+      redirectUri,
+      resource,
+    });
+    const secondPayload = (await secondTokenResponse.json()) as {
+      error: string;
+      error_description?: string;
+    };
+
+    expect(secondTokenResponse.status).toBe(400);
+    expect(secondPayload.error).toBe("invalid_grant");
+    expect(secondPayload.error_description).not.toContain(codeVerifier);
+  });
+
+  it("rejects localhost redirect URIs during authorization", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://localhost:43136/callback";
+    const resource = "https://resource.example.com/localhost";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const response = await nodeFetch(
+      new URL(
+        `/authorize?client_id=${encodeURIComponent(clientId)}`
+        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
+        + "&response_type=code"
+        + `&code_challenge=${encodeURIComponent(createPkceChallenge("localhost-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}`
+        + "&code_challenge_method=S256"
+        + `&resource=${encodeURIComponent(resource)}`
+        + "&auto_approve=1",
+        server.issuer
+      ),
+      {
+        redirect: "manual",
+      }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "invalid_request",
+    });
+  });
+
+  it("rejects https redirect URIs in the public-client loopback flow", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "https://127.0.0.1/callback";
+    const resource = "https://resource.example.com/https-redirect";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const response = await nodeFetch(
+      new URL(
+        `/authorize?client_id=${encodeURIComponent(clientId)}`
+        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
+        + "&response_type=code"
+        + `&code_challenge=${encodeURIComponent(createPkceChallenge("https-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}`
+        + "&code_challenge_method=S256"
+        + `&resource=${encodeURIComponent(resource)}`
+        + "&auto_approve=1",
+        server.issuer
+      ),
+      {
+        redirect: "manual",
+      }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "invalid_request",
+    });
+  });
+
+  it("allows port-only variance against a registered loopback redirect URI", async () => {
+    const { server } = await listenServer();
+    const registeredRedirectUri = "http://127.0.0.1/callback";
+    const requestedRedirectUri = "http://127.0.0.1:43137/callback";
+    const resource = "https://resource.example.com/port-variance";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [registeredRedirectUri],
+    });
+
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri: requestedRedirectUri,
+      resource,
+      codeChallenge: createPkceChallenge("port-variance-verifier-ABCDEFGHIJKLMNOPQRSTUVWX"),
+    });
+
+    expect(authorization.code).toBeTruthy();
+  });
+
+  it("rejects path mismatches against a registered loopback redirect URI", async () => {
+    const { server } = await listenServer();
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: ["http://127.0.0.1/callback"],
+    });
+    const response = await nodeFetch(
+      new URL(
+        `/authorize?client_id=${encodeURIComponent(clientId)}`
+        + `&redirect_uri=${encodeURIComponent("http://127.0.0.1:43138/other")}`
+        + "&response_type=code"
+        + `&code_challenge=${encodeURIComponent(createPkceChallenge("path-mismatch-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}`
+        + "&code_challenge_method=S256"
+        + `&resource=${encodeURIComponent("https://resource.example.com/path-mismatch")}`
+        + "&auto_approve=1",
+        server.issuer
+      ),
+      {
+        redirect: "manual",
+      }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "invalid_request",
+    });
+  });
+
+  it("rejects redirect_uri path mismatches between authorize and token", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43139/callback";
+    const resource = "https://resource.example.com/token-path-mismatch";
+    const codeVerifier = "token-path-mismatch-verifier-ABCDEFGHIJKLMNOPQRSTUV";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri: `${redirectUri}/`,
+      resource,
+    });
+
+    expect(tokenResponse.status).toBe(400);
+    await expect(tokenResponse.json()).resolves.toMatchObject({
+      error: "invalid_grant",
+    });
+  });
+
+  it("rejects redirect_uri port-only mismatches between authorize and token", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43140/callback";
+    const resource = "https://resource.example.com/token-port-mismatch";
+    const codeVerifier = "token-port-mismatch-verifier-ABCDEFGHIJKLMNOPQRSTUV";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: ["http://127.0.0.1/callback"],
+    });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier),
+    });
+
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri: "http://127.0.0.1:43141/callback",
+      resource,
+    });
+
+    expect(tokenResponse.status).toBe(400);
+    await expect(tokenResponse.json()).resolves.toMatchObject({
+      error: "invalid_grant",
+    });
+  });
+
   it("issues direct tokens that verify against the published JWKS", async () => {
     const { server } = await listenServer();
     const resource = "https://resource.example.com/direct";
@@ -599,7 +996,7 @@ describe("tiny-oauth-test-server", () => {
     const { server } = await listenServer();
     const redirectUri = "http://[::1]:43128/callback";
     const resource = "https://resource.example.com/ipv6";
-    const codeVerifier = "ipv6-loopback-verifier";
+    const codeVerifier = createValidVerifier("ipv6-loopback-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
       redirectUris: [redirectUri],

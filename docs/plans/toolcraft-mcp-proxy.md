@@ -374,7 +374,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integration-tests-tiny-stdio-mcp
     title: "Integration tests: defineGroup with mcp against
@@ -422,8 +422,8 @@ tasks:
       Run `npm run test --workspace toolcraft -- mcp-proxy-integration` before
       committing.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: docs-readme-and-qa

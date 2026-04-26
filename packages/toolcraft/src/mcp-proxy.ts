@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createLogger } from "@poe-code/design-system";
 import type { McpServerConfig } from "@poe-code/agent-mcp-config";
@@ -17,6 +17,7 @@ const DEFAULT_CLIENT_INFO = {
   version: "0.0.1",
 } as const;
 const proxyNodeSymbol = Symbol("toolcraft.mcpProxyNode");
+const proxyConnectionSymbol = Symbol("toolcraft.mcpProxyConnection");
 const shutdownDisposers = new Set<() => Promise<void>>();
 
 interface InternalGroupConfig<TServices extends object = Record<string, never>> {
@@ -89,6 +90,21 @@ function cloneScope(scope: Scope[] | undefined): Scope[] | undefined {
 
 function registerShutdownDispose(dispose: () => Promise<void>): void {
   shutdownDisposers.add(dispose);
+}
+
+function getProxyConnection(group: Group<any>): HotProxyConnection | undefined {
+  return (group as Group<any> & {
+    [proxyConnectionSymbol]?: HotProxyConnection;
+  })[proxyConnectionSymbol];
+}
+
+function setProxyConnection(
+  group: Group<any>,
+  connection: HotProxyConnection | undefined
+): void {
+  (group as Group<any> & {
+    [proxyConnectionSymbol]?: HotProxyConnection;
+  })[proxyConnectionSymbol] = connection;
 }
 
 function createProxyGroup(
@@ -186,6 +202,7 @@ function createConnection(name: string, config: McpServerConfig): HotProxyConnec
     name,
     config,
     async dispose(): Promise<void> {
+      shutdownDisposers.delete(connection.dispose);
       connection.connecting = undefined;
 
       if (connection.client === undefined) {
@@ -312,6 +329,16 @@ async function fetchCache(
   }
 }
 
+async function deleteCacheIfPresent(cachePath: string): Promise<void> {
+  try {
+    await unlink(cachePath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
+  }
+}
+
 function populateGroupFromTools(
   group: Group<any>,
   tools: Tool[],
@@ -380,14 +407,32 @@ async function resolveSingleProxy(group: Group<any>): Promise<void> {
   try {
     const cachePath = resolveCachePath(name);
     const refresh = parseRefreshEnv(process.env.TOOLCRAFT_MCP_REFRESH);
-    const cache =
-      isRefreshRequested(name, refresh)
-        ? await fetchCache(name, config, cachePath)
-        : ((await readCache(cachePath)) ?? (await fetchCache(name, config, cachePath)));
+    let cache: McpProxyCache;
+
+    if (isRefreshRequested(name, refresh)) {
+      await deleteCacheIfPresent(cachePath);
+      cache = await fetchCache(name, config, cachePath);
+    } else {
+      cache = (await readCache(cachePath)) ?? (await fetchCache(name, config, cachePath));
+    }
+
     const tools = filterAllowlistedTools(cache.tools, internal.tools);
 
     validateRenameMap(name, tools, internal.rename);
-    populateGroupFromTools(group, tools, internal.rename, createConnection(name, config));
+    const previousConnection = getProxyConnection(group);
+    const nextConnection = createConnection(name, config);
+
+    try {
+      populateGroupFromTools(group, tools, internal.rename, nextConnection);
+      setProxyConnection(group, nextConnection);
+    } catch (error) {
+      await nextConnection.dispose();
+      throw error;
+    }
+
+    if (previousConnection !== undefined && previousConnection !== nextConnection) {
+      await previousConnection.dispose();
+    }
   } catch (error) {
     if (error instanceof Error && error.message.startsWith(`couldn't discover MCP ${name}:`)) {
       throw error;

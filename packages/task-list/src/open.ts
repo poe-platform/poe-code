@@ -1,6 +1,7 @@
 import * as fsPromises from "node:fs/promises";
 import { markdownDirBackend } from "./backends/markdown-dir.js";
 import { yamlFileBackend } from "./backends/yaml-file.js";
+import { resolveStateMachine } from "./state.js";
 import type {
   BackendFactory,
   BackendDeps,
@@ -37,7 +38,8 @@ export async function openTaskList(options: OpenTaskListOptions): Promise<TaskLi
     lockStaleMs: options.lockStaleMs ?? DEFAULT_LOCK_STALE_MS,
     lockRetries: options.lockRetries ?? DEFAULT_LOCK_RETRIES,
     create: options.create ?? false,
-    fs: options.fs ?? createDefaultFs()
+    fs: options.fs ?? createDefaultFs(),
+    stateMachine: resolveStateMachine(options.stateMachine)
   };
 
   return factory(deps);

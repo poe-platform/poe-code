@@ -99,8 +99,8 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 / §4.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: task-list-open-options

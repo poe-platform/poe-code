@@ -1,6 +1,7 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { backendFactories, openTaskList } from "./open.js";
+import { defaultStateMachine } from "./state.js";
 import type { TaskList, TaskListFs } from "./types.js";
 
 function createFs(files: Record<string, string> = {}): TaskListFs {
@@ -48,7 +49,8 @@ describe("openTaskList", () => {
       lockStaleMs: 30_000,
       lockRetries: 20,
       create: false,
-      fs
+      fs,
+      stateMachine: defaultStateMachine
     });
   });
 
@@ -72,7 +74,8 @@ describe("openTaskList", () => {
       lockStaleMs: 30_000,
       lockRetries: 20,
       create: false,
-      fs: expect.any(Object)
+      fs: expect.any(Object),
+      stateMachine: defaultStateMachine
     });
   });
 

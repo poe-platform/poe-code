@@ -1,3 +1,5 @@
+import type { StateMachineDef } from "./state-machine.js";
+
 export type TaskState = "draft" | "planned" | "in-progress" | "done" | "archived";
 
 export interface Task {
@@ -24,6 +26,10 @@ export interface TaskUpdate {
   metadata?: Record<string, unknown>;
 }
 
+export interface TaskFireOptions {
+  metadataPatch?: Record<string, unknown>;
+}
+
 export interface ListFilter {
   state?: TaskState;
   includeArchived?: boolean;
@@ -35,6 +41,9 @@ export interface Tasks {
   get(id: string): Promise<Task>;
   create(input: TaskCreate): Promise<Task>;
   update(id: string, patch: TaskUpdate): Promise<Task>;
+  fire(id: string, event: string, opts?: TaskFireOptions): Promise<Task>;
+  canFire(id: string, event: string): Promise<boolean>;
+  events(id: string): Promise<readonly string[]>;
   transition(id: string, to: TaskState): Promise<Task>;
   delete(id: string): Promise<void>;
 }
@@ -84,6 +93,7 @@ export interface OpenTaskListOptions {
   lockStaleMs?: number;
   lockRetries?: number;
   fs?: TaskListFs;
+  stateMachine?: StateMachineDef<TaskState, string>;
 }
 
 export interface BackendDeps {
@@ -93,6 +103,7 @@ export interface BackendDeps {
   lockRetries: number;
   create: boolean;
   fs: TaskListFs;
+  stateMachine?: StateMachineDef<TaskState, string>;
 }
 
 export type BackendFactory = (deps: BackendDeps) => Promise<TaskList>;
@@ -112,9 +123,34 @@ export class TaskAlreadyExistsError extends Error {
 }
 
 export class InvalidTransitionError extends Error {
-  constructor(message = "Invalid task transition.") {
-    super(message);
+  readonly task?: Task;
+  readonly event?: string;
+  readonly to?: string;
+  readonly reason: string;
+
+  constructor(
+    messageOrOptions:
+      | string
+      | {
+          task?: Task;
+          event?: string;
+          to?: string;
+          reason: string;
+        } = "Invalid task transition."
+  ) {
+    const options =
+      typeof messageOrOptions === "string"
+        ? {
+            reason: messageOrOptions
+          }
+        : messageOrOptions;
+
+    super(options.reason);
     this.name = "InvalidTransitionError";
+    this.task = options.task;
+    this.event = options.event;
+    this.to = options.to;
+    this.reason = options.reason;
   }
 }
 

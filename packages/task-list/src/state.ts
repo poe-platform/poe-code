@@ -1,4 +1,9 @@
-import { findEvent, type EventDef, type StateMachineDef } from "./state-machine.js";
+import {
+  findEvent,
+  validateMachine,
+  type EventDef,
+  type StateMachineDef
+} from "./state-machine.js";
 import { InvalidTransitionError, type TaskState } from "./types.js";
 
 export type TaskEvent = "plan" | "start" | "complete" | "archive";
@@ -42,6 +47,15 @@ function deriveLegacyTransitions(
 }
 
 const defaultTransitions = deriveLegacyTransitions(defaultStateMachine);
+
+export function resolveStateMachine(
+  stateMachine?: StateMachineDef<TaskState, string>
+): StateMachineDef<TaskState, string> {
+  const resolvedStateMachine = stateMachine ?? defaultStateMachine;
+  validateMachine(resolvedStateMachine);
+
+  return resolvedStateMachine;
+}
 
 export function assertEvent<TState extends string, TEvent extends string>(
   machine: StateMachineDef<TState, TEvent>,

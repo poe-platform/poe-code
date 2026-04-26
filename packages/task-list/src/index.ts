@@ -17,6 +17,7 @@ export {
   type Task,
   type TaskCreate,
   type TaskDefaults,
+  type TaskFireOptions,
   type TaskList,
   type TaskListFs,
   type TaskState,

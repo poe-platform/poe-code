@@ -2,8 +2,10 @@ import path from "node:path";
 import { acquireFileLock } from "@poe-code/file-lock";
 import { parseDocument, stringify } from "yaml";
 import taskSchema from "../schema/task.schema.json" with { type: "json" };
-import { assertTransition } from "../state.js";
+import { eventsFromState, findEvent } from "../state-machine.js";
+import { assertTransition, resolveStateMachine } from "../state.js";
 import {
+  InvalidTransitionError,
   MalformedTaskError,
   TaskAlreadyExistsError,
   TaskNotFoundError,
@@ -11,6 +13,7 @@ import {
   type ListFilter,
   type Task,
   type TaskCreate,
+  type TaskFireOptions,
   type TaskList,
   type TaskListFs,
   type TaskState,
@@ -40,7 +43,6 @@ const RESERVED_FRONTMATTER_KEYS = new Set([
   "state",
   "version"
 ]);
-const VALID_STATES = new Set<TaskState>(["draft", "planned", "in-progress", "done", "archived"]);
 
 type TaskRecord = Record<string, unknown>;
 
@@ -174,7 +176,11 @@ function readFrontmatter(frontmatterContent: string, filePath: string): TaskReco
   return parsed;
 }
 
-function assertValidTaskRecord(frontmatter: TaskRecord, filePath: string): void {
+function assertValidTaskRecord(
+  frontmatter: TaskRecord,
+  filePath: string,
+  validStates: ReadonlySet<string>
+): void {
   if ("$schema" in frontmatter && frontmatter.$schema !== TASK_SCHEMA_ID) {
     throw malformedTask(filePath, "$schema");
   }
@@ -197,7 +203,7 @@ function assertValidTaskRecord(frontmatter: TaskRecord, filePath: string): void 
     throw malformedTask(filePath, "name");
   }
 
-  if (typeof frontmatter.state !== "string" || !VALID_STATES.has(frontmatter.state as TaskState)) {
+  if (typeof frontmatter.state !== "string" || !validStates.has(frontmatter.state)) {
     throw malformedTask(filePath, "state");
   }
 
@@ -259,13 +265,14 @@ async function readTaskFile(
   fs: TaskListFs,
   list: string,
   id: string,
-  filePath: string
+  filePath: string,
+  validStates: ReadonlySet<string>
 ): Promise<TaskFile> {
   const content = await fs.readFile(filePath, "utf8");
   const document = splitTaskDocument(content, filePath);
   const frontmatter = readFrontmatter(document.frontmatter, filePath);
 
-  assertValidTaskRecord(frontmatter, filePath);
+  assertValidTaskRecord(frontmatter, filePath, validStates);
 
   return {
     path: filePath,
@@ -307,7 +314,8 @@ async function readTaskAtLocation(
   fs: TaskListFs,
   rootPath: string,
   list: string,
-  id: string
+  id: string,
+  validStates: ReadonlySet<string>
 ): Promise<TaskFile> {
   const location = await findTaskLocation(fs, rootPath, list, id);
 
@@ -315,7 +323,7 @@ async function readTaskAtLocation(
     throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
   }
 
-  return readTaskFile(fs, list, id, location.path);
+  return readTaskFile(fs, list, id, location.path, validStates);
 }
 
 function createdFrontmatter(defaults: BackendDeps["defaults"], input: TaskCreate): TaskRecord {
@@ -376,8 +384,27 @@ function transitionedFrontmatter(existingFrontmatter: TaskRecord, task: Task, to
   };
 }
 
+function firedFrontmatter(
+  existingFrontmatter: TaskRecord,
+  task: Task,
+  to: TaskState,
+  metadataPatch?: Record<string, unknown>
+): TaskRecord {
+  const nextFrontmatter = transitionedFrontmatter(existingFrontmatter, task, to);
+
+  for (const [key, value] of Object.entries(metadataPatch ?? {})) {
+    if (!RESERVED_FRONTMATTER_KEYS.has(key)) {
+      nextFrontmatter[key] = value;
+    }
+  }
+
+  return nextFrontmatter;
+}
+
 function createTasksView(deps: BackendDeps, list: string): Tasks {
   const listDirectoryPath = listPath(deps.path, list);
+  const stateMachine = resolveStateMachine(deps.stateMachine);
+  const validStates = new Set(stateMachine.states);
 
   async function listFiles(directoryPath: string): Promise<Task[]> {
     const entries = await readDirectoryNames(deps.fs, directoryPath);
@@ -395,7 +422,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       }
 
       const id = entryName.slice(0, -MARKDOWN_EXTENSION.length);
-      tasks.push((await readTaskFile(deps.fs, list, id, entryPath)).task);
+      tasks.push((await readTaskFile(deps.fs, list, id, entryPath, validStates)).task);
     }
 
     return sortTasks(tasks);
@@ -418,7 +445,22 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
   async function getTaskFile(id: string): Promise<TaskFile> {
     validateTaskId(id);
-    return readTaskAtLocation(deps.fs, deps.path, list, id);
+    return readTaskAtLocation(deps.fs, deps.path, list, id, validStates);
+  }
+
+  function assertFireableTaskEvent(task: Task, eventName: string) {
+    const event = findEvent(stateMachine, task.state, eventName);
+
+    if (event === undefined) {
+      throw new InvalidTransitionError({
+        task,
+        event: eventName,
+        to: stateMachine.events[eventName]?.to,
+        reason: `Cannot fire event "${eventName}" from task state "${task.state}".`
+      });
+    }
+
+    return event;
   }
 
   return {
@@ -468,6 +510,67 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
         return createTask(list,id, nextFrontmatter, description);
       });
+    },
+    async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
+      return withTaskLock(id, async () => {
+        const existing = await getTaskFile(id);
+        const event = assertFireableTaskEvent(existing.task, eventName);
+        const guardResult = event.guard?.(existing.task) ?? true;
+
+        if (guardResult !== true) {
+          throw new InvalidTransitionError({
+            task: existing.task,
+            event: eventName,
+            to: event.to,
+            reason: guardResult
+          });
+        }
+
+        await event.onExit?.(existing.task);
+
+        const nextFrontmatter = firedFrontmatter(
+          existing.frontmatter,
+          existing.task,
+          event.to,
+          opts?.metadataPatch
+        );
+        const nextTask = createTask(list,id, nextFrontmatter, existing.task.description);
+        const serializedTask = serializeTaskDocument(nextFrontmatter, existing.task.description);
+
+        if (event.to === "archived") {
+          const targetPath = archivedTaskPath(deps.path, list, id);
+          const archivedTargetExists = await statIfExists(deps.fs, targetPath);
+          if (archivedTargetExists?.isFile()) {
+            throw new TaskAlreadyExistsError(`Task "${list}/${id}" already exists in archive.`);
+          }
+
+          await writeAtomically(deps.fs, existing.path, serializedTask);
+          await deps.fs.mkdir(archiveDirectoryPath(deps.path, list), { recursive: true });
+          await deps.fs.rename(existing.path, targetPath);
+          await event.onEnter?.(nextTask);
+
+          return nextTask;
+        }
+
+        await writeAtomically(deps.fs, existing.path, serializedTask);
+        await event.onEnter?.(nextTask);
+
+        return nextTask;
+      });
+    },
+    async canFire(id: string, eventName: string): Promise<boolean> {
+      const task = (await getTaskFile(id)).task;
+      const event = findEvent(stateMachine, task.state, eventName);
+
+      if (event === undefined) {
+        return false;
+      }
+
+      return (event.guard?.(task) ?? true) === true;
+    },
+    async events(id: string): Promise<readonly string[]> {
+      const task = (await getTaskFile(id)).task;
+      return eventsFromState(stateMachine, task.state);
     },
     async transition(id: string, to: TaskState): Promise<Task> {
       return withTaskLock(id, async () => {

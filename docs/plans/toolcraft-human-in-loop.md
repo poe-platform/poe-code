@@ -366,8 +366,8 @@ tasks:
       Reference: docs/plans/toolcraft-human-in-loop.md §3 "Where the code
       lives" and §5 "Files to change".
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-async-enqueue

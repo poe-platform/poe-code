@@ -32,9 +32,13 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
 // config-command mocks
 // ---------------------------------------------------------------------------
 
-vi.mock("node:child_process", () => ({
-  execSync: vi.fn()
-}));
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    execSync: vi.fn()
+  };
+});
 
 // ---------------------------------------------------------------------------
 // root-command hoisted mocks

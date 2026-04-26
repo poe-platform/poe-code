@@ -35,7 +35,9 @@ import type {
   SecretDefinition,
   Scope,
 } from "./index.js";
-import { UserError, assertCommandRequirements, getCommandSourcePath, resolveCommandSecrets } from "./index.js";
+import { ApprovalDeclinedError, UserError, assertCommandRequirements, getCommandSourcePath, resolveCommandSecrets } from "./index.js";
+import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
+import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
 import { resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { renderResult } from "./renderer.js";
@@ -118,6 +120,7 @@ interface CollectedCliSchema {
 
 interface ExecutionState<TServices extends object> {
   command: Command<TServices, any, any, any>;
+  commandPath: string;
   casing: Casing;
   dynamicFields: DynamicFieldDefinition[];
   fields: FieldDefinition[];
@@ -176,6 +179,7 @@ interface HelpOptionRow {
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
   apiVersion?: string;
   casing?: Casing;
+  humanInLoop?: HumanInLoopRuntimeOptions;
   rootDisplayName?: string;
   rootUsageName?: string;
   services?: TServices;
@@ -1292,8 +1296,11 @@ async function renderGeneratedHelp<TServices extends object>(
 function createNodeCommand<TServices extends object>(
   node: Command<TServices, any, any, any> | Group<TServices>,
   casing: Casing,
-  execute: (state: ExecutionState<TServices>) => Promise<void>
+  execute: (state: ExecutionState<TServices>) => Promise<void>,
+  pathSegments: string[] = []
 ): CommanderCommand | null {
+  const nextPathSegments = [...pathSegments, node.name];
+
   if (node.kind === "command") {
     if (!node.scope.includes("cli")) {
       return null;
@@ -1333,6 +1340,7 @@ function createNodeCommand<TServices extends object>(
 
       await execute({
         command: node,
+        commandPath: nextPathSegments.join("."),
         casing,
         dynamicFields: collected.dynamicFields,
         fields,
@@ -1351,7 +1359,7 @@ function createNodeCommand<TServices extends object>(
   }
 
   const visibleChildren = node.children
-    .map((child) => createNodeCommand(child, casing, execute))
+    .map((child) => createNodeCommand(child, casing, execute, nextPathSegments))
     .filter((child): child is CommanderCommand => child !== null);
 
   const group = new CommanderCommand(node.name);
@@ -2131,6 +2139,31 @@ function writeRichHeader(title: string): void {
   process.stdout.write(`── ${title} ${"─".repeat(padding)}\n`);
 }
 
+function isHumanInLoopPending(result: unknown): result is HumanInLoopPending {
+  return (
+    typeof result === "object" &&
+    result !== null &&
+    (result as { status?: unknown }).status === "pending-approval" &&
+    typeof (result as { approvalId?: unknown }).approvalId === "string" &&
+    typeof (result as { message?: unknown }).message === "string" &&
+    typeof (result as { enqueuedAt?: unknown }).enqueuedAt === "string"
+  );
+}
+
+function renderHumanInLoopPending(pending: HumanInLoopPending): void {
+  process.stdout.write(
+    `✓ Queued for human approval (id: ${pending.approvalId})\n` +
+      `  Message: ${pending.message}\n` +
+      `  Track:   toolcraft approvals show ${pending.approvalId}\n`
+  );
+}
+
+function renderApprovalDeclined(error: ApprovalDeclinedError): void {
+  const logger = createLogger();
+  logger.error(error.message);
+  process.exitCode = 1;
+}
+
 function validateServices(services: Record<string, unknown>): void {
   for (const name of Object.keys(services)) {
     if (RESERVED_SERVICE_NAMES.has(name)) {
@@ -2753,7 +2786,8 @@ function getResolvedFlags(command: CommanderCommand): ResolvedFlags {
 async function executeCommand<TServices extends object>(
   state: ExecutionState<TServices>,
   services: TServices,
-  requirementOptions: CommandRequirementOptions
+  requirementOptions: CommandRequirementOptions,
+  runtimeOptions: HumanInLoopRuntimeOptions | undefined
 ): Promise<void> {
   const logger = createLogger();
   const primitives = {
@@ -2798,7 +2832,7 @@ async function executeCommand<TServices extends object>(
       params,
     } as HandlerContext<any, any, TServices>;
 
-    if (state.command.confirm && !resolvedFlags.yes && process.stdin.isTTY) {
+    if (state.command.confirm && !state.command.humanInLoop && !resolvedFlags.yes && process.stdin.isTTY) {
       for (const field of state.fields) {
         const value = field.path.reduce<unknown>(
           (current, segment) =>
@@ -2828,10 +2862,15 @@ async function executeCommand<TServices extends object>(
       }
     }
 
-    const result = await state.command.handler(context);
+    const result = await invokeWithHumanInLoop(state.command, context, runtimeOptions, state.commandPath);
 
     if (output === "rich" && runtime.isFixture) {
       writeRichHeader(`${state.command.name} (fixture)`);
+    }
+
+    if (isHumanInLoopPending(result)) {
+      renderHumanInLoopPending(result);
+      return;
     }
 
     renderResult(state.command, result, output, primitives);
@@ -2895,12 +2934,10 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     program.version(options.version, "--version");
   }
 
+  let lastActionCommand: CommanderCommand | undefined;
   const execute = async (state: ExecutionState<TServices>) => {
-    try {
-      await executeCommand(state, services, requirementOptions);
-    } catch (error) {
-      handleRunError(error, Boolean(getResolvedFlags(state.actionCommand).verbose));
-    }
+    lastActionCommand = state.actionCommand;
+    await executeCommand(state, services, requirementOptions, options.humanInLoop);
   };
 
   for (const child of root.children) {
@@ -2920,6 +2957,14 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   try {
     await program.parseAsync(process.argv);
   } catch (error) {
-    handleRunError(error, process.argv.includes("--verbose"));
+    if (error instanceof ApprovalDeclinedError) {
+      renderApprovalDeclined(error);
+      return;
+    }
+
+    handleRunError(
+      error,
+      lastActionCommand ? Boolean(getResolvedFlags(lastActionCommand).verbose) : process.argv.includes("--verbose")
+    );
   }
 }

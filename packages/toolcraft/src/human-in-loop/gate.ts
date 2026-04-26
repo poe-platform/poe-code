@@ -28,7 +28,7 @@ function resolveProvider(runtimeOptions: HumanInLoopRuntimeOptions | undefined):
 
 export async function invokeWithHumanInLoop<T>(
   node: Command<any, any, any, T>,
-  ctx: HandlerContext,
+  ctx: HandlerContext<any, any, any>,
   runtimeOptions: HumanInLoopRuntimeOptions | undefined,
   commandPath: string,
 ): Promise<T | HumanInLoopPending> {

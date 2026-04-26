@@ -45,15 +45,17 @@ vi.mock("node:child_process", async (importOriginal) => {
 // ---------------------------------------------------------------------------
 
 const runCliState = vi.hoisted(() => ({
-  argvSnapshots: [] as string[][]
+  argvSnapshots: [] as string[][],
+  optionsSnapshots: [] as unknown[]
 }));
 
 vi.mock("toolcraft/cli", async () => {
   const actual = await vi.importActual<typeof import("toolcraft/cli")>("toolcraft/cli");
   return {
     ...actual,
-    runCLI: vi.fn(async () => {
+    runCLI: vi.fn(async (_root, options) => {
       runCliState.argvSnapshots.push([...process.argv]);
+      runCliState.optionsSnapshots.push(options);
     })
   };
 });
@@ -568,6 +570,7 @@ describe("root command", () => {
     vi.restoreAllMocks();
     process.argv = [...originalArgv];
     runCliState.argvSnapshots = [];
+    runCliState.optionsSnapshots = [];
   });
 
   it("shows help when invoked without arguments", async () => {
@@ -606,6 +609,8 @@ describe("root command", () => {
     expect(plainOutput).toContain("experiment");
     expect(plainOutput).toContain("github-workflows, gh");
     expect(plainOutput).toContain("GitHub workflow automations");
+    expect(plainOutput).toContain("approvals");
+    expect(plainOutput).toContain("Inspect and execute queued approvals");
     expect(plainOutput).not.toContain("auth api_key");
     expect(plainOutput).not.toContain("auth login");
     expect(plainOutput).not.toContain("auth logout");
@@ -706,6 +711,23 @@ describe("root command", () => {
     expect(command?.aliases()).toContain("gh");
   });
 
+  it("registers the approvals command", () => {
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    const command = program.commands.find((entry) => entry.name() === "approvals");
+    expect(command).toBeDefined();
+  });
+
   it("shows github-workflows help when invoked without an automation name", async () => {
     process.argv = ["node", "/usr/local/bin/poe-code", "github-workflows"];
 
@@ -723,7 +745,7 @@ describe("root command", () => {
 
     await program.parseAsync(["node", "cli", "github-workflows"]);
 
-    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "--help"]]);
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "github-workflows", "--help"]]);
     expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "github-workflows"]);
   });
 
@@ -744,8 +766,60 @@ describe("root command", () => {
 
     await program.parseAsync(["node", "cli", "--yes", "github-workflows"]);
 
-    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "--yes", "--help"]]);
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "--yes", "github-workflows", "--help"]]);
     expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "--yes", "github-workflows"]);
+  });
+
+  it("shows approvals help when invoked without a subcommand", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code", "approvals"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "approvals"]);
+
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "approvals", "--help"]]);
+    expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "approvals"]);
+  });
+
+  it("forwards approvals commands through toolcraft with the shared human-in-loop task list", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code", "approvals", "list"];
+
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "approvals", "list"]);
+
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "approvals", "list"]]);
+    expect(runCliState.optionsSnapshots).toEqual([
+      expect.objectContaining({
+        humanInLoop: {
+          taskList: {
+            dir: "/repo/.poe-code/approvals.yaml",
+            format: "yaml-file"
+          }
+        }
+      })
+    ]);
+    expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "approvals", "list"]);
   });
 
   it("shows a short heading when invoked as poe", async () => {

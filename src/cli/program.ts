@@ -1,4 +1,4 @@
-import { basename } from "node:path";
+import { basename, join } from "node:path";
 import { Command, Help } from "commander";
 import type { Group } from "toolcraft";
 import { runCLI } from "toolcraft/cli";
@@ -99,6 +99,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["ralph", "init"] },
   { path: ["ralph", "run"] },
   { path: ["launch"] },
+  { path: ["approvals"], args: "[command]" },
   { path: ["github-workflows"], args: "[automation]" },
   { path: ["usage"] },
   { path: ["usage", "list"] },
@@ -339,24 +340,68 @@ function resolveRootHelpHeading(argv: string[]): string {
 
 const FORWARDABLE_TOOLCRAFT_FLAGS = new Set(["-y", "--yes", "--verbose"]);
 
-function buildToolcraftArgv(argv: string[], group: Group): string[] {
+function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): string[] {
   const entry = argv[0] ?? "node";
   const script = argv[1] ?? "cli";
-  const commandNames = new Set([group.name, ...group.aliases]);
-  const commandIndex = argv.findIndex((value, index) => index >= 2 && commandNames.has(value));
+  const commandNameSet = new Set(commandNames);
+  const commandIndex = argv.findIndex((value, index) => index >= 2 && commandNameSet.has(value));
 
   if (commandIndex < 0) {
     return [entry, script];
   }
 
   const forwardedFlags = argv.slice(2, commandIndex).filter((value) => FORWARDABLE_TOOLCRAFT_FLAGS.has(value));
-  const commandArgs = argv.slice(commandIndex + 1);
+  const commandArgs = argv.slice(commandIndex);
 
-  if (commandArgs.length === 0) {
-    return [entry, script, ...forwardedFlags, "--help"];
+  if (commandArgs.length === 1) {
+    return [entry, script, ...forwardedFlags, commandArgs[0]!, "--help"];
   }
 
   return [entry, script, ...forwardedFlags, ...commandArgs];
+}
+
+function createToolcraftHumanInLoopOptions(container: CliContainer) {
+  return {
+    taskList: {
+      dir: join(container.env.cwd, ".poe-code", "approvals.yaml"),
+      format: "yaml-file" as const
+    }
+  };
+}
+
+function registerForwardedToolcraftCommand(
+  program: Command,
+  container: CliContainer,
+  options: {
+    name: string;
+    description: string;
+    aliases?: readonly string[];
+  },
+  forwardedRoots: Group<object>[],
+  heading: string,
+  usageCommand: string
+): void {
+  program
+    .command(options.name)
+    .description(options.description)
+    .aliases([...(options.aliases ?? [])])
+    .argument("[args...]")
+    .allowUnknownOption()
+    .allowExcessArguments()
+    .helpOption(false)
+    .action(async () => {
+      const originalArgv = [...process.argv];
+      process.argv = buildToolcraftArgv(originalArgv, [options.name, ...(options.aliases ?? [])]);
+      try {
+        await runCLI(forwardedRoots, {
+          rootDisplayName: heading,
+          rootUsageName: usageCommand,
+          humanInLoop: createToolcraftHumanInLoopOptions(container)
+        });
+      } finally {
+        process.argv = originalArgv;
+      }
+    });
 }
 
 export function createProgram(dependencies: CliDependencies): Command {
@@ -384,6 +429,7 @@ function bootstrapProgram(container: CliContainer): Command {
   const heading = resolveRootHelpHeading(process.argv);
   const usageCommand = formatCliUsageCommand(executionContext);
   const helpCommand = formatCliHelpCommand(executionContext, ["<command>", "--help"]);
+  const toolcraftRoots = [ghGroup as Group<object>, superintendentGroup as Group<object>];
 
   program
     .name("poe-code")
@@ -428,43 +474,41 @@ function bootstrapProgram(container: CliContainer): Command {
   registerLaunchCommand(program, container);
   registerMemoryCommand(program, container);
   registerProviderCommand(program, container);
-  program
-    .command(ghGroup.name)
-    .description(ghGroup.description ?? "")
-    .aliases(ghGroup.aliases)
-    .argument("[args...]")
-    .allowUnknownOption()
-    .allowExcessArguments()
-    .helpOption(false)
-    .action(async () => {
-      const originalArgv = [...process.argv];
-      process.argv = buildToolcraftArgv(originalArgv, ghGroup);
-      try {
-        await runCLI(ghGroup, { rootDisplayName: `Poe - ${ghGroup.name}`, rootUsageName: `${usageCommand} ${ghGroup.name}` });
-      } finally {
-        process.argv = originalArgv;
-      }
-    });
-  program
-    .command(superintendentGroup.name)
-    .description(superintendentGroup.description ?? "")
-    .aliases(superintendentGroup.aliases)
-    .argument("[args...]")
-    .allowUnknownOption()
-    .allowExcessArguments()
-    .helpOption(false)
-    .action(async () => {
-      const originalArgv = [...process.argv];
-      process.argv = buildToolcraftArgv(originalArgv, superintendentGroup);
-      try {
-        await runCLI(superintendentGroup, {
-          rootDisplayName: `Poe - ${superintendentGroup.name}`,
-          rootUsageName: `${usageCommand} ${superintendentGroup.name}`
-        });
-      } finally {
-        process.argv = originalArgv;
-      }
-    });
+  registerForwardedToolcraftCommand(
+    program,
+    container,
+    {
+      name: ghGroup.name,
+      description: ghGroup.description ?? "",
+      aliases: ghGroup.aliases
+    },
+    toolcraftRoots,
+    heading,
+    usageCommand
+  );
+  registerForwardedToolcraftCommand(
+    program,
+    container,
+    {
+      name: superintendentGroup.name,
+      description: superintendentGroup.description ?? "",
+      aliases: superintendentGroup.aliases
+    },
+    toolcraftRoots,
+    heading,
+    usageCommand
+  );
+  registerForwardedToolcraftCommand(
+    program,
+    container,
+    {
+      name: "approvals",
+      description: "Inspect and execute queued approvals."
+    },
+    toolcraftRoots,
+    heading,
+    usageCommand
+  );
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
 

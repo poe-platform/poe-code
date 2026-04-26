@@ -79,6 +79,7 @@ describe("approval tasks", () => {
 
     expect(openTaskListMock).toHaveBeenCalledTimes(1);
     expect(openTaskListMock).toHaveBeenCalledWith({
+      create: true,
       type: "yaml-file",
       path: "/repo/approvals.yaml",
       stateMachine: approvalStateMachine,

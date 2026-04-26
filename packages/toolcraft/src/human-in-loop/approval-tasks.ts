@@ -107,6 +107,7 @@ async function resolveTaskList(
   }
 
   const openedTaskList = openTaskListFn({
+    create: true,
     type: taskList.format,
     path: taskList.dir,
     stateMachine: approvalStateMachine,

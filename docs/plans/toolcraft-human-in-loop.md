@@ -624,7 +624,7 @@ tasks:
       Per project rule: NEVER add anything beyond what changed.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: full-sweep
     title: full sweep — lint, typecheck, tests, screenshots
@@ -649,7 +649,7 @@ tasks:
       - No real child_process.spawn / osascript / filesystem write in any test
       - Both READMEs updated (task-list + toolcraft)
     status:
-      test: open
+      test: done
       commit: open
 ---
 

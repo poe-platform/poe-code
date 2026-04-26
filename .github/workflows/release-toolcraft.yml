@@ -33,23 +33,22 @@ jobs:
           V2=$(npm view toolcraft version 2>/dev/null || echo "0.0.0")
           V3=$(npm view toolcraft-openapi version 2>/dev/null || echo "0.0.0")
           REMOTE=$(printf "%s\n%s\n%s" "$V1" "$V2" "$V3" | sort -V | tail -n1)
+          NEXT=$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], 'patch'); if (!next) process.exit(1); console.log(next);" "${REMOTE}")
           cd packages/toolcraft-schema
-          npm version --no-git-tag-version --allow-same-version "${REMOTE}"
-          npm version --no-git-tag-version patch
-          NEXT=$(node -e "console.log(require('./package.json').version)")
+          npm pkg set "version=${NEXT}"
           echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
       - name: Set versions on toolcraft and toolcraft-openapi
         run: |
           NEXT="${{ steps.version.outputs.next }}"
-          cd packages/toolcraft && npm version --no-git-tag-version --allow-same-version "$NEXT"
-          cd ../toolcraft-openapi && npm version --no-git-tag-version --allow-same-version "$NEXT"
-      - name: Build toolcraft packages and dependencies
-        run: npx turbo build --filter=toolcraft-openapi...
+          cd packages/toolcraft && npm pkg set "version=${NEXT}"
+          cd ../toolcraft-openapi && npm pkg set "version=${NEXT}"
       - name: Update cross-package dependency versions
         run: |
           NEXT="${{ steps.version.outputs.next }}"
           cd packages/toolcraft && npm pkg set "dependencies.toolcraft-schema=^${NEXT}"
           cd ../toolcraft-openapi && npm pkg set "dependencies.toolcraft=^${NEXT}"
+      - name: Build toolcraft packages and dependencies
+        run: npx turbo build --filter=toolcraft-openapi...
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema
         run: npm publish --provenance --access public

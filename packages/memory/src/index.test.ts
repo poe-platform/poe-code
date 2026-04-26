@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
+import type { MemoryHandle, OpenMemoryOptions } from "./index.js";
 import * as entrypoint from "./index.js";
 
 describe("memory index exports", () => {
@@ -35,5 +36,18 @@ describe("memory index exports", () => {
     expect(entrypoint.selectQueryContext).toBeTypeOf("function");
     expect(entrypoint.explainPage).toBeTypeOf("function");
     expect(entrypoint.runMemoryExplain).toBeTypeOf("function");
+    expect(entrypoint.openMemory).toBeTypeOf("function");
+  });
+
+  it("exposes the memory handle types", () => {
+    expectTypeOf<OpenMemoryOptions>().toEqualTypeOf<{
+      root: string;
+      agent?: string;
+    }>();
+    expectTypeOf<MemoryHandle>().toMatchTypeOf<{
+      root: string;
+      listPages: () => Promise<unknown[]>;
+      query: (options: { question: string; budget: number; agent?: string }) => Promise<unknown>;
+    }>();
   });
 });

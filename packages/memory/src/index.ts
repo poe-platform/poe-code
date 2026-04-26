@@ -53,3 +53,10 @@ export { installMemory } from "./install.js";
 export { queryMemory, rankPagesForQuery, selectQueryContext } from "./query.js";
 export { explainPage } from "./explain.js";
 export { runMemoryExplain } from "./explain.cli.js";
+export { openMemory } from "./handle.js";
+export type {
+  AuditCallOptions,
+  MemoryHandle,
+  OpenMemoryOptions,
+  StatusInfo
+} from "./handle.js";

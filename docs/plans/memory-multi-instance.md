@@ -126,7 +126,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
   - id: phase-2-memory-handle
     title: Phase 2 — openMemory handle in @poe-code/memory (no breaks)
     prompt: >
@@ -302,9 +302,9 @@ tasks:
 
       - `spawnFn?` plumbing untouched in this phase — that's phase 3.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
   - id: phase-3-drop-spawnfn
     title: >-

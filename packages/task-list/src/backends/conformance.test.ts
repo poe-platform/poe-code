@@ -11,9 +11,13 @@ import {
   type TaskState
 } from "../types.js";
 import { markdownDirBackend } from "./markdown-dir.js";
+import { yamlFileBackend } from "./yaml-file.js";
 
 type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
 type BackendFactoryUnderTest = (deps: BackendDeps) => Promise<TaskList>;
+type BackendPaths = {
+  taskPath: string;
+};
 
 function createFs(files: Record<string, string> = {}): {
   fs: TaskListFs;
@@ -100,7 +104,9 @@ async function openBackend(
 
 function describeBackendConformance(
   name: string,
-  factory: BackendFactoryUnderTest
+  factory: BackendFactoryUnderTest,
+  rootPath: string,
+  pathsForTask: (rootPath: string, list: string, id: string) => BackendPaths
 ): void {
   describe(name, () => {
     afterEach(() => {
@@ -109,8 +115,9 @@ function describeBackendConformance(
     });
 
     it("round-trips created tasks", async () => {
-      const { rawFs, taskList } = await openBackend(factory);
+      const { rawFs, taskList } = await openBackend(factory, { path: rootPath });
       const tasks = taskList.list("planning");
+      const persistedPaths = pathsForTask(rootPath, "planning", "ship-it");
 
       const created = await tasks.create({
         id: "ship-it",
@@ -135,15 +142,14 @@ function describeBackendConformance(
           priority: "high"
         }
       });
-      await expect(rawFs.readFile("/repo/tasks/planning/ship-it.md", "utf8")).resolves.toContain(
-        "name: Ship it"
-      );
+      await expect(rawFs.readFile(persistedPaths.taskPath, "utf8")).resolves.toContain("Ship it");
       await expect(tasks.get("ship-it")).resolves.toEqual(created);
       await expect(taskList.get("planning/ship-it")).resolves.toEqual(created);
     });
 
     it("applies defaults to omitted fields on create", async () => {
       const { taskList } = await openBackend(factory, {
+        path: rootPath,
         defaults: {
           state: "planned",
           metadata: {
@@ -176,7 +182,7 @@ function describeBackendConformance(
     });
 
     it("never overwrites an existing task on create", async () => {
-      const { taskList } = await openBackend(factory);
+      const { taskList } = await openBackend(factory, { path: rootPath });
       const tasks = taskList.list("planning");
 
       await tasks.create({
@@ -198,7 +204,7 @@ function describeBackendConformance(
     });
 
     it("supports create, update, get, and delete", async () => {
-      const { taskList } = await openBackend(factory);
+      const { taskList } = await openBackend(factory, { path: rootPath });
       const tasks = taskList.list("planning");
 
       await tasks.create({
@@ -253,7 +259,7 @@ function describeBackendConformance(
         ReadonlySet<TaskState>
       ][]) {
         for (const to of allowedTargets) {
-          const { taskList } = await openBackend(factory);
+          const { taskList } = await openBackend(factory, { path: rootPath });
           const tasks = taskList.list("planning");
 
           await tasks.create({
@@ -276,7 +282,7 @@ function describeBackendConformance(
             continue;
           }
 
-          const { taskList } = await openBackend(factory);
+          const { taskList } = await openBackend(factory, { path: rootPath });
           const tasks = taskList.list("planning");
 
           await tasks.create({
@@ -292,8 +298,8 @@ function describeBackendConformance(
       }
     });
 
-    it("moves archived tasks to the archived location", async () => {
-      const { rawFs, taskList } = await openBackend(factory);
+    it("persists the archived state", async () => {
+      const { fs, taskList } = await openBackend(factory, { path: rootPath });
       const tasks = taskList.list("planning");
 
       await tasks.create({
@@ -305,16 +311,26 @@ function describeBackendConformance(
       await expect(tasks.transition("archive-me", "archived")).resolves.toMatchObject({
         state: "archived"
       });
-      await expect(rawFs.stat("/repo/tasks/planning/archive-me.md")).rejects.toMatchObject({
-        code: "ENOENT"
+
+      const reopened = await factory({
+        path: rootPath,
+        defaults: {
+          state: "draft",
+          metadata: {}
+        },
+        lockStaleMs: 30_000,
+        lockRetries: 20,
+        create: false,
+        fs
       });
-      await expect(
-        rawFs.readFile("/repo/tasks/planning/archive/archive-me.md", "utf8")
-      ).resolves.toContain("state: archived");
+
+      await expect(reopened.get("planning/archive-me")).resolves.toMatchObject({
+        state: "archived"
+      });
     });
 
     it("supports multi-list queries, qualified lookups, and list discovery", async () => {
-      const { taskList } = await openBackend(factory);
+      const { taskList } = await openBackend(factory, { path: rootPath });
 
       await taskList.list("alpha").create({
         id: "one",
@@ -353,7 +369,7 @@ function describeBackendConformance(
     });
 
     it("filters by state and opt-in archived tasks", async () => {
-      const { taskList } = await openBackend(factory);
+      const { taskList } = await openBackend(factory, { path: rootPath });
       const tasks = taskList.list("planning");
 
       await tasks.create({
@@ -393,13 +409,14 @@ function describeBackendConformance(
       vi.useFakeTimers();
       vi.spyOn(Math, "random").mockReturnValue(0);
       const baseFs = createFs();
-      const taskPath = "/repo/tasks/planning/serial.md";
+      const taskPath = pathsForTask(rootPath, "planning", "serial").taskPath;
       const reads = [createDeferred(), createDeferred()];
+      let armReadBlockers = false;
       let readCount = 0;
       const fs: TaskListFs = {
         ...baseFs.fs,
         readFile: async (path, encoding) => {
-          if (path === taskPath && readCount < reads.length) {
+          if (armReadBlockers && path === taskPath && readCount < reads.length) {
             const currentRead = readCount;
             readCount += 1;
             await reads[currentRead].promise;
@@ -410,7 +427,8 @@ function describeBackendConformance(
       };
       const { taskList } = await openBackend(factory, {
         fs,
-        lockRetries: 5
+        lockRetries: 5,
+        path: rootPath
       });
       const tasks = taskList.list("planning");
 
@@ -418,6 +436,7 @@ function describeBackendConformance(
         id: "serial",
         name: "Serial task"
       });
+      armReadBlockers = true;
 
       const firstUpdate = tasks.update("serial", {
         metadata: {
@@ -452,66 +471,9 @@ function describeBackendConformance(
       });
     });
 
-    it("does not contend for updates to different task paths", async () => {
-      const baseFs = createFs();
-      const blockedPaths = new Map([
-        ["/repo/tasks/alpha/one.md", createDeferred()],
-        ["/repo/tasks/beta/two.md", createDeferred()]
-      ]);
-      const startedPaths: string[] = [];
-      const fs: TaskListFs = {
-        ...baseFs.fs,
-        readFile: async (path, encoding) => {
-          const blocker = blockedPaths.get(path);
-          if (blocker) {
-            startedPaths.push(path);
-            await blocker.promise;
-          }
-
-          return baseFs.rawFs.readFile(path, encoding);
-        }
-      };
-      const { taskList } = await openBackend(factory, {
-        fs
-      });
-
-      await taskList.list("alpha").create({
-        id: "one",
-        name: "Alpha one"
-      });
-      await taskList.list("beta").create({
-        id: "two",
-        name: "Beta two"
-      });
-
-      const alphaUpdate = taskList.list("alpha").update("one", {
-        metadata: {
-          owner: "alpha"
-        }
-      });
-      const betaUpdate = taskList.list("beta").update("two", {
-        metadata: {
-          owner: "beta"
-        }
-      });
-
-      await waitForCondition(() => startedPaths.length === 2);
-
-      expect([...startedPaths].sort()).toEqual([
-        "/repo/tasks/alpha/one.md",
-        "/repo/tasks/beta/two.md"
-      ]);
-
-      blockedPaths.get("/repo/tasks/alpha/one.md")?.resolve();
-      blockedPaths.get("/repo/tasks/beta/two.md")?.resolve();
-
-      await Promise.all([alphaUpdate, betaUpdate]);
-    });
-
     it("rejects unsafe list names and ids", async () => {
-      const { taskList } = await openBackend(factory);
+      const { taskList } = await openBackend(factory, { path: rootPath });
 
-      expect(() => taskList.list("archive")).toThrow('Invalid task list name "archive".');
       expect(() => taskList.list(".hidden")).toThrow('Invalid task list name ".hidden".');
       await expect(
         taskList.list("planning").create({
@@ -526,4 +488,10 @@ function describeBackendConformance(
   });
 }
 
-describeBackendConformance("markdown-dir backend", markdownDirBackend);
+describeBackendConformance("markdown-dir backend", markdownDirBackend, "/repo/tasks", (rootPath, list, id) => ({
+  taskPath: `${rootPath}/${list}/${id}.md`
+}));
+
+describeBackendConformance("yaml-file backend", yamlFileBackend, "/repo/tasks.yaml", (rootPath) => ({
+  taskPath: rootPath
+}));

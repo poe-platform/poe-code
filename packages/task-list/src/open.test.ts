@@ -52,15 +52,6 @@ describe("openTaskList", () => {
     });
   });
 
-  it('uses the "yaml-file" placeholder backend by default', async () => {
-    await expect(
-      openTaskList({
-        type: "yaml-file",
-        path: "/repo/tasks.yaml"
-      })
-    ).rejects.toThrow("not yet implemented");
-  });
-
   it('routes "yaml-file" to the yaml backend factory', async () => {
     const taskList = createTaskList();
     const spy = vi.spyOn(backendFactories, "yaml-file").mockResolvedValue(taskList);
@@ -72,7 +63,17 @@ describe("openTaskList", () => {
       })
     ).resolves.toBe(taskList);
 
-    expect(spy).toHaveBeenCalledOnce();
+    expect(spy).toHaveBeenCalledWith({
+      path: "/repo/tasks.yaml",
+      defaults: {
+        state: "draft",
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs: expect.any(Object)
+    });
   });
 
   it("throws for an unknown backend type", async () => {

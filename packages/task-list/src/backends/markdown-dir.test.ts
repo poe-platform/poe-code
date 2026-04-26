@@ -1,6 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { parseDocument } from "yaml";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { openTaskList } from "../open.js";
 import { MalformedTaskError, type TaskListFs } from "../types.js";
 import { markdownDirBackend } from "./markdown-dir.js";
@@ -22,6 +22,37 @@ function createFs(files: Record<string, string> = {}): {
   };
 }
 
+function createDeferred(): {
+  promise: Promise<void>;
+  resolve: () => void;
+} {
+  let resolve = () => {
+    throw new Error("Deferred promise resolved before initialization.");
+  };
+  const promise = new Promise<void>((promiseResolve) => {
+    resolve = promiseResolve;
+  });
+
+  return { promise, resolve };
+}
+
+async function flushMicrotasks(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
+async function waitForCondition(condition: () => boolean): Promise<void> {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (condition()) {
+      return;
+    }
+
+    await flushMicrotasks();
+  }
+
+  throw new Error("Condition was not met in time.");
+}
+
 function parseFrontmatter(content: string): Record<string, unknown> {
   const lines = content.split("\n");
   const closingIndex = lines.indexOf("---", 1);
@@ -36,6 +67,11 @@ function parseFrontmatter(content: string): Record<string, unknown> {
 }
 
 describe("markdownDirBackend", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
   it("creates the root directory only when create is true", async () => {
     const missingRoot = createFs();
 
@@ -199,5 +235,121 @@ state: draft
     });
 
     await expect(taskList.lists()).resolves.toEqual(["alpha"]);
+  });
+
+  it('rejects the reserved "archive" list name', async () => {
+    const { fs } = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        state: "draft",
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    expect(() => taskList.list("archive")).toThrow('Invalid task list name "archive".');
+  });
+
+  it("moves archived tasks into the archive directory", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        state: "draft",
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("planning").create({
+      id: "archive-me",
+      name: "Archive me",
+      state: "done"
+    });
+    await taskList.list("planning").transition("archive-me", "archived");
+
+    await expect(rawFs.stat("/repo/tasks/planning/archive-me.md")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(
+      rawFs.readFile("/repo/tasks/planning/archive/archive-me.md", "utf8")
+    ).resolves.toContain("state: archived");
+  });
+
+  it("does not contend for updates to different task paths", async () => {
+    const baseFs = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const blockedPaths = new Map([
+      ["/repo/tasks/alpha/one.md", createDeferred()],
+      ["/repo/tasks/beta/two.md", createDeferred()]
+    ]);
+    const startedPaths: string[] = [];
+    const fs: TaskListFs = {
+      ...baseFs.fs,
+      readFile: async (path, encoding) => {
+        const blocker = blockedPaths.get(path);
+        if (blocker) {
+          startedPaths.push(path);
+          await blocker.promise;
+        }
+
+        return baseFs.rawFs.readFile(path, encoding);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        state: "draft",
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("alpha").create({
+      id: "one",
+      name: "Alpha one"
+    });
+    await taskList.list("beta").create({
+      id: "two",
+      name: "Beta two"
+    });
+
+    const alphaUpdate = taskList.list("alpha").update("one", {
+      metadata: {
+        owner: "alpha"
+      }
+    });
+    const betaUpdate = taskList.list("beta").update("two", {
+      metadata: {
+        owner: "beta"
+      }
+    });
+
+    await waitForCondition(() => startedPaths.length === 2);
+
+    expect([...startedPaths].sort()).toEqual([
+      "/repo/tasks/alpha/one.md",
+      "/repo/tasks/beta/two.md"
+    ]);
+
+    blockedPaths.get("/repo/tasks/alpha/one.md")?.resolve();
+    blockedPaths.get("/repo/tasks/beta/two.md")?.resolve();
+
+    await Promise.all([alphaUpdate, betaUpdate]);
   });
 });

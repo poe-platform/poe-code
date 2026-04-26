@@ -506,7 +506,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
   - id: yaml-file-backend
     title: Implement yaml-file backend
     prompt: >
@@ -614,10 +614,10 @@ tasks:
 
       - Tests in `memfs`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: package-readmes
     title: Write READMEs for file-lock and task-list
     prompt: >

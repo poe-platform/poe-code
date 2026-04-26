@@ -1,5 +1,6 @@
 import * as fsPromises from "node:fs/promises";
 import { markdownDirBackend } from "./backends/markdown-dir.js";
+import { yamlFileBackend } from "./backends/yaml-file.js";
 import type {
   BackendFactory,
   BackendDeps,
@@ -13,9 +14,7 @@ const DEFAULT_LOCK_RETRIES = 20;
 
 export const backendFactories: Record<OpenTaskListOptions["type"], BackendFactory> = {
   "markdown-dir": markdownDirBackend,
-  "yaml-file": async () => {
-    throw new Error("not yet implemented");
-  }
+  "yaml-file": yamlFileBackend
 };
 
 function createDefaultFs(): TaskListFs {

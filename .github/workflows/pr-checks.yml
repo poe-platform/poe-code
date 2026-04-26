@@ -31,6 +31,7 @@ jobs:
       - run: npm run build
       - run: npm run codegen:check:python-types
       - run: npm run lint
+      - run: npm run lint:mcp-sdk-deps --workspace @poe-code/github-workflows
       - run: npm run typecheck
       - run: npx turbo run test:unit --concurrency=4 --force
       - run: npm run smoke

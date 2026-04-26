@@ -883,7 +883,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: audit-no-mcp-sdk-in-production
     title: Spec audit — @modelcontextprotocol/sdk stays in devDependencies
@@ -936,9 +936,9 @@ tasks:
           SDK to `dependencies`, and passes once reverted (demonstrate
           this in the test commit message).
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: audit-rfc9700-bcp-and-passthrough

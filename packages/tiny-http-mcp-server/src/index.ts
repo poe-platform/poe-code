@@ -64,3 +64,4 @@ export type {
 } from "./auth.js";
 export { StreamableHttpTransport } from "./http-transport.js";
 export type { StreamableHttpTransportOptions } from "./http-transport.js";
+export { createTestMcpServer, nodeFetch } from "./test-support.js";

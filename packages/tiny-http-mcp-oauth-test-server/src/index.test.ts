@@ -1,7 +1,7 @@
 import http from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
 import { HttpTransport, McpClient } from "tiny-mcp-client";
-import { nodeFetch } from "tiny-http-mcp-server/testing";
+import { nodeFetch } from "tiny-http-mcp-server";
 import { createMcpOAuthTestServer } from "./index.js";
 
 interface JsonRpcResponse {

@@ -2,6 +2,16 @@
 
 Helpers for GitHub workflow prompt files.
 
+## Repository Guardrail
+
+This package also owns a repo-wide manifest invariant: `@modelcontextprotocol/sdk` is allowed under `packages/*/package.json` only in `devDependencies`.
+
+Run the same assertion locally or in CI with:
+
+```bash
+npm run lint:mcp-sdk-deps --workspace @poe-code/github-workflows
+```
+
 ## Quickstart
 
 ### 1. Add repository secrets

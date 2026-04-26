@@ -2106,7 +2106,10 @@ describe("HttpServer integration", () => {
     });
   }
 
-  async function getFreePort(): Promise<number> {
+  async function reservePort(): Promise<{
+    port: number;
+    release: () => Promise<void>;
+  }> {
     const server = http.createServer();
 
     await new Promise<void>((resolve, reject) => {
@@ -2121,18 +2124,20 @@ describe("HttpServer integration", () => {
 
     const { port } = address;
 
-    await new Promise<void>((resolve, reject) => {
-      server.close((error) => {
-        if (error !== undefined) {
-          reject(error);
-          return;
-        }
+    return {
+      port,
+      release: () =>
+        new Promise<void>((resolve, reject) => {
+          server.close((error) => {
+            if (error !== undefined) {
+              reject(error);
+              return;
+            }
 
-        resolve();
-      });
-    });
-
-    return port;
+            resolve();
+          });
+        }),
+    };
   }
 
   async function supportsIpv6Loopback(): Promise<boolean> {
@@ -2463,20 +2468,33 @@ describe("HttpServer integration", () => {
 
   describe("listenHttp convenience", () => {
     it("I14 starts the server on a specified port", async () => {
-      const port = await getFreePort();
-      const server = createTestMcpServer();
-      const handle = await server.listenHttp({ port });
-      trackCleanup(handle.close);
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const reservation = await reservePort();
 
-      const response = await postJsonRpc(handle.url, {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
-      });
+        try {
+          await reservation.release();
 
-      expect(handle.port).toBe(port);
-      expect(response.status).toBe(200);
+          const handle = await createTestMcpServer().listenHttp({
+            port: reservation.port,
+          });
+          trackCleanup(handle.close);
+
+          const response = await postJsonRpc(handle.url, {
+            jsonrpc: "2.0",
+            id: 1,
+            method: "initialize",
+            params: { protocolVersion: TEST_PROTOCOL_VERSION },
+          });
+
+          expect(handle.port).toBe(reservation.port);
+          expect(response.status).toBe(200);
+          return;
+        } catch (error) {
+          if ((error as { code?: unknown }).code !== "EADDRINUSE" || attempt === 4) {
+            throw error;
+          }
+        }
+      }
     });
 
     it("I15 uses a random port when port 0 is requested", async () => {

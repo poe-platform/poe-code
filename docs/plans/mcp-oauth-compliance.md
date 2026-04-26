@@ -230,7 +230,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: discovery-client
     title: Implement client-side OAuth discovery
@@ -268,10 +268,10 @@ tasks:
       AS resolution; missing/invalid metadata is rejected with a clear error;
       challenge parsing handles quoted parameters and the no-hint fallback.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: pkce-flow-client
     title: Implement client-side authorization code + PKCE flow

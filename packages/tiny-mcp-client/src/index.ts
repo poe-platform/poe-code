@@ -1,5 +1,6 @@
 export {
   createInMemoryTransportPair,
+  discoverOAuthMetadata,
   createSdkTestPair,
   createTestPair,
   ERROR_INTERNAL,
@@ -11,6 +12,7 @@ export {
   JsonRpcMessageLayer,
   McpClient,
   McpError,
+  OAuthMetadataDiscovery,
   StdioTransport,
 } from "./internal.js";
 
@@ -55,6 +57,13 @@ export type {
   McpTransportClosedEvent,
   ModelHint,
   ModelPreferences,
+  OAuthAuthorizationServerMetadata,
+  OAuthClientProvider,
+  OAuthDiscoveryCache,
+  OAuthDiscoveryResult,
+  OAuthMetadataFetch,
+  OAuthProtectedResourceMetadata,
+  OAuthUnauthorizedChallenge,
   PaginatedParams,
   PaginatedResult,
   ProgressParams,

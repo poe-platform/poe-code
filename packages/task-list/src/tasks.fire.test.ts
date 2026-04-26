@@ -4,7 +4,6 @@ import { openTaskList } from "./open.js";
 import {
   createDeferred,
   createFs,
-  flushMicrotasks,
   waitForCondition
 } from "./backends/test-helpers.js";
 import { InvalidTransitionError, type OpenTaskListOptions, type TaskState } from "./types.js";

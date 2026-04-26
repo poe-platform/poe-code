@@ -40,9 +40,41 @@ export const root = defineGroup({
 - `createMCPServer(root, options)` exposes `mcp`-scoped commands as MCP tools.
 - `runMCP(root, options)` starts the stdio MCP server for the given command tree.
 
+## MCP proxy
+
+`defineGroup` can proxy tools from an upstream MCP server into the toolcraft tree by setting `mcp` to the standard `@poe-code/agent-mcp-config` `McpServerConfig` shape.
+
+```ts
+import { defineGroup } from "toolcraft";
+
+export const github = defineGroup({
+  name: "github",
+  mcp: {
+    transport: "stdio",
+    command: "github-mcp-server",
+  },
+  tools: ["create_issue", "list_issues"],
+  rename: {
+    create_issue: "issues.create",
+  },
+  children: [],
+});
+```
+
+- `tools?: string[]` filters the discovered upstream tools by exact upstream tool name.
+- `rename?: Record<string, string>` remaps upstream tool names into dotted toolcraft paths. Keys are upstream tool names, values are target toolcraft paths like `"issues.create"`. Missing intermediate groups are created automatically.
+- Discovery metadata is cached at `<projectRoot>/.toolcraft/mcp/<group-name>.json`.
+- `projectRoot` is resolved from the current working directory by walking up to the nearest ancestor containing `package.json`.
+- `TOOLCRAFT_MCP_REFRESH` controls cache invalidation:
+  - unset: use the cache when present
+  - `1` or `true`: refresh every MCP proxy cache
+  - comma-separated names like `github,linear`: refresh only those proxy groups
+- Discovery progress is written to `stderr`, not `stdout`. On normal runs it appears only when the cache is missing on first run; forced refreshes also emit it.
+- If an upstream input schema contains recursive local `$ref` values, toolcraft falls back to a single JSON argument and the CLI exposes one flag in the form `--<name> '<json>'`.
+
 ## Environment variables
 
-- This package does not read environment variables directly.
+- `TOOLCRAFT_MCP_REFRESH`: controls MCP proxy cache refresh behavior. Leave it unset to use cached discovery, set it to `1` or `true` to refresh every proxy, or pass comma-separated group names to refresh specific proxies.
 - Commands can declare required or optional secret environment variable names via `secrets`.
 
 ## Configuration
@@ -66,8 +98,11 @@ export const root = defineGroup({
 - `name: string`: group name.
 - `description?: string`: help text for the group.
 - `aliases?: string[]`: alternate group names.
+- `mcp?: McpServerConfig`: optional upstream MCP server config used to discover and proxy tools into this group.
 - `scope?: Array<"cli" | "mcp" | "sdk">`: inherited by descendants that do not override it.
 - `secrets?: Record<string, { env: string; description?: string; optional?: boolean }>`: inherited secret declarations.
+- `tools?: string[]`: optional allowlist of upstream MCP tool names to expose from this proxy group.
+- `rename?: Record<string, string>`: optional map from upstream tool names to dotted toolcraft command paths.
 - `requires?: { auth?: boolean; apiVersion?: string; check?: (ctx) => Promise<{ ok: boolean; message?: string }> }`: inherited preconditions.
 - `children: Array<Command | Group>`: nested commands and groups.
 - `default?: Command`: default child command used by runners when no child token matches.

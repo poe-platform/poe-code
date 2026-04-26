@@ -424,7 +424,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: docs-readme-and-qa
     title: Document mcp proxy in toolcraft README and add QA checklist
@@ -471,8 +471,8 @@ tasks:
            --help` — confirm the design-system theming matches the rest of
            the CLI.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 ---
 
 # toolcraft MCP proxy

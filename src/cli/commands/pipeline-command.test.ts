@@ -1750,9 +1750,9 @@ describe("pipeline install command", () => {
   it("ships markdown frontmatter instructions in the pipeline skill template", () => {
     expect(pipelineSkillPlan).toContain("Generate a Pipeline plan markdown file");
     expect(pipelineSkillPlan).toContain(
-      "If the user points you at an existing source Markdown doc, add the frontmatter to that file in place"
+      "A file in the plan directory matches the topic (filename stem or `# heading`) → overwrite it, regardless of its `kind:`. One file per topic."
     );
-    expect(pipelineSkillPlan).toContain("Otherwise write a new file at `<plan-directory>/plan-<name>.md`");
+    expect(pipelineSkillPlan).toContain("Otherwise → create `<plan-directory>/<name>.md`.");
     expect(pipelineSkillPlan).toContain("kind: pipeline");
     expect(pipelineSkillPlan).toContain("version: 1");
     expect(pipelineSkillPlan).toContain("```markdown");

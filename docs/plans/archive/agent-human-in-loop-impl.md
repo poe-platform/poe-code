@@ -67,7 +67,7 @@ tasks:
 
       Verify: `npm run typecheck --workspace agent-human-in-loop` passes.
     status:
-      implement: open
+      implement: done
 
   - id: mock-provider
     title: Implement the mock provider (TDD)
@@ -109,8 +109,8 @@ tasks:
       Verify: `npm run test --workspace agent-human-in-loop` passes; all
       three cases green.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: request-approval-toplevel
     title: Implement the top-level requestApproval (TDD)
@@ -158,8 +158,8 @@ tasks:
       Verify: tests pass, including the spy assertion that `provider` is
       stripped from the delegated arg.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: applescript-helpers
     title: Implement the AppleScript pure helpers (TDD)
@@ -232,9 +232,9 @@ tasks:
 
       Verify: all snapshot + behavior tests pass.
     status:
-      implement: open
-      test: open
-      refactor: open
+      implement: done
+      test: done
+      refactor: done
 
   - id: osascript-provider
     title: Implement the osascript provider (TDD, fake subprocess)
@@ -336,9 +336,9 @@ tasks:
       Verify: all 7 cases pass without spawning real osascript. Run with
       no display / no GUI to confirm zero dialogs pop during tests.
     status:
-      implement: open
-      test: open
-      refactor: open
+      implement: done
+      test: done
+      refactor: done
 
   - id: public-exports-and-docs
     title: Wire public exports, README, and QA.md
@@ -417,7 +417,7 @@ tasks:
       Verify: README parses as valid markdown; QA.md is a checklist, not
       a script.
     status:
-      implement: open
+      implement: done
 
   - id: visual-spot-test
     title: Add the visual spot-test example
@@ -466,8 +466,8 @@ tasks:
       This task is the only place real osascript runs. Do not run it
       from CI.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 ---
 
 # Context

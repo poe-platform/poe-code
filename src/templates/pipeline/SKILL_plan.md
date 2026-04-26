@@ -10,7 +10,7 @@ Write the plan as YAML frontmatter. Each task's `prompt` must be self-contained 
 ## Where to write (first match wins)
 
 1. Request mentions an `.md` file → edit it in place.
-2. A file in the plan directory has `kind:` frontmatter matching the topic → edit it in place.
+2. A file in the plan directory matches the topic (filename stem or `# heading`) → overwrite it, regardless of its `kind:`. One file per topic.
 3. Otherwise → create `<plan-directory>/<name>.md`.
 
 ## Steps

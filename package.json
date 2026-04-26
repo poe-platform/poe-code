@@ -122,6 +122,7 @@
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@poe-code/agent-defs": "*",
     "@poe-code/agent-harness-tools": "*",
+    "@poe-code/agent-human-in-loop": "*",
     "@poe-code/agent-mcp-config": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",

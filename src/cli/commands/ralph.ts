@@ -15,7 +15,7 @@ import {
   formatAgentSpecifier,
   allAgents
 } from "@poe-code/agent-defs";
-import { allSpawnConfigs } from "@poe-code/agent-spawn";
+import { resolveLoopAgent } from "@poe-code/agent-harness-tools";
 import {
   discoverDocs,
   parseFrontmatter,
@@ -417,29 +417,21 @@ function resolveConfiguredAgents(value: RalphFrontmatter["agent"]): string | str
 }
 
 async function promptForAgent(container: CliContainer, program: Command): Promise<string | null> {
-  const fromConfig = await resolveDefaultAgent(container);
-  if (fromConfig !== null) {
-    return resolveRalphAgent(fromConfig);
-  }
-
   const flags = resolveCommandFlags(program);
-  if (flags.assumeYes) {
-    return DEFAULT_RALPH_AGENT;
-  }
-
-  const selected = await select({
+  const selectedAgent = await resolveLoopAgent({
+    configuredDefaultAgent: await resolveDefaultAgent(container),
+    assumeYes: flags.assumeYes,
+    fallbackAgent: DEFAULT_RALPH_AGENT,
     message: "Select agent to run Ralph with:",
-    options: allSpawnConfigs.map((config) => ({
-      label: config.agentId,
-      value: config.agentId
-    }))
+    select,
+    isCancel
   });
-  if (isCancel(selected)) {
+  if ("cancelled" in selectedAgent) {
     cancel("Ralph run cancelled.");
     return null;
   }
 
-  return resolveRalphAgent(typeof selected === "string" ? selected : undefined);
+  return resolveRalphAgent(selectedAgent.agent);
 }
 
 async function resolveRunAgent(options: {
@@ -448,16 +440,40 @@ async function resolveRunAgent(options: {
   providedAgent?: string;
   frontmatterAgent?: RalphFrontmatter["agent"];
 }): Promise<string | string[] | null> {
-  if (options.providedAgent) {
-    return resolveRalphAgent(options.providedAgent);
-  }
-
   const configured = resolveConfiguredAgents(options.frontmatterAgent);
-  if (configured !== undefined) {
+  if (Array.isArray(configured)) {
     return configured;
   }
 
-  return promptForAgent(options.container, options.program);
+  const flags = resolveCommandFlags(options.program);
+  try {
+    const selectedAgent = await resolveLoopAgent({
+      providedAgent: options.providedAgent,
+      frontmatterAgent: configured,
+      configuredDefaultAgent: await resolveDefaultAgent(options.container),
+      assumeYes: flags.assumeYes,
+      fallbackAgent: DEFAULT_RALPH_AGENT,
+      message: "Select agent to run Ralph with:",
+      select,
+      isCancel
+    });
+    if ("cancelled" in selectedAgent) {
+      cancel("Ralph run cancelled.");
+      return null;
+    }
+
+    return resolveRalphAgent(selectedAgent.agent);
+  } catch (error) {
+    if (options.providedAgent) {
+      return resolveRalphAgent(options.providedAgent);
+    }
+
+    if (typeof configured === "string") {
+      return resolveRalphAgent(configured, "frontmatter agent");
+    }
+
+    throw error;
+  }
 }
 
 async function resolveRunIterations(options: {

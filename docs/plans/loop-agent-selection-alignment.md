@@ -121,8 +121,8 @@ tasks:
       the prompt path. Frontmatter-array iteration behavior must remain
       unchanged.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: wire-superintendent-run

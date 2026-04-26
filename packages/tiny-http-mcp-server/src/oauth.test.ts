@@ -5,16 +5,15 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   createExpressOAuthHandlers,
   createHttpServer,
+  defineSchema,
   type TinyHttpMcpServerOAuthOptions,
 } from "./index.js";
-import { createTestMcpServer, nodeFetch } from "./testing.js";
+import { createInMemoryTokenVerifier, createTestMcpServer, nodeFetch } from "./testing.js";
 
-const protectedResourceMetadata = {
-  resource: "https://example.com/mcp",
-  authorizationServers: ["https://auth.example.com"],
-  bearerMethodsSupported: ["header"],
-  scopesSupported: ["mcp.read", "mcp.write"],
-} satisfies TinyHttpMcpServerOAuthOptions;
+const TEST_NOW = Date.UTC(2026, 3, 26, 12, 0, 0) / 1_000;
+const PROTECTED_RESOURCE = "https://example.com/mcp";
+const AUTHORIZATION_SERVER = "https://auth.example.com";
+const REQUIRED_SCOPE = "mcp.read";
 
 function createInitializeRequestBody(): string {
   return JSON.stringify({
@@ -23,6 +22,39 @@ function createInitializeRequestBody(): string {
     method: "initialize",
     params: { protocolVersion: "2025-03-26" },
   });
+}
+
+function createToolCallRequestBody(name: string): string {
+  return JSON.stringify({
+    jsonrpc: "2.0",
+    id: 2,
+    method: "tools/call",
+    params: {
+      name,
+      arguments: {},
+    },
+  });
+}
+
+function createProtectedResourceMetadata(): {
+  oauth: TinyHttpMcpServerOAuthOptions;
+  verifier: ReturnType<typeof createInMemoryTokenVerifier>;
+} {
+  const verifier = createInMemoryTokenVerifier({
+    now: () => TEST_NOW,
+  });
+
+  return {
+    oauth: {
+      resource: PROTECTED_RESOURCE,
+      authorizationServers: [AUTHORIZATION_SERVER],
+      bearerMethodsSupported: ["header"],
+      scopesSupported: [REQUIRED_SCOPE, "mcp.write"],
+      requiredScopes: [REQUIRED_SCOPE],
+      verifier: verifier.verifier,
+    },
+    verifier,
+  };
 }
 
 describe("OAuth protected resource", () => {
@@ -84,10 +116,11 @@ describe("OAuth protected resource", () => {
   }
 
   it("serves protected-resource metadata in standalone mode", async () => {
+    const { oauth } = createProtectedResourceMetadata();
     const server = createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
-      oauth: protectedResourceMetadata,
+      oauth,
     });
     const handle = await server.listenHttp({ port: 0 });
     trackCleanup(handle.close);
@@ -99,18 +132,19 @@ describe("OAuth protected resource", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
     await expect(response.json()).resolves.toEqual({
-      resource: "https://example.com/mcp",
-      authorization_servers: ["https://auth.example.com"],
+      resource: PROTECTED_RESOURCE,
+      authorization_servers: [AUTHORIZATION_SERVER],
       bearer_methods_supported: ["header"],
-      scopes_supported: ["mcp.read", "mcp.write"],
+      scopes_supported: [REQUIRED_SCOPE, "mcp.write"],
     });
   });
 
   it("returns a 401 Bearer challenge that points at the standalone metadata URL", async () => {
+    const { oauth } = createProtectedResourceMetadata();
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
-      oauth: protectedResourceMetadata,
+      oauth,
       enableJsonResponse: true,
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
@@ -130,11 +164,21 @@ describe("OAuth protected resource", () => {
     );
   });
 
-  it("allows authenticated standalone MCP requests before token verification exists", async () => {
+  it("allows standalone MCP requests with a verified bearer token", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      token: "valid-token",
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      scopes: [REQUIRED_SCOPE],
+      expiresAt: TEST_NOW + 300,
+      clientId: "test-client",
+      subject: "alice",
+    });
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
-      oauth: protectedResourceMetadata,
+      oauth,
       enableJsonResponse: true,
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
@@ -143,7 +187,7 @@ describe("OAuth protected resource", () => {
       method: "POST",
       headers: {
         Accept: "application/json, text/event-stream",
-        Authorization: "Bearer placeholder-token",
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: createInitializeRequestBody(),
@@ -154,10 +198,11 @@ describe("OAuth protected resource", () => {
   });
 
   it("serves protected-resource metadata through the Express OAuth handlers", async () => {
+    const { oauth } = createProtectedResourceMetadata();
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
       server: createTestMcpServer(),
-      oauth: protectedResourceMetadata,
+      oauth,
     });
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
@@ -172,18 +217,19 @@ describe("OAuth protected resource", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
     await expect(response.json()).resolves.toEqual({
-      resource: "https://example.com/mcp",
-      authorization_servers: ["https://auth.example.com"],
+      resource: PROTECTED_RESOURCE,
+      authorization_servers: [AUTHORIZATION_SERVER],
       bearer_methods_supported: ["header"],
-      scopes_supported: ["mcp.read", "mcp.write"],
+      scopes_supported: [REQUIRED_SCOPE, "mcp.write"],
     });
   });
 
   it("returns a 401 Bearer challenge that points at the Express metadata URL", async () => {
+    const { oauth } = createProtectedResourceMetadata();
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
       server: createTestMcpServer(),
-      oauth: protectedResourceMetadata,
+      oauth,
     });
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
@@ -207,10 +253,11 @@ describe("OAuth protected resource", () => {
   });
 
   it("uses forwarded protocol and host when building the Express metadata challenge URL", async () => {
+    const { oauth } = createProtectedResourceMetadata();
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
       server: createTestMcpServer(),
-      oauth: protectedResourceMetadata,
+      oauth,
     });
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
@@ -233,5 +280,226 @@ describe("OAuth protected resource", () => {
     expect(response.headers.get("www-authenticate")).toBe(
       'Bearer realm="mcp", resource_metadata="https://public.example.com/.well-known/oauth-protected-resource"'
     );
+  });
+
+  it("returns invalid_token when the bearer token is expired", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      token: "expired-token",
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      scopes: [REQUIRED_SCOPE],
+      expiresAt: TEST_NOW - 1,
+    });
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="invalid_token", error_description="token expired"`
+    );
+  });
+
+  it("returns invalid_token when the bearer token audience does not match the configured resource", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      token: "wrong-audience-token",
+      issuer: AUTHORIZATION_SERVER,
+      audience: ["https://example.com/other"],
+      scopes: [REQUIRED_SCOPE],
+      expiresAt: TEST_NOW + 300,
+    });
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="invalid_token", error_description="audience mismatch"`
+    );
+  });
+
+  it("returns invalid_token when the bearer token issuer does not match the configured authorization server", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      token: "wrong-issuer-token",
+      issuer: "https://rogue.example.com",
+      audience: [PROTECTED_RESOURCE],
+      scopes: [REQUIRED_SCOPE],
+      expiresAt: TEST_NOW + 300,
+    });
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="invalid_token", error_description="issuer mismatch"`
+    );
+  });
+
+  it("returns insufficient_scope when the bearer token lacks any required scope", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      token: "wrong-scope-token",
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      scopes: ["mcp.write"],
+      expiresAt: TEST_NOW + 300,
+    });
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="insufficient_scope", error_description="insufficient scope", scope="${REQUIRED_SCOPE}"`
+    );
+  });
+
+  it("passes verified token claims to tools through request.auth", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      token: "claims-token",
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      scopes: [REQUIRED_SCOPE, "mcp.write"],
+      expiresAt: TEST_NOW + 300,
+      clientId: "test-client",
+      subject: "alice",
+      claims: {
+        tenant: "acme",
+      },
+    });
+    const server = createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).tool("auth_snapshot", "Return auth info", defineSchema({}), (_args, { request }) =>
+      JSON.stringify({
+        token: request.auth?.token,
+        clientId: request.auth?.clientId,
+        scopes: request.auth?.scopes,
+        issuer: request.auth?.issuer,
+        audience: request.auth?.audience,
+        subject: request.auth?.subject,
+        resource: request.auth?.resource?.toString(),
+        claims: request.auth?.claims,
+      })
+    );
+    const handle = await server.listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const initializeResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id");
+
+    expect(initializeResponse.status).toBe(200);
+    expect(sessionId).toBeTruthy();
+
+    const toolResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(sessionId === null ? {} : { "Mcp-Session-Id": sessionId }),
+      },
+      body: createToolCallRequestBody("auth_snapshot"),
+    });
+
+    expect(toolResponse.status).toBe(200);
+
+    const payload = (await toolResponse.json()) as {
+      result?: {
+        content?: Array<{ type: string; text?: string }>;
+      };
+    };
+    const text = payload.result?.content?.[0]?.text;
+
+    expect(text).toBeTruthy();
+    expect(JSON.parse(String(text))).toEqual({
+      token,
+      clientId: "test-client",
+      scopes: [REQUIRED_SCOPE, "mcp.write"],
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      subject: "alice",
+      resource: PROTECTED_RESOURCE,
+      claims: {
+        iss: AUTHORIZATION_SERVER,
+        aud: PROTECTED_RESOURCE,
+        exp: TEST_NOW + 300,
+        scope: `${REQUIRED_SCOPE} mcp.write`,
+        sub: "alice",
+        client_id: "test-client",
+        tenant: "acme",
+      },
+    });
   });
 });

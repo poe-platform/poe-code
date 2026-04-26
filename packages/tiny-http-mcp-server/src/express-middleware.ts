@@ -1,13 +1,12 @@
 import express, { type RequestHandler } from "express";
+import { authorizeBearerRequest, type AuthenticatedIncomingMessage } from "./auth.js";
 import {
   createProtectedResourceMetadataDocument,
-  createUnauthorizedBearerChallenge,
-  isBearerRequestAuthenticated,
-  PROTECTED_RESOURCE_METADATA_PATH,
   type HttpServer,
   type ProtectedResourceMetadataOptions,
   type TinyHttpMcpServerOAuthOptions,
 } from "./http-server.js";
+import { PROTECTED_RESOURCE_METADATA_PATH } from "./auth.js";
 
 export function createExpressMiddleware(server: HttpServer): RequestHandler {
   return async (req, res, next) => {
@@ -49,8 +48,12 @@ export function createExpressOAuthHandlers(
   return {
     metadataMiddleware: createProtectedResourceMetadataRouter(options.oauth),
     mcpMiddleware: async (req, res, next) => {
-      if (!isBearerRequestAuthenticated(req)) {
-        res.set("WWW-Authenticate", createUnauthorizedBearerChallenge(req));
+      const authorization = await authorizeBearerRequest(
+        req as AuthenticatedIncomingMessage,
+        options.oauth
+      );
+      if (!authorization.ok) {
+        res.set("WWW-Authenticate", authorization.challenge);
         res.status(401).end();
         return;
       }

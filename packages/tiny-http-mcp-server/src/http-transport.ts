@@ -14,6 +14,11 @@ export interface StreamableHttpTransportOptions {
   enableJsonResponse?: boolean;
 }
 
+type RequestContextRunner = <T>(
+  req: IncomingMessage,
+  callback: () => Promise<T>
+) => Promise<T>;
+
 const ALLOWED_METHODS = "POST, GET, DELETE";
 const MCP_SESSION_ID_HEADER = "Mcp-Session-Id";
 
@@ -26,7 +31,11 @@ export class StreamableHttpTransport {
 
   constructor(
     private readonly server: Server,
-    options: StreamableHttpTransportOptions = {}
+    options: StreamableHttpTransportOptions = {},
+    private readonly runWithRequestContext: RequestContextRunner = async (
+      _req,
+      callback
+    ) => callback()
   ) {
     this.sessionIdGenerator =
       "sessionIdGenerator" in options
@@ -130,38 +139,42 @@ export class StreamableHttpTransport {
       }
     }
 
-    const formattedResponses: string[] = [];
+    const formattedResponses = await this.runWithRequestContext(req, async () => {
+      const responses: string[] = [];
 
-    for (const message of classified.messages) {
-      if (!("method" in message)) {
-        continue;
-      }
+      for (const message of classified.messages) {
+        if (!("method" in message)) {
+          continue;
+        }
 
-      const { error, result } = await this.server.handleMessage(
-        message.method,
-        message.params
-      );
+        const { error, result } = await this.server.handleMessage(
+          message.method,
+          message.params
+        );
 
-      if (message.method === "initialize" && sessionId !== undefined) {
-        const session = this.sessionStore.get(sessionId);
-        if (session !== undefined) {
-          session.initialized = error === undefined;
+        if (message.method === "initialize" && sessionId !== undefined) {
+          const session = this.sessionStore.get(sessionId);
+          if (session !== undefined) {
+            session.initialized = error === undefined;
+          }
+        }
+
+        if (!this.isRequest(message)) {
+          continue;
+        }
+
+        if (error !== undefined) {
+          responses.push(formatErrorResponse(message.id, error));
+          continue;
+        }
+
+        if (result !== undefined) {
+          responses.push(formatSuccessResponse(message.id, result));
         }
       }
 
-      if (!this.isRequest(message)) {
-        continue;
-      }
-
-      if (error !== undefined) {
-        formattedResponses.push(formatErrorResponse(message.id, error));
-        continue;
-      }
-
-      if (result !== undefined) {
-        formattedResponses.push(formatSuccessResponse(message.id, result));
-      }
-    }
+      return responses;
+    });
 
     if (formattedResponses.length === 0) {
       this.respondWithStatus(res, 202, sessionId);

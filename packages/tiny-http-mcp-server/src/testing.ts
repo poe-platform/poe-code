@@ -10,6 +10,11 @@ import {
   Image,
 } from "tiny-stdio-mcp-server";
 import { createHttpServer, type HttpServer, type HttpServerHandle } from "./http-server.js";
+import {
+  TokenVerificationError,
+  type TokenVerifier,
+  type VerifiedAccessToken,
+} from "./auth.js";
 
 const TEST_PNG_BASE64 = "iVBORw0KGgo=";
 const TEST_MP3_BASE64 = "SUQzBAAAAAA=";
@@ -122,6 +127,134 @@ export interface TinyHttpTestPair {
   url: string;
   requests: TinyHttpRequestLogEntry[];
   cleanup(): Promise<void>;
+}
+
+export interface InMemoryAccessTokenInput {
+  token?: string;
+  issuer: string;
+  audience: readonly string[];
+  scopes: readonly string[];
+  expiresAt: number;
+  claims?: Record<string, unknown>;
+  subject?: string;
+  clientId?: string;
+}
+
+export interface InMemoryTokenVerifier {
+  verifier: TokenVerifier;
+  issueToken(input: InMemoryAccessTokenInput): string;
+}
+
+function cloneVerifiedAccessToken(
+  token: VerifiedAccessToken
+): VerifiedAccessToken {
+  return {
+    ...token,
+    audience: [...token.audience],
+    scopes: [...token.scopes],
+    claims: { ...token.claims },
+  };
+}
+
+export function createInMemoryTokenVerifier(
+  options: Partial<{
+    now: () => number;
+  }> = {}
+): InMemoryTokenVerifier {
+  const tokens = new Map<string, VerifiedAccessToken>();
+  const now = options.now ?? (() => Math.floor(Date.now() / 1_000));
+  let nextTokenId = 1;
+
+  return {
+    verifier: {
+      async verify(input) {
+        const token = tokens.get(input.token);
+        if (token === undefined) {
+          throw new TokenVerificationError({
+            error: "invalid_token",
+            errorDescription: "unknown token",
+          });
+        }
+
+        if (!input.authorizationServers.includes(token.issuer)) {
+          throw new TokenVerificationError({
+            error: "invalid_token",
+            errorDescription: "issuer mismatch",
+          });
+        }
+
+        if (!token.audience.includes(input.resource)) {
+          throw new TokenVerificationError({
+            error: "invalid_token",
+            errorDescription: "audience mismatch",
+          });
+        }
+
+        if (token.expiresAt <= now()) {
+          throw new TokenVerificationError({
+            error: "invalid_token",
+            errorDescription: "token expired",
+          });
+        }
+
+        if (
+          input.requiredScopes.length > 0 &&
+          !token.scopes.some((scope) => input.requiredScopes.includes(scope))
+        ) {
+          throw new TokenVerificationError({
+            error: "insufficient_scope",
+            errorDescription: "insufficient scope",
+            scope: input.requiredScopes,
+          });
+        }
+
+        return cloneVerifiedAccessToken(token);
+      },
+    },
+    issueToken(input) {
+      const token = input.token ?? `test-token-${nextTokenId++}`;
+      const audience = [...input.audience];
+      const scopes = [...input.scopes];
+      const claims = {
+        iss: input.issuer,
+        aud: audience.length === 1 ? audience[0] : audience,
+        exp: input.expiresAt,
+        scope: scopes.join(" "),
+        ...(input.subject === undefined
+          ? {}
+          : {
+              sub: input.subject,
+            }),
+        ...(input.clientId === undefined
+          ? {}
+          : {
+              client_id: input.clientId,
+            }),
+        ...(input.claims ?? {}),
+      };
+
+      tokens.set(token, {
+        token,
+        issuer: input.issuer,
+        audience,
+        scopes,
+        expiresAt: input.expiresAt,
+        claims,
+        ...(input.subject === undefined
+          ? {}
+          : {
+              subject: input.subject,
+            }),
+        ...(input.clientId === undefined
+          ? {}
+          : {
+              clientId: input.clientId,
+            }),
+      });
+
+      return token;
+    },
+  };
 }
 
 export function createTestMcpServer(

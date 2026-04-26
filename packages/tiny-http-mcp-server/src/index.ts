@@ -47,14 +47,20 @@ export {
 export type { CreateExpressOAuthHandlersOptions } from "./express-middleware.js";
 export { createHttpServer } from "./http-server.js";
 export type {
+  HttpToolContext,
+  HttpToolHandler,
   HttpListenOptions,
   HttpServer,
   HttpServerHandle,
   HttpTransportOptions,
   ProtectedResourceMetadataOptions,
-  TinyHttpMcpServerOAuthOptions,
-  VerifyTokenHook,
-  VerifyTokenInput,
+  TinyHttpMcpServerOAuthOptions
 } from "./http-server.js";
+export { TokenVerificationError } from "./auth.js";
+export type {
+  RequestAuthInfo,
+  TokenVerifier,
+  VerifiedAccessToken,
+} from "./auth.js";
 export { StreamableHttpTransport } from "./http-transport.js";
 export type { StreamableHttpTransportOptions } from "./http-transport.js";

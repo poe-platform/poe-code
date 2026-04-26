@@ -190,7 +190,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: token-verification-server
     title: Verify bearer tokens on the server
@@ -227,9 +227,9 @@ tasks:
       scope tokens each return 401 with the correct error code; tools observe
       the verified claims through the request context.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: discovery-client

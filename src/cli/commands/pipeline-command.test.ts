@@ -8,12 +8,13 @@ import { registerPipelineCommand } from "./pipeline.js";
 import { ValidationError } from "../errors.js";
 import pipelineSkillPlan from "../../templates/pipeline/SKILL_plan.md";
 import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache";
-import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
+import { resolveLoopAgent, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import type { Dashboard } from "@poe-code/design-system";
 
-const { selectMock, cancelMock } = vi.hoisted(() => ({
+const { selectMock, cancelMock, resolvePipelineLoopAgentMock } = vi.hoisted(() => ({
   selectMock: vi.fn(),
-  cancelMock: vi.fn()
+  cancelMock: vi.fn(),
+  resolvePipelineLoopAgentMock: vi.fn()
 }));
 
 vi.mock("../../sdk/pipeline.js", () => ({
@@ -60,10 +61,16 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
   };
 });
 
+vi.mock("./pipeline-loop-agent.js", () => ({
+  resolvePipelineLoopAgent: resolvePipelineLoopAgentMock
+}));
+
 import { runPipeline as sdkRunPipeline } from "../../sdk/pipeline.js";
 import { runPipelineInit as sdkRunPipelineInit } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { createDashboard, withOutputFormat } from "@poe-code/design-system";
+
+resolvePipelineLoopAgentMock.mockImplementation(resolveLoopAgent);
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -281,6 +288,35 @@ describe("pipeline run command", () => {
         plan: "plan.yaml"
       })
     );
+  });
+
+  it("cancels pipeline run when agent selection is cancelled", async () => {
+    resolvePipelineLoopAgentMock.mockResolvedValueOnce({ cancelled: true });
+
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "pipeline", "run"]);
+
+    expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providedAgent: undefined,
+        configuredDefaultAgent: null,
+        assumeYes: false,
+        fallbackAgent: "claude-code",
+        message: "Select agent to run pipeline steps with:",
+        select: selectMock,
+        isCancel: expect.any(Function)
+      })
+    );
+    expect(cancelMock).toHaveBeenCalledWith("Pipeline run cancelled.");
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
   });
 
   it("defaults to claude-code and resolves agent aliases", async () => {
@@ -1424,6 +1460,81 @@ describe("pipeline init command", () => {
     expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(true);
     expect(logs.some((message) => message.includes("Pipeline init finished."))).toBe(true);
   });
+
+  it("uses core.defaultAgent for init without prompting and preserves the model", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/alpha.md": "# Alpha\n"
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "init",
+      "--source",
+      "docs/plans/alpha.md",
+      "Build the pipeline plan"
+    ]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipelineInit)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex:openai/gpt-5.4",
+        question: "Build the pipeline plan",
+        sources: [
+          {
+            absolutePath: "/repo/docs/plans/alpha.md",
+            relativePath: "docs/plans/alpha.md",
+            title: "alpha"
+          }
+        ]
+      })
+    );
+  });
+
+  it("cancels pipeline init when agent selection is cancelled", async () => {
+    resolvePipelineLoopAgentMock.mockResolvedValueOnce({ cancelled: true });
+
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "pipeline", "init"]);
+
+    expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providedAgent: undefined,
+        configuredDefaultAgent: null,
+        assumeYes: false,
+        fallbackAgent: "claude-code",
+        message: "Select agent to generate pipeline plans with:",
+        select: selectMock,
+        isCancel: expect.any(Function)
+      })
+    );
+    expect(cancelMock).toHaveBeenCalledWith("Pipeline init cancelled.");
+    expect(vi.mocked(sdkRunPipelineInit)).not.toHaveBeenCalled();
+  });
 });
 
 describe("pipeline validate command", () => {
@@ -1834,6 +1945,34 @@ describe("pipeline install command", () => {
     await expect(
       fs.readFile("/repo/.codex/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).resolves.toBe(pipelineSkillPlan + "\n\n" + skillPlanConfigSection("pipeline"));
+  });
+
+  it("cancels pipeline install when agent selection is cancelled", async () => {
+    resolvePipelineLoopAgentMock.mockResolvedValueOnce({ cancelled: true });
+
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "pipeline", "install"]);
+
+    expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providedAgent: undefined,
+        configuredDefaultAgent: null,
+        assumeYes: false,
+        fallbackAgent: "claude-code",
+        message: "Select agent to install the Pipeline skill for:",
+        select: selectMock,
+        isCancel: expect.any(Function)
+      })
+    );
+    expect(cancelMock).toHaveBeenCalledWith("Pipeline install cancelled.");
   });
 
   it("does not overwrite steps.yaml without --force", async () => {

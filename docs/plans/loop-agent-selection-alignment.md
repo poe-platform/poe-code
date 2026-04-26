@@ -44,7 +44,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: wire-pipeline-run
     title: Wire pipeline run/init/install to resolveLoopAgent
@@ -72,8 +72,8 @@ tasks:
       a module-level resolveLoopAgent re-export the test can mock) rather
       than reaching into agent-harness-tools internals.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: wire-experiment-run

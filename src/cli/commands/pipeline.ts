@@ -22,7 +22,6 @@ import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import {
   installSkill,
   resolveAgentSupport,
-  supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
 import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
@@ -31,6 +30,7 @@ import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
 import { discoverPipelineInitSources } from "./pipeline-init.js";
 import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import { resolvePipelineLoopAgent } from "./pipeline-loop-agent.js";
 import {
   runPipelineInit as sdkRunPipelineInit,
   runPipeline as sdkRunPipeline,
@@ -711,30 +711,20 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       resources.logger.intro("pipeline run");
 
       try {
-        let agent: string;
-        if (options.agent) {
-          agent = resolvePipelineAgent(options.agent);
-        } else {
-          const fromConfig = await resolveDefaultAgent(container);
-          if (fromConfig !== null) {
-            agent = resolvePipelineAgent(fromConfig);
-          } else if (flags.assumeYes) {
-            agent = DEFAULT_PIPELINE_AGENT;
-          } else {
-            const selected = await select({
-              message: "Select agent to run pipeline steps with:",
-              options: supportedAgents.map((value) => ({
-                value,
-                label: value
-              }))
-            });
-            if (isCancel(selected)) {
-              cancel("Pipeline run cancelled.");
-              return;
-            }
-            agent = resolvePipelineAgent(selected as string);
-          }
+        const selectedAgent = await resolvePipelineLoopAgent({
+          providedAgent: options.agent,
+          configuredDefaultAgent: await resolveDefaultAgent(container),
+          assumeYes: flags.assumeYes,
+          fallbackAgent: DEFAULT_PIPELINE_AGENT,
+          message: "Select agent to run pipeline steps with:",
+          select,
+          isCancel
+        });
+        if ("cancelled" in selectedAgent) {
+          cancel("Pipeline run cancelled.");
+          return;
         }
+        const agent = resolvePipelineAgent(selectedAgent.agent);
 
         const commandConfig = await resolvePipelineCommandConfig(container);
         const maxRuns = resolveMaxRuns(options.maxRuns);
@@ -910,25 +900,20 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           }
         }
 
-        let agent: string;
-        if (options.agent) {
-          agent = resolvePipelineAgent(options.agent);
-        } else if (flags.assumeYes) {
-          agent = DEFAULT_PIPELINE_AGENT;
-        } else {
-          const selected = await select({
-            message: "Select agent to generate pipeline plans with:",
-            options: supportedAgents.map((value) => ({
-              value,
-              label: value
-            }))
-          });
-          if (isCancel(selected)) {
-            cancel("Pipeline init cancelled.");
-            return;
-          }
-          agent = resolvePipelineAgent(selected as string);
+        const selectedAgent = await resolvePipelineLoopAgent({
+          providedAgent: options.agent,
+          configuredDefaultAgent: await resolveDefaultAgent(container),
+          assumeYes: flags.assumeYes,
+          fallbackAgent: DEFAULT_PIPELINE_AGENT,
+          message: "Select agent to generate pipeline plans with:",
+          select,
+          isCancel
+        });
+        if ("cancelled" in selectedAgent) {
+          cancel("Pipeline init cancelled.");
+          return;
         }
+        const agent = resolvePipelineAgent(selectedAgent.agent);
 
         if (options.source && sourcePaths && sourcePaths.length > 0) {
           throw new ValidationError("Use either --source or --sources, not both.");
@@ -1156,30 +1141,22 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       }
 
       try {
-        let agent = options.agent;
-        if (!agent) {
-          const fromConfig = await resolveDefaultAgent(container);
-          if (fromConfig !== null) {
-            agent = parseAgentSpecifier(fromConfig).agent;
-          } else if (flags.assumeYes) {
-            agent = DEFAULT_PIPELINE_AGENT;
-          } else {
-            const selected = await select({
-              message: "Select agent to install the Pipeline skill for:",
-              options: supportedAgents.map((value) => ({
-                value,
-                label: value
-              }))
-            });
-            if (isCancel(selected)) {
-              cancel("Pipeline install cancelled.");
-              return;
-            }
-            agent = selected as string;
-          }
+        const selectedAgent = await resolvePipelineLoopAgent({
+          providedAgent: options.agent,
+          configuredDefaultAgent: await resolveDefaultAgent(container),
+          assumeYes: flags.assumeYes,
+          fallbackAgent: DEFAULT_PIPELINE_AGENT,
+          message: "Select agent to install the Pipeline skill for:",
+          select,
+          isCancel
+        });
+        if ("cancelled" in selectedAgent) {
+          cancel("Pipeline install cancelled.");
+          return;
         }
+        const agent = resolvePipelineAgent(selectedAgent.agent);
 
-        const support = resolveAgentSupport(agent);
+        const support = resolveAgentSupport(parseAgentSpecifier(agent).agent);
         if (support.status !== "supported" || !support.id) {
           throw new ValidationError(`Unsupported agent: ${agent}`);
         }

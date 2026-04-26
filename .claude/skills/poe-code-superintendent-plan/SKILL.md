@@ -41,18 +41,15 @@ kind: superintendent
 version: 1
 
 builder:
-  agent: claude-code
   prompt: |
     Build the highest-priority open task from {{plan.path}}.
 
 inspectors:
   code-quality:
-    agent: claude-code
     prompt: |
       Make sure this code follows convention and good architecture.
 
 superintendent:
-  agent: claude-code
   prompt: |
     Review the builder and inspector output, update the Task Board in {{plan.path}},
     and request owner review when the board is complete.
@@ -73,7 +70,7 @@ owner:
     Superintendent summary:
     {{superintendent.summary}}
 
-max_rounds: 100
+max_rounds: 50
 
 status:
   state: in_progress

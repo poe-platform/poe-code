@@ -219,7 +219,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-approval-state-machine
     title: toolcraft — approvalStateMachine declaration
@@ -250,9 +250,9 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 "The approval state machine".
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-default-provider
     title: toolcraft — lazy default provider for platform

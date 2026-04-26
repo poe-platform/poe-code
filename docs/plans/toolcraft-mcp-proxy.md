@@ -70,8 +70,8 @@ tasks:
       Project rule: tests use memfs, must be fast, no real LLM calls. Run
       `npm run test --workspace toolcraft-schema` before committing.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: json-schema-converter
@@ -324,7 +324,8 @@ tasks:
       commit: open
 
   - id: cli-flag-rendering-new-kinds
-    title: Extend toolcraft CLI flag rendering for OneOf, Union, Record, Array-of-Object, nullable, pattern
+    title: Extend toolcraft CLI flag rendering for OneOf, Union, Record,
+      Array-of-Object, nullable, pattern
     prompt: |
       Update `packages/toolcraft/src/cli.ts` so the flag layer renders the
       following toolcraft-schema kinds (added in earlier tasks). Today
@@ -376,7 +377,8 @@ tasks:
       commit: open
 
   - id: integration-tests-tiny-stdio-mcp
-    title: "Integration tests: defineGroup with mcp against tiny-stdio-mcp-test-server"
+    title: "Integration tests: defineGroup with mcp against
+      tiny-stdio-mcp-test-server"
     prompt: |
       Add `packages/toolcraft/src/mcp-proxy-integration.test.ts` that exercises
       the full path against `tiny-stdio-mcp-test-server` (existing package in

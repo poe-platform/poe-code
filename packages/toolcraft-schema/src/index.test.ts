@@ -4,12 +4,16 @@ import type {
   ArraySchema,
   BooleanSchema,
   EnumSchema,
+  JsonValueSchema,
   JsonSchema,
   NumberSchema,
+  OneOfSchema,
   ObjectSchema,
   OptionalSchema,
+  RecordSchema,
   Static,
   StringSchema,
+  UnionSchema,
 } from "toolcraft-schema";
 
 describe("toolcraft-schema", () => {
@@ -29,6 +33,16 @@ describe("toolcraft-schema", () => {
       name: S.String(),
     });
     const optionalSchema = S.Optional(S.String());
+    const oneOfSchema = S.OneOf({
+      discriminator: "kind",
+      branches: {
+        text: S.Object({ value: S.String() }),
+        count: S.Object({ value: S.Number() }),
+      },
+    });
+    const unionSchema = S.Union([S.Object({ email: S.String() }), S.Object({ phone: S.String() })]);
+    const recordSchema = S.Record(S.String());
+    const jsonSchema = S.Json();
 
     expect(stringSchema.kind).toBe("string");
     expect(numberSchema.kind).toBe("number");
@@ -37,6 +51,10 @@ describe("toolcraft-schema", () => {
     expect(arraySchema.kind).toBe("array");
     expect(objectSchema.kind).toBe("object");
     expect(optionalSchema.kind).toBe("optional");
+    expect(oneOfSchema.kind).toBe("oneOf");
+    expect(unionSchema.kind).toBe("union");
+    expect(recordSchema.kind).toBe("record");
+    expect(jsonSchema.kind).toBe("json");
 
     expectTypeOf(stringSchema).toMatchTypeOf<StringSchema>();
     expectTypeOf(numberSchema).toMatchTypeOf<NumberSchema>();
@@ -45,6 +63,20 @@ describe("toolcraft-schema", () => {
     expectTypeOf(arraySchema).toMatchTypeOf<ArraySchema<StringSchema>>();
     expectTypeOf(objectSchema).toMatchTypeOf<ObjectSchema<{ name: StringSchema }>>();
     expectTypeOf(optionalSchema).toMatchTypeOf<OptionalSchema<StringSchema>>();
+    expectTypeOf(oneOfSchema).toMatchTypeOf<
+      OneOfSchema<
+        {
+          text: ObjectSchema<{ value: StringSchema }>;
+          count: ObjectSchema<{ value: NumberSchema }>;
+        },
+        "kind"
+      >
+    >();
+    expectTypeOf(unionSchema).toMatchTypeOf<
+      UnionSchema<[ObjectSchema<{ email: StringSchema }>, ObjectSchema<{ phone: StringSchema }>]>
+    >();
+    expectTypeOf(recordSchema).toMatchTypeOf<RecordSchema<StringSchema>>();
+    expectTypeOf(jsonSchema).toMatchTypeOf<JsonValueSchema>();
   });
 
   it("infers static types for nested objects, arrays, enums, and optional properties", () => {
@@ -79,6 +111,68 @@ describe("toolcraft-schema", () => {
     const ignoredSchema = S.Optional(S.Array(S.Boolean()));
 
     expectTypeOf<Static<typeof ignoredSchema>>().toEqualTypeOf<boolean[] | undefined>();
+  });
+
+  it("infers static types for discriminated oneOf schemas", () => {
+    const ignoredSchema = S.OneOf({
+      discriminator: "kind",
+      branches: {
+        text: S.Object({
+          value: S.String(),
+          preview: S.Optional(S.Boolean()),
+        }),
+        count: S.Object({
+          value: S.Number(),
+        }),
+      },
+    });
+
+    expectTypeOf<Static<typeof ignoredSchema>>().toEqualTypeOf<
+      | {
+          kind: "text";
+          value: string;
+          preview?: boolean;
+        }
+      | {
+          kind: "count";
+          value: number;
+        }
+    >();
+  });
+
+  it("infers static types for union, record, and json schemas", () => {
+    const ignoredUnionSchema = S.Union([
+      S.Object({
+        email: S.String(),
+        name: S.Optional(S.String()),
+      }),
+      S.Object({
+        phone: S.String(),
+        extension: S.Optional(S.Number()),
+      }),
+    ]);
+    const ignoredRecordSchema = S.Record(S.Array(S.Boolean()));
+    const ignoredJsonSchema = S.Json();
+
+    expectTypeOf<Static<typeof ignoredUnionSchema>>().toEqualTypeOf<
+      | {
+          email: string;
+          name?: string;
+        }
+      | {
+          phone: string;
+          extension?: number;
+        }
+    >();
+    expectTypeOf<Static<typeof ignoredRecordSchema>>().toEqualTypeOf<Record<string, boolean[]>>();
+    expectTypeOf<Static<typeof ignoredJsonSchema>>().toEqualTypeOf<
+      | string
+      | number
+      | boolean
+      | null
+      | { [key: string]: Static<typeof ignoredJsonSchema> }
+      | Array<Static<typeof ignoredJsonSchema>>
+    >();
   });
 
   it("infers static types for optional object properties without leaking undefined into present values", () => {
@@ -323,6 +417,106 @@ describe("toolcraft-schema", () => {
     } satisfies JsonSchema);
   });
 
+  it("serializes oneOf schemas by injecting discriminator literals into each branch", () => {
+    expect(
+      toJsonSchema(
+        S.OneOf({
+          discriminator: "kind",
+          branches: {
+            text: S.Object({
+              value: S.String(),
+            }),
+            count: S.Object({
+              value: S.Number(),
+              preview: S.Optional(S.Boolean()),
+            }),
+          },
+        })
+      )
+    ).toEqual({
+      oneOf: [
+        {
+          type: "object",
+          properties: {
+            value: {
+              type: "string",
+            },
+            kind: {
+              type: "string",
+              enum: ["text"],
+            },
+          },
+          required: ["value", "kind"],
+        },
+        {
+          type: "object",
+          properties: {
+            value: {
+              type: "number",
+            },
+            preview: {
+              type: "boolean",
+            },
+            kind: {
+              type: "string",
+              enum: ["count"],
+            },
+          },
+          required: ["value", "kind"],
+        },
+      ],
+    } satisfies JsonSchema);
+  });
+
+  it("serializes union, record, and json schemas", () => {
+    expect(
+      toJsonSchema(
+        S.Union([
+          S.Object({
+            email: S.String(),
+          }),
+          S.Object({
+            phone: S.String(),
+            extension: S.Optional(S.Number({ jsonType: "integer" })),
+          }),
+        ])
+      )
+    ).toEqual({
+      oneOf: [
+        {
+          type: "object",
+          properties: {
+            email: {
+              type: "string",
+            },
+          },
+          required: ["email"],
+        },
+        {
+          type: "object",
+          properties: {
+            phone: {
+              type: "string",
+            },
+            extension: {
+              type: "integer",
+            },
+          },
+          required: ["phone"],
+        },
+      ],
+    } satisfies JsonSchema);
+
+    expect(toJsonSchema(S.Record(S.Number({ jsonType: "integer" })))).toEqual({
+      type: "object",
+      additionalProperties: {
+        type: "integer",
+      },
+    } satisfies JsonSchema);
+
+    expect(toJsonSchema(S.Json())).toEqual({} satisfies JsonSchema);
+  });
+
   it("treats double-wrapped optional object properties as optional", () => {
     const schema = S.Object({
       maybeName: S.Optional(S.Optional(S.String({ default: "guest" }))),
@@ -369,5 +563,32 @@ describe("toolcraft-schema", () => {
     expect(() => S.Enum(["admin", "admin"] as const)).toThrow(
       "Enum schema values must be unique"
     );
+  });
+
+  it("rejects oneOf schemas without branches at runtime", () => {
+    expect(() =>
+      S.OneOf({
+        discriminator: "kind",
+        branches: {},
+      })
+    ).toThrow("OneOf schema requires at least one branch");
+  });
+
+  it("rejects union schemas without branches at runtime", () => {
+    expect(() => S.Union([])).toThrow("Union schema requires at least one branch");
+  });
+
+  it("rejects union schemas with duplicate required-key fingerprints", () => {
+    expect(() =>
+      S.Union([
+        S.Object({
+          email: S.String(),
+          verified: S.Optional(S.Boolean()),
+        }),
+        S.Object({
+          email: S.Number(),
+        }),
+      ])
+    ).toThrow("Union schema branches must have unique required-key fingerprints");
   });
 });

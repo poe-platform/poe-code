@@ -1,3 +1,12 @@
+import { Json } from "./json.js";
+import { OneOf } from "./oneof.js";
+import { Record as RecordBuilder } from "./record.js";
+import { Union } from "./union.js";
+import type { JsonValue, JsonValueSchema } from "./json.js";
+import type { OneOfSchema } from "./oneof.js";
+import type { RecordSchema } from "./record.js";
+import type { UnionSchema } from "./union.js";
+
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object";
 type SchemaKind =
   | "string"
@@ -6,7 +15,11 @@ type SchemaKind =
   | "enum"
   | "array"
   | "object"
-  | "optional";
+  | "optional"
+  | "oneOf"
+  | "union"
+  | "record"
+  | "json";
 type EnumValue = string | number | boolean;
 type JsonSchemaEnumValue = EnumValue | null;
 type NumberJsonType = "number" | "integer";
@@ -54,7 +67,7 @@ type SchemaOptions<TDefault> = {
   scope?: readonly SchemaScope[];
 };
 
-interface SchemaBase<TKind extends SchemaKind, TStatic> {
+export interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly kind: TKind;
   readonly description?: string;
   readonly default?: TStatic;
@@ -66,7 +79,7 @@ interface SchemaBase<TKind extends SchemaKind, TStatic> {
 }
 
 export interface JsonSchema {
-  additionalProperties?: boolean;
+  additionalProperties?: boolean | JsonSchema;
   type?: JsonSchemaType;
   description?: string;
   default?: unknown;
@@ -80,6 +93,7 @@ export interface JsonSchema {
   minimum?: number;
   minLength?: number;
   nullable?: boolean;
+  oneOf?: JsonSchema[];
   pattern?: string;
   properties?: Record<string, JsonSchema>;
   required?: string[];
@@ -125,7 +139,11 @@ export type AnySchema =
   | EnumSchema<NonEmptyReadonlyArray<EnumValue>>
   | ArraySchema<AnySchema>
   | ObjectSchema<ObjectShape>
-  | OptionalSchema<AnySchema>;
+  | OptionalSchema<AnySchema>
+  | OneOfSchema<Record<string, ObjectSchema<any>>, string>
+  | UnionSchema<readonly ObjectSchema<any>[]>
+  | RecordSchema<AnySchema>
+  | JsonValueSchema;
 
 export type Static<TSchema extends AnySchema> = TSchema extends SchemaBase<any, infer TStatic>
   ? TStatic
@@ -247,6 +265,29 @@ function unwrapOptional(schema: AnySchema): Exclude<AnySchema, OptionalSchema<An
   return schema;
 }
 
+function withInjectedDiscriminator(
+  schema: ObjectSchema<any>,
+  discriminator: string,
+  branchName: string
+): JsonSchema {
+  const branchJsonSchema = toJsonSchema(schema);
+  const properties = {
+    ...(branchJsonSchema.properties ?? {}),
+    [discriminator]: {
+      type: "string",
+      enum: [branchName],
+    } satisfies JsonSchema,
+  };
+  const required = [...new Set([...(branchJsonSchema.required ?? []), discriminator])];
+
+  return {
+    ...branchJsonSchema,
+    type: "object",
+    properties,
+    required,
+  };
+}
+
 export const S = {
   String(options: SchemaOptions<string> & StringMetadata = {}): StringSchema {
     return {
@@ -318,6 +359,14 @@ export const S = {
       inner,
     };
   },
+
+  OneOf,
+
+  Union,
+
+  Record: RecordBuilder,
+
+  Json,
 } as const;
 
 export function toJsonSchema(schema: AnySchema): JsonSchema {
@@ -373,5 +422,29 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
         required,
       });
     }
+
+    case "oneOf":
+      return withMetadata(unwrappedSchema, {
+        oneOf: Object.entries(unwrappedSchema.branches).map(([branchName, branchSchema]) =>
+          withInjectedDiscriminator(branchSchema, unwrappedSchema.discriminator, branchName)
+        ),
+      });
+
+    case "union":
+      return withMetadata(unwrappedSchema, {
+        oneOf: unwrappedSchema.branches.map((branchSchema) => toJsonSchema(branchSchema)),
+      });
+
+    case "record":
+      return withMetadata(unwrappedSchema, {
+        type: "object",
+        additionalProperties: toJsonSchema(unwrappedSchema.value),
+      });
+
+    case "json":
+      return withMetadata(unwrappedSchema, {});
   }
 }
+
+export { Json, OneOf, RecordBuilder as Record, Union };
+export type { JsonValue, JsonValueSchema, OneOfSchema, RecordSchema, UnionSchema };

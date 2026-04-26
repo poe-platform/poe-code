@@ -650,7 +650,7 @@ tasks:
       - Both READMEs updated (task-list + toolcraft)
     status:
       test: done
-      commit: open
+      commit: done
 ---
 
 # toolcraft-human-in-loop

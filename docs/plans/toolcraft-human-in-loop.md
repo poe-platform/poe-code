@@ -284,7 +284,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-gate-sync
     title: toolcraft — invokeWithHumanInLoop sync path
@@ -324,9 +324,9 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 "The gate — sync path".
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-cli-wiring
     title: toolcraft — wire gate into runCLI

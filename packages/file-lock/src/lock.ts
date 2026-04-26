@@ -129,7 +129,9 @@ export async function acquireFileLock(
   const staleMs = options.staleMs ?? 30_000;
   const lockPath = `${filePath}.lock`;
 
-  for (let attempt = 0; attempt <= retries; attempt += 1) {
+  let attempt = 0;
+
+  while (attempt <= retries) {
     throwIfAborted(options.signal);
 
     try {
@@ -167,9 +169,12 @@ export async function acquireFileLock(
       continue;
     }
 
-    if (attempt < retries) {
-      await sleep(backoff(attempt, minTimeout, maxTimeout), options.signal);
+    if (attempt >= retries) {
+      break;
     }
+
+    await sleep(backoff(attempt, minTimeout, maxTimeout), options.signal);
+    attempt += 1;
   }
 
   throw new LockTimeoutError(`Failed to acquire lock on "${filePath}".`);

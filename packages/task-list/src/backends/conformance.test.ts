@@ -1,4 +1,3 @@
-import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LEGAL_TRANSITIONS } from "../state.js";
 import {
@@ -7,62 +6,16 @@ import {
   TaskNotFoundError,
   type BackendDeps,
   type TaskList,
-  type TaskListFs,
   type TaskState
 } from "../types.js";
 import { markdownDirBackend } from "./markdown-dir.js";
 import { yamlFileBackend } from "./yaml-file.js";
+import { createDeferred, createFs, flushMicrotasks, waitForCondition } from "./test-helpers.js";
 
-type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
 type BackendFactoryUnderTest = (deps: BackendDeps) => Promise<TaskList>;
 type BackendPaths = {
   taskPath: string;
 };
-
-function createFs(files: Record<string, string> = {}): {
-  fs: TaskListFs;
-  rawFs: TestFs;
-  volume: Volume;
-} {
-  const volume = Volume.fromJSON(files, "/");
-  const rawFs = createFsFromVolume(volume).promises;
-
-  return {
-    fs: rawFs as unknown as TaskListFs,
-    rawFs,
-    volume
-  };
-}
-
-function createDeferred(): {
-  promise: Promise<void>;
-  resolve: () => void;
-} {
-  let resolve = () => {
-    throw new Error("Deferred promise resolved before initialization.");
-  };
-  const promise = new Promise<void>((promiseResolve) => {
-    resolve = promiseResolve;
-  });
-
-  return { promise, resolve };
-}
-
-function flushMicrotasks(): Promise<void> {
-  return Promise.resolve().then(() => Promise.resolve());
-}
-
-async function waitForCondition(condition: () => boolean): Promise<void> {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    if (condition()) {
-      return;
-    }
-
-    await flushMicrotasks();
-  }
-
-  throw new Error("Condition was not met in time.");
-}
 
 async function openBackend(
   factory: BackendFactoryUnderTest,

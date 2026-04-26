@@ -125,6 +125,32 @@ describe("acquireFileLock", () => {
     await release();
   });
 
+  it("reclaims a stale lock even when retries is zero", async () => {
+    vi.setSystemTime(new Date("2026-04-26T12:00:00.000Z"));
+    const { fs, rawFs, volume } = createFs({
+      "/repo/workflow.md": "# workflow\n",
+      "/repo/workflow.md.lock": "{\"pid\":1}\n"
+    });
+
+    volume.utimesSync(
+      "/repo/workflow.md.lock",
+      new Date("2026-04-26T11:58:00.000Z"),
+      new Date("2026-04-26T11:58:00.000Z")
+    );
+
+    const release = await acquireFileLock("/repo/workflow.md", {
+      fs,
+      staleMs: 30_000,
+      retries: 0
+    });
+
+    await expect(rawFs.readFile("/repo/workflow.md.lock", "utf8")).resolves.toContain(
+      `"pid":${process.pid}`
+    );
+
+    await release();
+  });
+
   it("throws LockTimeoutError when retries are exhausted", async () => {
     vi.useFakeTimers();
     vi.spyOn(Math, "random").mockReturnValue(0);

@@ -1,4 +1,3 @@
-import path from "node:path";
 import { acquireFileLock } from "@poe-code/file-lock";
 import { parseDocument } from "yaml";
 import storeSchema from "../schema/store.schema.json" with { type: "json" };
@@ -18,6 +17,15 @@ import {
   type Tasks,
   type TaskUpdate
 } from "../types.js";
+import {
+  hasErrorCode,
+  isRecord,
+  sortStrings,
+  sortTasks,
+  statIfExists,
+  validateTaskId,
+  writeAtomically
+} from "./utils.js";
 
 const STORE_KIND = "task-store";
 const STORE_SCHEMA_ID = storeSchema.$id;
@@ -28,31 +36,8 @@ const TASK_VERSION = 1;
 const RESERVED_TASK_KEYS = new Set(["$schema", "description", "kind", "name", "state", "version"]);
 const VALID_STATES = new Set<TaskState>(["draft", "planned", "in-progress", "done", "archived"]);
 
-let tmpFileCounter = 0;
-
 type StoreRecord = Record<string, unknown>;
 type TaskRecord = Record<string, unknown>;
-
-function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function sortStrings(values: string[]): string[] {
-  return [...values].sort((left, right) => left.localeCompare(right));
-}
-
-function sortTasks(tasks: Task[]): Task[] {
-  return [...tasks].sort((left, right) => left.qualifiedId.localeCompare(right.qualifiedId));
-}
 
 function malformedStore(filePath: string, field: string): MalformedTaskError {
   return new MalformedTaskError(`Malformed task store "${filePath}": invalid "${field}".`);
@@ -74,20 +59,6 @@ function validateListName(name: string): string {
   }
 
   return name;
-}
-
-function validateTaskId(id: string): string {
-  if (
-    id.length === 0 ||
-    id.startsWith(".") ||
-    id.includes("/") ||
-    id.includes("\\") ||
-    id.includes("..")
-  ) {
-    throw new Error(`Invalid task id "${id}".`);
-  }
-
-  return id;
 }
 
 function parseQualifiedId(qualifiedId: string): {
@@ -298,43 +269,6 @@ function validateStoreEntries(store: StoreRecord, filePath: string): void {
 
       assertValidTaskRecord(taskRecord, list, id);
     }
-  }
-}
-
-async function statIfExists(
-  fs: TaskListFs,
-  filePath: string
-): Promise<Awaited<ReturnType<TaskListFs["stat"]>> | undefined> {
-  try {
-    return await fs.stat(filePath);
-  } catch (error) {
-    if (hasErrorCode(error, "ENOENT")) {
-      return undefined;
-    }
-
-    throw error;
-  }
-}
-
-async function writeAtomically(fs: TaskListFs, filePath: string, content: string): Promise<void> {
-  const tempPath = `${filePath}.tmp-${process.pid}-${tmpFileCounter}`;
-  tmpFileCounter += 1;
-
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-
-  try {
-    await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
-    await fs.rename(tempPath, filePath);
-  } catch (error) {
-    try {
-      await fs.unlink(tempPath);
-    } catch (unlinkError) {
-      if (!hasErrorCode(unlinkError, "ENOENT")) {
-        throw unlinkError;
-      }
-    }
-
-    throw error;
   }
 }
 

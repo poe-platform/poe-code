@@ -17,6 +17,15 @@ import {
   type Tasks,
   type TaskUpdate
 } from "../types.js";
+import {
+  hasErrorCode,
+  isRecord,
+  sortStrings,
+  sortTasks,
+  statIfExists,
+  validateTaskId,
+  writeAtomically
+} from "./utils.js";
 
 const ARCHIVE_DIRECTORY_NAME = "archive";
 const MARKDOWN_EXTENSION = ".md";
@@ -33,8 +42,6 @@ const RESERVED_FRONTMATTER_KEYS = new Set([
 ]);
 const VALID_STATES = new Set<TaskState>(["draft", "planned", "in-progress", "done", "archived"]);
 
-let tmpFileCounter = 0;
-
 type TaskRecord = Record<string, unknown>;
 
 type TaskFile = {
@@ -47,15 +54,6 @@ type TaskLocation = {
   archived: boolean;
   path: string;
 };
-
-function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
-}
 
 function validateListName(name: string): string {
   if (
@@ -70,20 +68,6 @@ function validateListName(name: string): string {
   }
 
   return name;
-}
-
-function validateTaskId(id: string): string {
-  if (
-    id.length === 0 ||
-    id.startsWith(".") ||
-    id.includes("/") ||
-    id.includes("\\") ||
-    id.includes("..")
-  ) {
-    throw new Error(`Invalid task id "${id}".`);
-  }
-
-  return id;
 }
 
 function parseQualifiedId(qualifiedId: string): {
@@ -134,20 +118,8 @@ function isLockFile(entryName: string): boolean {
   return entryName.endsWith(".lock");
 }
 
-function sortStrings(values: string[]): string[] {
-  return [...values].sort((left, right) => left.localeCompare(right));
-}
-
-function sortTasks(tasks: Task[]): Task[] {
-  return [...tasks].sort((left, right) => left.qualifiedId.localeCompare(right.qualifiedId));
-}
-
 function malformedTask(filePath: string, field: string): MalformedTaskError {
   return new MalformedTaskError(`Malformed task "${filePath}": invalid "${field}".`);
-}
-
-function isRecord(value: unknown): value is TaskRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function stripTrailingCarriageReturn(line: string): string {
@@ -262,21 +234,6 @@ function serializeTaskDocument(frontmatter: TaskRecord, description: string): st
   return `---\n${stringify(frontmatter)}---\n\n${description}`;
 }
 
-async function statIfExists(
-  fs: TaskListFs,
-  filePath: string
-): Promise<Awaited<ReturnType<TaskListFs["stat"]>> | undefined> {
-  try {
-    return await fs.stat(filePath);
-  } catch (error) {
-    if (hasErrorCode(error, "ENOENT")) {
-      return undefined;
-    }
-
-    throw error;
-  }
-}
-
 async function readDirectoryNames(fs: TaskListFs, directoryPath: string): Promise<string[]> {
   try {
     return sortStrings(await fs.readdir(directoryPath));
@@ -359,28 +316,6 @@ async function readTaskAtLocation(
   }
 
   return readTaskFile(fs, list, id, location.path);
-}
-
-async function writeAtomically(fs: TaskListFs, filePath: string, content: string): Promise<void> {
-  const tempPath = `${filePath}.tmp-${process.pid}-${tmpFileCounter}`;
-  tmpFileCounter += 1;
-
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-
-  try {
-    await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
-    await fs.rename(tempPath, filePath);
-  } catch (error) {
-    try {
-      await fs.unlink(tempPath);
-    } catch (unlinkError) {
-      if (!hasErrorCode(unlinkError, "ENOENT")) {
-        throw unlinkError;
-      }
-    }
-
-    throw error;
-  }
 }
 
 function createdFrontmatter(defaults: BackendDeps["defaults"], input: TaskCreate): TaskRecord {

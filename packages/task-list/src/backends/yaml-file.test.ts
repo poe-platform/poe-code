@@ -1,57 +1,9 @@
-import { createFsFromVolume, Volume } from "memfs";
 import { parseDocument } from "yaml";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { openTaskList } from "../open.js";
-import { MalformedTaskError, type TaskListFs } from "../types.js";
+import { MalformedTaskError } from "../types.js";
 import { yamlFileBackend } from "./yaml-file.js";
-
-type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
-
-function createFs(files: Record<string, string> = {}): {
-  fs: TaskListFs;
-  rawFs: TestFs;
-  volume: Volume;
-} {
-  const volume = Volume.fromJSON(files, "/");
-  const rawFs = createFsFromVolume(volume).promises;
-
-  return {
-    fs: rawFs as unknown as TaskListFs,
-    rawFs,
-    volume
-  };
-}
-
-function createDeferred(): {
-  promise: Promise<void>;
-  resolve: () => void;
-} {
-  let resolve = () => {
-    throw new Error("Deferred promise resolved before initialization.");
-  };
-  const promise = new Promise<void>((promiseResolve) => {
-    resolve = promiseResolve;
-  });
-
-  return { promise, resolve };
-}
-
-async function flushMicrotasks(): Promise<void> {
-  await Promise.resolve();
-  await Promise.resolve();
-}
-
-async function waitForCondition(condition: () => boolean): Promise<void> {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    if (condition()) {
-      return;
-    }
-
-    await flushMicrotasks();
-  }
-
-  throw new Error("Condition was not met in time.");
-}
+import { createDeferred, createFs, flushMicrotasks, waitForCondition } from "./test-helpers.js";
 
 function parseYaml(content: string): Record<string, unknown> {
   const document = parseDocument(content);

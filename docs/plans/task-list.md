@@ -680,10 +680,10 @@ tasks:
 
       - Keep READMEs scoped to their own package.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 ---
 
 # Context

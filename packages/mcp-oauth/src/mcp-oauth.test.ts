@@ -38,6 +38,7 @@ function createDiscoveryResult(
       authorization_endpoint: AUTHORIZATION_ENDPOINT,
       token_endpoint: TOKEN_ENDPOINT,
       registration_endpoint: REGISTRATION_ENDPOINT,
+      response_types_supported: ["code"],
       code_challenge_methods_supported: ["S256"],
     },
     ...overrides,
@@ -132,6 +133,7 @@ function createOAuthPair(options: { includeRegistrationEndpoint?: boolean } = {}
           authorization_endpoint: AUTHORIZATION_ENDPOINT,
           token_endpoint: TOKEN_ENDPOINT,
           registration_endpoint: includeRegistrationEndpoint ? REGISTRATION_ENDPOINT : undefined,
+          response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"],
         }),
         {
@@ -398,6 +400,7 @@ describe("createAuthStoreSessionStore", () => {
           issuer: AUTHORIZATION_SERVER,
           authorization_endpoint: AUTHORIZATION_ENDPOINT,
           token_endpoint: TOKEN_ENDPOINT,
+          response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"],
         },
       },

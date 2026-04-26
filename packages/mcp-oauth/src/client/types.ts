@@ -16,6 +16,7 @@ export interface OAuthAuthorizationServerMetadata extends Record<string, unknown
   authorization_endpoint: string;
   token_endpoint: string;
   registration_endpoint?: string;
+  response_types_supported: string[];
   code_challenge_methods_supported: string[];
 }
 

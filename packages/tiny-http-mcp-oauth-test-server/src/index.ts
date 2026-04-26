@@ -41,12 +41,25 @@ export interface McpOAuthTestServer {
 
 const PROTECTED_RESOURCE_METADATA_PATH = "/.well-known/oauth-protected-resource";
 
+function getProtectedResourceMetadataUrl(mcpUrl: string): string {
+  const url = new URL(mcpUrl);
+  const protectedResourcePath =
+    url.pathname === "/" ? "" : url.pathname.length > 1 && url.pathname.endsWith("/")
+      ? url.pathname.slice(0, -1)
+      : url.pathname;
+
+  return new URL(`${PROTECTED_RESOURCE_METADATA_PATH}${protectedResourcePath}`, url).toString();
+}
+
 function normalizePath(path: string | undefined): string {
   if (path === undefined || path.length === 0) {
     return "/mcp";
   }
 
-  return path.startsWith("/") ? path : `/${path}`;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return normalizedPath.length > 1 && normalizedPath.endsWith("/")
+    ? normalizedPath.slice(0, -1)
+    : normalizedPath;
 }
 
 function parseHttpUrl(value: string, label: string): URL {
@@ -247,7 +260,7 @@ export function createMcpOAuthTestServer(
           path: mcpPath,
         });
 
-        const prmUrl = new URL(PROTECTED_RESOURCE_METADATA_PATH, mcpHandle.url).toString();
+        const prmUrl = getProtectedResourceMetadataUrl(mcpHandle.url);
 
         currentHandle = {
           url: mcpHandle.url,

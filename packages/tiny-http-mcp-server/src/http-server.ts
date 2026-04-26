@@ -13,6 +13,7 @@ import {
   type TypedSchema,
 } from "tiny-stdio-mcp-server";
 import {
+  PROTECTED_RESOURCE_METADATA_CACHE_CONTROL,
   PROTECTED_RESOURCE_METADATA_PATH,
   authorizeBearerRequest,
   type AuthenticatedIncomingMessage,
@@ -76,11 +77,22 @@ export type HttpToolHandler<T = Record<string, unknown>> = (
 ) => Promise<ToolReturn> | ToolReturn;
 
 function normalizePath(path: string): string {
-  if (path.length === 0) {
+  if (path.length === 0 || path === "/") {
     return "/mcp";
   }
 
-  return path.startsWith("/") ? path : `/${path}`;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return normalizedPath.length > 1 && normalizedPath.endsWith("/")
+    ? normalizedPath.slice(0, -1)
+    : normalizedPath;
+}
+
+function getProtectedResourceMetadataPaths(path: string): string[] {
+  if (path === "/") {
+    return [PROTECTED_RESOURCE_METADATA_PATH];
+  }
+
+  return [`${PROTECTED_RESOURCE_METADATA_PATH}${path}`];
 }
 
 function formatHostnameForUrl(hostname: string): string {
@@ -214,9 +226,12 @@ export function createHttpServer(
       if (
         protectedResourceMetadataBody !== undefined &&
         req.method === "GET" &&
-        requestUrl.pathname === PROTECTED_RESOURCE_METADATA_PATH
+        getProtectedResourceMetadataPaths(path).includes(requestUrl.pathname)
       ) {
-        res.writeHead(200, { "Content-Type": "application/json" });
+        res.writeHead(200, {
+          "Cache-Control": PROTECTED_RESOURCE_METADATA_CACHE_CONTROL,
+          "Content-Type": "application/json; charset=utf-8",
+        });
         res.end(protectedResourceMetadataBody);
         return;
       }
@@ -230,10 +245,13 @@ export function createHttpServer(
       if (options.oauth !== undefined) {
         const authorization = await authorizeBearerRequest(
           req as AuthenticatedIncomingMessage,
-          options.oauth
+          {
+            ...options.oauth,
+            protectedResourcePath: path,
+          }
         );
         if (!authorization.ok) {
-          res.writeHead(401, {
+          res.writeHead(authorization.statusCode, {
             "WWW-Authenticate": authorization.challenge,
           });
           res.end();

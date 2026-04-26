@@ -111,7 +111,7 @@ describe("createMcpOAuthTestServer", () => {
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
 
-    const prmUrl = new URL("/.well-known/oauth-protected-resource", handle.mcpUrl);
+    const prmUrl = new URL("/.well-known/oauth-protected-resource/mcp", handle.mcpUrl);
     const prmResponse = await nodeFetch(prmUrl);
 
     expect(prmResponse.status).toBe(200);

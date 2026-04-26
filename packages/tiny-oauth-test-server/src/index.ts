@@ -370,7 +370,7 @@ function getEndpointPaths(issuer: string): {
     metadataPaths:
       metadataPath === "/.well-known/oauth-authorization-server"
         ? [metadataPath]
-        : [metadataPath, "/.well-known/oauth-authorization-server"],
+        : [metadataPath],
     authorizePaths:
       authorizePath === rootAliases.authorize
         ? [authorizePath]

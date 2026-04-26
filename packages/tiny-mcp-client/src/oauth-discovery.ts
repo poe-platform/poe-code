@@ -42,6 +42,30 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+function normalizeHostname(hostname: string): string {
+  return hostname.endsWith(".") ? hostname.slice(0, -1).toLowerCase() : hostname.toLowerCase();
+}
+
+function isLoopbackHostname(hostname: string): boolean {
+  const normalizedHostname = normalizeHostname(hostname);
+
+  return normalizedHostname === "localhost"
+    || normalizedHostname === "::1"
+    || normalizedHostname.startsWith("127.");
+}
+
+function assertSecureUrl(url: URL, label: string): void {
+  if (url.protocol === "https:") {
+    return;
+  }
+
+  if (url.protocol === "http:" && isLoopbackHostname(url.hostname)) {
+    return;
+  }
+
+  throw new Error(`${label} must use https unless it targets a loopback host`);
+}
+
 function validateProtectedResourceMetadata(
   value: unknown,
   resourceUrl: string
@@ -99,6 +123,15 @@ function validateAuthorizationServerMetadata(
   }
 
   if (
+    !isStringArray(value.response_types_supported) ||
+    !value.response_types_supported.includes("code")
+  ) {
+    throw new Error(
+      "Authorization server metadata must include response_types_supported containing code"
+    );
+  }
+
+  if (
     !isStringArray(value.code_challenge_methods_supported) ||
     !value.code_challenge_methods_supported.includes("S256")
   ) {
@@ -125,7 +158,6 @@ async function readJsonResponse(response: Response, label: string): Promise<unkn
 
 function resolveWellKnownMetadataUrl(inputUrl: string | URL, suffix: string): string {
   const url = new URL(typeof inputUrl === "string" ? inputUrl : inputUrl.toString());
-  url.hash = "";
 
   const resourcePath = url.pathname === "/" ? "" : url.pathname;
   url.pathname = `/.well-known/${suffix}${resourcePath}`;
@@ -137,25 +169,39 @@ export function resolveProtectedResourceMetadataUrl(
   resourceUrl: string | URL,
   resourceMetadataUrl?: string | URL
 ): string {
+  const resource = new URL(typeof resourceUrl === "string" ? resourceUrl : resourceUrl.toString());
+  assertSecureUrl(resource, "Protected resource URL");
+
   if (resourceMetadataUrl !== undefined) {
-    return new URL(
+    const resolvedResourceMetadataUrl = new URL(
       typeof resourceMetadataUrl === "string" ? resourceMetadataUrl : resourceMetadataUrl.toString(),
-      typeof resourceUrl === "string" ? resourceUrl : resourceUrl.toString()
-    ).toString();
+      resource
+    );
+    assertSecureUrl(resolvedResourceMetadataUrl, "Protected resource metadata URL");
+    return resolvedResourceMetadataUrl.toString();
   }
 
-  return resolveWellKnownMetadataUrl(resourceUrl, "oauth-protected-resource");
+  const resolvedResourceMetadataUrl = new URL(
+    resolveWellKnownMetadataUrl(resource, "oauth-protected-resource")
+  );
+  assertSecureUrl(resolvedResourceMetadataUrl, "Protected resource metadata URL");
+  return resolvedResourceMetadataUrl.toString();
 }
 
 function normalizeAuthorizationServerIssuer(issuer: string | URL): string {
-  const url = new URL(typeof issuer === "string" ? issuer : issuer.toString());
-  url.hash = "";
+  const input = typeof issuer === "string" ? issuer : issuer.toString();
+  const url = new URL(input);
+  if (url.search.length > 0 || url.hash.length > 0) {
+    throw new Error("Authorization server issuer must not include query or fragment");
+  }
+
+  assertSecureUrl(url, "Authorization server issuer");
 
   if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
     url.pathname = url.pathname.slice(0, -1);
   }
 
-  return url.toString();
+  return url.pathname === "/" ? url.origin : url.toString();
 }
 
 export function resolveAuthorizationServerMetadataUrl(issuer: string | URL): string {
@@ -180,21 +226,30 @@ export class OAuthMetadataDiscovery {
     { resourceMetadataUrl }: OAuthMetadataLookupOptions = {}
   ): Promise<OAuthDiscoveryResult> {
     const cacheKey = typeof resourceUrl === "string" ? resourceUrl : resourceUrl.toString();
-    const memoryCachedResult = this.memoryCache.get(cacheKey);
-    if (memoryCachedResult !== undefined) {
-      return memoryCachedResult;
-    }
-
-    const sharedCachedResult = await this.cache?.get(cacheKey);
-    if (sharedCachedResult !== null && sharedCachedResult !== undefined) {
-      this.memoryCache.set(cacheKey, sharedCachedResult);
-      return sharedCachedResult;
-    }
-
     const resourceMetadataLocation = resolveProtectedResourceMetadataUrl(
       resourceUrl,
       resourceMetadataUrl
     );
+    const memoryCachedResult = this.memoryCache.get(cacheKey);
+    if (
+      memoryCachedResult !== undefined &&
+      (resourceMetadataUrl === undefined
+        || memoryCachedResult.resourceMetadataUrl === resourceMetadataLocation)
+    ) {
+      return memoryCachedResult;
+    }
+
+    const sharedCachedResult = await this.cache?.get(cacheKey);
+    if (
+      sharedCachedResult !== null &&
+      sharedCachedResult !== undefined &&
+      (resourceMetadataUrl === undefined
+        || sharedCachedResult.resourceMetadataUrl === resourceMetadataLocation)
+    ) {
+      this.memoryCache.set(cacheKey, sharedCachedResult);
+      return sharedCachedResult;
+    }
+
     const resourceMetadataResponse = await this.fetchImpl(resourceMetadataLocation, {
       method: "GET",
       headers: {
@@ -267,70 +322,83 @@ export async function discoverOAuthMetadata(
   return discovery.discover(resourceUrl, options);
 }
 
-function splitHeaderSegments(value: string): string[] {
-  const segments: string[] = [];
-  let current = "";
-  let inQuotes = false;
-  let escaping = false;
-
-  for (const character of value) {
-    if (escaping) {
-      current += character;
-      escaping = false;
-      continue;
-    }
-
-    if (character === "\\") {
-      current += character;
-      escaping = true;
-      continue;
-    }
-
-    if (character === "\"") {
-      current += character;
-      inQuotes = !inQuotes;
-      continue;
-    }
-
-    if (character === "," && !inQuotes) {
-      segments.push(current);
-      current = "";
-      continue;
-    }
-
-    current += character;
-  }
-
-  if (current.length > 0) {
-    segments.push(current);
-  }
-
-  return segments;
-}
-
-function trimLeadingWhitespace(value: string): string {
-  let index = 0;
+function skipOptionalWhitespace(value: string, start: number): number {
+  let index = start;
   while (index < value.length && (value[index] === " " || value[index] === "\t")) {
     index += 1;
   }
-  return value.slice(index);
+  return index;
 }
 
-function splitChallengeToken(segment: string): { token: string; remainder: string } | null {
-  const trimmedSegment = trimLeadingWhitespace(segment);
-  if (trimmedSegment.length === 0) {
+function readToken(value: string, start: number): { token: string; nextIndex: number } | null {
+  let index = start;
+  while (index < value.length) {
+    const character = value[index];
+    if (
+      character === " "
+      || character === "\t"
+      || character === ","
+      || character === "="
+      || character === "\""
+    ) {
+      break;
+    }
+    index += 1;
+  }
+
+  if (index === start) {
+    return null;
+  }
+
+  return {
+    token: value.slice(start, index),
+    nextIndex: index,
+  };
+}
+
+function looksLikeAuthParam(value: string, start: number): boolean {
+  const token = readToken(value, start);
+  if (token === null) {
+    return false;
+  }
+
+  return value[skipOptionalWhitespace(value, token.nextIndex)] === "=";
+}
+
+function isToken68Character(character: string): boolean {
+  return (
+    (character >= "a" && character <= "z")
+    || (character >= "A" && character <= "Z")
+    || (character >= "0" && character <= "9")
+    || character === "-"
+    || character === "."
+    || character === "_"
+    || character === "~"
+    || character === "+"
+    || character === "/"
+  );
+}
+
+function readToken68(
+  value: string,
+  start: number
+): { token68: string; nextIndex: number } | null {
+  let nextIndex = start;
+  while (nextIndex < value.length) {
+    const character = value[nextIndex];
+    if (character === "," || character === " " || character === "\t") {
+      break;
+    }
+    nextIndex += 1;
+  }
+
+  const token68 = value.slice(start, nextIndex);
+  if (token68.length === 0) {
     return null;
   }
 
   let index = 0;
-  while (index < trimmedSegment.length) {
-    const character = trimmedSegment[index];
-    if (character === " " || character === "\t") {
-      break;
-    }
-    if (character === "=") {
-      return null;
-    }
+  while (index < token68.length && isToken68Character(token68[index]!)) {
     index += 1;
   }
 
@@ -338,51 +406,100 @@ function splitChallengeToken(segment: string): { token: string; remainder: strin
     return null;
   }
 
-  const token = trimmedSegment.slice(0, index);
-  const remainder = trimLeadingWhitespace(trimmedSegment.slice(index));
-  return { token, remainder };
+  while (index < token68.length && token68[index] === "=") {
+    index += 1;
+  }
+
+  if (index !== token68.length) {
+    return null;
+  }
+
+  return { token68, nextIndex };
 }
 
-function parseAuthParam(segment: string): [string, string] | null {
-  const trimmedSegment = trimLeadingWhitespace(segment);
-  const equalsIndex = trimmedSegment.indexOf("=");
-  if (equalsIndex <= 0) {
+function readQuotedString(
+  value: string,
+  start: number
+): { parsedValue: string; nextIndex: number } | null {
+  if (value[start] !== "\"") {
     return null;
   }
 
-  const name = trimmedSegment.slice(0, equalsIndex).trim();
-  const rawValue = trimmedSegment.slice(equalsIndex + 1).trim();
-  if (name.length === 0 || rawValue.length === 0) {
-    return null;
-  }
-
-  if (rawValue[0] !== "\"") {
-    return [name, rawValue];
-  }
-
-  let value = "";
+  let parsedValue = "";
+  let index = start + 1;
   let escaping = false;
-  for (let index = 1; index < rawValue.length; index += 1) {
-    const character = rawValue[index];
+
+  while (index < value.length) {
+    const character = value[index];
     if (escaping) {
-      value += character;
+      parsedValue += character;
       escaping = false;
+      index += 1;
       continue;
     }
 
     if (character === "\\") {
       escaping = true;
+      index += 1;
       continue;
     }
 
     if (character === "\"") {
-      return [name, value];
+      return {
+        parsedValue,
+        nextIndex: index + 1,
+      };
     }
 
-    value += character;
+    parsedValue += character;
+    index += 1;
   }
 
   return null;
+}
+
+function parseAuthParam(
+  value: string,
+  start: number
+): { name: string; value: string; nextIndex: number } | null {
+  const token = readToken(value, start);
+  if (token === null) {
+    return null;
+  }
+
+  let index = skipOptionalWhitespace(value, token.nextIndex);
+  if (value[index] !== "=") {
+    return null;
+  }
+
+  index = skipOptionalWhitespace(value, index + 1);
+  if (index >= value.length) {
+    return null;
+  }
+
+  const quotedValue = readQuotedString(value, index);
+  if (quotedValue !== null) {
+    return {
+      name: token.token,
+      value: quotedValue.parsedValue,
+      nextIndex: quotedValue.nextIndex,
+    };
+  }
+
+  let nextIndex = index;
+  while (nextIndex < value.length) {
+    const character = value[nextIndex];
+    if (character === "," || character === " " || character === "\t") {
+      break;
+    }
+    nextIndex += 1;
+  }
+
+  return {
+    name: token.token,
+    value: value.slice(index, nextIndex),
+    nextIndex,
+  };
 }
 
 export function parseBearerWwwAuthenticateHeader(
@@ -392,50 +509,69 @@ export function parseBearerWwwAuthenticateHeader(
     return null;
   }
 
-  const segments = splitHeaderSegments(headerValue);
-  const bearerSegments: string[] = [];
-  let inBearerChallenge = false;
+  let index = 0;
+  let firstBearerChallenge: OAuthUnauthorizedChallenge | null = null;
 
-  for (const segment of segments) {
-    const challengeToken = splitChallengeToken(segment);
-    if (challengeToken !== null) {
-      if (challengeToken.token.toLowerCase() === "bearer") {
-        inBearerChallenge = true;
-        if (challengeToken.remainder.length > 0) {
-          bearerSegments.push(challengeToken.remainder);
+  while (index < headerValue.length) {
+    index = skipOptionalWhitespace(headerValue, index);
+    while (headerValue[index] === ",") {
+      index = skipOptionalWhitespace(headerValue, index + 1);
+    }
+
+    const scheme = readToken(headerValue, index);
+    if (scheme === null) {
+      break;
+    }
+
+    index = skipOptionalWhitespace(headerValue, scheme.nextIndex);
+    const params: Record<string, string> = {};
+
+    if (index < headerValue.length && headerValue[index] !== ",") {
+      const token68 = readToken68(headerValue, index);
+      if (token68 !== null) {
+        index = token68.nextIndex;
+      } else if (looksLikeAuthParam(headerValue, index)) {
+        while (index < headerValue.length) {
+          const parsedParam = parseAuthParam(headerValue, index);
+          if (parsedParam === null) {
+            break;
+          }
+
+          params[parsedParam.name] = parsedParam.value;
+          index = skipOptionalWhitespace(headerValue, parsedParam.nextIndex);
+
+          if (headerValue[index] !== ",") {
+            break;
+          }
+
+          const nextIndex = skipOptionalWhitespace(headerValue, index + 1);
+          if (!looksLikeAuthParam(headerValue, nextIndex)) {
+            index = nextIndex;
+            break;
+          }
+
+          index = nextIndex;
         }
-        continue;
+      }
+    }
+
+    if (scheme.token.toLowerCase() === "bearer") {
+      const challenge: OAuthUnauthorizedChallenge = {
+        scheme: "Bearer",
+        params,
+        raw: headerValue,
+      };
+      if (Object.keys(params).length > 0) {
+        return challenge;
       }
 
-      if (inBearerChallenge) {
-        break;
-      }
-
-      continue;
+      firstBearerChallenge ??= challenge;
     }
 
-    if (inBearerChallenge) {
-      bearerSegments.push(segment);
+    if (headerValue[index] === ",") {
+      index += 1;
     }
   }
 
-  if (!inBearerChallenge) {
-    return null;
-  }
-
-  const params: Record<string, string> = {};
-  for (const segment of bearerSegments) {
-    const parsedParam = parseAuthParam(segment);
-    if (parsedParam === null) {
-      continue;
-    }
-
-    params[parsedParam[0]] = parsedParam[1];
-  }
-
-  return {
-    scheme: "Bearer",
-    params,
-    raw: headerValue,
-  };
+  return firstBearerChallenge;
 }

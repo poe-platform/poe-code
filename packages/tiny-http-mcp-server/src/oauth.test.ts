@@ -15,6 +15,29 @@ const PROTECTED_RESOURCE = "https://example.com/mcp";
 const AUTHORIZATION_SERVER = "https://auth.example.com";
 const REQUIRED_SCOPE = "mcp.read";
 
+function readChallengeParam(
+  challenge: string | null,
+  name: string
+): string | null {
+  if (challenge === null) {
+    return null;
+  }
+
+  const prefix = `${name}="`;
+  const startIndex = challenge.indexOf(prefix);
+  if (startIndex < 0) {
+    return null;
+  }
+
+  const valueStart = startIndex + prefix.length;
+  const valueEnd = challenge.indexOf("\"", valueStart);
+  if (valueEnd < 0) {
+    return null;
+  }
+
+  return challenge.slice(valueStart, valueEnd);
+}
+
 function createInitializeRequestBody(): string {
   return JSON.stringify({
     jsonrpc: "2.0",
@@ -126,17 +149,41 @@ describe("OAuth protected resource", () => {
     trackCleanup(handle.close);
 
     const response = await nodeFetch(
-      `http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource`
+      `http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp`
     );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
+    expect(response.headers.get("cache-control")).toContain("max-age=");
     await expect(response.json()).resolves.toEqual({
       resource: PROTECTED_RESOURCE,
       authorization_servers: [AUTHORIZATION_SERVER],
       bearer_methods_supported: ["header"],
       scopes_supported: [REQUIRED_SCOPE, "mcp.write"],
     });
+  });
+
+  it("serves standalone protected-resource metadata only from the RFC 9728 path-based location for non-root paths", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth: {
+        ...oauth,
+        resource: "https://example.com/tenant/mcp",
+      },
+    }).listenHttp({ port: 0, path: "/tenant/mcp" });
+    trackCleanup(handle.close);
+
+    const pathResponse = await nodeFetch(
+      `http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/tenant/mcp`
+    );
+    const rootResponse = await nodeFetch(
+      `http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource`
+    );
+
+    expect(pathResponse.status).toBe(200);
+    expect(rootResponse.status).toBe(404);
   });
 
   it("returns a 401 Bearer challenge that points at the standalone metadata URL", async () => {
@@ -160,8 +207,38 @@ describe("OAuth protected resource", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource"`
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp"`
     );
+  });
+
+  it("keeps the standalone challenge resource_metadata URL fetchable when the configured path ends with a trailing slash", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0, path: "/mcp/" });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+    const resourceMetadataUrl = readChallengeParam(
+      response.headers.get("www-authenticate"),
+      "resource_metadata"
+    );
+
+    expect(response.status).toBe(401);
+    expect(resourceMetadataUrl).toBeTruthy();
+    await expect(nodeFetch(resourceMetadataUrl ?? "")).resolves.toMatchObject({
+      status: 200,
+    });
   });
 
   it("allows standalone MCP requests with a verified bearer token", async () => {
@@ -211,17 +288,45 @@ describe("OAuth protected resource", () => {
     trackCleanup(handle.close);
 
     const response = await nodeFetch(
-      `${handle.baseUrl}/.well-known/oauth-protected-resource`
+      `${handle.baseUrl}/.well-known/oauth-protected-resource/mcp`
     );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
+    expect(response.headers.get("cache-control")).toContain("max-age=");
     await expect(response.json()).resolves.toEqual({
       resource: PROTECTED_RESOURCE,
       authorization_servers: [AUTHORIZATION_SERVER],
       bearer_methods_supported: ["header"],
       scopes_supported: [REQUIRED_SCOPE, "mcp.write"],
     });
+  });
+
+  it("serves Express protected-resource metadata only from the RFC 9728 path-based location for non-root paths", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const handlers = createExpressOAuthHandlers({
+      path: "/tenant/mcp",
+      server: createTestMcpServer(),
+      oauth: {
+        ...oauth,
+        resource: "https://example.com/tenant/mcp",
+      },
+    });
+    const handle = await listenExpressApp((app) => {
+      app.use(handlers.metadataMiddleware);
+      app.use("/tenant/mcp", handlers.mcpMiddleware);
+    });
+    trackCleanup(handle.close);
+
+    const pathResponse = await nodeFetch(
+      `${handle.baseUrl}/.well-known/oauth-protected-resource/tenant/mcp`
+    );
+    const rootResponse = await nodeFetch(
+      `${handle.baseUrl}/.well-known/oauth-protected-resource`
+    );
+
+    expect(pathResponse.status).toBe(200);
+    expect(rootResponse.status).toBe(404);
   });
 
   it("returns a 401 Bearer challenge that points at the Express metadata URL", async () => {
@@ -248,8 +353,42 @@ describe("OAuth protected resource", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="mcp", resource_metadata="${handle.baseUrl}/.well-known/oauth-protected-resource"`
+      `Bearer realm="mcp", resource_metadata="${handle.baseUrl}/.well-known/oauth-protected-resource/mcp"`
     );
+  });
+
+  it("returns 403 insufficient_scope through the Express OAuth handlers", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      token: "wrong-scope-token-express",
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      scopes: ["mcp.write"],
+      expiresAt: TEST_NOW + 300,
+    });
+    const handlers = createExpressOAuthHandlers({
+      path: "/mcp",
+      server: createTestMcpServer(),
+      oauth,
+    });
+    const handle = await listenExpressApp((app) => {
+      app.use(handlers.metadataMiddleware);
+      app.use("/mcp", handlers.mcpMiddleware);
+    });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(`${handle.baseUrl}/mcp`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.headers.get("www-authenticate")).toContain('error="insufficient_scope"');
   });
 
   it("uses forwarded protocol and host when building the Express metadata challenge URL", async () => {
@@ -278,7 +417,7 @@ describe("OAuth protected resource", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      'Bearer realm="mcp", resource_metadata="https://public.example.com/.well-known/oauth-protected-resource"'
+      'Bearer realm="mcp", resource_metadata="https://public.example.com/.well-known/oauth-protected-resource/mcp"'
     );
   });
 
@@ -311,7 +450,7 @@ describe("OAuth protected resource", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="invalid_token", error_description="token expired"`
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="token expired"`
     );
   });
 
@@ -344,7 +483,7 @@ describe("OAuth protected resource", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="invalid_token", error_description="audience mismatch"`
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="audience mismatch"`
     );
   });
 
@@ -377,11 +516,11 @@ describe("OAuth protected resource", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="invalid_token", error_description="issuer mismatch"`
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="issuer mismatch"`
     );
   });
 
-  it("returns insufficient_scope when the bearer token lacks any required scope", async () => {
+  it("returns 403 insufficient_scope when the bearer token lacks any required scope", async () => {
     const { oauth, verifier } = createProtectedResourceMetadata();
     const token = verifier.issueToken({
       token: "wrong-scope-token",
@@ -408,9 +547,9 @@ describe("OAuth protected resource", () => {
       body: createInitializeRequestBody(),
     });
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="insufficient_scope", error_description="insufficient scope", scope="${REQUIRED_SCOPE}"`
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="insufficient_scope", error_description="insufficient scope", scope="${REQUIRED_SCOPE}"`
     );
   });
 
@@ -449,9 +588,9 @@ describe("OAuth protected resource", () => {
       body: createInitializeRequestBody(),
     });
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="insufficient_scope", error_description="insufficient scope", scope="${REQUIRED_SCOPE}"`
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="insufficient_scope", error_description="insufficient scope", scope="${REQUIRED_SCOPE}"`
     );
   });
 

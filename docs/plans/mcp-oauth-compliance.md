@@ -684,9 +684,9 @@ tasks:
           confirmed correct (so a future refactor cannot silently regress
           it). Existing tests must still pass.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: audit-pkce-and-redirect-uri

@@ -2,6 +2,7 @@ import type { IncomingMessage } from "node:http";
 
 export const PROTECTED_RESOURCE_METADATA_PATH =
   "/.well-known/oauth-protected-resource";
+export const PROTECTED_RESOURCE_METADATA_CACHE_CONTROL = "public, max-age=300";
 
 export interface VerifiedAccessToken {
   token: string;
@@ -72,13 +73,14 @@ export type AuthenticatedIncomingMessage = IncomingMessage & {
 export interface BearerAuthOptions {
   resource: string | URL;
   authorizationServers: readonly (string | URL)[];
+  protectedResourcePath?: string;
   requiredScopes?: readonly string[];
   verifier: TokenVerifier;
 }
 
 export type BearerAuthResult =
   | { ok: true; auth: RequestAuthInfo }
-  | { ok: false; challenge: string };
+  | { ok: false; statusCode: 401 | 403; challenge: string };
 
 function toUrlString(value: string | URL): string {
   return value instanceof URL ? value.toString() : value;
@@ -123,6 +125,19 @@ function getRequestHost(req: Pick<IncomingMessage, "headers">): string {
 
 function escapeChallengeValue(value: string): string {
   return value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+}
+
+function normalizeProtectedResourcePath(path: string | undefined): string {
+  if (path === undefined || path.length === 0 || path === "/") {
+    return "";
+  }
+
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  if (normalizedPath.length > 1 && normalizedPath.endsWith("/")) {
+    return normalizedPath.slice(0, -1);
+  }
+
+  return normalizedPath;
 }
 
 function formatScope(scope: readonly string[]): string | undefined {
@@ -252,21 +267,23 @@ function toRequestAuthInfo(
 }
 
 export function getProtectedResourceMetadataUrl(
-  req: Pick<IncomingMessage, "headers" | "socket">
+  req: Pick<IncomingMessage, "headers" | "socket">,
+  protectedResourcePath?: string
 ): string {
   return new URL(
-    PROTECTED_RESOURCE_METADATA_PATH,
+    `${PROTECTED_RESOURCE_METADATA_PATH}${normalizeProtectedResourcePath(protectedResourcePath)}`,
     `${getRequestProtocol(req)}://${getRequestHost(req)}`
   ).toString();
 }
 
 export function createBearerChallenge(
   req: Pick<IncomingMessage, "headers" | "socket">,
-  options: BearerChallengeOptions = {}
+  options: BearerChallengeOptions = {},
+  protectedResourcePath?: string
 ): string {
   const parts = [
     'Bearer realm="mcp"',
-    `resource_metadata="${escapeChallengeValue(getProtectedResourceMetadataUrl(req))}"`,
+    `resource_metadata="${escapeChallengeValue(getProtectedResourceMetadataUrl(req, protectedResourcePath))}"`,
   ];
 
   if (options.error !== undefined) {
@@ -293,17 +310,19 @@ export async function authorizeBearerRequest(
   if (authorization.kind === "missing") {
     return {
       ok: false,
-      challenge: createBearerChallenge(req),
+      statusCode: 401,
+      challenge: createBearerChallenge(req, {}, options.protectedResourcePath),
     };
   }
 
   if (authorization.kind === "malformed") {
     return {
       ok: false,
+      statusCode: 401,
       challenge: createBearerChallenge(req, {
         error: "invalid_token",
         errorDescription: authorization.errorDescription,
-      }),
+      }, options.protectedResourcePath),
     };
   }
 
@@ -325,12 +344,11 @@ export async function authorizeBearerRequest(
       auth,
     };
   } catch (error) {
+    const challengeOptions = normalizeTokenVerificationError(error, requiredScopes);
     return {
       ok: false,
-      challenge: createBearerChallenge(
-        req,
-        normalizeTokenVerificationError(error, requiredScopes)
-      ),
+      statusCode: challengeOptions.error === "insufficient_scope" ? 403 : 401,
+      challenge: createBearerChallenge(req, challengeOptions, options.protectedResourcePath),
     };
   }
 }

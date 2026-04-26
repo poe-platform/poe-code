@@ -203,6 +203,43 @@ async function refreshAccessToken(input: {
   });
 }
 
+async function reservePort(hostname: string): Promise<number> {
+  const server = http.createServer();
+
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, hostname, () => resolve());
+  });
+
+  const address = server.address();
+  if (address === null || typeof address === "string") {
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => {
+        if (error !== undefined) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+    throw new Error("Expected temporary port reservation to bind to a TCP port");
+  }
+
+  const port = address.port;
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => {
+      if (error !== undefined) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+  return port;
+}
+
 describe("tiny-oauth-test-server", () => {
   const cleanups = new Set<() => Promise<void>>();
 
@@ -244,6 +281,27 @@ describe("tiny-oauth-test-server", () => {
       token_endpoint_auth_methods_supported: ["none"],
       code_challenge_methods_supported: ["S256"],
     });
+  });
+
+  it("serves RFC 8414 metadata only from the path-based well-known location for pathful issuers", async () => {
+    const issuerPort = await reservePort("127.0.0.1");
+    const issuer = `http://127.0.0.1:${issuerPort}/oauth`;
+    const server = createOAuthTestServer({
+      issuer,
+      signingKeySeed: "tiny-oauth-test-server:pathful-issuer",
+    });
+    const handle = await server.listen({ hostname: "127.0.0.1", port: issuerPort });
+    cleanups.add(handle.close);
+
+    const pathResponse = await nodeFetch(
+      `http://127.0.0.1:${issuerPort}/.well-known/oauth-authorization-server/oauth`
+    );
+    const rootResponse = await nodeFetch(
+      `http://127.0.0.1:${issuerPort}/.well-known/oauth-authorization-server`
+    );
+
+    expect(pathResponse.status).toBe(200);
+    expect(rootResponse.status).toBe(404);
   });
 
   it("round-trips register, authorize, and token into a verifiable JWT", async () => {

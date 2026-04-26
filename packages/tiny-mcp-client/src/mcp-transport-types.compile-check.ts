@@ -49,6 +49,7 @@ const oauthDiscoveryResult: OAuthDiscoveryResult = {
     issuer: "https://auth.example.com",
     authorization_endpoint: "https://auth.example.com/authorize",
     token_endpoint: "https://auth.example.com/token",
+    response_types_supported: ["code"],
     code_challenge_methods_supported: ["S256"],
   },
 };

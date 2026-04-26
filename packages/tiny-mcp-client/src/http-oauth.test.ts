@@ -5,6 +5,8 @@ import {
   HttpTransport,
   type OAuthDiscoveryCache,
   type OAuthDiscoveryResult,
+  parseBearerWwwAuthenticateHeader,
+  resolveAuthorizationServerMetadataUrl,
 } from "./internal.js";
 import { OAuthMetadataDiscovery, discoverOAuthMetadata } from "./oauth-discovery.js";
 
@@ -61,6 +63,7 @@ describe("discoverOAuthMetadata", () => {
           issuer: "https://auth.example.com/issuer-b",
           authorization_endpoint: "https://auth.example.com/issuer-b/authorize",
           token_endpoint: "https://auth.example.com/issuer-b/token",
+          response_types_supported: ["code"],
           code_challenge_methods_supported: ["plain", "S256"],
         });
       }
@@ -145,6 +148,7 @@ describe("discoverOAuthMetadata", () => {
         issuer: "https://auth.example.com/issuer-a",
         authorization_endpoint: "https://auth.example.com/issuer-a/authorize",
         token_endpoint: "https://auth.example.com/issuer-a/token",
+        response_types_supported: ["code"],
         code_challenge_methods_supported: ["plain"],
       });
     });
@@ -175,6 +179,7 @@ describe("discoverOAuthMetadata", () => {
           issuer: normalizedAuthorizationServer,
           authorization_endpoint: `${normalizedAuthorizationServer}/authorize`,
           token_endpoint: `${normalizedAuthorizationServer}/token`,
+          response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"],
         });
       }
@@ -190,6 +195,285 @@ describe("discoverOAuthMetadata", () => {
       "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp",
       authorizationServerMetadataUrl,
     ]);
+  });
+
+  it("preserves unknown metadata fields while enforcing the RFC 8414 required field set", async () => {
+    const resourceUrl = "https://resource.example.com/tenant/mcp";
+    const resourceMetadataUrl =
+      "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp";
+    const authorizationServer = "https://auth.example.com/issuer-a";
+    const authorizationServerMetadataUrl =
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a";
+
+    const discovery = await discoverOAuthMetadata(resourceUrl, {
+      fetch: vi.fn(async (input: string | URL): Promise<Response> => {
+        const url = input.toString();
+
+        if (url === resourceMetadataUrl) {
+          return jsonResponse({
+            resource: resourceUrl,
+            authorization_servers: [authorizationServer],
+            resource_name: "Example MCP",
+          });
+        }
+
+        if (url === authorizationServerMetadataUrl) {
+          return jsonResponse({
+            issuer: authorizationServer,
+            authorization_endpoint: `${authorizationServer}/authorize`,
+            token_endpoint: `${authorizationServer}/token`,
+            response_types_supported: ["code"],
+            code_challenge_methods_supported: ["S256"],
+            service_documentation: `${authorizationServer}/docs`,
+          });
+        }
+
+        throw new Error(`Unexpected fetch URL: ${url}`);
+      }),
+    });
+
+    expect(discovery.resourceMetadata.resource_name).toBe("Example MCP");
+    expect(discovery.authorizationServerMetadata.service_documentation).toBe(
+      `${authorizationServer}/docs`
+    );
+  });
+
+  it("rejects authorization server metadata when response_types_supported is missing", async () => {
+    const resourceUrl = "https://resource.example.com/tenant/mcp";
+
+    await expect(
+      discoverOAuthMetadata(resourceUrl, {
+        fetch: vi.fn(async (input: string | URL): Promise<Response> => {
+          const url = input.toString();
+
+          if (url.includes("oauth-protected-resource")) {
+            return jsonResponse({
+              resource: resourceUrl,
+              authorization_servers: ["https://auth.example.com/issuer-a"],
+            });
+          }
+
+          return jsonResponse({
+            issuer: "https://auth.example.com/issuer-a",
+            authorization_endpoint: "https://auth.example.com/issuer-a/authorize",
+            token_endpoint: "https://auth.example.com/issuer-a/token",
+            code_challenge_methods_supported: ["S256"],
+          });
+        }),
+      })
+    ).rejects.toThrow("response_types_supported");
+  });
+
+  it("rejects non-loopback http issuers before attempting RFC 8414 discovery", async () => {
+    const resourceUrl = "https://resource.example.com/tenant/mcp";
+    const fetchMock = vi.fn(async (input: string | URL): Promise<Response> => {
+      const url = input.toString();
+
+      if (url.includes("oauth-protected-resource")) {
+        return jsonResponse({
+          resource: resourceUrl,
+          authorization_servers: ["http://auth.example.com/issuer-a"],
+        });
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+
+    await expect(discoverOAuthMetadata(resourceUrl, { fetch: fetchMock })).rejects.toThrow(
+      "must use https unless it targets a loopback host"
+    );
+    expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
+      "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp",
+    ]);
+  });
+
+  it("rejects non-loopback http protected resources before attempting PRM discovery", async () => {
+    const fetchMock = vi.fn(async (): Promise<Response> => {
+      throw new Error("Expected secure URL validation to fail before fetch");
+    });
+
+    await expect(
+      discoverOAuthMetadata("http://resource.example.com/tenant/mcp", { fetch: fetchMock })
+    ).rejects.toThrow("Protected resource URL must use https unless it targets a loopback host");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects authorization server issuers that include query or fragment components", async () => {
+    const resourceUrl = "https://resource.example.com/tenant/mcp";
+
+    await expect(
+      discoverOAuthMetadata(resourceUrl, {
+        fetch: vi.fn(async (input: string | URL): Promise<Response> => {
+          const url = input.toString();
+
+          if (url.includes("oauth-protected-resource")) {
+            return jsonResponse({
+              resource: resourceUrl,
+              authorization_servers: ["https://auth.example.com/issuer-a?tenant=acme"],
+            });
+          }
+
+          throw new Error(`Unexpected fetch URL: ${url}`);
+        }),
+      })
+    ).rejects.toThrow("Authorization server issuer must not include query or fragment");
+  });
+
+  it("allows loopback http protected resources and authorization servers for local testing", async () => {
+    const resourceUrl = "http://127.0.0.1:43123/tenant/mcp";
+    const resourceMetadataUrl =
+      "http://127.0.0.1:43123/.well-known/oauth-protected-resource/tenant/mcp";
+    const authorizationServer = "http://127.0.0.1:43124/issuer-a";
+    const authorizationServerMetadataUrl =
+      "http://127.0.0.1:43124/.well-known/oauth-authorization-server/issuer-a";
+
+    const discovery = await discoverOAuthMetadata(resourceUrl, {
+      fetch: vi.fn(async (input: string | URL): Promise<Response> => {
+        const url = input.toString();
+
+        if (url === resourceMetadataUrl) {
+          return jsonResponse({
+            resource: resourceUrl,
+            authorization_servers: [authorizationServer],
+          });
+        }
+
+        if (url === authorizationServerMetadataUrl) {
+          return jsonResponse({
+            issuer: authorizationServer,
+            authorization_endpoint: `${authorizationServer}/authorize`,
+            token_endpoint: `${authorizationServer}/token`,
+            response_types_supported: ["code"],
+            code_challenge_methods_supported: ["S256"],
+          });
+        }
+
+        throw new Error(`Unexpected fetch URL: ${url}`);
+      }),
+    });
+
+    expect(discovery.authorizationServerMetadataUrl).toBe(authorizationServerMetadataUrl);
+  });
+
+  it("honors a fresh resource_metadata hint even when discovery for the request URL is already cached", async () => {
+    const resourceUrl = "https://resource.example.com/tenant/mcp";
+    const originalResourceMetadataUrl =
+      "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp";
+    const hintedResourceMetadataUrl =
+      "https://resource.example.com/metadata/rotated";
+    const originalAuthorizationServer = "https://auth.example.com/issuer-a";
+    const hintedAuthorizationServer = "https://auth.example.com/issuer-b";
+    const originalAuthorizationServerMetadataUrl =
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a";
+    const hintedAuthorizationServerMetadataUrl =
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-b";
+
+    const fetchMock = vi.fn(async (input: string | URL): Promise<Response> => {
+      const url = input.toString();
+
+      if (url === originalResourceMetadataUrl) {
+        return jsonResponse({
+          resource: resourceUrl,
+          authorization_servers: [originalAuthorizationServer],
+        });
+      }
+
+      if (url === hintedResourceMetadataUrl) {
+        return jsonResponse({
+          resource: resourceUrl,
+          authorization_servers: [hintedAuthorizationServer],
+        });
+      }
+
+      if (url === originalAuthorizationServerMetadataUrl) {
+        return jsonResponse({
+          issuer: originalAuthorizationServer,
+          authorization_endpoint: `${originalAuthorizationServer}/authorize`,
+          token_endpoint: `${originalAuthorizationServer}/token`,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+        });
+      }
+
+      if (url === hintedAuthorizationServerMetadataUrl) {
+        return jsonResponse({
+          issuer: hintedAuthorizationServer,
+          authorization_endpoint: `${hintedAuthorizationServer}/authorize`,
+          token_endpoint: `${hintedAuthorizationServer}/token`,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+        });
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+
+    const discoveryClient = new OAuthMetadataDiscovery({
+      fetch: fetchMock,
+    });
+    const originalDiscovery = await discoveryClient.discover(resourceUrl);
+    const hintedDiscovery = await discoveryClient.discover(resourceUrl, {
+      resourceMetadataUrl: hintedResourceMetadataUrl,
+    });
+
+    expect(originalDiscovery.resourceMetadataUrl).toBe(originalResourceMetadataUrl);
+    expect(originalDiscovery.authorizationServer).toBe(originalAuthorizationServer);
+    expect(hintedDiscovery.resourceMetadataUrl).toBe(hintedResourceMetadataUrl);
+    expect(hintedDiscovery.authorizationServer).toBe(hintedAuthorizationServer);
+    expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
+      originalResourceMetadataUrl,
+      originalAuthorizationServerMetadataUrl,
+      hintedResourceMetadataUrl,
+      hintedAuthorizationServerMetadataUrl,
+    ]);
+  });
+});
+
+describe("parseBearerWwwAuthenticateHeader", () => {
+  it("selects the Bearer challenge from a combined header and preserves quoted commas", () => {
+    expect(
+      parseBearerWwwAuthenticateHeader(
+        'Basic realm="legacy", Bearer realm="Example, Inc", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp", error="invalid_token"'
+      )
+    ).toEqual({
+      scheme: "Bearer",
+      params: {
+        realm: "Example, Inc",
+        resource_metadata:
+          "https://resource.example.com/.well-known/oauth-protected-resource/mcp",
+        error: "invalid_token",
+      },
+      raw:
+        'Basic realm="legacy", Bearer realm="Example, Inc", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp", error="invalid_token"',
+    });
+  });
+
+  it("ignores token68 data and keeps parsing later Bearer auth-params", () => {
+    expect(
+      parseBearerWwwAuthenticateHeader(
+        'Digest abc123==, Bearer abc123==, Bearer realm="mcp", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp"'
+      )
+    ).toEqual({
+      scheme: "Bearer",
+      params: {
+        realm: "mcp",
+        resource_metadata:
+          "https://resource.example.com/.well-known/oauth-protected-resource/mcp",
+      },
+      raw:
+        'Digest abc123==, Bearer abc123==, Bearer realm="mcp", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp"',
+    });
+  });
+});
+
+describe("resolveAuthorizationServerMetadataUrl", () => {
+  it("uses the host-based well-known location for root issuers and the path-based form for pathful issuers", () => {
+    expect(resolveAuthorizationServerMetadataUrl("https://auth.example.com")).toBe(
+      "https://auth.example.com/.well-known/oauth-authorization-server"
+    );
+    expect(resolveAuthorizationServerMetadataUrl("https://auth.example.com/issuer-a/")).toBe(
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a"
+    );
   });
 });
 
@@ -244,6 +528,7 @@ describe("HttpTransport OAuth authorization", () => {
           authorization_endpoint: authorizationEndpoint,
           token_endpoint: tokenEndpoint,
           registration_endpoint: registrationEndpoint,
+          response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"],
         });
       }
@@ -445,6 +730,7 @@ describe("HttpTransport OAuth authorization", () => {
           authorization_endpoint: authorizationEndpoint,
           token_endpoint: tokenEndpoint,
           registration_endpoint: registrationEndpoint,
+          response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"],
         });
       }

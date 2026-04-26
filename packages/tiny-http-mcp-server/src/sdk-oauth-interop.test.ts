@@ -24,7 +24,7 @@ import type {
   OAuthClientMetadata,
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
-import { createMcpOAuthTestServer } from "tiny-http-mcp-oauth-test-server";
+import { createMcpOAuthTestServer } from "../../tiny-http-mcp-oauth-test-server/src/index.js";
 import { nodeFetch } from "./testing.js";
 
 interface LoggedRequest {

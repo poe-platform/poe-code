@@ -72,7 +72,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: json-schema-converter
     title: Implement JSON Schema → toolcraft-schema converter in toolcraft
@@ -116,9 +116,9 @@ tasks:
       committing. The new module must not be imported anywhere else yet — the
       rest of the codebase keeps building.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: group-type-mcp-fields
     title: Add `mcp`, `tools`, and `rename` optional fields to defineGroup config

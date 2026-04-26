@@ -100,10 +100,10 @@ tasks:
 
       - Package needs its own README listing env vars (none) and config options.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: harness-tools-relay
     title: Re-export file-lock from agent-harness-tools
     prompt: >

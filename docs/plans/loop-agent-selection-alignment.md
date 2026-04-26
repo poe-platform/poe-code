@@ -74,7 +74,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: wire-experiment-run
     title: Wire experiment run to resolveLoopAgent
@@ -98,9 +98,9 @@ tasks:
       Update tests in src/cli/commands/experiment-ralph.test.ts that depend
       on the old prompt or option list.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: wire-ralph-run
     title: Wire ralph run to resolveLoopAgent

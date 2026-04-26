@@ -18,8 +18,11 @@ import {
   allAgents
 } from "@poe-code/agent-defs";
 import { resolvePlanDirectory } from "@poe-code/pipeline";
-import { allSpawnConfigs } from "@poe-code/agent-spawn";
-import { resolveWorkflowPath, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
+import {
+  resolveLoopAgent,
+  resolveWorkflowPath,
+  skillPlanConfigSection
+} from "@poe-code/agent-harness-tools";
 import {
   installSkill,
   resolveAgentSupport,
@@ -531,64 +534,64 @@ async function readExperimentDoc(
   }
 }
 
-async function promptForAgent(container: CliContainer, program: Command): Promise<string | null> {
-  const fromConfig = await resolveDefaultAgent(container);
-  if (fromConfig !== null) {
-    return resolveExperimentAgent(fromConfig);
-  }
-
-  const flags = resolveCommandFlags(program);
-  if (flags.assumeYes) {
-    return DEFAULT_EXPERIMENT_AGENT;
-  }
-
-  const selected = await select({
-    message: "Select agent to run the experiment with:",
-    options: allSpawnConfigs.map((config) => ({
-      label: config.agentId,
-      value: config.agentId
-    }))
-  });
-  if (isCancel(selected)) {
-    cancel("Experiment run cancelled.");
-    return null;
-  }
-
-  return resolveExperimentAgent(typeof selected === "string" ? selected : undefined);
-}
-
 async function resolveRunAgent(options: {
   container: CliContainer;
   program: Command;
   providedAgent?: string;
   frontmatterAgent?: string | string[];
 }): Promise<string | string[] | null> {
+  const providedAgents = options.providedAgent ? splitAgentList(options.providedAgent) : [];
+
   if (options.providedAgent) {
-    return resolveAgentList(options.providedAgent);
-  }
-
-  if (options.frontmatterAgent) {
-    if (Array.isArray(options.frontmatterAgent)) {
-      return options.frontmatterAgent.map((a) => resolveExperimentAgent(a, "frontmatter agent"));
+    if (providedAgents.length === 0) {
+      return resolveExperimentAgent(undefined);
     }
-    return resolveExperimentAgent(options.frontmatterAgent, "frontmatter agent");
+    if (providedAgents.length > 1) {
+      return providedAgents.map((agent) => resolveExperimentAgent(agent));
+    }
   }
 
-  return promptForAgent(options.container, options.program);
+  if (Array.isArray(options.frontmatterAgent)) {
+    return options.frontmatterAgent.map((a) => resolveExperimentAgent(a, "frontmatter agent"));
+  }
+
+  const flags = resolveCommandFlags(options.program);
+  try {
+    const selectedAgent = await resolveLoopAgent({
+      providedAgent: options.providedAgent,
+      frontmatterAgent:
+        typeof options.frontmatterAgent === "string" ? options.frontmatterAgent : undefined,
+      configuredDefaultAgent: await resolveDefaultAgent(options.container),
+      assumeYes: flags.assumeYes,
+      fallbackAgent: DEFAULT_EXPERIMENT_AGENT,
+      message: "Select agent to run the experiment with:",
+      select,
+      isCancel
+    });
+    if ("cancelled" in selectedAgent) {
+      cancel("Experiment run cancelled.");
+      return null;
+    }
+
+    return resolveExperimentAgent(selectedAgent.agent);
+  } catch (error) {
+    if (providedAgents.length === 1 && options.providedAgent) {
+      return resolveExperimentAgent(options.providedAgent);
+    }
+
+    if (typeof options.frontmatterAgent === "string") {
+      return resolveExperimentAgent(options.frontmatterAgent, "frontmatter agent");
+    }
+
+    throw error;
+  }
 }
 
-function resolveAgentList(value: string): string | string[] {
-  const parts = value
+function splitAgentList(value: string): string[] {
+  return value
     .split(",")
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
-  if (parts.length === 0) {
-    return resolveExperimentAgent(undefined);
-  }
-  if (parts.length === 1) {
-    return resolveExperimentAgent(parts[0]);
-  }
-  return parts.map((p) => resolveExperimentAgent(p));
 }
 
 function formatJournalOutput(output: string): string {

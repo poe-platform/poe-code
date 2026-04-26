@@ -5,6 +5,7 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerExperimentCommand } from "./experiment.js";
 import { registerRalphCommand } from "./ralph.js";
+import { allAgents } from "@poe-code/agent-defs";
 import { allSpawnConfigs } from "@poe-code/agent-spawn";
 import { ValidationError } from "../errors.js";
 import type { Dashboard } from "@poe-code/design-system";
@@ -81,6 +82,14 @@ function createBaseProgram(): Command {
   program.exitOverride();
   program.name("poe-code").option("-y, --yes").option("--dry-run").option("--verbose");
   return program;
+}
+
+function getExperimentAgentOptions() {
+  return allAgents.map((agent) => ({
+    label: agent.label,
+    value: agent.id,
+    hint: agent.summary
+  }));
 }
 
 function getSpawnAgentOptions() {
@@ -322,6 +331,41 @@ describe("experiment run command", () => {
     );
   });
 
+  it("prefers the single frontmatter agent over core.defaultAgent and --yes for experiment run", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "agent: claude:anthropic/claude-sonnet-4.6",
+        "---",
+        "# Loop"
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "codex" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "experiment", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code:anthropic/claude-sonnet-4.6",
+        docPath: "docs/loop.md"
+      })
+    );
+  });
+
   it("discovers docs from the shared plan directory config when it points home", async () => {
     const container = createCliContainer({
       fs: createMemFs({
@@ -381,7 +425,7 @@ describe("experiment run command", () => {
     });
     expect(selectMock).toHaveBeenNthCalledWith(2, {
       message: "Select agent to run the experiment with:",
-      options: getSpawnAgentOptions()
+      options: getExperimentAgentOptions()
     });
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -389,6 +433,120 @@ describe("experiment run command", () => {
         docPath: "docs/plans/plan-a.md"
       })
     );
+  });
+
+  it("preserves multi-agent frontmatter arrays for experiment run", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": [
+          "---",
+          "agent:",
+          "  - claude",
+          "  - codex",
+          "---",
+          "# Loop"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: ["claude-code", "codex"],
+        docPath: "docs/loop.md"
+      })
+    );
+  });
+
+  it("preserves comma-separated CLI agents for experiment run", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude,codex"
+    ]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: ["claude-code", "codex"],
+        docPath: "docs/loop.md"
+      })
+    );
+  });
+
+  it("rejects unsupported single CLI agents with a validation error", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "run",
+        "docs/loop.md",
+        "--agent",
+        "mystery-agent"
+      ])
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
+  });
+
+  it("fails fast on unknown single frontmatter agents", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": [
+          "---",
+          "agent: mystery-agent",
+          "---",
+          "# Loop"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"])
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
   });
 
   it("fails before prompting when no experiment docs exist", async () => {

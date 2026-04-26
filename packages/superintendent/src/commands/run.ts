@@ -1,7 +1,11 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
-import { resolveRunLogDir, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
+import {
+  resolveLoopAgent,
+  resolveRunLogDir,
+  resolveWorkflowPath
+} from "@poe-code/agent-harness-tools";
 import {
   applyMiddlewares,
   getSpawnConfig,
@@ -13,7 +17,7 @@ import {
   usageCapture,
   type AcpSpawnContext
 } from "@poe-code/agent-spawn";
-import { parseAgentSpecifier, resolveAgentId } from "@poe-code/agent-defs";
+import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import { executePoeAgent } from "./poe-agent-runner.js";
 import { S, UserError, defineCommand } from "toolcraft";
 import {
@@ -57,6 +61,7 @@ export type RunCommandOptions = {
   homeDir: string;
   docPath?: string;
   builderAgent?: string;
+  configuredDefaultAgent?: string | null;
   planDirectory?: string;
   assumeYes?: boolean;
   interactive?: boolean;
@@ -104,6 +109,15 @@ type RunSession = {
   latestLogFile?: string;
 };
 
+const coreDefaultAgentConfigSchema = {
+  defaultAgent: {
+    type: "string" as const,
+    default: "",
+    env: "POE_DEFAULT_AGENT",
+    doc: "Default agent used when no explicit Superintendent builder agent is provided"
+  }
+};
+
 const runParams = S.Object({
   doc: S.Optional(S.String({ description: "Path to the superintendent markdown document" })),
   agent: S.Optional(S.String({
@@ -130,6 +144,7 @@ export const runCommand = defineCommand({
       homeDir,
       docPath: params.doc,
       ...(params.agent ? { builderAgent: params.agent } : {}),
+      configuredDefaultAgent: commandConfig.configuredDefaultAgent,
       assumeYes: process.argv.includes("--yes"),
       interactive: Boolean(process.stdin.isTTY),
       useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
@@ -188,6 +203,7 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
         homeDir,
         docPath: params.doc,
         ...(params.agent ? { builderAgent: params.agent } : {}),
+        configuredDefaultAgent: commandConfig.configuredDefaultAgent,
         assumeYes: true,
         interactive: false,
         useDashboard: false,
@@ -207,7 +223,7 @@ async function resolveSuperintendentCommandConfig(
   homeDir: string,
   env: Record<string, string | undefined>,
   fs?: SuperintendentFileSystem
-): Promise<{ planDirectory?: string; tui: boolean }> {
+): Promise<{ configuredDefaultAgent: string | null; planDirectory?: string; tui: boolean }> {
   const configPath = resolveConfigPath(homeDir);
   const projectConfigPath = resolveProjectConfigPath(cwd);
   try {
@@ -222,12 +238,14 @@ async function resolveSuperintendentCommandConfig(
       document[superintendentConfigScope.scope],
       env
     );
+    const coreResolved = resolveScope(coreDefaultAgentConfigSchema, document.core, env);
     return {
+      configuredDefaultAgent: normalizeAgentSelection(coreResolved.defaultAgent) ?? null,
       ...(planDirectory ? { planDirectory } : {}),
       tui: superintendentResolved.tui === true
     };
   } catch {
-    return { tui: false };
+    return { configuredDefaultAgent: null, tui: false };
   }
 }
 
@@ -322,8 +340,23 @@ export async function runSuperintendentCommand(
     homeDir: options.homeDir
   });
   const document = parseSuperintendentDoc(selectedDocPath, await fs.readFile(selectedDocPath, "utf8"));
-  const builderAgent = options.builderAgent ?? document.frontmatter.builder.agent;
-  const selectedBuilderAgent = resolveAgentId(builderAgent) ?? builderAgent;
+  const selectedBuilder = await resolveLoopAgent({
+    providedAgent: normalizeAgentSelection(options.builderAgent),
+    frontmatterAgent: normalizeAgentSelection(document.frontmatter.builder.agent),
+    configuredDefaultAgent: normalizeAgentSelection(options.configuredDefaultAgent) ?? null,
+    assumeYes,
+    fallbackAgent: "claude-code",
+    message: "Select agent to run Superintendent builder with:",
+    select: selectPrompt,
+    isCancel
+  });
+
+  if ("cancelled" in selectedBuilder) {
+    cancel("Operation cancelled.");
+    throw new UserError("Operation cancelled.");
+  }
+
+  const selectedBuilderAgent = selectedBuilder.agent;
 
   if (!useDashboard) {
     let activeStage: RunSession["activeStage"] = undefined;
@@ -811,6 +844,15 @@ function resolveAbsolutePlanDirectory(dir: string, cwd: string, homeDir: string)
     return path.join(homeDir, dir.slice(2));
   }
   return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
+}
+
+function normalizeAgentSelection(value?: string | null): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 function isMissingDirectory(error: unknown): boolean {

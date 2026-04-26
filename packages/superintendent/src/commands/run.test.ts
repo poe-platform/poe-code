@@ -36,6 +36,35 @@ function createDoc(builderAgent: string): string {
   ].join("\n");
 }
 
+function createDocWithBuilderSection(builderSection: string[]): string {
+  return [
+    "---",
+    "kind: superintendent",
+    "version: 1",
+    "builder:",
+    ...builderSection,
+    "superintendent:",
+    "  agent: claude-code",
+    "  prompt: |",
+    "    Review {{builder.summary}}",
+    "owner:",
+    "  agent: claude-code",
+    "  prompt: |",
+    "    Review {{superintendent.summary}}",
+    "status:",
+    "  state: in_progress",
+    "  round: 0",
+    "  review_turn: 0",
+    "---",
+    "# Plan",
+    "",
+    "## Task Board",
+    "",
+    "- [ ] Task",
+    ""
+  ].join("\n");
+}
+
 type TestFs = SuperintendentFileSystem;
 
 function createFs(files: Record<string, string>): TestFs {
@@ -185,6 +214,345 @@ describe("superintendent run command", () => {
     },
     15_000
   );
+
+  it("prompts for a builder agent when flag and frontmatter are empty", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+        '  agent: ""',
+        "  prompt: |",
+        "    Build {{plan.path}}"
+      ])
+    });
+    const selectPrompt = vi.fn(async () => "codex");
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      interactive: true,
+      useDashboard: false,
+      fs,
+      selectPrompt,
+      runLoop: runLoopMock,
+      now: () => 0,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: {}
+    });
+
+    expect(selectPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Select agent to run Superintendent builder with:"
+      })
+    );
+    expect(runLoopMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runAgent: expect.any(Function)
+      })
+    );
+    expect(result.builderAgent).toBe("codex");
+  });
+
+  it("cancels cleanly when builder agent selection is cancelled", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+        '  agent: ""',
+        "  prompt: |",
+        "    Build {{plan.path}}"
+      ])
+    });
+    const cancelled = Symbol("cancelled");
+    const selectPrompt = vi.fn(async () => cancelled);
+    const runLoopMock = vi.fn();
+    vi.resetModules();
+    vi.doMock("@poe-code/design-system", async () => {
+      const actual = await vi.importActual<typeof import("@poe-code/design-system")>(
+        "@poe-code/design-system"
+      );
+      return {
+        ...actual,
+        isCancel: (value: unknown) => value === cancelled
+      };
+    });
+
+    try {
+      const { runSuperintendentCommand } = await import("./run.js");
+
+      await expect(
+        runSuperintendentCommand({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          docPath: "/repo/docs/plans/plan.md",
+          interactive: true,
+          useDashboard: false,
+          fs,
+          selectPrompt,
+          runLoop: runLoopMock,
+          now: () => 0,
+          stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+          env: {}
+        })
+      ).rejects.toThrow("Operation cancelled.");
+
+      expect(runLoopMock).not.toHaveBeenCalled();
+    } finally {
+      vi.doUnmock("@poe-code/design-system");
+      vi.resetModules();
+    }
+  });
+
+  it("uses the configured default builder agent when flag and frontmatter are empty", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+        '  agent: ""',
+        "  prompt: |",
+        "    Build {{plan.path}}"
+      ])
+    });
+    const selectPrompt = vi.fn();
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      configuredDefaultAgent: "codex",
+      interactive: false,
+      useDashboard: false,
+      fs,
+      selectPrompt,
+      runLoop: runLoopMock,
+      now: () => 0,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: {}
+    });
+
+    expect(selectPrompt).not.toHaveBeenCalled();
+    expect(result.builderAgent).toBe("codex");
+  });
+
+  it("falls back to claude-code with --yes when no builder agent is configured", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+        '  agent: ""',
+        "  prompt: |",
+        "    Build {{plan.path}}"
+      ])
+    });
+    const selectPrompt = vi.fn();
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      assumeYes: true,
+      interactive: false,
+      useDashboard: false,
+      fs,
+      selectPrompt,
+      runLoop: runLoopMock,
+      now: () => 0,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: {}
+    });
+
+    expect(selectPrompt).not.toHaveBeenCalled();
+    expect(result.builderAgent).toBe("claude-code");
+  });
+
+  it("prefers --agent over frontmatter and configured default", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDoc("goose")
+    });
+    const selectPrompt = vi.fn();
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      builderAgent: "codex",
+      configuredDefaultAgent: "claude-code",
+      interactive: false,
+      useDashboard: false,
+      fs,
+      selectPrompt,
+      runLoop: runLoopMock,
+      now: () => 0,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: {}
+    });
+
+    expect(selectPrompt).not.toHaveBeenCalled();
+    expect(result.builderAgent).toBe("codex");
+  });
+
+  it("threads core.defaultAgent through runCommand", async () => {
+    const volume = Volume.fromJSON(
+      {
+        "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+          '  agent: ""',
+          "  prompt: |",
+          "    Build {{plan.path}}"
+        ]),
+        "/home/test/.poe-code/config.json": JSON.stringify(
+          { core: { defaultAgent: "codex" } },
+          null,
+          2
+        )
+      },
+      "/"
+    );
+    const rawFs = createFsFromVolume(volume).promises;
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const originalArgv = process.argv;
+    const originalHome = process.env.HOME;
+
+    process.argv = ["node", "poe-code", "superintendent", "run", "--yes"];
+    process.env.HOME = "/home/test";
+
+    vi.resetModules();
+    vi.doMock("node:fs/promises", () => rawFs);
+    vi.doMock("../runtime/loop.js", async () => {
+      const actual = await vi.importActual<typeof import("../runtime/loop.js")>(
+        "../runtime/loop.js"
+      );
+      return {
+        ...actual,
+        runLoop: runLoopMock
+      };
+    });
+
+    try {
+      const { runCommand } = await import("./run.js");
+      const result = await runCommand.handler({
+        params: { doc: "/repo/docs/plans/plan.md" },
+        secrets: {},
+        fetch: globalThis.fetch,
+        fs: rawFs as never,
+        env: {
+          get: vi.fn(() => undefined)
+        },
+        progress: vi.fn()
+      });
+
+      expect(result.builderAgent).toBe("codex");
+      expect(runLoopMock).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.doUnmock("node:fs/promises");
+      vi.doUnmock("../runtime/loop.js");
+      vi.resetModules();
+      cwdSpy.mockRestore();
+      process.argv = originalArgv;
+      if (originalHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = originalHome;
+      }
+    }
+  });
+
+  it("threads core.defaultAgent through createRunMcpCommand", async () => {
+    const volume = Volume.fromJSON(
+      {
+        "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+          '  agent: ""',
+          "  prompt: |",
+          "    Build {{plan.path}}"
+        ]),
+        "/home/test/.poe-code/config.json": JSON.stringify(
+          { core: { defaultAgent: "codex" } },
+          null,
+          2
+        )
+      },
+      "/"
+    );
+    const rawFs = createFsFromVolume(volume).promises;
+    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const originalHome = process.env.HOME;
+
+    process.env.HOME = "/home/test";
+
+    vi.resetModules();
+    vi.doMock("node:fs/promises", () => rawFs);
+
+    try {
+      const { createRunMcpCommand } = await import("./run.js");
+      const runLoopMock = vi.fn(async () => ({
+        state: "completed" as const,
+        round: 0,
+        reviewTurn: 0,
+        maxRounds: 100,
+        maxReviewTurns: 5,
+        stopReason: "completed" as const
+      }));
+      const command = createRunMcpCommand({ runLoop: runLoopMock });
+      const result = await command.handler({
+        params: { doc: "/repo/docs/plans/plan.md" },
+        secrets: {},
+        fetch: globalThis.fetch,
+        fs: rawFs as never,
+        env: {
+          get: vi.fn(() => undefined)
+        },
+        progress: vi.fn()
+      });
+
+      expect(result.builderAgent).toBe("codex");
+      expect(runLoopMock).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.doUnmock("node:fs/promises");
+      vi.resetModules();
+      cwdSpy.mockRestore();
+      if (originalHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = originalHome;
+      }
+    }
+  });
 
   it("captures ACP session logs and usage through shared middleware for CLI streaming agents", async () => {
     const applyMiddlewaresMock = vi.fn(async (middlewares, ctx) => {

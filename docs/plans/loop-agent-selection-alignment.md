@@ -123,7 +123,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: wire-superintendent-run
     title: Prompt for builder agent in superintendent run instead of bailing
@@ -162,9 +162,9 @@ tasks:
         - --agent still wins over frontmatter and config
       Stub selectPrompt with a function fake; no real prompts.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: document-loop-agent-resolver
     title: Document resolveLoopAgent in agent-harness-tools README

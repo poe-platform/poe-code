@@ -123,9 +123,9 @@ tasks:
 
       - No bash scripts for setup.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
   - id: phase-2-memory-handle
     title: Phase 2 — openMemory handle in @poe-code/memory (no breaks)
@@ -308,8 +308,7 @@ tasks:
       commit: open
   - id: phase-3-drop-spawnfn
     title: >-
-      Phase 3 — drop spawnFn? injection, depend on @poe-code/agent-spawn
-      directly
+      Phase 3 — drop spawnFn? injection, depend on @poe-code/agent-spawn directly
     prompt: >
       Goal: replace the `spawnFn?` injection seam in `@poe-code/memory` with a
       direct

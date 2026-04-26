@@ -9,10 +9,16 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./testing": {
+      "import": "./dist/testing.js",
+      "types": "./dist/testing.d.ts"
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/agent-spawn/src/*.test.ts packages/agent-spawn/src/**/*.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/agent-spawn/src/*.test.ts packages/agent-spawn/src/**/*.test.ts"
   },
   "files": [
     "dist"

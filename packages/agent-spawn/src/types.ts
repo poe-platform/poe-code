@@ -73,9 +73,23 @@ export interface SpawnResult {
   stdout: string;
   stderr: string;
   exitCode: number;
+  durationMs?: number;
   threadId?: string;
   usage?: SpawnUsage;
   logFile?: string;
+}
+
+export interface AutonomousResult {
+  summary?: string;
+  log?: string;
+  output?: string;
+  stdout?: string;
+  text?: string;
+  logFile?: string;
+  toolCalls?: unknown[];
+  sessionResult?: {
+    toolCalls?: unknown[];
+  };
 }
 
 export interface SpawnLogger {

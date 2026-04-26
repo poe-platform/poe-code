@@ -24,6 +24,7 @@ export type {
   SpawnOptions,
   SpawnResult,
   SpawnUsage,
+  AutonomousResult,
   StdinMode
 } from "./types.js";
 
